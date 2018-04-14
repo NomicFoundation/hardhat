@@ -1,0 +1,30 @@
+{
+  "name": "sool",
+  "version": "0.0.1",
+  "main": "src/index.js",
+  "author": "Patricio Palladino",
+  "license": "MIT",
+  "homepage": "https://github.com/alcuadrado/sool",
+  "scripts": {
+    "prettier": "npx prettier --write src/**/*.js"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "ganache-cli": "^6.1.0",
+    "mocha": "^5.1.1",
+    "prettier": "^1.10.2",
+    "zeppelin-solidity": "^1.6.0"
+  },
+  "dependencies": {
+    "bn.js": "4.11.6",
+    "download": "^6.2.5",
+    "find-up": "^2.1.0",
+    "fs-extra": "^5.0.0",
+    "glob": "^7.1.2",
+    "number-to-bn": "1.7.0",
+    "rimraf": "^2.6.2",
+    "solc": "^0.4.19",
+    "solidity-parser": "^0.4.0",
+    "web3": "^1.0.0-beta.34"
+  }
+}
