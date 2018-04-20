@@ -83,12 +83,10 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 ## TODO
 
-* Make a mocha runner using the contract models and the generic script runner.
-    - Make Truffle tests runnable with Sool?
-
 * Dependencies resolution
-    - Replace the parser with Fede Bond's one? It's GPL3 though :(
-    - Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
+    - Don't use solidity-parser. Two options:
+        1. Replace the parser with Fede Bond's one? It's GPL3 though :(
+        2. Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
     - Support more libraries sources? EthPM?
     
 * Compilation
@@ -97,10 +95,17 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 * Flatten
     - Understand solidity_flattener and mimic it if possible
     - Make a debugging flattener a la truffle-flattener
+    
+* Optimizations
+    - Compile solc to wasm instead of asm.js
+    
+* Parallel test runner
+    - Check what espresso does. Does each runner need its own blockchain?
+    
+* Truffle compatibility
+    - Make Truffle tests runnable with Sool? 
 
 * TS contract models
     - Make a transaction "tracking" model to replace promievents
-    - Define how models should look like
+    - Define how contract models should look like
     - Make a generator for them
-    - Add support for libraries
-    - Add support for events
