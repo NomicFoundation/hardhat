@@ -1,22 +1,32 @@
-const Web3 = require("web3");
+const { getContract, getContractBytecode } = require("./artifacts");
 
-async function deploy(contract, contractCode, ...params) {
+async function deploy(contract, contractBytecode, ...params) {
+  const { web3 } = require("./env");
 
-  const web3 = new Web3(contract.currentProvider);
   const accounts = await web3.eth.getAccounts();
   const from = accounts[0];
 
-  const gas = await contract.deploy({
-    data: contractCode,
-    arguments: params
-  })
-    .estimateGas({from});
+  const gas = await contract
+    .deploy({
+      data: contractBytecode.object,
+      arguments: params
+    })
+    .estimateGas({ from });
 
-  return await contract.deploy({
-    data: contractCode,
-    arguments: params
-  })
-    .send({from, gas});
+  return await contract
+    .deploy({
+      data: contractBytecode.object,
+      arguments: params
+    })
+    .send({ from, gas });
 }
 
-module.exports = deploy;
+async function deployByName(contractName, ...params) {
+  return deploy(
+    getContract(contractName),
+    getContractBytecode(contractName),
+    ...params
+  );
+}
+
+module.exports = { deploy, deployByName };

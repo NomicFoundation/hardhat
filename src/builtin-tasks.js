@@ -4,34 +4,36 @@ const util = require("util");
 const glob = util.promisify(require("glob"));
 const rimraf = util.promisify(require("rimraf"));
 
+const { task, internalTask, run, getPublicTasks } = require("./tasks");
 const DependencyGraph = require("./DependencyGraph");
-const {Resolver} = require("./resolver");
+const { Resolver } = require("./resolver");
 const Compiler = require("./Compiler");
+const { buildArtifacts } = require("./artifacts");
 
-task("builtin:get-file-paths", async () => {
+internalTask("builtin:get-file-paths", async () => {
   return glob(path.join(config.root, "*", "**.sol"));
 });
 
-task("builtin:get-resolved-files", async () => {
+internalTask("builtin:get-resolved-files", async () => {
   const resolver = new Resolver(config);
   const paths = await run("builtin:get-file-paths");
   return paths.map(p => resolver.resolveProjectSourceFile(p));
 });
 
-task("builtin:get-dependency-graph", async () => {
+internalTask("builtin:get-dependency-graph", async () => {
   const resolver = new Resolver(config);
   const localFiles = await run("builtin:get-resolved-files");
   return DependencyGraph.createFromMultipleEntryPoints(resolver, localFiles);
 });
 
-task("builtin:get-compiler-input", async () => {
+internalTask("builtin:get-compiler-input", async () => {
   const compiler = new Compiler(config.solc.version);
 
   const dependencyGraph = await run("builtin:get-dependency-graph");
   return compiler.getInputFromDependencyGraph(dependencyGraph);
 });
 
-task("builtin:compile", async () => {
+internalTask("builtin:compile", async () => {
   const compiler = new Compiler(config.solc.version);
   const input = await run("builtin:get-compiler-input");
 
@@ -40,50 +42,42 @@ task("builtin:compile", async () => {
   return compiler.compile(input);
 });
 
-task("builtin:build-artifacts", async () => {
+internalTask("builtin:build-artifacts", async () => {
   const compilationOutput = await run("builtin:compile");
 
-  const artifactsPath = path.join(config.root, "artifacts");
+  await buildArtifacts(compilationOutput);
+});
 
-  await fs.ensureDir(path.join(artifactsPath, "abi"));
-  await fs.ensureDir(path.join(artifactsPath, "bytecode"));
+task("help", "Prints this message", async () => {
+  console.log(`Usage: npx sool [task]
+  
+Available tasks:
+`);
 
-  for (const [globalFileName, fileContracts] of Object.entries(
-    compilationOutput.contracts
-  )) {
-    for (const [contractName, contract] of Object.entries(fileContracts)) {
-      // If we want to support multiple contracts with the same name we need to somehow respect their FS hierarchy,
-      // but solidity doesn't have a 1-to-1 relationship between contracts and files. Then, using the globalFileName as
-      // name here would be wrong. But we can use it's dirname at least.
-      const outputPath = path.join(path.dirname(globalFileName), contractName);
+  const nameLength = getPublicTasks()
+    .map(t => t.name.length)
+    .reduce((a, b) => Math.max(a, b), 0);
 
-      await fs.outputJSON(
-        "artifacts/abi/" + outputPath + ".json",
-        contract.abi,
-        { spaces: 2 }
-      );
-
-      if (contract.evm && contract.evm.bytecode) {
-        await fs.outputJSON(
-          "artifacts/bytecode/" + outputPath + ".json",
-          contract.evm.bytecode,
-          { spaces: 2 }
-        );
-      }
-    }
+  for (const t of getPublicTasks().sort((a, b) => b.name < a.name)) {
+    const description = t.description ? t.description : "";
+    console.log(`  ${t.name.padEnd(nameLength)}\t${description}`);
   }
 });
 
-task("compile", async () => {
-  await run("builtin:build-artifacts");
-});
+task(
+  "compile",
+  "Compiles the whole project, building all artifacts",
+  async () => {
+    await run("builtin:build-artifacts");
+  }
+);
 
-task("clean", async () => {
+task("clean", "Clears the cache and deletes all artifacts", async () => {
   await rimraf(path.join(config.root, "artifacts"));
   await rimraf(path.join(config.root, "cache"));
 });
 
-task("run", async scriptPath => {
+task("run", "Runs an user-defined script", async scriptPath => {
   if (!fs.existsSync(scriptPath)) {
     throw new Error(`Script ${scriptPath} doesn't exist.`);
   }

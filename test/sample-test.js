@@ -11,7 +11,7 @@ describe("Contract", () => {
 
   before(async () => {
     Contract = await env.getContract("Contract");
-    contractCode = await env.getContractCode("Contract");
+    contractCode = await env.getContractBytecode("Contract");
   });
 
   it("Should be deployable", async () => {
