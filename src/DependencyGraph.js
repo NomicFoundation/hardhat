@@ -1,5 +1,6 @@
 const fs = require("fs-extra");
-const solidityParser = require("solidity-parser");
+
+const { getImports } = require("./imports");
 
 class DependencyGraph {
   constructor(entryPoints) {
@@ -33,7 +34,7 @@ class DependencyGraph {
     const dependencies = new Set();
     this.dependenciesPerFile.set(file, dependencies);
 
-    const imports = await this.getImports(file);
+    const imports = await getImports(file);
 
     for (const imp of imports) {
       const dependency = await resolver.resolveImport(file, imp);
@@ -43,14 +44,6 @@ class DependencyGraph {
         await this.addDependenciesFrom(resolver, dependency);
       }
     }
-  }
-
-  async getImports(resolvedFile) {
-    const content = await fs
-      .readFile(resolvedFile.absolutePath)
-      .then(c => c.toString("utf-8"));
-
-    return solidityParser.parse(content, "imports");
   }
 }
 
