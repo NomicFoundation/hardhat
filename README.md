@@ -83,6 +83,9 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 ## TODO
 
+* Architecture
+    - Document which functions are exported in env.js and their requirements.
+
 * Dependencies resolution
     - Don't use solidity-parser. Two options:
         1. Replace the parser with Fede Bond's one? It's GPL3 though :(
@@ -91,6 +94,8 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
     
 * Compilation
     - Add cache
+    - Add optimizer config
+    - Use the config !
     
 * Flatten
     - Understand solidity_flattener and mimic it if possible
@@ -104,6 +109,8 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
     
 * Truffle compatibility
     - Make Truffle tests runnable with Sool? 
+    - Make sure the sool's config is compatible with it.
+    - How does the config's network_id work?
 
 * TS contract models
     - Make a transaction "tracking" model to replace promievents
