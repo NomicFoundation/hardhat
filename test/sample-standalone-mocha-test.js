@@ -2,9 +2,10 @@ const env = require("../src/env");
 const assert = require('chai').assert;
 
 
-// How to run tests is up to the user, importing env is enough.
+// How to run tests is up to the user, importing env is enough. Still, this one
+// is also run by sool test.
 
-describe("Contract", () => {
+describe("Standalone mocha tests", () => {
 
   let Contract;
   let contractCode;
