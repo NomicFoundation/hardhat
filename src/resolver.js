@@ -68,16 +68,20 @@ class Resolver {
       throw new Error(`Library ${libraryName} not installed`);
     }
 
+    const absolutePath = path.join(
+      libraryPath,
+      globalName.slice(globalName.indexOf("/") + 1)
+    );
+
+    if (!(await fs.exists(absolutePath))) {
+      throw new Error(`File ${globalName} doesn't exist.`);
+    }
+
     const packageInfo = await fs.readJson(
       path.join(libraryPath, "package.json")
     );
 
     const libraryVersion = packageInfo.version;
-
-    const absolutePath = path.join(
-      libraryPath,
-      globalName.slice(globalName.indexOf("/") + 1)
-    );
 
     return this._resolveFile(
       globalName,
