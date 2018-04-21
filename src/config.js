@@ -30,8 +30,14 @@ function getConfig() {
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(exported).forEach(key => (global[key] = undefined));
 
+  const projectRoot = path.dirname(pathToConfigFile);
+
   const config = {
-    root: path.dirname(pathToConfigFile),
+    paths: {
+      root: projectRoot,
+      cache: path.join(projectRoot, "cache"),
+      artifacts: path.join(projectRoot, "artifacts")
+    },
     ...defaultConfig,
     ...userConfig
   };

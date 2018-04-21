@@ -35,7 +35,7 @@ class ResolvedFile {
 class Resolver {
   constructor(config) {
     this.config = config;
-    this.nodeModulesPath = path.join(this.config.root, "node_modules");
+    this.nodeModulesPath = path.join(this.config.paths.root, "node_modules");
   }
 
   async resolveProjectSourceFile(pathToResolve) {
@@ -45,7 +45,7 @@ class Resolver {
 
     const absolutePath = await fs.realpath(pathToResolve);
 
-    if (!absolutePath.startsWith(this.config.root)) {
+    if (!absolutePath.startsWith(this.config.paths.root)) {
       throw new Error(`File ${pathToResolve} is outside the project.`);
     }
 
@@ -55,7 +55,7 @@ class Resolver {
       );
     }
 
-    const globalName = absolutePath.slice(config.root.length + 1);
+    const globalName = absolutePath.slice(this.config.paths.root.length + 1);
 
     return this._resolveFile(globalName, absolutePath);
   }

@@ -1,11 +1,13 @@
 const fs = require("fs-extra");
 const path = require("path");
 
-async function buildArtifacts(compilationOutput) {
-  const artifactsPath = path.join(config.root, "artifacts");
+async function buildArtifacts(config, compilationOutput) {
 
-  await fs.ensureDir(path.join(artifactsPath, "abi"));
-  await fs.ensureDir(path.join(artifactsPath, "bytecode"));
+  const abiPath = path.join(config.paths.artifacts, "abi");
+  const bytecodePath = path.join(config.paths.artifacts, "bytecode");
+
+  await fs.ensureDir(abiPath);
+  await fs.ensureDir(bytecodePath);
 
   for (const [globalFileName, fileContracts] of Object.entries(
     compilationOutput.contracts
@@ -17,14 +19,14 @@ async function buildArtifacts(compilationOutput) {
       const outputPath = path.join(path.dirname(globalFileName), contractName);
 
       await fs.outputJSON(
-        "artifacts/abi/" + outputPath + ".json",
+        path.join(abiPath, outputPath + ".json"),
         contract.abi,
         { spaces: 2 }
       );
 
       if (contract.evm && contract.evm.bytecode) {
         await fs.outputJSON(
-          "artifacts/bytecode/" + outputPath + ".json",
+          path.join(bytecodePath, outputPath + ".json"),
           contract.evm.bytecode,
           { spaces: 2 }
         );
@@ -37,7 +39,7 @@ async function getContractAbi(name) {
   const { config } = require("./env");
 
   const abiPath = path.join(
-    config.root,
+    config.paths.root,
     "artifacts",
     "abi",
     "contracts",
@@ -51,7 +53,7 @@ async function getContractBytecode(name) {
   const { config } = require("./env");
 
   const bytecodePath = path.join(
-    config.root,
+    config.paths.root,
     "artifacts",
     "bytecode",
     "contracts",

@@ -12,7 +12,7 @@ const Compiler = require("./Compiler");
 const { buildArtifacts } = require("./artifacts");
 
 internalTask("builtin:get-file-paths", async () => {
-  return glob(path.join(config.root, "*", "**.sol"));
+  return glob(path.join(config.paths.root, "*", "**.sol"));
 });
 
 internalTask("builtin:get-resolved-files", async () => {
@@ -46,12 +46,12 @@ internalTask("builtin:compile", async () => {
 internalTask("builtin:build-artifacts", async () => {
   const compilationOutput = await run("builtin:compile");
 
-  await buildArtifacts(compilationOutput);
+  await buildArtifacts(config, compilationOutput);
 });
 
 internalTask("builtin:get-test-files", async (...commandLineFiles) => {
   if (commandLineFiles.length === 0) {
-    return glob(path.join(config.root, "test", "**.js"));
+    return glob(path.join(config.paths.root, "test", "**.js"));
   }
 
   return commandLineFiles;
@@ -98,8 +98,8 @@ task(
 );
 
 task("clean", "Clears the cache and deletes all artifacts", async () => {
-  await rimraf(path.join(config.root, "artifacts"));
-  await rimraf(path.join(config.root, "cache"));
+  await rimraf(config.paths.cache);
+  await rimraf(config.paths.artifacts);
 });
 
 task(

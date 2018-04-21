@@ -40,7 +40,7 @@ Running a task returns whichever the task's function returns. When the task is r
 
 The configuration is defined in `sool-config.js` at the root of the project, and is loaded on-demand when the environment is required. When this file is imported Web3 and the tasks' DSL are available in `global`, and the built-in tasks already defined.
 
-The user-provided config overrides a default configuration that can be found in `src/default-config.js`. The absolute path to the root of the project is also set as `config.root`.
+The user-provided config overrides a default configuration that can be found in `src/default-config.js`. The absolute path to the root of the project is also set as `config.paths.root`.
 
 User defined tasks should be declared in the configuration file. If any of their names clashes with a built-in task's name, the user-defined one will be used. 
 
