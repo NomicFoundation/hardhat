@@ -3,7 +3,7 @@ const path = require("path");
 const Web3 = require("web3");
 
 const { getSoolArguments } = require("./arguments");
-const { task, internalTask, run } = require("./tasks");
+const { task, internalTask } = require("./tasks");
 
 function getUserConfigPath() {
   const pathToConfigFile = findUp.sync("sool-config.js");
@@ -19,7 +19,7 @@ function getConfig() {
 
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
-  const exported = { internalTask, task, run, Web3 };
+  const exported = { internalTask, task, Web3 };
   Object.entries(exported).forEach(([key, value]) => (global[key] = value));
 
   require("./builtin-tasks");

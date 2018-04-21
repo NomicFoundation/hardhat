@@ -1,8 +1,6 @@
 const { getContract, getContractBytecode } = require("./artifacts");
 
-async function deploy(contract, contractBytecode, ...params) {
-  const { web3 } = require("./env");
-
+async function deploy(web3, contract, contractBytecode, ...params) {
   const accounts = await web3.eth.getAccounts();
   const from = accounts[0];
 
@@ -21,8 +19,9 @@ async function deploy(contract, contractBytecode, ...params) {
     .send({ from, gas });
 }
 
-async function deployByName(contractName, ...params) {
+async function deployByName(web3, contractName, ...params) {
   return deploy(
+    web3,
     getContract(contractName),
     getContractBytecode(contractName),
     ...params

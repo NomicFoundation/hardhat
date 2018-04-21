@@ -36,9 +36,7 @@ async function buildArtifacts(config, compilationOutput) {
   }
 }
 
-async function getContractAbi(name) {
-  const { config } = require("./env");
-
+async function getContractAbi(config, name) {
   const abiPath = path.join(
     config.paths.root,
     "artifacts",
@@ -50,9 +48,7 @@ async function getContractAbi(name) {
   return fs.readJson(abiPath);
 }
 
-async function getContractBytecode(name) {
-  const { config } = require("./env");
-
+async function getContractBytecode(config, name) {
   const bytecodePath = path.join(
     config.paths.root,
     "artifacts",
@@ -64,10 +60,8 @@ async function getContractBytecode(name) {
   return fs.readJson(bytecodePath);
 }
 
-async function getContract(name) {
-  const { web3 } = require("./env");
-
-  const abi = await getContractAbi(name);
+async function getContract(config, web3, name) {
+  const abi = await getContractAbi(config, name);
 
   return new web3.eth.Contract(abi);
 }

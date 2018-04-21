@@ -5,7 +5,7 @@ const Mocha = require("mocha");
 const glob = util.promisify(require("glob"));
 const rimraf = util.promisify(require("rimraf"));
 
-const { task, internalTask, run, getPublicTasks } = require("./tasks");
+// const { task, internalTask, getPublicTasks } = require("./tasks");
 const DependencyGraph = require("./DependencyGraph");
 const { Resolver } = require("./resolver");
 const Compiler = require("./Compiler");

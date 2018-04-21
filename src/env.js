@@ -2,9 +2,13 @@ const Web3 = require("web3");
 
 const { getConfig } = require("./config");
 const { getWeb3Instance } = require("./network");
-const { getContractBytecode, getContract } = require("./artifacts");
 const { deploy, deployByName } = require("./deploy");
-const { run } = require("./tasks");
+const { runTask } = require("./tasks");
+const {
+  getContract,
+  getContractAbi,
+  getContractBytecode
+} = require("./artifacts");
 
 const config = getConfig();
 const web3 = getWeb3Instance(config);
@@ -20,9 +24,10 @@ module.exports = {
   config,
   Web3,
   web3,
-  getContract,
-  getContractBytecode,
-  deploy,
-  deployByName,
-  run
+  getContract: getContract.bind(undefined, config, web3),
+  getContractAbi: getContractAbi.bind(undefined, config),
+  getContractBytecode: getContractBytecode.bind(undefined, config),
+  deploy: deploy.bind(undefined, web3),
+  deployByName: deployByName.bind(undefined, web3),
+  run: (...args) => runTask(module.exports, ...args)
 };
