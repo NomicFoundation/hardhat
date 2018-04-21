@@ -1,3 +1,5 @@
+const Web3 = require("web3");
+
 const { getConfig } = require("./config");
 const { getWeb3Instance } = require("./network");
 const { getContractBytecode, getContract } = require("./artifacts");
@@ -16,6 +18,7 @@ function injectEnvToGlobal() {
 module.exports = {
   injectEnvToGlobal,
   config,
+  Web3,
   web3,
   getContract,
   getContractBytecode,
