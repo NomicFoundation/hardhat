@@ -18,8 +18,6 @@ function internalTask(name, description, func) {
 }
 
 async function run(name, ...args) {
-  // We first load the env, which will define the different tasks.
-  const env = require("./env");
 
   const theTask = tasks.get(name);
 
@@ -27,7 +25,9 @@ async function run(name, ...args) {
     throw new Error(`Task ${name} not defined`);
   }
 
-  env.injectEnvToGlobal();
+  const {injectEnvToGlobal} = require("./env");
+  injectEnvToGlobal();
+
   return theTask.func(...args);
 }
 
