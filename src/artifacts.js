@@ -2,7 +2,6 @@ const fs = require("fs-extra");
 const path = require("path");
 
 async function buildArtifacts(config, compilationOutput) {
-
   const abiPath = path.join(config.paths.artifacts, "abi");
   const bytecodePath = path.join(config.paths.artifacts, "bytecode");
 
@@ -13,9 +12,11 @@ async function buildArtifacts(config, compilationOutput) {
     compilationOutput.contracts
   )) {
     for (const [contractName, contract] of Object.entries(fileContracts)) {
-      // If we want to support multiple contracts with the same name we need to somehow respect their FS hierarchy,
-      // but solidity doesn't have a 1-to-1 relationship between contracts and files. Then, using the globalFileName as
-      // name here would be wrong. But we can use it's dirname at least.
+      // If we want to support multiple contracts with the same name we need to
+      // somehow respect their FS hierarchy, but solidity doesn't have a 1-to-1
+      // relationship between contracts and files. Then, using the
+      // globalFileName as name here would be wrong. But we can use it's dirname
+      // at least.
       const outputPath = path.join(path.dirname(globalFileName), contractName);
 
       await fs.outputJSON(
