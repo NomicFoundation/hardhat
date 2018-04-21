@@ -38,12 +38,12 @@ class Resolver {
     this.nodeModulesPath = path.join(this.config.root, "node_modules");
   }
 
-  resolveProjectSourceFile(pathToResolve) {
-    if (!fs.existsSync(pathToResolve)) {
+  async resolveProjectSourceFile(pathToResolve) {
+    if (!(await fs.exists(pathToResolve))) {
       throw new Error(`File ${pathToResolve} doesn't exist.`);
     }
 
-    const absolutePath = fs.realpathSync(pathToResolve);
+    const absolutePath = await fs.realpath(pathToResolve);
 
     if (!absolutePath.startsWith(this.config.root)) {
       throw new Error(`File ${pathToResolve} is outside the project.`);
@@ -60,15 +60,17 @@ class Resolver {
     return this._resolveFile(globalName, absolutePath);
   }
 
-  resolveLibrarySourceFile(globalName) {
+  async resolveLibrarySourceFile(globalName) {
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
     const libraryPath = path.join(this.nodeModulesPath, libraryName);
 
-    if (!fs.existsSync(libraryPath)) {
+    if (!(await fs.exists(libraryPath))) {
       throw new Error(`Library ${libraryName} not installed`);
     }
 
-    const packageInfo = fs.readJsonSync(path.join(libraryPath, "package.json"));
+    const packageInfo = await fs.readJson(
+      path.join(libraryPath, "package.json")
+    );
 
     const libraryVersion = packageInfo.version;
 
@@ -85,23 +87,8 @@ class Resolver {
     );
   }
 
-  _resolveFile(globalName, absolutePath, libraryName, libraryVersion) {
-    const content = fs.readFileSync(absolutePath, { encoding: "utf8" });
-    const stats = fs.statSync(absolutePath);
-    const lastModificationDate = new Date(stats.mtime);
-
-    return new ResolvedFile(
-      globalName,
-      absolutePath,
-      content,
-      lastModificationDate,
-      libraryName,
-      libraryVersion
-    );
-  }
-
-  resolveImport(from, imported) {
-    if (Resolver.isRelativeImport(imported)) {
+  async resolveImport(from, imported) {
+    if (this._isRelativeImport(imported)) {
       if (from.library === undefined) {
         return this.resolveProjectSourceFile(
           path.normalize(path.join(path.dirname(from.absolutePath), imported))
@@ -124,7 +111,22 @@ class Resolver {
     return this.resolveLibrarySourceFile(imported);
   }
 
-  static isRelativeImport(imported) {
+  async _resolveFile(globalName, absolutePath, libraryName, libraryVersion) {
+    const content = await fs.readFile(absolutePath, { encoding: "utf8" });
+    const stats = await fs.stat(absolutePath);
+    const lastModificationDate = new Date(stats.mtime);
+
+    return new ResolvedFile(
+      globalName,
+      absolutePath,
+      content,
+      lastModificationDate,
+      libraryName,
+      libraryVersion
+    );
+  }
+
+  _isRelativeImport(imported) {
     return imported.startsWith("./") || imported.startsWith("../");
   }
 }

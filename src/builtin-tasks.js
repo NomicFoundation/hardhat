@@ -18,7 +18,7 @@ internalTask("builtin:get-file-paths", async () => {
 internalTask("builtin:get-resolved-files", async () => {
   const resolver = new Resolver(config);
   const paths = await run("builtin:get-file-paths");
-  return paths.map(p => resolver.resolveProjectSourceFile(p));
+  return Promise.all(paths.map(p => resolver.resolveProjectSourceFile(p)));
 });
 
 internalTask("builtin:get-dependency-graph", async () => {
@@ -103,12 +103,12 @@ task("clean", "Clears the cache and deletes all artifacts", async () => {
 });
 
 task("run", "Runs an user-defined script", async scriptPath => {
-  if (!fs.existsSync(scriptPath)) {
+  if (!await fs.exists(scriptPath)) {
     throw new Error(`Script ${scriptPath} doesn't exist.`);
   }
 
   await run("compile");
-  require(fs.realpathSync(scriptPath));
+  require(await fs.realpath(scriptPath));
 });
 
 task("test", "Runs mocha tests", async (...commandLineFiles) => {
