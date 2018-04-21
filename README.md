@@ -93,6 +93,8 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
     - Support more libraries sources? EthPM?
     
 * Compilation
+    - Make sure that the list of compilers is downloaded using a secure connection (cert validated)
+    - Validate downloaded compiler
     - Add cache
     - Add optimizer config
     - Use the config !

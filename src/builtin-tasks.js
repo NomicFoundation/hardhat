@@ -44,7 +44,29 @@ internalTask("builtin:compile", async () => {
 
   console.log("Compiling...");
 
-  return compiler.compile(input);
+  const output = await compiler.compile(input);
+
+  let hasErrors = false;
+  if (output.errors) {
+    for (const error of output.errors) {
+      hasErrors = hasErrors || error.severity === "error";
+      if (error.severity === "error") {
+        hasErrors = true;
+        console.log("\n");
+        console.error(error.formattedMessage);
+      } else {
+        console.log("\n");
+        console.warn(error.formattedMessage);
+      }
+    }
+  }
+
+  if (hasErrors || !output.contracts) {
+    console.error("Compilation failed.");
+    process.exit(1);
+  }
+
+  return output;
 });
 
 internalTask("builtin:build-artifacts", async () => {
