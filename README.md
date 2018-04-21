@@ -1,4 +1,4 @@
-# Sool: Solidity toolchain
+# S(olidity t)ool
 
 
 ## Warning
