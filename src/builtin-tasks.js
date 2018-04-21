@@ -102,14 +102,18 @@ task("clean", "Clears the cache and deletes all artifacts", async () => {
   await rimraf(path.join(config.root, "cache"));
 });
 
-task("run", "Runs an user-defined script after compiling the project", async scriptPath => {
-  if (!await fs.exists(scriptPath)) {
-    throw new Error(`Script ${scriptPath} doesn't exist.`);
-  }
+task(
+  "run",
+  "Runs an user-defined script after compiling the project",
+  async scriptPath => {
+    if (!(await fs.exists(scriptPath))) {
+      throw new Error(`Script ${scriptPath} doesn't exist.`);
+    }
 
-  await run("compile");
-  require(await fs.realpath(scriptPath));
-});
+    await run("compile");
+    require(await fs.realpath(scriptPath));
+  }
+);
 
 task("test", "Runs mocha tests", async (...commandLineFiles) => {
   await run("compile");
