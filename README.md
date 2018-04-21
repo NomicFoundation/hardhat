@@ -88,7 +88,7 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 * Dependencies resolution
     - Don't use solidity-parser. Two options:
-        1. Replace the parser with Fede Bond's one? It's GPL3 though :(
+        1. Replace the parser with solidity-parser-antlr once its relicenced.
         2. Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
     - Support more libraries sources? EthPM?
     
