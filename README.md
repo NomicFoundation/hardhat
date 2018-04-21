@@ -21,15 +21,15 @@ As an extra, I also want to offer the possibility to write tests in typescript.
 
 ### Sool environment
 
-The key concept in sool's architecture is the environment, which consist in a set of predefined functions, a Web3 instance and the project config.
+The key concept in sool's architecture is the environment, which consist in a set of predefined functions, a Web3 instance, the project config and a way to run builtin and user-defined tasks.
 
-The environment is initialized when `src/env.js` is loaded, so requiring this file is enough to use run in any javascript file.
+The environment is initialized when `src/env.js` is loaded, so requiring this file is enough to use run in any javascript file. The sool binary is just a script that imports the environment and runs a task.
 
-For convenience, all environment's elements are injected to the the `global` before running a task or user-defined script.
+For convenience, all the environment's elements are injected to the the `global` before running a task.
 
 ### Tasks
 
-Sool has a small DSL for defining and running tasks. A task is just an async function taking an array of command line arguments (see section arguments) and can return whatever it wants.
+Sool has a small DSL for defining and running tasks. A task is just an async function taking an array of command line arguments (see section Arguments) and can return whatever it wants.
 
 Users of sool can define their own tasks, or redefine existing one as they please. Built-in tasks are divided in many small steps to users can override whichever they want.
 
@@ -75,6 +75,9 @@ Running tests: They can be any kind of user script, there's a sample mocha test 
 
 Just run `yarn prettier` :)
 
+It's OK and to commit prettier generated changes in a separate commit, so don't worry if you only remember to run it 
+from time to time.
+
 
 ## Sool projects structure
 
@@ -82,9 +85,6 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 
 ## TODO
-
-* Architecture
-    - Document which functions are exported in env.js and their requirements.
 
 * Dependencies resolution
     - Don't use solidity-parser. Two options:
@@ -100,7 +100,10 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 * Flatten
     - Understand solidity_flattener and mimic it if possible
     - Make a debugging flattener a la truffle-flattener
-    
+   
+* Deployment
+    - Add support for libraries 
+   
 * Optimizations
     - Compile solc to wasm instead of asm.js
     
@@ -108,9 +111,9 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
     - Check what espresso does. Does each runner need its own blockchain?
     
 * Truffle compatibility
-    - Make Truffle tests runnable with Sool? 
-    - Make sure the sool's config is compatible with it.
-    - How does the config's network_id work?
+    - Make Truffle tests runnable with Sool? They use Web3 0.x, maybe it's impossible.
+    - Make sure the sool's config compatible with theirs wherever it makes sense.
+    - How does their config's network_id work?
 
 * TS contract models
     - Make a transaction "tracking" model to replace promievents
