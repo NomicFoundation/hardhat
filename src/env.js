@@ -2,6 +2,7 @@ const { getConfig } = require("./config");
 const { getWeb3Instance } = require("./network");
 const { getContractBytecode, getContract } = require("./artifacts");
 const { deploy, deployByName } = require("./deploy");
+const { run } = require("./tasks");
 
 const config = getConfig();
 const web3 = getWeb3Instance(config);
@@ -19,5 +20,6 @@ module.exports = {
   getContract,
   getContractBytecode,
   deploy,
-  deployByName
+  deployByName,
+  run
 };
