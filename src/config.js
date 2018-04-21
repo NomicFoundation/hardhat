@@ -17,19 +17,22 @@ function getUserConfigPath() {
 function getConfig() {
   const pathToConfigFile = getUserConfigPath();
 
-  global.internalTask = internalTask;
-  global.task = task;
-  global.run = run;
-  global.Web3 = Web3;
+  // Before loading the builtin tasks, the default and user's config we expose
+  // the tasks' DSL and Web3 though the global object.
+  const exported = {internalTask, task, run, Web3};
+  Object.entries(exported).forEach(([key, value]) => global[key] = value);
 
   require("./builtin-tasks");
 
   const userConfig = require(pathToConfigFile);
+  const defaultConfig = require("./default-config");
 
-  // merge with default config
+  // To avoid bad practices we remove the previously exported stuff
+  Object.keys(exported).forEach(key => global[key] = undefined);
+
   const config = {
     root: path.dirname(pathToConfigFile),
-    ...require("./default-config"),
+    ...defaultConfig,
     ...userConfig
   };
 

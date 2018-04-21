@@ -59,10 +59,7 @@ internalTask("builtin:get-test-files", async (...commandLineFiles) => {
 });
 
 internalTask("builtin:setup-test-environment", async () => {
-  const env = require("./env");
-  env.injectEnvToGlobal();
-
-  global.accounts = await env.web3.eth.getAccounts();
+  global.accounts = await web3.eth.getAccounts();
   global.assert = require("chai").assert;
 });
 
@@ -112,13 +109,6 @@ task("run", "Runs an user-defined script", async scriptPath => {
   }
 
   await run("compile");
-
-  const env = require("./env");
-
-  for (const key of Object.keys(env)) {
-    global[key] = env[key];
-  }
-
   require(fs.realpathSync(scriptPath));
 });
 
