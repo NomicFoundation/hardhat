@@ -11,6 +11,10 @@ const { Resolver } = require("./resolver");
 const Compiler = require("./Compiler");
 const { buildArtifacts } = require("./artifacts");
 
+function getCompilersDir(config) {
+  return path.join(config.paths.cache, "compilers");
+}
+
 internalTask("builtin:get-file-paths", async () => {
   return glob(path.join(config.paths.root, "*", "**.sol"));
 });
@@ -28,14 +32,14 @@ internalTask("builtin:get-dependency-graph", async () => {
 });
 
 internalTask("builtin:get-compiler-input", async () => {
-  const compiler = new Compiler(config.solc.version);
+  const compiler = new Compiler(config.solc.version, getCompilersDir(config));
 
   const dependencyGraph = await run("builtin:get-dependency-graph");
   return compiler.getInputFromDependencyGraph(dependencyGraph);
 });
 
 internalTask("builtin:compile", async () => {
-  const compiler = new Compiler(config.solc.version);
+  const compiler = new Compiler(config.solc.version, getCompilersDir(config));
   const input = await run("builtin:get-compiler-input");
 
   console.log("Compiling...");
