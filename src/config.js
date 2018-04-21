@@ -19,8 +19,8 @@ function getConfig() {
 
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
-  const exported = {internalTask, task, run, Web3};
-  Object.entries(exported).forEach(([key, value]) => global[key] = value);
+  const exported = { internalTask, task, run, Web3 };
+  Object.entries(exported).forEach(([key, value]) => (global[key] = value));
 
   require("./builtin-tasks");
 
@@ -28,7 +28,7 @@ function getConfig() {
   const defaultConfig = require("./default-config");
 
   // To avoid bad practices we remove the previously exported stuff
-  Object.keys(exported).forEach(key => global[key] = undefined);
+  Object.keys(exported).forEach(key => (global[key] = undefined));
 
   const config = {
     root: path.dirname(pathToConfigFile),

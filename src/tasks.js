@@ -18,14 +18,13 @@ function internalTask(name, description, func) {
 }
 
 async function run(name, ...args) {
-
   const theTask = tasks.get(name);
 
   if (theTask === undefined) {
     throw new Error(`Task ${name} not defined`);
   }
 
-  const {injectEnvToGlobal} = require("./env");
+  const { injectEnvToGlobal } = require("./env");
   injectEnvToGlobal();
 
   return theTask.func(...args);

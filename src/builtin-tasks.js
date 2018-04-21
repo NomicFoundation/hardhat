@@ -50,7 +50,6 @@ internalTask("builtin:build-artifacts", async () => {
 });
 
 internalTask("builtin:get-test-files", async (...commandLineFiles) => {
-
   if (commandLineFiles.length === 0) {
     return glob(path.join(config.root, "test", "**.js"));
   }
