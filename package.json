@@ -1,12 +1,13 @@
 {
   "name": "sool",
   "version": "0.0.1",
-  "main": "src/index.js",
   "author": "Patricio Palladino",
   "license": "MIT",
   "homepage": "https://github.com/alcuadrado/sool",
+  "main": "./src/core/bin.js",
+  "bin": "./src/core/bin.js",
   "scripts": {
-    "prettier": "npx prettier --write src/**/*.js"
+    "prettier": "npx prettier --write *.js src/**/*.js"
   },
   "devDependencies": {
     "ganache-cli": "^6.1.0",

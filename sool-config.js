@@ -1,6 +1,5 @@
-
 task("asd", "Sample user-defined task", async () => {
-  console.log(config);
+  console.log("This is a sample user-defined task");
 });
 
 module.exports = {
@@ -16,5 +15,4 @@ module.exports = {
       network_id: "*" // Match any network id
     }
   },
-  web3Provider: "http://localhost:8545"
 };

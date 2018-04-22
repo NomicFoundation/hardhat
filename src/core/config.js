@@ -22,7 +22,7 @@ function getConfig() {
   const exported = { internalTask, task, Web3 };
   Object.entries(exported).forEach(([key, value]) => (global[key] = value));
 
-  require("./builtin-tasks");
+  require("../tasks/builtin-tasks");
 
   const userConfig = require(pathToConfigFile);
   const defaultConfig = require("./default-config");

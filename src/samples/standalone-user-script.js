@@ -1,4 +1,4 @@
-const env = require("./env");
+const env = require("../core/environment");
 
 env.run("compile").then(() => {
   console.log(

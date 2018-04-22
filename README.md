@@ -23,9 +23,11 @@ As an extra, I also want to offer the possibility to write tests in typescript.
 
 The key concept in sool's architecture is the environment, which consist in a set of predefined functions, a Web3 instance, the project config and a way to run builtin and user-defined tasks.
 
-The environment is initialized when `src/env.js` is loaded, so requiring this file is enough to use run in any javascript file. The sool binary is just a script that imports the environment and runs a task.
+The environment is initialized when `src/core/environment.js` is loaded, so requiring this file is enough to use run in any javascript file. The sool binary is just a script that imports the environment and runs a task.
 
 For convenience, all the environment's elements are injected to the the `global` before running a task.
+
+`src/core/environment.js` is set as the package main so once uploaded to npm it can be imported with `require("sool")` in any user script.
 
 ### Tasks
 
@@ -40,7 +42,7 @@ Running a task returns whichever the task's function returns. When the task is r
 
 The configuration is defined in `sool-config.js` at the root of the project, and is loaded on-demand when the environment is required. When this file is imported Web3 and the tasks' DSL are available in `global`, and the built-in tasks already defined.
 
-The user-provided config overrides a default configuration that can be found in `src/default-config.js`. The absolute path to the root of the project is also set as `config.paths.root`.
+The user-provided config overrides a default configuration that can be found in `src/core/default-config.js`. The absolute path to the root of the project is also set as `config.paths.root`.
 
 User defined tasks should be declared in the configuration file. If any of their names clashes with a built-in task's name, the user-defined one will be used. 
 
@@ -62,14 +64,15 @@ There's no exportable artifacts yet, so just `yarn install` and use it locally.
 
 ## Running the project
 
-Compiling everything: `node src/index.js compile` 
+Compiling everything: `./src/core/bin.js compile` 
 
-Running a user script using `sool`: `node src/index.js run src/sample-user-script-run-with-sool.js`
+Running a user script using `sool`: `./src/core/bin.js run src/samples/user-script.js`
 
-Running a user script without using `sool`: `node src/sample-user-script-run-without-sool.js`
+Running a user script without using `sool`: `node src/samples/standalone-user-script.js`
 
-Running tests: They can be any kind of user script, there's a sample mocha test in `test/` that can be run with `npx mocha` after compiling the project.
+Running tests using `sool`: Tests in `test/` can be run with sool with `./src/core/bin.js test`. They are mocha tests with the environment, `chai.assert` and web3's `accounts` exported in global.
 
+Running tests without using `sool`: They can be any user script, run with any test runner. There's a sample mocha test that can be run with `npx mocha src/samples/standalone-mocha-test.js` 
 
 ## Code style
 

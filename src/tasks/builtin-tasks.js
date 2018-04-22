@@ -5,11 +5,11 @@ const Mocha = require("mocha");
 const glob = util.promisify(require("glob"));
 const rimraf = util.promisify(require("rimraf"));
 
-const { task, internalTask, getPublicTasks } = require("./tasks");
-const DependencyGraph = require("./DependencyGraph");
-const { Resolver } = require("./resolver");
-const Compiler = require("./Compiler");
-const { buildArtifacts } = require("./artifacts");
+const { task, internalTask, getPublicTasks } = require("../core/tasks");
+const DependencyGraph = require("../solidity/dependencyGraph");
+const { Resolver } = require("../solidity/resolver");
+const Compiler = require("../solidity/compiler");
+const { buildArtifacts } = require("../core/artifacts");
 
 function getCompilersDir(config) {
   return path.join(config.paths.cache, "compilers");
