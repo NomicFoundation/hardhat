@@ -43,7 +43,6 @@ internalTask("builtin:compile", async () => {
   const input = await run("builtin:get-compiler-input");
 
   console.log("Compiling...");
-
   const output = await compiler.compile(input);
 
   let hasErrors = false;

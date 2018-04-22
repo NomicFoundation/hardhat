@@ -2,6 +2,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const download = require("download");
 const solcWrapper = require("solc/wrapper");
+const Web3 = require("web3");
 
 const COMPILER_FILES_DIR_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
@@ -61,9 +62,8 @@ class Compiler {
 
     const compilerFileName = await this.getCompilerBinFilename();
     const compilerPath = await this.downloadCompiler(compilerFileName);
-    const absoluteCompilerPath = await fs.realpath(compilerPath);
 
-    this.loadedSolc = solcWrapper(require(absoluteCompilerPath));
+    this.loadedSolc = solcWrapper(require(compilerPath));
 
     return this.loadedSolc;
   }
@@ -73,35 +73,33 @@ class Compiler {
   }
 
   async getCompilerBinFilename() {
-    const compilersListPath = path.join(this.compilersDir, "list.json");
-    const compilersListExisted = await fs.pathExists(compilersListPath);
+    const compilersListExisted = this.compilerListExists();
 
-    if (!compilersListExisted) {
-      await fs.ensureDir(this.compilersDir);
-      await this.downloadVersionsList();
-    }
-
-    let list = await fs.readJson(compilersListPath);
-    let fileName = list.releases[this.version];
+    let list = await this.getCompilerList();
+    let fileName = this.getChosenVersionPath(list);
 
     // We may need to re-download the compilers list.
     if (fileName === undefined && compilersListExisted) {
       await fs.unlink(compilersListPath);
-      await this.downloadVersionsList();
 
-      list = await fs.readJson(compilersListPath);
-      fileName = list.releases[this.version];
+      list = await this.getCompilerList();
+      fileName = this.getChosenVersionPath(list);
     }
 
     if (fileName === undefined) {
       throw new Error(
         "Solidity version " +
           this.version +
-          " is invalid or hasn't been released yet"
+          " is invalid or hasn't been" +
+          " released yet"
       );
     }
 
     return fileName;
+  }
+
+  getChosenVersionPath(list) {
+    return list.releases[this.version];
   }
 
   async downloadCompiler(compilerFileName) {
@@ -109,6 +107,8 @@ class Compiler {
 
     if (!(await fs.pathExists(compilerPath))) {
       const compilerUrl = COMPILER_FILES_DIR_URL + compilerFileName;
+
+      console.debug("Downloading compiler version " + this.version);
 
       try {
         await download(compilerUrl, this.compilersDir);
@@ -122,15 +122,57 @@ class Compiler {
       }
     }
 
+    await this.validateCompiler(compilerPath, compilerFileName);
+
     return compilerPath;
+  }
+
+  getCompilerListPath() {
+    return path.join(this.compilersDir, "list.json");
+  }
+
+  async compilerListExists() {
+    return fs.pathExists(this.getCompilerListPath());
+  }
+
+  async getCompilerList() {
+    if (!(await this.compilerListExists())) {
+      await this.downloadVersionsList();
+    }
+
+    return fs.readJson(this.getCompilerListPath());
   }
 
   async downloadVersionsList() {
     try {
+      await fs.ensureDir(this.compilersDir);
       await download(COMPILERS_LIST_URL, this.compilersDir);
     } catch (e) {
       throw Error(
-        "Couldn't download compiler versions list. Please check your connection or use local version " +
+        "Couldn't download compiler versions list. Please check your " +
+          "connection or use local version " +
+          this.getLocalSolcVersion()
+      );
+    }
+  }
+
+  async validateCompiler(compilerPath, compilerFileName) {
+    const list = await this.getCompilerList();
+    const compilerInfo = list.builds.filter(
+      b => b.path === compilerFileName
+    )[0];
+    const expectedKeccak256 = compilerInfo.keccak256;
+
+    const compiler = await fs.readFile(compilerPath);
+    const compilerKeccak256 = Web3.utils.sha3(compiler);
+
+    if (expectedKeccak256 !== compilerKeccak256) {
+      await fs.unlink(compilerPath);
+      throw new Error(
+        "Couldn't download compiler version " +
+          this.version +
+          ". Downloaded version checksum doesn't much the expected one. Please" +
+          " check your connection or use local version " +
           this.getLocalSolcVersion()
       );
     }
