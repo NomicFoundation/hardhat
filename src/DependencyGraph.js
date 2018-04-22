@@ -1,17 +1,8 @@
-const fs = require("fs-extra");
-
 const { getImports } = require("./imports");
 
 class DependencyGraph {
-  constructor(entryPoints) {
+  constructor() {
     this.dependenciesPerFile = new Map();
-    this.entryPoints = entryPoints;
-  }
-
-  static async createFromEntryPoint(resolver, entryPoint) {
-    return DependencyGraph.createFromMultipleEntryPoints(resolver, [
-      entryPoint
-    ]);
   }
 
   static async createFromMultipleEntryPoints(resolver, entryPoints) {
