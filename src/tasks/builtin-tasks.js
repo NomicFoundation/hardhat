@@ -28,7 +28,7 @@ internalTask("builtin:get-resolved-files", async () => {
 internalTask("builtin:get-dependency-graph", async () => {
   const resolver = new Resolver(config);
   const localFiles = await run("builtin:get-resolved-files");
-  return DependencyGraph.createFromMultipleEntryPoints(resolver, localFiles);
+  return DependencyGraph.createFromResolvedFiles(resolver, localFiles);
 });
 
 internalTask("builtin:get-compiler-input", async () => {

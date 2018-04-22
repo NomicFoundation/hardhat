@@ -5,12 +5,12 @@ class DependencyGraph {
     this.dependenciesPerFile = new Map();
   }
 
-  static async createFromMultipleEntryPoints(resolver, entryPoints) {
-    const graph = new DependencyGraph(entryPoints);
+  static async createFromResolvedFiles(resolver, resolvedFiles) {
+    const graph = new DependencyGraph(resolvedFiles);
 
-    for (const entryPoint of entryPoints) {
-      if (!graph.dependenciesPerFile.has(entryPoint)) {
-        await graph.addDependenciesFrom(resolver, entryPoint);
+    for (const resolvedFile of resolvedFiles) {
+      if (!graph.dependenciesPerFile.has(resolvedFile)) {
+        await graph.addDependenciesFrom(resolver, resolvedFile);
       }
     }
 

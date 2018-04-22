@@ -13,14 +13,14 @@ const {
 const config = getConfig();
 const web3 = getWeb3Instance(config);
 
-function injectEnvToGlobal() {
+function injectToGlobal() {
   for (const [key, value] of Object.entries(module.exports)) {
     global[key] = value;
   }
 }
 
 module.exports = {
-  injectEnvToGlobal,
+  injectToGlobal,
   config,
   Web3,
   web3,

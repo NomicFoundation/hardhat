@@ -24,7 +24,7 @@ async function runTask(env, name, ...args) {
     throw new Error(`Task ${name} not defined`);
   }
 
-  env.injectEnvToGlobal();
+  env.injectToGlobal();
 
   return theTask.func(...args);
 }
