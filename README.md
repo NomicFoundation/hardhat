@@ -98,6 +98,9 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 * Compilation
     - Add optimizer config
     
+* Artifacts
+    - Choose a sensible artifacts fs hierarchy and make the artifacts module work with it.
+    
 * Flatten
     - Understand solidity_flattener and mimic it if possible
     - Make a debugging flattener a la truffle-flattener
