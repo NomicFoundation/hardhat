@@ -6,13 +6,14 @@ const DependencyGraph = require("../solidity/dependencyGraph");
 const { Resolver } = require("../solidity/resolver");
 const Compiler = require("../solidity/compiler");
 const { buildArtifacts } = require("../core/artifacts");
+const { areArtifactsCached } = require("./utils/cache");
 
 function getCompilersDir(config) {
   return path.join(config.paths.cache, "compilers");
 }
 
 internalTask("builtin:get-file-paths", async () => {
-  return glob(path.join(config.paths.root, "*", "**.sol"));
+  return glob(path.join(config.paths.sources, "**.sol"));
 });
 
 internalTask("builtin:get-resolved-files", async () => {
@@ -65,6 +66,10 @@ internalTask("builtin:compile", async () => {
 });
 
 internalTask("builtin:build-artifacts", async () => {
+  if (await areArtifactsCached(config.paths.sources, config.paths.artifacts)) {
+    return;
+  }
+
   const compilationOutput = await run("builtin:compile");
 
   await buildArtifacts(config, compilationOutput);

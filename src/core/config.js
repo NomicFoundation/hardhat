@@ -37,6 +37,7 @@ function getConfig() {
   const config = {
     paths: {
       root: projectRoot,
+      sources: path.join(projectRoot, "contracts"),
       cache: path.join(projectRoot, "cache"),
       artifacts: path.join(projectRoot, "artifacts")
     },
