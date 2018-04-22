@@ -8,7 +8,6 @@ const { task, internalTask } = require("./tasks");
 const CONFIG_FILENAME = "sool-config.js";
 
 function getUserConfigPath() {
-
   const pathToConfigFile = findUp.sync(CONFIG_FILENAME);
   if (!pathToConfigFile) {
     throw new Error("You are not in a valid project");

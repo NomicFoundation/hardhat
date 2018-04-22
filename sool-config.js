@@ -14,5 +14,5 @@ module.exports = {
       port: 8546,
       network_id: "*" // Match any network id
     }
-  },
+  }
 };
