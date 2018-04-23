@@ -89,6 +89,9 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 ## TODO
 
+* Tasks
+    - Implement `runSuper()` in overridden tasks. 
+
 * Dependencies resolution
     - Don't use solidity-parser. Two options:
         1. Replace the parser with solidity-parser-antlr once its relicenced.
