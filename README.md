@@ -90,10 +90,7 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 ## TODO
 
 * Config
-    - Add a way to choose the config file manually.
-
-* Tasks
-    - Implement `runSuper()` in overridden tasks. 
+    - Add a way to choose the config file manually. 
 
 * Dependencies resolution
     - Don't use solidity-parser. Two options:

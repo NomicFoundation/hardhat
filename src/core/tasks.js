@@ -3,10 +3,12 @@ const tasks = new Map();
 function addTask(name, description, func, isInternal) {
   if (func === undefined) {
     func = description;
-    description = null;
+    description = undefined;
   }
 
-  tasks.set(name, { name, description, func, isInternal });
+  const previousDefinition = tasks.get(name);
+
+  tasks.set(name, { name, description, func, isInternal, previousDefinition });
 }
 
 function task(name, description, func) {
@@ -18,15 +20,36 @@ function internalTask(name, description, func) {
 }
 
 async function runTask(env, name, ...args) {
-  const theTask = tasks.get(name);
+  const taskDefinition = tasks.get(name);
 
-  if (theTask === undefined) {
+  if (taskDefinition === undefined) {
     throw new Error(`Task ${name} not defined`);
   }
 
+  return runTaskDefinition(env, taskDefinition, ...args);
+}
+
+async function runTaskDefinition(env, taskDefinition, ...args) {
   env.injectToGlobal();
 
-  return theTask.func(...args);
+  if (taskDefinition.previousDefinition) {
+    global.runSuper = async (...superArgs) =>
+      runTaskDefinition(env, taskDefinition.previousDefinition, ...superArgs);
+  } else {
+    global.runSuper = async () => {
+      throw new Error(
+        `Task ${
+          taskDefinition.name
+        } had no previous definition to run with runSuper.`
+      );
+    };
+  }
+
+  const taskResult = taskDefinition.func(...args);
+
+  global.runSuper = undefined;
+
+  return taskResult;
 }
 
 function getAllTasks() {
