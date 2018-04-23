@@ -65,4 +65,4 @@ function getNetworkConfig(config, selectedNetwork) {
   return config.networks[selectedNetwork];
 }
 
-module.exports = { getConfig };
+module.exports = { getConfig, getUserConfigPath };

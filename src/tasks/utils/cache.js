@@ -3,11 +3,23 @@ const fs = require("fs-extra");
 const util = require("util");
 const glob = util.promisify(require("glob"));
 
+const {getUserConfigPath} = require("../../core/config")
+
+async function getModificationDate(file) {
+  const stat = await fs.stat(file);
+  return new Date(stat.mtime);
+}
+
+async function getConfigModificationDate() {
+  const configPath = getUserConfigPath();
+  return getModificationDate(configPath);
+}
+
 async function getModificationDatesInDir(dir) {
   const pattern = path.join(dir, "**");
   const files = await glob(pattern);
-  const stats = await Promise.all(files.map(f => fs.stat(f)));
-  return stats.map(s => new Date(s.mtime));
+  return Promise.all(files.map(getModificationDate));
+
 }
 
 async function getLastModificationDateInDir(dir) {
@@ -23,11 +35,18 @@ async function getLastModificationDateInDir(dir) {
 async function areArtifactsCached(sourcesDir, artifactsDir) {
   const lastSourcesModification = await getLastModificationDateInDir(sourcesDir);
   const lastArtifactsModification = await getLastModificationDateInDir(artifactsDir);
+  const configModification = await  getConfigModificationDate();
 
   if (lastArtifactsModification === undefined || lastSourcesModification === undefined) {
     return false;
   }
 
+  // If the config was changed we invalidate the cache
+  if (configModification.getTime() > lastArtifactsModification.getTime()) {
+    return false;
+  }
+
   return lastArtifactsModification.getTime() > lastSourcesModification.getTime();
 }
-module.exports = { areArtifactsCached }
+
+module.exports = { areArtifactsCached };
