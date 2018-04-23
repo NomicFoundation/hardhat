@@ -17,6 +17,7 @@
   "dependencies": {
     "bn.js": "4.11.6",
     "chai": "^4.1.2",
+    "deepmerge": "^2.1.0",
     "download": "^6.2.5",
     "find-up": "^2.1.0",
     "fs-extra": "^5.0.0",

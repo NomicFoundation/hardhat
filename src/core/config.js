@@ -1,6 +1,7 @@
 const findUp = require("find-up");
 const path = require("path");
 const Web3 = require("web3");
+const deepmerge = require("deepmerge");
 
 const { getSoolArguments } = require("./arguments");
 const { task, internalTask } = require("./tasks");
@@ -34,15 +35,13 @@ function getConfig() {
 
   const projectRoot = path.dirname(pathToConfigFile);
 
-  const config = {
-    paths: {
-      root: projectRoot,
-      sources: path.join(projectRoot, "contracts"),
-      cache: path.join(projectRoot, "cache"),
-      artifacts: path.join(projectRoot, "artifacts")
-    },
-    ...defaultConfig,
-    ...userConfig
+  const config = deepmerge(defaultConfig, userConfig);
+
+  config.paths = {
+    root: projectRoot,
+    sources: path.join(projectRoot, "contracts"),
+    cache: path.join(projectRoot, "cache"),
+    artifacts: path.join(projectRoot, "artifacts")
   };
 
   config.selectedNetwork = getNetworkConfig(config, getSelectedNetworkName());
