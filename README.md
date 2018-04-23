@@ -89,9 +89,6 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 ## TODO
 
-* Config
-    - Add a way to choose the config file manually. 
-
 * Dependencies resolution
     - Don't use solidity-parser. Two options:
         1. Replace the parser with solidity-parser-antlr once its relicenced.
