@@ -89,6 +89,9 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 ## TODO
 
+* Config
+    - Add a way to choose the config file manually.
+
 * Tasks
     - Implement `runSuper()` in overridden tasks. 
 
