@@ -52,12 +52,30 @@ async function runTaskDefinition(env, taskDefinition, ...args) {
   return taskResult;
 }
 
-function getAllTasks() {
-  return Array.from(tasks.values());
+function getPublicTasksNames() {
+  return Array.from(tasks.values())
+    .filter(t => !t.isInternal)
+    .map(t => t.name);
 }
 
-function getPublicTasks() {
-  return getAllTasks().filter(t => !t.isInternal);
+function getTaskDescription(name) {
+  let taskDefinition = tasks.get(name);
+
+  while (taskDefinition !== undefined) {
+    if (taskDefinition.description) {
+      return taskDefinition.description;
+    }
+
+    taskDefinition = taskDefinition.previousDefinition;
+  }
+
+  return "";
 }
 
-module.exports = { task, internalTask, runTask, getAllTasks, getPublicTasks };
+module.exports = {
+  task,
+  internalTask,
+  runTask,
+  getPublicTasksNames,
+  getTaskDescription
+};
