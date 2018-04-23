@@ -103,10 +103,7 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
     
 * Flatten
     - Understand solidity_flattener and mimic it if possible
-    - Make a debugging flattener a la truffle-flattener
-   
-* Deployment
-    - Add support for libraries 
+    - Make a debugging flattener a la truffle-flattener 
    
 * Optimizations
     - Compile solc to wasm instead of asm.js

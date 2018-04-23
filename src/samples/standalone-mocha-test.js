@@ -15,6 +15,6 @@ describe("Standalone mocha tests", () => {
 
   it("Should be deployable", async () => {
     const contract = await env.deploy(Contract, contractCode);
-    assert.notEqual(contract.address, "0x0");
+    assert.notEqual(contract._address, "0x0");
   });
 });

@@ -7,7 +7,7 @@
   "main": "./src/core/bin.js",
   "bin": "./src/core/bin.js",
   "scripts": {
-    "prettier": "npx prettier --write *.js src/**/*.js"
+    "prettier": "npx prettier --write *.js src/**/*.js test/**/*.js"
   },
   "devDependencies": {
     "ganache-cli": "^6.1.0",
