@@ -10,9 +10,10 @@ const COMPILER_FILES_DIR_URL =
 const COMPILERS_LIST_URL = COMPILER_FILES_DIR_URL + "list.json";
 
 class Compiler {
-  constructor(version, compilersDir) {
+  constructor(version, compilersDir, optimizerConfig) {
     this.version = version;
     this.compilersDir = compilersDir;
+    this.optimizerConfig = optimizerConfig;
   }
 
   getInputFromDependencyGraph(graph) {
@@ -31,6 +32,7 @@ class Compiler {
         metadata: {
           useLiteralContent: true
         },
+        optimizer: this.optimizerConfig,
         outputSelection: {
           "*": {
             "*": ["evm.bytecode.object", "abi"],

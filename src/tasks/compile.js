@@ -12,6 +12,14 @@ function getCompilersDir(config) {
   return path.join(config.paths.cache, "compilers");
 }
 
+function getCompiler(config) {
+  return new Compiler(
+    config.solc.version,
+    getCompilersDir(config),
+    config.solc.optimizer
+  );
+}
+
 internalTask("builtin:get-file-paths", async () => {
   return glob(path.join(config.paths.sources, "**.sol"));
 });
@@ -29,14 +37,13 @@ internalTask("builtin:get-dependency-graph", async () => {
 });
 
 internalTask("builtin:get-compiler-input", async () => {
-  const compiler = new Compiler(config.solc.version, getCompilersDir(config));
-
+  const compiler = getCompiler(config);
   const dependencyGraph = await run("builtin:get-dependency-graph");
   return compiler.getInputFromDependencyGraph(dependencyGraph);
 });
 
 internalTask("builtin:compile", async () => {
-  const compiler = new Compiler(config.solc.version, getCompilersDir(config));
+  const compiler = getCompiler(config);
   const input = await run("builtin:get-compiler-input");
 
   console.log("Compiling...");

@@ -1,5 +1,14 @@
 module.exports = {
   solc: {
-    version: "0.4.20"
+    optimizer: {
+      enabled: false,
+      runs: 200
+    }
+  },
+  networks: {
+    development: {
+      host: "127.0.0.1",
+      port: 8545
+    }
   }
 };

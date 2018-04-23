@@ -95,9 +95,6 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
         2. Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
     - Support more libraries sources? EthPM?
     
-* Compilation
-    - Add optimizer config
-    
 * Artifacts
     - Choose a sensible artifacts fs hierarchy and make the artifacts module work with it.
     
