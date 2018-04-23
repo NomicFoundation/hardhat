@@ -13,7 +13,7 @@ function link(contractBytecode, libAddresses) {
   let linked = contractBytecode.object;
   const alreadyLinked = [];
 
-  for (libs of Object.values(contractBytecode.linkReferences)) {
+  for (const libs of Object.values(contractBytecode.linkReferences)) {
     for (const [libName, positions] of Object.entries(libs)) {
       if (alreadyLinked.includes(libName)) {
         throw new Error(
