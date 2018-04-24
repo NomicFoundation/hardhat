@@ -106,6 +106,8 @@ A list of tasks to complete, mostly in priority order:
 * TS contract models
     - Select a typescript contract generator and integrate it
     - Make a task to run typescript tests
+    
+* Better arguments management, with the ability to define args in tasks and automatically print them in the help message
 
 * Flatten
     - Understand solidity_flattener and mimic it if possible
