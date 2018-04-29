@@ -1,4 +1,3 @@
-const types = require("./types");
 const { PARAM_PREFIX } = require("./constants");
 
 class HelpPrinter {
@@ -62,16 +61,16 @@ class HelpPrinter {
       `Usage: npx ${this.programName} [GLOBAL OPTIONS] ${
         taskDefinition.name
       }${this._getParamsList(
-        taskDefinition.paramDefintions
+        taskDefinition.paramDefinitions
       )}${this._getPositionalParamsList(
         taskDefinition.positionalParamDefinitions
       )}\n`
     );
 
-    if (Object.keys(taskDefinition.paramDefintions).length > 0) {
+    if (Object.keys(taskDefinition.paramDefinitions).length > 0) {
       console.log("OPTIONS:\n");
 
-      this._printParamDetails(taskDefinition.paramDefintions);
+      this._printParamDetails(taskDefinition.paramDefinitions);
 
       console.log("");
     }
@@ -92,11 +91,7 @@ class HelpPrinter {
   }
 
   _getParamValueDescription(paramDefinition) {
-    const typeName = Object.entries(types).find(
-      ([k, v]) => v === paramDefinition.type
-    )[0];
-
-    return `<${typeName.toUpperCase()}>`;
+    return `<${paramDefinition.type.name.toUpperCase()}>`;
   }
 
   _getParamsList(paramDefinitions) {

@@ -4,11 +4,11 @@ class TaskDefinition {
   constructor(name, isInternal) {
     this.name = name;
     this.isInternal = isInternal;
-    this.paramDefintions = {};
+    this.paramDefinitions = {};
     this.positionalParamDefinitions = [];
-    this.positionalParamNames = new Set();
-    this.hasVariadicParam = false;
-    this.hasOptionalPositionalParam = false;
+    this._positionalParamNames = new Set();
+    this._hasVariadicParam = false;
+    this._hasOptionalPositionalParam = false;
   }
 
   setDescription(description) {
@@ -16,10 +16,15 @@ class TaskDefinition {
     return this;
   }
 
-  addParam(name, description, defaultValue, type = types.string) {
+  addParam(name, description, defaultValue = undefined, type = types.string) {
+    if (this._isType(defaultValue)) {
+      type = defaultValue;
+      defaultValue = undefined;
+    }
+
     this._validateNameNotUsed(name);
 
-    this.paramDefintions[name] = {
+    this.paramDefinitions[name] = {
       name,
       defaultValue,
       type,
@@ -29,7 +34,17 @@ class TaskDefinition {
     return this;
   }
 
-  addPositionalParam(name, description, defaultValue, type = types.string) {
+  addPositionalParam(
+    name,
+    description,
+    defaultValue = undefined,
+    type = types.string
+  ) {
+    if (this._isType(defaultValue)) {
+      type = defaultValue;
+      defaultValue = undefined;
+    }
+
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, defaultValue);
@@ -50,9 +65,14 @@ class TaskDefinition {
   addVariadicPositionalParam(
     name,
     description,
-    defaultValue,
+    defaultValue = undefined,
     type = types.string
   ) {
+    if (this._isType(defaultValue)) {
+      type = defaultValue;
+      defaultValue = undefined;
+    }
+
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, defaultValue);
@@ -76,14 +96,14 @@ class TaskDefinition {
 
   _addPositionalParamDefinition(definition) {
     if (definition.isVariadic) {
-      this.hasVariadicParam = true;
+      this._hasVariadicParam = true;
     }
 
     if (definition.defaultValue !== undefined) {
-      this.hasOptionalPositionalParam = true;
+      this._hasOptionalPositionalParam = true;
     }
 
-    this.positionalParamNames.add(definition.name);
+    this._positionalParamNames.add(definition.name);
     this.positionalParamDefinitions.push(definition);
   }
 
@@ -94,7 +114,7 @@ class TaskDefinition {
   }
 
   _validateNotAfterVariadicParam(name) {
-    if (this.hasVariadicParam) {
+    if (this._hasVariadicParam) {
       throw new Error(
         `Could not set positional param ${name} for task ${
           this.name
@@ -115,13 +135,13 @@ class TaskDefinition {
 
   _hasParamDefined(name) {
     return (
-      this.paramDefintions[name] !== undefined ||
-      this.positionalParamNames.has(name)
+      this.paramDefinitions[name] !== undefined ||
+      this._positionalParamNames.has(name)
     );
   }
 
   _validateNoMandatoryParamAfterOptionalOnes(name, defaultValue) {
-    if (defaultValue === undefined && this.hasOptionalPositionalParam) {
+    if (defaultValue === undefined && this._hasOptionalPositionalParam) {
       throw new Error(
         `Could not set positional param ${name} for task ${
           this.name
@@ -129,6 +149,90 @@ class TaskDefinition {
       );
     }
   }
+
+  _isType(obj) {
+    return (
+      obj !== undefined &&
+      typeof obj.name === "string" &&
+      obj.parse instanceof Function
+    );
+  }
 }
 
-module.exports = { TaskDefinition };
+class OverloadedTaskDefinition {
+  constructor(parentTaskDefinition, isInternal) {
+    this.isInternal = isInternal;
+    this.parentTaskDefinition = parentTaskDefinition;
+  }
+
+  setDescription(description) {
+    this._description = description;
+    return this;
+  }
+
+  setAction(action) {
+    this._action = action;
+
+    return this;
+  }
+
+  get name() {
+    return this.parentTaskDefinition.name;
+  }
+
+  get description() {
+    if (this._description !== undefined) {
+      return this._description;
+    }
+
+    return this.parentTaskDefinition.description;
+  }
+
+  get action() {
+    if (this._action !== undefined) {
+      return this._action;
+    }
+
+    return this.parentTaskDefinition.action;
+  }
+
+  get paramDefinitions() {
+    return this.parentTaskDefinition.paramDefinitions;
+  }
+
+  get positionalParamDefinitions() {
+    return this.parentTaskDefinition.positionalParamDefinitions;
+  }
+
+  addParam(name, description, defaultValue = undefined, type = types.string) {
+    this._throwNoParamsOverloadError();
+  }
+
+  addPositionalParam(
+    name,
+    description,
+    defaultValue = undefined,
+    type = types.string
+  ) {
+    this._throwNoParamsOverloadError();
+  }
+
+  addVariadicPositionalParam(
+    name,
+    description,
+    defaultValue = undefined,
+    type = types.string
+  ) {
+    this._throwNoParamsOverloadError();
+  }
+
+  _throwNoParamsOverloadError() {
+    throw new Error(
+      `Task redefinition ${
+        this.name
+      } failed. You can't change param definitions in an overloaded task.`
+    );
+  }
+}
+
+module.exports = { TaskDefinition, OverloadedTaskDefinition };

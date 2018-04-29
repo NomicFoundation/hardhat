@@ -10,6 +10,12 @@ const SOOL_PARAM_DEFINITIONS = {
     description:
       "The network to connect to. See sool's config documentation for more info.",
     type: types.string
+  },
+  showStackTraces: {
+    name: "showStackTraces",
+    defaultValue: false,
+    description: "Show sool's errors' stack traces.",
+    type: types.boolean
   }
 };
 

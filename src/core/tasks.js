@@ -1,14 +1,22 @@
-const { TaskDefinition } = require("../arguments-parsing/TaskDefinition");
+const {
+  TaskDefinition,
+  OverloadedTaskDefinition
+} = require("../arguments-parsing/TaskDefinition");
 
 const tasks = {};
 
 function addTask(name, description, action, isInternal) {
-  const previousDefinition = tasks[name];
+  const parentTaskDefinition = tasks[name];
 
-  if (previousDefinition !== undefined) {
-    throw new Error(
-      `Cannot redefine task ${name}. Overloading is not supported yet.`
+  let taskDefinition;
+
+  if (parentTaskDefinition !== undefined) {
+    taskDefinition = new OverloadedTaskDefinition(
+      parentTaskDefinition,
+      isInternal
     );
+  } else {
+    taskDefinition = new TaskDefinition(name, isInternal);
   }
 
   if (description instanceof Function) {
@@ -16,23 +24,21 @@ function addTask(name, description, action, isInternal) {
     description = undefined;
   }
 
-  const t = new TaskDefinition(name, isInternal);
-
   if (description !== undefined) {
-    t.setDescription(description);
+    taskDefinition.setDescription(description);
   }
 
   if (action !== undefined) {
-    t.setAction(action);
-  } else {
-    t.setAction(() => {
+    taskDefinition.setAction(action);
+  } else if (parentTaskDefinition === undefined) {
+    taskDefinition.setAction(() => {
       throw new Error(`No action set for task ${name}.`);
     });
   }
 
-  tasks[name] = t;
+  tasks[name] = taskDefinition;
 
-  return t;
+  return taskDefinition;
 }
 
 function task(name, description, action) {
@@ -61,20 +67,23 @@ async function runTaskDefinition(
 ) {
   env.injectToGlobal();
 
-  if (taskDefinition.previousDefinition) {
-    global.runSuper = async (taskArguments, soolArguments) =>
+  if (taskDefinition.parentTaskDefinition) {
+    global.runSuper = async (
+      _taskArguments = taskArguments,
+      _soolArguments = soolArguments
+    ) =>
       runTaskDefinition(
         env,
-        taskDefinition.previousDefinition,
-        taskArguments,
-        soolArguments
+        taskDefinition.parentTaskDefinition,
+        _taskArguments,
+        _soolArguments
       );
   } else {
     global.runSuper = async () => {
       throw new Error(
         `Task ${
           taskDefinition.name
-        } had no previous definition to run with runSuper.`
+        } doesn't overload a previous one, so there's runSuper.`
       );
     };
   }

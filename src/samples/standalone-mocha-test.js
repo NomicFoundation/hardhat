@@ -1,4 +1,4 @@
-const env = require("../core/environment");
+const env = require("../core/importable-environment");
 const assert = require("chai").assert;
 
 // How to run tests is up to the user, importing env is enough. Still, this one

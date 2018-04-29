@@ -4,7 +4,7 @@
   "author": "Patricio Palladino",
   "license": "MIT",
   "homepage": "https://github.com/alcuadrado/sool",
-  "main": "./src/core/bin.js",
+  "main": "src/core/importable-environment.js",
   "bin": "./src/core/bin.js",
   "scripts": {
     "prettier": "npx prettier --write *.js src/**/*.js test/**/*.js"

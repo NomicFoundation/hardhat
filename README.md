@@ -23,46 +23,44 @@ As an extra, I also want to offer the possibility to write tests in typescript.
 
 The key concept in sool's architecture is the environment, which consist in a set of predefined functions, a Web3 instance, the project config and a way to run builtin and user-defined tasks.
 
-The environment is initialized when `src/core/environment.js` is loaded, so requiring this file is enough to use run in any javascript file. The sool binary is just a script that imports the environment and runs a task.
+The environment is created before running any task when using sool. When running a standalone sool-script the user needs to require `src/core/importable-environment.js`, which will initialize the environment if it hasn't been created before (ie: it isn't being run with sool).  
 
-For convenience, all the environment's elements are injected to the the `global` before running a task.
+For convenience, all the environment's elements are injected to the the `global` before running a task, and the environment itself is set to `global.env`.
 
-`src/core/environment.js` is set as the package main so once uploaded to npm it can be imported with `require("sool")` in any user script.
+`src/core/importable-environment.js` is set as the package main so once uploaded to npm it can be imported with `require("sool")` in any user script.
 
 ### Tasks
 
-Sool has a small DSL for defining and running tasks. A task is just an async function taking an array of command line arguments (see section Arguments) and can return whatever it wants.
+Sool has a small DSL for defining and running tasks. See `src/tasks/*.js` tasks for examples.
 
-Users of sool can define their own tasks, or redefine existing one as they please. Built-in tasks are divided in many small steps to users can override whichever they want.
+Users of sool can define their own tasks, or redefine existing one as they please. Built-in tasks are divided in many small steps so users can partially override them.
 
-Running a task returns whichever the task's function returns. When the task is run as the main task its return value is ignored.  
+Running a task returns whichever the task's action function returns. When the task is run as the main task by sool its return value is ignored.  
  
 
 ### Config
 
-The configuration is defined in `sool-config.js` at the root of the project, and is loaded on-demand when the environment is required. When this file is imported Web3 and the tasks' DSL are available in `global`, and the built-in tasks already defined.
+The configuration is defined in `sool-config.js` at the root of the project, and is loaded on-demand right before creating the environment. When this file is imported Web3 and the tasks' DSL are available in `global`, and the built-in tasks already defined.
 
-The user-provided config overrides a default configuration that can be found in `src/core/default-config.js`. The absolute path to the root of the project is also set as `config.paths.root`.
+The user-provided config overrides a default configuration that can be found in `src/core/default-config.js`. Some of information about the project structure is available in `config.paths`.
 
-User defined tasks should be declared in the configuration file. If any of their names clashes with a built-in task's name, the user-defined one will be used. 
+User defined tasks should be declared in the configuration file. If any of their names clashes with a built-in task's name, the user-defined one will be used, and a `runSuper()` function will be available during that task. 
 
 ### Arguments
 
-Both sools and tasks can receive arguments. They follow these rules:
+Sool tasks can define their arguments using the tasks DSL. These are automatically validated and parsed by sool. Also, help messages are taken care of.
 
-* Any command line argument like `-a` or `--a` is interpreted as a paramter to sool with name `a` and its value will be the next argument, or `true` if none is available.
+Sool also receives arguments, which must be passed before the task name.
 
-* The fist of the rest of the arguments is used as the name of the main task to run.
-
-* All other parameters are passed as strings to the main task.
-
-While this is enough when using the `sool` tool, it may not work if a script that includes the sool environment is run with another project. For those cases you can also pass arguments to sool as env variables with the same `SOOL_ARGUMENTNAMEINCAPS`. If there is an argument set in the command line and with an env variable, the command line version takes precedence.
+When running a a sool-script without sool command line arguments are not parsed, but sool's arguments can be passed as env variables. For example, if sool defines a "network" argument, it will be read from "SOOL_NETWORK" env variable.
 
 ## Installation
 
 There's no exportable artifacts yet, so just `yarn install` and use it locally.
 
 ## Running the project
+
+Read sools help by running: `./src/core/bin.js`
 
 Compiling everything: `./src/core/bin.js compile` 
 
@@ -86,22 +84,10 @@ from time to time.
 
 The root of the project must contain a `sool-config.js` file, and the contracts must be located in `<root>/contracts`.
 
-
 ## TODO
 
 A list of tasks to complete, mostly in priority order:
 
-* README:
-    - Update it, everything changed a lot.
-
-* Environment:
-    - Standalone scripts should be runnable with sool too
-
-* Tasks
-    - Handle tasks override:
-        - Params can't be overriden
-        - The descroption may be only available in a previous task definition
-    
 * Migration to web3 0.x
 
 * Truffle compatibility

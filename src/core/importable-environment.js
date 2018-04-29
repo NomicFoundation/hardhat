@@ -2,8 +2,12 @@ const { getConfig } = require("./config");
 const { getEnvSoolArguments } = require("./arguments");
 const { createEnvironment } = require("./environment");
 
+if (global.env !== undefined) {
+  module.exports = global.env;
+  return;
+}
+
 const config = getConfig();
 const soolArguments = getEnvSoolArguments();
-const env = createEnvironment(config, soolArguments);
 
-module.exports = env;
+module.exports = createEnvironment(config, soolArguments);

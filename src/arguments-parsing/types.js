@@ -3,25 +3,44 @@
  * and the raw string value. They validate the value, throwing if invalid, and
  * convert the right type.
  */
+
 module.exports = {
-  string: (name, s) => s,
-  boolean: (name, s) => {
-    if (s.toLowerCase() === "true") return true;
-    if (s.toLowerCase() === "false") return false;
-    throw new Error(`Unrecognized boolean value "${s}" of param ${name}`);
+  string: {
+    name: "string",
+    parse: (argName, strValue) => strValue
   },
-  int: (name, s) => {
-    const parsed = parseInt(s, 10);
-    if (isNaN(parsed))
-      throw new Error(`Unrecognized integer value "${s}" of param ${name}`);
-
-    return parsed;
+  boolean: {
+    name: "boolean",
+    parse: (argName, strValue) => {
+      if (strValue.toLowerCase() === "true") return true;
+      if (strValue.toLowerCase() === "false") return false;
+      throw new Error(
+        `Unrecognized boolean value "${strValue}" of param ${argName}`
+      );
+    }
   },
-  float: (name, s) => {
-    const parsed = parseFloat(s);
-    if (isNaN(parsed))
-      throw new Error(`Unrecognized float value "${s}" of param ${name}`);
+  int: {
+    name: "int",
+    parse: (argName, strValue) => {
+      const parsed = parseInt(strValue, 10);
+      if (isNaN(parsed))
+        throw new Error(
+          `Unrecognized integer value "${strValue}" of param ${argName}`
+        );
 
-    return parsed;
+      return parsed;
+    }
+  },
+  float: {
+    name: "float",
+    parse: (argName, strValue) => {
+      const parsed = parseFloat(strValue);
+      if (isNaN(parsed))
+        throw new Error(
+          `Unrecognized float value "${strValue}" of param ${argName}`
+        );
+
+      return parsed;
+    }
   }
 };

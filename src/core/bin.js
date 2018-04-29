@@ -6,15 +6,30 @@ const { createEnvironment } = require("./environment");
 
 const DEFAULT_TASK_NAME = "help";
 
-const config = getConfig();
-const parsedArguments = parseArguments(
-  getTaskDefinitions(),
-  DEFAULT_TASK_NAME,
-  process.argv.slice(2)
-);
+async function main() {
+  let showStackTraces = true;
 
-const env = createEnvironment(config, parsedArguments.globalArguments);
+  try {
+    const config = getConfig();
+    const parsedArguments = parseArguments(
+      getTaskDefinitions(),
+      DEFAULT_TASK_NAME,
+      process.argv.slice(2)
+    );
 
-env
-  .run(parsedArguments.taskName, parsedArguments.taskArguments)
-  .catch(console.error);
+    showStackTraces = parsedArguments.globalArguments.showStackTraces;
+
+    const env = createEnvironment(config, parsedArguments.globalArguments);
+    await env.run(parsedArguments.taskName, parsedArguments.taskArguments);
+  } catch (error) {
+    console.error("An error occurred: " + error.message + "\n");
+
+    if (showStackTraces) {
+      console.error(error.stack);
+    } else {
+      console.log("For more info run sool again with --showStackTraces true.");
+    }
+  }
+}
+
+main();

@@ -12,6 +12,7 @@ const {
 } = require("./artifacts");
 
 function injectToGlobal(env) {
+  global.env = env;
   for (const [key, value] of Object.entries(env)) {
     global[key] = value;
   }

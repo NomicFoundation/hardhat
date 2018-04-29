@@ -36,7 +36,7 @@ class Parser {
 
     const taskParamArguments = this._parseParamArgs(
       rawParamArguments,
-      selectedTask.paramDefintions
+      selectedTask.paramDefinitions
     );
 
     const taskPositionalParamArguments = this._parsePositionalParamArgs(
@@ -98,7 +98,7 @@ class Parser {
           throw new Error(`Missing value for param ${rawParamName}.`);
         }
       } else {
-        args[paramName] = definition.type(paramName, rawParamArg);
+        args[paramName] = definition.type.parse(paramName, rawParamArg);
       }
     }
 
@@ -108,7 +108,7 @@ class Parser {
       .filter(o => args[o.name] === undefined)
       .forEach(o => (args[o.name] = o.defaultValue));
 
-    // Validate required paramDefintions
+    // Validate required paramDefinitions
     const missingParam = Object.values(paramDefinitions)
       .filter(o => o.defaultValue === undefined)
       .find(o => args[o.name] === undefined);
@@ -138,11 +138,11 @@ class Parser {
 
         args[definition.name] = definition.defaultValue;
       } else if (!definition.isVariadic) {
-        args[definition.name] = definition.type(definition.name, rawArg);
+        args[definition.name] = definition.type.parse(definition.name, rawArg);
       } else {
         args[definition.name] = rawPositionalParamArgs
           .slice(i)
-          .map(raw => definition.type(definition.name, raw));
+          .map(raw => definition.type.parse(definition.name, raw));
       }
     }
 
