@@ -97,9 +97,6 @@ A list of tasks to complete, mostly in priority order:
     - Make sure the sool's config compatible with theirs wherever it makes sense.
         - How does their config's network_id work?
 
-* Networks
-    - Create "auto" network that automatically starts a ganache instance. It should have an "accounts" option with address and amount.
-
 * TS contract models
     - Select a typescript contract generator and integrate it
     - Make a task to run typescript tests
