@@ -3,7 +3,7 @@ const path = require("path");
 const Web3 = require("web3");
 const deepmerge = require("deepmerge");
 
-const { getSoolArguments } = require("./arguments");
+const types = require("../arguments-parsing/types");
 const { task, internalTask } = require("./tasks");
 
 const CONFIG_FILENAME = "sool-config.js";
@@ -22,7 +22,7 @@ function getConfig() {
 
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
-  const exported = { internalTask, task, Web3 };
+  const exported = { internalTask, task, Web3, types };
   Object.entries(exported).forEach(([key, value]) => (global[key] = value));
 
   require("./builtin-tasks");
@@ -44,14 +44,7 @@ function getConfig() {
     artifacts: path.join(projectRoot, "artifacts")
   };
 
-  config.selectedNetwork = getNetworkConfig(config, getSelectedNetworkName());
-
   return config;
-}
-
-function getSelectedNetworkName() {
-  const args = getSoolArguments();
-  return args.network || "development";
 }
 
 function getNetworkConfig(config, selectedNetwork) {
@@ -65,4 +58,4 @@ function getNetworkConfig(config, selectedNetwork) {
   return config.networks[selectedNetwork];
 }
 
-module.exports = { getConfig, getUserConfigPath };
+module.exports = { getConfig, getUserConfigPath, getNetworkConfig };

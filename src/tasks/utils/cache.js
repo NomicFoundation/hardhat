@@ -3,7 +3,7 @@ const fs = require("fs-extra");
 const util = require("util");
 const glob = util.promisify(require("glob"));
 
-const {getUserConfigPath} = require("../../core/config")
+const { getUserConfigPath } = require("../../core/config");
 
 async function getModificationDate(file) {
   const stat = await fs.stat(file);
@@ -19,7 +19,6 @@ async function getModificationDatesInDir(dir) {
   const pattern = path.join(dir, "**");
   const files = await glob(pattern);
   return Promise.all(files.map(getModificationDate));
-
 }
 
 async function getLastModificationDateInDir(dir) {
@@ -29,15 +28,22 @@ async function getLastModificationDateInDir(dir) {
     return undefined;
   }
 
-  return dates.reduce((d1, d2) => d1.getTime() > d2.getTime() ? d1 : d2 )
+  return dates.reduce((d1, d2) => (d1.getTime() > d2.getTime() ? d1 : d2));
 }
 
 async function areArtifactsCached(sourcesDir, artifactsDir) {
-  const lastSourcesModification = await getLastModificationDateInDir(sourcesDir);
-  const lastArtifactsModification = await getLastModificationDateInDir(artifactsDir);
-  const configModification = await  getConfigModificationDate();
+  const lastSourcesModification = await getLastModificationDateInDir(
+    sourcesDir
+  );
+  const lastArtifactsModification = await getLastModificationDateInDir(
+    artifactsDir
+  );
+  const configModification = await getConfigModificationDate();
 
-  if (lastArtifactsModification === undefined || lastSourcesModification === undefined) {
+  if (
+    lastArtifactsModification === undefined ||
+    lastSourcesModification === undefined
+  ) {
     return false;
   }
 
@@ -46,7 +52,9 @@ async function areArtifactsCached(sourcesDir, artifactsDir) {
     return false;
   }
 
-  return lastArtifactsModification.getTime() > lastSourcesModification.getTime();
+  return (
+    lastArtifactsModification.getTime() > lastSourcesModification.getTime()
+  );
 }
 
 module.exports = { areArtifactsCached };

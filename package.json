@@ -22,7 +22,6 @@
     "find-up": "^2.1.0",
     "fs-extra": "^5.0.0",
     "glob": "^7.1.2",
-    "minimist": "^1.2.0",
     "mocha": "^5.1.1",
     "number-to-bn": "1.7.0",
     "rimraf": "^2.6.2",

@@ -1,14 +1,12 @@
 const fs = require("fs-extra");
 
-task(
-  "run",
-  "Runs an user-defined script after compiling the project",
-  async scriptPath => {
-    if (!(await fs.exists(scriptPath))) {
-      throw new Error(`Script ${scriptPath} doesn't exist.`);
+task("run", "Runs an user-defined script after compiling the project")
+  .addPositionalParam("script", "A js file to be run within sool's environment")
+  .setAction(async ({ script }) => {
+    if (!(await fs.exists(script))) {
+      throw new Error(`Script ${script} doesn't exist.`);
     }
 
     await run("compile");
-    require(await fs.realpath(scriptPath));
-  }
-);
+    require(await fs.realpath(script));
+  });

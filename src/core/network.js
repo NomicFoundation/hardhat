@@ -1,23 +1,21 @@
 const Web3 = require("web3");
 
-function getWeb3Provider(config) {
-  const netConfig = config.selectedNetwork;
-
-  if (netConfig.provider) {
-    if (netConfig.provider instanceof Function) {
-      return netConfig.provider();
+function getWeb3Provider(networkConfig) {
+  if (networkConfig.provider) {
+    if (networkConfig.provider instanceof Function) {
+      return networkConfig.provider();
     }
 
-    return netConfig.provider;
+    return networkConfig.provider;
   }
 
-  const port = netConfig.port || "8545";
+  const port = networkConfig.port || "8545";
 
-  if (netConfig.host === undefined) {
+  if (networkConfig.host === undefined) {
     throw new Error(`Network ${selectedNetwork} has no host defined.`);
   }
 
-  const url = `http://${netConfig.host}:${port}`;
+  const url = `http://${networkConfig.host}:${port}`;
 
   return new Web3.providers.HttpProvider(url);
 }

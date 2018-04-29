@@ -1,17 +1,28 @@
-const { getPublicTasksNames, getTaskDescription } = require("../core/tasks");
+const path = require("path");
+const fs = require("fs-extra");
 
-task("help", "Prints this message", async () => {
-  console.log(`Usage: npx sool [task]
-  
-Available tasks:
-`);
+const { SOOL_PARAM_DEFINITIONS } = require("../core/arguments");
+const { HelpPrinter } = require("../arguments-parsing/HelpPrinter");
+const { getTaskDefinitions } = require("../core/tasks");
 
-  const nameLength = getPublicTasksNames()
-    .map(n => n.length)
-    .reduce((a, b) => Math.max(a, b), 0);
+task("help", "Prints this message")
+  .addPositionalParam("task", "An optional task to print more info about", "")
+  .setAction(async ({ task }) => {
+    const packageInfo = await fs.readJson(
+      path.join(__dirname, "../../package.json")
+    );
 
-  for (const name of getPublicTasksNames().sort()) {
-    const description = getTaskDescription(name);
-    console.log(`  ${name.padEnd(nameLength)}\t${description}`);
-  }
-});
+    const helpPrinter = new HelpPrinter(
+      packageInfo.name,
+      packageInfo.version,
+      SOOL_PARAM_DEFINITIONS,
+      getTaskDefinitions()
+    );
+
+    if (task) {
+      helpPrinter.printTaskHelp(task);
+      return;
+    }
+
+    helpPrinter.printGlobalHelp();
+  });

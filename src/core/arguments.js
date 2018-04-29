@@ -1,40 +1,54 @@
-const minimist = require("minimist");
+const types = require("../arguments-parsing/types");
+const Parser = require("../arguments-parsing/Parser").Parser;
 
 const SOOL_ENV_ARGUMENT_PREFIX = "SOOL_";
 
-function getSoolArguments() {
-  const rawCliArgs = minimist(process.argv.slice(2));
+const SOOL_PARAM_DEFINITIONS = {
+  network: {
+    name: "network",
+    defaultValue: "develop",
+    description:
+      "The network to connect to. See sool's config documentation for more info.",
+    type: types.string
+  }
+};
 
-  const soolCliArgs = Object.entries(rawCliArgs).filter(([k, v]) => k !== "_");
+function getEnvSoolArguments() {
+  const envArgs = {};
 
-  const envArgs = Object.entries(process.env)
-    .filter(([k, v]) => k.startsWith(SOOL_ENV_ARGUMENT_PREFIX))
-    .map(([k, v]) => [
-      k.slice(SOOL_ENV_ARGUMENT_PREFIX.length).toLowerCase(),
-      v
-    ]);
+  for (const paramName in SOOL_PARAM_DEFINITIONS) {
+    const definition = SOOL_PARAM_DEFINITIONS[paramName];
 
-  const args = {};
+    const envVarName = SOOL_ENV_ARGUMENT_PREFIX + paramName.toUpperCase();
+    const rawValue = process.env[envVarName];
 
-  for (const [k, v] of envArgs) {
-    args[k] = v;
+    if (rawValue !== undefined) {
+      try {
+        envArgs[paramName] = definition.type(paramName, rawValue);
+      } catch (e) {
+        throw new Error(
+          `Invalid environment variable ${envVarName}'s value: ${rawValue}`
+        );
+      }
+    } else if (definition.defaultValue !== undefined) {
+      envArgs[paramName] = definition.defaultValue;
+    }
   }
 
-  for (const [k, v] of soolCliArgs) {
-    args[k] = v;
-  }
-
-  return args;
+  return envArgs;
 }
 
-function getTaskToRun() {
-  const args = minimist(process.argv.slice(2));
-  return args._[0] || "help";
+function parseArguments(taskDefinitions, defaultTaskName, rawCommandLineArgs) {
+  const parser = new Parser(
+    SOOL_PARAM_DEFINITIONS,
+    taskDefinitions,
+    defaultTaskName
+  );
+  return parser.parse(rawCommandLineArgs);
 }
 
-function getTaskArguments() {
-  const args = minimist(process.argv.slice(2));
-  return args._.slice(1);
-}
-
-module.exports = { getSoolArguments, getTaskToRun, getTaskArguments };
+module.exports = {
+  getEnvSoolArguments,
+  parseArguments,
+  SOOL_PARAM_DEFINITIONS
+};

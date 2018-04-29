@@ -91,6 +91,17 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 A list of tasks to complete, mostly in priority order:
 
+* README:
+    - Update it, everything changed a lot.
+
+* Environment:
+    - Standalone scripts should be runnable with sool too
+
+* Tasks
+    - Handle tasks override:
+        - Params can't be overriden
+        - The descroption may be only available in a previous task definition
+    
 * Migration to web3 0.x
 
 * Truffle compatibility
@@ -101,17 +112,18 @@ A list of tasks to complete, mostly in priority order:
         - How does their config's network_id work?
 
 * Networks
-    - Create "auto" network that automatically starts a ganache instance. It should have an "accounts" option with.
+    - Create "auto" network that automatically starts a ganache instance. It should have an "accounts" option with address and amount.
 
 * TS contract models
     - Select a typescript contract generator and integrate it
     - Make a task to run typescript tests
     
-* Better arguments management, with the ability to define args in tasks and automatically print them in the help message
-
 * Flatten
     - Understand solidity_flattener and mimic it if possible
     - Make a debugging flattener a la truffle-flattener
+
+* Errores
+    - Define error codes for *every* possible exception
     
 * Artifacts
     - Choose a sensible artifacts fs hierarchy and make the artifacts module work with it.

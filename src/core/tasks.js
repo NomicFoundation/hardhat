@@ -1,40 +1,74 @@
-const tasks = new Map();
+const { TaskDefinition } = require("../arguments-parsing/TaskDefinition");
 
-function addTask(name, description, func, isInternal) {
-  if (func === undefined) {
-    func = description;
+const tasks = {};
+
+function addTask(name, description, action, isInternal) {
+  const previousDefinition = tasks[name];
+
+  if (previousDefinition !== undefined) {
+    throw new Error(
+      `Cannot redefine task ${name}. Overloading is not supported yet.`
+    );
+  }
+
+  if (description instanceof Function) {
+    action = description;
     description = undefined;
   }
 
-  const previousDefinition = tasks.get(name);
+  const t = new TaskDefinition(name, isInternal);
 
-  tasks.set(name, { name, description, func, isInternal, previousDefinition });
+  if (description !== undefined) {
+    t.setDescription(description);
+  }
+
+  if (action !== undefined) {
+    t.setAction(action);
+  } else {
+    t.setAction(() => {
+      throw new Error(`No action set for task ${name}.`);
+    });
+  }
+
+  tasks[name] = t;
+
+  return t;
 }
 
-function task(name, description, func) {
-  addTask(name, description, func, false);
+function task(name, description, action) {
+  return addTask(name, description, action, false);
 }
 
-function internalTask(name, description, func) {
-  addTask(name, description, func, true);
+function internalTask(name, description, action) {
+  return addTask(name, description, action, true);
 }
 
-async function runTask(env, name, ...args) {
-  const taskDefinition = tasks.get(name);
+async function runTask(env, name, taskArguments, soolArguments) {
+  const taskDefinition = tasks[name];
 
   if (taskDefinition === undefined) {
     throw new Error(`Task ${name} not defined`);
   }
 
-  return runTaskDefinition(env, taskDefinition, ...args);
+  return runTaskDefinition(env, taskDefinition, taskArguments, soolArguments);
 }
 
-async function runTaskDefinition(env, taskDefinition, ...args) {
+async function runTaskDefinition(
+  env,
+  taskDefinition,
+  taskArguments,
+  soolArguments
+) {
   env.injectToGlobal();
 
   if (taskDefinition.previousDefinition) {
-    global.runSuper = async (...superArgs) =>
-      runTaskDefinition(env, taskDefinition.previousDefinition, ...superArgs);
+    global.runSuper = async (taskArguments, soolArguments) =>
+      runTaskDefinition(
+        env,
+        taskDefinition.previousDefinition,
+        taskArguments,
+        soolArguments
+      );
   } else {
     global.runSuper = async () => {
       throw new Error(
@@ -45,37 +79,20 @@ async function runTaskDefinition(env, taskDefinition, ...args) {
     };
   }
 
-  const taskResult = taskDefinition.func(...args);
+  const taskResult = taskDefinition.action(taskArguments, soolArguments);
 
   global.runSuper = undefined;
 
   return taskResult;
 }
 
-function getPublicTasksNames() {
-  return Array.from(tasks.values())
-    .filter(t => !t.isInternal)
-    .map(t => t.name);
-}
-
-function getTaskDescription(name) {
-  let taskDefinition = tasks.get(name);
-
-  while (taskDefinition !== undefined) {
-    if (taskDefinition.description) {
-      return taskDefinition.description;
-    }
-
-    taskDefinition = taskDefinition.previousDefinition;
-  }
-
-  return "";
+function getTaskDefinitions() {
+  return tasks;
 }
 
 module.exports = {
   task,
   internalTask,
   runTask,
-  getPublicTasksNames,
-  getTaskDescription
+  getTaskDefinitions
 };
