@@ -6,7 +6,7 @@ const SOOL_ENV_ARGUMENT_PREFIX = "SOOL_";
 const SOOL_PARAM_DEFINITIONS = {
   network: {
     name: "network",
-    defaultValue: "develop",
+    defaultValue: "auto",
     description:
       "The network to connect to. See sool's config documentation for more info.",
     type: types.string
