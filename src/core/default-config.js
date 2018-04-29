@@ -20,8 +20,9 @@ module.exports = {
           secretKey: acc.privateKey
         }));
 
-        return Ganache.provider({ accounts });
+        return Ganache.provider({ accounts, gasLimit: this.blockGasLimit });
       },
+      blockGasLimit: 7500000,
       accounts: [
         {
           privateKey:
