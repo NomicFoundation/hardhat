@@ -35,7 +35,9 @@ function getConfig() {
 
   const projectRoot = path.dirname(pathToConfigFile);
 
-  const config = deepmerge(defaultConfig, userConfig);
+  const config = deepmerge(defaultConfig, userConfig, {
+    arrayMerge: (destination, source) => source
+  });
 
   config.paths = {
     root: projectRoot,
