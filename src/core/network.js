@@ -12,7 +12,7 @@ function getWeb3Provider(networkConfig) {
   const port = networkConfig.port || "8545";
 
   if (networkConfig.host === undefined) {
-    throw new Error(`Network ${selectedNetwork} has no host defined.`);
+    throw new Error(`Selected network configuration has no host defined.`);
   }
 
   const url = `http://${networkConfig.host}:${port}`;
