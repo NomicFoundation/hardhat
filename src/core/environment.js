@@ -1,5 +1,6 @@
 const Web3 = require("web3");
 
+const { lazyObject } = require("./lazy");
 const { getNetworkConfig } = require("./config");
 const { getWeb3Instance } = require("./network");
 const { deploy, deployByName } = require("./deploy");
@@ -20,7 +21,7 @@ function injectToGlobal(env) {
 
 function createEnvironment(config, soolArguments) {
   const netConfig = getNetworkConfig(config, soolArguments.network);
-  const web3 = getWeb3Instance(netConfig);
+  const web3 = lazyObject(() => getWeb3Instance(netConfig));
 
   const env = {
     config,
