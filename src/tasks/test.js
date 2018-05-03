@@ -9,7 +9,7 @@ internalTask("builtin:get-test-files")
     "An optional list of files to test",
     []
   )
-  .setAction(async testFiles => {
+  .setAction(async ({ testFiles }) => {
     if (testFiles.length === 0) {
       return glob(path.join(config.paths.root, "test", "**.js"));
     }
@@ -50,5 +50,5 @@ task("test", "Runs mocha tests")
 
     const files = await run("builtin:get-test-files", { testFiles });
     await run("builtin:setup-test-environment");
-    await run("builtin:run-mocha-tests", ...files);
+    await run("builtin:run-mocha-tests", { testFiles: files });
   });
