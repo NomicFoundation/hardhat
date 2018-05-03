@@ -122,4 +122,9 @@ A list of tasks to complete, mostly in priority order:
     
 * Optimizations
     - Compile solc to wasm instead of asm.js
+   
+* Hierarchic output of the current tasks being run 
+
+* Export mocha config, export the entire ganache config
+
     
