@@ -6,6 +6,7 @@ const { getWeb3Instance } = require("./network");
 const { deploy, deployByName } = require("./deploy");
 const { runTask } = require("./tasks");
 const { TruffleEnvironmentArtifacts } = require("./truffle");
+const { promisifyWeb3 } = require("./pweb3");
 
 const {
   getContract,
@@ -23,12 +24,14 @@ function injectToGlobal(env) {
 function createEnvironment(config, soolArguments) {
   const netConfig = getNetworkConfig(config, soolArguments.network);
   const web3 = lazyObject(() => getWeb3Instance(netConfig));
+  const pweb3 = lazyObject(() => promisifyWeb3(web3));
 
   const env = {
     config,
     soolArguments,
     Web3,
     web3,
+    pweb3,
     getContract: getContract.bind(undefined, config, web3),
     getContractAbi: getContractAbi.bind(undefined, config),
     getContractBytecode: getContractBytecode.bind(undefined, config),
