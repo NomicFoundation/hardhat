@@ -30,7 +30,27 @@ module.exports = {
           }));
         }
 
-        return Ganache.provider(ganacheOptions);
+        const provider = Ganache.provider(ganacheOptions);
+
+        // Ganache's provider users web3-provider-engine, which doesn't support
+        // sync requests.
+        //
+        // We could use a Ganache server and a normal HttpProvider, but those
+        // are initialized asynchronously, and we create the environment
+        // synchronously. This may be changed if we make most things lazily, but
+        // not sure if that would work with tests written for truffle.
+        const originalSend = provider.send;
+        provider.send = (payload, callback) => {
+          if (callback === undefined) {
+            throw new Error(
+              'Network "auto" does not support sync requests. Consider using pweb3 instead.'
+            );
+          }
+
+          originalSend.call(provider, payload, callback);
+        };
+
+        return provider;
       },
       blockGasLimit: 7500000,
       accounts: [

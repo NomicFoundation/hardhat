@@ -89,7 +89,6 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 A list of tasks to complete, mostly in priority order:
 
 * Truffle compatibility
-    - Make auto network support sync requests.
     - Create a link method in artficats.
     
 * Flatten
