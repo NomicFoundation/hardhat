@@ -6,7 +6,6 @@ const DependencyGraph = require("../solidity/dependencyGraph");
 const { Resolver } = require("../solidity/resolver");
 const Compiler = require("../solidity/compiler");
 const { TruffleArtifactsStorage } = require("../core/truffle");
-const { buildArtifacts } = require("../core/artifacts");
 const { areArtifactsCached } = require("./utils/cache");
 
 function getCompilersDir(config) {
@@ -80,11 +79,10 @@ internalTask("builtin:build-artifacts", async () => {
 
   const compilationOutput = await run("builtin:compile");
 
-  await buildArtifacts(config, compilationOutput);
-
   const truffleArtifactsStorage = new TruffleArtifactsStorage(
     config.paths.artifacts
   );
+
   await truffleArtifactsStorage.saveTruffleArtifacts(compilationOutput);
 });
 
