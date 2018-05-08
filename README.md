@@ -88,9 +88,6 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 A list of tasks to complete, mostly in priority order:
 
-* Truffle compatibility
-    - Create a link method in artficats.
-    
 * Flatten
     - Understand solidity_flattener and mimic it if possible
     - Make a debugging flattener a la truffle-flattener

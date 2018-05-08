@@ -28,10 +28,21 @@ class TruffleArtifactsStorage {
       (contract.evm && contract.evm.bytecode && contract.evm.bytecode.object) ||
       "";
 
+    console.log(contractName);
+    console.log(
+      contract.evm &&
+        contract.evm.bytecode &&
+        contract.evm.bytecode.linkReferences
+    );
+
     const artifact = {
       contractName,
       abi: contract.abi,
-      bytecode
+      bytecode,
+      linkReferences:
+        contract.evm &&
+        contract.evm.bytecode &&
+        contract.evm.bytecode.linkReferences
     };
 
     await fs.outputJSON(
@@ -230,6 +241,48 @@ class TruffleEnvironmentArtifacts {
   require(contractPath) {
     const name = this._getContractNameFromPath(contractPath);
     return this._getTruffleContract(name);
+  }
+
+  link(destination, ...libraries) {
+    if (libraries.length === 0) {
+      return;
+    }
+
+    for (const library of libraries) {
+      if (
+        library.address === undefined ||
+        library.constructor.network_id === undefined
+      ) {
+        throw new Error(
+          `Cannot link contract ${destination.contractName} with library ${
+            library.constructor.contractName
+          } because it is not deployed.`
+        );
+      }
+    }
+
+    const destinationArtifact = this._storage.getTruffleArtifact(
+      destination.contractName
+    );
+
+    const libraryAddresses = {};
+
+    const linkReferences = destinationArtifact.linkReferences;
+
+    for (const file of Object.keys(linkReferences)) {
+      for (const contractName of Object.keys(linkReferences[file])) {
+        const library = libraries.find(
+          c => c.constructor.contractName === contractName
+        );
+
+        if (library !== undefined) {
+          libraryAddresses[`${file}:${contractName}`] = library.address;
+        }
+      }
+    }
+
+    destination.setNetwork(libraries[0].constructor.network_id);
+    destination.link(libraryAddresses);
   }
 
   _getContractNameFromPath(contractPath) {
