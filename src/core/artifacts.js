@@ -32,29 +32,8 @@ async function buildArtifacts(config, compilationOutput) {
           { spaces: 2 }
         );
       }
-
-      await saveTruffleArtifact(contractName, contract);
     }
   }
-}
-
-async function saveTruffleArtifact(contractName, contract) {
-  const truffleDir = path.join(config.paths.artifacts, "truffle");
-  await fs.ensureDir(truffleDir);
-
-  const bytecode =
-    (contract.evm && contract.evm.bytecode && contract.evm.bytecode.object) ||
-    "";
-
-  const artifact = {
-    contractName,
-    abi: contract.abi,
-    bytecode
-  };
-
-  await fs.outputJSON(path.join(truffleDir, contractName + ".json"), artifact, {
-    spaces: 2
-  });
 }
 
 async function getContractAbi(config, name) {
@@ -86,6 +65,7 @@ async function getContract(config, web3, name) {
 
   return new web3.eth.Contract(abi);
 }
+
 
 module.exports = {
   buildArtifacts,

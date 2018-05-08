@@ -5,6 +5,7 @@ const { getNetworkConfig } = require("./config");
 const { getWeb3Instance } = require("./network");
 const { deploy, deployByName } = require("./deploy");
 const { runTask } = require("./tasks");
+const { TruffleEnvironmentArtifacts } = require("./truffle");
 
 const {
   getContract,
@@ -32,7 +33,8 @@ function createEnvironment(config, soolArguments) {
     getContractAbi: getContractAbi.bind(undefined, config),
     getContractBytecode: getContractBytecode.bind(undefined, config),
     deploy: deploy.bind(undefined, web3),
-    deployByName: deployByName.bind(undefined, web3)
+    deployByName: deployByName.bind(undefined, web3),
+    artifacts: new TruffleEnvironmentArtifacts(config, web3, netConfig)
   };
 
   env.run = (name, taskArguments, _soolArguments = soolArguments) =>

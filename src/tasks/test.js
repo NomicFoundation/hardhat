@@ -1,6 +1,5 @@
 const path = require("path");
 const util = require("util");
-const Mocha = require("mocha");
 const glob = util.promisify(require("glob"));
 
 internalTask("builtin:get-test-files")
@@ -18,8 +17,14 @@ internalTask("builtin:get-test-files")
   });
 
 internalTask("builtin:setup-test-environment", async () => {
-  global.accounts = await web3.eth.getAccounts();
+  const getAccounts = web3.eth.getAccounts.bind(web3.eth);
+  global.accounts = await util.promisify(getAccounts)();
   global.assert = require("chai").assert;
+
+  global.contract = (description, definition) =>
+    describe(description, () => {
+      definition(global.accounts);
+    });
 });
 
 internalTask("builtin:run-mocha-tests")
@@ -29,6 +34,7 @@ internalTask("builtin:run-mocha-tests")
     []
   )
   .setAction(async ({ testFiles }) => {
+    const Mocha = require("mocha");
     const mocha = new Mocha();
     testFiles.forEach(file => mocha.addFile(file));
 

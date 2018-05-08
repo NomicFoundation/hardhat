@@ -1,5 +1,5 @@
-const Ganache = require("ganache-core");
 const BigNumber = require("bignumber.js");
+const Ganache = require("ganache-core");
 
 module.exports = {
   solc: {
@@ -15,65 +15,30 @@ module.exports = {
     },
     auto: {
       provider() {
-        const accounts = this.accounts.map(acc => ({
-          balance: "0x" + new BigNumber(acc.balance).toString(16),
-          secretKey: acc.privateKey
-        }));
+        const ganacheOptions = {
+          gasLimit: this.blockGasLimit,
+          network_id: 4447
+        };
 
-        return Ganache.provider({ accounts, gasLimit: this.blockGasLimit });
+        if (this.accounts === undefined || this.accounts.length === 0) {
+          ganacheOptions.mnemonic =
+            "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
+        } else {
+          ganacheOptions.accounts = this.accounts.map(acc => ({
+            balance: "0x" + new BigNumber(acc.balance).toString(16),
+            secretKey: acc.privateKey
+          }));
+        }
+
+        return Ganache.provider(ganacheOptions);
       },
       blockGasLimit: 7500000,
       accounts: [
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501200",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501201",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501202",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501203",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501204",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501205",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501206",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501207",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501208",
-          balance: 1000000000000000000000000
-        },
-        {
-          privateKey:
-            "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501209",
-          balance: 1000000000000000000000000
-        }
+        // {
+        //   privateKey:
+        //     "0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501200",
+        //   balance: 1000000000000000000000000
+        // }
       ]
     }
   }

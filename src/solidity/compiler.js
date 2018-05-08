@@ -2,7 +2,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const download = require("download");
 const solcWrapper = require("solc/wrapper");
-const Web3 = require("web3");
+const ethUtil = require("ethereumjs-util");
 
 const COMPILER_FILES_DIR_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
@@ -166,7 +166,8 @@ class Compiler {
     const expectedKeccak256 = compilerInfo.keccak256;
 
     const compiler = await fs.readFile(compilerPath);
-    const compilerKeccak256 = Web3.utils.sha3(compiler);
+
+    const compilerKeccak256 = "0x" + ethUtil.keccak(compiler).toString("hex");
 
     if (expectedKeccak256 !== compilerKeccak256) {
       await fs.unlink(compilerPath);
