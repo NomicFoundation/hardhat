@@ -21,7 +21,7 @@ function getCompiler(config) {
 }
 
 internalTask("builtin:get-file-paths", async () => {
-  return glob(path.join(config.paths.sources, "**.sol"));
+  return glob(path.join(config.paths.sources, "**/*.sol"));
 });
 
 internalTask("builtin:get-resolved-files", async () => {

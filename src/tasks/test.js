@@ -11,7 +11,7 @@ internalTask("builtin:get-test-files")
   )
   .setAction(async ({ testFiles }) => {
     if (testFiles.length === 0) {
-      return glob(path.join(config.paths.root, "test", "**.js"));
+      return glob(path.join(config.paths.root, "test", "**/*.js"));
     }
 
     return testFiles;
