@@ -88,28 +88,24 @@ The root of the project must contain a `sool-config.js` file, and the contracts 
 
 A list of tasks to complete, mostly in priority order:
 
-* Migration to web3 0.x
-
 * Truffle compatibility
-    - Export truffle artifacts
-    - Make a truffle-contracts loader (API compatible with truffle's)
-    - Make Truffle tests runnable with Sool
-    - Make sure the sool's config compatible with theirs wherever it makes sense.
-        - How does their config's network_id work?
-
-* TS contract models
-    - Select a typescript contract generator and integrate it
-    - Make a task to run typescript tests
+    - Make auto network support sync requests.
+    - Create a link method in artficats.
     
 * Flatten
     - Understand solidity_flattener and mimic it if possible
     - Make a debugging flattener a la truffle-flattener
 
-* Errores
-    - Define error codes for *every* possible exception
+* Export mocha config, export the entire ganache config
     
-* Artifacts
-    - Choose a sensible artifacts fs hierarchy and make the artifacts module work with it.
+* Environment augmentation capabilities
+
+* Add promisified web3
+
+* Hierarchic output of the current tasks being run
+
+* Errors
+    - Define error codes for *every* possible exception
     
 * Parallel test runner
     - Check what espresso does. Does each runner need its own blockchain?
@@ -119,12 +115,10 @@ A list of tasks to complete, mostly in priority order:
         1. Replace the parser with solidity-parser-antlr once its relicenced.
         2. Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
     - Support more libraries sources? EthPM?
-    
+
+* TS contract models
+    - Select a typescript contract generator and integrate it
+    - Make a task to run typescript tests
+
 * Optimizations
     - Compile solc to wasm instead of asm.js
-   
-* Hierarchic output of the current tasks being run 
-
-* Export mocha config, export the entire ganache config
-
-    
