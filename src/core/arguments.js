@@ -1,5 +1,5 @@
 const types = require("../arguments-parsing/types");
-const {Parser} = require("../arguments-parsing/Parser");
+const { Parser } = require("../arguments-parsing/Parser");
 
 const SOOL_ENV_ARGUMENT_PREFIX = "SOOL_";
 

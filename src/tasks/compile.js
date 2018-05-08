@@ -82,7 +82,9 @@ internalTask("builtin:build-artifacts", async () => {
 
   await buildArtifacts(config, compilationOutput);
 
-  const truffleArtifactsStorage = new TruffleArtifactsStorage(config.paths.artifacts);
+  const truffleArtifactsStorage = new TruffleArtifactsStorage(
+    config.paths.artifacts
+  );
   await truffleArtifactsStorage.saveTruffleArtifacts(compilationOutput);
 });
 

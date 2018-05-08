@@ -66,7 +66,6 @@ async function getContract(config, web3, name) {
   return new web3.eth.Contract(abi);
 }
 
-
 module.exports = {
   buildArtifacts,
   getContractAbi,

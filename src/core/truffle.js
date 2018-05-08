@@ -140,7 +140,7 @@ class LazyTruffleContractProvisioner {
 
   _addDefaultParamsToInstanceMethod(Contract, instance, methodName) {
     const original = instance[methodName];
-    const originalCall = original .call;
+    const originalCall = original.call;
     const originalEstimateGas = original.estimateGas;
 
     instance[methodName] = async (...args) => {
