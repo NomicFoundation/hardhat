@@ -1,3 +1,5 @@
+"use strict";
+
 const types = require("../arguments-parsing/types");
 const { Parser } = require("../arguments-parsing/Parser");
 

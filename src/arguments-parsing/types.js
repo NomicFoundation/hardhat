@@ -1,9 +1,10 @@
+"use strict";
+
 /**
  * This is a dictionary of type names to functions that receive the param name
  * and the raw string value. They validate the value, throwing if invalid, and
  * convert the right type.
  */
-
 module.exports = {
   string: {
     name: "string",

@@ -1,6 +1,7 @@
 task("asd", "Sample user-defined task")
   .addParam("sampleOptionalParam", "Just a float", 1.2, types.float)
   .addParam("sampleRequiredParam", "Just a number", types.int)
+  .addFlag("flag", "A flag")
   .setAction(async () => {
     console.log(
       "This is a sample user-defined task, which can run other tasks"

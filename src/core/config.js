@@ -1,3 +1,5 @@
+"use strict";
+
 const findUp = require("find-up");
 const path = require("path");
 const Web3 = require("web3");

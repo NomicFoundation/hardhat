@@ -1,3 +1,5 @@
+"use strict";
+
 const BigNumber = require("bignumber.js");
 const Ganache = require("ganache-core");
 

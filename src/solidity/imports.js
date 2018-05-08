@@ -1,3 +1,4 @@
+"use strict";
 const solidityParser = require("solidity-parser");
 
 function getImports(resolvedFile) {

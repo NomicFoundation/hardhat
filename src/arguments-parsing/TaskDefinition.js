@@ -1,3 +1,5 @@
+"use strict";
+
 const types = require("./types");
 
 class TaskDefinition {

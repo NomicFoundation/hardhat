@@ -1,3 +1,5 @@
+"use strict";
+
 const env = require("../core/importable-environment");
 
 env.run("compile").then(() => {

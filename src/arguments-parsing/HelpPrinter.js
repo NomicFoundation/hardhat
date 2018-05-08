@@ -1,3 +1,5 @@
+"use strict";
+
 const { PARAM_PREFIX } = require("./constants");
 
 class HelpPrinter {

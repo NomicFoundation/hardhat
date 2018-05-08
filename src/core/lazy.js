@@ -1,3 +1,5 @@
+"use strict";
+
 function lazyObject(objectCreator) {
   return new Proxy(
     {},

@@ -1,3 +1,5 @@
+"use strict";
+
 const Web3 = require("web3");
 const { promisify } = require("util");
 

@@ -1,3 +1,5 @@
+"use strict";
+
 const { getConfig } = require("./config");
 const { getEnvSoolArguments } = require("./arguments");
 const { createEnvironment } = require("./environment");
