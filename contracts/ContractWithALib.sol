@@ -1,5 +1,7 @@
 pragma solidity ^0.4.0;
 
+import "./L.sol";
+
 // Just a dependency
 contract ContractWithALib {
     function f() returns (bool) {
@@ -7,8 +9,3 @@ contract ContractWithALib {
     }
 }
 
-library L {
-    function g() returns (uint256) {
-        return 123;
-    }
-}

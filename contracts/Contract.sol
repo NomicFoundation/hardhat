@@ -2,7 +2,7 @@ pragma solidity ^0.4.0;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
-import './Contract2.sol';
+import './ContractWithALib.sol';
 
 // This contract is used as an example to create a model of it in TS, look at src-ts/Contract.ts
 contract Contract {
@@ -19,8 +19,11 @@ contract Contract {
 
     uint256 public asd;
 
+    address public lastSender;
+
     function Contract() public payable {
         asd = msg.value;
+        lastSender = msg.sender;
     }
 
     function c(Ownable o) public constant returns (uint256) {
@@ -41,10 +44,12 @@ contract Contract {
 
     function publicNonPayable() public {
         asd = 123;
+        lastSender = msg.sender;
     }
 
     function publicPayable() public payable {
         asd = msg.value;
+        lastSender = msg.sender;
     }
 
 }
