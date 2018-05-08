@@ -17,6 +17,20 @@ const SOOL_PARAM_DEFINITIONS = {
     description: "Show sool's errors' stack traces.",
     type: types.boolean,
     isFlag: true
+  },
+  version: {
+    name: "version",
+    defaultValue: false,
+    description: "Show's sool's version.",
+    type: types.boolean,
+    isFlag: true
+  },
+  help: {
+    name: "help",
+    defaultValue: false,
+    description: "Show's sool's help.",
+    type: types.boolean,
+    isFlag: true
   }
 };
 

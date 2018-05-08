@@ -7,7 +7,6 @@ const { createEnvironment } = require("./environment");
 const DEFAULT_TASK_NAME = "help";
 
 async function main() {
-
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--showStackTraces");
@@ -23,7 +22,22 @@ async function main() {
 
     showStackTraces = parsedArguments.globalArguments.showStackTraces;
 
+    if (parsedArguments.globalArguments.version) {
+      const packageInfo = require("../../package");
+      console.log(`${packageInfo.name} version ${packageInfo.version}`);
+      return;
+    }
+
     const env = createEnvironment(config, parsedArguments.globalArguments);
+
+    if (
+      parsedArguments.globalArguments.help &&
+      parsedArguments.taskName !== "help"
+    ) {
+      await env.run("help", { task: parsedArguments.taskName });
+      return;
+    }
+
     await env.run(parsedArguments.taskName, parsedArguments.taskArguments);
   } catch (error) {
     console.error("An error occurred: " + error.message + "\n");
