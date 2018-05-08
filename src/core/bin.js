@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+
+const fs = require("fs-extra");
+const path = require("path");
+
 const { getConfig } = require("./config");
 const { getTaskDefinitions } = require("./tasks");
 const { parseArguments } = require("./arguments");
@@ -23,7 +27,9 @@ async function main() {
     showStackTraces = parsedArguments.globalArguments.showStackTraces;
 
     if (parsedArguments.globalArguments.version) {
-      const packageInfo = require("../../package");
+      const packageInfo = await fs.readJson(
+        path.join(__dirname, "../../package.json")
+      );
       console.log(`${packageInfo.name} version ${packageInfo.version}`);
       return;
     }
