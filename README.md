@@ -100,8 +100,6 @@ A list of tasks to complete, mostly in priority order:
     
 * Environment augmentation capabilities
 
-* Add promisified web3
-
 * Hierarchic output of the current tasks being run
 
 * Errors
