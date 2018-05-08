@@ -152,8 +152,9 @@ class HelpPrinter {
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(paramDefinitions).sort()) {
-      const description = paramDefinitions[name].description;
-      const defaultValue = paramDefinitions[name].defaultValue;
+      const definition = paramDefinitions[name];
+      const description = definition.description;
+      const defaultValue = definition.defaultValue;
 
       let msg = `  ${PARAM_PREFIX}${name.padEnd(paramsNameLength)}\t`;
 
@@ -161,7 +162,7 @@ class HelpPrinter {
         msg += `${description} `;
       }
 
-      if (defaultValue !== undefined) {
+      if (defaultValue !== undefined && !definition.isFlag) {
         msg += `(default: ${defaultValue})`;
       }
 
