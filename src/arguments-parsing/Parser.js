@@ -27,7 +27,7 @@ class Parser {
     const {
       rawParamArguments,
       rawPositionalParamArguments
-    } = this._splitArguments(rawTaskArgs);
+    } = this._splitArgumentsForTask(rawTaskArgs, selectedTask);
 
     const globalArguments = this._parseParamArgs(
       rawGlobalParamArgs,
@@ -65,7 +65,9 @@ class Parser {
         return i;
       }
 
-      i++;
+      if (!this._isFlagName(rawArgs[i], this.globalParamDefinitions)) {
+        i++;
+      }
     }
   }
 
@@ -84,14 +86,19 @@ class Parser {
       const rawParamName = rawParamArgs[i];
       const paramName = this._extractParamName(rawParamArgs[i]);
 
-      i++;
-
-      const rawParamArg = rawParamArgs[i];
-
       const definition = paramDefinitions[paramName];
       if (definition === undefined) {
         throw new Error(`Unrecognized param ${rawParamName}.`);
       }
+
+      if (definition.isFlag) {
+        args[paramName] = true;
+        continue;
+      }
+
+      i++;
+
+      const rawParamArg = rawParamArgs[i];
 
       if (rawParamArg === undefined) {
         if (definition.defaultValue === undefined) {
@@ -166,7 +173,7 @@ class Parser {
     return args;
   }
 
-  _splitArguments(rawArgs) {
+  _splitArgumentsForTask(rawArgs, selectedTask) {
     const rawPositionalParamArguments = [];
     const rawParamArguments = [];
 
@@ -178,14 +185,21 @@ class Parser {
 
       rawParamArguments.push(rawArgs[i]);
 
-      i++;
+      if (!this._isFlagName(rawArgs[i], selectedTask.paramDefinitions)) {
+        i++;
 
-      if (rawArgs[i] !== undefined) {
-        rawParamArguments.push(rawArgs[i]);
+        if (rawArgs[i] !== undefined) {
+          rawParamArguments.push(rawArgs[i]);
+        }
       }
     }
 
     return { rawPositionalParamArguments, rawParamArguments };
+  }
+
+  _isFlagName(rawArg, paramDefinitions) {
+    const name = this._extractParamName(rawArg);
+    return paramDefinitions[name].isFlag;
   }
 }
 

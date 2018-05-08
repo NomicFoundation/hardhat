@@ -7,10 +7,14 @@ const { createEnvironment } = require("./environment");
 const DEFAULT_TASK_NAME = "help";
 
 async function main() {
-  let showStackTraces = true;
+
+  // We first accept this argument anywhere, so we know if the user wants
+  // stack traces before really parsing the arguments.
+  let showStackTraces = process.argv.includes("--showStackTraces");
 
   try {
     const config = getConfig();
+
     const parsedArguments = parseArguments(
       getTaskDefinitions(),
       DEFAULT_TASK_NAME,

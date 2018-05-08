@@ -106,9 +106,11 @@ class HelpPrinter {
         paramsList += "[";
       }
 
-      paramsList += `${PARAM_PREFIX}${name} ${this._getParamValueDescription(
-        definition
-      )}`;
+      paramsList += `${PARAM_PREFIX}${name}`;
+
+      if (!definition.isFlag) {
+        paramsList += ` ${this._getParamValueDescription(definition)}`;
+      }
 
       if (definition.defaultValue !== undefined) {
         paramsList += "]";

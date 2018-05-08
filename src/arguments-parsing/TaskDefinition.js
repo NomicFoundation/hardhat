@@ -34,6 +34,20 @@ class TaskDefinition {
     return this;
   }
 
+  addFlag(name, description) {
+    this._validateNameNotUsed(name);
+
+    this.paramDefinitions[name] = {
+      name,
+      defaultValue: false,
+      type: types.boolean,
+      description,
+      isFlag: true
+    };
+
+    return this;
+  }
+
   addPositionalParam(
     name,
     description,
@@ -223,6 +237,10 @@ class OverloadedTaskDefinition {
     defaultValue = undefined,
     type = types.string
   ) {
+    this._throwNoParamsOverloadError();
+  }
+
+  addFlag(name, description) {
     this._throwNoParamsOverloadError();
   }
 

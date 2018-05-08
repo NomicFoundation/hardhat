@@ -1,5 +1,5 @@
 const types = require("../arguments-parsing/types");
-const Parser = require("../arguments-parsing/Parser").Parser;
+const {Parser} = require("../arguments-parsing/Parser");
 
 const SOOL_ENV_ARGUMENT_PREFIX = "SOOL_";
 
@@ -15,7 +15,8 @@ const SOOL_PARAM_DEFINITIONS = {
     name: "showStackTraces",
     defaultValue: false,
     description: "Show sool's errors' stack traces.",
-    type: types.boolean
+    type: types.boolean,
+    isFlag: true
   }
 };
 
