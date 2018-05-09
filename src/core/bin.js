@@ -52,7 +52,7 @@ async function main() {
     if (showStackTraces) {
       console.error(error.stack);
     } else {
-      console.log("For more info run buidler again with --showStackTraces true.");
+      console.log("For more info run buidler again with --showStackTraces.");
     }
   }
 }
