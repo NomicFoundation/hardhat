@@ -1,4 +1,4 @@
-# S(olidity t)ool
+# Buidler
 
 
 ## Warning
