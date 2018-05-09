@@ -58,7 +58,12 @@ async function runTask(env, name, taskArguments, buidlerArguments) {
     throw new Error(`Task ${name} not defined`);
   }
 
-  return runTaskDefinition(env, taskDefinition, taskArguments, buidlerArguments);
+  return runTaskDefinition(
+    env,
+    taskDefinition,
+    taskArguments,
+    buidlerArguments
+  );
 }
 
 async function runTaskDefinition(
