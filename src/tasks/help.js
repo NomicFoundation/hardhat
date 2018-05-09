@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs-extra");
 
-const { SOOL_PARAM_DEFINITIONS } = require("../core/arguments");
+const { BUIDLER_PARAM_DEFINITIONS } = require("../core/arguments");
 const { HelpPrinter } = require("../arguments-parsing/HelpPrinter");
 const { getTaskDefinitions } = require("../core/tasks");
 
@@ -15,7 +15,7 @@ task("help", "Prints this message")
     const helpPrinter = new HelpPrinter(
       packageInfo.name,
       packageInfo.version,
-      SOOL_PARAM_DEFINITIONS,
+      BUIDLER_PARAM_DEFINITIONS,
       getTaskDefinitions()
     );
 

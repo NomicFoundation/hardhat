@@ -1,11 +1,14 @@
 {
-  "name": "sool",
-  "version": "0.0.1",
+  "name": "buidler",
+  "version": "0.1.0",
   "author": "Patricio Palladino",
   "license": "MIT",
-  "homepage": "https://github.com/alcuadrado/sool",
+  "homepage": "https://github.com/alcuadrado/buidler",
   "main": "src/core/importable-environment.js",
-  "bin": "./src/core/bin.js",
+  "bin": {
+    "buidler": "./src/core/bin.js",
+    "builder": "./src/core/bin.js"
+  },
   "scripts": {
     "prettier": "npx prettier --write *.js src/**/*.js test/**/*.js"
   },

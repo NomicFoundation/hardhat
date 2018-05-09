@@ -1,10 +1,10 @@
-// This test is run with sool.
+// This test is run with buidler.
 
 const Contract = artifacts.require("Contract");
 const L = artifacts.require("L");
 const ContractWithALib = artifacts.require("ContractWithALib");
 
-contract("Tests run with sool", accounts => {
+contract("Tests run with buidler", accounts => {
   it("Should be deployable", async () => {
     const contract = await Contract.new();
     assert.notEqual(contract.address, "0x0");

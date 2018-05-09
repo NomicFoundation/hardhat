@@ -3,46 +3,46 @@
 const types = require("../arguments-parsing/types");
 const { Parser } = require("../arguments-parsing/Parser");
 
-const SOOL_ENV_ARGUMENT_PREFIX = "SOOL_";
+const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
 
-const SOOL_PARAM_DEFINITIONS = {
+const BUIDLER_PARAM_DEFINITIONS = {
   network: {
     name: "network",
     defaultValue: "auto",
     description:
-      "The network to connect to. See sool's config documentation for more info.",
+      "The network to connect to. See buidler's config documentation for more info.",
     type: types.string
   },
   showStackTraces: {
     name: "showStackTraces",
     defaultValue: false,
-    description: "Show sool's errors' stack traces.",
+    description: "Show buidler's errors' stack traces.",
     type: types.boolean,
     isFlag: true
   },
   version: {
     name: "version",
     defaultValue: false,
-    description: "Show's sool's version.",
+    description: "Show's buidler's version.",
     type: types.boolean,
     isFlag: true
   },
   help: {
     name: "help",
     defaultValue: false,
-    description: "Show's sool's help.",
+    description: "Show's buidler's help.",
     type: types.boolean,
     isFlag: true
   }
 };
 
-function getEnvSoolArguments() {
+function getEnvBuidlerArguments() {
   const envArgs = {};
 
-  for (const paramName in SOOL_PARAM_DEFINITIONS) {
-    const definition = SOOL_PARAM_DEFINITIONS[paramName];
+  for (const paramName in BUIDLER_PARAM_DEFINITIONS) {
+    const definition = BUIDLER_PARAM_DEFINITIONS[paramName];
 
-    const envVarName = SOOL_ENV_ARGUMENT_PREFIX + paramName.toUpperCase();
+    const envVarName = BUIDLER_ENV_ARGUMENT_PREFIX + paramName.toUpperCase();
     const rawValue = process.env[envVarName];
 
     if (rawValue !== undefined) {
@@ -63,7 +63,7 @@ function getEnvSoolArguments() {
 
 function parseArguments(taskDefinitions, defaultTaskName, rawCommandLineArgs) {
   const parser = new Parser(
-    SOOL_PARAM_DEFINITIONS,
+    BUIDLER_PARAM_DEFINITIONS,
     taskDefinitions,
     defaultTaskName
   );
@@ -71,7 +71,7 @@ function parseArguments(taskDefinitions, defaultTaskName, rawCommandLineArgs) {
 }
 
 module.exports = {
-  getEnvSoolArguments,
+  getEnvBuidlerArguments,
   parseArguments,
-  SOOL_PARAM_DEFINITIONS
+  BUIDLER_PARAM_DEFINITIONS
 };

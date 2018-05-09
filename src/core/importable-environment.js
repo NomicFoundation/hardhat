@@ -1,7 +1,7 @@
 "use strict";
 
 const { getConfig } = require("./config");
-const { getEnvSoolArguments } = require("./arguments");
+const { getEnvBuidlerArguments } = require("./arguments");
 const { createEnvironment } = require("./environment");
 
 if (global.env !== undefined) {
@@ -10,6 +10,6 @@ if (global.env !== undefined) {
 }
 
 const config = getConfig();
-const soolArguments = getEnvSoolArguments();
+const buidlerArguments = getEnvBuidlerArguments();
 
-module.exports = createEnvironment(config, soolArguments);
+module.exports = createEnvironment(config, buidlerArguments);

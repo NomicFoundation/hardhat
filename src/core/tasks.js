@@ -51,34 +51,34 @@ function internalTask(name, description, action) {
   return addTask(name, description, action, true);
 }
 
-async function runTask(env, name, taskArguments, soolArguments) {
+async function runTask(env, name, taskArguments, buidlerArguments) {
   const taskDefinition = tasks[name];
 
   if (taskDefinition === undefined) {
     throw new Error(`Task ${name} not defined`);
   }
 
-  return runTaskDefinition(env, taskDefinition, taskArguments, soolArguments);
+  return runTaskDefinition(env, taskDefinition, taskArguments, buidlerArguments);
 }
 
 async function runTaskDefinition(
   env,
   taskDefinition,
   taskArguments,
-  soolArguments
+  buidlerArguments
 ) {
   env.injectToGlobal();
 
   if (taskDefinition.parentTaskDefinition) {
     global.runSuper = async (
       _taskArguments = taskArguments,
-      _soolArguments = soolArguments
+      _buidlerArguments = buidlerArguments
     ) =>
       runTaskDefinition(
         env,
         taskDefinition.parentTaskDefinition,
         _taskArguments,
-        _soolArguments
+        _buidlerArguments
       );
   } else {
     global.runSuper = async () => {
@@ -90,7 +90,7 @@ async function runTaskDefinition(
     };
   }
 
-  const taskResult = taskDefinition.action(taskArguments, soolArguments);
+  const taskResult = taskDefinition.action(taskArguments, buidlerArguments);
 
   global.runSuper = undefined;
 

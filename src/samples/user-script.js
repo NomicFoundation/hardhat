@@ -1,4 +1,4 @@
-console.log("Sool env's web3 provider's host:", web3.currentProvider.host);
+console.log("Buidler env's web3 provider's host:", web3.currentProvider.host);
 
 const Contract = artifacts.require("Contract");
 const ContractWithALib = artifacts.require("ContractWithALib");

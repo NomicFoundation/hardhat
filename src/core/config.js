@@ -8,7 +8,7 @@ const deepmerge = require("deepmerge");
 const types = require("../arguments-parsing/types");
 const { task, internalTask } = require("./tasks");
 
-const CONFIG_FILENAME = "sool-config.js";
+const CONFIG_FILENAME = "buidler-config.js";
 
 function getUserConfigPath() {
   const pathToConfigFile = findUp.sync(CONFIG_FILENAME);
