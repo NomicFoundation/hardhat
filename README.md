@@ -60,15 +60,15 @@ There's no exportable artifacts yet, so just `yarn install` and use it locally.
 
 ## Running the project
 
-Read buidlers help by running: `./src/core/bin.js`
+Read buidlers help by running: `./src/core/cli.js`
 
-Compiling everything: `./src/core/bin.js compile` 
+Compiling everything: `./src/core/cli.js compile` 
 
-Running a user script using `buidler`: `./src/core/bin.js run src/samples/user-script.js`
+Running a user script using `buidler`: `./src/core/cli.js run src/samples/user-script.js`
 
 Running a user script without using `buidler`: `node src/samples/standalone-user-script.js`
 
-Running tests using `buidler`: Tests in `test/` can be run with buidler with `./src/core/bin.js test`. They are mocha tests with the environment, `chai.assert` and web3's `accounts` exported in global.
+Running tests using `buidler`: Tests in `test/` can be run with buidler with `./src/core/cli.js test`. They are mocha tests with the environment, `chai.assert` and web3's `accounts` exported in global.
 
 Running tests without using `buidler`: They can be any user script, run with any test runner. There's a sample mocha test that can be run with `npx mocha src/samples/standalone-mocha-test.js` 
 

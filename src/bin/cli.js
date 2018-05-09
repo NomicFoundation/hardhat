@@ -4,10 +4,10 @@
 const fs = require("fs-extra");
 const path = require("path");
 
-const { getConfig } = require("./config");
-const { getTaskDefinitions } = require("./tasks");
-const { parseArguments } = require("./arguments");
-const { createEnvironment } = require("./environment");
+const { getConfig } = require("../core/config");
+const { getTaskDefinitions } = require("../core/tasks");
+const { parseArguments } = require("../core/arguments");
+const { createEnvironment } = require("../core/environment");
 
 const DEFAULT_TASK_NAME = "help";
 

@@ -6,11 +6,11 @@
   "homepage": "https://github.com/alcuadrado/buidler",
   "main": "src/core/importable-environment.js",
   "bin": {
-    "buidler": "./src/core/bin.js",
-    "builder": "./src/core/bin.js"
+    "buidler": "./src/bin/cli.js",
+    "builder": "./src/bin/builder.js"
   },
   "scripts": {
-    "prettier": "npx prettier --write *.js src/**/*.js test/**/*.js"
+    "prettier": "prettier --write *.js src/**/*.js test/**/*.js"
   },
   "devDependencies": {
     "ganache-cli": "^6.1.0",
