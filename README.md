@@ -94,9 +94,7 @@ A list of tasks to complete, mostly in priority order:
 
 * Export mocha config, export the entire ganache config
     
-* Environment augmentation capabilities
-
-* Hierarchic output of the current tasks being run
+* Hierarchic output of the current tasks being run?
 
 * Errors
     - Define error codes for *every* possible exception
@@ -108,7 +106,6 @@ A list of tasks to complete, mostly in priority order:
     - Don't use solidity-parser. Two options:
         1. Replace the parser with solidity-parser-antlr once its relicenced.
         2. Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
-    - Support more libraries sources? EthPM?
 
 * TS contract models
     - Select a typescript contract generator and integrate it
