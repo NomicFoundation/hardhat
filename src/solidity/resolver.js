@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require("fs-extra");
+const findUp = require("find-up");
 const path = require("path");
 
 class ResolvedFile {
@@ -37,7 +38,6 @@ class ResolvedFile {
 class Resolver {
   constructor(config) {
     this.config = config;
-    this.nodeModulesPath = path.join(this.config.paths.root, "node_modules");
   }
 
   async resolveProjectSourceFile(pathToResolve) {
@@ -51,7 +51,7 @@ class Resolver {
       throw new Error(`File ${pathToResolve} is outside the project.`);
     }
 
-    if (absolutePath.startsWith(this.nodeModulesPath)) {
+    if (absolutePath.includes("node_modules")) {
       throw new Error(
         `File ${pathToResolve} is a library file treated as local.`
       );
@@ -64,7 +64,7 @@ class Resolver {
 
   async resolveLibrarySourceFile(globalName) {
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
-    const libraryPath = path.join(this.nodeModulesPath, libraryName);
+    const libraryPath = await this._findNodeLibrary(libraryName);
 
     if (!(await fs.exists(libraryPath))) {
       throw new Error(`Library ${libraryName} not installed`);
@@ -130,6 +130,25 @@ class Resolver {
       libraryName,
       libraryVersion
     );
+  }
+
+  async _findNodeLibrary(libraryName) {
+    let cwd = this.config.paths.root;
+
+    do {
+      const nodeModulesPath = await findUp("node_modules", { cwd });
+
+      if (!nodeModulesPath) {
+        return;
+      }
+
+      const libraryPath = path.join(nodeModulesPath, libraryName);
+      if (await fs.pathExists(libraryPath)) {
+        return libraryPath;
+      }
+
+      cwd = path.dirname(path.dirname(nodeModulesPath));
+    } while (true);
   }
 
   _isRelativeImport(imported) {
