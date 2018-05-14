@@ -12,7 +12,7 @@ const { ArgumentsParser } = require("./ArgumentsParser");
 const { getConfig } = require("../core/config");
 const {
   isCwdInsideProject,
-  isInsideGitRepository
+  getRecommendedGitIgnore
 } = require("../core/project-structure");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
 const { createEnvironment } = require("../core/env/definition");
@@ -86,11 +86,16 @@ async function initProject() {
     return;
   }
 
-  const { projectRoot } = await inquirer.prompt([
+  const { projectRoot, shouldAddGitIgnore } = await inquirer.prompt([
     {
       name: "projectRoot",
       default: process.cwd(),
       message: "Buidler project root:"
+    },
+    {
+      name: "shouldAddGitIgnore",
+      type: "confirm",
+      message: "Do you want to add a .gitignore?"
     }
   ]);
 
@@ -100,17 +105,25 @@ async function initProject() {
     projectRoot
   );
 
+  if (shouldAddGitIgnore) {
+    const gitIgnorePath = path.join(projectRoot, ".gitignore");
+
+    let content = await getRecommendedGitIgnore();
+
+    if (await fs.pathExists(gitIgnorePath)) {
+      const existingContent = fs.readFile(gitIgnorePath, "utf-8");
+      content = (await existingContent) + "\n" + content;
+    }
+
+    await fs.writeFile(gitIgnorePath, content);
+  }
+
   console.log(chalk.cyan(`\n✨ Project created ✨`));
 
   console.log(`\nTry running running the following tasks:`);
   console.log(`  buidler compile`);
   console.log(`  buidler test`);
   console.log(`  buidler run scripts/deploy.js`);
-
-  if (await isInsideGitRepository(projectRoot)) {
-    console.log(`  buidler gitignore`);
-  }
-
   console.log(`  buidler help`);
 }
 

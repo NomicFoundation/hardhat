@@ -2,6 +2,7 @@
 
 const findUp = require("find-up");
 const path = require("path");
+const fs = require("fs-extra");
 
 const CONFIG_FILENAME = "buidler-config.js";
 
@@ -22,18 +23,20 @@ function getProjectRoot() {
   return path.dirname(getUserConfigPath());
 }
 
-async function isInsideGitRepository(projectRoot) {
-  const options = {};
-  if (projectRoot !== undefined) {
-    options.cwd = projectRoot;
-  }
+async function getRecommendedGitIgnore() {
+  const gitIgnorePath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "recommended-gitignore.txt"
+  );
 
-  return !!(await findUp(".git", options));
+  return fs.readFile(gitIgnorePath, "utf-8");
 }
 
 module.exports = {
   isCwdInsideProject,
   getUserConfigPath,
   getProjectRoot,
-  isInsideGitRepository
+  getRecommendedGitIgnore
 };
