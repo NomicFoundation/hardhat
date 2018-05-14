@@ -22,4 +22,18 @@ function getProjectRoot() {
   return path.dirname(getUserConfigPath());
 }
 
-module.exports = { isCwdInsideProject, getUserConfigPath, getProjectRoot };
+async function isInsideGitRepository(projectRoot) {
+  const options = {};
+  if (projectRoot !== undefined) {
+    options.cwd = projectRoot;
+  }
+
+  return !!(await findUp(".git", options));
+}
+
+module.exports = {
+  isCwdInsideProject,
+  getUserConfigPath,
+  getProjectRoot,
+  isInsideGitRepository
+};

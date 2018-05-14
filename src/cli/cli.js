@@ -10,7 +10,10 @@ const { BUIDLER_PARAM_DEFINITIONS } = require("../core/buidler-params");
 const { ArgumentsParser } = require("./ArgumentsParser");
 
 const { getConfig } = require("../core/config");
-const { isCwdInsideProject } = require("../core/project-structure");
+const {
+  isCwdInsideProject,
+  isInsideGitRepository
+} = require("../core/project-structure");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
 const { createEnvironment } = require("../core/env/definition");
 
@@ -65,7 +68,9 @@ async function initProject() {
   console.log("");
 
   console.log(
-    chalk.cyan(`  Welcome to ${packageInfo.name} v${packageInfo.version}  \n`)
+    chalk.cyan(
+      `👷‍ Welcome to ${packageInfo.name} v${packageInfo.version} 👷‍\n`
+    )
   );
 
   const { shouldCreateProject } = await inquirer.prompt([
@@ -89,15 +94,24 @@ async function initProject() {
     }
   ]);
 
-  await fs.outputFile(
-    path.join(projectRoot, "buidler-config.js"),
-    `
-module.exports = {
-};
-  `
+  await fs.ensureDir(projectRoot);
+  await fs.copy(
+    path.join(__dirname, "..", "..", "sample-project"),
+    projectRoot
   );
 
   console.log(chalk.cyan(`\n✨ Project created ✨`));
+
+  console.log(`\nTry running running the following tasks:`);
+  console.log(`  buidler compile`);
+  console.log(`  buidler test`);
+  console.log(`  buidler run scripts/deploy.js`);
+
+  if (await isInsideGitRepository(projectRoot)) {
+    console.log(`  buidler gitignore`);
+  }
+
+  console.log(`  buidler help`);
 }
 
 async function main() {
