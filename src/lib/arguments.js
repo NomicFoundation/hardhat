@@ -25,7 +25,6 @@ function getEnvBuidlerArguments() {
       try {
         envArgs[paramName] = definition.type.parse(paramName, rawValue);
       } catch (e) {
-        console.error(e);
         throw new Error(
           `Invalid environment variable ${envVarName}'s value: ${rawValue}`
         );
