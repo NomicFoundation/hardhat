@@ -7,7 +7,7 @@
   "main": "src/core/importable-environment.js",
   "bin": {
     "buidler": "./src/bin/cli.js",
-    "builder": "./src/bin/builder.js"
+    "builder": "./src/bin/cli-with-a-typo.js"
   },
   "scripts": {
     "prettier": "prettier --write *.js src/**/*.js test/**/*.js"
