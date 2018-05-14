@@ -2,12 +2,13 @@
 
 const Web3 = require("web3");
 
-const { lazyObject } = require("./lazy");
-const { getNetworkConfig } = require("./config");
-const { getWeb3Instance } = require("./network");
-const { runTask } = require("./tasks");
-const { TruffleEnvironmentArtifacts } = require("./truffle");
-const { promisifyWeb3 } = require("./pweb3");
+const { applyExtensions } = require("./extensions");
+const { lazyObject } = require("../lazy");
+const { getNetworkConfig } = require("../config");
+const { getWeb3Instance } = require("../web3/network");
+const { runTask } = require("../tasks/dsl");
+const { TruffleEnvironmentArtifacts } = require("../truffle");
+const { promisifyWeb3 } = require("../web3/pweb3");
 
 function injectToGlobal(env) {
   global.env = env;
@@ -33,6 +34,8 @@ function createEnvironment(config, buidlerArguments) {
   env.run = (name, taskArguments, _buidlerArguments = buidlerArguments) =>
     runTask(env, name, taskArguments, _buidlerArguments);
   env.injectToGlobal = injectToGlobal.bind(undefined, env);
+
+  applyExtensions(env, config);
 
   return env;
 }

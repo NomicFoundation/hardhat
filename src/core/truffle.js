@@ -28,13 +28,6 @@ class TruffleArtifactsStorage {
       (contract.evm && contract.evm.bytecode && contract.evm.bytecode.object) ||
       "";
 
-    console.log(contractName);
-    console.log(
-      contract.evm &&
-        contract.evm.bytecode &&
-        contract.evm.bytecode.linkReferences
-    );
-
     const artifact = {
       contractName,
       abi: contract.abi,

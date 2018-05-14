@@ -3,7 +3,7 @@
 const {
   TaskDefinition,
   OverloadedTaskDefinition
-} = require("../arguments-parsing/TaskDefinition");
+} = require("./TaskDefinition");
 
 const tasks = {};
 

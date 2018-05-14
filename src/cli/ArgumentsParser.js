@@ -1,8 +1,6 @@
 "use strict";
 
-const { PARAM_PREFIX } = require("./constants");
-
-class Parser {
+class ArgumentsParser {
   constructor(globalParamDefinitions, tasks, defaultTaskName) {
     this.globalParamDefinitions = globalParamDefinitions;
     this.tasks = tasks;
@@ -54,11 +52,11 @@ class Parser {
   }
 
   _isParamName(str) {
-    return str.startsWith(PARAM_PREFIX);
+    return str.startsWith(ArgumentsParser.PARAM_PREFIX);
   }
 
   _extractParamName(str) {
-    return str.slice(PARAM_PREFIX.length);
+    return str.slice(ArgumentsParser.PARAM_PREFIX.length);
   }
 
   _getTaskNameIndex(rawArgs) {
@@ -123,7 +121,9 @@ class Parser {
       .find(o => args[o.name] === undefined);
 
     if (missingParam !== undefined) {
-      throw new Error(`Missing param ${PARAM_PREFIX}${missingParam.name}`);
+      throw new Error(
+        `Missing param ${ArgumentsParser.PARAM_PREFIX}${missingParam.name}`
+      );
     }
 
     return args;
@@ -205,4 +205,6 @@ class Parser {
   }
 }
 
-module.exports = { Parser };
+ArgumentsParser.PARAM_PREFIX = "--";
+
+module.exports = { ArgumentsParser };

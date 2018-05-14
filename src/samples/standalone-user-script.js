@@ -1,6 +1,6 @@
 "use strict";
 
-const env = require("../core/importable-environment");
+const env = require("../lib/buidler-lib");
 
 env.run("compile").then(() => {
   console.log(

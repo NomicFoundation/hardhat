@@ -4,10 +4,10 @@
   "author": "Patricio Palladino",
   "license": "MIT",
   "homepage": "https://github.com/alcuadrado/buidler",
-  "main": "src/core/importable-environment.js",
+  "main": "src/lib/builder-lib.js",
   "bin": {
-    "buidler": "./src/bin/cli.js",
-    "builder": "./src/bin/cli-with-a-typo.js"
+    "buidler": "./src/cli/cli.js",
+    "builder": "./src/cli/cli-with-a-typo.js"
   },
   "scripts": {
     "prettier": "prettier --write *.js src/**/*.js test/**/*.js"

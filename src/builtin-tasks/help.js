@@ -2,8 +2,8 @@ const path = require("path");
 const fs = require("fs-extra");
 
 const { BUIDLER_PARAM_DEFINITIONS } = require("../core/arguments");
-const { HelpPrinter } = require("../arguments-parsing/HelpPrinter");
-const { getTaskDefinitions } = require("../core/tasks");
+const { HelpPrinter } = require("../cli/HelpPrinter");
+const { getTaskDefinitions } = require("../core/tasks/dsl");
 
 task("help", "Prints this message")
   .addPositionalParam("task", "An optional task to print more info about", "")

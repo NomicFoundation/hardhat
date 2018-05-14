@@ -5,16 +5,13 @@ const fs = require("fs-extra");
 const util = require("util");
 const glob = util.promisify(require("glob"));
 
-const { getUserConfigPath } = require("../../core/config");
-
 async function getModificationDate(file) {
   const stat = await fs.stat(file);
   return new Date(stat.mtime);
 }
 
 async function getConfigModificationDate() {
-  const configPath = getUserConfigPath();
-  return getModificationDate(configPath);
+  return getModificationDate(config.paths.configFile);
 }
 
 async function getModificationDatesInDir(dir) {

@@ -1,4 +1,4 @@
-const env = require("../core/importable-environment");
+const env = require("../lib/buidler-lib");
 const assert = require("chai").assert;
 const Contract = env.artifacts.require("Contract");
 

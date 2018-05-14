@@ -1,6 +1,6 @@
 "use strict";
 
-const { PARAM_PREFIX } = require("./constants");
+const { ArgumentsParser } = require("./ArgumentsParser");
 
 class HelpPrinter {
   constructor(programName, version, globalParamDefinitions, tasks) {
@@ -108,7 +108,7 @@ class HelpPrinter {
         paramsList += "[";
       }
 
-      paramsList += `${PARAM_PREFIX}${name}`;
+      paramsList += `${ArgumentsParser.PARAM_PREFIX}${name}`;
 
       if (!definition.isFlag) {
         paramsList += ` ${this._getParamValueDescription(definition)}`;
@@ -156,7 +156,9 @@ class HelpPrinter {
       const description = definition.description;
       const defaultValue = definition.defaultValue;
 
-      let msg = `  ${PARAM_PREFIX}${name.padEnd(paramsNameLength)}\t`;
+      let msg = `  ${ArgumentsParser.PARAM_PREFIX}${name.padEnd(
+        paramsNameLength
+      )}\t`;
 
       if (description !== undefined) {
         msg += `${description} `;

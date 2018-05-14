@@ -1,8 +1,8 @@
 "use strict";
 
-const { getConfig } = require("./config");
-const { getEnvBuidlerArguments } = require("./arguments");
-const { createEnvironment } = require("./environment");
+const { getConfig } = require("../core/config");
+const { getEnvBuidlerArguments } = require("../core/arguments");
+const { createEnvironment } = require("../core/env/definition");
 
 if (global.env !== undefined) {
   module.exports = global.env;

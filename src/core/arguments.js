@@ -1,7 +1,7 @@
 "use strict";
 
-const types = require("../arguments-parsing/types");
-const { Parser } = require("../arguments-parsing/Parser");
+const types = require("./tasks/types");
+const { ArgumentsParser } = require("../cli/ArgumentsParser");
 
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
 
@@ -62,7 +62,7 @@ function getEnvBuidlerArguments() {
 }
 
 function parseArguments(taskDefinitions, defaultTaskName, rawCommandLineArgs) {
-  const parser = new Parser(
+  const parser = new ArgumentsParser(
     BUIDLER_PARAM_DEFINITIONS,
     taskDefinitions,
     defaultTaskName
