@@ -1,7 +1,7 @@
 "use strict";
 
 const { getConfig } = require("../core/config");
-const { getEnvBuidlerArguments } = require("../core/arguments");
+const { getEnvBuidlerArguments } = require("./arguments");
 const { createEnvironment } = require("../core/env/definition");
 
 if (global.env !== undefined) {

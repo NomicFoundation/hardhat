@@ -55,10 +55,6 @@ class ArgumentsParser {
     return str.startsWith(ArgumentsParser.PARAM_PREFIX);
   }
 
-  _extractParamName(str) {
-    return str.slice(ArgumentsParser.PARAM_PREFIX.length);
-  }
-
   _getTaskNameIndex(rawArgs) {
     for (let i = 0; i < rawArgs.length; i++) {
       if (!this._isParamName(rawArgs[i])) {
@@ -84,7 +80,7 @@ class ArgumentsParser {
       }
 
       const rawParamName = rawParamArgs[i];
-      const paramName = this._extractParamName(rawParamArgs[i]);
+      const paramName = ArgumentsParser.cLAToParamName(rawParamArgs[i]);
 
       const definition = paramDefinitions[paramName];
       if (definition === undefined) {
@@ -122,7 +118,7 @@ class ArgumentsParser {
 
     if (missingParam !== undefined) {
       throw new Error(
-        `Missing param ${ArgumentsParser.PARAM_PREFIX}${missingParam.name}`
+        `Missing param ${ArgumentsParser.paramNameToCLA(missingParam.name)}`
       );
     }
 
@@ -200,11 +196,31 @@ class ArgumentsParser {
   }
 
   _isFlagName(rawArg, paramDefinitions) {
-    const name = this._extractParamName(rawArg);
-    return paramDefinitions[name].isFlag;
+    const name = ArgumentsParser.cLAToParamName(rawArg);
+    const definition = paramDefinitions[name];
+    return definition !== undefined && definition.isFlag;
   }
 }
 
 ArgumentsParser.PARAM_PREFIX = "--";
+
+ArgumentsParser.paramNameToCLA = paramName =>
+  ArgumentsParser.PARAM_PREFIX +
+  paramName
+    .split(/(?=[A-Z])/g)
+    .map(s => s.toLowerCase())
+    .join("-");
+
+ArgumentsParser.cLAToParamName = cLa => {
+  const parts = cLa.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
+
+  return (
+    parts[0] +
+    parts
+      .slice(1)
+      .map(s => s[0].toUpperCase() + s.slice(1))
+      .join("")
+  );
+};
 
 module.exports = { ArgumentsParser };

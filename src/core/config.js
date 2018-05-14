@@ -4,7 +4,7 @@ const Web3 = require("web3");
 const deepmerge = require("deepmerge");
 
 const { getUserConfigPath } = require("./project-structure");
-const types = require("./tasks/types");
+const types = require("./types");
 const { task, internalTask } = require("./tasks/dsl");
 const { extendEnvironment } = require("./env/extensions");
 

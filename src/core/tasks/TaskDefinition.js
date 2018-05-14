@@ -1,6 +1,6 @@
 "use strict";
 
-const types = require("./types");
+const types = require("../types");
 
 class TaskDefinition {
   constructor(name, isInternal) {

@@ -5,14 +5,40 @@ const fs = require("fs-extra");
 const path = require("path");
 const chalk = require("chalk");
 const inquirer = require("inquirer");
+const types = require("../core/types");
+const { BUIDLER_PARAM_DEFINITIONS } = require("../core/buidler-params");
+const { ArgumentsParser } = require("./ArgumentsParser");
 
 const { getConfig } = require("../core/config");
 const { isCwdInsideProject } = require("../core/project-structure");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
-const { parseArguments } = require("../core/arguments");
 const { createEnvironment } = require("../core/env/definition");
 
 const DEFAULT_TASK_NAME = "help";
+
+const CLI_PARAM_DEFINITIONS = {
+  showStackTraces: {
+    name: "showStackTraces",
+    defaultValue: false,
+    description: "Show buidler's errors' stack traces.",
+    type: types.boolean,
+    isFlag: true
+  },
+  version: {
+    name: "version",
+    defaultValue: false,
+    description: "Show's buidler's version.",
+    type: types.boolean,
+    isFlag: true
+  },
+  help: {
+    name: "help",
+    defaultValue: false,
+    description: "Show's buidler's help.",
+    type: types.boolean,
+    isFlag: true
+  }
+};
 
 function supportsEmoji(builderArguments) {
   return (
@@ -87,11 +113,18 @@ async function main() {
 
     const config = getConfig();
 
-    const parsedArguments = parseArguments(
+    const paramDefinitions = {
+      ...BUIDLER_PARAM_DEFINITIONS,
+      ...CLI_PARAM_DEFINITIONS
+    };
+
+    const parser = new ArgumentsParser(
+      paramDefinitions,
       getTaskDefinitions(),
-      DEFAULT_TASK_NAME,
-      process.argv.slice(2)
+      DEFAULT_TASK_NAME
     );
+
+    const parsedArguments = parser.parse(process.argv.slice(2));
 
     showStackTraces = parsedArguments.globalArguments.showStackTraces;
 
@@ -120,7 +153,9 @@ async function main() {
     if (showStackTraces) {
       console.error(error.stack);
     } else {
-      console.error("For more info run buidler again with --showStackTraces.");
+      console.error(
+        "For more info run buidler again with --show-stack-traces."
+      );
     }
   }
 }

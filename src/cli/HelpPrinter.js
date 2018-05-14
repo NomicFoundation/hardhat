@@ -108,7 +108,7 @@ class HelpPrinter {
         paramsList += "[";
       }
 
-      paramsList += `${ArgumentsParser.PARAM_PREFIX}${name}`;
+      paramsList += `${ArgumentsParser.paramNameToCLA(name)}`;
 
       if (!definition.isFlag) {
         paramsList += ` ${this._getParamValueDescription(definition)}`;
@@ -156,7 +156,7 @@ class HelpPrinter {
       const description = definition.description;
       const defaultValue = definition.defaultValue;
 
-      let msg = `  ${ArgumentsParser.PARAM_PREFIX}${name.padEnd(
+      let msg = `  ${ArgumentsParser.paramNameToCLA(name).padEnd(
         paramsNameLength
       )}\t`;
 

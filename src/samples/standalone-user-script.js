@@ -1,11 +1,19 @@
 "use strict";
 
 const env = require("../lib/buidler-lib");
+env.injectToGlobal();
+console.log("Buidler env's web3 provider's host:", web3.currentProvider.host);
 
-env.run("compile").then(() => {
-  console.log(
-    "Buidler env's web3 provider's host:",
-    env.web3.currentProvider.host
-  );
-  env.getContract("Contract").then(console.log);
-});
+const Contract = artifacts.require("Contract");
+const ContractWithALib = artifacts.require("ContractWithALib");
+const L = artifacts.require("L");
+
+async function main() {
+  const l = await L.new();
+  artifacts.link(ContractWithALib, l);
+
+  const contractWithALib = await ContractWithALib.new();
+  console.log(contractWithALib.address);
+}
+
+main().catch(console.error);
