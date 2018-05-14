@@ -31,7 +31,7 @@
     "inquirer": "^5.2.0",
     "mocha": "^5.1.1",
     "repl.history": "^0.1.4",
-    "solc": "^0.4.19",
+    "solc": "^0.4.21",
     "solidity-parser": "^0.4.0",
     "truffle-contract": "^3.0.5",
     "web3": "^0.20.6"
