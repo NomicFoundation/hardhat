@@ -29,7 +29,6 @@
     "glob": "^7.1.2",
     "mocha": "^5.1.1",
     "repl.history": "^0.1.4",
-    "rimraf": "^2.6.2",
     "solc": "^0.4.19",
     "solidity-parser": "^0.4.0",
     "truffle-contract": "^3.0.5",

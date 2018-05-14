@@ -1,7 +1,6 @@
-const util = require("util");
-const rimraf = util.promisify(require("rimraf"));
+const fs = require("fs-extra");
 
 task("clean", "Clears the cache and deletes all artifacts", async () => {
-  await rimraf(config.paths.cache);
-  await rimraf(config.paths.artifacts);
+  await fs.remove(config.paths.cache);
+  await fs.remove(config.paths.artifacts);
 });
