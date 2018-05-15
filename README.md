@@ -92,9 +92,7 @@ A list of tasks to complete, mostly in priority order:
     - Understand solidity_flattener and mimic it if possible
     - Make a debugging flattener a la truffle-flattener
 
-* Export mocha config, export the entire ganache config
-    
-* Hierarchic output of the current tasks being run?
+* Export the entire ganache config
 
 * Errors
     - Define error codes for *every* possible exception
