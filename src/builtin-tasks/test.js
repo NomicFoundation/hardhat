@@ -35,7 +35,7 @@ internalTask("builtin:run-mocha-tests")
   )
   .setAction(async ({ testFiles }) => {
     const Mocha = require("mocha");
-    const mocha = new Mocha();
+    const mocha = new Mocha(config.mocha);
     testFiles.forEach(file => mocha.addFile(file));
 
     mocha.run(failures => {
