@@ -1,8 +1,9 @@
 "use strict";
 
+const importLazy = require('import-lazy')(require);
 const findUp = require("find-up");
 const path = require("path");
-const fs = require("fs-extra");
+const fs = importLazy("fs-extra");
 
 const CONFIG_FILENAME = "buidler-config.js";
 

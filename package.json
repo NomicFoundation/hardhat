@@ -29,6 +29,7 @@
     "fs-extra": "^5.0.0",
     "ganache-core": "^2.1.0",
     "glob": "^7.1.2",
+    "import-lazy": "^3.1.0",
     "inquirer": "^5.2.0",
     "mocha": "^5.1.1",
     "repl.history": "^0.1.4",

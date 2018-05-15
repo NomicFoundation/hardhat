@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 
-const fs = require("fs-extra");
+const importLazy = require('import-lazy')(require);
+const fs = importLazy("fs-extra");
 const path = require("path");
-const chalk = require("chalk");
-const inquirer = require("inquirer");
+const chalk = importLazy("chalk");
+const inquirer = importLazy("inquirer");
 
 const { getConfig } = require("../core/config");
 const { getTaskDefinitions } = require("../core/tasks/dsl");

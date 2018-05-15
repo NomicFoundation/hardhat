@@ -1,6 +1,7 @@
 "use strict";
 
-const Web3 = require("web3");
+const importLazy = require('import-lazy')(require);
+const Web3 = importLazy("web3");
 const deepmerge = require("deepmerge");
 
 const { getUserConfigPath } = require("./project-structure");

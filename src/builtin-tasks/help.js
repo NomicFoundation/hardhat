@@ -1,5 +1,6 @@
+const importLazy = require('import-lazy')(require);
 const path = require("path");
-const fs = require("fs-extra");
+const fs = importLazy("fs-extra");
 
 const { BUIDLER_PARAM_DEFINITIONS } = require("../core/params/buidler-params");
 const { HelpPrinter } = require("../cli/HelpPrinter");

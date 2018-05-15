@@ -1,9 +1,11 @@
 "use strict";
 
+const importLazy = require('import-lazy')(require);
+
 const path = require("path");
-const fs = require("fs-extra");
+const fs = importLazy("fs-extra");
 const util = require("util");
-const TruffleContract = require("truffle-contract");
+const TruffleContract = importLazy("truffle-contract");
 
 class TruffleArtifactsStorage {
   constructor(artifactsPath) {

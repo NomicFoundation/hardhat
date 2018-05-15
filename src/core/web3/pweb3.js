@@ -1,7 +1,8 @@
 "use strict";
 
-const Web3 = require("web3");
+const importLazy = require('import-lazy')(require);
 const { promisify } = require("util");
+const Web3 = importLazy("web3");
 
 function promisifyWeb3(web3) {
   const WEB3_MODULES = ["eth", "db", "shh", "net", "personal", "bzz"];

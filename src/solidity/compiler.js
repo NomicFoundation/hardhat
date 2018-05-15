@@ -1,10 +1,11 @@
 "use strict";
 
-const fs = require("fs-extra");
+const importLazy = require('import-lazy')(require);
 const path = require("path");
-const download = require("download");
-const solcWrapper = require("solc/wrapper");
-const ethUtil = require("ethereumjs-util");
+const fs = importLazy("fs-extra");
+const download = importLazy("download");
+const solcWrapper = importLazy("solc/wrapper");
+const ethUtil = importLazy("ethereumjs-util");
 
 const COMPILER_FILES_DIR_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
