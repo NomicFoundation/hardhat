@@ -1,5 +1,4 @@
-const { BUIDLER_PARAM_DEFINITIONS } = require("../core/buidler-params");
-const { ArgumentsParser } = require("../cli/ArgumentsParser");
+const { ArgumentsParser } = require("../../cli/ArgumentsParser");
 
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
 
@@ -12,11 +11,11 @@ function paramNameToEnvVariable(paramName) {
     .toUpperCase();
 }
 
-function getEnvBuidlerArguments() {
+function getEnvBuidlerArguments(paramDefinitions) {
   const envArgs = {};
 
-  for (const paramName of Object.keys(BUIDLER_PARAM_DEFINITIONS)) {
-    const definition = BUIDLER_PARAM_DEFINITIONS[paramName];
+  for (const paramName of Object.keys(paramDefinitions)) {
+    const definition = paramDefinitions[paramName];
 
     const envVarName = paramNameToEnvVariable(paramName);
     const rawValue = process.env[envVarName];

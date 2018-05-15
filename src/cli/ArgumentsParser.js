@@ -10,6 +10,18 @@ class ArgumentsParser {
   parse(rawArgs) {
     const taskIndex = this._getTaskNameIndex(rawArgs);
 
+    const rawGlobalParamArgs =
+      taskIndex === undefined ? rawArgs : rawArgs.slice(0, taskIndex);
+
+    if (Object.keys(this.tasks).length === 0) {
+      return {
+        globalArguments: this._parseParamArgs(
+          rawGlobalParamArgs,
+          this.globalParamDefinitions
+        )
+      };
+    }
+
     const taskName = rawArgs[taskIndex] || this.defaultTask;
 
     const selectedTask = this.tasks[taskName];
@@ -17,9 +29,6 @@ class ArgumentsParser {
     if (selectedTask === undefined) {
       throw new Error(`Unrecognized task ${taskName}`);
     }
-
-    const rawGlobalParamArgs =
-      taskIndex === undefined ? rawArgs : rawArgs.slice(0, taskIndex);
 
     const rawTaskArgs =
       taskIndex === undefined ? [] : rawArgs.slice(taskIndex + 1);

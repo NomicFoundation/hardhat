@@ -5,50 +5,20 @@ const fs = require("fs-extra");
 const path = require("path");
 const chalk = require("chalk");
 const inquirer = require("inquirer");
-const types = require("../core/types");
-const { BUIDLER_PARAM_DEFINITIONS } = require("../core/buidler-params");
-const { ArgumentsParser } = require("./ArgumentsParser");
 
 const { getConfig } = require("../core/config");
+const { getTaskDefinitions } = require("../core/tasks/dsl");
+const { createEnvironment } = require("../core/env/definition");
 const {
   isCwdInsideProject,
   getRecommendedGitIgnore
 } = require("../core/project-structure");
-const { getTaskDefinitions } = require("../core/tasks/dsl");
-const { createEnvironment } = require("../core/env/definition");
-
-const DEFAULT_TASK_NAME = "help";
-
-const CLI_PARAM_DEFINITIONS = {
-  showStackTraces: {
-    name: "showStackTraces",
-    defaultValue: false,
-    description: "Show buidler's errors' stack traces.",
-    type: types.boolean,
-    isFlag: true
-  },
-  version: {
-    name: "version",
-    defaultValue: false,
-    description: "Show's buidler's version.",
-    type: types.boolean,
-    isFlag: true
-  },
-  help: {
-    name: "help",
-    defaultValue: false,
-    description: "Show's buidler's help.",
-    type: types.boolean,
-    isFlag: true
-  }
-};
-
-function supportsEmoji(builderArguments) {
-  return (
-    process.stdout.isTTY &&
-    (process.platform === "darwin" || process.argv.includes("--emoji"))
-  );
-}
+const {
+  getMergedParamDefinitions,
+  getArgumentsBeforeConfig,
+  getArgumentsAfterConfig
+} = require("./params");
+const { enableEmoji, emoji } = require("./emoji");
 
 async function initProject() {
   const packageInfo = await fs.readJson(
@@ -69,7 +39,9 @@ async function initProject() {
 
   console.log(
     chalk.cyan(
-      `👷‍ Welcome to ${packageInfo.name} v${packageInfo.version} 👷‍\n`
+      `${emoji("👷 ")}Welcome to ${packageInfo.name} v${
+        packageInfo.version
+      }${emoji("👷 ")}‍\n`
     )
   );
 
@@ -118,7 +90,7 @@ async function initProject() {
     await fs.writeFile(gitIgnorePath, content);
   }
 
-  console.log(chalk.cyan(`\n✨ Project created ✨`));
+  console.log(chalk.cyan(`\n${emoji("✨ ")}Project created${emoji(" ✨")}`));
 
   console.log(`\nTry running running the following tasks:`);
   console.log(`  buidler compile`);
@@ -127,44 +99,55 @@ async function initProject() {
   console.log(`  buidler help`);
 }
 
+function printVersionMessage() {
+  const packageInfo = fs.readJsonSync(
+    path.join(__dirname, "../../package.json")
+  );
+  console.log(`${packageInfo.name} version ${packageInfo.version}`);
+}
+
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--showStackTraces");
+  const rawArgs = process.argv.slice(2);
 
   try {
+    const globalParamsDefinitions = getMergedParamDefinitions();
+
+    let { globalArguments } = getArgumentsBeforeConfig(
+      globalParamsDefinitions,
+      rawArgs
+    );
+
+    if (globalArguments.emoji) {
+      enableEmoji();
+    }
+
     if (!isCwdInsideProject() && process.stdout.isTTY) {
-      await initProject();
+      await initProject(globalArguments);
       return;
     }
 
     const config = getConfig();
 
-    const paramDefinitions = {
-      ...BUIDLER_PARAM_DEFINITIONS,
-      ...CLI_PARAM_DEFINITIONS
-    };
-
-    const parser = new ArgumentsParser(
-      paramDefinitions,
+    const parsedArguments = getArgumentsAfterConfig(
+      globalParamsDefinitions,
       getTaskDefinitions(),
-      DEFAULT_TASK_NAME
+      rawArgs
     );
-
-    const parsedArguments = parser.parse(process.argv.slice(2));
 
     showStackTraces = parsedArguments.globalArguments.showStackTraces;
 
+    // --version is a special case
     if (parsedArguments.globalArguments.version) {
-      const packageInfo = await fs.readJson(
-        path.join(__dirname, "../../package.json")
-      );
-      console.log(`${packageInfo.name} version ${packageInfo.version}`);
+      printVersionMessage();
       return;
     }
 
     const env = createEnvironment(config, parsedArguments.globalArguments);
 
+    // --help is a also special case
     if (
       parsedArguments.globalArguments.help &&
       parsedArguments.taskName !== "help"

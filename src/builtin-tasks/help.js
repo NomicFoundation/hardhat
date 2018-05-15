@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs-extra");
 
-const { BUIDLER_PARAM_DEFINITIONS } = require("../core/buidler-params");
+const { BUIDLER_PARAM_DEFINITIONS } = require("../core/params/buidler-params");
 const { HelpPrinter } = require("../cli/HelpPrinter");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
 

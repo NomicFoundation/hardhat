@@ -1,6 +1,6 @@
 "use strict";
 
-const types = require("./types");
+const types = require("../types");
 
 const BUIDLER_PARAM_DEFINITIONS = {
   network: {

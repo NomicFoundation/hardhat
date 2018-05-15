@@ -3,7 +3,7 @@
 const Web3 = require("web3");
 
 const { applyExtensions } = require("./extensions");
-const { lazyObject } = require("../lazy");
+const { lazyObject } = require("../../util/lazy");
 const { getNetworkConfig } = require("../config");
 const { getWeb3Instance } = require("../web3/network");
 const { runTask } = require("../tasks/dsl");
