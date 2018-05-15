@@ -1,93 +1,93 @@
 "use strict";
 
 function lazyObject(objectCreator) {
+  let realTarget = undefined;
+
+  function lazyInit() {
+    if (realTarget === undefined) {
+      realTarget = objectCreator();
+    }
+  }
+
   return new Proxy(
     {},
     {
-      realTarget: undefined,
-
-      lazyInit() {
-        if (this.realTarget === undefined) {
-          this.realTarget = objectCreator();
-        }
-      },
-
       apply(target, thisArgument, argumentsList) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.apply(this.realTarget, thisArgument, argumentsList);
+        return Reflect.apply(realTarget, thisArgument, argumentsList);
       },
 
       construct(target, argumentsList, newTarget) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.construct(this.realTarget, argumentsList, newTarget);
+        return Reflect.construct(realTarget, argumentsList, newTarget);
       },
 
       defineProperty(target, property, descriptor) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.defineProperty(this.realTarget, property, descriptor);
+        return Reflect.defineProperty(realTarget, property, descriptor);
       },
 
       deleteProperty(target, property) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.deleteProperty(this.realTarget, property);
+        return Reflect.deleteProperty(realTarget, property);
       },
 
       get(target, property, receiver) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.get(this.realTarget, property, receiver);
+        return Reflect.get(realTarget, property, receiver);
       },
 
       getOwnPropertyDescriptor(target, property) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.getOwnPropertyDescriptor(this.realTarget, property);
+        return Reflect.getOwnPropertyDescriptor(realTarget, property);
       },
 
       getPrototypeOf(target) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.getPrototypeOf(this.realTarget);
+        return Reflect.getPrototypeOf(realTarget);
       },
 
       has(target, property) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.has(this.realTarget, property);
+        return Reflect.has(realTarget, property);
       },
 
       isExtensible(target) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.isExtensible(this.realTarget);
+        return Reflect.isExtensible(realTarget);
       },
 
       ownKeys(target) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.ownKeys(this.realTarget);
+        return Reflect.ownKeys(realTarget);
       },
 
       preventExtensions(target) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.preventExtensions(this.realTarget);
+        return Reflect.preventExtensions(realTarget);
       },
 
       set(target, property, value, receiver) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.set(this.realTarget, property, value, receiver);
+        return Reflect.set(realTarget, property, value, receiver);
       },
 
       setPrototypeOf(target, prototype) {
-        this.lazyInit();
+        lazyInit();
 
-        return Reflect.setPrototypeOf(this.realTarget, prototype);
+        return Reflect.setPrototypeOf(realTarget, prototype);
       }
     }
   );
