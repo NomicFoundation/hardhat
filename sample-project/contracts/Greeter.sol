@@ -4,7 +4,7 @@ contract Greeter {
 
     string private constant greeting = "Hello, buidler!";
 
-    function greet() public view returns (string) {
+    function greet() public pure returns (string) {
         return greeting;
     }
 
