@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-console.log(
-  "You probably wanted to type buidler instead of builder. But " +
-    "don't worry, we got you."
-);
+const chalk = require("chalk");
+
+console.error(chalk.cyan("You probably wanted to type buidler, not builder."));
+console.error(chalk.cyan("Don't worry, we've got you covered!"));
+console.error("");
 
 require("./cli");
