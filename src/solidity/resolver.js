@@ -2,7 +2,6 @@
 
 const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
-const findUp = require("find-up");
 const path = require("path");
 
 class ResolvedFile {
@@ -65,25 +64,22 @@ class Resolver {
 
   async resolveLibrarySourceFile(globalName) {
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
-    const libraryPath = await this._findNodeLibrary(libraryName);
 
-    if (!(await fs.exists(libraryPath))) {
-      throw new Error(`Library ${libraryName} not installed`);
+    let packagePath;
+    try {
+      packagePath = require.resolve(path.join(libraryName, "package.json"));
+    } catch (e) {
+      throw new Error(`Library ${libraryName} is not installed.`);
     }
 
-    const absolutePath = path.join(
-      libraryPath,
-      globalName.slice(globalName.indexOf("/") + 1)
-    );
-
-    if (!(await fs.exists(absolutePath))) {
+    let absolutePath;
+    try {
+      absolutePath = require.resolve(globalName);
+    } catch (e) {
       throw new Error(`File ${globalName} doesn't exist.`);
     }
 
-    const packageInfo = await fs.readJson(
-      path.join(libraryPath, "package.json")
-    );
-
+    const packageInfo = await fs.readJson(packagePath);
     const libraryVersion = packageInfo.version;
 
     return this._resolveFile(
@@ -131,25 +127,6 @@ class Resolver {
       libraryName,
       libraryVersion
     );
-  }
-
-  async _findNodeLibrary(libraryName) {
-    let cwd = this.config.paths.root;
-
-    do {
-      const nodeModulesPath = await findUp("node_modules", { cwd });
-
-      if (!nodeModulesPath) {
-        return;
-      }
-
-      const libraryPath = path.join(nodeModulesPath, libraryName);
-      if (await fs.pathExists(libraryPath)) {
-        return libraryPath;
-      }
-
-      cwd = path.dirname(path.dirname(nodeModulesPath));
-    } while (true);
   }
 
   _isRelativeImport(imported) {
