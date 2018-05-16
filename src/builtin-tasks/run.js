@@ -6,11 +6,15 @@ task("run", "Runs an user-defined script after compiling the project")
     "script",
     "A js file to be run within buidler's environment"
   )
-  .setAction(async ({ script }) => {
+  .addFlag("noCompile", "Don't compile before running this task")
+  .setAction(async ({ script, noCompile }) => {
     if (!(await fs.exists(script))) {
       throw new Error(`Script ${script} doesn't exist.`);
     }
 
-    await run("compile");
+    if (!noCompile) {
+      await run("compile");
+    }
+
     require(await fs.realpath(script));
   });

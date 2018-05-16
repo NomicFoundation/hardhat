@@ -51,8 +51,11 @@ task("test", "Runs mocha tests")
     "An optional list of files to test",
     []
   )
-  .setAction(async ({ testFiles }) => {
-    await run("compile");
+  .addFlag("noCompile", "Don't compile before running this task")
+  .setAction(async ({ testFiles, noCompile }) => {
+    if (!noCompile) {
+      await run("compile");
+    }
 
     const files = await run("builtin:get-test-files", { testFiles });
     await run("builtin:setup-test-environment");
