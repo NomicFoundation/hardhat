@@ -56,6 +56,12 @@ class TruffleArtifactsStorage {
       `${contractName}.json`
     );
 
+    if (!fs.pathExistsSync(artifactPath)) {
+      throw new Error(
+        `Artifacts for contract ${contractName} not found. You may have misspelled its name, or forgot to compile.`
+      );
+    }
+
     return fs.readJsonSync(artifactPath);
   }
 }
@@ -80,23 +86,25 @@ class LazyTruffleContractProvisioner {
       const txParams = args[args.length - 1];
 
       if (txParams.gas === undefined) {
-        txParams.gas = await this._estimateDeploymentGas(
-          Contract,
-          args,
-          txParams
-        );
+        txParams.gas = await this._estimateDeploymentGas(Contract, args);
       }
 
       return originalNew.apply(Contract, args);
     };
   }
 
-  async _estimateDeploymentGas(Contract, params, txParams) {
+  async _estimateDeploymentGas(Contract, params) {
     await Contract.detectNetwork();
+
+    const constructorParams = params.slice(0, params.length - 1);
+    const txParams = params[params.length - 1];
 
     const data = this._web3.eth
       .contract(Contract.abi)
-      .new.getData(...params, { ...txParams, data: Contract.binary });
+      .new.getData(...constructorParams, {
+        ...txParams,
+        data: Contract.binary
+      });
 
     const estimateGas = this._web3.eth.estimateGas.bind(this._web3.eth);
     return util.promisify(estimateGas)({ ...txParams, data });
