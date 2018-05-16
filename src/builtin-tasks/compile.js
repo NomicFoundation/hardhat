@@ -1,6 +1,8 @@
+const importLazy = require('import-lazy')(require);
 const path = require("path");
 const util = require("util");
 const glob = util.promisify(require("glob"));
+const chalk = importLazy("chalk");
 
 const DependencyGraph = require("../solidity/dependencyGraph");
 const { Resolver } = require("../solidity/resolver");
@@ -56,17 +58,17 @@ internalTask("builtin:compile", async () => {
       if (error.severity === "error") {
         hasErrors = true;
         console.log("\n");
-        console.error(error.formattedMessage);
+        console.error(chalk.red(error.formattedMessage));
       } else {
         console.log("\n");
-        console.warn(error.formattedMessage);
+        console.warn(chalk.yellow(error.formattedMessage));
       }
     }
   }
 
   if (hasErrors || !output.contracts) {
-    console.error("Compilation failed.");
-    process.exit(1);
+    console.error(chalk.red("Compilation failed."));
+    return;
   }
 
   return output;
@@ -78,6 +80,10 @@ internalTask("builtin:build-artifacts", async () => {
   }
 
   const compilationOutput = await run("builtin:compile");
+
+  if (compilationOutput === undefined) {
+    return;
+  }
 
   const truffleArtifactsStorage = new TruffleArtifactsStorage(
     config.paths.artifacts
