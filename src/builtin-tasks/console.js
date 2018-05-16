@@ -1,4 +1,4 @@
-const importLazy = require('import-lazy')(require);
+const importLazy = require("import-lazy")(require);
 const path = require("path");
 const fs = importLazy("fs-extra");
 const repl = require("repl");

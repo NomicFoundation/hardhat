@@ -1,4 +1,3 @@
-
 let emojiEnabled = false;
 
 function enableEmoji() {
@@ -9,4 +8,4 @@ function emoji(msgIfEnabled, msgIfDisabled = "") {
   return emojiEnabled ? msgIfEnabled : msgIfDisabled;
 }
 
-module.exports = {enableEmoji, emoji};
+module.exports = { enableEmoji, emoji };

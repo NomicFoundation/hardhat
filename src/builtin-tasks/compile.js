@@ -1,4 +1,4 @@
-const importLazy = require('import-lazy')(require);
+const importLazy = require("import-lazy")(require);
 const path = require("path");
 const util = require("util");
 const glob = util.promisify(require("glob"));

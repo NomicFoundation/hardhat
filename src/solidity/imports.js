@@ -1,6 +1,6 @@
 "use strict";
 
-const importLazy = require('import-lazy')(require);
+const importLazy = require("import-lazy")(require);
 const solidityParser = importLazy("solidity-parser");
 
 function getImports(resolvedFile) {

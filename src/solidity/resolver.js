@@ -1,6 +1,6 @@
 "use strict";
 
-const importLazy = require('import-lazy')(require);
+const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
 const findUp = require("find-up");
 const path = require("path");

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
-const importLazy = require('import-lazy')(require);
+const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
 const path = require("path");
 const chalk = importLazy("chalk");

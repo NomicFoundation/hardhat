@@ -1,4 +1,4 @@
-const importLazy = require('import-lazy')(require);
+const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
 
 task("run", "Runs an user-defined script after compiling the project")
