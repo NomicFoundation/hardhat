@@ -36,6 +36,7 @@
     "solc": "^0.4.21",
     "solidity-parser": "^0.4.0",
     "truffle-contract": "^3.0.5",
+    "tsort": "0.0.1",
     "web3": "^0.20.6"
   }
 }

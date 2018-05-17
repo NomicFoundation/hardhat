@@ -27,11 +27,16 @@ class ResolvedFile {
   }
 
   inspect() {
-    const atVersion =
-      this.library !== undefined ? `@${this.library.version}` : "";
-    return `ResolvedFile[${this.globalName}${atVersion} - Last modification: ${
+    return `ResolvedFile[${this.getNameWithVersion()} - Last modification: ${
       this.lastModificationDate
     }]`;
+  }
+
+  getNameWithVersion() {
+    return (
+      this.globalName +
+      (this.library !== undefined ? `@v${this.library.version}` : "")
+    );
   }
 }
 
