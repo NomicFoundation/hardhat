@@ -4,6 +4,7 @@ const { getProjectRoot, getUserConfigPath } = require("./project-structure");
 const { createAutoNetwork } = require("./web3/network");
 
 const projectRoot = getProjectRoot();
+const solcPackage = require("solc/package.json");
 
 module.exports = {
   paths: {
@@ -14,6 +15,7 @@ module.exports = {
     artifacts: path.join(projectRoot, "artifacts")
   },
   solc: {
+    version: solcPackage.version,
     optimizer: {
       enabled: false,
       runs: 200
