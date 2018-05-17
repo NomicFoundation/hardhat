@@ -61,30 +61,34 @@ function createGanacheProvider(ganacheOptions) {
 }
 
 function createAutoNetwork(netConfig) {
-  const ganacheOptions = {
+  let netConfigOptions = {
     gasLimit: netConfig.blockGasLimit,
     network_id: 4447
   };
 
   if (netConfig.accounts === undefined || netConfig.accounts.length === 0) {
-    ganacheOptions.mnemonic =
+    netConfigOptions.mnemonic =
       "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
   } else {
-    ganacheOptions.accounts = netConfig.accounts.map(acc => ({
+    netConfigOptions.accounts = netConfig.accounts.map(acc => ({
       balance: "0x" + new BigNumber(acc.balance).toString(16),
       secretKey: acc.privateKey
     }));
   }
 
-  const provider = createGanacheProvider(ganacheOptions);
+  const options = { ...netConfigOptions, ...netConfig.ganacheOptions };
+
+  const provider = createGanacheProvider(options);
 
   // Ganache's provider uses web3-provider-engine, which doesn't support
   // sync requests.
   //
   // We could use a Ganache server and a normal HttpProvider, but those
   // are initialized asynchronously, and we create the environment
-  // synchronously. This may be changed if we make most things lazily, but
-  // not sure if that would work with tests written for truffle.
+  // synchronously.
+  //
+  // This may be changed if we make most things lazy, but not sure if that would
+  // work with tests written for truffle.
   const originalSend = provider.send;
   provider.send = (payload, callback) => {
     if (callback === undefined) {
