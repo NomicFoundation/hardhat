@@ -88,8 +88,6 @@ The root of the project must contain a `buidler-config.js` file, and the contrac
 
 A list of tasks to complete, mostly in priority order:
 
-* Export the entire ganache config
-
 * Errors
     - Define error codes for *every* possible exception
 
