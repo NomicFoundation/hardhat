@@ -32,6 +32,7 @@
     "import-lazy": "^3.1.0",
     "inquirer": "^5.2.0",
     "mocha": "^5.1.1",
+    "ora": "^2.1.0",
     "repl.history": "^0.1.4",
     "solc": "^0.4.21",
     "solidity-parser": "^0.4.0",

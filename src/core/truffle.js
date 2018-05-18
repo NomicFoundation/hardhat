@@ -5,6 +5,7 @@ const importLazy = require("import-lazy")(require);
 const path = require("path");
 const fs = importLazy("fs-extra");
 const util = require("util");
+const glob = util.promisify(require("glob"));
 const TruffleContract = importLazy("truffle-contract");
 
 class TruffleArtifactsStorage {
@@ -64,12 +65,20 @@ class TruffleArtifactsStorage {
 
     return fs.readJsonSync(artifactPath);
   }
+
+  async getAllArtifacts() {
+    const artifactsGlob = path.join(this._artifactsPath, "truffle", "*.json");
+    const artifactFiles = await glob(artifactsGlob);
+
+    return Promise.all(artifactFiles.map(f => fs.readJson(f)));
+  }
 }
 
 class LazyTruffleContractProvisioner {
-  constructor(config, web3, selectedNetworkConfig) {
+  constructor(config, web3, selectedNetworkConfig, artifacts) {
     this._web3 = web3;
     this._networkConfig = selectedNetworkConfig;
+    this._artifacts = artifacts;
   }
 
   provision(Contract) {
@@ -95,6 +104,15 @@ class LazyTruffleContractProvisioner {
 
   async _estimateDeploymentGas(Contract, params) {
     await Contract.detectNetwork();
+
+    if (
+      this._artifacts.contractNeedsLinking(Contract) &&
+      !this._artifacts.contractWasLinked(Contract)
+    ) {
+      throw new Error(
+        `Contract ${Contract.contractName} has to be linked before deployment`
+      );
+    }
 
     const constructorParams = params.slice(0, params.length - 1);
     const txParams = params[params.length - 1];
@@ -237,13 +255,30 @@ class TruffleEnvironmentArtifacts {
     this._provisioner = new LazyTruffleContractProvisioner(
       config,
       web3,
-      selectedNetworkConfig
+      selectedNetworkConfig,
+      this
     );
   }
 
   require(contractPath) {
     const name = this._getContractNameFromPath(contractPath);
     return this._getTruffleContract(name);
+  }
+
+  contractNeedsLinking(Contract) {
+    return Contract.bytecode.includes("__");
+  }
+
+  contractWasLinked(Contract) {
+    try {
+      if (Contract.binary.includes("__")) {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+
+    return true;
   }
 
   link(destination, ...libraries) {
@@ -284,6 +319,7 @@ class TruffleEnvironmentArtifacts {
       }
     }
 
+    // We never save the network_id's nor change them, so they are all the same
     destination.setNetwork(libraries[0].constructor.network_id);
     destination.link(libraryAddresses);
   }
