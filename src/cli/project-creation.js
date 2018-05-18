@@ -67,7 +67,10 @@ async function copySampleProject(projectRoot) {
     projectRoot
   );
 
+  // This is just in case we have been using the sample project for dev/testing
   await removeTempFilesIfPresent(projectRoot);
+
+  await fs.remove(path.join(projectRoot, "LICENSE.md"));
 }
 
 async function addGitIgnore(projectRoot) {
