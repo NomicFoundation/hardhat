@@ -67,8 +67,7 @@ internalTask("builtin:compile", async () => {
   }
 
   if (hasErrors || !output.contracts) {
-    console.error(chalk.red("Compilation failed."));
-    return;
+    throw new Error("Compilation failed");
   }
 
   return output;
@@ -95,7 +94,5 @@ internalTask("builtin:build-artifacts", async () => {
 task(
   "compile",
   "Compiles the whole project, building all artifacts",
-  async () => {
-    await run("builtin:build-artifacts");
-  }
+  async () => run("builtin:build-artifacts")
 );
