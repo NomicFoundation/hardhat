@@ -6,7 +6,7 @@
 //     If you are going to run your scripts like that, you don't need to
 //     initialize anything.
 //
-//   * The other option is to run it directly with node or other node-based
+//   * The other option is to run it directly with node or another node-based
 //     tool. You need to `require()` the buidler environment for it to work, and
 //     you can optionally inject it to the `global` object.
 //
