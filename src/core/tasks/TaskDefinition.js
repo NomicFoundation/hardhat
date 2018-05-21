@@ -1,6 +1,7 @@
 "use strict";
 
 const types = require("../types");
+const { BUIDLER_CLI_PARAM_DEFINITIONS } = require("../params/buidler-params");
 const { BuidlerError, ERRORS } = require("../errors");
 
 class TaskDefinition {
@@ -144,6 +145,14 @@ class TaskDefinition {
     if (this._hasParamDefined(name)) {
       throw new BuidlerError(
         ERRORS.TASKS_DEFINITION_PARAM_ALREADY_DEFINED,
+        name,
+        this.name
+      );
+    }
+
+    if (BUIDLER_CLI_PARAM_DEFINITIONS[name] !== undefined) {
+      throw new BuidlerError(
+        ERRORS.TASKS_DEFINITION_PARAM_CLASHES_WITH_GLOBAL,
         name,
         this.name
       );

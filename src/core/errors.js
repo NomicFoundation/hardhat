@@ -83,137 +83,142 @@ const ERRORS = {
     message:
       'Could not set param "%s" for task "%s" because its name is already used.'
   },
-  TASKS_DEFINITION_MANDATORY_PARAM_AFTER_OPTIONAL: {
+  TASKS_DEFINITION_PARAM_CLASHES_WITH_GLOBAL: {
     number: 12,
+    message:
+      'Could not set param "%s" for task "%s" because its name is used as a global param.'
+  },
+  TASKS_DEFINITION_MANDATORY_PARAM_AFTER_OPTIONAL: {
+    number: 13,
     message:
       'Could not set param "%s" for task "%s" because it is mandatory and it was added after an optional positional param.'
   },
   TASKS_DEFINITION_OVERLOAD_NO_PARAMS: {
-    number: 13,
+    number: 14,
     message:
       'Redefinition of task "%s" failed. You can\'t change param definitions in an overloaded task.'
   },
   TASKS_DEFINITION_NO_ACTION: {
-    number: 14,
+    number: 15,
     message: 'No action set for task "%s".'
   },
   TRUFFLE_ARTIFACT_NOT_FOUND: {
-    number: 15,
+    number: 16,
     message:
       'Artifacts for contract "%s" not found. You may have misspelled its name, or forgot to compile.'
   },
   TRUFFLE_CONTRACT_NOT_LINKED: {
-    number: 16,
+    number: 17,
     message: 'Contract "%s" has to be linked before deployment.'
   },
   TRUFFLE_LIBRARY_NOT_DEPLOYED: {
-    number: 17,
+    number: 18,
     message:
       'Cannot link contract "%s" with library "%s" because it has not been deployed.'
   },
   RESOLVER_FILE_NOT_FOUND: {
-    number: 18,
+    number: 19,
     message: 'File "%s" doesn\'t exist.'
   },
   RESOLVER_FILE_OUTSIDE_PROJECT: {
-    number: 19,
+    number: 20,
     message: 'File "%s" is outside the project.'
   },
   RESOLVER_LIBRARY_FILE_NOT_LOCAL: {
-    number: 20,
+    number: 21,
     message: 'File "%s" belongs to a library but was treated as a local one.'
   },
   RESOLVER_LIBRARY_NOT_INSTALLED: {
-    number: 21,
+    number: 22,
     message: 'Library "%" is not installed.'
   },
   RESOLVER_LIBRARY_FILE_NOT_FOUND: {
-    number: 22,
+    number: 23,
     message: 'File "%s" doesn\'t exist.'
   },
   RESOLVER_ILLEGAL_IMPORT: {
-    number: 23,
+    number: 24,
     message: 'Illegal import "%s" from "%s".'
   },
   COMPILER_INVALID_VERSION: {
-    number: 24,
+    number: 25,
     message: 'Solidity version "%s" is invalid or hasn\'t been released yet.'
   },
   COMPILER_DOWNLOAD_FAILED: {
-    number: 25,
+    number: 26,
     message:
       'Couldn\'t download compiler version "%s". Please check your connection or use local version "%s"'
   },
   COMPILER_VERSION_LIST_DOWNLOAD_FAILED: {
-    number: 26,
+    number: 27,
     message:
       'Couldn\'t download compiler versions list. Please check your connection or use local version "%s"'
   },
   COMPILER_INVALID_DOWNLOAD: {
-    number: 27,
+    number: 28,
     message:
       'Couldn\'t download compiler version "%s". Downloaded version\'s checksum doesn\'t much the expected one. Please check your connection or use local version "%s"'
   },
   ARGUMENT_PARSER_UNRECOGNIZED_TASK: {
-    number: 28,
+    number: 29,
     message: 'Unrecognized task "%s".'
   },
   ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG: {
-    number: 29,
+    number: 30,
     message:
       'Unrecognised command line argument "%s". This is probably a bug, please report it.'
   },
   ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME: {
-    number: 30,
+    number: 31,
     message: 'Unrecognized param "%s".'
   },
   ARGUMENT_PARSER_MISSING_VALUE: {
-    number: 31,
+    number: 32,
     message: 'Missing value for param "%s".'
   },
   ARGUMENT_PARSER_MISSING_PARAM: {
-    number: 32,
+    number: 33,
     message: "Missing param %s."
   },
   ARGUMENT_PARSER_MISSING_POSITIONAL_ARG: {
-    number: 33,
+    number: 34,
     message: 'Missing positional argument "%s"'
   },
   ARGUMENT_PARSER_UNRECOGNIZED_POSITIONAL_ARG: {
-    number: 34,
+    number: 35,
     message: 'Unrecognized positional argument "%s"'
   },
   HELP_PRINTER_UNRECOGNIZED_TASK: {
-    number: 35,
+    number: 36,
     message: 'Unrecognized task "%s".'
   },
   INTERACTIVE_DEPLOYER_INVALID_FROM: {
-    number: 36,
+    number: 37,
     message: "Invalid deployer address: %s"
   },
   INTERACTIVE_DEPLOYER_FROM_NOT_MANAGED: {
-    number: 37,
+    number: 38,
     message:
       "Deployer account is not currently managed by the node you are connected to."
   },
   TASK_COMPILE_FAILURE: {
-    number: 38,
+    number: 39,
     message: "Compilation failed"
   },
   TASK_DEPLOY_NON_INTERACTIVE: {
-    number: 39,
+    number: 40,
     message: 'Task "deploy" can\'t be run from a script.'
   },
   TASK_RUN_FILE_NOT_FOUND: {
-    number: 40,
+    number: 41,
     message: 'Script "%s" doesn\'t exist.'
   },
   TASK_RUN_SCRIPT_ERROR: {
-    number: 41,
+    number: 42,
     message: 'Error running script "%s": %s'
   },
   TASK_FLATTEN_CYCLE: {
-    number: 42,
+    number: 43,
     message: "buidler flatten doesn't support cyclic dependencies."
   }
 };

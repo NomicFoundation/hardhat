@@ -15,7 +15,6 @@ const { isCwdInsideProject } = require("../core/project-structure");
 const { enableEmoji } = require("./emoji");
 const { createProject } = require("./project-creation");
 const {
-  getMergedParamDefinitions,
   getArgumentsBeforeConfig,
   getArgumentsAfterConfig
 } = require("./params");
@@ -35,12 +34,7 @@ async function main() {
   const rawArgs = process.argv.slice(2);
 
   try {
-    const globalParamsDefinitions = getMergedParamDefinitions();
-
-    let { globalArguments } = getArgumentsBeforeConfig(
-      globalParamsDefinitions,
-      rawArgs
-    );
+    let { globalArguments } = getArgumentsBeforeConfig(rawArgs);
 
     if (globalArguments.emoji) {
       enableEmoji();
@@ -54,7 +48,6 @@ async function main() {
     const config = getConfig();
 
     const parsedArguments = getArgumentsAfterConfig(
-      globalParamsDefinitions,
       getTaskDefinitions(),
       rawArgs
     );

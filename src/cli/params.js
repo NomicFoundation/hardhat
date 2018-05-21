@@ -1,59 +1,14 @@
 const { ArgumentsParser } = require("./ArgumentsParser");
-const { getEnvBuidlerArguments } = require("../core/params/env-variables");
-const { BUIDLER_PARAM_DEFINITIONS } = require("../core/params/buidler-params");
-const types = require("../core/types");
+
+const {
+  getCliParamsWithDefaultFromEnvVariables
+} = require("../core/params/buidler-params");
 
 const DEFAULT_TASK_NAME = "help";
 
-const CLI_PARAM_DEFINITIONS = {
-  showStackTraces: {
-    name: "showStackTraces",
-    defaultValue: false,
-    description: "Show buidler's errors' stack traces.",
-    type: types.boolean,
-    isFlag: true
-  },
-  version: {
-    name: "version",
-    defaultValue: false,
-    description: "Show's buidler's version.",
-    type: types.boolean,
-    isFlag: true
-  },
-  help: {
-    name: "help",
-    defaultValue: false,
-    description: "Show's buidler's help.",
-    type: types.boolean,
-    isFlag: true
-  },
-  emoji: {
-    name: "emoji",
-    defaultValue: process.platform === "darwin",
-    description: "Use emoji in messages.",
-    type: types.boolean,
-    isFlag: true
-  }
-};
-
-function getMergedParamDefinitions() {
-  const merged = {
-    ...BUIDLER_PARAM_DEFINITIONS,
-    ...CLI_PARAM_DEFINITIONS
-  };
-
-  const fromEnv = getEnvBuidlerArguments(merged);
-
-  for (const [name, value] of Object.entries(fromEnv)) {
-    merged[name].defaultValue = value;
-  }
-
-  return merged;
-}
-
-function getArgumentsBeforeConfig(globalParamDefinitions, rawArgs) {
+function getArgumentsBeforeConfig(rawArgs) {
   const parser = new ArgumentsParser(
-    globalParamDefinitions,
+    getCliParamsWithDefaultFromEnvVariables(),
     {},
     DEFAULT_TASK_NAME
   );
@@ -61,13 +16,9 @@ function getArgumentsBeforeConfig(globalParamDefinitions, rawArgs) {
   return parser.parse(rawArgs);
 }
 
-function getArgumentsAfterConfig(
-  globalParamDefinitions,
-  taskDefinitions,
-  rawArgs
-) {
+function getArgumentsAfterConfig(taskDefinitions, rawArgs) {
   const parser = new ArgumentsParser(
-    globalParamDefinitions,
+    getCliParamsWithDefaultFromEnvVariables(),
     taskDefinitions,
     DEFAULT_TASK_NAME
   );
@@ -76,7 +27,6 @@ function getArgumentsAfterConfig(
 }
 
 module.exports = {
-  getMergedParamDefinitions,
   getArgumentsBeforeConfig,
   getArgumentsAfterConfig
 };
