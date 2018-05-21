@@ -4,6 +4,8 @@ const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
 const path = require("path");
 
+const { BuidlerError, ERRORS } = require("../core/errors");
+
 class ResolvedFile {
   constructor(
     globalName,
@@ -47,18 +49,22 @@ class Resolver {
 
   async resolveProjectSourceFile(pathToResolve) {
     if (!(await fs.exists(pathToResolve))) {
-      throw new Error(`File ${pathToResolve} doesn't exist.`);
+      throw new BuidlerError(ERRORS.RESOLVER_FILE_NOT_FOUND, pathToResolve);
     }
 
     const absolutePath = await fs.realpath(pathToResolve);
 
     if (!absolutePath.startsWith(this.config.paths.root)) {
-      throw new Error(`File ${pathToResolve} is outside the project.`);
+      throw new BuidlerError(
+        ERRORS.RESOLVER_FILE_OUTSIDE_PROJECT,
+        pathToResolve
+      );
     }
 
     if (absolutePath.includes("node_modules")) {
-      throw new Error(
-        `File ${pathToResolve} is a library file treated as local.`
+      throw new BuidlerError(
+        ERRORS.RESOLVER_LIBRARY_FILE_NOT_LOCAL,
+        pathToResolve
       );
     }
 
@@ -73,15 +79,23 @@ class Resolver {
     let packagePath;
     try {
       packagePath = require.resolve(path.join(libraryName, "package.json"));
-    } catch (e) {
-      throw new Error(`Library ${libraryName} is not installed.`);
+    } catch (error) {
+      throw new BuidlerError(
+        ERRORS.RESOLVER_LIBRARY_NOT_INSTALLED,
+        error,
+        libraryName
+      );
     }
 
     let absolutePath;
     try {
       absolutePath = require.resolve(globalName);
-    } catch (e) {
-      throw new Error(`File ${globalName} doesn't exist.`);
+    } catch (error) {
+      throw new BuidlerError(
+        ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND,
+        error,
+        globalName
+      );
     }
 
     const packageInfo = await fs.readJson(packagePath);
@@ -110,7 +124,11 @@ class Resolver {
       const isIllegal = !globalName.startsWith(from.library.name + path.sep);
 
       if (isIllegal) {
-        throw new Error("Illegal import " + imported + " from " + from.name);
+        throw new BuidlerError(
+          ERRORS.RESOLVER_ILLEGAL_IMPORT,
+          imported,
+          from.name
+        );
       }
 
       imported = globalName;

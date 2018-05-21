@@ -2,6 +2,7 @@ const importLazy = require("import-lazy")(require);
 const chalk = importLazy("chalk");
 
 const { InteractiveDeployer } = require("../cli/InteractiveDeployer");
+const { BuidlerError, ERRORS } = require("../core/errors");
 
 task("deploy", "Interactively deploy contracts")
   .addFlag("noCompile", "Don't compile before running this task")
@@ -13,7 +14,7 @@ task("deploy", "Interactively deploy contracts")
   .setAction(
     async ({ noCompile, fromAccount }, { network, showStackTraces }) => {
       if (!process.stdin.isTTY) {
-        throw new Error('Task "deploy" can\'t be run from a script.');
+        throw new BuidlerError(ERRORS.TASK_DEPLOY_NON_INTERACTIVE);
       }
 
       if (network === "auto") {

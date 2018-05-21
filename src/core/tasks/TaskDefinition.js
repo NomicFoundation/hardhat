@@ -1,6 +1,7 @@
 "use strict";
 
 const types = require("../types");
+const { BuidlerError, ERRORS } = require("../errors");
 
 class TaskDefinition {
   constructor(name, isInternal) {
@@ -131,20 +132,20 @@ class TaskDefinition {
 
   _validateNotAfterVariadicParam(name) {
     if (this._hasVariadicParam) {
-      throw new Error(
-        `Could not set positional param ${name} for task ${
-          this.name
-        } because there's already a variadic positional param and it has to be the last positional one.`
+      throw new BuidlerError(
+        ERRORS.TASKS_DEFINITION_PARAM_AFTER_VARIADIC,
+        name,
+        taskName
       );
     }
   }
 
   _validateNameNotUsed(name) {
     if (this._hasParamDefined(name)) {
-      throw new Error(
-        `Could not set param ${name} for task ${
-          this.name
-        } because its name is already used.`
+      throw new BuidlerError(
+        ERRORS.TASKS_DEFINITION_PARAM_ALREADY_DEFINED,
+        name,
+        this.name
       );
     }
   }
@@ -158,10 +159,10 @@ class TaskDefinition {
 
   _validateNoMandatoryParamAfterOptionalOnes(name, defaultValue) {
     if (defaultValue === undefined && this._hasOptionalPositionalParam) {
-      throw new Error(
-        `Could not set positional param ${name} for task ${
-          this.name
-        } because it is mandatory and it was added after an optional positional param.`
+      throw new BuidlerError(
+        ERRORS.TASKS_DEFINITION_MANDATORY_PARAM_AFTER_OPTIONAL,
+        name,
+        this.name
       );
     }
   }
@@ -247,10 +248,9 @@ class OverloadedTaskDefinition {
   }
 
   _throwNoParamsOverloadError() {
-    throw new Error(
-      `Task redefinition ${
-        this.name
-      } failed. You can't change param definitions in an overloaded task.`
+    throw new BuidlerError(
+      ERRORS.TASKS_DEFINITION_OVERLOAD_NO_PARAMS,
+      this.name
     );
   }
 }

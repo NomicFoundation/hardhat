@@ -1,5 +1,7 @@
 const path = require("path");
 
+const { BuidlerError, ERRORS } = require("../core/errors");
+
 function getSortedFiles(dependenciesGraph) {
   const tsort = require("tsort");
   const graph = tsort();
@@ -17,9 +19,9 @@ function getSortedFiles(dependenciesGraph) {
   let topologicalSortedNames;
   try {
     topologicalSortedNames = graph.sort();
-  } catch (e) {
+  } catch (error) {
     if (e.toString().includes("Error: There is a cycle in the graph.")) {
-      throw new Error("buidler flatten doesn't support cyclic dependencies.");
+      throw new BuidlerError(ERRORS.TASK_FLATTEN_CYCLE, error);
     }
   }
 

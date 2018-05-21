@@ -5,6 +5,7 @@ const ethUtil = importLazy("ethereumjs-util");
 const BigNumber = importLazy("bignumber.js");
 
 const { TruffleArtifactsStorage } = require("../core/truffle");
+const { BuidlerError, ERRORS } = require("../core/errors");
 
 const ACCOUNTS_ADDRESS_MODE = "accounts";
 const DEPLOYED_CONTRACT_ADDRESS_MODE = "deployed_contract";
@@ -536,7 +537,10 @@ class InteractiveDeployer {
     }
 
     if (!ethUtil.isValidAddress(this._fromAddress)) {
-      throw new Error(`Invalid value of --from-address ${this._fromAddress}.`);
+      throw new BuidlerError(
+        ERRORS.INTERACTIVE_DEPLOYER_INVALID_FROM,
+        this._fromAddress
+      );
     }
 
     const checksummed = ethUtil.toChecksumAddress(this._fromAddress);
@@ -544,9 +548,7 @@ class InteractiveDeployer {
     const accounts = await this._getAccounts();
 
     if (!accounts.includes(checksummed)) {
-      throw new Error(
-        `Deployer account is not currently managed by the node you are connected to.`
-      );
+      throw new BuidlerError(ERRORS.INTERACTIVE_DEPLOYER_FROM_NOT_MANAGED);
     }
   }
 }

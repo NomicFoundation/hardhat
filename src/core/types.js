@@ -1,5 +1,7 @@
 "use strict";
 
+const { ERRORS, BuidlerError } = require("./errors");
+
 /**
  * This is a dictionary of type names to functions that receive the param name
  * and the raw string value. They validate the value, throwing if invalid, and
@@ -16,8 +18,11 @@ module.exports = {
       if (strValue.toLowerCase() === "true") return true;
       if (strValue.toLowerCase() === "false") return false;
 
-      throw new Error(
-        `Unrecognized boolean value "${strValue}" of param ${argName}`
+      throw new BuidlerError(
+        ERRORS.ARG_TYPE_INVALID_VALUE,
+        strValue,
+        argName,
+        "boolean"
       );
     }
   },
@@ -27,8 +32,11 @@ module.exports = {
       const n = Number(strValue);
 
       if (isNaN(n) || !Number.isInteger(n)) {
-        throw new Error(
-          `Unrecognized integer value "${strValue}" of param ${argName}`
+        throw new BuidlerError(
+          ERRORS.ARG_TYPE_INVALID_VALUE,
+          strValue,
+          argName,
+          "integer"
         );
       }
 
@@ -41,8 +49,11 @@ module.exports = {
       const n = Number(strValue);
 
       if (isNaN(n)) {
-        throw new Error(
-          `Unrecognized float value "${strValue}" of param ${argName}`
+        throw new BuidlerError(
+          ERRORS.ARG_TYPE_INVALID_VALUE,
+          strValue,
+          argName,
+          "float"
         );
       }
 

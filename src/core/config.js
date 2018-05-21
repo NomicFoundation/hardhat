@@ -8,6 +8,7 @@ const { getUserConfigPath } = require("./project-structure");
 const types = require("./types");
 const { task, internalTask } = require("./tasks/dsl");
 const { extendEnvironment } = require("./env/extensions");
+const { ERRORS, BuidlerError } = require("./errors");
 
 function getConfig() {
   const pathToConfigFile = getUserConfigPath();
@@ -37,7 +38,7 @@ function getNetworkConfig(config, selectedNetwork) {
     config.networks === undefined ||
     config.networks[selectedNetwork] === undefined
   ) {
-    throw new Error(`Network ${selectedNetwork} not defined.`);
+    throw new BuidlerError(ERRORS.NETWORK_CONFIG_NOT_FOUND);
   }
 
   return config.networks[selectedNetwork];

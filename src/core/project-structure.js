@@ -5,6 +5,8 @@ const findUp = require("find-up");
 const path = require("path");
 const fs = importLazy("fs-extra");
 
+const { ERRORS, BuidlerError } = require("./errors");
+
 const CONFIG_FILENAME = "buidler-config.js";
 
 function isCwdInsideProject() {
@@ -14,7 +16,7 @@ function isCwdInsideProject() {
 function getUserConfigPath() {
   const pathToConfigFile = findUp.sync(CONFIG_FILENAME);
   if (!pathToConfigFile) {
-    throw new Error("You are not in a valid project");
+    throw new BuidlerError(ERRORS.BUIDLER_NOT_INSIDE_PROJECT);
   }
 
   return pathToConfigFile;

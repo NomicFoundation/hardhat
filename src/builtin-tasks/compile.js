@@ -9,6 +9,7 @@ const { Resolver } = require("../solidity/resolver");
 const Compiler = require("../solidity/compiler");
 const { TruffleArtifactsStorage } = require("../core/truffle");
 const { areArtifactsCached } = require("./utils/cache");
+const { BuidlerError, ERRORS } = require("../core/errors");
 
 function getCompilersDir(config) {
   return path.join(config.paths.cache, "compilers");
@@ -67,7 +68,7 @@ internalTask("builtin:compile", async () => {
   }
 
   if (hasErrors || !output.contracts) {
-    throw new Error("Compilation failed");
+    throw new BuidlerError(ERRORS.TASK_COMPILE_FAILURE);
   }
 
   return output;

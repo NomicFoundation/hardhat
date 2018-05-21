@@ -1,6 +1,7 @@
 "use strict";
 
 const { ArgumentsParser } = require("./ArgumentsParser");
+const { BuidlerError, ERRORS } = require("../core/errors");
 
 class HelpPrinter {
   constructor(programName, version, globalParamDefinitions, tasks) {
@@ -52,7 +53,7 @@ class HelpPrinter {
     const taskDefinition = this.tasks[taskName];
 
     if (taskDefinition === undefined) {
-      throw new Error(`Unrecognized task ${taskName}.`);
+      throw new BuidlerError(ERRORS.HELP_PRINTER_UNRECOGNIZED_TASK, taskName);
     }
 
     const description = taskDefinition.description || "";

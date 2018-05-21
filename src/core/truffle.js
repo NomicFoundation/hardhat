@@ -7,6 +7,7 @@ const fs = importLazy("fs-extra");
 const util = require("util");
 const glob = util.promisify(require("glob"));
 const TruffleContract = importLazy("truffle-contract");
+const { BuidlerError, ERRORS } = require("./errors");
 
 class TruffleArtifactsStorage {
   constructor(artifactsPath) {
@@ -58,9 +59,7 @@ class TruffleArtifactsStorage {
     );
 
     if (!fs.pathExistsSync(artifactPath)) {
-      throw new Error(
-        `Artifacts for contract ${contractName} not found. You may have misspelled its name, or forgot to compile.`
-      );
+      throw new BuidlerError(ERRORS.TRUFFLE_ARTIFACT_NOT_FOUND, contractName);
     }
 
     return fs.readJsonSync(artifactPath);
@@ -109,8 +108,9 @@ class LazyTruffleContractProvisioner {
       this._artifacts.contractNeedsLinking(Contract) &&
       !this._artifacts.contractWasLinked(Contract)
     ) {
-      throw new Error(
-        `Contract ${Contract.contractName} has to be linked before deployment`
+      throw new BuidlerError(
+        ERRORS.TRUFFLE_CONTRACT_NOT_LINKED,
+        Contract.contractName
       );
     }
 
@@ -291,10 +291,10 @@ class TruffleEnvironmentArtifacts {
         library.address === undefined ||
         library.constructor.network_id === undefined
       ) {
-        throw new Error(
-          `Cannot link contract ${destination.contractName} with library ${
-            library.constructor.contractName
-          } because it is not deployed.`
+        throw new BuidlerError(
+          ERRORS.TRUFFLE_LIBRARY_NOT_DEPLOYED,
+          destination.contractName,
+          library.constructor.contractName
         );
       }
     }

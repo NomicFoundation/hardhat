@@ -4,6 +4,8 @@ const importLazy = require("import-lazy")(require);
 const { promisify } = require("util");
 const Web3 = importLazy("web3");
 
+const { BuidlerError, ERRORS } = require("../errors");
+
 function promisifyWeb3(web3) {
   const WEB3_MODULES = ["eth", "db", "shh", "net", "personal", "bzz"];
 
@@ -18,13 +20,19 @@ function promisifyWeb3(web3) {
       if (desc === undefined) {
         Object.defineProperty(pweb3[module], prop, {
           get: () => {
-            throw new Error(`pweb3.${module}.${prop} is not supported`);
+            throw new BuidlerError(
+              ERRORS.PWEB3_NOT_SUPPORTED,
+              `pweb3.${module}.${prop}`
+            );
           }
         });
       } else if (desc.get !== undefined) {
         Object.defineProperty(pweb3[module], prop, {
           get: () => {
-            throw new Error("Synchronous requests are not supported by pweb3.");
+            throw new BuidlerError(
+              ERRORS.PWEB3_NO_SYNC,
+              `pweb3.${module}.${prop}`
+            );
           }
         });
       } else if (web3[module][prop] instanceof Function) {

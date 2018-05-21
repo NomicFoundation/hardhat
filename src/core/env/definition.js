@@ -20,7 +20,7 @@ function injectToGlobal(env) {
 
 function createEnvironment(config, buidlerArguments) {
   const netConfig = getNetworkConfig(config, buidlerArguments.network);
-  const web3 = lazyObject(() => getWeb3Instance(netConfig));
+  const web3 = lazyObject(() => getWeb3Instance(buidlerArguments.network, netConfig));
   const pweb3 = lazyObject(() => promisifyWeb3(web3));
 
   const env = {

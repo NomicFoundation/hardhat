@@ -4,6 +4,7 @@ const {
   TaskDefinition,
   OverloadedTaskDefinition
 } = require("./TaskDefinition");
+const { BuidlerError, ERRORS } = require("../errors");
 
 const tasks = {};
 
@@ -34,7 +35,7 @@ function addTask(name, description, action, isInternal) {
     taskDefinition.setAction(action);
   } else if (parentTaskDefinition === undefined) {
     taskDefinition.setAction(() => {
-      throw new Error(`No action set for task ${name}.`);
+      throw new BuidlerError(ERRORS.TASKS_DEFINITION_NO_ACTION, name);
     });
   }
 

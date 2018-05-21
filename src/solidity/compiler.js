@@ -7,6 +7,8 @@ const download = importLazy("download");
 const solcWrapper = importLazy("solc/wrapper");
 const ethUtil = importLazy("ethereumjs-util");
 
+const { BuidlerError, ERRORS } = require("../core/errors");
+
 const COMPILER_FILES_DIR_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
 
@@ -92,12 +94,7 @@ class Compiler {
     }
 
     if (fileName === undefined) {
-      throw new Error(
-        "Solidity version " +
-          this.version +
-          " is invalid or hasn't been" +
-          " released yet"
-      );
+      throw new BuidlerError(ERRORS.COMPILER_INVALID_VERSION, this.version);
     }
 
     return fileName;
@@ -117,12 +114,12 @@ class Compiler {
 
       try {
         await download(compilerUrl, this.compilersDir);
-      } catch (e) {
-        throw new Error(
-          "Couldn't download compiler version " +
-            this.version +
-            ". Please check your connection or use local version " +
-            this.getLocalSolcVersion()
+      } catch (error) {
+        throw new BuidlerError(
+          ERRORS.COMPILER_DOWNLOAD_FAILED,
+          error,
+          this.version,
+          this.getLocalSolcVersion()
         );
       }
     }
@@ -152,11 +149,11 @@ class Compiler {
     try {
       await fs.ensureDir(this.compilersDir);
       await download(COMPILERS_LIST_URL, this.compilersDir);
-    } catch (e) {
-      throw Error(
-        "Couldn't download compiler versions list. Please check your " +
-          "connection or use local version " +
-          this.getLocalSolcVersion()
+    } catch (error) {
+      throw new BuidlerError(
+        ERRORS.COMPILER_VERSION_LIST_DOWNLOAD_FAILED,
+        error,
+        this.getLocalSolcVersion()
       );
     }
   }
@@ -174,12 +171,11 @@ class Compiler {
 
     if (expectedKeccak256 !== compilerKeccak256) {
       await fs.unlink(compilerPath);
-      throw new Error(
-        "Couldn't download compiler version " +
-          this.version +
-          ". Downloaded version checksum doesn't much the expected one. Please" +
-          " check your connection or use local version " +
-          this.getLocalSolcVersion()
+
+      throw new BuidlerError(
+        ERRORS.COMPILER_INVALID_DOWNLOAD,
+        this.version,
+        this.getLocalSolcVersion()
       );
     }
   }

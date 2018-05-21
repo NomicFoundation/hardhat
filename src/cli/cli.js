@@ -4,7 +4,9 @@
 const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
 const path = require("path");
+
 const inquirer = importLazy("inquirer");
+const chalk = importLazy("chalk");
 
 const { getConfig } = require("../core/config");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
@@ -17,6 +19,7 @@ const {
   getArgumentsBeforeConfig,
   getArgumentsAfterConfig
 } = require("./params");
+const { BuidlerError } = require("../core/errors");
 
 function printVersionMessage() {
   const packageInfo = fs.readJsonSync(
@@ -77,11 +80,27 @@ async function main() {
 
     await env.run(parsedArguments.taskName, parsedArguments.taskArguments);
   } catch (error) {
-    console.error("An error occurred: " + error.message + "\n");
+    const isBuidlerError = error instanceof BuidlerError;
+
+    if (isBuidlerError) {
+      console.error(chalk.red("Error " + error.message));
+    } else {
+      console.error(
+        chalk.red("An unexpected error occurred: " + error.message)
+      );
+    }
+
+    console.log("");
 
     if (showStackTraces) {
       console.error(error.stack);
     } else {
+      if (!isBuidlerError) {
+        console.error(
+          "This shouldn't have happened, please report it to help us improve buidler."
+        );
+      }
+
       console.error(
         "For more info run buidler again with --show-stack-traces."
       );

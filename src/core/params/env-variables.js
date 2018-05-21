@@ -1,5 +1,7 @@
 const { ArgumentsParser } = require("../../cli/ArgumentsParser");
 
+const { BuidlerError, ERRORS } = require("../errors");
+
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
 
 function paramNameToEnvVariable(paramName) {
@@ -23,9 +25,12 @@ function getEnvBuidlerArguments(paramDefinitions) {
     if (rawValue !== undefined) {
       try {
         envArgs[paramName] = definition.type.parse(paramName, rawValue);
-      } catch (e) {
-        throw new Error(
-          `Invalid environment variable ${envVarName}'s value: ${rawValue}`
+      } catch (error) {
+        throw new BuidlerError(
+          ERRORS.ENV_VARIABLE_ARG_INVALID_VALUE,
+          error,
+          envVarName,
+          rawValue
         );
       }
     } else if (definition.defaultValue !== undefined) {

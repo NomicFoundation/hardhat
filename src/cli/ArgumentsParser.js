@@ -1,5 +1,7 @@
 "use strict";
 
+const { BuidlerError, ERRORS } = require("../core/errors");
+
 class ArgumentsParser {
   constructor(globalParamDefinitions, tasks, defaultTaskName) {
     this.globalParamDefinitions = globalParamDefinitions;
@@ -27,7 +29,10 @@ class ArgumentsParser {
     const selectedTask = this.tasks[taskName];
 
     if (selectedTask === undefined) {
-      throw new Error(`Unrecognized task ${taskName}`);
+      throw new BuidlerError(
+        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_TASK,
+        taskName
+      );
     }
 
     const rawTaskArgs =
@@ -81,10 +86,9 @@ class ArgumentsParser {
 
     for (let i = 0; i < rawParamArgs.length; i++) {
       if (!this._isParamName(rawParamArgs[i])) {
-        throw new Error(
-          `Unrecognised command line argument ${
-            rawParamArgs[i]
-          }. This is probably a bug, please report it.`
+        throw new BuidlerError(
+          ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG,
+          rawParamArgs[i]
         );
       }
 
@@ -93,7 +97,10 @@ class ArgumentsParser {
 
       const definition = paramDefinitions[paramName];
       if (definition === undefined) {
-        throw new Error(`Unrecognized param ${rawParamName}.`);
+        throw new BuidlerError(
+          ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME,
+          rawParamName
+        );
       }
 
       if (definition.isFlag) {
@@ -107,7 +114,10 @@ class ArgumentsParser {
 
       if (rawParamArg === undefined) {
         if (definition.defaultValue === undefined) {
-          throw new Error(`Missing value for param ${rawParamName}.`);
+          throw new BuidlerError(
+            ERRORS.ARGUMENT_PARSER_MISSING_VALUE,
+            rawParamName
+          );
         }
       } else {
         args[paramName] = definition.type.parse(paramName, rawParamArg);
@@ -126,8 +136,9 @@ class ArgumentsParser {
       .find(o => args[o.name] === undefined);
 
     if (missingParam !== undefined) {
-      throw new Error(
-        `Missing param ${ArgumentsParser.paramNameToCLA(missingParam.name)}`
+      throw new BuidlerError(
+        ERRORS.ARGUMENT_PARSER_MISSING_PARAM,
+        ArgumentsParser.paramNameToCLA(missingParam.name)
       );
     }
 
@@ -147,7 +158,10 @@ class ArgumentsParser {
 
       if (rawArg === undefined) {
         if (definition.defaultValue === undefined) {
-          throw new Error(`Missing positional argument ${definition.name}`);
+          throw new BuidlerError(
+            ERRORS.ARGUMENT_PARSER_MISSING_POSITIONAL_ARG,
+            definition.name
+          );
         }
 
         args[definition.name] = definition.defaultValue;
@@ -170,10 +184,9 @@ class ArgumentsParser {
       !hasVariadicParam &&
       rawPositionalParamArgs.length > positionalParamDefinitions.length
     ) {
-      throw new Error(
-        `Unrecognized positional argument ${
-          rawPositionalParamArgs[positionalParamDefinitions.length]
-        }`
+      throw new BuidlerError(
+        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_POSITIONAL_ARG,
+        rawPositionalParamArgs[positionalParamDefinitions.length]
       );
     }
 
