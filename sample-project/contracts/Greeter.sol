@@ -2,9 +2,13 @@ pragma solidity ^0.4.21;
 
 contract Greeter {
 
-    string private constant greeting = "Hello, buidler!";
+    string greeting;
 
-    function greet() public pure returns (string) {
+    function Greeter(string _greeting) public {
+        greeting = _greeting;
+    }
+
+    function greet() public view returns (string) {
         return greeting;
     }
 

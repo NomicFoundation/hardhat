@@ -4,7 +4,7 @@ describe("Greeter contract", () => {
   it("Should return the right greeting", async () => {
     const expectedGreeting = "Hello, buidler!";
 
-    const greeter = await Greeter.new();
+    const greeter = await Greeter.new(expectedGreeting);
     const actualGreeting = await greeter.greet();
 
     assert.equal(actualGreeting, expectedGreeting);
