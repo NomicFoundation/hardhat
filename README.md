@@ -15,8 +15,6 @@ This project aims to be a better toolchain for Solidity smart contracts developm
 * Avoiding coupling with other js frameworks (ie: mocha). A buidler-script must be runnable without invoking buidler.
 * Being extensible without the need to fork it.
 
-As an extra, I also want to offer the possibility to write tests in typescript.
-
 ## Architecture documentation
 
 ### Buidler environment
@@ -98,10 +96,6 @@ A list of tasks to complete, mostly in priority order:
     - Don't use solidity-parser. Two options:
         1. Replace the parser with solidity-parser-antlr once its relicenced.
         2. Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
-
-* TS contract models
-    - Select a typescript contract generator and integrate it
-    - Make a task to run typescript tests
 
 * Optimizations
     - Compile solc to wasm instead of asm.js
