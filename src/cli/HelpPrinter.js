@@ -15,9 +15,7 @@ class HelpPrinter {
     console.log(`${this.programName} version ${this.version}\n`);
 
     console.log(
-      `Usage: npx ${this.programName}${this._getParamsList(
-        this.globalParamDefinitions
-      )} <TASK> [TASK OPTIONS]\n`
+      `Usage: npx ${this.programName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
     );
 
     console.log("GLOBAL OPTIONS:\n");

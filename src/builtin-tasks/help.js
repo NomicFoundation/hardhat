@@ -2,7 +2,7 @@ const importLazy = require("import-lazy")(require);
 const path = require("path");
 const fs = importLazy("fs-extra");
 
-const { BUIDLER_PARAM_DEFINITIONS } = require("../core/params/buidler-params");
+const { BUIDLER_CLI_PARAM_DEFINITIONS } = require("../core/params/buidler-params");
 const { HelpPrinter } = require("../cli/HelpPrinter");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
 
@@ -16,7 +16,7 @@ task("help", "Prints this message")
     const helpPrinter = new HelpPrinter(
       packageInfo.name,
       packageInfo.version,
-      BUIDLER_PARAM_DEFINITIONS,
+      BUIDLER_CLI_PARAM_DEFINITIONS,
       getTaskDefinitions()
     );
 
