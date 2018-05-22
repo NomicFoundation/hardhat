@@ -166,19 +166,19 @@ const ERRORS = {
   ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG: {
     number: 30,
     message:
-      'Unrecognised command line argument "%s". This is probably a bug, please report it.'
+      'Unrecognised command line argument "%s". Note that task arguments must come after the task name.'
   },
   ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME: {
     number: 31,
     message: 'Unrecognized param "%s".'
   },
-  ARGUMENT_PARSER_MISSING_VALUE: {
+  ARGUMENT_PARSER_MISSING_TASK_ARGUMENT: {
     number: 32,
-    message: 'Missing value for param "%s".'
+    message: 'Missing task argument "%s".'
   },
-  ARGUMENT_PARSER_MISSING_PARAM: {
+  ARGUMENT_PARSER_MISSING_BUIDLER_ARGUMENT: {
     number: 33,
-    message: "Missing param %s."
+    message: 'Missing buidler argument "%s".'
   },
   ARGUMENT_PARSER_MISSING_POSITIONAL_ARG: {
     number: 34,
@@ -188,37 +188,41 @@ const ERRORS = {
     number: 35,
     message: 'Unrecognized positional argument "%s"'
   },
-  HELP_PRINTER_UNRECOGNIZED_TASK: {
+  ARGUMENT_PARSER_REPEATED_PARAM: {
     number: 36,
+    message: 'Repeated parameter "%s".'
+  },
+  HELP_PRINTER_UNRECOGNIZED_TASK: {
+    number: 37,
     message: 'Unrecognized task "%s".'
   },
   INTERACTIVE_DEPLOYER_INVALID_FROM: {
-    number: 37,
+    number: 38,
     message: "Invalid deployer address: %s"
   },
   INTERACTIVE_DEPLOYER_FROM_NOT_MANAGED: {
-    number: 38,
+    number: 39,
     message:
       "Deployer account is not currently managed by the node you are connected to."
   },
   TASK_COMPILE_FAILURE: {
-    number: 39,
+    number: 40,
     message: "Compilation failed"
   },
   TASK_DEPLOY_NON_INTERACTIVE: {
-    number: 40,
+    number: 41,
     message: 'Task "deploy" can\'t be run from a script.'
   },
   TASK_RUN_FILE_NOT_FOUND: {
-    number: 41,
+    number: 42,
     message: 'Script "%s" doesn\'t exist.'
   },
   TASK_RUN_SCRIPT_ERROR: {
-    number: 42,
+    number: 43,
     message: 'Error running script "%s": %s'
   },
   TASK_FLATTEN_CYCLE: {
-    number: 43,
+    number: 44,
     message: "buidler flatten doesn't support cyclic dependencies."
   }
 };

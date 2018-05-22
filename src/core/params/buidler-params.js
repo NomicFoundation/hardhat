@@ -1,7 +1,6 @@
 "use strict";
 
 const types = require("../types");
-const {getEnvBuidlerArguments} = require("./env-variables");
 
 const BUIDLER_PARAM_DEFINITIONS = {
   network: {
@@ -45,18 +44,7 @@ const BUIDLER_CLI_PARAM_DEFINITIONS = {
   }
 };
 
-function getCliParamsWithDefaultFromEnvVariables() {
-  const fromEnv = getEnvBuidlerArguments(BUIDLER_CLI_PARAM_DEFINITIONS);
-
-  for (const [name, value] of Object.entries(fromEnv)) {
-    BUIDLER_CLI_PARAM_DEFINITIONS[name].defaultValue = value;
-  }
-
-  return BUIDLER_CLI_PARAM_DEFINITIONS;
-}
-
 module.exports = {
-  getCliParamsWithDefaultFromEnvVariables,
   BUIDLER_PARAM_DEFINITIONS,
   BUIDLER_CLI_PARAM_DEFINITIONS
 };

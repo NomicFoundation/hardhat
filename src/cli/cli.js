@@ -4,7 +4,6 @@
 const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
 const path = require("path");
-
 const inquirer = importLazy("inquirer");
 const chalk = importLazy("chalk");
 
@@ -14,11 +13,12 @@ const { createEnvironment } = require("../core/env/definition");
 const { isCwdInsideProject } = require("../core/project-structure");
 const { enableEmoji } = require("./emoji");
 const { createProject } = require("./project-creation");
+const { BuidlerError, ERRORS } = require("../core/errors");
 const {
-  getArgumentsBeforeConfig,
-  getArgumentsAfterConfig
-} = require("./params");
-const { BuidlerError } = require("../core/errors");
+  BUIDLER_CLI_PARAM_DEFINITIONS
+} = require("../core/params/buidler-params");
+const { ArgumentsParser } = require("./ArgumentsParser");
+const { getEnvBuidlerArguments } = require("../core/params/env-variables");
 
 function printVersionMessage() {
   const packageInfo = fs.readJsonSync(
@@ -30,48 +30,68 @@ function printVersionMessage() {
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
-  let showStackTraces = process.argv.includes("--showStackTraces");
-  const rawArgs = process.argv.slice(2);
+  let showStackTraces = process.argv.includes("--show-stack-traces");
 
   try {
-    let { globalArguments } = getArgumentsBeforeConfig(rawArgs);
+    const envVariableArguments = getEnvBuidlerArguments(
+      BUIDLER_CLI_PARAM_DEFINITIONS
+    );
 
-    if (globalArguments.emoji) {
+    const argumentsParser = new ArgumentsParser();
+
+    const {
+      buidlerArguments,
+      taskName: parsedTaskName,
+      unparsedCLAs
+    } = argumentsParser.parseBuidlerArgumetns(
+      BUIDLER_CLI_PARAM_DEFINITIONS,
+      envVariableArguments,
+      process.argv.slice(2)
+    );
+
+    if (buidlerArguments.emoji) {
       enableEmoji();
     }
+
+    showStackTraces = buidlerArguments.showStackTraces;
 
     if (!isCwdInsideProject() && process.stdout.isTTY) {
       await createProject();
       return;
     }
 
-    const config = getConfig();
-
-    const parsedArguments = getArgumentsAfterConfig(
-      getTaskDefinitions(),
-      rawArgs
-    );
-
-    showStackTraces = parsedArguments.globalArguments.showStackTraces;
-
     // --version is a special case
-    if (parsedArguments.globalArguments.version) {
+    if (buidlerArguments.version) {
       printVersionMessage();
       return;
     }
 
-    const env = createEnvironment(config, parsedArguments.globalArguments);
+    const config = getConfig();
+
+    const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
+    const taskDefinition = getTaskDefinitions()[taskName];
+
+    if (taskDefinition === undefined) {
+      throw new BuidlerError(
+        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_TASK,
+        taskName
+      );
+    }
+
+    const taskArguments = argumentsParser.parseTaskArguments(
+      taskDefinition,
+      unparsedCLAs
+    );
+
+    const env = createEnvironment(config, buidlerArguments);
 
     // --help is a also special case
-    if (
-      parsedArguments.globalArguments.help &&
-      parsedArguments.taskName !== "help"
-    ) {
-      await env.run("help", { task: parsedArguments.taskName });
+    if (buidlerArguments.help && taskName !== "help") {
+      await env.run("help", { task: taskName });
       return;
     }
 
-    await env.run(parsedArguments.taskName, parsedArguments.taskArguments);
+    await env.run(taskName, taskArguments);
   } catch (error) {
     const isBuidlerError = error instanceof BuidlerError;
 

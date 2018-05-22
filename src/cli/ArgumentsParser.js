@@ -3,146 +3,179 @@
 const { BuidlerError, ERRORS } = require("../core/errors");
 
 class ArgumentsParser {
-  constructor(globalParamDefinitions, tasks, defaultTaskName) {
-    this.globalParamDefinitions = globalParamDefinitions;
-    this.tasks = tasks;
-    this.defaultTask = defaultTaskName;
+  parseBuidlerArgumetns(
+    buidlerParamDefinitions,
+    envVariableArguments,
+    rawCLAs
+  ) {
+    const buidlerArguments = {};
+    let taskName = undefined;
+    const unparsedCLAs = [];
+
+    for (let i = 0; i < rawCLAs.length; i++) {
+      const arg = rawCLAs[i];
+
+      if (taskName === undefined) {
+        if (!this._hasCLAParamNameFormat(arg)) {
+          taskName = arg;
+          continue;
+        }
+
+        if (!this._isParamName(arg, buidlerParamDefinitions)) {
+          throw new BuidlerError(
+            ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG,
+            arg
+          );
+        }
+
+        i = this._parseArgumentAt(
+          rawCLAs,
+          i,
+          buidlerParamDefinitions,
+          buidlerArguments
+        );
+      } else {
+        if (!this._isParamName(arg, buidlerParamDefinitions)) {
+          unparsedCLAs.push(arg);
+          continue;
+        }
+
+        i = this._parseArgumentAt(
+          rawCLAs,
+          i,
+          buidlerParamDefinitions,
+          buidlerArguments
+        );
+      }
+    }
+
+    this._addBuidlerDefaultArguments(
+      buidlerParamDefinitions,
+      envVariableArguments,
+      buidlerArguments
+    );
+
+    return { buidlerArguments, taskName, unparsedCLAs };
   }
 
-  parse(rawArgs) {
-    const taskIndex = this._getTaskNameIndex(rawArgs);
-
-    const rawGlobalParamArgs =
-      taskIndex === undefined ? rawArgs : rawArgs.slice(0, taskIndex);
-
-    if (Object.keys(this.tasks).length === 0) {
-      return {
-        globalArguments: this._parseParamArgs(
-          rawGlobalParamArgs,
-          this.globalParamDefinitions
-        )
-      };
-    }
-
-    const taskName = rawArgs[taskIndex] || this.defaultTask;
-
-    const selectedTask = this.tasks[taskName];
-
-    if (selectedTask === undefined) {
-      throw new BuidlerError(
-        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_TASK,
-        taskName
-      );
-    }
-
-    const rawTaskArgs =
-      taskIndex === undefined ? [] : rawArgs.slice(taskIndex + 1);
-
+  parseTaskArguments(taskDefintion, rawCLAs) {
     const {
-      rawParamArguments,
-      rawPositionalParamArguments
-    } = this._splitArgumentsForTask(rawTaskArgs, selectedTask);
+      paramArguments,
+      rawPositionalArguments
+    } = this._parseTaskParamArguments(taskDefintion, rawCLAs);
 
-    const globalArguments = this._parseParamArgs(
-      rawGlobalParamArgs,
-      this.globalParamDefinitions
+    const positionalArguments = this._parsePositionalParamArgs(
+      rawPositionalArguments,
+      taskDefintion.positionalParamDefinitions
     );
 
-    const taskParamArguments = this._parseParamArgs(
-      rawParamArguments,
-      selectedTask.paramDefinitions
-    );
-
-    const taskPositionalParamArguments = this._parsePositionalParamArgs(
-      rawPositionalParamArguments,
-      selectedTask.positionalParamDefinitions
-    );
-
-    return {
-      taskName,
-      globalArguments,
-      taskArguments: { ...taskParamArguments, ...taskPositionalParamArguments }
-    };
+    return { ...paramArguments, ...positionalArguments };
   }
 
-  _isParamName(str) {
-    return str.startsWith(ArgumentsParser.PARAM_PREFIX);
-  }
+  _parseTaskParamArguments(taskDefintion, rawCLAs) {
+    const paramArguments = {};
+    const rawPositionalArguments = [];
 
-  _getTaskNameIndex(rawArgs) {
-    for (let i = 0; i < rawArgs.length; i++) {
-      if (!this._isParamName(rawArgs[i])) {
-        return i;
-      }
+    for (let i = 0; i < rawCLAs.length; i++) {
+      const arg = rawCLAs[i];
 
-      if (!this._isFlagName(rawArgs[i], this.globalParamDefinitions)) {
-        i++;
-      }
-    }
-  }
-
-  _parseParamArgs(rawParamArgs, paramDefinitions) {
-    const args = {};
-
-    for (let i = 0; i < rawParamArgs.length; i++) {
-      if (!this._isParamName(rawParamArgs[i])) {
-        throw new BuidlerError(
-          ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG,
-          rawParamArgs[i]
-        );
-      }
-
-      const rawParamName = rawParamArgs[i];
-      const paramName = ArgumentsParser.cLAToParamName(rawParamArgs[i]);
-
-      const definition = paramDefinitions[paramName];
-      if (definition === undefined) {
-        throw new BuidlerError(
-          ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME,
-          rawParamName
-        );
-      }
-
-      if (definition.isFlag) {
-        args[paramName] = true;
+      if (!this._hasCLAParamNameFormat(arg)) {
+        rawPositionalArguments.push(arg);
         continue;
       }
 
-      i++;
-
-      const rawParamArg = rawParamArgs[i];
-
-      if (rawParamArg === undefined) {
-        if (definition.defaultValue === undefined) {
-          throw new BuidlerError(
-            ERRORS.ARGUMENT_PARSER_MISSING_VALUE,
-            rawParamName
-          );
-        }
-      } else {
-        args[paramName] = definition.type.parse(paramName, rawParamArg);
+      if (!this._isParamName(arg, taskDefintion.paramDefinitions)) {
+        throw new BuidlerError(
+          ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME,
+          arg
+        );
       }
-    }
 
-    // Add default values
-    Object.values(paramDefinitions)
-      .filter(o => o.defaultValue !== undefined)
-      .filter(o => args[o.name] === undefined)
-      .forEach(o => (args[o.name] = o.defaultValue));
-
-    // Validate required paramDefinitions
-    const missingParam = Object.values(paramDefinitions)
-      .filter(o => o.defaultValue === undefined)
-      .find(o => args[o.name] === undefined);
-
-    if (missingParam !== undefined) {
-      throw new BuidlerError(
-        ERRORS.ARGUMENT_PARSER_MISSING_PARAM,
-        ArgumentsParser.paramNameToCLA(missingParam.name)
+      i = this._parseArgumentAt(
+        rawCLAs,
+        i,
+        taskDefintion.paramDefinitions,
+        paramArguments
       );
     }
 
-    return args;
+    this._addTaskDefaultArguments(taskDefintion, paramArguments);
+
+    return { paramArguments, rawPositionalArguments };
+  }
+
+  _addBuidlerDefaultArguments(
+    buidlerParamDefinitions,
+    envVariableArguments,
+    buidlerArguments
+  ) {
+    for (const paramName of Object.keys(buidlerParamDefinitions)) {
+      const definition = buidlerParamDefinitions[paramName];
+      const envVarArgument = envVariableArguments[paramName];
+
+      if (buidlerArguments[paramName] === undefined) {
+        if (envVarArgument !== undefined) {
+          buidlerArguments[paramName] = envVarArgument;
+        } else if (definition.defaultValue !== undefined) {
+          buidlerArguments[paramName] = definition.defaultValue;
+        } else {
+          throw new BuidlerError(
+            ERRORS.ARGUMENT_PARSER_MISSING_BUIDLER_ARGUMENT,
+            paramName
+          );
+        }
+      }
+    }
+  }
+
+  _addTaskDefaultArguments(taskDefintion, taskArguments) {
+    for (const paramName of Object.keys(taskDefintion.paramDefinitions)) {
+      const definition = taskDefintion.paramDefinitions[paramName];
+
+      if (taskArguments[paramName] === undefined) {
+        if (definition.defaultValue !== undefined) {
+          taskArguments[paramName] = definition.defaultValue;
+        } else {
+          throw new BuidlerError(
+            ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT,
+            paramName
+          );
+        }
+      }
+    }
+  }
+
+  _isParamName(str, paramDefinitions) {
+    if (!this._hasCLAParamNameFormat(str)) {
+      return false;
+    }
+
+    const name = ArgumentsParser.cLAToParamName(str);
+    return paramDefinitions[name] !== undefined;
+  }
+
+  _hasCLAParamNameFormat(str) {
+    return str.startsWith(ArgumentsParser.PARAM_PREFIX);
+  }
+
+  _parseArgumentAt(rawCLAs, index, paramDefinitions, parsedArguments) {
+    const claArg = rawCLAs[index];
+    const paramName = ArgumentsParser.cLAToParamName(claArg);
+    const definition = paramDefinitions[paramName];
+
+    if (parsedArguments[paramName] !== undefined) {
+      throw new BuidlerError(ERRORS.ARGUMENT_PARSER_REPEATED_PARAM, claArg);
+    }
+
+    if (definition.isFlag) {
+      parsedArguments[paramName] = true;
+    } else {
+      index++;
+      const value = rawCLAs[index];
+      parsedArguments[paramName] = definition.type.parse(paramName, value);
+    }
+
+    return index;
   }
 
   _parsePositionalParamArgs(
@@ -191,36 +224,6 @@ class ArgumentsParser {
     }
 
     return args;
-  }
-
-  _splitArgumentsForTask(rawArgs, selectedTask) {
-    const rawPositionalParamArguments = [];
-    const rawParamArguments = [];
-
-    for (let i = 0; i < rawArgs.length; i++) {
-      if (!this._isParamName(rawArgs[i])) {
-        rawPositionalParamArguments.push(rawArgs[i]);
-        continue;
-      }
-
-      rawParamArguments.push(rawArgs[i]);
-
-      if (!this._isFlagName(rawArgs[i], selectedTask.paramDefinitions)) {
-        i++;
-
-        if (rawArgs[i] !== undefined) {
-          rawParamArguments.push(rawArgs[i]);
-        }
-      }
-    }
-
-    return { rawPositionalParamArguments, rawParamArguments };
-  }
-
-  _isFlagName(rawArg, paramDefinitions) {
-    const name = ArgumentsParser.cLAToParamName(rawArg);
-    const definition = paramDefinitions[name];
-    return definition !== undefined && definition.isFlag;
   }
 }
 
