@@ -24,7 +24,8 @@ function printVersionMessage() {
   const packageInfo = fs.readJsonSync(
     path.join(__dirname, "../../package.json")
   );
-  console.log(`${packageInfo.name} version ${packageInfo.version}`);
+
+  console.log(packageInfo.version);
 }
 
 async function main() {
