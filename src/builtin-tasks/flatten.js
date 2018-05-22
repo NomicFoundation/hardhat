@@ -45,7 +45,7 @@ function getFileWithoutPragmaNorImports(resolvedFile) {
     .trim();
 }
 
-task(
+internalTask(
   "builtin:get-flattened-sources",
   "Returns all contracts and their dependencies flattened",
   async () => {
