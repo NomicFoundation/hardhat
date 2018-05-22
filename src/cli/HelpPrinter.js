@@ -15,7 +15,7 @@ class HelpPrinter {
     console.log(`${this.programName} version ${this.version}\n`);
 
     console.log(
-      `Usage: npx ${this.programName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
+      `Usage: ${this.programName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
     );
 
     console.log("GLOBAL OPTIONS:\n");
@@ -43,7 +43,7 @@ class HelpPrinter {
     console.log("");
 
     console.log(
-      `For tasks' specific help run: npx ${this.programName} help [task]\n`
+      `For tasks' specific help run: ${this.programName} help [task]\n`
     );
   }
 
@@ -59,7 +59,7 @@ class HelpPrinter {
     console.log(`${this.programName} version ${this.version}\n`);
 
     console.log(
-      `Usage: npx ${this.programName} [GLOBAL OPTIONS] ${
+      `Usage: ${this.programName} [GLOBAL OPTIONS] ${
         taskDefinition.name
       }${this._getParamsList(
         taskDefinition.paramDefinitions
@@ -88,7 +88,7 @@ class HelpPrinter {
 
     console.log(`Help for task ${taskDefinition.name}: ${description}\n`);
 
-    console.log(`For global options help run: npx ${this.programName} help\n`);
+    console.log(`For global options help run: ${this.programName} help\n`);
   }
 
   _getParamValueDescription(paramDefinition) {
