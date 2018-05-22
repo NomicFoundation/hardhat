@@ -92,10 +92,5 @@ A list of tasks to complete, mostly in priority order:
 * Parallel test runner
     - Check what espresso does. Does each runner need its own blockchain?
 
-* Dependencies resolution
-    - Don't use solidity-parser. Two options:
-        1. Replace the parser with solidity-parser-antlr once its relicenced.
-        2. Use solc to detect imports so this is process error-compatible with the compilation. If done, cache the imports as loading solc is slow?
-
 * Optimizations
     - Compile solc to wasm instead of asm.js
