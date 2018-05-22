@@ -147,7 +147,7 @@ class HelpPrinter {
 
   _printParamDetails(paramDefinitions) {
     const paramsNameLength = Object.keys(paramDefinitions)
-      .map(n => n.length)
+      .map(n => ArgumentsParser.paramNameToCLA(n).length)
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(paramDefinitions).sort()) {
@@ -163,8 +163,12 @@ class HelpPrinter {
         msg += `${description} `;
       }
 
-      if (defaultValue !== undefined && !definition.isFlag) {
-        msg += `(default: ${defaultValue})`;
+      if (
+        definition.isOptional &&
+        defaultValue !== undefined &&
+        !definition.isFlag
+      ) {
+        msg += `(default: ${JSON.stringify(defaultValue)})`;
       }
 
       console.log(msg);
@@ -184,6 +188,10 @@ class HelpPrinter {
 
       if (description !== undefined) {
         msg += `${description} `;
+      }
+
+      if (definition.isOptional && definition.defaultValue !== undefined) {
+        msg += `(default: ${JSON.stringify(definition.defaultValue)})`;
       }
 
       console.log(msg);

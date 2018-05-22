@@ -33,7 +33,7 @@ function getEnvBuidlerArguments(paramDefinitions) {
           rawValue
         );
       }
-    } else if (definition.defaultValue !== undefined) {
+    } else if (definition.isOptional) {
       envArgs[paramName] = definition.defaultValue;
     }
   }

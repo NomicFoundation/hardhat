@@ -20,10 +20,17 @@ class TaskDefinition {
     return this;
   }
 
-  addParam(name, description, defaultValue = undefined, type = types.string) {
+  addParam(
+    name,
+    description,
+    defaultValue = undefined,
+    type = types.string,
+    isOptional = defaultValue !== undefined
+  ) {
     if (this._isType(defaultValue)) {
       type = defaultValue;
       defaultValue = undefined;
+      isOptional = type !== undefined ? type : false;
     }
 
     this._validateNameNotUsed(name);
@@ -32,7 +39,8 @@ class TaskDefinition {
       name,
       defaultValue,
       type,
-      description
+      description,
+      isOptional
     };
 
     return this;
@@ -46,7 +54,8 @@ class TaskDefinition {
       defaultValue: false,
       type: types.boolean,
       description,
-      isFlag: true
+      isFlag: true,
+      isOptional: true
     };
 
     return this;
@@ -56,23 +65,26 @@ class TaskDefinition {
     name,
     description,
     defaultValue = undefined,
-    type = types.string
+    type = types.string,
+    isOptional = defaultValue !== undefined
   ) {
     if (this._isType(defaultValue)) {
       type = defaultValue;
       defaultValue = undefined;
+      isOptional = type !== undefined ? type : false;
     }
 
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
-    this._validateNoMandatoryParamAfterOptionalOnes(name, defaultValue);
+    this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
 
     const definition = {
       name,
       defaultValue,
       type,
       description,
-      isVariadic: false
+      isVariadic: false,
+      isOptional
     };
 
     this._addPositionalParamDefinition(definition);
@@ -84,16 +96,18 @@ class TaskDefinition {
     name,
     description,
     defaultValue = undefined,
-    type = types.string
+    type = types.string,
+    isOptional = defaultValue !== undefined
   ) {
     if (this._isType(defaultValue)) {
       type = defaultValue;
       defaultValue = undefined;
+      isOptional = type !== undefined ? type : false;
     }
 
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
-    this._validateNoMandatoryParamAfterOptionalOnes(name, defaultValue);
+    this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
 
     if (defaultValue !== undefined && !Array.isArray(defaultValue)) {
       defaultValue = [defaultValue];
@@ -104,7 +118,8 @@ class TaskDefinition {
       defaultValue,
       type,
       description,
-      isVariadic: true
+      isVariadic: true,
+      isOptional
     };
 
     this._addPositionalParamDefinition(definition);
@@ -166,8 +181,8 @@ class TaskDefinition {
     );
   }
 
-  _validateNoMandatoryParamAfterOptionalOnes(name, defaultValue) {
-    if (defaultValue === undefined && this._hasOptionalPositionalParam) {
+  _validateNoMandatoryParamAfterOptionalOnes(name, isOptional) {
+    if (!isOptional && this._hasOptionalPositionalParam) {
       throw new BuidlerError(
         ERRORS.TASKS_DEFINITION_MANDATORY_PARAM_AFTER_OPTIONAL,
         name,

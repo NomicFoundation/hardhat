@@ -2,12 +2,20 @@ const importLazy = require("import-lazy")(require);
 const path = require("path");
 const fs = importLazy("fs-extra");
 
-const { BUIDLER_CLI_PARAM_DEFINITIONS } = require("../core/params/buidler-params");
+const {
+  BUIDLER_CLI_PARAM_DEFINITIONS
+} = require("../core/params/buidler-params");
 const { HelpPrinter } = require("../cli/HelpPrinter");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
 
 task("help", "Prints this message")
-  .addPositionalParam("task", "An optional task to print more info about", "")
+  .addPositionalParam(
+    "task",
+    "An optional task to print more info about",
+    undefined,
+    undefined,
+    true
+  )
   .setAction(async ({ task }) => {
     const packageInfo = await fs.readJson(
       path.join(__dirname, "../../package.json")
@@ -20,7 +28,7 @@ task("help", "Prints this message")
       getTaskDefinitions()
     );
 
-    if (task) {
+    if (task !== undefined) {
       helpPrinter.printTaskHelp(task);
       return;
     }

@@ -9,7 +9,9 @@ task("deploy", "Interactively deploy contracts")
   .addParam(
     "fromAccount",
     "The account used to deploy the contracts",
-    "accounts[0]"
+    undefined,
+    undefined,
+    true
   )
   .setAction(
     async ({ noCompile, fromAccount }, { network, showStackTraces }) => {
@@ -28,10 +30,6 @@ task("deploy", "Interactively deploy contracts")
 
       if (!noCompile) {
         await run("compile");
-      }
-
-      if (fromAccount === "accounts[0]") {
-        fromAccount = undefined;
       }
 
       const interactiveDeployer = new InteractiveDeployer(

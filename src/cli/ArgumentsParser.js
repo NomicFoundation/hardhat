@@ -116,7 +116,7 @@ class ArgumentsParser {
       if (buidlerArguments[paramName] === undefined) {
         if (envVarArgument !== undefined) {
           buidlerArguments[paramName] = envVarArgument;
-        } else if (definition.defaultValue !== undefined) {
+        } else if (definition.isOptional) {
           buidlerArguments[paramName] = definition.defaultValue;
         } else {
           throw new BuidlerError(
@@ -133,7 +133,7 @@ class ArgumentsParser {
       const definition = taskDefintion.paramDefinitions[paramName];
 
       if (taskArguments[paramName] === undefined) {
-        if (definition.defaultValue !== undefined) {
+        if (definition.isOptional) {
           taskArguments[paramName] = definition.defaultValue;
         } else {
           throw new BuidlerError(
@@ -190,7 +190,7 @@ class ArgumentsParser {
       const rawArg = rawPositionalParamArgs[i];
 
       if (rawArg === undefined) {
-        if (definition.defaultValue === undefined) {
+        if (!definition.isOptional) {
           throw new BuidlerError(
             ERRORS.ARGUMENT_PARSER_MISSING_POSITIONAL_ARG,
             definition.name
