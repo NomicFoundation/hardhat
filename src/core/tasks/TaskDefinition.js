@@ -23,16 +23,10 @@ class TaskDefinition {
   addParam(
     name,
     description,
-    defaultValue = undefined,
     type = types.string,
+    defaultValue = undefined,
     isOptional = defaultValue !== undefined
   ) {
-    if (this._isType(defaultValue)) {
-      type = defaultValue;
-      defaultValue = undefined;
-      isOptional = type !== undefined ? type : false;
-    }
-
     this._validateNameNotUsed(name);
 
     this.paramDefinitions[name] = {
@@ -44,6 +38,10 @@ class TaskDefinition {
     };
 
     return this;
+  }
+
+  addOptionalParam(name, description, defaultValue, type = types.string) {
+    return this.addParam(name, description, type, defaultValue, true);
   }
 
   addFlag(name, description) {
@@ -64,16 +62,10 @@ class TaskDefinition {
   addPositionalParam(
     name,
     description,
-    defaultValue = undefined,
     type = types.string,
+    defaultValue = undefined,
     isOptional = defaultValue !== undefined
   ) {
-    if (this._isType(defaultValue)) {
-      type = defaultValue;
-      defaultValue = undefined;
-      isOptional = type !== undefined ? type : false;
-    }
-
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
@@ -92,19 +84,22 @@ class TaskDefinition {
     return this;
   }
 
+  addOptionalPositionalParam(
+    name,
+    description,
+    defaultValue,
+    type = types.string
+  ) {
+    return this.addPositionalParam(name, description, type, defaultValue, true);
+  }
+
   addVariadicPositionalParam(
     name,
     description,
-    defaultValue = undefined,
     type = types.string,
+    defaultValue = undefined,
     isOptional = defaultValue !== undefined
   ) {
-    if (this._isType(defaultValue)) {
-      type = defaultValue;
-      defaultValue = undefined;
-      isOptional = type !== undefined ? type : false;
-    }
-
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
@@ -125,6 +120,21 @@ class TaskDefinition {
     this._addPositionalParamDefinition(definition);
 
     return this;
+  }
+
+  addOptionalVariadicPositionalParam(
+    name,
+    description,
+    defaultValue,
+    type = types.string
+  ) {
+    return this.addVariadicPositionalParam(
+      name,
+      description,
+      type,
+      defaultValue,
+      true
+    );
   }
 
   _addPositionalParamDefinition(definition) {
@@ -249,6 +259,10 @@ class OverloadedTaskDefinition {
     this._throwNoParamsOverloadError();
   }
 
+  addOptionalParam(name, description, defaultValue, type = types.string) {
+    this._throwNoParamsOverloadError();
+  }
+
   addPositionalParam(
     name,
     description,
@@ -258,10 +272,28 @@ class OverloadedTaskDefinition {
     this._throwNoParamsOverloadError();
   }
 
+  addOptionalPositionalParam(
+    name,
+    description,
+    defaultValue,
+    type = types.string
+  ) {
+    this._throwNoParamsOverloadError();
+  }
+
   addVariadicPositionalParam(
     name,
     description,
     defaultValue = undefined,
+    type = types.string
+  ) {
+    this._throwNoParamsOverloadError();
+  }
+
+  addOptionalVariadicPositionalParam(
+    name,
+    description,
+    defaultValue,
     type = types.string
   ) {
     this._throwNoParamsOverloadError();

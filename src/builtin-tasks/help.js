@@ -9,12 +9,9 @@ const { HelpPrinter } = require("../cli/HelpPrinter");
 const { getTaskDefinitions } = require("../core/tasks/dsl");
 
 task("help", "Prints this message")
-  .addPositionalParam(
+  .addOptionalPositionalParam(
     "task",
-    "An optional task to print more info about",
-    undefined,
-    undefined,
-    true
+    "An optional task to print more info about"
   )
   .setAction(async ({ task }) => {
     const packageInfo = await fs.readJson(

@@ -6,13 +6,7 @@ const { BuidlerError, ERRORS } = require("../core/errors");
 
 task("deploy", "Interactively deploy contracts")
   .addFlag("noCompile", "Don't compile before running this task")
-  .addParam(
-    "fromAccount",
-    "The account used to deploy the contracts",
-    undefined,
-    undefined,
-    true
-  )
+  .addOptionalParam("fromAccount", "The account used to deploy the contracts")
   .setAction(
     async ({ noCompile, fromAccount }, { network, showStackTraces }) => {
       if (!process.stdin.isTTY) {

@@ -3,7 +3,7 @@ const util = require("util");
 const glob = util.promisify(require("glob"));
 
 internalTask("builtin:get-test-files")
-  .addVariadicPositionalParam(
+  .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
     []
@@ -28,7 +28,7 @@ internalTask("builtin:setup-test-environment", async () => {
 });
 
 internalTask("builtin:run-mocha-tests")
-  .addVariadicPositionalParam(
+  .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
     []
@@ -46,7 +46,7 @@ internalTask("builtin:run-mocha-tests")
   });
 
 task("test", "Runs mocha tests")
-  .addVariadicPositionalParam(
+  .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
     []
