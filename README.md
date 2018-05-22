@@ -89,9 +89,6 @@ A list of tasks to complete, mostly in priority order:
 * Config
     - Default config should be extendable by extensions
     
-* run task
-    - Add an internal task that setups the environment, like in test.
-
 * Parallel test runner
     - Check what espresso does. Does each runner need its own blockchain?
 

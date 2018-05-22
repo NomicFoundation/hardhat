@@ -3,6 +3,10 @@ const fs = importLazy("fs-extra");
 
 const { BuidlerError, ERRORS } = require("../core/errors");
 
+internalTask("builtin:setup-run-environment", async () => {
+  // this task is only here in case someone wants to override it.
+});
+
 task("run", "Runs an user-defined script after compiling the project")
   .addPositionalParam(
     "script",
@@ -19,6 +23,7 @@ task("run", "Runs an user-defined script after compiling the project")
     }
 
     try {
+      await run("builtin:setup-run-environment");
       require(await fs.realpath(script));
     } catch (error) {
       throw new BuidlerError(
