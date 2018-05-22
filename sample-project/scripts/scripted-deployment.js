@@ -29,7 +29,7 @@ async function deploy() {
   // as everything will be compiled before this script is executed.
   const Greeter = artifacts.require("Greeter");
 
-  const greeter = await Greeter.new();
+  const greeter = await Greeter.new("Hello, buidler!");
   console.log("Greeter address:", greeter.address);
 }
 
