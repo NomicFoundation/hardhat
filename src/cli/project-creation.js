@@ -42,7 +42,7 @@ async function printWelcomeMessage() {
     chalk.cyan(
       `${emoji("👷 ")}Welcome to ${packageInfo.name} v${
         packageInfo.version
-      }${emoji(" 👷‍♀")}‍\n`
+      }${emoji(" 👷‍")}‍\n`
     )
   );
 }
