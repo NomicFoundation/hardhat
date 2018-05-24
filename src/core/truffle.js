@@ -314,7 +314,8 @@ class TruffleEnvironmentArtifacts {
         );
 
         if (library !== undefined) {
-          libraryAddresses[`${file}:${contractName}`] = library.address;
+          const libraryIdentifier = `${file}:${contractName}`.slice(0, 36);
+          libraryAddresses[libraryIdentifier] = library.address;
         }
       }
     }
