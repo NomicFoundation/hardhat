@@ -63,7 +63,7 @@ If you want an easy way to deploy your contracts you can run `buidler deploy` an
 
 ![buidler's interactive deployment](http://g.recordit.co/WJAS6oMGYy.gif)
 
-If want a non-interactive version, you can [**write your own deployment script**](#Using-buidler-in-your-own scripts).
+If want a non-interactive version, you can [**write your own deployment script**](#Using-buidler-in-your-own-scripts).
 
 ## Configuration
 
