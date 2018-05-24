@@ -85,7 +85,7 @@ solc: {
 
 ### Integrating other tools
 
-Buidler's config file is guaranteed to be run before any task, so you can place any integration, like importing `babel-register`, in it.
+Buidler's config file is guaranteed to be run before any task, so you can place any integration in it, like importing `babel-register`.
 
 ## Using buidler in your own scripts
 
