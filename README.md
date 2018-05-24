@@ -1,96 +1,137 @@
-# Buidler
+# Buidler 👷‍
 
+Buidler is your new smart contracts development assistant. It provides a ready to use dev environment, which aims to be really easy to extend and interoperable with the whole javascript ecosystem.
 
-## Warning
+⚠️ **This is alpha software software. While you can start using it today, bear in mind that some APIs may change, and you can encounter bugs** ⚠️
 
-**Everything here is _highly_ experimental and can be changed or removed. _Any_ feedback or contribution is welcome :)**
+## Table of contents
 
-## Goals
-
-This project aims to be a better toolchain for Solidity smart contracts development by:
-
-* Having a simple code to attract more collaborators.
-* Being reliable and giving clear error messages when we can't.
-* Being fast, caching whatever is possible.
-* Avoiding coupling with other js frameworks (ie: mocha). A buidler-script must be runnable without invoking buidler.
-* Being extensible without the need to fork it.
-
-## Architecture documentation
-
-### Buidler environment
-
-The key concept in buidler's architecture is the environment, which consist in a set of predefined functions, a Web3 instance, the project config and a way to run builtin and user-defined tasks.
-
-The environment is created before running any task when using buidler. When running a standalone buidler-script the user needs to require `src/lib/buidler-lib.js`, which will initialize the environment if it hasn't been created before (ie: it isn't being run with buidler).
-
-For convenience, all the environment's elements are injected to the the `global` before running a task, and the environment itself is set to `global.env`.
-
-`src/lib/buidler-lib.js` is set as the package main so once uploaded to npm it can be imported with `require("buidler")` in any user script.
-
-### Tasks
-
-Buidler has a small DSL for defining and running tasks. See `src/builtin-tasks/*.js` tasks for examples.
-
-Users of buidler can define their own tasks, or redefine existing one as they please. Built-in tasks are divided in many small steps so users can partially override them.
-
-Running a task returns whichever the task's action function returns. When the task is run as the main task by buidler its return value is ignored.
-
-
-### Config
-
-The configuration is defined in `buidler-config.js` at the root of the project, and is loaded on-demand right before creating the environment. When this file is imported Web3 and the tasks' DSL are available in `global`, and the built-in tasks already defined.
-
-The user-provided config overrides a default configuration that can be found in `src/core/default-config.js`.
-
-User defined tasks should be declared in the configuration file. If any of their names clashes with a built-in task's name, the user-defined one will be used, and a `runSuper()` function will be available during that task.
-
-### Arguments
-
-Buidler tasks can define their arguments using the tasks DSL. These are automatically validated and parsed by buidler. Also, help messages are taken care of.
-
-Buidler also receives arguments, which must be passed before the task name.
-
-When running a a buidler-script without buidler command line arguments are not parsed, but buidler's arguments can be passed as env variables. For example, if buidler defines a "network" argument, it will be read from "BUIDLER_NETWORK" env variable.
+1. [**Installation**](#Installation)
+1. [**Creating your project**](#Creating-your-project)
+1. [**Testing your contracts**](#Testing-your-contracts)
+1. [**Deploying your contracts**](#Deploying-your-contracts)
+1. [**Configuration**](#Configuration)
+1. [**Using buidler in your own scripts**](#Using-buidler-in-your-own-scripts)
+2. [**The buidler environment**](#The-buidler-environment)
+1. [**Creating your own tasks**](#Creating-you-own-tasks)
+1. [**Migration from Truffle**](#Migration-from-Truffle)
+1. [**Contributing**](#Contributing)
+1. [**License**](#License)
 
 ## Installation
 
-There's no exportable artifacts yet, so just `npm install` and use it locally.
+### Requirements
 
-## Running the project
+To use buidler you need to have [node 8.x installed](https://nodejs.org/en/download/).
 
-Read buidlers help by running: `./src/cli/cli.js`
+### Local installation (recommended way)
 
-Compiling everything: `./src/cli/cli.js compile`
+The **recommended way** of using buidler is by installing it locally your project. Why? This way your environment will be reproducible, and you won't have version conflicts with your coworkers. Working alone? Think of your future self as your coworker.
 
-Running a user script using `buidler`: `./src/cli/cli.js run src/samples/user-script.js`
+There's just one catch, if you install it this way, you should add `npx` before `buidler` when running it. Trust us, it is worth it.
 
-Running a user script without using `buidler`: `node src/samples/standalone-user-script.js`
+Are you convinced? First, initialize your `npm` project using `npm init` and following
+the instructions. Once ready run:
 
-Running tests using `buidler`: Tests in `test/` can be run with buidler with `./src/cli/cli.js test`. They are mocha tests with the environment, `chai.assert` and web3's `accounts` exported in global.
+`npm install --save-dev buidler`
 
-Running tests without using `buidler`: They can be any user script, run with any test runner. There's a sample mocha test that can be run with `npx mocha src/samples/standalone-mocha-test.js`
+### Global installation
 
-## Code style
+If you are willing to spend hours debugging inconsistent behavior across different projects before discovering you are using different versions, just run:
 
-Just run `npm run prettier` :)
+`npm -g install buidler`
 
-It's OK and to commit prettier generated changes in a separate commit, so don't worry if you only remember to run it
-from time to time.
+## Creating your a project
 
+Just run `buidler` in your project root and follow the instructions.
 
-## Buidler projects structure
+![buidler's project creation](http://g.recordit.co/KTRA2u1fWl.gif)
 
-The root of the project must contain a `buidler-config.js` file, and the contracts must be located in `<root>/contracts`.
+A sample project will be created, with examples on how to write contracts, test and write scripts using them.
 
-## TODO
+All you need to know is that you should place your contracts in `<project-root>/test`, and that you can read the next section to learn how to test them.
 
-A list of tasks to complete, mostly in priority order:
+## Testing your contracts
 
-* Config
-    - Default config should be extendable by extensions
-    
-* Parallel test runner
-    - Check what espresso does. Does each runner need its own blockchain?
+By default, you can write your tests using [mocha](https://mochajs.org/) and [chai](http://www.chaijs.com). Just place them in `<project-root>/test` and run them with `buidler test`. While writing the tests, you can count on [the buidler environment](#The-buidler-environment) and `chai`'s `assert` for you.
 
-* Optimizations
-    - Compile solc to wasm instead of asm.js
+Don't like depending on global variables or buidler's test runner? Do you want to use your favorite editor's `mocha` integration? Another testing framework? You can write your tests as normal scripts and require buidler's environment as a any other library. Read section [**Using buidler in your own scripts**](#Using-buidler-in-your-own scripts) for more info.
+
+## Deploying your contracts
+
+If you want an easy way to deploy your contracts you can run `buidler deploy` and it will guide you through the whole process.
+
+![buidler's interactive deployment](http://g.recordit.co/WJAS6oMGYy.gif)
+
+If want a non-interactive version, you can [**write your own deployment script**](#Using-buidler-in-your-own scripts).
+
+## Configuration
+
+All your configuration should be placed in a `buidler-config.js` file, place at the root of your project. Feel free to add whatever you want to that script, you just need to assign your config to `module.exports`.
+
+### Networks settings
+
+Networks configuration doc is currently lagging behind, but they are compatible with Truffle's. So, for now, you can [consult their documentation](http://truffleframework.com/docs/advanced/configuration#networks) for now.
+
+### Solc version
+
+Buidler lets you choose which version of solc yo use. You only have to add this to your config:
+
+```js
+solc: {
+  version: "x.x.x"
+}
+```
+
+### Integrating other tools
+
+Buidler's config file is guaranteed to be run before any task, so you can place any integration, like importing `babel-register`, in it.
+
+## Using buidler in your own scripts
+
+You can take advantage of buidler's infrastructure and configuration in your own
+scripts.
+
+By running them with `buidler run <path>`, your contracts will be compiled if necessary, and [the buidler environment](#The-buidler-environment) will be set up for you, making all of its properties available as globals.
+
+You can also run them without using `buidler`, you just need to import [the buidler environment](#The-buidler-environment) with `require("buidler")`. If you run them this way, you have to use environment variables to pass arguments to buidler. You just need to replace the `-` with `_` and write them in uppercase.
+
+## The buidler environment
+
+Weather you are writing tests, a script, or creating a new task, buidler will always provide you the same environment, which consists of an object with these properties:
+
+* `config`: An object consisting of all the buidler's configuration.
+* `buidlerArguments`: An object with the values of the different arguments that buidler accepts.
+* `Web3`: The `web3.js` module.
+* `web3`: a `Web3` instance connected to the chosen network.
+* `pweb3`: A promisified version of `web3`.
+* `run`: Which can be used to execute any of buidler's tasks.
+* `artifacts`: an object containing two methods:
+  * `artifacts.require("ContractName")` which can be used to obtain already initialized [Truffle's contract abstractions](https://github.com/trufflesuite/truffle-contract).
+  * `artifacts.link(ContractAbstraction, ...libraries)` for linking your contracts and libraries.
+
+## Creating your own tasks
+
+You can create your own tasks using a simple DSL. You just need to place your definitions in your `buidler-config.js` file, and it will be automatically available in buidler's CLI (ie: arguments parsing and help messages are taken care of).
+
+The documentation about how to use task definition DSL is not quiet ready yet, but you can use the ones in `src/builtin-tasks/` as examples.
+
+### Overriding built-in tasks
+
+You can override a built-in function. You only need to redefine it, and your
+version will be run. While doing so, you can use `runSuper()` to execute the
+original version.
+
+Note that most built-in tasks are split in many micro-tasks, so you probably only need to override one of those.
+
+## Migration from Truffle
+
+While buidler doesn't intend to have every feature that truffle has, it aims to be a drop-in replacement for Truffle tests. As long as you are not using Truffle migrations, you can install buidler, rename your truffle config file to `buidler-config.js`, and run `buidler test`.
+
+## Contributing
+
+Contributions are always welcome! Feel free to open any issue or send a pull request.
+
+## License
+
+MIT
