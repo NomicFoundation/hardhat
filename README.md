@@ -34,7 +34,7 @@ By default, you can write your tests using [mocha](https://mochajs.org/) and [ch
 
 Buidler lets you test your project in any way you want. Replacing the test runner, using a different testing framework or running from an editor integration are all allowed, and super easy.
 
-You can write your tests as normal scripts by requiring buidler's environment as a any other library. Read section [**Using buidler in your own scripts**](#Using-buidler-in-your-own scripts) for more info.
+You can write your tests as normal scripts by requiring buidler's environment as a any other library. Read section [**Using buidler in your own scripts**](#Using-buidler-in-your-own-scripts) for more info.
 
 ## Deploying your contracts
 
