@@ -1,4 +1,4 @@
-# Buidler 👷‍♀️👷‍♂️
+# Buidler 👷‍♀️
 
 Buidler is a new smart contracts development tool that aims to be lean and flexible. It provides a ready to use dev environment which is easy to extend and interoperable with the whole javascript ecosystem.
 
@@ -50,7 +50,7 @@ If you prefer a non-interactive deployment process, you can [write your own depl
 
 ### Networks settings
 
-Networks configuration is fully compatible with Truffle's. Take a look [here](http://truffleframework.com/docs/advanced/configuration#networks) to learn how to configure it, or just copy over your existing config.
+Networks configuration is fully compatible with Truffle's, with one small but useful difference: buidler will estimate deployment gas cost for you. There's no need for you to specify it. Take a look [here](http://truffleframework.com/docs/advanced/configuration#networks) to learn how to configure it, or just copy over your existing config.
 
 ### Solc version
 
