@@ -22,7 +22,7 @@ Buidler is a new smart contracts development tool that aims to be lean and flexi
 
 Just run `buidler` in your project root and follow the instructions.
 
-![buidler's project creation](http://g.recordit.co/BMYYrfXuCe.gif)
+![buidler's project creation](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/project-creation.gif)
 
 A sample project will be created with examples on how to write contracts, tests and any scripts your project may need.
 
@@ -40,7 +40,7 @@ You can write your tests as normal scripts by requiring buidler's environment as
 
 `buidler deploy` will guide you through an interactive process to deploy your contracts in an easy way.
 
-![buidler's interactive deployment](http://g.recordit.co/iLOhUXUnVi.gif)
+![buidler's interactive deployment](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/interactive-deployment.gif)
 
 If you prefer a non-interactive deployment process, you can [write your own deployment script](#Using-buidler-in-your-own scripts).
 
@@ -94,6 +94,8 @@ Whether you are writing tests, a script, or creating a new task, buidler will al
 
 You can create your own tasks using a simple DSL. You just need to define them in your `buidler-config.js` file, and they will be automatically available through buidler's CLI. Arguments parsing and help messages will be taken care of for you.
 
+![buidler's help message with a custom task](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/help.png)
+
 We will write more documentation about how to define tasks soon, but until then you can use the tasks in `src/builtin-tasks/` as a reference.
 
 ### Overriding built-in tasks
@@ -116,7 +118,7 @@ To use buidler you need to have [node 8.x installed](https://nodejs.org/en/downl
 
 The **recommended way** of using buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts.
 
-To use it in this way you will need to add `npx` before `buidler` to run it. 
+To use it in this way you will need to add `npx` before `buidler` to run it.
 
 To install locally initialize your `npm` project using `npm init` and follow
 the instructions. Once ready run:
