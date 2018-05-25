@@ -1,10 +1,21 @@
 {
   "name": "buidler",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Patricio Palladino",
   "license": "MIT",
-  "homepage": "https://github.com/alcuadrado/buidler",
-  "main": "src/lib/builder-lib.js",
+  "homepage": "https://github.com/nomiclabs/buidler",
+  "repository": "github:nomiclabs/buidler",
+  "main": "src/lib/buidler-lib.js",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "blockchain",
+    "dapps",
+    "javascript",
+    "tooling",
+    "task-runner",
+    "solidity"
+  ],
   "bin": {
     "buidler": "./src/cli/cli.js",
     "builder": "./src/cli/cli-with-a-typo.js"
