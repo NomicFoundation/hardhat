@@ -307,6 +307,7 @@ class InteractiveDeployer {
   }
 
   async _getLibrary(contractName, libraryName) {
+    console.log("");
     this._printTitle(`${contractName} uses library ${libraryName}`);
 
     const address = await this._getAddress(
@@ -315,6 +316,8 @@ class InteractiveDeployer {
       false,
       libraryName
     );
+
+    console.log("");
 
     const Library = artifacts.require(libraryName);
 
