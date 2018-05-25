@@ -6,17 +6,17 @@ Buidler is a new smart contracts development tool that aims to be lean and flexi
 
 ## Table of contents
 
-1. [**Creating your project**](#Creating-your-project)
-1. [**Testing your contracts**](#Testing-your-contracts)
-1. [**Deploying your contracts**](#Deploying-your-contracts)
-1. [**Configuration**](#Configuration)
-1. [**Using buidler in your own scripts**](#Using-buidler-in-your-own-scripts)
-2. [**The buidler environment**](#The-buidler-environment)
-1. [**Creating your own tasks**](#Creating-you-own-tasks)
-1. [**Migrating from Truffle**](#Migrating-from-Truffle)
-1. [**Installation**](#Installation)
-1. [**Contributing**](#Contributing)
-1. [**License**](#License)
+1. [**Creating your project**](#creating-your-project)
+1. [**Testing your contracts**](#testing-your-contracts)
+1. [**Deploying your contracts**](#deploying-your-contracts)
+1. [**Configuration**](#configuration)
+1. [**Using buidler in your own scripts**](#using-buidler-in-your-own-scripts)
+1. [**The buidler environment**](#the-buidler-environment)
+1. [**Creating your own tasks**](#creating-your-own-tasks)
+1. [**Migrating from Truffle**](#migrating-from-truffle)
+1. [**Installation**](#installation)
+1. [**Contributing**](#contributing)
+1. [**License**](#license)
 
 ## Creating your project
 
@@ -30,11 +30,11 @@ All you need to know is that your contracts go in `<project-root>/contracts`.
 
 ## Testing your contracts
 
-By default, you can write your tests using [mocha](https://mochajs.org/) and [chai](http://www.chaijs.com). Just put them in `<project-root>/test` and run them with `buidler test`. [The buidler environment](#The-buidler-environment) and `chai`'s `assert` will be available in the global scope.
+By default, you can write your tests using [mocha](https://mochajs.org/) and [chai](http://www.chaijs.com). Just put them in `<project-root>/test` and run them with `buidler test`. [The buidler environment](#the-buidler-environment) and `chai`'s `assert` will be available in the global scope.
 
 Buidler lets you test your project in any way you want. Replacing the test runner, using a different testing framework or running from an editor integration are all allowed, and super easy.
 
-You can write your tests as normal scripts by requiring buidler's environment as a any other library. Read section [**Using buidler in your own scripts**](#Using-buidler-in-your-own-scripts) for more info.
+You can write your tests as normal scripts by requiring buidler's environment as a any other library. Read section [**Using buidler in your own scripts**](#using-buidler-in-your-own-scripts) for more info.
 
 ## Deploying your contracts
 
@@ -42,7 +42,7 @@ You can write your tests as normal scripts by requiring buidler's environment as
 
 ![buidler's interactive deployment](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/interactive-deployment.gif)
 
-If you prefer a non-interactive deployment process, you can [write your own deployment script](#Using-buidler-in-your-own scripts).
+If you prefer a non-interactive deployment process, you can [write your own deployment script](#using-buidler-in-your-own scripts).
 
 ## Configuration
 
@@ -72,9 +72,9 @@ Buidler's config file will **always** run before any task, so you can use it to 
 
 You can leverage buidler's infrastructure and configuration in your own scripts.
 
-By running them with `buidler run <path>` [the buidler environment](#The-buidler-environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
+By running them with `buidler run <path>` [the buidler environment](#the-buidler-environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
 
-You can also run them without using `buidler`, you just need to import [the buidler environment](#The-buidler-environment) with `require("buidler")`. If you run them this way, you have to use environment variables to pass arguments to buidler (e.g. NETWORK=develop).
+You can also run them without using `buidler`, you just need to import [the buidler environment](#the-buidler-environment) with `require("buidler")`. If you run them this way, you have to use environment variables to pass arguments to buidler (e.g. NETWORK=develop).
 
 ## The buidler environment
 
