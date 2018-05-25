@@ -42,7 +42,7 @@ You can write your tests as normal scripts by requiring buidler's environment as
 
 ![buidler's interactive deployment](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/interactive-deployment.gif)
 
-If you prefer a non-interactive deployment process, you can [write your own deployment script](#using-buidler-in-your-own scripts).
+If you prefer a non-interactive deployment process, you can [write your own deployment script](#using-buidler-in-your-own-scripts).
 
 ## Configuration
 
