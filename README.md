@@ -30,11 +30,11 @@ All you need to know is that your contracts go in `<project-root>/contracts`.
 
 ## Testing your contracts
 
-By default, you can write your tests using [mocha](https://mochajs.org/) and [chai](http://www.chaijs.com). Just put them in `<project-root>/test` and run them with `buidler test`. [The buidler environment](#the-buidler-environment) and `chai`'s `assert` will be available in the global scope.
-
 Buidler lets you test your project in any way you want. Replacing the test runner, using a different testing framework or running from an editor integration are all allowed, and super easy.
 
-You can write your tests as normal scripts by requiring buidler's environment as a any other library. Read section [**Using buidler in your own scripts**](#using-buidler-in-your-own-scripts) for more info.
+By default, you can write your tests using [mocha](https://mochajs.org/) and [chai](http://www.chaijs.com). Just put them in `<project-root>/test` and run them with `buidler test`. [The buidler environment](#the-buidler-environment) and `chai`'s `assert` will be available in the global scope.
+
+You can write your tests as normal scripts by requiring buidler's environment as any other library. Read section [**Using buidler in your own scripts**](#using-buidler-in-your-own-scripts) for more info.
 
 ## Deploying your contracts
 
