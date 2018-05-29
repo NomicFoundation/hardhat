@@ -3,6 +3,7 @@
 const importLazy = require("import-lazy")(require);
 const fs = importLazy("fs-extra");
 const path = require("path");
+const resolveFrom = importLazy("resolve-from");
 
 const { BuidlerError, ERRORS } = require("../core/errors");
 
@@ -78,7 +79,7 @@ class Resolver {
 
     let packagePath;
     try {
-      packagePath = require.resolve(path.join(libraryName, "package.json"));
+      packagePath = resolveFrom(this.config.paths.root, path.join(libraryName, "package.json"));
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER_LIBRARY_NOT_INSTALLED,
@@ -89,7 +90,7 @@ class Resolver {
 
     let absolutePath;
     try {
-      absolutePath = require.resolve(globalName);
+      absolutePath = resolveFrom(this.config.paths.root, globalName);
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND,
