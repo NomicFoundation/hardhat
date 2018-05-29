@@ -28,7 +28,6 @@ class BuidlerError extends Error {
     this.number = errorDescription.number;
 
     if (hasParentError) {
-      console.log(hasParentError);
       this.parent = parentError;
     }
   }
