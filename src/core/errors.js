@@ -58,7 +58,7 @@ const ERRORS = {
   },
   ENV_VARIABLE_ARG_INVALID_VALUE: {
     number: 6,
-    message: "Invalid environment variable %s's value: %"
+    message: "Invalid environment variable %s's value: %s"
   },
   PWEB3_NOT_SUPPORTED: {
     number: 7,
@@ -71,12 +71,12 @@ const ERRORS = {
   },
   ARG_TYPE_INVALID_VALUE: {
     number: 9,
-    message: 'Invalid value "%s" for argument "%s" of type %'
+    message: 'Invalid value "%s" for argument "%s" of type %s'
   },
   TASKS_DEFINITION_PARAM_AFTER_VARIADIC: {
     number: 10,
     message:
-      'Could not set positional param "%" for task "%s" because there is already a variadic positional param and it has to be the last positional one.'
+      'Could not set positional param "%s" for task "%s" because there is already a variadic positional param and it has to be the last positional one.'
   },
   TASKS_DEFINITION_PARAM_ALREADY_DEFINED: {
     number: 11,
@@ -130,7 +130,7 @@ const ERRORS = {
   },
   RESOLVER_LIBRARY_NOT_INSTALLED: {
     number: 22,
-    message: 'Library "%" is not installed.'
+    message: 'Library "%s" is not installed.'
   },
   RESOLVER_LIBRARY_FILE_NOT_FOUND: {
     number: 23,
