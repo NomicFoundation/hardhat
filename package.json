@@ -21,7 +21,7 @@
     "builder": "./src/cli/cli-with-a-typo.js"
   },
   "scripts": {
-    "prettier": "prettier --write *.js src/**/*.js test/**/*.js",
+    "prettier": "prettier --write src/**/*.js test/**/*.js",
     "test": "mocha 'test/**/*.js'"
   },
   "devDependencies": {

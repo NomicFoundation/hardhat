@@ -9,6 +9,11 @@ describe("lazy module", () => {
       assert.isFalse(called);
     });
 
+    it("should throw if the objectConstructor doesn't return an object", () => {
+      const num = lazyObject(() => 123);
+      assert.throws(() => num.asd)
+    });
+
     it("should call the initializer just once", () => {
       let numberOfCalls = 0;
 
@@ -57,28 +62,139 @@ describe("lazy module", () => {
       assert.deepEqual(obj, expected);
     });
 
-    it("should be possible to create the lazy object if it's a class", () => {
-      const obj = (() =>
-        lazyObject(
-          () =>
-            class {
-              constructor() {
-                this.initialized = true;
-              }
-            }
-        ))();
+    it("doesn't support classes", () => {
+      const obj = lazyObject(() => class {});
 
-      const o = new obj();
-      assert.isTrue(o.initialized);
+      assert.throws(
+        () => (obj.asd = 123),
+        "lazyObject doesn't support functions nor classes"
+      );
+      assert.throws(
+        () => obj.asd,
+        "lazyObject doesn't support functions nor classes"
+      );
+      assert.throws(() => new obj(), "obj is not a constructor");
+      assert.throws(() => new obj(), "obj is not a constructor");
     });
 
-    it("should be possible to call the lazy object if it's a function", () => {
-      let called = false;
+    it("doesn't support functions", () => {
+      const obj = lazyObject(() => () => {});
 
-      const obj = lazyObject(() => () => (called = true));
-      obj();
+      assert.throws(
+        () => (obj.asd = 123),
+        "lazyObject doesn't support functions nor classes"
+      );
+      assert.throws(
+        () => obj.asd,
+        "lazyObject doesn't support functions nor classes"
+      );
+      assert.throws(() => obj(), "obj is not a function");
+      assert.throws(() => obj(), "obj is not a function");
+    });
 
-      assert.isTrue(called);
+    it("should trap defineProperty correctly", () => {
+      const obj = lazyObject(() => ({}));
+      obj.asd = 123;
+
+      assert.equal(obj.asd, 123);
+    });
+
+    it("should trap deleteProperty correctly", () => {
+      const obj = lazyObject(() => ({ a: 1 }));
+      delete obj.a;
+
+      assert.isUndefined(obj.a);
+    });
+
+    it("should trap get correctly", () => {
+      const obj = lazyObject(() => ({ a: 1 }));
+      assert.equal(obj.a, 1);
+    });
+
+    it("should trap getOwnPropertyDescriptor correctly", () => {
+      const obj = lazyObject(() => ({ a: 1 }));
+
+      assert.deepEqual(Object.getOwnPropertyDescriptor(obj, "a"), {
+        value: 1,
+        writable: true,
+        enumerable: true,
+        configurable: true
+      });
+    });
+
+    it("should trap getPrototypeOf correctly", () => {
+      const proto = {};
+      const obj = lazyObject(() => Object.create(proto));
+
+      assert.equal(Object.getPrototypeOf(obj), proto);
+    });
+
+    it("should trap has correctly", () => {
+      const proto = { a: 1 };
+      const obj = lazyObject(() => {
+        const v = Object.create(proto);
+        v.b = 1;
+
+        return v;
+      });
+
+      assert.isTrue("a" in obj);
+      assert.isTrue("b" in obj);
+      assert.isFalse("c" in obj);
+    });
+
+    it("should trap isExtensible correctly", () => {
+      const obj = lazyObject(() => {
+        const v = {};
+        Object.preventExtensions(v);
+
+        return v;
+      });
+
+      assert.isFalse(Object.isExtensible(obj));
+
+      const obj2 = lazyObject(() => ({}));
+      assert.isTrue(Object.isExtensible(obj2));
+    });
+
+    it("should trap ownKeys correctly", () => {
+      const proto = { a: 1 };
+      const obj = lazyObject(() => {
+        const v = Object.create(proto);
+        v.b = 1;
+
+        return v;
+      });
+
+      obj.c = 123;
+
+      assert.deepEqual(Object.getOwnPropertyNames(obj), ["b", "c"]);
+    });
+
+    it("should trap preventExtensions correctly", () => {
+      const obj = lazyObject(() => ({}));
+      Object.preventExtensions(obj);
+
+      assert.isFalse(Object.isExtensible(obj));
+    });
+
+    it("should trap set correctly", () => {
+      const obj = lazyObject(() => ({}));
+      obj.asd = 123;
+
+      assert.deepEqual(Object.getOwnPropertyNames(obj), ["asd"]);
+      assert.equal(obj.asd, 123);
+    });
+
+    it("should trap setPrototypeOf correctly", () => {
+      const obj = lazyObject(() => Object.create(null));
+      assert.isNull(Object.getPrototypeOf(obj));
+      assert.isUndefined(obj.a);
+
+      const newProto = { a: 123 };
+      Object.setPrototypeOf(obj, newProto);
+      assert.equal(Object.getPrototypeOf(obj), newProto);
+      assert.equal(obj.a, 123);
     });
   });
 });

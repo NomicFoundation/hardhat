@@ -2,95 +2,98 @@
 
 function lazyObject(objectCreator) {
   let realTarget = undefined;
+  const dummyTarget = {};
 
   function lazyInit() {
     if (realTarget === undefined) {
-      realTarget = objectCreator();
+      const object = objectCreator();
+
+      if (object instanceof Function) {
+        throw new Error("lazyObject doesn't support functions nor classes");
+      }
+
+      if (typeof object !== "object" || object === null) {
+        throw new Error(
+          "objectCreator function given to lazyObject must return an object"
+        );
+      }
+
+      if (!Object.isExtensible(object)) {
+        Object.preventExtensions(dummyTarget);
+      }
+
+      realTarget = object;
     }
   }
 
-  return new Proxy(
-    {},
-    {
-      apply(target, thisArgument, argumentsList) {
-        lazyInit();
+  return new Proxy(dummyTarget, {
+    defineProperty(target, property, descriptor) {
+      lazyInit();
 
-        return Reflect.apply(realTarget, thisArgument, argumentsList);
-      },
+      return Reflect.defineProperty(realTarget, property, descriptor);
+    },
 
-      construct(target, argumentsList, newTarget) {
-        lazyInit();
+    deleteProperty(target, property) {
+      lazyInit();
 
-        return Reflect.construct(realTarget, argumentsList, newTarget);
-      },
+      return Reflect.deleteProperty(realTarget, property);
+    },
 
-      defineProperty(target, property, descriptor) {
-        lazyInit();
+    get(target, property, receiver) {
+      lazyInit();
 
-        return Reflect.defineProperty(realTarget, property, descriptor);
-      },
+      return Reflect.get(realTarget, property, receiver);
+    },
 
-      deleteProperty(target, property) {
-        lazyInit();
+    getOwnPropertyDescriptor(target, property) {
+      lazyInit();
 
-        return Reflect.deleteProperty(realTarget, property);
-      },
+      return Reflect.getOwnPropertyDescriptor(realTarget, property);
+    },
 
-      get(target, property, receiver) {
-        lazyInit();
+    getPrototypeOf(target) {
+      lazyInit();
 
-        return Reflect.get(realTarget, property, receiver);
-      },
+      return Reflect.getPrototypeOf(realTarget);
+    },
 
-      getOwnPropertyDescriptor(target, property) {
-        lazyInit();
+    has(target, property) {
+      lazyInit();
 
-        return Reflect.getOwnPropertyDescriptor(realTarget, property);
-      },
+      return Reflect.has(realTarget, property);
+    },
 
-      getPrototypeOf(target) {
-        lazyInit();
+    isExtensible(target) {
+      lazyInit();
 
-        return Reflect.getPrototypeOf(realTarget);
-      },
+      return Reflect.isExtensible(realTarget);
+    },
 
-      has(target, property) {
-        lazyInit();
+    ownKeys(target) {
+      lazyInit();
 
-        return Reflect.has(realTarget, property);
-      },
+      return Reflect.ownKeys(realTarget);
+    },
 
-      isExtensible(target) {
-        lazyInit();
+    preventExtensions(target) {
+      lazyInit();
 
-        return Reflect.isExtensible(realTarget);
-      },
+      Object.preventExtensions(dummyTarget);
+      return Reflect.preventExtensions(realTarget);
+    },
 
-      ownKeys(target) {
-        lazyInit();
+    set(target, property, value, receiver) {
+      lazyInit();
 
-        return Reflect.ownKeys(realTarget);
-      },
+      return Reflect.set(realTarget, property, value, receiver);
+    },
 
-      preventExtensions(target) {
-        lazyInit();
+    setPrototypeOf(target, prototype) {
+      lazyInit();
 
-        return Reflect.preventExtensions(realTarget);
-      },
-
-      set(target, property, value, receiver) {
-        lazyInit();
-
-        return Reflect.set(realTarget, property, value, receiver);
-      },
-
-      setPrototypeOf(target, prototype) {
-        lazyInit();
-
-        return Reflect.setPrototypeOf(realTarget, prototype);
-      }
+      return Reflect.setPrototypeOf(realTarget, prototype);
     }
-  );
+  });
 }
 
 module.exports = { lazyObject };
