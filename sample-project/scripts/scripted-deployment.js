@@ -14,7 +14,7 @@
 // using `buidler run`.
 
 // These few lines can be omitted if you prefer to use `buidler run <path>`.
-const env = require("../../src/lib/buidler-lib");
+const env = require("buidler");
 // The following one isn't necessary, it copies env's properties into global.
 env.injectToGlobal();
 
