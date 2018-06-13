@@ -86,6 +86,23 @@ async function addGitIgnore(projectRoot) {
   await fs.writeFile(gitIgnorePath, content);
 }
 
+async function addGitAttributes(projectRoot) {
+  const gitAttributesPath = path.join(projectRoot, ".gitattributes");
+  let content = "*.sol linguist-language=Solidity";
+
+  if (await fs.pathExists(gitAttributesPath)) {
+    const existingContent = await fs.readFile(gitAttributesPath, "utf-8");
+
+    if (existingContent.includes(content)) {
+      return;
+    }
+
+    content = existingContent + "\n" + content;
+  }
+
+  await fs.writeFile(gitAttributesPath, content);
+}
+
 function printSuggestedCommands() {
   console.log(`Try running running the following tasks:`);
   console.log(`  buidler compile`);
@@ -106,7 +123,11 @@ async function createProject() {
     return;
   }
 
-  const { projectRoot, shouldAddGitIgnore } = await inquirer.prompt([
+  const {
+    projectRoot,
+    shouldAddGitIgnore,
+    shouldAddGitAttributes
+  } = await inquirer.prompt([
     {
       name: "projectRoot",
       default: process.cwd(),
@@ -116,6 +137,12 @@ async function createProject() {
       name: "shouldAddGitIgnore",
       type: "confirm",
       message: "Do you want to add a .gitignore?"
+    },
+    {
+      name: "shouldAddGitAttributes",
+      type: "confirm",
+      message:
+        "Do you want to add a .gitattributes to enable Soldity highlighting on GitHub?"
     }
   ]);
 
@@ -123,6 +150,10 @@ async function createProject() {
 
   if (shouldAddGitIgnore) {
     await addGitIgnore(projectRoot);
+  }
+
+  if (shouldAddGitAttributes) {
+    await addGitAttributes(projectRoot);
   }
 
   console.log(chalk.cyan(`\n${emoji("✨ ")}Project created${emoji(" ✨")}`));
