@@ -3,8 +3,8 @@
 const importLazy = require("import-lazy")(require);
 const parser = importLazy("solidity-parser-antlr");
 
-function getImports(resolvedFile) {
-  const ast = parser.parse(resolvedFile.content, { tolerant: true });
+function getImports(fileContent) {
+  const ast = parser.parse(fileContent, { tolerant: true });
 
   const importedFiles = [];
 
