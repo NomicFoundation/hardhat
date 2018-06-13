@@ -79,8 +79,8 @@ async function addGitIgnore(projectRoot) {
   let content = await getRecommendedGitIgnore();
 
   if (await fs.pathExists(gitIgnorePath)) {
-    const existingContent = fs.readFile(gitIgnorePath, "utf-8");
-    content = (await existingContent) + "\n" + content;
+    const existingContent = await fs.readFile(gitIgnorePath, "utf-8");
+    content = existingContent + "\n" + content;
   }
 
   await fs.writeFile(gitIgnorePath, content);
