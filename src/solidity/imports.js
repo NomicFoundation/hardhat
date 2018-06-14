@@ -1,9 +1,7 @@
 "use strict";
 
-const importLazy = require("import-lazy")(require);
-const parser = importLazy("solidity-parser-antlr");
-
 function getImports(fileContent) {
+  const parser = require("solidity-parser-antlr");
   const ast = parser.parse(fileContent, { tolerant: true });
 
   const importedFiles = [];
