@@ -48,7 +48,7 @@
     "repl.history": "^0.1.4",
     "resolve-from": "^4.0.0",
     "solc": "^0.4.21",
-    "solidity-parser-antlr": "^0.2.11",
+    "solidity-parser-antlr": "^0.2.12",
     "truffle-contract": "^3.0.5",
     "tsort": "0.0.1",
     "web3": "^0.20.6"
