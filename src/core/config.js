@@ -38,7 +38,7 @@ function getNetworkConfig(config, selectedNetwork) {
     config.networks === undefined ||
     config.networks[selectedNetwork] === undefined
   ) {
-    throw new BuidlerError(ERRORS.NETWORK_CONFIG_NOT_FOUND);
+    throw new BuidlerError(ERRORS.NETWORK_CONFIG_NOT_FOUND, selectedNetwork);
   }
 
   return config.networks[selectedNetwork];
