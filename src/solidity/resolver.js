@@ -79,7 +79,10 @@ class Resolver {
 
     let packagePath;
     try {
-      packagePath = resolveFrom(this.config.paths.root, path.join(libraryName, "package.json"));
+      packagePath = resolveFrom(
+        this.config.paths.root,
+        path.join(libraryName, "package.json")
+      );
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER_LIBRARY_NOT_INSTALLED,

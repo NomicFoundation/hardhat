@@ -11,7 +11,7 @@ describe("lazy module", () => {
 
     it("should throw if the objectConstructor doesn't return an object", () => {
       const num = lazyObject(() => 123);
-      assert.throws(() => num.asd)
+      assert.throws(() => num.asd);
     });
 
     it("should call the initializer just once", () => {
