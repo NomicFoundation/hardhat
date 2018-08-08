@@ -25,7 +25,7 @@
     "test": "mocha 'test/**/*.js'"
   },
   "devDependencies": {
-    "ganache-cli": "^6.1.0",
+    "ganache-cli": "^6.1.6",
     "prettier": "^1.10.2",
     "time-require": "^0.1.2",
     "zeppelin-solidity": "^1.6.0"
@@ -39,7 +39,7 @@
     "ethereumjs-util": "^5.2.0",
     "find-up": "^2.1.0",
     "fs-extra": "^6.0.1",
-    "ganache-core": "^2.1.0",
+    "ganache-core": "^2.1.6",
     "glob": "^7.1.2",
     "import-lazy": "^3.1.0",
     "inquirer": "^6.0.0",
