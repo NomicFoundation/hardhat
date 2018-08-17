@@ -4,7 +4,7 @@ contract Greeter {
 
     string greeting;
 
-    function Greeter(string _greeting) public {
+    constructor(string _greeting) public {
         greeting = _greeting;
     }
 
