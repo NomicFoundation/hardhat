@@ -52,5 +52,11 @@
     "truffle-contract": "^3.0.5",
     "tsort": "0.0.1",
     "web3": "^0.20.6"
+  },
+  "optionalDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/register": "^7.0.0"
   }
 }
