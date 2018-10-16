@@ -37,9 +37,21 @@ async function getRecommendedGitIgnore() {
   return fs.readFile(gitIgnorePath, "utf-8");
 }
 
+async function getRecommendedBabelRc() {
+  const babelRcPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "recommended-babelrc.txt"
+  );
+
+  return fs.readFile(babelRcPath, "utf-8");
+}
+
 module.exports = {
   isCwdInsideProject,
   getUserConfigPath,
   getProjectRoot,
-  getRecommendedGitIgnore
+  getRecommendedGitIgnore,
+  getRecommendedBabelRc,
 };

@@ -4,7 +4,10 @@ const path = require("path");
 const chalk = importLazy("chalk");
 const inquirer = importLazy("inquirer");
 
-const { getRecommendedGitIgnore } = require("../core/project-structure");
+const {
+  getRecommendedGitIgnore,
+  getRecommendedBabelRc,
+} = require("../core/project-structure");
 const { emoji } = require("./emoji");
 
 async function removeProjectDirIfPresent(projectRoot, dirName) {
@@ -73,6 +76,14 @@ async function copySampleProject(projectRoot) {
   await fs.remove(path.join(projectRoot, "LICENSE.md"));
 }
 
+async function addBabelRc(projectRoot) {
+  const babelRcPath = path.join(projectRoot, ".babelrc");
+
+  let content = await getRecommendedBabelRc();
+
+  await fs.writeFile(babelRcPath, content);
+}
+
 async function addGitIgnore(projectRoot) {
   const gitIgnorePath = path.join(projectRoot, ".gitignore");
 
@@ -126,7 +137,8 @@ async function createProject() {
   const {
     projectRoot,
     shouldAddGitIgnore,
-    shouldAddGitAttributes
+    shouldAddGitAttributes,
+    shouldEnableES7,
   } = await inquirer.prompt([
     {
       name: "projectRoot",
@@ -143,7 +155,12 @@ async function createProject() {
       type: "confirm",
       message:
         "Do you want to add a .gitattributes to enable Soldity highlighting on GitHub?"
-    }
+    },
+    {
+      name: "shouldEnableES7",
+      type: "confirm",
+      message: "Do you want to enable ES7 in your tests?"
+    },
   ]);
 
   await copySampleProject(projectRoot);
@@ -154,6 +171,10 @@ async function createProject() {
 
   if (shouldAddGitAttributes) {
     await addGitAttributes(projectRoot);
+  }
+
+  if (shouldEnableES7) {
+    await addBabelRc(projectRoot);
   }
 
   console.log(chalk.cyan(`\n${emoji("✨ ")}Project created${emoji(" ✨")}`));

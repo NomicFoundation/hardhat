@@ -1,6 +1,9 @@
+const importLazy = require("import-lazy")(require);
+const fs = importLazy("fs-extra");
 const path = require("path");
 const util = require("util");
 const glob = util.promisify(require("glob"));
+const { getProjectRoot } = require("../core/project-structure");
 
 internalTask("builtin:get-test-files")
   .addOptionalVariadicPositionalParam(
@@ -36,6 +39,13 @@ internalTask("builtin:run-mocha-tests")
   .setAction(async ({ testFiles }) => {
     const Mocha = require("mocha");
     const mocha = new Mocha(config.mocha);
+    if(await fs.pathExists(path.join(getProjectRoot(), ".babelrc"))) {
+      try {
+        require("@babel/register");
+      } catch (error) {
+        throw "Please install Babel or remove `.babelrc`\n `npm install -g @babel/runtime @babel/preset-env @babel/plugin-transform-runtime`";
+      }
+    }
     testFiles.forEach(file => mocha.addFile(file));
 
     mocha.run(failures => {
