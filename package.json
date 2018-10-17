@@ -23,7 +23,7 @@
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh",
+    "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
     "prettier": "prettier --write src/**/*.js test/**/*.js",
     "test": "mocha 'test/**/*.js'"
   },
