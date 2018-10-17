@@ -21,6 +21,9 @@
     "builder": "./src/cli/cli-with-a-typo.js"
   },
   "scripts": {
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
+    "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh",
     "prettier": "prettier --write src/**/*.js test/**/*.js",
     "test": "mocha 'test/**/*.js'"
   },
@@ -28,6 +31,7 @@
     "ganache-cli": "^6.1.6",
     "prettier": "^1.10.2",
     "time-require": "^0.1.2",
+    "vuepress": "^0.14.4",
     "zeppelin-solidity": "^1.6.0"
   },
   "dependencies": {
