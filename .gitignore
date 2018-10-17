@@ -68,3 +68,6 @@ typings/
 
 # next.js build output
 .next
+
+# vuepress
+docs/.vuepress/dist/
