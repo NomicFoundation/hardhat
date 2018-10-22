@@ -1,8 +1,8 @@
 # Buidler 👷‍♀️
 
-Buidler is a new smart contracts development tool that aims to be lean and flexible. It provides a ready to use dev environment which is easy to extend and interoperable with the whole javascript ecosystem.
+Buidler is a new smart contracts development tool that aims to be lean and flexible. It provides a ready to use dev environment which is easy to extend and interoperable with the whole javascript ecosystem. Read [our announcement](https://medium.com/nomic-labs-blog/towards-a-mature-ecosystem-of-ethereum-developer-tools-bdff10e6cdc3) to know more about our vision for Buidler.
 
-⚠️ **Buidler is alpha software. You can start using it today, but bear in mind that some APIs may change, and you may encounter bugs** ⚠️
+⚠️ **Buidler is alpha software. Sign up to [our newsletter](https://buidler.substack.com/welcome) and we will let you know when a stable release is out. You can start using it today, but bear in mind that some APIs may change, and you may encounter bugs** ⚠️
 
 ## Table of contents
 
@@ -16,6 +16,8 @@ Buidler is a new smart contracts development tool that aims to be lean and flexi
 1. [**Migrating from Truffle**](#migrating-from-truffle)
 1. [**Installation**](#installation)
 1. [**Contributing**](#contributing)
+1. [**Feedback and help**](#feedback-and-help)
+1. [**Newsletter**](#newsletter)
 1. [**License**](#license)
 
 ## Creating your project
@@ -134,6 +136,14 @@ If you are willing to risk hours of your time to debug inconsistent behavior acr
 ## Contributing
 
 Contributions are always welcome! Feel free to open any issue or send a pull request.
+
+## Feedback and help
+
+If you have any questions or feedback you would like to provide, you can find us in the [Buidler Discord server](https://discord.gg/TufWKfF).
+
+## Newsletter
+
+[Sign up to our newsletter](https://buidler.substack.com/welcome) to hear news about Buidler! We will let you know of new releases, documentation and tutorials.
 
 ## License
 
