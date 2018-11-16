@@ -16,9 +16,7 @@ const { ArgumentsParser } = require("./ArgumentsParser");
 const { getEnvBuidlerArguments } = require("../core/params/env-variables");
 
 async function printVersionMessage() {
-  console.log("B1");
   const packageJson = await getPackageJson();
-  console.log("B2");
   console.log(packageJson.version);
 }
 
