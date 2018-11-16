@@ -1,5 +1,5 @@
 import { getPackageJson } from "../util/packageInfo";
-import { task} from "../types";
+import { task } from "../types";
 
 const {
   BUIDLER_CLI_PARAM_DEFINITIONS

@@ -2,7 +2,6 @@ import { assert } from "chai";
 
 import { ResolvedFile } from "../../src/solidity/resolver";
 
-
 describe("Resolved file", () => {
   it("should be constructed correctly", () => {
     const globalName = "globalName.sol";
