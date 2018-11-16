@@ -78,7 +78,7 @@ export class Resolver {
   }
 
   async resolveLibrarySourceFile(globalName): Promise<ResolvedFile> {
-    const resolveFrom = await import("resolve-from");
+    const {default: resolveFrom} = await import("resolve-from");
     const fsExtra = await import("fs-extra");
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
 
