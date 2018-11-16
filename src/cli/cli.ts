@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-"use strict";
 import "source-map-support/register";
 import { getPackageJson } from "../util/packageInfo";
 

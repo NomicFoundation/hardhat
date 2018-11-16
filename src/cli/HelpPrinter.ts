@@ -1,5 +1,3 @@
-"use strict";
-
 import { ArgumentsParser } from "./ArgumentsParser";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { ITaskDefinition } from "../core/tasks/TaskDefinition";

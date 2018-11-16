@@ -1,5 +1,3 @@
-"use strict";
-
 import { getPackageRoot } from "../util/packageInfo";
 
 const importLazy = require("import-lazy")(require);

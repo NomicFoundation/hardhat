@@ -1,5 +1,3 @@
-"use strict";
-
 import types from "../types";
 import { BUIDLER_CLI_PARAM_DEFINITIONS } from "../params/buidler-params";
 import { BuidlerError, ERRORS } from "../errors";

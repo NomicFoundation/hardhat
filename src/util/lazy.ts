@@ -1,5 +1,3 @@
-"use strict";
-
 export function lazyObject<T extends object>(objectCreator: () => T): T {
   let realTarget = undefined;
   const dummyTarget = {};

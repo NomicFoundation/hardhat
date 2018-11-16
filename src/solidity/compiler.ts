@@ -1,5 +1,3 @@
-"use strict";
-
 import path from "path";
 
 const { BuidlerError, ERRORS } = require("../core/errors");

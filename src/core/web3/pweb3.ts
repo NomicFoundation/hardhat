@@ -1,5 +1,3 @@
-"use strict";
-
 import { BuidlerError, ERRORS } from "../errors";
 import { promisify } from "util";
 

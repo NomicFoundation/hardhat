@@ -1,5 +1,3 @@
-"use strict";
-
 import { getConfig } from "../core/config";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";

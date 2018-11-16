@@ -1,5 +1,3 @@
-"use strict";
-
 import path from "path";
 import util from "util";
 import globCPS from "glob";

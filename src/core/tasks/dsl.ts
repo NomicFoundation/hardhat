@@ -1,5 +1,3 @@
-"use strict";
-
 import { OverloadedTaskDefinition, TaskDefinition } from "./TaskDefinition";
 import { BuidlerError, ERRORS } from "../errors";
 

@@ -1,5 +1,3 @@
-"use strict";
-
 import { applyExtensions } from "./extensions";
 
 import { lazyObject } from "../../util/lazy";

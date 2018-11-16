@@ -1,5 +1,3 @@
-"use strict";
-
 import { BuidlerError, ERRORS } from "../errors";
 
 const importLazy = require("import-lazy")(require);

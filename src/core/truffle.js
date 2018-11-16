@@ -1,5 +1,3 @@
-"use strict";
-
 const importLazy = require("import-lazy")(require);
 
 const path = require("path");

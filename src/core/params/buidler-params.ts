@@ -1,5 +1,3 @@
-"use strict";
-
 import types from "../types";
 
 export const BUIDLER_PARAM_DEFINITIONS = {

@@ -1,5 +1,3 @@
-"use strict";
-
 const importLazy = require("import-lazy")(require);
 const Web3 = importLazy("web3");
 const deepmerge = require("deepmerge");

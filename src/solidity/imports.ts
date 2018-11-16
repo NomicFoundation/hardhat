@@ -1,5 +1,3 @@
-"use strict";
-
 export function getImports(fileContent: string): string[] {
   const parser = require("solidity-parser-antlr");
   const ast = parser.parse(fileContent, { tolerant: true });
