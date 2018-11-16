@@ -13,7 +13,7 @@ const DEPLOYED_LIBRARY_ADDRESS_MODE = "deployed_library";
 const DEPLOY_NEW_LIBRARY_ADDRESS_MODE = "new_library";
 const OTHER_ADDRESS_MODE = "input";
 
-class InteractiveDeployer {
+export class InteractiveDeployer {
   constructor(config, showStackTraces, fromAddress) {
     this._artifactsStorage = new TruffleArtifactsStorage(
       config.paths.artifacts
@@ -555,5 +555,3 @@ class InteractiveDeployer {
     }
   }
 }
-
-module.exports = { InteractiveDeployer };
