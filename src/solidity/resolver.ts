@@ -22,7 +22,7 @@ export class ResolvedFile {
     this.content = content;
     this.lastModificationDate = lastModificationDate;
 
-    if (libraryName) {
+    if (libraryName !== undefined && libraryVersion !== undefined) {
       this.library = {
         name: libraryName,
         version: libraryVersion

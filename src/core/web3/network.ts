@@ -62,11 +62,14 @@ function createGanacheProvider(ganacheOptions) {
 }
 
 export function createAutoNetwork(netConfig) {
-  let netConfigOptions = {
+  let netConfigOptions: {
+    gasLimit: number;
+    network_id: number;
+    mnemonic?: string;
+    accounts?: { balance: string; secretKey: string }[];
+  } = {
     gasLimit: netConfig.blockGasLimit,
-    network_id: 4447,
-    mnemonic: undefined,
-    accounts: undefined
+    network_id: 4447
   };
 
   if (netConfig.accounts === undefined || netConfig.accounts.length === 0) {

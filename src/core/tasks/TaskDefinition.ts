@@ -163,7 +163,7 @@ export class TaskDefinition implements ITaskDefinition {
     name,
     description,
     type = types.string,
-    defaultValue = undefined,
+    defaultValue?: any[],
     isOptional = defaultValue !== undefined
   ) {
     this._validateNameNotUsed(name);
