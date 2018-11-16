@@ -71,3 +71,6 @@ typings/
 
 # vuepress
 docs/.vuepress/dist/
+
+# TS compilation output
+dist/

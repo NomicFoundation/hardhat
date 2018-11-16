@@ -1,5 +1,3 @@
-"use strict";
-
 const importLazy = require("import-lazy")(require);
 
 const path = require("path");
@@ -9,7 +7,7 @@ const glob = util.promisify(require("glob"));
 const TruffleContract = importLazy("truffle-contract");
 const { BuidlerError, ERRORS } = require("./errors");
 
-class TruffleArtifactsStorage {
+export class TruffleArtifactsStorage {
   constructor(artifactsPath) {
     this._artifactsPath = artifactsPath;
   }
@@ -249,7 +247,7 @@ class LazyTruffleContractProvisioner {
   }
 }
 
-class TruffleEnvironmentArtifacts {
+export class TruffleEnvironmentArtifacts {
   constructor(config, web3, selectedNetworkConfig) {
     this._storage = new TruffleArtifactsStorage(config.paths.artifacts);
     this._provisioner = new LazyTruffleContractProvisioner(
@@ -345,8 +343,3 @@ class TruffleEnvironmentArtifacts {
     return Contract;
   }
 }
-
-module.exports = {
-  TruffleArtifactsStorage,
-  TruffleEnvironmentArtifacts
-};

@@ -5,7 +5,7 @@
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/buidler",
   "repository": "github:nomiclabs/buidler",
-  "main": "src/lib/buidler-lib.js",
+  "main": "dist/src/lib/buidler-lib.js",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -17,20 +17,28 @@
     "solidity"
   ],
   "bin": {
-    "buidler": "./src/cli/cli.js",
-    "builder": "./src/cli/cli-with-a-typo.js"
+    "buidler": "dist/src/cli/cli.js",
+    "builder": "dist/src/cli/cli-with-a-typo.js"
   },
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
-    "prettier": "prettier --write src/**/*.js test/**/*.js",
-    "test": "mocha 'test/**/*.js'"
+    "prettier": "prettier --write src/**/*.{js,ts} test/**/*.{js,ts}",
+    "test": "mocha -r ts-node/register 'test/**/*.{js,ts}'",
+    "build": "tsc",
+    "watch": "tsc -w"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/fs-extra": "^5.0.4",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.7",
     "ganache-cli": "^6.1.6",
     "prettier": "^1.10.2",
     "time-require": "^0.1.2",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.6",
     "vuepress": "^0.14.4",
     "zeppelin-solidity": "^1.6.0"
   },
@@ -53,6 +61,7 @@
     "resolve-from": "^4.0.0",
     "solc": "^0.4.21",
     "solidity-parser-antlr": "^0.2.12",
+    "source-map-support": "^0.5.9",
     "truffle-contract": "^3.0.5",
     "tsort": "0.0.1",
     "web3": "^0.20.6"
