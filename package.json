@@ -24,8 +24,10 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
-    "prettier": "prettier --write src/**/*.js test/**/*.js",
-    "test": "mocha -r ts-node/register 'test/**/*.{js,ts}'"
+    "prettier": "prettier --write src/**/*.{js,ts} test/**/*.{js,ts}",
+    "test": "mocha -r ts-node/register 'test/**/*.{js,ts}'",
+    "build": "tsc",
+    "watch": "tsc -w"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
