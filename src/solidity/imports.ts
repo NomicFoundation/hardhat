@@ -2,7 +2,7 @@ export function getImports(fileContent: string): string[] {
   const parser = require("solidity-parser-antlr");
   const ast = parser.parse(fileContent, { tolerant: true });
 
-  const importedFiles = [];
+  const importedFiles: string[] = [];
 
   parser.visit(ast, {
     ImportDirective: node => importedFiles.push(node.path)

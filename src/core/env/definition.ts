@@ -12,7 +12,7 @@ import { TruffleEnvironmentArtifacts } from "../truffle";
 
 import { promisifyWeb3 } from "../web3/pweb3";
 
-function injectToGlobal(env) {
+function injectAllPropertiesToGlobal(env) {
   const globalAsAny = global as any;
   globalAsAny.env = env;
   for (const [key, value] of Object.entries(env)) {
@@ -37,13 +37,13 @@ export function createEnvironment(config, buidlerArguments) {
     web3,
     pweb3,
     artifacts: new TruffleEnvironmentArtifacts(config, web3, netConfig),
-    run:undefined,
-    injectToGlobal: undefined
+    run(name, taskArguments, _buidlerArguments = buidlerArguments) {
+      return runTask(this, name, taskArguments, _buidlerArguments);
+    },
+    injectToGlobal() {
+      injectAllPropertiesToGlobal(this);
+    }
   };
-
-  env.run = (name, taskArguments, _buidlerArguments = buidlerArguments) =>
-    runTask(env, name, taskArguments, _buidlerArguments);
-  env.injectToGlobal = injectToGlobal.bind(undefined, env);
 
   applyExtensions(env, config);
 

@@ -22,7 +22,7 @@ export class ResolvedFile {
     this.content = content;
     this.lastModificationDate = lastModificationDate;
 
-    if (libraryName) {
+    if (libraryName !== undefined && libraryVersion !== undefined) {
       this.library = {
         name: libraryName,
         version: libraryVersion
@@ -78,7 +78,7 @@ export class Resolver {
   }
 
   async resolveLibrarySourceFile(globalName): Promise<ResolvedFile> {
-    const resolveFrom = await import("resolve-from");
+    const {default: resolveFrom} = await import("resolve-from");
     const fsExtra = await import("fs-extra");
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
 

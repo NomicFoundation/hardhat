@@ -111,7 +111,7 @@ export class Compiler {
       console.debug("Downloading compiler version " + this.version);
 
       try {
-        const download = await import("download");
+        const {default: download} = await import("download");
         await download(compilerUrl, this.compilersDir);
       } catch (error) {
         throw new BuidlerError(
@@ -148,7 +148,7 @@ export class Compiler {
 
   async downloadVersionsList() {
     const fsExtra = await import("fs-extra");
-    const download = await import("download");
+    const {default: download} = await import("download");
 
     try {
       await fsExtra.ensureDir(this.compilersDir);

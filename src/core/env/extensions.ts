@@ -1,6 +1,8 @@
-const extensions = [];
+type EnvExtensionFunction = (env: any, config: any) => void;
 
-export function extendEnvironment(extensionFunction) {
+const extensions: EnvExtensionFunction[] = [];
+
+export function extendEnvironment(extensionFunction: EnvExtensionFunction) {
   extensions.push(extensionFunction);
 }
 

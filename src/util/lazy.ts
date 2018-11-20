@@ -1,8 +1,8 @@
 export function lazyObject<T extends object>(objectCreator: () => T): T {
-  let realTarget = undefined;
+  let realTarget: T | undefined = undefined;
   const dummyTarget = {};
 
-  function lazyInit() {
+  function getRealTarget(): T {
     if (realTarget === undefined) {
       const object = objectCreator();
 
@@ -22,74 +22,54 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
 
       realTarget = object;
     }
+
+    return realTarget;
   }
 
   return new Proxy(dummyTarget as T, {
     defineProperty(target, property, descriptor) {
-      lazyInit();
-
-      return Reflect.defineProperty(realTarget, property, descriptor);
+      return Reflect.defineProperty(getRealTarget(), property, descriptor);
     },
 
     deleteProperty(target, property) {
-      lazyInit();
-
-      return Reflect.deleteProperty(realTarget, property);
+      return Reflect.deleteProperty(getRealTarget(), property);
     },
 
     get(target, property, receiver) {
-      lazyInit();
-
-      return Reflect.get(realTarget, property, receiver);
+      return Reflect.get(getRealTarget(), property, receiver);
     },
 
     getOwnPropertyDescriptor(target, property) {
-      lazyInit();
-
-      return Reflect.getOwnPropertyDescriptor(realTarget, property);
+      return Reflect.getOwnPropertyDescriptor(getRealTarget(), property);
     },
 
     getPrototypeOf(target) {
-      lazyInit();
-
-      return Reflect.getPrototypeOf(realTarget);
+      return Reflect.getPrototypeOf(getRealTarget());
     },
 
     has(target, property) {
-      lazyInit();
-
-      return Reflect.has(realTarget, property);
+      return Reflect.has(getRealTarget(), property);
     },
 
     isExtensible(target) {
-      lazyInit();
-
-      return Reflect.isExtensible(realTarget);
+      return Reflect.isExtensible(getRealTarget());
     },
 
     ownKeys(target) {
-      lazyInit();
-
-      return Reflect.ownKeys(realTarget);
+      return Reflect.ownKeys(getRealTarget());
     },
 
     preventExtensions(target) {
-      lazyInit();
-
       Object.preventExtensions(dummyTarget);
-      return Reflect.preventExtensions(realTarget);
+      return Reflect.preventExtensions(getRealTarget());
     },
 
     set(target, property, value, receiver) {
-      lazyInit();
-
-      return Reflect.set(realTarget, property, value, receiver);
+      return Reflect.set(getRealTarget(), property, value, receiver);
     },
 
     setPrototypeOf(target, prototype) {
-      lazyInit();
-
-      return Reflect.setPrototypeOf(realTarget, prototype);
+      return Reflect.setPrototypeOf(getRealTarget(), prototype);
     }
   });
 }

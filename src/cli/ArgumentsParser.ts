@@ -3,7 +3,7 @@ import { BuidlerError, ERRORS } from "../core/errors";
 export class ArgumentsParser {
   static readonly PARAM_PREFIX = "--";
 
-  static paramNameToCLA(paramName) {
+  static paramNameToCLA(paramName: string): string {
     return (
       ArgumentsParser.PARAM_PREFIX +
       paramName
@@ -13,7 +13,7 @@ export class ArgumentsParser {
     );
   }
 
-  static cLAToParamName(cLa) {
+  static cLAToParamName(cLa: string): string {
     const parts = cLa.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
 
     return (
@@ -27,12 +27,12 @@ export class ArgumentsParser {
 
   parseBuidlerArgumetns(
     buidlerParamDefinitions,
-    envVariableArguments,
-    rawCLAs
+    envVariableArguments: { [varName: string]: string },
+    rawCLAs: string[]
   ) {
     const buidlerArguments = {};
-    let taskName = undefined;
-    const unparsedCLAs = [];
+    let taskName: string | undefined = undefined;
+    const unparsedCLAs: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
       const arg = rawCLAs[i];
@@ -94,9 +94,9 @@ export class ArgumentsParser {
     return { ...paramArguments, ...positionalArguments };
   }
 
-  _parseTaskParamArguments(taskDefintion, rawCLAs) {
+  _parseTaskParamArguments(taskDefintion, rawCLAs: string[]) {
     const paramArguments = {};
-    const rawPositionalArguments = [];
+    const rawPositionalArguments: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
       const arg = rawCLAs[i];
