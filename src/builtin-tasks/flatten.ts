@@ -1,13 +1,17 @@
 import { getPackageJson } from "../util/packageInfo";
 import { BuidlerError, ERRORS } from "../core/errors";
-import { internalTask } from "../core/tasks/dsl";
-import { task, run, config } from "../types";
 
-function getSortedFiles(dependenciesGraph) {
+import { DependencyGraph } from "../solidity/dependencyGraph";
+import { ResolvedFile } from "../solidity/resolver";
+import { ResolvedFilesMap } from "../types";
+import { config, run } from "../injected-env";
+import { task, internalTask } from "../config-dsl";
+
+function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
   const graph = tsort();
 
-  const filesMap = {};
+  const filesMap: ResolvedFilesMap = {};
   const resolvedFiles = dependenciesGraph.getResolvedFiles();
   resolvedFiles.forEach(f => (filesMap[f.globalName] = f));
 
@@ -36,7 +40,7 @@ function getSortedFiles(dependenciesGraph) {
   return sortedNames.map(n => filesMap[n]);
 }
 
-function getFileWithoutPragmaNorImports(resolvedFile) {
+function getFileWithoutPragmaNorImports(resolvedFile: ResolvedFile) {
   const PRAGAMA_SOLIDITY_VERSION_REGEX = /^\s*pragma\ssolidity\s+(.*?)\s*;/;
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+).*$/gm;
 

@@ -6,4 +6,4 @@ const pattern = path.join(__dirname, "..", "..", "builtin-tasks", "*.js");
 glob
   .sync(pattern)
   .sort()
-  .forEach(f => require(f));
+  .forEach((f: string) => require(f));

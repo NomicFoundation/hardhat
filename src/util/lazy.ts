@@ -1,6 +1,6 @@
 export function lazyObject<T extends object>(objectCreator: () => T): T {
   let realTarget: T | undefined = undefined;
-  const dummyTarget = {};
+  const dummyTarget = {} as T; // This is unsafe, but we never use dummyTarget.
 
   function getRealTarget(): T {
     if (realTarget === undefined) {
@@ -26,7 +26,7 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
     return realTarget;
   }
 
-  return new Proxy(dummyTarget as T, {
+  return new Proxy(dummyTarget, {
     defineProperty(target, property, descriptor) {
       return Reflect.defineProperty(getRealTarget(), property, descriptor);
     },

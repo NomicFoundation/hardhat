@@ -1,12 +1,15 @@
 import { InteractiveDeployer } from "../cli/InteractiveDeployer";
 import { BuidlerError, ERRORS } from "../core/errors";
-import { task, config, run } from "../types";
+import { task } from "../config-dsl";
 
 task("deploy", "Interactively deploy contracts")
   .addFlag("noCompile", "Don't compile before running this task")
   .addOptionalParam("fromAccount", "The account used to deploy the contracts")
   .setAction(
-    async ({ noCompile, fromAccount }, { network, showStackTraces }) => {
+    async (
+      { noCompile, fromAccount }: { noCompile: boolean; fromAccount?: string },
+      { buidlerArguments: { network, showStackTraces }, config, run }
+    ) => {
       const { default: chalk } = await import("chalk");
 
       if (!process.stdin.isTTY) {

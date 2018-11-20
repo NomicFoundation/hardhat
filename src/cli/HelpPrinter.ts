@@ -1,12 +1,17 @@
 import { ArgumentsParser } from "./ArgumentsParser";
 import { BuidlerError, ERRORS } from "../core/errors";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+import {
+  ITaskDefinition,
+  ParamDefinition,
+  ParamDefinitionsMap
+} from "../core/tasks/TaskDefinition";
+import { BuidlerParamDefinitons } from "../core/params/buidler-params";
 
 export class HelpPrinter {
   constructor(
     private readonly programName: string,
     private readonly version: string,
-    private readonly globalParamDefinitions: any,
+    private readonly buidlerParamDefinitions: BuidlerParamDefinitons,
     private readonly tasks: { [name: string]: ITaskDefinition }
   ) {}
 
@@ -19,11 +24,11 @@ export class HelpPrinter {
 
     console.log("GLOBAL OPTIONS:\n");
 
-    this._printParamDetails(this.globalParamDefinitions);
+    this._printParamDetails(this.buidlerParamDefinitions);
 
     console.log("\n\nAVAILABLE TASKS:\n");
 
-    const tasksToShow = {};
+    const tasksToShow: { [name: string]: ITaskDefinition } = {};
     for (const [taskName, taskDefinition] of Object.entries(this.tasks)) {
       if (includeInternalTasks || !taskDefinition.isInternal) {
         tasksToShow[taskName] = taskDefinition;
@@ -46,7 +51,7 @@ export class HelpPrinter {
     );
   }
 
-  printTaskHelp(taskName) {
+  printTaskHelp(taskName: string) {
     const taskDefinition = this.tasks[taskName];
 
     if (taskDefinition === undefined) {
@@ -90,11 +95,11 @@ export class HelpPrinter {
     console.log(`For global options help run: ${this.programName} help\n`);
   }
 
-  _getParamValueDescription(paramDefinition) {
+  _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
     return `<${paramDefinition.type.name.toUpperCase()}>`;
   }
 
-  _getParamsList(paramDefinitions) {
+  _getParamsList(paramDefinitions: ParamDefinitionsMap) {
     let paramsList = "";
 
     for (const name of Object.keys(paramDefinitions).sort()) {
@@ -120,7 +125,7 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  _getPositionalParamsList(positionalParamDefinitions) {
+  _getPositionalParamsList(positionalParamDefinitions: ParamDefinition<any>[]) {
     let paramsList = "";
 
     for (const definition of positionalParamDefinitions) {
@@ -144,7 +149,7 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  _printParamDetails(paramDefinitions) {
+  _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
     const paramsNameLength = Object.keys(paramDefinitions)
       .map(n => ArgumentsParser.paramNameToCLA(n).length)
       .reduce((a, b) => Math.max(a, b), 0);
@@ -174,7 +179,9 @@ export class HelpPrinter {
     }
   }
 
-  _printPositionalParamDetails(positionalParamDefinitions) {
+  _printPositionalParamDetails(
+    positionalParamDefinitions: ParamDefinition<any>[]
+  ) {
     const paramsNameLength = positionalParamDefinitions
       .map(d => d.name.length)
       .reduce((a, b) => Math.max(a, b), 0);

@@ -3,20 +3,21 @@ import assert from "assert";
 
 const ERROR_PREFIX = "BDLR";
 
+interface ErrorDescription {
+  number: number;
+  message: string;
+}
+
 export class BuidlerError extends Error {
   public readonly number: number;
   public readonly parent?: Error;
 
+  constructor(errorDescription: ErrorDescription, ...messageArguments: any[]);
   constructor(
-    errorDescription?: any,
-    parentError?: any,
+    errorDescription: ErrorDescription,
+    parentError?: Error,
     ...messageArguments: any[]
   ) {
-    if (errorDescription === undefined || errorDescription instanceof Error) {
-      parentError = errorDescription;
-      errorDescription = ERRORS.BUIDLER_INTERNAL_ERROR;
-    }
-
     const hasParentError = parentError instanceof Error;
 
     if (parentError !== undefined && !hasParentError) {
@@ -41,7 +42,7 @@ export class BuidlerError extends Error {
 }
 
 interface KnownErrors {
-  [name: string]: { number: number; message: string };
+  [name: string]: ErrorDescription;
 }
 
 export const ERRORS: KnownErrors = {

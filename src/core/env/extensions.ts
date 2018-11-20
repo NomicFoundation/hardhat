@@ -1,12 +1,21 @@
-type EnvExtensionFunction = (env: any, config: any) => void;
+import {
+  BuidlerConfig,
+  BuidlerRuntimeEnvironment,
+  EnvironmentExtensionFunction
+} from "../../types";
 
-const extensions: EnvExtensionFunction[] = [];
+const extensions: EnvironmentExtensionFunction[] = [];
 
-export function extendEnvironment(extensionFunction: EnvExtensionFunction) {
+export function extendEnvironment(
+  extensionFunction: EnvironmentExtensionFunction
+) {
   extensions.push(extensionFunction);
 }
 
-export function applyExtensions(environment, config) {
+export function applyExtensions(
+  environment: BuidlerRuntimeEnvironment,
+  config: BuidlerConfig
+) {
   for (const extension of extensions) {
     extension(environment, config);
   }

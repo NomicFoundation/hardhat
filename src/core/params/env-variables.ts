@@ -1,9 +1,12 @@
 import { ArgumentsParser } from "../../cli/ArgumentsParser";
 import { BuidlerError, ERRORS } from "../errors";
 
+import { BuidlerArguments, BuidlerParamDefinitons } from "./buidler-params";
+import { unsafeObjectKeys } from "../../util/unsafe";
+
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
 
-export function paramNameToEnvVariable(paramName) {
+export function paramNameToEnvVariable(paramName: string): string {
   // We create it starting from the result of ArgumentsParser.paramNameToCLA
   // so it's easier to explain and understand their equivalences.
   return ArgumentsParser.paramNameToCLA(paramName)
@@ -12,12 +15,13 @@ export function paramNameToEnvVariable(paramName) {
     .toUpperCase();
 }
 
-export function getEnvBuidlerArguments(paramDefinitions) {
-  const envArgs = {};
+export function getEnvBuidlerArguments(
+  paramDefinitions: BuidlerParamDefinitons
+): BuidlerArguments {
+  const envArgs: Partial<BuidlerArguments> = {};
 
-  for (const paramName of Object.keys(paramDefinitions)) {
+  for (const paramName of unsafeObjectKeys(paramDefinitions)) {
     const definition = paramDefinitions[paramName];
-
     const envVarName = paramNameToEnvVariable(paramName);
     const rawValue = process.env[envVarName];
 
@@ -37,5 +41,7 @@ export function getEnvBuidlerArguments(paramDefinitions) {
     }
   }
 
-  return envArgs;
+  // TODO: This is a little type-unsafe, but we know we have all the needed
+  // arguments
+  return envArgs as BuidlerArguments;
 }

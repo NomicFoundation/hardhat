@@ -1,4 +1,5 @@
 import path from "path";
+import { DependencyGraph } from "./dependencyGraph";
 
 const { BuidlerError, ERRORS } = require("../core/errors");
 
@@ -7,17 +8,22 @@ const COMPILER_FILES_DIR_URL =
 
 const COMPILERS_LIST_URL = COMPILER_FILES_DIR_URL + "list.json";
 
+export interface SolcOptimizerConfig {
+  enabled: boolean;
+  runs: number;
+}
+
 export class Compiler {
   private loadedSolc?: any;
 
   constructor(
     private readonly version: string,
     private readonly compilersDir: string,
-    private readonly optimizerConfig: string
+    private readonly optimizerConfig: SolcOptimizerConfig
   ) {}
 
-  getInputFromDependencyGraph(graph) {
-    const sources = {};
+  getInputFromDependencyGraph(graph: DependencyGraph) {
+    const sources: { [globalName: string]: { content: string } } = {};
     for (const file of graph.getResolvedFiles()) {
       sources[file.globalName] = {
         content: file.content
@@ -43,7 +49,7 @@ export class Compiler {
     };
   }
 
-  async compile(input) {
+  async compile(input: any) {
     const solc = await this.getSolc();
 
     const jsonOutput = solc.compileStandardWrapper(JSON.stringify(input));
@@ -97,11 +103,11 @@ export class Compiler {
     return fileName;
   }
 
-  getChosenVersionPath(list) {
+  getChosenVersionPath(list: any) {
     return list.releases[this.version];
   }
 
-  async downloadCompiler(compilerFileName) {
+  async downloadCompiler(compilerFileName: string) {
     const compilerPath = path.join(this.compilersDir, compilerFileName);
 
     const fsExtra = await import("fs-extra");
@@ -111,7 +117,7 @@ export class Compiler {
       console.debug("Downloading compiler version " + this.version);
 
       try {
-        const {default: download} = await import("download");
+        const { default: download } = await import("download");
         await download(compilerUrl, this.compilersDir);
       } catch (error) {
         throw new BuidlerError(
@@ -148,7 +154,7 @@ export class Compiler {
 
   async downloadVersionsList() {
     const fsExtra = await import("fs-extra");
-    const {default: download} = await import("download");
+    const { default: download } = await import("download");
 
     try {
       await fsExtra.ensureDir(this.compilersDir);
@@ -162,13 +168,13 @@ export class Compiler {
     }
   }
 
-  async validateCompiler(compilerPath, compilerFileName) {
+  async validateCompiler(compilerPath: string, compilerFileName: string) {
     const fsExtra = await import("fs-extra");
     const ethereumjsUtil = await import("ethereumjs-util");
 
     const list = await this.getCompilerList();
     const compilerInfo = list.builds.filter(
-      b => b.path === compilerFileName
+      (b: any) => b.path === compilerFileName
     )[0];
     const expectedKeccak256 = compilerInfo.keccak256;
 

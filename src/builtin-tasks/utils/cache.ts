@@ -1,7 +1,7 @@
 import path from "path";
 import util from "util";
 import globCPS from "glob";
-import { config } from "../../types";
+import { config } from "../../injected-env";
 const glob = util.promisify(globCPS);
 
 async function getModificationDate(file: string): Promise<Date> {
@@ -14,14 +14,14 @@ async function getConfigModificationDate(): Promise<Date> {
   return getModificationDate(config.paths.configFile);
 }
 
-async function getModificationDatesInDir(dir): Promise<Date[]> {
+async function getModificationDatesInDir(dir: string): Promise<Date[]> {
   const pattern = path.join(dir, "**");
   const files = await glob(pattern);
   const promises: Promise<Date>[] = files.map(getModificationDate);
   return Promise.all(promises);
 }
 
-async function getLastModificationDateInDir(dir) {
+async function getLastModificationDateInDir(dir: string) {
   const dates = await getModificationDatesInDir(dir);
 
   if (dates.length === 0) {
@@ -31,7 +31,10 @@ async function getLastModificationDateInDir(dir) {
   return dates.reduce((d1, d2) => (d1.getTime() > d2.getTime() ? d1 : d2));
 }
 
-export async function areArtifactsCached(sourcesDir, artifactsDir) {
+export async function areArtifactsCached(
+  sourcesDir: string,
+  artifactsDir: string
+) {
   const lastSourcesModification = await getLastModificationDateInDir(
     sourcesDir
   );

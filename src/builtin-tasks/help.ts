@@ -1,5 +1,5 @@
 import { getPackageJson } from "../util/packageInfo";
-import { task } from "../types";
+import { task } from "../config-dsl";
 
 const {
   BUIDLER_CLI_PARAM_DEFINITIONS
@@ -12,7 +12,7 @@ task("help", "Prints this message")
     "task",
     "An optional task to print more info about"
   )
-  .setAction(async ({ task }) => {
+  .setAction(async ({ task }: { task?: string }) => {
     const packageJson = await getPackageJson();
 
     const helpPrinter = new HelpPrinter(

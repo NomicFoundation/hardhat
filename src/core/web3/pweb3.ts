@@ -1,7 +1,7 @@
 import { BuidlerError, ERRORS } from "../errors";
 import { promisify } from "util";
 
-export function promisifyWeb3(web3) {
+export function promisifyWeb3(web3: any) {
   const WEB3_MODULES = ["eth", "db", "shh", "net", "personal", "bzz"];
 
   const Web3 = require("web3");
