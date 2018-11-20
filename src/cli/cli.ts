@@ -1,19 +1,16 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import { getPackageJson } from "../util/packageInfo";
-
-const { getConfig } = require("../core/config");
-const { getTaskDefinitions } = require("../core/tasks/dsl");
-const { createEnvironment } = require("../core/env/definition");
-const { isCwdInsideProject } = require("../core/project-structure");
-const { enableEmoji } = require("./emoji");
-const { createProject } = require("./project-creation");
-const { BuidlerError, ERRORS } = require("../core/errors");
-const {
-  BUIDLER_CLI_PARAM_DEFINITIONS
-} = require("../core/params/buidler-params");
-const { ArgumentsParser } = require("./ArgumentsParser");
-const { getEnvBuidlerArguments } = require("../core/params/env-variables");
+import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
+import { getConfig } from "../core/config";
+import { getTaskDefinitions } from "../core/tasks/dsl";
+import { createEnvironment } from "../core/env/definition";
+import { isCwdInsideProject } from "../core/project-structure";
+import { enableEmoji } from "./emoji";
+import { createProject } from "./project-creation";
+import { BuidlerError, ERRORS } from "../core/errors";
+import { ArgumentsParser } from "./ArgumentsParser";
+import { getEnvBuidlerArguments } from "../core/params/env-variables";
 
 async function printVersionMessage() {
   const packageJson = await getPackageJson();
@@ -27,7 +24,7 @@ async function main() {
 
   try {
     const envVariableArguments = getEnvBuidlerArguments(
-      BUIDLER_CLI_PARAM_DEFINITIONS
+      BUIDLER_PARAM_DEFINITIONS
     );
 
     const argumentsParser = new ArgumentsParser();
@@ -37,7 +34,7 @@ async function main() {
       taskName: parsedTaskName,
       unparsedCLAs
     } = argumentsParser.parseBuidlerArgumetns(
-      BUIDLER_CLI_PARAM_DEFINITIONS,
+      BUIDLER_PARAM_DEFINITIONS,
       envVariableArguments,
       process.argv.slice(2)
     );

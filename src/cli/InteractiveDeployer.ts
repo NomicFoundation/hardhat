@@ -1,10 +1,14 @@
+import { BuidlerConfig, TruffleContractInstance } from "../types";
+import { TruffleArtifactsStorage } from "../core/truffle";
+import { artifacts, pweb3 } from "../injected-env";
+
+// TODO: This imports are outdated, import-lazy shouldn't ne used anymore.
 const importLazy = require("import-lazy")(require);
 const inquirer = importLazy("inquirer");
 const chalk = importLazy("chalk");
 const ethUtil = importLazy("ethereumjs-util");
 const BigNumber = importLazy("bignumber.js");
 
-const { TruffleArtifactsStorage } = require("../core/truffle");
 const { BuidlerError, ERRORS } = require("../core/errors");
 
 const ACCOUNTS_ADDRESS_MODE = "accounts";
@@ -14,13 +18,30 @@ const DEPLOY_NEW_LIBRARY_ADDRESS_MODE = "new_library";
 const OTHER_ADDRESS_MODE = "input";
 
 export class InteractiveDeployer {
-  constructor(config, showStackTraces, fromAddress) {
+  private _artifactsStorage: TruffleArtifactsStorage;
+  private readonly _showStackTraces: boolean;
+  private readonly _fromAddress?: string;
+  private _deployedContracts: TruffleContractInstance[];
+  private _deployedContractsMap: {
+    [contractName: string]: TruffleContractInstance[];
+  };
+  private _deployableArtifacts?: any[];
+  private _deployableArtifactsMap?: { [contractName: string]: any };
+  private _accounts?: string[];
+
+  constructor(
+    config: BuidlerConfig,
+    showStackTraces: boolean,
+    fromAddress?: string
+  ) {
     this._artifactsStorage = new TruffleArtifactsStorage(
       config.paths.artifacts
     );
 
     this._showStackTraces = showStackTraces;
     this._fromAddress = fromAddress;
+    this._deployedContracts = [];
+    this._deployedContractsMap = {};
   }
 
   async run() {
@@ -60,7 +81,9 @@ export class InteractiveDeployer {
   }
 
   // Returns undefined if the user cancels the deployment.
-  async _deployContract(contractName) {
+  async _deployContract(
+    contractName: string
+  ): Promise<TruffleContractInstance> {
     const artifact = await this._getDeployableArtifact(contractName);
 
     const args = await this._getConstructorArgs(artifact);
@@ -97,7 +120,11 @@ export class InteractiveDeployer {
     return contract;
   }
 
-  async _deploy(contractName, args, libraries) {
+  async _deploy(
+    contractName: string,
+    args: any[],
+    libraries?: TruffleContractInstance[]
+  ) {
     const ora = require("ora");
     const spinner = ora(`Deploying ${contractName}`, { color: "cyan" }).start();
 
@@ -144,7 +171,7 @@ export class InteractiveDeployer {
     return this._deployableArtifacts;
   }
 
-  _isDeployable(artifact) {
+  _isDeployable(artifact: any) {
     // An artifact without bytecode is an abstract contract or interface
     //
     // And we don't bother with libaries/coontracts with empty ABIs, if not
@@ -153,7 +180,7 @@ export class InteractiveDeployer {
     return artifact.bytecode.length > 0 && artifact.abi.length > 0;
   }
 
-  async _getDeployableArtifact(contractName) {
+  async _getDeployableArtifact(contractName: string) {
     if (this._deployableArtifactsMap === undefined) {
       const deployableArtifacts = await this._getDeployableArtifacts();
 
@@ -180,8 +207,10 @@ export class InteractiveDeployer {
     return deployAnother;
   }
 
-  async _getConstructorArgs(artifact) {
-    const constructor = artifact.abi.find(elem => elem.type === "constructor");
+  async _getConstructorArgs(artifact: any) {
+    const constructor = artifact.abi.find(
+      (elem: any) => elem.type === "constructor"
+    );
 
     if (constructor === undefined || constructor.inputs.length === 0) {
       return [];
@@ -197,7 +226,7 @@ export class InteractiveDeployer {
     return values;
   }
 
-  async _getArgumentValue(input) {
+  async _getArgumentValue(input: any) {
     if (input.type === "address") {
       return this._getValueForAddressInput(input);
     }
@@ -213,7 +242,10 @@ export class InteractiveDeployer {
     return this._getValueFor(input);
   }
 
-  async _getValueFor(input, validationFunction) {
+  async _getValueFor<T>(
+    input: any,
+    validationFunction?: (input: any, answers?: T) => boolean | string
+  ) {
     const { value } = await inquirer.prompt([
       {
         name: "value",
@@ -228,7 +260,7 @@ export class InteractiveDeployer {
     return value;
   }
 
-  _getValueForUint256(input) {
+  _getValueForUint256(input: any) {
     return this._getValueFor(input, str => {
       const bn = new BigNumber(str);
 
@@ -248,7 +280,7 @@ export class InteractiveDeployer {
     });
   }
 
-  _getValueForInt256(input) {
+  _getValueForInt256(input: any) {
     return this._getValueFor(input, str => {
       const bn = new BigNumber(str);
 
@@ -264,27 +296,31 @@ export class InteractiveDeployer {
     });
   }
 
-  async _getValueForAddressInput(input) {
+  async _getValueForAddressInput(input: any) {
     return this._getAddress(
       `Insert a value for ${chalk.grey(input.type + " " + input.name)}:`,
       true
     );
   }
 
-  async _getAccounts() {
-    if (this._accounts === undefined) {
-      const accounts = await pweb3.eth.getAccounts();
-      this._accounts = accounts.map(acc => ethUtil.toChecksumAddress(acc));
+  async _getAccounts(): Promise<string[]> {
+    if (this._accounts !== undefined) {
+      return this._accounts;
     }
 
-    return this._accounts;
+    const accounts = await pweb3.eth.getAccounts();
+    this._accounts = accounts.map((acc: string) =>
+      ethUtil.toChecksumAddress(acc)
+    );
+
+    return accounts;
   }
 
-  _usesLibraries(artifact) {
+  _usesLibraries(artifact: any) {
     return Object.keys(artifact.linkReferences).length > 0;
   }
 
-  async _getLibraries(artifact) {
+  async _getLibraries(artifact: any) {
     const libraries = [];
 
     for (const libName of this._getNeededLibraryNames(artifact)) {
@@ -294,7 +330,7 @@ export class InteractiveDeployer {
     return libraries;
   }
 
-  _getNeededLibraryNames(artifact) {
+  _getNeededLibraryNames(artifact: any) {
     const names = [];
 
     for (const file of Object.values(artifact.linkReferences)) {
@@ -306,7 +342,7 @@ export class InteractiveDeployer {
     return names.sort();
   }
 
-  async _getLibrary(contractName, libraryName) {
+  async _getLibrary(contractName: string, libraryName: string) {
     console.log("");
     this._printTitle(`${contractName} uses library ${libraryName}`);
 
@@ -324,19 +360,23 @@ export class InteractiveDeployer {
     return Library.at(address);
   }
 
-  _getDeployedContractsByName(name) {
+  _getDeployedContractsByName(name?: string): TruffleContractInstance[] {
+    if (name === undefined) {
+      return [];
+    }
+
     return this._deployedContractsMap[name] || [];
   }
 
   async _getAddress(
-    modeSelectionPrompt,
+    modeSelectionPrompt: any,
     useAccounts = false,
     canBeNullAddress = true,
-    libraryName = undefined
+    libraryName?: string
   ) {
     const deployed = this._getDeployedContractsByName(libraryName);
 
-    if (deployed.length === 1) {
+    if (deployed && deployed.length === 1) {
       const library = deployed[0];
       const libraryAddress = ethUtil.toChecksumAddress(library.address);
       const { useTheOnlyOne } = await inquirer.prompt([
@@ -372,14 +412,18 @@ export class InteractiveDeployer {
       return this._getAddressFromDeployedContracts(deployed);
     }
 
-    if (mode === DEPLOY_NEW_LIBRARY_ADDRESS_MODE) {
+    if (mode === DEPLOY_NEW_LIBRARY_ADDRESS_MODE && libraryName !== undefined) {
       return this._getAddressFromNewLibrary(libraryName);
     }
 
     return this._getOtherAddress(canBeNullAddress);
   }
 
-  async _getAddressMode(modeSelectionPrompt, useAccounts, libraryName) {
+  async _getAddressMode(
+    modeSelectionPrompt: any,
+    useAccounts: boolean,
+    libraryName?: string
+  ) {
     const modeChoices = [];
 
     if (useAccounts) {
@@ -449,7 +493,7 @@ export class InteractiveDeployer {
     return value;
   }
 
-  async _getAddressFromDeployedContracts(contracts) {
+  async _getAddressFromDeployedContracts(contracts: TruffleContractInstance[]) {
     const { value } = await inquirer.prompt([
       {
         name: "value",
@@ -468,7 +512,7 @@ export class InteractiveDeployer {
     return value;
   }
 
-  async _getAddressFromNewLibrary(libraryName) {
+  async _getAddressFromNewLibrary(libraryName: string) {
     this._printTitle(`Deploying library ${libraryName}`);
 
     while (true) {
@@ -488,14 +532,14 @@ export class InteractiveDeployer {
     }
   }
 
-  async _getOtherAddress(canBeNullAddress) {
+  async _getOtherAddress(canBeNullAddress: boolean) {
     while (true) {
       const { value } = await inquirer.prompt([
         {
           name: "value",
           message: `Insert an address:`,
           type: "input",
-          validate: str => {
+          validate: (str: string) => {
             if (str.match(/^(?:0x)?0{1,40}$/) && !canBeNullAddress) {
               return "Address can't be null";
             }
@@ -530,7 +574,7 @@ export class InteractiveDeployer {
     }
   }
 
-  _printTitle(title) {
+  _printTitle(title: string) {
     console.log(chalk.cyan(">"), chalk.bold(title));
   }
 

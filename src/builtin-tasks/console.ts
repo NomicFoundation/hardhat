@@ -1,8 +1,8 @@
-import { task, config, internalTask, run } from "../types";
+import { task } from "../config-dsl";
 
 task("console", "Opens a buidler console")
   .addFlag("noCompile", "Don't compile before running this task")
-  .setAction(async ({ noCompile }) => {
+  .setAction(async ({ noCompile }: { noCompile: boolean }, { config, run }) => {
     const path = await import("path");
     const fsExtra = await import("fs-extra");
     const repl = await import("repl");

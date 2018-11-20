@@ -1,11 +1,14 @@
 import { getImports } from "./imports";
-import { ResolvedFile } from "./resolver";
+import { ResolvedFile, Resolver } from "./resolver";
 
 export class DependencyGraph {
-  private dependenciesPerFile = new Map<ResolvedFile, Set<ResolvedFile>>();
+  public readonly dependenciesPerFile = new Map<
+    ResolvedFile,
+    Set<ResolvedFile>
+  >();
 
   static async createFromResolvedFiles(
-    resolver,
+    resolver: Resolver,
     resolvedFiles: ResolvedFile[]
   ) {
     const graph = new DependencyGraph();
@@ -23,7 +26,7 @@ export class DependencyGraph {
     return Array.from(this.dependenciesPerFile.keys());
   }
 
-  async addDependenciesFrom(resolver, file) {
+  async addDependenciesFrom(resolver: Resolver, file: ResolvedFile) {
     const dependencies = new Set();
     this.dependenciesPerFile.set(file, dependencies);
 

@@ -1,12 +1,26 @@
-import { OverloadedTaskDefinition, TaskDefinition } from "./TaskDefinition";
-import { BuidlerError, ERRORS } from "../errors";
+import {
+  ITaskDefinition,
+  OverloadedTaskDefinition,
+  TaskDefinition
+} from "./TaskDefinition";
+import {
+  ActionType,
+  BuidlerRuntimeEnvironment,
+  RunSuperFunction,
+  TaskArguments
+} from "../../types";
 
-const tasks = {};
+const tasks: { [name: string]: ITaskDefinition } = {};
 
-export function addTask(name, description, action, isInternal) {
+function addTask<ArgT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgT>,
+  action?: ActionType<ArgT>,
+  isInternal?: boolean
+) {
   const parentTaskDefinition = tasks[name];
 
-  let taskDefinition;
+  let taskDefinition: ITaskDefinition;
 
   if (parentTaskDefinition !== undefined) {
     taskDefinition = new OverloadedTaskDefinition(
@@ -17,21 +31,17 @@ export function addTask(name, description, action, isInternal) {
     taskDefinition = new TaskDefinition(name, isInternal);
   }
 
-  if (description instanceof Function) {
-    action = description;
-    description = undefined;
+  if (descriptionOrAction instanceof Function) {
+    action = descriptionOrAction;
+    descriptionOrAction = undefined;
   }
 
-  if (description !== undefined) {
-    taskDefinition.setDescription(description);
+  if (descriptionOrAction !== undefined) {
+    taskDefinition.setDescription(descriptionOrAction);
   }
 
   if (action !== undefined) {
     taskDefinition.setAction(action);
-  } else if (parentTaskDefinition === undefined) {
-    taskDefinition.setAction(() => {
-      throw new BuidlerError(ERRORS.TASKS_DEFINITION_NO_ACTION, name);
-    });
   }
 
   tasks[name] = taskDefinition;
@@ -39,52 +49,70 @@ export function addTask(name, description, action, isInternal) {
   return taskDefinition;
 }
 
-export function task(name, description, action) {
-  return addTask(name, description, action, false);
+export function task<ArgsT extends TaskArguments>(
+  name: string,
+  description?: string
+): ITaskDefinition;
+export function task<ArgsT extends TaskArguments>(
+  name: string,
+  action: ActionType<ArgsT>
+): ITaskDefinition;
+export function task<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition {
+  return addTask(name, descriptionOrAction, action, false);
 }
 
-export function internalTask(name, description, action) {
-  return addTask(name, description, action, true);
+export function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  description?: string
+): ITaskDefinition;
+export function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  action: ActionType<ArgsT>
+): ITaskDefinition;
+export function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition {
+  return addTask(name, descriptionOrAction, action, true);
 }
 
-export async function runTask(env, name, taskArguments, buidlerArguments) {
+export async function runTask(
+  env: BuidlerRuntimeEnvironment,
+  name: string,
+  taskArguments: TaskArguments
+) {
   const taskDefinition = tasks[name];
 
   if (taskDefinition === undefined) {
     throw new Error(`Task ${name} not defined`);
   }
 
-  return runTaskDefinition(
-    env,
-    taskDefinition,
-    taskArguments,
-    buidlerArguments
-  );
+  return runTaskDefinition(env, taskDefinition, taskArguments);
 }
 
 export async function runTaskDefinition(
-  env,
-  taskDefinition,
-  taskArguments,
-  buidlerArguments
+  env: BuidlerRuntimeEnvironment,
+  taskDefinition: ITaskDefinition,
+  taskArguments: TaskArguments
 ) {
   env.injectToGlobal();
 
-  const globalWithRunSupper = global as { runSuper?: (any) => Promise<any> };
+  let runSuper: RunSuperFunction<TaskArguments>;
 
-  if (taskDefinition.parentTaskDefinition) {
-    globalWithRunSupper.runSuper = async (
-      _taskArguments = taskArguments,
-      _buidlerArguments = buidlerArguments
-    ) =>
+  if (taskDefinition instanceof OverloadedTaskDefinition) {
+    runSuper = async (_taskArguments = taskArguments) =>
       runTaskDefinition(
         env,
         taskDefinition.parentTaskDefinition,
-        _taskArguments,
-        _buidlerArguments
+        _taskArguments
       );
   } else {
-    globalWithRunSupper.runSuper = async () => {
+    runSuper = async () => {
       throw new Error(
         `Task ${
           taskDefinition.name
@@ -93,9 +121,13 @@ export async function runTaskDefinition(
     };
   }
 
-  const taskResult = taskDefinition.action(taskArguments, buidlerArguments);
+  const globalAsAny = global as any;
 
-  globalWithRunSupper.runSuper = undefined;
+  globalAsAny.runSuper = runSuper;
+
+  const taskResult = taskDefinition.action(taskArguments, env, runSuper);
+
+  globalAsAny.runSuper = undefined;
 
   return taskResult;
 }

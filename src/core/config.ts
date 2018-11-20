@@ -1,20 +1,25 @@
-const importLazy = require("import-lazy")(require);
-const Web3 = importLazy("web3");
-const deepmerge = require("deepmerge");
-
-const { getUserConfigPath } = require("./project-structure");
-const types = require("./types");
-const { task, internalTask } = require("./tasks/dsl");
-const { extendEnvironment } = require("./env/extensions");
-const { ERRORS, BuidlerError } = require("./errors");
+import { BuidlerError, ERRORS } from "./errors";
+import { extendEnvironment } from "./env/extensions";
+import { internalTask, task } from "./tasks/dsl";
+import * as types from "./argumentTypes";
+import { getUserConfigPath } from "./project-structure";
+import deepmerge from "deepmerge";
+import { AutoNetworkConfig, BuidlerConfig, NetworkConfig } from "../types";
 
 export function getConfig() {
   const pathToConfigFile = getUserConfigPath();
 
+  const importLazy = require("import-lazy")(require);
+  const Web3 = importLazy("web3");
+
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
   const exported = { internalTask, task, Web3, types, extendEnvironment };
-  Object.entries(exported).forEach(([key, value]) => (global[key] = value));
+  const globalAsAny: any = global;
+
+  Object.entries(exported).forEach(
+    ([key, value]) => (globalAsAny[key] = value)
+  );
 
   require("./tasks/builtin-tasks");
 
@@ -22,16 +27,19 @@ export function getConfig() {
   const userConfig = require(pathToConfigFile);
 
   // To avoid bad practices we remove the previously exported stuff
-  Object.keys(exported).forEach(key => (global[key] = undefined));
+  Object.keys(exported).forEach(key => (globalAsAny[key] = undefined));
 
   const config = deepmerge(defaultConfig, userConfig, {
-    arrayMerge: (destination, source) => source
+    arrayMerge: (destination: any[], source: any[]) => source
   });
 
   return config;
 }
 
-export function getNetworkConfig(config, selectedNetwork) {
+export function getNetworkConfig(
+  config: BuidlerConfig,
+  selectedNetwork: string
+): NetworkConfig | AutoNetworkConfig {
   if (
     config.networks === undefined ||
     config.networks[selectedNetwork] === undefined

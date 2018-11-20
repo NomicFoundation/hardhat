@@ -2,7 +2,6 @@ import path from "path";
 import util from "util";
 import cpsGlob from "glob";
 const glob = util.promisify(cpsGlob);
-import { task, config, internalTask, run } from "../types";
 
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { Resolver } from "../solidity/resolver";
@@ -10,12 +9,15 @@ import { Compiler } from "../solidity/compiler";
 import { TruffleArtifactsStorage } from "../core/truffle";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { areArtifactsCached } from "./utils/cache";
+import { task, internalTask } from "../config-dsl";
+import { config, run } from "../injected-env";
+import { BuidlerConfig } from "../types";
 
-function getCompilersDir(config) {
+function getCompilersDir(config: BuidlerConfig) {
   return path.join(config.paths.cache, "compilers");
 }
 
-function getCompiler(config) {
+function getCompiler(config: BuidlerConfig) {
   return new Compiler(
     config.solc.version,
     getCompilersDir(config),
@@ -30,7 +32,9 @@ internalTask("builtin:get-file-paths", async () => {
 internalTask("builtin:get-resolved-files", async () => {
   const resolver = new Resolver(config);
   const paths = await run("builtin:get-file-paths");
-  return Promise.all(paths.map(p => resolver.resolveProjectSourceFile(p)));
+  return Promise.all(
+    paths.map((p: string) => resolver.resolveProjectSourceFile(p))
+  );
 });
 
 internalTask("builtin:get-dependency-graph", async () => {

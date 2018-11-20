@@ -2,10 +2,14 @@ import { getConfig } from "../core/config";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { createEnvironment } from "../core/env/definition";
+import {
+  BuidlerRuntimeEnvironment,
+  GlobalWithBuidlerRuntimeEnvironment
+} from "../types";
 
-let env;
+let env: BuidlerRuntimeEnvironment;
 
-const globalWithEnv = global as NodeJS.Global & { env: any };
+const globalWithEnv = global as GlobalWithBuidlerRuntimeEnvironment;
 
 if (globalWithEnv.env !== undefined) {
   env = globalWithEnv.env;
@@ -15,6 +19,5 @@ if (globalWithEnv.env !== undefined) {
   env = createEnvironment(config, buidlerArguments);
 }
 
-// We export this in two different ways so that it works in CJS and ESM modules.
-module.exports = env;
-module.exports.default = env;
+// TODO: Find out a way to export this as a CJS module.
+export default env;

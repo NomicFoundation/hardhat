@@ -5,7 +5,7 @@ export function getImports(fileContent: string): string[] {
   const importedFiles: string[] = [];
 
   parser.visit(ast, {
-    ImportDirective: node => importedFiles.push(node.path)
+    ImportDirective: (node: { path: string }) => importedFiles.push(node.path)
   });
 
   return importedFiles;

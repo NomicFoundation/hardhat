@@ -1,36 +1,42 @@
 import { BuidlerError, ERRORS } from "../errors";
+import {
+  AutoNetworkConfig,
+  GanacheOptions,
+  HttpNetworkConfig,
+  NetworkConfig
+} from "../../types";
 
-const importLazy = require("import-lazy")(require);
-const Web3 = importLazy("web3");
-const BigNumber = importLazy("bignumber.js");
-
-function getWeb3Provider(networkName, networkConfig) {
-  if (networkConfig.provider) {
-    if (networkConfig.provider instanceof Function) {
-      return networkConfig.provider();
-    }
-
-    return networkConfig.provider;
-  }
-
-  const port = networkConfig.port || "8545";
-
-  if (networkConfig.host === undefined) {
-    throw new BuidlerError(ERRORS.NETWORK_HAS_NO_HOST, networkName);
-  }
-
-  const url = `http://${networkConfig.host}:${port}`;
-
-  return new Web3.providers.HttpProvider(url);
+function isHttpNetworkConfig(
+  networkConfig: any
+): networkConfig is HttpNetworkConfig {
+  return networkConfig.host !== undefined;
 }
 
-export function getWeb3Instance(networkName, netConfig) {
+function getWeb3Provider(networkName: string, networkConfig: NetworkConfig) {
+  if (isHttpNetworkConfig(networkConfig)) {
+    const port = networkConfig.port || 8545;
+
+    if (networkConfig.host === undefined) {
+      throw new BuidlerError(ERRORS.NETWORK_HAS_NO_HOST, networkName);
+    }
+
+    const url = `http://${networkConfig.host}:${port}`;
+
+    const Web3 = require("web3");
+    return new Web3.providers.HttpProvider(url);
+  }
+
+  return createAutoNetwork(networkConfig);
+}
+
+export function getWeb3Instance(networkName: string, netConfig: NetworkConfig) {
   const provider = getWeb3Provider(networkName, netConfig);
 
+  const Web3 = require("web3");
   return new Web3(provider);
 }
 
-function createGanacheProvider(ganacheOptions) {
+function createGanacheProvider(ganacheOptions: GanacheOptions) {
   // Requiring Ganache is slow, that's why we only do it when needed.
   //
   // This function may seem specially odd, and it is:
@@ -61,13 +67,8 @@ function createGanacheProvider(ganacheOptions) {
   return new GanacheProvider(ganacheOptions);
 }
 
-export function createAutoNetwork(netConfig) {
-  let netConfigOptions: {
-    gasLimit: number;
-    network_id: number;
-    mnemonic?: string;
-    accounts?: { balance: string; secretKey: string }[];
-  } = {
+export function createAutoNetwork(netConfig: AutoNetworkConfig) {
+  let netConfigOptions: GanacheOptions = {
     gasLimit: netConfig.blockGasLimit,
     network_id: 4447
   };
@@ -76,10 +77,14 @@ export function createAutoNetwork(netConfig) {
     netConfigOptions.mnemonic =
       "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
   } else {
-    netConfigOptions.accounts = netConfig.accounts.map(acc => ({
-      balance: "0x" + new BigNumber(acc.balance).toString(16),
-      secretKey: acc.privateKey
-    }));
+    netConfigOptions.accounts = netConfig.accounts.map(acc => {
+      const BigNumber = require("bignumber.js");
+
+      return {
+        balance: "0x" + new BigNumber(acc.balance).toString(16),
+        secretKey: acc.privateKey
+      };
+    });
   }
 
   const options = { ...netConfigOptions, ...netConfig.ganacheOptions };
@@ -96,7 +101,7 @@ export function createAutoNetwork(netConfig) {
   // This may be changed if we make most things lazy, but not sure if that would
   // work with tests written for truffle.
   const originalSend = provider.send;
-  provider.send = (payload, callback) => {
+  provider.send = (payload: any, callback: any) => {
     if (callback === undefined) {
       throw new BuidlerError(ERRORS.NETWORK_AUTO_NO_SYNC);
     }

@@ -1,27 +1,23 @@
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
+import { getRecommendedGitIgnore } from "../core/project-structure";
+import { emoji } from "./emoji";
+import path from "path";
 
-const importLazy = require("import-lazy")(require);
-const fs = importLazy("fs-extra");
-const path = require("path");
-const chalk = importLazy("chalk");
-const inquirer = importLazy("inquirer");
-
-const { getRecommendedGitIgnore } = require("../core/project-structure");
-const { emoji } = require("./emoji");
-
-async function removeProjectDirIfPresent(projectRoot, dirName) {
+async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
+  const fsExtra = await import("fs-extra");
   const dirPath = path.join(projectRoot, dirName);
-  if (await fs.pathExists(dirPath)) {
-    await fs.remove(dirPath);
+  if (await fsExtra.pathExists(dirPath)) {
+    await fsExtra.remove(dirPath);
   }
 }
 
-async function removeTempFilesIfPresent(projectRoot) {
+async function removeTempFilesIfPresent(projectRoot: string) {
   await removeProjectDirIfPresent(projectRoot, "cache");
   await removeProjectDirIfPresent(projectRoot, "artifacts");
 }
 
 function printAsciiLogo() {
+  const chalk = require("chalk");
   console.log(chalk.blue(`888               d8b      888 888`));
   console.log(chalk.blue(`888               Y8P      888 888`));
   console.log(chalk.blue("888                        888 888"));
@@ -36,6 +32,7 @@ function printAsciiLogo() {
 }
 
 async function printWelcomeMessage() {
+  const { default: chalk } = await import("chalk");
   const packageJson = await getPackageJson();
 
   console.log(
@@ -48,6 +45,7 @@ async function printWelcomeMessage() {
 }
 
 async function confirmProjectCreation() {
+  const { default: inquirer } = await import("inquirer");
   const { shouldCreateProject } = await inquirer.prompt([
     {
       name: "shouldCreateProject",
@@ -60,37 +58,40 @@ async function confirmProjectCreation() {
   return shouldCreateProject;
 }
 
-async function copySampleProject(projectRoot) {
+async function copySampleProject(projectRoot: string) {
+  const fsExtra = await import("fs-extra");
   const packageRoot = await getPackageRoot();
 
-  await fs.ensureDir(projectRoot);
-  await fs.copy(path.join(packageRoot, "sample-project"), projectRoot);
+  await fsExtra.ensureDir(projectRoot);
+  await fsExtra.copy(path.join(packageRoot, "sample-project"), projectRoot);
 
   // This is just in case we have been using the sample project for dev/testing
   await removeTempFilesIfPresent(projectRoot);
 
-  await fs.remove(path.join(projectRoot, "LICENSE.md"));
+  await fsExtra.remove(path.join(projectRoot, "LICENSE.md"));
 }
 
-async function addGitIgnore(projectRoot) {
+async function addGitIgnore(projectRoot: string) {
+  const fsExtra = await import("fs-extra");
   const gitIgnorePath = path.join(projectRoot, ".gitignore");
 
   let content = await getRecommendedGitIgnore();
 
-  if (await fs.pathExists(gitIgnorePath)) {
-    const existingContent = await fs.readFile(gitIgnorePath, "utf-8");
+  if (await fsExtra.pathExists(gitIgnorePath)) {
+    const existingContent = await fsExtra.readFile(gitIgnorePath, "utf-8");
     content = existingContent + "\n" + content;
   }
 
-  await fs.writeFile(gitIgnorePath, content);
+  await fsExtra.writeFile(gitIgnorePath, content);
 }
 
-async function addGitAttributes(projectRoot) {
+async function addGitAttributes(projectRoot: string) {
+  const fsExtra = await import("fs-extra");
   const gitAttributesPath = path.join(projectRoot, ".gitattributes");
   let content = "*.sol linguist-language=Solidity";
 
-  if (await fs.pathExists(gitAttributesPath)) {
-    const existingContent = await fs.readFile(gitAttributesPath, "utf-8");
+  if (await fsExtra.pathExists(gitAttributesPath)) {
+    const existingContent = await fsExtra.readFile(gitAttributesPath, "utf-8");
 
     if (existingContent.includes(content)) {
       return;
@@ -99,7 +100,7 @@ async function addGitAttributes(projectRoot) {
     content = existingContent + "\n" + content;
   }
 
-  await fs.writeFile(gitAttributesPath, content);
+  await fsExtra.writeFile(gitAttributesPath, content);
 }
 
 function printSuggestedCommands() {
@@ -112,6 +113,8 @@ function printSuggestedCommands() {
 }
 
 export async function createProject() {
+  const { default: inquirer } = await import("inquirer");
+  const { default: chalk } = await import("chalk");
   printAsciiLogo();
 
   await printWelcomeMessage();

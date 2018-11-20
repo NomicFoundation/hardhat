@@ -1,5 +1,6 @@
 import path from "path";
 import { BuidlerError, ERRORS } from "../core/errors";
+import { BuidlerConfig } from "../types";
 
 export interface LibraryInfo {
   name: string;
@@ -45,11 +46,11 @@ export class ResolvedFile {
 }
 
 export class Resolver {
-  constructor(public readonly config: any) {
+  constructor(public readonly config: BuidlerConfig) {
     this.config = config;
   }
 
-  async resolveProjectSourceFile(pathToResolve): Promise<ResolvedFile> {
+  async resolveProjectSourceFile(pathToResolve: string): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
 
     if (!(await fsExtra.pathExists(pathToResolve))) {
@@ -77,8 +78,8 @@ export class Resolver {
     return this._resolveFile(globalName, absolutePath);
   }
 
-  async resolveLibrarySourceFile(globalName): Promise<ResolvedFile> {
-    const {default: resolveFrom} = await import("resolve-from");
+  async resolveLibrarySourceFile(globalName: string): Promise<ResolvedFile> {
+    const { default: resolveFrom } = await import("resolve-from");
     const fsExtra = await import("fs-extra");
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
 
@@ -118,7 +119,10 @@ export class Resolver {
     );
   }
 
-  async resolveImport(from, imported): Promise<ResolvedFile> {
+  async resolveImport(
+    from: ResolvedFile,
+    imported: string
+  ): Promise<ResolvedFile> {
     if (this._isRelativeImport(imported)) {
       if (from.library === undefined) {
         return this.resolveProjectSourceFile(
@@ -136,7 +140,7 @@ export class Resolver {
         throw new BuidlerError(
           ERRORS.RESOLVER_ILLEGAL_IMPORT,
           imported,
-          from.name
+          from.globalName
         );
       }
 
@@ -147,8 +151,8 @@ export class Resolver {
   }
 
   async _resolveFile(
-    globalName,
-    absolutePath,
+    globalName: string,
+    absolutePath: string,
     libraryName?: string,
     libraryVersion?: string
   ): Promise<ResolvedFile> {
@@ -167,7 +171,7 @@ export class Resolver {
     );
   }
 
-  _isRelativeImport(imported): boolean {
+  _isRelativeImport(imported: string): boolean {
     return imported.startsWith("./") || imported.startsWith("../");
   }
 }

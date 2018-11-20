@@ -1,13 +1,11 @@
-import { getProjectRoot, getUserConfigPath } from "./project-structure";
-
 import path from "path";
-
-import { createAutoNetwork } from "./web3/network";
+import { getProjectRoot, getUserConfigPath } from "./project-structure";
+import { BuidlerConfig } from "../types";
 
 const projectRoot = getProjectRoot();
 const solcPackage = require("solc/package.json");
 
-export default {
+const defaultConfig: BuidlerConfig = {
   paths: {
     root: projectRoot,
     configFile: getUserConfigPath(),
@@ -28,9 +26,6 @@ export default {
       port: 8545
     },
     auto: {
-      provider() {
-        return createAutoNetwork(this);
-      },
       blockGasLimit: 7500000,
       accounts: [
         // You can set-up accounts here like this:
@@ -41,5 +36,8 @@ export default {
         // }
       ]
     }
-  }
+  },
+  mocha: {}
 };
+
+export default defaultConfig;

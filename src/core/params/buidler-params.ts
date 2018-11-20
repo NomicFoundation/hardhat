@@ -1,17 +1,26 @@
-import types from "../types";
+import * as types from "../argumentTypes";
+import { ParamDefinition } from "../tasks/TaskDefinition";
 
-export const BUIDLER_PARAM_DEFINITIONS = {
+export interface BuidlerArguments {
+  network: string;
+  showStackTraces: boolean;
+  version: boolean;
+  help: boolean;
+  emoji: boolean;
+}
+
+export type BuidlerParamDefinitons = {
+  [param in keyof BuidlerArguments]: ParamDefinition<BuidlerArguments[param]>
+};
+
+export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
   network: {
     name: "network",
     defaultValue: "auto",
     description: "The network to connect to.",
     type: types.string,
     isOptional: true
-  }
-};
-
-export const BUIDLER_CLI_PARAM_DEFINITIONS = {
-  ...BUIDLER_PARAM_DEFINITIONS,
+  },
   showStackTraces: {
     name: "showStackTraces",
     defaultValue: false,

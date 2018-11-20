@@ -1,4 +1,15 @@
 import { BuidlerError, ERRORS } from "../core/errors";
+import {
+  BuidlerArguments,
+  BuidlerParamDefinitons
+} from "../core/params/buidler-params";
+import {
+  ITaskDefinition,
+  ParamDefinition,
+  ParamDefinitionsMap
+} from "../core/tasks/TaskDefinition";
+import { TaskArguments } from "../types";
+import { unsafeObjectKeys } from "../util/unsafe";
 
 export class ArgumentsParser {
   static readonly PARAM_PREFIX = "--";
@@ -13,8 +24,8 @@ export class ArgumentsParser {
     );
   }
 
-  static cLAToParamName(cLa: string): string {
-    const parts = cLa.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
+  static cLAToParamName(cLA: string): string {
+    const parts = cLA.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
 
     return (
       parts[0] +
@@ -26,10 +37,14 @@ export class ArgumentsParser {
   }
 
   parseBuidlerArgumetns(
-    buidlerParamDefinitions,
-    envVariableArguments: { [varName: string]: string },
+    buidlerParamDefinitions: BuidlerParamDefinitons,
+    envVariableArguments: BuidlerArguments,
     rawCLAs: string[]
-  ) {
+  ): {
+    buidlerArguments: BuidlerArguments;
+    taskName?: string;
+    unparsedCLAs: string[];
+  } {
     const buidlerArguments = {};
     let taskName: string | undefined = undefined;
     const unparsedCLAs: string[] = [];
@@ -77,10 +92,14 @@ export class ArgumentsParser {
       buidlerArguments
     );
 
-    return { buidlerArguments, taskName, unparsedCLAs };
+    return {
+      buidlerArguments: buidlerArguments as BuidlerArguments,
+      taskName,
+      unparsedCLAs
+    };
   }
 
-  parseTaskArguments(taskDefintion, rawCLAs) {
+  parseTaskArguments(taskDefintion: ITaskDefinition, rawCLAs: string[]) {
     const {
       paramArguments,
       rawPositionalArguments
@@ -94,7 +113,7 @@ export class ArgumentsParser {
     return { ...paramArguments, ...positionalArguments };
   }
 
-  _parseTaskParamArguments(taskDefintion, rawCLAs: string[]) {
+  _parseTaskParamArguments(taskDefintion: ITaskDefinition, rawCLAs: string[]) {
     const paramArguments = {};
     const rawPositionalArguments: string[] = [];
 
@@ -127,11 +146,11 @@ export class ArgumentsParser {
   }
 
   _addBuidlerDefaultArguments(
-    buidlerParamDefinitions,
-    envVariableArguments,
-    buidlerArguments
+    buidlerParamDefinitions: BuidlerParamDefinitons,
+    envVariableArguments: BuidlerArguments,
+    buidlerArguments: Partial<BuidlerArguments>
   ) {
-    for (const paramName of Object.keys(buidlerParamDefinitions)) {
+    for (const paramName of unsafeObjectKeys(buidlerParamDefinitions)) {
       const definition = buidlerParamDefinitions[paramName];
       const envVarArgument = envVariableArguments[paramName];
 
@@ -150,7 +169,10 @@ export class ArgumentsParser {
     }
   }
 
-  _addTaskDefaultArguments(taskDefintion, taskArguments) {
+  _addTaskDefaultArguments(
+    taskDefintion: ITaskDefinition,
+    taskArguments: TaskArguments
+  ) {
     for (const paramName of Object.keys(taskDefintion.paramDefinitions)) {
       const definition = taskDefintion.paramDefinitions[paramName];
 
@@ -167,7 +189,7 @@ export class ArgumentsParser {
     }
   }
 
-  _isParamName(str, paramDefinitions) {
+  _isParamName(str: string, paramDefinitions: ParamDefinitionsMap) {
     if (!this._hasCLAParamNameFormat(str)) {
       return false;
     }
@@ -176,11 +198,16 @@ export class ArgumentsParser {
     return paramDefinitions[name] !== undefined;
   }
 
-  _hasCLAParamNameFormat(str) {
+  _hasCLAParamNameFormat(str: string) {
     return str.startsWith(ArgumentsParser.PARAM_PREFIX);
   }
 
-  _parseArgumentAt(rawCLAs, index, paramDefinitions, parsedArguments) {
+  _parseArgumentAt(
+    rawCLAs: string[],
+    index: number,
+    paramDefinitions: ParamDefinitionsMap,
+    parsedArguments: TaskArguments
+  ) {
     const claArg = rawCLAs[index];
     const paramName = ArgumentsParser.cLAToParamName(claArg);
     const definition = paramDefinitions[paramName];
@@ -201,10 +228,10 @@ export class ArgumentsParser {
   }
 
   _parsePositionalParamArgs(
-    rawPositionalParamArgs,
-    positionalParamDefinitions
-  ) {
-    const args = {};
+    rawPositionalParamArgs: string[],
+    positionalParamDefinitions: ParamDefinition<any>[]
+  ): TaskArguments {
+    const args: TaskArguments = {};
 
     for (let i = 0; i < positionalParamDefinitions.length; i++) {
       const definition = positionalParamDefinitions[i];
