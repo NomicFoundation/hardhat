@@ -13,27 +13,30 @@ declare const Web3: any;
 declare const types: typeof argumentTypes;
 declare const extendEnvironment: typeof extendEnvironmentDsl;
 
-declare function task(name: string, description?: string): ITaskDefinition;
-declare function task(
-  name: string,
-  action: ActionType<TaskArguments>
-): ITaskDefinition;
-declare function task(
-  name: string,
-  descriptionOrAction?: string | ActionType<TaskArguments>,
-  action?: ActionType<TaskArguments>
-): ITaskDefinition;
-
-export function internalTask(
+export function task<ArgsT extends TaskArguments>(
   name: string,
   description?: string
 ): ITaskDefinition;
-export function internalTask(
+export function task<ArgsT extends TaskArguments>(
   name: string,
-  action: ActionType<TaskArguments>
+  action: ActionType<ArgsT>
 ): ITaskDefinition;
-export function internalTask(
+export function task<ArgsT extends TaskArguments>(
   name: string,
-  descriptionOrAction?: string | ActionType<TaskArguments>,
-  action?: ActionType<TaskArguments>
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition;
+
+export function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  description?: string
+): ITaskDefinition;
+export function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  action: ActionType<ArgsT>
+): ITaskDefinition;
+export function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
 ): ITaskDefinition;
