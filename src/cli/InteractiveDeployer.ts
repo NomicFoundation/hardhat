@@ -2,6 +2,7 @@ import { BuidlerConfig, TruffleContractInstance } from "../types";
 import { TruffleArtifactsStorage } from "../core/truffle";
 import { artifacts, pweb3 } from "../injected-env";
 
+// TODO: This imports are outdated, import-lazy shouldn't ne used anymore.
 const importLazy = require("import-lazy")(require);
 const inquirer = importLazy("inquirer");
 const chalk = importLazy("chalk");
