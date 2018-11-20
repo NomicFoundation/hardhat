@@ -1,8 +1,6 @@
 import path from "path";
-import util from "util";
-import cpsGlob from "glob";
-const glob = util.promisify(cpsGlob);
 
+import { glob } from "../util/glob";
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { Resolver } from "../solidity/resolver";
 import { Compiler } from "../solidity/compiler";

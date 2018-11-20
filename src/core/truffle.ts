@@ -1,18 +1,13 @@
+import path from "path";
+import util from "util";
 import {
   BuidlerConfig,
   NetworkConfig,
   TruffleContract,
   TruffleContractInstance
 } from "../types";
-
-const importLazy = require("import-lazy")(require);
-
-const path = require("path");
-const fs = importLazy("fs-extra");
-const util = require("util");
-const glob = util.promisify(require("glob"));
-const TruffleContract = importLazy("truffle-contract");
-const { BuidlerError, ERRORS } = require("./errors");
+import { BuidlerError, ERRORS } from "./errors";
+import { glob } from "../util/glob";
 
 export class TruffleArtifactsStorage {
   private readonly _artifactsPath: string;
