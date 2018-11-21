@@ -64,7 +64,7 @@
     "ora": "^2.1.0",
     "repl.history": "^0.1.4",
     "resolve-from": "^4.0.0",
-    "solc": "^0.4.21",
+    "solc": "^0.5.0",
     "solidity-parser-antlr": "^0.2.12",
     "source-map-support": "^0.5.9",
     "truffle-contract": "^3.0.5",
