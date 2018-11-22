@@ -1,5 +1,5 @@
 import { BuidlerError, ERRORS } from "./errors";
-import { internalTask, task } from "./tasks/dsl";
+import { TasksDSL } from "./tasks/dsl";
 import * as types from "./argumentTypes";
 import { getUserConfigPath } from "./project-structure";
 import deepmerge from "deepmerge";
@@ -10,7 +10,7 @@ function importCsjOrEsModule(path: string): any {
   return imported.default !== undefined ? imported.default : imported;
 }
 
-export function getConfig(): BuidlerConfig {
+export function getConfig() {
   const pathToConfigFile = getUserConfigPath();
 
   const importLazy = require("import-lazy")(require);
@@ -18,6 +18,10 @@ export function getConfig(): BuidlerConfig {
 
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
+  const DSL = new TasksDSL();
+  const internalTask = DSL.internalTask.bind(DSL);
+  const task = DSL.task.bind(DSL);
+
   const exported = { internalTask, task, Web3, types };
   const globalAsAny: any = global;
 
@@ -37,7 +41,7 @@ export function getConfig(): BuidlerConfig {
     arrayMerge: (destination: any[], source: any[]) => source
   });
 
-  return config;
+  return [config, DSL.getTaskDefinitions()];
 }
 
 export function getNetworkConfig(

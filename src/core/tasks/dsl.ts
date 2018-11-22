@@ -9,77 +9,69 @@ import {
   TasksMap
 } from "../../types";
 
-const tasks: TasksMap = {};
+export class TasksDSL {
 
-function addTask<ArgT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgT>,
-  action?: ActionType<ArgT>,
-  isInternal?: boolean
-) {
-  const parentTaskDefinition = tasks[name];
+  private readonly tasks: TasksMap = {};
 
-  let taskDefinition: ITaskDefinition;
-
-  if (parentTaskDefinition !== undefined) {
-    taskDefinition = new OverloadedTaskDefinition(
-      parentTaskDefinition,
-      isInternal
-    );
-  } else {
-    taskDefinition = new TaskDefinition(name, isInternal);
+  task<ArgsT extends TaskArguments>(name: string, description?: string): ITaskDefinition;
+  task<ArgsT extends TaskArguments>(name: string, action: ActionType<ArgsT>): ITaskDefinition;
+  task<ArgsT extends TaskArguments>(
+    name: string,
+    descriptionOrAction?: string | ActionType<ArgsT>,
+    action?: ActionType<ArgsT>
+  ): ITaskDefinition {
+    return this.addTask(name, descriptionOrAction, action, false);
   }
 
-  if (descriptionOrAction instanceof Function) {
-    action = descriptionOrAction;
-    descriptionOrAction = undefined;
+  internalTask<ArgsT extends TaskArguments>(name: string, description?: string): ITaskDefinition;
+  internalTask<ArgsT extends TaskArguments>(name: string, action: ActionType<ArgsT>): ITaskDefinition;
+  internalTask<ArgsT extends TaskArguments>(
+    name: string,
+    descriptionOrAction?: string | ActionType<ArgsT>,
+    action?: ActionType<ArgsT>
+  ): ITaskDefinition {
+    return this.addTask(name, descriptionOrAction, action, true);
   }
 
-  if (descriptionOrAction !== undefined) {
-    taskDefinition.setDescription(descriptionOrAction);
+  addTask<ArgT extends TaskArguments>(
+    name: string,
+    descriptionOrAction?: string | ActionType<ArgT>,
+    action?: ActionType<ArgT>,
+    isInternal?: boolean
+  ) {
+    const parentTaskDefinition = this.tasks[name];
+  
+    let taskDefinition: ITaskDefinition;
+  
+    if (parentTaskDefinition !== undefined) {
+      taskDefinition = new OverloadedTaskDefinition(
+        parentTaskDefinition,
+        isInternal
+      );
+    } else {
+      taskDefinition = new TaskDefinition(name, isInternal);
+    }
+  
+    if (descriptionOrAction instanceof Function) {
+      action = descriptionOrAction;
+      descriptionOrAction = undefined;
+    }
+  
+    if (descriptionOrAction !== undefined) {
+      taskDefinition.setDescription(descriptionOrAction);
+    }
+  
+    if (action !== undefined) {
+      taskDefinition.setAction(action);
+    }
+  
+    this.tasks[name] = taskDefinition;
+  
+    return taskDefinition;
   }
 
-  if (action !== undefined) {
-    taskDefinition.setAction(action);
+  getTaskDefinitions() {
+    return this.tasks;
   }
-
-  tasks[name] = taskDefinition;
-
-  return taskDefinition;
 }
 
-export function task<ArgsT extends TaskArguments>(
-  name: string,
-  description?: string
-): ITaskDefinition;
-export function task<ArgsT extends TaskArguments>(
-  name: string,
-  action: ActionType<ArgsT>
-): ITaskDefinition;
-export function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition {
-  return addTask(name, descriptionOrAction, action, false);
-}
-
-export function internalTask<ArgsT extends TaskArguments>(
-  name: string,
-  description?: string
-): ITaskDefinition;
-export function internalTask<ArgsT extends TaskArguments>(
-  name: string,
-  action: ActionType<ArgsT>
-): ITaskDefinition;
-export function internalTask<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition {
-  return addTask(name, descriptionOrAction, action, true);
-}
-
-export function getTaskDefinitions() {
-  return tasks;
-}

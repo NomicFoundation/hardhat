@@ -1,7 +1,8 @@
 import {
   BuidlerConfig,
   RunTaskFunction,
-  TruffleEnvironmentArtifactsType
+  TruffleEnvironmentArtifactsType,
+  TasksMap
 } from "./types";
 import { BuidlerArguments } from "./core/params/buidler-params";
 import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
@@ -21,3 +22,4 @@ declare const config: BuidlerConfig;
 declare const buidlerArguments: BuidlerArguments;
 declare const artifacts: TruffleEnvironmentArtifactsType;
 declare const run: RunTaskFunction;
+declare const tasks: TasksMap;

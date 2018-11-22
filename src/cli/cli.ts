@@ -3,7 +3,6 @@ import "source-map-support/register";
 import { getPackageJson } from "../util/packageInfo";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getConfig } from "../core/config";
-import { getTaskDefinitions } from "../core/tasks/dsl";
 import { isCwdInsideProject } from "../core/project-structure";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
@@ -56,11 +55,10 @@ async function main() {
       return;
     }
 
-    const config = getConfig();
-    const taskDefintions = getTaskDefinitions();
+    const [config, taskDefinitions] = getConfig();
 
     const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
-    const taskDefinition = taskDefintions[taskName];
+    const taskDefinition = taskDefinitions[taskName];
 
     if (taskDefinition === undefined) {
       throw new BuidlerError(
@@ -77,7 +75,7 @@ async function main() {
     const env = new BuidlerRuntimeEnvironment(
       config,
       buidlerArguments,
-      taskDefintions
+      taskDefinitions
     );
 
     // --help is a also special case
