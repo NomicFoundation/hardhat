@@ -1,11 +1,7 @@
+import findUp from "find-up";
+import path from "path";
 import { getPackageRoot } from "../util/packageInfo";
-
-const importLazy = require("import-lazy")(require);
-const findUp = require("find-up");
-const path = require("path");
-const fs = importLazy("fs-extra");
-
-const { ERRORS, BuidlerError } = require("./errors");
+import { BuidlerError, ERRORS } from "./errors";
 
 const CONFIG_FILENAME = "buidler-config.js";
 
@@ -27,8 +23,9 @@ export function getProjectRoot() {
 }
 
 export async function getRecommendedGitIgnore() {
+  const fsExtra = await import("fs-extra");
   const packageRoot = await getPackageRoot();
   const gitIgnorePath = path.join(packageRoot, "recommended-gitignore.txt");
 
-  return fs.readFile(gitIgnorePath, "utf-8");
+  return fsExtra.readFile(gitIgnorePath, "utf-8");
 }

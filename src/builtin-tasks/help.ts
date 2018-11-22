@@ -1,11 +1,8 @@
 import { getPackageJson } from "../util/packageInfo";
+import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
+import { HelpPrinter } from "../cli/HelpPrinter";
+import { getTaskDefinitions } from "../core/tasks/dsl";
 import { task } from "../config-dsl";
-
-const {
-  BUIDLER_CLI_PARAM_DEFINITIONS
-} = require("../core/params/buidler-params");
-const { HelpPrinter } = require("../cli/HelpPrinter");
-const { getTaskDefinitions } = require("../core/tasks/dsl");
 
 task("help", "Prints this message")
   .addOptionalPositionalParam(
@@ -18,7 +15,7 @@ task("help", "Prints this message")
     const helpPrinter = new HelpPrinter(
       packageJson.name,
       packageJson.version,
-      BUIDLER_CLI_PARAM_DEFINITIONS,
+      BUIDLER_PARAM_DEFINITIONS,
       getTaskDefinitions()
     );
 
