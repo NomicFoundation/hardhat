@@ -1,4 +1,11 @@
-import { task } from "../config-dsl";
+import { ActionType, TaskArguments } from "../types";
+import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+
+declare function task<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition;
 
 task("console", "Opens a buidler console")
   .addFlag("noCompile", "Don't compile before running this task")

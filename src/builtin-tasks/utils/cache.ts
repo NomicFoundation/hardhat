@@ -1,7 +1,7 @@
 import path from "path";
 
 import { glob } from "../../util/glob";
-import { config } from "../../injected-env";
+import { BuidlerConfig } from "../../types";
 
 async function getModificationDate(file: string): Promise<Date> {
   const fsExtra = await import("fs-extra");
@@ -9,7 +9,7 @@ async function getModificationDate(file: string): Promise<Date> {
   return new Date(stat.mtime);
 }
 
-async function getConfigModificationDate(): Promise<Date> {
+async function getConfigModificationDate(config: BuidlerConfig): Promise<Date> {
   return getModificationDate(config.paths.configFile);
 }
 
@@ -32,7 +32,8 @@ async function getLastModificationDateInDir(dir: string) {
 
 export async function areArtifactsCached(
   sourcesDir: string,
-  artifactsDir: string
+  artifactsDir: string,
+  config: BuidlerConfig
 ) {
   const lastSourcesModification = await getLastModificationDateInDir(
     sourcesDir
@@ -40,7 +41,7 @@ export async function areArtifactsCached(
   const lastArtifactsModification = await getLastModificationDateInDir(
     artifactsDir
   );
-  const configModification = await getConfigModificationDate();
+  const configModification = await getConfigModificationDate(config);
 
   if (
     lastArtifactsModification === undefined ||

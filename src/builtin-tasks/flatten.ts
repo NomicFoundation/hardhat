@@ -3,9 +3,20 @@ import { BuidlerError, ERRORS } from "../core/errors";
 
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { ResolvedFile } from "../solidity/resolver";
-import { ResolvedFilesMap } from "../types";
-import { config, run } from "../injected-env";
-import { task, internalTask } from "../config-dsl";
+import { ActionType, ResolvedFilesMap, TaskArguments } from "../types";
+import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+
+declare function task<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition;
+
+declare function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition;
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
@@ -53,7 +64,7 @@ function getFileWithoutPragmaNorImports(resolvedFile: ResolvedFile) {
 internalTask(
   "builtin:get-flattened-sources",
   "Returns all contracts and their dependencies flattened",
-  async () => {
+  async (_, { config, run }) => {
     const graph = await run("builtin:get-dependency-graph");
     const sortedFiles = getSortedFiles(graph);
 
@@ -76,7 +87,7 @@ internalTask(
 task(
   "flatten",
   "Flattens all the contract and their dependencies",
-  async () => {
+  async (_, { config, run }) => {
     console.log(await run("builtin:get-flattened-sources"));
   }
 );

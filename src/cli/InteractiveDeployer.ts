@@ -1,6 +1,9 @@
-import { BuidlerConfig, TruffleContractInstance } from "../types";
+import {
+  BuidlerConfig,
+  TruffleContractInstance,
+  TruffleEnvironmentArtifactsType
+} from "../types";
 import { TruffleArtifactsStorage } from "../core/truffle";
-import { artifacts, pweb3 } from "../injected-env";
 import { BuidlerError, ERRORS } from "../core/errors";
 
 // TODO: This imports are outdated, import-lazy shouldn't ne used anymore.
@@ -9,6 +12,9 @@ const inquirer = importLazy("inquirer");
 const chalk = importLazy("chalk");
 const ethUtil = importLazy("ethereumjs-util");
 const BigNumber = importLazy("bignumber.js");
+
+declare const pweb3: any;
+declare const artifacts: TruffleEnvironmentArtifactsType;
 
 const ACCOUNTS_ADDRESS_MODE = "accounts";
 const DEPLOYED_CONTRACT_ADDRESS_MODE = "deployed_contract";
