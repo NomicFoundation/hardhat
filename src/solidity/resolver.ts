@@ -79,14 +79,12 @@ export class Resolver {
   }
 
   async resolveLibrarySourceFile(globalName: string): Promise<ResolvedFile> {
-    const { default: resolveFrom } = await import("resolve-from");
     const fsExtra = await import("fs-extra");
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
 
     let packagePath;
     try {
-      packagePath = resolveFrom(
-        this.config.paths.root,
+      packagePath = this._resolveFromProjectRoot(
         path.join(libraryName, "package.json")
       );
     } catch (error) {
@@ -99,7 +97,7 @@ export class Resolver {
 
     let absolutePath;
     try {
-      absolutePath = resolveFrom(this.config.paths.root, globalName);
+      absolutePath = this._resolveFromProjectRoot(globalName);
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND,
@@ -173,5 +171,11 @@ export class Resolver {
 
   _isRelativeImport(imported: string): boolean {
     return imported.startsWith("./") || imported.startsWith("../");
+  }
+
+  _resolveFromProjectRoot(fileName: string) {
+    return require.resolve(fileName, {
+      paths: [this.config.paths.root]
+    });
   }
 }

@@ -1,18 +1,13 @@
+import path from "path";
+import util from "util";
 import {
   BuidlerConfig,
   NetworkConfig,
   TruffleContract,
   TruffleContractInstance
 } from "../types";
-
-const importLazy = require("import-lazy")(require);
-
-const path = require("path");
-const fs = importLazy("fs-extra");
-const util = require("util");
-const glob = util.promisify(require("glob"));
-const TruffleContract = importLazy("truffle-contract");
-const { BuidlerError, ERRORS } = require("./errors");
+import { BuidlerError, ERRORS } from "./errors";
+import { glob } from "../util/glob";
 
 export class TruffleArtifactsStorage {
   private readonly _artifactsPath: string;
@@ -32,8 +27,9 @@ export class TruffleArtifactsStorage {
   }
 
   async _saveTruffleArtifact(contractName: string, contract: any) {
+    const fsExtra = await import("fs-extra");
     const truffleDir = path.join(this._artifactsPath, "truffle");
-    await fs.ensureDir(truffleDir);
+    await fsExtra.ensureDir(truffleDir);
 
     const bytecode =
       (contract.evm && contract.evm.bytecode && contract.evm.bytecode.object) ||
@@ -49,7 +45,7 @@ export class TruffleArtifactsStorage {
         contract.evm.bytecode.linkReferences
     };
 
-    await fs.outputJSON(
+    await fsExtra.outputJSON(
       path.join(truffleDir, contractName + ".json"),
       artifact,
       {
@@ -59,24 +55,26 @@ export class TruffleArtifactsStorage {
   }
 
   getTruffleArtifact(contractName: string) {
+    const fsExtra = require("fs-extra");
     const artifactPath = path.join(
       this._artifactsPath,
       "truffle",
       `${contractName}.json`
     );
 
-    if (!fs.pathExistsSync(artifactPath)) {
+    if (!fsExtra.pathExistsSync(artifactPath)) {
       throw new BuidlerError(ERRORS.TRUFFLE_ARTIFACT_NOT_FOUND, contractName);
     }
 
-    return fs.readJsonSync(artifactPath);
+    return fsExtra.readJsonSync(artifactPath);
   }
 
   async getAllArtifacts() {
+    const fsExtra = await import("fs-extra");
     const artifactsGlob = path.join(this._artifactsPath, "truffle", "*.json");
     const artifactFiles = await glob(artifactsGlob);
 
-    return Promise.all(artifactFiles.map((f: string) => fs.readJson(f)));
+    return Promise.all(artifactFiles.map((f: string) => fsExtra.readJson(f)));
   }
 }
 
@@ -367,7 +365,8 @@ export class TruffleEnvironmentArtifacts {
 
   _getTruffleContract(contractName: string) {
     const artifact = this._storage.getTruffleArtifact(contractName);
-    const Contract = TruffleContract(artifact);
+    const TruffleContractFactory = require("truffle-contract");
+    const Contract = TruffleContractFactory(artifact);
 
     this._provisioner.provision(Contract);
 

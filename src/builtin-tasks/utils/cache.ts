@@ -1,8 +1,7 @@
 import path from "path";
-import util from "util";
-import globCPS from "glob";
+
+import { glob } from "../../util/glob";
 import { config } from "../../injected-env";
-const glob = util.promisify(globCPS);
 
 async function getModificationDate(file: string): Promise<Date> {
   const fsExtra = await import("fs-extra");

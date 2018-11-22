@@ -1,9 +1,8 @@
-const path = require("path");
-const glob = require("glob");
+import path from "path";
+import { globSync } from "../../util/glob";
 
 const pattern = path.join(__dirname, "..", "..", "builtin-tasks", "*.js");
 
-glob
-  .sync(pattern)
+globSync(pattern)
   .sort()
   .forEach((f: string) => require(f));

@@ -1,6 +1,7 @@
 import { BuidlerConfig, TruffleContractInstance } from "../types";
 import { TruffleArtifactsStorage } from "../core/truffle";
 import { artifacts, pweb3 } from "../injected-env";
+import { BuidlerError, ERRORS } from "../core/errors";
 
 // TODO: This imports are outdated, import-lazy shouldn't ne used anymore.
 const importLazy = require("import-lazy")(require);
@@ -8,8 +9,6 @@ const inquirer = importLazy("inquirer");
 const chalk = importLazy("chalk");
 const ethUtil = importLazy("ethereumjs-util");
 const BigNumber = importLazy("bignumber.js");
-
-const { BuidlerError, ERRORS } = require("../core/errors");
 
 const ACCOUNTS_ADDRESS_MODE = "accounts";
 const DEPLOYED_CONTRACT_ADDRESS_MODE = "deployed_contract";
@@ -125,8 +124,8 @@ export class InteractiveDeployer {
     args: any[],
     libraries?: TruffleContractInstance[]
   ) {
-    const ora = require("ora");
-    const spinner = ora(`Deploying ${contractName}`, { color: "cyan" }).start();
+    const { default: ora } = await import("ora");
+    const spinner = ora(`Deploying ${contractName}`).start();
 
     const Contract = artifacts.require(contractName);
 

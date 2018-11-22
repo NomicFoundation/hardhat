@@ -1,8 +1,7 @@
 import path from "path";
 import util from "util";
-import globCPS from "glob";
-const glob = util.promisify(globCPS);
 
+import { glob } from "../util/glob";
 import { internalTask, task } from "../config-dsl";
 import { config, web3, run } from "../injected-env";
 
