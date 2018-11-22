@@ -52,7 +52,7 @@ export class Compiler {
   async compile(input: any) {
     const solc = await this.getSolc();
 
-    const jsonOutput = solc.compileStandardWrapper(JSON.stringify(input));
+    const jsonOutput = solc.compile(JSON.stringify(input));
     return JSON.parse(jsonOutput);
   }
 
