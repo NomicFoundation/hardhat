@@ -1,10 +1,10 @@
 import {
   BuidlerConfig,
-  BuidlerRuntimeEnvironment,
   RunTaskFunction,
   TruffleEnvironmentArtifactsType
 } from "./types";
 import { BuidlerArguments } from "./core/params/buidler-params";
+import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
 
 // This should declare all members of BuidlerRuntimeEnvironment as global
 // variables, with the exception of injectToGlobal.

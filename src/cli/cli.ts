@@ -10,6 +10,7 @@ import { createProject } from "./project-creation";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
+import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
 
 async function printVersionMessage() {
   const packageJson = await getPackageJson();
@@ -56,9 +57,10 @@ async function main() {
     }
 
     const config = getConfig();
+    const taskDefintions = getTaskDefinitions();
 
     const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
-    const taskDefinition = getTaskDefinitions()[taskName];
+    const taskDefinition = taskDefintions[taskName];
 
     if (taskDefinition === undefined) {
       throw new BuidlerError(
@@ -72,7 +74,11 @@ async function main() {
       unparsedCLAs
     );
 
-    const env = createEnvironment(config, buidlerArguments);
+    const env = new BuidlerRuntimeEnvironment(
+      config,
+      buidlerArguments,
+      taskDefintions
+    );
 
     // --help is a also special case
     if (buidlerArguments.help && taskName !== "help") {
