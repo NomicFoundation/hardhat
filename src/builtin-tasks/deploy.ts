@@ -1,6 +1,13 @@
 import { InteractiveDeployer } from "../cli/InteractiveDeployer";
 import { BuidlerError, ERRORS } from "../core/errors";
-import { task } from "../config-dsl";
+import { ActionType, TaskArguments } from "../types";
+import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+
+declare function task<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition;
 
 task("deploy", "Interactively deploy contracts")
   .addFlag("noCompile", "Don't compile before running this task")

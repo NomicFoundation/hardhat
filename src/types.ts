@@ -1,7 +1,7 @@
-import { BuidlerArguments } from "./core/params/buidler-params";
 import { ResolvedFile } from "./solidity/resolver";
 import { SolcOptimizerConfig } from "./solidity/compiler";
 import { ITaskDefinition } from "./core/tasks/TaskDefinition";
+import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
 
 export interface GanacheOptions {
   gasLimit: number;
@@ -72,22 +72,6 @@ export type RunTaskFunction = (
 export type RunSuperFunction<ArgT extends TaskArguments> = (
   taskArguments?: ArgT
 ) => Promise<any>;
-
-export interface BuidlerRuntimeEnvironment {
-  Web3: any;
-  pweb3: any;
-  web3: any;
-  config: BuidlerConfig;
-  buidlerArguments: BuidlerArguments;
-  artifacts: TruffleEnvironmentArtifactsType;
-  run: RunTaskFunction;
-  injectToGlobal: () => void;
-}
-
-export type EnvironmentExtensionFunction = (
-  env: BuidlerRuntimeEnvironment,
-  config: BuidlerConfig
-) => void;
 
 // TODO: This may be wrong. Maybe it should be just TaskArguments. The thing
 // is that doing that won't allow us to type the task definitions with more

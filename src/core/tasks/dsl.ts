@@ -5,8 +5,6 @@ import {
 } from "./TaskDefinition";
 import {
   ActionType,
-  BuidlerRuntimeEnvironment,
-  RunSuperFunction,
   TaskArguments,
   TasksMap
 } from "../../types";
@@ -80,57 +78,6 @@ export function internalTask<ArgsT extends TaskArguments>(
   action?: ActionType<ArgsT>
 ): ITaskDefinition {
   return addTask(name, descriptionOrAction, action, true);
-}
-
-export async function runTask(
-  env: BuidlerRuntimeEnvironment,
-  name: string,
-  taskArguments: TaskArguments
-) {
-  const taskDefinition = tasks[name];
-
-  if (taskDefinition === undefined) {
-    throw new Error(`Task ${name} not defined`);
-  }
-
-  return runTaskDefinition(env, taskDefinition, taskArguments);
-}
-
-export async function runTaskDefinition(
-  env: BuidlerRuntimeEnvironment,
-  taskDefinition: ITaskDefinition,
-  taskArguments: TaskArguments
-) {
-  env.injectToGlobal();
-
-  let runSuper: RunSuperFunction<TaskArguments>;
-
-  if (taskDefinition instanceof OverloadedTaskDefinition) {
-    runSuper = async (_taskArguments = taskArguments) =>
-      runTaskDefinition(
-        env,
-        taskDefinition.parentTaskDefinition,
-        _taskArguments
-      );
-  } else {
-    runSuper = async () => {
-      throw new Error(
-        `Task ${
-          taskDefinition.name
-        } doesn't overload a previous one, so there's runSuper.`
-      );
-    };
-  }
-
-  const globalAsAny = global as any;
-
-  globalAsAny.runSuper = runSuper;
-
-  const taskResult = taskDefinition.action(taskArguments, env, runSuper);
-
-  globalAsAny.runSuper = undefined;
-
-  return taskResult;
 }
 
 export function getTaskDefinitions() {

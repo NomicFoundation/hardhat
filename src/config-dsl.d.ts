@@ -1,5 +1,4 @@
 import * as argumentTypes from "./core/argumentTypes";
-import { extendEnvironment as extendEnvironmentDsl } from "./core/env/extensions";
 import { ITaskDefinition } from "./core/tasks/TaskDefinition";
 import { ActionType, TaskArguments } from "./types";
 
@@ -11,7 +10,6 @@ import { ActionType, TaskArguments } from "./types";
 
 declare const Web3: any;
 declare const types: typeof argumentTypes;
-declare const extendEnvironment: typeof extendEnvironmentDsl;
 
 declare function task<ArgsT extends TaskArguments>(
   name: string,

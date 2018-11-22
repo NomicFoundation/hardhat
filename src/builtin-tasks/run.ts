@@ -1,6 +1,18 @@
-import { run } from "../injected-env";
-import { task, internalTask } from "../config-dsl";
 import { BuidlerError, ERRORS } from "../core/errors";
+import { ActionType, TaskArguments } from "../types";
+import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+
+declare function task<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition;
+
+declare function internalTask<ArgsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<ArgsT>,
+  action?: ActionType<ArgsT>
+): ITaskDefinition;
 
 internalTask("builtin:setup-run-environment", async () => {
   // this task is only here in case someone wants to override it.
@@ -13,7 +25,10 @@ task("run", "Runs an user-defined script after compiling the project")
   )
   .addFlag("noCompile", "Don't compile before running this task")
   .setAction(
-    async ({ script, noCompile }: { script: string; noCompile: boolean }) => {
+    async (
+      { script, noCompile }: { script: string; noCompile: boolean },
+      { run }
+    ) => {
       const fsExtra = await import("fs-extra");
 
       if (!(await fsExtra.pathExists(script))) {
