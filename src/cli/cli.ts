@@ -4,7 +4,6 @@ import { getPackageJson } from "../util/packageInfo";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getConfig } from "../core/config";
 import { getTaskDefinitions } from "../core/tasks/dsl";
-import { createEnvironment } from "../core/env/definition";
 import { isCwdInsideProject } from "../core/project-structure";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";

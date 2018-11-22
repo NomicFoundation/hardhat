@@ -1,5 +1,4 @@
 import { BuidlerError, ERRORS } from "./errors";
-import { extendEnvironment } from "./env/extensions";
 import { internalTask, task } from "./tasks/dsl";
 import * as types from "./argumentTypes";
 import { getUserConfigPath } from "./project-structure";
@@ -14,7 +13,7 @@ export function getConfig() {
 
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
-  const exported = { internalTask, task, Web3, types, extendEnvironment };
+  const exported = { internalTask, task, Web3, types };
   const globalAsAny: any = global;
 
   Object.entries(exported).forEach(
