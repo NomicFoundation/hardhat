@@ -7,10 +7,11 @@ import {
   ActionType,
   BuidlerRuntimeEnvironment,
   RunSuperFunction,
-  TaskArguments
+  TaskArguments,
+  TasksMap
 } from "../../types";
 
-const tasks: { [name: string]: ITaskDefinition } = {};
+const tasks: TasksMap = {};
 
 function addTask<ArgT extends TaskArguments>(
   name: string,

@@ -6,13 +6,14 @@ import {
   ParamDefinitionsMap
 } from "../core/tasks/TaskDefinition";
 import { BuidlerParamDefinitons } from "../core/params/buidler-params";
+import { TasksMap } from "../types";
 
 export class HelpPrinter {
   constructor(
     private readonly programName: string,
     private readonly version: string,
     private readonly buidlerParamDefinitions: BuidlerParamDefinitons,
-    private readonly tasks: { [name: string]: ITaskDefinition }
+    private readonly tasks: TasksMap
   ) {}
 
   printGlobalHelp(includeInternalTasks = false) {
@@ -28,7 +29,7 @@ export class HelpPrinter {
 
     console.log("\n\nAVAILABLE TASKS:\n");
 
-    const tasksToShow: { [name: string]: ITaskDefinition } = {};
+    const tasksToShow: TasksMap = {};
     for (const [taskName, taskDefinition] of Object.entries(this.tasks)) {
       if (includeInternalTasks || !taskDefinition.isInternal) {
         tasksToShow[taskName] = taskDefinition;

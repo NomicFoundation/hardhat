@@ -1,6 +1,7 @@
 import { BuidlerArguments } from "./core/params/buidler-params";
 import { ResolvedFile } from "./solidity/resolver";
 import { SolcOptimizerConfig } from "./solidity/compiler";
+import { ITaskDefinition } from "./core/tasks/TaskDefinition";
 
 export interface GanacheOptions {
   gasLimit: number;
@@ -56,6 +57,8 @@ export type TruffleEnvironmentArtifactsType = any;
 export type TruffleContract = any;
 
 export type TruffleContractInstance = any;
+
+export type TasksMap = { [name: string]: ITaskDefinition };
 
 export interface TaskArguments {
   [argumentName: string]: any;
