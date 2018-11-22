@@ -5,7 +5,12 @@ import { getUserConfigPath } from "./project-structure";
 import deepmerge from "deepmerge";
 import { AutoNetworkConfig, BuidlerConfig, NetworkConfig } from "../types";
 
-export function getConfig() {
+function importCsjOrEsModule(path: string): any {
+  const imported = require(path);
+  return imported.default !== undefined ? imported.default : imported;
+}
+
+export function getConfig(): BuidlerConfig {
   const pathToConfigFile = getUserConfigPath();
 
   const importLazy = require("import-lazy")(require);
@@ -22,8 +27,8 @@ export function getConfig() {
 
   require("./tasks/builtin-tasks");
 
-  const defaultConfig = require("./default-config");
-  const userConfig = require(pathToConfigFile);
+  const defaultConfig = importCsjOrEsModule("./default-config");
+  const userConfig = importCsjOrEsModule(pathToConfigFile);
 
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(exported).forEach(key => (globalAsAny[key] = undefined));
