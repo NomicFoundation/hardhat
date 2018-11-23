@@ -1,15 +1,9 @@
 import { InteractiveDeployer } from "../cli/InteractiveDeployer";
 import { BuidlerError, ERRORS } from "../core/errors";
-import { ActionType, TaskArguments } from "../types";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+import tasks from "../core/importable-tasks-dsl";
 
-declare function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-task("deploy", "Interactively deploy contracts")
+tasks
+  .task("deploy", "Interactively deploy contracts")
   .addFlag("noCompile", "Don't compile before running this task")
   .addOptionalParam("fromAccount", "The account used to deploy the contracts")
   .setAction(

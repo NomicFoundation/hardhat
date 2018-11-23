@@ -1,24 +1,12 @@
 import { BuidlerError, ERRORS } from "../core/errors";
-import { ActionType, TaskArguments } from "../types";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+import tasks from "../core/importable-tasks-dsl";
 
-declare function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-declare function internalTask<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-internalTask("builtin:setup-run-environment", async () => {
+tasks.internalTask("builtin:setup-run-environment", async () => {
   // this task is only here in case someone wants to override it.
 });
 
-task("run", "Runs an user-defined script after compiling the project")
+tasks
+  .task("run", "Runs an user-defined script after compiling the project")
   .addPositionalParam(
     "script",
     "A js file to be run within buidler's environment"

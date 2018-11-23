@@ -3,20 +3,8 @@ import { BuidlerError, ERRORS } from "../core/errors";
 
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { ResolvedFile } from "../solidity/resolver";
-import { ActionType, ResolvedFilesMap, TaskArguments } from "../types";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
-
-declare function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-declare function internalTask<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
+import { ResolvedFilesMap } from "../types";
+import tasks from "../core/importable-tasks-dsl";
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
@@ -61,7 +49,7 @@ function getFileWithoutPragmaNorImports(resolvedFile: ResolvedFile) {
     .trim();
 }
 
-internalTask(
+tasks.internalTask(
   "builtin:get-flattened-sources",
   "Returns all contracts and their dependencies flattened",
   async (_, { config, run }) => {
@@ -84,7 +72,7 @@ internalTask(
   }
 );
 
-task(
+tasks.task(
   "flatten",
   "Flattens all the contract and their dependencies",
   async (_, { config, run }) => {

@@ -1,16 +1,10 @@
 import { getPackageJson } from "../util/packageInfo";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { HelpPrinter } from "../cli/HelpPrinter";
-import { ActionType, TaskArguments } from "../types";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+import tasks from "../core/importable-tasks-dsl";
 
-declare function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-task("help", "Prints this message")
+tasks
+  .task("help", "Prints this message")
   .addOptionalPositionalParam(
     "task",
     "An optional task to print more info about"

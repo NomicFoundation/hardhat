@@ -2,22 +2,10 @@ import path from "path";
 import util from "util";
 
 import { glob } from "../util/glob";
-import { ActionType, TaskArguments } from "../types";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+import tasks from "../core/importable-tasks-dsl";
 
-declare function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-declare function internalTask<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-internalTask("builtin:get-test-files")
+tasks
+  .internalTask("builtin:get-test-files")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -31,24 +19,28 @@ internalTask("builtin:get-test-files")
     return testFiles;
   });
 
-internalTask("builtin:setup-test-environment", async (_, { config, web3 }) => {
-  const { assert } = await import("chai");
-  const getAccounts = web3.eth.getAccounts.bind(web3.eth);
+tasks.internalTask(
+  "builtin:setup-test-environment",
+  async (_, { config, web3 }) => {
+    const { assert } = await import("chai");
+    const getAccounts = web3.eth.getAccounts.bind(web3.eth);
 
-  const globalAsAny = global as any;
-  globalAsAny.accounts = await util.promisify(getAccounts)();
-  globalAsAny.assert = assert;
+    const globalAsAny = global as any;
+    globalAsAny.accounts = await util.promisify(getAccounts)();
+    globalAsAny.assert = assert;
 
-  globalAsAny.contract = (
-    description: string,
-    definition: ((accounts: string) => any)
-  ) =>
-    describe(description, () => {
-      definition(globalAsAny.accounts);
-    });
-});
+    globalAsAny.contract = (
+      description: string,
+      definition: ((accounts: string) => any)
+    ) =>
+      describe(description, () => {
+        definition(globalAsAny.accounts);
+      });
+  }
+);
 
-internalTask("builtin:run-mocha-tests")
+tasks
+  .internalTask("builtin:run-mocha-tests")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -66,7 +58,8 @@ internalTask("builtin:run-mocha-tests")
     });
   });
 
-task("test", "Runs mocha tests")
+tasks
+  .task("test", "Runs mocha tests")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
