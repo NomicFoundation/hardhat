@@ -15,6 +15,7 @@ import {
   ITaskDefinition,
   OverloadedTaskDefinition
 } from "./tasks/TaskDefinition";
+import { TruffleEnvironmentArtifacts } from "./truffle";
 
 export class BuidlerRuntimeEnvironment {
   public readonly Web3: any;
@@ -35,6 +36,12 @@ export class BuidlerRuntimeEnvironment {
 
     const importLazy = require("import-lazy")(require);
     this.Web3 = importLazy("web3");
+
+    this.artifacts = new TruffleEnvironmentArtifacts(
+      config,
+      this.web3,
+      netConfig
+    );
   }
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
