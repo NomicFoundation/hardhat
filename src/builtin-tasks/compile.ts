@@ -7,8 +7,8 @@ import { Compiler } from "../solidity/compiler";
 import { TruffleArtifactsStorage } from "../core/truffle";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { areArtifactsCached } from "./utils/cache";
-import { ActionType, BuidlerConfig, TaskArguments } from "../types";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+import { BuidlerConfig } from "../types";
+import tasks from "../core/importable-tasks-dsl";
 
 function getCompilersDir(config: BuidlerConfig) {
   return path.join(config.paths.cache, "compilers");
@@ -22,23 +22,11 @@ function getCompiler(config: BuidlerConfig) {
   );
 }
 
-declare function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-declare function internalTask<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-internalTask("builtin:get-file-paths", async (_, { config }) => {
+tasks.internalTask("builtin:get-file-paths", async (_, { config }) => {
   return glob(path.join(config.paths.sources, "**/*.sol"));
 });
 
-internalTask("builtin:get-resolved-files", async (_, { config, run }) => {
+tasks.internalTask("builtin:get-resolved-files", async (_, { config, run }) => {
   const resolver = new Resolver(config);
   const paths = await run("builtin:get-file-paths");
   return Promise.all(
@@ -46,19 +34,22 @@ internalTask("builtin:get-resolved-files", async (_, { config, run }) => {
   );
 });
 
-internalTask("builtin:get-dependency-graph", async (_, { config, run }) => {
-  const resolver = new Resolver(config);
-  const localFiles = await run("builtin:get-resolved-files");
-  return DependencyGraph.createFromResolvedFiles(resolver, localFiles);
-});
+tasks.internalTask(
+  "builtin:get-dependency-graph",
+  async (_, { config, run }) => {
+    const resolver = new Resolver(config);
+    const localFiles = await run("builtin:get-resolved-files");
+    return DependencyGraph.createFromResolvedFiles(resolver, localFiles);
+  }
+);
 
-internalTask("builtin:get-compiler-input", async (_, { config, run }) => {
+tasks.internalTask("builtin:get-compiler-input", async (_, { config, run }) => {
   const compiler = getCompiler(config);
   const dependencyGraph = await run("builtin:get-dependency-graph");
   return compiler.getInputFromDependencyGraph(dependencyGraph);
 });
 
-internalTask("builtin:compile", async (_, { config, run }) => {
+tasks.internalTask("builtin:compile", async (_, { config, run }) => {
   const compiler = getCompiler(config);
   const input = await run("builtin:get-compiler-input");
 
@@ -89,7 +80,7 @@ internalTask("builtin:compile", async (_, { config, run }) => {
   return output;
 });
 
-internalTask("builtin:build-artifacts", async (_, { config, run }) => {
+tasks.internalTask("builtin:build-artifacts", async (_, { config, run }) => {
   if (
     await areArtifactsCached(
       config.paths.sources,
@@ -113,7 +104,7 @@ internalTask("builtin:build-artifacts", async (_, { config, run }) => {
   await truffleArtifactsStorage.saveTruffleArtifacts(compilationOutput);
 });
 
-task(
+tasks.task(
   "compile",
   "Compiles the whole project, building all artifacts",
   async (__, { run }) => run("builtin:build-artifacts")

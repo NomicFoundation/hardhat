@@ -1,13 +1,6 @@
-import { ActionType, TaskArguments } from "../types";
-import { ITaskDefinition } from "../core/tasks/TaskDefinition";
+import tasks from "../core/importable-tasks-dsl";
 
-declare function task<ArgsT extends TaskArguments>(
-  name: string,
-  descriptionOrAction?: string | ActionType<ArgsT>,
-  action?: ActionType<ArgsT>
-): ITaskDefinition;
-
-task(
+tasks.task(
   "clean",
   "Clears the cache and deletes all artifacts",
   async (_, { config }) => {

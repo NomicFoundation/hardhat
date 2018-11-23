@@ -1,5 +1,4 @@
 import { BuidlerError, ERRORS } from "./errors";
-import { TasksDSL } from "./tasks/dsl";
 import * as types from "./argumentTypes";
 import { getUserConfigPath } from "./project-structure";
 import deepmerge from "deepmerge";
@@ -15,7 +14,7 @@ export function getConfig() {
 
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
-  const DSL = new TasksDSL();
+  const DSL = require("./importable-tasks-dsl").default;
   const internalTask = DSL.internalTask.bind(DSL);
   const task = DSL.task.bind(DSL);
 
