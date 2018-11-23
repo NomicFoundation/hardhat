@@ -13,16 +13,13 @@ function importCsjOrEsModule(path: string): any {
 export function getConfig() {
   const pathToConfigFile = getUserConfigPath();
 
-  const importLazy = require("import-lazy")(require);
-  const Web3 = importLazy("web3");
-
   // Before loading the builtin tasks, the default and user's config we expose
   // the tasks' DSL and Web3 though the global object.
   const DSL = new TasksDSL();
   const internalTask = DSL.internalTask.bind(DSL);
   const task = DSL.task.bind(DSL);
 
-  const exported = { internalTask, task, Web3, types };
+  const exported = { internalTask, task, types };
   const globalAsAny: any = global;
 
   Object.entries(exported).forEach(
