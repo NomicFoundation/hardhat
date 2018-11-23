@@ -71,7 +71,7 @@ export class Compiler {
     const compilerFileName = await this.getCompilerBinFilename();
     const compilerPath = await this.downloadCompiler(compilerFileName);
 
-    const solcWrapper = await import("solc/Wrapper");
+    const { default: solcWrapper } = await import("solc/Wrapper");
     this.loadedSolc = solcWrapper(await import(compilerPath));
 
     return this.loadedSolc;
