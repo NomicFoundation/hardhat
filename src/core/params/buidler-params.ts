@@ -1,5 +1,5 @@
 import * as types from "../argumentTypes";
-import { ParamDefinition } from "../tasks/TaskDefinition";
+import { OptionalParamDefinition } from "../tasks/TaskDefinition";
 
 export interface BuidlerArguments {
   network: string;
@@ -10,7 +10,9 @@ export interface BuidlerArguments {
 }
 
 export type BuidlerParamDefinitons = {
-  [param in keyof BuidlerArguments]: ParamDefinition<BuidlerArguments[param]>
+  [param in keyof BuidlerArguments]: OptionalParamDefinition<
+    BuidlerArguments[param]
+  >
 };
 
 export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {

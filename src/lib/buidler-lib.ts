@@ -11,7 +11,10 @@ if (globalWithEnv.env !== undefined) {
   env = globalWithEnv.env;
 } else {
   const [config, taskDefinitions] = getConfig();
-  const buidlerArguments = getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS);
+  const buidlerArguments = getEnvBuidlerArguments(
+    BUIDLER_PARAM_DEFINITIONS,
+    process.env
+  );
   env = new BuidlerRuntimeEnvironment(
     config,
     buidlerArguments,
