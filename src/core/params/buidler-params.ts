@@ -21,7 +21,9 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
     defaultValue: "auto",
     description: "The network to connect to.",
     type: types.string,
-    isOptional: true
+    isOptional: true,
+    isFlag: false,
+    isVariadic: false
   },
   showStackTraces: {
     name: "showStackTraces",
@@ -29,7 +31,8 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
     description: "Show buidler's errors' stack traces.",
     type: types.boolean,
     isFlag: true,
-    isOptional: true
+    isOptional: true,
+    isVariadic: false
   },
   version: {
     name: "version",
@@ -37,7 +40,8 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
     description: "Show's buidler's version.",
     type: types.boolean,
     isFlag: true,
-    isOptional: true
+    isOptional: true,
+    isVariadic: false
   },
   help: {
     name: "help",
@@ -45,7 +49,8 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
     description: "Show's buidler's help.",
     type: types.boolean,
     isFlag: true,
-    isOptional: true
+    isOptional: true,
+    isVariadic: false
   },
   emoji: {
     name: "emoji",
@@ -53,6 +58,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
     description: "Use emoji in messages.",
     type: types.boolean,
     isFlag: true,
-    isOptional: true
+    isOptional: true,
+    isVariadic: false
   }
 };

@@ -9,9 +9,9 @@ export interface ParamDefinition<T> {
   defaultValue?: T;
   type: ArgumentType<T>;
   description?: string;
-  isOptional?: boolean;
-  isFlag?: boolean;
-  isVariadic?: boolean;
+  isOptional: boolean;
+  isFlag: boolean;
+  isVariadic: boolean;
 }
 
 export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
