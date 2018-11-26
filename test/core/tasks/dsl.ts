@@ -1,28 +1,5 @@
-import { assert, expect } from "chai";
-
-import { TaskArguments, TasksMap } from "../../types";
-import { ArgumentsParser } from "../../../src/cli/ArgumentsParser";
-import {
-  BuidlerArguments,
-  BUIDLER_PARAM_DEFINITIONS
-} from "../../../src/core/params/buidler-params";
-import {
-  BuidlerError,
-  ERRORS,
-  ErrorDescription
-} from "../../../src/core/errors";
-import {
-  ITaskDefinition,
-  TaskDefinition
-} from "../../../src/core/tasks/TaskDefinition";
-import { string, int } from "../../../src/core/argumentTypes";
+import { assert } from "chai";
 import { TasksDSL } from "../../../src/core/tasks/dsl";
-
-function assertCorrectError(f: () => any, error: ErrorDescription) {
-  expect(f)
-    .to.throw(BuidlerError)
-    .with.property("number", error.number);
-}
 
 describe("TasksDSL", () => {
   let dsl: TasksDSL;
