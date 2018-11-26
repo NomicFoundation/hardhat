@@ -10,15 +10,11 @@ export class TasksDSL {
 
   task<ArgsT extends TaskArguments>(
     name: string,
-    description?: string
+    description?: string,
+    action?: ActionType<ArgsT>
   ): ITaskDefinition;
   task<ArgsT extends TaskArguments>(
     name: string,
-    action: ActionType<ArgsT>
-  ): ITaskDefinition;
-  task<ArgsT extends TaskArguments>(
-    name: string,
-    description: string,
     action: ActionType<ArgsT>
   ): ITaskDefinition;
   task<ArgsT extends TaskArguments>(
@@ -31,15 +27,11 @@ export class TasksDSL {
 
   internalTask<ArgsT extends TaskArguments>(
     name: string,
-    description?: string
+    description?: string,
+    action?: ActionType<ArgsT>
   ): ITaskDefinition;
   internalTask<ArgsT extends TaskArguments>(
     name: string,
-    action: ActionType<ArgsT>
-  ): ITaskDefinition;
-  internalTask<ArgsT extends TaskArguments>(
-    name: string,
-    description: string,
     action: ActionType<ArgsT>
   ): ITaskDefinition;
   internalTask<ArgsT extends TaskArguments>(
@@ -87,7 +79,7 @@ export class TasksDSL {
     return taskDefinition;
   }
 
-  getTaskDefinitions() {
+  getTaskDefinitions(): TasksMap {
     return this.tasks;
   }
 }
