@@ -45,11 +45,7 @@ export class BuidlerError extends Error {
   }
 }
 
-interface KnownErrors {
-  [name: string]: ErrorDescription;
-}
-
-export const ERRORS: KnownErrors = {
+export const ERRORS = {
   BUIDLER_INTERNAL_ERROR: {
     number: 1,
     message: "An error occurred while creating this error, please report it."
@@ -242,7 +238,7 @@ export const ERRORS: KnownErrors = {
   }
 };
 
-function areNumbersRepeated(errors: KnownErrors) {
+function areNumbersRepeated(errors: typeof ERRORS) {
   const numbers = Object.values(errors).map(d => d.number);
   return numbers.length !== new Set(numbers).size;
 }
