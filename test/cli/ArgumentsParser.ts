@@ -9,8 +9,6 @@ import {
 import { BuidlerError, ERRORS, ErrorDescription } from "../../src/core/errors";
 import {
   ITaskDefinition,
-  ParamDefinition,
-  ParamDefinitionsMap,
   TaskDefinition
 } from "../../src/core/tasks/TaskDefinition";
 import { string, int } from "../../src/core/argumentTypes";
