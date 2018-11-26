@@ -235,6 +235,15 @@ export const ERRORS = {
   TASK_FLATTEN_CYCLE: {
     number: 44,
     message: "buidler flatten doesn't support cyclic dependencies."
+  },
+  TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE: {
+    number: 45,
+    message:
+      "Default value for param %s of task %s doesn't match the default one, try specifying it."
+  },
+  TASKS_DEFINITION_DEFAULT_IN_MANDATORY_PARAM: {
+    number: 46,
+    message: "Default value for param %s of task %s shouldn't be set."
   }
 };
 
