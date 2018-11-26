@@ -45,7 +45,7 @@ export class BuidlerError extends Error {
   }
 }
 
-interface KnownErrors {
+export interface KnownErrors {
   [name: string]: ErrorDescription;
 }
 
