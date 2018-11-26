@@ -3,7 +3,7 @@ import assert from "assert";
 
 const ERROR_PREFIX = "BDLR";
 
-interface ErrorDescription {
+export interface ErrorDescription {
   number: number;
   message: string;
 }
@@ -12,6 +12,11 @@ export class BuidlerError extends Error {
   public readonly number: number;
   public readonly parent?: Error;
 
+  constructor(
+    errorDescription: ErrorDescription,
+    parentError: Error,
+    ...messageArguments: any[]
+  );
   constructor(errorDescription: ErrorDescription, ...messageArguments: any[]);
   constructor(
     errorDescription: ErrorDescription,
@@ -24,8 +29,7 @@ export class BuidlerError extends Error {
       messageArguments.unshift(parentError);
     }
 
-    const paddedNumber = errorDescription.number.toString().padStart(4, "0");
-    const prefix = ERROR_PREFIX + paddedNumber + ": ";
+    const prefix = ERROR_PREFIX + errorDescription.number + ": ";
 
     const formattedMessage = util.format(
       errorDescription.message,

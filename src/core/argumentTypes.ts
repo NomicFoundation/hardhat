@@ -30,27 +30,29 @@ export const boolean: ArgumentType<boolean> = {
 export const int: ArgumentType<number> = {
   name: "int",
   parse: (argName, strValue) => {
-    const n = Number(strValue);
+    const decimalPattern = /^\d+(?:[eE]\d+)?$/;
+    const hexPattern = /^0[xX][\dABCDEabcde]+$/;
 
-    if (isNaN(n) || !Number.isInteger(n)) {
+    if (!strValue.match(decimalPattern) && !strValue.match(hexPattern)) {
       throw new BuidlerError(
         ERRORS.ARG_TYPE_INVALID_VALUE,
         strValue,
         argName,
-        "integer"
+        "int"
       );
     }
 
-    return n;
+    return Number(strValue);
   }
 };
 
 export const float: ArgumentType<number> = {
   name: "float",
   parse: (argName, strValue) => {
-    const n = Number(strValue);
+    const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
+    const hexPattern = /^0[xX][\dABCDEabcde]+$/;
 
-    if (isNaN(n)) {
+    if (!strValue.match(decimalPattern) && !strValue.match(hexPattern)) {
       throw new BuidlerError(
         ERRORS.ARG_TYPE_INVALID_VALUE,
         strValue,
@@ -59,6 +61,6 @@ export const float: ArgumentType<number> = {
       );
     }
 
-    return n;
+    return Number(strValue);
   }
 };

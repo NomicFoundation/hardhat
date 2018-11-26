@@ -3,6 +3,7 @@ import { BuidlerError, ERRORS } from "../errors";
 
 import { BuidlerArguments, BuidlerParamDefinitons } from "./buidler-params";
 import { unsafeObjectKeys } from "../../util/unsafe";
+import ProcessEnv = NodeJS.ProcessEnv;
 
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
 
@@ -11,19 +12,20 @@ export function paramNameToEnvVariable(paramName: string): string {
   // so it's easier to explain and understand their equivalences.
   return ArgumentsParser.paramNameToCLA(paramName)
     .replace(ArgumentsParser.PARAM_PREFIX, BUIDLER_ENV_ARGUMENT_PREFIX)
-    .replace("-", "_")
+    .replace(/-/g, "_")
     .toUpperCase();
 }
 
 export function getEnvBuidlerArguments(
-  paramDefinitions: BuidlerParamDefinitons
+  paramDefinitions: BuidlerParamDefinitons,
+  envVariables: ProcessEnv
 ): BuidlerArguments {
   const envArgs: Partial<BuidlerArguments> = {};
 
   for (const paramName of unsafeObjectKeys(paramDefinitions)) {
     const definition = paramDefinitions[paramName];
     const envVarName = paramNameToEnvVariable(paramName);
-    const rawValue = process.env[envVarName];
+    const rawValue = envVariables[envVarName];
 
     if (rawValue !== undefined) {
       try {
@@ -36,7 +38,7 @@ export function getEnvBuidlerArguments(
           rawValue
         );
       }
-    } else if (definition.isOptional) {
+    } else {
       envArgs[paramName] = definition.defaultValue;
     }
   }

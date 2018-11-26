@@ -23,7 +23,8 @@ async function main() {
 
   try {
     const envVariableArguments = getEnvBuidlerArguments(
-      BUIDLER_PARAM_DEFINITIONS
+      BUIDLER_PARAM_DEFINITIONS,
+      process.env
     );
 
     const argumentsParser = new ArgumentsParser();

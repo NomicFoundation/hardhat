@@ -14,6 +14,11 @@ export interface ParamDefinition<T> {
   isVariadic?: boolean;
 }
 
+export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
+  defaultValue: T;
+  isOptional: true;
+}
+
 export type ParamDefinitionsMap = { [paramName: string]: ParamDefinition<any> };
 
 export interface ITaskDefinition {
