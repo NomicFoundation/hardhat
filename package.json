@@ -25,7 +25,7 @@
     "docs:build": "vuepress build docs",
     "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
     "prettier": "prettier --write src/**/*.{js,ts} test/**/*.{js,ts}",
-    "test": "nyc mocha -r source-map-support/register -r ts-node/register 'test/**/*.{js,ts}'",
+    "test": "nyc mocha",
     "build": "tsc",
     "watch": "tsc -w"
   },
@@ -78,10 +78,13 @@
       "**/*.d.ts",
       "dist",
       "sample-project",
-      "test"
+      "test",
+      "coverage",
+      ".nyc_output"
     ],
     "reporter": [
-      "text"
+      "text",
+      "lcov"
     ],
     "all": true
   }
