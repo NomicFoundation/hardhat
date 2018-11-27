@@ -6,7 +6,7 @@ install:
   - ls "$HOME/.cc-test-reporter" || curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > "$HOME/.cc-test-reporter"
   - chmod +x $HOME./cc-test-reporter
 before_script:
-  - $HOME./cc-test-reporter before-build
+  - $HOME/.cc-test-reporter before-build
 after_script:
   - $HOME./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 cache:
