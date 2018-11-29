@@ -1,7 +1,7 @@
 import { BuidlerError, ERRORS } from "./errors";
 import * as types from "./argumentTypes";
 import { getUserConfigPath } from "./project-structure";
-import { deepmerge } from "deepmerge";
+import deepmerge from "deepmerge";
 import { AutoNetworkConfig, BuidlerConfig, NetworkConfig } from "../types";
 
 function importCsjOrEsModule(path: string): any {

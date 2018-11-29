@@ -17,7 +17,7 @@ describe("config", () => {
     });
     beforeEach(() => {
       cwd = process.cwd();
-      process.chdir(cwd);
+      process.chdir(path);
     });
     afterEach(() => {
       process.chdir(cwd);
@@ -67,7 +67,7 @@ describe("config", () => {
     });
     beforeEach(() => {
       cwd = process.cwd();
-      process.chdir(cwd);
+      process.chdir(path);
     });
     afterEach(() => {
       process.chdir(cwd);
