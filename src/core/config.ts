@@ -1,7 +1,9 @@
 import { BuidlerError, ERRORS } from "./errors";
 import * as types from "./argumentTypes";
 import { getUserConfigPath } from "./project-structure";
-import deepmerge from "deepmerge";
+// TODO : fix this.
+// import { deepmerge } from "deepmerge";
+const deepmerge = require('deepmerge')
 import { AutoNetworkConfig, BuidlerConfig, NetworkConfig } from "../types";
 
 function importCsjOrEsModule(path: string): any {

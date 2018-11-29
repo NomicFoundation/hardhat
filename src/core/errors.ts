@@ -239,6 +239,10 @@ export const ERRORS: KnownErrors = {
   TASK_FLATTEN_CYCLE: {
     number: 44,
     message: "buidler flatten doesn't support cyclic dependencies."
+  },
+  TASK_NOT_DEFINED: {
+    number: 45,
+    message: "Task %s not defined"
   }
 };
 
