@@ -7,6 +7,8 @@ export class DependencyGraph {
     Set<ResolvedFile>
   >();
 
+  private constructor() {}
+
   static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
@@ -26,7 +28,7 @@ export class DependencyGraph {
     return Array.from(this.dependenciesPerFile.keys());
   }
 
-  async addDependenciesFrom(resolver: Resolver, file: ResolvedFile) {
+  private async addDependenciesFrom(resolver: Resolver, file: ResolvedFile) {
     const dependencies = new Set();
     this.dependenciesPerFile.set(file, dependencies);
 
