@@ -1,6 +1,7 @@
 import { assert, expect } from "chai";
 import { getConfig, getNetworkConfig } from "../../src/core/config";
 import { BuidlerError, ERRORS, ErrorDescription } from "../../src/core/errors";
+import { useFixtureProject } from "../helpers/project";
 
 function assertCorrectError(f: () => any, error: ErrorDescription) {
   expect(f)
@@ -9,19 +10,8 @@ function assertCorrectError(f: () => any, error: ErrorDescription) {
 }
 
 describe("config", () => {
-  let cwd: string;
-  let path: string;
   describe("custom config", () => {
-    before(() => {
-      path = "test/features/config-project";
-    });
-    beforeEach(() => {
-      cwd = process.cwd();
-      process.chdir(path);
-    });
-    afterEach(() => {
-      process.chdir(cwd);
-    });
+    useFixtureProject("config-project");
 
     it("should fail on getting non existent network config", () => {
       const [config, _] = getConfig();
@@ -62,16 +52,7 @@ describe("config", () => {
   });
 
   describe("default config", () => {
-    before(() => {
-      path = "test/features/default-config-project";
-    });
-    beforeEach(() => {
-      cwd = process.cwd();
-      process.chdir(path);
-    });
-    afterEach(() => {
-      process.chdir(cwd);
-    });
+    useFixtureProject("default-config-project");
 
     it("should return the default config", () => {
       const [config, tasks] = getConfig();
