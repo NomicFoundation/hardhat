@@ -1,6 +1,5 @@
 import path from "path";
 import { BuidlerError, ERRORS } from "../core/errors";
-import { BuidlerConfig } from "../types";
 
 export interface LibraryInfo {
   name: string;
@@ -46,9 +45,7 @@ export class ResolvedFile {
 }
 
 export class Resolver {
-  constructor(public readonly config: BuidlerConfig) {
-    this.config = config;
-  }
+  constructor(private readonly projectRoot: string) {}
 
   async resolveProjectSourceFile(pathToResolve: string): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
@@ -59,7 +56,7 @@ export class Resolver {
 
     const absolutePath = await fsExtra.realpath(pathToResolve);
 
-    if (!absolutePath.startsWith(this.config.paths.root)) {
+    if (!absolutePath.startsWith(this.projectRoot)) {
       throw new BuidlerError(
         ERRORS.RESOLVER_FILE_OUTSIDE_PROJECT,
         pathToResolve
@@ -73,7 +70,7 @@ export class Resolver {
       );
     }
 
-    const globalName = absolutePath.slice(this.config.paths.root.length + 1);
+    const globalName = absolutePath.slice(this.projectRoot.length + 1);
 
     return this._resolveFile(globalName, absolutePath);
   }
@@ -175,7 +172,7 @@ export class Resolver {
 
   _resolveFromProjectRoot(fileName: string) {
     return require.resolve(fileName, {
-      paths: [this.config.paths.root]
+      paths: [this.projectRoot]
     });
   }
 }
