@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 
 import { TaskArguments } from "../types";
 import { ArgumentsParser } from "../../src/cli/ArgumentsParser";
@@ -6,18 +6,13 @@ import {
   BuidlerArguments,
   BUIDLER_PARAM_DEFINITIONS
 } from "../../src/core/params/buidler-params";
-import { BuidlerError, ERRORS, ErrorDescription } from "../../src/core/errors";
+import { ERRORS } from "../../src/core/errors";
 import {
   ITaskDefinition,
   TaskDefinition
 } from "../../src/core/tasks/TaskDefinition";
 import { string, int } from "../../src/core/argumentTypes";
-
-function assertCorrectError(f: () => any, error: ErrorDescription) {
-  expect(f)
-    .to.throw(BuidlerError)
-    .with.property("number", error.number);
-}
+import { expectBuidlerError } from "../helpers/errors";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
@@ -114,6 +109,52 @@ describe("ArgumentsParser", () => {
       assert.equal("--taskParam", unparsedCLAs[0]);
     });
 
+    it("should parse buidler arguments after taskname", () => {
+      const rawCLAs: string[] = [
+        "compile",
+        "--taskParam",
+        "--showStackTraces",
+        "--network",
+        "local"
+      ];
+
+      const {
+        buidlerArguments,
+        taskName,
+        unparsedCLAs
+      } = argumentsParser.parseBuidlerArguments(
+        BUIDLER_PARAM_DEFINITIONS,
+        envArgs,
+        rawCLAs
+      );
+      assert.equal(taskName, "compile");
+      assert.equal(buidlerArguments.showStackTraces, true);
+      assert.equal(buidlerArguments.network, "local");
+      assert.equal(buidlerArguments.emoji, false);
+      assert.equal(unparsedCLAs.length, 1);
+      assert.equal("--taskParam", unparsedCLAs[0]);
+    });
+
+    it("should fail trying to parse task arguments before taskname", () => {
+      const rawCLAs: string[] = [
+        "--taskParam",
+        "compile",
+        "--showStackTraces",
+        "--network",
+        "local"
+      ];
+
+      expectBuidlerError(
+        () =>
+          argumentsParser.parseBuidlerArguments(
+            BUIDLER_PARAM_DEFINITIONS,
+            envArgs,
+            rawCLAs
+          ),
+        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG
+      );
+    });
+
     it("should parse a buidler argument", () => {
       const rawCLAs: string[] = [
         "--showStackTraces",
@@ -152,15 +193,16 @@ describe("ArgumentsParser", () => {
         "local",
         "--invalidParam"
       ];
-      assertCorrectError(() => {
-        argumentsParser.parseBuidlerArguments(
-          BUIDLER_PARAM_DEFINITIONS,
-          envArgs,
-          rawCLAs
-        );
-      }, ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG);
+      expectBuidlerError(
+        () =>
+          argumentsParser.parseBuidlerArguments(
+            BUIDLER_PARAM_DEFINITIONS,
+            envArgs,
+            rawCLAs
+          ),
+        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG
+      );
     });
-
 
     it("should fail trying to parse a repeated argument", () => {
       const rawCLAs: string[] = [
@@ -171,13 +213,15 @@ describe("ArgumentsParser", () => {
         "local",
         "compile"
       ];
-      assertCorrectError(() => {
-        argumentsParser.parseBuidlerArguments(
-          BUIDLER_PARAM_DEFINITIONS,
-          envArgs,
-          rawCLAs
-        );
-      }, ERRORS.ARGUMENT_PARSER_REPEATED_PARAM);
+      expectBuidlerError(
+        () =>
+          argumentsParser.parseBuidlerArguments(
+            BUIDLER_PARAM_DEFINITIONS,
+            envArgs,
+            rawCLAs
+          ),
+        ERRORS.ARGUMENT_PARSER_REPEATED_PARAM
+      );
     });
 
     it("should only add non-present arguments", () => {
@@ -245,7 +289,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail when passing invalid parameter", () => {
       const rawCLAs: string[] = ["--invalidParameter", "not_valid"];
-      assertCorrectError(() => {
+      expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME);
     });
@@ -254,13 +298,10 @@ describe("ArgumentsParser", () => {
       const rawCLAs: string[] = ["--param", "testing", "--bleep", "1337"];
       taskDefinition.addVariadicPositionalParam(
         "variadic",
-        "a variadic params",
-        [],
-        int,
-        false
+        "a variadic params"
       );
 
-      assertCorrectError(() => {
+      expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_MISSING_POSITIONAL_ARG);
     });
@@ -271,15 +312,9 @@ describe("ArgumentsParser", () => {
         "compile",
         true
       );
-      taskDefinition.addParam(
-        "param",
-        "just a param",
-        "a default value",
-        string,
-        false
-      );
+      taskDefinition.addParam("param", "just a param");
       taskDefinition.addParam("bleep", "useless param", 1602, int, true);
-      assertCorrectError(() => {
+      expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT);
     });
@@ -290,22 +325,16 @@ describe("ArgumentsParser", () => {
         "compile",
         true
       );
-      taskDefinition.addParam(
-        "param",
-        "just a param",
-        "a default value",
-        string,
-        false
-      );
+      taskDefinition.addParam("param", "just a param");
       taskDefinition.addParam("bleep", "useless param", 1602, int, true);
-      assertCorrectError(() => {
+      expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT);
     });
 
     it("should fail when passing unneeded arguments", () => {
       const rawCLAs: string[] = ["more", "arguments"];
-      assertCorrectError(() => {
+      expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_POSITIONAL_ARG);
     });
@@ -318,13 +347,7 @@ describe("ArgumentsParser", () => {
         "1337",
         "foobar"
       ];
-      taskDefinition.addPositionalParam(
-        "positional",
-        "a posititon param",
-        "default",
-        string,
-        false
-      );
+      taskDefinition.addPositionalParam("positional", "a posititon param");
 
       const args = argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       assert.deepEqual(args, {
