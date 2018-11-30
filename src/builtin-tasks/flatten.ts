@@ -64,7 +64,7 @@ tasks.internalTask(
     flattened += `pragma solidity ${config.solc.version};\n`;
 
     for (const file of sortedFiles) {
-      flattened += `\n\n// File ${file.getNameWithVersion()}\n`;
+      flattened += `\n\n// File ${file.getVersionedName()}\n`;
       flattened += `\n${getFileWithoutPragmaNorImports(file)}\n`;
     }
 
