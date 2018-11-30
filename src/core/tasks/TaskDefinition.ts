@@ -9,9 +9,9 @@ export interface ParamDefinition<T> {
   defaultValue?: T;
   type: ArgumentType<T>;
   description?: string;
-  isOptional?: boolean;
-  isFlag?: boolean;
-  isVariadic?: boolean;
+  isOptional: boolean;
+  isFlag: boolean;
+  isVariadic: boolean;
 }
 
 export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
@@ -26,7 +26,11 @@ export interface ITaskDefinition {
   readonly description?: string;
   readonly action: ActionType<TaskArguments>;
   readonly isInternal: boolean;
+
+  // TODO: Rename this to something better. It doesn't include the positional
+  // params, and that's not clear.
   readonly paramDefinitions: ParamDefinitionsMap;
+
   readonly positionalParamDefinitions: ParamDefinition<any>[];
 
   setDescription(description: string): this;
@@ -35,7 +39,7 @@ export interface ITaskDefinition {
 
   addParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>,
     isOptional?: boolean
@@ -43,14 +47,14 @@ export interface ITaskDefinition {
 
   addOptionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>
   ): this;
 
   addPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>,
     isOptional?: boolean
@@ -58,14 +62,14 @@ export interface ITaskDefinition {
 
   addOptionalPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>
   ): this;
 
   addVariadicPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T[],
     type?: ArgumentType<T>,
     isOptional?: boolean
@@ -73,12 +77,12 @@ export interface ITaskDefinition {
 
   addOptionalVariadicPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T[],
     type?: ArgumentType<T>
   ): this;
 
-  addFlag(name: string, description: string): this;
+  addFlag(name: string, description?: string): this;
 }
 
 export class TaskDefinition implements ITaskDefinition {
@@ -120,29 +124,44 @@ export class TaskDefinition implements ITaskDefinition {
 
   addParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>,
     isOptional: boolean = defaultValue !== undefined
   ): this {
     if (type === undefined) {
+      if (defaultValue !== undefined && typeof defaultValue !== "string") {
+        throw new BuidlerError(
+          ERRORS.TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE,
+          name,
+          this.name
+        );
+      }
+
       return this.addParam(
         name,
         description,
-        defaultValue && defaultValue.toString(),
+        defaultValue,
         types.string,
         isOptional
       );
     }
 
     this._validateNameNotUsed(name);
+    this._validateNoDefaultValueForMandatoryParam(
+      defaultValue,
+      isOptional,
+      name
+    );
 
     this.paramDefinitions[name] = {
       name,
       defaultValue,
       type,
       description,
-      isOptional
+      isOptional,
+      isFlag: false,
+      isVariadic: false
     };
 
     return this;
@@ -150,14 +169,14 @@ export class TaskDefinition implements ITaskDefinition {
 
   addOptionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>
   ): this {
     return this.addParam(name, description, defaultValue, type, true);
   }
 
-  addFlag(name: string, description: string) {
+  addFlag(name: string, description?: string) {
     this._validateNameNotUsed(name);
 
     this.paramDefinitions[name] = {
@@ -166,7 +185,8 @@ export class TaskDefinition implements ITaskDefinition {
       type: types.boolean,
       description,
       isFlag: true,
-      isOptional: true
+      isOptional: true,
+      isVariadic: false
     };
 
     return this;
@@ -174,16 +194,24 @@ export class TaskDefinition implements ITaskDefinition {
 
   addPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>,
     isOptional = defaultValue !== undefined
   ): this {
     if (type === undefined) {
+      if (defaultValue !== undefined && typeof defaultValue !== "string") {
+        throw new BuidlerError(
+          ERRORS.TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE,
+          name,
+          this.name
+        );
+      }
+
       return this.addPositionalParam(
         name,
         description,
-        defaultValue && defaultValue.toString(),
+        defaultValue,
         types.string,
         isOptional
       );
@@ -192,6 +220,11 @@ export class TaskDefinition implements ITaskDefinition {
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
+    this._validateNoDefaultValueForMandatoryParam(
+      defaultValue,
+      isOptional,
+      name
+    );
 
     const definition = {
       name,
@@ -199,7 +232,8 @@ export class TaskDefinition implements ITaskDefinition {
       type,
       description,
       isVariadic: false,
-      isOptional
+      isOptional,
+      isFlag: false
     };
 
     this._addPositionalParamDefinition(definition);
@@ -209,7 +243,7 @@ export class TaskDefinition implements ITaskDefinition {
 
   addOptionalPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>
   ): this {
@@ -218,7 +252,7 @@ export class TaskDefinition implements ITaskDefinition {
 
   addVariadicPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T[] | T,
     type?: ArgumentType<T>,
     isOptional = defaultValue !== undefined
@@ -228,10 +262,18 @@ export class TaskDefinition implements ITaskDefinition {
     }
 
     if (type == undefined) {
+      if (defaultValue !== undefined && !this.isStringArray(defaultValue)) {
+        throw new BuidlerError(
+          ERRORS.TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE,
+          name,
+          this.name
+        );
+      }
+
       return this.addVariadicPositionalParam(
         name,
         description,
-        defaultValue && defaultValue.map(v => v.toString()),
+        defaultValue,
         types.string,
         isOptional
       );
@@ -240,6 +282,11 @@ export class TaskDefinition implements ITaskDefinition {
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
+    this._validateNoDefaultValueForMandatoryParam(
+      defaultValue,
+      isOptional,
+      name
+    );
 
     const definition = {
       name,
@@ -247,7 +294,8 @@ export class TaskDefinition implements ITaskDefinition {
       type,
       description,
       isVariadic: true,
-      isOptional
+      isOptional,
+      isFlag: false
     };
 
     this._addPositionalParamDefinition(definition);
@@ -257,8 +305,8 @@ export class TaskDefinition implements ITaskDefinition {
 
   addOptionalVariadicPositionalParam<T>(
     name: string,
-    description: string,
-    defaultValue?: T[],
+    description?: string,
+    defaultValue?: T[] | T,
     type?: ArgumentType<T>
   ): this {
     return this.addVariadicPositionalParam(
@@ -275,7 +323,7 @@ export class TaskDefinition implements ITaskDefinition {
       this._hasVariadicParam = true;
     }
 
-    if (definition.defaultValue !== undefined) {
+    if (definition.isOptional) {
       this._hasOptionalPositionalParam = true;
     }
 
@@ -329,6 +377,24 @@ export class TaskDefinition implements ITaskDefinition {
         this.name
       );
     }
+  }
+
+  private _validateNoDefaultValueForMandatoryParam(
+    defaultValue: any | undefined,
+    isOptional: boolean,
+    name: string
+  ) {
+    if (defaultValue !== undefined && !isOptional) {
+      throw new BuidlerError(
+        ERRORS.TASKS_DEFINITION_DEFAULT_IN_MANDATORY_PARAM,
+        name,
+        this.name
+      );
+    }
+  }
+
+  private isStringArray(values: any): values is string[] {
+    return Array.isArray(values) && values.every(v => typeof v === "string");
   }
 }
 
@@ -385,7 +451,7 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
 
   addParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>,
     isOptional?: boolean
@@ -395,7 +461,7 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
 
   addOptionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>
   ): this {
@@ -404,7 +470,7 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
 
   addPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>,
     isOptional?: boolean
@@ -414,7 +480,7 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
 
   addOptionalPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T,
     type?: ArgumentType<T>
   ): this {
@@ -423,7 +489,7 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
 
   addVariadicPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T[],
     type?: ArgumentType<T>,
     isOptional?: boolean
@@ -433,14 +499,14 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
 
   addOptionalVariadicPositionalParam<T>(
     name: string,
-    description: string,
+    description?: string,
     defaultValue?: T[],
     type?: ArgumentType<T>
   ): this {
     return this._throwNoParamsOverloadError();
   }
 
-  addFlag(name: string, description: string): this {
+  addFlag(name: string, description?: string): this {
     return this._throwNoParamsOverloadError();
   }
 

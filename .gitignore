@@ -63,9 +63,6 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
-
 # next.js build output
 .next
 
@@ -74,3 +71,7 @@ docs/.vuepress/dist/
 
 # TS compilation output
 dist/
+
+# Code coverage artifacts
+coverage
+.nyc_output

@@ -45,11 +45,7 @@ export class BuidlerError extends Error {
   }
 }
 
-export interface KnownErrors {
-  [name: string]: ErrorDescription;
-}
-
-export const ERRORS: KnownErrors = {
+export const ERRORS = {
   BUIDLER_INTERNAL_ERROR: {
     number: 1,
     message: "An error occurred while creating this error, please report it."
@@ -239,10 +235,19 @@ export const ERRORS: KnownErrors = {
   TASK_FLATTEN_CYCLE: {
     number: 44,
     message: "buidler flatten doesn't support cyclic dependencies."
+  },
+  TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE: {
+    number: 45,
+    message:
+      "Default value for param %s of task %s doesn't match the default one, try specifying it."
+  },
+  TASKS_DEFINITION_DEFAULT_IN_MANDATORY_PARAM: {
+    number: 46,
+    message: "Default value for param %s of task %s shouldn't be set."
   }
 };
 
-function areNumbersRepeated(errors: KnownErrors) {
+function areNumbersRepeated(errors: typeof ERRORS) {
   const numbers = Object.values(errors).map(d => d.number);
   return numbers.length !== new Set(numbers).size;
 }
