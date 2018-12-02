@@ -1,15 +1,27 @@
 language: node_js
+
 node_js:
   - "8"
+  - "9"
+  - "10"
+  - "11"
+
+os:
+  - linux
+  - osx
+
 install:
   - npm ci
+
 script:
   - npm run test
   - npx codecov
   - npm run lint
+
 cache:
   directories:
     - "$HOME/.npm"
+
 branches:
   only:
     - master
