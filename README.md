@@ -2,7 +2,9 @@
 
 Buidler is a new smart contracts development tool that aims to be lean and flexible. It provides a ready to use dev environment which is easy to extend and interoperable with the whole javascript ecosystem. Read [our announcement](https://medium.com/nomic-labs-blog/towards-a-mature-ecosystem-of-ethereum-developer-tools-bdff10e6cdc3) to know more about our vision for Buidler.
 
-⚠️ **Buidler is alpha software. Sign up to [our newsletter](https://buidler.substack.com/welcome) and we will let you know when a stable release is out. You can start using it today, but bear in mind that some APIs may change, and you may encounter bugs** ⚠️
+⚠️ **Buidler is alpha software. Sign up to [our newsletter](https://buidler.substack.com/welcome) and we will let you know when a stable release is out.** ⚠️
+
+⚠️ **This branch contains to the upcoming version of Buidler, which is under heavy development. For the npm-published version go to [this commit](https://github.com/nomiclabs/buidler/tree/412404c496ac196a6f467f84849d9536dc60ef86).** ⚠️
 
 ## Table of contents
 
