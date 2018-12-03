@@ -27,7 +27,7 @@ tasks.internalTask("builtin:get-file-paths", async (_, { config }) => {
 });
 
 tasks.internalTask("builtin:get-resolved-files", async (_, { config, run }) => {
-  const resolver = new Resolver(config);
+  const resolver = new Resolver(config.paths.root);
   const paths = await run("builtin:get-file-paths");
   return Promise.all(
     paths.map((p: string) => resolver.resolveProjectSourceFile(p))
@@ -37,7 +37,7 @@ tasks.internalTask("builtin:get-resolved-files", async (_, { config, run }) => {
 tasks.internalTask(
   "builtin:get-dependency-graph",
   async (_, { config, run }) => {
-    const resolver = new Resolver(config);
+    const resolver = new Resolver(config.paths.root);
     const localFiles = await run("builtin:get-resolved-files");
     return DependencyGraph.createFromResolvedFiles(resolver, localFiles);
   }
