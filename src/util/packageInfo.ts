@@ -18,7 +18,7 @@ export async function getPackageRoot(): Promise<string> {
   return path.dirname(packageJsonPath);
 }
 
-interface PackageJson {
+export interface PackageJson {
   name: string;
   version: string;
 }
