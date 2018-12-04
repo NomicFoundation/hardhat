@@ -16,6 +16,7 @@ import {
   OverloadedTaskDefinition
 } from "./tasks/TaskDefinition";
 import { TruffleEnvironmentArtifacts } from "./truffle";
+import { BuidlerError, ERRORS } from "./errors";
 
 export class BuidlerRuntimeEnvironment {
   public readonly Web3: any;
@@ -46,10 +47,8 @@ export class BuidlerRuntimeEnvironment {
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
     const taskDefinition = this.tasks[name];
-
     if (taskDefinition === undefined) {
-      // TODO: This should be a BuidlerError
-      throw new Error(`Task ${name} not defined`);
+      throw new BuidlerError(ERRORS.UNRECOGNIZED_TASK, name);
     }
 
     return this.runTaskDefinition(taskDefinition, taskArguments);

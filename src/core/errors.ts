@@ -170,7 +170,7 @@ export const ERRORS = {
     message:
       'Couldn\'t download compiler version "%s". Downloaded version\'s checksum doesn\'t much the expected one. Please check your connection or use local version "%s"'
   },
-  ARGUMENT_PARSER_UNRECOGNIZED_TASK: {
+  UNRECOGNIZED_TASK: {
     number: 29,
     message: 'Unrecognized task "%s".'
   },
