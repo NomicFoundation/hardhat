@@ -1,6 +1,5 @@
 import path from "path";
 import { BuidlerError, ERRORS } from "../core/errors";
-import { BuidlerConfig } from "../types";
 
 export interface LibraryInfo {
   name: string;
@@ -31,13 +30,7 @@ export class ResolvedFile {
     }
   }
 
-  inspect() {
-    return `ResolvedFile[${this.getNameWithVersion()} - Last modification: ${
-      this.lastModificationDate
-    }]`;
-  }
-
-  getNameWithVersion() {
+  getVersionedName() {
     return (
       this.globalName +
       (this.library !== undefined ? `@v${this.library.version}` : "")
@@ -104,6 +97,22 @@ export class Resolver {
       );
     }
 
+    const libraryPath = path.dirname(packagePath);
+    if (!absolutePath.startsWith(libraryPath)) {
+      // If it's still from a library with the same name what is happening is
+      // that the package.json and the file are being resolved to different
+      // installations of the library. This can lead to very confusing
+      // situations, so we only use the closes installation
+      if (absolutePath.includes(`node_modules/${libraryName}`)) {
+        throw new BuidlerError(
+          ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND,
+          globalName
+        );
+      }
+
+      throw new BuidlerError(ERRORS.RESOLVER_FILE_OUTSIDE_LIB, globalName);
+    }
+
     const packageInfo = await fsExtra.readJson(packagePath);
     const libraryVersion = packageInfo.version;
 
@@ -119,31 +128,47 @@ export class Resolver {
     from: ResolvedFile,
     imported: string
   ): Promise<ResolvedFile> {
-    if (this._isRelativeImport(imported)) {
-      if (from.library === undefined) {
-        return this.resolveProjectSourceFile(
-          path.normalize(path.join(path.dirname(from.absolutePath), imported))
+    try {
+      if (this._isRelativeImport(imported)) {
+        if (from.library === undefined) {
+          return await this.resolveProjectSourceFile(
+            path.normalize(path.join(path.dirname(from.absolutePath), imported))
+          );
+        }
+
+        const globalName = path.normalize(
+          path.dirname(from.globalName) + "/" + imported
         );
+
+        const isIllegal = !globalName.startsWith(from.library.name + path.sep);
+
+        if (isIllegal) {
+          throw new BuidlerError(
+            ERRORS.RESOLVER_ILLEGAL_IMPORT,
+            imported,
+            from.globalName
+          );
+        }
+
+        imported = globalName;
       }
 
-      const globalName = path.normalize(
-        path.dirname(from.globalName) + "/" + imported
-      );
-
-      const isIllegal = !globalName.startsWith(from.library.name + path.sep);
-
-      if (isIllegal) {
+      return await this.resolveLibrarySourceFile(imported);
+    } catch (error) {
+      if (
+        error.number === ERRORS.RESOLVER_FILE_NOT_FOUND.number ||
+        error.number === ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND.number
+      ) {
         throw new BuidlerError(
-          ERRORS.RESOLVER_ILLEGAL_IMPORT,
+          ERRORS.RESOLVED_IMPORTED_FILE_NOT_FOUND,
+          error,
           imported,
           from.globalName
         );
       }
 
-      imported = globalName;
+      throw error;
     }
-
-    return this.resolveLibrarySourceFile(imported);
   }
 
   async _resolveFile(

@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fsExtra from "fs-extra";
 
 /**
  * This helper adds mocha hooks to run the tests inside one of the projects
@@ -7,19 +7,30 @@ import * as fs from "fs";
  * @param projectName The base name of the folder with the project to use.
  */
 export function useFixtureProject(projectName: string) {
-  const projectPath = __dirname + "/../fixture-projects/" + projectName;
-  if (!fs.existsSync(projectPath)) {
-    throw new Error(`Fixture project ${projectName} doesn't exist`);
-  }
-
+  let projectPath: string;
   let prevWorkingDir: string;
 
-  beforeEach(() => {
+  before(async () => {
+    projectPath = await getFixtureProjectPath(projectName);
+  });
+
+  before(() => {
     prevWorkingDir = process.cwd();
     process.chdir(projectPath);
   });
 
-  afterEach(() => {
+  after(() => {
     process.chdir(prevWorkingDir);
   });
+}
+
+export async function getFixtureProjectPath(
+  projectName: string
+): Promise<string> {
+  const projectPath = __dirname + "/../fixture-projects/" + projectName;
+  if (!(await fsExtra.pathExists(projectPath))) {
+    throw new Error(`Fixture project ${projectName} doesn't exist`);
+  }
+
+  return fsExtra.realpath(projectPath);
 }

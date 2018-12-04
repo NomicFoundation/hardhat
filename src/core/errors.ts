@@ -244,6 +244,14 @@ export const ERRORS = {
   TASKS_DEFINITION_DEFAULT_IN_MANDATORY_PARAM: {
     number: 46,
     message: "Default value for param %s of task %s shouldn't be set."
+  },
+  RESOLVER_FILE_OUTSIDE_LIB: {
+    number: 47,
+    message: 'File "%s" is outside its library.'
+  },
+  RESOLVED_IMPORTED_FILE_NOT_FOUND: {
+    number: 48,
+    message: 'File "%s", imported from "%s", not found.'
   }
 };
 
