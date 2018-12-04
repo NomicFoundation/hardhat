@@ -31,12 +31,12 @@ export class ArgumentsParser {
       parts[0] +
       parts
         .slice(1)
-        .map(s => s[0].toUpperCase() + s.slice(1))
+        .map(s => s[0].toUpperCase() + s.slice(1).toLowerCase())
         .join("")
     );
   }
 
-  parseBuidlerArgumetns(
+  parseBuidlerArguments(
     buidlerParamDefinitions: BuidlerParamDefinitons,
     envVariableArguments: BuidlerArguments,
     rawCLAs: string[]
@@ -151,20 +151,10 @@ export class ArgumentsParser {
     buidlerArguments: Partial<BuidlerArguments>
   ) {
     for (const paramName of unsafeObjectKeys(buidlerParamDefinitions)) {
-      const definition = buidlerParamDefinitions[paramName];
       const envVarArgument = envVariableArguments[paramName];
 
       if (buidlerArguments[paramName] === undefined) {
-        if (envVarArgument !== undefined) {
           buidlerArguments[paramName] = envVarArgument;
-        } else if (definition.isOptional) {
-          buidlerArguments[paramName] = definition.defaultValue;
-        } else {
-          throw new BuidlerError(
-            ERRORS.ARGUMENT_PARSER_MISSING_BUIDLER_ARGUMENT,
-            paramName
-          );
-        }
       }
     }
   }

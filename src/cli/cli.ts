@@ -33,7 +33,7 @@ async function main() {
       buidlerArguments,
       taskName: parsedTaskName,
       unparsedCLAs
-    } = argumentsParser.parseBuidlerArgumetns(
+    } = argumentsParser.parseBuidlerArguments(
       BUIDLER_PARAM_DEFINITIONS,
       envVariableArguments,
       process.argv.slice(2)
