@@ -1,21 +1,16 @@
 import { assert } from "chai";
 import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
-import {
-  BuidlerConfig,
-  RunSuperFunction,
-  RunTaskFunction,
-  TaskArguments,
-  TasksMap,
-  TruffleEnvironmentArtifactsType
-} from "../../src/types";
+import { BuidlerConfig, TaskArguments } from "../../src/types";
 import { BuidlerArguments } from "../../src/core/params/buidler-params";
 import { TasksDSL } from "../../src/core/tasks/dsl";
-import { ITaskDefinition } from "../../src/core/tasks/TaskDefinition";
+import { ERRORS } from "../../src/core/errors";
 
 describe("BuidlerRuntimeEnvironment", () => {
   let config: BuidlerConfig;
   let args: BuidlerArguments;
   let tasks: TaskArguments;
+  let env: BuidlerRuntimeEnvironment;
+  let dsl: TasksDSL;
   before(() => {
     config = {
       networks: {
@@ -47,17 +42,18 @@ describe("BuidlerRuntimeEnvironment", () => {
       help: false,
       emoji: false
     };
+    dsl = new TasksDSL();
+    dsl.task("example", async ret => {
+      return 27;
+    });
+    tasks = dsl.getTaskDefinitions();
+  });
 
-    tasks = [
-      new TasksDSL().task("example", async (ret) => {
-        return 27;
-      })
-    ];
+  beforeEach(() => {
+    env = new BuidlerRuntimeEnvironment(config, args, tasks);
   });
 
   it("should create an environment", () => {
-    const env = new BuidlerRuntimeEnvironment(config, args, tasks);
-
     assert.deepEqual(env.config, config);
     assert.isDefined(env.web3);
     assert.isDefined(env.Web3);
@@ -66,24 +62,36 @@ describe("BuidlerRuntimeEnvironment", () => {
     assert.isDefined(env.tasks);
   });
 
-  it("should run a task", () => {
-    const env = new BuidlerRuntimeEnvironment(config, args, tasks);
-    
-    env.run("example");
+  it("should run a task correctly", async () => {
+    const ret = await env.run("example");
+    assert.equal(ret, 27);
   });
 
   it("should fail trying to run a non existent task", () => {
-    const env = new BuidlerRuntimeEnvironment(config, args, tasks);
-
+    env.run("invalid").catch(err => {
+      assert.equal(err.number, ERRORS.UNRECOGNIZED_TASK.number);
+    });
   });
 
-  it("should inject environment to global", () => {
-    const env = new BuidlerRuntimeEnvironment(config, args, tasks);
-
+  it("should inject environment to global", async () => {
+    const globalAsAny = global as any;
+    const ret = await env.run("example");
+    assert.isDefined(globalAsAny["web3"]);
+    assert.isUndefined(globalAsAny["injectToGlobal"]);
   });
 
-  it("should uninject environment from global", () => {
-    const env = new BuidlerRuntimeEnvironment(config, args, tasks);
+  it("should clean global state after task execution", async () => {
+    assert.equal(await env.run("example"), 27);
+    const globalAsAny = global as any;
+    assert.isUndefined(globalAsAny.runSuper);
+  });
 
+  it("should run overloaded task correctly", async () => {
+    dsl.task("example", "description", async ret => {
+      return 28;
+    });
+    tasks = dsl.getTaskDefinitions();
+    let env = new BuidlerRuntimeEnvironment(config, args, tasks);
+    assert.equal(await env.run("example"), 28);
   });
 });
