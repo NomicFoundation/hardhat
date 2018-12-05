@@ -77,7 +77,7 @@ export class Compiler {
       this.version
     );
 
-    const { default: solcWrapper } = await import("solc/Wrapper");
+    const { default: solcWrapper } = await import("solc/wrapper");
     this.loadedSolc = solcWrapper(await import(compilerPath));
 
     return this.loadedSolc;
