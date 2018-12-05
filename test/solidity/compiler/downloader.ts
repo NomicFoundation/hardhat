@@ -18,7 +18,9 @@ import { getLocalCompilerVersion } from "../../helpers/compiler";
 // internal logic and their are tested individually here.
 
 async function getEmptyTmpDir() {
-  const dir = os.tmpdir();
+  const tmpDir = os.tmpdir();
+  const dir = tmpDir + "/buidler-compiler-downloader-tests";
+  await fsExtra.ensureDir(dir);
   await fsExtra.emptyDir(dir);
 
   return dir;
