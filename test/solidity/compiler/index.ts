@@ -1,14 +1,15 @@
+import { assert } from "chai";
+
 import { Compiler, SolcOptimizerConfig } from "../../../src/solidity/compiler";
 import { CompilerDownloader } from "../../../src/solidity/compiler/downloader";
-import { getLocalCompilerVersion } from "../../helpers/compiler";
-import { assert } from "chai";
 import { DependencyGraph } from "../../../src/solidity/dependencyGraph";
 import { ResolvedFile, Resolver } from "../../../src/solidity/resolver";
+import { getLocalCompilerVersion } from "../../helpers/compiler";
 
 class MockedDownloader extends CompilerDownloader {
-  wasCalled = false;
+  public wasCalled = false;
 
-  async getDownloadedCompilerPath(version: string): Promise<string> {
+  public async getDownloadedCompilerPath(version: string): Promise<string> {
     this.wasCalled = true;
     return require.resolve("solc/soljson.js");
   }

@@ -8,7 +8,7 @@ async function getPackageJsonPath(): Promise<string> {
     ? nonCompiledPath
     : compiledPath;
 
-  return await fsExtra.realpath(path);
+  return fsExtra.realpath(path);
 }
 
 export async function getPackageRoot(): Promise<string> {
@@ -27,5 +27,5 @@ export async function getPackageJson(): Promise<PackageJson> {
   const fsExtra = await import("fs-extra");
   const root = await getPackageRoot();
 
-  return await fsExtra.readJSON(root + "/package.json");
+  return fsExtra.readJSON(root + "/package.json");
 }

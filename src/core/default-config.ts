@@ -1,9 +1,10 @@
 import path from "path";
-import { getProjectRoot, getUserConfigPath } from "./project-structure";
+
 import { BuidlerConfig } from "../types";
 
+import { getProjectRoot, getUserConfigPath } from "./project-structure";
+
 const projectRoot = getProjectRoot();
-const solcPackage = require("solc/package.json");
 
 const defaultConfig: BuidlerConfig = {
   paths: {
@@ -14,7 +15,7 @@ const defaultConfig: BuidlerConfig = {
     artifacts: path.join(projectRoot, "artifacts")
   },
   solc: {
-    version: solcPackage.version,
+    version: require("solc/package.json").version,
     optimizer: {
       enabled: false,
       runs: 200

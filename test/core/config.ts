@@ -1,8 +1,9 @@
 import { assert, expect } from "chai";
+
 import { getConfig, getNetworkConfig } from "../../src/core/config";
-import { BuidlerError, ERRORS, ErrorDescription } from "../../src/core/errors";
-import { useFixtureProject } from "../helpers/project";
+import { BuidlerError, ErrorDescription, ERRORS } from "../../src/core/errors";
 import { getLocalCompilerVersion } from "../helpers/compiler";
+import { useFixtureProject } from "../helpers/project";
 
 function assertCorrectError(f: () => any, error: ErrorDescription) {
   expect(f)
@@ -25,7 +26,7 @@ describe("config", () => {
       const [config, _] = getConfig();
       assert.equal(
         getNetworkConfig(config, "develop"),
-        config.networks["develop"]
+        config.networks.develop
       );
     });
 
@@ -71,8 +72,8 @@ describe("config", () => {
 
     it("should remove things from global state", () => {
       const globalAsAny: any = global;
-      assert.isUndefined(globalAsAny["internalTask"]);
-      assert.isUndefined(globalAsAny["task"]);
+      assert.isUndefined(globalAsAny.internalTask);
+      assert.isUndefined(globalAsAny.task);
     });
 
     it("should return config with overridden tasks", () => {});

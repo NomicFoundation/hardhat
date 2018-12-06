@@ -1,13 +1,12 @@
+import { ActionType, TaskArguments } from "../../types";
 import * as types from "../argumentTypes";
 import { BuidlerError, ERRORS } from "../errors";
-import { ArgumentType } from "../argumentTypes";
-import { ActionType, TaskArguments } from "../../types";
 import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
 
 export interface ParamDefinition<T> {
   name: string;
   defaultValue?: T;
-  type: ArgumentType<T>;
+  type: types.ArgumentType<T>;
   description?: string;
   isOptional: boolean;
   isFlag: boolean;
@@ -19,7 +18,9 @@ export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
   isOptional: true;
 }
 
-export type ParamDefinitionsMap = { [paramName: string]: ParamDefinition<any> };
+export interface ParamDefinitionsMap {
+  [paramName: string]: ParamDefinition<any>;
+}
 
 export interface ITaskDefinition {
   readonly name: string;
@@ -31,7 +32,7 @@ export interface ITaskDefinition {
   // params, and that's not clear.
   readonly paramDefinitions: ParamDefinitionsMap;
 
-  readonly positionalParamDefinitions: ParamDefinition<any>[];
+  readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
 
   setDescription(description: string): this;
 
@@ -41,7 +42,7 @@ export interface ITaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this;
 
@@ -49,14 +50,14 @@ export interface ITaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this;
 
   addPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this;
 
@@ -64,14 +65,14 @@ export interface ITaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this;
 
   addVariadicPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T[],
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this;
 
@@ -79,21 +80,24 @@ export interface ITaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T[],
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this;
 
   addFlag(name: string, description?: string): this;
 }
 
 export class TaskDefinition implements ITaskDefinition {
+  get description() {
+    return this._description;
+  }
   public readonly paramDefinitions: ParamDefinitionsMap = {};
-  public readonly positionalParamDefinitions: ParamDefinition<any>[] = [];
+  public readonly positionalParamDefinitions: Array<ParamDefinition<any>> = [];
+  public action: ActionType<TaskArguments>;
 
   private _positionalParamNames: Set<string>;
   private _hasVariadicParam: boolean;
   private _hasOptionalPositionalParam: boolean;
   private _description?: string;
-  public action: ActionType<TaskArguments>;
 
   constructor(
     public readonly name: string,
@@ -107,26 +111,22 @@ export class TaskDefinition implements ITaskDefinition {
     };
   }
 
-  get description() {
-    return this._description;
-  }
-
-  setDescription(description: string) {
+  public setDescription(description: string) {
     this._description = description;
     return this;
   }
 
-  setAction<ArgsT>(action: ActionType<ArgsT>) {
+  public setAction<ArgsT>(action: ActionType<ArgsT>) {
     // TODO: There's probably something bad here. See types.ts for more info.
     this.action = action as ActionType<TaskArguments>;
     return this;
   }
 
-  addParam<T>(
+  public addParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional: boolean = defaultValue !== undefined
   ): this {
     if (type === undefined) {
@@ -167,16 +167,16 @@ export class TaskDefinition implements ITaskDefinition {
     return this;
   }
 
-  addOptionalParam<T>(
+  public addOptionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this {
     return this.addParam(name, description, defaultValue, type, true);
   }
 
-  addFlag(name: string, description?: string) {
+  public addFlag(name: string, description?: string) {
     this._validateNameNotUsed(name);
 
     this.paramDefinitions[name] = {
@@ -192,11 +192,11 @@ export class TaskDefinition implements ITaskDefinition {
     return this;
   }
 
-  addPositionalParam<T>(
+  public addPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional = defaultValue !== undefined
   ): this {
     if (type === undefined) {
@@ -241,27 +241,27 @@ export class TaskDefinition implements ITaskDefinition {
     return this;
   }
 
-  addOptionalPositionalParam<T>(
+  public addOptionalPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this {
     return this.addPositionalParam(name, description, defaultValue, type, true);
   }
 
-  addVariadicPositionalParam<T>(
+  public addVariadicPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T[] | T,
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional = defaultValue !== undefined
   ): this {
     if (defaultValue !== undefined && !Array.isArray(defaultValue)) {
       defaultValue = [defaultValue];
     }
 
-    if (type == undefined) {
+    if (type === undefined) {
       if (defaultValue !== undefined && !this.isStringArray(defaultValue)) {
         throw new BuidlerError(
           ERRORS.TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE,
@@ -303,11 +303,11 @@ export class TaskDefinition implements ITaskDefinition {
     return this;
   }
 
-  addOptionalVariadicPositionalParam<T>(
+  public addOptionalVariadicPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T[] | T,
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this {
     return this.addVariadicPositionalParam(
       name,
@@ -318,7 +318,7 @@ export class TaskDefinition implements ITaskDefinition {
     );
   }
 
-  _addPositionalParamDefinition(definition: ParamDefinition<any>) {
+  public _addPositionalParamDefinition(definition: ParamDefinition<any>) {
     if (definition.isVariadic) {
       this._hasVariadicParam = true;
     }
@@ -331,7 +331,7 @@ export class TaskDefinition implements ITaskDefinition {
     this.positionalParamDefinitions.push(definition);
   }
 
-  _validateNotAfterVariadicParam(name: string) {
+  public _validateNotAfterVariadicParam(name: string) {
     if (this._hasVariadicParam) {
       throw new BuidlerError(
         ERRORS.TASKS_DEFINITION_PARAM_AFTER_VARIADIC,
@@ -341,7 +341,7 @@ export class TaskDefinition implements ITaskDefinition {
     }
   }
 
-  _validateNameNotUsed(name: string) {
+  public _validateNameNotUsed(name: string) {
     if (this._hasParamDefined(name)) {
       throw new BuidlerError(
         ERRORS.TASKS_DEFINITION_PARAM_ALREADY_DEFINED,
@@ -359,14 +359,14 @@ export class TaskDefinition implements ITaskDefinition {
     }
   }
 
-  _hasParamDefined(name: string) {
+  public _hasParamDefined(name: string) {
     return (
       this.paramDefinitions[name] !== undefined ||
       this._positionalParamNames.has(name)
     );
   }
 
-  _validateNoMandatoryParamAfterOptionalOnes(
+  public _validateNoMandatoryParamAfterOptionalOnes(
     name: string,
     isOptional: boolean
   ) {
@@ -410,12 +410,12 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
     this.parentTaskDefinition = parentTaskDefinition;
   }
 
-  setDescription(description: string) {
+  public setDescription(description: string) {
     this._description = description;
     return this;
   }
 
-  setAction<ArgsT>(action: ActionType<ArgsT>) {
+  public setAction<ArgsT>(action: ActionType<ArgsT>) {
     // TODO: There's probably something bad here. See types.ts for more info.
     this._action = action as ActionType<TaskArguments>;
     return this;
@@ -449,68 +449,68 @@ export class OverloadedTaskDefinition implements ITaskDefinition {
     return this.parentTaskDefinition.positionalParamDefinitions;
   }
 
-  addParam<T>(
+  public addParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
     return this._throwNoParamsOverloadError();
   }
 
-  addOptionalParam<T>(
+  public addOptionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this {
     return this._throwNoParamsOverloadError();
   }
 
-  addPositionalParam<T>(
+  public addPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
     return this._throwNoParamsOverloadError();
   }
 
-  addOptionalPositionalParam<T>(
+  public addOptionalPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this {
     return this._throwNoParamsOverloadError();
   }
 
-  addVariadicPositionalParam<T>(
+  public addVariadicPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T[],
-    type?: ArgumentType<T>,
+    type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
     return this._throwNoParamsOverloadError();
   }
 
-  addOptionalVariadicPositionalParam<T>(
+  public addOptionalVariadicPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T[],
-    type?: ArgumentType<T>
+    type?: types.ArgumentType<T>
   ): this {
     return this._throwNoParamsOverloadError();
   }
 
-  addFlag(name: string, description?: string): this {
+  public addFlag(name: string, description?: string): this {
     return this._throwNoParamsOverloadError();
   }
 
-  _throwNoParamsOverloadError(): never {
+  public _throwNoParamsOverloadError(): never {
     throw new BuidlerError(
       ERRORS.TASKS_DEFINITION_OVERLOAD_NO_PARAMS,
       this.name

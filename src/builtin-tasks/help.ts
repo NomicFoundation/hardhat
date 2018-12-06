@@ -1,9 +1,9 @@
-import { getPackageJson } from "../util/packageInfo";
-import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { HelpPrinter } from "../cli/HelpPrinter";
-import tasks from "../core/importable-tasks-dsl";
+import tasksDsl from "../core/importable-tasks-dsl";
+import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
+import { getPackageJson } from "../util/packageInfo";
 
-tasks
+tasksDsl
   .task("help", "Prints this message")
   .addOptionalPositionalParam(
     "task",

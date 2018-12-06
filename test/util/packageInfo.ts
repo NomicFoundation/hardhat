@@ -1,6 +1,7 @@
-import { getPackageJson, getPackageRoot } from "../../src/util/packageInfo";
 import { assert } from "chai";
 import fsExtra from "fs-extra";
+
+import { getPackageJson, getPackageRoot } from "../../src/util/packageInfo";
 
 describe("packageInfo", () => {
   it("Should give the right package.json", async () => {

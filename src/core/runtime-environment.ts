@@ -6,17 +6,18 @@ import {
   TasksMap,
   TruffleEnvironmentArtifactsType
 } from "../types";
-import { BuidlerArguments } from "./params/buidler-params";
-import { getNetworkConfig } from "./config";
 import { lazyObject } from "../util/lazy";
-import { getWeb3Instance } from "./web3/network";
-import { promisifyWeb3 } from "./web3/pweb3";
+
+import { getNetworkConfig } from "./config";
+import { BuidlerError, ERRORS } from "./errors";
+import { BuidlerArguments } from "./params/buidler-params";
 import {
   ITaskDefinition,
   OverloadedTaskDefinition
 } from "./tasks/TaskDefinition";
 import { TruffleEnvironmentArtifacts } from "./truffle";
-import { BuidlerError, ERRORS } from "./errors";
+import { getWeb3Instance } from "./web3/network";
+import { promisifyWeb3 } from "./web3/pweb3";
 
 export class BuidlerRuntimeEnvironment {
   public readonly Web3: any;

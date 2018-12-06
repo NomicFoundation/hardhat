@@ -6,6 +6,7 @@ install:
 script:
   - npm run test
   - npx codecov
+  - npm run lint
 cache:
   directories:
     - "$HOME/.npm"

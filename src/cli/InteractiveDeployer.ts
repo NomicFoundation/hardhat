@@ -1,10 +1,12 @@
+/* tslint:disable */
+
+import { BuidlerError, ERRORS } from "../core/errors";
+import { TruffleArtifactsStorage } from "../core/truffle";
 import {
   BuidlerConfig,
   TruffleContractInstance,
   TruffleEnvironmentArtifactsType
 } from "../types";
-import { TruffleArtifactsStorage } from "../core/truffle";
-import { BuidlerError, ERRORS } from "../core/errors";
 
 // TODO: This imports are outdated, import-lazy shouldn't ne used anymore.
 const importLazy = require("import-lazy")(require);
@@ -49,7 +51,7 @@ export class InteractiveDeployer {
     this._deployedContractsMap = {};
   }
 
-  async run() {
+  public async run() {
     await this._validateFromAddress();
 
     this._deployedContracts = [];
@@ -69,7 +71,7 @@ export class InteractiveDeployer {
     } while (await this._shouldDeployAnotherContract());
   }
 
-  async _selectContractToDeploy() {
+  public async _selectContractToDeploy() {
     const deployableArtifacts = await this._getDeployableArtifacts();
     const contractNames = deployableArtifacts.map(a => a.contractName);
 
@@ -86,7 +88,7 @@ export class InteractiveDeployer {
   }
 
   // Returns undefined if the user cancels the deployment.
-  async _deployContract(
+  public async _deployContract(
     contractName: string
   ): Promise<TruffleContractInstance> {
     const artifact = await this._getDeployableArtifact(contractName);
@@ -109,7 +111,7 @@ export class InteractiveDeployer {
       return;
     }
 
-    let contract = await this._deploy(contractName, args, libraries);
+    const contract = await this._deploy(contractName, args, libraries);
 
     if (contract === undefined) {
       return;
@@ -125,7 +127,7 @@ export class InteractiveDeployer {
     return contract;
   }
 
-  async _deploy(
+  public async _deploy(
     contractName: string,
     args: any[],
     libraries?: TruffleContractInstance[]
@@ -166,7 +168,7 @@ export class InteractiveDeployer {
     }
   }
 
-  async _getDeployableArtifacts() {
+  public async _getDeployableArtifacts() {
     if (this._deployableArtifacts === undefined) {
       const artifacts = await this._artifactsStorage.getAllArtifacts();
 
@@ -176,7 +178,7 @@ export class InteractiveDeployer {
     return this._deployableArtifacts;
   }
 
-  _isDeployable(artifact: any) {
+  public _isDeployable(artifact: any) {
     // An artifact without bytecode is an abstract contract or interface
     //
     // And we don't bother with libaries/coontracts with empty ABIs, if not
@@ -185,7 +187,7 @@ export class InteractiveDeployer {
     return artifact.bytecode.length > 0 && artifact.abi.length > 0;
   }
 
-  async _getDeployableArtifact(contractName: string) {
+  public async _getDeployableArtifact(contractName: string) {
     if (this._deployableArtifactsMap === undefined) {
       const deployableArtifacts = await this._getDeployableArtifacts();
 
@@ -198,7 +200,7 @@ export class InteractiveDeployer {
     return this._deployableArtifactsMap[contractName];
   }
 
-  async _shouldDeployAnotherContract() {
+  public async _shouldDeployAnotherContract() {
     console.log("");
 
     const { deployAnother } = await inquirer.prompt([
@@ -212,7 +214,7 @@ export class InteractiveDeployer {
     return deployAnother;
   }
 
-  async _getConstructorArgs(artifact: any) {
+  public async _getConstructorArgs(artifact: any) {
     const constructor = artifact.abi.find(
       (elem: any) => elem.type === "constructor"
     );
@@ -231,7 +233,7 @@ export class InteractiveDeployer {
     return values;
   }
 
-  async _getArgumentValue(input: any) {
+  public async _getArgumentValue(input: any) {
     if (input.type === "address") {
       return this._getValueForAddressInput(input);
     }
@@ -247,7 +249,7 @@ export class InteractiveDeployer {
     return this._getValueFor(input);
   }
 
-  async _getValueFor<T>(
+  public async _getValueFor<T>(
     input: any,
     validationFunction?: (input: any, answers?: T) => boolean | string
   ) {
@@ -265,7 +267,7 @@ export class InteractiveDeployer {
     return value;
   }
 
-  _getValueForUint256(input: any) {
+  public _getValueForUint256(input: any) {
     return this._getValueFor(input, str => {
       const bn = new BigNumber(str);
 
@@ -285,7 +287,7 @@ export class InteractiveDeployer {
     });
   }
 
-  _getValueForInt256(input: any) {
+  public _getValueForInt256(input: any) {
     return this._getValueFor(input, str => {
       const bn = new BigNumber(str);
 
@@ -301,14 +303,14 @@ export class InteractiveDeployer {
     });
   }
 
-  async _getValueForAddressInput(input: any) {
+  public async _getValueForAddressInput(input: any) {
     return this._getAddress(
       `Insert a value for ${chalk.grey(input.type + " " + input.name)}:`,
       true
     );
   }
 
-  async _getAccounts(): Promise<string[]> {
+  public async _getAccounts(): Promise<string[]> {
     if (this._accounts !== undefined) {
       return this._accounts;
     }
@@ -321,11 +323,11 @@ export class InteractiveDeployer {
     return accounts;
   }
 
-  _usesLibraries(artifact: any) {
+  public _usesLibraries(artifact: any) {
     return Object.keys(artifact.linkReferences).length > 0;
   }
 
-  async _getLibraries(artifact: any) {
+  public async _getLibraries(artifact: any) {
     const libraries = [];
 
     for (const libName of this._getNeededLibraryNames(artifact)) {
@@ -335,7 +337,7 @@ export class InteractiveDeployer {
     return libraries;
   }
 
-  _getNeededLibraryNames(artifact: any) {
+  public _getNeededLibraryNames(artifact: any) {
     const names = [];
 
     for (const file of Object.values(artifact.linkReferences)) {
@@ -347,7 +349,7 @@ export class InteractiveDeployer {
     return names.sort();
   }
 
-  async _getLibrary(contractName: string, libraryName: string) {
+  public async _getLibrary(contractName: string, libraryName: string) {
     console.log("");
     this._printTitle(`${contractName} uses library ${libraryName}`);
 
@@ -365,7 +367,7 @@ export class InteractiveDeployer {
     return Library.at(address);
   }
 
-  _getDeployedContractsByName(name?: string): TruffleContractInstance[] {
+  public _getDeployedContractsByName(name?: string): TruffleContractInstance[] {
     if (name === undefined) {
       return [];
     }
@@ -373,7 +375,7 @@ export class InteractiveDeployer {
     return this._deployedContractsMap[name] || [];
   }
 
-  async _getAddress(
+  public async _getAddress(
     modeSelectionPrompt: any,
     useAccounts = false,
     canBeNullAddress = true,
@@ -424,7 +426,7 @@ export class InteractiveDeployer {
     return this._getOtherAddress(canBeNullAddress);
   }
 
-  async _getAddressMode(
+  public async _getAddressMode(
     modeSelectionPrompt: any,
     useAccounts: boolean,
     libraryName?: string
@@ -480,7 +482,7 @@ export class InteractiveDeployer {
     return mode;
   }
 
-  async _getAddressFromAccounts() {
+  public async _getAddressFromAccounts() {
     const accounts = await this._getAccounts();
     const { value } = await inquirer.prompt([
       {
@@ -498,7 +500,9 @@ export class InteractiveDeployer {
     return value;
   }
 
-  async _getAddressFromDeployedContracts(contracts: TruffleContractInstance[]) {
+  public async _getAddressFromDeployedContracts(
+    contracts: TruffleContractInstance[]
+  ) {
     const { value } = await inquirer.prompt([
       {
         name: "value",
@@ -517,7 +521,7 @@ export class InteractiveDeployer {
     return value;
   }
 
-  async _getAddressFromNewLibrary(libraryName: string) {
+  public async _getAddressFromNewLibrary(libraryName: string) {
     this._printTitle(`Deploying library ${libraryName}`);
 
     while (true) {
@@ -537,7 +541,7 @@ export class InteractiveDeployer {
     }
   }
 
-  async _getOtherAddress(canBeNullAddress: boolean) {
+  public async _getOtherAddress(canBeNullAddress: boolean) {
     while (true) {
       const { value } = await inquirer.prompt([
         {
@@ -579,11 +583,11 @@ export class InteractiveDeployer {
     }
   }
 
-  _printTitle(title: string) {
+  public _printTitle(title: string) {
     console.log(chalk.cyan(">"), chalk.bold(title));
   }
 
-  async _validateFromAddress() {
+  public async _validateFromAddress() {
     if (this._fromAddress === undefined) {
       return;
     }

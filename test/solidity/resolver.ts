@@ -1,16 +1,16 @@
 import { assert } from "chai";
-
-import { ResolvedFile, Resolver } from "../../src/solidity/resolver";
-import { getFixtureProjectPath, useFixtureProject } from "../helpers/project";
 import * as fsExtra from "fs-extra";
-import { expectBuidlerErrorAsync } from "../helpers/errors";
+
 import { ERRORS } from "../../src/core/errors";
+import { ResolvedFile, Resolver } from "../../src/solidity/resolver";
+import { expectBuidlerErrorAsync } from "../helpers/errors";
+import { getFixtureProjectPath, useFixtureProject } from "../helpers/project";
 
 function assertResolvedFile(
   actual: ResolvedFile,
   expected: Partial<ResolvedFile>
 ) {
-  for (const key in expected) {
+  for (const key of Object.keys(expected)) {
     const typedKey = key as keyof ResolvedFile;
     assert.deepEqual(actual[typedKey], expected[typedKey]);
   }
@@ -99,7 +99,7 @@ describe("Resolver", () => {
 
       assertResolvedFile(resolved, {
         globalName: "contracts/A.sol",
-        absolutePath: absolutePath,
+        absolutePath,
         content: "A",
         lastModificationDate: mtime,
         library: undefined
@@ -127,7 +127,7 @@ describe("Resolver", () => {
 
       assertResolvedFile(resolved, {
         globalName: "contracts/B.sol",
-        absolutePath: absolutePath,
+        absolutePath,
         content: "B",
         lastModificationDate: mtime,
         library: undefined
@@ -143,7 +143,7 @@ describe("Resolver", () => {
 
       assertResolvedFile(resolved, {
         globalName: "contracts/B.sol",
-        absolutePath: absolutePath,
+        absolutePath,
         content: "B",
         lastModificationDate: mtime,
         library: undefined
@@ -235,7 +235,7 @@ describe("Resolver", () => {
 
         assertResolvedFile(resolved, {
           globalName: "lib/contracts/L.sol",
-          absolutePath: absolutePath,
+          absolutePath,
           content: "L",
           lastModificationDate: mtime,
           library: {
@@ -285,7 +285,7 @@ describe("Resolver", () => {
 
         assertResolvedFile(resolved, {
           globalName: "inner/contracts/L.sol",
-          absolutePath: absolutePath,
+          absolutePath,
           content: "L",
           lastModificationDate: mtime,
           library: {
@@ -306,7 +306,7 @@ describe("Resolver", () => {
 
         assertResolvedFile(resolved, {
           globalName: "outer/contracts/L.sol",
-          absolutePath: absolutePath,
+          absolutePath,
           content: "L",
           lastModificationDate: mtime,
           library: {
@@ -328,7 +328,7 @@ describe("Resolver", () => {
 
           assertResolvedFile(resolved, {
             globalName: "clashed/contracts/I.sol",
-            absolutePath: absolutePath,
+            absolutePath,
             content: "I",
             lastModificationDate: mtime,
             library: {
@@ -356,7 +356,7 @@ describe("Resolver", () => {
 
           assertResolvedFile(resolved, {
             globalName: "clashed/contracts/L.sol",
-            absolutePath: absolutePath,
+            absolutePath,
             content: "INNER",
             lastModificationDate: mtime,
             library: {
@@ -403,7 +403,7 @@ describe("Resolver", () => {
 
       const expected = {
         globalName: "lib/contracts/L2.sol",
-        absolutePath: absolutePath,
+        absolutePath,
         content: "L2",
         lastModificationDate: mtime,
         library: {
@@ -426,7 +426,7 @@ describe("Resolver", () => {
 
       assertResolvedFile(resolved, {
         globalName: "contracts/B.sol",
-        absolutePath: absolutePath,
+        absolutePath,
         content: "B",
         lastModificationDate: mtime,
         library: undefined
@@ -445,7 +445,7 @@ describe("Resolver", () => {
 
       assertResolvedFile(resolved, {
         globalName: "lib/contracts/subdir/L3.sol",
-        absolutePath: absolutePath,
+        absolutePath,
         content: "L3",
         lastModificationDate: mtime,
         library: {

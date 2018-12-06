@@ -1,8 +1,8 @@
 import { getConfig } from "../core/config";
-import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
-import { GlobalWithBuidlerRuntimeEnvironment } from "../types";
+import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
+import { GlobalWithBuidlerRuntimeEnvironment } from "../types";
 
 let env: BuidlerRuntimeEnvironment;
 const globalWithEnv = global as GlobalWithBuidlerRuntimeEnvironment;

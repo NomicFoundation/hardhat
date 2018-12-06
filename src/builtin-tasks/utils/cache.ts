@@ -1,7 +1,7 @@
 import path from "path";
 
-import { glob } from "../../util/glob";
 import { BuidlerConfig } from "../../types";
+import { glob } from "../../util/glob";
 
 async function getModificationDate(file: string): Promise<Date> {
   const fsExtra = await import("fs-extra");
@@ -16,7 +16,7 @@ async function getConfigModificationDate(config: BuidlerConfig): Promise<Date> {
 async function getModificationDatesInDir(dir: string): Promise<Date[]> {
   const pattern = path.join(dir, "**");
   const files = await glob(pattern);
-  const promises: Promise<Date>[] = files.map(getModificationDate);
+  const promises: Array<Promise<Date>> = files.map(getModificationDate);
   return Promise.all(promises);
 }
 
