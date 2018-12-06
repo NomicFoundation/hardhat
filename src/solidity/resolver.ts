@@ -30,7 +30,7 @@ export class ResolvedFile {
     }
   }
 
-  getVersionedName() {
+  public getVersionedName() {
     return (
       this.globalName +
       (this.library !== undefined ? `@v${this.library.version}` : "")
@@ -41,7 +41,9 @@ export class ResolvedFile {
 export class Resolver {
   constructor(private readonly projectRoot: string) {}
 
-  async resolveProjectSourceFile(pathToResolve: string): Promise<ResolvedFile> {
+  public async resolveProjectSourceFile(
+    pathToResolve: string
+  ): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
 
     if (!(await fsExtra.pathExists(pathToResolve))) {
@@ -69,7 +71,9 @@ export class Resolver {
     return this._resolveFile(globalName, absolutePath);
   }
 
-  async resolveLibrarySourceFile(globalName: string): Promise<ResolvedFile> {
+  public async resolveLibrarySourceFile(
+    globalName: string
+  ): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
     const libraryName = globalName.slice(0, globalName.indexOf("/"));
 
@@ -124,7 +128,7 @@ export class Resolver {
     );
   }
 
-  async resolveImport(
+  public async resolveImport(
     from: ResolvedFile,
     imported: string
   ): Promise<ResolvedFile> {
@@ -171,7 +175,7 @@ export class Resolver {
     }
   }
 
-  async _resolveFile(
+  public async _resolveFile(
     globalName: string,
     absolutePath: string,
     libraryName?: string,
@@ -192,11 +196,11 @@ export class Resolver {
     );
   }
 
-  _isRelativeImport(imported: string): boolean {
+  public _isRelativeImport(imported: string): boolean {
     return imported.startsWith("./") || imported.startsWith("../");
   }
 
-  _resolveFromProjectRoot(fileName: string) {
+  public _resolveFromProjectRoot(fileName: string) {
     return require.resolve(fileName, {
       paths: [this.projectRoot]
     });

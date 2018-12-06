@@ -1,15 +1,15 @@
+import { assert } from "chai";
+import * as types from "../../../src/core/argumentTypes";
+import { ERRORS } from "../../../src/core/errors";
+import { BuidlerArguments } from "../../../src/core/params/buidler-params";
 import {
   ITaskDefinition,
   OverloadedTaskDefinition,
   ParamDefinition,
   TaskDefinition
 } from "../../../src/core/tasks/TaskDefinition";
-import { assert } from "chai";
-import { ERRORS } from "../../../src/core/errors";
-import { expectBuidlerError } from "../../helpers/errors";
-import { BuidlerArguments } from "../../../src/core/params/buidler-params";
-import * as types from "../../../src/core/argumentTypes";
 import { unsafeObjectKeys } from "../../../src/util/unsafe";
+import { expectBuidlerError } from "../../helpers/errors";
 
 function expectThrowParamAlreadyDefinedError(f: () => any) {
   expectBuidlerError(f, ERRORS.TASKS_DEFINITION_PARAM_ALREADY_DEFINED);

@@ -25,6 +25,7 @@
     "docs:build": "vuepress build docs",
     "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
     "prettier": "prettier --write src/**/*.{js,ts} test/**/*.{js,ts}",
+    "lint": "tslint src/**/*.{js,ts} test/**/*.{js,ts}",
     "test": "nyc mocha",
     "build": "tsc",
     "watch": "tsc -w"
@@ -42,9 +43,12 @@
     "dotenv": "^6.1.0",
     "ganache-cli": "^6.1.6",
     "nyc": "^13.1.0",
-    "prettier": "^1.10.2",
+    "prettier": "^1.15.3",
     "time-require": "^0.1.2",
     "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.17.0",
+    "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.1.6",
     "vuepress": "^0.14.4",
     "zeppelin-solidity": "^1.6.0"

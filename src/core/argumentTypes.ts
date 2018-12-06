@@ -15,8 +15,12 @@ export const string: ArgumentType<string> = {
 export const boolean: ArgumentType<boolean> = {
   name: "boolean",
   parse: (argName, strValue) => {
-    if (strValue.toLowerCase() === "true") return true;
-    if (strValue.toLowerCase() === "false") return false;
+    if (strValue.toLowerCase() === "true") {
+      return true;
+    }
+    if (strValue.toLowerCase() === "false") {
+      return false;
+    }
 
     throw new BuidlerError(
       ERRORS.ARG_TYPE_INVALID_VALUE,

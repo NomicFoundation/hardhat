@@ -1,5 +1,5 @@
-import { BuidlerError, ErrorDescription } from "../../src/core/errors";
 import { assert } from "chai";
+import { BuidlerError, ErrorDescription } from "../../src/core/errors";
 
 const mockErrorDescription: ErrorDescription = {
   number: 123,

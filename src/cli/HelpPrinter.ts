@@ -1,12 +1,12 @@
-import { ArgumentsParser } from "./ArgumentsParser";
 import { BuidlerError, ERRORS } from "../core/errors";
+import { BuidlerParamDefinitons } from "../core/params/buidler-params";
 import {
   ITaskDefinition,
   ParamDefinition,
   ParamDefinitionsMap
 } from "../core/tasks/TaskDefinition";
-import { BuidlerParamDefinitons } from "../core/params/buidler-params";
 import { TasksMap } from "../types";
+import { ArgumentsParser } from "./ArgumentsParser";
 
 export class HelpPrinter {
   constructor(
@@ -16,7 +16,7 @@ export class HelpPrinter {
     private readonly tasks: TasksMap
   ) {}
 
-  printGlobalHelp(includeInternalTasks = false) {
+  public printGlobalHelp(includeInternalTasks = false) {
     console.log(`${this.programName} version ${this.version}\n`);
 
     console.log(
@@ -52,7 +52,7 @@ export class HelpPrinter {
     );
   }
 
-  printTaskHelp(taskName: string) {
+  public printTaskHelp(taskName: string) {
     const taskDefinition = this.tasks[taskName];
 
     if (taskDefinition === undefined) {
@@ -96,11 +96,11 @@ export class HelpPrinter {
     console.log(`For global options help run: ${this.programName} help\n`);
   }
 
-  _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
+  public _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
     return `<${paramDefinition.type.name.toUpperCase()}>`;
   }
 
-  _getParamsList(paramDefinitions: ParamDefinitionsMap) {
+  public _getParamsList(paramDefinitions: ParamDefinitionsMap) {
     let paramsList = "";
 
     for (const name of Object.keys(paramDefinitions).sort()) {
@@ -126,7 +126,9 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  _getPositionalParamsList(positionalParamDefinitions: ParamDefinition<any>[]) {
+  public _getPositionalParamsList(
+    positionalParamDefinitions: Array<ParamDefinition<any>>
+  ) {
     let paramsList = "";
 
     for (const definition of positionalParamDefinitions) {
@@ -150,7 +152,7 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
+  public _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
     const paramsNameLength = Object.keys(paramDefinitions)
       .map(n => ArgumentsParser.paramNameToCLA(n).length)
       .reduce((a, b) => Math.max(a, b), 0);
@@ -180,8 +182,8 @@ export class HelpPrinter {
     }
   }
 
-  _printPositionalParamDetails(
-    positionalParamDefinitions: ParamDefinition<any>[]
+  public _printPositionalParamDetails(
+    positionalParamDefinitions: Array<ParamDefinition<any>>
   ) {
     const paramsNameLength = positionalParamDefinitions
       .map(d => d.name.length)

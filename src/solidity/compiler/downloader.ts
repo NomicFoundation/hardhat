@@ -40,7 +40,7 @@ export class CompilerDownloader {
     private readonly download = downloadFile
   ) {}
 
-  async getDownloadedCompilerPath(version: string): Promise<string> {
+  public async getDownloadedCompilerPath(version: string): Promise<string> {
     const compilerBuild = await this.getCompilerBuild(version);
     const downloadedFilePath = path.join(this.compilersDir, compilerBuild.path);
 
@@ -53,7 +53,7 @@ export class CompilerDownloader {
     return downloadedFilePath;
   }
 
-  async getCompilerBuild(version: string): Promise<CompilerBuild> {
+  public async getCompilerBuild(version: string): Promise<CompilerBuild> {
     const compilersListExisted = this.compilersListExists();
 
     let list = await this.getCompilersList();
@@ -77,7 +77,7 @@ export class CompilerDownloader {
     return compilerBuild;
   }
 
-  async getCompilersList(): Promise<CompilersList> {
+  public async getCompilersList(): Promise<CompilersList> {
     if (!(await this.compilersListExists())) {
       await this.downloadCompilersList();
     }
@@ -86,16 +86,16 @@ export class CompilerDownloader {
     return fsExtra.readJson(this.getCompilersListPath());
   }
 
-  getCompilersListPath() {
+  public getCompilersListPath() {
     return path.join(this.compilersDir, "list.json");
   }
 
-  async compilersListExists() {
+  public async compilersListExists() {
     const fsExtra = await import("fs-extra");
     return fsExtra.pathExists(this.getCompilersListPath());
   }
 
-  async downloadCompilersList() {
+  public async downloadCompilersList() {
     try {
       await this.download(COMPILERS_LIST_URL, this.compilersDir);
     } catch (error) {
@@ -107,7 +107,7 @@ export class CompilerDownloader {
     }
   }
 
-  async downloadCompiler(
+  public async downloadCompiler(
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
@@ -127,7 +127,7 @@ export class CompilerDownloader {
     }
   }
 
-  async verifyCompiler(
+  public async verifyCompiler(
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
@@ -151,8 +151,8 @@ export class CompilerDownloader {
     }
   }
 
-  async fileExists(path: string) {
+  private async fileExists(filePath: string) {
     const fsExtra = await import("fs-extra");
-    return fsExtra.pathExists(path);
+    return fsExtra.pathExists(filePath);
   }
 }

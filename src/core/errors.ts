@@ -1,5 +1,5 @@
-import util from "util";
 import assert from "assert";
+import util from "util";
 
 const ERROR_PREFIX = "BDLR";
 

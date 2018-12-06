@@ -1,10 +1,10 @@
+import { assert, expect } from "chai";
+import { BuidlerError, ERRORS } from "../../../src/core/errors";
+import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/core/params/buidler-params";
 import {
   getEnvBuidlerArguments,
   paramNameToEnvVariable
 } from "../../../src/core/params/env-variables";
-import { assert, expect } from "chai";
-import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/core/params/buidler-params";
-import { BuidlerError, ERRORS } from "../../../src/core/errors";
 
 // This is testing an internal function, which may seem weird, but its behaviour
 // is 100% user facing.

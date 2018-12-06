@@ -1,5 +1,5 @@
-import { describe, it, before, beforeEach } from "mocha";
 import { assert } from "chai";
+import { before, beforeEach, describe, it } from "mocha";
 
 import { lazyObject } from "../../src/util/lazy";
 

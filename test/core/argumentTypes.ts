@@ -1,6 +1,5 @@
-import * as types from "../../src/core/argumentTypes";
 import { assert, expect } from "chai";
-import { ArgumentType } from "../../src/core/argumentTypes";
+import * as types from "../../src/core/argumentTypes";
 import { BuidlerError, ERRORS } from "../../src/core/errors";
 
 function assertCorrectError(f: () => any) {
@@ -12,7 +11,9 @@ function assertCorrectError(f: () => any) {
 describe("argumentTypes", () => {
   it("should set the right name to all the argument types", () => {
     for (const typeName of Object.keys(types)) {
-      const argumentTypesMap: { [name: string]: ArgumentType<any> } = types;
+      const argumentTypesMap: {
+        [name: string]: types.ArgumentType<any>;
+      } = types;
       assert.equal(argumentTypesMap[typeName].name, typeName);
     }
   });

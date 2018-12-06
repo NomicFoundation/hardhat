@@ -1,23 +1,23 @@
+import { ActionType, TaskArguments, TasksMap } from "../../types";
 import {
   ITaskDefinition,
   OverloadedTaskDefinition,
   TaskDefinition
 } from "./TaskDefinition";
-import { ActionType, TaskArguments, TasksMap } from "../../types";
 
 export class TasksDSL {
   private readonly tasks: TasksMap = {};
 
-  task<ArgsT extends TaskArguments>(
+  public task<ArgsT extends TaskArguments>(
     name: string,
     description?: string,
     action?: ActionType<ArgsT>
   ): ITaskDefinition;
-  task<ArgsT extends TaskArguments>(
+  public task<ArgsT extends TaskArguments>(
     name: string,
     action: ActionType<ArgsT>
   ): ITaskDefinition;
-  task<ArgsT extends TaskArguments>(
+  public task<ArgsT extends TaskArguments>(
     name: string,
     descriptionOrAction?: string | ActionType<ArgsT>,
     action?: ActionType<ArgsT>
@@ -25,21 +25,25 @@ export class TasksDSL {
     return this.addTask(name, descriptionOrAction, action, false);
   }
 
-  internalTask<ArgsT extends TaskArguments>(
+  public internalTask<ArgsT extends TaskArguments>(
     name: string,
     description?: string,
     action?: ActionType<ArgsT>
   ): ITaskDefinition;
-  internalTask<ArgsT extends TaskArguments>(
+  public internalTask<ArgsT extends TaskArguments>(
     name: string,
     action: ActionType<ArgsT>
   ): ITaskDefinition;
-  internalTask<ArgsT extends TaskArguments>(
+  public internalTask<ArgsT extends TaskArguments>(
     name: string,
     descriptionOrAction?: string | ActionType<ArgsT>,
     action?: ActionType<ArgsT>
   ): ITaskDefinition {
     return this.addTask(name, descriptionOrAction, action, true);
+  }
+
+  public getTaskDefinitions(): TasksMap {
+    return this.tasks;
   }
 
   private addTask<ArgT extends TaskArguments>(
@@ -77,9 +81,5 @@ export class TasksDSL {
     this.tasks[name] = taskDefinition;
 
     return taskDefinition;
-  }
-
-  getTaskDefinitions(): TasksMap {
-    return this.tasks;
   }
 }

@@ -1,10 +1,11 @@
-import { BuidlerError, ERRORS } from "../errors";
+/* tslint:disable */
 import {
   AutoNetworkConfig,
   GanacheOptions,
   HttpNetworkConfig,
   NetworkConfig
 } from "../../types";
+import { BuidlerError, ERRORS } from "../errors";
 
 function isHttpNetworkConfig(
   networkConfig: any
@@ -68,7 +69,7 @@ function createGanacheProvider(ganacheOptions: GanacheOptions) {
 }
 
 export function createAutoNetwork(netConfig: AutoNetworkConfig) {
-  let netConfigOptions: GanacheOptions = {
+  const netConfigOptions: GanacheOptions = {
     gasLimit: netConfig.blockGasLimit,
     network_id: 4447
   };

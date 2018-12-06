@@ -1,14 +1,14 @@
+import { assert } from "chai";
+import fsExtra from "fs-extra";
+import * as os from "os";
+import { ERRORS } from "../../../src/core/errors";
 import {
   CompilerBuild,
   CompilerDownloader,
   CompilersList
 } from "../../../src/solidity/compiler/downloader";
-import { assert } from "chai";
-import * as os from "os";
-import fsExtra from "fs-extra";
-import { expectBuidlerErrorAsync } from "../../helpers/errors";
-import { ERRORS } from "../../../src/core/errors";
 import { getLocalCompilerVersion } from "../../helpers/compiler";
+import { expectBuidlerErrorAsync } from "../../helpers/errors";
 
 // The CompilerDownloader's logic is complex and has/depends on lots of
 // side-effects. This is not ideal, but enables many optimizations. In
@@ -108,7 +108,8 @@ describe("Compiler downloader", () => {
         compilersDir,
         getLocalCompilerVersion(),
         async (url, path) => {
-          (urlUsed = url), (pathUsed = path);
+          urlUsed = url;
+          pathUsed = path;
         }
       );
 
@@ -149,7 +150,8 @@ describe("Compiler downloader", () => {
         compilersDir,
         getLocalCompilerVersion(),
         async (url, path) => {
-          (urlUsed = url), (pathUsed = path);
+          urlUsed = url;
+          pathUsed = path;
         }
       );
 

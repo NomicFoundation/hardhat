@@ -1,5 +1,5 @@
+import { assert, AssertionError, expect } from "chai";
 import { BuidlerError, ErrorDescription } from "../../src/core/errors";
-import { expect, assert, AssertionError } from "chai";
 
 export function expectBuidlerError(
   f: () => any,

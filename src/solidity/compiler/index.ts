@@ -7,6 +7,9 @@ export interface SolcOptimizerConfig {
 }
 
 export class Compiler {
+  private static getLocalSolcVersion(): string {
+    return require("solc/package.json").version;
+  }
   private loadedSolc?: any;
   private readonly downloader: CompilerDownloader;
   private readonly localSolcVersion: string;
@@ -29,7 +32,7 @@ export class Compiler {
     }
   }
 
-  getInputFromDependencyGraph(graph: DependencyGraph) {
+  public getInputFromDependencyGraph(graph: DependencyGraph) {
     const sources: { [globalName: string]: { content: string } } = {};
     for (const file of graph.getResolvedFiles()) {
       sources[file.globalName] = {
@@ -56,14 +59,14 @@ export class Compiler {
     };
   }
 
-  async compile(input: any) {
+  public async compile(input: any) {
     const solc = await this.getSolc();
 
     const jsonOutput = solc.compile(JSON.stringify(input));
     return JSON.parse(jsonOutput);
   }
 
-  async getSolc() {
+  public async getSolc() {
     if (this.loadedSolc !== undefined) {
       return this.loadedSolc;
     }
@@ -85,9 +88,5 @@ export class Compiler {
 
   private isUsingLocalSolcVersion() {
     return this.version === this.localSolcVersion;
-  }
-
-  private static getLocalSolcVersion(): string {
-    return require("solc/package.json").version;
   }
 }

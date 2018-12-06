@@ -2,14 +2,7 @@ import { getImports } from "./imports";
 import { ResolvedFile, Resolver } from "./resolver";
 
 export class DependencyGraph {
-  public readonly dependenciesPerFile = new Map<
-    ResolvedFile,
-    Set<ResolvedFile>
-  >();
-
-  private constructor() {}
-
-  static async createFromResolvedFiles(
+  public static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
   ) {
@@ -23,8 +16,14 @@ export class DependencyGraph {
 
     return graph;
   }
+  public readonly dependenciesPerFile = new Map<
+    ResolvedFile,
+    Set<ResolvedFile>
+  >();
 
-  getResolvedFiles(): ResolvedFile[] {
+  private constructor() {}
+
+  public getResolvedFiles(): ResolvedFile[] {
     return Array.from(this.dependenciesPerFile.keys());
   }
 
