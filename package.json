@@ -24,7 +24,7 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
-    "prettier": "prettier --write src/**/*.{js,ts} test/**/*.{js,ts}",
+    "fix": "prettier --write src/**/*.{js,ts} test/**/*.{js,ts} && tslint --fix src/**/*.{js,ts} test/**/*.{js,ts}",
     "lint": "tslint src/**/*.{js,ts} test/**/*.{js,ts}",
     "test": "nyc mocha",
     "build": "tsc",
