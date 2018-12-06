@@ -63,7 +63,7 @@ async function main() {
 
     if (taskDefinition === undefined) {
       throw new BuidlerError(
-        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_TASK,
+        ERRORS.UNRECOGNIZED_TASK,
         taskName
       );
     }
