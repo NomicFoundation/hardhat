@@ -18,6 +18,13 @@
       "check-format",
       "allow-leading-underscore",
       "allow-pascal-case"
+    ],
+    "ordered-imports": [
+      true,
+      {
+        "grouped-imports": true,
+        "import-sources-order": "case-insensitive"
+      }
     ]
   }
 }

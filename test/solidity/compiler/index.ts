@@ -1,4 +1,5 @@
 import { assert } from "chai";
+
 import { Compiler, SolcOptimizerConfig } from "../../../src/solidity/compiler";
 import { CompilerDownloader } from "../../../src/solidity/compiler/downloader";
 import { DependencyGraph } from "../../../src/solidity/dependencyGraph";

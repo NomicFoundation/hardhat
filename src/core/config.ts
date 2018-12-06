@@ -1,5 +1,7 @@
 import deepmerge from "deepmerge";
+
 import { AutoNetworkConfig, BuidlerConfig, NetworkConfig } from "../types";
+
 import * as types from "./argumentTypes";
 import { BuidlerError, ERRORS } from "./errors";
 import { getUserConfigPath } from "./project-structure";

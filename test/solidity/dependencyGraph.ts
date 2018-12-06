@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fs from "fs";
+
 import { DependencyGraph } from "../../src/solidity/dependencyGraph";
 import { ResolvedFile, Resolver } from "../../src/solidity/resolver";
 

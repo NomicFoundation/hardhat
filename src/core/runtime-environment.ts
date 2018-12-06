@@ -7,6 +7,7 @@ import {
   TruffleEnvironmentArtifactsType
 } from "../types";
 import { lazyObject } from "../util/lazy";
+
 import { getNetworkConfig } from "./config";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";

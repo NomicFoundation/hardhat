@@ -1,4 +1,5 @@
 import { DependencyGraph } from "../dependencyGraph";
+
 import { CompilerDownloader } from "./downloader";
 
 export interface SolcOptimizerConfig {

@@ -1,6 +1,8 @@
 import findUp from "find-up";
 import path from "path";
+
 import { getPackageRoot } from "../util/packageInfo";
+
 import { BuidlerError, ERRORS } from "./errors";
 
 const CONFIG_FILENAME = "buidler-config.js";

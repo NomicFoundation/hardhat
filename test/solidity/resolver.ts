@@ -1,6 +1,6 @@
 import { assert } from "chai";
-
 import * as fsExtra from "fs-extra";
+
 import { ERRORS } from "../../src/core/errors";
 import { ResolvedFile, Resolver } from "../../src/solidity/resolver";
 import { expectBuidlerErrorAsync } from "../helpers/errors";

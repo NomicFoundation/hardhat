@@ -1,4 +1,5 @@
 import { assert, expect } from "chai";
+
 import { getConfig, getNetworkConfig } from "../../src/core/config";
 import { BuidlerError, ErrorDescription, ERRORS } from "../../src/core/errors";
 import { getLocalCompilerVersion } from "../helpers/compiler";

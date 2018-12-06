@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import "source-map-support/register";
+
 import { getConfig } from "../core/config";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
@@ -7,6 +8,7 @@ import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
 import { getPackageJson } from "../util/packageInfo";
+
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
@@ -62,10 +64,7 @@ async function main() {
     const taskDefinition = taskDefinitions[taskName];
 
     if (taskDefinition === undefined) {
-      throw new BuidlerError(
-        ERRORS.UNRECOGNIZED_TASK,
-        taskName
-      );
+      throw new BuidlerError(ERRORS.UNRECOGNIZED_TASK, taskName);
     }
 
     const taskArguments = argumentsParser.parseTaskArguments(

@@ -1,6 +1,8 @@
 import path from "path";
+
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
+
 import { emoji } from "./emoji";
 
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
