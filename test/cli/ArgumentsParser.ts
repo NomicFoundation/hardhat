@@ -1,18 +1,18 @@
 import { assert } from "chai";
 
-import { TaskArguments } from "../types";
 import { ArgumentsParser } from "../../src/cli/ArgumentsParser";
-import {
-  BuidlerArguments,
-  BUIDLER_PARAM_DEFINITIONS
-} from "../../src/core/params/buidler-params";
+import { int, string } from "../../src/core/argumentTypes";
 import { ERRORS } from "../../src/core/errors";
+import {
+  BUIDLER_PARAM_DEFINITIONS,
+  BuidlerArguments
+} from "../../src/core/params/buidler-params";
 import {
   ITaskDefinition,
   TaskDefinition
 } from "../../src/core/tasks/TaskDefinition";
-import { string, int } from "../../src/core/argumentTypes";
 import { expectBuidlerError } from "../helpers/errors";
+import { TaskArguments } from "../types";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
@@ -308,27 +308,21 @@ describe("ArgumentsParser", () => {
 
     it("should fail to parse task without non optional argument", () => {
       const rawCLAs: string[] = [];
-      const taskDefinition: ITaskDefinition = new TaskDefinition(
-        "compile",
-        true
-      );
-      taskDefinition.addParam("param", "just a param");
-      taskDefinition.addParam("bleep", "useless param", 1602, int, true);
+      const definition = new TaskDefinition("compile", true);
+      definition.addParam("param", "just a param");
+      definition.addParam("bleep", "useless param", 1602, int, true);
       expectBuidlerError(() => {
-        argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
+        argumentsParser.parseTaskArguments(definition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT);
     });
 
     it("should fail trying to parse unrecognized positional argument", () => {
       const rawCLAs: string[] = [];
-      const taskDefinition: ITaskDefinition = new TaskDefinition(
-        "compile",
-        true
-      );
-      taskDefinition.addParam("param", "just a param");
-      taskDefinition.addParam("bleep", "useless param", 1602, int, true);
+      const definition = new TaskDefinition("compile", true);
+      definition.addParam("param", "just a param");
+      definition.addParam("bleep", "useless param", 1602, int, true);
       expectBuidlerError(() => {
-        argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
+        argumentsParser.parseTaskArguments(definition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT);
     });
 

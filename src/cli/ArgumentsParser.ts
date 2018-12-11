@@ -12,9 +12,9 @@ import { TaskArguments } from "../types";
 import { unsafeObjectKeys } from "../util/unsafe";
 
 export class ArgumentsParser {
-  static readonly PARAM_PREFIX = "--";
+  public static readonly PARAM_PREFIX = "--";
 
-  static paramNameToCLA(paramName: string): string {
+  public static paramNameToCLA(paramName: string): string {
     return (
       ArgumentsParser.PARAM_PREFIX +
       paramName
@@ -24,7 +24,7 @@ export class ArgumentsParser {
     );
   }
 
-  static cLAToParamName(cLA: string): string {
+  public static cLAToParamName(cLA: string): string {
     const parts = cLA.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
 
     return (
@@ -36,7 +36,7 @@ export class ArgumentsParser {
     );
   }
 
-  parseBuidlerArguments(
+  public parseBuidlerArguments(
     buidlerParamDefinitions: BuidlerParamDefinitons,
     envVariableArguments: BuidlerArguments,
     rawCLAs: string[]
@@ -46,7 +46,7 @@ export class ArgumentsParser {
     unparsedCLAs: string[];
   } {
     const buidlerArguments = {};
-    let taskName: string | undefined = undefined;
+    let taskName: string | undefined;
     const unparsedCLAs: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
@@ -99,7 +99,7 @@ export class ArgumentsParser {
     };
   }
 
-  parseTaskArguments(taskDefintion: ITaskDefinition, rawCLAs: string[]) {
+  public parseTaskArguments(taskDefintion: ITaskDefinition, rawCLAs: string[]) {
     const {
       paramArguments,
       rawPositionalArguments
@@ -113,7 +113,10 @@ export class ArgumentsParser {
     return { ...paramArguments, ...positionalArguments };
   }
 
-  _parseTaskParamArguments(taskDefintion: ITaskDefinition, rawCLAs: string[]) {
+  public _parseTaskParamArguments(
+    taskDefintion: ITaskDefinition,
+    rawCLAs: string[]
+  ) {
     const paramArguments = {};
     const rawPositionalArguments: string[] = [];
 
@@ -145,7 +148,7 @@ export class ArgumentsParser {
     return { paramArguments, rawPositionalArguments };
   }
 
-  _addBuidlerDefaultArguments(
+  public _addBuidlerDefaultArguments(
     buidlerParamDefinitions: BuidlerParamDefinitons,
     envVariableArguments: BuidlerArguments,
     buidlerArguments: Partial<BuidlerArguments>
@@ -154,12 +157,12 @@ export class ArgumentsParser {
       const envVarArgument = envVariableArguments[paramName];
 
       if (buidlerArguments[paramName] === undefined) {
-          buidlerArguments[paramName] = envVarArgument;
+        buidlerArguments[paramName] = envVarArgument;
       }
     }
   }
 
-  _addTaskDefaultArguments(
+  public _addTaskDefaultArguments(
     taskDefintion: ITaskDefinition,
     taskArguments: TaskArguments
   ) {
@@ -179,7 +182,7 @@ export class ArgumentsParser {
     }
   }
 
-  _isParamName(str: string, paramDefinitions: ParamDefinitionsMap) {
+  public _isParamName(str: string, paramDefinitions: ParamDefinitionsMap) {
     if (!this._hasCLAParamNameFormat(str)) {
       return false;
     }
@@ -188,11 +191,11 @@ export class ArgumentsParser {
     return paramDefinitions[name] !== undefined;
   }
 
-  _hasCLAParamNameFormat(str: string) {
+  public _hasCLAParamNameFormat(str: string) {
     return str.startsWith(ArgumentsParser.PARAM_PREFIX);
   }
 
-  _parseArgumentAt(
+  public _parseArgumentAt(
     rawCLAs: string[],
     index: number,
     paramDefinitions: ParamDefinitionsMap,
@@ -217,9 +220,9 @@ export class ArgumentsParser {
     return index;
   }
 
-  _parsePositionalParamArgs(
+  public _parsePositionalParamArgs(
     rawPositionalParamArgs: string[],
-    positionalParamDefinitions: ParamDefinition<any>[]
+    positionalParamDefinitions: Array<ParamDefinition<any>>
   ): TaskArguments {
     const args: TaskArguments = {};
 

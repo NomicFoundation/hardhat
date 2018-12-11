@@ -1,7 +1,8 @@
 import { assert, expect } from "chai";
+
+import { BuidlerError, ERRORS } from "../../../src/core/errors";
 import { TasksDSL } from "../../../src/core/tasks/dsl";
 import { TaskDefinition } from "../../../src/core/tasks/TaskDefinition";
-import { BuidlerError, ERRORS } from "../../../src/core/errors";
 
 describe("TasksDSL", () => {
   let dsl: TasksDSL;
@@ -53,16 +54,16 @@ describe("TasksDSL", () => {
 
     const builtin = dsl.task("compile", "built-in", action);
     let tasks = dsl.getTaskDefinitions();
-    assert.equal(tasks["compile"], builtin);
+    assert.equal(tasks.compile, builtin);
 
     const custom = dsl.task("compile", "custom", action);
     tasks = dsl.getTaskDefinitions();
-    assert.equal(tasks["compile"], custom);
+    assert.equal(tasks.compile, custom);
   });
 
   it("should return added tasks", () => {
     const task = dsl.task("compile", "built-in");
-    let tasks = dsl.getTaskDefinitions();
+    const tasks = dsl.getTaskDefinitions();
     assert.deepEqual(tasks, { compile: task });
   });
 });

@@ -1,14 +1,15 @@
 import path from "path";
 
-import { glob } from "../util/glob";
+import { BuidlerError, ERRORS } from "../core/errors";
+import tasks from "../core/importable-tasks-dsl";
+import { TruffleArtifactsStorage } from "../core/truffle";
+import { Compiler } from "../solidity/compiler";
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { Resolver } from "../solidity/resolver";
-import { Compiler } from "../solidity/compiler";
-import { TruffleArtifactsStorage } from "../core/truffle";
-import { BuidlerError, ERRORS } from "../core/errors";
-import { areArtifactsCached } from "./utils/cache";
 import { BuidlerConfig } from "../types";
-import tasks from "../core/importable-tasks-dsl";
+import { glob } from "../util/glob";
+
+import { areArtifactsCached } from "./utils/cache";
 
 function getCompilersDir(config: BuidlerConfig) {
   return path.join(config.paths.cache, "compilers");

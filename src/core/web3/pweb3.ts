@@ -1,5 +1,6 @@
-import { BuidlerError, ERRORS } from "../errors";
+/* tslint:disable */
 import { promisify } from "util";
+import { BuidlerError, ERRORS } from "../errors";
 
 export function promisifyWeb3(web3: any) {
   const WEB3_MODULES = ["eth", "db", "shh", "net", "personal", "bzz"];

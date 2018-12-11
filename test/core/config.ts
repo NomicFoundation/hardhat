@@ -1,6 +1,8 @@
 import { assert, expect } from "chai";
+
 import { getConfig, getNetworkConfig } from "../../src/core/config";
-import { BuidlerError, ERRORS, ErrorDescription } from "../../src/core/errors";
+import { BuidlerError, ErrorDescription, ERRORS } from "../../src/core/errors";
+import { getLocalCompilerVersion } from "../helpers/compiler";
 import { useFixtureProject } from "../helpers/project";
 
 function assertCorrectError(f: () => any, error: ErrorDescription) {
@@ -24,14 +26,14 @@ describe("config", () => {
       const [config, _] = getConfig();
       assert.equal(
         getNetworkConfig(config, "develop"),
-        config.networks["develop"]
+        config.networks.develop
       );
     });
 
     it("should return the config merged ", () => {
       const [config, tasks] = getConfig();
 
-      assert.equal(config.solc.version, "0.5.0");
+      assert.equal(config.solc.version, getLocalCompilerVersion());
       assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
       assert.containsAllKeys(tasks, [
         "clean",
@@ -45,7 +47,7 @@ describe("config", () => {
 
     it("should return the config merged ", () => {
       const [config, tasks] = getConfig();
-      assert.equal(config.solc.version, "0.5.0");
+      assert.equal(config.solc.version, getLocalCompilerVersion());
       assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
       assert.equal(config.networks.develop.port, 1337);
     });
@@ -56,7 +58,7 @@ describe("config", () => {
 
     it("should return the default config", () => {
       const [config, tasks] = getConfig();
-      assert.equal(config.solc.version, "0.5.0");
+      assert.equal(config.solc.version, getLocalCompilerVersion());
       assert.containsAllKeys(config.networks, ["auto", "develop"]);
       assert.containsAllKeys(tasks, [
         "clean",
@@ -70,8 +72,8 @@ describe("config", () => {
 
     it("should remove things from global state", () => {
       const globalAsAny: any = global;
-      assert.isUndefined(globalAsAny["internalTask"]);
-      assert.isUndefined(globalAsAny["task"]);
+      assert.isUndefined(globalAsAny.internalTask);
+      assert.isUndefined(globalAsAny.task);
     });
 
     it("should return config with overridden tasks", () => {});

@@ -1,8 +1,8 @@
 import path from "path";
 import util from "util";
 
-import { glob } from "../util/glob";
 import tasks from "../core/importable-tasks-dsl";
+import { glob } from "../util/glob";
 
 tasks
   .internalTask("builtin:get-test-files")

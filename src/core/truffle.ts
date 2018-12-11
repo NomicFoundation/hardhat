@@ -1,3 +1,5 @@
+/* tslint:disable */
+
 import path from "path";
 import util from "util";
 import {
@@ -6,8 +8,8 @@ import {
   TruffleContract,
   TruffleContractInstance
 } from "../types";
-import { BuidlerError, ERRORS } from "./errors";
 import { glob } from "../util/glob";
+import { BuidlerError, ERRORS } from "./errors";
 
 export class TruffleArtifactsStorage {
   private readonly _artifactsPath: string;
@@ -16,7 +18,7 @@ export class TruffleArtifactsStorage {
     this._artifactsPath = artifactsPath;
   }
 
-  async saveTruffleArtifacts(compilationOutput: any) {
+  public async saveTruffleArtifacts(compilationOutput: any) {
     for (const [globalFileName, fileContracts] of Object.entries(
       compilationOutput.contracts
     )) {
@@ -26,7 +28,7 @@ export class TruffleArtifactsStorage {
     }
   }
 
-  async _saveTruffleArtifact(contractName: string, contract: any) {
+  public async _saveTruffleArtifact(contractName: string, contract: any) {
     const fsExtra = await import("fs-extra");
     const truffleDir = path.join(this._artifactsPath, "truffle");
     await fsExtra.ensureDir(truffleDir);
@@ -54,7 +56,7 @@ export class TruffleArtifactsStorage {
     );
   }
 
-  getTruffleArtifact(contractName: string) {
+  public getTruffleArtifact(contractName: string) {
     const fsExtra = require("fs-extra");
     const artifactPath = path.join(
       this._artifactsPath,
@@ -69,7 +71,7 @@ export class TruffleArtifactsStorage {
     return fsExtra.readJsonSync(artifactPath);
   }
 
-  async getAllArtifacts() {
+  public async getAllArtifacts() {
     const fsExtra = await import("fs-extra");
     const artifactsGlob = path.join(this._artifactsPath, "truffle", "*.json");
     const artifactFiles = await glob(artifactsGlob);
@@ -94,13 +96,13 @@ class LazyTruffleContractProvisioner {
     this._artifacts = artifacts;
   }
 
-  provision(Contract: TruffleContract) {
+  public provision(Contract: TruffleContract) {
     Contract.setProvider(this._web3.currentProvider);
     this._addContractDeploymentGasEstimation(Contract);
     this._addDefaultParamsHooks(Contract);
   }
 
-  _addContractDeploymentGasEstimation(Contract: TruffleContract) {
+  public _addContractDeploymentGasEstimation(Contract: TruffleContract) {
     const originalNew = Contract.new;
 
     Contract.new = async (...args: any[]) => {
@@ -115,7 +117,10 @@ class LazyTruffleContractProvisioner {
     };
   }
 
-  async _estimateDeploymentGas(Contract: TruffleContract, params: any[]) {
+  public async _estimateDeploymentGas(
+    Contract: TruffleContract,
+    params: any[]
+  ) {
     await Contract.detectNetwork();
 
     if (
@@ -142,12 +147,12 @@ class LazyTruffleContractProvisioner {
     return util.promisify(estimateGas)({ ...txParams, data });
   }
 
-  _isLastArgumentTxParams(args: any[]) {
+  public _isLastArgumentTxParams(args: any[]) {
     const lastArg = args[args.length - 1];
     return lastArg && Object.getPrototypeOf(lastArg) === Object.prototype;
   }
 
-  _addDefaultParamsHooks(Contract: TruffleContract) {
+  public _addDefaultParamsHooks(Contract: TruffleContract) {
     const originalNew = Contract.new;
     const originalAt = Contract.at;
 
@@ -170,7 +175,7 @@ class LazyTruffleContractProvisioner {
     };
   }
 
-  _addDefaultParamsToAllInstanceMethods(
+  public _addDefaultParamsToAllInstanceMethods(
     Contract: TruffleContract,
     contractInstance: TruffleContractInstance
   ) {
@@ -179,7 +184,7 @@ class LazyTruffleContractProvisioner {
     );
   }
 
-  _getContractInstanceMethodsToOverride(Contract: TruffleContract) {
+  public _getContractInstanceMethodsToOverride(Contract: TruffleContract) {
     const DEFAULT_INSTANCE_METHODS_TO_OVERRIDE = ["sendTransaction"];
 
     const abiFunctions = Contract.abi
@@ -189,7 +194,7 @@ class LazyTruffleContractProvisioner {
     return [...DEFAULT_INSTANCE_METHODS_TO_OVERRIDE, ...abiFunctions];
   }
 
-  _addDefaultParamsToInstanceMethod(
+  public _addDefaultParamsToInstanceMethod(
     Contract: TruffleContract,
     instance: TruffleContractInstance,
     methodName: string
@@ -214,26 +219,29 @@ class LazyTruffleContractProvisioner {
     };
   }
 
-  async _ensureTxParamsWithDefaults(Contract: TruffleContract, args: any[]) {
+  public async _ensureTxParamsWithDefaults(
+    Contract: TruffleContract,
+    args: any[]
+  ) {
     this._ensureTxParamsIsPresent(args);
     const txParams = args[args.length - 1];
 
     args[args.length - 1] = await this._addAllDefaultParams(Contract, txParams);
   }
 
-  _ensureTxParamsIsPresent(args: any[]) {
+  public _ensureTxParamsIsPresent(args: any[]) {
     if (!this._isLastArgumentTxParams(args)) {
       args.push({});
     }
   }
 
-  async _addAllDefaultParams(Contract: TruffleContract, txParams: any) {
+  public async _addAllDefaultParams(Contract: TruffleContract, txParams: any) {
     const withDefaults = this._addDefaultParamsFromConfig(Contract, txParams);
     withDefaults.from = await this._getResolvedFromParam(withDefaults);
     return withDefaults;
   }
 
-  _addDefaultParamsFromConfig(Contract: TruffleContract, txParams: any) {
+  public _addDefaultParamsFromConfig(Contract: TruffleContract, txParams: any) {
     const networkConfigParams: Partial<NetworkConfig> = {};
 
     if (this._networkConfig.from !== undefined) {
@@ -248,14 +256,10 @@ class LazyTruffleContractProvisioner {
       networkConfigParams.gasPrice = this._networkConfig.gasPrice;
     }
 
-    return Object.assign(
-      networkConfigParams,
-      Contract.class_defaults,
-      txParams
-    );
+    return { ...networkConfigParams, ...Contract.class_defaults, ...txParams };
   }
 
-  async _getResolvedFromParam(txParamsWithDefaults: any) {
+  public async _getResolvedFromParam(txParamsWithDefaults: any) {
     if (txParamsWithDefaults.from !== undefined) {
       return txParamsWithDefaults.from;
     }
@@ -287,16 +291,16 @@ export class TruffleEnvironmentArtifacts {
     );
   }
 
-  require(contractPath: string) {
+  public require(contractPath: string) {
     const name = this._getContractNameFromPath(contractPath);
     return this._getTruffleContract(name);
   }
 
-  contractNeedsLinking(Contract: TruffleContract) {
+  public contractNeedsLinking(Contract: TruffleContract) {
     return Contract.bytecode.includes("__");
   }
 
-  contractWasLinked(Contract: TruffleContract) {
+  public contractWasLinked(Contract: TruffleContract) {
     try {
       if (Contract.binary.includes("__")) {
         return false;
@@ -308,7 +312,10 @@ export class TruffleEnvironmentArtifacts {
     return true;
   }
 
-  link(destination: TruffleContract, ...libraries: TruffleContractInstance[]) {
+  public link(
+    destination: TruffleContract,
+    ...libraries: TruffleContractInstance[]
+  ) {
     if (libraries.length === 0) {
       return;
     }
@@ -352,7 +359,7 @@ export class TruffleEnvironmentArtifacts {
     destination.link(libraryAddresses);
   }
 
-  _getContractNameFromPath(contractPath: string) {
+  public _getContractNameFromPath(contractPath: string) {
     const basename = path.basename(contractPath);
 
     const lastDotIndex = basename.lastIndexOf(".");
@@ -363,7 +370,7 @@ export class TruffleEnvironmentArtifacts {
     return basename.slice(0, lastDotIndex);
   }
 
-  _getTruffleContract(contractName: string) {
+  public _getTruffleContract(contractName: string) {
     const artifact = this._storage.getTruffleArtifact(contractName);
     const TruffleContractFactory = require("truffle-contract");
     const Contract = TruffleContractFactory(artifact);

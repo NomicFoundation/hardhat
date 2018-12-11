@@ -1,9 +1,10 @@
 import { assert } from "chai";
-import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
-import { BuidlerConfig, TaskArguments } from "../../src/types";
-import { BuidlerArguments } from "../../src/core/params/buidler-params";
-import { TasksDSL } from "../../src/core/tasks/dsl";
+
 import { ERRORS } from "../../src/core/errors";
+import { BuidlerArguments } from "../../src/core/params/buidler-params";
+import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
+import { TasksDSL } from "../../src/core/tasks/dsl";
+import { BuidlerConfig, TaskArguments } from "../../src/types";
 
 describe("BuidlerRuntimeEnvironment", () => {
   let config: BuidlerConfig;
@@ -85,7 +86,7 @@ describe("BuidlerRuntimeEnvironment", () => {
       return 28;
     });
     tasks = dsl.getTaskDefinitions();
-    let env = new BuidlerRuntimeEnvironment(config, args, tasks);
-    assert.equal(await env.run("example"), 28);
+    const localEnv = new BuidlerRuntimeEnvironment(config, args, tasks);
+    assert.equal(await localEnv.run("example"), 28);
   });
 });

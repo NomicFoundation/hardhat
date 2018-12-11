@@ -1,14 +1,15 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
+
+import { ERRORS } from "../../src/core/errors";
 import {
   getProjectRoot,
   getRecommendedGitIgnore,
   getUserConfigPath,
   isCwdInsideProject
 } from "../../src/core/project-structure";
-import { useFixtureProject } from "../helpers/project";
 import { expectBuidlerError } from "../helpers/errors";
-import { ERRORS } from "../../src/core/errors";
+import { useFixtureProject } from "../helpers/project";
 
 function testProjectPathsGetter(
   name: string,

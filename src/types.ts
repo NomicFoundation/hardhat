@@ -1,13 +1,13 @@
-import { ResolvedFile } from "./solidity/resolver";
-import { SolcOptimizerConfig } from "./solidity/compiler";
-import { ITaskDefinition } from "./core/tasks/TaskDefinition";
 import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
+import { ITaskDefinition } from "./core/tasks/TaskDefinition";
+import { SolcOptimizerConfig } from "./solidity/compiler";
+import { ResolvedFile } from "./solidity/resolver";
 
 export interface GanacheOptions {
   gasLimit: number;
   network_id: number;
   mnemonic?: string;
-  accounts?: { balance: string; secretKey: string }[];
+  accounts?: Array<{ balance: string; secretKey: string }>;
 }
 
 interface AutoNetworkAccount {
@@ -32,9 +32,9 @@ export type NetworkConfig = (AutoNetworkConfig | HttpNetworkConfig) & {
   gasPrice?: number;
 };
 
-type Networks = {
+interface Networks {
   [networkName: string]: NetworkConfig;
-};
+}
 
 export interface BuidlerConfig {
   networks: Networks;
@@ -58,7 +58,9 @@ export type TruffleContract = any;
 
 export type TruffleContractInstance = any;
 
-export type TasksMap = { [name: string]: ITaskDefinition };
+export interface TasksMap {
+  [name: string]: ITaskDefinition;
+}
 
 export interface TaskArguments {
   [argumentName: string]: any;
@@ -86,6 +88,6 @@ export type GlobalWithBuidlerRuntimeEnvironment = NodeJS.Global & {
   env: BuidlerRuntimeEnvironment;
 };
 
-export type ResolvedFilesMap = {
+export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
-};
+}

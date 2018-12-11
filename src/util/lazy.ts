@@ -1,5 +1,7 @@
 export function lazyObject<T extends object>(objectCreator: () => T): T {
-  let realTarget: T | undefined = undefined;
+  let realTarget: T | undefined;
+
+  // tslint:disable-next-line
   const dummyTarget = {} as T; // This is unsafe, but we never use dummyTarget.
 
   function getRealTarget(): T {
