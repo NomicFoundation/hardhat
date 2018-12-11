@@ -23,6 +23,11 @@ export class BuidlerRuntimeEnvironment {
   public readonly artifacts: TruffleEnvironmentArtifactsType;
   public readonly pweb3: any;
   public readonly web3: any;
+  private readonly BLACKLISTED_PROPERTIES: Array<String> = [
+    "uninjectFromGlobal",
+    "injectToGlobal",
+    "runTaskDefinition"
+  ];
 
   constructor(
     public readonly config: BuidlerConfig,
@@ -54,14 +59,17 @@ export class BuidlerRuntimeEnvironment {
     return this.runTaskDefinition(taskDefinition, taskArguments);
   };
 
-  public injectToGlobal() {
-    const BLACKLISTED_PROPERTIES = ["injectToGlobal", "runTaskDefinition"];
-
+  public injectToGlobal(
+    runSuper?: RunSuperFunction<TaskArguments>,
+    blacklist: Array<String> = this.BLACKLISTED_PROPERTIES
+  ) {
     const globalAsAny = global as any;
+
     globalAsAny.env = this;
+    globalAsAny.runSuper = runSuper;
 
     for (const [key, value] of Object.entries(this)) {
-      if (BLACKLISTED_PROPERTIES.includes(key)) {
+      if (blacklist.includes(key)) {
         continue;
       }
 
@@ -69,12 +77,26 @@ export class BuidlerRuntimeEnvironment {
     }
   }
 
+  public uninjectFromGlobal(
+    blacklist: Array<String> = this.BLACKLISTED_PROPERTIES
+  ) {
+    const globalAsAny = global as any;
+
+    globalAsAny.env = globalAsAny.runSuper = undefined;
+
+    for (const [key, _] of Object.entries(this)) {
+      if (blacklist.includes(key)) {
+        continue;
+      }
+
+      globalAsAny[key] = undefined;
+    }
+  }
+
   private async runTaskDefinition(
     taskDefinition: ITaskDefinition,
     taskArguments: TaskArguments
   ) {
-    this.injectToGlobal();
-
     let runSuper: RunSuperFunction<TaskArguments>;
 
     if (taskDefinition instanceof OverloadedTaskDefinition) {
@@ -93,13 +115,11 @@ export class BuidlerRuntimeEnvironment {
       };
     }
 
-    const globalAsAny = global as any;
-
-    globalAsAny.runSuper = runSuper;
+    this.injectToGlobal(runSuper);
 
     const taskResult = taskDefinition.action(taskArguments, this, runSuper);
 
-    globalAsAny.runSuper = undefined;
+    this.uninjectFromGlobal();
 
     return taskResult;
   }
