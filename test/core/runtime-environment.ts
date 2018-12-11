@@ -59,7 +59,6 @@ describe("BuidlerRuntimeEnvironment", () => {
     assert.isDefined(env.web3);
     assert.isDefined(env.Web3);
     assert.isDefined(env.pweb3);
-    assert.isDefined(env.artifacts);
     assert.isDefined(env.tasks);
   });
 

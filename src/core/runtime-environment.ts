@@ -3,8 +3,7 @@ import {
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
-  TasksMap,
-  TruffleEnvironmentArtifactsType
+  TasksMap
 } from "../types";
 import { lazyObject } from "../util/lazy";
 
@@ -15,13 +14,11 @@ import {
   ITaskDefinition,
   OverloadedTaskDefinition
 } from "./tasks/TaskDefinition";
-import { TruffleEnvironmentArtifacts } from "./truffle";
 import { getWeb3Instance } from "./web3/network";
 import { promisifyWeb3 } from "./web3/pweb3";
 
 export class BuidlerRuntimeEnvironment {
   public readonly Web3: any;
-  public readonly artifacts: TruffleEnvironmentArtifactsType;
   public readonly pweb3: any;
   public readonly web3: any;
 
@@ -38,12 +35,6 @@ export class BuidlerRuntimeEnvironment {
 
     const importLazy = require("import-lazy")(require);
     this.Web3 = importLazy("web3");
-
-    this.artifacts = new TruffleEnvironmentArtifacts(
-      config,
-      this.web3,
-      netConfig
-    );
   }
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
