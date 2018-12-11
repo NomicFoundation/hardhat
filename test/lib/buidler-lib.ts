@@ -1,6 +1,7 @@
-import { useFixtureProject } from "../helpers/project";
 import { assert } from "chai";
+
 import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
+import { useFixtureProject } from "../helpers/project";
 
 describe("Buidler lib", () => {
   let environment: BuidlerRuntimeEnvironment;
@@ -11,12 +12,12 @@ describe("Buidler lib", () => {
   });
 
   it("should load environment", () => {
-    assert.isDefined(environment.config.networks["custom"]);
+    assert.isDefined(environment.config.networks.custom);
   });
 
   it("should load task user defined task", async () => {
-    assert.isDefined(environment.tasks["example"]);
-    assert.equal(await environment.run("example"), 28);
+    assert.isDefined(environment.tasks.example2);
+    assert.equal(await environment.run("example2"), 28);
   });
 
   it("should reuse global state", async () => {
@@ -31,5 +32,9 @@ describe("Buidler lib", () => {
     environment = require("../../src/lib/buidler-lib").default;
     assert.equal(await environment.run("example"), 28);
     assert.isFalse(e === environment);
+  });
+
+  it("should reuse global state", async () => {
+    assert.equal(await environment.run("example"), 28);
   });
 });

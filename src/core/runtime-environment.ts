@@ -25,9 +25,7 @@ export class BuidlerRuntimeEnvironment {
   public readonly pweb3: any;
   public readonly web3: any;
 
-  private previousEnvironment: any;
-  private readonly BLACKLISTED_PROPERTIES: Array<String> = [
-    "uninjectFromGlobal",
+  private readonly BLACKLISTED_PROPERTIES: string[] = [
     "injectToGlobal",
     "runTaskDefinition"
   ];
@@ -62,12 +60,11 @@ export class BuidlerRuntimeEnvironment {
     return this.runTaskDefinition(taskDefinition, taskArguments);
   };
 
-  public injectToGlobal(
-    blacklist: Array<String> = this.BLACKLISTED_PROPERTIES
-  ) {
+  public injectToGlobal(blacklist: string[] = this.BLACKLISTED_PROPERTIES) {
+    let previousEnvironment: any;
     const globalAsAny = global as any;
 
-    this.previousEnvironment = globalAsAny.env;
+    previousEnvironment = globalAsAny.env;
     globalAsAny.env = this;
 
     for (const [key, value] of Object.entries(this)) {
@@ -77,24 +74,17 @@ export class BuidlerRuntimeEnvironment {
 
       globalAsAny[key] = value;
     }
-  }
 
-  public uninjectFromGlobal(
-    blacklist: Array<String> = this.BLACKLISTED_PROPERTIES
-  ) {
-    const globalAsAny = global as any;
-
-    globalAsAny.env = this.previousEnvironment;
-
-    globalAsAny.runSuper = undefined;
-
-    for (const [key, _] of Object.entries(this)) {
-      if (blacklist.includes(key)) {
-        continue;
+    return () => {
+      globalAsAny.env = previousEnvironment;
+      globalAsAny.runSuper = undefined;
+      for (const [key, _] of Object.entries(this)) {
+        if (blacklist.includes(key)) {
+          continue;
+        }
+        globalAsAny[key] = undefined;
       }
-
-      globalAsAny[key] = undefined;
-    }
+    };
   }
 
   private async runTaskDefinition(
@@ -122,11 +112,11 @@ export class BuidlerRuntimeEnvironment {
     const globalAsAny = global as any;
     globalAsAny.runSuper = runSuper;
 
-    this.injectToGlobal();
+    const uninjectFromGlobal = this.injectToGlobal();
 
     const taskResult = taskDefinition.action(taskArguments, this, runSuper);
 
-    this.uninjectFromGlobal();
+    uninjectFromGlobal();
 
     return taskResult;
   }
