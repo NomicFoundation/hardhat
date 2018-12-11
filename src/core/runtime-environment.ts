@@ -24,6 +24,8 @@ export class BuidlerRuntimeEnvironment {
   public readonly artifacts: TruffleEnvironmentArtifactsType;
   public readonly pweb3: any;
   public readonly web3: any;
+
+  private previousEnvironment: any;
   private readonly BLACKLISTED_PROPERTIES: Array<String> = [
     "uninjectFromGlobal",
     "injectToGlobal",
@@ -61,13 +63,12 @@ export class BuidlerRuntimeEnvironment {
   };
 
   public injectToGlobal(
-    runSuper?: RunSuperFunction<TaskArguments>,
     blacklist: Array<String> = this.BLACKLISTED_PROPERTIES
   ) {
     const globalAsAny = global as any;
 
+    this.previousEnvironment = globalAsAny.env;
     globalAsAny.env = this;
-    globalAsAny.runSuper = runSuper;
 
     for (const [key, value] of Object.entries(this)) {
       if (blacklist.includes(key)) {
@@ -83,7 +84,9 @@ export class BuidlerRuntimeEnvironment {
   ) {
     const globalAsAny = global as any;
 
-    globalAsAny.env = globalAsAny.runSuper = undefined;
+    globalAsAny.env = this.previousEnvironment;
+
+    globalAsAny.runSuper = undefined;
 
     for (const [key, _] of Object.entries(this)) {
       if (blacklist.includes(key)) {
@@ -116,7 +119,10 @@ export class BuidlerRuntimeEnvironment {
       };
     }
 
-    this.injectToGlobal(runSuper);
+    const globalAsAny = global as any;
+    globalAsAny.runSuper = runSuper;
+
+    this.injectToGlobal();
 
     const taskResult = taskDefinition.action(taskArguments, this, runSuper);
 
