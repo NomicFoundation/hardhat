@@ -2,7 +2,15 @@ import path from "path";
 
 import { globSync } from "../../util/glob";
 
-const pattern = path.join(__dirname, "..", "..", "builtin-tasks", "*.{t,j}s");
+const extension = __filename.endsWith(".js") ? "js" : "ts";
+
+const pattern = path.join(
+  __dirname,
+  "..",
+  "..",
+  "builtin-tasks",
+  "*." + extension
+);
 
 globSync(pattern)
   .sort()
