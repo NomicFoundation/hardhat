@@ -74,7 +74,8 @@
     "source-map-support": "^0.5.9",
     "truffle-contract": "^3.0.5",
     "tsort": "0.0.1",
-    "web3": "^0.20.6"
+    "web3": "^0.20.6",
+    "web3x": "^1.2.3"
   },
   "nyc": {
     "extension": [
