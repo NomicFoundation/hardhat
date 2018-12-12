@@ -2,7 +2,6 @@ import path from "path";
 
 import { BuidlerError, ERRORS } from "../core/errors";
 import tasks from "../core/importable-tasks-dsl";
-import { TruffleArtifactsStorage } from "../core/truffle";
 import { Compiler } from "../solidity/compiler";
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { Resolver } from "../solidity/resolver";
@@ -98,11 +97,44 @@ tasks.internalTask("builtin:build-artifacts", async (_, { config, run }) => {
     return;
   }
 
-  const truffleArtifactsStorage = new TruffleArtifactsStorage(
-    config.paths.artifacts
-  );
+  const fsExtra = await import("fs-extra");
+  await fsExtra.ensureDir(config.paths.artifacts);
 
-  await truffleArtifactsStorage.saveTruffleArtifacts(compilationOutput);
+  for (const file of Object.values(compilationOutput.contracts)) {
+    for (const [contractName, contractOutput] of Object.entries(file)) {
+      const bytecode =
+        contractOutput.evm &&
+        contractOutput.evm.bytecode &&
+        contractOutput.evm.bytecode.object
+          ? contractOutput.evm.bytecode.object
+          : undefined;
+
+      const linkReferences =
+        contractOutput.evm &&
+        contractOutput.evm.bytecode &&
+        contractOutput.evm.bytecode.linkReferences
+          ? contractOutput.evm.bytecode.linkReferences
+          : undefined;
+
+      const artifact: any = {
+        abi: contractOutput.abi,
+        evm: {
+          bytecode: {
+            object: bytecode,
+            linkReferences
+          }
+        }
+      };
+
+      await fsExtra.writeJSON(
+        config.paths.artifacts + "/" + contractName + ".json",
+        artifact,
+        {
+          spaces: 2
+        }
+      );
+    }
+  }
 });
 
 tasks.task(
