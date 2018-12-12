@@ -78,8 +78,7 @@ describe("BuidlerRuntimeEnvironment", () => {
     assert.equal(await env.run("example"), 27);
     const globalAsAny = global as any;
     assert.isUndefined(globalAsAny.runSuper);
-    // console.log(globalAsAny.env)
-    // assert.isUndefined(globalAsAny.env);
+    assert.isUndefined(globalAsAny.env);
   });
 
   it("should run overloaded task correctly", async () => {
