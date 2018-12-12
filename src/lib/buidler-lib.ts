@@ -7,8 +7,6 @@ import { GlobalWithBuidlerRuntimeEnvironment } from "../types";
 let env: BuidlerRuntimeEnvironment;
 const globalWithEnv = global as GlobalWithBuidlerRuntimeEnvironment;
 
-console.log("is: ", globalWithEnv.env === undefined);
-
 if (globalWithEnv.env !== undefined) {
   env = globalWithEnv.env;
 } else {
