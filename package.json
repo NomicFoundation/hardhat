@@ -73,7 +73,8 @@
     "solidity-parser-antlr": "^0.2.12",
     "source-map-support": "^0.5.9",
     "tsort": "0.0.1",
-    "web3": "^0.20.6"
+    "web3": "^0.20.6",
+    "web3x": "^1.2.3"
   },
   "nyc": {
     "extension": [
