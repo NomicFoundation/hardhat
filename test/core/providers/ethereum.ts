@@ -1,11 +1,8 @@
 import { assert } from "chai";
 import { EventEmitter } from "events";
+import { Callback, JsonRPCRequest, Provider } from "web3x/providers";
+
 import { EthereumProvider } from "../../../src/core/providers/ethereum";
-import {
-  Callback,
-  JsonRPCRequest,
-  Provider
-} from "web3x/providers";
 
 class MockedHttpProvider extends EventEmitter implements Provider {
   constructor() {
