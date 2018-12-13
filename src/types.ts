@@ -52,12 +52,6 @@ export interface BuidlerConfig {
   mocha: Mocha.MochaOptions;
 }
 
-export type TruffleEnvironmentArtifactsType = any;
-
-export type TruffleContract = any;
-
-export type TruffleContractInstance = any;
-
 export interface TasksMap {
   [name: string]: ITaskDefinition;
 }

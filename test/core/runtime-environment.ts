@@ -59,7 +59,6 @@ describe("BuidlerRuntimeEnvironment", () => {
     assert.isDefined(env.web3);
     assert.isDefined(env.Web3);
     assert.isDefined(env.pweb3);
-    assert.isDefined(env.artifacts);
     assert.isDefined(env.tasks);
   });
 
@@ -74,17 +73,11 @@ describe("BuidlerRuntimeEnvironment", () => {
     });
   });
 
-  it("should inject environment to global", async () => {
-    const globalAsAny = global as any;
-    const ret = await env.run("example");
-    assert.isDefined(globalAsAny.web3);
-    assert.isUndefined(globalAsAny.injectToGlobal);
-  });
-
   it("should clean global state after task execution", async () => {
     assert.equal(await env.run("example"), 27);
     const globalAsAny = global as any;
     assert.isUndefined(globalAsAny.runSuper);
+    assert.isUndefined(globalAsAny.env);
   });
 
   it("should run overloaded task correctly", async () => {

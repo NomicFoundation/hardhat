@@ -24,8 +24,8 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
-    "fix": "prettier --write src/**/*.{js,ts} test/**/*.{js,ts} && tslint --fix src/**/*.{js,ts} test/**/*.{js,ts}",
-    "lint": "tslint src/**/*.{js,ts} test/**/*.{js,ts}",
+    "fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "lint": "tslint 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "test": "nyc mocha",
     "build": "tsc",
     "watch": "tsc -w"
@@ -72,7 +72,6 @@
     "solc": "0.5.1",
     "solidity-parser-antlr": "^0.2.12",
     "source-map-support": "^0.5.9",
-    "truffle-contract": "^3.0.5",
     "tsort": "0.0.1",
     "web3": "^0.20.6",
     "web3x": "^1.2.3"

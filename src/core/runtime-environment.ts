@@ -3,8 +3,7 @@ import {
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
-  TasksMap,
-  TruffleEnvironmentArtifactsType
+  TasksMap
 } from "../types";
 import { lazyObject } from "../util/lazy";
 
@@ -15,15 +14,18 @@ import {
   ITaskDefinition,
   OverloadedTaskDefinition
 } from "./tasks/TaskDefinition";
-import { TruffleEnvironmentArtifacts } from "./truffle";
 import { getWeb3Instance } from "./web3/network";
 import { promisifyWeb3 } from "./web3/pweb3";
 
 export class BuidlerRuntimeEnvironment {
   public readonly Web3: any;
-  public readonly artifacts: TruffleEnvironmentArtifactsType;
   public readonly pweb3: any;
   public readonly web3: any;
+
+  private readonly BLACKLISTED_PROPERTIES: string[] = [
+    "injectToGlobal",
+    "runTaskDefinition"
+  ];
 
   constructor(
     public readonly config: BuidlerConfig,
@@ -38,12 +40,6 @@ export class BuidlerRuntimeEnvironment {
 
     const importLazy = require("import-lazy")(require);
     this.Web3 = importLazy("web3");
-
-    this.artifacts = new TruffleEnvironmentArtifacts(
-      config,
-      this.web3,
-      netConfig
-    );
   }
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
@@ -55,27 +51,37 @@ export class BuidlerRuntimeEnvironment {
     return this.runTaskDefinition(taskDefinition, taskArguments);
   };
 
-  public injectToGlobal() {
-    const BLACKLISTED_PROPERTIES = ["injectToGlobal", "runTaskDefinition"];
-
+  public injectToGlobal(blacklist: string[] = this.BLACKLISTED_PROPERTIES) {
+    let previousEnvironment: any;
     const globalAsAny = global as any;
+
+    previousEnvironment = globalAsAny.env;
     globalAsAny.env = this;
 
     for (const [key, value] of Object.entries(this)) {
-      if (BLACKLISTED_PROPERTIES.includes(key)) {
+      if (blacklist.includes(key)) {
         continue;
       }
 
       globalAsAny[key] = value;
     }
+
+    return () => {
+      globalAsAny.env = previousEnvironment;
+      globalAsAny.runSuper = undefined;
+      for (const [key, _] of Object.entries(this)) {
+        if (blacklist.includes(key)) {
+          continue;
+        }
+        globalAsAny[key] = undefined;
+      }
+    };
   }
 
   private async runTaskDefinition(
     taskDefinition: ITaskDefinition,
     taskArguments: TaskArguments
   ) {
-    this.injectToGlobal();
-
     let runSuper: RunSuperFunction<TaskArguments>;
 
     if (taskDefinition instanceof OverloadedTaskDefinition) {
@@ -95,12 +101,13 @@ export class BuidlerRuntimeEnvironment {
     }
 
     const globalAsAny = global as any;
-
     globalAsAny.runSuper = runSuper;
+
+    const uninjectFromGlobal = this.injectToGlobal();
 
     const taskResult = taskDefinition.action(taskArguments, this, runSuper);
 
-    globalAsAny.runSuper = undefined;
+    uninjectFromGlobal();
 
     return taskResult;
   }
