@@ -16,15 +16,11 @@ export class EthereumProvider extends EventEmitter
 
     const promisifiedSend = promisify(this._provider.send.bind(this._provider));
 
-    try {
-      const response: JsonRPCResponse = await promisifiedSend(payload);
-      if (response.error === undefined) {
-        return response.result;
-      } else {
-        throw Error(response.error);
-      }
-    } catch (err) {
-      throw err;
+    const response: JsonRPCResponse = await promisifiedSend(payload);
+    if (response.error === undefined) {
+      return response.result;
+    } else {
+      throw Error(response.error);
     }
   }
 }
