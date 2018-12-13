@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
-import { Provider } from "web3x/providers";
+import { promisify } from "util";
+import { JsonRPCResponse, Provider } from "web3x/providers";
 import { toPayload } from "web3x/request-manager/jsonrpc";
 
 export class EthereumProvider extends EventEmitter
@@ -13,22 +14,18 @@ export class EthereumProvider extends EventEmitter
   public async send(method: string, params?: any[]): Promise<any> {
     const payload = toPayload(method, params);
 
-    return new Promise((resolve, reject) => {
-      this._provider.send(payload, (err, response) => {
-        if (response !== undefined) {
-          if (response.error === undefined) {
-            resolve(response.result);
-          } else {
-            reject(new Error(response.error));
-          }
-        }
-        if (err !== undefined) {
-          reject(err);
-        }
-        // response and error are undefined, this should never happen
-        reject(new Error("There was no response nor error"));
-      });
-    });
+    const promisifiedSend = promisify(this._provider.send.bind(this._provider));
+
+    try {
+      const response: JsonRPCResponse = await promisifiedSend(payload);
+      if (response.error === undefined) {
+        return response.result;
+      } else {
+        throw Error(response.error);
+      }
+    } catch (err) {
+      throw err;
+    }
   }
 }
 export interface IEthereumProvider {
