@@ -4,38 +4,39 @@ import { EthereumProvider } from "../../../src/core/providers/ethereum";
 import {
   Callback,
   JsonRPCRequest,
-  JsonRPCResponse,
   Provider
 } from "web3x/providers";
-import { toPayload } from "web3x/request-manager/jsonrpc";
 
 class MockedHttpProvider extends EventEmitter implements Provider {
-  constructor(host: string) {
+  constructor() {
     super();
   }
-  public send(payload: JsonRPCRequest, callback: Callback) {
-    if (payload.method === "net_version") {
-      callback(undefined, {
-        jsonrpc: "2.0",
-        id: 1,
-        result: "4"
-      });
-    } else if (payload.method === "bleep") {
+  public send(request: JsonRPCRequest, callback: Callback) {
+    if (request.method === "net_version") {
+      callback(undefined, this._mockResponse(4));
+    } else if (request.method === "bleep") {
       callback(new Error("Method not found"), undefined);
-    } else if (payload.method === "fail_method") {
-      callback(undefined, {
-        jsonrpc: "2.0",
-        id: 2,
-        result: {
+    } else if (request.method === "fail_method") {
+      callback(
+        undefined,
+        this._mockResponse({
           error: "do not meet the requirements",
           code: -32345
-        }
-      });
-    } else {
-      callback(undefined, payload);
+        })
+      );
+    } else if (request.method === "return_params") {
+      callback(undefined, this._mockResponse(request.params));
     }
   }
   public disconnect() {}
+
+  private _mockResponse(value?: any): any {
+    return {
+      jsonrcp: "2.0",
+      id: 2,
+      result: value
+    };
+  }
 }
 
 describe("ethereum provider", () => {
@@ -43,20 +44,20 @@ describe("ethereum provider", () => {
   let ethereum: EthereumProvider;
 
   beforeEach(() => {
-    provider = new MockedHttpProvider("http://localhost:8545");
+    provider = new MockedHttpProvider();
     ethereum = new EthereumProvider(provider);
   });
 
-  it("should get response", () => {
+  it("should get response", async () => {
     ethereum
       .send("net_version")
-      .then((response: JsonRPCResponse) => {
-        assert.equal(response.result, "4");
+      .then((response: number) => {
+        assert.equal(response, 4);
       })
-      .catch(err => {});
+      .catch(() => {});
   });
 
-  it("should return an error", () => {
+  it("should return an error", async () => {
     ethereum
       .send("bleep")
       .then(() => {})
@@ -65,7 +66,7 @@ describe("ethereum provider", () => {
       });
   });
 
-  it("response should contains an error", () => {
+  it("response should contains an error", async () => {
     ethereum
       .send("fail_method")
       .then(() => {})
@@ -74,12 +75,13 @@ describe("ethereum provider", () => {
       });
   });
 
-  it("should keep payload unchanged", () => {
+  it("should keep payload unchanged", async () => {
+    const params: any[] = ["hola", 123];
     ethereum
-      .send("another_method")
+      .send("return_params", params)
       .catch(() => {})
-      .then((response: JsonRPCResponse) => {
-        assert.equal(response, toPayload("another_method"));
+      .then(response => {
+        assert.equal(response, params);
       });
   });
 });
