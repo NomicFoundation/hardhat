@@ -4,7 +4,7 @@ Buidler is a new smart contracts development tool that aims to be lean and flexi
 
 ⚠️ **Buidler is alpha software. Sign up to [our newsletter](https://buidler.substack.com/welcome) and we will let you know when a stable release is out.** ⚠️
 
-⚠️ **This branch contains to the upcoming version of Buidler, which is under heavy development. For the npm-published version go to [this commit](https://github.com/nomiclabs/buidler/tree/412404c496ac196a6f467f84849d9536dc60ef86).** ⚠️
+⚠️ **This branch contains the upcoming version of Buidler, which is under heavy development. For the npm-published version go to [this commit](https://github.com/nomiclabs/buidler/tree/412404c496ac196a6f467f84849d9536dc60ef86).** ⚠️
 
 ## Table of contents
 
