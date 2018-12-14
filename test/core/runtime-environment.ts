@@ -88,4 +88,24 @@ describe("BuidlerRuntimeEnvironment", () => {
     const localEnv = new BuidlerRuntimeEnvironment(config, args, tasks);
     assert.equal(await localEnv.run("example"), 28);
   });
+
+  it("Should preserve the injected env after running a sub-task", async () => {
+    dsl.task(
+      "with-subtask",
+      "description",
+      async ({}, { run, config: theConfig }, runSuper) => {
+        const globalAsAny = global as any;
+        assert.equal(globalAsAny.config, theConfig);
+        assert.isDefined(globalAsAny.config);
+        assert.equal(globalAsAny.runSuper, runSuper);
+
+        await run("example");
+
+        assert.equal(globalAsAny.config, theConfig);
+        assert.equal(globalAsAny.runSuper, runSuper);
+      }
+    );
+
+    await env.run("with-subtask");
+  });
 });
