@@ -24,7 +24,7 @@ export class EthereumProvider extends EventEmitter
     }
   }
 }
-export interface IEthereumProvider {
+export interface IEthereumProvider extends EventEmitter {
   send(method: string, params?: any[]): Promise<any>;
   on(type: string, listener: (result: any) => void): this;
 }
