@@ -81,4 +81,18 @@ describe("ethereum provider", () => {
         assert.equal(response, params);
       });
   });
+
+  it("Should throw when someone tries to attack an event listener", () => {
+    assert.throw(() => ethereum.on("notification", () => {}));
+    assert.throw(() => ethereum.once("notification", () => {}));
+  });
+
+  it("Should throw when someone tries to unlock accounts", async () => {
+    try {
+      await ethereum.send("eth_requestAccounts");
+      assert.fail("Should have thrown");
+    } catch (err) {
+      assert.isDefined(err);
+    }
+  });
 });
