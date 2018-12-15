@@ -18,14 +18,14 @@ import { getWeb3Instance } from "./web3/network";
 import { promisifyWeb3 } from "./web3/pweb3";
 
 export class BuidlerRuntimeEnvironment {
-  public readonly Web3: any;
-  public readonly pweb3: any;
-  public readonly web3: any;
-
-  private readonly BLACKLISTED_PROPERTIES: string[] = [
+  private static readonly BLACKLISTED_PROPERTIES: string[] = [
     "injectToGlobal",
     "runTaskDefinition"
   ];
+
+  public readonly Web3: any;
+  public readonly pweb3: any;
+  public readonly web3: any;
 
   constructor(
     public readonly config: BuidlerConfig,
@@ -51,29 +51,34 @@ export class BuidlerRuntimeEnvironment {
     return this.runTaskDefinition(taskDefinition, taskArguments);
   };
 
-  public injectToGlobal(blacklist: string[] = this.BLACKLISTED_PROPERTIES) {
-    let previousEnvironment: any;
+  public injectToGlobal(
+    blacklist: string[] = BuidlerRuntimeEnvironment.BLACKLISTED_PROPERTIES
+  ) {
     const globalAsAny = global as any;
+    const previousEnvironment: any = globalAsAny.env;
 
-    previousEnvironment = globalAsAny.env;
     globalAsAny.env = this;
+
+    const previousValues: { [name: string]: any } = {};
 
     for (const [key, value] of Object.entries(this)) {
       if (blacklist.includes(key)) {
         continue;
       }
 
+      previousValues[key] = globalAsAny[key];
       globalAsAny[key] = value;
     }
 
     return () => {
       globalAsAny.env = previousEnvironment;
-      globalAsAny.runSuper = undefined;
+
       for (const [key, _] of Object.entries(this)) {
         if (blacklist.includes(key)) {
           continue;
         }
-        globalAsAny[key] = undefined;
+
+        globalAsAny[key] = previousValues[key];
       }
     };
   }
@@ -101,13 +106,19 @@ export class BuidlerRuntimeEnvironment {
     }
 
     const globalAsAny = global as any;
+    const previousRunSuper: any = globalAsAny.runSuper;
     globalAsAny.runSuper = runSuper;
 
     const uninjectFromGlobal = this.injectToGlobal();
 
-    const taskResult = taskDefinition.action(taskArguments, this, runSuper);
+    const taskResult = await taskDefinition.action(
+      taskArguments,
+      this,
+      runSuper
+    );
 
     uninjectFromGlobal();
+    globalAsAny.runSuper = previousRunSuper;
 
     return taskResult;
   }
