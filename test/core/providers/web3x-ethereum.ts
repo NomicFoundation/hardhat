@@ -6,6 +6,7 @@ import { toPayload } from "web3x/request-manager/jsonrpc";
 
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { EthereumWeb3xProvider } from "../../../src/core/providers/web3x-ethereum";
+import { FixedJsonRPCResponse } from "../../../src/types";
 
 class MockedEthereumProvider extends EventEmitter implements IEthereumProvider {
   constructor() {
@@ -25,14 +26,12 @@ class MockedEthereumProvider extends EventEmitter implements IEthereumProvider {
       }
     });
   }
-
-  public disconnect() {}
 }
 
 describe("web3x ethereum provider", () => {
   let ethereum: MockedEthereumProvider;
   let wrapper: EthereumWeb3xProvider;
-  let wrapperSend: (payload: JsonRPCRequest) => Promise<JsonRPCResponse>;
+  let wrapperSend: (payload: JsonRPCRequest) => Promise<FixedJsonRPCResponse>;
 
   beforeEach(() => {
     ethereum = new MockedEthereumProvider();
@@ -48,22 +47,17 @@ describe("web3x ethereum provider", () => {
 
   it("should return an error", async () => {
     const payload = toPayload("bleep");
-    try {
-      await wrapperSend(payload);
-      assert.fail("This should have thrown");
-    } catch (err) {
-      assert.equal(err!.message, "Method not found");
-    }
+    const response = await wrapperSend(payload);
+    assert.equal(response.error!.message, "Method not found");
   });
 
-  it("response should contains an error", async () => {
+  it("response should contain an error", async () => {
     const payload = toPayload("fail_method");
-    try {
-      await wrapperSend(payload);
-      assert.fail("This should have thrown");
-    } catch (err) {
-      assert.equal(err!.message, "do not meet the requirements");
-    }
+
+    const response = (await wrapperSend(payload)) as FixedJsonRPCResponse;
+
+    assert.isDefined(response.error);
+    assert.equal(response.error!.message, "do not meet the requirements");
   });
 
   it("should keep payload unchanged", async () => {

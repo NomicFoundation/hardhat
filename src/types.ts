@@ -85,3 +85,16 @@ export type GlobalWithBuidlerRuntimeEnvironment = NodeJS.Global & {
 export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
 }
+
+// TODO: This should go away once this gets fixed:
+// https://github.com/xf00f/web3x/issues/13
+export interface FixedJsonRPCResponse {
+  jsonrpc: string;
+  id: number;
+  result?: any;
+  error?: {
+    code: number;
+    message: string;
+    data?: any;
+  };
+}
