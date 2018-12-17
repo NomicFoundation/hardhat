@@ -1,14 +1,9 @@
 import { assert } from "chai";
-import { EventEmitter } from "events";
 
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { WrappedProvider } from "../../../src/core/providers/wrapper";
 
-class MockedProvider extends EventEmitter implements IEthereumProvider {
-  public async send(method: string, params?: any[]): Promise<any> {
-    return method;
-  }
-}
+import { MethodReturningProvider } from "./mocks";
 
 class Wrapper extends WrappedProvider {
   constructor(provider: IEthereumProvider) {
@@ -17,11 +12,11 @@ class Wrapper extends WrappedProvider {
 }
 
 describe("WrappedProvider", () => {
-  let mockedProvider: MockedProvider;
+  let mockedProvider: MethodReturningProvider;
   let wrapper: WrappedProvider;
 
   beforeEach(() => {
-    mockedProvider = new MockedProvider();
+    mockedProvider = new MethodReturningProvider();
     wrapper = new Wrapper(mockedProvider);
   });
 
