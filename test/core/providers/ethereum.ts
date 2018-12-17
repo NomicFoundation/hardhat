@@ -1,14 +1,15 @@
 import { assert } from "chai";
 import { EventEmitter } from "events";
-import { Callback, JsonRPCRequest, Provider } from "web3x/providers";
+import { JsonRpcRequest } from "web3x/providers/jsonrpc";
+import { Callback, LegacyProvider } from "web3x/providers/legacy-provider";
 
 import { EthereumProvider } from "../../../src/core/providers/ethereum";
 
-class MockedHttpProvider extends EventEmitter implements Provider {
+class MockedHttpProvider extends EventEmitter implements LegacyProvider {
   constructor() {
     super();
   }
-  public send(request: JsonRPCRequest, callback: Callback) {
+  public send(request: JsonRpcRequest, callback: Callback) {
     if (request.method === "net_version") {
       callback(undefined, this._mockResponse(4));
     } else if (request.method === "bleep") {
@@ -37,7 +38,7 @@ class MockedHttpProvider extends EventEmitter implements Provider {
 }
 
 describe("ethereum provider", () => {
-  let provider: Provider;
+  let provider: LegacyProvider;
   let ethereum: EthereumProvider;
 
   beforeEach(() => {

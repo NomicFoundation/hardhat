@@ -74,7 +74,7 @@
     "source-map-support": "^0.5.9",
     "tsort": "0.0.1",
     "web3": "^0.20.6",
-    "web3x": "^1.2.3"
+    "web3x": "^2.0.0"
   },
   "nyc": {
     "extension": [

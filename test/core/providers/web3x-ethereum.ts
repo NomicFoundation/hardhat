@@ -1,12 +1,14 @@
 import { assert } from "chai";
 import { EventEmitter } from "events";
 import util from "util";
-import { JsonRPCRequest, JsonRPCResponse } from "web3x/providers";
-import { toPayload } from "web3x/request-manager/jsonrpc";
+import {
+  createJsonRpcPayload,
+  JsonRpcRequest,
+  JsonRpcResponse
+} from "web3x/providers/jsonrpc";
 
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { EthereumWeb3xProvider } from "../../../src/core/providers/web3x-ethereum";
-import { FixedJsonRPCResponse } from "../../../src/types";
 
 class MockedEthereumProvider extends EventEmitter implements IEthereumProvider {
   constructor() {
@@ -31,7 +33,7 @@ class MockedEthereumProvider extends EventEmitter implements IEthereumProvider {
 describe("web3x ethereum provider", () => {
   let ethereum: MockedEthereumProvider;
   let wrapper: EthereumWeb3xProvider;
-  let wrapperSend: (payload: JsonRPCRequest) => Promise<FixedJsonRPCResponse>;
+  let wrapperSend: (payload: JsonRpcRequest) => Promise<JsonRpcResponse>;
 
   beforeEach(() => {
     ethereum = new MockedEthereumProvider();
@@ -40,21 +42,21 @@ describe("web3x ethereum provider", () => {
   });
 
   it("should get response", async () => {
-    const payload = toPayload("net_version");
+    const payload = createJsonRpcPayload("net_version");
     const response = await wrapperSend(payload);
     assert.equal(response!.result, "4");
   });
 
   it("should return an error", async () => {
-    const payload = toPayload("bleep");
+    const payload = createJsonRpcPayload("bleep");
     const response = await wrapperSend(payload);
     assert.equal(response.error!.message, "Method not found");
   });
 
   it("response should contain an error", async () => {
-    const payload = toPayload("fail_method");
+    const payload = createJsonRpcPayload("fail_method");
 
-    const response = (await wrapperSend(payload)) as FixedJsonRPCResponse;
+    const response = (await wrapperSend(payload)) as JsonRpcResponse;
 
     assert.isDefined(response.error);
     assert.equal(response.error!.message, "do not meet the requirements");
@@ -63,7 +65,7 @@ describe("web3x ethereum provider", () => {
   it("should keep payload unchanged", async () => {
     const params: any[] = ["hola", 123];
 
-    const payload = toPayload("return_params", params);
+    const payload = createJsonRpcPayload("return_params", params);
     const { result } = await wrapperSend(payload);
 
     assert.deepEqual(result, params);

@@ -1,9 +1,11 @@
 import { EventEmitter } from "events";
 import { promisify } from "util";
-import { Provider } from "web3x/providers";
-import { toPayload } from "web3x/request-manager/jsonrpc";
-
-import { FixedJsonRPCResponse } from "../../types";
+import {
+  createJsonRpcPayload,
+  JsonRpcRequest,
+  JsonRpcResponse
+} from "web3x/providers/jsonrpc";
+import { LegacyProvider } from "web3x/providers/legacy-provider";
 
 export interface IEthereumProvider extends EventEmitter {
   send(method: string, params?: any[]): Promise<any>;
@@ -22,7 +24,7 @@ class EthereumProviderError extends Error {
 
 export class EthereumProvider extends EventEmitter
   implements IEthereumProvider {
-  constructor(private readonly provider: Provider) {
+  constructor(private readonly provider: LegacyProvider) {
     super();
   }
 
@@ -31,11 +33,15 @@ export class EthereumProvider extends EventEmitter
       throw new Error("'eth_requestAccounts' is not yet supported");
     }
 
-    const payload = toPayload(method, params);
+    const payload = createJsonRpcPayload(method, params);
 
-    const promisifiedSend = promisify(this.provider.send.bind(this.provider));
+    const promisifiedSend: (
+      payload: JsonRpcRequest
+    ) => Promise<JsonRpcResponse> = promisify(
+      this.provider.send.bind(this.provider)
+    );
 
-    const response = (await promisifiedSend(payload)) as FixedJsonRPCResponse;
+    const response = (await promisifiedSend(payload)) as JsonRpcResponse;
 
     if (response.error === undefined) {
       return response.result;

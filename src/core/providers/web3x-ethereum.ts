@@ -1,13 +1,14 @@
 import { callbackify } from "util";
-import { Callback, JsonRPCRequest, Provider } from "web3x/providers";
+import { JsonRpcRequest, JsonRpcResponse } from "web3x/providers/jsonrpc";
+import { Callback, LegacyProvider } from "web3x/providers/legacy-provider";
 
 import { IEthereumProvider } from "./ethereum";
 
-export class EthereumWeb3xProvider implements Provider {
+export class EthereumWeb3xProvider implements LegacyProvider {
   constructor(private readonly provider: IEthereumProvider) {}
 
-  public send(request: JsonRPCRequest, callback: Callback): any {
-    callbackify((payload: JsonRPCRequest) =>
+  public send(request: JsonRpcRequest, callback: Callback): any {
+    callbackify((payload: JsonRpcRequest) =>
       this.provider.send(payload.method, payload.params).then(
         response => ({
           jsonrpc: payload.jsonrpc,
@@ -24,9 +25,7 @@ export class EthereumWeb3xProvider implements Provider {
           }
         })
       )
-    )(request, callback as any);
-    // TODO: Remove the any form the above statement once this is fixed:
-    // https://github.com/xf00f/web3x/issues/13
+    )(request, callback);
   }
 
   public disconnect() {}
