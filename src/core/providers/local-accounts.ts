@@ -1,22 +1,15 @@
 import Transaction from "ethereumjs-tx";
-import { promisify } from "util";
-import {
-  createJsonRpcPayload,
-  JsonRpcRequest,
-  JsonRpcResponse
-} from "web3x/providers/jsonrpc";
-import { LegacyProvider } from "web3x/providers/legacy-provider";
+import { EventEmitter } from "events";
+import { EthereumProvider } from "web3x/providers";
 
-import { EthereumProvider } from "./ethereum";
-
-export class EthereumProviderLocalAccounts extends EthereumProvider
-  implements IEthereumProvider {
+export class EthereumLocalAccountsProvider extends EventEmitter
+  implements EthereumProvider {
   constructor(
-    provider: LegacyProvider,
+    private provider: EthereumProvider,
     private accounts: string[] = [],
     private chainId: number
   ) {
-    super(provider);
+    super();
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
@@ -24,9 +17,11 @@ export class EthereumProviderLocalAccounts extends EthereumProvider
       return this.accounts;
     } else if (method === "eth_requestAccounts") {
       return this.accounts;
+    } else if (method === "eth_sign") {
+      throw new Error("eth_sign is not supported yet");
     } else if (method === "eth_sendTransaction") {
       if (params === undefined || params.length < 1) {
-        throw Error("missing required parameters");
+        throw Error("Missing required parameters");
       }
 
       const from = params[0];
@@ -38,7 +33,7 @@ export class EthereumProviderLocalAccounts extends EthereumProvider
       let nonce = params[6];
 
       if (gasLimit === undefined || gasPrice === undefined) {
-        throw Error("missing gas");
+        throw Error("Missing gas");
       }
 
       if (nonce === undefined) {
@@ -60,24 +55,7 @@ export class EthereumProviderLocalAccounts extends EthereumProvider
       const signedTx = transaction.serialize().toString("hex");
       return this.send("eth_sendRawTransaction", [signedTx]);
     } else {
-      const payload = createJsonRpcPayload(method, params);
-
-      // console.log("payload: ", payload);
-      const promisifiedSend: (
-        payload: JsonRpcRequest
-      ) => Promise<any> = promisify(this.provider.send.bind(this.provider));
-
-      const response: JsonRpcResponse = await promisifiedSend(payload);
-      if (response.error === undefined) {
-        return response.result;
-      } else {
-        throw Error(response.error.message);
-      }
+      return this.provider.send(method, params);
     }
   }
-}
-
-export interface IEthereumProvider {
-  send(method: string, params?: any[]): Promise<any>;
-  on(type: string, listener: (result: any) => void): this;
 }
