@@ -33,7 +33,11 @@ class MockedEthereumProvider extends EventEmitter implements IEthereumProvider {
 describe("web3x ethereum provider", () => {
   let ethereum: MockedEthereumProvider;
   let wrapper: EthereumWeb3xProvider;
+<<<<<<< HEAD
   let wrapperSend: (payload: JsonRpcRequest) => Promise<JsonRpcResponse>;
+=======
+  let wrapperSend: (payload: JsonRpcRequest) => Promise<FixedJsonRPCResponse>;
+>>>>>>> wip
 
   beforeEach(() => {
     ethereum = new MockedEthereumProvider();

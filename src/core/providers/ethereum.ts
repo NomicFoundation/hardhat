@@ -24,7 +24,7 @@ class EthereumProviderError extends Error {
 
 export class EthereumProvider extends EventEmitter
   implements IEthereumProvider {
-  constructor(private readonly provider: LegacyProvider) {
+  constructor(protected readonly provider: LegacyProvider) {
     super();
   }
 
