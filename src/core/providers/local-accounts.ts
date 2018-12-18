@@ -3,24 +3,20 @@ import { EventEmitter } from "events";
 import { EthereumProvider } from "web3x/providers";
 
 import { IEthereumProvider } from "./ethereum";
-import { WrappedProvider } from "./wrapper";
+import { wrapSend } from "./wrapper";
 
-export class EthereumLocalAccountsProvider extends WrappedProvider {
-  constructor(
-    provider: IEthereumProvider,
-    private accounts: string[] = [],
-    private chainId: number
-  ) {
-    super(provider);
-  }
-
-  public async send(method: string, params?: any[]): Promise<any> {
+export function createLocalAccountsProvider(
+  provider: IEthereumProvider,
+  accounts: string[] = [],
+  chainId: number
+) {
+  return wrapSend(provider, async (method: string, params?: any[]) => {
     if (method === "eth_accounts") {
-      return this.accounts;
+      return accounts;
     }
 
     if (method === "eth_requestAccounts") {
-      return this.accounts;
+      return accounts;
     }
 
     if (method === "eth_sign") {
@@ -45,9 +41,11 @@ export class EthereumLocalAccountsProvider extends WrappedProvider {
       }
 
       if (nonce === undefined) {
-        nonce = await this.send("eth_getTransactionCount", [from, "pending"]);
+        nonce = await provider.send("eth_getTransactionCount", [
+          from,
+          "pending"
+        ]);
       }
-      const chainId = this.chainId;
 
       // TODO: Remove ethereumjs-tx dependencies in favor to web3x implementations.
       const transaction = new Transaction({
@@ -59,13 +57,13 @@ export class EthereumLocalAccountsProvider extends WrappedProvider {
         nonce,
         chainId
       });
-      const signedTx = signTransaction(transaction, this.accounts[0]);
+      const signedTx = signTransaction(transaction, accounts[0]);
 
-      return this.send("eth_sendRawTransaction", [signedTx]);
+      return provider.send("eth_sendRawTransaction", [signedTx]);
     }
 
-    return super.send(method, params);
-  }
+    return provider.send(method, params);
+  });
 }
 
 export function signTransaction(tx: any, privateKey: string | Buffer): Buffer {

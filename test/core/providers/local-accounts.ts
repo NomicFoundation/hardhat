@@ -5,7 +5,7 @@ import { EventEmitter } from "events";
 import { getConfig } from "../../../src/core/config";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import {
-  EthereumLocalAccountsProvider,
+  createLocalAccountsProvider,
   hashTransaction,
   signTransaction
 } from "../../../src/core/providers/local-accounts";
@@ -21,7 +21,7 @@ class MockProvider extends EventEmitter implements IEthereumProvider {
 
 describe("ethereum provider", () => {
   let mock: MockProvider;
-  let wrapper: EthereumLocalAccountsProvider;
+  let wrapper: IEthereumProvider;
 
   let accounts: string[] = [];
   const chainId = 3;
@@ -31,7 +31,7 @@ describe("ethereum provider", () => {
     const [config, _] = getConfig();
     accounts = config.networks.develop.accounts;
     mock = new MockProvider();
-    wrapper = new EthereumLocalAccountsProvider(mock, accounts, chainId);
+    wrapper = createLocalAccountsProvider(mock, accounts, chainId);
   });
 
   it("eth_accounts", async () => {
@@ -60,7 +60,6 @@ describe("ethereum provider", () => {
     signTransaction(tx, accounts[0]);
     const actualHash = hashTransaction(tx);
 
-    // console.log(signedTx, actualHash);
     assert.equal(actualHash, expectedTxHash);
   });
 });
