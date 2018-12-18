@@ -1,6 +1,6 @@
 import Transaction from "ethereumjs-tx";
-import { EventEmitter } from "events";
-import { EthereumProvider } from "web3x/providers";
+import { addHexPrefix, privateToAddress } from "ethereumjs-util";
+import { AccountTx } from "web3x/account";
 
 import { IEthereumProvider } from "./ethereum";
 import { wrapSend } from "./wrapper";
@@ -10,13 +10,17 @@ export function createLocalAccountsProvider(
   accounts: string[] = [],
   chainId: number
 ) {
+  const publicKeys: Buffer[] = accounts.map(pk =>
+    privateToAddress(Buffer.from(pk, "hex"))
+  );
+
   return wrapSend(provider, async (method: string, params?: any[]) => {
     if (method === "eth_accounts") {
-      return accounts;
+      return publicKeys;
     }
 
     if (method === "eth_requestAccounts") {
-      return accounts;
+      return publicKeys;
     }
 
     if (method === "eth_sign") {
@@ -24,39 +28,27 @@ export function createLocalAccountsProvider(
     }
 
     if (method === "eth_sendTransaction") {
-      if (params === undefined || params.length < 1) {
-        throw Error("Missing required parameters");
+      if (params === undefined) {
+        params = [];
       }
 
-      const from = params[0];
-      const to = params[1];
-      const gasLimit = params[2];
-      const gasPrice = params[3];
-      const value = params[4];
-      const data = params[5];
-      let nonce = params[6];
+      const tx: AccountTx & { from?: string } = params[0];
+      tx.chainId = chainId;
 
-      if (gasLimit === undefined || gasPrice === undefined) {
+      if (tx.gas === undefined || tx.gasPrice === undefined) {
         throw Error("Missing gas");
       }
 
-      if (nonce === undefined) {
-        nonce = await provider.send("eth_getTransactionCount", [
-          from,
+      if (tx.nonce === undefined) {
+        tx.nonce = await provider.send("eth_getTransactionCount", [
+          tx.from,
           "pending"
         ]);
       }
 
       // TODO: Remove ethereumjs-tx dependencies in favor to web3x implementations.
-      const transaction = new Transaction({
-        to,
-        gasPrice,
-        gasLimit,
-        value,
-        data,
-        nonce,
-        chainId
-      });
+      const transaction = new Transaction(tx);
+
       const signedTx = signTransaction(transaction, accounts[0]);
 
       return provider.send("eth_sendRawTransaction", [signedTx]);
