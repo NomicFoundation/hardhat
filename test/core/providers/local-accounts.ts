@@ -45,6 +45,47 @@ describe("ethereum provider", () => {
     assert.equal(response[0].length, 20);
   });
 
+  it("eth_sign", async () => {
+    try {
+      await wrapper.send("eth_sign");
+    } catch (err) {
+      assert.equal(err.message, "eth_sign is not supported yet");
+    }
+  });
+
+  it("sendTransaction without specify gas", async () => {
+    const params = [
+      {
+        from: "0xf7abeea1b1b97ef714bc9a118b0f095ec54f8221",
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        gasPrice: 0x3b9aca00,
+        nonce: 0x8,
+        chainId: 3
+      }
+    ];
+    try {
+      await wrapper.send("eth_sendTransaction", params);
+    } catch (err) {
+      assert.equal(err.message, "Missing gas");
+    }
+  });
+
+  it("sendTransaction without specify gas nor gas price", async () => {
+    const params = [
+      {
+        from: "0xf7abeea1b1b97ef714bc9a118b0f095ec54f8221",
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        nonce: 0x8,
+        chainId: 3
+      }
+    ];
+    try {
+      await wrapper.send("eth_sendTransaction", params);
+    } catch (err) {
+      assert.equal(err.message, "Missing gas");
+    }
+  });
+
   it("given two identical tx the signedTx should be the same", async () => {
     const tx = new Transaction({
       from: "0xf7abeea1b1b97ef714bc9a118b0f095ec54f8221",
