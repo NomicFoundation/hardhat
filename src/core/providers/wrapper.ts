@@ -1,93 +1,32 @@
+import { cloneDeep } from "lodash";
+
 import { IEthereumProvider } from "./ethereum";
 
-export abstract class WrappedProvider implements IEthereumProvider {
-  protected constructor(private readonly provider: IEthereumProvider) {}
+export function wrapSend(
+  provider: IEthereumProvider,
+  sendWrapper: (method: string, params: any[]) => Promise<any>
+): IEthereumProvider {
+  return new Proxy(provider, {
+    get(target: IEthereumProvider, p: PropertyKey, receiver: any): any {
+      if (p === "send") {
+        return (method: string, params: any[] = []) =>
+          sendWrapper(method, cloneDeep(params));
+      }
 
-  public addListener(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
-    this.provider.addListener(event, listener);
-    return this;
-  }
+      const originalValue = Reflect.get(target, p, receiver);
 
-  public eventNames(): Array<string | symbol> {
-    return this.provider.eventNames();
-  }
+      if (originalValue instanceof Function) {
+        return (...args: any[]) => {
+          const returned = Reflect.apply(originalValue, target, args);
+          if (returned !== target) {
+            return returned;
+          }
 
-  public getMaxListeners(): number {
-    return this.provider.getMaxListeners();
-  }
+          return receiver;
+        };
+      }
 
-  public listenerCount(type: string | symbol): number {
-    return this.provider.listenerCount(type);
-  }
-
-  // tslint:disable-next-line ban-types
-  public listeners(event: string | symbol): Function[] {
-    return this.provider.listeners(event);
-  }
-
-  public on(
-    type: string | symbol,
-    listener: ((result: any) => void) | ((...args: any[]) => void)
-  ): this {
-    if (typeof type !== "string") {
-      throw new Error("WrappedProvider.prototype.on doesn't support symbols");
+      return originalValue;
     }
-
-    this.provider.on(type, listener);
-
-    return this;
-  }
-
-  public once(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
-    this.provider.once(event, listener);
-    return this;
-  }
-
-  public prependListener(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
-    this.provider.prependListener(event, listener);
-    return this;
-  }
-
-  public prependOnceListener(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
-    this.provider.prependOnceListener(event, listener);
-    return this;
-  }
-
-  public removeAllListeners(event?: string | symbol): this {
-    this.provider.removeAllListeners(event);
-    return this;
-  }
-
-  public removeListener(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
-    this.provider.removeListener(event, listener);
-    return this;
-  }
-
-  public send(method: string, params?: any[]): Promise<any> {
-    return this.provider.send(method, params);
-  }
-
-  public setMaxListeners(n: number): this {
-    this.provider.setMaxListeners(n);
-    return this;
-  }
-
-  public emit(event: string | symbol, ...args: any[]): boolean {
-    return this.provider.emit(event, args);
-  }
+  });
 }

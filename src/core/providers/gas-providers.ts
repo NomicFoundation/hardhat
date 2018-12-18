@@ -1,81 +1,69 @@
-import { Tx } from "web3x/eth";
-
 import { IEthereumProvider } from "./ethereum";
 
-import { WrappedProvider } from "./wrapper";
+import { wrapSend } from "./wrapper";
 
-export class FixedGasProvider extends WrappedProvider {
-  constructor(
-    provider: IEthereumProvider,
-    private readonly gasLimit?: number,
-    private readonly gasPrice?: number
-  ) {
-    super(provider);
-  }
-
-  public async send(method: string, params?: any[]): Promise<any> {
-    if (method === "eth_estimateGas" && this.gasLimit !== undefined) {
-      return this.gasLimit;
+export function createFixedGasProvider(
+  provider: IEthereumProvider,
+  gasLimit: number
+) {
+  return wrapSend(provider, async (method, params) => {
+    if (method === "eth_estimateGas") {
+      return gasLimit;
     }
 
-    if (method === "eth_gasPrice" && this.gasPrice !== undefined) {
-      return this.gasPrice;
-    }
-
-    if (
-      method === "eth_sendTransaction" &&
-      params !== undefined &&
-      params.length > 0
-    ) {
-      const originalTxObject = params[0] as Partial<Tx>;
-      const txObject = { ...originalTxObject };
-
-      if (txObject.gas === undefined && this.gasLimit !== undefined) {
-        txObject.gas = this.gasLimit;
+    if (method === "eth_sendTransaction") {
+      const tx = params[0];
+      if (tx !== undefined && tx.gas === undefined) {
+        tx.gas = gasLimit;
       }
-
-      if (txObject.gasPrice === undefined && this.gasPrice !== undefined) {
-        txObject.gasPrice = this.gasPrice;
-      }
-
-      params = [...params];
-      params[0] = txObject;
     }
 
-    return super.send(method, params);
-  }
+    return provider.send(method, params);
+  });
 }
 
-export class AutomaticGasProvider extends WrappedProvider {
-  constructor(
-    provider: IEthereumProvider,
-    private readonly automaticGasLimit: boolean,
-    private readonly automaticGasPrice: boolean
-  ) {
-    super(provider);
-  }
-
-  public async send(method: string, params?: any[]): Promise<any> {
-    if (
-      method === "eth_sendTransaction" &&
-      params !== undefined &&
-      params.length > 0
-    ) {
-      const originalTxObject = params[0] as Partial<Tx>;
-      const txObject = { ...originalTxObject };
-
-      if (txObject.gasPrice === undefined && this.automaticGasPrice) {
-        txObject.gasPrice = await this.send("eth_gasPrice");
-      }
-
-      if (txObject.gas === undefined && this.automaticGasLimit) {
-        txObject.gas = await this.send("eth_estimateGas", [txObject]);
-      }
-
-      params = [...params];
-      params[0] = txObject;
+export function createFixedGasPriceProvider(
+  provider: IEthereumProvider,
+  gasPrice: number
+) {
+  return wrapSend(provider, async (method, params) => {
+    if (method === "eth_gasPrice") {
+      return gasPrice;
     }
 
-    return super.send(method, params);
-  }
+    if (method === "eth_sendTransaction") {
+      const tx = params[0];
+      if (tx !== undefined && tx.gasPrice === undefined) {
+        tx.gasPrice = gasPrice;
+      }
+    }
+
+    return provider.send(method, params);
+  });
+}
+
+export function createAutomaticGasProvider(provider: IEthereumProvider) {
+  return wrapSend(provider, async (method, params) => {
+    if (method === "eth_sendTransaction") {
+      const tx = params[0];
+      if (tx !== undefined && tx.gas === undefined) {
+        tx.gas = await provider.send("eth_estimateGas", params);
+      }
+    }
+
+    return provider.send(method, params);
+  });
+}
+
+export function createAutomaticGasPriceProvider(provider: IEthereumProvider) {
+  return wrapSend(provider, async (method, params) => {
+    if (method === "eth_sendTransaction") {
+      const tx = params[0];
+      if (tx !== undefined && tx.gasPrice === undefined) {
+        tx.gasPrice = await provider.send("eth_gasPrice");
+      }
+    }
+
+    return provider.send(method, params);
+  });
 }
