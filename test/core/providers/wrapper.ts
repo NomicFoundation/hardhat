@@ -1,175 +1,90 @@
 import { assert } from "chai";
 
-import { IEthereumProvider } from "../../../src/core/providers/ethereum";
-import { WrappedProvider } from "../../../src/core/providers/wrapper";
+import { wrapSend } from "../../../src/core/providers/wrapper";
 
-import { MethodReturningProvider } from "./mocks";
+import { MethodReturningProvider, ParamsReturningProvider } from "./mocks";
 
-class Wrapper extends WrappedProvider {
-  constructor(provider: IEthereumProvider) {
-    super(provider);
-  }
-}
+describe("wrapSend", () => {
+  let methodReturningProvider: MethodReturningProvider;
+  let paramsReturningProvider: ParamsReturningProvider;
 
-describe("WrappedProvider", () => {
-  let mockedProvider: MethodReturningProvider;
-  let wrapper: WrappedProvider;
-
-  beforeEach(() => {
-    mockedProvider = new MethodReturningProvider();
-    wrapper = new Wrapper(mockedProvider);
+  before(() => {
+    methodReturningProvider = new MethodReturningProvider();
+    paramsReturningProvider = new ParamsReturningProvider();
   });
 
-  describe("Adding listener", () => {
-    it("Should return the wrapper when adding listeners", () => {
-      assert.equal(wrapper.addListener("a", () => {}), wrapper);
-      assert.equal(wrapper.on("a", () => {}), wrapper);
-      assert.equal(wrapper.once("a", () => {}), wrapper);
-      assert.equal(wrapper.prependListener("a", () => {}), wrapper);
-      assert.equal(wrapper.prependOnceListener("a", () => {}), wrapper);
-    });
+  it("Should forward everything except for send", async () => {
+    const wrapped = wrapSend(methodReturningProvider, async () => 123);
 
-    it("Should work with addListener", () => {
-      assert.equal(wrapper.listenerCount("a"), 0);
+    wrapped.addListener("a", () => {});
+    assert.equal(methodReturningProvider.listenerCount("a"), 1);
 
-      const listener1 = () => {};
-      wrapper.addListener("a", listener1);
-      assert.equal(wrapper.listenerCount("a"), 1);
-
-      assert.deepEqual(wrapper.listeners("a"), [listener1]);
-
-      const listener2 = () => {};
-      wrapper.addListener("a", listener2);
-      assert.equal(wrapper.listenerCount("a"), 2);
-      assert.deepEqual(wrapper.listeners("a"), [listener1, listener2]);
-      assert.equal(wrapper.listenerCount("b"), 0);
-    });
-
-    it("Should work with on", () => {
-      assert.equal(wrapper.listenerCount("a"), 0);
-
-      const listener1 = () => {};
-      wrapper.on("a", listener1);
-      assert.equal(wrapper.listenerCount("a"), 1);
-
-      assert.deepEqual(wrapper.listeners("a"), [listener1]);
-
-      const listener2 = () => {};
-      wrapper.on("a", listener2);
-      assert.equal(wrapper.listenerCount("a"), 2);
-      assert.deepEqual(wrapper.listeners("a"), [listener1, listener2]);
-      assert.equal(wrapper.listenerCount("b"), 0);
-    });
-
-    it("Should work with once", () => {
-      assert.equal(wrapper.listenerCount("a"), 0);
-
-      const listener1 = () => {};
-      wrapper.once("a", listener1);
-      assert.equal(wrapper.listenerCount("a"), 1);
-
-      assert.deepEqual(wrapper.listeners("a"), [listener1]);
-
-      const listener2 = () => {};
-      wrapper.once("a", listener2);
-      assert.equal(wrapper.listenerCount("a"), 2);
-      assert.deepEqual(wrapper.listeners("a"), [listener1, listener2]);
-      assert.equal(wrapper.listenerCount("b"), 0);
-    });
-
-    it("Should work with prependListener", () => {
-      assert.equal(wrapper.listenerCount("a"), 0);
-
-      const listener1 = () => {};
-      wrapper.prependListener("a", listener1);
-      assert.equal(wrapper.listenerCount("a"), 1);
-
-      assert.deepEqual(wrapper.listeners("a"), [listener1]);
-
-      const listener2 = () => {};
-      wrapper.prependListener("a", listener2);
-      assert.equal(wrapper.listenerCount("a"), 2);
-      assert.deepEqual(wrapper.listeners("a"), [listener2, listener1]);
-      assert.equal(wrapper.listenerCount("b"), 0);
-    });
-
-    it("Should work with prependOnceListener", () => {
-      assert.equal(wrapper.listenerCount("a"), 0);
-
-      const listener1 = () => {};
-      wrapper.prependOnceListener("a", listener1);
-      assert.equal(wrapper.listenerCount("a"), 1);
-
-      assert.deepEqual(wrapper.listeners("a"), [listener1]);
-
-      const listener2 = () => {};
-      wrapper.prependOnceListener("a", listener2);
-      assert.equal(wrapper.listenerCount("a"), 2);
-      assert.deepEqual(wrapper.listeners("a"), [listener2, listener1]);
-      assert.equal(wrapper.listenerCount("b"), 0);
-    });
+    wrapped.setMaxListeners(1234);
+    assert.equal(methodReturningProvider.getMaxListeners(), 1234);
   });
 
-  describe("Removing listeners", () => {
-    beforeEach(() => {
-      wrapper.addListener("a", () => {});
-      wrapper.addListener("a", () => {});
-    });
-
-    it("Should return the wrapper when removing listeners", () => {
-      assert.equal(wrapper.removeListener("a", () => {}), wrapper);
-      assert.equal(wrapper.removeAllListeners("a"), wrapper);
-    });
-
-    it("Should work with removeListener", () => {
-      assert.equal(wrapper.listenerCount("a"), 2);
-      wrapper.removeListener("a", () => {});
-      assert.equal(wrapper.listenerCount("a"), 2);
-    });
-
-    it("Should work with removeAllListeners", () => {
-      assert.equal(wrapper.listenerCount("a"), 2);
-      wrapper.removeAllListeners("a");
-      assert.equal(wrapper.listenerCount("a"), 0);
-    });
+  it("Should forward send", async () => {
+    const wrapped = wrapSend(methodReturningProvider, async () => 123);
+    assert.equal(await wrapped.send("asd"), 123);
   });
 
-  describe("Event names", () => {
-    it("Should have the same ones than the original provider", () => {
-      assert.deepEqual(wrapper.eventNames(), mockedProvider.eventNames());
-    });
+  it("Should always forward an array of params", async () => {
+    const wrapped = wrapSend(
+      methodReturningProvider,
+      async (name, params) => params
+    );
+
+    assert.isDefined(await wrapped.send("asd"));
   });
 
-  describe("Max event listeners", () => {
-    it("Should allow the same amount of listeners than the original provider", () => {
-      assert.equal(wrapper.getMaxListeners(), mockedProvider.getMaxListeners());
+  it("Should deep clone the params before forwarding", async () => {
+    const sentParams = [{}];
+
+    const wrapped = wrapSend(paramsReturningProvider, async (name, params) => {
+      params[0].asd = true;
+      params.push(123);
+
+      return params;
     });
 
-    it("Should be modifiable", () => {
-      wrapper.setMaxListeners(123);
-      assert.equal(wrapper.getMaxListeners(), 123);
+    const returnedParams = await wrapped.send("a", sentParams);
 
-      wrapper.setMaxListeners(4);
-      assert.equal(wrapper.getMaxListeners(), 4);
-    });
+    assert.notEqual(returnedParams, sentParams);
+    assert.deepEqual(returnedParams, [{ asd: true }, 123]);
+    assert.deepEqual(sentParams, [{}]);
   });
 
-  it("Should forward the send calls", async () => {
-    const m = await wrapper.send("m");
-    assert.equal(m, "m");
+  it("Should return the wrapped object on subscription and unsubscription", () => {
+    const wrapped = wrapSend(
+      methodReturningProvider,
+      async (name, params) => params
+    );
+
+    assert.equal(wrapped.on("a", () => {}), wrapped);
+    assert.equal(wrapped.once("a", () => {}), wrapped);
+    assert.equal(wrapped.addListener("a", () => {}), wrapped);
+    assert.equal(wrapped.prependListener("a", () => {}), wrapped);
+    assert.equal(wrapped.prependOnceListener("a", () => {}), wrapped);
+    assert.equal(wrapped.removeListener("a", () => {}), wrapped);
+    assert.equal(wrapped.removeAllListeners("a"), wrapped);
   });
 
-  it("Should emit events correctly", async () => {
-    const p = new Promise(resolve => {
-      wrapper.once("a", () => resolve(true));
+  it("Should return undefined if the property is not present in the original provider", () => {
+    const wrapped = wrapSend(
+      methodReturningProvider,
+      async (name, params) => params
+    );
 
-      wrapper.emit("a");
-    });
-
-    assert.isTrue(await p);
+    assert.isUndefined((wrapped as any).asd);
   });
 
-  it("doesn't support symbols as on argument", () => {
-    assert.throws(() => wrapper.on(Symbol.for("a"), () => {}));
+  it("Shouldn't affect functions that don't return `this`", () => {
+    const wrapped = wrapSend(
+      methodReturningProvider,
+      async (name, params) => params
+    );
+
+    wrapped.setMaxListeners(100);
+    assert.equal(wrapped.getMaxListeners(), 100);
   });
 });
