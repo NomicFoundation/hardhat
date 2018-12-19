@@ -13,6 +13,11 @@ function isHttpNetworkConfig(
   return networkConfig.host !== undefined;
 }
 
+export function getHostUrl(network: HttpNetworkConfig): string {
+  const port = network.port || 8545;
+  return `http://${network.host}:${port}`;
+}
+
 function getWeb3Provider(networkName: string, networkConfig: NetworkConfig) {
   if (isHttpNetworkConfig(networkConfig)) {
     const port = networkConfig.port || 8545;
@@ -21,7 +26,7 @@ function getWeb3Provider(networkName: string, networkConfig: NetworkConfig) {
       throw new BuidlerError(ERRORS.NETWORK_HAS_NO_HOST, networkName);
     }
 
-    const url = `http://${networkConfig.host}:${port}`;
+    const url = getHostUrl(networkConfig);
 
     const Web3 = require("web3");
     return new Web3.providers.HttpProvider(url);

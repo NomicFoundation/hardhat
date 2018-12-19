@@ -33,7 +33,7 @@ describe("Compiler", () => {
     };
   });
 
-  it("Should compiler contracts correctly", async () => {
+  it("Should compile contracts correctly", async () => {
     const input = {
       language: "Solidity",
       sources: {
@@ -66,17 +66,22 @@ contract A {}
       downloader
     );
 
-    const output = await compiler.compile(input);
+    compiler
+      .compile(input)
+      .then(output => {
+        // We just check some properties
+        assert.isDefined(output.contracts);
+        assert.isDefined(output.contracts["A.sol"]);
+        assert.isDefined(output.contracts["A.sol"].A);
 
-    // We just check some properties
-    assert.isDefined(output.contracts);
-    assert.isDefined(output.contracts["A.sol"]);
-    assert.isDefined(output.contracts["A.sol"].A);
-
-    assert.isDefined(output.sources);
-    assert.isDefined(output.sources["A.sol"]);
-    assert.isDefined(output.sources["A.sol"].ast);
-    assert.equal(output.sources["A.sol"].id, 0);
+        assert.isDefined(output.sources);
+        assert.isDefined(output.sources["A.sol"]);
+        assert.isDefined(output.sources["A.sol"].ast);
+        assert.equal(output.sources["A.sol"].id, 0);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   });
 
   it("Shouldn't throw if there's a syntax error", async () => {

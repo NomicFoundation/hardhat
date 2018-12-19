@@ -44,7 +44,7 @@ describe("config", () => {
       const [config, tasks] = getConfig();
       assert.equal(config.solc.version, getLocalCompilerVersion());
       assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
-      assert.equal(config.networks.develop.port, 1337);
+      assert.equal(config.networks.develop.port, 8545);
     });
   });
 

@@ -3,7 +3,7 @@ import { assert, AssertionError, expect } from "chai";
 import { BuidlerError, ErrorDescription } from "../../src/core/errors";
 
 export async function expectErrorAsync(
-  f: () => any,
+  f: () => Promise<any>,
   errorMessage?: string | RegExp
 ) {
   const noError = new AssertionError("Async error expected but not thrown");
