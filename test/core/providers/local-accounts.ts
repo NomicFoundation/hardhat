@@ -146,39 +146,39 @@ describe("Local accounts provider", () => {
   });
 
   it("Should throw if trying to send from an account that isn't local", async () => {
-    try {
-      await wrapper.send("eth_sendTransaction", [
-        {
-          from: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
-          to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-          gas: 21000,
-          gasPrice: 678912,
-          nonce: 0,
-          chainId: 123,
-          value: 1
-        }
-      ]);
-    } catch (err) {
-      assert.isTrue(err.message.includes("isn't one of the local accounts"));
-    }
+    await expectErrorAsync(
+      () =>
+        wrapper.send("eth_sendTransaction", [
+          {
+            from: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
+            to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+            gas: 21000,
+            gasPrice: 678912,
+            nonce: 0,
+            chainId: 123,
+            value: 1
+          }
+        ]),
+      /isn't one of the local accounts/
+    );
   });
 
   it("Should throw if another chainId is used", async () => {
-    try {
-      await wrapper.send("eth_sendTransaction", [
-        {
-          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-          to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-          gas: 21000,
-          gasPrice: 678912,
-          nonce: 0,
-          chainId: 45678,
-          value: 1
-        }
-      ]);
-    } catch (err) {
-      assert.equal(err.message, "chainIds don't match");
-    }
+    await expectErrorAsync(
+      () =>
+        wrapper.send("eth_sendTransaction", [
+          {
+            from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+            to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+            gas: 21000,
+            gasPrice: 678912,
+            nonce: 0,
+            chainId: 45678,
+            value: 1
+          }
+        ]),
+      "chainIds don't match"
+    );
   });
 
   it("Should forward other methods", async () => {
