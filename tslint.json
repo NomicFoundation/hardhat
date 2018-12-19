@@ -26,6 +26,7 @@
         "import-sources-order": "case-insensitive"
       }
     ],
-    "no-floating-promises": true
+    "no-floating-promises": true,
+    "prefer-conditional-expression": false
   }
 }
