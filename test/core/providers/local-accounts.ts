@@ -51,11 +51,10 @@ describe("ethereum provider", () => {
     assert.equal(response[0].length, 20);
   });
 
-  it("eth_sign", () => {
-    expectErrorAsync(
-      () => wrapper.send("eth_sign"),
-      "eth_sign is not supported yet"
-    );
+  it("eth_sign", async () => {
+    await expectErrorAsync(() => {
+      return wrapper.send("eth_sign");
+    }, "eth_sign is not supported yet");
   });
 
   it("sendTransaction without specify gas", async () => {
@@ -69,7 +68,7 @@ describe("ethereum provider", () => {
       }
     ];
 
-    expectErrorAsync(
+    await expectErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
       "Missing gas"
     );
@@ -85,7 +84,7 @@ describe("ethereum provider", () => {
       }
     ];
 
-    expectErrorAsync(
+    await expectErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
       "Missing gas"
     );
@@ -107,7 +106,10 @@ describe("ethereum provider", () => {
   });
 
   it("should fail is no params are given", async () => {
-    expectErrorAsync(() => wrapper.send("eth_sendTransaction"), /undefined/);
+    await expectErrorAsync(
+      () => wrapper.send("eth_sendTransaction"),
+      /undefined/
+    );
   });
 
   it("given two identical tx the signedTx should be the same", async () => {
