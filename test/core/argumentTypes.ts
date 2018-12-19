@@ -2,11 +2,10 @@ import { assert, expect } from "chai";
 
 import * as types from "../../src/core/argumentTypes";
 import { BuidlerError, ERRORS } from "../../src/core/errors";
+import { expectBuidlerError } from "../helpers/errors";
 
-function assertCorrectError(f: () => any) {
-  expect(f)
-    .to.throw(BuidlerError)
-    .with.property("number", ERRORS.ARG_TYPE_INVALID_VALUE.number);
+function a(f: () => any) {
+  expectBuidlerError(f, ERRORS.ARG_TYPE_INVALID_VALUE);
 }
 
 describe("argumentTypes", () => {
@@ -36,12 +35,30 @@ describe("argumentTypes", () => {
     });
 
     it("should throw the right error on invalid values", () => {
-      assertCorrectError(() => types.boolean.parse("arg", "asd1"));
-      assertCorrectError(() => types.boolean.parse("arg", "f"));
-      assertCorrectError(() => types.boolean.parse("arg", "t"));
-      assertCorrectError(() => types.boolean.parse("arg", "1"));
-      assertCorrectError(() => types.boolean.parse("arg", "0"));
-      assertCorrectError(() => types.boolean.parse("arg", ""));
+      expectBuidlerError(
+        () => types.boolean.parse("arg", "asd1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.boolean.parse("arg", "f"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.boolean.parse("arg", "t"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.boolean.parse("arg", "1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.boolean.parse("arg", "0"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.boolean.parse("arg", ""),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
     });
   });
 
@@ -70,15 +87,42 @@ describe("argumentTypes", () => {
     });
 
     it("should fail with incorrect values", () => {
-      assertCorrectError(() => types.int.parse("arg", ""));
-      assertCorrectError(() => types.int.parse("arg", "1."));
-      assertCorrectError(() => types.int.parse("arg", ".1"));
-      assertCorrectError(() => types.int.parse("arg", "0.1"));
-      assertCorrectError(() => types.int.parse("arg", "asdas"));
-      assertCorrectError(() => types.int.parse("arg", "a1"));
-      assertCorrectError(() => types.int.parse("arg", "1a"));
-      assertCorrectError(() => types.int.parse("arg", "1 1"));
-      assertCorrectError(() => types.int.parse("arg", "x123"));
+      expectBuidlerError(
+        () => types.int.parse("arg", ""),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", "1."),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", ".1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", "0.1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", "asdas"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", "a1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", "1a"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", "1 1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.int.parse("arg", "x123"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
     });
   });
 
@@ -117,17 +161,50 @@ describe("argumentTypes", () => {
     });
 
     it("should fail with incorrect values", () => {
-      assertCorrectError(() => types.float.parse("arg", ""));
-      assertCorrectError(() => types.float.parse("arg", "."));
-      assertCorrectError(() => types.float.parse("arg", ".."));
-      assertCorrectError(() => types.float.parse("arg", "1..1"));
-      assertCorrectError(() => types.float.parse("arg", "1.asd"));
-      assertCorrectError(() => types.float.parse("arg", "asd.123"));
-      assertCorrectError(() => types.float.parse("arg", "asdas"));
-      assertCorrectError(() => types.float.parse("arg", "a1"));
-      assertCorrectError(() => types.float.parse("arg", "1a"));
-      assertCorrectError(() => types.float.parse("arg", "1 1"));
-      assertCorrectError(() => types.float.parse("arg", "x123"));
+      expectBuidlerError(
+        () => types.float.parse("arg", ""),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "."),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", ".."),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "1..1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "1.asd"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "asd.123"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "asdas"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "a1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "1a"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "1 1"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
+      expectBuidlerError(
+        () => types.float.parse("arg", "x123"),
+        ERRORS.ARG_TYPE_INVALID_VALUE
+      );
     });
   });
 });

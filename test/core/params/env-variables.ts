@@ -1,11 +1,12 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 
-import { BuidlerError, ERRORS } from "../../../src/core/errors";
+import { ERRORS } from "../../../src/core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/core/params/buidler-params";
 import {
   getEnvBuidlerArguments,
   paramNameToEnvVariable
 } from "../../../src/core/params/env-variables";
+import { expectBuidlerError } from "../../helpers/errors";
 
 // This is testing an internal function, which may seem weird, but its behaviour
 // is 100% user facing.
@@ -61,12 +62,12 @@ describe("Env vars arguments parsing", () => {
   });
 
   it("should throw if an invalid value is passed", () => {
-    expect(() =>
-      getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
-        BUIDLER_HELP: "123"
-      })
-    )
-      .to.throw(BuidlerError)
-      .with.property("number", ERRORS.ENV_VARIABLE_ARG_INVALID_VALUE.number);
+    expectBuidlerError(
+      () =>
+        getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
+          BUIDLER_HELP: "123"
+        }),
+      ERRORS.ENV_VARIABLE_ARG_INVALID_VALUE
+    );
   });
 });

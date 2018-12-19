@@ -1,8 +1,8 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 
-import { BuidlerError, ERRORS } from "../../../src/core/errors";
+import { ERRORS } from "../../../src/core/errors";
 import { TasksDSL } from "../../../src/core/tasks/dsl";
-import { TaskDefinition } from "../../../src/core/tasks/TaskDefinition";
+import { expectBuidlerErrorAsync } from "../../helpers/errors";
 
 describe("TasksDSL", () => {
   let dsl: TasksDSL;
@@ -40,13 +40,15 @@ describe("TasksDSL", () => {
     assert.equal(task.action, action);
   });
 
-  it("should add a task with default action", () => {
+  it("should add a task with default action", async () => {
     const task = dsl.task("compile", "a description");
     assert.isDefined(task.description);
     assert.isDefined(task.action);
-    expect(() => task.action({}, {} as any, async () => {}))
-      .to.throw(BuidlerError)
-      .with.property("number", ERRORS.TASKS_DEFINITION_NO_ACTION.number);
+
+    await expectBuidlerErrorAsync(
+      () => task.action({}, {} as any, async () => {}),
+      ERRORS.TASKS_DEFINITION_NO_ACTION
+    );
   });
 
   it("should overload task", () => {

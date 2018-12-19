@@ -1,15 +1,10 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 
 import { getConfig, getNetworkConfig } from "../../src/core/config";
-import { BuidlerError, ErrorDescription, ERRORS } from "../../src/core/errors";
+import { ERRORS } from "../../src/core/errors";
 import { getLocalCompilerVersion } from "../helpers/compiler";
+import { expectBuidlerError } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
-
-function assertCorrectError(f: () => any, error: ErrorDescription) {
-  expect(f)
-    .to.throw(BuidlerError)
-    .with.property("number", error.number);
-}
 
 describe("config", () => {
   describe("custom config", () => {
@@ -17,7 +12,7 @@ describe("config", () => {
 
     it("should fail on getting non existent network config", () => {
       const [config, _] = getConfig();
-      assertCorrectError(() => {
+      expectBuidlerError(() => {
         getNetworkConfig(config, "local");
       }, ERRORS.NETWORK_CONFIG_NOT_FOUND);
     });
