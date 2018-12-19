@@ -9,8 +9,8 @@ import {
   hashTransaction,
   signTransaction
 } from "../../../src/core/providers/local-accounts";
-import { useFixtureProject } from "../../helpers/project";
 import { expectErrorAsync } from "../../helpers/errors";
+import { useFixtureProject } from "../../helpers/project";
 
 class MockProvider extends EventEmitter implements IEthereumProvider {
   public async send(method: string, params?: any[]): Promise<any> {
