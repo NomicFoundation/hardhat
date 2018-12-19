@@ -11,16 +11,12 @@ os:
   - osx
 
 install:
-  - npm ci
+  - npm install
 
 script:
   - npm run test
   - npx codecov
   - npm run lint
-
-cache:
-  directories:
-    - "$HOME/.npm"
 
 branches:
   only:
