@@ -33,12 +33,13 @@ export function createLocalAccountsProvider(
       }
 
       const tx: AccountTx & { from?: string } = params[0];
-      tx.chainId = chainId;
 
       if (tx.gas === undefined || tx.gasPrice === undefined) {
         throw Error("Missing gas");
       }
-
+      if (tx.chainId === undefined) {
+        tx.chainId = chainId;
+      }
       if (tx.nonce === undefined) {
         tx.nonce = await provider.send("eth_getTransactionCount", [
           tx.from,
@@ -50,7 +51,6 @@ export function createLocalAccountsProvider(
       const transaction = new Transaction(tx);
 
       const signedTx = signTransaction(transaction, accounts[0]);
-
       return provider.send("eth_sendRawTransaction", [signedTx]);
     }
 

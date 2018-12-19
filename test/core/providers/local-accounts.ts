@@ -16,6 +16,11 @@ class MockProvider extends EventEmitter implements IEthereumProvider {
     if (method === "eth_getTransactionCount") {
       return 0x08;
     }
+    if (method === "eth_sendRawTransaction") {
+      if (params !== undefined) {
+        return params[0];
+      }
+    }
   }
 }
 
@@ -36,7 +41,7 @@ describe("ethereum provider", () => {
 
   it("eth_accounts", async () => {
     const response = await wrapper.send("eth_accounts");
-    // Tthis should check that the address is derivated from the private key
+    // This should check that the address is derivated from the private key
     assert.equal(response[0].length, 20);
   });
 
@@ -45,12 +50,11 @@ describe("ethereum provider", () => {
     assert.equal(response[0].length, 20);
   });
 
-  it("eth_sign", async () => {
-    try {
-      await wrapper.send("eth_sign");
-    } catch (err) {
-      assert.equal(err.message, "eth_sign is not supported yet");
-    }
+  it("eth_sign", () => {
+    wrapper
+      .send("eth_sign")
+      .then(() => {})
+      .catch(err => assert.equal(err.message, "eth_sign is not supported yet"));
   });
 
   it("sendTransaction without specify gas", async () => {
@@ -63,11 +67,11 @@ describe("ethereum provider", () => {
         chainId: 3
       }
     ];
-    try {
-      await wrapper.send("eth_sendTransaction", params);
-    } catch (err) {
-      assert.equal(err.message, "Missing gas");
-    }
+
+    wrapper
+      .send("eth_sendTransaction", params)
+      .then(() => {})
+      .catch(err => assert.equal(err.message, "Missing gas"));
   });
 
   it("sendTransaction without specify gas nor gas price", async () => {
@@ -79,11 +83,35 @@ describe("ethereum provider", () => {
         chainId: 3
       }
     ];
-    try {
-      await wrapper.send("eth_sendTransaction", params);
-    } catch (err) {
-      assert.equal(err.message, "Missing gas");
-    }
+
+    wrapper
+      .send("eth_sendTransaction", params)
+      .then(() => {})
+      .catch(err => assert.equal(err.message, "Missing gas"));
+  });
+
+  it("should resolve transaction nonce", () => {
+    const params = [
+      {
+        from: "0xf7abeea1b1b97ef714bc9a118b0f095ec54f8221",
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        gas: 21000,
+        gasPrice: 0x3b9aca00,
+        chainId: 3
+      }
+    ];
+
+    wrapper
+      .send("eth_sendTransaction", params)
+      .then(() => {})
+      .catch(err => assert.isDefined(err));
+  });
+
+  it("should fail is no params are given", async () => {
+    wrapper
+      .send("eth_sendTransaction")
+      .then(() => {})
+      .catch(err => assert.isDefined(err));
   });
 
   it("given two identical tx the signedTx should be the same", async () => {
