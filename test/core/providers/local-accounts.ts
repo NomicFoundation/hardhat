@@ -10,6 +10,7 @@ import {
   signTransaction
 } from "../../../src/core/providers/local-accounts";
 import { useFixtureProject } from "../../helpers/project";
+import { expectErrorAsync } from "../../helpers/errors";
 
 class MockProvider extends EventEmitter implements IEthereumProvider {
   public async send(method: string, params?: any[]): Promise<any> {
@@ -51,10 +52,10 @@ describe("ethereum provider", () => {
   });
 
   it("eth_sign", () => {
-    wrapper
-      .send("eth_sign")
-      .then(() => {})
-      .catch(err => assert.equal(err.message, "eth_sign is not supported yet"));
+    expectErrorAsync(
+      () => wrapper.send("eth_sign"),
+      "eth_sign is not supported yet"
+    );
   });
 
   it("sendTransaction without specify gas", async () => {
@@ -68,10 +69,10 @@ describe("ethereum provider", () => {
       }
     ];
 
-    wrapper
-      .send("eth_sendTransaction", params)
-      .then(() => {})
-      .catch(err => assert.equal(err.message, "Missing gas"));
+    expectErrorAsync(
+      () => wrapper.send("eth_sendTransaction", params),
+      "Missing gas"
+    );
   });
 
   it("sendTransaction without specify gas nor gas price", async () => {
@@ -84,13 +85,13 @@ describe("ethereum provider", () => {
       }
     ];
 
-    wrapper
-      .send("eth_sendTransaction", params)
-      .then(() => {})
-      .catch(err => assert.equal(err.message, "Missing gas"));
+    expectErrorAsync(
+      () => wrapper.send("eth_sendTransaction", params),
+      "Missing gas"
+    );
   });
 
-  it("should resolve transaction nonce", () => {
+  it("should resolve transaction nonce", async () => {
     const params = [
       {
         from: "0xf7abeea1b1b97ef714bc9a118b0f095ec54f8221",
@@ -101,17 +102,12 @@ describe("ethereum provider", () => {
       }
     ];
 
-    wrapper
-      .send("eth_sendTransaction", params)
-      .then(() => {})
-      .catch(err => assert.isDefined(err));
+    const response = await wrapper.send("eth_sendTransaction", params);
+    assert.isDefined(response);
   });
 
   it("should fail is no params are given", async () => {
-    wrapper
-      .send("eth_sendTransaction")
-      .then(() => {})
-      .catch(err => assert.isDefined(err));
+    expectErrorAsync(() => wrapper.send("eth_sendTransaction"), /undefined/);
   });
 
   it("given two identical tx the signedTx should be the same", async () => {
