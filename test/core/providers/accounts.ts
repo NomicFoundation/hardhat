@@ -12,6 +12,7 @@ import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 
 class MockProvider extends EventEmitter implements IEthereumProvider {
   public transactionsCountParams: any[] | undefined = undefined;
+  public numberOfCallsToNetVersion: number = 0;
 
   public async send(method: string, params?: any[]): Promise<any> {
     if (method === "eth_getTransactionCount") {
@@ -20,6 +21,7 @@ class MockProvider extends EventEmitter implements IEthereumProvider {
     }
 
     if (method === "net_version") {
+      this.numberOfCallsToNetVersion += 1;
       return 123;
     }
 
@@ -59,13 +61,6 @@ describe("Local accounts provider", () => {
     const response = await wrapper.send("eth_requestAccounts");
     assert.equal(response[0], privateKeyToAddress(accounts[0]));
     assert.equal(response[1], privateKeyToAddress(accounts[1]));
-  });
-
-  it("Should throw in eth_sign", async () => {
-    await expectErrorAsync(
-      () => wrapper.send("eth_sign"),
-      "eth_sign is not supported yet"
-    );
   });
 
   it("Should throw when calling sendTransaction without gas", async () => {
@@ -210,6 +205,36 @@ describe("Local accounts provider", () => {
     ]);
   });
 
+  it("Should get the chainId if not provided, caching it", async () => {
+    assert.equal(mock.numberOfCallsToNetVersion, 0);
+
+    await wrapper.send("eth_sendTransaction", [
+      {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        gas: 21000,
+        gasPrice: 678912,
+        nonce: 1,
+        value: 1
+      }
+    ]);
+
+    assert.equal(mock.numberOfCallsToNetVersion, 1);
+
+    await wrapper.send("eth_sendTransaction", [
+      {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        gas: 21000,
+        gasPrice: 678912,
+        nonce: 1,
+        value: 1
+      }
+    ]);
+
+    assert.equal(mock.numberOfCallsToNetVersion, 1);
+  });
+
   describe("Describe eth_sign", () => {
     it("Should be compatible with parity's implementation", async () => {
       // This test was created by using Parity Ethereum
@@ -269,6 +294,29 @@ describe("Local accounts provider", () => {
         result,
         "0x88c6ac158d40e84f519fbb48b6a1355a31202b684163f637fe5c92cc1109acbe5c79a2dd95a8aecff45756c6fc3b4fc8aef345179605bcead2916dd533fb22651b"
       );
+    });
+
+    it("Should throw if no data is given", async () => {
+      await expectErrorAsync(
+        () => wrapper.send("eth_sign", [privateKeyToAddress(accounts[0])]),
+        "Missing data param when calling eth_sign"
+      );
+    });
+
+    it("Should throw if the address isn't one of the local ones", async () => {
+      await expectErrorAsync(
+        () =>
+          wrapper.send("eth_sign", [
+            "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
+            "0x00"
+          ]),
+        /isn't one of the local accounts/
+      );
+    });
+
+    it("Should just forward if no address is given", async () => {
+      const params = await wrapper.send("eth_sign");
+      assert.deepEqual(params, []);
     });
   });
 });
