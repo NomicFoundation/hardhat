@@ -23,8 +23,24 @@ export function createLocalAccountsProvider(
     }
 
     if (method === "eth_sign") {
-      // TODO: This should be supported before the first version
-      throw new Error("eth_sign is not supported yet");
+      const [address, data] = params;
+
+      if (address !== undefined) {
+        if (data === undefined) {
+          throw new Error("Missing data param when calling eth_sign");
+        }
+
+        const account = accounts.find(
+          acc => acc.address.toLowerCase() === address.toLowerCase()
+        );
+
+        if (account === undefined) {
+          // TODO: Throw a better error
+          throw new Error(address + " isn't one of the local accounts");
+        }
+
+        return account.sign(data).signature;
+      }
     }
 
     if (method === "eth_sendTransaction" && params.length > 0) {
