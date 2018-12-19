@@ -2,7 +2,6 @@ language: node_js
 
 node_js:
   - "8"
-  - "9"
   - "10"
   - "11"
 
@@ -11,12 +10,16 @@ os:
   - osx
 
 install:
-  - npm install
+  - npm ci
 
 script:
   - npm run test
   - npx codecov
   - npm run lint
+
+cache:
+  directories:
+    - "$HOME/.npm"
 
 branches:
   only:
