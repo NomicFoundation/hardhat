@@ -2,6 +2,31 @@ import { assert, AssertionError, expect } from "chai";
 
 import { BuidlerError, ErrorDescription } from "../../src/core/errors";
 
+export async function expectErrorAsync(
+  f: () => any,
+  errorMessage?: string | RegExp
+) {
+  const noError = new AssertionError("Async error expected but not thrown");
+
+  try {
+    await f();
+  } catch (err) {
+    if (errorMessage === undefined) {
+      return;
+    }
+
+    if (typeof errorMessage === "string") {
+      assert.equal(err.message, errorMessage);
+    } else {
+      assert.match(err.message, errorMessage);
+    }
+
+    return;
+  }
+
+  throw noError;
+}
+
 export function expectBuidlerError(
   f: () => any,
   errorDescription: ErrorDescription
