@@ -25,6 +25,7 @@
         "grouped-imports": true,
         "import-sources-order": "case-insensitive"
       }
-    ]
+    ],
+    "no-floating-promises": true
   }
 }
