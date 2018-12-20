@@ -5,7 +5,7 @@ import { getPackageRoot } from "../util/packageInfo";
 
 import { BuidlerError, ERRORS } from "./errors";
 
-const CONFIG_FILENAME = "buidler-config.js";
+const CONFIG_FILENAME = "buidler.config.js";
 
 export function isCwdInsideProject() {
   return !!findUp.sync(CONFIG_FILENAME);
