@@ -1,5 +1,5 @@
 import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
-import { ITaskDefinition } from "./core/tasks/TaskDefinition";
+import { TaskDefinition } from "./core/tasks/task-definitions";
 import { SolcOptimizerConfig } from "./solidity/compiler";
 import { ResolvedFile } from "./solidity/resolver";
 
@@ -53,7 +53,7 @@ export interface BuidlerConfig {
 }
 
 export interface TasksMap {
-  [name: string]: ITaskDefinition;
+  [name: string]: TaskDefinition;
 }
 
 export interface TaskArguments {

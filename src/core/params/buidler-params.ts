@@ -1,5 +1,6 @@
-import * as types from "../argumentTypes";
-import { OptionalParamDefinition } from "../tasks/TaskDefinition";
+import { OptionalParamDefinition } from "../tasks/task-definitions";
+
+import * as types from "./argumentTypes";
 
 export interface BuidlerArguments {
   network: string;

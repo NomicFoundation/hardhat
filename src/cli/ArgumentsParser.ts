@@ -4,10 +4,10 @@ import {
   BuidlerParamDefinitons
 } from "../core/params/buidler-params";
 import {
-  ITaskDefinition,
   ParamDefinition,
-  ParamDefinitionsMap
-} from "../core/tasks/TaskDefinition";
+  ParamDefinitionsMap,
+  TaskDefinition
+} from "../core/tasks/task-definitions";
 import { TaskArguments } from "../types";
 import { unsafeObjectKeys } from "../util/unsafe";
 
@@ -99,22 +99,22 @@ export class ArgumentsParser {
     };
   }
 
-  public parseTaskArguments(taskDefintion: ITaskDefinition, rawCLAs: string[]) {
+  public parseTaskArguments(taskDefinition: TaskDefinition, rawCLAs: string[]) {
     const {
       paramArguments,
       rawPositionalArguments
-    } = this._parseTaskParamArguments(taskDefintion, rawCLAs);
+    } = this._parseTaskParamArguments(taskDefinition, rawCLAs);
 
     const positionalArguments = this._parsePositionalParamArgs(
       rawPositionalArguments,
-      taskDefintion.positionalParamDefinitions
+      taskDefinition.positionalParamDefinitions
     );
 
     return { ...paramArguments, ...positionalArguments };
   }
 
   public _parseTaskParamArguments(
-    taskDefintion: ITaskDefinition,
+    taskDefintion: TaskDefinition,
     rawCLAs: string[]
   ) {
     const paramArguments = {};
@@ -163,7 +163,7 @@ export class ArgumentsParser {
   }
 
   public _addTaskDefaultArguments(
-    taskDefintion: ITaskDefinition,
+    taskDefintion: TaskDefinition,
     taskArguments: TaskArguments
   ) {
     for (const paramName of Object.keys(taskDefintion.paramDefinitions)) {
