@@ -81,15 +81,20 @@ export function createHDWalletProvider(
   provider: IEthereumProvider,
   mnemonic: string,
   hdpath: string = "m/44'/60'/0'/0/",
-  index: number = 0
+  initialIndex: number = 0,
+  count: number
 ) {
-  const account: Account = Account.createFromMnemonicAndPath(
-    mnemonic,
-    hdpath + index
+  const accounts: Account[] = [];
+  for (let i = initialIndex; i < initialIndex + count; i++) {
+    accounts.push(
+      Account.createFromMnemonicAndPath(mnemonic, hdpath + initialIndex)
+    );
+  }
+
+  const accountProvider = createLocalAccountsProvider(
+    provider,
+    accounts.map(account => bufferToHex(account.privateKey))
   );
-  const accountProvider = createLocalAccountsProvider(provider, [
-    bufferToHex(account.privateKey)
-  ]);
   return wrapSend(accountProvider, async (method: string, params: any[]) => {
     return accountProvider.send(method, params);
   });
