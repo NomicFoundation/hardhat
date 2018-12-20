@@ -235,4 +235,10 @@ describe("hdwallet provider", () => {
     const response = await wrapper.send("eth_accounts");
     assert.equal(response[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
+
+  it("should generate 2 accounts", async () => {
+    wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 0, 2);
+    const response = await wrapper.send("eth_accounts");
+    assert.equal(response.length, 2);
+  });
 });

@@ -82,7 +82,7 @@ export function createHDWalletProvider(
   mnemonic: string,
   hdpath: string = "m/44'/60'/0'/0/",
   initialIndex: number = 0,
-  count: number
+  count: number = 1
 ) {
   const accounts: Account[] = [];
   for (let i = initialIndex; i < initialIndex + count; i++) {
