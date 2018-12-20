@@ -1,12 +1,8 @@
 import Transaction from "ethereumjs-tx";
-import {
-  addHexPrefix,
-  privateToAddress,
-  stripHexPrefix,
-  toBuffer
-} from "ethereumjs-util";
+import { toBuffer } from "ethereumjs-util";
 import { Account } from "web3x/account";
 import { Tx } from "web3x/eth";
+import { bufferToHex } from "web3x/utils";
 
 import { IEthereumProvider } from "./ethereum";
 import { wrapSend } from "./wrapper";
@@ -78,5 +74,28 @@ export function createLocalAccountsProvider(
     }
 
     return provider.send(method, params);
+  });
+}
+
+export function createHDWalletProvider(
+  provider: IEthereumProvider,
+  mnemonic: string,
+  hdpath: string = "m/44'/60'/0'/0/",
+  initialIndex: number = 0,
+  count: number = 10
+) {
+  const accounts: Account[] = [];
+  for (let i = initialIndex; i < initialIndex + count; i++) {
+    accounts.push(
+      Account.createFromMnemonicAndPath(mnemonic, hdpath + initialIndex)
+    );
+  }
+
+  const accountProvider = createLocalAccountsProvider(
+    provider,
+    accounts.map(account => bufferToHex(account.privateKey))
+  );
+  return wrapSend(accountProvider, async (method: string, params: any[]) => {
+    return accountProvider.send(method, params);
   });
 }

@@ -2,10 +2,13 @@ import { assert } from "chai";
 import { bufferToHex, privateToAddress } from "ethereumjs-util";
 import { EventEmitter } from "events";
 
-import { IEthereumProvider } from "../../../src/core/providers/ethereum";
-
-import { createLocalAccountsProvider } from "../../../src/core/providers/local-accounts";
 import { expectErrorAsync } from "../../helpers/errors";
+
+import {
+  createHDWalletProvider,
+  createLocalAccountsProvider
+} from "../../../src/core/providers/accounts";
+import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 
 class MockProvider extends EventEmitter implements IEthereumProvider {
   public transactionsCountParams: any[] | undefined = undefined;
@@ -205,5 +208,37 @@ describe("Local accounts provider", () => {
       "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
       "pending"
     ]);
+  });
+});
+
+describe("hdwallet provider", () => {
+  let mock: MockProvider;
+  let wrapper: IEthereumProvider;
+  let mnemonic: string;
+  let hdpath: string;
+
+  beforeEach(() => {
+    mnemonic =
+      "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
+    hdpath = "m/44'/60'/0'/0/";
+    mock = new MockProvider();
+    wrapper = createHDWalletProvider(mock, mnemonic, hdpath);
+  });
+
+  it("should generate a valid address", async () => {
+    const response = await wrapper.send("eth_accounts");
+    assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+  });
+
+  it("should generate a valid address when given a different index", async () => {
+    wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 1);
+    const response = await wrapper.send("eth_accounts");
+    assert.equal(response[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
+  });
+
+  it("should generate 2 accounts", async () => {
+    wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 0, 2);
+    const response = await wrapper.send("eth_accounts");
+    assert.equal(response.length, 2);
   });
 });
