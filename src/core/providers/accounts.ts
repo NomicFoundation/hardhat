@@ -15,8 +15,6 @@ export function createLocalAccountsProvider(
     Account.fromPrivate(toBuffer(pkString))
   );
 
-  let obtainedChainId: number | undefined;
-
   return wrapSend(provider, async (method: string, params: any[]) => {
     if (method === "eth_accounts" || method === "eth_requestAccounts") {
       return accounts.map(acc => acc.address.toLowerCase());
@@ -46,24 +44,8 @@ export function createLocalAccountsProvider(
     if (method === "eth_sendTransaction" && params.length > 0) {
       const tx: Tx = params[0];
 
-      if (obtainedChainId === undefined) {
-        obtainedChainId = parseInt(await provider.send("net_version"), 10);
-      }
-
-      if (tx.chainId !== undefined && tx.chainId !== obtainedChainId) {
-        // TODO: This should be handled differently
-        throw Error("chainIds don't match");
-      }
-
-      tx.chainId = obtainedChainId;
-
       if (tx.gas === undefined || tx.gasPrice === undefined) {
         throw Error("Missing gas info");
-      }
-
-      if (tx.from === undefined) {
-        // TODO: This should be handled differently
-        tx.from = accounts[0].address.toLowerCase();
       }
 
       if (tx.nonce === undefined) {
@@ -113,5 +95,29 @@ export function createHDWalletProvider(
   );
   return wrapSend(accountProvider, async (method: string, params: any[]) => {
     return accountProvider.send(method, params);
+  });
+}
+
+export function createFromProvider(provider: IEthereumProvider, from?: string) {
+  let account: string | undefined = from;
+
+  return wrapSend(provider, async (method: string, params: any[]) => {
+    if (account === undefined) {
+      const accounts = await provider.send("eth_accounts");
+      if (accounts === undefined || accounts.length === 0) {
+        throw new Error("Unable to get any accounts from provider");
+      }
+      account = accounts[0];
+    }
+
+    if (method === "eth_sendTransaction" || method === "eth_call") {
+      const tx: Tx = params[0];
+      if (tx !== undefined && tx.from === undefined) {
+        tx.from = account;
+        params[0] = tx;
+      }
+    }
+
+    return provider.send(method, params);
   });
 }
