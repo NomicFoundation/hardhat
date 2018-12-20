@@ -1,6 +1,6 @@
-import tasks from "../core/importable-tasks-dsl";
+import { task } from "../core/config/config-env";
 
-tasks.task(
+task(
   "clean",
   "Clears the cache and deletes all artifacts",
   async (_, { config }) => {

@@ -1,11 +1,10 @@
 import path from "path";
 import util from "util";
 
-import tasks from "../core/importable-tasks-dsl";
+import { internalTask, task } from "../core/config/config-env";
 import { glob } from "../util/glob";
 
-tasks
-  .internalTask("builtin:get-test-files")
+internalTask("builtin:get-test-files")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -19,28 +18,24 @@ tasks
     return testFiles;
   });
 
-tasks.internalTask(
-  "builtin:setup-test-environment",
-  async (_, { config, web3 }) => {
-    const { assert } = await import("chai");
-    const getAccounts = web3.eth.getAccounts.bind(web3.eth);
+internalTask("builtin:setup-test-environment", async (_, { config, web3 }) => {
+  const { assert } = await import("chai");
+  const getAccounts = web3.eth.getAccounts.bind(web3.eth);
 
-    const globalAsAny = global as any;
-    globalAsAny.accounts = await util.promisify(getAccounts)();
-    globalAsAny.assert = assert;
+  const globalAsAny = global as any;
+  globalAsAny.accounts = await util.promisify(getAccounts)();
+  globalAsAny.assert = assert;
 
-    globalAsAny.contract = (
-      description: string,
-      definition: ((accounts: string) => any)
-    ) =>
-      describe(description, () => {
-        definition(globalAsAny.accounts);
-      });
-  }
-);
+  globalAsAny.contract = (
+    description: string,
+    definition: ((accounts: string) => any)
+  ) =>
+    describe(description, () => {
+      definition(globalAsAny.accounts);
+    });
+});
 
-tasks
-  .internalTask("builtin:run-mocha-tests")
+internalTask("builtin:run-mocha-tests")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -58,8 +53,7 @@ tasks
     });
   });
 
-tasks
-  .task("test", "Runs mocha tests")
+task("test", "Runs mocha tests")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
