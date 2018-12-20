@@ -15,3 +15,20 @@ export class ParamsReturningProvider extends EventEmitter
     return params;
   }
 }
+
+export class CountProvider extends EventEmitter implements IEthereumProvider {
+  public transactionsCountParams: any[] | undefined = undefined;
+
+  public async send(method: string, params?: any[]): Promise<any> {
+    if (method === "eth_getTransactionCount") {
+      this.transactionsCountParams = params;
+      return 0x08;
+    }
+
+    if (method === "net_version") {
+      return 123;
+    }
+
+    return params;
+  }
+}
