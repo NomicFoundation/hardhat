@@ -1,7 +1,7 @@
 import { BuidlerError, ERRORS } from "../core/errors";
 import { getPackageJson } from "../util/packageInfo";
 
-import tasks from "../core/importable-tasks-dsl";
+import { internalTask, task } from "../core/config/config-env";
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { ResolvedFile } from "../solidity/resolver";
 import { ResolvedFilesMap } from "../types";
@@ -49,7 +49,7 @@ function getFileWithoutPragmaNorImports(resolvedFile: ResolvedFile) {
     .trim();
 }
 
-tasks.internalTask(
+internalTask(
   "builtin:get-flattened-sources",
   "Returns all contracts and their dependencies flattened",
   async (_, { config, run }) => {
@@ -72,7 +72,7 @@ tasks.internalTask(
   }
 );
 
-tasks.task(
+task(
   "flatten",
   "Flattens all the contract and their dependencies",
   async (_, { config, run }) => {

@@ -27,8 +27,8 @@
     "fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "test": "nyc mocha",
-    "build": "tsc",
-    "watch": "tsc -w"
+    "build": "tsc && tsc --sourceMap --declarationMap --declaration config.ts",
+    "watch": "npm run build && tsc -w"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

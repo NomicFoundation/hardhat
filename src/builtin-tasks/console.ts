@@ -1,7 +1,6 @@
-import tasks from "../core/importable-tasks-dsl";
+import { task } from "../core/config/config-env";
 
-tasks
-  .task("console", "Opens a buidler console")
+task("console", "Opens a buidler console")
   .addFlag("noCompile", "Don't compile before running this task")
   .setAction(async ({ noCompile }: { noCompile: boolean }, { config, run }) => {
     const path = await import("path");

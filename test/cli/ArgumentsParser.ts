@@ -1,23 +1,23 @@
 import { assert } from "chai";
 
 import { ArgumentsParser } from "../../src/cli/ArgumentsParser";
-import { int, string } from "../../src/core/argumentTypes";
 import { ERRORS } from "../../src/core/errors";
+import { int, string } from "../../src/core/params/argumentTypes";
 import {
   BUIDLER_PARAM_DEFINITIONS,
   BuidlerArguments
 } from "../../src/core/params/buidler-params";
 import {
-  ITaskDefinition,
+  SimpleTaskDefinition,
   TaskDefinition
-} from "../../src/core/tasks/TaskDefinition";
+} from "../../src/core/tasks/task-definitions";
 import { expectBuidlerError } from "../helpers/errors";
 import { TaskArguments } from "../types";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
   let envArgs: BuidlerArguments;
-  let taskDefinition: ITaskDefinition;
+  let taskDefinition: TaskDefinition;
 
   beforeEach(() => {
     argumentsParser = new ArgumentsParser();
@@ -28,7 +28,7 @@ describe("ArgumentsParser", () => {
       help: false,
       emoji: false
     };
-    taskDefinition = new TaskDefinition("compile", true)
+    taskDefinition = new SimpleTaskDefinition("compile", true)
       .addParam("param", "just a param", "a default value", string)
       .addParam("bleep", "useless param", 1602, int, true);
   });
@@ -308,7 +308,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail to parse task without non optional argument", () => {
       const rawCLAs: string[] = [];
-      const definition = new TaskDefinition("compile", true);
+      const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
       expectBuidlerError(() => {
@@ -318,7 +318,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail trying to parse unrecognized positional argument", () => {
       const rawCLAs: string[] = [];
-      const definition = new TaskDefinition("compile", true);
+      const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
       expectBuidlerError(() => {

@@ -1,12 +1,11 @@
+import { internalTask, task } from "../core/config/config-env";
 import { BuidlerError, ERRORS } from "../core/errors";
-import tasks from "../core/importable-tasks-dsl";
 
-tasks.internalTask("builtin:setup-run-environment", async () => {
+internalTask("builtin:setup-run-environment", async () => {
   // this task is only here in case someone wants to override it.
 });
 
-tasks
-  .task("run", "Runs an user-defined script after compiling the project")
+task("run", "Runs an user-defined script after compiling the project")
   .addPositionalParam(
     "script",
     "A js file to be run within buidler's environment"
