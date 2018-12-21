@@ -114,7 +114,6 @@ export function createFromProvider(provider: IEthereumProvider, from?: string) {
       const tx: Tx = params[0];
       if (tx !== undefined && tx.from === undefined) {
         tx.from = account;
-        params[0] = tx;
       }
     }
 
