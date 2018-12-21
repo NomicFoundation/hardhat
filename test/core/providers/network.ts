@@ -1,23 +1,15 @@
 import { assert } from "chai";
-import { bufferToHex, privateToAddress } from "ethereumjs-util";
-import { EventEmitter } from "events";
 import { Tx } from "web3x/eth";
 
 import { expectErrorAsync } from "../../helpers/errors";
 
-import {
-  createAccountProvider,
-  createHDWalletProvider,
-  createLocalAccountsProvider
-} from "../../../src/core/providers/accounts";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { createNetworkProvider } from "../../../src/core/providers/network";
-import { wrapSend } from "../../../src/core/providers/wrapper";
 
 import { CountProvider } from "./mocks";
 
 describe("Network provider", () => {
-  let mock: IEthereumProvider;
+  let mock: CountProvider;
   let wrapper: IEthereumProvider;
   let tx: Tx;
   let validChainId: number;
@@ -65,5 +57,35 @@ describe("Network provider", () => {
   it("should use the provider network id if none is given", async () => {
     const response = await wrapper.send("eth_sendTransaction", [tx]);
     assert.equal(response[0].chainId, validChainId);
+  });
+
+  it("Should get the chainId if not provided, caching it", async () => {
+    assert.equal(mock.numberOfCallsToNetVersion, 0);
+
+    await wrapper.send("eth_sendTransaction", [
+      {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        gas: 21000,
+        gasPrice: 678912,
+        nonce: 1,
+        value: 1
+      }
+    ]);
+
+    assert.equal(mock.numberOfCallsToNetVersion, 1);
+
+    await wrapper.send("eth_sendTransaction", [
+      {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        gas: 21000,
+        gasPrice: 678912,
+        nonce: 1,
+        value: 1
+      }
+    ]);
+
+    assert.equal(mock.numberOfCallsToNetVersion, 1);
   });
 });
