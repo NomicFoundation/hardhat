@@ -102,19 +102,23 @@ export function createHDWalletProvider(
   });
 }
 
-export function createFromProvider(provider: IEthereumProvider, from?: string) {
-  let accounts: string[] | undefined = from === undefined ? undefined : [from];
+export function createSenderProvider(
+  provider: IEthereumProvider,
+  from?: string
+) {
+  let addresses = from === undefined ? undefined : [from];
 
   return wrapSend(provider, async (method: string, params: any[]) => {
-    if (accounts === undefined) {
-      accounts = await getAccounts();
-    }
-
     if (method === "eth_sendTransaction" || method === "eth_call") {
       const tx: Tx = params[0];
+
       if (tx !== undefined && tx.from === undefined) {
-        if (accounts !== undefined) {
-          tx.from = accounts[0];
+        const [senderAccount] = await getAccounts();
+
+        if (senderAccount !== undefined) {
+          tx.from = senderAccount;
+        } else if (method === "eth_sendTransaction") {
+          throw new Error("No accounts available in the node");
         }
       }
     }
@@ -122,10 +126,12 @@ export function createFromProvider(provider: IEthereumProvider, from?: string) {
     return provider.send(method, params);
   });
 
-  async function getAccounts(): Promise<string[] | undefined> {
-    accounts = await provider.send("eth_accounts");
-    if (accounts !== undefined) {
-      return accounts;
+  async function getAccounts(): Promise<string[]> {
+    if (addresses !== undefined) {
+      return addresses;
     }
+
+    addresses = (await provider.send("eth_accounts")) as string[];
+    return addresses;
   }
 }

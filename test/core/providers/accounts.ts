@@ -6,7 +6,7 @@ import { Tx } from "web3x/eth";
 import { expectErrorAsync } from "../../helpers/errors";
 
 import {
-  createFromProvider,
+  createSenderProvider,
   createHDWalletProvider,
   createLocalAccountsProvider
 } from "../../../src/core/providers/accounts";
@@ -332,7 +332,7 @@ describe("Account provider", () => {
       }
       return mock.send(method, params);
     });
-    wrapper = createFromProvider(
+    wrapper = createSenderProvider(
       provider,
       "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
     );
@@ -356,7 +356,7 @@ describe("Account provider", () => {
   });
 
   it("Should use the first account if from is missing", async () => {
-    wrapper = createFromProvider(provider);
+    wrapper = createSenderProvider(provider);
     tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
     const response = await wrapper.send("eth_sendTransaction", [tx]);
     assert.equal(
@@ -367,7 +367,7 @@ describe("Account provider", () => {
 
   it("Should not fail if provider doesn't have any accounts", async () => {
     tx.value = "asd";
-    wrapper = createFromProvider(mock);
+    wrapper = createSenderProvider(mock);
     const response = await wrapper.send("eth_call", [tx]);
     assert.equal(response[0].value, "asd");
   });
