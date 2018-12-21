@@ -6,9 +6,9 @@ import { Tx } from "web3x/eth";
 import { expectErrorAsync } from "../../helpers/errors";
 
 import {
-  createSenderProvider,
   createHDWalletProvider,
-  createLocalAccountsProvider
+  createLocalAccountsProvider,
+  createSenderProvider
 } from "../../../src/core/providers/accounts";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { wrapSend } from "../../../src/core/providers/wrapper";

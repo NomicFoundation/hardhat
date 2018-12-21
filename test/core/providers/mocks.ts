@@ -31,6 +31,10 @@ export class CountProvider extends EventEmitter implements IEthereumProvider {
       return 123;
     }
 
+    if (method === "eth_accounts") {
+      return [];
+    }
+
     return params;
   }
 }
