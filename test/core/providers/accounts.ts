@@ -151,36 +151,6 @@ describe("Local accounts provider", () => {
     ]);
   });
 
-  it("Should get the chainId if not provided, caching it", async () => {
-    assert.equal(mock.numberOfCallsToNetVersion, 0);
-
-    await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 1,
-        value: 1
-      }
-    ]);
-
-    assert.equal(mock.numberOfCallsToNetVersion, 1);
-
-    await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 1,
-        value: 1
-      }
-    ]);
-
-    assert.equal(mock.numberOfCallsToNetVersion, 1);
-  });
-
   describe("Describe eth_sign", () => {
     it("Should be compatible with parity's implementation", async () => {
       // This test was created by using Parity Ethereum
