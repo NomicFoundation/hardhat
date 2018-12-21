@@ -1,40 +1,26 @@
 import { assert } from "chai";
 import { bufferToHex, privateToAddress } from "ethereumjs-util";
 import { EventEmitter } from "events";
+import { Tx } from "web3x/eth";
 
 import { expectErrorAsync } from "../../helpers/errors";
 
 import {
   createHDWalletProvider,
-  createLocalAccountsProvider
+  createLocalAccountsProvider,
+  createSenderProvider
 } from "../../../src/core/providers/accounts";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
+import { wrapSend } from "../../../src/core/providers/wrapper";
 
-class MockProvider extends EventEmitter implements IEthereumProvider {
-  public transactionsCountParams: any[] | undefined = undefined;
-  public numberOfCallsToNetVersion: number = 0;
-
-  public async send(method: string, params?: any[]): Promise<any> {
-    if (method === "eth_getTransactionCount") {
-      this.transactionsCountParams = params;
-      return 0x08;
-    }
-
-    if (method === "net_version") {
-      this.numberOfCallsToNetVersion += 1;
-      return 123;
-    }
-
-    return params;
-  }
-}
+import { CountProvider } from "./mocks";
 
 function privateKeyToAddress(privateKey: string): string {
   return bufferToHex(privateToAddress(privateKey)).toLowerCase();
 }
 
 describe("Local accounts provider", () => {
-  let mock: MockProvider;
+  let mock: CountProvider;
   let wrapper: IEthereumProvider;
 
   let accounts: string[] = [];
@@ -46,7 +32,7 @@ describe("Local accounts provider", () => {
       "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
       "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2"
     ];
-    mock = new MockProvider();
+    mock = new CountProvider();
     wrapper = createLocalAccountsProvider(mock, accounts);
   });
 
@@ -121,28 +107,6 @@ describe("Local accounts provider", () => {
     assert.equal(bufferToHex(rawTransaction), expectedRaw);
   });
 
-  it("Should use the first account if from is missing", async () => {
-    const [rawTransaction] = await wrapper.send("eth_sendTransaction", [
-      {
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 0,
-        chainId: 123,
-        value: 1
-      }
-    ]);
-
-    // See previous test
-    const expectedRaw =
-      "0xf86480830a5c0082520894b5bc06d4548a3ac17d72b372ae1" +
-      "e416bf65b8ead018082011aa0614471b82c6ffedd4722ca5faa7f9b309a923661a4b2" +
-      "adc1a53a3ebe8c4d1f0aa06aebf2fbbe82703e5075965c65c776a9caeeff4b637f203" +
-      "d65383e1ed2e22654";
-
-    assert.equal(bufferToHex(rawTransaction), expectedRaw);
-  });
-
   it("Should throw if trying to send from an account that isn't local", async () => {
     await expectErrorAsync(
       () =>
@@ -158,24 +122,6 @@ describe("Local accounts provider", () => {
           }
         ]),
       /isn't one of the local accounts/
-    );
-  });
-
-  it("Should throw if another chainId is used", async () => {
-    await expectErrorAsync(
-      () =>
-        wrapper.send("eth_sendTransaction", [
-          {
-            from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-            to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-            gas: 21000,
-            gasPrice: 678912,
-            nonce: 0,
-            chainId: 45678,
-            value: 1
-          }
-        ]),
-      "chainIds don't match"
     );
   });
 
@@ -205,42 +151,12 @@ describe("Local accounts provider", () => {
     ]);
   });
 
-  it("Should get the chainId if not provided, caching it", async () => {
-    assert.equal(mock.numberOfCallsToNetVersion, 0);
-
-    await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 1,
-        value: 1
-      }
-    ]);
-
-    assert.equal(mock.numberOfCallsToNetVersion, 1);
-
-    await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 1,
-        value: 1
-      }
-    ]);
-
-    assert.equal(mock.numberOfCallsToNetVersion, 1);
-  });
-
   describe("Describe eth_sign", () => {
     it("Should be compatible with parity's implementation", async () => {
       // This test was created by using Parity Ethereum
       // v2.2.5-beta-7fbcdfeed-20181213 and calling eth_sign
 
-      const provider = createLocalAccountsProvider(new MockProvider(), [
+      const provider = createLocalAccountsProvider(new CountProvider(), [
         "0x6e59a6617c48d76d3b21d722eaba867e16ecf54ab3da7a93724f51812bc6d1aa"
       ]);
 
@@ -258,7 +174,7 @@ describe("Local accounts provider", () => {
     it("Should be compatible with ganache-cli's implementation", async () => {
       // This test was created by using Ganache CLI v6.1.6 (ganache-core: 2.1.5)
 
-      const provider = createLocalAccountsProvider(new MockProvider(), [
+      const provider = createLocalAccountsProvider(new CountProvider(), [
         "0xf159c85082f4dd4ee472583a37a1b5683c727ec99708f3d94ff05faa7a7a70ce"
       ]);
 
@@ -281,7 +197,7 @@ describe("Local accounts provider", () => {
     it("Should be compatible with geth's implementation", async () => {
       // This test was created by using Geth 1.8.20-stable
 
-      const provider = createLocalAccountsProvider(new MockProvider(), [
+      const provider = createLocalAccountsProvider(new CountProvider(), [
         "0xf2d19e944851ea0faa9440e24a22ddab850210cae46b306a3fde4c98b22a0dcb"
       ]);
 
@@ -319,10 +235,27 @@ describe("Local accounts provider", () => {
       assert.deepEqual(params, []);
     });
   });
+
+  it("should throw if chain id is undefined", async () => {
+    const params = [
+      {
+        from: privateKeyToAddress(accounts[0]),
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        nonce: 0x8,
+        chainId: undefined,
+        gas: 123
+      }
+    ];
+
+    await expectErrorAsync(
+      () => wrapper.send("eth_sendTransaction", params),
+      "Missing chain id"
+    );
+  });
 });
 
 describe("hdwallet provider", () => {
-  let mock: MockProvider;
+  let mock: IEthereumProvider;
   let wrapper: IEthereumProvider;
   let mnemonic: string;
   let hdpath: string;
@@ -331,7 +264,7 @@ describe("hdwallet provider", () => {
     mnemonic =
       "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
     hdpath = "m/44'/60'/0'/0/";
-    mock = new MockProvider();
+    mock = new CountProvider();
     wrapper = createHDWalletProvider(mock, mnemonic, hdpath);
   });
 
@@ -350,5 +283,92 @@ describe("hdwallet provider", () => {
     wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 0, 2);
     const response = await wrapper.send("eth_accounts");
     assert.equal(response.length, 2);
+  });
+});
+
+describe("HD wallet provider", () => {
+  let mock: IEthereumProvider;
+  let wrapper: IEthereumProvider;
+  let mnemonic: string;
+  let hdpath: string;
+
+  beforeEach(() => {
+    mnemonic =
+      "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
+    hdpath = "m/44'/60'/0'/0/";
+    mock = new CountProvider();
+    wrapper = createHDWalletProvider(mock, mnemonic, hdpath);
+  });
+
+  it("should generate a valid address", async () => {
+    const response = await wrapper.send("eth_accounts");
+    assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+  });
+
+  it("should generate a valid address when given a different index", async () => {
+    wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 1);
+    const response = await wrapper.send("eth_accounts");
+    assert.equal(response[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
+  });
+});
+
+describe("Account provider", () => {
+  let mock: IEthereumProvider;
+  let provider: IEthereumProvider;
+  let wrapper: IEthereumProvider;
+  let tx: Tx;
+  beforeEach(() => {
+    tx = {
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: 21000,
+      gasPrice: 678912,
+      nonce: 0,
+      value: 1
+    };
+    mock = new CountProvider();
+    provider = wrapSend(mock, async (method, params) => {
+      if (method === "eth_accounts") {
+        return ["0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"];
+      }
+      return mock.send(method, params);
+    });
+    wrapper = createSenderProvider(
+      provider,
+      "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
+    );
+  });
+
+  it("Should set the from value into the transaction", async () => {
+    const response = await wrapper.send("eth_sendTransaction", [tx]);
+    assert.equal(
+      response[0].from,
+      "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
+    );
+  });
+
+  it("Should not replace transaction's from", async () => {
+    tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
+    const response = await wrapper.send("eth_sendTransaction", [tx]);
+    assert.equal(
+      response[0].from,
+      "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
+    );
+  });
+
+  it("Should use the first account if from is missing", async () => {
+    wrapper = createSenderProvider(provider);
+    tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
+    const response = await wrapper.send("eth_sendTransaction", [tx]);
+    assert.equal(
+      response[0].from,
+      "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
+    );
+  });
+
+  it("Should not fail if provider doesn't have any accounts", async () => {
+    tx.value = "asd";
+    wrapper = createSenderProvider(mock);
+    const response = await wrapper.send("eth_call", [tx]);
+    assert.equal(response[0].value, "asd");
   });
 });

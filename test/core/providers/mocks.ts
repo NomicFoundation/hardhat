@@ -19,6 +19,7 @@ export class ParamsReturningProvider extends EventEmitter
 export class CountProvider extends EventEmitter implements IEthereumProvider {
   public transactionsCountParams: any[] | undefined = undefined;
   public numberOfCallsToNetVersion: number = 0;
+
   public async send(method: string, params?: any[]): Promise<any> {
     if (method === "eth_getTransactionCount") {
       this.transactionsCountParams = params;
@@ -28,6 +29,10 @@ export class CountProvider extends EventEmitter implements IEthereumProvider {
     if (method === "net_version") {
       this.numberOfCallsToNetVersion += 1;
       return 123;
+    }
+
+    if (method === "eth_accounts") {
+      return [];
     }
 
     return params;
