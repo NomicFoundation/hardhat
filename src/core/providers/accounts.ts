@@ -44,8 +44,12 @@ export function createLocalAccountsProvider(
     if (method === "eth_sendTransaction" && params.length > 0) {
       const tx: Tx = params[0];
 
+      if (tx.chainId === undefined) {
+        throw new Error("Missing chain id");
+      }
+
       if (tx.gas === undefined || tx.gasPrice === undefined) {
-        throw Error("Missing gas info");
+        throw new Error("Missing gas info");
       }
 
       if (tx.nonce === undefined) {
@@ -99,24 +103,29 @@ export function createHDWalletProvider(
 }
 
 export function createFromProvider(provider: IEthereumProvider, from?: string) {
-  let account: string | undefined = from;
+  let accounts: string[] | undefined = from === undefined ? undefined : [from];
 
   return wrapSend(provider, async (method: string, params: any[]) => {
-    if (account === undefined) {
-      const accounts = await provider.send("eth_accounts");
-      if (accounts === undefined || accounts.length === 0) {
-        throw new Error("Unable to get any accounts from provider");
-      }
-      account = accounts[0];
+    if (accounts === undefined) {
+      accounts = await getAccounts();
     }
 
     if (method === "eth_sendTransaction" || method === "eth_call") {
       const tx: Tx = params[0];
       if (tx !== undefined && tx.from === undefined) {
-        tx.from = account;
+        if (accounts !== undefined) {
+          tx.from = accounts[0];
+        }
       }
     }
 
     return provider.send(method, params);
   });
+
+  async function getAccounts(): Promise<string[] | undefined> {
+    accounts = await provider.send("eth_accounts");
+    if (accounts !== undefined) {
+      return accounts;
+    }
+  }
 }

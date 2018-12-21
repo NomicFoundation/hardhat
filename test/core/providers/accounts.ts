@@ -24,6 +24,7 @@ describe("Local accounts provider", () => {
   let wrapper: IEthereumProvider;
 
   let accounts: string[] = [];
+  let tx: Tx;
 
   beforeEach(() => {
     accounts = [
@@ -32,6 +33,14 @@ describe("Local accounts provider", () => {
       "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
       "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2"
     ];
+    tx = {
+      from: privateKeyToAddress(accounts[0]),
+      to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+      gas: 21000,
+      gasPrice: 678912,
+      nonce: 0,
+      chainId: 123
+    };
     mock = new CountProvider();
     wrapper = createLocalAccountsProvider(mock, accounts);
   });
@@ -50,51 +59,25 @@ describe("Local accounts provider", () => {
   });
 
   it("Should throw when calling sendTransaction without gas", async () => {
-    const params = [
-      {
-        from: privateKeyToAddress(accounts[0]),
-        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
-        gasPrice: 0x3b9aca00,
-        nonce: 0x8,
-        chainId: 123
-      }
-    ];
+    tx.gas = 0;
 
     await expectErrorAsync(
-      () => wrapper.send("eth_sendTransaction", params),
+      () => wrapper.send("eth_sendTransaction", [tx]),
       "Missing gas info"
     );
   });
 
   it("Should throw when calling sendTransaction without gasPrice", async () => {
-    const params = [
-      {
-        from: privateKeyToAddress(accounts[0]),
-        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
-        nonce: 0x8,
-        chainId: 123,
-        gas: 123
-      }
-    ];
+    tx.gasPrice = 0;
 
     await expectErrorAsync(
-      () => wrapper.send("eth_sendTransaction", params),
+      () => wrapper.send("eth_sendTransaction", [tx]),
       "Missing gas info"
     );
   });
 
   it("Should, given two identical tx, return the same", async () => {
-    const [rawTransaction] = await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 0,
-        chainId: 123,
-        value: 1
-      }
-    ]);
+    const [rawTransaction] = await wrapper.send("eth_sendTransaction", [tx]);
 
     // This transaction was submitted to a blockchain it was accepted, so the
     // signature must be valid
@@ -108,19 +91,9 @@ describe("Local accounts provider", () => {
   });
 
   it("Should throw if trying to send from an account that isn't local", async () => {
+    tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
     await expectErrorAsync(
-      () =>
-        wrapper.send("eth_sendTransaction", [
-          {
-            from: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
-            to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-            gas: 21000,
-            gasPrice: 678912,
-            nonce: 0,
-            chainId: 123,
-            value: 1
-          }
-        ]),
+      () => wrapper.send("eth_sendTransaction", [tx]),
       /isn't one of the local accounts/
     );
   });
@@ -133,16 +106,8 @@ describe("Local accounts provider", () => {
   });
 
   it("Should get the nonce if not provided", async () => {
-    await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        chainId: 123,
-        value: 1
-      }
-    ]);
+    tx.nonce = undefined;
+    await wrapper.send("eth_sendTransaction", [tx]);
 
     assert.isDefined(mock.transactionsCountParams);
     assert.deepEqual(mock!.transactionsCountParams, [
@@ -235,9 +200,18 @@ describe("Local accounts provider", () => {
       assert.deepEqual(params, []);
     });
   });
+
+  it("should throw if chain id is undefined", async () => {
+    tx.chainId = undefined;
+
+    await expectErrorAsync(
+      () => wrapper.send("eth_sendTransaction", [tx]),
+      "Missing chain id"
+    );
+  });
 });
 
-describe("hdwallet provider", () => {
+describe("HD wallet provider", () => {
   let mock: IEthereumProvider;
   let wrapper: IEthereumProvider;
   let mnemonic: string;
@@ -266,32 +240,6 @@ describe("hdwallet provider", () => {
     wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 0, 2);
     const response = await wrapper.send("eth_accounts");
     assert.equal(response.length, 2);
-  });
-});
-
-describe("HD wallet provider", () => {
-  let mock: IEthereumProvider;
-  let wrapper: IEthereumProvider;
-  let mnemonic: string;
-  let hdpath: string;
-
-  beforeEach(() => {
-    mnemonic =
-      "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
-    hdpath = "m/44'/60'/0'/0/";
-    mock = new CountProvider();
-    wrapper = createHDWalletProvider(mock, mnemonic, hdpath);
-  });
-
-  it("should generate a valid address", async () => {
-    const response = await wrapper.send("eth_accounts");
-    assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
-  });
-
-  it("should generate a valid address when given a different index", async () => {
-    wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 1);
-    const response = await wrapper.send("eth_accounts");
-    assert.equal(response[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
 });
 
