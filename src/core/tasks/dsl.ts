@@ -1,10 +1,10 @@
 import { ActionType, TaskArguments, TasksMap } from "../../types";
 
 import {
-  ITaskDefinition,
   OverloadedTaskDefinition,
+  SimpleTaskDefinition,
   TaskDefinition
-} from "./TaskDefinition";
+} from "./task-definitions";
 
 export class TasksDSL {
   private readonly tasks: TasksMap = {};
@@ -13,16 +13,16 @@ export class TasksDSL {
     name: string,
     description?: string,
     action?: ActionType<ArgsT>
-  ): ITaskDefinition;
+  ): TaskDefinition;
   public task<ArgsT extends TaskArguments>(
     name: string,
     action: ActionType<ArgsT>
-  ): ITaskDefinition;
+  ): TaskDefinition;
   public task<ArgsT extends TaskArguments>(
     name: string,
     descriptionOrAction?: string | ActionType<ArgsT>,
     action?: ActionType<ArgsT>
-  ): ITaskDefinition {
+  ): TaskDefinition {
     return this.addTask(name, descriptionOrAction, action, false);
   }
 
@@ -30,16 +30,16 @@ export class TasksDSL {
     name: string,
     description?: string,
     action?: ActionType<ArgsT>
-  ): ITaskDefinition;
+  ): TaskDefinition;
   public internalTask<ArgsT extends TaskArguments>(
     name: string,
     action: ActionType<ArgsT>
-  ): ITaskDefinition;
+  ): TaskDefinition;
   public internalTask<ArgsT extends TaskArguments>(
     name: string,
     descriptionOrAction?: string | ActionType<ArgsT>,
     action?: ActionType<ArgsT>
-  ): ITaskDefinition {
+  ): TaskDefinition {
     return this.addTask(name, descriptionOrAction, action, true);
   }
 
@@ -55,7 +55,7 @@ export class TasksDSL {
   ) {
     const parentTaskDefinition = this.tasks[name];
 
-    let taskDefinition: ITaskDefinition;
+    let taskDefinition: TaskDefinition;
 
     if (parentTaskDefinition !== undefined) {
       taskDefinition = new OverloadedTaskDefinition(
@@ -63,7 +63,7 @@ export class TasksDSL {
         isInternal
       );
     } else {
-      taskDefinition = new TaskDefinition(name, isInternal);
+      taskDefinition = new SimpleTaskDefinition(name, isInternal);
     }
 
     if (descriptionOrAction instanceof Function) {

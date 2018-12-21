@@ -1,4 +1,4 @@
-import { BuidlerError, ERRORS } from "./errors";
+import { BuidlerError, ERRORS } from "../errors";
 
 export interface ArgumentType<T> {
   name: string;

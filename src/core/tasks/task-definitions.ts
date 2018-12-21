@@ -1,6 +1,6 @@
 import { ActionType, TaskArguments } from "../../types";
-import * as types from "../argumentTypes";
 import { BuidlerError, ERRORS } from "../errors";
+import * as types from "../params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
 
 export interface ParamDefinition<T> {
@@ -22,18 +22,7 @@ export interface ParamDefinitionsMap {
   [paramName: string]: ParamDefinition<any>;
 }
 
-export interface ITaskDefinition {
-  readonly name: string;
-  readonly description?: string;
-  readonly action: ActionType<TaskArguments>;
-  readonly isInternal: boolean;
-
-  // TODO: Rename this to something better. It doesn't include the positional
-  // params, and that's not clear.
-  readonly paramDefinitions: ParamDefinitionsMap;
-
-  readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
-
+export interface ConfigurableTaskDefinition {
   setDescription(description: string): this;
 
   setAction<ArgsT>(action: ActionType<ArgsT>): this;
@@ -86,7 +75,20 @@ export interface ITaskDefinition {
   addFlag(name: string, description?: string): this;
 }
 
-export class TaskDefinition implements ITaskDefinition {
+export interface TaskDefinition extends ConfigurableTaskDefinition {
+  readonly name: string;
+  readonly description?: string;
+  readonly action: ActionType<TaskArguments>;
+  readonly isInternal: boolean;
+
+  // TODO: Rename this to something better. It doesn't include the positional
+  // params, and that's not clear.
+  readonly paramDefinitions: ParamDefinitionsMap;
+
+  readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
+}
+
+export class SimpleTaskDefinition implements TaskDefinition {
   get description() {
     return this._description;
   }
@@ -398,12 +400,12 @@ export class TaskDefinition implements ITaskDefinition {
   }
 }
 
-export class OverloadedTaskDefinition implements ITaskDefinition {
+export class OverloadedTaskDefinition implements TaskDefinition {
   private _description?: string;
   private _action?: ActionType<TaskArguments>;
 
   constructor(
-    public readonly parentTaskDefinition: ITaskDefinition,
+    public readonly parentTaskDefinition: TaskDefinition,
     public readonly isInternal: boolean = false
   ) {
     this.isInternal = isInternal;

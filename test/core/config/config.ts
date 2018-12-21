@@ -1,10 +1,10 @@
 import { assert } from "chai";
 
-import { getConfig, getNetworkConfig } from "../../src/core/config";
-import { ERRORS } from "../../src/core/errors";
-import { getLocalCompilerVersion } from "../helpers/compiler";
-import { expectBuidlerError } from "../helpers/errors";
-import { useFixtureProject } from "../helpers/project";
+import { getConfig, getNetworkConfig } from "../../../src/core/config/config";
+import { ERRORS } from "../../../src/core/errors";
+import { getLocalCompilerVersion } from "../../helpers/compiler";
+import { expectBuidlerError } from "../../helpers/errors";
+import { useFixtureProject } from "../../helpers/project";
 
 describe("config", () => {
   describe("custom config", () => {

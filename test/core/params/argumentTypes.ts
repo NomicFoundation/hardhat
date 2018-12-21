@@ -1,8 +1,8 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 
-import * as types from "../../src/core/argumentTypes";
-import { BuidlerError, ERRORS } from "../../src/core/errors";
-import { expectBuidlerError } from "../helpers/errors";
+import { ERRORS } from "../../../src/core/errors";
+import * as types from "../../../src/core/params/argumentTypes";
+import { expectBuidlerError } from "../../helpers/errors";
 
 function a(f: () => any) {
   expectBuidlerError(f, ERRORS.ARG_TYPE_INVALID_VALUE);

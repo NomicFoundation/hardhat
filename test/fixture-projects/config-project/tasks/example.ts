@@ -1,5 +1,5 @@
-import tasks from "../../../../src/core/importable-tasks-dsl";
+import { task } from "../../../../src/core/config/config-env";
 
-tasks.task("example2", "example task", async ret => 28);
+task("example2", "example task", async ret => 28);
 
-tasks.task("example", "example task", async (__, { run }) => run("example2"));
+task("example", "example task", async (__, { run }) => run("example2"));

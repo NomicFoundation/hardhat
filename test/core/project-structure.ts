@@ -71,7 +71,7 @@ describe("project structure", () => {
   testProjectPathsGetter(
     "getUserConfigPath",
     getUserConfigPath,
-    "./buidler-config.js"
+    "./buidler.config.js"
   );
 
   testProjectPathsGetter("getProjectRoot", getProjectRoot, ".");
