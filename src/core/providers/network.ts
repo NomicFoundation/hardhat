@@ -18,12 +18,12 @@ export function createNetworkProvider(
     }
     if (method === "eth_sendTransaction") {
       const tx: Tx = params[0];
-      if (tx !== undefined && tx.chainId !== undefined) {
-        if (tx.chainId !== chainId) {
+      if (tx !== undefined) {
+        if (tx.chainId === undefined) {
+          tx.chainId = chainId;
+        } else if (tx.chainId !== chainId) {
           throw Error("chainIds don't match");
         }
-      } else {
-        tx.chainId = chainId;
       }
     }
 

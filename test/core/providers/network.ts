@@ -59,32 +59,17 @@ describe("Network provider", () => {
     assert.equal(response[0].chainId, validChainId);
   });
 
+  it("should not fail if transaction is undefined", async () => {
+    const response = await wrapper.send("eth_sendTransaction", [undefined]);
+    assert.equal(response[0], undefined);
+  });
+
   it("Should get the chainId if not provided, caching it", async () => {
     assert.equal(mock.numberOfCallsToNetVersion, 0);
-
-    await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 1,
-        value: 1
-      }
-    ]);
+    await wrapper.send("eth_sendTransaction", [tx]);
 
     assert.equal(mock.numberOfCallsToNetVersion, 1);
-
-    await wrapper.send("eth_sendTransaction", [
-      {
-        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-        gas: 21000,
-        gasPrice: 678912,
-        nonce: 1,
-        value: 1
-      }
-    ]);
+    await wrapper.send("eth_sendTransaction", [tx]);
 
     assert.equal(mock.numberOfCallsToNetVersion, 1);
   });
