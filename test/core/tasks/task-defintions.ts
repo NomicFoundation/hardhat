@@ -1,14 +1,14 @@
 import { assert } from "chai";
 
-import * as types from "../../../src/core/argumentTypes";
 import { ERRORS } from "../../../src/core/errors";
+import * as types from "../../../src/core/params/argumentTypes";
 import { BuidlerArguments } from "../../../src/core/params/buidler-params";
 import {
-  ITaskDefinition,
   OverloadedTaskDefinition,
   ParamDefinition,
+  SimpleTaskDefinition,
   TaskDefinition
-} from "../../../src/core/tasks/TaskDefinition";
+} from "../../../src/core/tasks/task-definitions";
 import { unsafeObjectKeys } from "../../../src/util/unsafe";
 import { expectBuidlerError } from "../../helpers/errors";
 
@@ -16,14 +16,14 @@ function expectThrowParamAlreadyDefinedError(f: () => any) {
   expectBuidlerError(f, ERRORS.TASKS_DEFINITION_PARAM_ALREADY_DEFINED);
 }
 
-function getLastPositionalParam(taskDefinition: ITaskDefinition) {
+function getLastPositionalParam(taskDefinition: TaskDefinition) {
   assert.isNotEmpty(taskDefinition.positionalParamDefinitions);
   return taskDefinition.positionalParamDefinitions[
     taskDefinition.positionalParamDefinitions.length - 1
   ];
 }
 
-function assertParamDefintion(
+function assertParamDefinition(
   actual: ParamDefinition<any>,
   expected: Partial<ParamDefinition<any>>
 ) {
@@ -34,12 +34,12 @@ function assertParamDefintion(
   }
 }
 
-describe("TaskDefinition", () => {
+describe("SimpleTaskDefinition", () => {
   describe("construction", () => {
-    let taskDefinition: TaskDefinition;
+    let taskDefinition: SimpleTaskDefinition;
 
     before("init taskDefinition", () => {
-      taskDefinition = new TaskDefinition("name", true);
+      taskDefinition = new SimpleTaskDefinition("name", true);
     });
 
     it("gets the right name", () => {
@@ -69,7 +69,7 @@ describe("TaskDefinition", () => {
 
   describe("setDescription", () => {
     it("Should change the description", () => {
-      const taskDefinition = new TaskDefinition("name");
+      const taskDefinition = new SimpleTaskDefinition("name");
       assert.isUndefined(taskDefinition.description);
 
       taskDefinition.setDescription("A");
@@ -82,7 +82,7 @@ describe("TaskDefinition", () => {
 
   describe("setAction", () => {
     it("Should change the action", async () => {
-      const taskDefinition = new TaskDefinition("name");
+      const taskDefinition = new SimpleTaskDefinition("name");
 
       taskDefinition.setAction(async () => 1);
       let result = await taskDefinition.action({}, {} as any, async () => {});
@@ -96,10 +96,10 @@ describe("TaskDefinition", () => {
   });
 
   describe("param definition rules", () => {
-    let taskDefinition: TaskDefinition;
+    let taskDefinition: SimpleTaskDefinition;
 
     beforeEach("init taskDefinition", () => {
-      taskDefinition = new TaskDefinition("name", true);
+      taskDefinition = new SimpleTaskDefinition("name", true);
     });
 
     describe("param name repetitions", () => {
@@ -313,16 +313,16 @@ describe("TaskDefinition", () => {
   });
 
   describe("Setting params", () => {
-    let taskDefinition: TaskDefinition;
+    let taskDefinition: SimpleTaskDefinition;
 
     beforeEach("init taskDefinition", () => {
-      taskDefinition = new TaskDefinition("name", true);
+      taskDefinition = new SimpleTaskDefinition("name", true);
     });
 
     describe("addParam", () => {
       it("should add the param correctly", () => {
         taskDefinition.addParam("p", "desc", 123, types.int, true);
-        assertParamDefintion(taskDefinition.paramDefinitions.p, {
+        assertParamDefinition(taskDefinition.paramDefinitions.p, {
           name: "p",
           description: "desc",
           defaultValue: 123,
@@ -335,7 +335,7 @@ describe("TaskDefinition", () => {
 
       it("should set isOptional if a default value is provided", () => {
         taskDefinition.addParam("p", "desc", 123, types.int);
-        assertParamDefintion(taskDefinition.paramDefinitions.p, {
+        assertParamDefinition(taskDefinition.paramDefinitions.p, {
           defaultValue: 123,
           isOptional: true
         });
@@ -343,7 +343,7 @@ describe("TaskDefinition", () => {
 
       it("should accept an optional parm with undefined as default vlaue", () => {
         taskDefinition.addParam("p", "desc", undefined, types.int, true);
-        assertParamDefintion(taskDefinition.paramDefinitions.p, {
+        assertParamDefinition(taskDefinition.paramDefinitions.p, {
           defaultValue: undefined,
           isOptional: true
         });
@@ -372,7 +372,7 @@ describe("TaskDefinition", () => {
     describe("addOptionalParam", () => {
       it("should set the param correctly", () => {
         taskDefinition.addOptionalParam("p", "desc", 123, types.int);
-        assertParamDefintion(taskDefinition.paramDefinitions.p, {
+        assertParamDefinition(taskDefinition.paramDefinitions.p, {
           name: "p",
           description: "desc",
           defaultValue: 123,
@@ -385,7 +385,7 @@ describe("TaskDefinition", () => {
 
       it("should work with undefined as default value", () => {
         taskDefinition.addOptionalParam("p", "desc", undefined);
-        assertParamDefintion(taskDefinition.paramDefinitions.p, {
+        assertParamDefinition(taskDefinition.paramDefinitions.p, {
           defaultValue: undefined,
           isOptional: true
         });
@@ -408,7 +408,7 @@ describe("TaskDefinition", () => {
       it("should set an optional boolean param", () => {
         taskDefinition.addFlag("f", "d");
 
-        assertParamDefintion(taskDefinition.paramDefinitions.f, {
+        assertParamDefinition(taskDefinition.paramDefinitions.f, {
           name: "f",
           description: "d",
           defaultValue: false,
@@ -428,7 +428,7 @@ describe("TaskDefinition", () => {
 
       it("should add the param definition to positionalParamDefinitions", () => {
         taskDefinition.addPositionalParam("p", "desc", 123, types.int, true);
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           name: "p",
           description: "desc",
           defaultValue: 123,
@@ -448,7 +448,7 @@ describe("TaskDefinition", () => {
           true
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: undefined,
           isOptional: true
         });
@@ -484,7 +484,7 @@ describe("TaskDefinition", () => {
       it("should set isOptional if default value is provided", () => {
         taskDefinition.addPositionalParam("p", "desc", "A");
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: "A",
           isOptional: true
         });
@@ -499,7 +499,7 @@ describe("TaskDefinition", () => {
 
       it("should add the param definition to positionalParamDefinitions", () => {
         taskDefinition.addOptionalPositionalParam("p", "desc", 123, types.int);
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           name: "p",
           description: "desc",
           defaultValue: 123,
@@ -518,7 +518,7 @@ describe("TaskDefinition", () => {
           types.int
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: undefined,
           isOptional: true
         });
@@ -553,7 +553,7 @@ describe("TaskDefinition", () => {
           true
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           name: "p",
           description: "desc",
           defaultValue: [123],
@@ -573,7 +573,7 @@ describe("TaskDefinition", () => {
           true
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: [123],
           isVariadic: true
         });
@@ -588,7 +588,7 @@ describe("TaskDefinition", () => {
           true
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: undefined,
           isOptional: true,
           isVariadic: true
@@ -642,7 +642,7 @@ describe("TaskDefinition", () => {
       it("should set isOptional if default value is provided", () => {
         taskDefinition.addVariadicPositionalParam("p", "desc", "A");
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: ["A"],
           isOptional: true,
           isVariadic: true
@@ -664,7 +664,7 @@ describe("TaskDefinition", () => {
           types.int
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           name: "p",
           description: "desc",
           defaultValue: [123],
@@ -683,7 +683,7 @@ describe("TaskDefinition", () => {
           types.int
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: [123],
           isVariadic: true
         });
@@ -697,7 +697,7 @@ describe("TaskDefinition", () => {
           types.int
         );
 
-        assertParamDefintion(getLastPositionalParam(taskDefinition), {
+        assertParamDefinition(getLastPositionalParam(taskDefinition), {
           defaultValue: undefined,
           isOptional: true,
           isVariadic: true
@@ -730,11 +730,11 @@ describe("TaskDefinition", () => {
 });
 
 describe("OverloadedTaskDefinition", () => {
-  let parentTask: TaskDefinition;
+  let parentTask: SimpleTaskDefinition;
   let overloadedTask: OverloadedTaskDefinition;
 
   beforeEach("init tasks", () => {
-    parentTask = new TaskDefinition("t")
+    parentTask = new SimpleTaskDefinition("t")
       .addParam("p", "desc")
       .addFlag("f")
       .addPositionalParam("pp", "positional param");

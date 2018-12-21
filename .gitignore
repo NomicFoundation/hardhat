@@ -75,3 +75,9 @@ dist/
 # Code coverage artifacts
 coverage
 .nyc_output
+
+# Generated config-export files
+config.d.ts
+config.d.ts.map
+config.js
+config.js.map

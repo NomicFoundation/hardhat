@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 
-import { getConfig } from "../core/config";
+import { getConfig } from "../core/config/config";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";

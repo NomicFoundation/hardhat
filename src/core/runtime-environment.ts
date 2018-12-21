@@ -7,13 +7,13 @@ import {
 } from "../types";
 import { lazyObject } from "../util/lazy";
 
-import { getNetworkConfig } from "./config";
+import { getNetworkConfig } from "./config/config";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";
 import {
-  ITaskDefinition,
-  OverloadedTaskDefinition
-} from "./tasks/TaskDefinition";
+  OverloadedTaskDefinition,
+  TaskDefinition
+} from "./tasks/task-definitions";
 import { getWeb3Instance } from "./web3/network";
 import { promisifyWeb3 } from "./web3/pweb3";
 
@@ -84,7 +84,7 @@ export class BuidlerRuntimeEnvironment {
   }
 
   private async runTaskDefinition(
-    taskDefinition: ITaskDefinition,
+    taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ) {
     let runSuper: RunSuperFunction<TaskArguments>;

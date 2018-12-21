@@ -1,8 +1,8 @@
 import path from "path";
 
-import { BuidlerConfig } from "../types";
+import { BuidlerConfig } from "../../types";
 
-import { getProjectRoot, getUserConfigPath } from "./project-structure";
+import { getProjectRoot, getUserConfigPath } from "../project-structure";
 
 const projectRoot = getProjectRoot();
 

@@ -1,4 +1,4 @@
-import { getConfig } from "../core/config";
+import { getConfig } from "../core/config/config";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
