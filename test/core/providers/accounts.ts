@@ -368,6 +368,7 @@ describe("Account provider", () => {
   it("Should not fail if provider doesn't have any accounts", async () => {
     tx.value = "asd";
     wrapper = createFromProvider(mock);
-    assert.equal(await wrapper.send("eth_call", [tx]), "asd");
+    const response = await wrapper.send("eth_call", [tx]);
+    assert.equal(response[0].value, "asd");
   });
 });
