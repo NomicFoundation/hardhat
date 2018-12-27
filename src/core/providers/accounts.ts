@@ -88,18 +88,13 @@ export function createHDWalletProvider(
 ) {
   const accounts: Account[] = [];
   for (let i = initialIndex; i < initialIndex + count; i++) {
-    accounts.push(
-      Account.createFromMnemonicAndPath(mnemonic, hdpath + i)
-    );
+    accounts.push(Account.createFromMnemonicAndPath(mnemonic, hdpath + i));
   }
 
-  const accountProvider = createLocalAccountsProvider(
+  return createLocalAccountsProvider(
     provider,
     accounts.map(account => bufferToHex(account.privateKey))
   );
-  return wrapSend(accountProvider, async (method: string, params: any[]) => {
-    return accountProvider.send(method, params);
-  });
 }
 
 export function createSenderProvider(
