@@ -19,7 +19,7 @@ export type BuidlerParamDefinitons = {
 export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
   network: {
     name: "network",
-    defaultValue: "auto",
+    defaultValue: "develop",
     description: "The network to connect to.",
     type: types.string,
     isOptional: true,
