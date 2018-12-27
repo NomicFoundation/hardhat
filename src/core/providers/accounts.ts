@@ -89,7 +89,7 @@ export function createHDWalletProvider(
   const accounts: Account[] = [];
   for (let i = initialIndex; i < initialIndex + count; i++) {
     accounts.push(
-      Account.createFromMnemonicAndPath(mnemonic, hdpath + initialIndex)
+      Account.createFromMnemonicAndPath(mnemonic, hdpath + i)
     );
   }
 
