@@ -1,21 +1,29 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 
+import semver from "semver";
+
 import { getConfig } from "../core/config/config";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
-import { getPackageJson } from "../util/packageInfo";
+import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
 
-async function printVersionMessage() {
-  const packageJson = await getPackageJson();
+async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
+}
+
+function ensureValidNodeVersion(packageJson: PackageJson) {
+  const requirement = packageJson.engines.node;
+  if (!semver.satisfies(process.version, requirement)) {
+    throw new BuidlerError(ERRORS.INVALID_NODE_VERSION, requirement);
+  }
 }
 
 async function main() {
@@ -24,6 +32,10 @@ async function main() {
   let showStackTraces = process.argv.includes("--show-stack-traces");
 
   try {
+    const packageJson = await getPackageJson();
+
+    ensureValidNodeVersion(packageJson);
+
     const envVariableArguments = getEnvBuidlerArguments(
       BUIDLER_PARAM_DEFINITIONS,
       process.env
@@ -54,7 +66,7 @@ async function main() {
 
     // --version is a special case
     if (buidlerArguments.version) {
-      await printVersionMessage();
+      await printVersionMessage(packageJson);
       return;
     }
 

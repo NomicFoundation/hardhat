@@ -252,6 +252,10 @@ export const ERRORS = {
   RESOLVED_IMPORTED_FILE_NOT_FOUND: {
     number: 48,
     message: 'File "%s", imported from "%s", not found.'
+  },
+  INVALID_NODE_VERSION: {
+    number: 50,
+    message: "Buidler doesn't support your node version. It should be %s."
   }
 };
 

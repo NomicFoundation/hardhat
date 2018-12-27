@@ -21,6 +21,9 @@ export async function getPackageRoot(): Promise<string> {
 export interface PackageJson {
   name: string;
   version: string;
+  engines: {
+    node: string;
+  };
 }
 
 export async function getPackageJson(): Promise<PackageJson> {
