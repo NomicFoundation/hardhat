@@ -6,7 +6,7 @@ task("console", "Opens a buidler console")
     const path = await import("path");
     const fsExtra = await import("fs-extra");
     const repl = await import("repl");
-    const replHistory = await import("repl.history");
+    const { default: replHistory } = await import("repl.history");
 
     if (!noCompile) {
       await run("compile");
