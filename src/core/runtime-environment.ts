@@ -10,12 +10,13 @@ import { lazyObject } from "../util/lazy";
 import { getNetworkConfig } from "./config/config";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";
+import { IEthereumProvider } from "./providers/ethereum";
+
+import { createProvider } from "./providers/construction";
 import {
   OverloadedTaskDefinition,
   TaskDefinition
 } from "./tasks/task-definitions";
-import { getWeb3Instance } from "./web3/network";
-import { promisifyWeb3 } from "./web3/pweb3";
 
 export class BuidlerRuntimeEnvironment {
   private static readonly BLACKLISTED_PROPERTIES: string[] = [
@@ -23,9 +24,7 @@ export class BuidlerRuntimeEnvironment {
     "runTaskDefinition"
   ];
 
-  public readonly Web3: any;
-  public readonly pweb3: any;
-  public readonly web3: any;
+  public provider: IEthereumProvider;
 
   constructor(
     public readonly config: BuidlerConfig,
@@ -33,13 +32,7 @@ export class BuidlerRuntimeEnvironment {
     public readonly tasks: TasksMap
   ) {
     const netConfig = getNetworkConfig(config, buidlerArguments.network);
-    this.web3 = lazyObject(() =>
-      getWeb3Instance(buidlerArguments.network, netConfig)
-    );
-    this.pweb3 = lazyObject(() => promisifyWeb3(this.web3));
-
-    const importLazy = require("import-lazy")(require);
-    this.Web3 = importLazy("web3");
+    this.provider = lazyObject(() => createProvider(netConfig));
   }
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
