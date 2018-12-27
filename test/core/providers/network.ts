@@ -72,4 +72,34 @@ describe("Network provider", () => {
 
     assert.equal(mock.numberOfCallsToNetVersion, 1);
   });
+
+  describe("When created without chainId", () => {
+    let provider: IEthereumProvider;
+
+    beforeEach(() => {
+      provider = createNetworkProvider(mock);
+    });
+
+    it("Should get and cache the real one", async () => {
+      assert.equal(mock.numberOfCallsToNetVersion, 0);
+
+      await provider.send("asd");
+      assert.equal(mock.numberOfCallsToNetVersion, 1);
+
+      await provider.send("asd");
+      assert.equal(mock.numberOfCallsToNetVersion, 1);
+    });
+
+    it("Should validate txs' chain id", async () => {
+      await expectErrorAsync(
+        () =>
+          provider.send("eth_sendTransaction", [{ ...tx, chainId: 567876 }]),
+        "chainIds don't match"
+      );
+
+      await provider.send("eth_sendTransaction", [
+        { ...tx, chainId: validChainId }
+      ]);
+    });
+  });
 });
