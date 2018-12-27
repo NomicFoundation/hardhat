@@ -39,9 +39,15 @@ export interface OtherAccountsConfig {
   type: string;
 }
 
+export type NetworkConfigAccounts =
+  | "remote"
+  | string[]
+  | HDAccountsConfig
+  | OtherAccountsConfig;
+
 export interface HttpNetworkConfig extends CommonNetworkConfig {
   url: string;
-  accounts?: "remote" | string[] | HDAccountsConfig | OtherAccountsConfig;
+  accounts?: NetworkConfigAccounts;
 }
 
 export type NetworkConfig = AutoNetworkConfig | HttpNetworkConfig;
