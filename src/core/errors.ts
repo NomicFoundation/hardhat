@@ -252,6 +252,10 @@ export const ERRORS = {
   RESOLVED_IMPORTED_FILE_NOT_FOUND: {
     number: 48,
     message: 'File "%s", imported from "%s", not found.'
+  },
+  ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING: {
+    number: 49,
+    message: 'Invalid param "%s". Command line params must be lowercase.'
   }
 };
 
