@@ -1,17 +1,7 @@
-import path from "path";
-
-import { globSync } from "../../util/glob";
-
-const extension = __filename.endsWith(".js") ? "js" : "ts";
-
-const pattern = path.join(
-  __dirname,
-  "..",
-  "..",
-  "builtin-tasks",
-  "*." + extension
-);
-
-globSync(pattern)
-  .sort()
-  .forEach((f: string) => require(f));
+import "../../builtin-tasks/clean";
+import "../../builtin-tasks/compile";
+import "../../builtin-tasks/console";
+import "../../builtin-tasks/flatten";
+import "../../builtin-tasks/help";
+import "../../builtin-tasks/run";
+import "../../builtin-tasks/test";
