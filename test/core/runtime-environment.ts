@@ -16,8 +16,7 @@ describe("BuidlerRuntimeEnvironment", () => {
     config = {
       networks: {
         local: {
-          host: "127.0.0.1",
-          port: 8545
+          url: "http://localhost:8545"
         }
       },
       paths: {
@@ -56,10 +55,8 @@ describe("BuidlerRuntimeEnvironment", () => {
 
   it("should create an environment", () => {
     assert.deepEqual(env.config, config);
-    assert.isDefined(env.web3);
-    assert.isDefined(env.Web3);
-    assert.isDefined(env.pweb3);
     assert.isDefined(env.tasks);
+    assert.isDefined(env.provider);
   });
 
   it("should run a task correctly", async () => {
