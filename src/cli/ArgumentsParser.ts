@@ -25,13 +25,20 @@ export class ArgumentsParser {
   }
 
   public static cLAToParamName(cLA: string): string {
+    if (cLA.toLowerCase() !== cLA) {
+      throw new BuidlerError(
+        ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING,
+        cLA
+      );
+    }
+
     const parts = cLA.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
 
     return (
       parts[0] +
       parts
         .slice(1)
-        .map(s => s[0].toUpperCase() + s.slice(1).toLowerCase())
+        .map(s => s[0].toUpperCase() + s.slice(1))
         .join("")
     );
   }
@@ -58,7 +65,7 @@ export class ArgumentsParser {
           continue;
         }
 
-        if (!this._isParamName(arg, buidlerParamDefinitions)) {
+        if (!this._isCLAParamName(arg, buidlerParamDefinitions)) {
           throw new BuidlerError(
             ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG,
             arg
@@ -72,7 +79,7 @@ export class ArgumentsParser {
           buidlerArguments
         );
       } else {
-        if (!this._isParamName(arg, buidlerParamDefinitions)) {
+        if (!this._isCLAParamName(arg, buidlerParamDefinitions)) {
           unparsedCLAs.push(arg);
           continue;
         }
@@ -128,7 +135,7 @@ export class ArgumentsParser {
         continue;
       }
 
-      if (!this._isParamName(arg, taskDefintion.paramDefinitions)) {
+      if (!this._isCLAParamName(arg, taskDefintion.paramDefinitions)) {
         throw new BuidlerError(
           ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME,
           arg
@@ -182,7 +189,7 @@ export class ArgumentsParser {
     }
   }
 
-  public _isParamName(str: string, paramDefinitions: ParamDefinitionsMap) {
+  public _isCLAParamName(str: string, paramDefinitions: ParamDefinitionsMap) {
     if (!this._hasCLAParamNameFormat(str)) {
       return false;
     }

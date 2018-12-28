@@ -33,7 +33,7 @@ describe("ArgumentsParser", () => {
       .addParam("bleep", "useless param", 1602, int, true);
   });
 
-  it("should tranform a param name into CLA", () => {
+  it("should transform a param name into CLA", () => {
     assert.equal(
       ArgumentsParser.paramNameToCLA("showStackTraces"),
       "--show-stack-traces"
@@ -41,23 +41,28 @@ describe("ArgumentsParser", () => {
     assert.equal(ArgumentsParser.paramNameToCLA("version"), "--version");
   });
 
+  it("Should throw if a param name CLA isn't all lowercase", () => {
+    expectBuidlerError(
+      () => ArgumentsParser.cLAToParamName("--showStackTraces"),
+      ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING
+    );
+
+    expectBuidlerError(
+      () => ArgumentsParser.cLAToParamName("--showstackTraces"),
+      ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING
+    );
+
+    expectBuidlerError(
+      () => ArgumentsParser.cLAToParamName("--show-stack-Traces"),
+      ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING
+    );
+  });
+
   it("should transform CLA into a param name", () => {
     assert.equal(ArgumentsParser.cLAToParamName("--run"), "run");
-    // TODO : define how much flexibility we want to offer on this
+
     assert.equal(
-      ArgumentsParser.cLAToParamName("--showStackTraces"),
-      "showStackTraces"
-    );
-    assert.equal(
-      ArgumentsParser.cLAToParamName("--showstackTraces"),
-      "showstackTraces"
-    );
-    assert.equal(
-      ArgumentsParser.cLAToParamName("--show-stack-Traces"),
-      "showStackTraces"
-    );
-    assert.equal(
-      ArgumentsParser.cLAToParamName("--show-Stack-Traces"),
+      ArgumentsParser.cLAToParamName("--show-stack-traces"),
       "showStackTraces"
     );
   });
@@ -69,27 +74,27 @@ describe("ArgumentsParser", () => {
 
   it("should detect parameter names", () => {
     assert.isTrue(
-      argumentsParser._isParamName(
-        "--show-Stack-Traces",
+      argumentsParser._isCLAParamName(
+        "--show-stack-traces",
         BUIDLER_PARAM_DEFINITIONS
       )
     );
     assert.isFalse(
-      argumentsParser._isParamName("sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser._isCLAParamName("sarasa", BUIDLER_PARAM_DEFINITIONS)
     );
     assert.isFalse(
-      argumentsParser._isParamName("--sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser._isCLAParamName("--sarasa", BUIDLER_PARAM_DEFINITIONS)
     );
   });
 
   describe("buidler arguments", () => {
     it("should parse buidler arguments with task", () => {
       const rawCLAs: string[] = [
-        "--showStackTraces",
+        "--show-stack-traces",
         "--network",
         "local",
         "compile",
-        "--taskParam"
+        "--task-param"
       ];
 
       const {
@@ -106,14 +111,14 @@ describe("ArgumentsParser", () => {
       assert.equal(buidlerArguments.network, "local");
       assert.equal(buidlerArguments.emoji, false);
       assert.equal(unparsedCLAs.length, 1);
-      assert.equal("--taskParam", unparsedCLAs[0]);
+      assert.equal("--task-param", unparsedCLAs[0]);
     });
 
     it("should parse buidler arguments after taskname", () => {
       const rawCLAs: string[] = [
         "compile",
-        "--taskParam",
-        "--showStackTraces",
+        "--task-param",
+        "--show-stack-traces",
         "--network",
         "local"
       ];
@@ -132,14 +137,14 @@ describe("ArgumentsParser", () => {
       assert.equal(buidlerArguments.network, "local");
       assert.equal(buidlerArguments.emoji, false);
       assert.equal(unparsedCLAs.length, 1);
-      assert.equal("--taskParam", unparsedCLAs[0]);
+      assert.equal("--task-param", unparsedCLAs[0]);
     });
 
     it("should fail trying to parse task arguments before taskname", () => {
       const rawCLAs: string[] = [
-        "--taskParam",
+        "--task-param",
         "compile",
-        "--showStackTraces",
+        "--show-stack-traces",
         "--network",
         "local"
       ];
@@ -157,7 +162,7 @@ describe("ArgumentsParser", () => {
 
     it("should parse a buidler argument", () => {
       const rawCLAs: string[] = [
-        "--showStackTraces",
+        "--show-stack-traces",
         "--network",
         "local",
         "compile"
@@ -188,10 +193,10 @@ describe("ArgumentsParser", () => {
 
     it("should fail trying to parse buidler with invalid argument", () => {
       const rawCLAs: string[] = [
-        "--showStackTraces",
+        "--show-stack-traces",
         "--network",
         "local",
-        "--invalidParam"
+        "--invalid-param"
       ];
       expectBuidlerError(
         () =>
@@ -206,7 +211,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail trying to parse a repeated argument", () => {
       const rawCLAs: string[] = [
-        "--showStackTraces",
+        "--show-stack-traces",
         "--network",
         "local",
         "--network",
@@ -262,6 +267,7 @@ describe("ArgumentsParser", () => {
         [],
         int
       );
+
       const rawPositionalArguments = ["16", "02"];
       const positionalArguments = argumentsParser._parsePositionalParamArgs(
         rawPositionalArguments,
@@ -288,7 +294,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should fail when passing invalid parameter", () => {
-      const rawCLAs: string[] = ["--invalidParameter", "not_valid"];
+      const rawCLAs: string[] = ["--invalid-parameter", "not_valid"];
       expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME);
