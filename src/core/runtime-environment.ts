@@ -1,13 +1,14 @@
 import {
   BuidlerConfig,
   EnvironmentExtender,
-  EnvironmentExtension,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
   TasksMap
 } from "../types";
+import { lazyObject } from "../util/lazy";
 
+import { getNetworkConfig } from "./config/config";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";
 import { createProvider } from "./providers/construction";
@@ -16,8 +17,6 @@ import {
   OverloadedTaskDefinition,
   TaskDefinition
 } from "./tasks/task-definitions";
-import { getNetworkConfig } from "./config/config";
-import { lazyObject } from "../util/lazy";
 
 export class BuidlerRuntimeEnvironment {
   private static readonly BLACKLISTED_PROPERTIES: string[] = [
