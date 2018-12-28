@@ -10,9 +10,8 @@ import { lazyObject } from "../util/lazy";
 import { getNetworkConfig } from "./config/config";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";
-import { IEthereumProvider } from "./providers/ethereum";
-
 import { createProvider } from "./providers/construction";
+import { IEthereumProvider } from "./providers/ethereum";
 import {
   OverloadedTaskDefinition,
   TaskDefinition
