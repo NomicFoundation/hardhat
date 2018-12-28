@@ -257,6 +257,10 @@ export const ERRORS = {
     number: 49,
     message: 'Invalid param "%s". Command line params must be lowercase.'
   },
+  INVALID_NODE_VERSION: {
+    number: 50,
+    message: "Buidler doesn't support your node version. It should be %s."
+  },
   INVALID_HD_PATH: {
     number: 51,
     message:
