@@ -2,6 +2,7 @@ import { ActionType, EnvironmentExtender, TaskArguments } from "../../types";
 import * as argumentTypes from "../params/argumentTypes";
 import { ConfigurableTaskDefinition } from "../tasks/task-definitions";
 
+import extenderManager from "./extenders-instance";
 import dsl from "./tasks-dsl-instance";
 
 export function task<ArgsT extends TaskArguments>(
@@ -60,8 +61,6 @@ export function usePlugin(name: string): void {
   require(name);
 }
 
-export const extenders: EnvironmentExtender[] = [];
-
 export function extendEnvironment(extender: EnvironmentExtender) {
-  extenders.push(extender);
+  extenderManager.add(extender);
 }

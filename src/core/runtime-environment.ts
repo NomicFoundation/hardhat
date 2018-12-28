@@ -35,9 +35,7 @@ export class BuidlerRuntimeEnvironment {
     const netConfig = getNetworkConfig(config, buidlerArguments.network);
     this.provider = lazyObject(() => createProvider(netConfig));
 
-    extenders.forEach(extender => {
-      Object.assign(this, extender(this));
-    });
+    extenders.forEach(extender => extender(this));
   }
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
