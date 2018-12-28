@@ -59,6 +59,7 @@ describe("BuidlerRuntimeEnvironment", () => {
     it("should create an environment", () => {
       assert.deepEqual(env.config, config);
       assert.isDefined(env.tasks);
+      assert.isDefined(env.provider);
     });
 
     it("should run a task correctly", async () => {
