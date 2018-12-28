@@ -36,7 +36,6 @@ export class BuidlerRuntimeEnvironment {
     this.provider = lazyObject(() => createProvider(netConfig));
 
     extenders.forEach(extender => {
-      console.log("calling extender");
       Object.assign(this, extender(this));
     });
   }
