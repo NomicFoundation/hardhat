@@ -289,32 +289,6 @@ describe("hdwallet provider", () => {
   });
 });
 
-describe("HD wallet provider", () => {
-  let mock: IEthereumProvider;
-  let wrapper: IEthereumProvider;
-  let mnemonic: string;
-  let hdpath: string;
-
-  beforeEach(() => {
-    mnemonic =
-      "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
-    hdpath = "m/44'/60'/0'/0/";
-    mock = new CountProvider();
-    wrapper = createHDWalletProvider(mock, mnemonic, hdpath);
-  });
-
-  it("should generate a valid address", async () => {
-    const response = await wrapper.send("eth_accounts");
-    assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
-  });
-
-  it("should generate a valid address when given a different index", async () => {
-    wrapper = createHDWalletProvider(mock, mnemonic, hdpath, 1);
-    const response = await wrapper.send("eth_accounts");
-    assert.equal(response[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
-  });
-});
-
 describe("Account provider", () => {
   let mock: IEthereumProvider;
   let provider: IEthereumProvider;
