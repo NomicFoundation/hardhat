@@ -1,3 +1,4 @@
+import colors from "ansi-colors";
 import path from "path";
 
 import { internalTask, task } from "../core/config/config-env";
@@ -55,17 +56,15 @@ internalTask("builtin:compile", async (_, { config, run }) => {
 
   let hasErrors = false;
   if (output.errors) {
-    const { default: chalk } = await import("chalk");
-
     for (const error of output.errors) {
       hasErrors = hasErrors || error.severity === "error";
       if (error.severity === "error") {
         hasErrors = true;
         console.log("\n");
-        console.error(chalk.red(error.formattedMessage));
+        console.error(colors.red(error.formattedMessage));
       } else {
         console.log("\n");
-        console.warn(chalk.yellow(error.formattedMessage));
+        console.warn(colors.yellow(error.formattedMessage));
       }
     }
   }

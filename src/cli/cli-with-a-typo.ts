@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /* tslint:disable */
-const chalk = require("chalk");
+import colors from "ansi-colors";
 
-console.error(chalk.cyan("You probably wanted to type buidler, not builder."));
-console.error(chalk.cyan("Don't worry, we've got you covered!"));
+console.error(colors.cyan("You probably wanted to type buidler, not builder."));
+console.error(colors.cyan("Don't worry, we've got you covered!"));
 console.error("");
 
 require("./cli");

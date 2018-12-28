@@ -1,6 +1,9 @@
 #!/usr/bin/env node
-import semver from "semver";
+// tslint:disable-next-line
 import "source-map-support/register";
+// tslint:disable-next-line
+import colors from "ansi-colors";
+import semver from "semver";
 
 import { getConfig } from "../core/config/config";
 import { BuidlerError, ERRORS } from "../core/errors";
@@ -99,13 +102,11 @@ async function main() {
   } catch (error) {
     const isBuidlerError = error instanceof BuidlerError;
 
-    const { default: chalk } = await import("chalk");
-
     if (isBuidlerError) {
-      console.error(chalk.red("Error " + error.message));
+      console.error(colors.red("Error " + error.message));
     } else {
       console.error(
-        chalk.red("An unexpected error occurred: " + error.message)
+        colors.red("An unexpected error occurred: " + error.message)
       );
     }
 
