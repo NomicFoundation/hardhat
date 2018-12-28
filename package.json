@@ -43,7 +43,6 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^8.10.38",
     "@types/semver": "^5.5.0",
-    "codecov": "^3.1.0",
     "dotenv": "^6.2.0",
     "ganache-cli": "^6.1.6",
     "nyc": "^13.1.0",
