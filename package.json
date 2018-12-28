@@ -91,7 +91,9 @@
       "sample-project",
       "test",
       "coverage",
-      ".nyc_output"
+      ".nyc_output",
+      "config.ts",
+      "config.js"
     ],
     "reporter": [
       "text",
