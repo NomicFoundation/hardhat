@@ -46,17 +46,25 @@ async function printWelcomeMessage() {
 }
 
 async function confirmProjectCreation() {
-  const { default: inquirer } = await import("inquirer");
-  const { shouldCreateProject } = await inquirer.prompt([
-    {
-      name: "shouldCreateProject",
-      type: "confirm",
-      message:
-        "You are not inside a buidler project. Do you want to create a new one?"
-    }
-  ]);
+  const { default: enquirer } = await import("enquirer");
 
-  return shouldCreateProject;
+  try {
+    const { shouldCreateProject } = await enquirer.prompt<{
+      shouldCreateProject: boolean;
+    }>([
+      createConfirmationPrompt(
+        "shouldCreateProject",
+        "You are not inside a buidler project. Do you want to create a new one?"
+      )
+    ]);
+    return shouldCreateProject;
+  } catch (e) {
+    if (e === "") {
+      return false;
+    }
+
+    throw e;
+  }
 }
 
 async function copySampleProject(projectRoot: string) {
@@ -114,7 +122,7 @@ function printSuggestedCommands() {
 }
 
 export async function createProject() {
-  const { default: inquirer } = await import("inquirer");
+  const { default: enquirer } = await import("enquirer");
   printAsciiLogo();
 
   await printWelcomeMessage();
@@ -125,28 +133,38 @@ export async function createProject() {
     return;
   }
 
-  const {
-    projectRoot,
-    shouldAddGitIgnore,
-    shouldAddGitAttributes
-  } = await inquirer.prompt([
-    {
-      name: "projectRoot",
-      default: process.cwd(),
-      message: "Buidler project root:"
-    },
-    {
-      name: "shouldAddGitIgnore",
-      type: "confirm",
-      message: "Do you want to add a .gitignore?"
-    },
-    {
-      name: "shouldAddGitAttributes",
-      type: "confirm",
-      message:
+  let responses: {
+    projectRoot: string;
+    shouldAddGitIgnore: boolean;
+    shouldAddGitAttributes: boolean;
+  };
+
+  try {
+    responses = await enquirer.prompt<typeof responses>([
+      {
+        name: "projectRoot",
+        type: "input",
+        initial: process.cwd(),
+        message: "Buidler project root:"
+      },
+      createConfirmationPrompt(
+        "shouldAddGitIgnore",
+        "Do you want to add a .gitignore?"
+      ),
+      createConfirmationPrompt(
+        "shouldAddGitAttributes",
         "Do you want to add a .gitattributes to enable Soldity highlighting on GitHub?"
+      )
+    ]);
+  } catch (e) {
+    if (e === "") {
+      return;
     }
-  ]);
+
+    throw e;
+  }
+
+  const { projectRoot, shouldAddGitIgnore, shouldAddGitAttributes } = responses;
 
   await copySampleProject(projectRoot);
 
@@ -163,4 +181,38 @@ export async function createProject() {
   console.log(``);
 
   printSuggestedCommands();
+}
+
+function createConfirmationPrompt(name: string, message: string) {
+  return {
+    type: "confirm",
+    name,
+    message,
+    initial: "y",
+    default: "(Y/n)",
+    isTrue(input: string | boolean) {
+      if (typeof input === "string") {
+        return input.toLowerCase() === "y";
+      }
+
+      return input;
+    },
+    isFalse(input: string | boolean) {
+      if (typeof input === "string") {
+        return input.toLowerCase() === "n";
+      }
+
+      return input;
+    },
+    format(): string {
+      const that = this as any;
+      const value = that.value === true ? "y" : "n";
+
+      if (that.state.submitted === true) {
+        return that.styles.submitted(value);
+      }
+
+      return value;
+    }
+  };
 }
