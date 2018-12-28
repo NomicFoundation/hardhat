@@ -7,6 +7,7 @@ import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
 import { TasksDSL } from "../../src/core/tasks/dsl";
 import { BuidlerConfig, TaskArguments } from "../../src/types";
 import { useFixtureProject } from "../helpers/project";
+import { expectErrorAsync } from "../helpers/errors";
 
 describe("BuidlerRuntimeEnvironment", () => {
   let config: BuidlerConfig;
@@ -113,10 +114,17 @@ describe("BuidlerRuntimeEnvironment", () => {
   describe("Plugin system", () => {
     useFixtureProject("plugin-project");
 
-    it("use a plugin", async () => {
-      usePlugin("example");
+    it("enviroment should contains plugin extensions", async () => {
+      usePlugin(process.cwd() + "/plugins/example");
       env = new BuidlerRuntimeEnvironment(config, args, tasks, extenders);
       assert.containsAllKeys(env, ["key", "bleep"]);
+    });
+
+    it("should fail when using a non existent plugin", async () => {
+      expectErrorAsync(
+        async () => usePlugin("non-existent"),
+        /Cannot find module/
+      );
     });
   });
 });
