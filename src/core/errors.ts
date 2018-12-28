@@ -252,6 +252,11 @@ export const ERRORS = {
   RESOLVED_IMPORTED_FILE_NOT_FOUND: {
     number: 48,
     message: 'File "%s", imported from "%s", not found.'
+  },
+  INVALID_HD_PATH: {
+    number: 51,
+    message:
+      'HD path "%s" is invalid. Read BIP32 to know about the valid forms.'
   }
 };
 
