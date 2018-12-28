@@ -1,5 +1,4 @@
 import path from "path";
-import util from "util";
 
 import { internalTask, task } from "../core/config/config-env";
 import { glob } from "../util/glob";
@@ -18,22 +17,24 @@ internalTask("builtin:get-test-files")
     return testFiles;
   });
 
-internalTask("builtin:setup-test-environment", async (_, { config, web3 }) => {
-  const { assert } = await import("chai");
-  const getAccounts = web3.eth.getAccounts.bind(web3.eth);
+internalTask(
+  "builtin:setup-test-environment",
+  async (_, { config, provider }) => {
+    const { assert } = await import("chai");
 
-  const globalAsAny = global as any;
-  globalAsAny.accounts = await util.promisify(getAccounts)();
-  globalAsAny.assert = assert;
+    const globalAsAny = global as any;
+    globalAsAny.accounts = await provider.send("eth_accounts");
+    globalAsAny.assert = assert;
 
-  globalAsAny.contract = (
-    description: string,
-    definition: ((accounts: string) => any)
-  ) =>
-    describe(description, () => {
-      definition(globalAsAny.accounts);
-    });
-});
+    globalAsAny.contract = (
+      description: string,
+      definition: ((accounts: string) => any)
+    ) =>
+      describe(description, () => {
+        definition(globalAsAny.accounts);
+      });
+  }
+);
 
 internalTask("builtin:run-mocha-tests")
   .addOptionalVariadicPositionalParam(

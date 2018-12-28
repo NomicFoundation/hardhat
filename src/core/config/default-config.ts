@@ -22,8 +22,7 @@ const defaultConfig: BuidlerConfig = {
   },
   networks: {
     develop: {
-      host: "127.0.0.1",
-      port: 8545
+      url: "http://127.0.0.1:8545"
     },
     auto: {
       blockGasLimit: 7500000,

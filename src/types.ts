@@ -10,27 +10,47 @@ export interface GanacheOptions {
   accounts?: Array<{ balance: string; secretKey: string }>;
 }
 
+interface CommonNetworkConfig {
+  chainId?: number;
+  from?: string;
+  gas?: "auto" | number;
+  gasPrice?: "auto" | number;
+}
+
 interface AutoNetworkAccount {
   privateKey: string;
   balance: string;
 }
 
-export interface AutoNetworkConfig {
+export interface AutoNetworkConfig extends CommonNetworkConfig {
   accounts: AutoNetworkAccount[];
   blockGasLimit: number;
   ganacheOptions?: GanacheOptions;
 }
 
-export interface HttpNetworkConfig {
-  host: string;
-  port?: number;
+export interface HDAccountsConfig {
+  mnemonic: string;
+  initialIndex?: number;
+  count?: number;
+  path?: string;
 }
 
-export type NetworkConfig = (AutoNetworkConfig | HttpNetworkConfig) & {
-  from?: string;
-  gas?: number;
-  gasPrice?: number;
-};
+export interface OtherAccountsConfig {
+  type: string;
+}
+
+export type NetworkConfigAccounts =
+  | "remote"
+  | string[]
+  | HDAccountsConfig
+  | OtherAccountsConfig;
+
+export interface HttpNetworkConfig extends CommonNetworkConfig {
+  url: string;
+  accounts?: NetworkConfigAccounts;
+}
+
+export type NetworkConfig = AutoNetworkConfig | HttpNetworkConfig;
 
 interface Networks {
   [networkName: string]: NetworkConfig;

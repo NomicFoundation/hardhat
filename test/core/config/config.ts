@@ -44,7 +44,10 @@ describe("config", () => {
       const [config, tasks] = getConfig();
       assert.equal(config.solc.version, getLocalCompilerVersion());
       assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
-      assert.equal(config.networks.develop.port, 8545);
+      assert.equal(config.networks.develop.url, "http://127.0.0.1:8545");
+      assert.deepEqual(config.networks.develop.accounts, [
+        "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
+      ]);
     });
   });
 

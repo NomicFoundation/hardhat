@@ -1,12 +1,20 @@
 import deepmerge from "deepmerge";
 
-import { AutoNetworkConfig, BuidlerConfig, NetworkConfig } from "../../types";
+import { BuidlerConfig, NetworkConfig } from "../../types";
 import { BuidlerError, ERRORS } from "../errors";
 import { getUserConfigPath } from "../project-structure";
 
 function importCsjOrEsModule(path: string): any {
   const imported = require(path);
   return imported.default !== undefined ? imported.default : imported;
+}
+
+function mergeConfig(defaultConfig: any, userConfig: any): BuidlerConfig {
+  const config: BuidlerConfig = deepmerge(defaultConfig, userConfig, {
+    arrayMerge: (destination: any[], source: any[]) => source
+  });
+
+  return config;
 }
 
 export function getConfig() {
@@ -30,9 +38,7 @@ export function getConfig() {
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(configEnv).forEach(key => (globalAsAny[key] = undefined));
 
-  const config = deepmerge(defaultConfig, userConfig, {
-    arrayMerge: (destination: any[], source: any[]) => source
-  });
+  const config = mergeConfig(defaultConfig, userConfig);
 
   const dsl = require("./tasks-dsl-instance").default;
 
@@ -42,7 +48,7 @@ export function getConfig() {
 export function getNetworkConfig(
   config: BuidlerConfig,
   selectedNetwork: string
-): NetworkConfig | AutoNetworkConfig {
+): NetworkConfig {
   if (
     config.networks === undefined ||
     config.networks[selectedNetwork] === undefined

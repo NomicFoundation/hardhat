@@ -7,6 +7,11 @@ describe("Buidler lib", () => {
   useFixtureProject("config-project");
   useEnvironment();
 
+  before(() => {
+    // TODO: This next line can be removed once 'auto' network gets back
+    process.env.BUIDLER_NETWORK = "develop";
+  });
+
   it("should load environment", function() {
     assert.isDefined(this.env.config.networks.custom);
   });
