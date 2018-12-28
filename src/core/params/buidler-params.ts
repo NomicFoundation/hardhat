@@ -10,13 +10,13 @@ export interface BuidlerArguments {
   emoji: boolean;
 }
 
-export type BuidlerParamDefinitons = {
+export type BuidlerParamDefinitions = {
   [param in keyof BuidlerArguments]: OptionalParamDefinition<
     BuidlerArguments[param]
   >
 };
 
-export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitons = {
+export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   network: {
     name: "network",
     defaultValue: "develop",

@@ -1,5 +1,5 @@
 import { BuidlerError, ERRORS } from "../core/errors";
-import { BuidlerParamDefinitons } from "../core/params/buidler-params";
+import { BuidlerParamDefinitions } from "../core/params/buidler-params";
 import {
   ParamDefinition,
   ParamDefinitionsMap
@@ -12,7 +12,7 @@ export class HelpPrinter {
   constructor(
     private readonly programName: string,
     private readonly version: string,
-    private readonly buidlerParamDefinitions: BuidlerParamDefinitons,
+    private readonly buidlerParamDefinitions: BuidlerParamDefinitions,
     private readonly tasks: TasksMap
   ) {}
 

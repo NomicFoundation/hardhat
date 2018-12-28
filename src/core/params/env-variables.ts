@@ -2,7 +2,7 @@ import { ArgumentsParser } from "../../cli/ArgumentsParser";
 import { unsafeObjectKeys } from "../../util/unsafe";
 import { BuidlerError, ERRORS } from "../errors";
 
-import { BuidlerArguments, BuidlerParamDefinitons } from "./buidler-params";
+import { BuidlerArguments, BuidlerParamDefinitions } from "./buidler-params";
 import ProcessEnv = NodeJS.ProcessEnv;
 
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
@@ -17,7 +17,7 @@ export function paramNameToEnvVariable(paramName: string): string {
 }
 
 export function getEnvBuidlerArguments(
-  paramDefinitions: BuidlerParamDefinitons,
+  paramDefinitions: BuidlerParamDefinitions,
   envVariables: ProcessEnv
 ): BuidlerArguments {
   const envArgs: Partial<BuidlerArguments> = {};

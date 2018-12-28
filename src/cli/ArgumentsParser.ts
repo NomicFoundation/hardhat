@@ -1,7 +1,7 @@
 import { BuidlerError, ERRORS } from "../core/errors";
 import {
   BuidlerArguments,
-  BuidlerParamDefinitons
+  BuidlerParamDefinitions
 } from "../core/params/buidler-params";
 import {
   ParamDefinition,
@@ -44,7 +44,7 @@ export class ArgumentsParser {
   }
 
   public parseBuidlerArguments(
-    buidlerParamDefinitions: BuidlerParamDefinitons,
+    buidlerParamDefinitions: BuidlerParamDefinitions,
     envVariableArguments: BuidlerArguments,
     rawCLAs: string[]
   ): {
@@ -121,7 +121,7 @@ export class ArgumentsParser {
   }
 
   public _parseTaskParamArguments(
-    taskDefintion: TaskDefinition,
+    taskDefinition: TaskDefinition,
     rawCLAs: string[]
   ) {
     const paramArguments = {};
@@ -135,7 +135,7 @@ export class ArgumentsParser {
         continue;
       }
 
-      if (!this._isCLAParamName(arg, taskDefintion.paramDefinitions)) {
+      if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
         throw new BuidlerError(
           ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME,
           arg
@@ -145,18 +145,18 @@ export class ArgumentsParser {
       i = this._parseArgumentAt(
         rawCLAs,
         i,
-        taskDefintion.paramDefinitions,
+        taskDefinition.paramDefinitions,
         paramArguments
       );
     }
 
-    this._addTaskDefaultArguments(taskDefintion, paramArguments);
+    this._addTaskDefaultArguments(taskDefinition, paramArguments);
 
     return { paramArguments, rawPositionalArguments };
   }
 
   public _addBuidlerDefaultArguments(
-    buidlerParamDefinitions: BuidlerParamDefinitons,
+    buidlerParamDefinitions: BuidlerParamDefinitions,
     envVariableArguments: BuidlerArguments,
     buidlerArguments: Partial<BuidlerArguments>
   ) {
@@ -170,11 +170,11 @@ export class ArgumentsParser {
   }
 
   public _addTaskDefaultArguments(
-    taskDefintion: TaskDefinition,
+    taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ) {
-    for (const paramName of Object.keys(taskDefintion.paramDefinitions)) {
-      const definition = taskDefintion.paramDefinitions[paramName];
+    for (const paramName of Object.keys(taskDefinition.paramDefinitions)) {
+      const definition = taskDefinition.paramDefinitions[paramName];
 
       if (taskArguments[paramName] === undefined) {
         if (definition.isOptional) {
