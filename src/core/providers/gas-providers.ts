@@ -1,5 +1,4 @@
 import { IEthereumProvider } from "./ethereum";
-
 import { wrapSend } from "./wrapper";
 
 export function createFixedGasProvider(

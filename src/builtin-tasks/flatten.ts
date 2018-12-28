@@ -1,10 +1,9 @@
-import { BuidlerError, ERRORS } from "../core/errors";
-import { getPackageJson } from "../util/packageInfo";
-
 import { internalTask, task } from "../core/config/config-env";
+import { BuidlerError, ERRORS } from "../core/errors";
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { ResolvedFile } from "../solidity/resolver";
 import { ResolvedFilesMap } from "../types";
+import { getPackageJson } from "../util/packageInfo";
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
