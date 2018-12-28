@@ -36,7 +36,6 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/download": "^6.2.3",
-    "@types/ethereumjs-tx": "^1.0.1",
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^5.0.4",
     "@types/glob": "^7.1.1",
