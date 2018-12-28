@@ -4,8 +4,12 @@ import { Account } from "web3x/account";
 import { Tx } from "web3x/eth";
 import { bufferToHex } from "web3x/utils";
 
+import { BuidlerError, ERRORS } from "../errors";
+
 import { IEthereumProvider } from "./ethereum";
 import { wrapSend } from "./wrapper";
+
+const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
 export function createLocalAccountsProvider(
   provider: IEthereumProvider,
@@ -86,6 +90,14 @@ export function createHDWalletProvider(
   initialIndex: number = 0,
   count: number = 10
 ) {
+  if (!hdpath.match(HD_PATH_REGEX)) {
+    throw new BuidlerError(ERRORS.INVALID_HD_PATH, hdpath);
+  }
+
+  if (!hdpath.endsWith("/")) {
+    hdpath += "/";
+  }
+
   const accounts: Account[] = [];
   for (let i = initialIndex; i < initialIndex + count; i++) {
     accounts.push(Account.createFromMnemonicAndPath(mnemonic, hdpath + i));

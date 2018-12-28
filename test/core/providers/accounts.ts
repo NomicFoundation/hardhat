@@ -3,8 +3,7 @@ import { bufferToHex, privateToAddress } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import { Tx } from "web3x/eth";
 
-import { expectErrorAsync } from "../../helpers/errors";
-
+import { ERRORS } from "../../../src/core/errors";
 import {
   createHDWalletProvider,
   createLocalAccountsProvider,
@@ -12,6 +11,7 @@ import {
 } from "../../../src/core/providers/accounts";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { wrapSend } from "../../../src/core/providers/wrapper";
+import { expectBuidlerError, expectErrorAsync } from "../../helpers/errors";
 
 import { CountProvider } from "./mocks";
 
@@ -286,6 +286,46 @@ describe("hdwallet provider", () => {
       "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9",
       "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
     ]);
+  });
+
+  describe("HDPath formatting", () => {
+    it("Should work if it doesn't end in a /", async () => {
+      wrapper = createHDWalletProvider(mock, mnemonic, "m/44'/60'/0'/0");
+      const response = await wrapper.send("eth_accounts");
+      assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+    });
+
+    it("Should throw if the path is invalid", () => {
+      expectBuidlerError(
+        () => createHDWalletProvider(mock, mnemonic, ""),
+        ERRORS.INVALID_HD_PATH
+      );
+
+      expectBuidlerError(
+        () => createHDWalletProvider(mock, mnemonic, "m/"),
+        ERRORS.INVALID_HD_PATH
+      );
+
+      expectBuidlerError(
+        () => createHDWalletProvider(mock, mnemonic, "m//"),
+        ERRORS.INVALID_HD_PATH
+      );
+
+      expectBuidlerError(
+        () => createHDWalletProvider(mock, mnemonic, "m/'"),
+        ERRORS.INVALID_HD_PATH
+      );
+
+      expectBuidlerError(
+        () => createHDWalletProvider(mock, mnemonic, "m/0''"),
+        ERRORS.INVALID_HD_PATH
+      );
+
+      expectBuidlerError(
+        () => createHDWalletProvider(mock, mnemonic, "ghj"),
+        ERRORS.INVALID_HD_PATH
+      );
+    });
   });
 });
 
