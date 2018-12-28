@@ -256,6 +256,11 @@ export const ERRORS = {
   ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING: {
     number: 49,
     message: 'Invalid param "%s". Command line params must be lowercase.'
+  },
+  INVALID_HD_PATH: {
+    number: 51,
+    message:
+      'HD path "%s" is invalid. Read BIP32 to know about the valid forms.'
   }
 };
 
