@@ -110,4 +110,4 @@ export interface EnvironmentExtension {
   [key: string]: any;
 }
 
-export type EnvironmentExtender = (env: any) => EnvironmentExtension;
+export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
