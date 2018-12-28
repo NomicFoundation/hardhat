@@ -1,5 +1,6 @@
 import {
   BuidlerConfig,
+  EnvironmentExtender,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
@@ -28,10 +29,13 @@ export class BuidlerRuntimeEnvironment {
   constructor(
     public readonly config: BuidlerConfig,
     public readonly buidlerArguments: BuidlerArguments,
-    public readonly tasks: TasksMap
+    public readonly tasks: TasksMap,
+    private readonly extenders: EnvironmentExtender[] = []
   ) {
     const netConfig = getNetworkConfig(config, buidlerArguments.network);
     this.provider = lazyObject(() => createProvider(netConfig));
+
+    extenders.forEach(extender => extender(this));
   }
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
@@ -102,7 +106,6 @@ export class BuidlerRuntimeEnvironment {
     globalAsAny.runSuper = runSuper;
 
     const uninjectFromGlobal = this.injectToGlobal();
-
     const taskResult = await taskDefinition.action(
       taskArguments,
       this,
