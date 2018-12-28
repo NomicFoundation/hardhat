@@ -1,13 +1,13 @@
 import {
   BuidlerConfig,
+  EnvironmentExtender,
+  EnvironmentExtension,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
   TasksMap
 } from "../types";
-import { lazyObject } from "../util/lazy";
 
-import { getNetworkConfig } from "./config/config";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";
 import { createProvider } from "./providers/construction";
@@ -16,6 +16,8 @@ import {
   OverloadedTaskDefinition,
   TaskDefinition
 } from "./tasks/task-definitions";
+import { getNetworkConfig } from "./config/config";
+import { lazyObject } from "../util/lazy";
 
 export class BuidlerRuntimeEnvironment {
   private static readonly BLACKLISTED_PROPERTIES: string[] = [
@@ -28,10 +30,16 @@ export class BuidlerRuntimeEnvironment {
   constructor(
     public readonly config: BuidlerConfig,
     public readonly buidlerArguments: BuidlerArguments,
-    public readonly tasks: TasksMap
+    public readonly tasks: TasksMap,
+    private readonly extenders: EnvironmentExtender[] = []
   ) {
     const netConfig = getNetworkConfig(config, buidlerArguments.network);
     this.provider = lazyObject(() => createProvider(netConfig));
+
+    extenders.forEach(extender => {
+      console.log("calling extender");
+      Object.assign(this, extender(this));
+    });
   }
 
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
@@ -102,7 +110,6 @@ export class BuidlerRuntimeEnvironment {
     globalAsAny.runSuper = runSuper;
 
     const uninjectFromGlobal = this.injectToGlobal();
-
     const taskResult = await taskDefinition.action(
       taskArguments,
       this,
