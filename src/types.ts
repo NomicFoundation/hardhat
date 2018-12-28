@@ -105,3 +105,9 @@ export type GlobalWithBuidlerRuntimeEnvironment = NodeJS.Global & {
 export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
 }
+
+export interface EnvironmentExtension {
+  [key: string]: any;
+}
+
+export type EnvironmentExtender = (env: any) => EnvironmentExtension;
