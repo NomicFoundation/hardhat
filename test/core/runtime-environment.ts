@@ -8,8 +8,6 @@ import { TasksDSL } from "../../src/core/tasks/dsl";
 import { BuidlerConfig, TaskArguments } from "../../src/types";
 import { useFixtureProject } from "../helpers/project";
 
-import { BuidlerRuntimeEnvironment as BREX } from "../fixture-projects/plugin-project/plugins/example";
-
 describe("BuidlerRuntimeEnvironment", () => {
   let config: BuidlerConfig;
   let args: BuidlerArguments;
@@ -112,32 +110,12 @@ describe("BuidlerRuntimeEnvironment", () => {
   });
 
   describe("Plugin system", () => {
-    describe("external plugin", () => {
-      useFixtureProject("plugin-project");
-      before(() => {
-        usePlugin("plugins/example");
-      });
+    useFixtureProject("plugin-project");
 
-      beforeEach(() => {
-        env = new BuidlerRuntimeEnvironment(config, args, tasks, extenders);
-      });
-
-      it("use a plugin", async () => {
-        assert.containsAllKeys(env, ["key", "bleep"]);
-      });
-    });
-    describe("builtin plugins", () => {
-      before(() => {
-        usePlugin("plugins/example");
-      });
-
-      beforeEach(() => {
-        env = new BuidlerRuntimeEnvironment(config, args, tasks, extenders);
-      });
-
-      it("use a plugin", async () => {
-        assert.containsAllKeys(env, ["key", "bleep"]);
-      });
+    it("use a plugin", async () => {
+      usePlugin("example");
+      env = new BuidlerRuntimeEnvironment(config, args, tasks, extenders);
+      assert.containsAllKeys(env, ["key", "bleep"]);
     });
   });
 });

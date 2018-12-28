@@ -57,7 +57,8 @@ export function internalTask<ArgsT extends TaskArguments>(
 export const types = argumentTypes;
 
 export function usePlugin(name: string): void {
-  require(process.cwd() + "/" + name);
+  const path = process.cwd() + "/plugins/";
+  require(path + name);
 }
 
 export const extenders: EnvironmentExtender[] = [];
