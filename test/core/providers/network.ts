@@ -1,10 +1,9 @@
 import { assert } from "chai";
 import { Tx } from "web3x/eth";
 
-import { expectErrorAsync } from "../../helpers/errors";
-
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { createNetworkProvider } from "../../../src/core/providers/network";
+import { expectErrorAsync } from "../../helpers/errors";
 
 import { CountProvider } from "./mocks";
 

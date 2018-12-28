@@ -4,4 +4,3 @@ declare module "web3";
 declare module "deepmerge";
 declare module "repl.history";
 declare module "inquirer";
-declare module "ethereumjs-tx";

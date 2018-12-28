@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-import "source-map-support/register";
-
 import semver from "semver";
+import "source-map-support/register";
 
 import { getConfig } from "../core/config/config";
 import { BuidlerError, ERRORS } from "../core/errors";
