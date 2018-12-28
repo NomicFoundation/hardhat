@@ -106,8 +106,4 @@ export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
 }
 
-export interface EnvironmentExtension {
-  [key: string]: any;
-}
-
 export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
