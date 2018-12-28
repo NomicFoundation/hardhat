@@ -27,8 +27,4 @@ describe("Buidler lib", () => {
     assert.equal(await environment.run("example"), 28);
     assert.isFalse(this.env === environment);
   });
-
-  it("should reuse global state", async function() {
-    assert.equal(await this.env.run("example"), 28);
-  });
 });
