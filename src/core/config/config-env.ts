@@ -1,4 +1,4 @@
-import { ActionType, TaskArguments } from "../../types";
+import { ActionType, EnvironmentExtender, TaskArguments } from "../../types";
 import * as argumentTypes from "../params/argumentTypes";
 import { ConfigurableTaskDefinition } from "../tasks/task-definitions";
 
@@ -55,3 +55,13 @@ export function internalTask<ArgsT extends TaskArguments>(
 }
 
 export const types = argumentTypes;
+
+export function usePlugin(name: string): void {
+  require(process.cwd() + "/" + name);
+}
+
+export const extenders: EnvironmentExtender[] = [];
+
+export function extendEnvironment(extender: EnvironmentExtender) {
+  extenders.push(extender);
+}
