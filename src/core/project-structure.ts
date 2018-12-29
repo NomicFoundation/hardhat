@@ -20,10 +20,6 @@ export function getUserConfigPath() {
   return pathToConfigFile;
 }
 
-export function getProjectRoot() {
-  return path.dirname(getUserConfigPath());
-}
-
 export async function getRecommendedGitIgnore() {
   const fsExtra = await import("fs-extra");
   const packageRoot = await getPackageRoot();

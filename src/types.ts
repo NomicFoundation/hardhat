@@ -2,10 +2,11 @@ import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
 import { TaskDefinition } from "./core/tasks/task-definitions";
 import { SolcOptimizerConfig } from "./solidity/compiler";
 import { ResolvedFile } from "./solidity/resolver";
+import { Omit } from "./util/common-types";
 
 export interface GanacheOptions {
-  gasLimit: number;
-  network_id: number;
+  gasLimit?: number;
+  network_id?: number;
   mnemonic?: string;
   accounts?: Array<{ balance: string; secretKey: string }>;
 }
@@ -23,8 +24,8 @@ interface AutoNetworkAccount {
 }
 
 export interface AutoNetworkConfig extends CommonNetworkConfig {
-  accounts: AutoNetworkAccount[];
-  blockGasLimit: number;
+  accounts?: AutoNetworkAccount[];
+  blockGasLimit?: number;
   ganacheOptions?: GanacheOptions;
 }
 
@@ -52,24 +53,36 @@ export interface HttpNetworkConfig extends CommonNetworkConfig {
 
 export type NetworkConfig = AutoNetworkConfig | HttpNetworkConfig;
 
-interface Networks {
+export interface Networks {
   [networkName: string]: NetworkConfig;
 }
 
+export interface ProjectPaths {
+  root: string;
+  configFile: string;
+  cache: string;
+  artifacts: string;
+  sources: string;
+  [otherPath: string]: string;
+}
+
 export interface BuidlerConfig {
-  networks: Networks;
-  paths: {
-    root: string;
-    configFile: string;
-    cache: string;
-    artifacts: string;
-    sources: string;
+  networks?: Networks;
+  paths?: Omit<Partial<ProjectPaths>, "configFile">;
+  solc?: {
+    version?: string;
+    optimizer?: Partial<SolcOptimizerConfig>;
   };
+  mocha?: Mocha.MochaOptions;
+}
+
+export interface ResolvedBuidlerConfig extends BuidlerConfig {
+  networks: Networks;
+  paths: ProjectPaths;
   solc: {
     version: string;
     optimizer: SolcOptimizerConfig;
   };
-  mocha: Mocha.MochaOptions;
 }
 
 export interface TasksMap {

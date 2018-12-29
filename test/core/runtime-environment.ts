@@ -6,12 +6,12 @@ import { ERRORS } from "../../src/core/errors";
 import { BuidlerArguments } from "../../src/core/params/buidler-params";
 import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
 import { TasksDSL } from "../../src/core/tasks/dsl";
-import { BuidlerConfig, TaskArguments } from "../../src/types";
+import { ResolvedBuidlerConfig, TaskArguments } from "../../src/types";
 import { expectErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 
 describe("BuidlerRuntimeEnvironment", () => {
-  let config: BuidlerConfig;
+  let config: ResolvedBuidlerConfig;
   let args: BuidlerArguments;
   let tasks: TaskArguments;
   let env: BuidlerRuntimeEnvironment;
