@@ -5,7 +5,7 @@ import "source-map-support/register";
 import colors from "ansi-colors";
 import semver from "semver";
 
-import { getConfig } from "../core/config/config-loading";
+import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
@@ -76,7 +76,7 @@ async function main() {
       return;
     }
 
-    const [config, taskDefinitions] = getConfig(buidlerArguments.config);
+    const [config, taskDefinitions] = loadConfigAndTasks(buidlerArguments.config);
 
     const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
     const taskDefinition = taskDefinitions[taskName];

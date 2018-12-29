@@ -9,7 +9,7 @@ function importCsjOrEsModule(filePath: string): any {
   return imported.default !== undefined ? imported.default : imported;
 }
 
-export function getConfig(configPath?: string) {
+export function loadConfigAndTasks(configPath?: string) {
   if (configPath === undefined) {
     configPath = getUserConfigPath();
   } else {

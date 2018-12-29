@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import * as path from "path";
 
-import { getConfig } from "../../../src/core/config/config-loading";
+import { loadConfigAndTasks } from "../../../src/core/config/config-loading";
 import {
   getFixtureProjectPath,
   useFixtureProject
@@ -11,7 +11,7 @@ describe("config loading", () => {
   describe("default config path", () => {
     useFixtureProject("config-project");
     it("should load the default config if none is given", () => {
-      const [config, _] = getConfig();
+      const [config, _] = loadConfigAndTasks();
 
       assert.isDefined(config.networks.develop);
       assert.deepEqual(config.networks.develop.accounts, [
@@ -24,7 +24,7 @@ describe("config loading", () => {
     useFixtureProject("custom-config-file");
 
     it("should accept a relative path from the CWD", () => {
-      const [config, _] = getConfig("config.js");
+      const [config, _] = loadConfigAndTasks("config.js");
       assert.equal(
         config.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
@@ -33,7 +33,7 @@ describe("config loading", () => {
 
     it("should accept an absolute path", async () => {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
-      const [config, _] = getConfig(fixtureDir + "/config.js");
+      const [config, _] = loadConfigAndTasks(fixtureDir + "/config.js");
       assert.equal(
         config.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
@@ -45,7 +45,7 @@ describe("config loading", () => {
     useFixtureProject("config-project");
 
     it("Should define the default tasks", () => {
-      const [_, tasks] = getConfig();
+      const [_, tasks] = loadConfigAndTasks();
       assert.containsAllKeys(tasks, [
         "clean",
         "flatten",
@@ -57,7 +57,7 @@ describe("config loading", () => {
     });
 
     it("Should load custom tasks", () => {
-      const [_, tasks] = getConfig();
+      const [_, tasks] = loadConfigAndTasks();
       assert.containsAllKeys(tasks, ["example", "example2"]);
     });
   });
@@ -73,7 +73,7 @@ describe("config loading", () => {
       assert.isUndefined(globalAsAny.usePlugin);
       assert.isUndefined(globalAsAny.extendEnvironment);
 
-      const [_, __] = getConfig();
+      const [_, __] = loadConfigAndTasks();
 
       assert.isUndefined(globalAsAny.internalTask);
       assert.isUndefined(globalAsAny.task);

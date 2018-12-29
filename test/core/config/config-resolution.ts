@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import * as path from "path";
 
-import { getConfig } from "../../../src/core/config/config-loading";
+import { loadConfigAndTasks } from "../../../src/core/config/config-loading";
 import {
   resolveNetworks,
   resolveProjectPaths
@@ -16,7 +16,7 @@ describe("Config resolution", () => {
       useFixtureProject("default-config-project");
 
       it("should return the default config", () => {
-        const [config, _] = getConfig();
+        const [config, _] = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
         assert.containsAllKeys(config.networks, ["auto", "develop"]);
       });
@@ -26,14 +26,14 @@ describe("Config resolution", () => {
       useFixtureProject("config-project");
 
       it("should return the config merged ", () => {
-        const [config, tasks] = getConfig();
+        const [config, tasks] = loadConfigAndTasks();
 
         assert.equal(config.solc.version, getLocalCompilerVersion());
         assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
       });
 
       it("should return the config merged ", () => {
-        const [config, tasks] = getConfig();
+        const [config, tasks] = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
         assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
         assert.equal(config.networks.develop.url, "http://127.0.0.1:8545");

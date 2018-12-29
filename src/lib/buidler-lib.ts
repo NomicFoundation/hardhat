@@ -1,4 +1,4 @@
-import { getConfig } from "../core/config/config-loading";
+import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
@@ -15,7 +15,7 @@ if (globalWithEnv.env !== undefined) {
     process.env
   );
 
-  const [config, taskDefinitions] = getConfig(buidlerArguments.config);
+  const [config, taskDefinitions] = loadConfigAndTasks(buidlerArguments.config);
 
   env = new BuidlerRuntimeEnvironment(
     config,
