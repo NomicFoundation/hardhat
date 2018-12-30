@@ -27,6 +27,7 @@
       }
     ],
     "no-floating-promises": true,
-    "prefer-conditional-expression": false
+    "prefer-conditional-expression": false,
+    "only-buidler-error": true
   }
 }
