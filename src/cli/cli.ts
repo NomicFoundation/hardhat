@@ -76,7 +76,9 @@ async function main() {
       return;
     }
 
-    const [config, taskDefinitions] = loadConfigAndTasks(buidlerArguments.config);
+    const [config, taskDefinitions] = loadConfigAndTasks(
+      buidlerArguments.config
+    );
 
     const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
     const taskDefinition = taskDefinitions[taskName];
