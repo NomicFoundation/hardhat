@@ -47,11 +47,16 @@ function walk(ctx: Lint.WalkContext<string[]>, tc: ts.TypeChecker) {
   });
 }
 
-function isBuidlerError(expression: ts.Expression, tc: ts.TypeChecker) {
+function getExpressionClassName(expression: ts.Expression, tc: ts.TypeChecker) {
   const exceptionType = tc.getTypeAtLocation(expression);
-  if (!exceptionType.isClass()) {
-    return false;
+
+  if (exceptionType.symbol === undefined) {
+    return "[UNKNOWN EXCEPTION TYPE]";
   }
 
-  return exceptionType.symbol.getName() === "BuidlerError";
+  return exceptionType.symbol.getName();
+}
+
+function isBuidlerError(expression: ts.Expression, tc: ts.TypeChecker) {
+  return getExpressionClassName(expression, tc) === "BuidlerError";
 }
