@@ -37,9 +37,11 @@ function walk(ctx: Lint.WalkContext<string[]>, tc: ts.TypeChecker) {
       const expression = node.expression!;
 
       if (!isBuidlerError(expression, tc)) {
+        const exceptionName = getExpressionClassName(expression, tc);
+
         ctx.addFailureAtNode(
           expression,
-          "Only BuidlerError or derived classes must be thrown"
+          `Only BuidlerError must be thrown, ${exceptionName} found.`
         );
       }
     }
