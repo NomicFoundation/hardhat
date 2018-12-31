@@ -17,8 +17,8 @@ export class Rule extends Lint.Rules.TypedRule {
     sourceFile: ts.SourceFile,
     program: ts.Program
   ): Lint.RuleFailure[] {
-    const srcDir = path.normalize(__dirname + "/../src");
-    if (!sourceFile.fileName.startsWith(srcDir)) {
+    const srcDir = path.normalize(__dirname + "/../test");
+    if (sourceFile.fileName.startsWith(srcDir)) {
       return [];
     }
 
