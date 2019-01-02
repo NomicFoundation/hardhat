@@ -11,33 +11,6 @@ import {
 } from "../../types";
 import { fromEntries } from "../../util/lang";
 
-export function resolveNetworks(networks: Networks) {
-  if (
-    networks.auto !== undefined &&
-    Object.keys(networks.auto).includes("url")
-  ) {
-    delete (networks.auto as any).url;
-  }
-
-  for (const name of Object.keys(networks)) {
-    if (name === "auto") {
-      continue;
-    }
-
-    const network = networks[name] as HttpNetworkConfig;
-    if (network.url === undefined) {
-      network.url = "http://localhost:8545";
-    }
-
-    if (
-      network.accounts === undefined ||
-      Object.keys(network.accounts).length === 0
-    ) {
-      network.accounts = "remote";
-    }
-  }
-}
-
 function mergeUserAndDefaultConfigs(
   defaultConfig: BuidlerConfig,
   userConfig: BuidlerConfig
@@ -58,7 +31,6 @@ export function resolveConfig(
   );
 
   config.paths = resolveProjectPaths(userConfigPath, userConfig.paths);
-  resolveNetworks(config.networks);
 
   return config;
 }

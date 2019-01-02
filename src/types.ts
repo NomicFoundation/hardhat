@@ -77,7 +77,6 @@ export interface BuidlerConfig {
 }
 
 export interface ResolvedBuidlerConfig extends BuidlerConfig {
-  networks: Networks;
   paths: ProjectPaths;
   solc: {
     version: string;

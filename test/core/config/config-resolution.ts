@@ -2,10 +2,7 @@ import { assert } from "chai";
 import * as path from "path";
 
 import { loadConfigAndTasks } from "../../../src/core/config/config-loading";
-import {
-  resolveNetworks,
-  resolveProjectPaths
-} from "../../../src/core/config/config-resolution";
+import { resolveProjectPaths } from "../../../src/core/config/config-resolution";
 import { HttpNetworkConfig, Networks } from "../../../src/types";
 import { getLocalCompilerVersion } from "../../helpers/compiler";
 import { useFixtureProject } from "../../helpers/project";
@@ -102,32 +99,6 @@ describe("Config resolution", () => {
       assert.equal(paths.sources, __dirname + "/contracts");
       assert.equal(paths.artifacts, __dirname + "/artifacts");
       assert.equal(paths.cache, __dirname + "/cache");
-    });
-  });
-
-  describe("Networks resolution", () => {
-    it("Should remove the url from the auto network, so they are distinguishable", () => {
-      const networks = { auto: { url: "asd" } };
-      resolveNetworks(networks);
-
-      assert.isUndefined(networks.auto.url);
-    });
-
-    it("Should add a default url to the other networks", () => {
-      const networks: Networks = { asd: {}, asd2: {} };
-      resolveNetworks(networks);
-
-      const defaultUrl = "http://localhost:8545";
-      assert.equal((networks.asd as HttpNetworkConfig).url, defaultUrl);
-      assert.equal((networks.asd2 as HttpNetworkConfig).url, defaultUrl);
-    });
-
-    it("Should set 'remote' as the default accounts value", () => {
-      const networks: Networks = { asd: {}, asd2: {} };
-      resolveNetworks(networks);
-
-      assert.equal((networks.asd as HttpNetworkConfig).accounts, "remote");
-      assert.equal((networks.asd2 as HttpNetworkConfig).accounts, "remote");
     });
   });
 });

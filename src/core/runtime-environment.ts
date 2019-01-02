@@ -8,7 +8,6 @@ import {
 } from "../types";
 import { lazyObject } from "../util/lazy";
 
-import { getNetworkConfig } from "./config/network";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";
 import { createProvider } from "./providers/construction";
@@ -32,8 +31,9 @@ export class BuidlerRuntimeEnvironment {
     public readonly tasks: TasksMap,
     private readonly extenders: EnvironmentExtender[] = []
   ) {
-    const netConfig = getNetworkConfig(config, buidlerArguments.network);
-    this.provider = lazyObject(() => createProvider(netConfig));
+    this.provider = lazyObject(() =>
+      createProvider(buidlerArguments.network, config.networks)
+    );
 
     extenders.forEach(extender => extender(this));
   }
