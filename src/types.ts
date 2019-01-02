@@ -64,7 +64,6 @@ export interface ProjectPaths {
   cache: string;
   artifacts: string;
   sources: string;
-  [otherPath: string]: string;
 }
 
 export interface SolcConfig {
