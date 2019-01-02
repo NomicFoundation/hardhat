@@ -22,13 +22,13 @@ describe("Buidler lib", () => {
   });
 
   it("should reuse global state", async function() {
-    let environment = require("../../src/lib/buidler-lib").default;
+    let environment = require("../../src/lib/buidler-lib");
     assert.isTrue(this.env === environment);
 
     // delete the cached version of buidler lib exported module.
     delete require.cache[require.resolve("../../src/lib/buidler-lib")];
 
-    environment = require("../../src/lib/buidler-lib").default;
+    environment = require("../../src/lib/buidler-lib");
     assert.equal(await environment.run("example"), 28);
     assert.isFalse(this.env === environment);
   });

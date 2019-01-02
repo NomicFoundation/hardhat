@@ -25,4 +25,4 @@ if (globalWithEnv.env !== undefined) {
 }
 
 // TODO: Find out a way to export this as a CJS module.
-export default env;
+export = env;
