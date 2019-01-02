@@ -3,7 +3,6 @@ import { DeepPartial, Omit } from "ts-essentials";
 
 import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
 import { TaskDefinition } from "./core/tasks/task-definitions";
-import { SolcOptimizerConfig } from "./solidity/compiler";
 import { ResolvedFile } from "./solidity/resolver";
 
 export interface GanacheOptions {
@@ -68,22 +67,27 @@ export interface ProjectPaths {
   [otherPath: string]: string;
 }
 
+export interface SolcConfig {
+  version: string;
+  optimizer: SolcOptimizerConfig;
+}
+
+export interface SolcOptimizerConfig {
+  enabled: boolean;
+  runs: number;
+}
+
 export interface BuidlerConfig {
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
-  solc?: {
-    version?: string;
-    optimizer?: Partial<SolcOptimizerConfig>;
-  };
+  solc?: DeepPartial<SolcConfig>;
   mocha?: Mocha.MochaOptions;
 }
 
 export interface ResolvedBuidlerConfig extends BuidlerConfig {
   paths: ProjectPaths;
-  solc: {
-    version: string;
-    optimizer: SolcOptimizerConfig;
-  };
+  networks: Networks;
+  solc: SolcConfig;
 }
 
 export interface TasksMap {

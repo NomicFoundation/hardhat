@@ -1,11 +1,7 @@
+import { SolcOptimizerConfig } from "../../types";
 import { DependencyGraph } from "../dependencyGraph";
 
 import { CompilerDownloader } from "./downloader";
-
-export interface SolcOptimizerConfig {
-  enabled: boolean;
-  runs: number;
-}
 
 export class Compiler {
   private static getLocalSolcVersion(): string {

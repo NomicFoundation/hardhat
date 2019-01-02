@@ -1,9 +1,10 @@
 import { assert } from "chai";
 
-import { Compiler, SolcOptimizerConfig } from "../../../src/solidity/compiler";
+import { Compiler } from "../../../src/solidity/compiler";
 import { CompilerDownloader } from "../../../src/solidity/compiler/downloader";
 import { DependencyGraph } from "../../../src/solidity/dependencyGraph";
 import { ResolvedFile, Resolver } from "../../../src/solidity/resolver";
+import { SolcOptimizerConfig } from "../../../src/types";
 import { getLocalCompilerVersion } from "../../helpers/compiler";
 
 class MockedDownloader extends CompilerDownloader {
