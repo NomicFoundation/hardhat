@@ -2,6 +2,10 @@ import path from "path";
 
 import { BuidlerError, ERRORS } from "../core/errors";
 
+export interface ResolvedFilesMap {
+  [globalName: string]: ResolvedFile;
+}
+
 export interface LibraryInfo {
   name: string;
   version: string;

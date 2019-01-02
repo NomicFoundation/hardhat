@@ -1,9 +1,8 @@
 // tslint:disable-next-line no-implicit-dependencies
 import { DeepPartial, Omit } from "ts-essentials";
 
-import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
-import { TaskDefinition } from "./core/tasks/task-definitions";
-import { ResolvedFile } from "./solidity/resolver";
+import * as types from "./core/params/argumentTypes";
+import { IEthereumProvider } from "./core/providers/ethereum";
 
 export interface GanacheOptions {
   gasLimit?: number;
@@ -89,14 +88,115 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   solc: SolcConfig;
 }
 
+export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
+
 export interface TasksMap {
   [name: string]: TaskDefinition;
+}
+
+export interface ConfigurableTaskDefinition {
+  setDescription(description: string): this;
+
+  setAction<ArgsT>(action: ActionType<ArgsT>): this;
+
+  addParam<T>(
+    name: string,
+    description?: string,
+    defaultValue?: T,
+    type?: types.ArgumentType<T>,
+    isOptional?: boolean
+  ): this;
+
+  addOptionalParam<T>(
+    name: string,
+    description?: string,
+    defaultValue?: T,
+    type?: types.ArgumentType<T>
+  ): this;
+
+  addPositionalParam<T>(
+    name: string,
+    description?: string,
+    defaultValue?: T,
+    type?: types.ArgumentType<T>,
+    isOptional?: boolean
+  ): this;
+
+  addOptionalPositionalParam<T>(
+    name: string,
+    description?: string,
+    defaultValue?: T,
+    type?: types.ArgumentType<T>
+  ): this;
+
+  addVariadicPositionalParam<T>(
+    name: string,
+    description?: string,
+    defaultValue?: T[],
+    type?: types.ArgumentType<T>,
+    isOptional?: boolean
+  ): this;
+
+  addOptionalVariadicPositionalParam<T>(
+    name: string,
+    description?: string,
+    defaultValue?: T[],
+    type?: types.ArgumentType<T>
+  ): this;
+
+  addFlag(name: string, description?: string): this;
+}
+
+export interface ParamDefinition<T> {
+  name: string;
+  defaultValue?: T;
+  type: types.ArgumentType<T>;
+  description?: string;
+  isOptional: boolean;
+  isFlag: boolean;
+  isVariadic: boolean;
+}
+
+export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
+  defaultValue: T;
+  isOptional: true;
+}
+
+export interface ParamDefinitionsMap {
+  [paramName: string]: ParamDefinition<any>;
+}
+
+export interface BuidlerArguments {
+  network: string;
+  showStackTraces: boolean;
+  version: boolean;
+  help: boolean;
+  emoji: boolean;
+  config?: string;
+}
+
+export type BuidlerParamDefinitions = {
+  [param in keyof Required<BuidlerArguments>]: OptionalParamDefinition<
+    BuidlerArguments[param]
+  >
+};
+
+export interface TaskDefinition extends ConfigurableTaskDefinition {
+  readonly name: string;
+  readonly description?: string;
+  readonly action: ActionType<TaskArguments>;
+  readonly isInternal: boolean;
+
+  // TODO: Rename this to something better. It doesn't include the positional
+  // params, and that's not clear.
+  readonly paramDefinitions: ParamDefinitionsMap;
+
+  readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
 }
 
 export interface TaskArguments {
   [argumentName: string]: any;
 }
-
 export type RunTaskFunction = (
   name: string,
   taskArguments?: TaskArguments
@@ -106,21 +206,16 @@ export type RunSuperFunction<ArgT extends TaskArguments> = (
   taskArguments?: ArgT
 ) => Promise<any>;
 
-// TODO: This may be wrong. Maybe it should be just TaskArguments. The thing
-// is that doing that won't allow us to type the task definitions with more
-// specific types.
 export type ActionType<ArgsT extends TaskArguments> = (
   taskArgs: ArgsT,
   env: BuidlerRuntimeEnvironment,
   runSuper: RunSuperFunction<ArgsT>
 ) => Promise<any>;
 
-export type GlobalWithBuidlerRuntimeEnvironment = NodeJS.Global & {
-  env: BuidlerRuntimeEnvironment;
-};
-
-export interface ResolvedFilesMap {
-  [globalName: string]: ResolvedFile;
+export interface BuidlerRuntimeEnvironment {
+  readonly provider: IEthereumProvider;
+  readonly config: ResolvedBuidlerConfig;
+  readonly buidlerArguments: BuidlerArguments;
+  readonly tasks: TasksMap;
+  readonly run: RunTaskFunction;
 }
-
-export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;

@@ -3,16 +3,14 @@ import { assert } from "chai";
 import { ArgumentsParser } from "../../src/cli/ArgumentsParser";
 import { ERRORS } from "../../src/core/errors";
 import { int, string } from "../../src/core/params/argumentTypes";
+import { BUIDLER_PARAM_DEFINITIONS } from "../../src/core/params/buidler-params";
+import { SimpleTaskDefinition } from "../../src/core/tasks/task-definitions";
 import {
-  BUIDLER_PARAM_DEFINITIONS,
-  BuidlerArguments
-} from "../../src/core/params/buidler-params";
-import {
-  SimpleTaskDefinition,
+  BuidlerArguments,
+  TaskArguments,
   TaskDefinition
-} from "../../src/core/tasks/task-definitions";
+} from "../../src/types";
 import { expectBuidlerError } from "../helpers/errors";
-import { TaskArguments } from "../types";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;

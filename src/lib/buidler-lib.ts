@@ -1,11 +1,14 @@
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
-import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
-import { GlobalWithBuidlerRuntimeEnvironment } from "../types";
+import { Environment } from "../core/runtime-environment";
 
-let env: BuidlerRuntimeEnvironment;
-const globalWithEnv = global as GlobalWithBuidlerRuntimeEnvironment;
+export type BuidlerWithEnvironment = NodeJS.Global & {
+  env: Environment;
+};
+
+let env: Environment;
+const globalWithEnv = global as BuidlerWithEnvironment;
 
 if (globalWithEnv.env !== undefined) {
   env = globalWithEnv.env;
@@ -17,11 +20,7 @@ if (globalWithEnv.env !== undefined) {
 
   const [config, taskDefinitions] = loadConfigAndTasks(buidlerArguments.config);
 
-  env = new BuidlerRuntimeEnvironment(
-    config,
-    buidlerArguments,
-    taskDefinitions
-  );
+  env = new Environment(config, buidlerArguments, taskDefinitions);
 }
 
 // TODO: Find out a way to export this as a CJS module.

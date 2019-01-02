@@ -1,21 +1,6 @@
-import { OptionalParamDefinition } from "../tasks/task-definitions";
+import { BuidlerParamDefinitions } from "../../types";
 
 import * as types from "./argumentTypes";
-
-export interface BuidlerArguments {
-  network: string;
-  showStackTraces: boolean;
-  version: boolean;
-  help: boolean;
-  emoji: boolean;
-  config?: string;
-}
-
-export type BuidlerParamDefinitions = {
-  [param in keyof Required<BuidlerArguments>]: OptionalParamDefinition<
-    BuidlerArguments[param]
-  >
-};
 
 export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   network: {
