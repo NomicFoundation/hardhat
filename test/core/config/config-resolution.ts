@@ -3,7 +3,6 @@ import * as path from "path";
 
 import { loadConfigAndTasks } from "../../../src/core/config/config-loading";
 import { resolveProjectPaths } from "../../../src/core/config/config-resolution";
-import { HttpNetworkConfig, Networks } from "../../../src/types";
 import { getLocalCompilerVersion } from "../../helpers/compiler";
 import { useFixtureProject } from "../../helpers/project";
 
@@ -62,7 +61,7 @@ describe("Config resolution", () => {
       });
 
       assert.equal(paths.root, "/root");
-      assert.equal(paths.asd, "/asd");
+      assert.equal((paths as any).asd, "/asd");
       assert.equal(paths.sources, "/c");
       assert.equal(paths.artifacts, "/a");
       assert.equal(paths.cache, "/ca");
@@ -87,7 +86,7 @@ describe("Config resolution", () => {
 
       const root = __dirname + "/blah";
       assert.equal(paths.root, root);
-      assert.equal(paths.asdf, root + "/asd");
+      assert.equal((paths as any).asdf, root + "/asd");
       assert.equal(paths.sources, root + "/c");
       assert.equal(paths.artifacts, root + "/a");
       assert.equal(paths.cache, root + "/ca");
