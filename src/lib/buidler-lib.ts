@@ -2,12 +2,13 @@ import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
+import { BuidlerRuntimeEnvironment } from "../types";
 
-export type BuidlerWithEnvironment = NodeJS.Global & {
-  env: Environment;
+type BuidlerWithEnvironment = NodeJS.Global & {
+  env?: BuidlerRuntimeEnvironment;
 };
 
-let env: Environment;
+let env: BuidlerRuntimeEnvironment;
 const globalWithEnv = global as BuidlerWithEnvironment;
 
 if (globalWithEnv.env !== undefined) {
