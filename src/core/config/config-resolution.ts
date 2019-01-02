@@ -9,6 +9,7 @@ import {
   ProjectPaths,
   ResolvedBuidlerConfig
 } from "../../types";
+import { fromEntries } from "../../util/lang";
 
 export function resolveNetworks(networks: Networks) {
   if (
@@ -94,12 +95,11 @@ export function resolveProjectPaths(
 
   const root = resolvePathFrom(configDir, "", userPaths.root);
 
-  const otherPaths = Object.assign(
-    {},
-    ...Object.entries<string>(userPaths).map(([name, value]) => ({
-      [name]: resolvePathFrom(root, value)
-    }))
-  );
+  const otherPathsEntries = Object.entries<string>(userPaths).map<
+    [string, string]
+  >(([name, value]) => [name, resolvePathFrom(root, value)]);
+
+  const otherPaths = fromEntries(otherPathsEntries);
 
   return {
     ...otherPaths,
