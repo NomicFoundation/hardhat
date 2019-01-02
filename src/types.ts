@@ -1,8 +1,10 @@
+// tslint:disable-next-line no-implicit-dependencies
+import { DeepPartial, Omit } from "ts-essentials";
+
 import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
 import { TaskDefinition } from "./core/tasks/task-definitions";
 import { SolcOptimizerConfig } from "./solidity/compiler";
 import { ResolvedFile } from "./solidity/resolver";
-import { Omit } from "./util/common-types";
 
 export interface GanacheOptions {
   gasLimit?: number;
