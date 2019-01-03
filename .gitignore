@@ -11,12 +11,6 @@
 /coverage
 /\.nyc_output
 
-# Generated config-export files
-/config.d.ts
-/config.d.ts.map
-/config.js
-/config.js.map
-
 #Below is Github's node gitignore template
 
 # Logs
