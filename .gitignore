@@ -11,6 +11,19 @@
 /coverage
 /\.nyc_output
 
+# TSC prod output. This has to be in sync with the to directories in ./src, and with npm script prod:clean
+
+/*.js
+/*.js.map
+/*.d.ts
+/*.d.ts.map
+/builtin-tasks
+/cli
+/core
+/lib
+/solidity
+/util
+
 #Below is Github's node gitignore template
 
 # Logs
