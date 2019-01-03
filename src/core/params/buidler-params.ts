@@ -8,10 +8,11 @@ export interface BuidlerArguments {
   version: boolean;
   help: boolean;
   emoji: boolean;
+  config?: string;
 }
 
 export type BuidlerParamDefinitions = {
-  [param in keyof BuidlerArguments]: OptionalParamDefinition<
+  [param in keyof Required<BuidlerArguments>]: OptionalParamDefinition<
     BuidlerArguments[param]
   >
 };
@@ -59,6 +60,15 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     description: "Use emoji in messages.",
     type: types.boolean,
     isFlag: true,
+    isOptional: true,
+    isVariadic: false
+  },
+  config: {
+    name: "config",
+    defaultValue: undefined,
+    description: "A Buidler config file.",
+    type: types.inputFile,
+    isFlag: false,
     isOptional: true,
     isVariadic: false
   }

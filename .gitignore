@@ -1,9 +1,21 @@
 \.idea
 \.DS_Store
 
-#Buidler working files
-cache
-artifacts
+# vuepress
+/docs/.vuepress/dist/
+
+# TS compilation output
+/dist/
+
+# Code coverage artifacts
+/coverage
+/\.nyc_output
+
+# Generated config-export files
+/config.d.ts
+/config.d.ts.map
+/config.js
+/config.js.map
 
 #Below is Github's node gitignore template
 
@@ -66,18 +78,3 @@ typings/
 # next.js build output
 .next
 
-# vuepress
-docs/.vuepress/dist/
-
-# TS compilation output
-dist/
-
-# Code coverage artifacts
-coverage
-.nyc_output
-
-# Generated config-export files
-config.d.ts
-config.d.ts.map
-config.js
-config.js.map

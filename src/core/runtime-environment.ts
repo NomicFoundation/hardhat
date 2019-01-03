@@ -1,6 +1,6 @@
 import {
-  BuidlerConfig,
   EnvironmentExtender,
+  ResolvedBuidlerConfig,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
@@ -8,7 +8,6 @@ import {
 } from "../types";
 import { lazyObject } from "../util/lazy";
 
-import { getNetworkConfig } from "./config/config";
 import { BuidlerError, ERRORS } from "./errors";
 import { BuidlerArguments } from "./params/buidler-params";
 import { createProvider } from "./providers/construction";
@@ -27,13 +26,14 @@ export class BuidlerRuntimeEnvironment {
   public provider: IEthereumProvider;
 
   constructor(
-    public readonly config: BuidlerConfig,
+    public readonly config: ResolvedBuidlerConfig,
     public readonly buidlerArguments: BuidlerArguments,
     public readonly tasks: TasksMap,
     private readonly extenders: EnvironmentExtender[] = []
   ) {
-    const netConfig = getNetworkConfig(config, buidlerArguments.network);
-    this.provider = lazyObject(() => createProvider(netConfig));
+    this.provider = lazyObject(() =>
+      createProvider(buidlerArguments.network, config.networks)
+    );
 
     extenders.forEach(extender => extender(this));
   }

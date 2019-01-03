@@ -3,50 +3,12 @@ import * as fsExtra from "fs-extra";
 
 import { ERRORS } from "../../src/core/errors";
 import {
-  getProjectRoot,
   getRecommendedGitIgnore,
   getUserConfigPath,
   isCwdInsideProject
 } from "../../src/core/project-structure";
 import { expectBuidlerError } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
-
-function testProjectPathsGetter(
-  name: string,
-  getter: () => string,
-  relativePathFromFixture: string
-) {
-  describe(name, () => {
-    it("should throw if cwd is not inside a project", () => {
-      expectBuidlerError(() => getter(), ERRORS.BUIDLER_NOT_INSIDE_PROJECT);
-    });
-
-    describe("Inside a project", () => {
-      useFixtureProject("default-config-project");
-      let path: string;
-
-      before("get root path", async () => {
-        // TODO: This is no longer needed once PR #71 gets merged
-        const pathToFixtureRoot = await fsExtra.realpath(
-          __dirname + "/../fixture-projects/default-config-project"
-        );
-
-        path = await fsExtra.realpath(
-          pathToFixtureRoot + "/" + relativePathFromFixture
-        );
-      });
-
-      it("should work from the project root", () => {
-        assert.equal(getter(), path);
-      });
-
-      it("should work from deeper inside the project", () => {
-        process.chdir("contracts");
-        assert.equal(getter(), path);
-      });
-    });
-  });
-}
 
 describe("project structure", () => {
   describe("isCwdInsideProject", () => {
@@ -68,13 +30,37 @@ describe("project structure", () => {
     });
   });
 
-  testProjectPathsGetter(
-    "getUserConfigPath",
-    getUserConfigPath,
-    "./buidler.config.js"
-  );
+  describe("getUserConfigPath", () => {
+    it("should throw if cwd is not inside a project", () => {
+      expectBuidlerError(
+        () => getUserConfigPath(),
+        ERRORS.BUIDLER_NOT_INSIDE_PROJECT
+      );
+    });
 
-  testProjectPathsGetter("getProjectRoot", getProjectRoot, ".");
+    describe("Inside a project", () => {
+      useFixtureProject("default-config-project");
+      let path: string;
+
+      before("get root path", async () => {
+        // TODO: This is no longer needed once PR #71 gets merged
+        const pathToFixtureRoot = await fsExtra.realpath(
+          __dirname + "/../fixture-projects/default-config-project"
+        );
+
+        path = await fsExtra.realpath(pathToFixtureRoot + "/buidler.config.js");
+      });
+
+      it("should work from the project root", () => {
+        assert.equal(getUserConfigPath(), path);
+      });
+
+      it("should work from deeper inside the project", () => {
+        process.chdir("contracts");
+        assert.equal(getUserConfigPath(), path);
+      });
+    });
+  });
 });
 
 describe("getRecommendedGitIgnore", () => {

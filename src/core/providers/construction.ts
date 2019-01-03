@@ -1,24 +1,12 @@
 import {
-  AutoNetworkConfig,
   HDAccountsConfig,
   HttpNetworkConfig,
-  NetworkConfig,
-  NetworkConfigAccounts
+  NetworkConfigAccounts,
+  Networks
 } from "../../types";
+import { BuidlerError, ERRORS } from "../errors";
 
 import { IEthereumProvider } from "./ethereum";
-
-export function isHttpNetworkConfig(
-  netConfig: NetworkConfig
-): netConfig is HttpNetworkConfig {
-  return Object.keys(netConfig).includes("url");
-}
-
-export function isAutoNetworkConfig(
-  netConfig: NetworkConfig
-): netConfig is AutoNetworkConfig {
-  return !isHttpNetworkConfig(netConfig);
-}
 
 export function isHDAccountsConfig(
   accounts?: NetworkConfigAccounts
@@ -26,17 +14,31 @@ export function isHDAccountsConfig(
   return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }
 
-export function createProvider(netConfig: NetworkConfig): IEthereumProvider {
-  if (isAutoNetworkConfig(netConfig)) {
+export function createProvider(
+  selectedNetwork: string,
+  networksConfig?: Networks
+): IEthereumProvider {
+  if (
+    networksConfig === undefined ||
+    networksConfig[selectedNetwork] === undefined
+  ) {
+    throw new BuidlerError(ERRORS.NETWORK_CONFIG_NOT_FOUND, selectedNetwork);
+  }
+
+  if (selectedNetwork === "auto") {
     throw new Error("Network auto not yet supported");
   }
+
+  const netConfig = networksConfig[selectedNetwork] as HttpNetworkConfig;
 
   // These dependencies are lazy-loaded because they are really big.
   // We use require() instead of import() here, because we need it to be sync.
 
   const { HttpProvider } = require("web3x/providers");
 
-  const baseProvider = new HttpProvider(netConfig.url);
+  const baseProvider = new HttpProvider(
+    netConfig.url || "http://localhost:8545"
+  );
 
   // TODO: This may break, the base provider is not an IEthereumProvider
   const provider: IEthereumProvider = baseProvider as any;

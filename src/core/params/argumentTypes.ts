@@ -68,3 +68,28 @@ export const float: ArgumentType<number> = {
     return Number(strValue);
   }
 };
+
+export let inputFile: ArgumentType<string> = {
+  name: "inputFile",
+  parse(argName: string, strValue: string): string {
+    try {
+      const fs = require("fs");
+      const fsExtra = require("fs-extra");
+      fs.accessSync(strValue, fsExtra.constants.R_OK);
+      const stats = fs.lstatSync(strValue);
+
+      if (stats.isDirectory()) {
+        throw new Error(strValue + " is a directory, not a file");
+      }
+    } catch (error) {
+      throw new BuidlerError(
+        ERRORS.ARG_TYPE_INVALID_INPUT_FILE,
+        error,
+        argName,
+        strValue
+      );
+    }
+
+    return strValue;
+  }
+};

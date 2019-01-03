@@ -6,16 +6,16 @@ import { BuidlerError, ERRORS } from "../core/errors";
 import { Compiler } from "../solidity/compiler";
 import { DependencyGraph } from "../solidity/dependencyGraph";
 import { Resolver } from "../solidity/resolver";
-import { BuidlerConfig } from "../types";
+import { ResolvedBuidlerConfig } from "../types";
 import { glob } from "../util/glob";
 
 import { areArtifactsCached } from "./utils/cache";
 
-function getCompilersDir(config: BuidlerConfig) {
+function getCompilersDir(config: ResolvedBuidlerConfig) {
   return path.join(config.paths.cache, "compilers");
 }
 
-function getCompiler(config: BuidlerConfig) {
+function getCompiler(config: ResolvedBuidlerConfig) {
   return new Compiler(
     config.solc.version,
     getCompilersDir(config),
@@ -77,13 +77,7 @@ internalTask("builtin:compile", async (_, { config, run }) => {
 });
 
 internalTask("builtin:build-artifacts", async (_, { config, run }) => {
-  if (
-    await areArtifactsCached(
-      config.paths.sources,
-      config.paths.artifacts,
-      config
-    )
-  ) {
+  if (await areArtifactsCached(config.paths)) {
     return;
   }
 

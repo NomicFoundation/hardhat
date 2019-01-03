@@ -3,12 +3,11 @@ import Tx from "ethereumjs-tx";
 import { HttpProvider } from "web3x/providers";
 import { bufferToHex } from "web3x/utils";
 
+import { ERRORS } from "../../../src/core/errors";
 import { createLocalAccountsProvider } from "../../../src/core/providers/accounts";
 import {
   createProvider,
-  isAutoNetworkConfig,
   isHDAccountsConfig,
-  isHttpNetworkConfig,
   wrapEthereumProvider
 } from "../../../src/core/providers/construction";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
@@ -16,28 +15,11 @@ import {
   createFixedGasPriceProvider,
   createFixedGasProvider
 } from "../../../src/core/providers/gas-providers";
-import { expectErrorAsync } from "../../helpers/errors";
+import { expectBuidlerError, expectErrorAsync } from "../../helpers/errors";
 
 import { ParamsReturningProvider } from "./mocks";
 
 describe("Network config typeguards", async () => {
-  it("Should recognize HTTPNetworkConfigs", () => {
-    assert.isTrue(
-      isHttpNetworkConfig({
-        url: "asdasd"
-      } as any)
-    );
-
-    assert.isFalse(isHttpNetworkConfig({} as any));
-  });
-
-  it("Should recognize AutoNetworkConfig", () => {
-    assert.isTrue(isAutoNetworkConfig({} as any));
-    assert.isTrue(isAutoNetworkConfig({ asd: 123 } as any));
-    assert.isTrue(isAutoNetworkConfig({ blockGasLimit: 123 } as any));
-    assert.isFalse(isAutoNetworkConfig({ url: "" } as any));
-  });
-
   it("Should recognize HDAccountsConfig", () => {
     assert.isTrue(isHDAccountsConfig({ mnemonic: "asdads" } as any));
     assert.isFalse(isHDAccountsConfig({ initialIndex: 1 } as any));
@@ -47,13 +29,30 @@ describe("Network config typeguards", async () => {
 
 describe("Base provider creation", () => {
   it("Should fail if trying to use auto network", () => {
-    assert.throws(() => createProvider({ blockGasLimit: 123, accounts: [] }));
+    assert.throws(() => createProvider("auto"));
   });
 
   it("Should create a valid HTTP provider and wrap it", () => {
-    const provider = createProvider({ url: "asdasd" });
+    const provider = createProvider("asd", { asd: { url: "asdads" } });
 
     assert.instanceOf(provider, HttpProvider);
+  });
+
+  it("Should set a default url if none is given", () => {
+    const provider: any = createProvider("asd", { asd: {} });
+    assert.equal(provider.provider.host, "http://localhost:8545");
+  });
+
+  it("should fail on getting non existent network config", () => {
+    expectBuidlerError(() => {
+      createProvider("asd", {});
+    }, ERRORS.NETWORK_CONFIG_NOT_FOUND);
+  });
+
+  it("should fail if no networks config is provided", () => {
+    expectBuidlerError(() => {
+      createProvider("asd");
+    }, ERRORS.NETWORK_CONFIG_NOT_FOUND);
   });
 });
 

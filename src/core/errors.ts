@@ -265,6 +265,11 @@ export const ERRORS = {
     number: 51,
     message:
       'HD path "%s" is invalid. Read BIP32 to know about the valid forms.'
+  },
+  ARG_TYPE_INVALID_INPUT_FILE: {
+    number: 52,
+    message:
+      'Invalid argument "%s": File "%s" doesn\'t exist or is not a readable file.'
   }
 };
 

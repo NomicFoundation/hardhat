@@ -1,11 +1,13 @@
+// tslint:disable-next-line no-implicit-dependencies
+import { DeepPartial, Omit } from "ts-essentials";
+
 import { BuidlerRuntimeEnvironment } from "./core/runtime-environment";
 import { TaskDefinition } from "./core/tasks/task-definitions";
-import { SolcOptimizerConfig } from "./solidity/compiler";
 import { ResolvedFile } from "./solidity/resolver";
 
 export interface GanacheOptions {
-  gasLimit: number;
-  network_id: number;
+  gasLimit?: number;
+  network_id?: number;
   mnemonic?: string;
   accounts?: Array<{ balance: string; secretKey: string }>;
 }
@@ -23,8 +25,8 @@ interface AutoNetworkAccount {
 }
 
 export interface AutoNetworkConfig extends CommonNetworkConfig {
-  accounts: AutoNetworkAccount[];
-  blockGasLimit: number;
+  accounts?: AutoNetworkAccount[];
+  blockGasLimit?: number;
   ganacheOptions?: GanacheOptions;
 }
 
@@ -52,24 +54,39 @@ export interface HttpNetworkConfig extends CommonNetworkConfig {
 
 export type NetworkConfig = AutoNetworkConfig | HttpNetworkConfig;
 
-interface Networks {
+export interface Networks {
   [networkName: string]: NetworkConfig;
 }
 
+export interface ProjectPaths {
+  root: string;
+  configFile: string;
+  cache: string;
+  artifacts: string;
+  sources: string;
+}
+
+export interface SolcConfig {
+  version: string;
+  optimizer: SolcOptimizerConfig;
+}
+
+export interface SolcOptimizerConfig {
+  enabled: boolean;
+  runs: number;
+}
+
 export interface BuidlerConfig {
+  networks?: Networks;
+  paths?: Omit<Partial<ProjectPaths>, "configFile">;
+  solc?: DeepPartial<SolcConfig>;
+  mocha?: Mocha.MochaOptions;
+}
+
+export interface ResolvedBuidlerConfig extends BuidlerConfig {
+  paths: ProjectPaths;
   networks: Networks;
-  paths: {
-    root: string;
-    configFile: string;
-    cache: string;
-    artifacts: string;
-    sources: string;
-  };
-  solc: {
-    version: string;
-    optimizer: SolcOptimizerConfig;
-  };
-  mocha: Mocha.MochaOptions;
+  solc: SolcConfig;
 }
 
 export interface TasksMap {
