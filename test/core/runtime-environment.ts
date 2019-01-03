@@ -3,14 +3,18 @@ import { assert } from "chai";
 import { usePlugin } from "../../src/core/config/config-env";
 import extenderManager from "../../src/core/config/extenders-instance";
 import { ERRORS } from "../../src/core/errors";
-import { BuidlerArguments } from "../../src/core/params/buidler-params";
-import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
+import { Environment } from "../../src/core/runtime-environment";
 import { TasksDSL } from "../../src/core/tasks/dsl";
-import { ResolvedBuidlerConfig, TaskArguments } from "../../src/types";
+import {
+  BuidlerArguments,
+  BuidlerRuntimeEnvironment,
+  ResolvedBuidlerConfig,
+  TaskArguments
+} from "../../src/types";
 import { expectErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 
-describe("BuidlerRuntimeEnvironment", () => {
+describe("Environment", () => {
   let config: ResolvedBuidlerConfig;
   let args: BuidlerArguments;
   let tasks: TaskArguments;
@@ -54,7 +58,7 @@ describe("BuidlerRuntimeEnvironment", () => {
   });
 
   beforeEach(() => {
-    env = new BuidlerRuntimeEnvironment(config, args, tasks);
+    env = new Environment(config, args, tasks);
   });
 
   describe("Enviroment", () => {
@@ -87,7 +91,7 @@ describe("BuidlerRuntimeEnvironment", () => {
         return 28;
       });
       tasks = dsl.getTaskDefinitions();
-      const localEnv = new BuidlerRuntimeEnvironment(config, args, tasks);
+      const localEnv = new Environment(config, args, tasks);
       assert.equal(await localEnv.run("example"), 28);
     });
 
@@ -117,14 +121,14 @@ describe("BuidlerRuntimeEnvironment", () => {
 
     it("enviroment should contains plugin extensions", async () => {
       usePlugin(process.cwd() + "/plugins/example");
-      env = new BuidlerRuntimeEnvironment(
+      env = new Environment(
         config,
         args,
         tasks,
         extenderManager.getExtenders()
       );
-      assert.equal(env.__test_key, "a value");
-      assert.equal(env.__test_bleep(2), 4);
+      assert.equal((env as any).__test_key, "a value");
+      assert.equal((env as any).__test_bleep(2), 4);
     });
 
     it("should fail when using a non existent plugin", async () => {

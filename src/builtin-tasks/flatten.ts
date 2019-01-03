@@ -1,8 +1,7 @@
 import { internalTask, task } from "../core/config/config-env";
 import { BuidlerError, ERRORS } from "../core/errors";
 import { DependencyGraph } from "../solidity/dependencyGraph";
-import { ResolvedFile } from "../solidity/resolver";
-import { ResolvedFilesMap } from "../types";
+import { ResolvedFile, ResolvedFilesMap } from "../solidity/resolver";
 import { getPackageJson } from "../util/packageInfo";
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {

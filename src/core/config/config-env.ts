@@ -1,6 +1,10 @@
-import { ActionType, EnvironmentExtender, TaskArguments } from "../../types";
+import {
+  ActionType,
+  ConfigurableTaskDefinition,
+  EnvironmentExtender,
+  TaskArguments
+} from "../../types";
 import * as argumentTypes from "../params/argumentTypes";
-import { ConfigurableTaskDefinition } from "../tasks/task-definitions";
 
 import extenderManager from "./extenders-instance";
 import dsl from "./tasks-dsl-instance";

@@ -1,14 +1,12 @@
 import { BuidlerError, ERRORS } from "../core/errors";
 import {
   BuidlerArguments,
-  BuidlerParamDefinitions
-} from "../core/params/buidler-params";
-import {
+  BuidlerParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
+  TaskArguments,
   TaskDefinition
-} from "../core/tasks/task-definitions";
-import { TaskArguments } from "../types";
+} from "../types";
 import { unsafeObjectKeys } from "../util/unsafe";
 
 export class ArgumentsParser {

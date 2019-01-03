@@ -1,9 +1,13 @@
-import { ActionType, TaskArguments, TasksMap } from "../../types";
+import {
+  ActionType,
+  TaskArguments,
+  TaskDefinition,
+  TasksMap
+} from "../../types";
 
 import {
   OverloadedTaskDefinition,
-  SimpleTaskDefinition,
-  TaskDefinition
+  SimpleTaskDefinition
 } from "./task-definitions";
 
 export class TasksDSL {

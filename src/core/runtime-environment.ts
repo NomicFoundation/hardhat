@@ -1,23 +1,22 @@
 import {
+  BuidlerArguments,
+  BuidlerRuntimeEnvironment,
   EnvironmentExtender,
   ResolvedBuidlerConfig,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
+  TaskDefinition,
   TasksMap
 } from "../types";
 import { lazyObject } from "../util/lazy";
 
 import { BuidlerError, ERRORS } from "./errors";
-import { BuidlerArguments } from "./params/buidler-params";
 import { createProvider } from "./providers/construction";
 import { IEthereumProvider } from "./providers/ethereum";
-import {
-  OverloadedTaskDefinition,
-  TaskDefinition
-} from "./tasks/task-definitions";
+import { OverloadedTaskDefinition } from "./tasks/task-definitions";
 
-export class BuidlerRuntimeEnvironment {
+export class Environment implements BuidlerRuntimeEnvironment {
   private static readonly BLACKLISTED_PROPERTIES: string[] = [
     "injectToGlobal",
     "runTaskDefinition"
@@ -48,7 +47,7 @@ export class BuidlerRuntimeEnvironment {
   };
 
   public injectToGlobal(
-    blacklist: string[] = BuidlerRuntimeEnvironment.BLACKLISTED_PROPERTIES
+    blacklist: string[] = Environment.BLACKLISTED_PROPERTIES
   ) {
     const globalAsAny = global as any;
     const previousEnvironment: any = globalAsAny.env;

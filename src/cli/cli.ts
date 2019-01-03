@@ -10,7 +10,7 @@ import { BuidlerError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
-import { BuidlerRuntimeEnvironment } from "../core/runtime-environment";
+import { Environment } from "../core/runtime-environment";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { ArgumentsParser } from "./ArgumentsParser";
@@ -92,11 +92,7 @@ async function main() {
       unparsedCLAs
     );
 
-    const env = new BuidlerRuntimeEnvironment(
-      config,
-      buidlerArguments,
-      taskDefinitions
-    );
+    const env = new Environment(config, buidlerArguments, taskDefinitions);
 
     // --help is a also special case
     if (buidlerArguments.help && taskName !== "help") {

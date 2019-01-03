@@ -1,92 +1,13 @@
-import { ActionType, TaskArguments } from "../../types";
+import {
+  ActionType,
+  ParamDefinition,
+  ParamDefinitionsMap,
+  TaskArguments,
+  TaskDefinition
+} from "../../types";
 import { BuidlerError, ERRORS } from "../errors";
 import * as types from "../params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
-
-export interface ParamDefinition<T> {
-  name: string;
-  defaultValue?: T;
-  type: types.ArgumentType<T>;
-  description?: string;
-  isOptional: boolean;
-  isFlag: boolean;
-  isVariadic: boolean;
-}
-
-export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
-  defaultValue: T;
-  isOptional: true;
-}
-
-export interface ParamDefinitionsMap {
-  [paramName: string]: ParamDefinition<any>;
-}
-
-export interface ConfigurableTaskDefinition {
-  setDescription(description: string): this;
-
-  setAction<ArgsT>(action: ActionType<ArgsT>): this;
-
-  addParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: types.ArgumentType<T>,
-    isOptional?: boolean
-  ): this;
-
-  addOptionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: types.ArgumentType<T>
-  ): this;
-
-  addPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: types.ArgumentType<T>,
-    isOptional?: boolean
-  ): this;
-
-  addOptionalPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: types.ArgumentType<T>
-  ): this;
-
-  addVariadicPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T[],
-    type?: types.ArgumentType<T>,
-    isOptional?: boolean
-  ): this;
-
-  addOptionalVariadicPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T[],
-    type?: types.ArgumentType<T>
-  ): this;
-
-  addFlag(name: string, description?: string): this;
-}
-
-export interface TaskDefinition extends ConfigurableTaskDefinition {
-  readonly name: string;
-  readonly description?: string;
-  readonly action: ActionType<TaskArguments>;
-  readonly isInternal: boolean;
-
-  // TODO: Rename this to something better. It doesn't include the positional
-  // params, and that's not clear.
-  readonly paramDefinitions: ParamDefinitionsMap;
-
-  readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
-}
 
 export class SimpleTaskDefinition implements TaskDefinition {
   get description() {

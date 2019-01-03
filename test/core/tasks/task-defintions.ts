@@ -2,13 +2,15 @@ import { assert } from "chai";
 
 import { ERRORS } from "../../../src/core/errors";
 import * as types from "../../../src/core/params/argumentTypes";
-import { BuidlerArguments } from "../../../src/core/params/buidler-params";
 import {
   OverloadedTaskDefinition,
-  ParamDefinition,
-  SimpleTaskDefinition,
-  TaskDefinition
+  SimpleTaskDefinition
 } from "../../../src/core/tasks/task-definitions";
+import {
+  BuidlerArguments,
+  ParamDefinition,
+  TaskDefinition
+} from "../../../src/types";
 import { unsafeObjectKeys } from "../../../src/util/unsafe";
 import { expectBuidlerError } from "../../helpers/errors";
 

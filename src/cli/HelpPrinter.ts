@@ -1,10 +1,10 @@
 import { BuidlerError, ERRORS } from "../core/errors";
-import { BuidlerParamDefinitions } from "../core/params/buidler-params";
 import {
+  BuidlerParamDefinitions,
   ParamDefinition,
-  ParamDefinitionsMap
-} from "../core/tasks/task-definitions";
-import { TasksMap } from "../types";
+  ParamDefinitionsMap,
+  TasksMap
+} from "../types";
 
 import { ArgumentsParser } from "./ArgumentsParser";
 

@@ -1,8 +1,8 @@
-import { BuidlerRuntimeEnvironment } from "../../src/core/runtime-environment";
+import { Environment } from "../../src/core/runtime-environment";
 
 declare module "mocha" {
   interface Context {
-    env: BuidlerRuntimeEnvironment;
+    env: Environment;
   }
 }
 
