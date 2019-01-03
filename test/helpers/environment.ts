@@ -8,7 +8,7 @@ declare module "mocha" {
 
 export function useEnvironment() {
   beforeEach("Load environment", function() {
-    this.env = require("../../src/lib/buidler-lib").default;
+    this.env = require("../../src/lib/buidler-lib");
   });
 
   afterEach("Unload environment", function() {
