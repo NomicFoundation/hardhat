@@ -270,6 +270,10 @@ export const ERRORS = {
     number: 52,
     message:
       'Invalid argument "%s": File "%s" doesn\'t exist or is not a readable file.'
+  },
+  NOT_SUPPORTED: {
+    number: 53,
+    message: "%s is not supported"
   }
 };
 
