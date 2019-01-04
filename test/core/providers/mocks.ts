@@ -38,3 +38,13 @@ export class CountProvider extends EventEmitter implements IEthereumProvider {
     return params;
   }
 }
+
+export class ErrorProvider extends ParamsReturningProvider {
+  public async send(method: string, params?: any[]): Promise<any> {
+    if (method === "error_method") {
+      throw Error("an error has occurred");
+    }
+
+    return super.send(method, params);
+  }
+}
