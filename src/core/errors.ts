@@ -270,6 +270,43 @@ export const ERRORS = {
     number: 52,
     message:
       'Invalid argument "%s": File "%s" doesn\'t exist or is not a readable file.'
+  },
+  BUIDLER_UNSUPPORTED_OPERATION: {
+    number: 53,
+    message: "%s is not supported in Buidler."
+  },
+  NETWORK_INVALID_GLOBAL_CHAIN_ID: {
+    number: 54,
+    message:
+      "Buidler was set to use chain id %s, but connected to a chain with id %s."
+  },
+  NETWORK_INVALID_TX_CHAIN_ID: {
+    number: 55,
+    message:
+      "Trying to send a tx with chain id %s, but Buidler is connected to a chain with id %s."
+  },
+  NETWORK_ETHSIGN_MISSING_DATA_PARAM: {
+    number: 56,
+    message: 'Missing "data" param when calling eth_sign.'
+  },
+  NETWORK_NOT_LOCAL_ACCOUNT: {
+    number: 57,
+    message:
+      'Account "%s" is not managed by the current network access provider.'
+  },
+  NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY: {
+    number: 58,
+    message: 'Missing param "%s" from a tx being signed locally.'
+  },
+  NETWORK_NO_REMOTE_ACCOUNT_AVAILABLE: {
+    number: 59,
+    message:
+      "No local account was set and there are accounts in the remote node."
+  },
+  TASK_RUNSUPER_NOT_AVAILABLE: {
+    number: 60,
+    message:
+      'Tried to call runSupper from a non-overloaded definition of task "%s"'
   }
 };
 

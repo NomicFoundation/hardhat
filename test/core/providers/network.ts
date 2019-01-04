@@ -1,9 +1,10 @@
 import { assert } from "chai";
 import { Tx } from "web3x/eth";
 
+import { ERRORS } from "../../../src/core/errors";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { createNetworkProvider } from "../../../src/core/providers/network";
-import { expectErrorAsync } from "../../helpers/errors";
+import { expectBuidlerErrorAsync } from "../../helpers/errors";
 
 import { CountProvider } from "./mocks";
 
@@ -34,17 +35,17 @@ describe("Network provider", () => {
 
   it("should fail when chain ids don't match", async () => {
     tx.chainId = 42;
-    await expectErrorAsync(
+    await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", [tx]),
-      "chainIds don't match"
+      ERRORS.NETWORK_INVALID_TX_CHAIN_ID
     );
   });
 
   it("should fail when configured chain id dont match the real chain id", async () => {
     wrapper = createNetworkProvider(mock, validChainId + 1);
-    await expectErrorAsync(
+    await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", [tx]),
-      "chainIds don't match"
+      ERRORS.NETWORK_INVALID_GLOBAL_CHAIN_ID
     );
   });
 
@@ -91,10 +92,10 @@ describe("Network provider", () => {
     });
 
     it("Should validate txs' chain id", async () => {
-      await expectErrorAsync(
+      await expectBuidlerErrorAsync(
         () =>
           provider.send("eth_sendTransaction", [{ ...tx, chainId: 567876 }]),
-        "chainIds don't match"
+        ERRORS.NETWORK_INVALID_TX_CHAIN_ID
       );
 
       await provider.send("eth_sendTransaction", [

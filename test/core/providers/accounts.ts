@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import { bufferToHex, privateToAddress } from "ethereumjs-util";
-import { EventEmitter } from "events";
 import { Tx } from "web3x/eth";
 
 import { ERRORS } from "../../../src/core/errors";
@@ -11,7 +10,11 @@ import {
 } from "../../../src/core/providers/accounts";
 import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import { wrapSend } from "../../../src/core/providers/wrapper";
-import { expectBuidlerError, expectErrorAsync } from "../../helpers/errors";
+import {
+  expectBuidlerError,
+  expectBuidlerErrorAsync,
+  expectErrorAsync
+} from "../../helpers/errors";
 
 import { CountProvider } from "./mocks";
 
@@ -60,9 +63,10 @@ describe("Local accounts provider", () => {
       }
     ];
 
-    await expectErrorAsync(
+    await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
-      "Missing gas info"
+      ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      "gas"
     );
   });
 
@@ -77,9 +81,10 @@ describe("Local accounts provider", () => {
       }
     ];
 
-    await expectErrorAsync(
+    await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
-      "Missing gas info"
+      ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      "gasPrice"
     );
   });
 
@@ -108,7 +113,7 @@ describe("Local accounts provider", () => {
   });
 
   it("Should throw if trying to send from an account that isn't local", async () => {
-    await expectErrorAsync(
+    await expectBuidlerErrorAsync(
       () =>
         wrapper.send("eth_sendTransaction", [
           {
@@ -121,7 +126,8 @@ describe("Local accounts provider", () => {
             value: 1
           }
         ]),
-      /isn't one of the local accounts/
+      ERRORS.NETWORK_NOT_LOCAL_ACCOUNT,
+      "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
     );
   });
 
@@ -213,20 +219,20 @@ describe("Local accounts provider", () => {
     });
 
     it("Should throw if no data is given", async () => {
-      await expectErrorAsync(
+      await expectBuidlerErrorAsync(
         () => wrapper.send("eth_sign", [privateKeyToAddress(accounts[0])]),
-        "Missing data param when calling eth_sign"
+        ERRORS.NETWORK_ETHSIGN_MISSING_DATA_PARAM
       );
     });
 
     it("Should throw if the address isn't one of the local ones", async () => {
-      await expectErrorAsync(
+      await expectBuidlerErrorAsync(
         () =>
           wrapper.send("eth_sign", [
             "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
             "0x00"
           ]),
-        /isn't one of the local accounts/
+        ERRORS.NETWORK_NOT_LOCAL_ACCOUNT
       );
     });
 
@@ -247,9 +253,10 @@ describe("Local accounts provider", () => {
       }
     ];
 
-    await expectErrorAsync(
+    await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
-      "Missing chain id"
+      ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      "chainId"
     );
   });
 });

@@ -92,10 +92,9 @@ export class Environment implements BuidlerRuntimeEnvironment {
         );
     } else {
       runSuper = async () => {
-        throw new Error(
-          `Task ${
-            taskDefinition.name
-          } doesn't overload a previous one, so there's runSuper.`
+        throw new BuidlerError(
+          ERRORS.TASK_RUNSUPER_NOT_AVAILABLE,
+          taskDefinition.name
         );
       };
     }

@@ -79,6 +79,8 @@ export let inputFile: ArgumentType<string> = {
       const stats = fs.lstatSync(strValue);
 
       if (stats.isDirectory()) {
+        // This is caught and encapsulated in a buidler error.
+        // tslint:disable-next-line only-buidler-error
         throw new Error(strValue + " is a directory, not a file");
       }
     } catch (error) {

@@ -176,6 +176,7 @@ export class Resolver {
         );
       }
 
+      // tslint:disable-next-line only-buidler-error
       throw error;
     }
   }

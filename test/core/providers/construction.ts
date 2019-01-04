@@ -15,7 +15,11 @@ import {
   createFixedGasPriceProvider,
   createFixedGasProvider
 } from "../../../src/core/providers/gas-providers";
-import { expectBuidlerError, expectErrorAsync } from "../../helpers/errors";
+import {
+  expectBuidlerError,
+  expectBuidlerErrorAsync,
+  expectErrorAsync
+} from "../../helpers/errors";
 
 import { ParamsReturningProvider } from "./mocks";
 
@@ -237,10 +241,10 @@ describe("Base providers wrapping", () => {
         url: ""
       });
 
-      await expectErrorAsync(
+      await expectBuidlerErrorAsync(
         () =>
           provider.send("eth_sendTransaction", [{ from: "0x0", chainId: 1 }]),
-        "chainIds don't match"
+        ERRORS.NETWORK_INVALID_TX_CHAIN_ID
       );
     });
 
@@ -250,10 +254,10 @@ describe("Base providers wrapping", () => {
         chainId: 2
       });
 
-      await expectErrorAsync(
+      await expectBuidlerErrorAsync(
         () =>
           provider.send("eth_sendTransaction", [{ from: "0x0", chainId: 1 }]),
-        "chainIds don't match"
+        ERRORS.NETWORK_INVALID_GLOBAL_CHAIN_ID
       );
     });
   });

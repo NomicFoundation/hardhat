@@ -63,6 +63,7 @@ async function confirmProjectCreation() {
       return false;
     }
 
+    // tslint:disable-next-line only-buidler-error
     throw e;
   }
 }
@@ -161,6 +162,7 @@ export async function createProject() {
       return;
     }
 
+    // tslint:disable-next-line only-buidler-error
     throw e;
   }
 
