@@ -1,3 +1,6 @@
+# TS compilation output
+/dist/
+
 # Logs
 logs
 *.log
