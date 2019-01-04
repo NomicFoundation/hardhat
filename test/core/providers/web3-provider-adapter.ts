@@ -89,9 +89,11 @@ describe("web3 provider adapter", () => {
     provider.sendAsync(payloads, callback);
   });
 
-  it("Should preserve JsonRPC payload order", () => {
-    const payloads = [createJsonRpcPayload("error_method", ["failure"])];
-    payloads.push(createJsonRpcPayload("method", ["success"]));
+  it("Should handle both success and failure requests", () => {
+    const payloads = [
+      createJsonRpcPayload("error_method", ["failure"]),
+      createJsonRpcPayload("method", ["success"])
+    ];
     callback = (error, response) => {
       if (response !== undefined) {
         assert.deepEqual(response.result, ["success"]);
