@@ -1,7 +1,9 @@
 import { assert } from "chai";
 import { before, beforeEach, describe, it } from "mocha";
 
+import { ERRORS } from "../../src/core/errors";
 import { lazyObject } from "../../src/util/lazy";
+import { expectBuidlerError } from "../helpers/errors";
 
 describe("lazy module", () => {
   describe("lazyObject", () => {
@@ -71,30 +73,23 @@ describe("lazy module", () => {
     it("doesn't support classes", () => {
       const obj = lazyObject(() => class {}) as any;
 
-      assert.throws(
+      expectBuidlerError(
         () => (obj.asd = 123),
-        "lazyObject doesn't support functions nor classes"
+        ERRORS.BUIDLER_UNSUPPORTED_OPERATION
       );
-      assert.throws(
-        () => obj.asd,
-        "lazyObject doesn't support functions nor classes"
-      );
-      assert.throws(() => new obj(), "obj is not a constructor");
+      expectBuidlerError(() => obj.asd, ERRORS.BUIDLER_UNSUPPORTED_OPERATION);
       assert.throws(() => new obj(), "obj is not a constructor");
     });
 
     it("doesn't support functions", () => {
       const obj = lazyObject(() => () => {}) as any;
 
-      assert.throws(
+      expectBuidlerError(
         () => (obj.asd = 123),
-        "lazyObject doesn't support functions nor classes"
+        ERRORS.BUIDLER_UNSUPPORTED_OPERATION
       );
-      assert.throws(
-        () => obj.asd,
-        "lazyObject doesn't support functions nor classes"
-      );
-      assert.throws(() => obj(), "obj is not a function");
+      expectBuidlerError(() => obj.asd, ERRORS.BUIDLER_UNSUPPORTED_OPERATION);
+
       assert.throws(() => obj(), "obj is not a function");
     });
 

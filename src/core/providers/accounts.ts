@@ -29,7 +29,7 @@ export function createLocalAccountsProvider(
 
       if (address !== undefined) {
         if (data === undefined) {
-          throw new Error("Missing data param when calling eth_sign");
+          throw new BuidlerError(ERRORS.NETWORK_ETHSIGN_MISSING_DATA_PARAM);
         }
 
         const account = accounts.find(
@@ -37,8 +37,7 @@ export function createLocalAccountsProvider(
         );
 
         if (account === undefined) {
-          // TODO: Throw a better error
-          throw new Error(address + " isn't one of the local accounts");
+          throw new BuidlerError(ERRORS.NETWORK_NOT_LOCAL_ACCOUNT, address);
         }
 
         return account.sign(data).signature;
@@ -49,11 +48,24 @@ export function createLocalAccountsProvider(
       const tx: Tx = params[0];
 
       if (tx.chainId === undefined) {
-        throw new Error("Missing chain id");
+        throw new BuidlerError(
+          ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          "chainId"
+        );
       }
 
-      if (tx.gas === undefined || tx.gasPrice === undefined) {
-        throw new Error("Missing gas info");
+      if (tx.gas === undefined) {
+        throw new BuidlerError(
+          ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          "gas"
+        );
+      }
+
+      if (tx.gasPrice === undefined) {
+        throw new BuidlerError(
+          ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          "gasPrice"
+        );
       }
 
       if (tx.nonce === undefined) {
@@ -68,8 +80,7 @@ export function createLocalAccountsProvider(
       );
 
       if (account === undefined) {
-        // TODO: Throw a better error
-        throw new Error(tx.from + " isn't one of the local accounts");
+        throw new BuidlerError(ERRORS.NETWORK_NOT_LOCAL_ACCOUNT, tx.from);
       }
 
       // TODO: Remove ethereumjs-tx dependencies in favor of web3x.
@@ -125,7 +136,7 @@ export function createSenderProvider(
         if (senderAccount !== undefined) {
           tx.from = senderAccount;
         } else if (method === "eth_sendTransaction") {
-          throw new Error("No accounts available in the node");
+          throw new BuidlerError(ERRORS.NETWORK_NO_REMOTE_ACCOUNT_AVAILABLE);
         }
       }
     }

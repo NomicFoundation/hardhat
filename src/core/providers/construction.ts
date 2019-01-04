@@ -26,7 +26,10 @@ export function createProvider(
   }
 
   if (selectedNetwork === "auto") {
-    throw new Error("Network auto not yet supported");
+    throw new BuidlerError(
+      ERRORS.BUIDLER_UNSUPPORTED_OPERATION,
+      "auto network"
+    );
   }
 
   const netConfig = networksConfig[selectedNetwork] as HttpNetworkConfig;

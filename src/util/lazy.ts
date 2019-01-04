@@ -1,3 +1,5 @@
+import { BuidlerError, ERRORS } from "../core/errors";
+
 export function lazyObject<T extends object>(objectCreator: () => T): T {
   let realTarget: T | undefined;
 
@@ -9,12 +11,16 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
       const object = objectCreator();
 
       if (object instanceof Function) {
-        throw new Error("lazyObject doesn't support functions nor classes");
+        throw new BuidlerError(
+          ERRORS.BUIDLER_UNSUPPORTED_OPERATION,
+          "Creating lazy functions or classes with lazyObject"
+        );
       }
 
       if (typeof object !== "object" || object === null) {
-        throw new Error(
-          "objectCreator function given to lazyObject must return an object"
+        throw new BuidlerError(
+          ERRORS.BUIDLER_UNSUPPORTED_OPERATION,
+          "Using lazyObject with anything other than objects"
         );
       }
 

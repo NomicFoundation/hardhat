@@ -1,5 +1,7 @@
 import { Tx } from "web3x/eth";
 
+import { BuidlerError, ERRORS } from "../errors";
+
 import { IEthereumProvider } from "./ethereum";
 import { wrapSend } from "./wrapper";
 
@@ -21,7 +23,11 @@ export function createNetworkProvider(
     const realChainId = await getRealChainId();
 
     if (chainId !== undefined && realChainId !== chainId) {
-      throw Error("chainIds don't match");
+      throw new BuidlerError(
+        ERRORS.NETWORK_INVALID_GLOBAL_CHAIN_ID,
+        chainId,
+        realChainId
+      );
     }
 
     if (method === "eth_sendTransaction") {
@@ -31,7 +37,11 @@ export function createNetworkProvider(
         if (tx.chainId === undefined) {
           tx.chainId = realChainId;
         } else if (tx.chainId !== realChainId) {
-          throw Error("chainIds don't match");
+          throw new BuidlerError(
+            ERRORS.NETWORK_INVALID_TX_CHAIN_ID,
+            tx.chainId,
+            realChainId
+          );
         }
       }
     }
