@@ -265,6 +265,10 @@ export const ERRORS = {
     number: 51,
     message:
       'HD path "%s" is invalid. Read BIP32 to know about the valid forms.'
+  },
+  NOT_SUPPORTED: {
+    number: 53,
+    message: "%s is not supported"
   }
 };
 
