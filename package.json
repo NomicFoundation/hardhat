@@ -31,8 +31,12 @@
     "fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "test": "nyc mocha",
-    "build": "tsc && tsc --sourceMap --declarationMap --declaration config.ts",
-    "watch": "npm run build && tsc -w"
+    "dev:build": "tsc",
+    "dev:watch": "tsc -w",
+    "dev:clean": "rm -rf dist",
+    "prod:build": "tsc --p tsconfig.prod.json",
+    "prod:watch": "tsc -w --p tsconfig.prod.json",
+    "prod:clean": "rm -rf builtin-tasks cli core lib solidity util *.d.ts *.map *.js"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
