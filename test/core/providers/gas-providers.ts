@@ -1,12 +1,12 @@
 import { assert } from "chai";
 
-import { IEthereumProvider } from "../../../src/types";
 import {
   createAutomaticGasPriceProvider,
   createAutomaticGasProvider,
   createFixedGasPriceProvider,
   createFixedGasProvider
 } from "../../../src/core/providers/gas-providers";
+import { IEthereumProvider } from "../../../src/types";
 
 import { ParamsReturningProvider } from "./mocks";
 

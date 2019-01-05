@@ -4,9 +4,9 @@ import { Account } from "web3x/account";
 import { Tx } from "web3x/eth";
 import { bufferToHex } from "web3x/utils";
 
+import { IEthereumProvider } from "../../types";
 import { BuidlerError, ERRORS } from "../errors";
 
-import { IEthereumProvider } from "../../types";
 import { wrapSend } from "./wrapper";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;

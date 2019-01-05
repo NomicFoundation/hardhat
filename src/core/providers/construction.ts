@@ -1,12 +1,11 @@
 import {
   HDAccountsConfig,
   HttpNetworkConfig,
+  IEthereumProvider,
   NetworkConfigAccounts,
   Networks
 } from "../../types";
 import { BuidlerError, ERRORS } from "../errors";
-
-import { IEthereumProvider } from "../../types";
 
 export function isHDAccountsConfig(
   accounts?: NetworkConfigAccounts

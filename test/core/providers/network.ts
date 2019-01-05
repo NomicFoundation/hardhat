@@ -2,8 +2,8 @@ import { assert } from "chai";
 import { Tx } from "web3x/eth";
 
 import { ERRORS } from "../../../src/core/errors";
-import { IEthereumProvider } from "../../../src/types";
 import { createNetworkProvider } from "../../../src/core/providers/network";
+import { IEthereumProvider } from "../../../src/types";
 import { expectBuidlerErrorAsync } from "../../helpers/errors";
 
 import { CountProvider } from "./mocks";

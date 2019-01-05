@@ -1,8 +1,8 @@
 import { Tx } from "web3x/eth";
 
+import { IEthereumProvider } from "../../types";
 import { BuidlerError, ERRORS } from "../errors";
 
-import { IEthereumProvider } from "../../types";
 import { wrapSend } from "./wrapper";
 
 export function createNetworkProvider(
