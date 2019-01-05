@@ -8,7 +8,7 @@ import {
   createLocalAccountsProvider,
   createSenderProvider
 } from "../../../src/core/providers/accounts";
-import { IEthereumProvider } from "../../../src/core/providers/ethereum";
+import { IEthereumProvider } from "../../../src/types";
 import { wrapSend } from "../../../src/core/providers/wrapper";
 import {
   expectBuidlerError,

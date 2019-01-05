@@ -13,7 +13,7 @@ import { lazyObject } from "../util/lazy";
 
 import { BuidlerError, ERRORS } from "./errors";
 import { createProvider } from "./providers/construction";
-import { IEthereumProvider } from "./providers/ethereum";
+import { IEthereumProvider } from "../types";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
 export class Environment implements BuidlerRuntimeEnvironment {

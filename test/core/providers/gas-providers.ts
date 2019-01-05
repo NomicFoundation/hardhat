@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { IEthereumProvider } from "../../../src/core/providers/ethereum";
+import { IEthereumProvider } from "../../../src/types";
 import {
   createAutomaticGasPriceProvider,
   createAutomaticGasProvider,

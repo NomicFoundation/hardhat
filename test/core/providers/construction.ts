@@ -10,7 +10,7 @@ import {
   isHDAccountsConfig,
   wrapEthereumProvider
 } from "../../../src/core/providers/construction";
-import { IEthereumProvider } from "../../../src/core/providers/ethereum";
+import { IEthereumProvider } from "../../../src/types";
 import {
   createFixedGasPriceProvider,
   createFixedGasProvider

@@ -1,8 +1,8 @@
 // tslint:disable-next-line no-implicit-dependencies
 import { DeepPartial, Omit } from "ts-essentials";
+import { EthereumProvider } from "web3x/providers";
 
 import * as types from "./core/params/argumentTypes";
-import { IEthereumProvider } from "./core/providers/ethereum";
 
 export interface GanacheOptions {
   gasLimit?: number;
@@ -211,6 +211,10 @@ export type ActionType<ArgsT extends TaskArguments> = (
   env: BuidlerRuntimeEnvironment,
   runSuper: RunSuperFunction<ArgsT>
 ) => Promise<any>;
+
+// TODO: This may not be the correct interface, see
+// https://ethereum-magicians.org/t/eip-1193-ethereum-provider-javascript-api/640/31?u=alcuadrado
+export type IEthereumProvider = EthereumProvider;
 
 export interface BuidlerRuntimeEnvironment {
   readonly provider: IEthereumProvider;

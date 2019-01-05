@@ -6,7 +6,7 @@ import { bufferToHex } from "web3x/utils";
 
 import { BuidlerError, ERRORS } from "../errors";
 
-import { IEthereumProvider } from "./ethereum";
+import { IEthereumProvider } from "../../types";
 import { wrapSend } from "./wrapper";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
