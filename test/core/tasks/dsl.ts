@@ -51,7 +51,7 @@ describe("TasksDSL", () => {
     );
   });
 
-  it("should overload task", () => {
+  it("should override task", () => {
     const action = async () => {};
 
     const builtin = dsl.task("compile", "built-in", action);

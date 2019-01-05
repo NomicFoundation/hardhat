@@ -140,10 +140,10 @@ export const ERRORS = {
       message:
         'Could not set param "%s" for task "%s" because it is mandatory and it was added after an optional positional param.'
     },
-    OVERLOAD_NO_PARAMS: {
+    OVERRIDE_NO_PARAMS: {
       number: 204,
       message:
-        'Redefinition of task "%s" failed. You can\'t change param definitions in an overloaded task.'
+        'Redefinition of task "%s" failed. You can\'t change param definitions in an overridden task.'
     },
     ACTION_NOT_SET: {
       number: 205,
@@ -152,7 +152,7 @@ export const ERRORS = {
     RUNSUPER_NOT_AVAILABLE: {
       number: 206,
       message:
-        'Tried to call runSupper from a non-overloaded definition of task "%s"'
+        'Tried to call runSupper from a non-overridden definition of task "%s"'
     },
     DEFAULT_VALUE_WRONG_TYPE: {
       number: 207,

@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { ERRORS } from "../../../src/core/errors";
 import * as types from "../../../src/core/params/argumentTypes";
 import {
-  OverloadedTaskDefinition,
+  OverriddenTaskDefinition,
   SimpleTaskDefinition
 } from "../../../src/core/tasks/task-definitions";
 import {
@@ -731,9 +731,9 @@ describe("SimpleTaskDefinition", () => {
   });
 });
 
-describe("OverloadedTaskDefinition", () => {
+describe("OverriddenTaskDefinition", () => {
   let parentTask: SimpleTaskDefinition;
-  let overloadedTask: OverloadedTaskDefinition;
+  let overriddenTask: OverriddenTaskDefinition;
 
   beforeEach("init tasks", () => {
     parentTask = new SimpleTaskDefinition("t")
@@ -741,157 +741,157 @@ describe("OverloadedTaskDefinition", () => {
       .addFlag("f")
       .addPositionalParam("pp", "positional param");
 
-    overloadedTask = new OverloadedTaskDefinition(parentTask, true);
+    overriddenTask = new OverriddenTaskDefinition(parentTask, true);
   });
 
   describe("construction", () => {
     it("should have the right name", () => {
-      assert.equal(overloadedTask.name, "t");
+      assert.equal(overriddenTask.name, "t");
     });
 
     it("should set isInternal", () => {
-      assert.isTrue(overloadedTask.isInternal);
+      assert.isTrue(overriddenTask.isInternal);
     });
 
     it("should set the parent task", () => {
-      assert.equal(overloadedTask.parentTaskDefinition, parentTask);
+      assert.equal(overriddenTask.parentTaskDefinition, parentTask);
     });
   });
 
   describe("inherited properties", () => {
     it("should return the parent's name", () => {
-      assert.equal(overloadedTask.name, parentTask.name);
+      assert.equal(overriddenTask.name, parentTask.name);
     });
 
     it("should return the parent's action", () => {
-      assert.equal(overloadedTask.action, parentTask.action);
+      assert.equal(overriddenTask.action, parentTask.action);
     });
 
     it("should return the parent's description", () => {
-      assert.equal(overloadedTask.description, parentTask.description);
+      assert.equal(overriddenTask.description, parentTask.description);
     });
 
     it("should return the parent's param definitions", () => {
       assert.equal(
-        overloadedTask.paramDefinitions,
+        overriddenTask.paramDefinitions,
         parentTask.paramDefinitions
       );
     });
 
     it("should return the parent's positional param definitions", () => {
       assert.equal(
-        overloadedTask.positionalParamDefinitions,
+        overriddenTask.positionalParamDefinitions,
         parentTask.positionalParamDefinitions
       );
     });
 
     it("should work with more than one level of chaining", () => {
-      const overloadedAgain = new OverloadedTaskDefinition(
-        overloadedTask,
+      const overriddenAgain = new OverriddenTaskDefinition(
+        overriddenTask,
         false
       );
-      assert.equal(overloadedAgain.isInternal, false);
-      assert.equal(overloadedAgain.name, parentTask.name);
-      assert.equal(overloadedAgain.action, parentTask.action);
-      assert.equal(overloadedAgain.description, parentTask.description);
+      assert.equal(overriddenAgain.isInternal, false);
+      assert.equal(overriddenAgain.name, parentTask.name);
+      assert.equal(overriddenAgain.action, parentTask.action);
+      assert.equal(overriddenAgain.description, parentTask.description);
       assert.equal(
-        overloadedAgain.paramDefinitions,
+        overriddenAgain.paramDefinitions,
         parentTask.paramDefinitions
       );
       assert.equal(
-        overloadedAgain.positionalParamDefinitions,
+        overriddenAgain.positionalParamDefinitions,
         parentTask.positionalParamDefinitions
       );
     });
 
     it("should return overridden actions", () => {
-      assert.equal(overloadedTask.action, parentTask.action);
+      assert.equal(overriddenTask.action, parentTask.action);
 
       const action2 = async () => 1;
-      overloadedTask.setAction(action2);
+      overriddenTask.setAction(action2);
 
-      assert.equal(overloadedTask.action, action2);
+      assert.equal(overriddenTask.action, action2);
 
       const action3 = async () => 1;
-      overloadedTask.setAction(action3);
+      overriddenTask.setAction(action3);
 
-      assert.equal(overloadedTask.action, action3);
+      assert.equal(overriddenTask.action, action3);
 
-      const overloadedAgain = new OverloadedTaskDefinition(overloadedTask);
-      assert.equal(overloadedAgain.action, action3);
+      const overriddenAgain = new OverriddenTaskDefinition(overriddenTask);
+      assert.equal(overriddenAgain.action, action3);
 
       const action4 = async () => 1;
-      overloadedAgain.setAction(action4);
+      overriddenAgain.setAction(action4);
 
-      assert.equal(overloadedTask.action, action3);
-      assert.equal(overloadedAgain.action, action4);
+      assert.equal(overriddenTask.action, action3);
+      assert.equal(overriddenAgain.action, action4);
     });
 
     it("should return overridden descriptions", () => {
-      assert.equal(overloadedTask.description, parentTask.description);
+      assert.equal(overriddenTask.description, parentTask.description);
 
-      overloadedTask.setDescription("d2");
-      assert.equal(overloadedTask.description, "d2");
+      overriddenTask.setDescription("d2");
+      assert.equal(overriddenTask.description, "d2");
 
-      overloadedTask.setDescription("d3");
-      assert.equal(overloadedTask.description, "d3");
+      overriddenTask.setDescription("d3");
+      assert.equal(overriddenTask.description, "d3");
 
-      const overloadedAgain = new OverloadedTaskDefinition(overloadedTask);
-      assert.equal(overloadedTask.description, "d3");
+      const overriddenAgain = new OverriddenTaskDefinition(overriddenTask);
+      assert.equal(overriddenTask.description, "d3");
 
-      overloadedAgain.setDescription("d4");
-      assert.equal(overloadedTask.description, "d3");
-      assert.equal(overloadedAgain.description, "d4");
+      overriddenAgain.setDescription("d4");
+      assert.equal(overriddenTask.description, "d3");
+      assert.equal(overriddenAgain.description, "d4");
     });
   });
 
   describe("Param definitions are forbidden", () => {
     it("should throw if addParam is called", () => {
       expectBuidlerError(
-        () => overloadedTask.addParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS
+        () => overriddenTask.addParam("p"),
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
 
     it("should throw if addOptionalParam is called", () => {
       expectBuidlerError(
-        () => overloadedTask.addOptionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS
+        () => overriddenTask.addOptionalParam("p"),
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
 
     it("should throw if addFlag is called", () => {
       expectBuidlerError(
-        () => overloadedTask.addFlag("p"),
-        ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS
+        () => overriddenTask.addFlag("p"),
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
 
     it("should throw if addPositionalParam is called", () => {
       expectBuidlerError(
-        () => overloadedTask.addPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS
+        () => overriddenTask.addPositionalParam("p"),
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
 
     it("should throw if addOptionalPositionalParam is called", () => {
       expectBuidlerError(
-        () => overloadedTask.addOptionalPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS
+        () => overriddenTask.addOptionalPositionalParam("p"),
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
 
     it("should throw if addVariadicPositionalParam is called", () => {
       expectBuidlerError(
-        () => overloadedTask.addVariadicPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS
+        () => overriddenTask.addVariadicPositionalParam("p"),
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
 
     it("should throw if addOptionalVariadicPositionalParam is called", () => {
       expectBuidlerError(
-        () => overloadedTask.addOptionalVariadicPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS
+        () => overriddenTask.addOptionalVariadicPositionalParam("p"),
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
   });
