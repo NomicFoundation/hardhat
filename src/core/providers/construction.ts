@@ -1,12 +1,11 @@
 import {
   HDAccountsConfig,
   HttpNetworkConfig,
+  IEthereumProvider,
   NetworkConfigAccounts,
   Networks
 } from "../../types";
 import { BuidlerError, ERRORS } from "../errors";
-
-import { IEthereumProvider } from "./ethereum";
 
 export function isHDAccountsConfig(
   accounts?: NetworkConfigAccounts
@@ -39,12 +38,9 @@ export function createProvider(
 
   const { HttpProvider } = require("web3x/providers");
 
-  const baseProvider = new HttpProvider(
-    netConfig.url || "http://localhost:8545"
-  );
+  const url = netConfig.url || "http://localhost:8545";
 
-  // TODO: This may break, the base provider is not an IEthereumProvider
-  const provider: IEthereumProvider = baseProvider as any;
+  const provider: IEthereumProvider = new HttpProvider(url);
 
   return wrapEthereumProvider(provider, netConfig);
 }

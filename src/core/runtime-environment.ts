@@ -2,6 +2,7 @@ import {
   BuidlerArguments,
   BuidlerRuntimeEnvironment,
   EnvironmentExtender,
+  IEthereumProvider,
   ResolvedBuidlerConfig,
   RunSuperFunction,
   RunTaskFunction,
@@ -13,7 +14,6 @@ import { lazyObject } from "../util/lazy";
 
 import { BuidlerError, ERRORS } from "./errors";
 import { createProvider } from "./providers/construction";
-import { IEthereumProvider } from "./providers/ethereum";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
 export class Environment implements BuidlerRuntimeEnvironment {

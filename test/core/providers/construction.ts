@@ -10,11 +10,11 @@ import {
   isHDAccountsConfig,
   wrapEthereumProvider
 } from "../../../src/core/providers/construction";
-import { IEthereumProvider } from "../../../src/core/providers/ethereum";
 import {
   createFixedGasPriceProvider,
   createFixedGasProvider
 } from "../../../src/core/providers/gas-providers";
+import { IEthereumProvider } from "../../../src/types";
 import {
   expectBuidlerError,
   expectBuidlerErrorAsync,

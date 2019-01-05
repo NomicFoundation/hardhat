@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 
-import { IEthereumProvider } from "../../../src/core/providers/ethereum";
+import { IEthereumProvider } from "../../../src/types";
 
 export class MethodReturningProvider extends EventEmitter
   implements IEthereumProvider {

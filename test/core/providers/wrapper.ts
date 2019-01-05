@@ -16,11 +16,8 @@ describe("wrapSend", () => {
   it("Should forward everything except for send", async () => {
     const wrapped = wrapSend(methodReturningProvider, async () => 123);
 
-    wrapped.addListener("a", () => {});
-    assert.equal(methodReturningProvider.listenerCount("a"), 1);
-
-    wrapped.setMaxListeners(1234);
-    assert.equal(methodReturningProvider.getMaxListeners(), 1234);
+    wrapped.on("notification", () => {});
+    assert.equal(methodReturningProvider.listenerCount("notification"), 1);
   });
 
   it("Should forward send", async () => {
@@ -47,7 +44,7 @@ describe("wrapSend", () => {
       return params;
     });
 
-    const returnedParams = await wrapped.send("a", sentParams);
+    const returnedParams = await wrapped.send("notification", sentParams);
 
     assert.notEqual(returnedParams, sentParams);
     assert.deepEqual(returnedParams, [{ asd: true }, 123]);
@@ -60,13 +57,9 @@ describe("wrapSend", () => {
       async (name, params) => params
     );
 
-    assert.equal(wrapped.on("a", () => {}), wrapped);
-    assert.equal(wrapped.once("a", () => {}), wrapped);
-    assert.equal(wrapped.addListener("a", () => {}), wrapped);
-    assert.equal(wrapped.prependListener("a", () => {}), wrapped);
-    assert.equal(wrapped.prependOnceListener("a", () => {}), wrapped);
-    assert.equal(wrapped.removeListener("a", () => {}), wrapped);
-    assert.equal(wrapped.removeAllListeners("a"), wrapped);
+    assert.equal(wrapped.on("notification", () => {}), wrapped);
+    assert.equal(wrapped.removeListener("notification", () => {}), wrapped);
+    assert.equal(wrapped.removeAllListeners("notification"), wrapped);
   });
 
   it("Should return undefined if the property is not present in the original provider", () => {
@@ -76,15 +69,5 @@ describe("wrapSend", () => {
     );
 
     assert.isUndefined((wrapped as any).asd);
-  });
-
-  it("Shouldn't affect functions that don't return `this`", () => {
-    const wrapped = wrapSend(
-      methodReturningProvider,
-      async (name, params) => params
-    );
-
-    wrapped.setMaxListeners(100);
-    assert.equal(wrapped.getMaxListeners(), 100);
   });
 });

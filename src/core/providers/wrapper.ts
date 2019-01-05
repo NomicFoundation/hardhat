@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 
-import { IEthereumProvider } from "./ethereum";
+import { IEthereumProvider } from "../../types";
 
 export function wrapSend(
   provider: IEthereumProvider,
