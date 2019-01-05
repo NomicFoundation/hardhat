@@ -71,6 +71,43 @@ describe("BuilderError", () => {
   });
 });
 
+describe("Error ranges", () => {
+  function inRange(n: number, min: number, max: number) {
+    return n >= min && n <= max;
+  }
+
+  it("Should have max > min", () => {
+    for (const errorGroup of unsafeObjectKeys(ERROR_RANGES)) {
+      const range = ERROR_RANGES[errorGroup];
+      assert.isBelow(range.min, range.max, `Range of ${errorGroup} is invalid`);
+    }
+  });
+
+  it("Shouldn't overlap ranges", () => {
+    for (const errorGroup of unsafeObjectKeys(ERROR_RANGES)) {
+      const range = ERROR_RANGES[errorGroup];
+
+      for (const errorGroup2 of unsafeObjectKeys(ERROR_RANGES)) {
+        const range2 = ERROR_RANGES[errorGroup2];
+
+        if (errorGroup === errorGroup2) {
+          continue;
+        }
+
+        assert.isFalse(
+          inRange(range2.min, range.min, range.max),
+          `Ranges of ${errorGroup} and ${errorGroup2} overlap`
+        );
+
+        assert.isFalse(
+          inRange(range2.max, range.min, range.max),
+          `Ranges of ${errorGroup} and ${errorGroup2} overlap`
+        );
+      }
+    }
+  });
+});
+
 describe("Error descriptions", () => {
   it("Should have all errors inside their ranges", () => {
     for (const errorGroup of unsafeObjectKeys(ERRORS)) {
