@@ -321,7 +321,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 }
 
-export class OverloadedTaskDefinition implements TaskDefinition {
+export class OverriddenTaskDefinition implements TaskDefinition {
   private _description?: string;
   private _action?: ActionType<TaskArguments>;
 
@@ -379,7 +379,7 @@ export class OverloadedTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverloadError();
+    return this._throwNoParamsOverrideError();
   }
 
   public addOptionalParam<T>(
@@ -388,7 +388,7 @@ export class OverloadedTaskDefinition implements TaskDefinition {
     defaultValue?: T,
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverloadError();
+    return this._throwNoParamsOverrideError();
   }
 
   public addPositionalParam<T>(
@@ -398,7 +398,7 @@ export class OverloadedTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverloadError();
+    return this._throwNoParamsOverrideError();
   }
 
   public addOptionalPositionalParam<T>(
@@ -407,7 +407,7 @@ export class OverloadedTaskDefinition implements TaskDefinition {
     defaultValue?: T,
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverloadError();
+    return this._throwNoParamsOverrideError();
   }
 
   public addVariadicPositionalParam<T>(
@@ -417,7 +417,7 @@ export class OverloadedTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverloadError();
+    return this._throwNoParamsOverrideError();
   }
 
   public addOptionalVariadicPositionalParam<T>(
@@ -426,16 +426,16 @@ export class OverloadedTaskDefinition implements TaskDefinition {
     defaultValue?: T[],
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverloadError();
+    return this._throwNoParamsOverrideError();
   }
 
   public addFlag(name: string, description?: string): this {
-    return this._throwNoParamsOverloadError();
+    return this._throwNoParamsOverrideError();
   }
 
-  public _throwNoParamsOverloadError(): never {
+  public _throwNoParamsOverrideError(): never {
     throw new BuidlerError(
-      ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS,
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS,
       this.name
     );
   }

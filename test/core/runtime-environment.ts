@@ -86,7 +86,7 @@ describe("Environment", () => {
       assert.isUndefined(globalAsAny.env);
     });
 
-    it("should run overloaded task correctly", async () => {
+    it("should run overridden task correctly", async () => {
       dsl.task("example", "description", async ret => {
         return 28;
       });

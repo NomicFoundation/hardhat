@@ -6,7 +6,7 @@ import {
 } from "../../types";
 
 import {
-  OverloadedTaskDefinition,
+  OverriddenTaskDefinition,
   SimpleTaskDefinition
 } from "./task-definitions";
 
@@ -62,7 +62,7 @@ export class TasksDSL {
     let taskDefinition: TaskDefinition;
 
     if (parentTaskDefinition !== undefined) {
-      taskDefinition = new OverloadedTaskDefinition(
+      taskDefinition = new OverriddenTaskDefinition(
         parentTaskDefinition,
         isInternal
       );

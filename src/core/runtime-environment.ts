@@ -14,7 +14,7 @@ import { lazyObject } from "../util/lazy";
 import { BuidlerError, ERRORS } from "./errors";
 import { createProvider } from "./providers/construction";
 import { IEthereumProvider } from "./providers/ethereum";
-import { OverloadedTaskDefinition } from "./tasks/task-definitions";
+import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
 export class Environment implements BuidlerRuntimeEnvironment {
   private static readonly BLACKLISTED_PROPERTIES: string[] = [
@@ -84,7 +84,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
   ) {
     let runSuper: RunSuperFunction<TaskArguments>;
 
-    if (taskDefinition instanceof OverloadedTaskDefinition) {
+    if (taskDefinition instanceof OverriddenTaskDefinition) {
       runSuper = async (_taskArguments = taskArguments) =>
         this.runTaskDefinition(
           taskDefinition.parentTaskDefinition,
