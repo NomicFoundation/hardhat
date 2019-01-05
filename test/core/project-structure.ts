@@ -34,7 +34,7 @@ describe("project structure", () => {
     it("should throw if cwd is not inside a project", () => {
       expectBuidlerError(
         () => getUserConfigPath(),
-        ERRORS.BUIDLER_NOT_INSIDE_PROJECT
+        ERRORS.GENERAL.NOT_INSIDE_PROJECT
       );
     });
 

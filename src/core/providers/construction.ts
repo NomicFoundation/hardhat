@@ -22,12 +22,12 @@ export function createProvider(
     networksConfig === undefined ||
     networksConfig[selectedNetwork] === undefined
   ) {
-    throw new BuidlerError(ERRORS.NETWORK_CONFIG_NOT_FOUND, selectedNetwork);
+    throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, selectedNetwork);
   }
 
   if (selectedNetwork === "auto") {
     throw new BuidlerError(
-      ERRORS.BUIDLER_UNSUPPORTED_OPERATION,
+      ERRORS.GENERAL.UNSUPPORTED_OPERATION,
       "auto network"
     );
   }

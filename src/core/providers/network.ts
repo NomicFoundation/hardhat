@@ -24,7 +24,7 @@ export function createNetworkProvider(
 
     if (chainId !== undefined && realChainId !== chainId) {
       throw new BuidlerError(
-        ERRORS.NETWORK_INVALID_GLOBAL_CHAIN_ID,
+        ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID,
         chainId,
         realChainId
       );
@@ -38,7 +38,7 @@ export function createNetworkProvider(
           tx.chainId = realChainId;
         } else if (tx.chainId !== realChainId) {
           throw new BuidlerError(
-            ERRORS.NETWORK_INVALID_TX_CHAIN_ID,
+            ERRORS.NETWORK.INVALID_TX_CHAIN_ID,
             tx.chainId,
             realChainId
           );

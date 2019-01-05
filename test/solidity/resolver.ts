@@ -160,19 +160,19 @@ describe("Resolver", () => {
           resolver.resolveProjectSourceFile(
             "./node_modules/lib/contracts/L.sol"
           ),
-        ERRORS.RESOLVER_LIBRARY_FILE_NOT_LOCAL
+        ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL
       );
 
       await expectBuidlerErrorAsync(
         () => resolver.resolveProjectSourceFile(absolutePath),
-        ERRORS.RESOLVER_LIBRARY_FILE_NOT_LOCAL
+        ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL
       );
     });
 
     it("should throw if the file doesn't exist", async () => {
       await expectBuidlerErrorAsync(
         () => resolver.resolveProjectSourceFile("./contracts/NOT-FOUND.sol"),
-        ERRORS.RESOLVER_FILE_NOT_FOUND
+        ERRORS.RESOLVER.FILE_NOT_FOUND
       );
 
       await expectBuidlerErrorAsync(
@@ -180,7 +180,7 @@ describe("Resolver", () => {
           resolver.resolveProjectSourceFile(
             "./node_modules/lib/contracts/NOT-FOUND.sol"
           ),
-        ERRORS.RESOLVER_FILE_NOT_FOUND
+        ERRORS.RESOLVER.FILE_NOT_FOUND
       );
     });
 
@@ -190,7 +190,7 @@ describe("Resolver", () => {
           resolver.resolveProjectSourceFile(
             __dirname + "/../../sample-project/contracts/Greeter.sol"
           ),
-        ERRORS.RESOLVER_FILE_OUTSIDE_PROJECT
+        ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT
       );
     });
   });
@@ -208,19 +208,19 @@ describe("Resolver", () => {
       it("Should throw if the library isn't installed", async () => {
         await expectBuidlerErrorAsync(
           () => resolver.resolveLibrarySourceFile("uninstalled/A.sol"),
-          ERRORS.RESOLVER_LIBRARY_NOT_INSTALLED
+          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         );
       });
 
       it("Should throw if the library is installed but the file is not found", async () => {
         await expectBuidlerErrorAsync(
           () => resolver.resolveLibrarySourceFile("lib/NOT-FOUND.sol"),
-          ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND
+          ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         );
 
         await expectBuidlerErrorAsync(
           () => resolver.resolveLibrarySourceFile("lib/../../contracts/A.sol"),
-          ERRORS.RESOLVER_FILE_OUTSIDE_LIB
+          ERRORS.RESOLVER.FILE_OUTSIDE_LIB
         );
       });
 
@@ -341,7 +341,7 @@ describe("Resolver", () => {
         it("shouldn't resolve a file that is only in the outer node_modules", async () => {
           await expectBuidlerErrorAsync(
             () => resolver.resolveLibrarySourceFile("clashed/contracts/O.sol"),
-            ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND
+            ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
           );
         });
 
@@ -462,7 +462,7 @@ describe("Resolver", () => {
             resolvedLibFile,
             "../../../../../sample-project/contracts/Greeter.sol"
           ),
-        ERRORS.RESOLVER_ILLEGAL_IMPORT
+        ERRORS.RESOLVER.ILLEGAL_IMPORT
       );
     });
 
@@ -473,24 +473,24 @@ describe("Resolver", () => {
             resolvedLocalFile,
             "../../../../sample-project/contracts/Greeter.sol"
           ),
-        ERRORS.RESOLVER_FILE_OUTSIDE_PROJECT
+        ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT
       );
     });
 
     it("Should throw if imported file doesn't exist", async () => {
       await expectBuidlerErrorAsync(
         () => resolver.resolveImport(resolvedLocalFile, "./asd.sol"),
-        ERRORS.RESOLVED_IMPORTED_FILE_NOT_FOUND
+        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
       );
 
       await expectBuidlerErrorAsync(
         () => resolver.resolveImport(resolvedLocalFile, "lib/asd.sol"),
-        ERRORS.RESOLVED_IMPORTED_FILE_NOT_FOUND
+        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
       );
 
       await expectBuidlerErrorAsync(
         () => resolver.resolveImport(resolvedLibFile, "./asd.sol"),
-        ERRORS.RESOLVED_IMPORTED_FILE_NOT_FOUND
+        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
       );
     });
   });

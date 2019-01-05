@@ -67,7 +67,7 @@ describe("Env vars arguments parsing", () => {
         getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
           BUIDLER_HELP: "123"
         }),
-      ERRORS.ENV_VARIABLE_ARG_INVALID_VALUE
+      ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE
     );
   });
 });

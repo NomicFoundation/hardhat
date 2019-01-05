@@ -23,7 +23,7 @@ export const boolean: ArgumentType<boolean> = {
     }
 
     throw new BuidlerError(
-      ERRORS.ARG_TYPE_INVALID_VALUE,
+      ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       strValue,
       argName,
       "boolean"
@@ -39,7 +39,7 @@ export const int: ArgumentType<number> = {
 
     if (!strValue.match(decimalPattern) && !strValue.match(hexPattern)) {
       throw new BuidlerError(
-        ERRORS.ARG_TYPE_INVALID_VALUE,
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         strValue,
         argName,
         "int"
@@ -58,7 +58,7 @@ export const float: ArgumentType<number> = {
 
     if (!strValue.match(decimalPattern) && !strValue.match(hexPattern)) {
       throw new BuidlerError(
-        ERRORS.ARG_TYPE_INVALID_VALUE,
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         strValue,
         argName,
         "float"
@@ -85,7 +85,7 @@ export let inputFile: ArgumentType<string> = {
       }
     } catch (error) {
       throw new BuidlerError(
-        ERRORS.ARG_TYPE_INVALID_INPUT_FILE,
+        ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
         error,
         argName,
         strValue

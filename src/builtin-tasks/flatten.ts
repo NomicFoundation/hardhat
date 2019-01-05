@@ -23,7 +23,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     topologicalSortedNames = graph.sort();
   } catch (error) {
     if (error.toString().includes("Error: There is a cycle in the graph.")) {
-      throw new BuidlerError(ERRORS.TASK_FLATTEN_CYCLE, error);
+      throw new BuidlerError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
   }
 

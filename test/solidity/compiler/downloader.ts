@@ -87,7 +87,7 @@ describe("Compiler downloader", () => {
 
       await expectBuidlerErrorAsync(
         () => downloader.verifyCompiler(localCompilerBuild, corruptCompilerBin),
-        ERRORS.COMPILER_INVALID_DOWNLOAD
+        ERRORS.SOLC.INVALID_DOWNLOAD
       );
 
       assert.isFalse(await fsExtra.pathExists(corruptCompilerBin));
@@ -134,7 +134,7 @@ describe("Compiler downloader", () => {
 
       await expectBuidlerErrorAsync(
         () => downloader.downloadCompiler(localCompilerBuild, downloadPath),
-        ERRORS.COMPILER_DOWNLOAD_FAILED
+        ERRORS.SOLC.DOWNLOAD_FAILED
       );
     });
   });
@@ -173,7 +173,7 @@ describe("Compiler downloader", () => {
 
       await expectBuidlerErrorAsync(
         () => downloader.downloadCompilersList(),
-        ERRORS.COMPILER_VERSION_LIST_DOWNLOAD_FAILED
+        ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED
       );
     });
   });
@@ -274,7 +274,7 @@ describe("Compiler downloader", () => {
           it("Throws the right error if the build is not included in the new list", async () => {
             await expectBuidlerErrorAsync(
               () => mockDownloader.getCompilerBuild("non-existent"),
-              ERRORS.COMPILER_INVALID_VERSION
+              ERRORS.SOLC.INVALID_VERSION
             );
           });
         });
@@ -342,7 +342,7 @@ describe("Compiler downloader", () => {
             mockDownloader.getDownloadedCompilerPath(
               localCompilerBuild.version
             ),
-          ERRORS.COMPILER_INVALID_DOWNLOAD
+          ERRORS.SOLC.INVALID_DOWNLOAD
         );
 
         assert.isFalse(await fsExtra.pathExists(downloadedPath));
@@ -356,7 +356,7 @@ describe("Compiler downloader", () => {
             mockDownloader.getDownloadedCompilerPath(
               localCompilerBuild.version
             ),
-          ERRORS.COMPILER_INVALID_DOWNLOAD
+          ERRORS.SOLC.INVALID_DOWNLOAD
         );
 
         assert.isFalse(await fsExtra.pathExists(downloadedPath));

@@ -47,7 +47,7 @@ describe("TasksDSL", () => {
 
     await expectBuidlerErrorAsync(
       () => task.action({}, {} as any, async () => {}),
-      ERRORS.TASKS_DEFINITION_NO_ACTION
+      ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
     );
   });
 

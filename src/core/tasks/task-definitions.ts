@@ -30,7 +30,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     this._hasVariadicParam = false;
     this._hasOptionalPositionalParam = false;
     this.action = () => {
-      throw new BuidlerError(ERRORS.TASKS_DEFINITION_NO_ACTION, name);
+      throw new BuidlerError(ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET, name);
     };
   }
 
@@ -55,7 +55,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (type === undefined) {
       if (defaultValue !== undefined && typeof defaultValue !== "string") {
         throw new BuidlerError(
-          ERRORS.TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE,
+          ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           name,
           this.name
         );
@@ -125,7 +125,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (type === undefined) {
       if (defaultValue !== undefined && typeof defaultValue !== "string") {
         throw new BuidlerError(
-          ERRORS.TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE,
+          ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           name,
           this.name
         );
@@ -187,7 +187,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (type === undefined) {
       if (defaultValue !== undefined && !this.isStringArray(defaultValue)) {
         throw new BuidlerError(
-          ERRORS.TASKS_DEFINITION_DEFAULT_VALUE_WRONG_TYPE,
+          ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           name,
           this.name
         );
@@ -257,7 +257,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   public _validateNotAfterVariadicParam(name: string) {
     if (this._hasVariadicParam) {
       throw new BuidlerError(
-        ERRORS.TASKS_DEFINITION_PARAM_AFTER_VARIADIC,
+        ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC,
         name,
         this.name
       );
@@ -267,7 +267,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   public _validateNameNotUsed(name: string) {
     if (this._hasParamDefined(name)) {
       throw new BuidlerError(
-        ERRORS.TASKS_DEFINITION_PARAM_ALREADY_DEFINED,
+        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED,
         name,
         this.name
       );
@@ -275,7 +275,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
     if (Object.keys(BUIDLER_PARAM_DEFINITIONS).includes(name)) {
       throw new BuidlerError(
-        ERRORS.TASKS_DEFINITION_PARAM_CLASHES_WITH_GLOBAL,
+        ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM,
         name,
         this.name
       );
@@ -295,7 +295,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   ) {
     if (!isOptional && this._hasOptionalPositionalParam) {
       throw new BuidlerError(
-        ERRORS.TASKS_DEFINITION_MANDATORY_PARAM_AFTER_OPTIONAL,
+        ERRORS.TASK_DEFINITIONS.MANDATORY_PARAM_AFTER_OPTIONAL,
         name,
         this.name
       );
@@ -309,7 +309,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   ) {
     if (defaultValue !== undefined && !isOptional) {
       throw new BuidlerError(
-        ERRORS.TASKS_DEFINITION_DEFAULT_IN_MANDATORY_PARAM,
+        ERRORS.TASK_DEFINITIONS.DEFAULT_IN_MANDATORY_PARAM,
         name,
         this.name
       );
@@ -435,7 +435,7 @@ export class OverloadedTaskDefinition implements TaskDefinition {
 
   public _throwNoParamsOverloadError(): never {
     throw new BuidlerError(
-      ERRORS.TASKS_DEFINITION_OVERLOAD_NO_PARAMS,
+      ERRORS.TASK_DEFINITIONS.OVERLOAD_NO_PARAMS,
       this.name
     );
   }

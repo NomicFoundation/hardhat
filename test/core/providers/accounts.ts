@@ -65,7 +65,7 @@ describe("Local accounts provider", () => {
 
     await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
-      ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
       "gas"
     );
   });
@@ -83,7 +83,7 @@ describe("Local accounts provider", () => {
 
     await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
-      ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
       "gasPrice"
     );
   });
@@ -126,7 +126,7 @@ describe("Local accounts provider", () => {
             value: 1
           }
         ]),
-      ERRORS.NETWORK_NOT_LOCAL_ACCOUNT,
+      ERRORS.NETWORK.NOT_LOCAL_ACCOUNT,
       "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
     );
   });
@@ -221,7 +221,7 @@ describe("Local accounts provider", () => {
     it("Should throw if no data is given", async () => {
       await expectBuidlerErrorAsync(
         () => wrapper.send("eth_sign", [privateKeyToAddress(accounts[0])]),
-        ERRORS.NETWORK_ETHSIGN_MISSING_DATA_PARAM
+        ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM
       );
     });
 
@@ -232,7 +232,7 @@ describe("Local accounts provider", () => {
             "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
             "0x00"
           ]),
-        ERRORS.NETWORK_NOT_LOCAL_ACCOUNT
+        ERRORS.NETWORK.NOT_LOCAL_ACCOUNT
       );
     });
 
@@ -255,7 +255,7 @@ describe("Local accounts provider", () => {
 
     await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", params),
-      ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
       "chainId"
     );
   });
@@ -305,32 +305,32 @@ describe("hdwallet provider", () => {
     it("Should throw if the path is invalid", () => {
       expectBuidlerError(
         () => createHDWalletProvider(mock, mnemonic, ""),
-        ERRORS.INVALID_HD_PATH
+        ERRORS.NETWORK.INVALID_HD_PATH
       );
 
       expectBuidlerError(
         () => createHDWalletProvider(mock, mnemonic, "m/"),
-        ERRORS.INVALID_HD_PATH
+        ERRORS.NETWORK.INVALID_HD_PATH
       );
 
       expectBuidlerError(
         () => createHDWalletProvider(mock, mnemonic, "m//"),
-        ERRORS.INVALID_HD_PATH
+        ERRORS.NETWORK.INVALID_HD_PATH
       );
 
       expectBuidlerError(
         () => createHDWalletProvider(mock, mnemonic, "m/'"),
-        ERRORS.INVALID_HD_PATH
+        ERRORS.NETWORK.INVALID_HD_PATH
       );
 
       expectBuidlerError(
         () => createHDWalletProvider(mock, mnemonic, "m/0''"),
-        ERRORS.INVALID_HD_PATH
+        ERRORS.NETWORK.INVALID_HD_PATH
       );
 
       expectBuidlerError(
         () => createHDWalletProvider(mock, mnemonic, "ghj"),
-        ERRORS.INVALID_HD_PATH
+        ERRORS.NETWORK.INVALID_HD_PATH
       );
     });
   });

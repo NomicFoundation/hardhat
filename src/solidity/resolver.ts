@@ -52,21 +52,21 @@ export class Resolver {
     const fsExtra = await import("fs-extra");
 
     if (!(await fsExtra.pathExists(pathToResolve))) {
-      throw new BuidlerError(ERRORS.RESOLVER_FILE_NOT_FOUND, pathToResolve);
+      throw new BuidlerError(ERRORS.RESOLVER.FILE_NOT_FOUND, pathToResolve);
     }
 
     const absolutePath = await fsExtra.realpath(pathToResolve);
 
     if (!absolutePath.startsWith(this.projectRoot)) {
       throw new BuidlerError(
-        ERRORS.RESOLVER_FILE_OUTSIDE_PROJECT,
+        ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT,
         pathToResolve
       );
     }
 
     if (absolutePath.includes("node_modules")) {
       throw new BuidlerError(
-        ERRORS.RESOLVER_LIBRARY_FILE_NOT_LOCAL,
+        ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL,
         pathToResolve
       );
     }
@@ -89,7 +89,7 @@ export class Resolver {
       );
     } catch (error) {
       throw new BuidlerError(
-        ERRORS.RESOLVER_LIBRARY_NOT_INSTALLED,
+        ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
         error,
         libraryName
       );
@@ -100,7 +100,7 @@ export class Resolver {
       absolutePath = this._resolveFromProjectRoot(globalName);
     } catch (error) {
       throw new BuidlerError(
-        ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND,
+        ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
         error,
         globalName
       );
@@ -114,12 +114,12 @@ export class Resolver {
       // situations, so we only use the closes installation
       if (absolutePath.includes(`node_modules/${libraryName}`)) {
         throw new BuidlerError(
-          ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND,
+          ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
           globalName
         );
       }
 
-      throw new BuidlerError(ERRORS.RESOLVER_FILE_OUTSIDE_LIB, globalName);
+      throw new BuidlerError(ERRORS.RESOLVER.FILE_OUTSIDE_LIB, globalName);
     }
 
     const packageInfo = await fsExtra.readJson(packagePath);
@@ -153,7 +153,7 @@ export class Resolver {
 
         if (isIllegal) {
           throw new BuidlerError(
-            ERRORS.RESOLVER_ILLEGAL_IMPORT,
+            ERRORS.RESOLVER.ILLEGAL_IMPORT,
             imported,
             from.globalName
           );
@@ -165,11 +165,11 @@ export class Resolver {
       return await this.resolveLibrarySourceFile(imported);
     } catch (error) {
       if (
-        error.number === ERRORS.RESOLVER_FILE_NOT_FOUND.number ||
-        error.number === ERRORS.RESOLVER_LIBRARY_FILE_NOT_FOUND.number
+        error.number === ERRORS.RESOLVER.FILE_NOT_FOUND.number ||
+        error.number === ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND.number
       ) {
         throw new BuidlerError(
-          ERRORS.RESOLVED_IMPORTED_FILE_NOT_FOUND,
+          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
           error,
           imported,
           from.globalName

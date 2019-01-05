@@ -1,6 +1,12 @@
 import { assert } from "chai";
 
-import { BuidlerError, ErrorDescription } from "../../src/core/errors";
+import {
+  BuidlerError,
+  ERROR_RANGES,
+  ErrorDescription,
+  ERRORS
+} from "../../src/core/errors";
+import { unsafeObjectKeys } from "../../src/util/unsafe";
 
 const mockErrorDescription: ErrorDescription = {
   number: 123,
@@ -62,5 +68,48 @@ describe("BuilderError", () => {
       );
       assert.equal(error.message, "BDLR12: a b 123");
     });
+  });
+});
+
+describe("Error descriptions", () => {
+  it("Should have all errors inside their ranges", () => {
+    for (const errorGroup of unsafeObjectKeys(ERRORS)) {
+      const range = ERROR_RANGES[errorGroup];
+
+      for (const [name, errorDescription] of Object.entries(
+        ERRORS[errorGroup]
+      )) {
+        assert.isAtLeast(
+          errorDescription.number,
+          range.min,
+          `ERRORS.${errorGroup}.${name}'s number is out of range`
+        );
+        assert.isAtMost(
+          errorDescription.number,
+          range.max - 1,
+          `ERRORS.${errorGroup}.${name}'s number is out of range`
+        );
+      }
+    }
+  });
+
+  it("Shouldn't repeat error numbers", () => {
+    for (const errorGroup of unsafeObjectKeys(ERRORS)) {
+      for (const [name, errorDescription] of Object.entries(
+        ERRORS[errorGroup]
+      )) {
+        for (const [name2, errorDescription2] of Object.entries(
+          ERRORS[errorGroup]
+        )) {
+          if (name !== name2) {
+            assert.notEqual(
+              errorDescription.number,
+              errorDescription2.number,
+              `ERRORS.${errorGroup}.${name} and ${errorGroup}.${name2} have repeated numbers`
+            );
+          }
+        }
+      }
+    }
   });
 });
