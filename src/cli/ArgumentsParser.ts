@@ -24,10 +24,7 @@ export class ArgumentsParser {
 
   public static cLAToParamName(cLA: string): string {
     if (cLA.toLowerCase() !== cLA) {
-      throw new BuidlerError(
-        ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING,
-        cLA
-      );
+      throw new BuidlerError(ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING, cLA);
     }
 
     const parts = cLA.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
@@ -134,10 +131,7 @@ export class ArgumentsParser {
       }
 
       if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
-        throw new BuidlerError(
-          ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME,
-          arg
-        );
+        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME, arg);
       }
 
       i = this._parseArgumentAt(
