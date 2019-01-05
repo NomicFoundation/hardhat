@@ -75,7 +75,7 @@ describe("Environment", () => {
 
     it("should fail trying to run a non existent task", () => {
       env.run("invalid").catch(err => {
-        assert.equal(err.number, ERRORS.UNRECOGNIZED_TASK.number);
+        assert.equal(err.number, ERRORS.ARGUMENTS.UNRECOGNIZED_TASK.number);
       });
     });
 

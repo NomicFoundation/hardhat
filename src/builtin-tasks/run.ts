@@ -19,7 +19,7 @@ task("run", "Runs an user-defined script after compiling the project")
       const fsExtra = await import("fs-extra");
 
       if (!(await fsExtra.pathExists(script))) {
-        throw new BuidlerError(ERRORS.TASK_RUN_FILE_NOT_FOUND, script);
+        throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, script);
       }
 
       if (!noCompile) {
@@ -31,7 +31,7 @@ task("run", "Runs an user-defined script after compiling the project")
         require(await fsExtra.realpath(script));
       } catch (error) {
         throw new BuidlerError(
-          ERRORS.TASK_RUN_SCRIPT_ERROR,
+          ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
           error,
           script,
           error.message

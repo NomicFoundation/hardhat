@@ -40,7 +40,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
     const taskDefinition = this.tasks[name];
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.UNRECOGNIZED_TASK, name);
+      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, name);
     }
 
     return this.runTaskDefinition(taskDefinition, taskArguments);
@@ -93,7 +93,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
     } else {
       runSuper = async () => {
         throw new BuidlerError(
-          ERRORS.TASK_RUNSUPER_NOT_AVAILABLE,
+          ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE,
           taskDefinition.name
         );
       };

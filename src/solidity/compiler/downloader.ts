@@ -72,7 +72,7 @@ export class CompilerDownloader {
     const compilerBuild = list.builds.find(b => b.path === compilerBuildPath);
 
     if (compilerBuild === undefined) {
-      throw new BuidlerError(ERRORS.COMPILER_INVALID_VERSION, version);
+      throw new BuidlerError(ERRORS.SOLC.INVALID_VERSION, version);
     }
 
     return compilerBuild;
@@ -101,7 +101,7 @@ export class CompilerDownloader {
       await this.download(COMPILERS_LIST_URL, this.compilersDir);
     } catch (error) {
       throw new BuidlerError(
-        ERRORS.COMPILER_VERSION_LIST_DOWNLOAD_FAILED,
+        ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
         error,
         this.localSolcVersion
       );
@@ -120,7 +120,7 @@ export class CompilerDownloader {
       await this.download(compilerUrl, downloadedFilePath);
     } catch (error) {
       throw new BuidlerError(
-        ERRORS.COMPILER_DOWNLOAD_FAILED,
+        ERRORS.SOLC.DOWNLOAD_FAILED,
         error,
         compilerBuild.version,
         this.localSolcVersion
@@ -145,7 +145,7 @@ export class CompilerDownloader {
       await fsExtra.unlink(downloadedFilePath);
 
       throw new BuidlerError(
-        ERRORS.COMPILER_INVALID_DOWNLOAD,
+        ERRORS.SOLC.INVALID_DOWNLOAD,
         compilerBuild.version,
         this.localSolcVersion
       );

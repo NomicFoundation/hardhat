@@ -50,13 +50,13 @@ describe("Base provider creation", () => {
   it("should fail on getting non existent network config", () => {
     expectBuidlerError(() => {
       createProvider("asd", {});
-    }, ERRORS.NETWORK_CONFIG_NOT_FOUND);
+    }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
   });
 
   it("should fail if no networks config is provided", () => {
     expectBuidlerError(() => {
       createProvider("asd");
-    }, ERRORS.NETWORK_CONFIG_NOT_FOUND);
+    }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
   });
 });
 
@@ -244,7 +244,7 @@ describe("Base providers wrapping", () => {
       await expectBuidlerErrorAsync(
         () =>
           provider.send("eth_sendTransaction", [{ from: "0x0", chainId: 1 }]),
-        ERRORS.NETWORK_INVALID_TX_CHAIN_ID
+        ERRORS.NETWORK.INVALID_TX_CHAIN_ID
       );
     });
 
@@ -257,7 +257,7 @@ describe("Base providers wrapping", () => {
       await expectBuidlerErrorAsync(
         () =>
           provider.send("eth_sendTransaction", [{ from: "0x0", chainId: 1 }]),
-        ERRORS.NETWORK_INVALID_GLOBAL_CHAIN_ID
+        ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID
       );
     });
   });

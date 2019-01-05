@@ -7,7 +7,7 @@ import * as types from "../../../src/core/params/argumentTypes";
 import { expectBuidlerError } from "../../helpers/errors";
 
 function a(f: () => any) {
-  expectBuidlerError(f, ERRORS.ARG_TYPE_INVALID_VALUE);
+  expectBuidlerError(f, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);
 }
 
 describe("argumentTypes", () => {
@@ -39,27 +39,27 @@ describe("argumentTypes", () => {
     it("should throw the right error on invalid values", () => {
       expectBuidlerError(
         () => types.boolean.parse("arg", "asd1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.boolean.parse("arg", "f"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.boolean.parse("arg", "t"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.boolean.parse("arg", "1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.boolean.parse("arg", "0"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.boolean.parse("arg", ""),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
     });
   });
@@ -91,39 +91,39 @@ describe("argumentTypes", () => {
     it("should fail with incorrect values", () => {
       expectBuidlerError(
         () => types.int.parse("arg", ""),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", "1."),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", ".1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", "0.1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", "asdas"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", "a1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", "1a"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", "1 1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.int.parse("arg", "x123"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
     });
   });
@@ -165,47 +165,47 @@ describe("argumentTypes", () => {
     it("should fail with incorrect values", () => {
       expectBuidlerError(
         () => types.float.parse("arg", ""),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "."),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", ".."),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "1..1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "1.asd"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "asd.123"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "asdas"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "a1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "1a"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "1 1"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
       expectBuidlerError(
         () => types.float.parse("arg", "x123"),
-        ERRORS.ARG_TYPE_INVALID_VALUE
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
     });
   });
@@ -231,7 +231,7 @@ describe("argumentTypes", () => {
     it("Should throw if the file doesnt exist", () => {
       expectBuidlerError(
         () => types.inputFile.parse("A file", "NON_EXISTENT_FILE"),
-        ERRORS.ARG_TYPE_INVALID_INPUT_FILE
+        ERRORS.ARGUMENTS.INVALID_INPUT_FILE
       );
     });
 
@@ -241,7 +241,7 @@ describe("argumentTypes", () => {
 
       expectBuidlerError(
         () => types.inputFile.parse("A file", "A"),
-        ERRORS.ARG_TYPE_INVALID_INPUT_FILE
+        ERRORS.ARGUMENTS.INVALID_INPUT_FILE
       );
 
       await fsExtra.unlink("A");
@@ -250,7 +250,7 @@ describe("argumentTypes", () => {
     it("Should throw if a directory is given", () => {
       expectBuidlerError(
         () => types.inputFile.parse("A file", __dirname),
-        ERRORS.ARG_TYPE_INVALID_INPUT_FILE
+        ERRORS.ARGUMENTS.INVALID_INPUT_FILE
       );
     });
   });

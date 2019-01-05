@@ -70,7 +70,7 @@ internalTask("builtin:compile", async (_, { config, run }) => {
   }
 
   if (hasErrors || !output.contracts) {
-    throw new BuidlerError(ERRORS.TASK_COMPILE_FAILURE);
+    throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
   }
 
   return output;

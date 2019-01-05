@@ -37,7 +37,7 @@ describe("Network provider", () => {
     tx.chainId = 42;
     await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", [tx]),
-      ERRORS.NETWORK_INVALID_TX_CHAIN_ID
+      ERRORS.NETWORK.INVALID_TX_CHAIN_ID
     );
   });
 
@@ -45,7 +45,7 @@ describe("Network provider", () => {
     wrapper = createNetworkProvider(mock, validChainId + 1);
     await expectBuidlerErrorAsync(
       () => wrapper.send("eth_sendTransaction", [tx]),
-      ERRORS.NETWORK_INVALID_GLOBAL_CHAIN_ID
+      ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID
     );
   });
 
@@ -95,7 +95,7 @@ describe("Network provider", () => {
       await expectBuidlerErrorAsync(
         () =>
           provider.send("eth_sendTransaction", [{ ...tx, chainId: 567876 }]),
-        ERRORS.NETWORK_INVALID_TX_CHAIN_ID
+        ERRORS.NETWORK.INVALID_TX_CHAIN_ID
       );
 
       await provider.send("eth_sendTransaction", [

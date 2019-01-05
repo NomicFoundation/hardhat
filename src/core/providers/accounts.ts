@@ -29,7 +29,7 @@ export function createLocalAccountsProvider(
 
       if (address !== undefined) {
         if (data === undefined) {
-          throw new BuidlerError(ERRORS.NETWORK_ETHSIGN_MISSING_DATA_PARAM);
+          throw new BuidlerError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
         }
 
         const account = accounts.find(
@@ -37,7 +37,7 @@ export function createLocalAccountsProvider(
         );
 
         if (account === undefined) {
-          throw new BuidlerError(ERRORS.NETWORK_NOT_LOCAL_ACCOUNT, address);
+          throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, address);
         }
 
         return account.sign(data).signature;
@@ -49,21 +49,21 @@ export function createLocalAccountsProvider(
 
       if (tx.chainId === undefined) {
         throw new BuidlerError(
-          ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           "chainId"
         );
       }
 
       if (tx.gas === undefined) {
         throw new BuidlerError(
-          ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           "gas"
         );
       }
 
       if (tx.gasPrice === undefined) {
         throw new BuidlerError(
-          ERRORS.NETWORK_MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           "gasPrice"
         );
       }
@@ -80,7 +80,7 @@ export function createLocalAccountsProvider(
       );
 
       if (account === undefined) {
-        throw new BuidlerError(ERRORS.NETWORK_NOT_LOCAL_ACCOUNT, tx.from);
+        throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, tx.from);
       }
 
       // TODO: Remove ethereumjs-tx dependencies in favor of web3x.
@@ -102,7 +102,7 @@ export function createHDWalletProvider(
   count: number = 10
 ) {
   if (!hdpath.match(HD_PATH_REGEX)) {
-    throw new BuidlerError(ERRORS.INVALID_HD_PATH, hdpath);
+    throw new BuidlerError(ERRORS.NETWORK.INVALID_HD_PATH, hdpath);
   }
 
   if (!hdpath.endsWith("/")) {
@@ -136,7 +136,7 @@ export function createSenderProvider(
         if (senderAccount !== undefined) {
           tx.from = senderAccount;
         } else if (method === "eth_sendTransaction") {
-          throw new BuidlerError(ERRORS.NETWORK_NO_REMOTE_ACCOUNT_AVAILABLE);
+          throw new BuidlerError(ERRORS.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE);
         }
       }
     }

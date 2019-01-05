@@ -12,14 +12,14 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
 
       if (object instanceof Function) {
         throw new BuidlerError(
-          ERRORS.BUIDLER_UNSUPPORTED_OPERATION,
+          ERRORS.GENERAL.UNSUPPORTED_OPERATION,
           "Creating lazy functions or classes with lazyObject"
         );
       }
 
       if (typeof object !== "object" || object === null) {
         throw new BuidlerError(
-          ERRORS.BUIDLER_UNSUPPORTED_OPERATION,
+          ERRORS.GENERAL.UNSUPPORTED_OPERATION,
           "Using lazyObject with anything other than objects"
         );
       }

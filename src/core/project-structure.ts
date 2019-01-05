@@ -14,7 +14,7 @@ export function isCwdInsideProject() {
 export function getUserConfigPath() {
   const pathToConfigFile = findUp.sync(CONFIG_FILENAME);
   if (!pathToConfigFile) {
-    throw new BuidlerError(ERRORS.BUIDLER_NOT_INSIDE_PROJECT);
+    throw new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
   }
 
   return pathToConfigFile;

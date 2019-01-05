@@ -32,7 +32,7 @@ export function getEnvBuidlerArguments(
         envArgs[paramName] = definition.type.parse(paramName, rawValue);
       } catch (error) {
         throw new BuidlerError(
-          ERRORS.ENV_VARIABLE_ARG_INVALID_VALUE,
+          ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE,
           error,
           envVarName,
           rawValue

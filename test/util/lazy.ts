@@ -75,9 +75,9 @@ describe("lazy module", () => {
 
       expectBuidlerError(
         () => (obj.asd = 123),
-        ERRORS.BUIDLER_UNSUPPORTED_OPERATION
+        ERRORS.GENERAL.UNSUPPORTED_OPERATION
       );
-      expectBuidlerError(() => obj.asd, ERRORS.BUIDLER_UNSUPPORTED_OPERATION);
+      expectBuidlerError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
       assert.throws(() => new obj(), "obj is not a constructor");
     });
 
@@ -86,9 +86,9 @@ describe("lazy module", () => {
 
       expectBuidlerError(
         () => (obj.asd = 123),
-        ERRORS.BUIDLER_UNSUPPORTED_OPERATION
+        ERRORS.GENERAL.UNSUPPORTED_OPERATION
       );
-      expectBuidlerError(() => obj.asd, ERRORS.BUIDLER_UNSUPPORTED_OPERATION);
+      expectBuidlerError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
 
       assert.throws(() => obj(), "obj is not a function");
     });

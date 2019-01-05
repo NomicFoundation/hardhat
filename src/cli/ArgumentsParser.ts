@@ -24,10 +24,7 @@ export class ArgumentsParser {
 
   public static cLAToParamName(cLA: string): string {
     if (cLA.toLowerCase() !== cLA) {
-      throw new BuidlerError(
-        ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING,
-        cLA
-      );
+      throw new BuidlerError(ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING, cLA);
     }
 
     const parts = cLA.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
@@ -65,7 +62,7 @@ export class ArgumentsParser {
 
         if (!this._isCLAParamName(arg, buidlerParamDefinitions)) {
           throw new BuidlerError(
-            ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG,
+            ERRORS.ARGUMENTS.UNRECOGNIZED_COMMAND_LINE_ARG,
             arg
           );
         }
@@ -134,10 +131,7 @@ export class ArgumentsParser {
       }
 
       if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
-        throw new BuidlerError(
-          ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME,
-          arg
-        );
+        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME, arg);
       }
 
       i = this._parseArgumentAt(
@@ -179,7 +173,7 @@ export class ArgumentsParser {
           taskArguments[paramName] = definition.defaultValue;
         } else {
           throw new BuidlerError(
-            ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT,
+            ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
             paramName
           );
         }
@@ -211,7 +205,7 @@ export class ArgumentsParser {
     const definition = paramDefinitions[paramName];
 
     if (parsedArguments[paramName] !== undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENT_PARSER_REPEATED_PARAM, claArg);
+      throw new BuidlerError(ERRORS.ARGUMENTS.REPEATED_PARAM, claArg);
     }
 
     if (definition.isFlag) {
@@ -239,7 +233,7 @@ export class ArgumentsParser {
       if (rawArg === undefined) {
         if (!definition.isOptional) {
           throw new BuidlerError(
-            ERRORS.ARGUMENT_PARSER_MISSING_POSITIONAL_ARG,
+            ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG,
             definition.name
           );
         }
@@ -265,7 +259,7 @@ export class ArgumentsParser {
       rawPositionalParamArgs.length > positionalParamDefinitions.length
     ) {
       throw new BuidlerError(
-        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_POSITIONAL_ARG,
+        ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG,
         rawPositionalParamArgs[positionalParamDefinitions.length]
       );
     }

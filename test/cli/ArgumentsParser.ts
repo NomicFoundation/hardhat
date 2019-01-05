@@ -42,17 +42,17 @@ describe("ArgumentsParser", () => {
   it("Should throw if a param name CLA isn't all lowercase", () => {
     expectBuidlerError(
       () => ArgumentsParser.cLAToParamName("--showStackTraces"),
-      ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING
+      ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
 
     expectBuidlerError(
       () => ArgumentsParser.cLAToParamName("--showstackTraces"),
-      ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING
+      ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
 
     expectBuidlerError(
       () => ArgumentsParser.cLAToParamName("--show-stack-Traces"),
-      ERRORS.ARGUMENT_PARSER_PARAM_NAME_INVALID_CASING
+      ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
   });
 
@@ -154,7 +154,7 @@ describe("ArgumentsParser", () => {
             envArgs,
             rawCLAs
           ),
-        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG
+        ERRORS.ARGUMENTS.UNRECOGNIZED_COMMAND_LINE_ARG
       );
     });
 
@@ -203,7 +203,7 @@ describe("ArgumentsParser", () => {
             envArgs,
             rawCLAs
           ),
-        ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_COMMAND_LINE_ARG
+        ERRORS.ARGUMENTS.UNRECOGNIZED_COMMAND_LINE_ARG
       );
     });
 
@@ -223,7 +223,7 @@ describe("ArgumentsParser", () => {
             envArgs,
             rawCLAs
           ),
-        ERRORS.ARGUMENT_PARSER_REPEATED_PARAM
+        ERRORS.ARGUMENTS.REPEATED_PARAM
       );
     });
 
@@ -295,7 +295,7 @@ describe("ArgumentsParser", () => {
       const rawCLAs: string[] = ["--invalid-parameter", "not_valid"];
       expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
-      }, ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_PARAM_NAME);
+      }, ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME);
     });
 
     it("should fail to parse task without non optional variadic arguments", () => {
@@ -307,7 +307,7 @@ describe("ArgumentsParser", () => {
 
       expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
-      }, ERRORS.ARGUMENT_PARSER_MISSING_POSITIONAL_ARG);
+      }, ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG);
     });
 
     it("should fail to parse task without non optional argument", () => {
@@ -317,7 +317,7 @@ describe("ArgumentsParser", () => {
       definition.addParam("bleep", "useless param", 1602, int, true);
       expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(definition, rawCLAs);
-      }, ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT);
+      }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
     });
 
     it("should fail trying to parse unrecognized positional argument", () => {
@@ -327,14 +327,14 @@ describe("ArgumentsParser", () => {
       definition.addParam("bleep", "useless param", 1602, int, true);
       expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(definition, rawCLAs);
-      }, ERRORS.ARGUMENT_PARSER_MISSING_TASK_ARGUMENT);
+      }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
     });
 
     it("should fail when passing unneeded arguments", () => {
       const rawCLAs: string[] = ["more", "arguments"];
       expectBuidlerError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
-      }, ERRORS.ARGUMENT_PARSER_UNRECOGNIZED_POSITIONAL_ARG);
+      }, ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG);
     });
 
     it("should parse task with positional arguments", () => {
