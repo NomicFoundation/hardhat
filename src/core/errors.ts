@@ -1,5 +1,7 @@
 import util from "util";
 
+import { getClosestCallerPackage } from "../util/caller-package";
+
 const ERROR_PREFIX = "BDLR";
 
 export interface ErrorDescription {
@@ -41,6 +43,16 @@ export class BuidlerError extends Error {
     if (hasParentError) {
       this.parent = parentError;
     }
+  }
+}
+
+export class BuidlerPluginError extends Error {
+  public readonly pluginName: string;
+
+  public constructor(message: string, public readonly parent?: Error) {
+    super(message);
+
+    this.pluginName = getClosestCallerPackage()!;
   }
 }
 
