@@ -6,8 +6,8 @@ import { BuidlerError, ERRORS } from "../internal/core/errors";
 import { Compiler } from "../internal/solidity/compiler";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Resolver } from "../internal/solidity/resolver";
-import { ResolvedBuidlerConfig } from "../types";
 import { glob } from "../internal/util/glob";
+import { ResolvedBuidlerConfig } from "../types";
 
 import { areArtifactsCached } from "./utils/cache";
 

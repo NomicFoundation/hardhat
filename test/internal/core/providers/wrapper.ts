@@ -1,7 +1,8 @@
 import { assert } from "chai";
-import { MethodReturningProvider, ParamsReturningProvider } from "./mocks";
+
 import { wrapSend } from "../../../../src/internal/core/providers/wrapper";
 
+import { MethodReturningProvider, ParamsReturningProvider } from "./mocks";
 
 describe("wrapSend", () => {
   let methodReturningProvider: MethodReturningProvider;

@@ -2,9 +2,9 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
 
+import { ERRORS } from "../../../../src/internal/core/errors";
 import * as types from "../../../../src/internal/core/params/argumentTypes";
 import { expectBuidlerError } from "../../../helpers/errors";
-import { ERRORS } from "../../../../src/internal/core/errors";
 
 function a(f: () => any) {
   expectBuidlerError(f, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);

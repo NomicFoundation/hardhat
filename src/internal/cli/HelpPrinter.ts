@@ -4,9 +4,9 @@ import {
   ParamDefinitionsMap,
   TasksMap
 } from "../../types";
+import { BuidlerError, ERRORS } from "../core/errors";
 
 import { ArgumentsParser } from "./ArgumentsParser";
-import { BuidlerError, ERRORS } from "../core/errors";
 
 export class HelpPrinter {
   constructor(

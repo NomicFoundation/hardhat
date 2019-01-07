@@ -1,5 +1,7 @@
 import { assert } from "chai";
 
+import { ArgumentsParser } from "../../../src/internal/cli/ArgumentsParser";
+import { ERRORS } from "../../../src/internal/core/errors";
 import { int, string } from "../../../src/internal/core/params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/internal/core/params/buidler-params";
 import { SimpleTaskDefinition } from "../../../src/internal/core/tasks/task-definitions";
@@ -9,8 +11,6 @@ import {
   TaskDefinition
 } from "../../../src/types";
 import { expectBuidlerError } from "../../helpers/errors";
-import { ArgumentsParser } from "../../../src/internal/cli/ArgumentsParser";
-import { ERRORS } from "../../../src/internal/core/errors";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
