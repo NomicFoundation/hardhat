@@ -6,7 +6,7 @@ import colors from "ansi-colors";
 import semver from "semver";
 
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { BuidlerError, ERRORS } from "../core/errors";
+import { BuidlerError, BuidlerPluginError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
@@ -102,10 +102,16 @@ async function main() {
 
     await env.run(taskName, taskArguments);
   } catch (error) {
-    const isBuidlerError = error instanceof BuidlerError;
+    let isBuidlerError = false;
 
-    if (isBuidlerError) {
+    if (error instanceof BuidlerError) {
+      isBuidlerError = true;
       console.error(colors.red("Error " + error.message));
+    } else if (error instanceof BuidlerPluginError) {
+      isBuidlerError = true;
+      console.error(
+        colors.red("Error in plugin " + error.pluginName + ": " + error.message)
+      );
     } else {
       console.error(
         colors.red("An unexpected error occurred: " + error.message)
@@ -119,7 +125,7 @@ async function main() {
     } else {
       if (!isBuidlerError) {
         console.error(
-          "This shouldn't have happened, please report it to help us improve buidler."
+          "This shouldn't have happened, please report it to help us improve Buidler."
         );
       }
 
