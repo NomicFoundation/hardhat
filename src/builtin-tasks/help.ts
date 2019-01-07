@@ -1,7 +1,7 @@
-import { HelpPrinter } from "../cli/HelpPrinter";
-import { task } from "../core/config/config-env";
-import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
-import { getPackageJson } from "../util/packageInfo";
+import { HelpPrinter } from "../internal/cli/HelpPrinter";
+import { task } from "../internal/core/config/config-env";
+import { BUIDLER_PARAM_DEFINITIONS } from "../internal/core/params/buidler-params";
+import { getPackageJson } from "../internal/util/packageInfo";
 
 task("help", "Prints this message")
   .addOptionalPositionalParam(

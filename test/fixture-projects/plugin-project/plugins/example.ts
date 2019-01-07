@@ -1,4 +1,4 @@
-import { extendEnvironment } from "../../../../src/core/config/config-env";
+import { extendEnvironment } from "../../../../src/internal/core/config/config-env";
 
 extendEnvironment((env: any) => {
   env.__test_key = "a value";

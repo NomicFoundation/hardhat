@@ -1,6 +1,5 @@
 import { assert, AssertionError, expect } from "chai";
-
-import { BuidlerError, ErrorDescription } from "../../src/core/errors";
+import { BuidlerError, ErrorDescription } from "../../src/internal/core/errors";
 
 export async function expectErrorAsync(
   f: () => Promise<any>,

@@ -1,13 +1,13 @@
 import colors from "ansi-colors";
 import path from "path";
 
-import { internalTask, task } from "../core/config/config-env";
-import { BuidlerError, ERRORS } from "../core/errors";
-import { Compiler } from "../solidity/compiler";
-import { DependencyGraph } from "../solidity/dependencyGraph";
-import { Resolver } from "../solidity/resolver";
+import { internalTask, task } from "../internal/core/config/config-env";
+import { BuidlerError, ERRORS } from "../internal/core/errors";
+import { Compiler } from "../internal/solidity/compiler";
+import { DependencyGraph } from "../internal/solidity/dependencyGraph";
+import { Resolver } from "../internal/solidity/resolver";
 import { ResolvedBuidlerConfig } from "../types";
-import { glob } from "../util/glob";
+import { glob } from "../internal/util/glob";
 
 import { areArtifactsCached } from "./utils/cache";
 

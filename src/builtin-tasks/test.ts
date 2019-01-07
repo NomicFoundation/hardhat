@@ -1,7 +1,7 @@
 import path from "path";
 
-import { internalTask, task } from "../core/config/config-env";
-import { glob } from "../util/glob";
+import { internalTask, task } from "../internal/core/config/config-env";
+import { glob } from "../internal/util/glob";
 
 internalTask("builtin:get-test-files")
   .addOptionalVariadicPositionalParam(
