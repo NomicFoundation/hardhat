@@ -1,5 +1,5 @@
-import { internalTask, task } from "../core/config/config-env";
-import { BuidlerError, ERRORS } from "../core/errors";
+import { internalTask, task } from "../internal/core/config/config-env";
+import { BuidlerError, ERRORS } from "../internal/core/errors";
 
 internalTask("builtin:setup-run-environment", async () => {
   // this task is only here in case someone wants to override it.

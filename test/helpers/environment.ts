@@ -1,4 +1,4 @@
-import { Environment } from "../../src/core/runtime-environment";
+import { Environment } from "../../src/internal/core/runtime-environment";
 
 declare module "mocha" {
   interface Context {
@@ -8,10 +8,10 @@ declare module "mocha" {
 
 export function useEnvironment() {
   beforeEach("Load environment", function() {
-    this.env = require("../../src/lib/buidler-lib");
+    this.env = require("../../src/internal/lib/buidler-lib");
   });
 
   afterEach("Unload environment", function() {
-    delete require.cache[require.resolve("../../src/lib/buidler-lib")];
+    delete require.cache[require.resolve("../../src/internal/lib/buidler-lib")];
   });
 }

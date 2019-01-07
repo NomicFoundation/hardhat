@@ -1,4 +1,4 @@
-import { task } from "../core/config/config-env";
+import { task } from "../internal/core/config/config-env";
 
 task(
   "clean",

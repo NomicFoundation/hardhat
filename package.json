@@ -5,8 +5,8 @@
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/buidler",
   "repository": "github:nomiclabs/buidler",
-  "main": "dist/src/lib/buidler-lib.js",
-  "types": "dist/src/lib/buidler-lib.d.ts",
+  "main": "internal/lib/buidler-lib.js",
+  "types": "internal/lib/buidler-lib.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -18,8 +18,8 @@
     "solidity"
   ],
   "bin": {
-    "buidler": "dist/src/cli/cli.js",
-    "builder": "dist/src/cli/cli-with-a-typo.js"
+    "buidler": "internal/cli/cli.js",
+    "builder": "internal/cli/cli-with-a-typo.js"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -36,7 +36,7 @@
     "dev:clean": "rm -rf dist",
     "prod:build": "tsc --p tsconfig.prod.json",
     "prod:watch": "tsc -w --p tsconfig.prod.json",
-    "prod:clean": "rm -rf builtin-tasks cli core lib solidity util *.d.ts *.map *.js"
+    "prod:clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

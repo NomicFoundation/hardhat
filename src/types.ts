@@ -2,7 +2,7 @@
 import { DeepPartial, Omit } from "ts-essentials";
 import { EthereumProvider } from "web3x/providers";
 
-import * as types from "./core/params/argumentTypes";
+import * as types from "./internal/core/params/argumentTypes";
 
 export interface GanacheOptions {
   gasLimit?: number;

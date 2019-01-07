@@ -1,4 +1,4 @@
-import { task } from "../core/config/config-env";
+import { task } from "../internal/core/config/config-env";
 
 task("console", "Opens a buidler console")
   .addFlag("noCompile", "Don't compile before running this task")

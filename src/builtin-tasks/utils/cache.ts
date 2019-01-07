@@ -1,7 +1,7 @@
 import path from "path";
 
+import { glob } from "../../internal/util/glob";
 import { ProjectPaths } from "../../types";
-import { glob } from "../../util/glob";
 
 const LAST_CONFIG_USED_FILENAME = "path-to-last-config-used.txt";
 

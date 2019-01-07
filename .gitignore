@@ -18,11 +18,7 @@
 /*.d.ts
 /*.d.ts.map
 /builtin-tasks
-/cli
-/core
-/lib
-/solidity
-/util
+/internal
 
 #Below is Github's node gitignore template
 
