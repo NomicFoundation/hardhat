@@ -58,7 +58,9 @@ internalTask(
 
     let flattened = "";
 
-    flattened += `// Sources flattened with buidler v${packageJson.version} https://getbuidler.com\n`;
+    flattened += `// Sources flattened with buidler v${
+      packageJson.version
+    } https://getbuidler.com\n`;
     flattened += `pragma solidity ${config.solc.version};\n`;
 
     for (const file of sortedFiles) {
