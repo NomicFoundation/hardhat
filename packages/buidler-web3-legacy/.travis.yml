@@ -1,18 +1,21 @@
 language: node_js
+
 node_js:
   - "8"
+
 install:
-  - npm install -g codecov
-  - npm install --no-save web3@^0.20.7
-  # - npm install --no-save buidler@^1.0.0-beta.0
-  - npm ci
+  - yarn global add codecov
+  - yarn add --peer web3@^0.20.7
+  # - yarn add --peed buidler@^1.0.0-beta.0
+  - yarn
+
 script:
-  - npm run test
+  - yarn test
   - codecov
-  - npm run lint
-cache:
-  directories:
-    - "$HOME/.npm"
+  - yarn lint
+
+cache: yarn
+
 branches:
   only:
     - master
