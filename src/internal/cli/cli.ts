@@ -76,7 +76,7 @@ async function main() {
       return;
     }
 
-    const [config, taskDefinitions] = loadConfigAndTasks(
+    const [config, taskDefinitions, envExtenders] = loadConfigAndTasks(
       buidlerArguments.config
     );
 
@@ -92,7 +92,12 @@ async function main() {
       unparsedCLAs
     );
 
-    const env = new Environment(config, buidlerArguments, taskDefinitions);
+    const env = new Environment(
+      config,
+      buidlerArguments,
+      taskDefinitions,
+      envExtenders
+    );
 
     // --help is a also special case
     if (buidlerArguments.help && taskName !== "help") {
