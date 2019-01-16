@@ -19,9 +19,16 @@ if (globalWithEnv.env !== undefined) {
     process.env
   );
 
-  const [config, taskDefinitions] = loadConfigAndTasks(buidlerArguments.config);
+  const [config, taskDefinitions, envExtenders] = loadConfigAndTasks(
+    buidlerArguments.config
+  );
 
-  env = new Environment(config, buidlerArguments, taskDefinitions);
+  env = new Environment(
+    config,
+    buidlerArguments,
+    taskDefinitions,
+    envExtenders
+  );
 }
 
 // TODO: Find out a way to export this as a CJS module.

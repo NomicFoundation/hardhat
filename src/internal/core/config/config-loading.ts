@@ -40,6 +40,7 @@ export function loadConfigAndTasks(configPath?: string) {
   const config = resolveConfig(configPath, defaultConfig, userConfig);
 
   const dsl = require("./tasks-dsl-instance").default;
+  const envExtendersManager = require("./extenders-instance").default;
 
-  return [config, dsl.getTaskDefinitions()];
+  return [config, dsl.getTaskDefinitions(), envExtendersManager.getExtenders()];
 }
