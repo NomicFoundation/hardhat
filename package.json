@@ -22,7 +22,7 @@
     "builder": "internal/cli/cli-with-a-typo.js"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=8.2.0"
   },
   "scripts": {
     "docs:dev": "vuepress dev docs",
