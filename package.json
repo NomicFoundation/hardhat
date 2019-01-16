@@ -93,8 +93,10 @@
       "test",
       "coverage",
       ".nyc_output",
-      "config.ts",
-      "config.js"
+      "./*.ts",
+      "./*.js",
+      "internal",
+      "builtin-tasks"
     ],
     "reporter": [
       "text",

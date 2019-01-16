@@ -1,16 +1,19 @@
 language: node_js
+
 node_js:
   - "8"
+
 install:
-  - npm install -g codecov
-  - npm ci
+  - yarn global add codecov
+  - yarn
+
 script:
-  - npm run test
+  - yarn test
   - codecov
-  - npm run lint
-cache:
-  directories:
-    - "$HOME/.npm"
+  - yarn lint
+
+cache: yarn
+
 branches:
   only:
     - master
