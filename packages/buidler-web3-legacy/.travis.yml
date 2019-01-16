@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+  - "8"
+install:
+  - npm install -g codecov
+  - npm ci
+script:
+  - npm run test
+  - codecov
+  - npm run lint
+cache:
+  directories:
+    - "$HOME/.npm"
+branches:
+  only:
+    - master
