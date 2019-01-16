@@ -1,5 +1,4 @@
-# TS compilation output
-/dist/
+dist/
 
 # Logs
 logs

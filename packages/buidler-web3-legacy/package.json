@@ -1,29 +1,30 @@
 {
   "name": "buidler-web3-legacy",
   "version": "1.0.0",
+  "author": "Nomic Labs SRL",
+  "license": "MIT",
+  "homepage": "https://github.com/nomiclabs/buidler-web3-legacy",
+  "repository": "github:nomiclabs/buidler-web3-legacy",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "description": "Buidler plugin for using Web3 0.20.x",
-  "main": "index.js",
   "scripts": {
     "fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
-    "test": "mocha"
+    "test": "scripts/run-tests.sh",
+    "build": "tsc",
+    "watch": "tsc -w"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nomiclabs/buidler-web3-legacy.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/nomiclabs/buidler-web3-legacy/issues"
-  },
-  "homepage": "https://github.com/nomiclabs/buidler-web3-legacy#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
     "@types/node": "^8.10.38",
+    "chai": "^4.2.0",
+    "dotenv": "^6.2.0",
+    "ganache-cli": "^6.2.5",
+    "mocha": "^5.1.1",
     "prettier": "^1.15.3",
-    "ts-essentials": "^1.0.2",
+    "source-map-support": "^0.5.9",
     "ts-node": "^7.0.1",
     "tslint": "^5.12.0",
     "tslint-config-prettier": "^1.17.0",
@@ -31,12 +32,7 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "buidler": "../buidler"
-  },
-  "dependencies": {
-    "buidler": "file:../buidler",
-    "chai": "^4.2.0",
-    "mocha": "^5.1.1",
-    "web3x": "^2.0.1"
+    "buidler": "^1.0.0-beta.0",
+    "web3": "^0.20.7"
   }
 }

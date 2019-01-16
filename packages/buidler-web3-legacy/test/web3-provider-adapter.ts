@@ -1,115 +1,123 @@
-import { IEthereumProvider } from "buidler/core/providers/ethereum";
-import { ParamsReturningProvider } from "buidler/test/core/providers/mocks";
+import { IEthereumProvider } from "buidler/types";
 import { assert } from "chai";
-import { createJsonRpcPayload, JsonRpcRequest } from "web3x/providers/jsonrpc";
+import Web3 from "web3";
 
-import { Web3HTTPProviderAdapter } from "../src/web3-provider-adapter";
+import {
+  JsonRpcRequest,
+  JsonRpcResponse,
+  Web3HTTPProviderAdapter
+} from "../src/web3-provider-adapter";
 
-export class ErrorProvider extends ParamsReturningProvider {
-  public async send(method: string, params?: any[]): Promise<any> {
-    if (method === "error_method") {
-      throw Error("an error has occurred");
-    }
-    return super.send(method, params);
-  }
+let nextId = 1;
+
+function createJsonRpcRequest(
+  method: string,
+  params: any[] = []
+): JsonRpcRequest {
+  return {
+    id: nextId++,
+    jsonrpc: "2.0",
+    method,
+    params
+  };
 }
 
-describe("web3 provider adapter", () => {
-  let provider: Web3HTTPProviderAdapter;
-  let payload: JsonRpcRequest;
-  let callback: (error: any, response: any) => any;
-  let mockedProvider: IEthereumProvider;
+describe("Web3 provider adapter", () => {
+  let realWeb3Provider: any;
+  let adaptedProvider: Web3HTTPProviderAdapter;
+
+  before("Setup buidler project", () => {
+    process.chdir(__dirname);
+    process.env.BUIDLER_NETWORK = "develop";
+  });
+
   beforeEach(() => {
-    mockedProvider = new ErrorProvider();
-    provider = new Web3HTTPProviderAdapter(mockedProvider);
+    const buidlerEnv = require("buidler");
+    realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
+    adaptedProvider = new Web3HTTPProviderAdapter(buidlerEnv.provider);
   });
 
   it("Should throw if send is called", async () => {
-    try {
-      provider.send(payload, callback);
-    } catch (error) {
-      // TODO : Use buidler's error helpers.
-      assert.equal(error.message, "BDLR7: send is not supported");
-    }
+    assert.throws(
+      () => adaptedProvider.send({}),
+      "Synchronous requests are not supported, use pweb3 instead"
+    );
   });
 
-  it("Should return always true", () => {
-    assert.isTrue(provider.isConnected());
+  it("Should always return true when isConnected is called", () => {
+    assert.isTrue(adaptedProvider.isConnected());
   });
 
-  it("Should successfully send a payload", () => {
-    const params = [1, 2, 3];
-    payload = createJsonRpcPayload("method", params);
-    callback = (error, response) => {
-      if (response !== undefined) {
-        assert.equal(response.result, params);
+  it("Should return the same as the real provider for sigle requests", done => {
+    const request = createJsonRpcRequest("eth_accounts");
+    realWeb3Provider.sendAsync(
+      request,
+      (error: Error | null, response?: JsonRpcResponse) => {
+        adaptedProvider.sendAsync(request, (error2, response2) => {
+          assert.deepEqual(error2, error);
+          assert.deepEqual(response2, response);
+          done();
+        });
       }
-    };
-    provider.sendAsync(payload, callback);
+    );
   });
 
-  it("Should successfully send multiple payloads", () => {
-    const params = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    const payloads = params.map(p => createJsonRpcPayload("method", p));
-    callback = (error, response) => {
-      if (response !== undefined) {
-        assert.include(params, response.result);
-        params.splice(params.indexOf(response.result), 1);
-      }
-    };
-    provider.sendAsync(payloads, callback);
-  });
-
-  it("Should return the error data when an error occurred", () => {
-    payload = createJsonRpcPayload("error_method");
-    callback = (error, response) => {
-      if (error !== undefined) {
-        assert.equal(error.error.message, "an error has occurred");
-      }
-      assert.isUndefined(response);
-    };
-    provider.sendAsync(payload, callback);
-  });
-
-  it("Should preserve JsonRPC payload's id", () => {
-    const params = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    const payloads = params.map(p => createJsonRpcPayload("method", p));
-    const payloadIds = payloads.map(p => p.id);
-    callback = (error, response) => {
-      if (response !== undefined) {
-        assert.include(payloadIds, response.id);
-        payloadIds.splice(payloadIds.indexOf(response.id), 1);
-      }
-    };
-    provider.sendAsync(payloads, callback);
-  });
-
-  it("Should preserve JsonRPC payload order", () => {
-    const params = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    const payloads = params.map(p => createJsonRpcPayload("method", p));
-    let count = 0;
-    callback = (error, response) => {
-      if (response !== undefined) {
-        assert.equal(response.result, params[count]);
-        count++;
-      }
-    };
-    provider.sendAsync(payloads, callback);
-  });
-
-  it("Should handle both success and failure requests", () => {
-    const payloads = [
-      createJsonRpcPayload("error_method", ["failure"]),
-      createJsonRpcPayload("method", ["success"])
+  it("Should return the same as the real provider for batched requests", done => {
+    const requests = [
+      createJsonRpcRequest("eth_accounts"),
+      createJsonRpcRequest("net_version"),
+      createJsonRpcRequest("eth_accounts")
     ];
-    callback = (error, response) => {
-      if (response !== undefined) {
-        assert.deepEqual(response.result, ["success"]);
+
+    realWeb3Provider.sendAsync(
+      requests,
+      (error: Error | null, response?: JsonRpcResponse[]) => {
+        adaptedProvider.sendAsync(requests, (error2, response2) => {
+          assert.deepEqual(error2, error);
+          assert.deepEqual(response2, response);
+          done();
+        });
       }
-      if (error !== undefined) {
-        assert.equal(error.error.message, "an error has occurred");
+    );
+  });
+
+  it("Should return the same on error", done => {
+    const request = createJsonRpcRequest("error_please");
+
+    realWeb3Provider.sendAsync(
+      request,
+      (error: Error | null, response?: JsonRpcResponse) => {
+        adaptedProvider.sendAsync(request, (error2, response2) => {
+          assert.deepEqual(error2, error);
+          assert.equal(response2!.error!.message, response!.error!.message);
+          done();
+        });
       }
-    };
-    provider.sendAsync(payloads, callback);
+    );
+  });
+
+  it("Should let all requests complete, even if one of them fails", done => {
+    const requests = [
+      createJsonRpcRequest("eth_accounts"),
+      createJsonRpcRequest("error_please"),
+      createJsonRpcRequest("eth_accounts")
+    ];
+
+    realWeb3Provider.sendAsync(
+      requests,
+      (error: Error | null, response?: JsonRpcResponse[]) => {
+        adaptedProvider.sendAsync(requests, (error2, response2) => {
+          assert.deepEqual(error2, error);
+          assert.lengthOf(response2!, response!.length);
+          assert.deepEqual(response2![0], response![0]);
+          assert.equal(
+            response2![1].error!.message,
+            response![1].error!.message
+          );
+          assert.isUndefined(response2![2]);
+          done();
+        });
+      }
+    );
   });
 });
