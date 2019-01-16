@@ -3,6 +3,8 @@ node_js:
   - "8"
 install:
   - npm install -g codecov
+  - npm install --no-save web3@^0.20.7
+  # - npm install --no-save buidler@^1.0.0-beta.0
   - npm ci
 script:
   - npm run test
