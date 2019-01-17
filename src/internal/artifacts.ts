@@ -10,8 +10,11 @@ export function getArtifactFromContractOutput(
 ): Artifact {
   const evmBytecode = contractOutput.evm && contractOutput.evm.bytecode;
 
-  const bytecode: string = evmBytecode ? evmBytecode.object : "";
-  const linkReferences = evmBytecode ? evmBytecode.linkReferences : {};
+  const bytecode: string =
+    evmBytecode && evmBytecode.object ? evmBytecode.object : "";
+
+  const linkReferences =
+    evmBytecode && evmBytecode.linkReferences ? evmBytecode.linkReferences : {};
 
   return {
     contractName,

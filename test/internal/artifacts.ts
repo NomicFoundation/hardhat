@@ -1,6 +1,4 @@
 import * as assert from "assert";
-import fsExtra from "fs-extra";
-import * as os from "os";
 
 import {
   getArtifactFromContractOutput,
@@ -10,19 +8,11 @@ import {
 } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors";
 import { expectBuidlerError, expectBuidlerErrorAsync } from "../helpers/errors";
+import { useTmpDir } from "../helpers/fs";
 
-async function getEmptyTmpDir() {
-  const tmpDir = os.tmpdir();
-  const dir = tmpDir + "/buidler-tests-artifacts";
-  await fsExtra.ensureDir(dir);
-  await fsExtra.emptyDir(dir);
-
-  return dir;
-}
-
-describe("Artifacts utils", () => {
-  describe("getArtifactFromContractOutput", () => {
-    it("Should always return a bytecode and linkReference", () => {
+describe("Artifacts utils", function() {
+  describe("getArtifactFromContractOutput", function() {
+    it("Should always return a bytecode and linkReference", function() {
       const artifact = getArtifactFromContractOutput("Interface", {
         ...COMPILER_OUTPUTS.Interface,
         evm: undefined
@@ -60,7 +50,7 @@ describe("Artifacts utils", () => {
       });
     });
 
-    it("Should return the right artifact for an interface", () => {
+    it("Should return the right artifact for an interface", function() {
       const artifact = getArtifactFromContractOutput(
         "Interface",
         COMPILER_OUTPUTS.Interface
@@ -74,7 +64,7 @@ describe("Artifacts utils", () => {
       });
     });
 
-    it("Should return the right artifact for a library", () => {
+    it("Should return the right artifact for a library", function() {
       const artifact = getArtifactFromContractOutput(
         "Lib",
         COMPILER_OUTPUTS.Lib
@@ -88,7 +78,7 @@ describe("Artifacts utils", () => {
       });
     });
 
-    it("Should return the right artifact for a contract without libs", () => {
+    it("Should return the right artifact for a contract without libs", function() {
       const artifact = getArtifactFromContractOutput(
         "WithBytecodeNoLibs",
         COMPILER_OUTPUTS.WithBytecodeNoLibs
@@ -102,7 +92,7 @@ describe("Artifacts utils", () => {
       });
     });
 
-    it("Should return the right artifact for a contract with libs", () => {
+    it("Should return the right artifact for a contract with libs", function() {
       const artifact = getArtifactFromContractOutput(
         "WithBytecodeAndLibs",
         COMPILER_OUTPUTS.WithBytecodeAndLibs
@@ -117,7 +107,7 @@ describe("Artifacts utils", () => {
       });
     });
 
-    it("Should return the right artifact for an abstract contract without libs", () => {
+    it("Should return the right artifact for an abstract contract without libs", function() {
       const artifact = getArtifactFromContractOutput(
         "WithoutBytecodeNoLibs",
         COMPILER_OUTPUTS.WithoutBytecodeNoLibs
@@ -131,7 +121,7 @@ describe("Artifacts utils", () => {
       });
     });
 
-    it("Should return the right artifact for an abstract contract with libs", () => {
+    it("Should return the right artifact for an abstract contract with libs", function() {
       const artifact = getArtifactFromContractOutput(
         "WithoutBytecodeWithLibs",
         COMPILER_OUTPUTS.WithoutBytecodeWithLibs
@@ -147,45 +137,41 @@ describe("Artifacts utils", () => {
     });
   });
 
-  describe("Artifacts reading and saving", () => {
-    it("It should write and read (async) the right artifacts", async () => {
-      const artifactsPath = await getEmptyTmpDir();
+  describe("Artifacts reading and saving", function() {
+    useTmpDir("artifacts");
 
+    it("It should write and read (async) the right artifacts", async function() {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(artifactsPath, artifact);
-        const storedArtifact = await readArtifact(artifactsPath, name);
+        await saveArtifact(this.tmpDir, artifact);
+        const storedArtifact = await readArtifact(this.tmpDir, name);
 
         assert.deepEqual(storedArtifact, artifact);
       }
     });
 
-    it("It should write and read (sync) the right artifacts", async () => {
-      const artifactsPath = await getEmptyTmpDir();
-
+    it("It should write and read (sync) the right artifacts", async function() {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(artifactsPath, artifact);
-        const storedArtifact = readArtifactSync(artifactsPath, name);
+        await saveArtifact(this.tmpDir, artifact);
+        const storedArtifact = readArtifactSync(this.tmpDir, name);
 
         assert.deepEqual(storedArtifact, artifact);
       }
     });
 
-    it("Should throw when reading a non-existent contract (async)", async () => {
-      const artifactsPath = await getEmptyTmpDir();
+    it("Should throw when reading a non-existent contract (async)", async function() {
       await expectBuidlerErrorAsync(
-        () => readArtifact(artifactsPath, "NonExistent"),
+        () => readArtifact(this.tmpDir, "NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
       );
     });
 
-    it("Should throw when reading a non-existent contract (sync)", async () => {
-      const artifactsPath = await getEmptyTmpDir();
+    it("Should throw when reading a non-existent contract (sync)", async function() {
       expectBuidlerError(
-        () => readArtifactSync(artifactsPath, "NonExistent"),
+        () => readArtifactSync(this.tmpDir, "NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
       );
     });
