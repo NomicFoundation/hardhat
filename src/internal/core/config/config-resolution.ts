@@ -4,12 +4,10 @@ import path from "path";
 
 import {
   BuidlerConfig,
-  HttpNetworkConfig,
-  Networks,
   ProjectPaths,
   ResolvedBuidlerConfig
 } from "../../../types";
-import { fromEntries } from "../..//util/lang";
+import { fromEntries } from "../../util/lang";
 
 function mergeUserAndDefaultConfigs(
   defaultConfig: BuidlerConfig,
