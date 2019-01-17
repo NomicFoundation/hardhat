@@ -223,3 +223,10 @@ export interface BuidlerRuntimeEnvironment {
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
 }
+
+export interface Artifact {
+  contractName: string;
+  abi: any;
+  bytecode: string;
+  linkReferences: any;
+}

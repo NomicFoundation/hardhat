@@ -67,14 +67,18 @@ export class BuidlerPluginError extends Error {
 //    * 400-499: Errors related to smart contracts' dependencies resolution
 //    * 500-599: Errors related to the solidity compiler
 //    * 600-699: Errors related to the builtin tasks
-export const ERROR_RANGES = {
+//    * 700-799: Errors related to artifacts
+export const ERROR_RANGES: {
+  [category in keyof (typeof ERRORS)]: { min: number; max: number }
+} = {
   GENERAL: { min: 0, max: 99 },
   NETWORK: { min: 100, max: 199 },
   TASK_DEFINITIONS: { min: 200, max: 299 },
   ARGUMENTS: { min: 300, max: 399 },
   RESOLVER: { min: 400, max: 499 },
   SOLC: { min: 500, max: 599 },
-  BUILTIN_TASKS: { min: 600, max: 699 }
+  BUILTIN_TASKS: { min: 600, max: 699 },
+  ARTIFACTS: { min: 700, max: 799 }
 };
 
 export const ERRORS = {
@@ -292,6 +296,12 @@ export const ERRORS = {
     FLATTEN_CYCLE: {
       number: 603,
       message: "buidler flatten doesn't support cyclic dependencies."
+    }
+  },
+  ARTIFACTS: {
+    NOT_FOUND: {
+      number: 700,
+      message: 'Artifact for contract "%s" not found.'
     }
   }
 };
