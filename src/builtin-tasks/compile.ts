@@ -1,6 +1,10 @@
 import colors from "ansi-colors";
 import path from "path";
 
+import {
+  getArtifactFromContractOutput,
+  saveArtifact
+} from "../internal/artifacts";
 import { internalTask, task } from "../internal/core/config/config-env";
 import { BuidlerError, ERRORS } from "../internal/core/errors";
 import { Compiler } from "../internal/solidity/compiler";
@@ -92,37 +96,12 @@ internalTask("builtin:build-artifacts", async (_, { config, run }) => {
 
   for (const file of Object.values(compilationOutput.contracts)) {
     for (const [contractName, contractOutput] of Object.entries(file)) {
-      const bytecode =
-        contractOutput.evm &&
-        contractOutput.evm.bytecode &&
-        contractOutput.evm.bytecode.object
-          ? contractOutput.evm.bytecode.object
-          : undefined;
-
-      const linkReferences =
-        contractOutput.evm &&
-        contractOutput.evm.bytecode &&
-        contractOutput.evm.bytecode.linkReferences
-          ? contractOutput.evm.bytecode.linkReferences
-          : undefined;
-
-      const artifact: any = {
-        abi: contractOutput.abi,
-        evm: {
-          bytecode: {
-            object: bytecode,
-            linkReferences
-          }
-        }
-      };
-
-      await fsExtra.writeJSON(
-        config.paths.artifacts + "/" + contractName + ".json",
-        artifact,
-        {
-          spaces: 2
-        }
+      const artifact = getArtifactFromContractOutput(
+        contractName,
+        contractOutput
       );
+
+      await saveArtifact(config.paths.artifacts, artifact);
     }
   }
 });
