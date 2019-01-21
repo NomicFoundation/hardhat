@@ -1,4 +1,3 @@
-import { BuidlerPluginError } from "buidler/plugins";
 import { IEthereumProvider } from "buidler/types";
 import util from "util";
 
