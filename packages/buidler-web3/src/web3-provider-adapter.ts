@@ -27,10 +27,6 @@ export interface JsonRpcError extends Error {
 export class Web3HTTPProviderAdapter {
   constructor(private readonly provider: IEthereumProvider) {}
 
-  // public send(payload: any) {
-  //   throw new BuidlerPluginError("Synchronous requests are not supported");
-  // }
-
   public send(
     payload: JsonRpcRequest,
     callback: (error: Error | null, response?: JsonRpcResponse) => void
