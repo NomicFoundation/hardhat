@@ -65,9 +65,17 @@ export interface ProjectPaths {
   sources: string;
 }
 
+type EVMVersion =
+  | "homestead"
+  | "tangerineWhistle"
+  | "spuriousDragon"
+  | "byzantium"
+  | "constantinople";
+
 export interface SolcConfig {
   version: string;
   optimizer: SolcOptimizerConfig;
+  evmVersion: EVMVersion;
 }
 
 export interface SolcOptimizerConfig {
