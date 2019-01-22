@@ -1,6 +1,6 @@
 {
   "name": "buidler-truffle4",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.0",
   "description": "Truffle 4 Buidler compatibility plugin",
   "homepage": "https://github.com/nomiclabs/buidler-truffle4",
   "repository": "github:nomiclabs/buidler-truffle4",
