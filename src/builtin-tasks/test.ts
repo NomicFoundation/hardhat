@@ -17,24 +17,7 @@ internalTask("builtin:get-test-files")
     return testFiles;
   });
 
-internalTask(
-  "builtin:setup-test-environment",
-  async (_, { config, provider }) => {
-    const { assert } = await import("chai");
-
-    const globalAsAny = global as any;
-    globalAsAny.accounts = await provider.send("eth_accounts");
-    globalAsAny.assert = assert;
-
-    globalAsAny.contract = (
-      description: string,
-      definition: (accounts: string) => any
-    ) =>
-      describe(description, () => {
-        definition(globalAsAny.accounts);
-      });
-  }
-);
+internalTask("builtin:setup-test-environment", async () => {});
 
 internalTask("builtin:run-mocha-tests")
   .addOptionalVariadicPositionalParam(

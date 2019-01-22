@@ -28,6 +28,7 @@
     ],
     "no-floating-promises": true,
     "prefer-conditional-expression": false,
-    "only-buidler-error": true
+    "only-buidler-error": true,
+    "no-implicit-dependencies": [true, "dev"]
   }
 }
