@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "docs:dev": "vuepress dev .",
+    "docs:build": "vuepress build .",
+    "docs:deploy": "vuepress build . && sh deploy/deploy.sh --config-file deploy/.env"
+  },
+  "devDependencies": {
+    "dotenv": "^6.2.0",
+    "vuepress": "^0.14.8"
+  },
+  "private": true
+}

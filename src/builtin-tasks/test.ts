@@ -28,7 +28,7 @@ internalTask(
 
     globalAsAny.contract = (
       description: string,
-      definition: ((accounts: string) => any)
+      definition: (accounts: string) => any
     ) =>
       describe(description, () => {
         definition(globalAsAny.accounts);
