@@ -1,10 +1,4 @@
 {
-  "name": "buidlers-doc",
-  "version": "1.0.0-beta.0",
-  "author": "Nomic Labs SRL",
-  "engines": {
-    "node": ">=8.2.0"
-  },
   "scripts": {
     "docs:dev": "vuepress dev .",
     "docs:build": "vuepress build .",
@@ -13,5 +7,6 @@
   "devDependencies": {
     "dotenv": "^6.2.0",
     "vuepress": "^0.14.8"
-  }
+  },
+  "private": true
 }
