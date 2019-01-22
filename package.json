@@ -25,9 +25,6 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
-    "docs:deploy": "vuepress build docs && sh docs/deploy/deploy.sh --config-file docs/deploy/.env",
     "fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && NODE_OPTIONS=\"-r ts-node/register\" tslint --fix --config tslint.json --project tsconfig.json --rules-dir ./tslint",
     "lint": "NODE_OPTIONS=\"-r ts-node/register\" tslint --config tslint.json --project tsconfig.json --rules-dir ./tslint",
     "test": "nyc mocha",
@@ -58,8 +55,7 @@
     "tslint": "^5.12.0",
     "tslint-config-prettier": "^1.17.0",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^3.2.2",
-    "vuepress": "^0.14.8"
+    "typescript": "^3.2.2"
   },
   "dependencies": {
     "ansi-colors": "^3.2.3",
