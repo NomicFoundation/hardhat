@@ -6,7 +6,8 @@ const defaultConfig: BuidlerConfig = {
     optimizer: {
       enabled: false,
       runs: 200
-    }
+    },
+    evmVersion: "byzantium"
   },
   networks: {
     develop: {

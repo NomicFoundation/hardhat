@@ -39,7 +39,8 @@ describe("Environment", () => {
         optimizer: {
           enabled: false,
           runs: 0
-        }
+        },
+        evmVersion: "byzantium"
       },
       mocha: {}
     };
