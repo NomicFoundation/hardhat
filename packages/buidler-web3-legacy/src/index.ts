@@ -5,7 +5,7 @@ import { promisifyWeb3 } from "./pweb3";
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
 
 declare module "buidler/types" {
-  interface BuidlerRuntimeEnvironment {
+  export interface BuidlerRuntimeEnvironment {
     Web3: any;
     web3: any;
     pweb3: any;
