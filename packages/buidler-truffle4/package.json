@@ -16,13 +16,16 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-
+    "buidler-web3-legacy": "^1.0.0-beta.0",
+    "chai": "4.1.2",
+    "fs-extra": "^7.0.1",
+    "truffle-contract": "^3.0.7"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
+    "@types/fs-extra": "^5.0.4",
     "@types/mocha": "^5.2.5",
     "@types/node": "^8.10.38",
-    "chai": "^4.2.0",
     "dotenv": "^6.2.0",
     "ganache-cli": "^6.2.5",
     "mocha": "^5.1.1",
