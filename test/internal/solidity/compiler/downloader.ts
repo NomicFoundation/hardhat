@@ -152,7 +152,7 @@ describe("Compiler downloader", function() {
       await downloader.downloadCompilersList();
 
       assert.equal(urlUsed, expectedUrl);
-      assert.equal(pathUsed, compilersDir);
+      assert.equal(pathUsed, compilersDir + "/list.json");
     });
 
     it("Should throw the right error if the download fails", async function() {

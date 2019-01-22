@@ -31,7 +31,9 @@ async function downloadFile(
   // This library indirectly validates the TLS certs, if it didn't this
   // would be MITM-able.
   const { default: download } = await import("download");
-  await download(url, destinationFile);
+  await download(url, path.dirname(destinationFile), {
+    filename: path.basename(destinationFile)
+  });
 }
 
 export class CompilerDownloader {
@@ -98,7 +100,7 @@ export class CompilerDownloader {
 
   public async downloadCompilersList() {
     try {
-      await this.download(COMPILERS_LIST_URL, this.compilersDir);
+      await this.download(COMPILERS_LIST_URL, this.getCompilersListPath());
     } catch (error) {
       throw new BuidlerError(
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
