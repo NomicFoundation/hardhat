@@ -108,6 +108,6 @@ internalTask("builtin:build-artifacts", async (_, { config, run }) => {
 
 task(
   "compile",
-  "Compiles the whole project, building all artifacts",
+  "Compiles the entire project, building all artifacts",
   async (__, { run }) => run("builtin:build-artifacts")
 );

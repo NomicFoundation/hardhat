@@ -74,7 +74,7 @@ internalTask(
 
 task(
   "flatten",
-  "Flattens all the contract and their dependencies",
+  "Flattens and prints all contracts and their dependencies",
   async (_, { config, run }) => {
     console.log(await run("builtin:get-flattened-sources"));
   }
