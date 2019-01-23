@@ -15,7 +15,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   showStackTraces: {
     name: "showStackTraces",
     defaultValue: false,
-    description: "Show internal stack traces.",
+    description: "Show stack traces.",
     type: types.boolean,
     isFlag: true,
     isOptional: true,
