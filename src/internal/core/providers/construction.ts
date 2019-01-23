@@ -85,7 +85,7 @@ export function wrapEthereumProvider(
   provider = createSenderProvider(provider, netConfig.from);
 
   if (netConfig.gas === undefined || netConfig.gas === "auto") {
-    provider = createAutomaticGasProvider(provider);
+    provider = createAutomaticGasProvider(provider, netConfig.gasMultiplier);
   } else {
     provider = createFixedGasProvider(provider, netConfig.gas);
   }
