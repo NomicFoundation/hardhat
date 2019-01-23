@@ -5,7 +5,7 @@ internalTask("builtin:setup-run-environment", async () => {
   // this task is only here in case someone wants to override it.
 });
 
-task("run", "Runs an user-defined script after compiling the project")
+task("run", "Runs a user-defined script after compiling the project")
   .addPositionalParam(
     "script",
     "A js file to be run within buidler's environment"

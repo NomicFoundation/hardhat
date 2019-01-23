@@ -15,7 +15,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   showStackTraces: {
     name: "showStackTraces",
     defaultValue: false,
-    description: "Show buidler's errors' stack traces.",
+    description: "Show internal stack traces.",
     type: types.boolean,
     isFlag: true,
     isOptional: true,
@@ -24,7 +24,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   version: {
     name: "version",
     defaultValue: false,
-    description: "Show's buidler's version.",
+    description: "Shows buidler's version.",
     type: types.boolean,
     isFlag: true,
     isOptional: true,
@@ -33,7 +33,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   help: {
     name: "help",
     defaultValue: false,
-    description: "Show's buidler's help.",
+    description: "Shows this message.",
     type: types.boolean,
     isFlag: true,
     isOptional: true,
