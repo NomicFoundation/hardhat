@@ -1,4 +1,5 @@
 import path from "path";
+import util from "util";
 
 import { internalTask, task } from "../internal/core/config/config-env";
 import { glob } from "../internal/util/glob";
@@ -30,10 +31,14 @@ internalTask("builtin:run-mocha-tests")
     const mocha = new Mocha(config.mocha);
     testFiles.forEach(file => mocha.addFile(file));
 
-    mocha.run((failures: number) => {
-      process.on("exit", function() {
-        process.exit(failures);
-      });
+    const runPromise = new Promise<number>((resolve, _) => {
+      mocha.run(resolve);
+    });
+
+    const failures = await runPromise;
+
+    process.on("exit", function() {
+      process.exit(failures);
     });
   });
 
