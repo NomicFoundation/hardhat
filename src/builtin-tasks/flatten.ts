@@ -37,14 +37,10 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   return sortedNames.map(n => filesMap[n]);
 }
 
-function getFileWithoutPragmaNorImports(resolvedFile: ResolvedFile) {
-  const PRAGAMA_SOLIDITY_VERSION_REGEX = /^\s*pragma\ssolidity\s+(.*?)\s*;/;
+function getFileWithoutImports(resolvedFile: ResolvedFile) {
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+).*$/gm;
 
-  return resolvedFile.content
-    .replace(PRAGAMA_SOLIDITY_VERSION_REGEX, "")
-    .replace(IMPORT_SOLIDITY_REGEX, "")
-    .trim();
+  return resolvedFile.content.replace(IMPORT_SOLIDITY_REGEX, "").trim();
 }
 
 internalTask(
@@ -61,11 +57,10 @@ internalTask(
     flattened += `// Sources flattened with buidler v${
       packageJson.version
     } https://getbuidler.com\n`;
-    flattened += `pragma solidity ${config.solc.version};\n`;
 
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
-      flattened += `\n${getFileWithoutPragmaNorImports(file)}\n`;
+      flattened += `\n${getFileWithoutImports(file)}\n`;
     }
 
     return flattened.trim();
