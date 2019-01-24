@@ -54,7 +54,6 @@ internalTask("flatten:flatten", async (_, { run }) => {
   return flattened;
 });
 
-
 internalTask(
   "flatten:get-flattened-sources",
   "Returns all contracts and their dependencies flattened",
