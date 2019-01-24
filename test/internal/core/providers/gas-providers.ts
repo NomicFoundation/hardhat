@@ -12,15 +12,16 @@ import { ParamsReturningProvider } from "./mocks";
 
 describe("createAutomaticGasProvider", () => {
   const FIXED_GAS_LIMIT = 1231;
+  const GAS_MULTIPLIER = 1.337;
+
+  let mockedProvider: IEthereumProvider;
+  let fixedGasProvider: IEthereumProvider;
   let provider: IEthereumProvider;
 
   beforeEach(() => {
-    const mockedProvider = new ParamsReturningProvider();
-    const fixedGasProvider = createFixedGasProvider(
-      mockedProvider,
-      FIXED_GAS_LIMIT
-    );
-    provider = createAutomaticGasProvider(fixedGasProvider);
+    mockedProvider = new ParamsReturningProvider();
+    fixedGasProvider = createFixedGasProvider(mockedProvider, FIXED_GAS_LIMIT);
+    provider = createAutomaticGasProvider(fixedGasProvider, GAS_MULTIPLIER);
   });
 
   it("Should estimate gas automatically if not present", async () => {
@@ -32,7 +33,36 @@ describe("createAutomaticGasProvider", () => {
       }
     ]);
 
-    assert.equal(tx.gas, FIXED_GAS_LIMIT);
+    assert.equal(tx.gas, Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER));
+  });
+
+  it("Should support different gas multipliers", async () => {
+    const GAS_MULTIPLIER2 = 123;
+    provider = createAutomaticGasProvider(fixedGasProvider, GAS_MULTIPLIER2);
+
+    const [tx] = await provider.send("eth_sendTransaction", [
+      {
+        from: "0x0000000000000000000000000000000000000011",
+        to: "0x0000000000000000000000000000000000000011",
+        value: 1
+      }
+    ]);
+
+    assert.equal(tx.gas, Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER2));
+  });
+
+  it("Should have a default multiplier", async () => {
+    provider = createAutomaticGasProvider(fixedGasProvider);
+
+    const [tx] = await provider.send("eth_sendTransaction", [
+      {
+        from: "0x0000000000000000000000000000000000000011",
+        to: "0x0000000000000000000000000000000000000011",
+        value: 1
+      }
+    ]);
+
+    assert.isAbove(tx.gas, FIXED_GAS_LIMIT);
   });
 
   it("Shouldn't replace the provided gas", async () => {

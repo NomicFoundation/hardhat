@@ -16,6 +16,7 @@ interface CommonNetworkConfig {
   from?: string;
   gas?: "auto" | number;
   gasPrice?: "auto" | number;
+  gasMultiplier?: number;
 }
 
 interface AutoNetworkAccount {

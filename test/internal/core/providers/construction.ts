@@ -159,6 +159,9 @@ describe("Base providers wrapping", () => {
   });
 
   describe("Gas wrapping", () => {
+    const DEFAULT_GAS_MULTIPLIER = 1.25;
+    const OTHER_GAS_MULTIPLIER = 1.337;
+
     beforeEach(() => {
       baseProvider = createFixedGasProvider(baseProvider, 123);
     });
@@ -172,7 +175,7 @@ describe("Base providers wrapping", () => {
       const [tx] = await provider.send("eth_sendTransaction", [
         { from: "0x0" }
       ]);
-      assert.equal(tx.gas, 123);
+      assert.equal(tx.gas, Math.floor(123 * DEFAULT_GAS_MULTIPLIER));
     });
 
     it("Should wrap with an auto gas provider if undefined is used", async () => {
@@ -183,7 +186,19 @@ describe("Base providers wrapping", () => {
       const [tx] = await provider.send("eth_sendTransaction", [
         { from: "0x0" }
       ]);
-      assert.equal(tx.gas, 123);
+      assert.equal(tx.gas, Math.floor(123 * DEFAULT_GAS_MULTIPLIER));
+    });
+
+    it("Should use the gasMultiplier", async () => {
+      const provider = wrapEthereumProvider(baseProvider, {
+        url: "",
+        gasMultiplier: OTHER_GAS_MULTIPLIER
+      });
+
+      const [tx] = await provider.send("eth_sendTransaction", [
+        { from: "0x0" }
+      ]);
+      assert.equal(tx.gas, Math.floor(123 * OTHER_GAS_MULTIPLIER));
     });
 
     it("Should wrap with a fixed gas provider if a number is used", async () => {

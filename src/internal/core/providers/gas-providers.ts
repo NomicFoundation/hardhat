@@ -42,12 +42,16 @@ export function createFixedGasPriceProvider(
   });
 }
 
-export function createAutomaticGasProvider(provider: IEthereumProvider) {
+export function createAutomaticGasProvider(
+  provider: IEthereumProvider,
+  gasMultiplier: number = 1.25
+) {
   return wrapSend(provider, async (method, params) => {
     if (method === "eth_sendTransaction") {
       const tx = params[0];
       if (tx !== undefined && tx.gas === undefined) {
-        tx.gas = await provider.send("eth_estimateGas", params);
+        const gas = await provider.send("eth_estimateGas", params);
+        tx.gas = Math.floor(gas * gasMultiplier);
       }
     }
 
