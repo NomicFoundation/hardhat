@@ -37,35 +37,35 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   return sortedNames.map(n => filesMap[n]);
 }
 
-function getFileWithoutPragmaNorImports(resolvedFile: ResolvedFile) {
-  const PRAGAMA_SOLIDITY_VERSION_REGEX = /^\s*pragma\ssolidity\s+(.*?)\s*;/;
+function getFileWithoutImports(resolvedFile: ResolvedFile) {
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+).*$/gm;
 
-  return resolvedFile.content
-    .replace(PRAGAMA_SOLIDITY_VERSION_REGEX, "")
-    .replace(IMPORT_SOLIDITY_REGEX, "")
-    .trim();
+  return resolvedFile.content.replace(IMPORT_SOLIDITY_REGEX, "").trim();
 }
 
+internalTask("flatten:flatten", async (_, { run }) => {
+  const packageJson = await getPackageJson();
+  let flattened = "";
+  flattened += `// Sources flattened with buidler v${
+    packageJson.version
+  } https://getbuidler.com\n`;
+
+  flattened += await run("flatten:get-flattened-sources");
+  return flattened;
+});
+
 internalTask(
-  "builtin:get-flattened-sources",
+  "flatten:get-flattened-sources",
   "Returns all contracts and their dependencies flattened",
   async (_, { config, run }) => {
     const graph = await run("builtin:get-dependency-graph");
     const sortedFiles = getSortedFiles(graph);
 
-    const packageJson = await getPackageJson();
-
     let flattened = "";
-
-    flattened += `// Sources flattened with buidler v${
-      packageJson.version
-    } https://getbuidler.com\n`;
-    flattened += `pragma solidity ${config.solc.version};\n`;
 
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
-      flattened += `\n${getFileWithoutPragmaNorImports(file)}\n`;
+      flattened += `\n${getFileWithoutImports(file)}\n`;
     }
 
     return flattened.trim();
@@ -76,6 +76,6 @@ task(
   "flatten",
   "Flattens and prints all contracts and their dependencies",
   async (_, { config, run }) => {
-    console.log(await run("builtin:get-flattened-sources"));
+    console.log(await run("flatten:flatten"));
   }
 );
