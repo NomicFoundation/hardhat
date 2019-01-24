@@ -4,7 +4,7 @@ import util from "util";
 import { internalTask, task } from "../internal/core/config/config-env";
 import { glob } from "../internal/util/glob";
 
-internalTask("builtin:get-test-files")
+internalTask("test:get-test-files")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -18,9 +18,9 @@ internalTask("builtin:get-test-files")
     return testFiles;
   });
 
-internalTask("builtin:setup-test-environment", async () => {});
+internalTask("test:setup-test-environment", async () => {});
 
-internalTask("builtin:run-mocha-tests")
+internalTask("test:run-mocha-tests")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -61,8 +61,8 @@ task("test", "Runs mocha tests")
         await run("compile");
       }
 
-      const files = await run("builtin:get-test-files", { testFiles });
-      await run("builtin:setup-test-environment");
-      await run("builtin:run-mocha-tests", { testFiles: files });
+      const files = await run("test:get-test-files", { testFiles });
+      await run("test:setup-test-environment");
+      await run("test:run-mocha-tests", { testFiles: files });
     }
   );
