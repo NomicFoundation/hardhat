@@ -57,8 +57,8 @@ internalTask("flatten:flatten", async (_, { run }) => {
 internalTask(
   "flatten:get-flattened-sources",
   "Returns all contracts and their dependencies flattened",
-  async (_, { config, run }) => {
-    const graph = await run("builtin:get-dependency-graph");
+  async (_, { run }) => {
+    const graph = await run("compile:get-dependency-graph");
     const sortedFiles = getSortedFiles(graph);
 
     let flattened = "";
@@ -75,7 +75,7 @@ internalTask(
 task(
   "flatten",
   "Flattens and prints all contracts and their dependencies",
-  async (_, { config, run }) => {
+  async (_, { run }) => {
     console.log(await run("flatten:flatten"));
   }
 );

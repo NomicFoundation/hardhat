@@ -27,13 +27,13 @@ function getCompiler(config: ResolvedBuidlerConfig) {
   );
 }
 
-internalTask("compile:get-sources-path", async (_, { config }) => {
+internalTask("compile:get-source-path", async (_, { config }) => {
   return glob(path.join(config.paths.sources, "**/*.sol"));
 });
 
 internalTask("compile:get-resolved-files", async (_, { config, run }) => {
   const resolver = new Resolver(config.paths.root);
-  const paths = await run("compile:get-file-paths");
+  const paths = await run("compile:get-source-paths");
   return Promise.all(
     paths.map((p: string) => resolver.resolveProjectSourceFile(p))
   );
