@@ -36,10 +36,7 @@ internalTask("builtin:run-mocha-tests")
     });
 
     const failures = await runPromise;
-
-    process.on("exit", function() {
-      process.exit(failures);
-    });
+    process.exit(failures);
   });
 
 task("test", "Runs mocha tests")
