@@ -6,6 +6,7 @@ task("console", "Opens a buidler console")
   .setAction(async ({ noCompile }: { noCompile: boolean }, { config, run }) => {
     const path = await import("path");
     const fsExtra = await import("fs-extra");
+    const semver = await import("semver");
 
     if (!noCompile) {
       await run("compile");
@@ -14,8 +15,13 @@ task("console", "Opens a buidler console")
     await fsExtra.ensureDir(config.paths.cache);
     const historyFile = path.join(config.paths.cache, "console-history.txt");
 
+    const nodeArgs = ["--require", __dirname + "/../register"];
+    if (semver.gte(process.version, "10.0.0")) {
+      nodeArgs.push("--experimental-repl-await");
+    }
+
     // Running the script "" is like running `node`, so this starts the repl
-    await runScript("", [], ["--require", __dirname + "/../register"], {
+    await runScript("", [], nodeArgs, {
       NODE_REPL_HISTORY: historyFile
     });
   });
