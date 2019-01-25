@@ -22,22 +22,19 @@ extendEnvironment(env => {
   );
 });
 
-internalTask(
-  "builtin:setup-test-environment",
-  async (_, { config, provider }) => {
-    const accounts = await provider.send("eth_accounts");
+internalTask("builtin:setup-test-environment", async (_, { pweb3 }) => {
+  const accounts = await pweb3.eth.getAccounts();
 
-    const { assert } = await import("chai");
+  const { assert } = await import("chai");
 
-    const globalAsAny = global as any;
-    globalAsAny.assert = assert;
+  const globalAsAny = global as any;
+  globalAsAny.assert = assert;
 
-    globalAsAny.contract = (
-      description: string,
-      definition: ((accounts: string) => any)
-    ) =>
-      describe(description, () => {
-        definition(accounts);
-      });
-  }
-);
+  globalAsAny.contract = (
+    description: string,
+    definition: ((accounts: string) => any)
+  ) =>
+    describe(description, () => {
+      definition(accounts);
+    });
+});
