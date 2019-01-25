@@ -24,7 +24,12 @@ export interface JsonRpcError extends Error {
 }
 
 export class Web3HTTPProviderAdapter {
-  constructor(private readonly provider: IEthereumProvider) {}
+  constructor(private readonly provider: IEthereumProvider) {
+    // We bind everything here because some test suits break otherwise
+    this.send = this.send.bind(this) as any;
+    this.isConnected = this.isConnected.bind(this) as any;
+    this.sendJsonRpcRequest = this.sendJsonRpcRequest.bind(this) as any;
+  }
 
   public send(
     payload: JsonRpcRequest,
