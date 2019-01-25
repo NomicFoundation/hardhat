@@ -5,7 +5,7 @@
 /docs/.vuepress/dist/
 
 # TS compilation output
-/dist/
+/dev-build/
 
 # Code coverage artifacts
 /coverage

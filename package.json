@@ -30,7 +30,7 @@
     "test": "nyc mocha",
     "dev:build": "tsc",
     "dev:watch": "tsc -w",
-    "dev:clean": "rm -rf dist",
+    "dev:clean": "rm -rf dev-build",
     "prod:build": "tsc --p tsconfig.prod.json",
     "prod:watch": "tsc -w --p tsconfig.prod.json",
     "prod:clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js"
@@ -84,7 +84,7 @@
     ],
     "exclude": [
       "**/*.d.ts",
-      "dist",
+      "dev-build",
       "sample-project",
       "test",
       "coverage",
