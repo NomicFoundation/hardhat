@@ -1,10 +1,10 @@
 {
   "name": "buidler-web3",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.0",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/buidler-web3",
-  "repository": "github:nomiclabs/buidler-web3-legacy",
+  "repository": "github:nomiclabs/buidler-web3",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "description": "Buidler plugin for using Web3 1.x",
@@ -32,7 +32,7 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "buidler": "^0.1.5",
+    "buidler": "^1.0.0-beta.0",
     "web3": "^1.0.0-beta.37"
   }
 }
