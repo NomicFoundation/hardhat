@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.common",
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "./dev-build",
     "rootDirs": ["./src", "./test"]
   },
   "include": ["./test", "./src/**/*.ts"]
