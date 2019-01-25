@@ -1,0 +1,21 @@
+language: node_js
+
+node_js:
+  - "8"
+
+install:
+  - yarn global add codecov
+  - yarn add --peer web3
+  # - yarn add --peer buidler@^1.0.0-beta.0
+  - yarn
+
+script:
+  - yarn test
+  - codecov
+  - yarn lint
+
+cache: yarn
+
+branches:
+  only:
+    - master
