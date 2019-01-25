@@ -85,6 +85,12 @@ internalTask("builtin:build-artifacts", async (_, { config, run }) => {
     return;
   }
 
+  const sources = await run("builtin:get-file-paths");
+
+  if (sources.length === 0) {
+    return;
+  }
+
   const compilationOutput = await run("builtin:compile");
 
   if (compilationOutput === undefined) {
