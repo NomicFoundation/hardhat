@@ -2,4 +2,4 @@
 --require ts-node/register
 --require source-map-support/register
 --recursive test/**/*.ts --exclude test/fixture-projects/**/*.ts --exclude test/fixture-projects/**/*.js --exclude test/helpers/**/*.ts
---timeout 10000
+--timeout 5000
