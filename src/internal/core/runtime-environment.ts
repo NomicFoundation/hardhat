@@ -104,15 +104,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
     globalAsAny.runSuper = runSuper;
 
     const uninjectFromGlobal = this.injectToGlobal();
-    const taskResult = await taskDefinition.action(
-      taskArguments,
-      this,
-      runSuper
-    );
 
-    uninjectFromGlobal();
-    globalAsAny.runSuper = previousRunSuper;
-
-    return taskResult;
+    try {
+      return await taskDefinition.action(taskArguments, this, runSuper);
+    } finally {
+      uninjectFromGlobal();
+      globalAsAny.runSuper = previousRunSuper;
+    }
   }
 }

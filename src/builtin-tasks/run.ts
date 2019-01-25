@@ -1,9 +1,6 @@
-import { internalTask, task } from "../internal/core/config/config-env";
+import { task, types } from "../internal/core/config/config-env";
 import { BuidlerError, ERRORS } from "../internal/core/errors";
-
-internalTask("builtin:setup-run-environment", async () => {
-  // this task is only here in case someone wants to override it.
-});
+import { runScript } from "../internal/util/scripts-runner";
 
 task("run", "Runs a user-defined script after compiling the project")
   .addPositionalParam(
@@ -27,8 +24,12 @@ task("run", "Runs a user-defined script after compiling the project")
       }
 
       try {
-        await run("builtin:setup-run-environment");
-        require(await fsExtra.realpath(script));
+        const statusCode = await runScript(
+          script,
+          [],
+          ["--require", __dirname + "/../register"]
+        );
+        process.exit(statusCode);
       } catch (error) {
         throw new BuidlerError(
           ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
