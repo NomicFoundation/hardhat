@@ -3,13 +3,6 @@ import { assert } from "chai";
 import { runScript } from "../../../src/internal/util/scripts-runner";
 import { useFixtureProject } from "../../helpers/project";
 
-const TS_NODE_ARGS = [
-  "--require",
-  "dotenv/config",
-  "--require",
-  "ts-node/register"
-];
-
 describe("Scripts runner", () => {
   useFixtureProject("project-with-scripts");
 
@@ -17,7 +10,7 @@ describe("Scripts runner", () => {
     const statusCode = await runScript(
       "./successful-script.js",
       [],
-      [...TS_NODE_ARGS, "--require", __dirname + "/../../../src/register"]
+      ["--require", __dirname + "/../../../src/register"]
     );
     assert.equal(statusCode, 0);
 
@@ -44,7 +37,11 @@ describe("Scripts runner", () => {
   });
 
   it("Should resolve to the status code of the script run", async () => {
-    const statusCode1 = await runScript("./async-script.js");
+    const statusCode1 = await runScript(
+      "./async-script.js",
+      [],
+      ["--require", __dirname + "/../../../src/register"]
+    );
     assert.equal(statusCode1, 0);
 
     const statusCode2 = await runScript("./failing-script.js");
@@ -53,7 +50,7 @@ describe("Scripts runner", () => {
     const statusCode3 = await runScript(
       "./successful-script.js",
       [],
-      [...TS_NODE_ARGS, "--require", __dirname + "/../../../src/register"]
+      ["--require", __dirname + "/../../../src/register"]
     );
     assert.equal(statusCode3, 0);
   });

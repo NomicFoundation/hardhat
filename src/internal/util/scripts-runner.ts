@@ -4,14 +4,13 @@ export async function runScript(
   scriptPath: string,
   scriptArgs: string[] = [],
   extraNodeArgs: string[] = []
-) {
-  const fsExtra = await import("fs-extra");
-  if (!fsExtra.pathExists(scriptPath)) {
-    throw new Error("Path doesn't exist: " + scriptPath);
-  }
-
+): Promise<number> {
   return new Promise((resolve, reject) => {
-    const nodeArgs = [...process.execArgv, ...extraNodeArgs];
+    const nodeArgs = [
+      ...process.execArgv,
+      ...getTsNodeArgsIfNeeded(),
+      ...extraNodeArgs
+    ];
 
     const childProcess = fork(scriptPath, scriptArgs, {
       stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
@@ -21,4 +20,19 @@ export async function runScript(
     childProcess.once("close", resolve);
     childProcess.once("error", reject);
   });
+}
+
+function getTsNodeArgsIfNeeded() {
+  if (!__filename.endsWith(".ts")) {
+    return [];
+  }
+
+  const extraNodeArgs = [];
+
+  if (!process.execArgv.includes("ts-node/register")) {
+    extraNodeArgs.push("--require");
+    extraNodeArgs.push("ts-node/register");
+  }
+
+  return extraNodeArgs;
 }
