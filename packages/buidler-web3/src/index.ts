@@ -7,7 +7,6 @@ declare module "buidler/types" {
   interface BuidlerRuntimeEnvironment {
     Web3: any;
     web3: any;
-    pweb3: any;
   }
 }
 
