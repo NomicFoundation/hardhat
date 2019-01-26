@@ -15,15 +15,21 @@ async function getConfigModificationDate(configPath: string): Promise<Date> {
   return getModificationDate(configPath);
 }
 
-async function getModificationDatesInDir(dir: string): Promise<Date[]> {
-  const pattern = path.join(dir, "**");
+async function getModificationDatesInDir(
+  dir: string,
+  filesExtension: string
+): Promise<Date[]> {
+  const pattern = path.join(dir, "**", "*" + filesExtension);
   const files = await glob(pattern);
   const promises: Array<Promise<Date>> = files.map(getModificationDate);
   return Promise.all(promises);
 }
 
-async function getLastModificationDateInDir(dir: string) {
-  const dates = await getModificationDatesInDir(dir);
+async function getLastModificationDateInDir(
+  dir: string,
+  filesExtension: string
+) {
+  const dates = await getModificationDatesInDir(dir, filesExtension);
 
   if (dates.length === 0) {
     return undefined;
@@ -72,11 +78,13 @@ export async function areArtifactsCached(paths: ProjectPaths) {
   }
 
   const lastSourcesModification = await getLastModificationDateInDir(
-    paths.sources
+    paths.sources,
+    ".sol"
   );
 
   const lastArtifactsModification = await getLastModificationDateInDir(
-    paths.artifacts
+    paths.artifacts,
+    ".json"
   );
 
   const configModification = await getConfigModificationDate(paths.configFile);
