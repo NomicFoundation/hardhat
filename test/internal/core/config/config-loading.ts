@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import * as path from "path";
 
+import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import {
   getFixtureProjectPath,
@@ -47,7 +48,7 @@ describe("config loading", () => {
     it("Should define the default tasks", () => {
       const [_, tasks] = loadConfigAndTasks();
       assert.containsAllKeys(tasks, [
-        "clean",
+        TASK_CLEAN,
         "flatten",
         "compile",
         "help",

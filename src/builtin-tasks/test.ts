@@ -1,10 +1,17 @@
 import path from "path";
-import util from "util";
 
 import { internalTask, task } from "../internal/core/config/config-env";
 import { glob } from "../internal/util/glob";
 
-internalTask("test:get-test-files")
+import {
+  TASK_COMPILE,
+  TASK_TEST,
+  TASK_TEST_GET_TEST_FILES,
+  TASK_TEST_RUN_MOCHA_TESTS,
+  TASK_TEST_SETUP_TEST_ENVIRONMENT
+} from "./task-names";
+
+internalTask(TASK_TEST_GET_TEST_FILES)
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -18,9 +25,9 @@ internalTask("test:get-test-files")
     return testFiles;
   });
 
-internalTask("test:setup-test-environment", async () => {});
+internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
 
-internalTask("test:run-mocha-tests")
+internalTask(TASK_TEST_RUN_MOCHA_TESTS)
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -39,7 +46,7 @@ internalTask("test:run-mocha-tests")
     process.exit(failures);
   });
 
-task("test", "Runs mocha tests")
+task(TASK_TEST, "Runs mocha tests")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -58,11 +65,11 @@ task("test", "Runs mocha tests")
       { run }
     ) => {
       if (!noCompile) {
-        await run("compile");
+        await run(TASK_COMPILE);
       }
 
-      const files = await run("test:get-test-files", { testFiles });
-      await run("test:setup-test-environment");
-      await run("test:run-mocha-tests", { testFiles: files });
+      const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
+      await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
+      await run(TASK_TEST_RUN_MOCHA_TESTS, { testFiles: files });
     }
   );
