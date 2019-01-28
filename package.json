@@ -35,6 +35,19 @@
     "prod:watch": "tsc -w --p tsconfig.prod.json",
     "prod:clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js"
   },
+  "files": [
+    "builtin-tasks/",
+    "internal/",
+    "sample-project/",
+    "src/",
+    "*.d.ts",
+    "*.d.ts.map",
+    "*.js",
+    "*.js.map",
+    "LICENSE",
+    "README.md",
+    "recommended-gitignore.txt"
+  ],
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/download": "^6.2.3",
