@@ -6,6 +6,9 @@ import { Environment } from "./internal/core/runtime-environment";
 const globalAsAny = global as any;
 
 if (globalAsAny.env === undefined) {
+  // tslint:disable-next-line no-var-requires
+  require("source-map-support/register");
+
   const buidlerArguments = getEnvBuidlerArguments(
     BUIDLER_PARAM_DEFINITIONS,
     process.env
