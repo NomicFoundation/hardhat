@@ -58,7 +58,7 @@ internalTask(
     const packageJson = await getPackageJson();
     flattened += `// Sources flattened with buidler v${
       packageJson.version
-    } https://getbuidler.com\n`;
+    } https://getbuidler.com`;
 
     const graph = await run(TASK_COMPILE_GET_DEPENDENCY_GRAPH);
     const sortedFiles = getSortedFiles(graph);
