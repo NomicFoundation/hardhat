@@ -15,6 +15,12 @@
     "build": "tsc",
     "watch": "tsc -w"
   },
+  "files": [
+    "dist/src",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
