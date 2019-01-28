@@ -78,7 +78,7 @@ You can leverage buidler's infrastructure and configuration in your own scripts.
 
 By running them with `buidler run <path>` [the buidler environment](#the-buidler-environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
 
-You can also run them without using `buidler`, you just need to import [the buidler environment](#the-buidler-environment) with `require("buidler")`. If you run them this way, you have to use environment variables to pass arguments to buidler (e.g. NETWORK=develop).
+You can also run them without using `buidler`, you just need to import [the buidler environment](#the-buidler-environment) with `require("@nomiclabs/buidler")`. If you run them this way, you have to use environment variables to pass arguments to buidler (e.g. NETWORK=develop).
 
 ## The buidler environment
 

@@ -1,4 +1,4 @@
-const env = require("buidler");
+const env = require("@nomiclabs/buidler");
 
 async function main() {
   await env.run("compile");

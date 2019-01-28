@@ -9,7 +9,7 @@ import {
 describe("packageInfo", () => {
   it("Should give the right package.json", async () => {
     const packageJson = await getPackageJson();
-    assert.equal(packageJson.name, "buidler");
+    assert.equal(packageJson.name, "@nomiclabs/buidler");
     // We don't test the version number because that would be hard to maintain
     assert.isString(packageJson.version);
   });
