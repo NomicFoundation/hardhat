@@ -1,4 +1,4 @@
-import { IEthereumProvider } from "buidler/types";
+import { IEthereumProvider } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import Web3 from "web3";
 
@@ -32,7 +32,7 @@ describe("Web3 provider adapter", () => {
   });
 
   beforeEach(() => {
-    const buidlerEnv = require("buidler");
+    const buidlerEnv = require("@nomiclabs/buidler");
     realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
     adaptedProvider = new Web3HTTPProviderAdapter(buidlerEnv.provider);
   });

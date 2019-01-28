@@ -1,4 +1,4 @@
-import { IEthereumProvider } from "buidler/types";
+import { IEthereumProvider } from "@nomiclabs/buidler/types";
 import util from "util";
 
 export interface JsonRpcRequest {
