@@ -14,6 +14,12 @@
     "build": "tsc",
     "watch": "tsc -w"
   },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "chai": "4.2.0",
     "truffle-contract": "^4.0.2"
