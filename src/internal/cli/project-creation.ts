@@ -117,8 +117,7 @@ function printSuggestedCommands() {
   console.log(`Try running running the following tasks:`);
   console.log(`  buidler compile`);
   console.log(`  buidler test`);
-  console.log(`  buidler deploy`);
-  console.log(`  node scripts/scripted-deployment.js`);
+  console.log(`  node scripts/sample-script.js`);
   console.log(`  buidler help`);
 }
 
