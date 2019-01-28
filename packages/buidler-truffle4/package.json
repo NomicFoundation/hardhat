@@ -15,6 +15,12 @@
     "build": "tsc",
     "watch": "tsc -w"
   },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "buidler-web3-legacy": "^1.0.0-beta.0",
     "chai": "4.1.2",
