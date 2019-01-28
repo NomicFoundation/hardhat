@@ -1,10 +1,10 @@
-import { extendEnvironment } from "buidler/config";
+import { extendEnvironment } from "@nomiclabs/buidler/config";
 import Web3 from "web3";
 
 import { promisifyWeb3 } from "./pweb3";
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
 
-declare module "buidler/types" {
+declare module "@nomiclabs/buidler/types" {
   export interface BuidlerRuntimeEnvironment {
     Web3: any;
     web3: any;

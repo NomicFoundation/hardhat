@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "buidler/plugins";
+import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { promisify } from "util";
 
 export function promisifyWeb3(web3: any) {

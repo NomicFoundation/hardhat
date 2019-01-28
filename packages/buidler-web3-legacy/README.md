@@ -6,9 +6,9 @@ This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `0.20x` in
 
 To install this plugin follow these steps:
 
-1. Install it in your Buidler project with `npm install buidler-plugin-web3`
+1. Install it in your Buidler project with `npm install @nomiclabs/buidler-plugin-web3`
 2. Install Web3.js with `npm install web3@^0.20.7`
-3. Import the plugin in your `buidler.config.js` by adding `require("buidler-web3-legacy")`
+3. Import the plugin in your `buidler.config.js` by adding `require("@nomiclabs/buidler-web3-legacy")`
 
 # How to use it
 

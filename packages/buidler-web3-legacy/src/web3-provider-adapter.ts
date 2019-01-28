@@ -1,5 +1,5 @@
-import { BuidlerPluginError } from "buidler/plugins";
-import { IEthereumProvider } from "buidler/types";
+import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { IEthereumProvider } from "@nomiclabs/buidler/types";
 import util from "util";
 
 export interface JsonRpcRequest {
