@@ -54,4 +54,15 @@ describe("Scripts runner", () => {
     );
     assert.equal(statusCode3, 0);
   });
+
+  it("Should pass env variables to the script", async () => {
+    const statusCode = await runScript("./env-var-script.js", [], [], {
+      TEST_ENV_VAR: "test"
+    });
+    assert.equal(statusCode, 0);
+
+    // We check here that the script is correctly testing this:
+    const statusCode2 = await runScript("./env-var-script.js");
+    assert.notEqual(statusCode2, 0);
+  });
 });

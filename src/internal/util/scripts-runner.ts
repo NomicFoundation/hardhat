@@ -3,7 +3,8 @@ import { fork } from "child_process";
 export async function runScript(
   scriptPath: string,
   scriptArgs: string[] = [],
-  extraNodeArgs: string[] = []
+  extraNodeArgs: string[] = [],
+  extraEnvVars: { [name: string]: string } = {}
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     const nodeArgs = [
@@ -14,7 +15,8 @@ export async function runScript(
 
     const childProcess = fork(scriptPath, scriptArgs, {
       stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
-      execArgv: nodeArgs
+      execArgv: nodeArgs,
+      env: { ...process.env, ...extraEnvVars }
     });
 
     childProcess.once("close", resolve);
