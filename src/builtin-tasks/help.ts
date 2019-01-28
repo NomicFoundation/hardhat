@@ -3,7 +3,9 @@ import { task } from "../internal/core/config/config-env";
 import { BUIDLER_PARAM_DEFINITIONS } from "../internal/core/params/buidler-params";
 import { getPackageJson } from "../internal/util/packageInfo";
 
-task("help", "Prints this message")
+import { TASK_HELP } from "./task-names";
+
+task(TASK_HELP, "Prints this message")
   .addOptionalPositionalParam(
     "task",
     "An optional task to print more info about"

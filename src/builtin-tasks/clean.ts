@@ -1,7 +1,9 @@
 import { task } from "../internal/core/config/config-env";
 
+import { TASK_CLEAN } from "./task-names";
+
 task(
-  "clean",
+  TASK_CLEAN,
   "Clears the cache and deletes all artifacts",
   async (_, { config }) => {
     const fs = await import("fs-extra");

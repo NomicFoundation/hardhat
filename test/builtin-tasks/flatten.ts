@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "../../src/builtin-tasks/task-names";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
@@ -17,7 +18,7 @@ describe("Flatten task", () => {
     useFixtureProject("default-config-project");
     it("should return empty string", async function() {
       const flattenedFiles = await this.env.run(
-        "flatten:get-flattened-sources"
+        TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
 
       assert.equal(flattenedFiles.length, 0);
@@ -28,7 +29,9 @@ describe("Flatten task", () => {
     useFixtureProject("contracts-project");
 
     it("should flattened files should sorted correctly", async function() {
-      const flattenedFiles = await this.env.run("flatten:flatten");
+      const flattenedFiles = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE
+      );
       assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A"]);
     });
   });

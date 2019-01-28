@@ -1,7 +1,9 @@
 import { task } from "../internal/core/config/config-env";
 import { runScript } from "../internal/util/scripts-runner";
 
-task("console", "Opens a buidler console")
+import { TASK_CONSOLE } from "./task-names";
+
+task(TASK_CONSOLE, "Opens a buidler console")
   .addFlag("noCompile", "Don't compile before running this task")
   .setAction(async ({ noCompile }: { noCompile: boolean }, { config, run }) => {
     const path = await import("path");

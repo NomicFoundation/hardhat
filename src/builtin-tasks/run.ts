@@ -1,8 +1,10 @@
-import { task, types } from "../internal/core/config/config-env";
+import { task } from "../internal/core/config/config-env";
 import { BuidlerError, ERRORS } from "../internal/core/errors";
 import { runScript } from "../internal/util/scripts-runner";
 
-task("run", "Runs a user-defined script after compiling the project")
+import { TASK_COMPILE, TASK_RUN } from "./task-names";
+
+task(TASK_RUN, "Runs a user-defined script after compiling the project")
   .addPositionalParam(
     "script",
     "A js file to be run within buidler's environment"
@@ -20,7 +22,7 @@ task("run", "Runs a user-defined script after compiling the project")
       }
 
       if (!noCompile) {
-        await run("compile");
+        await run(TASK_COMPILE);
       }
 
       try {

@@ -13,6 +13,15 @@ import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { ResolvedBuidlerConfig } from "../types";
 
+import {
+  TASK_BUILD_ARTIFACTS,
+  TASK_COMPILE,
+  TASK_COMPILE_COMPILE,
+  TASK_COMPILE_GET_COMPILER_INPUT,
+  TASK_COMPILE_GET_DEPENDENCY_GRAPH,
+  TASK_COMPILE_GET_RESOLVED_SOURCES,
+  TASK_COMPILE_GET_SOURCE_PATHS
+} from "./task-names";
 import { areArtifactsCached } from "./utils/cache";
 
 function getCompilersDir(config: ResolvedBuidlerConfig) {
@@ -27,33 +36,33 @@ function getCompiler(config: ResolvedBuidlerConfig) {
   );
 }
 
-internalTask("builtin:get-file-paths", async (_, { config }) => {
+internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
   return glob(path.join(config.paths.sources, "**/*.sol"));
 });
 
-internalTask("builtin:get-resolved-files", async (_, { config, run }) => {
+internalTask(TASK_COMPILE_GET_RESOLVED_SOURCES, async (_, { config, run }) => {
   const resolver = new Resolver(config.paths.root);
-  const paths = await run("builtin:get-file-paths");
+  const paths = await run(TASK_COMPILE_GET_SOURCE_PATHS);
   return Promise.all(
     paths.map((p: string) => resolver.resolveProjectSourceFile(p))
   );
 });
 
-internalTask("builtin:get-dependency-graph", async (_, { config, run }) => {
+internalTask(TASK_COMPILE_GET_DEPENDENCY_GRAPH, async (_, { config, run }) => {
   const resolver = new Resolver(config.paths.root);
-  const localFiles = await run("builtin:get-resolved-files");
+  const localFiles = await run(TASK_COMPILE_GET_RESOLVED_SOURCES);
   return DependencyGraph.createFromResolvedFiles(resolver, localFiles);
 });
 
-internalTask("builtin:get-compiler-input", async (_, { config, run }) => {
+internalTask(TASK_COMPILE_GET_COMPILER_INPUT, async (_, { config, run }) => {
   const compiler = getCompiler(config);
-  const dependencyGraph = await run("builtin:get-dependency-graph");
+  const dependencyGraph = await run(TASK_COMPILE_GET_DEPENDENCY_GRAPH);
   return compiler.getInputFromDependencyGraph(dependencyGraph);
 });
 
-internalTask("builtin:compile", async (_, { config, run }) => {
+internalTask(TASK_COMPILE_COMPILE, async (_, { config, run }) => {
   const compiler = getCompiler(config);
-  const input = await run("builtin:get-compiler-input");
+  const input = await run(TASK_COMPILE_GET_COMPILER_INPUT);
 
   console.log("Compiling...");
   const output = await compiler.compile(input);
@@ -80,18 +89,18 @@ internalTask("builtin:compile", async (_, { config, run }) => {
   return output;
 });
 
-internalTask("builtin:build-artifacts", async (_, { config, run }) => {
+internalTask(TASK_BUILD_ARTIFACTS, async (_, { config, run }) => {
   if (await areArtifactsCached(config.paths)) {
     return;
   }
 
-  const sources = await run("builtin:get-file-paths");
+  const sources = await run(TASK_COMPILE_GET_SOURCE_PATHS);
 
   if (sources.length === 0) {
     return;
   }
 
-  const compilationOutput = await run("builtin:compile");
+  const compilationOutput = await run(TASK_COMPILE_COMPILE);
 
   if (compilationOutput === undefined) {
     return;
@@ -113,7 +122,7 @@ internalTask("builtin:build-artifacts", async (_, { config, run }) => {
 });
 
 task(
-  "compile",
+  TASK_COMPILE,
   "Compiles the entire project, building all artifacts",
-  async (__, { run }) => run("builtin:build-artifacts")
+  async (__, { run }) => run(TASK_BUILD_ARTIFACTS)
 );

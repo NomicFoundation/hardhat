@@ -1,3 +1,5 @@
 import { task } from "../internal/core/config/config-env";
 
-task("deploy", "Deploy your contracts").setAction(async () => {});
+import { TASK_DEPLOY } from "./task-names";
+
+task(TASK_DEPLOY, "Deploy your contracts").setAction(async () => {});

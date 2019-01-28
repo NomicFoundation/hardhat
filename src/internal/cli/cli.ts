@@ -5,6 +5,7 @@ import colors from "ansi-colors";
 import semver from "semver";
 import "source-map-support/register";
 
+import { TASK_HELP } from "../../builtin-tasks/task-names";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError, BuidlerPluginError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
@@ -100,8 +101,8 @@ async function main() {
     );
 
     // --help is a also special case
-    if (buidlerArguments.help && taskName !== "help") {
-      await env.run("help", { task: taskName });
+    if (buidlerArguments.help && taskName !== TASK_HELP) {
+      await env.run(TASK_HELP, { task: taskName });
       return;
     }
 

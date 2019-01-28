@@ -1,12 +1,13 @@
 import { assert } from "chai";
 import * as fs from "fs";
 
+import { TASK_CLEAN } from "../../src/builtin-tasks/task-names";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
 function assertCleanBehavior() {
   it("Should delete the folders if present", async function() {
-    await this.env.run("clean");
+    await this.env.run(TASK_CLEAN);
 
     assert.isFalse(fs.existsSync("./cache"));
     assert.isFalse(fs.existsSync("./artifacts"));
