@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "buidler/plugins";
+import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import util from "util";
 
 import { Linker, TruffleContract, TruffleContractInstance } from "./types";

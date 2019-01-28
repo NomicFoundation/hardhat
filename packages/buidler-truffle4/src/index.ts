@@ -1,10 +1,10 @@
-import "buidler-web3-legacy";
-import { extendEnvironment, internalTask } from "buidler/config";
+import "@nomiclabs/buidler-web3-legacy";
+import { extendEnvironment, internalTask } from "@nomiclabs/buidler/config";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 import { LazyTruffleContractProvisioner } from "./provisioner";
 
-declare module "buidler/types" {
+declare module "@nomiclabs/buidler/types" {
   export interface BuidlerRuntimeEnvironment {
     artifacts: TruffleEnvironmentArtifacts;
   }
