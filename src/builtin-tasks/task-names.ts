@@ -12,8 +12,6 @@ export const TASK_BUILD_ARTIFACTS = "compile:build-artifacts";
 
 export const TASK_CONSOLE = "console";
 
-export const TASK_DEPLOY = "deploy";
-
 export const TASK_FLATTEN = "flatten";
 export const TASK_FLATTEN_GET_FLATTENED_SOURCE =
   "flatten:get-flattened-sources";
