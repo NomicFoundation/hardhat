@@ -139,10 +139,9 @@ async function main() {
         "For more info run buidler again with --show-stack-traces."
       );
     }
+
+    process.exit(1);
   }
 }
 
-main().catch(error => {
-  console.error(error);
-  process.exit(1);
-});
+main().then(_ => process.exit(0));
