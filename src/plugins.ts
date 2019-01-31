@@ -4,3 +4,4 @@ export {
   readArtifact,
   readArtifactSync
 } from "./internal/artifacts";
+export { lazyObject, lazyImport } from "./internal/util/lazy";

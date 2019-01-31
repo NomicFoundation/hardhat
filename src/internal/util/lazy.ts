@@ -81,3 +81,27 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
     }
   });
 }
+
+/**
+ * This function is a lazy version of `require`. It imports a module
+ * synchronously, by creating a proxy that delays the actual `require` until
+ * the module is used.
+ *
+ * The disadvantage of using this technique is that the type information is
+ * lost. If done with enough care, this can be manually fixed.
+ *
+ * TypeScript doesn't emit `require` calls for modules that are imported only
+ * because of their types. So if one uses lazyImport along with a normal ESM
+ * import you can pass the module's type to this function.
+ *
+ * An example of this can be:
+ *
+ *   `import ModType from "mod";`
+ *   `const Mod = lazyImport<ModType>("mod");`
+ */
+export function lazyImport<ModuleT = any>(packageName: string): ModuleT {
+  const importLazy = require("import-lazy");
+  const lazyRequire = importLazy(require);
+
+  return lazyRequire(packageName);
+}
