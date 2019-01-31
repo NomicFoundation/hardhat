@@ -1,3 +1,5 @@
+import { Eth } from "web3x/eth";
+
 import { BuidlerError, ERRORS } from "../core/errors";
 
 export function lazyObject<T extends object>(objectCreator: () => T): T {
@@ -96,12 +98,30 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
  *
  * An example of this can be:
  *
- *   `import ModType from "mod";`
- *   `const Mod = lazyImport<ModType>("mod");`
+ *   `import func from "func-mod";`
+ *   `const f = lazyImport<typeof func>("func-mod");`
+ *
+ * You can also pass it a selector to import just an element of the module:
+ *
+ *   `import { Eth } from "web3x/eth";`
+ *   `const LazyEth = lazyImport<Eth>("web3x/eth", "Eth");`
+ *
+ * Limitations:
+ *  - It's not entirely clear when to use `typeof`.
+ *  - If you get a compilation error saying something about "namespace" consider
+ *    using a selector.
  */
-export function lazyImport<ModuleT = any>(packageName: string): ModuleT {
+export function lazyImport<ModuleT = any>(
+  packageName: string,
+  selector?: string
+): ModuleT {
   const importLazy = require("import-lazy");
   const lazyRequire = importLazy(require);
+  const lazyModule = lazyRequire(packageName);
 
-  return lazyRequire(packageName);
+  if (selector === undefined) {
+    return lazyModule;
+  }
+
+  return lazyObject(() => lazyModule[selector]);
 }
