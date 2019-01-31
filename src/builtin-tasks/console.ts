@@ -1,5 +1,5 @@
 import { task } from "../internal/core/config/config-env";
-import { runScript } from "../internal/util/scripts-runner";
+import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 
 import { TASK_CONSOLE } from "./task-names";
 
@@ -17,13 +17,13 @@ task(TASK_CONSOLE, "Opens a buidler console")
     await fsExtra.ensureDir(config.paths.cache);
     const historyFile = path.join(config.paths.cache, "console-history.txt");
 
-    const nodeArgs = ["--require", __dirname + "/../register"];
+    const nodeArgs = [];
     if (semver.gte(process.version, "10.0.0")) {
       nodeArgs.push("--experimental-repl-await");
     }
 
     // Running the script "" is like running `node`, so this starts the repl
-    await runScript("", [], nodeArgs, {
+    await runScriptWithBuidler("", [], nodeArgs, {
       NODE_REPL_HISTORY: historyFile
     });
   });
