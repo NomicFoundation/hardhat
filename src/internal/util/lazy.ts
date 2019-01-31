@@ -1,3 +1,5 @@
+import { Eth } from "web3x/eth";
+
 import { BuidlerError, ERRORS } from "../core/errors";
 
 export function lazyObject<T extends object>(objectCreator: () => T): T {
@@ -80,4 +82,46 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
       return Reflect.setPrototypeOf(getRealTarget(), prototype);
     }
   });
+}
+
+/**
+ * This function is a lazy version of `require`. It imports a module
+ * synchronously, by creating a proxy that delays the actual `require` until
+ * the module is used.
+ *
+ * The disadvantage of using this technique is that the type information is
+ * lost. If done with enough care, this can be manually fixed.
+ *
+ * TypeScript doesn't emit `require` calls for modules that are imported only
+ * because of their types. So if one uses lazyImport along with a normal ESM
+ * import you can pass the module's type to this function.
+ *
+ * An example of this can be:
+ *
+ *   `import func from "func-mod";`
+ *   `const f = lazyImport<typeof func>("func-mod");`
+ *
+ * You can also pass it a selector to import just an element of the module:
+ *
+ *   `import { Eth } from "web3x/eth";`
+ *   `const LazyEth = lazyImport<Eth>("web3x/eth", "Eth");`
+ *
+ * Limitations:
+ *  - It's not entirely clear when to use `typeof`.
+ *  - If you get a compilation error saying something about "namespace" consider
+ *    using a selector.
+ */
+export function lazyImport<ModuleT = any>(
+  packageName: string,
+  selector?: string
+): ModuleT {
+  const importLazy = require("import-lazy");
+  const lazyRequire = importLazy(require);
+  const lazyModule = lazyRequire(packageName);
+
+  if (selector === undefined) {
+    return lazyModule;
+  }
+
+  return lazyObject(() => lazyModule[selector]);
 }
