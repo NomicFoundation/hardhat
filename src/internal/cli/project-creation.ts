@@ -1,6 +1,7 @@
 import colors from "ansi-colors";
 import path from "path";
 
+import { BUIDLER_NAME } from "../constants";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
@@ -38,9 +39,9 @@ async function printWelcomeMessage() {
 
   console.log(
     colors.cyan(
-      `${emoji("👷 ")}Welcome to ${packageJson.name} v${
-        packageJson.version
-      }${emoji(" 👷‍")}‍\n`
+      `${emoji("👷 ")}Welcome to ${BUIDLER_NAME} v${packageJson.version}${emoji(
+        " 👷‍"
+      )}‍\n`
     )
   );
 }

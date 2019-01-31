@@ -1,4 +1,5 @@
 import { HelpPrinter } from "../internal/cli/HelpPrinter";
+import { BUIDLER_EXECUTABLE_NAME } from "../internal/constants";
 import { task } from "../internal/core/config/config-env";
 import { BUIDLER_PARAM_DEFINITIONS } from "../internal/core/params/buidler-params";
 import { getPackageJson } from "../internal/util/packageInfo";
@@ -14,7 +15,7 @@ task(TASK_HELP, "Prints this message")
     const packageJson = await getPackageJson();
 
     const helpPrinter = new HelpPrinter(
-      packageJson.name,
+      BUIDLER_EXECUTABLE_NAME,
       packageJson.version,
       BUIDLER_PARAM_DEFINITIONS,
       tasks
