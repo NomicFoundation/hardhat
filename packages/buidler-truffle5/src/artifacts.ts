@@ -1,4 +1,4 @@
-import { BuidlerPluginError, readArtifactSync } from "buidler/plugins";
+import { BuidlerPluginError, readArtifactSync } from "@nomiclabs/buidler/plugins";
 import path from "path";
 
 import { LazyTruffleContractProvisioner } from "./provisioner";

@@ -1,4 +1,4 @@
-import { BuidlerRuntimeEnvironment } from "buidler/types";
+import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
@@ -8,7 +8,7 @@ import { TruffleContract, TruffleContractInstance } from "../src/types";
 // It's here because ts-node seems to ignore type extensions
 // made by our dependencies.
 // TODO: Open an issue in ts-node once this is on github.
-declare module "buidler/types" {
+declare module "@nomiclabs/buidler/types" {
   interface BuidlerRuntimeEnvironment {
     Web3: any;
     web3: any;
@@ -147,8 +147,8 @@ describe("BuidlerRuntimeEnvironment extension", function() {
     process.chdir(__dirname + "/buidler-project-solc-0.5");
     process.env.BUIDLER_NETWORK = "develop";
 
-    delete require.cache[require.resolve("buidler")];
-    this.env = require("buidler");
+    delete require.cache[require.resolve("@nomiclabs/buidler")];
+    this.env = require("@nomiclabs/buidler");
   });
 
   it("It should add the artifacts object", function() {
@@ -162,8 +162,8 @@ describe("TruffleContracts loading and provisioning", function() {
       process.chdir(__dirname + "/buidler-project-solc-0.5");
       process.env.BUIDLER_NETWORK = "develop";
 
-      delete require.cache[require.resolve("buidler")];
-      this.env = require("buidler");
+      delete require.cache[require.resolve("@nomiclabs/buidler")];
+      this.env = require("@nomiclabs/buidler");
     });
 
     testArtifactsFunctionality();
@@ -174,8 +174,8 @@ describe("TruffleContracts loading and provisioning", function() {
       process.chdir(__dirname + "/buidler-project-solc-0.4");
       process.env.BUIDLER_NETWORK = "develop";
 
-      delete require.cache[require.resolve("buidler")];
-      this.env = require("buidler");
+      delete require.cache[require.resolve("@nomiclabs/buidler")];
+      this.env = require("@nomiclabs/buidler");
     });
 
     testArtifactsFunctionality();

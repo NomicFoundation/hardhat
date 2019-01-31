@@ -1,11 +1,11 @@
-import "buidler-web3";
-import { extendEnvironment, internalTask } from "buidler/config";
-import { BuidlerPluginError } from "buidler/plugins";
+import "@nomiclabs/buidler-web3";
+import { extendEnvironment, internalTask } from "@nomiclabs/buidler/config";
+import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 import { LazyTruffleContractProvisioner } from "./provisioner";
 
-declare module "buidler/types" {
+declare module "@nomiclabs/buidler/types" {
   export interface BuidlerRuntimeEnvironment {
     artifacts: TruffleEnvironmentArtifacts;
   }
