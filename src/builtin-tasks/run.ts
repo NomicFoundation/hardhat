@@ -1,6 +1,6 @@
 import { task } from "../internal/core/config/config-env";
 import { BuidlerError, ERRORS } from "../internal/core/errors";
-import { runScript } from "../internal/util/scripts-runner";
+import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 
 import { TASK_COMPILE, TASK_RUN } from "./task-names";
 
@@ -26,11 +26,7 @@ task(TASK_RUN, "Runs a user-defined script after compiling the project")
       }
 
       try {
-        const statusCode = await runScript(
-          script,
-          [],
-          ["--require", __dirname + "/../register"]
-        );
+        const statusCode = await runScriptWithBuidler(script);
         process.exit(statusCode);
       } catch (error) {
         throw new BuidlerError(

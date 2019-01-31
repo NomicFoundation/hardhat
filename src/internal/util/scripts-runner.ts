@@ -24,6 +24,20 @@ export async function runScript(
   });
 }
 
+export async function runScriptWithBuidler(
+  scriptPath: string,
+  scriptArgs: string[] = [],
+  extraNodeArgs: string[] = [],
+  extraEnvVars: { [name: string]: string } = {}
+): Promise<number> {
+  return runScript(
+    scriptPath,
+    scriptArgs,
+    [...extraNodeArgs, "--require", __dirname + "/../../register"],
+    extraEnvVars
+  );
+}
+
 function getTsNodeArgsIfNeeded() {
   if (!__filename.endsWith(".ts")) {
     return [];

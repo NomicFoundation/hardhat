@@ -1,17 +1,16 @@
 import { assert } from "chai";
 
-import { runScript } from "../../../src/internal/util/scripts-runner";
+import {
+  runScript,
+  runScriptWithBuidler
+} from "../../../src/internal/util/scripts-runner";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Scripts runner", () => {
   useFixtureProject("project-with-scripts");
 
   it("Should load buidler/register successfully", async () => {
-    const statusCode = await runScript(
-      "./successful-script.js",
-      [],
-      ["--require", __dirname + "/../../../src/register"]
-    );
+    const statusCode = await runScriptWithBuidler("./successful-script.js");
     assert.equal(statusCode, 0);
 
     // We check here that the script is correctly testing this:
