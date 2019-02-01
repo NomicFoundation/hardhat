@@ -1,5 +1,3 @@
-import { Eth } from "web3x/eth";
-
 import { BuidlerError, ERRORS } from "../core/errors";
 
 export function lazyObject<T extends object>(objectCreator: () => T): T {
@@ -84,6 +82,89 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
   });
 }
 
+export function lazyFunction<T extends Function>(functionCreator: () => T): T {
+  let realTarget: T | undefined;
+
+  // tslint:disable-next-line
+  const dummyTarget: T = function() {} as any; // This is unsafe, but we never use dummyTarget.
+
+  function getRealTarget(): T {
+    if (realTarget === undefined) {
+      const object = functionCreator();
+
+      if (!(object instanceof Function)) {
+        throw new BuidlerError(
+          ERRORS.GENERAL.UNSUPPORTED_OPERATION,
+          "lazyFunction should be used for functions"
+        );
+      }
+
+      if (!Object.isExtensible(object)) {
+        Object.preventExtensions(dummyTarget);
+      }
+
+      realTarget = object;
+    }
+
+    return realTarget;
+  }
+
+  return new Proxy(dummyTarget, {
+    defineProperty(target, property, descriptor) {
+      return Reflect.defineProperty(getRealTarget(), property, descriptor);
+    },
+
+    deleteProperty(target, property) {
+      return Reflect.deleteProperty(getRealTarget(), property);
+    },
+
+    get(target, property, receiver) {
+      return Reflect.get(getRealTarget(), property, receiver);
+    },
+
+    getOwnPropertyDescriptor(target, property) {
+      return Reflect.getOwnPropertyDescriptor(getRealTarget(), property);
+    },
+
+    getPrototypeOf(target) {
+      return Reflect.getPrototypeOf(getRealTarget());
+    },
+
+    has(target, property) {
+      return Reflect.has(getRealTarget(), property);
+    },
+
+    isExtensible(target) {
+      return Reflect.isExtensible(getRealTarget());
+    },
+
+    ownKeys(target) {
+      return Reflect.ownKeys(getRealTarget());
+    },
+
+    preventExtensions(target) {
+      Object.preventExtensions(dummyTarget);
+      return Reflect.preventExtensions(getRealTarget());
+    },
+
+    set(target, property, value, receiver) {
+      return Reflect.set(getRealTarget(), property, value, receiver);
+    },
+
+    setPrototypeOf(target, prototype) {
+      return Reflect.setPrototypeOf(getRealTarget(), prototype);
+    },
+
+    apply(target: T, thisArg: any, argArray?: any): any {
+      return Reflect.apply(getRealTarget(), thisArg, argArray);
+    },
+
+    construct(target: T, argArray: any, newTarget?: any): object {
+      return Reflect.construct(getRealTarget(), argArray);
+    }
+  });
+}
+
 /**
  * This function is a lazy version of `require`. It imports a module
  * synchronously, by creating a proxy that delays the actual `require` until
@@ -110,18 +191,7 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
  *  - It's not entirely clear when to use `typeof`.
  *  - If you get a compilation error saying something about "namespace" consider
  *    using a selector.
+ *
+ * @param packageName The name of the package. If it's a local one, it should be
+ * its absolute path.
  */
-export function lazyImport<ModuleT = any>(
-  packageName: string,
-  selector?: string
-): ModuleT {
-  const importLazy = require("import-lazy");
-  const lazyRequire = importLazy(require);
-  const lazyModule = lazyRequire(packageName);
-
-  if (selector === undefined) {
-    return lazyModule;
-  }
-
-  return lazyObject(() => lazyModule[selector]);
-}

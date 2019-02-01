@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { ERRORS } from "../../../src/internal/core/errors";
-import { lazyObject } from "../../../src/internal/util/lazy";
+import { lazyFunction, lazyObject } from "../../../src/internal/util/lazy";
 import { expectBuidlerError } from "../../helpers/errors";
 
 describe("lazy module", () => {
@@ -196,5 +196,28 @@ describe("lazy module", () => {
       assert.equal(Object.getPrototypeOf(obj), newProto);
       assert.equal(obj.a, 123);
     });
+  });
+});
+
+describe("lazy import", () => {
+  it("should work with a function module", () => {
+    const lazyF = lazyFunction(() => () => ({ a: 1, b: 2 }));
+    assert.deepEqual(lazyF(), { a: 1, b: 2 });
+  });
+
+  it("should work with a class module", () => {
+    const lazyC = lazyFunction(
+      () =>
+        class {
+          public a: number;
+          public b: number;
+          constructor() {
+            this.a = 1;
+            this.b = 2;
+          }
+        }
+    );
+
+    assert.deepEqual(new lazyC(), { a: 1, b: 2 });
   });
 });
