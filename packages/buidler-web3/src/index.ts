@@ -1,5 +1,9 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
-import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
+import {
+  BuidlerPluginError,
+  lazyFunction,
+  lazyObject
+} from "@nomiclabs/buidler/plugins";
 
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
 
@@ -26,6 +30,12 @@ function loadWeb3() {
   globalAsAny.web3 = undefined;
 
   const Web3 = require("web3");
+  if (!(Web3 instanceof Function)) {
+    throw new BuidlerPluginError(
+      'You can\'t use require("web3") with this plugin, ' +
+        "please use Web3 from the Buidler Runtime Environment"
+    );
+  }
 
   globalAsAny.web3 = previousWeb3;
 
