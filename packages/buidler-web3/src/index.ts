@@ -10,23 +10,32 @@ declare module "@nomiclabs/buidler/types" {
   }
 }
 
+/**
+ * This function requires web3 and returns it.
+ *
+ * This has to be used instead of just require because we create
+ * a lazy instance of web3 that evetually gets injected into global.
+ *
+ * Web requiring web3, there's a module of the library that inspects
+ * global.web3 to detect the givenProvider, which triggers the lazy
+ * instances and web3 is loaded again, resulting in a recrusive require.
+ */
+function loadWeb3() {
+  const globalAsAny = global as any;
+  const previousWeb3 = globalAsAny.web3;
+  globalAsAny.web3 = undefined;
+
+  const Web3 = require("web3");
+
+  globalAsAny.web3 = previousWeb3;
+
+  return Web3;
+}
+
 extendEnvironment(env => {
-  env.Web3 = lazyFunction(() => require("web3"));
+  env.Web3 = lazyFunction(() => loadWeb3());
   env.web3 = lazyObject(() => {
-    // This function is designed to import and initialize web3 in a lazy fashion.
-    // It has to remove web3 from global, as some web3 files access global.web3,
-    // which will trigger this again recrusively and fail.
-    const globalAsAny = global as any;
-    const hasGlobalWeb3 = typeof globalAsAny.web3 !== "undefined";
-    globalAsAny.web3 = undefined;
-
-    const Web3 = require("web3");
-    const web3 = new Web3(new Web3HTTPProviderAdapter(env.provider));
-
-    if (hasGlobalWeb3) {
-      globalAsAny.web3 = web3;
-    }
-
-    return web3;
+    const Web3 = loadWeb3();
+    return new Web3(new Web3HTTPProviderAdapter(env.provider));
   });
 });
