@@ -82,6 +82,7 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
   });
 }
 
+// tslint:disable-next-line ban-types
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   let realTarget: T | undefined;
 
