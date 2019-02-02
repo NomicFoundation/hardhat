@@ -64,6 +64,7 @@ export interface ProjectPaths {
   cache: string;
   artifacts: string;
   sources: string;
+  tests: string;
 }
 
 type EVMVersion =

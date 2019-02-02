@@ -77,6 +77,7 @@ export function resolveProjectPaths(
     configFile,
     sources: resolvePathFrom(root, "contracts", userPaths.sources),
     cache: resolvePathFrom(root, "cache", userPaths.cache),
-    artifacts: resolvePathFrom(root, "artifacts", userPaths.artifacts)
+    artifacts: resolvePathFrom(root, "artifacts", userPaths.artifacts),
+    tests: resolvePathFrom(root, "test", userPaths.artifacts)
   };
 }
