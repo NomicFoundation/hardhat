@@ -1,4 +1,3 @@
-import { IEthereumProvider } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import Web3 from "web3";
 
