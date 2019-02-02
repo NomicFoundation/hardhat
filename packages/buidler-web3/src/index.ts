@@ -1,9 +1,5 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
-import {
-  BuidlerPluginError,
-  lazyFunction,
-  lazyObject
-} from "@nomiclabs/buidler/plugins";
+import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
 
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
 
