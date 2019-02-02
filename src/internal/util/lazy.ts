@@ -28,15 +28,10 @@ import { BuidlerError, ERRORS } from "../core/errors";
  */
 
 export function lazyObject<T extends object>(objectCreator: () => T): T {
-  let realTarget: T | undefined;
-
-  // tslint:disable-next-line
-  const dummyTarget = {} as T; // This is unsafe, but we never use dummyTarget.
-
-  function getRealTarget(): T {
-    if (realTarget === undefined) {
-      const object = objectCreator();
-
+  return createLazyProxy(
+    objectCreator,
+    () => ({}),
+    object => {
       if (object instanceof Function) {
         throw new BuidlerError(
           ERRORS.GENERAL.UNSUPPORTED_OPERATION,
@@ -50,99 +45,70 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
           "Using lazyObject with anything other than objects"
         );
       }
-
-      if (!Object.isExtensible(object)) {
-        Object.preventExtensions(dummyTarget);
-      }
-
-      realTarget = object;
     }
-
-    return realTarget;
-  }
-
-  return new Proxy(dummyTarget, {
-    defineProperty(target, property, descriptor) {
-      return Reflect.defineProperty(getRealTarget(), property, descriptor);
-    },
-
-    deleteProperty(target, property) {
-      return Reflect.deleteProperty(getRealTarget(), property);
-    },
-
-    get(target, property, receiver) {
-      return Reflect.get(getRealTarget(), property, receiver);
-    },
-
-    getOwnPropertyDescriptor(target, property) {
-      return Reflect.getOwnPropertyDescriptor(getRealTarget(), property);
-    },
-
-    getPrototypeOf(target) {
-      return Reflect.getPrototypeOf(getRealTarget());
-    },
-
-    has(target, property) {
-      return Reflect.has(getRealTarget(), property);
-    },
-
-    isExtensible(target) {
-      return Reflect.isExtensible(getRealTarget());
-    },
-
-    ownKeys(target) {
-      return Reflect.ownKeys(getRealTarget());
-    },
-
-    preventExtensions(target) {
-      Object.preventExtensions(dummyTarget);
-      return Reflect.preventExtensions(getRealTarget());
-    },
-
-    set(target, property, value, receiver) {
-      return Reflect.set(getRealTarget(), property, value, receiver);
-    },
-
-    setPrototypeOf(target, prototype) {
-      return Reflect.setPrototypeOf(getRealTarget(), prototype);
-    }
-  });
+  );
 }
 
 // tslint:disable-next-line ban-types
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
-  let realTarget: T | undefined;
-
-  // tslint:disable-next-line
-  const dummyTarget: T = function() {} as any; // This is unsafe, but we never use dummyTarget.
-
-  function getRealTarget(): T {
-    if (realTarget === undefined) {
-      const object = functionCreator();
-
+  return createLazyProxy(
+    functionCreator,
+    () => function() {},
+    object => {
       if (!(object instanceof Function)) {
         throw new BuidlerError(
           ERRORS.GENERAL.UNSUPPORTED_OPERATION,
           "lazyFunction should be used for functions"
         );
       }
+    }
+  );
+}
 
-      if (!Object.isExtensible(object)) {
+function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
+  targetCreator: () => ActualT,
+  dummyTargetCreator: () => GuardT,
+  validator: (target: any) => void
+): ActualT {
+  let realTarget: ActualT | undefined;
+
+  // tslint:disable-next-line
+  const dummyTarget: ActualT = dummyTargetCreator() as any;
+
+  function getRealTarget(): ActualT {
+    if (realTarget === undefined) {
+      const target = targetCreator();
+
+      validator(target);
+
+      // We copy all properties. We won't use them, but help us avoid Proxy
+      // invariant violations
+      const properties = Object.getOwnPropertyNames(target);
+      for (const property of properties) {
+        const descriptor = Object.getOwnPropertyDescriptor(target, property)!;
+        Object.defineProperty(dummyTarget, property, descriptor);
+      }
+
+      Object.setPrototypeOf(dummyTarget, Object.getPrototypeOf(target));
+
+      if (!Object.isExtensible(target)) {
         Object.preventExtensions(dummyTarget);
       }
 
-      realTarget = object;
+      realTarget = target;
     }
 
     return realTarget;
   }
 
-  return new Proxy(dummyTarget, {
+  const handler: ProxyHandler<ActualT> = {
     defineProperty(target, property, descriptor) {
+      Reflect.defineProperty(dummyTarget, property, descriptor);
       return Reflect.defineProperty(getRealTarget(), property, descriptor);
     },
 
     deleteProperty(target, property) {
+      Reflect.deleteProperty(dummyTarget, property);
       return Reflect.deleteProperty(getRealTarget(), property);
     },
 
@@ -176,19 +142,28 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
     },
 
     set(target, property, value, receiver) {
+      Reflect.set(dummyTarget, property, value, receiver);
       return Reflect.set(getRealTarget(), property, value, receiver);
     },
 
     setPrototypeOf(target, prototype) {
+      Reflect.setPrototypeOf(dummyTarget, prototype);
       return Reflect.setPrototypeOf(getRealTarget(), prototype);
-    },
-
-    apply(target: T, thisArg: any, argArray?: any): any {
-      return Reflect.apply(getRealTarget(), thisArg, argArray);
-    },
-
-    construct(target: T, argArray: any, newTarget?: any): object {
-      return Reflect.construct(getRealTarget(), argArray);
     }
-  });
+  };
+
+  if (dummyTarget instanceof Function) {
+    // If dummy target is a function, the actual target must be a function too.
+    handler.apply = (target, thisArg: any, argArray?: any) => {
+      // tslint:disable-next-line ban-types
+      return Reflect.apply(getRealTarget() as Function, thisArg, argArray);
+    };
+
+    handler.construct = (target, argArray: any, newTarget?: any) => {
+      // tslint:disable-next-line ban-types
+      return Reflect.construct(getRealTarget() as Function, argArray);
+    };
+  }
+
+  return new Proxy(dummyTarget, handler);
 }
