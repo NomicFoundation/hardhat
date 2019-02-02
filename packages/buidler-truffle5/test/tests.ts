@@ -4,17 +4,6 @@ import { assert } from "chai";
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
 import { TruffleContract, TruffleContractInstance } from "../src/types";
 
-// This is copied from buidler-web3
-// It's here because ts-node seems to ignore type extensions
-// made by our dependencies.
-// TODO: Open an issue in ts-node once this is on github.
-declare module "@nomiclabs/buidler/types" {
-  interface BuidlerRuntimeEnvironment {
-    Web3: any;
-    web3: any;
-  }
-}
-
 declare module "mocha" {
   interface Context {
     env: BuidlerRuntimeEnvironment;

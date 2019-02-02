@@ -10,5 +10,10 @@
     "rootDirs": ["./src", "./test"],
     "esModuleInterop": true
   },
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "include": [
+    "./test",
+    "./src",
+    "./node_modules/@nomiclabs/buidler-web3/dist/src/index.d.ts"
+  ]
 }
