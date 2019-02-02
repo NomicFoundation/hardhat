@@ -32,7 +32,7 @@ internalTask("builtin:setup-test-environment", async (_, { pweb3 }) => {
 
   globalAsAny.contract = (
     description: string,
-    definition: ((accounts: string) => any)
+    definition: (accounts: string) => any
   ) =>
     describe(description, () => {
       definition(accounts);
