@@ -14,38 +14,30 @@ declare module "@nomiclabs/buidler/types" {
   }
 }
 
-/**
- * This function requires web3 and returns it.
- *
- * This has to be used instead of just require because we create
- * a lazy instance of web3 that evetually gets injected into global.
- *
- * Web requiring web3, there's a module of the library that inspects
- * global.web3 to detect the givenProvider, which triggers the lazy
- * instances and web3 is loaded again, resulting in a recrusive require.
- */
-function loadWeb3() {
-  const globalAsAny = global as any;
-  const previousWeb3 = globalAsAny.web3;
-  globalAsAny.web3 = undefined;
-
-  const Web3 = require("web3");
-  if (!(Web3 instanceof Function)) {
-    throw new BuidlerPluginError(
-      'You can\'t use require("web3") with this plugin, ' +
-        "please use Web3 from the Buidler Runtime Environment"
-    );
+extendEnvironment(env => {
+  try {
+    // We require this file bebause it is required when loading web3,
+    // and it messes with global.web3.
+    //
+    // As we use a lazy object in global.web3, that triggers a full load
+    // of web3 if someone touches it, and web3 touches it when loading,
+    // a recrusive load will be started, and node will resolve
+    // require("web3") to an empty object.
+    //
+    // If we load it before assigning the global.web3 object, then it
+    // will be cached by node and never mess with our lazy object.
+    //
+    // tslint:disable-next-line no-implicit-dependencies
+    require("web3-core-requestmanager/src/givenProvider.js");
+  } catch (e) {
+    // This file was removed in beta 38, which doesn't mess
+    // with global.web3 during module loading anymore.
+    // We have this empty catch to prevent this plugin from breaking
+    // if web3 is upadted and this isn't revisited.
   }
 
-  globalAsAny.web3 = previousWeb3;
-
-  return Web3;
-}
-
-extendEnvironment(env => {
-  env.Web3 = lazyFunction(() => loadWeb3());
-  env.web3 = lazyObject(() => {
-    const Web3 = loadWeb3();
-    return new Web3(new Web3HTTPProviderAdapter(env.provider));
-  });
+  env.Web3 = lazyFunction(() => require("web3"));
+  env.web3 = lazyObject(
+    () => new env.Web3(new Web3HTTPProviderAdapter(env.provider))
+  );
 });
