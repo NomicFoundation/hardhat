@@ -1,5 +1,32 @@
 import { BuidlerError, ERRORS } from "../core/errors";
 
+/**
+ * This module provides function to implement proxy-based object, functions, and
+ * classes (they are functions). They receive an initializer function that it's
+ * not used until someone interacts with the lazy element.
+ *
+ * This functions can also be used like a lazy `require`, creating a proxy that
+ * doesn't require the module until needed.
+ *
+ * The disadvantage of using this technique is that the type information is
+ * lost wrt `import`, as `require` returns an `any. If done with enough care,
+ * this can be manually fixed.
+ *
+ * TypeScript doesn't emit `require` calls for modules that are imported only
+ * because of their types. So if one uses lazyObject or lazyFunction along with
+ * a normal ESM import you can pass the module's type to this function.
+ *
+ * An example of this can be:
+ *
+ *    import findUpT from "find-up";
+ *    export const findUp = lazyFunction<typeof findUpT>(() => require("find-up"));
+ *
+ * You can also use it with named exports:
+ *
+ *    import { EthT } from "web3x/eth";
+ *    const Eth = lazyFunction<typeof EthT>(() => require("web3x/eth").Eth);
+ */
+
 export function lazyObject<T extends object>(objectCreator: () => T): T {
   let realTarget: T | undefined;
 
@@ -165,34 +192,3 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
     }
   });
 }
-
-/**
- * This function is a lazy version of `require`. It imports a module
- * synchronously, by creating a proxy that delays the actual `require` until
- * the module is used.
- *
- * The disadvantage of using this technique is that the type information is
- * lost. If done with enough care, this can be manually fixed.
- *
- * TypeScript doesn't emit `require` calls for modules that are imported only
- * because of their types. So if one uses lazyImport along with a normal ESM
- * import you can pass the module's type to this function.
- *
- * An example of this can be:
- *
- *   `import func from "func-mod";`
- *   `const f = lazyImport<typeof func>("func-mod");`
- *
- * You can also pass it a selector to import just an element of the module:
- *
- *   `import { Eth } from "web3x/eth";`
- *   `const LazyEth = lazyImport<Eth>("web3x/eth", "Eth");`
- *
- * Limitations:
- *  - It's not entirely clear when to use `typeof`.
- *  - If you get a compilation error saying something about "namespace" consider
- *    using a selector.
- *
- * @param packageName The name of the package. If it's a local one, it should be
- * its absolute path.
- */
