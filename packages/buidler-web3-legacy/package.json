@@ -9,10 +9,11 @@
   "types": "dist/src/index.d.ts",
   "description": "Buidler plugin for using Web3 0.20.x",
   "scripts": {
-    "fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
+    "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "test": "scripts/run-tests.sh",
     "build": "tsc",
+    "buidl": "tsc",
     "watch": "tsc -w"
   },
   "files": [
@@ -38,7 +39,7 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-alpha.2",
+    "@nomiclabs/buidler": "^1.0.0-alpha.3",
     "web3": "^0.20.7"
   }
 }

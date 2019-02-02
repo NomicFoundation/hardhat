@@ -1,5 +1,5 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
-import Web3 from "web3";
+import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
 
 import { promisifyWeb3 } from "./pweb3";
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
@@ -13,7 +13,9 @@ declare module "@nomiclabs/buidler/types" {
 }
 
 extendEnvironment(env => {
-  env.Web3 = Web3;
-  env.web3 = new Web3(new Web3HTTPProviderAdapter(env.provider));
-  env.pweb3 = promisifyWeb3(env.web3);
+  env.Web3 = lazyFunction(() => require("web3"));
+  env.web3 = lazyObject(
+    () => new env.Web3(new Web3HTTPProviderAdapter(env.provider))
+  );
+  env.pweb3 = lazyObject(() => promisifyWeb3(env.web3));
 });
