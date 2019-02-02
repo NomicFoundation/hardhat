@@ -25,15 +25,13 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && NODE_OPTIONS=\"-r ts-node/register\" tslint --fix --config tslint.json --project tsconfig.json --rules-dir ./tslint",
+    "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && NODE_OPTIONS=\"-r ts-node/register\" tslint --fix --config tslint.json --project tsconfig.json --rules-dir ./tslint",
     "lint": "NODE_OPTIONS=\"-r ts-node/register\" tslint --config tslint.json --project tsconfig.json --rules-dir ./tslint",
     "test": "nyc mocha",
-    "dev:build": "tsc",
-    "dev:watch": "tsc -w",
-    "dev:clean": "rm -rf dev-build",
-    "prod:build": "tsc --p tsconfig.prod.json",
-    "prod:watch": "tsc -w --p tsconfig.prod.json",
-    "prod:clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js"
+    "buidl": "tsc --p tsconfig.prod.json",
+    "build": "tsc --p tsconfig.prod.json",
+    "watch": "tsc -w --p tsconfig.prod.json",
+    "clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js"
   },
   "files": [
     "builtin-tasks/",
