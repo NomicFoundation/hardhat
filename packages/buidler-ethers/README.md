@@ -1,2 +1,2 @@
 # buidler-ethers
-Buidler plugin for using ethers.js
+Buidler plugin for ethers
