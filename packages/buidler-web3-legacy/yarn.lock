@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@nomiclabs/buidler@^1.0.0-alpha.3":
-  version "1.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.3.tgz#66fed15ee49a9623697a52650ae08d9d48224d7a"
-  integrity sha512-RbfJV4XUleajyY++V4Tz7kOOiXionO7fIGqhsheK0Ka//rLIsBvaHNwEKD5OAB26lt78UWZXHq6EG63qLd2QWw==
+"@nomiclabs/buidler@^1.0.0-alpha.5":
+  version "1.0.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.5.tgz#7b5b862ce473cda03279f4bfa688334533c17aaf"
+  integrity sha512-N4N7QKRXvhuG8D8WYnJh6bJrhMvrHySTcS5KByOAJ78ZEwIi9d86f4Kqq3CuZK06Z8dTkrMFwmtWVrtNnxKfwA==
   dependencies:
     ansi-colors "^3.2.3"
     deepmerge "^2.1.0"
