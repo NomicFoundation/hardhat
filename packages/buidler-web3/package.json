@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-web3",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/buidler-web3",
@@ -39,7 +39,7 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-alpha.3",
+    "@nomiclabs/buidler": "^1.0.0-alpha.4",
     "web3": "1.0.0-beta.37"
   }
 }
