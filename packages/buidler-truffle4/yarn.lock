@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@nomiclabs/buidler-web3-legacy@^1.0.0-alpha.2":
-  version "1.0.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3-legacy/-/buidler-web3-legacy-1.0.0-alpha.2.tgz#14ab2e32e753009b21e55b5223d1b510b3af140a"
-  integrity sha512-+4bo6WuEN5ON8+eYVgyXZVpVivHUC/aRcsP3CQnuj34V2EW7E0FSKe5QQBSRx4AZXWk4zATD1CYDuTMT6/rp+A==
-
-"@nomiclabs/buidler@^1.0.0-alpha.3":
+"@nomiclabs/buidler-web3-legacy@^1.0.0-alpha.3":
   version "1.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.3.tgz#66fed15ee49a9623697a52650ae08d9d48224d7a"
-  integrity sha512-RbfJV4XUleajyY++V4Tz7kOOiXionO7fIGqhsheK0Ka//rLIsBvaHNwEKD5OAB26lt78UWZXHq6EG63qLd2QWw==
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3-legacy/-/buidler-web3-legacy-1.0.0-alpha.3.tgz#ea5535f9486a63159a927a8de9ef35d16d089b33"
+  integrity sha512-9XvWOo9OyvGa/74b0o8gxleXaje+x2X8JY4sK/PczoyCDnSUAiqp0C8X7+/cQ0fU6XVdNGtQBnc0B5bFSQ3msw==
+
+"@nomiclabs/buidler@^1.0.0-alpha.5":
+  version "1.0.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.5.tgz#7b5b862ce473cda03279f4bfa688334533c17aaf"
+  integrity sha512-N4N7QKRXvhuG8D8WYnJh6bJrhMvrHySTcS5KByOAJ78ZEwIi9d86f4Kqq3CuZK06Z8dTkrMFwmtWVrtNnxKfwA==
   dependencies:
     ansi-colors "^3.2.3"
     deepmerge "^2.1.0"
