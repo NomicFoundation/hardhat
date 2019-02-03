@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "commonjs",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "strict": true,
+    "rootDirs": ["./src", "./test"],
+    "esModuleInterop": true
+  },
+  "exclude": ["dist"],
+  "include": [
+    "./test",
+    "./src"
+    // Any Buidler plugin's main .d.ts has to be added here
+  ]
+}
