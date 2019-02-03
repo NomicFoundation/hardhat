@@ -19,7 +19,7 @@ internalTask(TASK_TEST_GET_TEST_FILES)
   )
   .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
     if (testFiles.length === 0) {
-      return glob(path.join(config.paths.root, "test", "**/*.js"));
+      return glob(path.join(config.paths.root, config.paths.tests, "**/*.js"));
     }
 
     return testFiles;

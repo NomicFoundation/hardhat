@@ -32,7 +32,8 @@ describe("Environment", () => {
         configFile: "",
         cache: "",
         artifacts: "",
-        sources: ""
+        sources: "",
+        tests: ""
       },
       solc: {
         version: "0.5.0",

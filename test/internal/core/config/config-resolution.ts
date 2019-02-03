@@ -58,7 +58,8 @@ describe("Config resolution", () => {
         root: "/root",
         sources: "/c",
         artifacts: "/a",
-        cache: "/ca"
+        cache: "/ca",
+        tests: "/t"
       });
 
       assert.equal(paths.root, "/root");
@@ -66,6 +67,7 @@ describe("Config resolution", () => {
       assert.equal(paths.sources, "/c");
       assert.equal(paths.artifacts, "/a");
       assert.equal(paths.cache, "/ca");
+      assert.equal(paths.tests, "/t");
     });
 
     it("Should resolve the root relative to the configFile", () => {
@@ -82,7 +84,8 @@ describe("Config resolution", () => {
         asdf: "asd",
         sources: "c",
         artifacts: "a",
-        cache: "ca"
+        cache: "ca",
+        tests: "t"
       });
 
       const root = __dirname + "/blah";
@@ -91,6 +94,7 @@ describe("Config resolution", () => {
       assert.equal(paths.sources, root + "/c");
       assert.equal(paths.artifacts, root + "/a");
       assert.equal(paths.cache, root + "/ca");
+      assert.equal(paths.tests, root + "/t");
     });
 
     it("Should have the right default values", () => {
@@ -99,6 +103,7 @@ describe("Config resolution", () => {
       assert.equal(paths.sources, __dirname + "/contracts");
       assert.equal(paths.artifacts, __dirname + "/artifacts");
       assert.equal(paths.cache, __dirname + "/cache");
+      assert.equal(paths.tests, __dirname + "/test");
     });
   });
 });
