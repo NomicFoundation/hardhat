@@ -1,4 +1,5 @@
 import "@nomiclabs/buidler-web3";
+import { TASK_TEST_SETUP_TEST_ENVIRONMENT } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { extendEnvironment, internalTask } from "@nomiclabs/buidler/config";
 import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
 
@@ -61,7 +62,7 @@ extendEnvironment(env => {
   });
 });
 
-internalTask("builtin:setup-test-environment", async (_, { web3 }) => {
+internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { web3 }) => {
   const accounts = await web3.eth.getAccounts();
   const { assert } = await import("chai");
 
