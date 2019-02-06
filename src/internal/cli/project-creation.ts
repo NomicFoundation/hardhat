@@ -116,6 +116,7 @@ async function addGitAttributes(projectRoot: string) {
 
 function printSuggestedCommands() {
   console.log(`Try running some of the following tasks:`);
+  console.log(`  buidler accounts`);
   console.log(`  buidler compile`);
   console.log(`  buidler test`);
   console.log(`  node scripts/sample-script.js`);
