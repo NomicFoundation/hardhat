@@ -81,7 +81,7 @@
     "lodash": "^4.17.11",
     "mocha": "^5.1.1",
     "semver": "^5.6.0",
-    "solc": "0.5.1",
+    "solc": "0.5.3",
     "solidity-parser-antlr": "^0.3.3",
     "source-map-support": "^0.5.9",
     "ts-essentials": "^1.0.2",
