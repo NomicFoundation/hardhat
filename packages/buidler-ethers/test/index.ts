@@ -33,6 +33,12 @@ describe("Ethers plugin", function() {
     ]);
   });
 
+  it("should return a contract factory for an interface", async function() {
+    const contract = await this.env.ethers.getContract("IGreeter");
+    assert.equal(contract.bytecode, "0x");
+    assert.containsAllKeys(contract.interface.functions, ["greet()"]);
+  });
+
   it("should return the signers", async function() {
     const signers = await this.env.ethers.signers();
     assert.equal(
