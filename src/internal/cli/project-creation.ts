@@ -123,6 +123,15 @@ function printSuggestedCommands() {
   console.log(`  buidler help`);
 }
 
+function printSuggestedPlugins() {
+  console.log(``);
+  console.log(`Try installing some plugins:`);
+  console.log(`  https://github.com/nomiclabs/buidler-truffle5`);
+  console.log(`  https://github.com/nomiclabs/buidler-web3`);
+  console.log(`  https://github.com/nomiclabs/buidler-ethers`);
+  console.log(``);
+}
+
 export async function createProject() {
   const { default: enquirer } = await import("enquirer");
   printAsciiLogo();
@@ -184,6 +193,7 @@ export async function createProject() {
   console.log(``);
 
   printSuggestedCommands();
+  printSuggestedPlugins();
 }
 
 function createConfirmationPrompt(name: string, message: string) {
