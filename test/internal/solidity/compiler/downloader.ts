@@ -26,14 +26,14 @@ describe("Compiler downloader", function() {
 
   before(function() {
     localCompilerBuild = {
-      path: "soljson-v0.5.1+commit.c8a2cb62.js",
-      version: "0.5.1",
-      build: "commit.c8a2cb62",
-      longVersion: "0.5.1+commit.c8a2cb62",
+      path: "soljson-v0.5.3+commit.10d17f24.js",
+      version: "0.5.3",
+      build: "commit.10d17f24",
+      longVersion: "0.5.3+commit.10d17f24",
       keccak256:
-        "0xc90ad3242c8b9c0911c79e65d466b3ed3fadc74c142de2f40e7aa1ea7ef937a2",
+        "0xd8d79f6a3c2bb4f74a26dad18b99b8368051574415758c872f41e2c8235c68a8",
       urls: [
-        "bzzr://10e1cf972e0330409b59fc02157698209410534262ec5598db11480a42c6925c"
+        "bzzr://b703170cfd59ffa43d30147ab4727b3f8a193becf701b473d2b99d4f7eb667bc"
       ]
     };
 
