@@ -7,6 +7,10 @@ import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
 import { emoji } from "./emoji";
 
+const CREATE_SAMPLE_PROJECT_ACTION = "Create a sample project";
+const CREATE_EMPTY_BUIDLER_CONFIG_ACTION = "Create an empty buidler.config.js";
+const QUIT_ACTION = "Quit";
+
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
   const fsExtra = await import("fs-extra");
   const dirPath = path.join(projectRoot, dirName);
@@ -44,29 +48,6 @@ async function printWelcomeMessage() {
       )}‍\n`
     )
   );
-}
-
-async function confirmProjectCreation() {
-  const { default: enquirer } = await import("enquirer");
-
-  try {
-    const { shouldCreateProject } = await enquirer.prompt<{
-      shouldCreateProject: boolean;
-    }>([
-      createConfirmationPrompt(
-        "shouldCreateProject",
-        "You are not inside a buidler project. Do you want to create a new one?"
-      )
-    ]);
-    return shouldCreateProject;
-  } catch (e) {
-    if (e === "") {
-      return false;
-    }
-
-    // tslint:disable-next-line only-buidler-error
-    throw e;
-  }
 }
 
 async function copySampleProject(projectRoot: string) {
@@ -132,15 +113,59 @@ function printSuggestedPlugins() {
   console.log(``);
 }
 
+async function writeEmptyBuidlerConfig() {
+  const fsExtra = await import("fs-extra");
+  return fsExtra.writeFile(
+    "buidler.config.js",
+    "module.exports = {};\n",
+    "utf-8"
+  );
+}
+
+async function getAction() {
+  const { default: enquirer } = await import("enquirer");
+  const actionResponse = await enquirer.prompt<{ action: string }>([
+    {
+      name: "action",
+      type: "select",
+      message: "What do you want to do?",
+      initial: 0,
+      choices: [
+        {
+          name: CREATE_SAMPLE_PROJECT_ACTION,
+          message: CREATE_SAMPLE_PROJECT_ACTION,
+          value: CREATE_SAMPLE_PROJECT_ACTION
+        },
+        {
+          name: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
+          message: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
+          value: CREATE_EMPTY_BUIDLER_CONFIG_ACTION
+        },
+        { name: QUIT_ACTION, message: QUIT_ACTION, value: QUIT_ACTION }
+      ]
+    }
+  ]);
+
+  return actionResponse.action;
+}
+
 export async function createProject() {
   const { default: enquirer } = await import("enquirer");
   printAsciiLogo();
 
   await printWelcomeMessage();
 
-  const shouldCreateProject = await confirmProjectCreation();
+  const action = await getAction();
 
-  if (!shouldCreateProject) {
+  if (action === QUIT_ACTION) {
+    return;
+  }
+
+  if (action === CREATE_EMPTY_BUIDLER_CONFIG_ACTION) {
+    await writeEmptyBuidlerConfig();
+    console.log(
+      colors.cyan(`${emoji("✨ ")}Config file created${emoji(" ✨")}`)
+    );
     return;
   }
 
