@@ -48,7 +48,7 @@ export class HelpPrinter {
     console.log("");
 
     console.log(
-      `For tasks' specific help run: ${this.programName} help [task]\n`
+      `To get help for a specific task run: ${this.programName} help [task]\n`
     );
   }
 
@@ -91,7 +91,7 @@ export class HelpPrinter {
       console.log("");
     }
 
-    console.log(`Help for task ${taskDefinition.name}: ${description}\n`);
+    console.log(`${taskDefinition.name}: ${description}\n`);
 
     console.log(`For global options help run: ${this.programName} help\n`);
   }

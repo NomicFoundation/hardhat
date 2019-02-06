@@ -277,7 +277,7 @@ export const ERRORS = {
     INVALID_DOWNLOAD: {
       number: 503,
       message:
-        'Couldn\'t download compiler version "%s". Downloaded version\'s checksum doesn\'t much the expected one. Please check your connection or use local version "%s"'
+        'Couldn\'t download compiler version "%s". Checksum verification failed. Please check your connection or use local version "%s"'
     }
   },
   BUILTIN_TASKS: {

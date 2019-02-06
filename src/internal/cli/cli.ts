@@ -136,7 +136,7 @@ async function main() {
       }
 
       console.error(
-        "For more info run buidler again with --show-stack-traces."
+        "For more info run buidler with --show-stack-traces."
       );
     }
 
