@@ -6,6 +6,7 @@ import semver from "semver";
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
+import { BUIDLER_NAME } from "../constants";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError, BuidlerPluginError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
@@ -131,12 +132,12 @@ async function main() {
     } else {
       if (!isBuidlerError) {
         console.error(
-          "This shouldn't have happened, please report it to help us improve Buidler."
+          `This shouldn't have happened, please report it to help us improve ${BUIDLER_NAME}.`
         );
       }
 
       console.error(
-        "For more info run buidler with --show-stack-traces."
+        `For more info run ${BUIDLER_NAME} with --show-stack-traces.`
       );
     }
 

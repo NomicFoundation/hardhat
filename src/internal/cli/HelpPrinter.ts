@@ -11,6 +11,7 @@ import { ArgumentsParser } from "./ArgumentsParser";
 export class HelpPrinter {
   constructor(
     private readonly programName: string,
+    private readonly executableName: string,
     private readonly version: string,
     private readonly buidlerParamDefinitions: BuidlerParamDefinitions,
     private readonly tasks: TasksMap
@@ -20,7 +21,7 @@ export class HelpPrinter {
     console.log(`${this.programName} version ${this.version}\n`);
 
     console.log(
-      `Usage: ${this.programName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
+      `Usage: ${this.executableName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
     );
 
     console.log("GLOBAL OPTIONS:\n");
@@ -48,7 +49,9 @@ export class HelpPrinter {
     console.log("");
 
     console.log(
-      `To get help for a specific task run: ${this.programName} help [task]\n`
+      `To get help for a specific task run: ${
+        this.executableName
+      } help [task]\n`
     );
   }
 
@@ -64,7 +67,7 @@ export class HelpPrinter {
     console.log(`${this.programName} version ${this.version}\n`);
 
     console.log(
-      `Usage: ${this.programName} [GLOBAL OPTIONS] ${
+      `Usage: ${this.executableName} [GLOBAL OPTIONS] ${
         taskDefinition.name
       }${this._getParamsList(
         taskDefinition.paramDefinitions
@@ -93,7 +96,7 @@ export class HelpPrinter {
 
     console.log(`${taskDefinition.name}: ${description}\n`);
 
-    console.log(`For global options help run: ${this.programName} help\n`);
+    console.log(`For global options help run: ${this.executableName} help\n`);
   }
 
   public _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
