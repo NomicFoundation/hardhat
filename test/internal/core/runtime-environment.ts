@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { usePlugin } from "../../../src/internal/core/config/config-env";
 import extenderManager from "../../../src/internal/core/config/extenders-instance";
 import { ERRORS } from "../../../src/internal/core/errors";
 import { Environment } from "../../../src/internal/core/runtime-environment";
@@ -11,7 +10,6 @@ import {
   ResolvedBuidlerConfig,
   TaskArguments
 } from "../../../src/types";
-import { expectErrorAsync } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
@@ -121,8 +119,8 @@ describe("Environment", () => {
   describe("Plugin system", () => {
     useFixtureProject("plugin-project");
 
-    it("enviroment should contains plugin extensions", async () => {
-      usePlugin(process.cwd() + "/plugins/example");
+    it("environment should contains plugin extensions", async () => {
+      require(process.cwd() + "/plugins/example");
       env = new Environment(
         config,
         args,
@@ -131,13 +129,6 @@ describe("Environment", () => {
       );
       assert.equal((env as any).__test_key, "a value");
       assert.equal((env as any).__test_bleep(2), 4);
-    });
-
-    it("should fail when using a non existent plugin", async () => {
-      await expectErrorAsync(
-        async () => usePlugin("non-existent"),
-        /Cannot find module/
-      );
     });
   });
 });

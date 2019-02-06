@@ -61,10 +61,6 @@ export function internalTask<ArgsT extends TaskArguments>(
 
 export const types = argumentTypes;
 
-export function usePlugin(name: string): void {
-  require(name);
-}
-
 export function extendEnvironment(extender: EnvironmentExtender) {
   extenderManager.add(extender);
 }
