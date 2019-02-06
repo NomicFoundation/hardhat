@@ -1,5 +1,5 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
-import { readArtifactSync } from "@nomiclabs/buidler/plugins";
+import { readArtifact } from "@nomiclabs/buidler/plugins";
 import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { ContractFactory, ethers, Signer } from "ethers";
 
@@ -20,7 +20,7 @@ extendEnvironment((env: BuidlerRuntimeEnvironment) => {
   env.ethers = {
     provider: wrapper,
     getContract: async (name: string): Promise<ContractFactory> => {
-      const artifact = readArtifactSync(env.config.paths.artifacts, name);
+      const artifact = await readArtifact(env.config.paths.artifacts, name);
       const bytecode = artifact.bytecode;
       const signers = await env.ethers.signers();
       return new ethers.ContractFactory(artifact.abi, bytecode, signers[0]);
