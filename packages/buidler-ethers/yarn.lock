@@ -3,9 +3,9 @@
 
 
 "@nomiclabs/buidler@^1.0.0-alpha.5":
-  version "1.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.5.tgz#7b5b862ce473cda03279f4bfa688334533c17aaf"
-  integrity sha512-N4N7QKRXvhuG8D8WYnJh6bJrhMvrHySTcS5KByOAJ78ZEwIi9d86f4Kqq3CuZK06Z8dTkrMFwmtWVrtNnxKfwA==
+  version "1.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.6.tgz#85081131d55783427839faa3de713a26b38ef424"
+  integrity sha512-WzNJZhvIELtYi01s9ihdN7aOOqQLw+YorCoKX/IgKNOk6K85J/puCwyrJZrTCSDNj/OZgDF+KnngssZub4AHcg==
   dependencies:
     ansi-colors "^3.2.3"
     deepmerge "^2.1.0"
@@ -1862,7 +1862,12 @@ methods@~1.1.2:
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
   integrity sha1-VSmk1nZUE07cxSZmVoNbD4Ua/O4=
 
-mime-db@^1.28.0, mime-db@~1.37.0:
+mime-db@^1.28.0:
+  version "1.38.0"
+  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.38.0.tgz#1a2aab16da9eb167b49c6e4df2d9c68d63d8e2ad"
+  integrity sha512-bqVioMFFzc2awcdJZIzR3HjZFX20QhilVS7hytkKrv7xFAn8bM1gzc/FOX2awLISvWe0PV8ptFKcon+wZ5qYkg==
+
+mime-db@~1.37.0:
   version "1.37.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.37.0.tgz#0b6a0ce6fdbe9576e25f1f2d2fde8830dc0ad0d8"
   integrity sha512-R3C4db6bgQhlIhPU48fUtdVmKnflq+hRdad7IyKhtFj06VPNVdk2RhiYL3UjQIlso8L+YxAtFkobT0VK+S/ybg==
@@ -1965,9 +1970,9 @@ mocha@^5.1.1, mocha@^5.2.0:
     supports-color "5.4.0"
 
 mock-fs@^4.1.0:
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/mock-fs/-/mock-fs-4.7.0.tgz#9f17e219cacb8094f4010e0a8c38589e2b33c299"
-  integrity sha512-WlQNtUlzMRpvLHf8dqeUmNqfdPjGY29KrJF50Ldb4AcL+vQeR8QH3wQcFMgrhTwb1gHjZn9xggho+84tBskLgA==
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/mock-fs/-/mock-fs-4.8.0.tgz#eb0784ceba4b34c91a924a5112eeb36e1b5a9e29"
+  integrity sha512-Gwj4KnJOW15YeTJKO5frFd/WDO5Mc0zxXqL9oHx3+e9rBqW8EVARqQHSaIXznUdljrD6pvbNGW2ZGXKPEfYJfw==
 
 ms@2.0.0:
   version "2.0.0"
