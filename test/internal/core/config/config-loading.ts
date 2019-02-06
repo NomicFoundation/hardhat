@@ -71,7 +71,6 @@ describe("config loading", () => {
       assert.isUndefined(globalAsAny.internalTask);
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
-      assert.isUndefined(globalAsAny.usePlugin);
       assert.isUndefined(globalAsAny.extendEnvironment);
 
       const [_, __] = loadConfigAndTasks();
@@ -79,7 +78,6 @@ describe("config loading", () => {
       assert.isUndefined(globalAsAny.internalTask);
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
-      assert.isUndefined(globalAsAny.usePlugin);
       assert.isUndefined(globalAsAny.extendEnvironment);
     });
   });
