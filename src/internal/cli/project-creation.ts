@@ -116,10 +116,20 @@ async function addGitAttributes(projectRoot: string) {
 
 function printSuggestedCommands() {
   console.log(`Try running some of the following tasks:`);
+  console.log(`  buidler accounts`);
   console.log(`  buidler compile`);
   console.log(`  buidler test`);
   console.log(`  node scripts/sample-script.js`);
   console.log(`  buidler help`);
+}
+
+function printSuggestedPlugins() {
+  console.log(``);
+  console.log(`Try installing some plugins:`);
+  console.log(`  https://github.com/nomiclabs/buidler-truffle5`);
+  console.log(`  https://github.com/nomiclabs/buidler-web3`);
+  console.log(`  https://github.com/nomiclabs/buidler-ethers`);
+  console.log(``);
 }
 
 export async function createProject() {
@@ -183,6 +193,7 @@ export async function createProject() {
   console.log(``);
 
   printSuggestedCommands();
+  printSuggestedPlugins();
 }
 
 function createConfirmationPrompt(name: string, message: string) {
