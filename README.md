@@ -38,18 +38,35 @@ Just run `buidler` in your project root and follow the instructions to initializ
 Install one of the core plugins so you have a simple way to interact with your contracts through an Ethereum library.
 For example to use Buidler’s Truffle 5 plugin, you should run:
 ```
-npm install @nomiclabs/buidler-truffle5
+npm install @nomiclabs/buidler-truffle5 web3@1.0.0-beta.37
 ```
 And make your `buidler.config.file` look like this:
 ```js
 require("@nomiclabs/buidler-truffle5");
+
+// You can define your own tasks in this file
+task("balance", "Prints an account's balance")
+  .addParam("account", "The account")
+  .setAction(async ({ account }) => {
+    account = web3.utils.toChecksumAddress(account);
+    const balance = await web3.eth.getBalance(account);
+
+    console.log(web3.utils.fromWei(balance, "ether"), "ETH");
+  });
+
 module.exports = {};
+
 ```
 After that, all you need to know is that your contracts go in `<project-root>/contracts` and your tests in `<project-root>/tests`, as you would do with Truffle 5.
 To compile and run your tests:
 ```
 buidler compile
 buidler test
+```
+
+and to test your task:
+```
+buidler balance --account 0x6bac6948840a018271a2c9d731c9677a14de9f0c
 ```
 
 ## Guides
