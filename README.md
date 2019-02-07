@@ -40,7 +40,7 @@ For example to use Buidler’s Truffle 5 plugin, you should run:
 ```
 npm install @nomiclabs/buidler-truffle5 web3@1.0.0-beta.37
 ```
-And make your `buidler.config.file` look like this:
+And make your `buidler.config.js` file look like this:
 ```js
 require("@nomiclabs/buidler-truffle5");
 
