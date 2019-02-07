@@ -24,3 +24,7 @@ This plugin adds the following elements to the `BuidlerRuntimeEnvironment`:
 * `Web3`: The Web3.js module.
 * `web3`: An instantiated Web3.js object connected to the selected network.
 * `pweb3`: A promisified version of `web3`.
+
+## Usage
+
+In Web3 0.20x some features are synchronous and some are asynchronous. For example `web3.eth.accounts` and `web3.eth.blockNumber` are synchronous and not supported. You'll get a `Synchronous requests are not supported, use pweb3 instead` error when trying to access them. To use these you need to use the promisified web3 and call the getter version of the property instead: `await pweb3.eth.getAccounts()`.
