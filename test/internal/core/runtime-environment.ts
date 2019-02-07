@@ -65,7 +65,7 @@ describe("Environment", () => {
     it("should create an environment", () => {
       assert.deepEqual(env.config, config);
       assert.isDefined(env.tasks);
-      assert.isDefined(env.provider);
+      assert.isDefined(env.ethereum);
     });
 
     it("should run a task correctly", async () => {

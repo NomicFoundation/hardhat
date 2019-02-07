@@ -1,4 +1,3 @@
-// tslint:disable-next-line no-implicit-dependencies
 import { DeepPartial, Omit } from "ts-essentials";
 import { EthereumProvider } from "web3x/providers";
 
@@ -227,7 +226,7 @@ export type ActionType<ArgsT extends TaskArguments> = (
 export type IEthereumProvider = EthereumProvider;
 
 export interface BuidlerRuntimeEnvironment {
-  readonly provider: IEthereumProvider;
+  readonly ethereum: IEthereumProvider;
   readonly config: ResolvedBuidlerConfig;
   readonly buidlerArguments: BuidlerArguments;
   readonly tasks: TasksMap;

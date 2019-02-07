@@ -22,7 +22,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
     "runTaskDefinition"
   ];
 
-  public provider: IEthereumProvider;
+  public ethereum: IEthereumProvider;
 
   constructor(
     public readonly config: ResolvedBuidlerConfig,
@@ -30,7 +30,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
     public readonly tasks: TasksMap,
     private readonly extenders: EnvironmentExtender[] = []
   ) {
-    this.provider = lazyObject(() =>
+    this.ethereum = lazyObject(() =>
       createProvider(buidlerArguments.network, config.networks)
     );
 
