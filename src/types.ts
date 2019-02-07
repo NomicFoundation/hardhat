@@ -1,4 +1,3 @@
-// tslint:disable-next-line no-implicit-dependencies
 import { DeepPartial, Omit } from "ts-essentials";
 import { EthereumProvider } from "web3x/providers";
 
