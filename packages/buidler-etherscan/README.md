@@ -6,7 +6,7 @@ Buidler plugin for verifying contracts on Etherscan
 We recommend developing Buidler plugins using yarn. To start working on your project, just run
 
 - `yarn`
-- `yarn add --peer @nomiclabs/buidler@^1.0.0-alpha.5`
+- `yarn add --peer @nomiclabs/buidler@^1.0.0-alpha.8`
 
 ## Updating Buidler or other peer dependencies
 
