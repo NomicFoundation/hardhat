@@ -34,6 +34,6 @@ extendEnvironment(env => {
 
   env.Web3 = lazyFunction(() => require("web3"));
   env.web3 = lazyObject(
-    () => new env.Web3(new Web3HTTPProviderAdapter(env.provider))
+    () => new env.Web3(new Web3HTTPProviderAdapter(env.ethereum))
   );
 });
