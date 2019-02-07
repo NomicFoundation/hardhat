@@ -2,6 +2,7 @@
 [![NPM Package](https://img.shields.io/npm/v/@nomiclabs/buidler.svg?style=flat-square)](https://www.npmjs.org/package/@nomiclabs/buidler)
 [![Build Status](https://travis-ci.com/nomiclabs/buidler.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler)
 [![Coverage Status](https://codecov.io/gh/nomiclabs/buidler/branch/master/graph/badge.svg)](https://codecov.io/gh/nomiclabs/buidler)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Buidler is a development workflow automation tool for Ethereum. Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
@@ -16,7 +17,7 @@ Buidler is:
 
 Read [our announcement](https://medium.com/nomic-labs-blog/towards-a-mature-ecosystem-of-ethereum-developer-tools-bdff10e6cdc3) to know more about our vision for Buidler.
 
-Join our read-only [Buidler News Telegram group]() to stay up to date on new releases, plugins and tutorials.
+Join our read-only [Buidler News Telegram group](https://t.me/BuidlerNews) to stay up to date on new releases, plugins and tutorials.
 
 ## Installation
 ### Local installation (recommended)
@@ -72,10 +73,10 @@ buidler balance --account 0x6bac6948840a018271a2c9d731c9677a14de9f0c
 ## Guides
 To learn how to use Buidler in-depth refer to one of our guides:
 
-* [How to get started with Buidler]()
-* [How to migrate from Truffle]()
-* [How to create a Buidler plugin]()
-* [How to create a Buidler task]()
+* [How to get started with Buidler](https://medium.com/nomic-labs-blog/how-to-get-started-with-buidler-68beb6b9bb04)
+* [How to migrate from Truffle](https://medium.com/nomic-labs-blog/migrating-from-truffle-4-or-5-to-buidler-8d5aec6e76aa)
+* [How to create a Buidler plugin](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-plugin-b60432bf6d75)
+* [How to create a Buidler task](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-task-55658aa89aff)
 
 ## Plugins
 * [@nomiclabs/buidler-truffle4](https://github.com/nomiclabs/buidler-truffle4): run your Truffle 4 tests from Buidler.
@@ -127,7 +128,7 @@ By running them with `buidler run <path>` [the Buidler Runtime Environment](#Bui
 You can also build them as standalone scripts and run them directly without `buidler`, you just need to import the [Buidler Runtime Environment](#Buidler-Runtime-Environment) with `require("@nomiclabs/buidler")`. If you run them this way, you have to use environment variables to pass arguments directly to Buidler (e.g. `BUIDLER_NETWORK=develop`).
 
 ## Ethereum library
-The way to interact with Ethereum on Buidler works the same as in dapp browsers, through an [EIP1193](https://eips.ethereum.org/EIPS/eip-1193) provider. This provider will handle gas limit, gas price, network validation and default sender for you. There are [plugins](#Plugins) available for the most used Ethereum libraries. Choose the one you like the most, or [write a plugin](link to guide) to integrate a new one (it’s super easy!).
+The way to interact with Ethereum on Buidler works the same as in dapp browsers, through an [EIP1193](https://eips.ethereum.org/EIPS/eip-1193) provider. This provider will handle gas limit, gas price, network validation and default sender for you. There are [plugins](#Plugins) available for the most used Ethereum libraries. Choose the one you like the most, or [write a plugin](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-plugin-b60432bf6d75) to integrate a new one (it’s super easy!).
 
 ## Buidler compilation artifacts
 The default artifact format consists of a json containing:
@@ -155,9 +156,9 @@ Contributions are always welcome! Feel free to open any issue or send a pull req
 ## Feedback, help and news
 
 
-[Buidler Support Telegram group](): for any questions or feedback you may have, you can find us here.
+[Buidler Support Telegram group](http://t.me/BuidlerSupport): for any questions or feedback you may have, you can find us here.
 
-[Buidler News Telegram group](): to remain up to date on Buidler releases, tutorials and news all around. Low-bandwith, read-only group.
+[Buidler News Telegram group](http://t.me/BuidlerNews): to remain up to date on Buidler releases, tutorials and news all around. Low-bandwith, read-only group.
 
 [Follow Nomic Labs on Twitter.](https://twitter.com/nomiclabs)
 
