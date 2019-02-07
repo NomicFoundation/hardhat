@@ -37,3 +37,12 @@ You can check if your code style is correct by running `yarn lint`, and fix it w
 ## Building the project
 
 Just run `yarn buidl` ️👷‍
+
+## README file
+
+We recommend writing a README that contains the following information:
+
+* What is it
+* How to install it
+* New tasks
+* Environment extensions
