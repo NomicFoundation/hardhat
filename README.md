@@ -42,7 +42,7 @@ npm install @nomiclabs/buidler-truffle5
 ```
 And make your buidler.config.file look like this:
 ```js
-require(“@nomiclabs/buidler-truffle5”);
+require("@nomiclabs/buidler-truffle5");
 module.exports = {};
 ```
 After that, all you need to know is that your contracts go in `<project-root>/contracts` and your tests in `<project-root>/tests`, as you would do with Truffle 5.
@@ -122,7 +122,7 @@ The default artifact format consists of a json containing:
 ## Notes on 1.0.0 beta release
 We’re still working on the stability of the ganache integration to be able to get an instance running automatically when you run buidler, so we’ve excluded it from this release. We will re-include this feature back into Buidler by the time we ship the first stable release.
 
-Until then, to use the “develop” network locally you’ll need to install and manually run [ganache-cli](https://github.com/trufflesuite/ganache-cli):
+Until then, to use the `develop` network locally you’ll need to install and manually run [ganache-cli](https://github.com/trufflesuite/ganache-cli):
 
 ```
 npm install -g ganache-cli
