@@ -116,8 +116,8 @@ The way to interact with Ethereum on Buidler works the same as in dapp browsers,
 The default artifact format consists of a json containing:
 * `contractName`: a string with the name
 * `abi`: the abi array
-* `bytecode`: A hex (without "0x") string of the unlinked deployment bytecode. If the contract is not deployable then this is an empty string.
-* `linkReferences`: The link references object as returned by solc-js. If no link is present then this is an empty object.
+* `bytecode`: A hex (without `"0x"`) string of the unlinked deployment bytecode. If the contract is not deployable then this is an empty string.
+* `linkReferences`: The link references object as returned by `solc-js`. If no link is present then this is an empty object.
 
 
 ## Notes on 1.0.0 beta release
