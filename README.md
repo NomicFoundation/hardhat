@@ -79,10 +79,10 @@ To learn how to use Buidler in-depth refer to one of our guides:
 * [How to create a Buidler task](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-task-55658aa89aff)
 
 ## Plugins
-* [@nomiclabs/buidler-truffle4](https://github.com/nomiclabs/buidler-truffle4): run your Truffle 4 tests from Buidler.
-* [@nomiclabs/buidler-truffle5](https://github.com/nomiclabs/buidler-truffle5): run your Truffle 5 tests from Buidler.
-* [@nomiclabs/buidler-web3](https://github.com/nomiclabs/buidler-web3): injects the Web3 1.x module and a live instance into the Buidler runtime environment.
-* [@nomiclabs/buidler-web3-legacy](https://github.com/nomiclabs/buidler-web3-legacy): injects the Web3 0.20.x module and a live instance into the Buidler runtime environment.
+* [@nomiclabs/buidler-truffle4](https://github.com/nomiclabs/buidler-truffle4): integration with TruffleContract from Truffle 4.
+* [@nomiclabs/buidler-truffle5](https://github.com/nomiclabs/buidler-truffle5): integration with TruffleContract from Truffle 5.
+* [@nomiclabs/buidler-web3](https://github.com/nomiclabs/buidler-web3): injects the Web3 1.x module and a live instance into the Buidler Runtime Environment.
+* [@nomiclabs/buidler-web3-legacy](https://github.com/nomiclabs/buidler-web3-legacy): injects the Web3 0.20.x module and a live instance into the Buidler Runtime Environment.
 * [@nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers): injects ethers.js into the Buidler Runtime Environment.
 
 ## Testing your contracts
