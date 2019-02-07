@@ -16,7 +16,7 @@ declare module "@nomiclabs/buidler/types" {
 }
 
 extendEnvironment((env: BuidlerRuntimeEnvironment) => {
-  const wrapper = new EthersProviderWrapper(env.provider);
+  const wrapper = new EthersProviderWrapper(env.ethereum);
   env.ethers = {
     provider: wrapper,
     getContract: async (name: string): Promise<ContractFactory> => {
@@ -26,7 +26,7 @@ extendEnvironment((env: BuidlerRuntimeEnvironment) => {
       return new ethers.ContractFactory(artifact.abi, bytecode, signers[0]);
     },
     signers: async (): Promise<Signer[]> => {
-      const accounts = await env.provider.send("eth_accounts");
+      const accounts = await env.ethers.provider.listAccounts();
       return accounts.map((account: string) => wrapper.getSigner(account));
     }
   };

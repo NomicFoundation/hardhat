@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-ethers",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Buidler plugin for ethers",
   "repository": "github:nomiclabs/buidler-ethers",
   "author": "Nomic Labs SRL",
@@ -39,7 +39,7 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-alpha.7",
+    "@nomiclabs/buidler": "^1.0.0-alpha.8",
     "ethers": "^4.0.23"
   }
 }

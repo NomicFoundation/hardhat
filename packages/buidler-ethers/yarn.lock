@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@nomiclabs/buidler@^1.0.0-alpha.7":
-  version "1.0.0-alpha.7"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.7.tgz#8403c899ef6195fceab023a950e4d7655ad65768"
-  integrity sha512-yxcvISJwkL7OrhuU686MRBaHD6yBt2ylyg7K+lgWOCstBeSHM3dtdFOzdaTHOa9CX4xS/f18jbUNisIDOQvlfw==
+"@nomiclabs/buidler@^1.0.0-alpha.8":
+  version "1.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.8.tgz#662c16051a9a3dcd8333de09d4ac8f747da2bdcc"
+  integrity sha512-MTF1n1m65gInyz5CGJPGF/gIirw9ApF3n3HRFRV2SxJnqAgbDSNoKFlm2Ox9a6NSoYVO0GVqX06bxELPVNKVHg==
   dependencies:
     ansi-colors "^3.2.3"
     deepmerge "^2.1.0"
@@ -2864,9 +2864,9 @@ tslib@^1.7.1, tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.3:
   integrity sha512-4krF8scpejhaOgqzBEcGM7yDIEfi0/8+8zDRZhNZZ2kjmHJ4hv3zCbQWxoJGz1iw5U0Jl0nma13xzHXcncMavQ==
 
 tslint-config-prettier@^1.17.0:
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/tslint-config-prettier/-/tslint-config-prettier-1.17.0.tgz#946ed6117f98f3659a65848279156d87628c33dc"
-  integrity sha512-NKWNkThwqE4Snn4Cm6SZB7lV5RMDDFsBwz6fWUkTxOKGjMx8ycOHnjIbhn7dZd5XmssW3CwqUjlANR6EhP9YQw==
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/tslint-config-prettier/-/tslint-config-prettier-1.18.0.tgz#75f140bde947d35d8f0d238e0ebf809d64592c37"
+  integrity sha512-xPw9PgNPLG3iKRxmK7DWr+Ea/SzrvfHtjFt5LBl61gk2UBG/DB9kCXRjv+xyIU1rUtnayLeMUVJBcMX8Z17nDg==
 
 tslint-plugin-prettier@^2.0.1:
   version "2.0.1"

@@ -16,7 +16,7 @@ describe("Ethers provider wrapper", function() {
     delete require.cache[require.resolve("@nomiclabs/buidler")];
     this.env = require("@nomiclabs/buidler");
     realProvider = new JsonRpcProvider();
-    wrapper = new EthersProviderWrapper(this.env.provider);
+    wrapper = new EthersProviderWrapper(this.env.ethereum);
   });
 
   it("Should return the same as the real provider", async () => {
