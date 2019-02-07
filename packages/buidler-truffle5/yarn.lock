@@ -3,14 +3,14 @@
 
 
 "@nomiclabs/buidler-web3@^1.0.0-alpha.8":
-  version "1.0.0-alpha.8"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3/-/buidler-web3-1.0.0-alpha.8.tgz#123bb9c6acab3ecafb19b6160ada021898a3bbc1"
-  integrity sha512-yq4kEqUBO8/ZxADoKo6oB/CEjrQgfLWVXd3QLxnsJr/KDjBA9kRtJXZCYvcsBaCHUFSCjsya7l5LC/fsIC/nBg==
+  version "1.0.0-alpha.9"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3/-/buidler-web3-1.0.0-alpha.9.tgz#cf71ca9d66ae9cace073dc20dabd4ceceeb05ed9"
+  integrity sha512-Ye+oyoHtxraoGK3U+a5/TFUuAXeywQa6/whrBZ8bJAX2He2Ahmhsl2jZeqWdpbPJQnL79W5ngCInGRa0OWsTjw==
 
-"@nomiclabs/buidler@^1.0.0-alpha.6":
-  version "1.0.0-alpha.6"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.6.tgz#85081131d55783427839faa3de713a26b38ef424"
-  integrity sha512-WzNJZhvIELtYi01s9ihdN7aOOqQLw+YorCoKX/IgKNOk6K85J/puCwyrJZrTCSDNj/OZgDF+KnngssZub4AHcg==
+"@nomiclabs/buidler@^1.0.0-alpha.8":
+  version "1.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.8.tgz#662c16051a9a3dcd8333de09d4ac8f747da2bdcc"
+  integrity sha512-MTF1n1m65gInyz5CGJPGF/gIirw9ApF3n3HRFRV2SxJnqAgbDSNoKFlm2Ox9a6NSoYVO0GVqX06bxELPVNKVHg==
   dependencies:
     ansi-colors "^3.2.3"
     deepmerge "^2.1.0"
@@ -24,7 +24,7 @@
     lodash "^4.17.11"
     mocha "^5.1.1"
     semver "^5.6.0"
-    solc "0.5.1"
+    solc "0.5.3"
     solidity-parser-antlr "^0.3.3"
     source-map-support "^0.5.9"
     ts-essentials "^1.0.2"
@@ -2927,10 +2927,10 @@ simple-get@^2.7.0:
     once "^1.3.1"
     simple-concat "^1.0.0"
 
-solc@0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.1.tgz#2867cb886b9475f0e8ee90566c1fad3e2d6ed90a"
-  integrity sha512-+RJfa5zRpWBm8DhEiEScIzEzPHWppwHSp/2yV9qvM/lNr0Y8cCv2mcNiXy+R6SSV0OoskhPEfe6Fwa4QQEgxlg==
+solc@0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.3.tgz#bb6d4e8e785b8b3ac0e6d096b9213bf2d0ca15b6"
+  integrity sha512-H9apkutqTa+zEF1T13q5fvAC0aMcbdg6JkUiGXObTJuZydq6Z6EgjI1OS9MGz0y3z4c0Vp1Ww2waEq0jMRm/Rw==
   dependencies:
     command-exists "^1.2.8"
     fs-extra "^0.30.0"
