@@ -34,7 +34,7 @@ describe("Web3 provider adapter", () => {
   beforeEach(() => {
     const buidlerEnv = require("@nomiclabs/buidler");
     realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
-    adaptedProvider = new Web3HTTPProviderAdapter(buidlerEnv.provider);
+    adaptedProvider = new Web3HTTPProviderAdapter(buidlerEnv.ethereum);
   });
 
   it("Should throw if send is called", async () => {
