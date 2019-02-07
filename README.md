@@ -119,7 +119,7 @@ Whether you are writing a test, script or creating a new task, Buidler will alwa
 * `config`: An object consisting of all of Buidler's configuration.
 * `buidlerArguments`: An object with the arguments Buidler was run with.
 * `run`: A function to execute any of Buidler's tasks.
-* `ethereum`: an [EIP1193](https://eips.ethereum.org/EIPS/eip-1193) interface.
+* `ethereum`: an [EIP1193](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider.
 ## Using buidler in your own scripts
 You can leverage Buidler's infrastructure and configuration in your own scripts.
 By running them with `buidler run <path>` [the Buidler Runtime Environment](#Builder-Runtime-Environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
