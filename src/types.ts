@@ -226,7 +226,7 @@ export type ActionType<ArgsT extends TaskArguments> = (
 export type IEthereumProvider = EthereumProvider;
 
 export interface BuidlerRuntimeEnvironment {
-  readonly provider: IEthereumProvider;
+  readonly ethereum: IEthereumProvider;
   readonly config: ResolvedBuidlerConfig;
   readonly buidlerArguments: BuidlerArguments;
   readonly tasks: TasksMap;

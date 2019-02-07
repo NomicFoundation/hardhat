@@ -1,9 +1,10 @@
+// We require the Buidler Runtime Environment explicitly here. This is optional.
 const env = require("@nomiclabs/buidler");
 
 async function main() {
   await env.run("compile");
 
-  const accounts = await env.provider.send("eth_accounts");
+  const accounts = await env.ethereum.send("eth_accounts");
 
   console.log("Accounts:", accounts);
 }
