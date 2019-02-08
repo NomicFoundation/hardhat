@@ -7,7 +7,7 @@ node_js:
 install:
   - yarn global add codecov
   - yarn
-  - yarn add --peer @nomiclabs/buidler@^1.0.0-alpha.8 web3@1.0.0-beta.37
+  - yarn add --peer @nomiclabs/buidler@^1.0.0-beta.1 web3@1.0.0-beta.37
 
 script:
   - yarn test

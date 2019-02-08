@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@nomiclabs/buidler-web3@^1.0.0-alpha.8":
-  version "1.0.0-alpha.9"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3/-/buidler-web3-1.0.0-alpha.9.tgz#cf71ca9d66ae9cace073dc20dabd4ceceeb05ed9"
-  integrity sha512-Ye+oyoHtxraoGK3U+a5/TFUuAXeywQa6/whrBZ8bJAX2He2Ahmhsl2jZeqWdpbPJQnL79W5ngCInGRa0OWsTjw==
+"@nomiclabs/buidler-web3@^1.0.0-beta.1":
+  version "1.0.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3/-/buidler-web3-1.0.0-beta.1.tgz#a151da5f5a705cd2ba61d64bc9e04f07ff1dd6aa"
+  integrity sha512-K3bBJ9CdM7foH8j+FJogL6CtSjFWrTaAZ8s8GsOKieWjUpYyRWphONosItlEDatNdg8M/+3+p7a0XF8CIFBA5Q==
 
-"@nomiclabs/buidler@^1.0.0-alpha.8":
-  version "1.0.0-alpha.8"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-alpha.8.tgz#662c16051a9a3dcd8333de09d4ac8f747da2bdcc"
-  integrity sha512-MTF1n1m65gInyz5CGJPGF/gIirw9ApF3n3HRFRV2SxJnqAgbDSNoKFlm2Ox9a6NSoYVO0GVqX06bxELPVNKVHg==
+"@nomiclabs/buidler@^1.0.0-beta.1":
+  version "1.0.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler/-/buidler-1.0.0-beta.1.tgz#0014cb101068d52fe2ab43114e969d946db0fe25"
+  integrity sha512-bgQXh8SNPSpJLBen9JU/fxq6dalPIJ9dfO32fN8cG8hnFfE0Q8kaKM9yt/G4xxfRVnGZ3tuuMRuuyOykFZISbA==
   dependencies:
     ansi-colors "^3.2.3"
     deepmerge "^2.1.0"
@@ -78,9 +78,9 @@
   integrity sha512-lAVp+Kj54ui/vLUFxsJTMtWvZraZxum3w3Nwkble2dNuV5VnPA+Mi2oGX9XYJAaIvZi3tn3cbjS/qcJXRb6Bww==
 
 "@types/node@*", "@types/node@^10.12.0", "@types/node@^10.3.2":
-  version "10.12.21"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.21.tgz#7e8a0c34cf29f4e17a36e9bd0ea72d45ba03908e"
-  integrity sha512-CBgLNk4o3XMnqMc0rhb6lc77IwShMEglz05deDcn2lQxyXEZivfwgYJu7SMha9V5XcrP6qZuevTHV/QrN2vjKQ==
+  version "10.12.22"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.22.tgz#eb2a8a1c24ee4a59cf87549cc67d60976ebaebd2"
+  integrity sha512-sozsyYqmHUD1OKzMb61UH4Es1oMLLA4g4eX6Zu1i8ZpG1sTlmZClL9ZU9GuNQQ2fHDKmaRUWlDSvzQ/aIDaIiQ==
 
 "@types/node@^8.10.38":
   version "8.10.39"
@@ -3385,9 +3385,9 @@ typedarray-to-buffer@^3.1.2:
     is-typedarray "^1.0.0"
 
 typescript@^3.2.2:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.3.1.tgz#6de14e1db4b8a006ac535e482c8ba018c55f750b"
-  integrity sha512-cTmIDFW7O0IHbn1DPYjkiebHxwtCMU+eTy30ZtJNBPF9j2O1ITu5XH2YnBeVRKWHqF+3JQwWJv0Q0aUgX8W7IA==
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.3.3.tgz#f1657fc7daa27e1a8930758ace9ae8da31403221"
+  integrity sha512-Y21Xqe54TBVp+VDSNbuDYdGw0BpoR/Q6wo/+35M8PAU0vipahnyduJWirxxdxjsAkS7hue53x2zp8gz7F05u0A==
 
 ultron@~1.1.0:
   version "1.1.1"
