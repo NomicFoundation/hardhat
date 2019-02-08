@@ -4,7 +4,7 @@
 [![Coverage Status](https://codecov.io/gh/nomiclabs/buidler/branch/master/graph/badge.svg)](https://codecov.io/gh/nomiclabs/buidler)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ---------
-Buidler is a development workflow automation tool for Ethereum. Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
+Buidler is an extensible developer tool that helps Ethereum developers increase productivity by reliably bringing together the tools they want. Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
 Buidler is:
 * A task runner.
