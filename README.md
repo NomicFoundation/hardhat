@@ -1,155 +1,170 @@
 # Buidler 👷‍♀️
+[![NPM Package](https://img.shields.io/npm/v/@nomiclabs/buidler.svg?style=flat-square)](https://www.npmjs.org/package/@nomiclabs/buidler)
+[![Build Status](https://travis-ci.com/nomiclabs/buidler.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler)
+[![Coverage Status](https://codecov.io/gh/nomiclabs/buidler/branch/master/graph/badge.svg)](https://codecov.io/gh/nomiclabs/buidler)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Buidler is a new smart contracts development tool that aims to be lean and flexible. It provides a ready to use dev environment which is easy to extend and interoperable with the whole javascript ecosystem. Read [our announcement](https://medium.com/nomic-labs-blog/towards-a-mature-ecosystem-of-ethereum-developer-tools-bdff10e6cdc3) to know more about our vision for Buidler.
+Buidler is a development workflow automation tool for Ethereum. Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
-⚠️ **Buidler is alpha software. Sign up to [our newsletter](https://buidler.substack.com/welcome) and we will let you know when a stable release is out.** ⚠️
+Buidler is:
+* A task runner.
+* Equipped with built-in tasks for compiling and testing your smart contracts.
+* Fully extensible.
+* Flexible and lean.
+* Usable programmatically as a library.
+* Equipped with an interactive console.
+* Unopinionated. Choose your own libraries and tools.
 
-⚠️ **This branch contains the upcoming version of Buidler, which is under heavy development. For the npm-published version go to [this commit](https://github.com/nomiclabs/buidler/tree/412404c496ac196a6f467f84849d9536dc60ef86).** ⚠️
+Read [our announcement](https://medium.com/nomic-labs-blog/towards-a-mature-ecosystem-of-ethereum-developer-tools-bdff10e6cdc3) to know more about our vision for Buidler.
 
-## Table of contents
-
-1. [**Creating your project**](#creating-your-project)
-1. [**Testing your contracts**](#testing-your-contracts)
-1. [**Deploying your contracts**](#deploying-your-contracts)
-1. [**Configuration**](#configuration)
-1. [**Using buidler in your own scripts**](#using-buidler-in-your-own-scripts)
-1. [**The buidler environment**](#the-buidler-environment)
-1. [**Creating your own tasks**](#creating-your-own-tasks)
-1. [**Migrating from Truffle**](#migrating-from-truffle)
-1. [**Installation**](#installation)
-1. [**Contributing**](#contributing)
-1. [**Feedback and help**](#feedback-and-help)
-1. [**Newsletter**](#newsletter)
-1. [**License**](#license)
-
-## Creating your project
-
-Just run `buidler` in your project root and follow the instructions.
-
-![buidler's project creation](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/project-creation.gif)
-
-A sample project will be created with examples on how to write contracts, tests and any scripts your project may need.
-
-All you need to know is that your contracts go in `<project-root>/contracts`.
-
-## Testing your contracts
-
-Buidler lets you test your project in any way you want. Replacing the test runner, using a different testing framework or running from an editor integration are all allowed, and super easy.
-
-By default, you can write your tests using [mocha](https://mochajs.org/) and [chai](http://www.chaijs.com). Just put them in `<project-root>/test` and run them with `buidler test`. [The buidler environment](#the-buidler-environment) and `chai`'s `assert` will be available in the global scope.
-
-You can write your tests as normal scripts by requiring buidler's environment as any other library. Read section [**Using buidler in your own scripts**](#using-buidler-in-your-own-scripts) for more info.
-
-## Deploying your contracts
-
-`buidler deploy` will guide you through an interactive process to deploy your contracts in an easy way.
-
-![buidler's interactive deployment](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/interactive-deployment.gif)
-
-If you prefer a non-interactive deployment process, you can [write your own deployment script](#using-buidler-in-your-own-scripts).
-
-## Configuration
-
-`buidler-config.js` in the root of your project is the main config file. Feel free to add whatever you want in there, just make sure to assign your config to `module.exports` so it's accessible later on.
-
-### Networks settings
-
-Networks configuration is fully compatible with Truffle's, with one small but useful difference: buidler will estimate deployment gas cost for you. There's no need for you to specify it. Take a look [here](http://truffleframework.com/docs/advanced/configuration#networks) to learn how to configure it, or just copy over your existing config.
-
-### Solc version
-
-Buidler lets you choose which version of solc your project uses. In `buidler-config.js`:
-
-```js
-module.exports = {
-  solc: {
-    version: "x.x.x"
-  }
-}
-```
-
-### Integrating other tools
-
-Buidler's config file will **always** run before any task, so you can use it to integrate with other tools, like importing `babel-register`.
-
-## Using buidler in your own scripts
-
-You can leverage buidler's infrastructure and configuration in your own scripts.
-
-By running them with `buidler run <path>` [the buidler environment](#the-buidler-environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
-
-You can also run them without using `buidler`, you just need to import [the buidler environment](#the-buidler-environment) with `require("@nomiclabs/buidler")`. If you run them this way, you have to use environment variables to pass arguments to buidler (e.g. NETWORK=develop).
-
-## The buidler environment
-
-Whether you are writing tests, a script, or creating a new task, buidler will always provide you with the same environment, which consists of an object with these properties:
-
-* `config`: An object consisting of all the buidler's configuration.
-* `buidlerArguments`: An object with the values of the different arguments that buidler accepts.
-* `Web3`: The `web3.js` module.
-* `web3`: a `Web3` instance connected to the chosen network.
-* `pweb3`: A promisified version of `web3`.
-* `run`: A function to execute any of buidler's tasks.
-* `artifacts`: an object containing two methods:
-  * `artifacts.require("ContractName")` which can be used to obtain already initialized [Truffle's contract abstractions](https://github.com/trufflesuite/truffle-contract).
-  * `artifacts.link(ContractAbstraction, ...libraries)` for linking your contracts and libraries.
-
-## Creating your own tasks
-
-You can create your own tasks using a simple DSL. You just need to define them in your `buidler-config.js` file, and they will be automatically available through buidler's CLI. Arguments parsing and help messages will be taken care of for you.
-
-![buidler's help message with a custom task](https://raw.githubusercontent.com/nomiclabs/buidler/master/imgs/help.png)
-
-We will write more documentation about how to define tasks soon, but until then you can use the tasks in `src/builtin-tasks/` as a reference.
-
-### Overriding built-in tasks
-
-If you need to take your customization really far, you can even override the built-in tasks. By just redefining any of them, your own version will be run. You can use `runSuper()` within your task to execute the default version.
-
-Note that most built-in tasks are composed of many micro-tasks, so most likely you only need to override one of those.
-
-## Migrating from Truffle
-
-While buidler doesn't intend to provide every feature that truffle has, it aims to be a drop-in replacement for Truffle tests. As long as you are not using Truffle migrations, **just rename your truffle config file to `buidler-config.js`, and run `buidler test`.**
+Join our read-only [Buidler News Telegram group](https://t.me/BuidlerNews) to stay up to date on new releases, plugins and tutorials.
 
 ## Installation
-
-### Requirements
-
-To use buidler you need to have [node 8.x installed](https://nodejs.org/en/download/).
-
 ### Local installation (recommended)
-
-The **recommended way** of using buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts.
-
-To use it in this way you will need to add `npx` before `buidler` to run it.
-
-To install locally initialize your `npm` project using `npm init` and follow
-the instructions. Once ready run:
-
-`npm install --save-dev buidler`
+The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts.
+To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`).
+To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
+```
+npm install --save-dev @nomiclabs/buidler
+```
 
 ### Global installation
+Be careful about inconsistent behavior across different projects that use different Buidler versions.
+```
+npm -g install @nomiclabs/buidler
+```
 
-If you are willing to risk hours of your time to debug inconsistent behavior across different projects before discovering you are using different versions, just run:
+## Quick start
+Just run `buidler` in your project root and follow the instructions to initialize a sample Buidler project.
+Install one of the core plugins so you have a simple way to interact with your contracts through an Ethereum library.
+For example to use Buidler’s Truffle 5 plugin, you should run:
+```
+npm install @nomiclabs/buidler-truffle5 web3@1.0.0-beta.37
+```
+And make your `buidler.config.js` file look like this:
+```js
+require("@nomiclabs/buidler-truffle5");
 
-`npm -g install buidler`
+// You can define your own tasks in this file
+task("balance", "Prints an account's balance")
+  .addParam("account", "The account")
+  .setAction(async ({ account }) => {
+    account = web3.utils.toChecksumAddress(account);
+    const balance = await web3.eth.getBalance(account);
+
+    console.log(web3.utils.fromWei(balance, "ether"), "ETH");
+  });
+
+module.exports = {};
+
+```
+After that, all you need to know is that your contracts go in `<project-root>/contracts` and your tests in `<project-root>/tests`, as you would do with Truffle 5.
+To compile and run your tests:
+```
+buidler compile
+buidler test
+```
+
+and to test your task:
+```
+buidler balance --account 0x6bac6948840a018271a2c9d731c9677a14de9f0c
+```
+
+## Guides
+To learn how to use Buidler in-depth refer to one of our guides:
+
+* [How to get started with Buidler](https://medium.com/nomic-labs-blog/how-to-get-started-with-buidler-68beb6b9bb04)
+* [How to migrate from Truffle](https://medium.com/nomic-labs-blog/migrating-from-truffle-4-or-5-to-buidler-8d5aec6e76aa)
+* [How to create a Buidler plugin](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-plugin-b60432bf6d75)
+* [How to create a Buidler task](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-task-55658aa89aff)
+
+## Plugins
+* [@nomiclabs/buidler-truffle4](https://github.com/nomiclabs/buidler-truffle4): integration with TruffleContract from Truffle 4.
+* [@nomiclabs/buidler-truffle5](https://github.com/nomiclabs/buidler-truffle5): integration with TruffleContract from Truffle 5.
+* [@nomiclabs/buidler-web3](https://github.com/nomiclabs/buidler-web3): injects the Web3 1.x module and a live instance into the Buidler Runtime Environment.
+* [@nomiclabs/buidler-web3-legacy](https://github.com/nomiclabs/buidler-web3-legacy): injects the Web3 0.20.x module and a live instance into the Buidler Runtime Environment.
+* [@nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers): injects ethers.js into the Buidler Runtime Environment.
+
+## Testing your contracts
+By default, you can write your tests using [mocha](https://mochajs.org/). Just put them in `<project-root>/test` and run them with `buidler test`. The [Buidler Runtime Environment](#builder-runtime-environment) will be available in the global scope.
+You can also write your tests as ad-hoc scripts by requiring the [Buidler Runtime Environment](#builder-runtime-environment) just like with any other library. Read section [Using Buidler in your own scripts](#using-buidler-in-your-own-scripts) for more information.
+If you’d like to use a different test runner or testing framework, you can override the test task or simply use Buidler programmatically from your test runner to enable that.
+
+## Deploying your contracts
+Deployments using Buidler are scripted. You can write a standalone [script that uses Buidler as a library](#using-scripts-in-your-own-scripts) (`node deploy.js`) or it can be a Buidler script (`buidler run deploy.js`).
+
+Here’s a very simple example of a Buidler deployment script using [@nomiclabs/buidler-truffle5](https://github.com/nomiclabs/buidler-truffle5).
+
+deploy.js:
+```js
+const Greeter = artifacts.require("Greeter");
+
+async function deploy() {
+  const greeter = await Greeter.new("Hello, Buidler!");
+  console.log("Greeter address:", greeter.address);
+}
+
+deploy().catch(console.error);
+```
+`buidler run deploy.js`
+ 
+## Configuration
+`buidler.config.js` in the root of your project is the main config file. You can add any application-specific configurations you may need to this file, just make sure to assign your config to `module.exports` so it's accessible later on through the config object in the [Buidler Runtime Environment](#Buidler-Runtime-Environment).
+An empty `buidler.config.js` is enough for Buidler to work. For a detailed specification of `buidler.config.js` take a look at [our wiki](https://github.com/nomiclabs/buidler/wiki/buidler.config.js-documentation).
+
+## Quickly integrating other tools
+Buidler's config file will always run before any task, so you can use it to integrate with other tools, like requiring `@babel/register` at the top.
+
+## Buidler Runtime Environment
+Whether you are writing a test, script or creating a new task, Buidler will always provide you with the same environment, which consists of an object with these properties:
+* `config`: An object consisting of all of Buidler's configuration.
+* `buidlerArguments`: An object with the arguments Buidler was run with.
+* `run`: A function to execute any of Buidler's tasks.
+* `ethereum`: an [EIP1193](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider.
+## Using buidler in your own scripts
+You can leverage Buidler's infrastructure and configuration in your own scripts.
+By running them with `buidler run <path>` [the Buidler Runtime Environment](#Builder-Runtime-Environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
+
+You can also build them as standalone scripts and run them directly without `buidler`, you just need to import the [Buidler Runtime Environment](#Buidler-Runtime-Environment) with `require("@nomiclabs/buidler")`. If you run them this way, you have to use environment variables to pass arguments directly to Buidler (e.g. `BUIDLER_NETWORK=develop`).
+
+## Ethereum library
+The way to interact with Ethereum on Buidler works the same as in dapp browsers, through an [EIP1193](https://eips.ethereum.org/EIPS/eip-1193) provider. This provider will handle gas limit, gas price, network validation and default sender for you. There are [plugins](#Plugins) available for the most used Ethereum libraries. Choose the one you like the most, or [write a plugin](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-plugin-b60432bf6d75) to integrate a new one (it’s super easy!).
+
+## Buidler compilation artifacts
+The default artifact format consists of a json containing:
+* `contractName`: a string with the name
+* `abi`: the abi array
+* `bytecode`: A hex (without `"0x"`) string of the unlinked deployment bytecode. If the contract is not deployable then this is an empty string.
+* `linkReferences`: The link references object as returned by `solc-js`. If no link is present then this is an empty object.
+
+
+## Notes on 1.0.0 beta release
+We’re still working on the stability of the ganache integration to be able to get an instance running automatically when you run Buidler, so we’ve excluded it from this release. We will re-include this feature back into Buidler by the time we ship the first stable release.
+
+Until then, to use the `develop` network locally you’ll need to install and manually run [ganache-cli](https://github.com/trufflesuite/ganache-cli):
+
+```
+npm install -g ganache-cli
+
+ganache-cli
+```
+
 
 ## Contributing
-
 Contributions are always welcome! Feel free to open any issue or send a pull request.
 
-## Feedback and help
+## Feedback, help and news
 
-If you have any questions or feedback you would like to provide, you can find us in the [Buidler Discord server](https://discord.gg/TufWKfF).
 
-## Newsletter
+[Buidler Support Telegram group](http://t.me/BuidlerSupport): for any questions or feedback you may have, you can find us here.
 
-[Sign up to our newsletter](https://buidler.substack.com/welcome) to hear news about Buidler! We will let you know of new releases, documentation and tutorials.
+[Buidler News Telegram group](http://t.me/BuidlerNews): to remain up to date on Buidler releases, tutorials and news all around. Low-bandwith, read-only group.
+
+[Follow Nomic Labs on Twitter.](https://twitter.com/nomiclabs)
 
 ## License
-
 MIT
 
 ## Happy buidling!
 👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️
+
