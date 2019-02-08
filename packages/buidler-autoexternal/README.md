@@ -12,7 +12,7 @@ This is a sample Buidler plugin written in TypeScript. Creating a Buidler plugin
 We recommend developing Buidler plugins using yarn. To start working on your project, just run
 
 - `yarn`
-- `yarn add --peer @nomiclabs/buidler@^1.0.0-alpha.8`
+- `yarn add --peer @nomiclabs/buidler@^1.0.0-beta.1`
 
 ## Plugin development
 
