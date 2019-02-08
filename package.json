@@ -7,6 +7,7 @@
   "repository": "github:nomiclabs/buidler",
   "main": "internal/lib/buidler-lib.js",
   "types": "internal/lib/buidler-lib.d.ts",
+  "description": "Buidler is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "keywords": [
     "ethereum",
     "smart-contracts",
