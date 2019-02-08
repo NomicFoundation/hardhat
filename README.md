@@ -1,9 +1,9 @@
-# Buidler 👷‍♀️
+![](https://cdn-images-1.medium.com/max/2600/1*EJWKycln-DOgq8bSzP0o9g.png)
 [![NPM Package](https://img.shields.io/npm/v/@nomiclabs/buidler.svg?style=flat-square)](https://www.npmjs.org/package/@nomiclabs/buidler)
 [![Build Status](https://travis-ci.com/nomiclabs/buidler.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler)
 [![Coverage Status](https://codecov.io/gh/nomiclabs/buidler/branch/master/graph/badge.svg)](https://codecov.io/gh/nomiclabs/buidler)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
+---------
 Buidler is a development workflow automation tool for Ethereum. Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
 Buidler is:
