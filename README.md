@@ -86,8 +86,8 @@ To learn how to use Buidler in-depth refer to one of our guides:
 * [@nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers): injects ethers.js into the Buidler Runtime Environment.
 
 ## Testing your contracts
-By default, you can write your tests using [mocha](https://mochajs.org/). Just put them in `<project-root>/test` and run them with `buidler test`. The [Buidler Runtime Environment](#builder-runtime-environment) will be available in the global scope.
-You can also write your tests as ad-hoc scripts by requiring the [Buidler Runtime Environment](#builder-runtime-environment) just like with any other library. Read section [Using Buidler in your own scripts](#using-buidler-in-your-own-scripts) for more information.
+By default, you can write your tests using [mocha](https://mochajs.org/). Just put them in `<project-root>/test` and run them with `buidler test`. The [Buidler Runtime Environment](#Buidler-Runtime-Environment) will be available in the global scope.
+You can also write your tests as ad-hoc scripts by requiring the [Buidler Runtime Environment](#Buidler-Runtime-Environment) just like with any other library. Read section [Using Buidler in your own scripts](#using-buidler-in-your-own-scripts) for more information.
 If you’d like to use a different test runner or testing framework, you can override the test task or simply use Buidler programmatically from your test runner to enable that.
 
 ## Deploying your contracts
@@ -123,7 +123,7 @@ Whether you are writing a test, script or creating a new task, Buidler will alwa
 * `ethereum`: an [EIP1193](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider.
 ## Using buidler in your own scripts
 You can leverage Buidler's infrastructure and configuration in your own scripts.
-By running them with `buidler run <path>` [the Buidler Runtime Environment](#Builder-Runtime-Environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
+By running them with `buidler run <path>` [the Buidler Runtime Environment](#Buidler-Runtime-Environment) will be initialized, making all of its properties globally available. Your contracts will be compiled before if necessary.
 
 You can also build them as standalone scripts and run them directly without `buidler`, you just need to import the [Buidler Runtime Environment](#Buidler-Runtime-Environment) with `require("@nomiclabs/buidler")`. If you run them this way, you have to use environment variables to pass arguments directly to Buidler (e.g. `BUIDLER_NETWORK=develop`).
 
