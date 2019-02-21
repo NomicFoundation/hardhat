@@ -10,18 +10,43 @@ import {
   SimpleTaskDefinition
 } from "./task-definitions";
 
+/**
+ * Tasks container.
+ */
 export class TasksDSL {
   private readonly tasks: TasksMap = {};
 
+  /**
+   * Creates a task.
+   *
+   * @remarks The action must await every async call made within it.
+   *
+   * @param name - The task's name.
+   * @param description - The task's description.
+   * @param action - The task's action.
+   * @returns A task definition.
+   */
   public task<ArgsT extends TaskArguments>(
     name: string,
     description?: string,
     action?: ActionType<ArgsT>
   ): TaskDefinition;
+
+  /**
+   * Creates a task without description.
+   *
+   * @remarks The action must await every async call made within it.
+   *
+   * @param name - The task's name.
+   * @param action - The task's action.
+   *
+   * @returns A task definition.
+   */
   public task<ArgsT extends TaskArguments>(
     name: string,
     action: ActionType<ArgsT>
   ): TaskDefinition;
+
   public task<ArgsT extends TaskArguments>(
     name: string,
     descriptionOrAction?: string | ActionType<ArgsT>,
@@ -30,11 +55,33 @@ export class TasksDSL {
     return this.addTask(name, descriptionOrAction, action, false);
   }
 
+  /**
+   * Creates an internal task.
+   *
+   * @remarks The internal tasks wont be available in the console options.
+   * @remarks The action must await every async call made within it.
+   *
+   * @param name - The task's name.
+   * @param description - The task's description.
+   * @param action - The task's action.
+   * @returns A task definition.
+   */
   public internalTask<ArgsT extends TaskArguments>(
     name: string,
     description?: string,
     action?: ActionType<ArgsT>
   ): TaskDefinition;
+
+  /**
+   * Creates an internal task without description.
+   *
+   * @remarks The internal tasks wont be available in the console options.
+   * @remarks The action must await every async call made within it.
+   *
+   * @param name - The task's name.
+   * @param action - The task's action.
+   * @returns A task definition.
+   */
   public internalTask<ArgsT extends TaskArguments>(
     name: string,
     action: ActionType<ArgsT>
@@ -47,6 +94,11 @@ export class TasksDSL {
     return this.addTask(name, descriptionOrAction, action, true);
   }
 
+  /**
+   * Retrieves the task definitions.
+   *
+   * @returns The tasks container.
+   */
   public getTaskDefinitions(): TasksMap {
     return this.tasks;
   }

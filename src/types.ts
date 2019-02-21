@@ -57,6 +57,15 @@ export interface Networks {
   [networkName: string]: NetworkConfig;
 }
 
+/**
+ * The project paths:
+ * * root: the project's root.
+ * * configFile: the buidler's config filepath.
+ * * cache: project's cache directory.
+ * * artifacts: artifact's directory.
+ * * sources: project's sources directory.
+ * * tests: project's tests directory.
+ */
 export interface ProjectPaths {
   root: string;
   configFile: string;
@@ -97,6 +106,10 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   solc: SolcConfig;
 }
 
+/**
+ * A function that receives a BuidlerRuntimeEnvironment and 
+ * modify its properties or add new ones.
+ */
 export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
 
 export interface TasksMap {
@@ -175,6 +188,15 @@ export interface ParamDefinitionsMap {
   [paramName: string]: ParamDefinition<any>;
 }
 
+/**
+ * Buidler arguments:
+ * * network: the network to be used.
+ * * showStackTraces: flag to show stack traces.
+ * * version: flag to show buidler's version.
+ * * help: flag to show buidler's help message.
+ * * emoji:
+ * * config: used to specify buidler's config file.
+ */
 export interface BuidlerArguments {
   network: string;
   showStackTraces: boolean;
@@ -233,6 +255,9 @@ export interface BuidlerRuntimeEnvironment {
   readonly run: RunTaskFunction;
 }
 
+/**
+ * The artifact object.
+ */
 export interface Artifact {
   contractName: string;
   abi: any;

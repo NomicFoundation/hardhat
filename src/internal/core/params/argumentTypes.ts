@@ -1,17 +1,42 @@
 import { BuidlerError, ERRORS } from "../errors";
 
+/**
+ * Provides an interface for every valid task argument type.
+ */
 export interface ArgumentType<T> {
+  /**
+   * Type's name.
+   */
   name: string;
 
-  // This function must show if an invalid strValue is given
+  /**
+   * Parses strValue.
+   *
+   * @param argName argument's name.
+   * @param strValue argument's value.
+   *
+   * @throws BDLR301 if an invalid value is given.
+   * @returns the parsed value.
+   */
   parse(argName: string, strValue: string): T;
 }
 
+/**
+ * String type.
+ *
+ * Accepts any kind of string.
+ */
 export const string: ArgumentType<string> = {
   name: "string",
   parse: (argName, strValue) => strValue
 };
 
+/**
+ * Boolean type.
+ *
+ * Accepts only 'true' or 'false' (insensitive case).
+ * @throws BDLR301
+ */
 export const boolean: ArgumentType<boolean> = {
   name: "boolean",
   parse: (argName, strValue) => {
@@ -31,6 +56,11 @@ export const boolean: ArgumentType<boolean> = {
   }
 };
 
+/**
+ * Int type.
+ * Accepts either a decimal string integer or hexadecimal string integer.
+ * @throws BDLR301
+ */
 export const int: ArgumentType<number> = {
   name: "int",
   parse: (argName, strValue) => {
@@ -50,6 +80,11 @@ export const int: ArgumentType<number> = {
   }
 };
 
+/**
+ * Float type.
+ * Accepts either a decimal string number or hexadecimal string number.
+ * @throws BDLR301
+ */
 export const float: ArgumentType<number> = {
   name: "float",
   parse: (argName, strValue) => {
@@ -69,6 +104,11 @@ export const float: ArgumentType<number> = {
   }
 };
 
+/**
+ * Input file type.
+ * Accepts only filepaths with read access and it isn't a directory.
+ * @throws BDLR302
+ */
 export let inputFile: ArgumentType<string> = {
   name: "inputFile",
   parse(argName: string, strValue: string): string {

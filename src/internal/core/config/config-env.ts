@@ -61,6 +61,11 @@ export function internalTask<ArgsT extends TaskArguments>(
 
 export const types = argumentTypes;
 
+/**
+ * Register an environment extender.
+ *
+ * @param extender The environment extender.
+ */
 export function extendEnvironment(extender: EnvironmentExtender) {
   extenderManager.add(extender);
 }

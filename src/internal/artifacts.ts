@@ -4,6 +4,12 @@ import { Artifact } from "../types";
 
 import { BuidlerError, ERRORS } from "./core/errors";
 
+/**
+ * Retrieves an artifact for the given `contractName` from the compilation output.
+ *
+ * @param contractName the contract's name.
+ * @param contractOutput the contract's compilation output.
+ */
 export function getArtifactFromContractOutput(
   contractName: string,
   contractOutput: any
@@ -28,6 +34,12 @@ function getArtifactPath(artifactsPath: string, contractName: string): string {
   return path.join(artifactsPath, `${contractName}.json`);
 }
 
+/**
+ * Stores an artifact in the given path.
+ *
+ * @param artifactsPath the artifacts' directory.
+ * @param artifact the artifact to be stored.
+ */
 export async function saveArtifact(artifactsPath: string, artifact: Artifact) {
   const fsExtra = await import("fs-extra");
   await fsExtra.writeJSON(
@@ -39,6 +51,12 @@ export async function saveArtifact(artifactsPath: string, artifact: Artifact) {
   );
 }
 
+/**
+ * Asynchronically reads an artifact with the given `contractName` from the given `artifactPath`.
+ *
+ * @param artifactsPath the artifacts' directory.
+ * @param contractName  the contract's name.
+ */
 export async function readArtifact(
   artifactsPath: string,
   contractName: string
@@ -53,6 +71,12 @@ export async function readArtifact(
   return fsExtra.readJson(artifactPath);
 }
 
+/**
+ * Synchronically reads an artifact with the given `contractName` from the given `artifactPath`.
+ *
+ * @param artifactsPath the artifacts directory.
+ * @param contractName  the contract's name.
+ */
 export function readArtifactSync(
   artifactsPath: string,
   contractName: string

@@ -46,9 +46,18 @@ export class BuidlerError extends Error {
   }
 }
 
+/**
+ * This class is used to throw errors from buidler plugins.
+ * Resolves automatically the plugin's name from which is being thrown.
+ */
 export class BuidlerPluginError extends Error {
   public readonly pluginName: string;
 
+  /**
+   * Creates a BuidlerPluginError.
+   * @param message an error message.
+   * @param parent  an error.
+   */
   public constructor(message: string, public readonly parent?: Error) {
     super(message);
 

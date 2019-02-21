@@ -18,6 +18,16 @@ function mergeUserAndDefaultConfigs(
   });
 }
 
+/**
+ * This functions resolves the buidler config by merging the user provided config
+ * and the buidler default config.
+ *
+ * @param userConfigPath the user config filepath
+ * @param defaultConfig  the buidler's default config object
+ * @param userConfig     the user config object
+ *
+ * @returns the resolved config
+ */
 export function resolveConfig(
   userConfigPath: string,
   defaultConfig: BuidlerConfig,
