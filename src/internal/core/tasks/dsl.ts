@@ -58,7 +58,7 @@ export class TasksDSL {
   /**
    * Creates an internal task.
    *
-   * @remarks The internal tasks wont be available in the console options.
+   * @remarks The internal tasks won't be available in the console options.
    * @remarks The action must await every async call made within it.
    *
    * @param name - The task's name.
@@ -75,7 +75,7 @@ export class TasksDSL {
   /**
    * Creates an internal task without description.
    *
-   * @remarks The internal tasks wont be available in the console options.
+   * @remarks The internal tasks won't be available in the console options.
    * @remarks The action must await every async call made within it.
    *
    * @param name - The task's name.

@@ -57,7 +57,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
    * @param name The task's name.
    * @param taskArguments A map of task's arguments.
    *
-   * @throws a BDLR303 if there aren't any defined task with the given name.
+   * @throws a BDLR303 if there aren't any defined tasks with the given name.
    * @returns a promise with the task's execution result.
    */
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
@@ -72,7 +72,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
   /**
    * Injects the properties of `this` (the Buidler Runtime Environment) into the global scope.
    *
-   * @param blacklist a list of properties' names that wont be injected.
+   * @param blacklist a list of property names that won't be injected.
    *
    * @returns a function that restores the previous environment.
    */

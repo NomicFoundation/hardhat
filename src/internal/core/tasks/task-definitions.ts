@@ -10,11 +10,11 @@ import * as types from "../params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
 
 /**
- * This class creates a task definition, which consist of:
+ * This class creates a task definition, which consists of:
  * * a name, that should be unique and will be used to call the task.
- * * a description, this is optional.
- * * an action, the function that the task will execute.
- * * a set of parameters, that can be used by the action.
+ * * a description. This is optional.
+ * * the action that the task will execute.
+ * * a set of parameters that can be used by the action.
  *
  */
 export class SimpleTaskDefinition implements TaskDefinition {
@@ -170,8 +170,8 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Adds a positional paramater to the task's definition.
    *
-   * This will check if the `name` is already used and,
-   * if the parameter is being added after a varidic argument and,
+   * This will check if the `name` is already used,
+   * if the parameter is being added after a variadic argument,
    * if is validateNoMandatoryParamAfterOptionalOne
    * if while being mandatory, a default value is passed.
    *
@@ -235,7 +235,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    *
    * This will check:
    * if the `name` is already used and,
-   * if the parameter is being added after a varidic argument and,
+   * if the parameter is being added after a variadic argument.
    *
    * @param name the parameter's name.
    * @param description the parameter's description.
@@ -257,7 +257,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * This will check:
    * if the `name` is already used,
    * if the parameter is being added after a varidic argument,
-   * if a mandatory param is being added after optional params,
+   * if a mandatory param is being added after optional params and
    * if while being mandatory, a default value is passed.
    *
    * @param name the parameter's name.
@@ -321,8 +321,8 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Adds a positional paramater to the task's definition.
    *
-   * This will check if the `name` is already used and,
-   * if the parameter is being added after a varidic argument and,
+   * This will check if the `name` is already used and
+   * if the parameter is being added after a varidic argument.
    *
    * @param name the parameter's name.
    * @param description the parameter's description.
