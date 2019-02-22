@@ -48,7 +48,7 @@ export class BuidlerError extends Error {
 
 /**
  * This class is used to throw errors from buidler plugins.
- * Resolves automatically the plugin's name from which is being thrown.
+ * Resolves automatically the plugin's name from which it's being thrown.
  */
 export class BuidlerPluginError extends Error {
   public readonly pluginName: string;
