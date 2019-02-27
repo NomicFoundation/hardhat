@@ -34,7 +34,7 @@ export class TasksDSL {
   ): TaskDefinition;
 
   /**
-   * Creates a task without description, overrdining any previous task 
+   * Creates a task without description, overrdining any previous task
    * with the same name.
    *
    * @remarks The action must await every async call made within it.
@@ -75,7 +75,7 @@ export class TasksDSL {
   ): TaskDefinition;
 
   /**
-   * Creates an internal task without description, overrdining any previous 
+   * Creates an internal task without description, overrdining any previous
    * task with the same name.
    *
    * @remarks The internal tasks won't be displayed in the CLI help messages.

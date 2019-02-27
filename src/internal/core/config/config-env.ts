@@ -65,7 +65,7 @@ export const types = argumentTypes;
  * Register an environment extender what will be run after the
  * Buidler Runtime Environment is initialized.
  *
- * @param extender A function that receives the Buidler Runtime 
+ * @param extender A function that receives the Buidler Runtime
  * Environment.
  */
 export function extendEnvironment(extender: EnvironmentExtender) {

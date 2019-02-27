@@ -107,7 +107,7 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
 }
 
 /**
- * A function that receives a BuidlerRuntimeEnvironment and 
+ * A function that receives a BuidlerRuntimeEnvironment and
  * modify its properties or add new ones.
  */
 export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;

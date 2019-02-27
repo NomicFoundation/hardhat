@@ -72,7 +72,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Adds a paramater to the task's definition.
    *
-   * @remarks This will throw if the `name` is already used by this task or 
+   * @remarks This will throw if the `name` is already used by this task or
    * by Buidler's global parameters.
    *
    * @param name The parameter's name.
@@ -128,7 +128,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
   /**
    * Adds an optional paramater to the task's definition.
-   * 
+   *
    * @see addParam.
    *
    * @param name the parameter's name.
@@ -174,7 +174,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Adds a positional paramater to the task's definition.
    *
-   * @remarks This will throw if the `name` is already used by this task or 
+   * @remarks This will throw if the `name` is already used by this task or
    * by Buidler's global parameters.
    * @remarks This will throw if `isOptional` is `false` and an optional positional
    * param was already set.
