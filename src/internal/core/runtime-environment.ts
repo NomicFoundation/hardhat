@@ -22,8 +22,23 @@ export class Environment implements BuidlerRuntimeEnvironment {
     "runTaskDefinition"
   ];
 
+  /**
+   * An EIP1193 Ethereum provider.
+   */
   public ethereum: IEthereumProvider;
 
+  /**
+   * Initializes the Buidler Runtime Environment and the given
+   * extender functions.
+   *
+   * @remarks The extenders' execution order is given by the order
+   * of the requires in the buidler's config file and its plugins.
+   *
+   * @param config The buidler's config object.
+   * @param buidlerArguments The parsed buidler's arguments.
+   * @param tasks A map of tasks.
+   * @param extenders A list of extenders.
+   */
   constructor(
     public readonly config: ResolvedBuidlerConfig,
     public readonly buidlerArguments: BuidlerArguments,
@@ -37,6 +52,15 @@ export class Environment implements BuidlerRuntimeEnvironment {
     extenders.forEach(extender => extender(this));
   }
 
+  /**
+   * Executes the task with the given name.
+   *
+   * @param name The task's name.
+   * @param taskArguments A map of task's arguments.
+   *
+   * @throws a BDLR303 if there aren't any defined tasks with the given name.
+   * @returns a promise with the task's execution result.
+   */
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
     const taskDefinition = this.tasks[name];
     if (taskDefinition === undefined) {
@@ -46,9 +70,16 @@ export class Environment implements BuidlerRuntimeEnvironment {
     return this.runTaskDefinition(taskDefinition, taskArguments);
   };
 
+  /**
+   * Injects the properties of `this` (the Buidler Runtime Environment) into the global scope.
+   *
+   * @param blacklist a list of property names that won't be injected.
+   *
+   * @returns a function that restores the previous environment.
+   */
   public injectToGlobal(
     blacklist: string[] = Environment.BLACKLISTED_PROPERTIES
-  ) {
+  ): () => void {
     const globalAsAny = global as any;
     const previousEnvironment: any = globalAsAny.env;
 

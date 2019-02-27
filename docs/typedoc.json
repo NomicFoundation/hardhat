@@ -1,0 +1,9 @@
+{
+  "excludePrivate": true,
+  "theme": "markdown",
+  "readme": "none",
+  "mode": "file",
+  "excludeNotExported": true,
+  "out": "./generated_apidocs",
+  "ignoreCompilerErrors": true
+}
