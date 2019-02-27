@@ -8,7 +8,7 @@ import { BuidlerError, ERRORS } from "./core/errors";
  * Retrieves an artifact for the given `contractName` from the compilation output.
  *
  * @param contractName the contract's name.
- * @param contractOutput the contract's compilation output.
+ * @param contractOutput the contract's compilation output as emitted by `solc`.
  */
 export function getArtifactFromContractOutput(
   contractName: string,
