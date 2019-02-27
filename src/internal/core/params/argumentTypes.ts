@@ -10,7 +10,8 @@ export interface ArgumentType<T> {
   name: string;
 
   /**
-   * Parses strValue.
+   * Parses strValue. This function MUST throw BDLR301 if it
+   * can parse the given value.
    *
    * @param argName argument's name.
    * @param strValue argument's value.
@@ -34,7 +35,7 @@ export const string: ArgumentType<string> = {
 /**
  * Boolean type.
  *
- * Accepts only 'true' or 'false' (insensitive case).
+ * Accepts only 'true' or 'false' (case-insensitive).
  * @throws BDLR301
  */
 export const boolean: ArgumentType<boolean> = {
@@ -106,7 +107,7 @@ export const float: ArgumentType<number> = {
 
 /**
  * Input file type.
- * Accepts only filepaths with read access and it isn't a directory.
+ * Accepts a path to a readable file..
  * @throws BDLR302
  */
 export let inputFile: ArgumentType<string> = {
