@@ -33,10 +33,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Creates an empty task definition.
    *
-   * This definition will have no params and its action will only throw a BDLR205.
+   * This definition will have no params, and will throw a BDLR205 if executed.
    *
-   * @param name the task's name.
-   * @param isInternal true if the task is internal, false otherwise.
+   * @param name The task's name.
+   * @param isInternal `true` if the task is internal, `false` otherwise.
    */
   constructor(
     public readonly name: string,
@@ -52,7 +52,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
   /**
    * Sets the task's description.
-   * @param description the description.
+   * @param description The description.
    */
   public setDescription(description: string) {
     this._description = description;
@@ -61,7 +61,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
   /**
    * Sets the task's action.
-   * @param action the action.
+   * @param action The action.
    */
   public setAction<ArgsT>(action: ActionType<ArgsT>) {
     // TODO: There's probably something bad here. See types.ts for more info.
@@ -71,15 +71,15 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
   /**
    * Adds a paramater to the task's definition.
-   * This will check:
-   * if the `name` is already used,
-   * if while being mandatory a default value is passed.
    *
-   * @param name the parameter's name.
-   * @param description the parameter's description.
-   * @param defaultValue a default value.
-   * @param type param's type.
-   * @param isOptional true if the parameter is optional. If defaultValue isn't undefined, this will be true.
+   * @remarks This will throw if the `name` is already used by this task or 
+   * by Buidler's global parameters.
+   *
+   * @param name The parameter's name.
+   * @param description The parameter's description.
+   * @param defaultValue A default value. This must be `undefined` if `isOptional` is `true`.
+   * @param type The param's `ArgumentType`. It will parse and validate the user's input.
+   * @param isOptional `true` if the parameter is optional. It's default value is `true` if `defaultValue` is not `undefined`.
    */
   public addParam<T>(
     name: string,
@@ -128,7 +128,8 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
   /**
    * Adds an optional paramater to the task's definition.
-   * This will check if the `name` is already used.
+   * 
+   * @see addParam.
    *
    * @param name the parameter's name.
    * @param description the parameter's description.
@@ -146,7 +147,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
   /**
    * Adds a boolean paramater or flag to the task's definition.
-   * This will check if the `name` is already used.
+   *
+   * Flags are params with default value set to `false`, and that don't expect
+   * values to be set in the CLI. A normal boolean param must be called with
+   * `--param true`, while a flag is called with `--flag`.
    *
    * @param name the parameter's name.
    * @param description the parameter's description.
@@ -170,16 +174,17 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Adds a positional paramater to the task's definition.
    *
-   * This will check if the `name` is already used,
-   * if the parameter is being added after a variadic argument,
-   * if is validateNoMandatoryParamAfterOptionalOne
-   * if while being mandatory, a default value is passed.
+   * @remarks This will throw if the `name` is already used by this task or 
+   * by Buidler's global parameters.
+   * @remarks This will throw if `isOptional` is `false` and an optional positional
+   * param was already set.
+   * @remarks This will throw if a variadic positional param is already set.
    *
-   * @param name the parameter's name.
-   * @param description the parameter's description.
-   * @param defaultValue a default value.
-   * @param type param's type.
-   *
+   * @param name The parameter's name.
+   * @param description The parameter's description.
+   * @param defaultValue A default value. This must be `undefined` if `isOptional` is `true`.
+   * @param type The param's `ArgumentType`. It will parse and validate the user's input.
+   * @param isOptional `true` if the parameter is optional. It's default value is `true` if `defaultValue` is not `undefined`.
    */
   public addPositionalParam<T>(
     name: string,
@@ -233,9 +238,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Adds an optional positional paramater to the task's definition.
    *
-   * This will check:
-   * if the `name` is already used and,
-   * if the parameter is being added after a variadic argument.
+   * @see addPositionalParam.
    *
    * @param name the parameter's name.
    * @param description the parameter's description.
@@ -252,18 +255,14 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds a variadic positional paramater to the task's definition.
+   * Adds a variadic positional paramater to the task's definition. Variadic
+   * positional params act as `...rest` parameters in JavaScript.
    *
-   * This will check:
-   * if the `name` is already used,
-   * if the parameter is being added after a varidic argument,
-   * if a mandatory param is being added after optional params and
-   * if while being mandatory, a default value is passed.
-   *
-   * @param name the parameter's name.
-   * @param description the parameter's description.
-   * @param defaultValue a default value.
-   * @param type param's type.
+   * @param name The parameter's name.
+   * @param description The parameter's description.
+   * @param defaultValue A default value. This must be `undefined` if `isOptional` is `true`.
+   * @param type The param's `ArgumentType`. It will parse and validate the user's input.
+   * @param isOptional `true` if the parameter is optional. It's default value is `true` if `defaultValue` is not `undefined`.
    */
   public addVariadicPositionalParam<T>(
     name: string,
