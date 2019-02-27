@@ -3,7 +3,7 @@
     "docs:dev": "vuepress dev .",
     "docs:build": "vuepress build .",
     "docs:deploy": "vuepress build . && sh deploy/deploy.sh --config-file deploy/.env",
-    "docs:apidocs": "npx typedoc ../src"
+    "docs:apidocs": "typedoc --tsconfig ../tsconfig.prod.json"
   },
   "devDependencies": {
     "dotenv": "^6.2.0",
