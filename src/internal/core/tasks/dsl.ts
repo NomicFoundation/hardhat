@@ -11,19 +11,20 @@ import {
 } from "./task-definitions";
 
 /**
- * Tasks container.
+ * This class defines the DSL used in Buidler config files
+ * for creating and overriding tasks.
  */
 export class TasksDSL {
   private readonly tasks: TasksMap = {};
 
   /**
-   * Creates a task.
+   * Creates a task, overrdining any previous task with the same name.
    *
    * @remarks The action must await every async call made within it.
    *
-   * @param name - The task's name.
-   * @param description - The task's description.
-   * @param action - The task's action.
+   * @param name The task's name.
+   * @param description The task's description.
+   * @param action The task's action.
    * @returns A task definition.
    */
   public task<ArgsT extends TaskArguments>(
@@ -33,12 +34,13 @@ export class TasksDSL {
   ): TaskDefinition;
 
   /**
-   * Creates a task without description.
+   * Creates a task without description, overrdining any previous task 
+   * with the same name.
    *
    * @remarks The action must await every async call made within it.
    *
-   * @param name - The task's name.
-   * @param action - The task's action.
+   * @param name The task's name.
+   * @param action The task's action.
    *
    * @returns A task definition.
    */
@@ -56,14 +58,14 @@ export class TasksDSL {
   }
 
   /**
-   * Creates an internal task.
+   * Creates an internal task, overrdining any previous task with the same name.
    *
-   * @remarks The internal tasks won't be available in the console options.
+   * @remarks The internal tasks won't be displayed in the CLI help messages.
    * @remarks The action must await every async call made within it.
    *
-   * @param name - The task's name.
-   * @param description - The task's description.
-   * @param action - The task's action.
+   * @param name The task's name.
+   * @param description The task's description.
+   * @param action The task's action.
    * @returns A task definition.
    */
   public internalTask<ArgsT extends TaskArguments>(
@@ -73,13 +75,14 @@ export class TasksDSL {
   ): TaskDefinition;
 
   /**
-   * Creates an internal task without description.
+   * Creates an internal task without description, overrdining any previous 
+   * task with the same name.
    *
-   * @remarks The internal tasks won't be available in the console options.
+   * @remarks The internal tasks won't be displayed in the CLI help messages.
    * @remarks The action must await every async call made within it.
    *
-   * @param name - The task's name.
-   * @param action - The task's action.
+   * @param name The task's name.
+   * @param action The task's action.
    * @returns A task definition.
    */
   public internalTask<ArgsT extends TaskArguments>(
