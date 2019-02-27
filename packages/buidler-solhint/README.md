@@ -1,0 +1,1 @@
+# buidler-solhint
