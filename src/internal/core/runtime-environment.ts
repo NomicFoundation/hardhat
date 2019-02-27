@@ -28,15 +28,16 @@ export class Environment implements BuidlerRuntimeEnvironment {
   public ethereum: IEthereumProvider;
 
   /**
-   * The environment creates lazyly an EthereumProvider, and _extends_ itself
-   * by calling the extenders one by one.
+   * Initializes the Buidler Runtime Environment and the given
+   * extender functions.
+   *
    * @remarks The extenders' execution order is given by the order
    * of the requires in the buidler's config file and its plugins.
    *
-   * @param config - the buidler's config object.
-   * @param buidlerArguments - the parsed buidler's arguments.
-   * @param tasks - a map of tasks.
-   * @param extenders - a list of extenders.
+   * @param config The buidler's config object.
+   * @param buidlerArguments The parsed buidler's arguments.
+   * @param tasks A map of tasks.
+   * @param extenders A list of extenders.
    */
   constructor(
     public readonly config: ResolvedBuidlerConfig,
