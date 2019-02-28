@@ -39,7 +39,7 @@ Just run `buidler` in your project root and follow the instructions to initializ
 Install one of the core plugins so you have a simple way to interact with your contracts through an Ethereum library.
 For example to use Buidler’s Truffle 5 plugin, you should run:
 ```
-npm install @nomiclabs/buidler-truffle5 web3@1.0.0-beta.37
+npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37
 ```
 And make your `buidler.config.js` file look like this:
 ```js
