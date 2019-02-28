@@ -10,7 +10,7 @@ This plugin brings to Buidler TruffleContracts from Truffle 5. With it you can c
 
 ## Installation
 ```
-npm install @nomiclabs/buidler-truffle5 web3@1.0.0-beta.37
+npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37
 ```
 
 And add the following require to the top of your ```buidler.config.js```:
