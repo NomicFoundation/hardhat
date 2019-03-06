@@ -3138,10 +3138,10 @@ simple-get@^2.7.0:
     once "^1.3.1"
     simple-concat "^1.0.0"
 
-solc@0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.3.tgz#bb6d4e8e785b8b3ac0e6d096b9213bf2d0ca15b6"
-  integrity sha512-H9apkutqTa+zEF1T13q5fvAC0aMcbdg6JkUiGXObTJuZydq6Z6EgjI1OS9MGz0y3z4c0Vp1Ww2waEq0jMRm/Rw==
+solc@0.5.5:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.5.tgz#bdedd988e1a958f48bb8d84df5414f0ae9f62764"
+  integrity sha512-eh24ieiUC/M0tQPvK/YtORXzW4QNinFzDmF9Nj7/zXlxD06pLz4cnWExz7mzAmiI7f5xFfXlitLbLn2w3U6niw==
   dependencies:
     command-exists "^1.2.8"
     fs-extra "^0.30.0"
