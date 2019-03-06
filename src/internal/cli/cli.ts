@@ -13,6 +13,7 @@ import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
+import { loadTsNodeIfPresent } from "../core/typescript-support";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { ArgumentsParser } from "./ArgumentsParser";
@@ -77,6 +78,8 @@ async function main() {
       await printVersionMessage(packageJson);
       return;
     }
+
+    loadTsNodeIfPresent();
 
     const [config, taskDefinitions, envExtenders] = loadConfigAndTasks(
       buidlerArguments.config
