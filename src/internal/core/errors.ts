@@ -235,6 +235,10 @@ export const ERRORS = {
     PARAM_NAME_INVALID_CASING: {
       number: 310,
       message: 'Invalid param "%s". Command line params must be lowercase.'
+    },
+    INVALID_JSON_ARGUMENT: {
+      number: 311,
+      message: 'Error parsing JSON value for argument "%s": %s'
     }
   },
   RESOLVER: {
