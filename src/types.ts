@@ -80,7 +80,8 @@ type EVMVersion =
   | "tangerineWhistle"
   | "spuriousDragon"
   | "byzantium"
-  | "constantinople";
+  | "constantinople"
+  | "petersburg";
 
 export interface SolcConfig {
   version: string;
