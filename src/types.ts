@@ -94,6 +94,17 @@ export interface SolcOptimizerConfig {
   runs: number;
 }
 
+export interface SolcInput {
+  settings: {
+    metadata: { useLiteralContent: boolean };
+    optimizer: SolcOptimizerConfig;
+    outputSelection: { "*": { "": string[]; "*": string[] } };
+    evmVersion: string;
+  };
+  sources: { [p: string]: { content: string } };
+  language: string;
+}
+
 export interface BuidlerConfig {
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;

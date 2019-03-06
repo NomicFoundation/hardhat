@@ -2,11 +2,6 @@ import { assert } from "chai";
 
 import { Compiler } from "../../../../src/internal/solidity/compiler";
 import { CompilerDownloader } from "../../../../src/internal/solidity/compiler/downloader";
-import { DependencyGraph } from "../../../../src/internal/solidity/dependencyGraph";
-import {
-  ResolvedFile,
-  Resolver
-} from "../../../../src/internal/solidity/resolver";
 import { SolcOptimizerConfig } from "../../../../src/types";
 import { getLocalCompilerVersion } from "../../../helpers/compiler";
 
@@ -66,7 +61,6 @@ contract A {}
     const compiler = new Compiler(
       getLocalCompilerVersion(),
       __dirname,
-      optimizerConfig,
       downloader
     );
 
@@ -114,7 +108,6 @@ contract A {}
     const compiler = new Compiler(
       getLocalCompilerVersion(),
       __dirname,
-      optimizerConfig,
       downloader
     );
 
@@ -123,62 +116,11 @@ contract A {}
     assert.isNotEmpty(output.errors);
   });
 
-  it("Should construct the right input for a dependency graph", async () => {
-    const globalName1 = "the/global/name.sol";
-    const path1 = "/fake/absolute/path";
-    const content1 = "THE CONTENT1";
-
-    const globalName2 = "the/global/name2.sol";
-    const path2 = "/fake/absolute/path2";
-    const content2 = "THE CONTENT2";
-
-    const expectedInput = {
-      language: "Solidity",
-      sources: {
-        [globalName1]: { content: content1 },
-        [globalName2]: { content: content2 }
-      },
-      settings: {
-        evmVersion: "byzantium",
-        metadata: {
-          useLiteralContent: true
-        },
-        optimizer: optimizerConfig,
-        outputSelection: {
-          "*": {
-            "*": ["evm.bytecode.object", "abi"],
-            "": ["ast"]
-          }
-        }
-      }
-    };
-
-    const graph = await DependencyGraph.createFromResolvedFiles(
-      new Resolver("."),
-      [
-        new ResolvedFile(globalName1, path1, content1, new Date()),
-        new ResolvedFile(globalName2, path2, content2, new Date())
-      ]
-    );
-
-    const compiler = new Compiler(
-      getLocalCompilerVersion(),
-      __dirname,
-      optimizerConfig,
-      downloader
-    );
-
-    const input = compiler.getInputFromDependencyGraph(graph);
-
-    assert.deepEqual(input, expectedInput);
-  });
-
   describe("Compiler version selection", () => {
     it("Shouldn't use the downloader if the local version is used", async () => {
       const compiler = new Compiler(
         getLocalCompilerVersion(),
         __dirname,
-        optimizerConfig,
         downloader
       );
 
@@ -192,12 +134,7 @@ contract A {}
     });
 
     it("Should call the downloader otherwise", async () => {
-      const compiler = new Compiler(
-        "0.5.0",
-        __dirname,
-        optimizerConfig,
-        downloader
-      );
+      const compiler = new Compiler("0.5.0", __dirname, downloader);
 
       await compiler.getSolc();
 

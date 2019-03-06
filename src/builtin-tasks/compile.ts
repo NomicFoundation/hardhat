@@ -5,13 +5,14 @@ import {
   getArtifactFromContractOutput,
   saveArtifact
 } from "../internal/artifacts";
-import { internalTask, task } from "../internal/core/config/config-env";
+import { internalTask, task, types } from "../internal/core/config/config-env";
 import { BuidlerError, ERRORS } from "../internal/core/errors";
 import { Compiler } from "../internal/solidity/compiler";
+import { getInputFromDependencyGraph } from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
-import { ResolvedBuidlerConfig } from "../types";
+import { SolcInput } from "../types";
 
 import {
   TASK_BUILD_ARTIFACTS,
@@ -20,21 +21,10 @@ import {
   TASK_COMPILE_GET_COMPILER_INPUT,
   TASK_COMPILE_GET_DEPENDENCY_GRAPH,
   TASK_COMPILE_GET_RESOLVED_SOURCES,
-  TASK_COMPILE_GET_SOURCE_PATHS
+  TASK_COMPILE_GET_SOURCE_PATHS,
+  TASK_COMPILE_RUN_COMPILER
 } from "./task-names";
 import { areArtifactsCached } from "./utils/cache";
-
-function getCompilersDir(config: ResolvedBuidlerConfig) {
-  return path.join(config.paths.cache, "compilers");
-}
-
-function getCompiler(config: ResolvedBuidlerConfig) {
-  return new Compiler(
-    config.solc.version,
-    getCompilersDir(config),
-    config.solc.optimizer
-  );
-}
 
 internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
   return glob(path.join(config.paths.sources, "**/*.sol"));
@@ -55,17 +45,30 @@ internalTask(TASK_COMPILE_GET_DEPENDENCY_GRAPH, async (_, { config, run }) => {
 });
 
 internalTask(TASK_COMPILE_GET_COMPILER_INPUT, async (_, { config, run }) => {
-  const compiler = getCompiler(config);
   const dependencyGraph = await run(TASK_COMPILE_GET_DEPENDENCY_GRAPH);
-  return compiler.getInputFromDependencyGraph(dependencyGraph);
+  return getInputFromDependencyGraph(
+    dependencyGraph,
+    config.solc.evmVersion,
+    config.solc.optimizer
+  );
 });
 
+internalTask(TASK_COMPILE_RUN_COMPILER)
+  .addParam("input", "The compiler standard JSON input", undefined, types.json)
+  .setAction(async ({ input }: { input: SolcInput }, { config }) => {
+    const compiler = new Compiler(
+      config.solc.version,
+      path.join(config.paths.cache, "compilers")
+    );
+
+    return compiler.compile(input);
+  });
+
 internalTask(TASK_COMPILE_COMPILE, async (_, { config, run }) => {
-  const compiler = getCompiler(config);
   const input = await run(TASK_COMPILE_GET_COMPILER_INPUT);
 
   console.log("Compiling...");
-  const output = await compiler.compile(input);
+  const output = await run(TASK_COMPILE_RUN_COMPILER, { input });
 
   let hasErrors = false;
   if (output.errors) {
