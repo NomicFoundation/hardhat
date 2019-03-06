@@ -15,7 +15,7 @@ describe("Config resolution", () => {
         const [config, _] = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
         assert.containsAllKeys(config.networks, ["auto", "develop"]);
-        assert.equal(config.solc.evmVersion, "byzantium");
+        assert.equal(config.solc.evmVersion, "petersburg");
       });
     });
 
