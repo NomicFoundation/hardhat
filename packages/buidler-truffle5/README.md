@@ -8,6 +8,9 @@
 ## What
 This plugin brings to Buidler TruffleContracts from Truffle 5. With it you can call [`contract()` and `artifacts.require()`](https://truffleframework.com/docs/truffle/testing/writing-tests-in-javascript) like you normally would with Truffle. Interact with your contracts with a familiar API from tasks, scripts and tests.
 
+## Required plugins
+This plugin requires [buidler-web3](https://github.com/nomiclabs/buidler-web3) as a prerequisite.
+
 ## Installation
 ```
 npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37
