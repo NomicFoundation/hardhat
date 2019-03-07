@@ -254,4 +254,39 @@ describe("argumentTypes", () => {
       );
     });
   });
+
+  describe("JSON type", () => {
+    it("Should fail if the argument isn't JSON", () => {
+      expectBuidlerError(
+        () => types.json.parse("j", "a"),
+        ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT
+      );
+
+      expectBuidlerError(
+        () => types.json.parse("j", "{a:1"),
+        ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT
+      );
+
+      expectBuidlerError(
+        () => types.json.parse("j", "[1],"),
+        ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT
+      );
+    });
+
+    it("Should parse an object successfully", () => {
+      assert.deepEqual(types.json.parse("j", '{"a":1}'), { a: 1 });
+    });
+
+    it("Should parse a number", () => {
+      assert.deepEqual(types.json.parse("j", "123"), 123);
+    });
+
+    it("Should parse a list", () => {
+      assert.deepEqual(types.json.parse("j", "[1,2]"), [1, 2]);
+    });
+
+    it("Should parse a string", () => {
+      assert.deepEqual(types.json.parse("j", '"a"'), "a");
+    });
+  });
 });

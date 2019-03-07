@@ -110,7 +110,7 @@ export const float: ArgumentType<number> = {
  * Accepts a path to a readable file..
  * @throws BDLR302
  */
-export let inputFile: ArgumentType<string> = {
+export const inputFile: ArgumentType<string> = {
   name: "inputFile",
   parse(argName: string, strValue: string): string {
     try {
@@ -134,5 +134,21 @@ export let inputFile: ArgumentType<string> = {
     }
 
     return strValue;
+  }
+};
+
+export const json: ArgumentType<any> = {
+  name: "json",
+  parse(argName: string, strValue: string): any {
+    try {
+      return JSON.parse(strValue);
+    } catch (error) {
+      throw new BuidlerError(
+        ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT,
+        error,
+        argName,
+        error.message
+      );
+    }
   }
 };
