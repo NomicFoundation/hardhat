@@ -1,6 +1,3 @@
-import { SolcOptimizerConfig } from "../../../types";
-import { DependencyGraph } from "../dependencyGraph";
-
 import { CompilerDownloader } from "./downloader";
 
 export class Compiler {
@@ -14,7 +11,6 @@ export class Compiler {
   constructor(
     private readonly version: string,
     private readonly compilersDir: string,
-    private readonly optimizerConfig: SolcOptimizerConfig,
     compilerDownloader?: CompilerDownloader
   ) {
     this.localSolcVersion = Compiler.getLocalSolcVersion();
@@ -27,33 +23,6 @@ export class Compiler {
         this.localSolcVersion
       );
     }
-  }
-
-  public getInputFromDependencyGraph(graph: DependencyGraph) {
-    const sources: { [globalName: string]: { content: string } } = {};
-    for (const file of graph.getResolvedFiles()) {
-      sources[file.globalName] = {
-        content: file.content
-      };
-    }
-
-    return {
-      language: "Solidity",
-      sources,
-      settings: {
-        evmVersion: "byzantium",
-        metadata: {
-          useLiteralContent: true
-        },
-        optimizer: this.optimizerConfig,
-        outputSelection: {
-          "*": {
-            "*": ["evm.bytecode.object", "abi"],
-            "": ["ast"]
-          }
-        }
-      }
-    };
   }
 
   public async compile(input: any) {

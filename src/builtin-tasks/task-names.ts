@@ -7,6 +7,7 @@ export const TASK_COMPILE_GET_SOURCE_PATHS = "compile:get-source-paths";
 export const TASK_COMPILE_GET_RESOLVED_SOURCES = "compile:get-resolved-sources";
 export const TASK_COMPILE_GET_DEPENDENCY_GRAPH = "compile:get-dependency-graph";
 export const TASK_COMPILE_GET_COMPILER_INPUT = "compile:get-compiler-input";
+export const TASK_COMPILE_RUN_COMPILER = "compile:run-compiler";
 export const TASK_COMPILE_COMPILE = "compile:compile";
 export const TASK_BUILD_ARTIFACTS = "compile:build-artifacts";
 
