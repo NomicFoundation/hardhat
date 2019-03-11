@@ -87,9 +87,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
     const previousEnvironment: any = ctx.environment;
     const globalAsAny = global as any;
 
-    globalAsAny.env = this;
-    ctx.setBuidlerRuntimeEnvironment(this);
-
     const previousValues: { [name: string]: any } = {};
 
     for (const [key, value] of Object.entries(this)) {
@@ -102,9 +99,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
     }
 
     return () => {
-      ctx.setBuidlerRuntimeEnvironment(previousEnvironment);
-      globalAsAny.env = previousEnvironment;
-
       for (const [key, _] of Object.entries(this)) {
         if (blacklist.includes(key)) {
           continue;

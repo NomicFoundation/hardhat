@@ -1,13 +1,21 @@
 import { assert } from "chai";
 import * as path from "path";
 
+import { BuidlerContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { resolveProjectPaths } from "../../../../src/internal/core/config/config-resolution";
 import { getLocalCompilerVersion } from "../../../helpers/compiler";
+import { resetBuidlerContext } from "../../../helpers/context";
 import { useFixtureProject } from "../../../helpers/project";
 import { HttpNetworkConfig } from "../../../types";
 
 describe("Config resolution", () => {
+  beforeEach(() => {
+    BuidlerContext.createBuidlerContext();
+  });
+  afterEach(async () => {
+    await resetBuidlerContext();
+  });
   describe("Default config merging", () => {
     describe("With default config", () => {
       useFixtureProject("default-config-project");

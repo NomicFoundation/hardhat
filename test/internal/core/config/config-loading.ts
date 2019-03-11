@@ -11,9 +11,13 @@ import {
 } from "../../../helpers/project";
 
 describe("config loading", () => {
+  beforeEach(() => {
+    BuidlerContext.createBuidlerContext();
+  });
   afterEach(async () => {
     await resetBuidlerContext();
   });
+
   describe("default config path", () => {
     useFixtureProject("config-project");
     it("should load the default config if none is given", () => {

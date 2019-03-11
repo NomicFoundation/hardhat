@@ -7,10 +7,6 @@ import {
 import { BuidlerContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
 
-if (!BuidlerContext.isCreated()) {
-  BuidlerContext.createBuidlerContext();
-}
-
 const ctx = BuidlerContext.getBuidlerContext();
 const extenderManager = ctx.extendersManager;
 const dsl = ctx.tasksDSL;

@@ -10,6 +10,7 @@ import {
   ResolvedBuidlerConfig,
   TaskArguments
 } from "../../../src/types";
+import { resetBuidlerContext } from "../../helpers/context";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
@@ -50,15 +51,22 @@ describe("Environment", () => {
       help: false,
       emoji: false
     };
-    dsl = new TasksDSL();
-    dsl.task("example", async ret => {
-      return 27;
-    });
-    tasks = dsl.getTaskDefinitions();
   });
 
   beforeEach(() => {
+    const ctx = BuidlerContext.createBuidlerContext();
+    dsl = ctx.tasksDSL;
+    dsl.task("example", async ret => {
+      return 27;
+    });
+    tasks = ctx.tasksDSL.getTaskDefinitions();
+
     env = new Environment(config, args, tasks);
+    ctx.setBuidlerRuntimeEnvironment(env);
+  });
+
+  afterEach(async () => {
+    await resetBuidlerContext();
   });
 
   describe("Enviroment", () => {
