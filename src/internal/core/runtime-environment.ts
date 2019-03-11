@@ -82,9 +82,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
   public injectToGlobal(
     blacklist: string[] = Environment.BLACKLISTED_PROPERTIES
   ): () => void {
-    const ctx = BuidlerContext.getBuidlerContext();
-
-    const previousEnvironment: any = ctx.environment;
     const globalAsAny = global as any;
 
     const previousValues: { [name: string]: any } = {};
