@@ -7,6 +7,7 @@ import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
 import { BUIDLER_NAME } from "../constants";
+import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError, BuidlerPluginError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
@@ -81,9 +82,11 @@ async function main() {
 
     loadTsNodeIfPresent();
 
-    const [config, taskDefinitions, envExtenders] = loadConfigAndTasks(
-      buidlerArguments.config
-    );
+    const ctx = BuidlerContext.createBuidlerContext();
+    const config = loadConfigAndTasks(buidlerArguments.config);
+
+    const envExtenders = ctx.extendersManager.getExtenders();
+    const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
     const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
     const taskDefinition = taskDefinitions[taskName];
