@@ -14,11 +14,14 @@ export async function resetBuidlerContext() {
     }
     BuidlerContext.deleteBuidlerContext();
   }
+  // Unload all the buidler's entrypoints.
   unloadModule("../../src/register");
   unloadModule("../../src/internal/cli/cli");
   unloadModule("../../src/internal/lib/buidler-lib");
   unloadModule("../../src/internal/core/config/config-env");
   unloadModule("../../src/internal/core/tasks/builtin-tasks");
+
+  // and buidler's builtin tasks.
   const tasks = await glob(__dirname + "/../../src/builtin-tasks/**/*");
   tasks.forEach((task: string) => {
     unloadModule(task);

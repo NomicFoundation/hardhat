@@ -10,7 +10,7 @@ import {
   useFixtureProject
 } from "../../../helpers/project";
 
-describe("config loading", () => {
+describe.only("config loading", () => {
   afterEach(async () => {
     await resetBuidlerContext();
   });
@@ -52,7 +52,7 @@ describe("config loading", () => {
     useFixtureProject("config-project");
 
     it("Should define the default tasks", () => {
-      const _ = loadConfigAndTasks();
+      const config = loadConfigAndTasks();
       const tasks = BuidlerContext.getBuidlerContext().tasksDSL.getTaskDefinitions();
 
       assert.containsAllKeys(tasks, [
@@ -63,7 +63,8 @@ describe("config loading", () => {
         "run",
         "test"
       ]);
-      unloadModule(_.paths.configFile);
+
+      unloadModule(config.paths.configFile);
     });
 
     it("Should load custom tasks", () => {
