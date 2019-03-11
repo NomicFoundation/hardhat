@@ -45,8 +45,7 @@ export class BuidlerContext {
 
   public getBuidlerRuntimeEnvironment(): BuidlerRuntimeEnvironment {
     if (this.environment === undefined) {
-      // should throw?
-      throw Error("No BRE is defined");
+      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED);
     }
     return this.environment;
   }
