@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import extenderManager from "../../../src/internal/core/config/extenders-instance";
+import { BuidlerContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors";
 import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
@@ -121,11 +121,12 @@ describe("Environment", () => {
 
     it("environment should contains plugin extensions", async () => {
       require(process.cwd() + "/plugins/example");
+      const ctx = BuidlerContext.getBuidlerContext();
       env = new Environment(
         config,
         args,
         tasks,
-        extenderManager.getExtenders()
+        ctx.extendersManager.getExtenders()
       );
       assert.equal((env as any).__test_key, "a value");
       assert.equal((env as any).__test_bleep(2), 4);

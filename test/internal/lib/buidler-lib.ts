@@ -1,11 +1,13 @@
 import { assert } from "chai";
 
+import { resetBuidlerContext } from "../../helpers/context";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Buidler lib", () => {
   useFixtureProject("config-project");
-  useEnvironment();
+
+  useEnvironment(true);
 
   before(() => {
     // TODO: This next line can be removed once 'auto' network gets back
@@ -24,12 +26,7 @@ describe("Buidler lib", () => {
   it("should reuse global state", async function() {
     let environment = require("../../../src/internal/lib/buidler-lib");
     assert.isTrue(this.env === environment);
-
-    // delete the cached version of buidler lib exported module.
-    delete require.cache[
-      require.resolve("../../../src/internal/lib/buidler-lib")
-    ];
-
+    await resetBuidlerContext();
     environment = require("../../../src/internal/lib/buidler-lib");
     assert.equal(await environment.run("example"), 28);
     assert.isFalse(this.env === environment);
