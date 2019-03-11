@@ -103,6 +103,22 @@ export const ERRORS = {
     UNSUPPORTED_OPERATION: {
       number: 3,
       message: "%s is not supported in Buidler."
+    },
+    CONTEXT_ALREADY_CREATED: {
+      number: 4,
+      message: "BuidlerContext is already created."
+    },
+    CONTEXT_NOT_CREATED: {
+      number: 5,
+      message: "BuidlerContext is not created."
+    },
+    CONTEXT_BRE_NOT_DEFINED: {
+      number: 6,
+      message: "BuidlerRuntimeEnvironment is not defined in the BuidlerContext."
+    },
+    CONTEXT_BRE_ALREADY_DEFINED: {
+      number: 7,
+      message: "BuidlerRuntime is already defined in the BuidlerContext"
     }
   },
   NETWORK: {

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import extenderManager from "../../../src/internal/core/config/extenders-instance";
+import { BuidlerContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors";
 import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
@@ -10,6 +10,7 @@ import {
   ResolvedBuidlerConfig,
   TaskArguments
 } from "../../../src/types";
+import { resetBuidlerContext } from "../../helpers/context";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
@@ -50,15 +51,22 @@ describe("Environment", () => {
       help: false,
       emoji: false
     };
-    dsl = new TasksDSL();
-    dsl.task("example", async ret => {
-      return 27;
-    });
-    tasks = dsl.getTaskDefinitions();
   });
 
   beforeEach(() => {
+    const ctx = BuidlerContext.createBuidlerContext();
+    dsl = ctx.tasksDSL;
+    dsl.task("example", async ret => {
+      return 27;
+    });
+    tasks = ctx.tasksDSL.getTaskDefinitions();
+
     env = new Environment(config, args, tasks);
+    ctx.setBuidlerRuntimeEnvironment(env);
+  });
+
+  afterEach(async () => {
+    await resetBuidlerContext();
   });
 
   describe("Enviroment", () => {
@@ -121,11 +129,12 @@ describe("Environment", () => {
 
     it("environment should contains plugin extensions", async () => {
       require(process.cwd() + "/plugins/example");
+      const ctx = BuidlerContext.getBuidlerContext();
       env = new Environment(
         config,
         args,
         tasks,
-        extenderManager.getExtenders()
+        ctx.extendersManager.getExtenders()
       );
       assert.equal((env as any).__test_key, "a value");
       assert.equal((env as any).__test_bleep(2), 4);

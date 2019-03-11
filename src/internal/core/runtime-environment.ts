@@ -10,6 +10,7 @@ import {
   TaskDefinition,
   TasksMap
 } from "../../types";
+import { BuidlerContext } from "../context";
 import { lazyObject } from "../util/lazy";
 
 import { BuidlerError, ERRORS } from "./errors";
@@ -63,6 +64,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
    */
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
     const taskDefinition = this.tasks[name];
+
     if (taskDefinition === undefined) {
       throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, name);
     }
@@ -81,9 +83,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
     blacklist: string[] = Environment.BLACKLISTED_PROPERTIES
   ): () => void {
     const globalAsAny = global as any;
-    const previousEnvironment: any = globalAsAny.env;
-
-    globalAsAny.env = this;
 
     const previousValues: { [name: string]: any } = {};
 
@@ -97,8 +96,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
     }
 
     return () => {
-      globalAsAny.env = previousEnvironment;
-
       for (const [key, _] of Object.entries(this)) {
         if (blacklist.includes(key)) {
           continue;

@@ -1,3 +1,4 @@
+import { BuidlerContext } from "./internal/context";
 import { loadConfigAndTasks } from "./internal/core/config/config-loading";
 import { BUIDLER_PARAM_DEFINITIONS } from "./internal/core/params/buidler-params";
 import { getEnvBuidlerArguments } from "./internal/core/params/env-variables";
@@ -8,11 +9,11 @@ import {
   isNodeCalledWithoutAScript
 } from "./internal/util/console";
 
-const globalAsAny = global as any;
-
-if (globalAsAny.env === undefined) {
+if (!BuidlerContext.isCreated()) {
   // tslint:disable-next-line no-var-requires
   require("source-map-support/register");
+
+  const ctx = BuidlerContext.createBuidlerContext();
 
   if (isNodeCalledWithoutAScript()) {
     disableReplWriterShowProxy();
@@ -25,15 +26,13 @@ if (globalAsAny.env === undefined) {
     process.env
   );
 
-  const [config, taskDefinitions, envExtenders] = loadConfigAndTasks(
-    buidlerArguments.config
-  );
+  const config = loadConfigAndTasks(buidlerArguments.config);
 
   const env = new Environment(
     config,
     buidlerArguments,
-    taskDefinitions,
-    envExtenders
+    ctx.tasksDSL.getTaskDefinitions(),
+    ctx.extendersManager.getExtenders()
   );
 
   env.injectToGlobal();

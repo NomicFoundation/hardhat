@@ -1,5 +1,7 @@
 import { Environment } from "../../src/internal/core/runtime-environment";
 
+import { resetBuidlerContext } from "./context";
+
 declare module "mocha" {
   interface Context {
     env: Environment;
@@ -11,7 +13,7 @@ export function useEnvironment() {
     this.env = require("../../src/internal/lib/buidler-lib");
   });
 
-  afterEach("Unload environment", function() {
-    delete require.cache[require.resolve("../../src/internal/lib/buidler-lib")];
+  afterEach("reset buidler context", async function() {
+    await resetBuidlerContext();
   });
 }

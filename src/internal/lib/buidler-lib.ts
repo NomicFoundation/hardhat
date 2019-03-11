@@ -1,34 +1,34 @@
 import { BuidlerRuntimeEnvironment } from "../../types";
+import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 
-type BuidlerWithEnvironment = NodeJS.Global & {
-  env?: BuidlerRuntimeEnvironment;
-};
+let env: BuidlerRuntimeEnvironment | undefined;
 
-let env: BuidlerRuntimeEnvironment;
-const globalWithEnv = global as BuidlerWithEnvironment;
+if (!BuidlerContext.isCreated()) {
+  BuidlerContext.createBuidlerContext();
+}
+const ctx: BuidlerContext = BuidlerContext.getBuidlerContext();
 
-if (globalWithEnv.env !== undefined) {
-  env = globalWithEnv.env;
+if (ctx.environment !== undefined) {
+  env = ctx.environment;
 } else {
   const buidlerArguments = getEnvBuidlerArguments(
     BUIDLER_PARAM_DEFINITIONS,
     process.env
   );
-
-  const [config, taskDefinitions, envExtenders] = loadConfigAndTasks(
-    buidlerArguments.config
-  );
+  const config = loadConfigAndTasks(buidlerArguments.config);
 
   env = new Environment(
     config,
     buidlerArguments,
-    taskDefinitions,
-    envExtenders
+    ctx.tasksDSL.getTaskDefinitions(),
+    ctx.extendersManager.getExtenders()
   );
+
+  ctx.setBuidlerRuntimeEnvironment(env);
 }
 
 // TODO: Find out a way to export this as a CJS module.

@@ -4,10 +4,12 @@ import {
   EnvironmentExtender,
   TaskArguments
 } from "../../../types";
+import { BuidlerContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
 
-import extenderManager from "./extenders-instance";
-import dsl from "./tasks-dsl-instance";
+const ctx = BuidlerContext.getBuidlerContext();
+const extenderManager = ctx.extendersManager;
+const dsl = ctx.tasksDSL;
 
 export function task<ArgsT extends TaskArguments>(
   name: string,

@@ -1,5 +1,6 @@
 import * as path from "path";
 
+import { ResolvedBuidlerConfig } from "../../../types";
 import { getUserConfigPath } from "../project-structure";
 
 import { resolveConfig } from "./config-resolution";
@@ -9,7 +10,7 @@ function importCsjOrEsModule(filePath: string): any {
   return imported.default !== undefined ? imported.default : imported;
 }
 
-export function loadConfigAndTasks(configPath?: string) {
+export function loadConfigAndTasks(configPath?: string): ResolvedBuidlerConfig {
   if (configPath === undefined) {
     configPath = getUserConfigPath();
   } else {
@@ -39,8 +40,5 @@ export function loadConfigAndTasks(configPath?: string) {
 
   const config = resolveConfig(configPath, defaultConfig, userConfig);
 
-  const dsl = require("./tasks-dsl-instance").default;
-  const envExtendersManager = require("./extenders-instance").default;
-
-  return [config, dsl.getTaskDefinitions(), envExtendersManager.getExtenders()];
+  return config;
 }

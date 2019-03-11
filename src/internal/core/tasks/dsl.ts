@@ -139,7 +139,6 @@ export class TasksDSL {
     }
 
     this.tasks[name] = taskDefinition;
-
     return taskDefinition;
   }
 }
