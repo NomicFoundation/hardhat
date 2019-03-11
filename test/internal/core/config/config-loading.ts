@@ -10,7 +10,7 @@ import {
   useFixtureProject
 } from "../../../helpers/project";
 
-describe.only("config loading", () => {
+describe("config loading", () => {
   afterEach(async () => {
     await resetBuidlerContext();
   });
