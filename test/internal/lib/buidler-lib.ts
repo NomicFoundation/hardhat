@@ -7,7 +7,7 @@ import { useFixtureProject } from "../../helpers/project";
 describe("Buidler lib", () => {
   useFixtureProject("config-project");
 
-  useEnvironment(true);
+  useEnvironment();
 
   before(() => {
     // TODO: This next line can be removed once 'auto' network gets back
