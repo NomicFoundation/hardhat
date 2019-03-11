@@ -6,10 +6,10 @@ const NODE_MODULES_DIR = "node_modules";
 function getBuidlerNodeModules() {
   // If this is the case, buidler has been installed as a dependency of a
   // project. That means that we are not running it locally.
-  if (__dirname.indexOf(NODE_MODULES_DIR) !== -1) {
+  if (__dirname.lastIndexOf(NODE_MODULES_DIR) !== -1) {
     __dirname.substring(
       0,
-      __dirname.indexOf(NODE_MODULES_DIR) + NODE_MODULES_DIR.length
+      __dirname.lastIndexOf(NODE_MODULES_DIR) + NODE_MODULES_DIR.length
     );
   }
 
