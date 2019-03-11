@@ -1,6 +1,7 @@
 import path from "path";
 
 import { internalTask, task } from "../internal/core/config/config-env";
+import { isTypescriptSupported } from "../internal/core/typescript-support";
 import { glob } from "../internal/util/glob";
 
 import {
@@ -18,11 +19,19 @@ internalTask(TASK_TEST_GET_TEST_FILES)
     []
   )
   .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
-    if (testFiles.length === 0) {
-      return glob(path.join(config.paths.tests, "**/*.js"));
+    if (testFiles.length !== 0) {
+      return testFiles;
     }
 
-    return testFiles;
+    const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
+
+    if (!isTypescriptSupported()) {
+      return jsFiles;
+    }
+
+    const tsFiles = await glob(path.join(config.paths.tests, "**/*.ts"));
+
+    return [...jsFiles, ...tsFiles];
   });
 
 internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});

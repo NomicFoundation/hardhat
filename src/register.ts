@@ -2,6 +2,7 @@ import { loadConfigAndTasks } from "./internal/core/config/config-loading";
 import { BUIDLER_PARAM_DEFINITIONS } from "./internal/core/params/buidler-params";
 import { getEnvBuidlerArguments } from "./internal/core/params/env-variables";
 import { Environment } from "./internal/core/runtime-environment";
+import { loadTsNodeIfPresent } from "./internal/core/typescript-support";
 import {
   disableReplWriterShowProxy,
   isNodeCalledWithoutAScript
@@ -16,6 +17,8 @@ if (globalAsAny.env === undefined) {
   if (isNodeCalledWithoutAScript()) {
     disableReplWriterShowProxy();
   }
+
+  loadTsNodeIfPresent();
 
   const buidlerArguments = getEnvBuidlerArguments(
     BUIDLER_PARAM_DEFINITIONS,
