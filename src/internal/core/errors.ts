@@ -114,7 +114,11 @@ export const ERRORS = {
     },
     CONTEXT_BRE_NOT_DEFINED: {
       number: 6,
-      message: "BuidlerRuntimeEnvironment is not defined."
+      message: "BuidlerRuntimeEnvironment is not defined in the BuidlerContext."
+    },
+    CONTEXT_BRE_ALREADY_DEFINED: {
+      number: 7,
+      message: "BuidlerRuntime is already defined in the BuidlerContext"
     }
   },
   NETWORK: {

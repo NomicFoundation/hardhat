@@ -72,5 +72,14 @@ describe("Buidler context", async function() {
         this.env
       );
     });
+    it("should throw when trying to set BRE", async function() {
+      expectBuidlerError(
+        () =>
+          BuidlerContext.getBuidlerContext().setBuidlerRuntimeEnvironment(
+            this.env
+          ),
+        ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED
+      );
+    });
   });
 });

@@ -40,6 +40,9 @@ export class BuidlerContext {
   public environment?: BuidlerRuntimeEnvironment;
 
   public setBuidlerRuntimeEnvironment(env: BuidlerRuntimeEnvironment) {
+    if (this.environment !== undefined) {
+      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
+    }
     this.environment = env;
   }
 
