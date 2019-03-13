@@ -30,7 +30,11 @@ export function isTypescriptSupported() {
     } else {
       // We are inside this project (e.g. running tests), or Buidler is
       // linked and we can't get the Buidler project's node_modules, so we
-      // return true
+      // return true.
+      //
+      // This is safe because Buidler will use this project's installation of
+      // TypeScript and ts-node. We need them for compilation and testing, so
+      // they'll always be installed.
       cachedIsTypescriptSupported = true;
     }
   }
