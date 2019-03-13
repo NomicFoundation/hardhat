@@ -141,7 +141,7 @@ The default artifact format consists of a json containing:
 
 You can use TypeScript everywhere in your Buidler project. Your Buidler config, your tests, and your custom scripts can all be typed. 
 
-To enable this features, Typescript should be installed in the same way that Buidler was. If you installed Buidler globally, run `npm i -g typescript ts-node`. If you installed Buidler inside of a project, run `npm i typescript ts-node`.
+To enable this features, Typescript and [ts-node](https://github.com/TypeStrong/ts-node) should be installed in the same way that Buidler was. If you installed Buidler globally, run `npm i -g typescript ts-node`. If you installed Buidler inside of a project, run `npm i typescript ts-node`.
 
 Once you've done that, you can use TypeScript everywhere, including your config. A typical `buidler.config.ts` looks like this
 
