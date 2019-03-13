@@ -137,6 +137,21 @@ The default artifact format consists of a json containing:
 * `bytecode`: A hex (without `"0x"`) string of the unlinked deployment bytecode. If the contract is not deployable then this is an empty string.
 * `linkReferences`: The link references object as returned by `solc-js`. If no link is present then this is an empty object.
 
+## TypeScript support
+
+You can use TypeScript everywhere in your Buidler project. Your Buidler config, your tests, and your custom scripts can all be typed. 
+
+To enable this features, Typescript and [ts-node](https://github.com/TypeStrong/ts-node) should be installed in the same way that Buidler was. If you installed Buidler globally, run `npm i -g typescript ts-node`. If you installed Buidler inside of a project, run `npm i typescript ts-node`.
+
+Once you've done that, you can use TypeScript everywhere, including your config. A typical `buidler.config.ts` looks like this
+
+```ts
+import { BuidlerConfig } from "@nomiclabs/buidler/config";
+
+const config: BuidlerConfig = {};
+
+export default config;
+``` 
 
 ## Notes on 1.0.0 beta release
 We’re still working on the stability of the ganache integration to be able to get an instance running automatically when you run Buidler, so we’ve excluded it from this release. We will re-include this feature back into Buidler by the time we ship the first stable release.
