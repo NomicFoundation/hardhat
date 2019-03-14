@@ -143,16 +143,6 @@ You can use TypeScript everywhere in your Buidler project. Your Buidler config, 
 
 To enable this features, Typescript and [ts-node](https://github.com/TypeStrong/ts-node) should be installed in the same way that Buidler was. If you installed Buidler globally, run `npm i -g typescript ts-node`. If you installed Buidler inside of a project, run `npm i typescript ts-node`.
 
-Once you've done that, you can use TypeScript everywhere, including your config. A typical `buidler.config.ts` looks like this
-
-```ts
-import { BuidlerConfig } from "@nomiclabs/buidler/config";
-
-const config: BuidlerConfig = {};
-
-export default config;
-``` 
-
 ## Notes on 1.0.0 beta release
 We’re still working on the stability of the ganache integration to be able to get an instance running automatically when you run Buidler, so we’ve excluded it from this release. We will re-include this feature back into Buidler by the time we ship the first stable release.
 
