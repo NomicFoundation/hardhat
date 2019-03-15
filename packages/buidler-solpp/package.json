@@ -32,17 +32,17 @@
     "chai": "^4.2.0",
     "dotenv": "^6.2.0",
     "fs-extra": "^7.0.1",
+    "lodash": "^4.17.11",
     "mocha": "^5.2.0",
     "prettier": "^1.15.3",
     "source-map-support": "^0.5.9",
     "ts-node": "^8.0.2",
     "tslint": "^5.12.0",
-    "lodash": "^4.17.11",
     "tslint-config-prettier": "^1.17.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "1.0.0-beta.2"
+    "@nomiclabs/buidler": "^1.0.0-beta.2"
   }
 }
