@@ -43,6 +43,6 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "/Users/budi/workspace/buidler"
+    "@nomiclabs/buidler": "1.0.0-beta.2"
   }
 }
