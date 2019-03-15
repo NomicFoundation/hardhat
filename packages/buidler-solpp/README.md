@@ -3,7 +3,7 @@
 
 
 # buidler-solpp
-[Buidler](http://getbuidler.com) plugin for integration with solpp preprocessor.
+[Buidler](http://getbuidler.com) plugin for integration with [solpp preprocessor](https://github.com/merklejerk/solpp).
 
 ## What
 This plugin hooks into the compilation pipeline and run the solpp preprocessor.
