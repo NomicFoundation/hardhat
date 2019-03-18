@@ -4,7 +4,18 @@ import { assert } from "chai";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-async function resetBuidlerContext() {
+export async function expectErrorAsync(
+  f: () => Promise<any>,
+  errorMessage?: string
+) {
+  try {
+    await f();
+  } catch (err) {
+    assert.equal(err.message, errorMessage);
+  }
+}
+
+async function unloadBuidlerContext() {
   if (BuidlerContext.isCreated()) {
     const ctx = BuidlerContext.getBuidlerContext();
     const globalAsAny = global as any;
@@ -43,19 +54,20 @@ function unloadModule(path: string) {
   }
 }
 
-async function reset(cwd: string) {
-  await resetBuidlerContext();
+async function reset() {
+  await unloadBuidlerContext();
   unloadModule("../src/index");
-  process.chdir(__dirname + cwd);
-  const env = require("@nomiclabs/buidler");
-  env.config.solpp.cwd = env.config.paths.sources;
-  return env;
+  return require("@nomiclabs/buidler");
 }
 
 describe("Solpp plugin", async function() {
   describe("js-config-project", async function() {
-    beforeEach("setup", async function() {
-      this.env = await reset("/js-config-project");
+    before("setup", async function() {
+      process.chdir(__dirname + "/js-config-project");
+    });
+
+    beforeEach("reset buidler context", async function() {
+      this.env = await reset();
     });
 
     it("should evaluate symbols as javascript functions", async function() {
@@ -74,8 +86,12 @@ describe("Solpp plugin", async function() {
   });
 
   describe("json-config-project", async function() {
-    beforeEach("setup", async function() {
-      this.env = await reset("/json-config-project");
+    before("setup", async function() {
+      process.chdir(__dirname + "/json-config-project");
+    });
+
+    beforeEach("reset buidler context", async function() {
+      this.env = await reset();
     });
 
     it("should load definitions from json", async function() {
@@ -84,11 +100,21 @@ describe("Solpp plugin", async function() {
 
       assert.include(generatedContractA, "48192.418291248");
     });
+
+    it("should load the config properly", async function() {
+      assert.equal(this.env.config.solpp.collapseEmptyLines, false);
+      assert.equal(this.env.config.solpp.noFlatten, true);
+      assert.equal(this.env.config.solpp.tolerant, true);
+    });
   });
 
   describe("buidler-project", async function() {
-    beforeEach("setup", async function() {
-      this.env = await reset("/buidler-project");
+    before("setup", async function() {
+      process.chdir(__dirname + "/buidler-project");
+    });
+
+    beforeEach("reset buidler context", async function() {
+      this.env = await reset();
     });
 
     it("should create processed contracts in cache directory", async function() {
@@ -126,9 +152,13 @@ describe("Solpp plugin", async function() {
       );
     });
 
-    describe("fail-project", async function() {
-      beforeEach("setup", async function() {
-        this.env = await reset("/fail-project");
+    describe.skip("fail-project", async function() {
+      before("setup", async function() {
+        process.chdir(__dirname + "/fail-project");
+      });
+
+      beforeEach("reset buidler context", async function() {
+        this.env = await reset();
       });
 
       it("should fail when symbol does not exist", async function() {
@@ -137,27 +167,11 @@ describe("Solpp plugin", async function() {
         const files = [[contractPath, content]];
         const opts = {};
 
-        let paths;
-        try {
-          paths = await this.env.run("buidler-solpp:run-solpp", {
+        await expectErrorAsync(async () =>
+          this.env.run("buidler-solpp:run-solpp", {
             files,
             opts
-          });
-        } catch (err) {
-          console.log(err);
-        }
-
-        assert.equal(paths.length, 1);
-
-        const generatedContent = readFileSync(paths[0]).toString();
-
-        const countEmptyLines = (text: string) => {
-          return text ? (text.match(/^[ \t]*$/gm) || []).length : 0;
-        };
-
-        assert.isBelow(
-          countEmptyLines(generatedContent),
-          countEmptyLines(content)
+          })
         );
       });
     });
