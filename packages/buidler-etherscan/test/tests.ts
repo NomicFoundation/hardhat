@@ -1,8 +1,6 @@
 import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 
-import { ExampleBuidlerRuntimeEnvironmentField } from "../src/index";
-
 declare module "mocha" {
   interface Context {
     env: BuidlerRuntimeEnvironment;
@@ -21,6 +19,7 @@ describe("BuidlerRuntimeEnvironment extension", function() {
   });
 
   it("It should add the example field", function() {
+    const {ExampleBuidlerRuntimeEnvironmentField } = require("../src");
     assert.instanceOf(this.env.example, ExampleBuidlerRuntimeEnvironmentField);
   });
 
