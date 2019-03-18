@@ -1,9 +1,12 @@
 {
-  "name": "@nomiclabs/buidler-ts-plugin-boilerplate",
+  "name": "@nomiclabs/buidler-etherscan",
   "version": "0.0.1",
-  "description": "Buidler TypeScript plugin boilerplate",
+  "description": "Buidler TypeScript plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/buidler-ts-plugin-boilerplate",
-  "author": "Nomic Labs SRL",
+  "contributors": [
+    "Nomic Labs SRL",
+    "Marin Petrunić <marin@nodefactory.io>"
+  ],
   "license": "MIT",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

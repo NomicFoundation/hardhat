@@ -1,3 +1,9 @@
 require("../../src/index");
 
-module.exports = {};
+module.exports = {
+
+  etherscan: {
+    token: 'testtoken'
+  }
+
+};

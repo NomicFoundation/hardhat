@@ -18,12 +18,16 @@ describe("BuidlerRuntimeEnvironment extension", function() {
     this.env = require("@nomiclabs/buidler");
   });
 
-  it("It should add the example field", function() {
-    const {ExampleBuidlerRuntimeEnvironmentField } = require("../src");
-    assert.instanceOf(this.env.example, ExampleBuidlerRuntimeEnvironmentField);
+  it("It should add the etherscan field", function() {
+    const {EtherscanBuidlerEnvironment } = require("../src");
+    assert.instanceOf(this.env.etherscan, EtherscanBuidlerEnvironment);
   });
 
-  it("The example filed should say hello", function() {
-    assert.equal(this.env.example.sayHello(), "hello");
+  it("The etherscan url should have default value", function() {
+    assert.equal(this.env.etherscan.url, "https://api.etherscan.io/api");
+  });
+
+  it("The etherscan url should have value from buidler.config.js", function() {
+      assert.equal(this.env.etherscan.token, "testtoken");
   });
 });
