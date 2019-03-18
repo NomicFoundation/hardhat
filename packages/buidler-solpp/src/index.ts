@@ -50,7 +50,7 @@ function readFiles(filePaths: string[]) {
   );
 }
 
-task("solpp", async ({ files, opts }, { config, run }) => {
+task("buidler-solpp:run-solpp", async ({ files, opts }, { config, run }) => {
   const processedPaths: string[] = [];
   for (const [filePath, content] of files) {
     const processedFilePath = path.join(
@@ -76,5 +76,5 @@ task(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config, run }, runSuper) => {
   const files = await readFiles(filePaths);
   const opts = getConfig(config);
 
-  return run("solpp", { files, opts });
+  return run("buidler-solpp:run-solpp", { files, opts });
 });

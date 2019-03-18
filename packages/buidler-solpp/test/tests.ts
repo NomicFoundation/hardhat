@@ -107,7 +107,10 @@ describe("Solpp plugin", async function() {
         collapseEmptyLines: true,
         noPreprocessor: false
       };
-      const paths = await this.env.run("solpp", { files, opts });
+      const paths = await this.env.run("buidler-solpp:run-solpp", {
+        files,
+        opts
+      });
 
       assert.equal(paths.length, 1);
 
@@ -136,7 +139,10 @@ describe("Solpp plugin", async function() {
 
         let paths;
         try {
-          paths = await this.env.run("solpp", { files, opts });
+          paths = await this.env.run("buidler-solpp:run-solpp", {
+            files,
+            opts
+          });
         } catch (err) {
           console.log(err);
         }
@@ -155,23 +161,5 @@ describe("Solpp plugin", async function() {
         );
       });
     });
-
-    // it("should not process the contracts", async function() {
-    //   const contractPath = join(this.env.config.paths.sources, "B.sol");
-    //   const content = readFileSync(contractPath).toString();
-    //   const files = [[contractPath, content]];
-    //   const opts = {
-    //     collapseEmptyLines: false,
-    //     noPreprocessor: true,
-    //     noFlatten: true
-    //   };
-    //   const paths = await this.env.run("solpp", { files, opts });
-
-    //   assert.equal(paths.length, 1);
-    //   console.log(paths);
-    //   const generatedContent = readFileSync(paths[0]).toString();
-
-    //   assert.equal(generatedContent, content);
-    // });
   });
 });
