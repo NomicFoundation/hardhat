@@ -34,9 +34,19 @@ extendEnvironment(env => {
 });
 
 
-task('verify', "Verifies contract on etherscan", async (taskArgs, {config, run}) => {
-    if(!config.etherscan.token || !config.etherscan.token.trim()) {
-        throw new BuidlerPluginError('Please provide etherscan api token via buidler.config.js (etherscan.token)')
-    }
-    const flattenedSource = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
-});
+task('verify-contract', "Verifies contract on etherscan")
+    .addParam('contract-name', 'Name of the deployed contract')
+    .addParam('address', 'Deployed address of smart contract')
+    .addParam('libraries', 'Stringified JSON object in format of {library1: "0x2956356cd2a2bf3202f771f50d3d14a367b48071"}')
+    .addOptionalVariadicPositionalParam('constructor-arguments', 'arguments for contract constructor')
+    .setAction(
+        async (
+            taskArgs,
+            {config, run}) => {
+            if(!config.etherscan.token || !config.etherscan.token.trim()) {
+                throw new BuidlerPluginError('Please provide etherscan api token via buidler.config.js (etherscan.token)')
+            }
+            const flattenedSource = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+            console.log({taskArgs})
+        }
+    );
