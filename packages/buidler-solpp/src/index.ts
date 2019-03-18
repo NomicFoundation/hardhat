@@ -2,7 +2,6 @@ import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/
 import { task } from "@nomiclabs/buidler/config";
 import { BuidlerConfig } from "@nomiclabs/buidler/types";
 import { ensureDir, readFile, writeFile } from "fs-extra";
-import { defaults } from "lodash";
 import path from "path";
 import { processCode } from "solpp";
 
@@ -39,7 +38,8 @@ function getDefaultConfig(config: BuidlerConfig) {
 }
 
 function getConfig(config: BuidlerConfig) {
-  return defaults(config.solpp, getDefaultConfig(config));
+  const defaultConfig = getDefaultConfig(config);
+  return { ...config.solpp, ...defaultConfig };
 }
 
 function readFiles(filePaths: string[]) {
