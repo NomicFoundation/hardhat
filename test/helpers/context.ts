@@ -1,6 +1,12 @@
 import { BuidlerContext } from "../../src/internal/context";
 import { glob } from "../../src/internal/util/glob";
 
+/**
+ * This function resets the buidler context.
+ *
+ * This doesn't unload any loaded Buidler plugin, so those have to be unloaded
+ * manually with `unloadModule`.
+ */
 export async function resetBuidlerContext() {
   if (BuidlerContext.isCreated()) {
     const ctx = BuidlerContext.getBuidlerContext();
@@ -16,6 +22,7 @@ export async function resetBuidlerContext() {
   }
   // Unload all the buidler's entrypoints.
   unloadModule("../../src/register");
+  unloadModule("../../src/config");
   unloadModule("../../src/internal/cli/cli");
   unloadModule("../../src/internal/lib/buidler-lib");
   unloadModule("../../src/internal/core/config/config-env");
