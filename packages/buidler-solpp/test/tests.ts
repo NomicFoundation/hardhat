@@ -1,4 +1,8 @@
-import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
+import {
+  TASK_COMPILE_COMPILE,
+  TASK_COMPILE_GET_COMPILER_INPUT,
+  TASK_COMPILE_GET_SOURCE_PATHS
+} from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { BuidlerContext } from "@nomiclabs/buidler/internal/context";
 import { assert } from "chai";
 import { readFileSync } from "fs";
@@ -77,11 +81,8 @@ describe("Solpp plugin", async function() {
     });
 
     it("should compile without errors", async function() {
-      try {
-        await this.env.run("compile");
-      } catch (err) {
-        assert.isUndefined(err);
-      }
+      const input = this.env.run(TASK_COMPILE_GET_COMPILER_INPUT);
+      assert.doesNotThrow(() => this.env.run(TASK_COMPILE_COMPILE, { input }));
     });
   });
 
@@ -152,6 +153,7 @@ describe("Solpp plugin", async function() {
       );
     });
 
+    // This test skipped because solpp won't fail if a contract has an non-defined symbol.
     describe.skip("fail-project", async function() {
       before("setup", async function() {
         process.chdir(__dirname + "/fail-project");
