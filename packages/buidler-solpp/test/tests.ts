@@ -118,7 +118,7 @@ describe("Solpp plugin", async function() {
       this.env = await reset();
     });
 
-    it("should create processed contracts in cache directory", async function() {
+    it("should create processed contracts in the cache directory", async function() {
       const paths = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
 
       paths.forEach((path: string) => {
