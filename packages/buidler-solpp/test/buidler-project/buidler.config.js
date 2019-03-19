@@ -1,5 +1,10 @@
 require("../../src/index");
 
 module.exports = {
-  solpp: {}
+  solpp: {
+    defs: {
+      foo: () => 'foo',
+      'bar': 'bar'
+    }
+  }
 };
