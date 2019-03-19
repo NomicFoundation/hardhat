@@ -28,7 +28,7 @@ function getDefaultConfig(config: ResolvedBuidlerConfig): SolppConfig {
     name: "buidler-solpp",
     collapseEmptyLines: false,
     noPreprocessor: false,
-    noFlatten: false,
+    noFlatten: true,
     tolerant: false
   };
 }
@@ -81,6 +81,5 @@ task(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config, run }, runSuper) => {
   const filePaths: string[] = await runSuper();
   const files = await readFiles(filePaths);
   const opts = getConfig(config);
-
   return run("buidler-solpp:run-solpp", { files, opts });
 });
