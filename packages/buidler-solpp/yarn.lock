@@ -2648,9 +2648,9 @@ solidity-parser-antlr@^0.3.3:
   integrity sha512-RNUc18pjf7DLWs//WF+V+VnvrbetEbNFUYxm2JFbXU62G9WSu+nVyDxV5r+FG4wu8jom17vLdM/3I7bMBGfZ9g==
 
 solpp@^0.9.1:
-  version "0.9.1"
-  resolved "https://registry.yarnpkg.com/solpp/-/solpp-0.9.1.tgz#77cfc7598be7b697c1835e48d852805ddbccd9b8"
-  integrity sha512-rYWoodQyIjokspeV6doQZ6e+TFyphQ9Fb7vqmnOjguBp9aBqrHvei6GvWg8mPaWpqla5i5YXiN6CxzlMUHS+cA==
+  version "0.9.2"
+  resolved "https://registry.yarnpkg.com/solpp/-/solpp-0.9.2.tgz#afacf5a395bd513dbae3f1dacddb11bf17e191b7"
+  integrity sha512-dz7ZrHrVqkyolCDGD0S/lnZwUcvfNej9PUUy42L8jMJUDg16mdpDWj09+/6vKtH3zUyOppaaHjo/k0J3jHO3lA==
   dependencies:
     antlr4 "^4.7.1"
     axios "^0.18.0"
