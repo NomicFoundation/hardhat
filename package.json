@@ -58,7 +58,6 @@
     "@types/node": "^8.10.38",
     "@types/semver": "^5.5.0",
     "chai": "^4.2.0",
-    "dotenv": "^6.2.0",
     "ganache-cli": "^6.1.6",
     "nyc": "^13.1.0",
     "prettier": "^1.15.3",

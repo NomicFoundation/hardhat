@@ -6,7 +6,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "typeRoots": ["./node_modules/@types", "./src/internal/@types"]
   },
   "include": ["./src/**/*.ts"]
 }
