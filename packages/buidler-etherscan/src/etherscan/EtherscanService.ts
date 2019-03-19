@@ -12,12 +12,14 @@ export default class EtherscanService {
             const response: any =
                 await request.post(
                     this.url,
-                    {form: req}
+                    {form: req, json: true}
                 );
-            console.log({response});
+            if(response.status === "0") {
+                throw new BuidlerPluginError(response.result);
+            }
             return response;
         } catch (e) {
-            throw new BuidlerPluginError('Failed to send contract verification request. Reason: ' + e.message);
+            throw new BuidlerPluginError('Failed to send contract verification request. Reason: ' + e.message, e);
         }
     }
 }

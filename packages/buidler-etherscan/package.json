@@ -29,9 +29,10 @@
     "@types/fs-extra": "^5.0.4",
     "@types/mocha": "^5.2.5",
     "@types/node": "^8.10.38",
+    "@types/request": "^2.48.1",
+    "@types/request-promise": "^4.1.42",
     "chai": "^4.2.0",
     "dotenv": "^6.2.0",
-    "ganache-cli": "^6.2.5",
     "mocha": "^5.2.0",
     "prettier": "^1.15.3",
     "source-map-support": "^0.5.9",
@@ -43,5 +44,9 @@
   },
   "peerDependencies": {
     "@nomiclabs/buidler": "^1.0.0-beta.2"
+  },
+  "dependencies": {
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
   }
 }
