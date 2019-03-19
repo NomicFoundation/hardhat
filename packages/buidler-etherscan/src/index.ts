@@ -1,4 +1,4 @@
-import {TASK_FLATTEN_GET_FLATTENED_SOURCE, TASK_COMPILE_GET_DEPENDENCY_GRAPH} from "@nomiclabs/buidler/builtin-tasks/task-names";
+import {TASK_FLATTEN_GET_FLATTENED_SOURCE} from "@nomiclabs/buidler/builtin-tasks/task-names";
 import {extendEnvironment} from "@nomiclabs/buidler/config";
 import {task} from "@nomiclabs/buidler/internal/core/config/config-env";
 import {BuidlerPluginError, lazyObject} from "@nomiclabs/buidler/plugins";
@@ -73,6 +73,9 @@ task("verify-contract", "Verifies contract on etherscan")
                 flattenedSource,
                 taskArgs.constructorArguments
             );
-            console.log(request.serialize());
-            console.log(await new EtherscanService(etherscan.url).verifyContract(request));
+            const etherscanService = new EtherscanService(etherscan.url);
+            const response = await etherscanService.verifyContract(request);
+            console.log('Successfully submitted contract for verification on etherscan. Waiting for verification result...');
+            await etherscanService.getVerificationStatus(response.message);
+            console.log('Successfully verified contract on etherscan');
         });
