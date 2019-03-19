@@ -24,7 +24,10 @@ describe("BuidlerRuntimeEnvironment extension", function() {
   });
 
   it("The etherscan url should have value from buidler.config.js", function() {
-    assert.equal(this.env.etherscan.url, "https://api-ropsten.etherscan.io/api");
+    assert.equal(
+      this.env.etherscan.url,
+      "https://api-ropsten.etherscan.io/api"
+    );
   });
 
   it("The etherscan token should have value from buidler.config.js", function() {
