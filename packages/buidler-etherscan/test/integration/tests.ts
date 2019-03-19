@@ -9,7 +9,7 @@ declare module "mocha" {
 
 describe("BuidlerRuntimeEnvironment extension", function() {
   beforeEach("Buidler project setup", function() {
-    process.chdir(__dirname + "/buidler-project");
+    process.chdir(__dirname + "/../buidler-project");
     process.env.BUIDLER_NETWORK = "develop";
 
     // We first clear any cache
@@ -19,15 +19,15 @@ describe("BuidlerRuntimeEnvironment extension", function() {
   });
 
   it("It should add the etherscan field", function() {
-    const {EtherscanBuidlerEnvironment } = require("../src");
+    const { EtherscanBuidlerEnvironment } = require("../../src");
     assert.instanceOf(this.env.etherscan, EtherscanBuidlerEnvironment);
   });
 
-  it("The etherscan url should have default value", function() {
-    assert.equal(this.env.etherscan.url, "https://api.etherscan.io/api");
+  it("The etherscan url should have value from buidler.config.js", function() {
+    assert.equal(this.env.etherscan.url, "https://api-ropsten.etherscan.io/api");
   });
 
-  it("The etherscan url should have value from buidler.config.js", function() {
-      assert.equal(this.env.etherscan.token, "testtoken");
+  it("The etherscan token should have value from buidler.config.js", function() {
+    assert.equal(this.env.etherscan.token, "");
   });
 });

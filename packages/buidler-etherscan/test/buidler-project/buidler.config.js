@@ -1,9 +1,7 @@
 require("../../src/index");
 
 module.exports = {
-
   etherscan: {
-    token: 'testtoken'
+    url: 'https://api-ropsten.etherscan.io/api',
   }
-
 };
