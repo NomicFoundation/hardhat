@@ -1,12 +1,13 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
-import { join } from "path";
+import { sep } from "path";
 
 import { ERRORS } from "../../../src/internal/core/errors";
 import {
   ResolvedFile,
   Resolver
 } from "../../../src/internal/solidity/resolver";
+import { join } from "../../../src/internal/util/join";
 import { expectBuidlerErrorAsync } from "../../helpers/errors";
 import {
   getFixtureProjectPath,
