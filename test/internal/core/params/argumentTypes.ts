@@ -11,6 +11,7 @@ function a(f: () => any) {
 }
 
 describe("argumentTypes", () => {
+  const isWindows = process.platform === "win32";
   it("should set the right name to all the argument types", () => {
     for (const typeName of Object.keys(types)) {
       const argumentTypesMap: {
@@ -236,6 +237,10 @@ describe("argumentTypes", () => {
     });
 
     it("Should throw if the file isn't readable", async () => {
+      if (isWindows) {
+        // we skip this test.
+        return;
+      }
       await fsExtra.createFile("A");
       await fsExtra.chmod("A", 0);
 
