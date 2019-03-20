@@ -1,0 +1,47 @@
+{
+  "name": "@nomiclabs/buidler-solhint",
+  "version": "1.0.0-beta.1",
+  "description": "Buidler plugin for solhint",
+  "repository": "github:nomiclabs/buidler-solhint",
+  "author": "Nomic Labs SRL",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
+    "lint": "tslint --config tslint.json --project tsconfig.json",
+    "test": "mocha ",
+    "build": "tsc",
+    "buidl": "tsc",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "solhint": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/fs-extra": "^5.0.4",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^8.10.38",
+    "chai": "^4.2.0",
+    "dotenv": "^6.2.0",
+    "fs-extra": "^7.0.1",
+    "mocha": "^5.2.0",
+    "prettier": "^1.15.3",
+    "source-map-support": "^0.5.9",
+    "ts-node": "^8.0.2",
+    "tslint": "^5.12.0",
+    "tslint-config-prettier": "^1.17.0",
+    "tslint-plugin-prettier": "^2.0.1",
+    "typescript": "^3.2.2"
+  },
+  "peerDependencies": {
+    "@nomiclabs/buidler": "^1.0.0-beta.2"
+  }
+}

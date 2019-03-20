@@ -1,0 +1,21 @@
+language: node_js
+
+node_js:
+  - "8"
+  - "10"
+
+install:
+  - yarn global add codecov
+  - yarn
+  - yarn add --peer @nomiclabs/buidler@^1.0.0-beta.2
+
+script:
+  - yarn test
+  - codecov
+  - yarn lint
+
+cache: yarn
+
+branches:
+  only:
+    - master
