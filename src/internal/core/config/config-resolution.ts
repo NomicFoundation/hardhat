@@ -12,10 +12,10 @@ import { fromEntries } from "../../util/lang";
 function mergeUserAndDefaultConfigs(
   defaultConfig: BuidlerConfig,
   userConfig: BuidlerConfig
-) {
+): Partial<ResolvedBuidlerConfig> {
   return deepmerge(defaultConfig, userConfig, {
     arrayMerge: (destination: any[], source: any[]) => source
-  });
+  }) as any;
 }
 
 /**
@@ -33,14 +33,15 @@ export function resolveConfig(
   defaultConfig: BuidlerConfig,
   userConfig: BuidlerConfig
 ): ResolvedBuidlerConfig {
-  const config: ResolvedBuidlerConfig = mergeUserAndDefaultConfigs(
-    defaultConfig,
-    userConfig
-  );
+  const config = mergeUserAndDefaultConfigs(defaultConfig, userConfig);
 
-  config.paths = resolveProjectPaths(userConfigPath, userConfig.paths);
+  const paths = resolveProjectPaths(userConfigPath, userConfig.paths);
 
-  return config;
+  return {
+    paths,
+    networks: config.networks!,
+    solc: config.solc!
+  };
 }
 
 function resolvePathFrom(
