@@ -23,13 +23,13 @@ internalTask(TASK_TEST_GET_TEST_FILES)
       return testFiles;
     }
 
-    const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
+    const jsFiles = await glob(path.join(config.paths.tests, "**", "*.js"));
 
     if (!isTypescriptSupported()) {
       return jsFiles;
     }
 
-    const tsFiles = await glob(path.join(config.paths.tests, "**/*.ts"));
+    const tsFiles = await glob(path.join(config.paths.tests, "**", "*.ts"));
 
     return [...jsFiles, ...tsFiles];
   });
