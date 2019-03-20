@@ -28,7 +28,8 @@
   "scripts": {
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && NODE_OPTIONS=\"-r ts-node/register\" tslint --fix --config tslint.json --project tsconfig.json --rules-dir ./tslint",
     "lint": "NODE_OPTIONS=\"-r ts-node/register\" tslint --config tslint.json --project tsconfig.json --rules-dir ./tslint",
-    "test": "nyc mocha",
+    "test": "mocha",
+    "coverage": "nyc mocha",
     "buidl": "tsc --p tsconfig.prod.json",
     "build": "tsc --p tsconfig.prod.json",
     "watch": "tsc -w --p tsconfig.prod.json",

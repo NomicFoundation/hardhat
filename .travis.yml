@@ -9,7 +9,7 @@ install:
   - yarn
 
 script:
-  - yarn test
+  - yarn coverage
   - codecov
   - yarn lint
 
