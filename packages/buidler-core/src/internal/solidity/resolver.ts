@@ -1,4 +1,4 @@
-import path from "path";
+import path, { join } from "path";
 
 import { BuidlerError, ERRORS } from "../core/errors";
 
@@ -203,7 +203,10 @@ export class Resolver {
   }
 
   public _isRelativeImport(imported: string): boolean {
-    return imported.startsWith("./") || imported.startsWith("../");
+    return (
+      imported.startsWith("." + path.sep) ||
+      imported.startsWith(".." + path.sep)
+    );
   }
 
   public _resolveFromProjectRoot(fileName: string) {
