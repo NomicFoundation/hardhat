@@ -236,7 +236,7 @@ describe("Resolver", () => {
 
       it("Should resolve existing files", async () => {
         const absolutePath = await fsExtra.realpath(
-          "node_modules/lib/contracts/L.sol"
+          join("node_modules", "lib", "contracts", "L.sol")
         );
         const { mtime } = await fsExtra.stat(absolutePath);
         const resolved = await resolver.resolveLibrarySourceFile(
@@ -244,7 +244,7 @@ describe("Resolver", () => {
         );
 
         assertResolvedFile(resolved, {
-          globalName: "lib/contracts/L.sol",
+          globalName: join("lib", "contracts", "L.sol"),
           absolutePath,
           content: "L",
           lastModificationDate: mtime,
@@ -255,15 +255,15 @@ describe("Resolver", () => {
         });
 
         const absolutePath2 = await fsExtra.realpath(
-          "node_modules/lib/contracts/subdir/L3.sol"
+          join("node_modules", "lib", "contracts", "subdir", "L3.sol")
         );
         const { mtime: mtime2 } = await fsExtra.stat(absolutePath2);
         const resolved2 = await resolver.resolveLibrarySourceFile(
-          "lib/contracts/subdir/L3.sol"
+          join("lib", "contracts", "subdir", "L3.sol")
         );
 
         assertResolvedFile(resolved2, {
-          globalName: "lib/contracts/subdir/L3.sol",
+          globalName: join("lib", "contracts", "subdir", "L3.sol"),
           absolutePath: absolutePath2,
           content: "L3",
           lastModificationDate: mtime2,
@@ -286,15 +286,15 @@ describe("Resolver", () => {
 
       it("should resolve a file of a library from the inner node_modules", async () => {
         const absolutePath = await fsExtra.realpath(
-          "node_modules/inner/contracts/L.sol"
+          join("node_modules", "inner", "contracts", "L.sol")
         );
         const { mtime } = await fsExtra.stat(absolutePath);
         const resolved = await resolver.resolveLibrarySourceFile(
-          "inner/contracts/L.sol"
+          join("inner", "contracts", "L.sol")
         );
 
         assertResolvedFile(resolved, {
-          globalName: "inner/contracts/L.sol",
+          globalName: join("inner", "contracts", "L.sol"),
           absolutePath,
           content: "L",
           lastModificationDate: mtime,
@@ -307,15 +307,15 @@ describe("Resolver", () => {
 
       it("should resolve a file of a library from the outer node_modules", async () => {
         const absolutePath = await fsExtra.realpath(
-          "../node_modules/outer/contracts/L.sol"
+          join("..", "node_modules", "outer", "contracts", "L.sol")
         );
         const { mtime } = await fsExtra.stat(absolutePath);
         const resolved = await resolver.resolveLibrarySourceFile(
-          "outer/contracts/L.sol"
+          join("outer", "contracts", "L.sol")
         );
 
         assertResolvedFile(resolved, {
-          globalName: "outer/contracts/L.sol",
+          globalName: join("outer", "contracts", "L.sol"),
           absolutePath,
           content: "L",
           lastModificationDate: mtime,
