@@ -89,7 +89,7 @@ describe("Config resolution", () => {
         root: "blah"
       });
 
-      assert.equal(paths.root, __dirname + "/blah");
+      assert.equal(paths.root, path.join(__dirname, "/blah"));
     });
 
     it("Should resolve the rest relative to the root", () => {
@@ -104,7 +104,7 @@ describe("Config resolution", () => {
 
       const root = __dirname + "/blah";
       assert.equal(paths.root, root);
-      assert.equal((paths as any).asdf, root + "/asd");
+      assert.equal((paths as any).asdf, path.join(root, "/asd"));
       assert.equal(paths.sources, root + "/c");
       assert.equal(paths.artifacts, root + "/a");
       assert.equal(paths.cache, root + "/ca");
