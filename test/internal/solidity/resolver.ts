@@ -224,12 +224,15 @@ describe("Resolver", () => {
 
       it("Should throw if the library is installed but the file is not found", async () => {
         await expectBuidlerErrorAsync(
-          () => resolver.resolveLibrarySourceFile("lib/NOT-FOUND.sol"),
+          () => resolver.resolveLibrarySourceFile(join("lib", "NOT-FOUND.sol")),
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         );
 
         await expectBuidlerErrorAsync(
-          () => resolver.resolveLibrarySourceFile("lib/../../contracts/A.sol"),
+          () =>
+            resolver.resolveLibrarySourceFile(
+              join("lib", "..", "..", "contracts", "A.sol")
+            ),
           ERRORS.RESOLVER.FILE_OUTSIDE_LIB
         );
       });
@@ -395,27 +398,27 @@ describe("Resolver", () => {
         "contracts/A.sol"
       );
       resolvedLibFile = await resolver.resolveLibrarySourceFile(
-        "lib/contracts/L.sol"
+        join("lib", "contracts", "L.sol")
       );
     });
 
     it("Should resolve absolute imports as libraries", async () => {
       const absolutePath = await fsExtra.realpath(
-        "node_modules/lib/contracts/L2.sol"
+        join("node_modules", "lib", "contracts", "L2.sol")
       );
       const { mtime } = await fsExtra.stat(absolutePath);
       const resolvedFromLocalFile = await resolver.resolveImport(
         resolvedLocalFile,
-        "lib/contracts/L2.sol"
+        join("lib", "contracts", "L2.sol")
       );
 
       const resolvedFromLibFile = await resolver.resolveImport(
         resolvedLibFile,
-        "lib/contracts/L2.sol"
+        join("lib", "contracts", "L2.sol")
       );
 
       const expected = {
-        globalName: "lib/contracts/L2.sol",
+        globalName: join("lib", "contracts", "L2.sol"),
         absolutePath,
         content: "L2",
         lastModificationDate: mtime,
@@ -434,7 +437,7 @@ describe("Resolver", () => {
       const { mtime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveImport(
         resolvedLocalFile,
-        "./subdir/../B.sol"
+        join(".", "subdir", "..", "B.sol")
       );
 
       assertResolvedFile(resolved, {
@@ -473,7 +476,16 @@ describe("Resolver", () => {
         () =>
           resolver.resolveImport(
             resolvedLibFile,
-            "../../../../../sample-project/contracts/Greeter.sol"
+            join(
+              "..",
+              "..",
+              "..",
+              "..",
+              "..",
+              "sample-project",
+              "contracts",
+              "Greeter.sol"
+            )
           ),
         ERRORS.RESOLVER.ILLEGAL_IMPORT
       );
@@ -484,7 +496,15 @@ describe("Resolver", () => {
         () =>
           resolver.resolveImport(
             resolvedLocalFile,
-            "../../../../sample-project/contracts/Greeter.sol"
+            join(
+              "..",
+              "..",
+              "..",
+              "..",
+              "sample-project",
+              "contracts",
+              "Greeter.sol"
+            )
           ),
         ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT
       );
