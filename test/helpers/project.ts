@@ -1,4 +1,5 @@
 import * as fsExtra from "fs-extra";
+import { join } from "path";
 
 /**
  * This helper adds mocha hooks to run the tests inside one of the projects
@@ -27,7 +28,7 @@ export function useFixtureProject(projectName: string) {
 export async function getFixtureProjectPath(
   projectName: string
 ): Promise<string> {
-  const projectPath = __dirname + "/../fixture-projects/" + projectName;
+  const projectPath = join(__dirname, "..", "fixture-projects", projectName);
   if (!(await fsExtra.pathExists(projectPath))) {
     throw new Error(`Fixture project ${projectName} doesn't exist`);
   }
