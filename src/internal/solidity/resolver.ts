@@ -80,7 +80,7 @@ export class Resolver {
     globalName: string
   ): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
-    const libraryName = globalName.slice(0, globalName.indexOf("/"));
+    const libraryName = globalName.slice(0, globalName.indexOf(path.sep));
 
     let packagePath;
     try {
@@ -146,7 +146,7 @@ export class Resolver {
         }
 
         const globalName = path.normalize(
-          path.dirname(from.globalName) + "/" + imported
+          join(path.dirname(from.globalName), imported)
         );
 
         const isIllegal = !globalName.startsWith(from.library.name + path.sep);
