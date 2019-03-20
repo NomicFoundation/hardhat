@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
+import { join } from "path";
 
 import { ERRORS } from "../../../../src/internal/core/errors";
 import {
@@ -152,7 +153,7 @@ describe("Compiler downloader", function() {
       await downloader.downloadCompilersList();
 
       assert.equal(urlUsed, expectedUrl);
-      assert.equal(pathUsed, compilersDir + "/list.json");
+      assert.equal(pathUsed, join(compilersDir, "list.json"));
     });
 
     it("Should throw the right error if the download fails", async function() {
@@ -174,7 +175,7 @@ describe("Compiler downloader", function() {
   describe("Compilers list exists", function() {
     it("Should return true if it does", async function() {
       const compilersDir = this.tmpDir;
-      await fsExtra.createFile(compilersDir + "/list.json");
+      await fsExtra.createFile(join(compilersDir, "list.json"));
 
       const downloader = new CompilerDownloader(
         compilersDir,
@@ -219,7 +220,10 @@ describe("Compiler downloader", function() {
     });
 
     async function saveMockCompilersList() {
-      await fsExtra.outputJSON(compilersDir + "/list.json", mockCompilerList);
+      await fsExtra.outputJSON(
+        join(compilersDir, "list.json"),
+        mockCompilerList
+      );
     }
 
     describe("When there's an already downloaded list", function() {
@@ -300,10 +304,13 @@ describe("Compiler downloader", function() {
     beforeEach(async function() {
       compilersDir = this.tmpDir;
 
-      downloadedPath = compilersDir + "/" + localCompilerBuild.path;
+      downloadedPath = join(compilersDir, localCompilerBuild.path);
 
       downloadCalled = false;
-      await fsExtra.outputJSON(compilersDir + "/list.json", mockCompilerList);
+      await fsExtra.outputJSON(
+        join(compilersDir, "list.json"),
+        mockCompilerList
+      );
 
       mockDownloader = new CompilerDownloader(
         compilersDir,
