@@ -55,7 +55,7 @@ export class Resolver {
       throw new BuidlerError(ERRORS.RESOLVER.FILE_NOT_FOUND, pathToResolve);
     }
 
-    const absolutePath = await fsExtra.realpath(pathToResolve);
+    const absolutePath = path.normalize(await fsExtra.realpath(pathToResolve));
 
     if (!absolutePath.startsWith(this.projectRoot)) {
       throw new BuidlerError(
