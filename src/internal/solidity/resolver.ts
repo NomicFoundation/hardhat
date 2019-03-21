@@ -81,12 +81,15 @@ export class Resolver {
   ): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
     const libraryName = globalName.slice(0, globalName.indexOf(path.sep));
-
+    console.log("global", globalName);
+    console.log("library", libraryName);
     let packagePath;
     try {
+      console.log("possible package", join(libraryName, "package.json"));
       packagePath = this._resolveFromProjectRoot(
-        path.join(libraryName, "package.json")
+        join(libraryName, "package.json")
       );
+      console.log("package", packagePath);
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
@@ -98,6 +101,7 @@ export class Resolver {
     let absolutePath;
     try {
       absolutePath = this._resolveFromProjectRoot(globalName);
+      console.log("absolute", absolutePath);
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
@@ -107,12 +111,13 @@ export class Resolver {
     }
 
     const libraryPath = path.dirname(packagePath);
+    console.log(libraryPath, globalName, absolutePath);
     if (!absolutePath.startsWith(libraryPath)) {
       // If it's still from a library with the same name what is happening is
       // that the package.json and the file are being resolved to different
       // installations of the library. This can lead to very confusing
       // situations, so we only use the closes installation
-      if (absolutePath.includes(`node_modules/${libraryName}`)) {
+      if (absolutePath.includes(join("node_modules", libraryName))) {
         throw new BuidlerError(
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
           globalName
@@ -210,6 +215,7 @@ export class Resolver {
   }
 
   public _resolveFromProjectRoot(fileName: string) {
+    console.log("projectRoot", this.projectRoot);
     return require.resolve(fileName, {
       paths: [this.projectRoot]
     });
