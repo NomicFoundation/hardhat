@@ -1,5 +1,6 @@
 import { BuidlerContext } from "../../src/internal/context";
 import { glob } from "../../src/internal/util/glob";
+import { join } from "../../src/internal/util/join";
 
 /**
  * This function resets the buidler context.
@@ -29,7 +30,9 @@ export async function resetBuidlerContext() {
   unloadModule("../../src/internal/core/tasks/builtin-tasks");
 
   // and buidler's builtin tasks.
-  const tasks = await glob(__dirname + "/../../src/builtin-tasks/**/*");
+  const tasks = await glob(
+    join(__dirname, "..", "..", "src", "builtin-tasks", "**", "*")
+  );
   tasks.forEach((task: string) => {
     unloadModule(task);
   });
