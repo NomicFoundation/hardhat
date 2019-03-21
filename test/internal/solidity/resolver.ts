@@ -234,7 +234,7 @@ describe("Resolver", () => {
         );
       });
 
-      it.only("Should throw if the library is installed but the file is not found", async () => {
+      it("Should throw if the library is installed but the file is not found", async () => {
         await expectBuidlerErrorAsync(
           () => resolver.resolveLibrarySourceFile(join("lib", "NOT-FOUND.sol")),
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
