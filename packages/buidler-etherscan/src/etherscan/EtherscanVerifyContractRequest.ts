@@ -24,7 +24,7 @@ export default class EtherscanVerifyContractRequest {
     address: string,
     libraries: string,
     source: string,
-    constructorArguments: string[]
+    constructorArguments: string,
   ) {
     this.apikey = etherscanConfig.token;
     this.contractaddress = address;
@@ -33,9 +33,7 @@ export default class EtherscanVerifyContractRequest {
     this.compilerversion = solcConfig.fullVersion;
     this.optimizationUsed = solcConfig.optimizer.enabled ? 1 : 0;
     this.runs = solcConfig.optimizer.runs;
-    this.constructorArguements = constructorArguments
-      ? constructorArguments.join(" ")
-      : "";
+    this.constructorArguements = constructorArguments;
     this.setLibraries(libraries);
   }
 

@@ -1,5 +1,4 @@
 import {
-    TASK_COMPILE_RUN_COMPILER,
     TASK_FLATTEN_GET_FLATTENED_SOURCE
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import {extendEnvironment, task} from "@nomiclabs/buidler/config";
@@ -8,8 +7,9 @@ import {BuidlerPluginError, lazyObject} from "@nomiclabs/buidler/plugins";
 import EtherscanService from "./etherscan/EtherscanService";
 import EtherscanVerifyContractRequest
     from "./etherscan/EtherscanVerifyContractRequest";
-import SolcVersions from "./solc/SolcVersions";
 import ContractCompiler from "./ContractCompiler";
+import AbiEncoder from "./AbiEncoder";
+import SolcVersions from "./solc/SolcVersions";
 
 export class EtherscanBuidlerEnvironment {
     constructor(
@@ -74,6 +74,7 @@ task("verify-contract", "Verifies contract on etherscan")
             }
             const flattenedSource = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
             const abi = await new ContractCompiler(run).getAbi(flattenedSource, taskArgs.contractName);
+            config.solc.fullVersion = await SolcVersions.toLong(config.solc.version);
             const request = new EtherscanVerifyContractRequest(
                 etherscan,
                 config.solc,
@@ -81,7 +82,7 @@ task("verify-contract", "Verifies contract on etherscan")
                 taskArgs.address,
                 taskArgs.libraries,
                 flattenedSource,
-                taskArgs.constructorArguments
+                AbiEncoder.encodeConstructor(abi, taskArgs.constructorArguments)
             );
             const etherscanService = new EtherscanService(etherscan.url);
             const response = await etherscanService.verifyContract(request);
