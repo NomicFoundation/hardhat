@@ -6,6 +6,7 @@
  */
 import { BuidlerContext } from "./context";
 import { globSync } from "./util/glob";
+import { join } from "./util/join";
 
 export function resetBuidlerContext() {
   if (BuidlerContext.isCreated()) {
@@ -33,7 +34,10 @@ export function resetBuidlerContext() {
 
   // TODO#plugins-refactor: once the refactor is done, we can make builtin tasks
   // a plugin so this won't be necessary
-  const tasks = globSync(__dirname + "/../builtin-tasks/**/*");
+  const tasks = globSync(
+    join(__dirname, "..", "..", "src", "builtin-tasks", "**", "*")
+  );
+
   tasks.forEach((task: string) => {
     unloadModule(task);
   });
