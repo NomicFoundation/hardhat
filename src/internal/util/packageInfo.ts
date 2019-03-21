@@ -1,6 +1,8 @@
 import findup from "find-up";
 import path from "path";
 
+import { join } from "./join";
+
 async function getPackageJsonPath(): Promise<string> {
   return findClosestPackageJson(__filename)!;
 }
@@ -27,5 +29,5 @@ export async function getPackageJson(): Promise<PackageJson> {
   const fsExtra = await import("fs-extra");
   const root = await getPackageRoot();
 
-  return fsExtra.readJSON(root + "/package.json");
+  return fsExtra.readJSON(join(root, "package.json"));
 }
