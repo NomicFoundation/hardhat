@@ -6,6 +6,7 @@ export default class SolcVersions {
     const solc = new SolcVersions();
     return solc.getLongVersion(shortVersion);
   }
+
   public async getLongVersion(shortVersion: string) {
     const versions = await this.getVersions();
     return versions[shortVersion].replace(/(soljson-)(.*)(.js)/, "$2");
