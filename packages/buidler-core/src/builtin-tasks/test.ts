@@ -1,8 +1,7 @@
-import path from "path";
-
 import { internalTask, task } from "../internal/core/config/config-env";
 import { isTypescriptSupported } from "../internal/core/typescript-support";
 import { glob } from "../internal/util/glob";
+import { join } from "../internal/util/join";
 
 import {
   TASK_COMPILE,
@@ -23,13 +22,13 @@ internalTask(TASK_TEST_GET_TEST_FILES)
       return testFiles;
     }
 
-    const jsFiles = await glob(path.join(config.paths.tests, "**", "*.js"));
+    const jsFiles = await glob(join(config.paths.tests, "**", "*.js"));
 
     if (!isTypescriptSupported()) {
       return jsFiles;
     }
 
-    const tsFiles = await glob(path.join(config.paths.tests, "**", "*.ts"));
+    const tsFiles = await glob(join(config.paths.tests, "**", "*.ts"));
 
     return [...jsFiles, ...tsFiles];
   });
