@@ -239,8 +239,6 @@ describe("Resolver", () => {
           () => resolver.resolveLibrarySourceFile(join("lib", "NOT-FOUND.sol")),
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         );
-        console.log("lib/../../contracts/A.sol");
-        console.log(join("lib", "..", "..", "contracts", "A.sol"));
 
         // const pathToFile = join("lib", "..", "..", "contracts", "A.sol");
         const pathToFile =

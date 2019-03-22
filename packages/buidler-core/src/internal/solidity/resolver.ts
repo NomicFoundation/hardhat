@@ -203,7 +203,12 @@ export class Resolver {
   }
 
   public _isRelativeImport(imported: string): boolean {
-    return imported.startsWith("./") || imported.startsWith("../");
+    return (
+      imported.startsWith("./") ||
+      imported.startsWith("../") ||
+      imported.startsWith(".." + path.sep) ||
+      imported.startsWith(".." + path.sep)
+    );
   }
 
   public _resolveFromProjectRoot(fileName: string) {
