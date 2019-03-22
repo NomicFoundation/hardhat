@@ -3,7 +3,7 @@ import { sep } from "path";
 
 import { join } from "../../../src/internal/util/join";
 
-describe.only("join", () => {
+describe("join", () => {
   function getPath(parts: string[]): string {
     return parts.reduce((currentPath, part) => currentPath + sep + part);
   }
