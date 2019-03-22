@@ -71,7 +71,7 @@ describe("Typescript support", function() {
         testFiles: []
       });
 
-      assert.deepEqual(tests.sort(), [
+      assert.deepEqual(tests.sort().map(f => path.normalize(f)), [
         path.normalize(await fsExtra.realpath(join("test", "js-test.js"))),
         path.normalize(await fsExtra.realpath(join("test", "ts-test.ts")))
       ]);
