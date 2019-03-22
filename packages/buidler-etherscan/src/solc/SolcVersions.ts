@@ -10,8 +10,8 @@ export default class SolcVersions {
   public async getLongVersion(shortVersion: string) {
     const versions = await this.getVersions();
     const fullVersion = versions[shortVersion];
-    if(!fullVersion) {
-      throw new BuidlerPluginError('Given solc version doesn\'t exists');
+    if (!fullVersion) {
+      throw new BuidlerPluginError("Given solc version doesn't exists");
     }
     return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
   }
