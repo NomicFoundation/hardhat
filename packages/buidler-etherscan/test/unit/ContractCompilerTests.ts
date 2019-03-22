@@ -1,11 +1,8 @@
 import ContractCompiler from '../../src/ContractCompiler';
 import {BuidlerPluginError} from "@nomiclabs/buidler/plugins";
 import {assert} from "chai";
-import { RunTaskFunction } from "@nomiclabs/buidler/types";
 
 describe("ContractCompiler tests", () => {
-
-    let run: RunTaskFunction;
 
     it('verify error is thrown if there is no contract name in compiled contracts', () => {
         const compiler = new ContractCompiler(async () => await {errors: [{message: 'errors'}]});

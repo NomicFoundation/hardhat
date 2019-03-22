@@ -9,7 +9,11 @@ export default class SolcVersions {
 
   public async getLongVersion(shortVersion: string) {
     const versions = await this.getVersions();
-    return versions[shortVersion].replace(/(soljson-)(.*)(.js)/, "$2");
+    const fullVersion = versions[shortVersion];
+    if(!fullVersion) {
+      throw new BuidlerPluginError('Given solc version doesn\'t exists');
+    }
+    return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
   }
 
   public async getVersions(): Promise<{ [key: string]: string }> {
@@ -21,7 +25,7 @@ export default class SolcVersions {
       return response.releases;
     } catch (e) {
       throw new BuidlerPluginError(
-        "Failed to send contract verification request. Reason: " + e.message
+        "Failed to obtain full solc version. Reason: " + e.message
       );
     }
   }

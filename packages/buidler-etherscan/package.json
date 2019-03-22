@@ -29,14 +29,17 @@
     "@types/ethereumjs-abi": "^0.6.3",
     "@types/fs-extra": "^5.0.4",
     "@types/mocha": "^5.2.5",
+    "@types/nock": "^9.3.1",
     "@types/node": "^8.10.38",
     "@types/request": "^2.48.1",
     "@types/request-promise": "^4.1.42",
     "chai": "^4.2.0",
     "dotenv": "^6.2.0",
     "mocha": "^5.2.0",
+    "nock": "^10.0.6",
     "prettier": "^1.15.3",
     "source-map-support": "^0.5.9",
+    "ts-mockito": "^2.3.1",
     "ts-node": "^8.0.2",
     "tslint": "^5.12.0",
     "tslint-config-prettier": "^1.17.0",
@@ -44,7 +47,7 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "1.0.0-beta.2"
+    "@nomiclabs/buidler": "^1.0.0-beta.2"
   },
   "dependencies": {
     "ethereumjs-abi": "^0.6.7",
