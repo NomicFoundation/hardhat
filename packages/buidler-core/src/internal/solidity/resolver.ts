@@ -1,6 +1,7 @@
-import path, { join } from "path";
+import path from "path";
 
 import { BuidlerError, ERRORS } from "../core/errors";
+import { join } from "../util/join";
 
 export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
@@ -202,10 +203,7 @@ export class Resolver {
   }
 
   public _isRelativeImport(imported: string): boolean {
-    return (
-      imported.startsWith("." + path.sep) ||
-      imported.startsWith(".." + path.sep)
-    );
+    return imported.startsWith("./") || imported.startsWith("../");
   }
 
   public _resolveFromProjectRoot(fileName: string) {
