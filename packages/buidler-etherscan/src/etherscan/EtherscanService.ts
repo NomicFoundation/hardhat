@@ -43,12 +43,15 @@ export default class EtherscanService {
         await this.delay(2000);
         return this.getVerificationStatus(guid);
       }
+      if(!response.isOk()) {
+          throw new BuidlerPluginError(
+              response.message
+          );
+      }
       return response;
     } catch (e) {
       throw new BuidlerPluginError(
-        "Failed to send verification status for " +
-          guid +
-          ". Error: " +
+          "Failed to verify contract. Reason: " +
           e.message
       );
     }

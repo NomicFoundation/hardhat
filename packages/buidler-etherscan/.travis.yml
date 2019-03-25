@@ -10,7 +10,7 @@ install:
   - yarn add --peer @nomiclabs/buidler@^1.0.0-beta.2
 
 script:
-  - yarn test
+  - yarn test:unit
   - codecov
   - yarn lint
 

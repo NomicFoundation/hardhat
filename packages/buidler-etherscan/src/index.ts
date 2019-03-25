@@ -49,6 +49,10 @@ task("verify-contract", "Verifies contract on etherscan")
     "libraries",
     'Stringified JSON object in format of {library1: "0x2956356cd2a2bf3202f771f50d3d14a367b48071"}'
   )
+  .addOptionalParam(
+    "source",
+    'Contract source'
+  )
   .addOptionalVariadicPositionalParam(
     "constructorArguments",
     "arguments for contract constructor"
@@ -59,6 +63,7 @@ task("verify-contract", "Verifies contract on etherscan")
         contractName: string;
         address: string;
         libraries: string;
+        source: string;
         constructorArguments: string[];
       },
       { etherscan, config, run }
@@ -68,9 +73,14 @@ task("verify-contract", "Verifies contract on etherscan")
           "Please provide etherscan api token via buidler.config.js (etherscan.token)"
         );
       }
-      const flattenedSource = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+      let source = "";
+      if(taskArgs.source) {
+        source = taskArgs.source
+      } else {
+        source = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+      }
       const abi = await new ContractCompiler(run).getAbi(
-        flattenedSource,
+        source,
         taskArgs.contractName
       );
       config.solc.fullVersion = await SolcVersions.toLong(config.solc.version);
@@ -80,7 +90,7 @@ task("verify-contract", "Verifies contract on etherscan")
         taskArgs.contractName,
         taskArgs.address,
         taskArgs.libraries,
-        flattenedSource,
+        source,
         AbiEncoder.encodeConstructor(abi, taskArgs.constructorArguments)
       );
       const etherscanService = new EtherscanService(etherscan.url);

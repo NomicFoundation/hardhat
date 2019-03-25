@@ -1,5 +1,5 @@
 /dist
-
+/test/buidler-project/cache/
 # Logs
 logs
 *.log

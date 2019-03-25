@@ -42,7 +42,12 @@ describe("ContractCompiler tests", () => {
                 {
                   realAbi: true
                 }
-              ]
+              ],
+              evm: {
+                bytecode: {
+                  object: '123'
+                }
+              }
             }
           }
         }
