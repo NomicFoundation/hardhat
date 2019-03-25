@@ -45,7 +45,7 @@ describe("ContractCompiler tests", () => {
               ],
               evm: {
                 bytecode: {
-                  object: '123'
+                  object: "123"
                 }
               }
             }

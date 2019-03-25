@@ -49,10 +49,7 @@ task("verify-contract", "Verifies contract on etherscan")
     "libraries",
     'Stringified JSON object in format of {library1: "0x2956356cd2a2bf3202f771f50d3d14a367b48071"}'
   )
-  .addOptionalParam(
-    "source",
-    'Contract source'
-  )
+  .addOptionalParam("source", "Contract source")
   .addOptionalVariadicPositionalParam(
     "constructorArguments",
     "arguments for contract constructor"
@@ -74,8 +71,8 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
       let source = "";
-      if(taskArgs.source) {
-        source = taskArgs.source
+      if (taskArgs.source) {
+        source = taskArgs.source;
       } else {
         source = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
       }

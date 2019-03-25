@@ -8,7 +8,6 @@ declare module "mocha" {
 }
 
 describe("BuidlerRuntimeEnvironment extension", function() {
-
   before("Buidler project setup", function() {
     process.chdir(__dirname + "/../buidler-project");
     process.env.BUIDLER_NETWORK = "develop";
@@ -28,6 +27,6 @@ describe("BuidlerRuntimeEnvironment extension", function() {
   });
 
   it("The etherscan token should have value from buidler.config.js", function() {
-    assert.equal(this.env.etherscan.token, "QJBGHU5IH52MIB2HNYP51ZWIBFR6MYGNY6");
+    assert.equal(this.env.etherscan.token, "testtoken");
   });
 });
