@@ -16,6 +16,10 @@ When updating/adding Buidler or other peer dependencies, you should update the `
 
 Running `yarn test` will run every test located in the `test/` folder. They use [mocha](https://mochajs.org) and [chai](https://www.chaijs.com/), but you can customize them.
 
+You can run only integration tests with `yarn run test:integration` and unit with `yarn run test:unit`.
+
+For integration tests, it is required to set env (.env file) variable `WALLET_PRIVATE_KEY` with ropsten wallet private key.
+
 We recommend creating unit tests for your own modules, and integration tests for the interaction of the plugin with Buidler and its dependencies.
 
 ## Linting and autoformat
