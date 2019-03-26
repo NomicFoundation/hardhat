@@ -2,7 +2,7 @@
   "name": "@nomiclabs/buidler-etherscan",
   "version": "0.0.1",
   "description": "Buidler TypeScript plugin for verifying contracts on etherscan",
-  "repository": "github:nomiclabs/buidler-ts-plugin-boilerplate",
+  "repository": "github:nomiclabs/buidler-etherscan",
   "contributors": [
     "Nomic Labs SRL",
     "Marin Petrunić <marin@nodefactory.io>"
@@ -28,7 +28,9 @@
   ],
   "devDependencies": {
     "@types/chai": "^4.1.7",
+    "@types/download": "^6.2.4",
     "@types/ethereumjs-abi": "^0.6.3",
+    "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^5.0.4",
     "@types/mocha": "^5.2.5",
     "@types/nock": "^9.3.1",
@@ -50,7 +52,7 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.2"
+    "@nomiclabs/buidler": "1.0.0-beta.2"
   },
   "dependencies": {
     "ethereumjs-abi": "^0.6.7",

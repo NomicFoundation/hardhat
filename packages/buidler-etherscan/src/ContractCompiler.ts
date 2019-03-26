@@ -31,7 +31,7 @@ export default class ContractCompiler {
       }
     }
     throw new BuidlerPluginError(
-      "Given contract name doesn't exist in sources"
+      `Given contract name (${contractName}) doesn't exist in sources`
     );
   }
 

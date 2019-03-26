@@ -1,5 +1,11 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import {CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/downloader";
 import request from "request-promise";
+
+const COMPILER_FILES_DIR_URL =
+  "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
+
+const COMPILERS_LIST_URL = COMPILER_FILES_DIR_URL + "list.json";
 
 export default class SolcVersions {
   public static async toLong(shortVersion: string) {
@@ -9,20 +15,19 @@ export default class SolcVersions {
 
   public async getLongVersion(shortVersion: string) {
     const versions = await this.getVersions();
-    const fullVersion = versions[shortVersion];
+    const fullVersion = versions.releases[shortVersion];
     if (!fullVersion) {
       throw new BuidlerPluginError("Given solc version doesn't exists");
     }
     return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
   }
 
-  public async getVersions(): Promise<{ [key: string]: string }> {
+  public async getVersions(): Promise<CompilersList> {
     try {
-      const response: any = await request.get(
-        "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json",
+      return await request.get(
+        COMPILERS_LIST_URL,
         { json: true }
       );
-      return response.releases;
     } catch (e) {
       throw new BuidlerPluginError(
         "Failed to obtain full solc version. Reason: " + e.message

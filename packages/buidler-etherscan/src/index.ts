@@ -11,7 +11,7 @@ import SolcVersions from "./solc/SolcVersions";
 export class EtherscanBuidlerEnvironment {
   constructor(
     public readonly url: string = "https://api.etherscan.io/api",
-    public readonly token: string = ""
+    public readonly apiKey: string = ""
   ) {}
 }
 
@@ -21,9 +21,9 @@ declare module "@nomiclabs/buidler/types" {
   }
 
   export interface ResolvedBuidlerConfig {
-    etherscan: {
-      url?: string;
-      token?: string;
+    etherscan?: {
+      url: string;
+      apiKey: string;
     };
   }
 
@@ -34,11 +34,15 @@ declare module "@nomiclabs/buidler/types" {
 
 extendEnvironment(env => {
   env.etherscan = lazyObject(
-    () =>
-      new EtherscanBuidlerEnvironment(
-        env.config.etherscan.url,
-        env.config.etherscan.token
-      )
+    () => {
+      if(env.config.etherscan) {
+        return new EtherscanBuidlerEnvironment(
+          env.config.etherscan.url,
+          env.config.etherscan.apiKey
+        )
+      }
+      return new EtherscanBuidlerEnvironment();
+    }
   );
 });
 
@@ -65,9 +69,9 @@ task("verify-contract", "Verifies contract on etherscan")
       },
       { etherscan, config, run }
     ) => {
-      if (!etherscan.token || !etherscan.token.trim()) {
+      if (!etherscan.apiKey || !etherscan.apiKey.trim()) {
         throw new BuidlerPluginError(
-          "Please provide etherscan api token via buidler.config.js (etherscan.token)"
+          "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
         );
       }
       let source = "";

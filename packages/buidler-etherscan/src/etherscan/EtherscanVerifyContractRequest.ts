@@ -26,7 +26,7 @@ export default class EtherscanVerifyContractRequest {
     source: string,
     constructorArguments: string
   ) {
-    this.apikey = etherscanConfig.token;
+    this.apikey = etherscanConfig.apiKey;
     this.contractaddress = address;
     this.sourceCode = source;
     this.contractname = contractName;
