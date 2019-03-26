@@ -20,7 +20,7 @@ declare module "@nomiclabs/buidler/types" {
     etherscan: EtherscanBuidlerEnvironment;
   }
 
-  export interface ResolvedBuidlerConfig {
+  export interface BuidlerConfig {
     etherscan?: {
       url?: string;
       apiKey?: string;
