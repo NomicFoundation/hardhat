@@ -22,8 +22,8 @@ declare module "@nomiclabs/buidler/types" {
 
   export interface ResolvedBuidlerConfig {
     etherscan?: {
-      url: string;
-      apiKey: string;
+      url?: string;
+      apiKey?: string;
     };
   }
 
@@ -33,17 +33,15 @@ declare module "@nomiclabs/buidler/types" {
 }
 
 extendEnvironment(env => {
-  env.etherscan = lazyObject(
-    () => {
-      if(env.config.etherscan) {
-        return new EtherscanBuidlerEnvironment(
-          env.config.etherscan.url,
-          env.config.etherscan.apiKey
-        )
-      }
-      return new EtherscanBuidlerEnvironment();
+  env.etherscan = lazyObject(() => {
+    if (env.config.etherscan) {
+      return new EtherscanBuidlerEnvironment(
+        env.config.etherscan.url,
+        env.config.etherscan.apiKey
+      );
     }
-  );
+    return new EtherscanBuidlerEnvironment();
+  });
 });
 
 task("verify-contract", "Verifies contract on etherscan")

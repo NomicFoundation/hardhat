@@ -1,5 +1,5 @@
+import { CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/downloader";
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import {CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/downloader";
 import request from "request-promise";
 
 const COMPILER_FILES_DIR_URL =
@@ -24,10 +24,7 @@ export default class SolcVersions {
 
   public async getVersions(): Promise<CompilersList> {
     try {
-      return await request.get(
-        COMPILERS_LIST_URL,
-        { json: true }
-      );
+      return await request.get(COMPILERS_LIST_URL, { json: true });
     } catch (e) {
       throw new BuidlerPluginError(
         "Failed to obtain full solc version. Reason: " + e.message

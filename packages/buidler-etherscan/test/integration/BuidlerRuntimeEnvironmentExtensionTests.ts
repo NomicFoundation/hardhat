@@ -27,6 +27,9 @@ describe("BuidlerRuntimeEnvironment extension", function() {
   });
 
   it("The etherscan token should have value from buidler.config.js", function() {
-    assert.equal(this.env.etherscan.apiKey, process.env.ETHERSCAN_API_KEY || "testtoken");
+    assert.equal(
+      this.env.etherscan.apiKey,
+      process.env.ETHERSCAN_API_KEY || "testtoken"
+    );
   });
 });
