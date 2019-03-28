@@ -1,8 +1,14 @@
 {
-  "extends": "./tsconfig.common",
-  "compilerOptions": {
-    "outDir": "./dev-build",
-    "rootDirs": ["./src", "./test"]
-  },
-  "include": ["./test", "./src/**/*.ts"]
+  "extends": "./config/typescript/tsconfig.json",
+  "references": [
+    {
+      "path": "./packages/test-plugin/test"
+    },
+    {
+      "path": "./packages/test-core/test"
+    },
+    {
+      "path": "./packages/buidler-core/test"
+    }
+  ]
 }

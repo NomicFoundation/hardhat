@@ -1,5 +1,21 @@
-/node_modules
-/.idea
+# vuepress
+/docs/.vuepress/dist/
+
+# Tests compilation output
+/build-test/
+
+# Code coverage artifacts
+/coverage
+/.nyc_output
+
+# TSC prod output. This has to be in sync with the to directories in ./src, and with npm script clean
+
+/*.js
+/*.js.map
+/*.d.ts
+/*.d.ts.map
+/builtin-tasks
+/internal
 
 #Below is Github's node gitignore template
 
