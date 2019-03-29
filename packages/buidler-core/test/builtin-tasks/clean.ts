@@ -2,7 +2,6 @@ import { assert } from "chai";
 import * as fs from "fs";
 
 import { TASK_CLEAN } from "../../src/builtin-tasks/task-names";
-import { resetBuidlerContext } from "../helpers/context";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
@@ -18,10 +17,6 @@ function assertCleanBehavior() {
 describe("Clean task", () => {
   useFixtureProject("default-config-project");
   useEnvironment();
-
-  afterEach(async () => {
-    await resetBuidlerContext();
-  });
 
   describe("When cache and artifact dirs don't exist", function() {
     assertCleanBehavior();

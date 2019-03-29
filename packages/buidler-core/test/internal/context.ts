@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { BuidlerContext } from "../../src/internal/context";
 import { ERRORS } from "../../src/internal/core/errors";
-import { resetBuidlerContext } from "../helpers/context";
+import { resetBuidlerContext } from "../../src/internal/reset";
 import { useEnvironment } from "../helpers/environment";
 import { expectBuidlerError } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
@@ -22,8 +22,8 @@ describe("Buidler context", async function() {
   });
 
   describe("create context but no environment", async function() {
-    afterEach("reset context", async function() {
-      await resetBuidlerContext();
+    afterEach("reset context", function() {
+      resetBuidlerContext();
     });
 
     it("context is defined", async function() {

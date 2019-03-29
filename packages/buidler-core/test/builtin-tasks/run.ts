@@ -2,7 +2,6 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 
 import { ERRORS } from "../../src/internal/core/errors";
-import { resetBuidlerContext } from "../helpers/context";
 import { useEnvironment } from "../helpers/environment";
 import { expectBuidlerErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
@@ -22,10 +21,6 @@ describe("run task", function() {
     }
 
     process.exit = patchedExit as any;
-  });
-
-  afterEach(async () => {
-    await resetBuidlerContext();
   });
 
   after("Unpatch process.exit", function() {

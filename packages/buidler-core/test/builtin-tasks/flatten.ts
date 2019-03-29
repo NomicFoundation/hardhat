@@ -1,7 +1,6 @@
 import { assert } from "chai";
 
 import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "../../src/builtin-tasks/task-names";
-import { resetBuidlerContext } from "../helpers/context";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
@@ -14,10 +13,6 @@ function getContractsOrder(flattenedFiles: string) {
 
 describe("Flatten task", () => {
   useEnvironment();
-
-  afterEach(async () => {
-    await resetBuidlerContext();
-  });
 
   describe("When there no contracts", function() {
     useFixtureProject("default-config-project");

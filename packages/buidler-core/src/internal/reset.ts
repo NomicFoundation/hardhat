@@ -1,13 +1,13 @@
-import { BuidlerContext } from "../../src/internal/context";
-import { glob } from "../../src/internal/util/glob";
-
 /**
  * This function resets the buidler context.
  *
  * This doesn't unload any loaded Buidler plugin, so those have to be unloaded
  * manually with `unloadModule`.
  */
-export async function resetBuidlerContext() {
+import { BuidlerContext } from "./context";
+import { globSync } from "./util/glob";
+
+export function resetBuidlerContext() {
   if (BuidlerContext.isCreated()) {
     const ctx = BuidlerContext.getBuidlerContext();
     const globalAsAny = global as any;
@@ -20,22 +20,25 @@ export async function resetBuidlerContext() {
     }
     BuidlerContext.deleteBuidlerContext();
   }
+
   // Unload all the buidler's entrypoints.
-  unloadModule("../../src/register");
-  unloadModule("../../src/config");
-  unloadModule("../../src/internal/cli/cli");
-  unloadModule("../../src/internal/lib/buidler-lib");
-  unloadModule("../../src/internal/core/config/config-env");
-  unloadModule("../../src/internal/core/tasks/builtin-tasks");
+  unloadModule("../register");
+  unloadModule("./cli/cli");
+  unloadModule("./lib/buidler-lib");
+
+  // These should be removed, we should refactor the plugin system instead
+  unloadModule("../config");
+  unloadModule("./core/config/config-env");
+  unloadModule("./core/tasks/builtin-tasks");
 
   // and buidler's builtin tasks.
-  const tasks = await glob(__dirname + "/../../src/builtin-tasks/**/*");
+  const tasks = globSync(__dirname + "/../builtin-tasks/**/*");
   tasks.forEach((task: string) => {
     unloadModule(task);
   });
 }
 
-export function unloadModule(path: string) {
+function unloadModule(path: string) {
   try {
     delete require.cache[require.resolve(path)];
   } catch (err) {

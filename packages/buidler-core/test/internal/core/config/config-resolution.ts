@@ -4,18 +4,20 @@ import * as path from "path";
 import { BuidlerContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { resolveProjectPaths } from "../../../../src/internal/core/config/config-resolution";
+import { resetBuidlerContext } from "../../../../src/internal/reset";
 import { HttpNetworkConfig } from "../../../../src/types";
 import { getLocalCompilerVersion } from "../../../helpers/compiler";
-import { resetBuidlerContext } from "../../../helpers/context";
 import { useFixtureProject } from "../../../helpers/project";
 
 describe("Config resolution", () => {
   beforeEach(() => {
     BuidlerContext.createBuidlerContext();
   });
-  afterEach(async () => {
-    await resetBuidlerContext();
+
+  afterEach(() => {
+    resetBuidlerContext();
   });
+
   describe("Default config merging", () => {
     describe("With default config", () => {
       useFixtureProject("default-config-project");

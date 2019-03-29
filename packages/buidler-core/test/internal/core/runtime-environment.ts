@@ -4,13 +4,13 @@ import { BuidlerContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors";
 import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
+import { resetBuidlerContext } from "../../../src/internal/reset";
 import {
   BuidlerArguments,
   BuidlerRuntimeEnvironment,
   ResolvedBuidlerConfig,
   TaskArguments
 } from "../../../src/types";
-import { resetBuidlerContext } from "../../helpers/context";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
@@ -65,9 +65,7 @@ describe("Environment", () => {
     ctx.setBuidlerRuntimeEnvironment(env);
   });
 
-  afterEach(async () => {
-    await resetBuidlerContext();
-  });
+  afterEach(() => resetBuidlerContext());
 
   describe("Enviroment", () => {
     it("should create an environment", () => {

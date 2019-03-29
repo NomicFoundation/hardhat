@@ -4,62 +4,63 @@ import * as path from "path";
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { BuidlerContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
-import { resetBuidlerContext, unloadModule } from "../../../helpers/context";
+import { resetBuidlerContext } from "../../../../src/internal/reset";
+import { useEnvironment } from "../../../helpers/environment";
 import {
   getFixtureProjectPath,
   useFixtureProject
 } from "../../../helpers/project";
 
-describe("config loading", () => {
-  beforeEach(() => {
-    BuidlerContext.createBuidlerContext();
-  });
-  afterEach(async () => {
-    await resetBuidlerContext();
-  });
-
-  describe("default config path", () => {
+describe("config loading", function() {
+  describe("default config path", function() {
     useFixtureProject("config-project");
-    it("should load the default config if none is given", () => {
-      const config = loadConfigAndTasks();
+    useEnvironment();
 
-      assert.isDefined(config.networks.develop);
-      assert.deepEqual(config.networks.develop.accounts, [
+    it("should load the default config if none is given", function() {
+      assert.isDefined(this.env.config.networks.develop);
+      assert.deepEqual(this.env.config.networks.develop.accounts, [
         "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
       ]);
     });
   });
 
-  describe("custom config path", () => {
+  describe("custom config path", function() {
     useFixtureProject("custom-config-file");
 
-    it("should accept a relative path from the CWD", () => {
+    beforeEach(function() {
+      BuidlerContext.createBuidlerContext();
+    });
+
+    afterEach(function() {
+      resetBuidlerContext();
+    });
+
+    it("should accept a relative path from the CWD", function() {
       const config = loadConfigAndTasks("config.js");
+
       assert.equal(
         config.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
     });
 
-    it("should accept an absolute path", async () => {
+    it("should accept an absolute path", async function() {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
       const config = loadConfigAndTasks(fixtureDir + "/config.js");
+
       assert.equal(
         config.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
-      unloadModule(config.paths.configFile);
     });
   });
 
-  describe("Tasks loading", () => {
+  describe("Tasks loading", function() {
     useFixtureProject("config-project");
+    useEnvironment();
 
-    it("Should define the default tasks", () => {
-      const config = loadConfigAndTasks();
-      const tasks = BuidlerContext.getBuidlerContext().tasksDSL.getTaskDefinitions();
-
-      assert.containsAllKeys(tasks, [
+    it("Should define the default tasks", function() {
+      assert.containsAllKeys(this.env.tasks, [
         TASK_CLEAN,
         "flatten",
         "compile",
@@ -67,22 +68,18 @@ describe("config loading", () => {
         "run",
         "test"
       ]);
-
-      unloadModule(config.paths.configFile);
     });
 
-    it("Should load custom tasks", () => {
-      const config = loadConfigAndTasks();
-      const tasks = BuidlerContext.getBuidlerContext().tasksDSL.getTaskDefinitions();
-
-      assert.containsAllKeys(tasks, ["example", "example2"]);
-      unloadModule(config.paths.configFile);
+    it("Should load custom tasks", function() {
+      assert.containsAllKeys(this.env.tasks, ["example", "example2"]);
     });
   });
 
-  describe("Config env", () => {
+  describe("Config env", function() {
     useFixtureProject("config-project");
-    it("should remove everything from global state after loading", () => {
+    useEnvironment();
+
+    it("should remove everything from global state after loading", function() {
       const globalAsAny: any = global;
 
       assert.isUndefined(globalAsAny.internalTask);
