@@ -28,7 +28,8 @@
   "scripts": {
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && NODE_OPTIONS=\"-r ts-node/register\" tslint --fix --config tslint.json --project tsconfig.json --rules-dir ./tslint",
     "lint": "NODE_OPTIONS=\"-r ts-node/register\" tslint --config tslint.json --project tsconfig.json --rules-dir ./tslint",
-    "test": "nyc mocha",
+    "test": "mocha",
+    "coverage": "nyc mocha",
     "buidl": "tsc --p tsconfig.prod.json",
     "build": "tsc --p tsconfig.prod.json",
     "watch": "tsc -w --p tsconfig.prod.json",
@@ -58,7 +59,6 @@
     "@types/node": "^8.10.38",
     "@types/semver": "^5.5.0",
     "chai": "^4.2.0",
-    "dotenv": "^6.2.0",
     "ganache-cli": "^6.1.6",
     "nyc": "^13.1.0",
     "prettier": "^1.15.3",
