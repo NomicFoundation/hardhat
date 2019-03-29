@@ -2,13 +2,10 @@
   "extends": "./config/typescript/tsconfig.json",
   "references": [
     {
-      "path": "./packages/test-plugin/test"
-    },
-    {
-      "path": "./packages/test-core/test"
-    },
-    {
       "path": "./packages/buidler-core/test"
+    },
+    {
+      "path": "./packages/buidler-ethers/test"
     }
   ]
 }

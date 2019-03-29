@@ -1,3 +1,4 @@
+import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
 import { assert } from "chai";
 
 describe("Ethers plugin", function() {
@@ -5,7 +6,7 @@ describe("Ethers plugin", function() {
     process.chdir(__dirname + "/buidler-project");
     process.env.BUIDLER_NETWORK = "develop";
 
-    delete require.cache[require.resolve("@nomiclabs/buidler")];
+    resetBuidlerContext();
     this.env = require("@nomiclabs/buidler");
   });
 

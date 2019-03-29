@@ -1,3 +1,4 @@
+import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
 import { assert } from "chai";
 import { JsonRpcProvider } from "ethers/providers";
 
@@ -13,7 +14,7 @@ describe("Ethers provider wrapper", function() {
   });
 
   beforeEach(function() {
-    delete require.cache[require.resolve("@nomiclabs/buidler")];
+    resetBuidlerContext();
     this.env = require("@nomiclabs/buidler");
     realProvider = new JsonRpcProvider();
     wrapper = new EthersProviderWrapper(this.env.ethereum);
