@@ -9,6 +9,9 @@
     },
     {
       "path": "./packages/buidler-web3/test"
+    },
+    {
+      "path": "./packages/buidler-web3-legacy/test"
     }
   ]
 }

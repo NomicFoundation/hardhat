@@ -1,4 +1,4 @@
-import { IEthereumProvider } from "@nomiclabs/buidler/types";
+import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
 import { assert } from "chai";
 import Web3 from "web3";
 
@@ -35,6 +35,10 @@ describe("Web3 provider adapter", () => {
     const buidlerEnv = require("@nomiclabs/buidler");
     realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
     adaptedProvider = new Web3HTTPProviderAdapter(buidlerEnv.ethereum);
+  });
+
+  afterEach(function() {
+    resetBuidlerContext();
   });
 
   it("Should throw if send is called", async () => {
