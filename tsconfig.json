@@ -6,6 +6,9 @@
     },
     {
       "path": "./packages/buidler-ethers/test"
+    },
+    {
+      "path": "./packages/buidler-web3/test"
     }
   ]
 }

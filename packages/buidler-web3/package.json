@@ -3,43 +3,33 @@
   "version": "1.0.0-beta.1",
   "author": "Nomic Labs SRL",
   "license": "MIT",
-  "homepage": "https://github.com/nomiclabs/buidler-web3",
-  "repository": "github:nomiclabs/buidler-web3",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "homepage": "https://github.com/nomiclabs/buidler/packages/buidler-web3",
+  "repository": "github:nomiclabs/buidler",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "description": "Buidler plugin for using Web3 1.x",
   "scripts": {
-    "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
-    "lint": "tslint --config tslint.json --project tsconfig.json",
-    "test": "scripts/run-tests.sh",
-    "build": "tsc",
-    "buidl": "tsc",
-    "watch": "tsc -w"
+    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint": "npm run lint-src && npm run lint-tests",
+    "lint-tests": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project test/tsconfig.json",
+    "lint-src": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "./scripts/run-tests.sh",
+    "build": "../../node_modules/.bin/tsc --build src",
+    "clean": "rm -rf dist build-test"
   },
   "files": [
-    "dist/src",
+    "dist/",
     "src/",
     "LICENSE",
     "README.md"
   ],
   "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^8.10.38",
+    "@nomiclabs/buidler": "^1.0.0-beta.2",
     "chai": "^4.2.0",
-    "dotenv": "^6.2.0",
-    "ganache-cli": "^6.2.5",
-    "mocha": "^5.1.1",
-    "prettier": "^1.15.3",
-    "source-map-support": "^0.5.9",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.12.0",
-    "tslint-config-prettier": "^1.17.0",
-    "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^3.2.2"
+    "web3": "1.0.0-beta.37"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.1",
+    "@nomiclabs/buidler": "^1.0.0-beta.2",
     "web3": "1.0.0-beta.37"
   }
 }
