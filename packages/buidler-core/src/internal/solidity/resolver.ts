@@ -206,7 +206,7 @@ export class Resolver {
     return (
       imported.startsWith("./") ||
       imported.startsWith("../") ||
-      imported.startsWith(".." + path.sep) ||
+      imported.startsWith("." + path.sep) ||
       imported.startsWith(".." + path.sep)
     );
   }
