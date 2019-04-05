@@ -85,14 +85,16 @@ describe("run task", function() {
     assert.isFalse(await fsExtra.pathExists("artifacts"));
   });
 
-  it("Should return the script's status code", async function() {
+  it("Should return the script's status code on success", async function() {
     await this.env.run("run", {
       script: "./successful-script.js",
       noCompile: true
     });
     assert.equal(exitCode, 0);
     exitCode = undefined;
+  });
 
+  it("Should return the script's status code on failure", async function() {
     await this.env.run("run", {
       script: "./failing-script.js",
       noCompile: true
