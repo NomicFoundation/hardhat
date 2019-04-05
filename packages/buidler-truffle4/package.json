@@ -11,8 +11,8 @@
   "scripts": {
     "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project test/tsconfig.json",
-    "lint-src": "NODE_OPTIONS=\\\"-r ts-node/register\\\" ../../node_modules/.bin/tslint --config tslint.json --project tsconfig.json",
+    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "./scripts/run-tests.sh",
     "build": "../../node_modules/.bin/tsc --build src",
     "clean": "rm -rf dist build-test"
