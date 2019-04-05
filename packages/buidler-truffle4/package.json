@@ -34,18 +34,17 @@
   ],
   "dependencies": {
     "chai": "4.1.2",
-    "dotenv": "^7.0.0",
     "fs-extra": "^7.0.1",
     "truffle-contract": "^3.0.7"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.1",
+    "@nomiclabs/buidler": "^1.0.0-beta.2",
     "@nomiclabs/buidler-web3-legacy": "^1.0.0-beta.1",
     "@types/fs-extra": "^5.0.4",
     "web3": "^0.20.7"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.1",
+    "@nomiclabs/buidler": "^1.0.0-beta.2",
     "@nomiclabs/buidler-web3-legacy": "^1.0.0-beta.1",
     "web3": "^0.20.7"
   }
