@@ -1,14 +1,9 @@
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
 import { TruffleContract, TruffleContractInstance } from "../src/types";
 
-declare module "mocha" {
-  interface Context {
-    env: BuidlerRuntimeEnvironment;
-  }
-}
+import { useEnvironment } from "./helpers";
 
 function assertIsContract(contract: TruffleContract) {
   assert.containsAllKeys(contract, [
@@ -132,13 +127,7 @@ function testArtifactsFunctionality() {
 }
 
 describe("BuidlerRuntimeEnvironment extension", function() {
-  before("Buidler project setup", function() {
-    process.chdir(__dirname + "/buidler-project-solc-0.5");
-    process.env.BUIDLER_NETWORK = "develop";
-
-    delete require.cache[require.resolve("@nomiclabs/buidler")];
-    this.env = require("@nomiclabs/buidler");
-  });
+  useEnvironment(__dirname + "/buidler-project-solc-0.5");
 
   it("It should add the artifacts object", function() {
     assert.instanceOf(this.env.artifacts, TruffleEnvironmentArtifacts);
@@ -147,26 +136,12 @@ describe("BuidlerRuntimeEnvironment extension", function() {
 
 describe("TruffleContracts loading and provisioning", function() {
   describe("When compiling with solc 0.5.x", function() {
-    before("Buidler project setup", function() {
-      process.chdir(__dirname + "/buidler-project-solc-0.5");
-      process.env.BUIDLER_NETWORK = "develop";
-
-      delete require.cache[require.resolve("@nomiclabs/buidler")];
-      this.env = require("@nomiclabs/buidler");
-    });
-
+    useEnvironment(__dirname + "/buidler-project-solc-0.5");
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.4.x", function() {
-    before("Buidler project setup", function() {
-      process.chdir(__dirname + "/buidler-project-solc-0.4");
-      process.env.BUIDLER_NETWORK = "develop";
-
-      delete require.cache[require.resolve("@nomiclabs/buidler")];
-      this.env = require("@nomiclabs/buidler");
-    });
-
+    useEnvironment(__dirname + "/buidler-project-solc-0.4");
     testArtifactsFunctionality();
   });
 });
