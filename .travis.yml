@@ -1,0 +1,21 @@
+language: node_js
+
+node_js:
+  - "8"
+  - "10"
+  - "11"
+  - "12"
+
+install:
+  - npm ci
+  - npx lerna bootstrap
+
+script:
+  - npm run test
+  - npm run lint
+
+cache: npm
+
+branches:
+  only:
+    - master
