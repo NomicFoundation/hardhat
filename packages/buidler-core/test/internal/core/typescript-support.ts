@@ -17,7 +17,7 @@ describe("Typescript support", function() {
     it("Should fail if an implicit any is used and the tsconfig forbids them", function() {
       assert.throws(
         () => require("../../../src/internal/lib/buidler-lib"),
-        "TS7006: Parameter 'a' implicitly has an 'any' type."
+        "TS7006"
       );
 
       resetBuidlerContext();
