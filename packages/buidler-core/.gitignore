@@ -1,3 +1,6 @@
+# node modules
+/node_modules
+
 # vuepress
 /docs/.vuepress/dist/
 
@@ -17,7 +20,8 @@
 /builtin-tasks
 /internal
 
-#Below is Github's node gitignore template
+# Below is Github's node gitignore template, except for dotenv's entries as it's used by mocha to pass flags to ts-node,
+# and ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing
 
 # Logs
 logs
@@ -58,7 +62,7 @@ bower_components
 build/Release
 
 # Dependency directories
-node_modules/
+#node_modules/
 jspm_packages/
 
 # TypeScript v1 declaration files
@@ -80,8 +84,8 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
-.env.test
+#.env
+#.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -103,4 +107,3 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
-

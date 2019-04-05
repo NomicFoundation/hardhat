@@ -1,7 +1,8 @@
 /node_modules
 /.idea
 
-# Below is Github's node gitignore template, except for dotenv's entries as it's used by mocha to pass flags to ts-node
+# Below is Github's node gitignore template, except for dotenv's entries as it's used by mocha to pass flags to ts-node,
+# and ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing
 
 # Logs
 logs
@@ -42,7 +43,7 @@ bower_components
 build/Release
 
 # Dependency directories
-node_modules/
+#node_modules/
 jspm_packages/
 
 # TypeScript v1 declaration files
