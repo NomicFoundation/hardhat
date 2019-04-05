@@ -1,9 +1,9 @@
-import { Environment } from "../../src/internal/core/runtime-environment";
 import { resetBuidlerContext } from "../../src/internal/reset";
+import { BuidlerRuntimeEnvironment } from "../../src/types";
 
 declare module "mocha" {
   interface Context {
-    env: Environment;
+    env: BuidlerRuntimeEnvironment;
   }
 }
 
