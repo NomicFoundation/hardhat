@@ -5,20 +5,9 @@ import { ContractFactory, ethers, Signer } from "ethers";
 
 import { EthersProviderWrapper } from "./ethers-provider-wrapper";
 
-declare module "@nomiclabs/buidler/types" {
-  interface BuidlerRuntimeEnvironment {
-    ethers: {
-      provider: EthersProviderWrapper;
-      getContract: (name: string) => Promise<ContractFactory>;
-      signers: () => Promise<Signer[]>;
-    };
-  }
-}
-
 extendEnvironment((env: BuidlerRuntimeEnvironment) => {
-  const wrapper = new EthersProviderWrapper(env.ethereum);
   env.ethers = {
-    provider: wrapper,
+    provider: new EthersProviderWrapper(env.ethereum),
     getContract: async (name: string): Promise<ContractFactory> => {
       const artifact = await readArtifact(env.config.paths.artifacts, name);
       const bytecode = artifact.bytecode;
@@ -27,7 +16,9 @@ extendEnvironment((env: BuidlerRuntimeEnvironment) => {
     },
     signers: async (): Promise<Signer[]> => {
       const accounts = await env.ethers.provider.listAccounts();
-      return accounts.map((account: string) => wrapper.getSigner(account));
+      return accounts.map((account: string) =>
+        env.ethers.provider.getSigner(account)
+      );
     }
   };
 });

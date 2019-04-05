@@ -1,14 +1,9 @@
-import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
 import { assert } from "chai";
 
-describe("Ethers plugin", function() {
-  before("Buidler project setup", function() {
-    process.chdir(__dirname + "/buidler-project");
-    process.env.BUIDLER_NETWORK = "develop";
+import { useEnvironment } from "./helpers";
 
-    resetBuidlerContext();
-    this.env = require("@nomiclabs/buidler");
-  });
+describe("Ethers plugin", function() {
+  useEnvironment(__dirname + "/buidler-project");
 
   it("should extend buidler runtime environment", function() {
     assert.isDefined(this.env.ethers);
@@ -20,7 +15,7 @@ describe("Ethers plugin", function() {
   });
 
   it("the provider should handle requests", async function() {
-    const accounts = await this.env.ethers.provider.send("eth_accounts");
+    const accounts = await this.env.ethers.provider.send("eth_accounts", []);
     assert.deepEqual(accounts, ["0xf7abeea1b1b97ef714bc9a118b0f095ec54f8221"]);
   });
 
