@@ -1,14 +1,8 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
 import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
 
+import "./type-extensions";
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
-
-declare module "@nomiclabs/buidler/types" {
-  interface BuidlerRuntimeEnvironment {
-    Web3: any;
-    web3: any;
-  }
-}
 
 extendEnvironment(env => {
   try {

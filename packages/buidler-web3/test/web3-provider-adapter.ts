@@ -1,4 +1,3 @@
-import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
 import { assert } from "chai";
 import Web3 from "web3";
 
@@ -7,6 +6,8 @@ import {
   JsonRpcResponse,
   Web3HTTPProviderAdapter
 } from "../src/web3-provider-adapter";
+
+import { useEnvironment } from "./helpers";
 
 let nextId = 1;
 
@@ -22,30 +23,22 @@ function createJsonRpcRequest(
   };
 }
 
-describe("Web3 provider adapter", () => {
+describe("Web3 provider adapter", function() {
   let realWeb3Provider: any;
   let adaptedProvider: Web3HTTPProviderAdapter;
 
-  before("Setup buidler project", () => {
-    process.chdir(__dirname);
-    process.env.BUIDLER_NETWORK = "develop";
-  });
+  useEnvironment(__dirname);
 
-  beforeEach(() => {
-    const buidlerEnv = require("@nomiclabs/buidler");
+  beforeEach(function() {
     realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
-    adaptedProvider = new Web3HTTPProviderAdapter(buidlerEnv.ethereum);
+    adaptedProvider = new Web3HTTPProviderAdapter(this.env.ethereum);
   });
 
-  afterEach(function() {
-    resetBuidlerContext();
-  });
-
-  it("Should always return true when isConnected is called", () => {
+  it("Should always return true when isConnected is called", function() {
     assert.isTrue(adaptedProvider.isConnected());
   });
 
-  it("Should return the same as the real provider for sigle requests", done => {
+  it("Should return the same as the real provider for sigle requests", function(done) {
     const request = createJsonRpcRequest("eth_accounts");
     realWeb3Provider.send(
       request,
@@ -59,7 +52,7 @@ describe("Web3 provider adapter", () => {
     );
   });
 
-  it("Should return the same as the real provider for batched requests", done => {
+  it("Should return the same as the real provider for batched requests", function(done) {
     const requests = [
       createJsonRpcRequest("eth_accounts"),
       createJsonRpcRequest("net_version"),
@@ -78,7 +71,7 @@ describe("Web3 provider adapter", () => {
     );
   });
 
-  it("Should return the same on error", done => {
+  it("Should return the same on error", function(done) {
     const request = createJsonRpcRequest("error_please");
 
     realWeb3Provider.send(
@@ -93,7 +86,7 @@ describe("Web3 provider adapter", () => {
     );
   });
 
-  it("Should let all requests complete, even if one of them fails", done => {
+  it("Should let all requests complete, even if one of them fails", function(done) {
     const requests = [
       createJsonRpcRequest("eth_accounts"),
       createJsonRpcRequest("error_please"),
