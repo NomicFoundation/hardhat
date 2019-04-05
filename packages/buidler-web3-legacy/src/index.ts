@@ -4,14 +4,6 @@ import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
 import { promisifyWeb3 } from "./pweb3";
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
 
-declare module "@nomiclabs/buidler/types" {
-  export interface BuidlerRuntimeEnvironment {
-    Web3: any;
-    web3: any;
-    pweb3: any;
-  }
-}
-
 extendEnvironment(env => {
   env.Web3 = lazyFunction(() => require("web3"));
   env.web3 = lazyObject(
