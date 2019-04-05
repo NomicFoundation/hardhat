@@ -5,11 +5,17 @@
     "rootDirs": ["."],
     "composite": true
   },
-  "include": ["./**/*.ts"],
+  "include": [
+    "./**/*.ts",
+    "../node_modules/@nomiclabs/buidler-web3-legacy/src/type-extensions.d.ts"
+  ],
   "exclude": [],
   "references": [
     {
       "path": "../../buidler-core/src"
+    },
+    {
+      "path": "../../buidler-web3-legacy/src"
     }
   ]
 }

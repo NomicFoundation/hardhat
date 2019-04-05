@@ -28,7 +28,7 @@
   "scripts": {
     "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project test/tsconfig.json",
+    "lint-tests": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "../../node_modules/.bin/mocha",
     "coverage": "../../node_modules/.bin/nyc ../../node_modules/.bin/mocha",

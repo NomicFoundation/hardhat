@@ -6,5 +6,10 @@
     "composite": true
   },
   "include": ["./**/*.ts"],
-  "exclude": []
+  "exclude": [],
+  "references": [
+    {
+      "path": "../../buidler-core/src"
+    }
+  ]
 }
