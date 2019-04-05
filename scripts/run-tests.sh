@@ -27,4 +27,5 @@ else
 fi
 
 node_modules/.bin/lerna exec -- npm run build
-node_modules/.bin/lerna exec --concurrency 1 -- npm run test
+node_modules/.bin/lerna exec -- npm run build-test
+TS_NODE_TRANSPILE_ONLY=true node_modules/.bin/lerna exec --concurrency 1 -- npm run test

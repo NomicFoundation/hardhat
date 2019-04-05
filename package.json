@@ -24,6 +24,7 @@
   },
   "scripts": {
     "build": "lerna exec -- npm run build",
+    "build-test": "lerna exec -- npm run build-test",
     "watch": "tsc --build --watch packages/*/src",
     "clean": "lerna exec -- npm run clean",
     "test": "scripts/run-tests.sh",

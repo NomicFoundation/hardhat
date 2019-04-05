@@ -14,6 +14,7 @@
     "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "./scripts/run-tests.sh",
     "build": "../../node_modules/.bin/tsc --build src",
+    "build-test": "../../node_modules/.bin/tsc --build .",
     "clean": "rm -rf dist build-test"
   },
   "files": [
