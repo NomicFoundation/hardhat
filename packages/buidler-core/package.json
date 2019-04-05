@@ -3,7 +3,7 @@
   "version": "1.0.0-beta.2",
   "author": "Nomic Labs SRL",
   "license": "MIT",
-  "homepage": "https://github.com/nomiclabs/buidler",
+  "homepage": "https://buidler.dev",
   "repository": "github:nomiclabs/buidler",
   "main": "internal/lib/buidler-lib.js",
   "types": "internal/lib/buidler-lib.d.ts",
@@ -11,6 +11,7 @@
   "keywords": [
     "ethereum",
     "smart-contracts",
+    "buidler",
     "blockchain",
     "dapps",
     "javascript",

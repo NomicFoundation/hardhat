@@ -8,6 +8,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "description": "Buidler plugin for using Web3 1.x",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "buidler",
+    "buidler-plugin",
+    "web3",
+    "web3.js"
+  ],
   "scripts": {
     "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
