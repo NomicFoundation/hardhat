@@ -90,10 +90,11 @@
       "test",
       "coverage",
       ".nyc_output",
-      "./*.ts",
-      "./*.js",
+      "*.ts",
+      "*.js",
       "internal",
-      "builtin-tasks"
+      "builtin-tasks",
+      "build-test"
     ],
     "reporter": [
       "text",
