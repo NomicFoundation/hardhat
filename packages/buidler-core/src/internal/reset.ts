@@ -26,12 +26,13 @@ export function resetBuidlerContext() {
   unloadModule("./cli/cli");
   unloadModule("./lib/buidler-lib");
 
-  // These should be removed, we should refactor the plugin system instead
+  // TODO#plugins-refactor: These shouldn't be necessary
   unloadModule("../config");
   unloadModule("./core/config/config-env");
   unloadModule("./core/tasks/builtin-tasks");
 
-  // and buidler's builtin tasks.
+  // TODO#plugins-refactor: once the refactor is done, we can make builtin tasks
+  // a plugin so this won't be necessary
   const tasks = globSync(__dirname + "/../builtin-tasks/**/*");
   tasks.forEach((task: string) => {
     unloadModule(task);
