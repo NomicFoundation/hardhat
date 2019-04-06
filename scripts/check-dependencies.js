@@ -51,6 +51,8 @@ function checkPerrDepedencies(packageJson) {
           packageJson.name
         } has different versions of ${dependency} as peerDependency and devDependency`
       );
+
+      success = false;
     }
   }
 
