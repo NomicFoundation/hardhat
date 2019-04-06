@@ -1,6 +1,7 @@
-import { BuidlerContext } from "@nomiclabs/buidler/internal/context";
 import { assert } from "chai";
 import { unlink, writeFile, writeJson } from "fs-extra";
+
+import { useEnvironment } from "./helpers";
 
 export async function expectErrorAsync(
   f: () => Promise<any>,
@@ -13,63 +14,11 @@ export async function expectErrorAsync(
   }
 }
 
-async function unloadBuidlerContext() {
-  if (BuidlerContext.isCreated()) {
-    const ctx = BuidlerContext.getBuidlerContext();
-    const globalAsAny = global as any;
-    if (ctx.environment !== undefined) {
-      for (const key of Object.keys(ctx.environment)) {
-        globalAsAny[key] = undefined;
-      }
-      // unload config file too.
-      unloadModule(ctx.environment.config.paths.configFile);
-    }
-    BuidlerContext.deleteBuidlerContext();
-  }
-
-  // Unload all the buidler's entrypoints.
-  unloadModule("@nomiclabs/buidler");
-  unloadModule("@nomiclabs/buidler/config");
-  unloadModule("@nomiclabs/buidler/register");
-  unloadModule("@nomiclabs/buidler/internal/cli/cli");
-  unloadModule("@nomiclabs/buidler/internal/lib/buidler-lib");
-  unloadModule("@nomiclabs/buidler/internal/core/config/config-env");
-  unloadModule("@nomiclabs/buidler/internal/core/tasks/builtin-tasks");
-
-  // Unload bultin tasks.
-  Object.keys(require.cache).forEach(module => {
-    if (module.includes("buidler/builtin-tasks")) {
-      unloadModule(module);
-    }
-  });
-}
-
-function unloadModule(path: string) {
-  try {
-    delete require.cache[require.resolve(path)];
-  } catch (err) {
-    // module wasn't loaded
-  }
-}
-
-async function reset() {
-  await unloadBuidlerContext();
-  unloadModule("../src/index");
-  return require("@nomiclabs/buidler");
-}
-
 describe("Solhint plugin", function() {
   const SOLHINT_CONFIG_FILENAME = ".solhint.json";
 
   describe("Project with solhint config", function() {
-    before("setup", async function() {
-      process.chdir(__dirname + "/buidler-project");
-      process.env.BUIDLER_NETWORK = "develop";
-    });
-
-    beforeEach(async function() {
-      this.env = await reset();
-    });
+    useEnvironment(__dirname + "/buidler-project");
 
     it("should define solhint task", function() {
       assert.isDefined(this.env.tasks["buidler-solhint:run-solhint"]);
@@ -84,14 +33,7 @@ describe("Solhint plugin", function() {
   });
 
   describe("Project with no solhint config", function() {
-    before("setup", function() {
-      process.chdir(__dirname + "/no-config-project");
-      process.env.BUIDLER_NETWORK = "develop";
-    });
-
-    beforeEach(async function() {
-      this.env = await reset();
-    });
+    useEnvironment(__dirname + "/no-config-project");
 
     it("return a report", async function() {
       const reports = await this.env.run("buidler-solhint:run-solhint");
@@ -101,14 +43,8 @@ describe("Solhint plugin", function() {
   });
 
   describe("Project with invalid solhint configs", function() {
-    before("setup", function() {
-      process.chdir(__dirname + "/invalid-config-project");
-      process.env.BUIDLER_NETWORK = "develop";
-    });
+    useEnvironment(__dirname + "/invalid-config-project");
 
-    beforeEach(async function() {
-      this.env = await reset();
-    });
     it("should throw when using invalid extensions", async function() {
       const invalidExtensionConfig = {
         extends: "invalid"
