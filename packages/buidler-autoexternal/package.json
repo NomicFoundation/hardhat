@@ -1,8 +1,8 @@
 {
-  "name": "@nomiclabs/buidler-ts-plugin-boilerplate",
+  "name": "@nomiclabs/buidler-autoexternal",
   "version": "0.0.1",
-  "description": "Buidler TypeScript plugin boilerplate",
-  "repository": "github:nomiclabs/buidler-ts-plugin-boilerplate",
+  "description": "Buidler plugin that generates testable contracts with automatically exported private methods",
+  "repository": "github:nomiclabs/buidler-autoexternal",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "main": "dist/src/index.js",
@@ -10,7 +10,7 @@
   "scripts": {
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
-    "test": "scripts/run-tests.sh",
+    "test": "mocha",
     "build": "tsc",
     "buidl": "tsc",
     "watch": "tsc -w"
@@ -28,7 +28,6 @@
     "@types/node": "^8.10.38",
     "chai": "^4.2.0",
     "dotenv": "^6.2.0",
-    "ganache-cli": "^6.2.5",
     "mocha": "^5.2.0",
     "prettier": "^1.15.3",
     "source-map-support": "^0.5.9",
@@ -39,6 +38,10 @@
     "typescript": "^3.2.2"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.1"
+    "@nomiclabs/buidler": "^1.0.0-beta.2"
+  },
+  "dependencies": {
+    "fs-extra": "^7.0.1",
+    "solidity-parser-antlr": "^0.4.1"
   }
 }
