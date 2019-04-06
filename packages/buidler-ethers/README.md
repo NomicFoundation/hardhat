@@ -1,5 +1,4 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-ethers)
- [![Build Status](https://travis-ci.com/nomiclabs/buidler-ethers.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler-ethers)
 
 
 # buidler-ethers

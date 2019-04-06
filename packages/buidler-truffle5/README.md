@@ -1,5 +1,4 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-truffle5.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-truffle5)
- [![Build Status](https://travis-ci.com/nomiclabs/buidler-truffle5.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler-truffle5)
 
 
 # buidler-truffle5

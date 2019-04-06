@@ -1,5 +1,4 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-web3-legacy.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-web3-legacy)
- [![Build Status](https://travis-ci.com/nomiclabs/buidler-web3-legacy.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler-web3-legacy)
  
 # buidler-web3-legacy
 
