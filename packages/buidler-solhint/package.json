@@ -3,7 +3,7 @@
   "version": "1.0.0-beta.1",
   "description": "Buidler plugin for solhint",
   "repository": "github:nomiclabs/buidler",
-  "homepage": "https://github.com/nomiclabs/buidler/packages/buidler-solhint",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-solhint",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "main": "dist/index.js",

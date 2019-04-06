@@ -3,7 +3,7 @@
   "version": "1.0.0-beta.1",
   "author": "Nomic Labs SRL",
   "license": "MIT",
-  "homepage": "https://github.com/nomiclabs/buidler/packages/buidler-web3-legacy",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3-legacy",
   "repository": "github:nomiclabs/buidler",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

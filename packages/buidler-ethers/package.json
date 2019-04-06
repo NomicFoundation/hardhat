@@ -2,7 +2,7 @@
   "name": "@nomiclabs/buidler-ethers",
   "version": "1.0.0-beta.1",
   "description": "Buidler plugin for ethers",
-  "homepage": "https://github.com/nomiclabs/buidler/packages/buidler-ethers",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers",
   "repository": "github:nomiclabs/buidler",
   "author": "Nomic Labs SRL",
   "license": "MIT",

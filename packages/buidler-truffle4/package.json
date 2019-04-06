@@ -2,7 +2,7 @@
   "name": "@nomiclabs/buidler-truffle4",
   "version": "1.0.0-beta.1",
   "description": "Truffle 4 Buidler compatibility plugin",
-  "homepage": "https://github.com/nomiclabs/buidler/packages/buidler-truffle4",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle4",
   "repository": "github:nomiclabs/buidler",
   "author": "Nomic Labs SRL",
   "license": "MIT",

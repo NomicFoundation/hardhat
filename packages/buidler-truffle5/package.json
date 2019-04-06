@@ -3,7 +3,7 @@
   "version": "1.0.0-beta.1",
   "description": "Truffle 5 Buidler compatibility plugin",
   "repository": "github:nomiclabs/buidler",
-  "homepage": "https://github.com/nomiclabs/buidler/packages/buidler-truffle5",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "main": "dist/index.js",
