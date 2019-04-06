@@ -9,9 +9,12 @@ This plugin brings to Buidler TruffleContracts from Truffle 4. With it you can c
 
 Additionally, you can **migrate your contracts to Solidity 5 without needing to migrate your tests to Truffle 5**.
 
+## Required plugins
+This plugin requires [buidler-web3-legacy](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3-legacy) as a prerequisite.
+
 ## Installation
 ```
-npm install @nomiclabs/buidler-truffle4 web3@^0.20.7
+npm install @nomiclabs/buidler-truffle4 @nomiclabs/buidler-web3-legacy web3@^0.20.7
 ```
 
 And add the following require to the top of your ```buidler.config.js```:
