@@ -1,19 +1,18 @@
 {
+  "extends": "../../config/typescript/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "commonjs",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "strict": true,
-    "rootDirs": ["./src", "./test"],
-    "esModuleInterop": true
+    "outDir": "./build-test",
+    "rootDirs": ["./test"]
   },
-  "exclude": ["dist"],
   "include": [
-    "./test",
-    "./src",
-    "./node_modules/@nomiclabs/buidler-web3/dist/src/index.d.ts"
+    "./test/**/*.ts",
+    "./src/type-extensions.d.ts",
+    "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts"
+  ],
+  "exclude": ["./test/**/buidler.config.ts"],
+  "references": [
+    {
+      "path": "./src"
+    }
   ]
 }

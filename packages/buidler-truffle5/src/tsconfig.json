@@ -1,0 +1,21 @@
+{
+  "extends": "../../../config/typescript/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../dist",
+    "rootDirs": ["."],
+    "composite": true
+  },
+  "include": [
+    "./**/*.ts",
+    "../node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts"
+  ],
+  "exclude": [],
+  "references": [
+    {
+      "path": "../../buidler-core/src"
+    },
+    {
+      "path": "../../buidler-web3/src"
+    }
+  ]
+}

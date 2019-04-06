@@ -6,12 +6,6 @@ import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 import { LazyTruffleContractProvisioner } from "./provisioner";
 
-declare module "@nomiclabs/buidler/types" {
-  export interface BuidlerRuntimeEnvironment {
-    artifacts: TruffleEnvironmentArtifacts;
-  }
-}
-
 extendEnvironment(env => {
   env.artifacts = lazyObject(() => {
     const provisioner = new LazyTruffleContractProvisioner(env.web3);

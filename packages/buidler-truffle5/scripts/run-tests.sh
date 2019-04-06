@@ -14,7 +14,7 @@ ganache_running() {
 }
 
 start_ganache() {
-  node_modules/.bin/ganache-cli > /dev/null &
+  ../../node_modules/.bin/ganache-cli > /dev/null &
   ganache_pid=$!
   sleep 4
 }
@@ -26,4 +26,4 @@ else
   start_ganache
 fi
 
-node_modules/.bin/mocha --exit
+../../node_modules/.bin/mocha --exit
