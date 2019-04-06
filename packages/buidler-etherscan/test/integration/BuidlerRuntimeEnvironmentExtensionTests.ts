@@ -1,18 +1,9 @@
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 
-declare module "mocha" {
-  interface Context {
-    env: BuidlerRuntimeEnvironment;
-  }
-}
+import { useEnvironment } from "../helpers";
 
 describe("BuidlerRuntimeEnvironment extension", function() {
-  before("Buidler project setup", function() {
-    process.chdir(__dirname + "/../buidler-project");
-    process.env.BUIDLER_NETWORK = "develop";
-    this.env = require("@nomiclabs/buidler");
-  });
+  useEnvironment(__dirname + "/../buidler-project");
 
   it("It should add the etherscan field", function() {
     const { EtherscanBuidlerEnvironment } = require("../../src");

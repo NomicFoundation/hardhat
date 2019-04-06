@@ -15,23 +15,6 @@ export class EtherscanBuidlerEnvironment {
   ) {}
 }
 
-declare module "@nomiclabs/buidler/types" {
-  export interface BuidlerRuntimeEnvironment {
-    etherscan: EtherscanBuidlerEnvironment;
-  }
-
-  export interface BuidlerConfig {
-    etherscan?: {
-      url?: string;
-      apiKey?: string;
-    };
-  }
-
-  export interface SolcConfig {
-    fullVersion: string;
-  }
-}
-
 extendEnvironment(env => {
   env.etherscan = lazyObject(() => {
     if (env.config.etherscan) {
