@@ -1,0 +1,7 @@
+{
+  "extends": "../../config/tslint/tslint.json",
+  "rulesDirectory": "./tslint",
+  "rules": {
+    "only-buidler-error": true
+  }
+}
