@@ -1,6 +1,6 @@
 pragma solidity ^0.5.3;
 
-// #enable-buidler-testable-contracts
+// #buidler-autoextern
 
 contract A {
 

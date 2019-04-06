@@ -1,25 +1,14 @@
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 
-import { DEFAULT_CONFIG, generateTestableContract } from "../src/index";
+import { DEFAULT_CONFIG } from "../src/config";
+import { generateTestableContract } from "../src/contracts";
 
-declare module "mocha" {
-  interface Context {
-    env: BuidlerRuntimeEnvironment;
-  }
-}
+import { useEnvironment } from "./helpers";
 
 describe("BuidlerRuntimeEnvironment extension", function() {
+  useEnvironment(__dirname + "/buidler-project");
   beforeEach("Buidler project setup", async function() {
-    process.chdir(__dirname + "/buidler-project");
-    process.env.BUIDLER_NETWORK = "develop";
-
-    // We first clear any cache
-    delete require.cache[require.resolve("@nomiclabs/buidler")];
-
-    this.env = require("@nomiclabs/buidler");
-
     await fsExtra.emptyDir("./cache");
     await fsExtra.rmdir("./cache");
 
@@ -27,9 +16,7 @@ describe("BuidlerRuntimeEnvironment extension", function() {
     await fsExtra.rmdir("./artifacts");
   });
 
-  it("The example filed should say hello", async function() {
-    
-  });
+  it("The example filed should say hello", async function() {});
 });
 
 describe("TestableContracts generation", function() {

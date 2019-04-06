@@ -1,19 +1,14 @@
 {
+  "extends": "../../config/typescript/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "commonjs",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "strict": true,
-    "rootDirs": ["./src", "./test"],
-    "esModuleInterop": true
+    "outDir": "./build-test",
+    "rootDirs": ["./test"]
   },
-  "exclude": ["dist"],
-  "include": [
-    "./test",
-    "./src"
-    // Any Buidler plugin's main .d.ts has to be added here
+  "include": ["./test/**/*.ts", "./src/type-extensions.d.ts"],
+  "exclude": ["./test/**/buidler.config.ts"],
+  "references": [
+    {
+      "path": "./src"
+    }
   ]
 }
