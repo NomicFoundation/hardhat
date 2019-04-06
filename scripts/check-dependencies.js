@@ -8,10 +8,14 @@ const IGNORE_FROM_ALL = ["web3"];
 // A map from dependencies to package names where it should be ignored
 const IGNORE_FOR_PACKAGES = {
   chai: ["@nomiclabs/buidler-truffle4", "@nomiclabs/buidler-truffle5"],
-  "@types/chai": ["@nomiclabs/buidler-truffle4", "@nomiclabs/buidler-truffle5"]
+  "@types/chai": ["@nomiclabs/buidler-truffle4", "@nomiclabs/buidler-truffle5"],
+  "truffle-contract": [
+    "@nomiclabs/buidler-truffle4",
+    "@nomiclabs/buidler-truffle5"
+  ]
 };
 
-function checkThatPeerDependenciesAreAlsoDevDependencies(packageJson) {
+function checkPerrDepedencies(packageJson) {
   if (packageJson.peerDependencies === undefined) {
     return true;
   }
@@ -34,6 +38,19 @@ function checkThatPeerDependenciesAreAlsoDevDependencies(packageJson) {
       );
 
       success = false;
+
+      continue;
+    }
+
+    if (
+      packageJson.peerDependencies[dependency] !==
+      packageJson.devDependencies[dependency]
+    ) {
+      console.error(
+        `${
+          packageJson.name
+        } has different versions of ${dependency} as peerDependency and devDependency`
+      );
     }
   }
 
@@ -122,9 +139,7 @@ function main() {
   const dependencyMaps = [];
   for (const packageJsonPath of getAllPackageJsonPaths()) {
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-    const peersOk = checkThatPeerDependenciesAreAlsoDevDependencies(
-      packageJson
-    );
+    const peersOk = checkPerrDepedencies(packageJson);
     const dependencyMap = getDependencyMap(packageJson);
     dependencyMaps.push(dependencyMap);
 
