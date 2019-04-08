@@ -33,7 +33,7 @@ There are no additional steps you need to take for this plugin to work. Install 
 
 # Configuration
 
-You may want to define your symbols or any other solpp configuration option in your project's ```buidler.config.js```. 
+This plugin can by configured by setting a `solpp` entry in `buidler.config.js`. Its options are:
 
 ```defs```: is an object where each property is the symbol's name and its value is the actual definition. Definitions can be numbers, string, expressions, lists, or functions. For more detail about symbols you can check [solpp README](https://github.com/merklejerk/solpp).
 ```cwd: string```: directory where the contracts are located, it will be used for flattening purposes, by default it will be the project's source directory.
