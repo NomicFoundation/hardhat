@@ -1,10 +1,10 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
-import { join } from "path";
 
 import { TASK_TEST_GET_TEST_FILES } from "../../../src/builtin-tasks/task-names";
 import { isTypescriptSupported } from "../../../src/internal/core/typescript-support";
 import { resetBuidlerContext } from "../../../src/internal/reset";
+import { join } from "../../../src/internal/util/join";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
 

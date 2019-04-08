@@ -1,6 +1,7 @@
 import { assert } from "chai";
+import { resolve } from "dns";
 import * as fsExtra from "fs-extra";
-import { sep } from "path";
+import * as path from "path";
 
 import { ERRORS } from "../../../src/internal/core/errors";
 import {
@@ -26,7 +27,7 @@ function assertResolvedFile(
 
 describe("Resolved file", () => {
   const globalName = "globalName.sol";
-  const absolutePath = "/path/to/file/globalName.sol";
+  const absolutePath = join("path", "to", "file", "globalName.sol");
   const content = "the file content";
   const lastModificationDate = new Date();
   const libraryName = "lib";
@@ -91,6 +92,9 @@ describe("Resolved file", () => {
 });
 
 describe("Resolver", () => {
+  // before("set path version", () => {
+  //   unloadModule("path");
+  // });
   describe("Project's files resolution", () => {
     const projectName = "top-level-node-project";
     useFixtureProject(projectName);
@@ -148,7 +152,7 @@ describe("Resolver", () => {
       const absolutePath = await fsExtra.realpath(contractPath);
       const { mtime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveProjectSourceFile(
-        "./contracts/subdir/../B.sol"
+        join(".", "contracts", "subdir", "..", "B.sol")
       );
 
       assertResolvedFile(resolved, {
@@ -162,13 +166,13 @@ describe("Resolver", () => {
 
     it("should throw if a library file is resolved as a source file", async () => {
       const absolutePath = await fsExtra.realpath(
-        "./node_modules/lib/contracts/L.sol"
+        join(".", "node_modules", "lib", "contracts", "L.sol")
       );
 
       await expectBuidlerErrorAsync(
         () =>
           resolver.resolveProjectSourceFile(
-            "./node_modules/lib/contracts/L.sol"
+            join(".", "node_modules", "lib", "contracts", "L.sol")
           ),
         ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL
       );
@@ -198,7 +202,15 @@ describe("Resolver", () => {
       await expectBuidlerErrorAsync(
         () =>
           resolver.resolveProjectSourceFile(
-            __dirname + "/../../../sample-project/contracts/Greeter.sol"
+            join(
+              __dirname,
+              "..",
+              "..",
+              "..",
+              "sample-project",
+              "contracts",
+              "Greeter.sol"
+            )
           ),
         ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT
       );
@@ -217,22 +229,32 @@ describe("Resolver", () => {
 
       it("Should throw if the library isn't installed", async () => {
         await expectBuidlerErrorAsync(
-          () => resolver.resolveLibrarySourceFile("uninstalled/A.sol"),
+          () => resolver.resolveLibrarySourceFile(join("uninstalled", "A.sol")),
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         );
       });
 
-      it("Should throw if the library is installed but the file is not found", async () => {
+      it.only("Should throw if the library is installed but the file is not found", async () => {
         await expectBuidlerErrorAsync(
           () => resolver.resolveLibrarySourceFile(join("lib", "NOT-FOUND.sol")),
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         );
+        console.log("lib/../../contracts/A.sol");
+        console.log(join("lib", "..", "..", "contracts", "A.sol"));
 
+        // const pathToFile = join("lib", "..", "..", "contracts", "A.sol");
+        const pathToFile =
+          "lib" +
+          path.sep +
+          ".." +
+          path.sep +
+          ".." +
+          path.sep +
+          "contracts" +
+          path.sep +
+          "A.sol";
         await expectBuidlerErrorAsync(
-          () =>
-            resolver.resolveLibrarySourceFile(
-              join("lib", "..", "..", "contracts", "A.sol")
-            ),
+          () => resolver.resolveLibrarySourceFile(pathToFile),
           ERRORS.RESOLVER.FILE_OUTSIDE_LIB
         );
       });
@@ -243,7 +265,7 @@ describe("Resolver", () => {
         );
         const { mtime } = await fsExtra.stat(absolutePath);
         const resolved = await resolver.resolveLibrarySourceFile(
-          "lib/contracts/L.sol"
+          join("lib", "contracts", "L.sol")
         );
 
         assertResolvedFile(resolved, {

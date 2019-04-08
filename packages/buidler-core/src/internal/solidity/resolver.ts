@@ -81,11 +81,10 @@ export class Resolver {
   ): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
     const libraryName = globalName.slice(0, globalName.indexOf(path.sep));
-
     let packagePath;
     try {
       packagePath = this._resolveFromProjectRoot(
-        path.join(libraryName, "package.json")
+        join(libraryName, "package.json")
       );
     } catch (error) {
       throw new BuidlerError(
@@ -112,7 +111,7 @@ export class Resolver {
       // that the package.json and the file are being resolved to different
       // installations of the library. This can lead to very confusing
       // situations, so we only use the closes installation
-      if (absolutePath.includes(`node_modules/${libraryName}`)) {
+      if (absolutePath.includes(join("node_modules", libraryName))) {
         throw new BuidlerError(
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
           globalName
