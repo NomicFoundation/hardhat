@@ -27,7 +27,9 @@ import {
 import { areArtifactsCached } from "./utils/cache";
 
 internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
-  return glob(path.join(config.paths.sources, "**/*.sol"));
+  const sources = await glob(path.join(config.paths.sources, "**/*.sol"));
+  const tests = await glob(path.join(config.paths.sources, "**/*.sol"));
+  return [...sources, ...tests];
 });
 
 internalTask(TASK_COMPILE_GET_RESOLVED_SOURCES, async (_, { config, run }) => {
