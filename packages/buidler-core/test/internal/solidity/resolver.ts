@@ -501,3 +501,33 @@ describe("Resolver", () => {
     });
   });
 });
+
+describe("Scoped dependencies project", () => {
+  const projectName = "scoped-dependency-project";
+  useFixtureProject(projectName);
+
+  let resolver: Resolver;
+  // let resolvedLocalFile: ResolvedFile;
+  // let resolvedLibFile: ResolvedFile;
+  before("Get project root", async () => {
+    resolver = new Resolver(await getFixtureProjectPath(projectName));
+    //   resolvedLocalFile = await resolver.resolveProjectSourceFile(
+    //     "contracts/A.sol"
+    //   );
+    //   resolvedLibFile = await resolver.resolveLibrarySourceFile(
+    //     "lib/contracts/L.sol"
+    //   );
+  });
+  it.only("should retrieve the library name properly", function() {
+    assert.equal(
+      resolver._getLibraryName(
+        "@gnosis.pm/mock-contract/contracts/MockContract.sol"
+      ),
+      "@gnosis.pm/mock-contract"
+    );
+    assert.equal(
+      resolver._getLibraryName("library/contracts/MockContract.sol"),
+      "library"
+    );
+  });
+});

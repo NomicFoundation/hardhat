@@ -80,7 +80,8 @@ export class Resolver {
     globalName: string
   ): Promise<ResolvedFile> {
     const fsExtra = await import("fs-extra");
-    const libraryName = globalName.slice(0, globalName.indexOf("/"));
+
+    const libraryName = this._getLibraryName(globalName);
 
     let packagePath;
     try {
@@ -210,5 +211,14 @@ export class Resolver {
     return require.resolve(fileName, {
       paths: [this.projectRoot]
     });
+  }
+
+  public _getLibraryName(globalName: string): string {
+    return globalName.startsWith("@")
+      ? globalName.slice(
+          0,
+          globalName.indexOf(path.sep, globalName.indexOf(path.sep) + 1)
+        )
+      : globalName.slice(0, globalName.indexOf(path.sep));
   }
 }
