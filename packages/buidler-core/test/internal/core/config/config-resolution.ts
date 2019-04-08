@@ -52,6 +52,11 @@ describe("Config resolution", () => {
           "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
         ]);
       });
+
+      it("should keep any unknown field", () => {
+        const config = loadConfigAndTasks() as any;
+        assert.deepEqual(config.unknown, { asd: 123 });
+      });
     });
   });
 
