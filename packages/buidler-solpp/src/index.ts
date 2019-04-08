@@ -1,23 +1,9 @@
 import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { internalTask, task } from "@nomiclabs/buidler/config";
-import { ResolvedBuidlerConfig, SolppConfig } from "@nomiclabs/buidler/types";
+import { internalTask } from "@nomiclabs/buidler/config";
+import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 import path from "path";
 
-declare module "@nomiclabs/buidler/types" {
-  interface SolppConfig {
-    defs: any;
-    cwd: string;
-    name: string;
-    collapseEmptyLines: boolean;
-    noPreprocessor: boolean;
-    noFlatten: boolean;
-    tolerant: boolean;
-  }
-
-  interface BuidlerConfig {
-    solpp?: Partial<SolppConfig>;
-  }
-}
+import { SolppConfig } from "./types";
 
 export const PROCESSED_CACHE_DIRNAME = "solpp-generated-contracts";
 

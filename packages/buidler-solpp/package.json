@@ -2,21 +2,33 @@
   "name": "@nomiclabs/buidler-solpp",
   "version": "1.0.0-beta.1",
   "description": "Buidler plugin for solpp",
-  "repository": "github:nomiclabs/buidler-solpp",
+  "repository": "github:nomiclabs/buidler",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-solpp",
   "author": "Nomic Labs SRL",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "buidler",
+    "buidler-plugin",
+    "solidity",
+    "solidity-preprocessor",
+    "solpp"
+  ],
   "scripts": {
-    "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
-    "lint": "tslint --config tslint.json --project tsconfig.json",
-    "test": "mocha ",
-    "build": "tsc",
-    "buidl": "tsc",
-    "watch": "tsc -w"
+    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint": "npm run lint-src && npm run lint-tests",
+    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "./scripts/run-tests.sh",
+    "build": "../../node_modules/.bin/tsc --build src",
+    "build-test": "../../node_modules/.bin/tsc --build .",
+    "clean": "rm -rf dist build-test"
   },
   "files": [
-    "dist/src/",
+    "dist/",
     "src/",
     "LICENSE",
     "README.md"
