@@ -15,7 +15,7 @@ declare module "@nomiclabs/buidler/types" {
   }
 
   interface BuidlerConfig {
-    solpp: Partial<SolppConfig>;
+    solpp?: Partial<SolppConfig>;
   }
 }
 
