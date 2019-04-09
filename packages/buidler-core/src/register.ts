@@ -35,5 +35,7 @@ if (!BuidlerContext.isCreated()) {
     ctx.extendersManager.getExtenders()
   );
 
+  ctx.setBuidlerRuntimeEnvironment(env);
+
   env.injectToGlobal();
 }
