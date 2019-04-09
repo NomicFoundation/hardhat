@@ -107,6 +107,8 @@ async function main() {
       envExtenders
     );
 
+    ctx.setBuidlerRuntimeEnvironment(env);
+
     // --help is a also special case
     if (buidlerArguments.help && taskName !== TASK_HELP) {
       await env.run(TASK_HELP, { task: taskName });
