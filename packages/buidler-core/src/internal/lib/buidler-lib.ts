@@ -5,7 +5,7 @@ import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 
-let env: BuidlerRuntimeEnvironment | undefined;
+let env: BuidlerRuntimeEnvironment;
 
 if (!BuidlerContext.isCreated()) {
   BuidlerContext.createBuidlerContext();
