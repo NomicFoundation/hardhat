@@ -38,6 +38,7 @@ export function resolveConfig(
   const paths = resolveProjectPaths(userConfigPath, userConfig.paths);
 
   return {
+    ...config,
     paths,
     networks: config.networks!,
     solc: config.solc!
