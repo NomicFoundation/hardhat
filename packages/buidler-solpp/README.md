@@ -1,6 +1,4 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-solpp)
- [![Build Status](https://travis-ci.com/nomiclabs/buidler-solpp.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler-solpp)
-
 
 # buidler-solpp
 [Buidler](http://getbuidler.com) plugin for integration with [solpp preprocessor](https://github.com/merklejerk/solpp).
