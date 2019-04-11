@@ -16,4 +16,12 @@ contract A {
     {
         return 123;
     }
+    function noUnderscoreFunction() pure internal returns (uint256) 
+    {
+        return 123;
+    }
+    function _externalFunction() pure external returns (uint256) 
+    {
+        return 123;
+    }
 }
