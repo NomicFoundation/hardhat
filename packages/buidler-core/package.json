@@ -74,7 +74,7 @@
     "mocha": "^5.2.0",
     "semver": "^5.6.0",
     "solc": "0.5.5",
-    "solidity-parser-antlr": "^0.3.3",
+    "solidity-parser-antlr": "^0.4.1",
     "source-map-support": "^0.5.11",
     "ts-essentials": "^1.0.2",
     "tsort": "0.0.1",
