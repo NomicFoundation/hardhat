@@ -78,8 +78,8 @@ internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { web3 }) => {
     });
 });
 
-internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
-  const sources = await glob(join(config.paths.sources, "**/*.sol"));
+internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }, runSuper) => {
+  const sources = await runSuper();
   const tests = await glob(join(config.paths.tests, "**/*.sol"));
   return [...sources, ...tests];
 });
