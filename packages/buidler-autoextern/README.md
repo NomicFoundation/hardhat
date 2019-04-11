@@ -1,48 +1,33 @@
-# Buidler TypeScript plugin boilerplate
+[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-autoextern.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-autoextern)
 
-This is a sample Buidler plugin written in TypeScript. Creating a Buidler plugin can be as easy as extracting part of your config into a different file, but this sample project comes with many more features:
 
-- A mocha test suit ready to use
-- TravisCI already setup
-- A package.json with scripts and publishing info
-- Examples on how to do different things
+	
+ 
+ # buidler-solhint
+[Buidler](http://getbuidler.com) plugin to generate testable contracts.
 
-## Installation
+ ## What
+This plugin creates contracts that converts all its internal functions into external.
 
-We recommend developing Buidler plugins using yarn. To start working on your project, just run
+ ## Installation
+```
+npm install @nomiclabs/buidler-autoextern
+```
 
-- `yarn`
-- `yarn add --peer @nomiclabs/buidler@^1.0.0-beta.1`
+ And add the following require to the top of your ```buidler.config.js```:
 
-## Plugin development
+ ```require("@nomiclabs/buidler-autoextern")```
+ ## Tasks
+This plugin overrides the ```compile:get-source-paths``` internal task and creates a new testable contract for every contract with the enabling annotation and they will be added into the compilation pipeline.
 
-Make sure to read our [Plugin Development Guide](https://github.com/nomiclabs/buidler/wiki/Plugin-development-guide) to learn how to build a high-quality plugin.
+ ## Environment extensions
+This plugin does not extend the environment.
 
-## Updating Buidler or other peer dependencies
+ ## Usage
+There are no additional steps you need to take for this plugin to work. Install it, run `npx buidler compile` and the generated contracts will be located in the cache directory.
 
-When updating/adding Buidler or other peer dependencies, you should update the `.travis.yml` file's install section. The right version of all of them has to be installed in a single line, after `yarn`.
-
-## Testing
-
-Running `yarn test` will run every test located in the `test/` folder. They use [mocha](https://mochajs.org) and [chai](https://www.chaijs.com/), but you can customize them.
-
-We recommend creating unit tests for your own modules, and integration tests for the interaction of the plugin with Buidler and its dependencies.
-
-## Linting and autoformat
-
-All all of Buidler projects use [prettier](https://prettier.io/) and [tslint](https://palantir.github.io/tslint/).
-
-You can check if your code style is correct by running `yarn lint`, and fix it with `yarn lint:fix`.
-
-## Building the project
-
-Just run `yarn buidl` ️👷‍
-
-## README file
-
-We recommend writing a README that contains the following information:
-
-* What is it
-* How to install it
-* New tasks
-* Environment extensions
+This plugin can by configured by setting a `autoextern` entry in `buidler.config.js`. Its options are:
+```enableForFileAnnotation: string```: the annotation which flag the contract to processed by the plugin, ```"#buidler-autoextern"``` by default.
+```exportableFunctionNamePattern: RegExp```: the pattern used to test contract's function names, ```/^_/``` by default.
+```contractNameTransformer: (name: string) => string```: a function to transform the contract's name. By default it will add ```"Testable"``` to the contact's name.
+```functiontNameTransformer: (name: string) => string```: a function to transform the contract's function names. By default it will remove the first character of the function's name.
