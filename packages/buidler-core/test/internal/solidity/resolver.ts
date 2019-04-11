@@ -2,6 +2,7 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 
 import { ERRORS } from "../../../src/internal/core/errors";
+import { getImports } from "../../../src/internal/solidity/imports";
 import {
   ResolvedFile,
   Resolver
@@ -502,31 +503,37 @@ describe("Resolver", () => {
   });
 });
 
-describe("Scoped dependencies project", () => {
+describe.only("Scoped dependencies project", () => {
   const projectName = "scoped-dependency-project";
   useFixtureProject(projectName);
 
-  let resolver: Resolver;
-  // let resolvedLocalFile: ResolvedFile;
-  // let resolvedLibFile: ResolvedFile;
-  before("Get project root", async () => {
-    resolver = new Resolver(await getFixtureProjectPath(projectName));
-    //   resolvedLocalFile = await resolver.resolveProjectSourceFile(
-    //     "contracts/A.sol"
-    //   );
-    //   resolvedLibFile = await resolver.resolveLibrarySourceFile(
-    //     "lib/contracts/L.sol"
-    //   );
+  before("Get project root", async function() {
+    this.resolver = new Resolver(await getFixtureProjectPath(projectName));
+    this.resolvedLocalFile = await this.resolver.resolveProjectSourceFile(
+      "contracts/A.sol"
+    );
   });
-  it.only("should retrieve the library name properly", function() {
+
+  it("should resolve scoped libraries properly", async function() {
+    const imports = getImports(this.resolvedLocalFile.content);
+    assert.isAbove(imports.length, 0);
+    assert.equal(imports[0], "@scope/package/contracts/File.sol");
+    const resolvedLibrary: ResolvedFile = await this.resolver.resolveImport(
+      this.resolvedLocalFile,
+      imports[0]
+    );
+    assert.isDefined(resolvedLibrary);
+    assert.equal(resolvedLibrary.globalName, imports[0]);
+    assert.equal(resolvedLibrary.library!.name, "@scope/package");
+  });
+
+  it("should retrieve the library name properly", function() {
     assert.equal(
-      resolver._getLibraryName(
-        "@gnosis.pm/mock-contract/contracts/MockContract.sol"
-      ),
-      "@gnosis.pm/mock-contract"
+      this.resolver._getLibraryName("@scoped/library/contracts/Contract.sol"),
+      "@scoped/library"
     );
     assert.equal(
-      resolver._getLibraryName("library/contracts/MockContract.sol"),
+      this.resolver._getLibraryName("library/contracts/Contract.sol"),
       "library"
     );
   });
