@@ -503,7 +503,7 @@ describe("Resolver", () => {
   });
 });
 
-describe.only("Scoped dependencies project", () => {
+describe("Scoped dependencies project", () => {
   const projectName = "scoped-dependency-project";
   useFixtureProject(projectName);
 
