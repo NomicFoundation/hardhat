@@ -214,11 +214,13 @@ export class Resolver {
   }
 
   public _getLibraryName(globalName: string): string {
-    return globalName.startsWith("@")
-      ? globalName.slice(
-          0,
-          globalName.indexOf(path.sep, globalName.indexOf(path.sep) + 1)
-        )
-      : globalName.slice(0, globalName.indexOf(path.sep));
+    if (globalName.startsWith("@")) {
+      return globalName.slice(
+        0,
+        globalName.indexOf("/", globalName.indexOf("/") + 1)
+      );
+    } else {
+      return globalName.slice(0, globalName.indexOf("/"));
+    }
   }
 }
