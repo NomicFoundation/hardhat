@@ -6,6 +6,10 @@ import {
   ResolvedFile,
   Resolver
 } from "../../../src/internal/solidity/resolver";
+import {
+  getFixtureProjectPath,
+  useFixtureProject
+} from "../../helpers/project";
 
 function assertDeps(
   graph: DependencyGraph,
@@ -30,7 +34,7 @@ function assertResolvedFiles(graph: DependencyGraph, ...files: ResolvedFile[]) {
   assert.includeMembers(resolvedFiles, files);
 }
 
-describe("Dependency Graph", () => {
+describe("Dependency Graph", function() {
   let resolver: Resolver;
   let projectRoot: string;
   let fileWithoutDependencies: ResolvedFile;
@@ -42,7 +46,7 @@ describe("Dependency Graph", () => {
   let loop2: ResolvedFile;
   let dependsOnLoop2: ResolvedFile;
 
-  before("Mock some resolved files", () => {
+  before("Mock some resolved files", function() {
     projectRoot = fs.realpathSync(".");
 
     fileWithoutDependencies = new ResolvedFile(
@@ -119,12 +123,12 @@ describe("Dependency Graph", () => {
     };
   });
 
-  it("should give an empty graph if there's no entry point", async () => {
+  it("should give an empty graph if there's no entry point", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, []);
     assert.isEmpty(graph.dependenciesPerFile);
   });
 
-  it("should give a graph with a single node if the only entry point has no deps", async () => {
+  it("should give a graph with a single node if the only entry point has no deps", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       fileWithoutDependencies
     ]);
@@ -133,7 +137,7 @@ describe("Dependency Graph", () => {
     assertDeps(graph, fileWithoutDependencies);
   });
 
-  it("should work with multiple entry points without deps", async () => {
+  it("should work with multiple entry points without deps", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       fileWithoutDependencies,
       fileWithoutDependencies2
@@ -147,7 +151,7 @@ describe("Dependency Graph", () => {
     assertDeps(graph, fileWithoutDependencies2);
   });
 
-  it("should work with an entry point with deps", async () => {
+  it("should work with an entry point with deps", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       dependsOnWDAndW2
     ]);
@@ -167,7 +171,7 @@ describe("Dependency Graph", () => {
     );
   });
 
-  it("should work with the same file being reachable from multiple entry pints", async () => {
+  it("should work with the same file being reachable from multiple entry pints", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       dependsOnWDAndW2,
       fileWithoutDependencies
@@ -211,7 +215,7 @@ describe("Dependency Graph", () => {
     assertDeps(graph2, dependsOnWD, fileWithoutDependencies);
   });
 
-  it("should work with an isolated file", async () => {
+  it("should work with an isolated file", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       dependsOnWDAndW2,
       fileWithoutDependencies3
@@ -235,22 +239,50 @@ describe("Dependency Graph", () => {
     );
   });
 
-  it("should work with cyclic dependencies", async () => {
-    const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
-      dependsOnLoop2,
-      fileWithoutDependencies3
-    ]);
+  describe("Cyclic dependencies", function() {
+    const PROJECT = "cyclic-dependencies-project";
+    useFixtureProject(PROJECT);
 
-    assertResolvedFiles(
-      graph,
-      loop1,
-      loop2,
-      dependsOnLoop2,
-      fileWithoutDependencies3
-    );
-    assertDeps(graph, loop1, loop2);
-    assertDeps(graph, loop2, loop1);
-    assertDeps(graph, dependsOnLoop2, loop2);
-    assertDeps(graph, fileWithoutDependencies3);
+    let localResolver: Resolver;
+    before("Get project root", async function() {
+      localResolver = new Resolver(await getFixtureProjectPath(PROJECT));
+    });
+
+    it.only("should work with cyclic dependencies", async () => {
+      const fileA = await localResolver.resolveProjectSourceFile(
+        "contracts/A.sol"
+      );
+      const fileB = await localResolver.resolveProjectSourceFile(
+        "contracts/B.sol"
+      );
+
+      const graph = await DependencyGraph.createFromResolvedFiles(
+        localResolver,
+        [fileA]
+      );
+
+      const graphFiles = Array.from(graph.dependenciesPerFile.keys());
+      graphFiles.sort((a, b) => a.absolutePath.localeCompare(b.absolutePath));
+
+      assert.equal(graphFiles.length, 2);
+
+      const [graphsA, graphsB] = graphFiles;
+      assert.deepEqual(graphsA, fileA);
+      assert.deepEqual(graphsB, fileB);
+
+      assert.equal(graph.dependenciesPerFile.get(graphsA)!.size, 1);
+
+      const graphsADep = Array.from(
+        graph.dependenciesPerFile.get(graphsA)!.values()
+      )[0];
+      assert.deepEqual(graphsADep, fileB);
+
+      assert.equal(graph.dependenciesPerFile.get(graphsB)!.size, 1);
+
+      const graphsBDep = Array.from(
+        graph.dependenciesPerFile.get(graphsB)!.values()
+      )[0];
+      assert.deepEqual(graphsBDep, fileA);
+    });
   });
 });

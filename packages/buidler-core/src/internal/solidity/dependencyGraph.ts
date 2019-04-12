@@ -9,17 +9,18 @@ export class DependencyGraph {
     const graph = new DependencyGraph();
 
     for (const resolvedFile of resolvedFiles) {
-      if (!graph.dependenciesPerFile.has(resolvedFile)) {
-        await graph.addDependenciesFrom(resolver, resolvedFile);
-      }
+      await graph.addDependenciesFrom(resolver, resolvedFile);
     }
 
     return graph;
   }
+
   public readonly dependenciesPerFile = new Map<
     ResolvedFile,
     Set<ResolvedFile>
   >();
+
+  private readonly visitedFiles = new Set<string>();
 
   private constructor() {}
 
@@ -28,6 +29,12 @@ export class DependencyGraph {
   }
 
   private async addDependenciesFrom(resolver: Resolver, file: ResolvedFile) {
+    if (this.visitedFiles.has(file.absolutePath)) {
+      return;
+    }
+
+    this.visitedFiles.add(file.absolutePath);
+
     const dependencies = new Set();
     this.dependenciesPerFile.set(file, dependencies);
 
@@ -37,9 +44,7 @@ export class DependencyGraph {
       const dependency = await resolver.resolveImport(file, imp);
       dependencies.add(dependency);
 
-      if (!this.dependenciesPerFile.has(dependency)) {
-        await this.addDependenciesFrom(resolver, dependency);
-      }
+      await this.addDependenciesFrom(resolver, dependency);
     }
   }
 }
