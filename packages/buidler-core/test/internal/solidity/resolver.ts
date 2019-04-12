@@ -2,6 +2,7 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 
 import { ERRORS } from "../../../src/internal/core/errors";
+import { getImports } from "../../../src/internal/solidity/imports";
 import {
   ResolvedFile,
   Resolver
@@ -499,5 +500,41 @@ describe("Resolver", function() {
         ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
       );
     });
+  });
+});
+
+describe("Scoped dependencies project", () => {
+  const projectName = "scoped-dependency-project";
+  useFixtureProject(projectName);
+
+  before("Get project root", async function() {
+    this.resolver = new Resolver(await getFixtureProjectPath(projectName));
+    this.resolvedLocalFile = await this.resolver.resolveProjectSourceFile(
+      "contracts/A.sol"
+    );
+  });
+
+  it("should resolve scoped libraries properly", async function() {
+    const imports = getImports(this.resolvedLocalFile.content);
+    assert.isAbove(imports.length, 0);
+    assert.equal(imports[0], "@scope/package/contracts/File.sol");
+    const resolvedLibrary: ResolvedFile = await this.resolver.resolveImport(
+      this.resolvedLocalFile,
+      imports[0]
+    );
+    assert.isDefined(resolvedLibrary);
+    assert.equal(resolvedLibrary.globalName, imports[0]);
+    assert.equal(resolvedLibrary.library!.name, "@scope/package");
+  });
+
+  it("should retrieve the library name properly", function() {
+    assert.equal(
+      this.resolver._getLibraryName("@scoped/library/contracts/Contract.sol"),
+      "@scoped/library"
+    );
+    assert.equal(
+      this.resolver._getLibraryName("library/contracts/Contract.sol"),
+      "library"
+    );
   });
 });
