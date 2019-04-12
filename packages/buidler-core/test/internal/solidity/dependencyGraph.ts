@@ -248,7 +248,7 @@ describe("Dependency Graph", function() {
       localResolver = new Resolver(await getFixtureProjectPath(PROJECT));
     });
 
-    it("should work with cyclic dependencies", async () => {
+    it.only("should work with cyclic dependencies", async () => {
       const fileA = await localResolver.resolveProjectSourceFile(
         "contracts/A.sol"
       );
@@ -261,10 +261,28 @@ describe("Dependency Graph", function() {
         [fileA]
       );
 
-      assertResolvedFiles(graph, fileA, fileB);
+      const graphFiles = Array.from(graph.dependenciesPerFile.keys());
+      graphFiles.sort((a, b) => a.absolutePath.localeCompare(b.absolutePath));
 
-      assertDeps(graph, fileA, fileB);
-      assertDeps(graph, fileB, fileA);
+      assert.equal(graphFiles.length, 2);
+
+      const [graphsA, graphsB] = graphFiles;
+      assert.deepEqual(graphsA, fileA);
+      assert.deepEqual(graphsB, fileB);
+
+      assert.equal(graph.dependenciesPerFile.get(graphsA)!.size, 1);
+
+      const graphsADep = Array.from(
+        graph.dependenciesPerFile.get(graphsA)!.values()
+      )[0];
+      assert.deepEqual(graphsADep, fileB);
+
+      assert.equal(graph.dependenciesPerFile.get(graphsB)!.size, 1);
+
+      const graphsBDep = Array.from(
+        graph.dependenciesPerFile.get(graphsB)!.values()
+      )[0];
+      assert.deepEqual(graphsBDep, fileA);
     });
   });
 });
