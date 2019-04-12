@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-web3",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.3",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3",
@@ -33,7 +33,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.2",
+    "@nomiclabs/buidler": "^1.0.0-beta.3",
     "chai": "^4.2.0",
     "web3": "1.0.0-beta.37"
   },
