@@ -30,7 +30,7 @@ function assertResolvedFiles(graph: DependencyGraph, ...files: ResolvedFile[]) {
   assert.includeMembers(resolvedFiles, files);
 }
 
-describe("Dependency Graph", () => {
+describe("Dependency Graph", function() {
   let resolver: Resolver;
   let projectRoot: string;
   let fileWithoutDependencies: ResolvedFile;
@@ -42,7 +42,7 @@ describe("Dependency Graph", () => {
   let loop2: ResolvedFile;
   let dependsOnLoop2: ResolvedFile;
 
-  before("Mock some resolved files", () => {
+  before("Mock some resolved files", function() {
     projectRoot = fs.realpathSync(".");
 
     fileWithoutDependencies = new ResolvedFile(
@@ -119,12 +119,12 @@ describe("Dependency Graph", () => {
     };
   });
 
-  it("should give an empty graph if there's no entry point", async () => {
+  it("should give an empty graph if there's no entry point", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, []);
     assert.isEmpty(graph.dependenciesPerFile);
   });
 
-  it("should give a graph with a single node if the only entry point has no deps", async () => {
+  it("should give a graph with a single node if the only entry point has no deps", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       fileWithoutDependencies
     ]);
@@ -133,7 +133,7 @@ describe("Dependency Graph", () => {
     assertDeps(graph, fileWithoutDependencies);
   });
 
-  it("should work with multiple entry points without deps", async () => {
+  it("should work with multiple entry points without deps", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       fileWithoutDependencies,
       fileWithoutDependencies2
@@ -147,7 +147,7 @@ describe("Dependency Graph", () => {
     assertDeps(graph, fileWithoutDependencies2);
   });
 
-  it("should work with an entry point with deps", async () => {
+  it("should work with an entry point with deps", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       dependsOnWDAndW2
     ]);
@@ -167,7 +167,7 @@ describe("Dependency Graph", () => {
     );
   });
 
-  it("should work with the same file being reachable from multiple entry pints", async () => {
+  it("should work with the same file being reachable from multiple entry pints", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       dependsOnWDAndW2,
       fileWithoutDependencies
@@ -211,7 +211,7 @@ describe("Dependency Graph", () => {
     assertDeps(graph2, dependsOnWD, fileWithoutDependencies);
   });
 
-  it("should work with an isolated file", async () => {
+  it("should work with an isolated file", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       dependsOnWDAndW2,
       fileWithoutDependencies3
@@ -235,7 +235,7 @@ describe("Dependency Graph", () => {
     );
   });
 
-  it("should work with cyclic dependencies", async () => {
+  it("should work with cyclic dependencies", async function() {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
       dependsOnLoop2,
       fileWithoutDependencies3
