@@ -4,42 +4,42 @@ import fsExtra from "fs-extra";
 import { DEFAULT_CONFIG } from "../src/config";
 import { generateTestableContract } from "../src/contracts";
 
-import { useEnvironment } from "./helpers";
-
-describe("BuidlerRuntimeEnvironment extension", function() {
-  useEnvironment(__dirname + "/buidler-project");
-  beforeEach("Buidler project setup", async function() {
-    await fsExtra.emptyDir("./cache");
-    await fsExtra.rmdir("./cache");
-
-    await fsExtra.emptyDir("./artifacts");
-    await fsExtra.rmdir("./artifacts");
-  });
-
-  it("The example filed should say hello", async function() {});
-});
 
 describe("TestableContracts generation", function() {
-  const paths = {
-    artifacts: "",
-    cache: __dirname + "/buidler-project/contracts/cache",
-    configFile: "",
-    root: __dirname + "/buidler-project",
-    sources: __dirname + "/buidler-project/contracts",
-    tests: "."
-  };
   before(async function() {
     this.parser = await import("solidity-parser-antlr");
+    this.paths = {
+      artifacts: "",
+      cache: __dirname + "/buidler-project/contracts/cache",
+      configFile: "",
+      root: __dirname + "/buidler-project",
+      sources: __dirname + "/buidler-project/contracts",
+      tests: "."
+    };
   });
 
+  async function getFunctionNodes(contractPath: string) {
+    const parser = await import("solidity-parser-antlr");
+    const content = await fsExtra.readFile(contractPath, "utf-8");
+    const ast = parser.parse(content, { range: true });
+
+    const nodes: any[] = [];
+    parser.visit(ast, {
+      FunctionDefinition(node: any) {
+        nodes.push(node);
+      }
+    });
+    return nodes;
+  }
+
   beforeEach("clear cache directory", async function() {
-    await fsExtra.emptyDir(paths.cache);
+    await fsExtra.emptyDir(this.paths.cache);
   });
 
   describe("Enabling annotation", function() {
     it("Should ignore a file without the annotation", async function() {
       const testableContractPath = await generateTestableContract(
-        paths,
+        this.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithoutAnnotation.sol"
       );
@@ -49,7 +49,7 @@ describe("TestableContracts generation", function() {
 
     it("Should process a file if it has an annotation", async function() {
       const testableContractPath = await generateTestableContract(
-        paths,
+        this.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
@@ -58,12 +58,10 @@ describe("TestableContracts generation", function() {
     });
 
     it("all testable contract's functions should be external", async function() {
-      const originalContractPath =
-        __dirname + "/buidler-project/contracts/WithAnnotation.sol";
       const testableContractPath = await generateTestableContract(
-        paths,
+        this.paths,
         DEFAULT_CONFIG,
-        originalContractPath
+        __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
       assert.isDefined(testableContractPath);
       const testableFunctions = await getFunctionNodes(testableContractPath!);
@@ -75,7 +73,7 @@ describe("TestableContracts generation", function() {
 
     it("testable contract should contain the expected functions", async function() {
       const testableContractPath = await generateTestableContract(
-        paths,
+        this.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
@@ -89,44 +87,30 @@ describe("TestableContracts generation", function() {
     });
 
     it("should return undefined if the contract cannot be parsed", async function() {
-      const contractPath =
-        __dirname + "/buidler-project/contracts/WithSyntaxErrors.sol";
-
       const parsed = await generateTestableContract(
-        paths,
+        this.paths,
         DEFAULT_CONFIG,
-        contractPath
+        __dirname + "/buidler-project/contracts/WithSyntaxErrors.sol"
       );
       assert.isUndefined(parsed);
     });
 
     it("should not re-create unmodified contracts", async function() {
+      const contractPath =
+        __dirname + "/buidler-project/contracts/WithAnnotation.sol";
       let testableContractPath = await generateTestableContract(
-        paths,
+        this.paths,
         DEFAULT_CONFIG,
-        __dirname + "/buidler-project/contracts/WithAnnotation.sol"
+        contractPath
       );
+
       assert.isDefined(testableContractPath);
       testableContractPath = await generateTestableContract(
-        paths,
+        this.paths,
         DEFAULT_CONFIG,
-        __dirname + "/buidler-project/contracts/WithAnnotation.sol"
+        contractPath
       );
       assert.isUndefined(testableContractPath);
     });
   });
 });
-
-async function getFunctionNodes(contractPath: string) {
-  const parser = await import("solidity-parser-antlr");
-  const content = await fsExtra.readFile(contractPath, "utf-8");
-  const ast = parser.parse(content, { range: true });
-
-  const nodes: any[] = [];
-  parser.visit(ast, {
-    FunctionDefinition(node: any) {
-      nodes.push(node);
-    }
-  });
-  return nodes;
-}
