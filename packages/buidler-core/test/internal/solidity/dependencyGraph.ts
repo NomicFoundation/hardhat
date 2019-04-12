@@ -6,6 +6,10 @@ import {
   ResolvedFile,
   Resolver
 } from "../../../src/internal/solidity/resolver";
+import {
+  getFixtureProjectPath,
+  useFixtureProject
+} from "../../helpers/project";
 
 function assertDeps(
   graph: DependencyGraph,
@@ -235,22 +239,32 @@ describe("Dependency Graph", function() {
     );
   });
 
-  it("should work with cyclic dependencies", async function() {
-    const graph = await DependencyGraph.createFromResolvedFiles(resolver, [
-      dependsOnLoop2,
-      fileWithoutDependencies3
-    ]);
+  describe("Cyclic dependencies", function() {
+    const PROJECT = "cyclic-dependencies-project";
+    useFixtureProject(PROJECT);
 
-    assertResolvedFiles(
-      graph,
-      loop1,
-      loop2,
-      dependsOnLoop2,
-      fileWithoutDependencies3
-    );
-    assertDeps(graph, loop1, loop2);
-    assertDeps(graph, loop2, loop1);
-    assertDeps(graph, dependsOnLoop2, loop2);
-    assertDeps(graph, fileWithoutDependencies3);
+    let localResolver: Resolver;
+    before("Get project root", async function() {
+      localResolver = new Resolver(await getFixtureProjectPath(PROJECT));
+    });
+
+    it("should work with cyclic dependencies", async () => {
+      const fileA = await localResolver.resolveProjectSourceFile(
+        "contracts/A.sol"
+      );
+      const fileB = await localResolver.resolveProjectSourceFile(
+        "contracts/B.sol"
+      );
+
+      const graph = await DependencyGraph.createFromResolvedFiles(
+        localResolver,
+        [fileA]
+      );
+
+      assertResolvedFiles(graph, fileA, fileB);
+
+      assertDeps(graph, fileA, fileB);
+      assertDeps(graph, fileB, fileA);
+    });
   });
 });
