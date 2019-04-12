@@ -22,7 +22,7 @@ function assertResolvedFile(
   }
 }
 
-describe("Resolved file", () => {
+describe("Resolved file", function() {
   const globalName = "globalName.sol";
   const absolutePath = "/path/to/file/globalName.sol";
   const content = "the file content";
@@ -33,7 +33,7 @@ describe("Resolved file", () => {
   let resolvedFileWithoutLibrary: ResolvedFile;
   let resolvedFileWithLibrary: ResolvedFile;
 
-  before("init files", () => {
+  before("init files", function() {
     resolvedFileWithoutLibrary = new ResolvedFile(
       globalName,
       absolutePath,
@@ -51,7 +51,7 @@ describe("Resolved file", () => {
     );
   });
 
-  it("should be constructed correctly without a library", () => {
+  it("should be constructed correctly without a library", function() {
     assertResolvedFile(resolvedFileWithoutLibrary, {
       globalName,
       absolutePath,
@@ -61,7 +61,7 @@ describe("Resolved file", () => {
     });
   });
 
-  it("Should be constructed correctly with a library", () => {
+  it("Should be constructed correctly with a library", function() {
     assertResolvedFile(resolvedFileWithLibrary, {
       globalName,
       absolutePath,
@@ -74,12 +74,12 @@ describe("Resolved file", () => {
     });
   });
 
-  describe("getVersionedName", () => {
-    it("Should give the global name if the file isn't from a library", () => {
+  describe("getVersionedName", function() {
+    it("Should give the global name if the file isn't from a library", function() {
       assert.equal(resolvedFileWithoutLibrary.getVersionedName(), globalName);
     });
 
-    it("Should add the version if the file is from a library", () => {
+    it("Should add the version if the file is from a library", function() {
       assert.equal(
         resolvedFileWithLibrary.getVersionedName(),
         globalName + "@v" + libraryVersion
@@ -88,17 +88,17 @@ describe("Resolved file", () => {
   });
 });
 
-describe("Resolver", () => {
-  describe("Project's files resolution", () => {
+describe("Resolver", function() {
+  describe("Project's files resolution", function() {
     const projectName = "top-level-node-project";
     useFixtureProject(projectName);
 
     let resolver: Resolver;
-    before("Get project root", async () => {
+    before("Get project root", async function() {
       resolver = new Resolver(await getFixtureProjectPath(projectName));
     });
 
-    it("should resolve from absolute paths", async () => {
+    it("should resolve from absolute paths", async function() {
       const absolutePath = await fsExtra.realpath("contracts/A.sol");
       const { mtime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveProjectSourceFile(absolutePath);
@@ -124,7 +124,7 @@ describe("Resolver", () => {
       });
     });
 
-    it("should resolve from the global name", async () => {
+    it("should resolve from the global name", async function() {
       const absolutePath = await fsExtra.realpath("contracts/B.sol");
       const { mtime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveProjectSourceFile(
@@ -140,7 +140,7 @@ describe("Resolver", () => {
       });
     });
 
-    it("should resolve from a path relative to the project root", async () => {
+    it("should resolve from a path relative to the project root", async function() {
       const absolutePath = await fsExtra.realpath("contracts/B.sol");
       const { mtime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveProjectSourceFile(
@@ -156,7 +156,7 @@ describe("Resolver", () => {
       });
     });
 
-    it("should throw if a library file is resolved as a source file", async () => {
+    it("should throw if a library file is resolved as a source file", async function() {
       const absolutePath = await fsExtra.realpath(
         "./node_modules/lib/contracts/L.sol"
       );
@@ -175,7 +175,7 @@ describe("Resolver", () => {
       );
     });
 
-    it("should throw if the file doesn't exist", async () => {
+    it("should throw if the file doesn't exist", async function() {
       await expectBuidlerErrorAsync(
         () => resolver.resolveProjectSourceFile("./contracts/NOT-FOUND.sol"),
         ERRORS.RESOLVER.FILE_NOT_FOUND
@@ -190,7 +190,7 @@ describe("Resolver", () => {
       );
     });
 
-    it("should throw if the file is outside of the project root", async () => {
+    it("should throw if the file is outside of the project root", async function() {
       await expectBuidlerErrorAsync(
         () =>
           resolver.resolveProjectSourceFile(
@@ -201,24 +201,24 @@ describe("Resolver", () => {
     });
   });
 
-  describe("Library files resolution", () => {
-    describe("With node_modules in the project root", () => {
+  describe("Library files resolution", function() {
+    describe("With node_modules in the project root", function() {
       const projectName = "top-level-node-project";
       useFixtureProject(projectName);
 
       let resolver: Resolver;
-      before("Get project root", async () => {
+      before("Get project root", async function() {
         resolver = new Resolver(await getFixtureProjectPath(projectName));
       });
 
-      it("Should throw if the library isn't installed", async () => {
+      it("Should throw if the library isn't installed", async function() {
         await expectBuidlerErrorAsync(
           () => resolver.resolveLibrarySourceFile("uninstalled/A.sol"),
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         );
       });
 
-      it("Should throw if the library is installed but the file is not found", async () => {
+      it("Should throw if the library is installed but the file is not found", async function() {
         await expectBuidlerErrorAsync(
           () => resolver.resolveLibrarySourceFile("lib/NOT-FOUND.sol"),
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
@@ -230,7 +230,7 @@ describe("Resolver", () => {
         );
       });
 
-      it("Should resolve existing files", async () => {
+      it("Should resolve existing files", async function() {
         const absolutePath = await fsExtra.realpath(
           "node_modules/lib/contracts/L.sol"
         );
@@ -271,16 +271,16 @@ describe("Resolver", () => {
       });
     });
 
-    describe("Project nested inside another node project", () => {
+    describe("Project nested inside another node project", function() {
       const projectName = "nested-node-project/project";
       useFixtureProject(projectName);
 
       let resolver: Resolver;
-      before("Get project root", async () => {
+      before("Get project root", async function() {
         resolver = new Resolver(await getFixtureProjectPath(projectName));
       });
 
-      it("should resolve a file of a library from the inner node_modules", async () => {
+      it("should resolve a file of a library from the inner node_modules", async function() {
         const absolutePath = await fsExtra.realpath(
           "node_modules/inner/contracts/L.sol"
         );
@@ -301,7 +301,7 @@ describe("Resolver", () => {
         });
       });
 
-      it("should resolve a file of a library from the outer node_modules", async () => {
+      it("should resolve a file of a library from the outer node_modules", async function() {
         const absolutePath = await fsExtra.realpath(
           "../node_modules/outer/contracts/L.sol"
         );
@@ -322,8 +322,8 @@ describe("Resolver", () => {
         });
       });
 
-      describe("when a library is in more than one node_modules", async () => {
-        it("should resolve a file that is only in the nearest node_modules", async () => {
+      describe("when a library is in more than one node_modules", async function() {
+        it("should resolve a file that is only in the nearest node_modules", async function() {
           const absolutePath = await fsExtra.realpath(
             "node_modules/clashed/contracts/I.sol"
           );
@@ -344,14 +344,14 @@ describe("Resolver", () => {
           });
         });
 
-        it("shouldn't resolve a file that is only in the outer node_modules", async () => {
+        it("shouldn't resolve a file that is only in the outer node_modules", async function() {
           await expectBuidlerErrorAsync(
             () => resolver.resolveLibrarySourceFile("clashed/contracts/O.sol"),
             ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
           );
         });
 
-        it("should resolve to the closest version in case of a file being included in both node_modules", async () => {
+        it("should resolve to the closest version in case of a file being included in both node_modules", async function() {
           const absolutePath = await fsExtra.realpath(
             "node_modules/clashed/contracts/L.sol"
           );
@@ -375,14 +375,14 @@ describe("Resolver", () => {
     });
   });
 
-  describe("Imports resolution", () => {
+  describe("Imports resolution", function() {
     const projectName = "top-level-node-project";
     useFixtureProject(projectName);
 
     let resolver: Resolver;
     let resolvedLocalFile: ResolvedFile;
     let resolvedLibFile: ResolvedFile;
-    before("Get project root", async () => {
+    before("Get project root", async function() {
       resolver = new Resolver(await getFixtureProjectPath(projectName));
       resolvedLocalFile = await resolver.resolveProjectSourceFile(
         "contracts/A.sol"
@@ -392,7 +392,7 @@ describe("Resolver", () => {
       );
     });
 
-    it("Should resolve absolute imports as libraries", async () => {
+    it("Should resolve absolute imports as libraries", async function() {
       const absolutePath = await fsExtra.realpath(
         "node_modules/lib/contracts/L2.sol"
       );
@@ -422,7 +422,7 @@ describe("Resolver", () => {
       assertResolvedFile(resolvedFromLibFile, expected);
     });
 
-    it("Should resolve relative imports from local files", async () => {
+    it("Should resolve relative imports from local files", async function() {
       const absolutePath = await fsExtra.realpath("contracts/B.sol");
       const { mtime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveImport(
@@ -439,7 +439,7 @@ describe("Resolver", () => {
       });
     });
 
-    it("Should resolve relative imports from library files", async () => {
+    it("Should resolve relative imports from library files", async function() {
       const absolutePath = await fsExtra.realpath(
         "node_modules/lib/contracts/subdir/L3.sol"
       );
@@ -461,7 +461,7 @@ describe("Resolver", () => {
       });
     });
 
-    it("Shouldn't allow relative imports from library files to escape the lib", async () => {
+    it("Shouldn't allow relative imports from library files to escape the lib", async function() {
       await expectBuidlerErrorAsync(
         () =>
           resolver.resolveImport(
@@ -472,7 +472,7 @@ describe("Resolver", () => {
       );
     });
 
-    it("Shouldn't allow relative imports from local files to escape the project", async () => {
+    it("Shouldn't allow relative imports from local files to escape the project", async function() {
       await expectBuidlerErrorAsync(
         () =>
           resolver.resolveImport(
@@ -483,7 +483,7 @@ describe("Resolver", () => {
       );
     });
 
-    it("Should throw if imported file doesn't exist", async () => {
+    it("Should throw if imported file doesn't exist", async function() {
       await expectBuidlerErrorAsync(
         () => resolver.resolveImport(resolvedLocalFile, "./asd.sol"),
         ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
