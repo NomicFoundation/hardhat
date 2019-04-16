@@ -4,7 +4,6 @@ import fsExtra from "fs-extra";
 import { DEFAULT_CONFIG } from "../src/config";
 import { generateTestableContract } from "../src/contracts";
 
-
 describe("TestableContracts generation", function() {
   before(async function() {
     this.parser = await import("solidity-parser-antlr");
@@ -105,6 +104,8 @@ describe("TestableContracts generation", function() {
       );
 
       assert.isDefined(testableContractPath);
+      assert.isTrue(await fsExtra.pathExists(testableContractPath!));
+
       testableContractPath = await generateTestableContract(
         this.paths,
         DEFAULT_CONFIG,
