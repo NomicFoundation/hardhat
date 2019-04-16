@@ -3,7 +3,7 @@
 
 	
  
- # buidler-solhint
+ # buidler-autoextern
 [Buidler](http://getbuidler.com) plugin to generate testable contracts.
 
  ## What
