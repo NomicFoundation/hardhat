@@ -27,9 +27,10 @@ describe("autoextern config", function() {
   });
 
   describe("custom config", function() {
+    useEnvironment(__dirname + "/custom-config-project");
+
     before(async function() {
       this.parser = await import("solidity-parser-antlr");
-      useEnvironment(__dirname + "/custom-config-project");
     });
 
     beforeEach("clear cache directory", async function() {
