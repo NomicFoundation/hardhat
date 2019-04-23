@@ -7,7 +7,7 @@ node_js:
 
 install:
   - npm ci
-  - npx lerna bootstrap
+  - npx lerna bootstrap --ci
 
 script:
   - npm run test
