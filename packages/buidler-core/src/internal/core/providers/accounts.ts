@@ -1,8 +1,7 @@
 import Transaction from "ethereumjs-tx";
-import { toBuffer } from "ethereumjs-util";
+import { bufferToHex, toBuffer } from "ethereumjs-util";
 import { Account } from "web3x/account";
 import { Tx } from "web3x/eth";
-import { bufferToHex } from "web3x/utils";
 
 import { IEthereumProvider } from "../../../types";
 import { BuidlerError, ERRORS } from "../errors";
@@ -87,7 +86,9 @@ export function createLocalAccountsProvider(
       const transaction = new Transaction(tx);
       transaction.sign(account.privateKey);
 
-      return provider.send("eth_sendRawTransaction", [transaction.serialize()]);
+      return provider.send("eth_sendRawTransaction", [
+        bufferToHex(transaction.serialize())
+      ]);
     }
 
     return provider.send(method, params);
