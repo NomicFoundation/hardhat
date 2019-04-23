@@ -57,7 +57,7 @@ export class CompilerDownloader {
   }
 
   public async getCompilerBuild(version: string): Promise<CompilerBuild> {
-    const compilersListExisted = this.compilersListExists();
+    const compilersListExisted = await this.compilersListExists();
 
     let list = await this.getCompilersList();
     let compilerBuildPath = list.releases[version];

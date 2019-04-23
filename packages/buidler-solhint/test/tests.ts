@@ -1,4 +1,5 @@
 import { assert } from "chai";
+// tslint:disable-next-line no-implicit-dependencies
 import { unlink, writeFile, writeJson } from "fs-extra";
 
 import { useEnvironment } from "./helpers";

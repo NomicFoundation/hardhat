@@ -42,7 +42,10 @@ export class HelpPrinter {
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(tasksToShow).sort()) {
-      const description = this.tasks[name].description || "";
+      const description =
+        this.tasks[name].description !== undefined
+          ? this.tasks[name].description
+          : "";
       console.log(`  ${name.padEnd(nameLength)}\t${description}`);
     }
 
@@ -62,7 +65,10 @@ export class HelpPrinter {
       throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, taskName);
     }
 
-    const description = taskDefinition.description || "";
+    const description =
+      taskDefinition.description !== undefined
+        ? taskDefinition.description
+        : "";
 
     console.log(`${this.programName} version ${this.version}\n`);
 

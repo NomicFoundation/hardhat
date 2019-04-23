@@ -24,12 +24,12 @@ export async function expectErrorAsync(
 
     if (typeof errorMessage === "string") {
       if (err.message !== errorMessage) {
-        notExactMatch.message += err.message + '"';
+        notExactMatch.message += `${err.message}"`;
         throw notExactMatch;
       }
     } else {
       if (errorMessage.exec(err.message) === null) {
-        notRegexpMatch.message += err.message + '"';
+        notRegexpMatch.message += `${err.message}"`;
         throw notRegexpMatch;
       }
     }
@@ -97,15 +97,15 @@ export async function expectBuidlerErrorAsync(
     assert.equal(error.number, errorDescription.number);
     assert.notInclude(error.message, "%s", "BuidlerError wrongly formatted");
 
-    if (errorMessage) {
+    if (errorMessage !== undefined) {
       if (typeof errorMessage === "string") {
         if (!error.message.includes(errorMessage)) {
-          notExactMatch.message += error.message + '"';
+          notExactMatch.message += `${error.message}`;
           throw notExactMatch;
         }
       } else {
         if (errorMessage.exec(error.message) === null) {
-          notRegexpMatch.message += error.message + '"';
+          notRegexpMatch.message += `${error.message}`;
           throw notRegexpMatch;
         }
       }

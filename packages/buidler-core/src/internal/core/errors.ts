@@ -30,7 +30,7 @@ export class BuidlerError extends Error {
       messageArguments.unshift(parentError);
     }
 
-    const prefix = ERROR_PREFIX + errorDescription.number + ": ";
+    const prefix = ERROR_PREFIX + errorDescription.number.toString() + ": ";
 
     const formattedMessage = util.format(
       errorDescription.message,

@@ -68,7 +68,7 @@ async function main() {
     if (
       buidlerArguments.config === undefined &&
       !isCwdInsideProject() &&
-      process.stdout.isTTY
+      process.stdout.isTTY === true
     ) {
       await createProject();
       return;
@@ -127,10 +127,12 @@ async function main() {
       console.error(
         colors.red("Error in plugin " + error.pluginName + ": " + error.message)
       );
-    } else {
+    } else if (error instanceof Error) {
       console.error(
         colors.red("An unexpected error occurred: " + error.message)
       );
+    } else {
+      console.error(colors.red("An unexpected error occurred."));
     }
 
     console.log("");
