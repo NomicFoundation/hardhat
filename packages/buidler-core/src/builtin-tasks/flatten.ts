@@ -24,23 +24,25 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     }
   }
 
-  let topologicalSortedNames;
   try {
-    topologicalSortedNames = graph.sort();
+    const topologicalSortedNames: string[] = graph.sort();
+
+    // If an entry has no dependency it won't be included in the graph, so we
+    // add them and then dedup the array
+    const withEntries = topologicalSortedNames.concat(
+      resolvedFiles.map(f => f.globalName)
+    );
+
+    const sortedNames = [...new Set(withEntries)];
+    return sortedNames.map(n => filesMap[n]);
   } catch (error) {
     if (error.toString().includes("Error: There is a cycle in the graph.")) {
       throw new BuidlerError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
+
+    // tslint:disable-next-line only-buidler-error
+    throw error;
   }
-
-  // If an entry has no dependency it won't be included in the graph, so we
-  // add them and then dedup the array
-  const withEntries = topologicalSortedNames.concat(
-    resolvedFiles.map(f => f.globalName)
-  );
-
-  const sortedNames = [...new Set(withEntries)] as string[];
-  return sortedNames.map(n => filesMap[n]);
 }
 
 function getFileWithoutImports(resolvedFile: ResolvedFile) {

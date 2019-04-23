@@ -22,7 +22,7 @@ export function getClosestCallerPackage(): string | undefined {
 
   for (const callSite of stack) {
     const fileName = callSite.getFileName();
-    if (fileName && path.isAbsolute(fileName)) {
+    if (fileName !== null && path.isAbsolute(fileName)) {
       const callerPackage = findClosestPackageJson(fileName);
 
       if (callerPackage === currentPackage) {

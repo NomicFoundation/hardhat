@@ -68,7 +68,10 @@ export const int: ArgumentType<number> = {
     const decimalPattern = /^\d+(?:[eE]\d+)?$/;
     const hexPattern = /^0[xX][\dABCDEabcde]+$/;
 
-    if (!strValue.match(decimalPattern) && !strValue.match(hexPattern)) {
+    if (
+      strValue.match(decimalPattern) === null &&
+      strValue.match(hexPattern) === null
+    ) {
       throw new BuidlerError(
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         strValue,
@@ -92,7 +95,10 @@ export const float: ArgumentType<number> = {
     const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
     const hexPattern = /^0[xX][\dABCDEabcde]+$/;
 
-    if (!strValue.match(decimalPattern) && !strValue.match(hexPattern)) {
+    if (
+      strValue.match(decimalPattern) === null &&
+      strValue.match(hexPattern) === null
+    ) {
       throw new BuidlerError(
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         strValue,

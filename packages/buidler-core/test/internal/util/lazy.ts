@@ -10,7 +10,7 @@ describe("lazy module", () => {
       let called = false;
       lazyObject(() => {
         called = true;
-        return {};
+        return { a: 1 };
       });
 
       assert.isFalse(called);
@@ -93,7 +93,7 @@ describe("lazy module", () => {
     });
 
     it("should trap defineProperty correctly", () => {
-      const obj = lazyObject(() => ({})) as any;
+      const obj = lazyObject(() => ({ a: 1 })) as any;
       obj.asd = 123;
 
       assert.equal(obj.asd, 123);
@@ -145,7 +145,7 @@ describe("lazy module", () => {
 
     it("should trap isExtensible correctly", () => {
       const obj = lazyObject(() => {
-        const v = {};
+        const v = { a: 1 };
         Object.preventExtensions(v);
 
         return v;
@@ -153,7 +153,7 @@ describe("lazy module", () => {
 
       assert.isFalse(Object.isExtensible(obj));
 
-      const obj2 = lazyObject(() => ({}));
+      const obj2 = lazyObject(() => ({ a: 1 }));
       assert.isTrue(Object.isExtensible(obj2));
     });
 
@@ -172,14 +172,14 @@ describe("lazy module", () => {
     });
 
     it("should trap preventExtensions correctly", () => {
-      const obj = lazyObject(() => ({}));
+      const obj = lazyObject(() => ({ a: 1 }));
       Object.preventExtensions(obj);
 
       assert.isFalse(Object.isExtensible(obj));
     });
 
     it("should trap set correctly", () => {
-      const obj = lazyObject(() => ({})) as any;
+      const obj = lazyObject(() => ({ a: 1 })) as any;
       obj.asd = 123;
 
       assert.deepEqual(Object.getOwnPropertyNames(obj), ["asd"]);

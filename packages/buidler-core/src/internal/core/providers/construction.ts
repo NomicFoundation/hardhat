@@ -31,14 +31,17 @@ export function createProvider(
     );
   }
 
-  const netConfig = networksConfig[selectedNetwork] as HttpNetworkConfig;
+  const netConfig = networksConfig[selectedNetwork] as Partial<
+    HttpNetworkConfig
+  >;
 
   // These dependencies are lazy-loaded because they are really big.
   // We use require() instead of import() here, because we need it to be sync.
 
   const { HttpProvider } = require("web3x/providers");
 
-  const url = netConfig.url || "http://localhost:8545";
+  const url =
+    netConfig.url !== undefined ? netConfig.url : "http://localhost:8545";
 
   const provider: IEthereumProvider = new HttpProvider(url);
 
@@ -47,7 +50,7 @@ export function createProvider(
 
 export function wrapEthereumProvider(
   provider: IEthereumProvider,
-  netConfig: HttpNetworkConfig
+  netConfig: Partial<HttpNetworkConfig>
 ): IEthereumProvider {
   // These dependencies are lazy-loaded because they are really big.
   // We use require() instead of import() here, because we need it to be sync.

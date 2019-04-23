@@ -82,9 +82,18 @@ describe("Solpp plugin", async function() {
 
       const generatedContent = readFileSync(paths[0]).toString();
 
-      const countEmptyLines = (text: string) => {
-        return text ? (text.match(/^[ \t]*$/gm) || []).length : 0;
-      };
+      function countEmptyLines(text: string) {
+        if (text === "") {
+          return 0;
+        }
+
+        const match = text.match(/^[ \t]*$/gm);
+        if (match === null) {
+          return 0;
+        }
+
+        return match.length;
+      }
 
       assert.isBelow(
         countEmptyLines(generatedContent),

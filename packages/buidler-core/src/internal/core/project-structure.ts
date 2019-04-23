@@ -11,21 +11,21 @@ const TS_CONFIG_FILENAME = "buidler.config.ts";
 
 export function isCwdInsideProject() {
   return (
-    !!findUp.sync(JS_CONFIG_FILENAME) ||
-    (isTypescriptSupported() && !!findUp.sync(TS_CONFIG_FILENAME))
+    findUp.sync(JS_CONFIG_FILENAME) !== null ||
+    (isTypescriptSupported() && findUp.sync(TS_CONFIG_FILENAME) !== null)
   );
 }
 
 export function getUserConfigPath() {
   if (isTypescriptSupported()) {
     const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
-    if (tsConfigPath) {
+    if (tsConfigPath !== null) {
       return tsConfigPath;
     }
   }
 
   const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);
-  if (!pathToConfigFile) {
+  if (pathToConfigFile !== null) {
     throw new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
   }
 

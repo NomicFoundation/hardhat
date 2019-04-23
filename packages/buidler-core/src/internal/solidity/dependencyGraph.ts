@@ -38,7 +38,7 @@ export class DependencyGraph {
     const dependencies = new Set();
     this.dependenciesPerFile.set(file, dependencies);
 
-    const imports = await getImports(file.content);
+    const imports = getImports(file.content);
 
     for (const imp of imports) {
       const dependency = await resolver.resolveImport(file, imp);

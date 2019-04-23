@@ -101,7 +101,7 @@ export function createHDWalletProvider(
   initialIndex: number = 0,
   count: number = 10
 ) {
-  if (!hdpath.match(HD_PATH_REGEX)) {
+  if (hdpath.match(HD_PATH_REGEX) === null) {
     throw new BuidlerError(ERRORS.NETWORK.INVALID_HD_PATH, hdpath);
   }
 
@@ -111,7 +111,9 @@ export function createHDWalletProvider(
 
   const accounts: Account[] = [];
   for (let i = initialIndex; i < initialIndex + count; i++) {
-    accounts.push(Account.createFromMnemonicAndPath(mnemonic, hdpath + i));
+    accounts.push(
+      Account.createFromMnemonicAndPath(mnemonic, hdpath + i.toString())
+    );
   }
 
   return createLocalAccountsProvider(

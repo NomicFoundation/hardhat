@@ -64,7 +64,7 @@ export class Web3HTTPProviderAdapter {
 
         responses.push(response);
 
-        if (response.error) {
+        if (response.error !== undefined) {
           break;
         }
       }
