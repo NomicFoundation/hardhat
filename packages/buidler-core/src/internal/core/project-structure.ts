@@ -25,7 +25,7 @@ export function getUserConfigPath() {
   }
 
   const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);
-  if (pathToConfigFile !== null) {
+  if (pathToConfigFile === null) {
     throw new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
   }
 
