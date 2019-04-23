@@ -28,6 +28,13 @@
     ],
     "no-floating-promises": true,
     "prefer-conditional-expression": false,
-    "no-implicit-dependencies": [true, "dev"]
+    "no-implicit-dependencies": [true, ["chai"]],
+    "await-promise": true,
+    "strict-boolean-expressions": true,
+    "no-duplicate-super": true,
+    "no-inferred-empty-object-type": true,
+    "no-misused-new": true,
+    "restrict-plus-operands": true,
+    "use-isnan": true
   }
 }
