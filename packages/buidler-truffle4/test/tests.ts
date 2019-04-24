@@ -1,4 +1,6 @@
+import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { assert } from "chai";
+import * as fs from "fs";
 
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
 import { TruffleContract, TruffleContractInstance } from "../src/types";
@@ -143,5 +145,48 @@ describe("TruffleContracts loading and provisioning", function() {
   describe("When compiling with solc 0.4.x", function() {
     useEnvironment(__dirname + "/buidler-project-solc-0.4");
     testArtifactsFunctionality();
+  });
+});
+
+describe("Test contracts compilation", function() {
+  useEnvironment(__dirname + "/project-with-test-contracts");
+
+  it("Should include sources from sources", async function() {
+    const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+    assert.include(
+      sources,
+      fs.realpathSync(
+        __dirname + "/project-with-test-contracts/contracts/fromContracts.sol"
+      )
+    );
+  });
+
+  it("Should include sources from test", async function() {
+    const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+    assert.include(
+      sources,
+      fs.realpathSync(
+        __dirname + "/project-with-test-contracts/test/fromTest.sol"
+      )
+    );
+  });
+
+  it("Should ignore non-source files from test", async function() {
+    const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+    assert.notInclude(
+      sources,
+      fs.realpathSync(
+        __dirname + "/project-with-test-contracts/test/shouldBeIgnored.txt"
+      )
+    );
+  });
+
+  it("Should include all the files from contracts and test", async function() {
+    const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+    assert.lengthOf(sources, 2);
   });
 });
