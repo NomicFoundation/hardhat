@@ -1,7 +1,12 @@
 import "@nomiclabs/buidler-web3";
-import { TASK_TEST_SETUP_TEST_ENVIRONMENT } from "@nomiclabs/buidler/builtin-tasks/task-names";
+import {
+  TASK_COMPILE_GET_SOURCE_PATHS,
+  TASK_TEST_SETUP_TEST_ENVIRONMENT
+} from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { extendEnvironment, internalTask } from "@nomiclabs/buidler/config";
+import { glob } from "@nomiclabs/buidler/internal/util/glob";
 import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
+import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 import { LazyTruffleContractProvisioner } from "./provisioner";
@@ -70,4 +75,10 @@ internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { web3 }) => {
     describe(description, () => {
       definition(accounts);
     });
+});
+
+internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }, runSuper) => {
+  const sources = await runSuper();
+  const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
+  return [...sources, ...testSources];
 });
