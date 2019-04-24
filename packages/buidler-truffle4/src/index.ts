@@ -44,6 +44,6 @@ internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { pweb3 }) => {
 
 internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }, runSuper) => {
   const sources = await runSuper();
-  const tests = await glob(join(config.paths.tests, "**/*.sol"));
-  return [...sources, ...tests];
+  const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
+  return [...sources, ...testSources];
 });
