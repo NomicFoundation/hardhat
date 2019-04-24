@@ -4,10 +4,9 @@ import {
   TASK_TEST_SETUP_TEST_ENVIRONMENT
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { extendEnvironment, internalTask } from "@nomiclabs/buidler/config";
+import { glob } from "@nomiclabs/buidler/internal/util/glob";
 import { lazyObject } from "@nomiclabs/buidler/plugins";
 import { join } from "path";
-
-import { glob } from "../../buidler-core/internal/util/glob";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 import { LazyTruffleContractProvisioner } from "./provisioner";
