@@ -4,19 +4,9 @@ import fsExtra from "fs-extra";
 import { DEFAULT_CONFIG } from "../src/config";
 import { generateTestableContract } from "../src/contracts";
 
-describe("TestableContracts generation", function() {
-  before(async function() {
-    this.parser = await import("solidity-parser-antlr");
-    this.paths = {
-      artifacts: "",
-      cache: __dirname + "/buidler-project/contracts/cache",
-      configFile: "",
-      root: __dirname + "/buidler-project",
-      sources: __dirname + "/buidler-project/contracts",
-      tests: "."
-    };
-  });
+import { useEnvironment } from "./helpers";
 
+describe("TestableContracts generation", function() {
   async function getFunctionNodes(contractPath: string) {
     const parser = await import("solidity-parser-antlr");
     const content = await fsExtra.readFile(contractPath, "utf-8");
@@ -31,14 +21,16 @@ describe("TestableContracts generation", function() {
     return nodes;
   }
 
+  useEnvironment(__dirname + "/buidler-project");
+
   beforeEach("clear cache directory", async function() {
-    await fsExtra.emptyDir(this.paths.cache);
+    await fsExtra.emptyDir(this.env.config.paths.cache);
   });
 
   describe("Enabling annotation", function() {
     it("Should ignore a file without the annotation", async function() {
       const testableContractPath = await generateTestableContract(
-        this.paths,
+        this.env.config.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithoutAnnotation.sol"
       );
@@ -48,7 +40,7 @@ describe("TestableContracts generation", function() {
 
     it("Should process a file if it has an annotation", async function() {
       const testableContractPath = await generateTestableContract(
-        this.paths,
+        this.env.config.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
@@ -58,7 +50,7 @@ describe("TestableContracts generation", function() {
 
     it("all testable contract's functions should be external", async function() {
       const testableContractPath = await generateTestableContract(
-        this.paths,
+        this.env.config.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
@@ -72,7 +64,7 @@ describe("TestableContracts generation", function() {
 
     it("testable contract should contain the expected functions", async function() {
       const testableContractPath = await generateTestableContract(
-        this.paths,
+        this.env.config.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
@@ -87,7 +79,7 @@ describe("TestableContracts generation", function() {
 
     it("should return undefined if the contract cannot be parsed", async function() {
       const parsed = await generateTestableContract(
-        this.paths,
+        this.env.config.paths,
         DEFAULT_CONFIG,
         __dirname + "/buidler-project/contracts/WithSyntaxErrors.sol"
       );
@@ -98,7 +90,7 @@ describe("TestableContracts generation", function() {
       const contractPath =
         __dirname + "/buidler-project/contracts/WithAnnotation.sol";
       let testableContractPath = await generateTestableContract(
-        this.paths,
+        this.env.config.paths,
         DEFAULT_CONFIG,
         contractPath
       );
@@ -107,7 +99,7 @@ describe("TestableContracts generation", function() {
       assert.isTrue(await fsExtra.pathExists(testableContractPath!));
 
       testableContractPath = await generateTestableContract(
-        this.paths,
+        this.env.config.paths,
         DEFAULT_CONFIG,
         contractPath
       );

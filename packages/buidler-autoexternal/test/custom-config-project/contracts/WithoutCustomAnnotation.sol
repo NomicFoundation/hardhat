@@ -1,7 +1,5 @@
 pragma solidity ^0.5.3;
 
-// #another-annotation
-
 contract A {
 
     modifier mod(uint256 arg) {

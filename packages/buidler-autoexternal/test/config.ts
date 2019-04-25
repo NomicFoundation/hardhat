@@ -8,17 +8,27 @@ import { useEnvironment } from "./helpers";
 
 describe("autoexternal config", function() {
   describe("default config", function() {
+    useEnvironment(__dirname + "/buidler-project");
+
     it("default values should work as expected", function() {
+      assert.equal(
+        DEFAULT_CONFIG.enableForFileAnnotation,
+        "#buidler-autoexternal"
+      );
+
+      assert.isTrue(
+        DEFAULT_CONFIG.exportableFunctionNamePattern.test("_internalFunction")
+      );
+
+      assert.isFalse(
+        DEFAULT_CONFIG.exportableFunctionNamePattern.test("internalFunction")
+      );
+
       assert.equal(
         DEFAULT_CONFIG.functionNameTransformer("_internalFunction"),
         "internalFunction"
       );
-      assert.isTrue(
-        DEFAULT_CONFIG.exportableFunctionNamePattern.test("_internalFunction")
-      );
-      assert.isFalse(
-        DEFAULT_CONFIG.exportableFunctionNamePattern.test("externalFunction")
-      );
+
       assert.equal(
         DEFAULT_CONFIG.contractNameTransformer("Contract"),
         "TestableContract"
@@ -29,10 +39,6 @@ describe("autoexternal config", function() {
   describe("custom config", function() {
     useEnvironment(__dirname + "/custom-config-project");
 
-    before(async function() {
-      this.parser = await import("solidity-parser-antlr");
-    });
-
     beforeEach("clear cache directory", async function() {
       await fsExtra.emptyDir(this.env.config.paths.cache);
     });
@@ -42,6 +48,17 @@ describe("autoexternal config", function() {
         this.env.config.paths,
         getAutoexternalConfig(this.env.config),
         __dirname + "/custom-config-project/contracts/WithCustomAnnotation.sol"
+      );
+
+      assert.isDefined(testableContractPath);
+    });
+
+    it("Should not parse file without the custom annotation", async function() {
+      const testableContractPath = await generateTestableContract(
+        this.env.config.paths,
+        getAutoexternalConfig(this.env.config),
+        __dirname +
+          "/custom-config-project/contracts/WithoutCustomAnnotation.sol"
       );
 
       assert.isUndefined(testableContractPath);
