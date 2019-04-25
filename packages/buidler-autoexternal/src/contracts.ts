@@ -1,13 +1,13 @@
 import { ProjectPaths } from "@nomiclabs/buidler/types";
 import path from "path";
 
-import { AutoexternConfig, TestableContract } from "./types";
+import { AutoexternalConfig, TestableContract } from "./types";
 
-const autoexternContractsCacheDirName = "autoextern";
+const autoexternalContractsCacheDirName = "autoexternal";
 
 export async function generateTestableContracts(
   paths: ProjectPaths,
-  autoexternConfig: AutoexternConfig,
+  autoexternalConfig: AutoexternalConfig,
   contractPaths: string[]
 ): Promise<string[]> {
   const testableContractPaths = [];
@@ -15,7 +15,7 @@ export async function generateTestableContracts(
   for (const contractPath of contractPaths) {
     const testableContract = await generateTestableContract(
       paths,
-      autoexternConfig,
+      autoexternalConfig,
       contractPath
     );
 
@@ -29,7 +29,7 @@ export async function generateTestableContracts(
 
 export async function generateTestableContract(
   paths: ProjectPaths,
-  autoexternConfig: AutoexternConfig,
+  autoexternalConfig: AutoexternalConfig,
   contractPath: string
 ): Promise<string | undefined> {
   const fsExtra = await import("fs-extra");
@@ -42,7 +42,7 @@ export async function generateTestableContract(
 
     enableForFileAnnotation,
     functionNameTransformer
-  } = autoexternConfig;
+  } = autoexternalConfig;
 
   if (!content.includes(enableForFileAnnotation)) {
     return undefined;
@@ -52,7 +52,7 @@ export async function generateTestableContract(
 
   const testableFilePath = path.join(
     paths.cache,
-    autoexternContractsCacheDirName,
+    autoexternalContractsCacheDirName,
     path.relative(paths.sources, contractPath)
   );
 

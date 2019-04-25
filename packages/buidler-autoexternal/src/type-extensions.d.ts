@@ -1,9 +1,9 @@
 import "@nomiclabs/buidler/types";
 
-import { AutoexternConfig } from "./types";
+import { AutoexternalConfig } from "./types";
 
 declare module "@nomiclabs/buidler/types" {
   export interface BuidlerConfig {
-    autoextern?: Partial<AutoexternConfig>;
+    autoexternal?: Partial<AutoexternalConfig>;
   }
 }

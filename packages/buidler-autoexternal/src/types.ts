@@ -1,4 +1,4 @@
-export interface AutoexternConfig {
+export interface AutoexternalConfig {
   enableForFileAnnotation: string;
   exportableFunctionNamePattern: RegExp;
   contractNameTransformer: (orignalContractName: string) => string;

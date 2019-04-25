@@ -1,12 +1,12 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 
-import { DEFAULT_CONFIG, getAutoexternConfig } from "../src/config";
+import { DEFAULT_CONFIG, getAutoexternalConfig } from "../src/config";
 import { generateTestableContract } from "../src/contracts";
 
 import { useEnvironment } from "./helpers";
 
-describe("autoextern config", function() {
+describe("autoexternal config", function() {
   describe("default config", function() {
     it("default values should work as expected", function() {
       assert.equal(
@@ -40,7 +40,7 @@ describe("autoextern config", function() {
     it("Should parse file with custom annotation", async function() {
       const testableContractPath = await generateTestableContract(
         this.env.config.paths,
-        getAutoexternConfig(this.env.config),
+        getAutoexternalConfig(this.env.config),
         __dirname + "/custom-config-project/contracts/WithCustomAnnotation.sol"
       );
 

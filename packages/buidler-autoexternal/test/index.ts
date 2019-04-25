@@ -7,7 +7,7 @@ import { assert } from "chai";
 
 import { useEnvironment } from "./helpers";
 
-describe("Autoextern plugin", function() {
+describe("Autoexternal plugin", function() {
   describe("Plugin loaded", async function() {
     useEnvironment(__dirname + "/buidler-project");
 

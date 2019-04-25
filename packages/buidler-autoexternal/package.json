@@ -1,9 +1,9 @@
 {
-  "name": "@nomiclabs/buidler-autoextern",
+  "name": "@nomiclabs/buidler-autoexternal",
   "version": "0.0.1",
   "description": "Buidler plugin that generates testable contracts with automatically exported private methods",
   "repository": "github:nomiclabs/buidler",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-autoextern",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-autoexternal",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "main": "dist/index.js",
