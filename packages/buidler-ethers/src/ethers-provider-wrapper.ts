@@ -2,12 +2,15 @@ import { IEthereumProvider } from "@nomiclabs/buidler/types";
 import { JsonRpcProvider } from "ethers/providers";
 
 export class EthersProviderWrapper extends JsonRpcProvider {
-  constructor(private readonly buidlerProvider: IEthereumProvider) {
+  private readonly _buidlerProvider: IEthereumProvider;
+
+  constructor(buidlerProvider: IEthereumProvider) {
     super();
+    this._buidlerProvider = buidlerProvider;
   }
 
   public async send(method: string, params: any): Promise<any> {
-    const result = await this.buidlerProvider.send(method, params);
+    const result = await this._buidlerProvider.send(method, params);
 
     // We replicate ethers' behavior.
     this.emit("debug", {

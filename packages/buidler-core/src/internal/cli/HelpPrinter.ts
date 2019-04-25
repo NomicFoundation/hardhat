@@ -10,28 +10,28 @@ import { ArgumentsParser } from "./ArgumentsParser";
 
 export class HelpPrinter {
   constructor(
-    private readonly programName: string,
-    private readonly executableName: string,
-    private readonly version: string,
-    private readonly buidlerParamDefinitions: BuidlerParamDefinitions,
-    private readonly tasks: TasksMap
+    private readonly _programName: string,
+    private readonly _executableName: string,
+    private readonly _version: string,
+    private readonly _buidlerParamDefinitions: BuidlerParamDefinitions,
+    private readonly _tasks: TasksMap
   ) {}
 
   public printGlobalHelp(includeInternalTasks = false) {
-    console.log(`${this.programName} version ${this.version}\n`);
+    console.log(`${this._programName} version ${this._version}\n`);
 
     console.log(
-      `Usage: ${this.executableName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
     );
 
     console.log("GLOBAL OPTIONS:\n");
 
-    this._printParamDetails(this.buidlerParamDefinitions);
+    this._printParamDetails(this._buidlerParamDefinitions);
 
     console.log("\n\nAVAILABLE TASKS:\n");
 
     const tasksToShow: TasksMap = {};
-    for (const [taskName, taskDefinition] of Object.entries(this.tasks)) {
+    for (const [taskName, taskDefinition] of Object.entries(this._tasks)) {
       if (includeInternalTasks || !taskDefinition.isInternal) {
         tasksToShow[taskName] = taskDefinition;
       }
@@ -43,8 +43,8 @@ export class HelpPrinter {
 
     for (const name of Object.keys(tasksToShow).sort()) {
       const description =
-        this.tasks[name].description !== undefined
-          ? this.tasks[name].description
+        this._tasks[name].description !== undefined
+          ? this._tasks[name].description
           : "";
       console.log(`  ${name.padEnd(nameLength)}\t${description}`);
     }
@@ -53,13 +53,13 @@ export class HelpPrinter {
 
     console.log(
       `To get help for a specific task run: ${
-        this.executableName
+        this._executableName
       } help [task]\n`
     );
   }
 
   public printTaskHelp(taskName: string) {
-    const taskDefinition = this.tasks[taskName];
+    const taskDefinition = this._tasks[taskName];
 
     if (taskDefinition === undefined) {
       throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, taskName);
@@ -70,10 +70,10 @@ export class HelpPrinter {
         ? taskDefinition.description
         : "";
 
-    console.log(`${this.programName} version ${this.version}\n`);
+    console.log(`${this._programName} version ${this._version}\n`);
 
     console.log(
-      `Usage: ${this.executableName} [GLOBAL OPTIONS] ${
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${
         taskDefinition.name
       }${this._getParamsList(
         taskDefinition.paramDefinitions
@@ -102,7 +102,7 @@ export class HelpPrinter {
 
     console.log(`${taskDefinition.name}: ${description}\n`);
 
-    console.log(`For global options help run: ${this.executableName} help\n`);
+    console.log(`For global options help run: ${this._executableName} help\n`);
   }
 
   public _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {

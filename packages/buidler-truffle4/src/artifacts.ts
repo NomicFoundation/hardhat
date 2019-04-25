@@ -8,15 +8,21 @@ import { LazyTruffleContractProvisioner } from "./provisioner";
 import { TruffleContract, TruffleContractInstance } from "./types";
 
 export class TruffleEnvironmentArtifacts {
+  private readonly _artifactsPath: string;
+  private readonly _provisioner: LazyTruffleContractProvisioner;
+
   constructor(
-    private readonly artifactsPath: string,
-    private readonly provisioner: LazyTruffleContractProvisioner
-  ) {}
+    artifactsPath: string,
+    provisioner: LazyTruffleContractProvisioner
+  ) {
+    this._provisioner = provisioner;
+    this._artifactsPath = artifactsPath;
+  }
 
   public require(contractPath: string): any {
-    const name = this.getContractNameFromPath(contractPath);
+    const name = this._getContractNameFromPath(contractPath);
 
-    return this.getTruffleContract(name);
+    return this._getTruffleContract(name);
   }
 
   public contractNeedsLinking(Contract: TruffleContract) {
@@ -66,7 +72,7 @@ export class TruffleEnvironmentArtifacts {
     }
 
     const destinationArtifact = readArtifactSync(
-      this.artifactsPath,
+      this._artifactsPath,
       destination.contractName
     );
 
@@ -139,7 +145,7 @@ export class TruffleEnvironmentArtifacts {
     destination.link(libraryAddresses);
   }
 
-  private getContractNameFromPath(contractPath: string) {
+  private _getContractNameFromPath(contractPath: string) {
     const basename = path.basename(contractPath);
 
     const lastDotIndex = basename.lastIndexOf(".");
@@ -150,11 +156,11 @@ export class TruffleEnvironmentArtifacts {
     return basename.slice(0, lastDotIndex);
   }
 
-  private getTruffleContract(contractName: string): TruffleContract {
-    const artifact = readArtifactSync(this.artifactsPath, contractName);
+  private _getTruffleContract(contractName: string): TruffleContract {
+    const artifact = readArtifactSync(this._artifactsPath, contractName);
     const TruffleContractFactory = require("truffle-contract");
     const Contract = TruffleContractFactory(artifact);
 
-    return this.provisioner.provision(Contract, this);
+    return this._provisioner.provision(Contract, this);
   }
 }

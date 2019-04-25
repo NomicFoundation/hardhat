@@ -37,17 +37,31 @@ async function downloadFile(
 }
 
 export class CompilerDownloader {
+  private readonly _compilersDir: string;
+  private readonly _localSolcVersion: string;
+  private readonly _download: (
+    url: string,
+    destinationFile: string
+  ) => Promise<void>;
+
   constructor(
-    private readonly compilersDir: string,
-    private readonly localSolcVersion: string,
-    private readonly download = downloadFile
-  ) {}
+    readonly compilersDir: string,
+    readonly localSolcVersion: string,
+    readonly download = downloadFile
+  ) {
+    this._compilersDir = compilersDir;
+    this._localSolcVersion = localSolcVersion;
+    this._download = download;
+  }
 
   public async getDownloadedCompilerPath(version: string): Promise<string> {
     const compilerBuild = await this.getCompilerBuild(version);
-    const downloadedFilePath = path.join(this.compilersDir, compilerBuild.path);
+    const downloadedFilePath = path.join(
+      this._compilersDir,
+      compilerBuild.path
+    );
 
-    if (!(await this.fileExists(downloadedFilePath))) {
+    if (!(await this._fileExists(downloadedFilePath))) {
       await this.downloadCompiler(compilerBuild, downloadedFilePath);
     }
 
@@ -90,7 +104,7 @@ export class CompilerDownloader {
   }
 
   public getCompilersListPath() {
-    return path.join(this.compilersDir, "list.json");
+    return path.join(this._compilersDir, "list.json");
   }
 
   public async compilersListExists() {
@@ -100,12 +114,12 @@ export class CompilerDownloader {
 
   public async downloadCompilersList() {
     try {
-      await this.download(COMPILERS_LIST_URL, this.getCompilersListPath());
+      await this._download(COMPILERS_LIST_URL, this.getCompilersListPath());
     } catch (error) {
       throw new BuidlerError(
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
         error,
-        this.localSolcVersion
+        this._localSolcVersion
       );
     }
   }
@@ -119,13 +133,13 @@ export class CompilerDownloader {
     const compilerUrl = COMPILER_FILES_DIR_URL + compilerBuild.path;
 
     try {
-      await this.download(compilerUrl, downloadedFilePath);
+      await this._download(compilerUrl, downloadedFilePath);
     } catch (error) {
       throw new BuidlerError(
         ERRORS.SOLC.DOWNLOAD_FAILED,
         error,
         compilerBuild.version,
-        this.localSolcVersion
+        this._localSolcVersion
       );
     }
   }
@@ -149,12 +163,12 @@ export class CompilerDownloader {
       throw new BuidlerError(
         ERRORS.SOLC.INVALID_DOWNLOAD,
         compilerBuild.version,
-        this.localSolcVersion
+        this._localSolcVersion
       );
     }
   }
 
-  private async fileExists(filePath: string) {
+  private async _fileExists(filePath: string) {
     const fsExtra = await import("fs-extra");
     return fsExtra.pathExists(filePath);
   }
