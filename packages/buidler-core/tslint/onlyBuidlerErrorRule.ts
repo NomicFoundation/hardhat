@@ -1,4 +1,4 @@
-import path from "path";
+import * as path from "path";
 // tslint:disable-next-line no-implicit-dependencies
 import * as Lint from "tslint";
 // tslint:disable-next-line no-implicit-dependencies
