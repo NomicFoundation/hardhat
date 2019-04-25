@@ -4,12 +4,18 @@ import util from "util";
 import { Linker, TruffleContract, TruffleContractInstance } from "./types";
 
 export class LazyTruffleContractProvisioner {
-  constructor(private readonly web3: any, private defaultAccount?: string) {}
+  private readonly _web3: any;
+  private _defaultAccount?: string;
+
+  constructor(web3: any, defaultAccount?: string) {
+    this._defaultAccount = defaultAccount;
+    this._web3 = web3;
+  }
 
   public provision(Contract: TruffleContract, linker: Linker) {
-    Contract.setProvider(this.web3.currentProvider);
-    this.addDefaultParamsHooks(Contract, linker);
-    this.hookCloneCalls(Contract, linker);
+    Contract.setProvider(this._web3.currentProvider);
+    this._addDefaultParamsHooks(Contract, linker);
+    this._hookCloneCalls(Contract, linker);
 
     return new Proxy(Contract, {
       construct(target, argumentsList, newTarget) {
@@ -22,17 +28,17 @@ export class LazyTruffleContractProvisioner {
     });
   }
 
-  private addDefaultParamsHooks(Contract: TruffleContract, linker: Linker) {
+  private _addDefaultParamsHooks(Contract: TruffleContract, linker: Linker) {
     const originalNew = Contract.new;
     const originalAt = Contract.at;
     const originalLink = Contract.link;
 
     Contract.new = async (...args: any[]) => {
-      args = await this.ensureTxParamsWithDefaults(args);
+      args = await this._ensureTxParamsWithDefaults(args);
 
       const contractInstance = await originalNew.apply(Contract, args);
 
-      this.addDefaultParamsToAllInstanceMethods(Contract, contractInstance);
+      this._addDefaultParamsToAllInstanceMethods(Contract, contractInstance);
 
       return contractInstance;
     };
@@ -40,7 +46,7 @@ export class LazyTruffleContractProvisioner {
     Contract.at = (...args: any[]) => {
       const contractInstance = originalAt.apply(Contract, args);
 
-      this.addDefaultParamsToAllInstanceMethods(Contract, contractInstance);
+      this._addDefaultParamsToAllInstanceMethods(Contract, contractInstance);
 
       return contractInstance;
     };
@@ -58,16 +64,16 @@ export class LazyTruffleContractProvisioner {
     };
   }
 
-  private addDefaultParamsToAllInstanceMethods(
+  private _addDefaultParamsToAllInstanceMethods(
     Contract: TruffleContract,
     contractInstance: TruffleContractInstance
   ) {
-    this.getContractInstanceMethodsToOverride(Contract).forEach(name =>
-      this.addDefaultParamsToInstanceMethod(contractInstance, name)
+    this._getContractInstanceMethodsToOverride(Contract).forEach(name =>
+      this._addDefaultParamsToInstanceMethod(contractInstance, name)
     );
   }
 
-  private getContractInstanceMethodsToOverride(Contract: TruffleContract) {
+  private _getContractInstanceMethodsToOverride(Contract: TruffleContract) {
     const DEFAULT_INSTANCE_METHODS_TO_OVERRIDE = ["sendTransaction"];
 
     const abiFunctions = Contract.abi
@@ -77,7 +83,7 @@ export class LazyTruffleContractProvisioner {
     return [...DEFAULT_INSTANCE_METHODS_TO_OVERRIDE, ...abiFunctions];
   }
 
-  private addDefaultParamsToInstanceMethod(
+  private _addDefaultParamsToInstanceMethod(
     instance: TruffleContractInstance,
     methodName: string
   ) {
@@ -86,57 +92,57 @@ export class LazyTruffleContractProvisioner {
     const originalEstimateGas = original.estimateGas;
 
     instance[methodName] = async (...args: any[]) => {
-      args = await this.ensureTxParamsWithDefaults(args);
+      args = await this._ensureTxParamsWithDefaults(args);
       return original.apply(instance, args);
     };
 
     instance[methodName].call = async (...args: any[]) => {
-      args = await this.ensureTxParamsWithDefaults(args);
+      args = await this._ensureTxParamsWithDefaults(args);
       return originalCall.apply(originalCall, args);
     };
 
     instance[methodName].estimateGas = async (...args: any[]) => {
-      args = await this.ensureTxParamsWithDefaults(args);
+      args = await this._ensureTxParamsWithDefaults(args);
       return originalEstimateGas.apply(originalEstimateGas, args);
     };
   }
 
-  private async ensureTxParamsWithDefaults(args: any[]) {
-    args = this.ensureTxParamsIsPresent(args);
+  private async _ensureTxParamsWithDefaults(args: any[]) {
+    args = this._ensureTxParamsIsPresent(args);
     const txParams = args[args.length - 1];
 
-    args[args.length - 1] = await this.addDefaultTxParams(txParams);
+    args[args.length - 1] = await this._addDefaultTxParams(txParams);
 
     return args;
   }
 
-  private ensureTxParamsIsPresent(args: any[]) {
-    if (this.isLastArgumentTxParams(args)) {
+  private _ensureTxParamsIsPresent(args: any[]) {
+    if (this._isLastArgumentTxParams(args)) {
       return args;
     }
 
     return [...args, {}];
   }
 
-  private isLastArgumentTxParams(args: any[]) {
+  private _isLastArgumentTxParams(args: any[]) {
     const lastArg = args[args.length - 1];
     return lastArg && Object.getPrototypeOf(lastArg) === Object.prototype;
   }
 
-  private async addDefaultTxParams(txParams: any) {
+  private async _addDefaultTxParams(txParams: any) {
     return {
       ...txParams,
-      from: await this.getDefaultAccount(txParams)
+      from: await this._getDefaultAccount(txParams)
     };
   }
 
-  private async getDefaultAccount(txParams: any) {
+  private async _getDefaultAccount(txParams: any) {
     if (txParams.from !== undefined) {
       return txParams.from;
     }
 
-    if (this.defaultAccount === undefined) {
-      const getAccounts = this.web3.eth.getAccounts.bind(this.web3.eth);
+    if (this._defaultAccount === undefined) {
+      const getAccounts = this._web3.eth.getAccounts.bind(this._web3.eth);
       const accounts = await util.promisify(getAccounts)();
 
       if (accounts.length === 0) {
@@ -145,13 +151,13 @@ export class LazyTruffleContractProvisioner {
         );
       }
 
-      this.defaultAccount = accounts[0];
+      this._defaultAccount = accounts[0];
     }
 
-    return this.defaultAccount;
+    return this._defaultAccount;
   }
 
-  private hookCloneCalls(Contract: TruffleContract, linker: Linker) {
+  private _hookCloneCalls(Contract: TruffleContract, linker: Linker) {
     const originalClone = Contract.clone;
 
     Contract.clone = (...args: any[]) => {

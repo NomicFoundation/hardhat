@@ -15,7 +15,7 @@ import {
  * for creating and overriding tasks.
  */
 export class TasksDSL {
-  private readonly tasks: TasksMap = {};
+  private readonly _tasks: TasksMap = {};
 
   /**
    * Creates a task, overrdining any previous task with the same name.
@@ -54,7 +54,7 @@ export class TasksDSL {
     descriptionOrAction?: string | ActionType<ArgsT>,
     action?: ActionType<ArgsT>
   ): TaskDefinition {
-    return this.addTask(name, descriptionOrAction, action, false);
+    return this._addTask(name, descriptionOrAction, action, false);
   }
 
   /**
@@ -94,7 +94,7 @@ export class TasksDSL {
     descriptionOrAction?: string | ActionType<ArgsT>,
     action?: ActionType<ArgsT>
   ): TaskDefinition {
-    return this.addTask(name, descriptionOrAction, action, true);
+    return this._addTask(name, descriptionOrAction, action, true);
   }
 
   /**
@@ -103,16 +103,16 @@ export class TasksDSL {
    * @returns The tasks container.
    */
   public getTaskDefinitions(): TasksMap {
-    return this.tasks;
+    return this._tasks;
   }
 
-  private addTask<ArgT extends TaskArguments>(
+  private _addTask<ArgT extends TaskArguments>(
     name: string,
     descriptionOrAction?: string | ActionType<ArgT>,
     action?: ActionType<ArgT>,
     isInternal?: boolean
   ) {
-    const parentTaskDefinition = this.tasks[name];
+    const parentTaskDefinition = this._tasks[name];
 
     let taskDefinition: TaskDefinition;
 
@@ -138,7 +138,7 @@ export class TasksDSL {
       taskDefinition.setAction(action);
     }
 
-    this.tasks[name] = taskDefinition;
+    this._tasks[name] = taskDefinition;
     return taskDefinition;
   }
 }

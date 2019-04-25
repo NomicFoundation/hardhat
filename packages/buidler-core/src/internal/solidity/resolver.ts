@@ -44,7 +44,11 @@ export class ResolvedFile {
 }
 
 export class Resolver {
-  constructor(private readonly projectRoot: string) {}
+  private readonly _projectRoot: string;
+
+  constructor(projectRoot: string) {
+    this._projectRoot = projectRoot;
+  }
 
   public async resolveProjectSourceFile(
     pathToResolve: string
@@ -57,7 +61,7 @@ export class Resolver {
 
     const absolutePath = await fsExtra.realpath(pathToResolve);
 
-    if (!absolutePath.startsWith(this.projectRoot)) {
+    if (!absolutePath.startsWith(this._projectRoot)) {
       throw new BuidlerError(
         ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT,
         pathToResolve
@@ -71,7 +75,7 @@ export class Resolver {
       );
     }
 
-    const globalName = absolutePath.slice(this.projectRoot.length + 1);
+    const globalName = absolutePath.slice(this._projectRoot.length + 1);
 
     return this._resolveFile(globalName, absolutePath);
   }
@@ -209,7 +213,7 @@ export class Resolver {
 
   public _resolveFromProjectRoot(fileName: string) {
     return require.resolve(fileName, {
-      paths: [this.projectRoot]
+      paths: [this._projectRoot]
     });
   }
 
@@ -219,8 +223,8 @@ export class Resolver {
         0,
         globalName.indexOf("/", globalName.indexOf("/") + 1)
       );
-    } else {
-      return globalName.slice(0, globalName.indexOf("/"));
     }
+
+    return globalName.slice(0, globalName.indexOf("/"));
   }
 }

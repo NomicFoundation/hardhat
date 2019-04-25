@@ -1,10 +1,14 @@
 import { Linker, TruffleContract } from "./types";
 
 export class LazyTruffleContractProvisioner {
-  constructor(private readonly web3: any) {}
+  private readonly _web3: any;
+
+  constructor(web3: any) {
+    this._web3 = web3;
+  }
 
   public provision(Contract: TruffleContract, linker: Linker) {
-    Contract.setProvider(this.web3.currentProvider);
+    Contract.setProvider(this._web3.currentProvider);
 
     const originalLink = Contract.link;
     Contract.link = (...args: any[]) => {
@@ -19,12 +23,12 @@ export class LazyTruffleContractProvisioner {
       originalLink.apply(Contract, args);
     };
 
-    this.hookCloneCalls(Contract, linker);
+    this._hookCloneCalls(Contract, linker);
 
     return Contract;
   }
 
-  private hookCloneCalls(Contract: TruffleContract, linker: Linker) {
+  private _hookCloneCalls(Contract: TruffleContract, linker: Linker) {
     const originalClone = Contract.clone;
 
     Contract.clone = (...args: any[]) => {

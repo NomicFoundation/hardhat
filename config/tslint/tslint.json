@@ -4,6 +4,7 @@
     "tslint-plugin-prettier",
     "tslint-config-prettier"
   ],
+  "rulesDirectory": ["tslint-consistent-codestyle"],
   "rules": {
     "prettier": true,
     "object-literal-sort-keys": false,
@@ -35,6 +36,24 @@
     "no-inferred-empty-object-type": true,
     "no-misused-new": true,
     "restrict-plus-operands": true,
-    "use-isnan": true
+    "use-isnan": true,
+    "curly": true,
+    "no-unnecessary-else": true,
+    "naming-convention": [
+      true,
+      {
+        "type": "member",
+        "modifiers": "private",
+        "leadingUnderscore": "require"
+      },
+      {
+        "type": "member",
+        "modifiers": "protected",
+        "leadingUnderscore": "require"
+      },
+      { "type": "type", "format": "PascalCase" },
+      { "type": "genericTypeParameter", "suffix": "T" },
+      { "type": "enumMember", "format": "PascalCase" }
+    ]
   }
 }

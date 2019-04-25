@@ -24,11 +24,14 @@ export interface JsonRpcError extends Error {
 }
 
 export class Web3HTTPProviderAdapter {
-  constructor(private readonly provider: IEthereumProvider) {
+  private readonly _provider: IEthereumProvider;
+
+  constructor(provider: IEthereumProvider) {
+    this._provider = provider;
     // We bind everything here because some test suits break otherwise
     this.send = this.send.bind(this) as any;
     this.isConnected = this.isConnected.bind(this) as any;
-    this.sendJsonRpcRequest = this.sendJsonRpcRequest.bind(this) as any;
+    this._sendJsonRpcRequest = this._sendJsonRpcRequest.bind(this) as any;
   }
 
   public send(
@@ -44,7 +47,7 @@ export class Web3HTTPProviderAdapter {
     callback: (error: Error | null, response?: any) => void
   ): void {
     if (!Array.isArray(payload)) {
-      util.callbackify(() => this.sendJsonRpcRequest(payload))(callback);
+      util.callbackify(() => this._sendJsonRpcRequest(payload))(callback);
       return;
     }
 
@@ -52,7 +55,7 @@ export class Web3HTTPProviderAdapter {
       const responses: JsonRpcResponse[] = [];
 
       for (const request of payload) {
-        const response = await this.sendJsonRpcRequest(request);
+        const response = await this._sendJsonRpcRequest(request);
 
         responses.push(response);
 
@@ -69,7 +72,7 @@ export class Web3HTTPProviderAdapter {
     return true;
   }
 
-  private async sendJsonRpcRequest(
+  private async _sendJsonRpcRequest(
     request: JsonRpcRequest
   ): Promise<JsonRpcResponse> {
     const response: JsonRpcResponse = {
@@ -78,7 +81,7 @@ export class Web3HTTPProviderAdapter {
     };
 
     try {
-      const result = await this.provider.send(request.method, request.params);
+      const result = await this._provider.send(request.method, request.params);
       response.result = result;
     } catch (error) {
       response.error = {

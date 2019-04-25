@@ -1,26 +1,31 @@
 import { CompilerDownloader } from "./downloader";
 
 export class Compiler {
-  private static getLocalSolcVersion(): string {
+  private static _getLocalSolcVersion(): string {
     return require("solc/package.json").version;
   }
-  private loadedSolc?: any;
-  private readonly downloader: CompilerDownloader;
-  private readonly localSolcVersion: string;
+
+  private readonly _version: string;
+  private readonly _compilersDir: string;
+  private readonly _downloader: CompilerDownloader;
+  private readonly _localSolcVersion: string;
+  private _loadedSolc?: any;
 
   constructor(
-    private readonly version: string,
-    private readonly compilersDir: string,
+    version: string,
+    compilersDir: string,
     compilerDownloader?: CompilerDownloader
   ) {
-    this.localSolcVersion = Compiler.getLocalSolcVersion();
+    this._version = version;
+    this._compilersDir = compilersDir;
+    this._localSolcVersion = Compiler._getLocalSolcVersion();
 
     if (compilerDownloader !== undefined) {
-      this.downloader = compilerDownloader;
+      this._downloader = compilerDownloader;
     } else {
-      this.downloader = new CompilerDownloader(
-        this.compilersDir,
-        this.localSolcVersion
+      this._downloader = new CompilerDownloader(
+        this._compilersDir,
+        this._localSolcVersion
       );
     }
   }
@@ -33,27 +38,27 @@ export class Compiler {
   }
 
   public async getSolc() {
-    if (this.loadedSolc !== undefined) {
-      return this.loadedSolc;
+    if (this._loadedSolc !== undefined) {
+      return this._loadedSolc;
     }
 
-    if (this.isUsingLocalSolcVersion()) {
-      this.loadedSolc = require("solc");
-      return this.loadedSolc;
+    if (this._isUsingLocalSolcVersion()) {
+      this._loadedSolc = require("solc");
+      return this._loadedSolc;
     }
 
-    const compilerPath = await this.downloader.getDownloadedCompilerPath(
-      this.version
+    const compilerPath = await this._downloader.getDownloadedCompilerPath(
+      this._version
     );
 
     const { default: solcWrapper } = await import("solc/wrapper");
-    this.loadedSolc = solcWrapper(this.loadCompilerSources(compilerPath));
+    this._loadedSolc = solcWrapper(this._loadCompilerSources(compilerPath));
 
-    return this.loadedSolc;
+    return this._loadedSolc;
   }
 
-  private isUsingLocalSolcVersion() {
-    return this.version === this.localSolcVersion;
+  private _isUsingLocalSolcVersion() {
+    return this._version === this._localSolcVersion;
   }
 
   /**
@@ -62,7 +67,7 @@ export class Compiler {
    * The compiler is a huge asm.js file, and using a simple require may trigger
    * babel/register and hang the process.
    */
-  private loadCompilerSources(compilerPath: string) {
+  private _loadCompilerSources(compilerPath: string) {
     const Module = module.constructor as any;
     const previousHook = Module._extensions[".js"];
 

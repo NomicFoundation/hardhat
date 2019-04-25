@@ -18,15 +18,17 @@ import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
 export class Environment implements BuidlerRuntimeEnvironment {
-  private static readonly BLACKLISTED_PROPERTIES: string[] = [
+  private static readonly _BLACKLISTED_PROPERTIES: string[] = [
     "injectToGlobal",
-    "runTaskDefinition"
+    "_runTaskDefinition"
   ];
 
   /**
    * An EIP1193 Ethereum provider.
    */
   public ethereum: IEthereumProvider;
+
+  private readonly _extenders: EnvironmentExtender[];
 
   /**
    * Initializes the Buidler Runtime Environment and the given
@@ -44,12 +46,13 @@ export class Environment implements BuidlerRuntimeEnvironment {
     public readonly config: ResolvedBuidlerConfig,
     public readonly buidlerArguments: BuidlerArguments,
     public readonly tasks: TasksMap,
-    private readonly extenders: EnvironmentExtender[] = []
+    extenders: EnvironmentExtender[] = []
   ) {
     this.ethereum = lazyObject(() =>
       createProvider(buidlerArguments.network, config.networks)
     );
 
+    this._extenders = extenders;
     extenders.forEach(extender => extender(this));
   }
 
@@ -69,7 +72,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
       throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, name);
     }
 
-    return this.runTaskDefinition(taskDefinition, taskArguments);
+    return this._runTaskDefinition(taskDefinition, taskArguments);
   };
 
   /**
@@ -80,7 +83,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
    * @returns a function that restores the previous environment.
    */
   public injectToGlobal(
-    blacklist: string[] = Environment.BLACKLISTED_PROPERTIES
+    blacklist: string[] = Environment._BLACKLISTED_PROPERTIES
   ): () => void {
     const globalAsAny = global as any;
 
@@ -106,7 +109,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
     };
   }
 
-  private async runTaskDefinition(
+  private async _runTaskDefinition(
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ) {
@@ -114,7 +117,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
 
     if (taskDefinition instanceof OverriddenTaskDefinition) {
       runSuper = async (_taskArguments = taskArguments) =>
-        this.runTaskDefinition(
+        this._runTaskDefinition(
           taskDefinition.parentTaskDefinition,
           _taskArguments
         );

@@ -1,13 +1,13 @@
 import { EnvironmentExtender } from "../../../types";
 
 export class ExtenderManager {
-  private readonly extenders: EnvironmentExtender[] = [];
+  private readonly _extenders: EnvironmentExtender[] = [];
 
   public add(extender: EnvironmentExtender) {
-    this.extenders.push(extender);
+    this._extenders.push(extender);
   }
 
   public getExtenders(): EnvironmentExtender[] {
-    return this.extenders;
+    return this._extenders;
   }
 }

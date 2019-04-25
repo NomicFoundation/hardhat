@@ -276,7 +276,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     }
 
     if (type === undefined) {
-      if (defaultValue !== undefined && !this.isStringArray(defaultValue)) {
+      if (defaultValue !== undefined && !this._isStringArray(defaultValue)) {
         throw new BuidlerError(
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           name,
@@ -447,7 +447,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     }
   }
 
-  private isStringArray(values: any): values is string[] {
+  private _isStringArray(values: any): values is string[] {
     return Array.isArray(values) && values.every(v => typeof v === "string");
   }
 }
