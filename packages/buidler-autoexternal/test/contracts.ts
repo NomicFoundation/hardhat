@@ -1,8 +1,13 @@
+import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 
-import { DEFAULT_CONFIG } from "../src/config";
-import { generateTestableContract } from "../src/contracts";
+import { getAutoexternalConfig } from "../src/config";
+import {
+  getGeneratedFilePath,
+  processSourceFile,
+  readSourceFile
+} from "../src/contracts";
 
 import { useEnvironment } from "./helpers";
 
@@ -23,87 +28,99 @@ describe("TestableContracts generation", function() {
 
   useEnvironment(__dirname + "/buidler-project");
 
-  beforeEach("clear cache directory", async function() {
+  afterEach("clear cache directory", async function() {
     await fsExtra.emptyDir(this.env.config.paths.cache);
   });
 
   describe("Enabling annotation", function() {
     it("Should ignore a file without the annotation", async function() {
-      const testableContractPath = await generateTestableContract(
+      const sourceFiles = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+      const generatedFilePath = getGeneratedFilePath(
         this.env.config.paths,
-        DEFAULT_CONFIG,
-        __dirname + "/buidler-project/contracts/WithoutAnnotation.sol"
+        this.env.config.paths.sources + "/WithoutAnnotation.sol"
       );
 
-      assert.isUndefined(testableContractPath);
+      assert.notInclude(sourceFiles, generatedFilePath);
     });
 
-    it("Should process a file if it has an annotation", async function() {
-      const testableContractPath = await generateTestableContract(
+    it("Should process a file if it includes the annotation", async function() {
+      const sourceFiles = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+      const generatedFilePath = getGeneratedFilePath(
         this.env.config.paths,
-        DEFAULT_CONFIG,
+        this.env.config.paths.sources + "/WithAnnotation.sol"
+      );
+
+      assert.include(sourceFiles, generatedFilePath);
+    });
+
+    it("Should ignore files with syntax errors", async function() {
+      const sourceFiles = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+      const generatedFilePath = getGeneratedFilePath(
+        this.env.config.paths,
+        this.env.config.paths.sources + "/WithSyntaxErrors.sol"
+      );
+
+      assert.notInclude(sourceFiles, generatedFilePath);
+    });
+  });
+
+  describe("Exported functions", function() {
+    let testableContractPath: string;
+
+    beforeEach(async function() {
+      const sourceFile = await readSourceFile(
+        this.env.config.paths,
         __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
 
-      assert.isDefined(testableContractPath);
+      const config = getAutoexternalConfig(this.env.config);
+
+      testableContractPath = (await processSourceFile(
+        sourceFile,
+        __dirname + "/buidler-project/cache/autoexternal/WithAnnotation.sol",
+        this.env.config.paths,
+        config
+      ))!;
     });
 
-    it("all testable contract's functions should be external", async function() {
-      const testableContractPath = await generateTestableContract(
-        this.env.config.paths,
-        DEFAULT_CONFIG,
-        __dirname + "/buidler-project/contracts/WithAnnotation.sol"
-      );
-      assert.isDefined(testableContractPath);
-      const testableFunctions = await getFunctionNodes(testableContractPath!);
+    it("Should make all functions external", async function() {
+      const testableFunctions = await getFunctionNodes(testableContractPath);
 
       testableFunctions.forEach(node => {
         assert.equal(node.visibility, "external");
       });
     });
 
-    it("testable contract should contain the expected functions", async function() {
-      const testableContractPath = await generateTestableContract(
-        this.env.config.paths,
-        DEFAULT_CONFIG,
-        __dirname + "/buidler-project/contracts/WithAnnotation.sol"
-      );
-      assert.isDefined(testableContractPath);
-      const testableFunctions = await getFunctionNodes(testableContractPath!);
+    it("Should export all the expected functions", async function() {
+      const testableFunctions = await getFunctionNodes(testableContractPath);
 
       assert.sameMembers(testableFunctions.map(node => node.name), [
         "exportedInternalFunction",
         "exportedInternalFunctionWithSingleReturnValue"
       ]);
     });
+  });
 
-    it("should return undefined if the contract cannot be parsed", async function() {
-      const parsed = await generateTestableContract(
-        this.env.config.paths,
-        DEFAULT_CONFIG,
-        __dirname + "/buidler-project/contracts/WithSyntaxErrors.sol"
-      );
-      assert.isUndefined(parsed);
-    });
-
+  describe("Cache", function() {
     it("should not re-create unmodified contracts", async function() {
-      const contractPath =
-        __dirname + "/buidler-project/contracts/WithAnnotation.sol";
-      let testableContractPath = await generateTestableContract(
+      await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+      const testableContractPath = getGeneratedFilePath(
         this.env.config.paths,
-        DEFAULT_CONFIG,
-        contractPath
+        __dirname + "/buidler-project/contracts/WithAnnotation.sol"
       );
 
-      assert.isDefined(testableContractPath);
-      assert.isTrue(await fsExtra.pathExists(testableContractPath!));
+      assert.isTrue(await fsExtra.pathExists(testableContractPath));
+      const initialStat = await fsExtra.stat(testableContractPath);
 
-      testableContractPath = await generateTestableContract(
-        this.env.config.paths,
-        DEFAULT_CONFIG,
-        contractPath
-      );
-      assert.isUndefined(testableContractPath);
+      await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+      const finalStat = await fsExtra.stat(testableContractPath);
+
+      assert.deepEqual(finalStat.mtime, initialStat.mtime);
     });
   });
 });

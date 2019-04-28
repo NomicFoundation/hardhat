@@ -10,3 +10,9 @@ export interface TestableContract {
   originalName: string;
   exportedFunctions: string[];
 }
+
+export interface SourceFile {
+  globalName: string;
+  absolutePath: string;
+  content: string;
+}

@@ -1,69 +1,108 @@
 import { ProjectPaths } from "@nomiclabs/buidler/types";
 import path from "path";
 
-import { AutoexternalConfig, TestableContract } from "./types";
+import { AutoexternalConfig, SourceFile, TestableContract } from "./types";
 
 const autoexternalContractsCacheDirName = "autoexternal";
 
+/**
+ * Generates the contracts for testing.
+ *
+ * @returns A tuple whose first element is an array of generated source paths,
+ * and the second one an array of SourceFiles that failed to be processed.
+ */
 export async function generateTestableContracts(
   paths: ProjectPaths,
   autoexternalConfig: AutoexternalConfig,
-  contractPaths: string[]
-): Promise<string[]> {
-  const testableContractPaths = [];
+  sourceCodePaths: string[]
+): Promise<[string[], SourceFile[]]> {
+  const generatedSourceFilePaths: string[] = [];
+  const failedSourceFiles: SourceFile[] = [];
 
-  for (const contractPath of contractPaths) {
-    const testableContract = await generateTestableContract(
+  for (const contractPath of sourceCodePaths) {
+    const sourceFile = await readSourceFile(paths, contractPath);
+
+    if (!shouldBeProcessed(sourceFile, autoexternalConfig)) {
+      continue;
+    }
+
+    const testableFilePath = getGeneratedFilePath(paths, contractPath);
+
+    if (await isAlreadyCreated(contractPath, testableFilePath)) {
+      continue;
+    }
+
+    const testableContract = await processSourceFile(
+      sourceFile,
+      testableFilePath,
       paths,
-      autoexternalConfig,
-      contractPath
+      autoexternalConfig
     );
 
-    if (testableContract !== undefined) {
-      testableContractPaths.push(testableContract);
+    if (testableContract === undefined) {
+      failedSourceFiles.push(sourceFile);
+      continue;
     }
+
+    generatedSourceFilePaths.push(testableContract);
   }
 
-  return testableContractPaths;
+  return [generatedSourceFilePaths, failedSourceFiles];
 }
 
-export async function generateTestableContract(
+export function getGeneratedFilePath(
   paths: ProjectPaths,
-  autoexternalConfig: AutoexternalConfig,
   contractPath: string
-): Promise<string | undefined> {
-  const fsExtra = await import("fs-extra");
-
-  const content = await fsExtra.readFile(contractPath, "utf-8");
-
-  const {
-    contractNameTransformer,
-    exportableFunctionNamePattern,
-
-    enableForFileAnnotation,
-    functionNameTransformer
-  } = autoexternalConfig;
-
-  if (!content.includes(enableForFileAnnotation)) {
-    return undefined;
-  }
-
-  const globalName = path.relative(paths.root, contractPath);
-
-  const testableFilePath = path.join(
+) {
+  return path.join(
     paths.cache,
     autoexternalContractsCacheDirName,
     path.relative(paths.sources, contractPath)
   );
+}
 
-  if (await isAlreadyCreated(contractPath, testableFilePath)) {
-    return undefined;
-  }
+export async function readSourceFile(
+  paths: ProjectPaths,
+  absolutePath: string
+): Promise<SourceFile> {
+  const fsExtra = await import("fs-extra");
+
+  const content = await fsExtra.readFile(absolutePath, "utf-8");
+  const globalName = path.relative(paths.root, absolutePath);
+
+  return {
+    absolutePath,
+    globalName,
+    content
+  };
+}
+
+function shouldBeProcessed(
+  sourceFile: SourceFile,
+  autoexternalConfig: AutoexternalConfig
+) {
+  const annotation = autoexternalConfig.enableForFileAnnotation;
+  return sourceFile.content.includes(annotation);
+}
+
+export async function processSourceFile(
+  file: SourceFile,
+  testableFilePath: string,
+  paths: ProjectPaths,
+  autoexternalConfig: AutoexternalConfig
+): Promise<string | undefined> {
+  const fsExtra = await import("fs-extra");
+
+  const {
+    contractNameTransformer,
+    exportableFunctionNamePattern,
+    functionNameTransformer
+  } = autoexternalConfig;
 
   await fsExtra.ensureDir(path.dirname(testableFilePath));
 
   const { default: parser } = await import("solidity-parser-antlr");
-  const parsedFile = await parseFile(parser, globalName, content);
+  const parsedFile = await parseFile(parser, file.content);
 
   if (parsedFile === undefined) {
     return undefined;
@@ -73,7 +112,7 @@ export async function generateTestableContract(
 
   const importsSection = getImportsSection(
     paths.root,
-    globalName,
+    file.globalName,
     testableFilePath
   );
 
@@ -96,7 +135,7 @@ export async function generateTestableContract(
             contract.exportedFunctions.push(
               getExportedFunctionDefinition(
                 functionNode,
-                content,
+                file.content,
                 functionNameTransformer
               )
             );
@@ -123,21 +162,15 @@ export async function generateTestableContract(
 
 async function parseFile(
   parser: any,
-  globalName: string,
   content: string
-): Promise<any> {
+): Promise<any | undefined> {
   try {
     return parser.parse(content, { range: true });
   } catch (error) {
     if (error instanceof parser.ParserError) {
-      console.warn(
-        "Failed to parse " +
-          globalName +
-          " which has a testable-contracts annotation. No testable contract will be generated for this file."
-      );
-    } else {
-      throw error;
+      return;
     }
+    throw error;
   }
 }
 
@@ -146,7 +179,7 @@ function getPragmasSection(parser: any, parsedFile: any): string {
 
   parser.visit(parsedFile, {
     PragmaDirective(node: any) {
-      pragmas.push("pragma " + node.name + " " + node.value + ";");
+      pragmas.push(`pragma ${node.name} ${node.value};`);
     }
   });
 
@@ -178,7 +211,7 @@ function getImportsSection(
 }
 
 function getExportedFunctionDefinition(
-  functionNode: any,
+  functionNode: { name: string; range: [number, number] },
   fileContent: string,
   functionNameTransformer: (name: string) => string
 ): string {

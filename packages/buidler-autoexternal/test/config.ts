@@ -1,36 +1,61 @@
 import { assert } from "chai";
-import fsExtra from "fs-extra";
 
 import { DEFAULT_CONFIG, getAutoexternalConfig } from "../src/config";
-import { generateTestableContract } from "../src/contracts";
 
 import { useEnvironment } from "./helpers";
 
-describe("autoexternal config", function() {
+describe("Autoexternal config", function() {
+  describe("Autoexternal config getter", function() {
+    useEnvironment(__dirname + "/buidler-project");
+
+    it("Should return a complete and right config", function() {
+      const config = getAutoexternalConfig(this.env.config);
+
+      assert.equal(
+        config.enableForFileAnnotation,
+        DEFAULT_CONFIG.enableForFileAnnotation
+      );
+
+      assert.equal(
+        config.exportableFunctionNamePattern,
+        DEFAULT_CONFIG.exportableFunctionNamePattern
+      );
+
+      assert.equal(
+        config.functionNameTransformer,
+        DEFAULT_CONFIG.functionNameTransformer
+      );
+
+      assert.equal(
+        config.contractNameTransformer,
+        DEFAULT_CONFIG.contractNameTransformer
+      );
+    });
+  });
+
   describe("default config", function() {
     useEnvironment(__dirname + "/buidler-project");
 
     it("default values should work as expected", function() {
-      assert.equal(
-        DEFAULT_CONFIG.enableForFileAnnotation,
-        "#buidler-autoexternal"
-      );
+      const config = getAutoexternalConfig(this.env.config);
+
+      assert.equal(config.enableForFileAnnotation, "#buidler-autoexternal");
 
       assert.isTrue(
-        DEFAULT_CONFIG.exportableFunctionNamePattern.test("_internalFunction")
+        config.exportableFunctionNamePattern.test("_internalFunction")
       );
 
       assert.isFalse(
-        DEFAULT_CONFIG.exportableFunctionNamePattern.test("internalFunction")
+        config.exportableFunctionNamePattern.test("internalFunction")
       );
 
       assert.equal(
-        DEFAULT_CONFIG.functionNameTransformer("_internalFunction"),
+        config.functionNameTransformer("_internalFunction"),
         "internalFunction"
       );
 
       assert.equal(
-        DEFAULT_CONFIG.contractNameTransformer("Contract"),
+        config.contractNameTransformer("Contract"),
         "TestableContract"
       );
     });
@@ -39,29 +64,28 @@ describe("autoexternal config", function() {
   describe("custom config", function() {
     useEnvironment(__dirname + "/custom-config-project");
 
-    beforeEach("clear cache directory", async function() {
-      await fsExtra.emptyDir(this.env.config.paths.cache);
-    });
+    it("Should load a custom config", async function() {
+      const config = getAutoexternalConfig(this.env.config);
 
-    it("Should parse file with custom annotation", async function() {
-      const testableContractPath = await generateTestableContract(
-        this.env.config.paths,
-        getAutoexternalConfig(this.env.config),
-        __dirname + "/custom-config-project/contracts/WithCustomAnnotation.sol"
+      assert.equal(config.enableForFileAnnotation, "#custom-annotation");
+
+      assert.isFalse(
+        config.exportableFunctionNamePattern.test("_internalFunction")
       );
 
-      assert.isDefined(testableContractPath);
-    });
-
-    it("Should not parse file without the custom annotation", async function() {
-      const testableContractPath = await generateTestableContract(
-        this.env.config.paths,
-        getAutoexternalConfig(this.env.config),
-        __dirname +
-          "/custom-config-project/contracts/WithoutCustomAnnotation.sol"
+      assert.isTrue(
+        config.exportableFunctionNamePattern.test("customFunction")
       );
 
-      assert.isUndefined(testableContractPath);
+      assert.equal(
+        config.functionNameTransformer("customFunction"),
+        "transformedcustomFunction"
+      );
+
+      assert.equal(
+        config.contractNameTransformer("Contract"),
+        "CustomContract"
+      );
     });
   });
 });

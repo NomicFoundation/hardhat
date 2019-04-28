@@ -8,11 +8,23 @@ internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }, runSuper) => {
   const filePaths: string[] = await runSuper();
 
   const autoexternalConfig = getAutoexternalConfig(config);
-  const testableContractPaths = await generateTestableContracts(
+
+  const [
+    testableContractPaths,
+    failedSourceFiles
+  ] = await generateTestableContracts(
     config.paths,
     autoexternalConfig,
     filePaths
   );
+
+  for (const sourceFile of failedSourceFiles) {
+    console.warn(
+      `A parsing error was encountered. No contract will be generated for ${
+        sourceFile.globalName
+      }`
+    );
+  }
 
   return [...filePaths, ...testableContractPaths];
 });

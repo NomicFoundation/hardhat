@@ -2,6 +2,9 @@ require("../../src/index");
 
 module.exports = {
   autoexternal: {
-    enableForFileAnnotation: "#another-annotation"
+    enableForFileAnnotation: "#custom-annotation",
+    exportableFunctionNamePattern: /^custom.*$/,
+    functionNameTransformer: s => "transformed" + s,
+    contractNameTransformer: s => "Custom" + s
   }
 };
