@@ -92,7 +92,7 @@ task("hello", "Prints a greeting'")
 
 And would be run with `npx buidler hello --greeting Hola`.
 
-You can read the full documentation of these methods and their possible parameters in the [TaskDefinition API doc](api/interfaces/taskdefinition.html#methods).
+You can read the full documentation of these methods and their possible parameters in the [TaskDefinition API doc](/api/interfaces/taskdefinition.html#methods).
 
 ##### Positional parameters restrictions
 
@@ -131,7 +131,7 @@ Tasks overriding works very similarly to overriding methods when extending a cla
 
 Tasks override order is important since actions can only call the immediately previous definition, using the `runSuper` function.
 
-Overriding built-in tasks is a great way to customize and extend Buidler. To know which tasks to override, take a look at [src/builtin-tasks]().
+Overriding built-in tasks is a great way to customize and extend Buidler. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-core/src/builtin-tasks).
 
 #### The `runSuper` function
 
@@ -165,7 +165,7 @@ Before running a task, test or script, Buidler injects the BRE into the global s
 
 Not everyone likes magic global variables, and Buidler doesn't force you to use them. Everything can be done explicitly in tasks, tests and scripts.
 
-You can import the config DSL explicitly when defining your tasks, and receive the BRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks]().
+You can import the config DSL explicitly when defining your tasks, and receive the BRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](#creating-your-own-tasks).
 
 When writing tests or scripts, you can use `require("@nomiclabs/buidler")` to import the BRE. You can read more about this in [Accessing the BRE from outside a task](/documentation/#accessing-from-outside-a-task).
 
@@ -177,7 +177,7 @@ Everything gets easier when you use higher-level libraries, like [web3.js](https
 
 Buidler lets you hook into the BRE construction, and extend it with new functionality. This way, you only have to initialize everything once, and your new features or libraries will be available everywhere the BRE is used.
 
-You can do this by adding a BRE extender into a queue. This extender is just a synchronous function that receives the BRE, and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime]().
+You can do this by adding a BRE extender into a queue. This extender is just a synchronous function that receives the BRE, and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
 
 For example, adding an instance of Web3.js to the BRE can be done in this way:
 
@@ -194,7 +194,7 @@ extendEnvironment(env => {
 
 The BRE can be used from any JavaScript or TypeScript file. To do so, you only have to import it with `require("@nomiclabs/buidler")`. You can do this to keep more control over your development workflow, create your own tools, or to use Buidler with other dev tools from the node.js ecosystem.
 
-Running test directly with [mocha]() instead of `npx buidler test` can be done by explicitly importing the BRE in them like this:
+Running test directly with [mocha](https://www.npmjs.com/package/mocha) instead of `npx buidler test` can be done by explicitly importing the BRE in them like this:
 
 ```js
 const env = require("@nomiclabs/buidler");
@@ -283,7 +283,7 @@ Buidler's config file will always run before any task, so you can use it to inte
 
 ## Plugin development best practices
 
-This is based on the [TypeScript plugin boilerplate project](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts). We highly recommend to develop plugins in TypeScript.
+This is based on the [TypeScript plugin boilerplate project](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/). We highly recommend to develop plugins in TypeScript.
 
 ### Plugin functionality
 
@@ -334,4 +334,4 @@ Examples of suggested overrides are:
 * Linter integrations should override the `check` task.
 * Plugins generating intermediate files should override the `clean` task.
 
-For a list of all the built-in tasks and internal tasks please take a look at [`src/builtin-tasks/task-names.ts`](https://github.com/nomiclabs/buidler/blob/master/src/builtin-tasks/task-names.ts)
+For a list of all the built-in tasks and internal tasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/buidler/blob/master/packages/buidler-core/src/builtin-tasks/task-names.ts)
