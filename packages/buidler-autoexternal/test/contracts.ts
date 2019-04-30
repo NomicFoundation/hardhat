@@ -11,21 +11,55 @@ import {
 
 import { useEnvironment } from "./helpers";
 
-describe("TestableContracts generation", function() {
-  async function getFunctionNodes(contractPath: string) {
-    const parser = await import("solidity-parser-antlr");
-    const content = await fsExtra.readFile(contractPath, "utf-8");
-    const ast = parser.parse(content, { range: true });
+async function getFunctionNodes(contractPath: string) {
+  const parser = await import("solidity-parser-antlr");
+  const content = await fsExtra.readFile(contractPath, "utf-8");
+  const ast = parser.parse(content, { range: true });
 
-    const nodes: any[] = [];
-    parser.visit(ast, {
-      FunctionDefinition(node: any) {
-        nodes.push(node);
-      }
-    });
-    return nodes;
+  const nodes: any[] = [];
+  parser.visit(ast, {
+    FunctionDefinition(node: any) {
+      nodes.push(node);
+    }
+  });
+  return nodes;
+}
+
+function assertReturnsSupperCall(
+  functionNode: any,
+  superFunctionName: string,
+  parameters: string[] = []
+) {
+  assert.equal(functionNode.body.type, "Block");
+  assert.lengthOf(functionNode.body.statements, 1);
+
+  const returnStatement = functionNode.body.statements[0];
+  assert.equal(returnStatement.type, "ReturnStatement");
+
+  const returnedFunctionCall = returnStatement.expression;
+  assert.equal(returnedFunctionCall.type, "FunctionCall");
+
+  const memberAccessFunctionExpression = returnedFunctionCall.expression;
+  assert.equal(memberAccessFunctionExpression.type, "MemberAccess");
+
+  const accessedIdentifierExpression =
+    memberAccessFunctionExpression.expression;
+  assert.equal(accessedIdentifierExpression.type, "Identifier");
+  assert.equal(accessedIdentifierExpression.name, "super");
+
+  assert.equal(memberAccessFunctionExpression.memberName, superFunctionName);
+
+  assert.lengthOf(returnedFunctionCall.arguments, parameters.length);
+
+  // tslint:disable-next-line:prefer-for-of
+  for (let i = 0; i < returnedFunctionCall.arguments.length; i++) {
+    const argument = returnedFunctionCall.arguments[i];
+    assert.equal(argument.type, "Identifier");
+    assert.equal(argument.name, parameters[i]);
   }
+}
 
+describe("TestableContracts generation", function() {
   useEnvironment(__dirname + "/buidler-project");
 
   afterEach("clear cache directory", async function() {
@@ -97,10 +131,31 @@ describe("TestableContracts generation", function() {
     it("Should export all the expected functions", async function() {
       const testableFunctions = await getFunctionNodes(testableContractPath);
 
+      assertReturnsSupperCall(
+        testableFunctions[0],
+        "_exportedInternalFunction",
+        ["i", "_b", "asd"]
+      );
+
       assert.sameMembers(testableFunctions.map(node => node.name), [
         "exportedInternalFunction",
         "exportedInternalFunctionWithSingleReturnValue"
       ]);
+    });
+
+    it("Should return what the actual implementation returns", async function() {
+      const testableFunctions = await getFunctionNodes(testableContractPath);
+
+      assertReturnsSupperCall(
+        testableFunctions[0],
+        "_exportedInternalFunction",
+        ["i", "_b", "asd"]
+      );
+
+      assertReturnsSupperCall(
+        testableFunctions[1],
+        "_exportedInternalFunctionWithSingleReturnValue"
+      );
     });
   });
 
