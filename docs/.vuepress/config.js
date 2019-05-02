@@ -4,7 +4,7 @@ module.exports = {
   serviceWorker: false,
   ga: 'UA-117668706-2',
   themeConfig: {
-    logo: "/logo.png",
+    logo: "/logo.svg",
     nav: [
       { text: "Home", link: "/" },
       { text: "Plugins", link: "/plugins/"},

@@ -11,3 +11,9 @@ npm install
 npm run apidocs
 bash fix-api-docs.sh
 npm run build
+
+cp new_web/dist/index.html .vuepress/dist/
+cp -r new_web/dist/assets/css .vuepress/dist/assets/
+cp -r new_web/dist/assets/js .vuepress/dist/assets/
+cp -r new_web/dist/assets/img .vuepress/dist/assets/
+cp new_web/dist/*.svg .vuepress/dist/
