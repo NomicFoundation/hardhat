@@ -34,5 +34,8 @@ module.exports = {
         sidebar: 'auto'
       }
     }
-  }
+  },
+  head: [
+    ['meta ', { name: 'Cache-Control', content: 'public, max-age=0, must-revalidate' }]
+  ]
 };
