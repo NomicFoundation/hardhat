@@ -148,4 +148,5 @@ export default {
     &:hover, &.router-link-active
       margin-bottom -2px
       border-bottom 2px solid lighten($accentColor, 8%)
+      color $accentColor
 </style>
