@@ -1,6 +1,6 @@
 module.exports = {
   title: "Buidler",
-  description: "The extensible Solidity developer tool",
+  description: "Buidler is a task runner for Ethereum smart contract developers.",
   serviceWorker: false,
   ga: 'UA-117668706-2',
   themeConfig: {
