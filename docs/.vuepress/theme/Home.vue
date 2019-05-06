@@ -39,6 +39,9 @@
     </div>
 
     <div class="home">
+
+      <h3 class="how">How?</h3>
+
       <Content custom />
 
       <div class="cta2">
