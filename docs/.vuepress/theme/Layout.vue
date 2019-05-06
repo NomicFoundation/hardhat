@@ -154,6 +154,9 @@ export default {
         const registrations = await navigator.serviceWorker.getRegistrations();
 
         if (registrations && registrations.length) {
+
+          console.log("Removing SW");
+          
           for (const registration of registrations) {
             await registration.unregister();
           }
