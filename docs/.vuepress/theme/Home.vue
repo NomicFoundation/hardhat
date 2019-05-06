@@ -69,7 +69,7 @@
             /></a>
           </div>
           <div class="logo">
-            <a href=""><img src="/spankchain.svg" alt="spankchain"/></a>
+            <a href="https://spankchain.com/"><img src="/spankchain.svg" alt="spankchain"/></a>
           </div>
         </div>
       </div>

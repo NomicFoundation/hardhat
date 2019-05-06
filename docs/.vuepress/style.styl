@@ -1,6 +1,10 @@
 @import "./theme/styles/colors.styl"
 @import "./theme/styles/config.styl"
 
+.cta
+  position: absolute;
+  bottom -1.5rem
+
 .cta,  .cta2
   a.action-button
     color: $black
@@ -27,10 +31,6 @@
   position absolute
   right 0
   bottom -1px
-
-.copy .action-button
-  position: absolute;
-  bottom -1.5rem
   
 span.site-name
   display: none
@@ -111,7 +111,7 @@ div.clear
   vertical-align top
 
 .hero .copy h2
-  font-size: 1.85rem
+  font-size: 28px
   font-weight: 700
   border: none
   margin-top: 0
@@ -157,7 +157,7 @@ h3.how
   color: #d4d4d4;
   
   
-.nav-item>a:not(.external).router-link-active, .nav-item>a:not(.external):hover 
+.nav-item>a.router-link-active, .nav-item>a:hover 
     color: $yellow !important;
     border-bottom: 2px solid $yellow!important;
   
