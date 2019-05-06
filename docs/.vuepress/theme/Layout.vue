@@ -151,11 +151,18 @@ export default {
 
     removeServiceWorkers() {
       if (typeof navigator.serviceWorker !== "undefined") {
+        let unregistered = false;
+        
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for (let registration of registrations) {
             registration.unregister();
+            unregistered = true;
           }
         });
+
+        if (unregistered) {
+          window.location.reload(true)  
+        }
       }
     }
   },
