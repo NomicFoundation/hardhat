@@ -158,7 +158,7 @@ export default {
             await registration.unregister();
           }
 
-          navigator.location.reload(true);
+          window.location.reload(true);
         }
       }
     }
