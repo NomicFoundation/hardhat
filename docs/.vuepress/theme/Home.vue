@@ -1,73 +1,102 @@
 <template>
-  <div class="home">
-    <div class="hero">
-      <img
-        v-if="data.heroImage"
-        :src="$withBase(data.heroImage)"
-        alt="hero"
-      >
-
-      <h1>{{ data.heroText || $title || 'Hello' }}</h1>
-
-      <p class="description">
-        {{ data.tagline || $description || 'Welcome to your VuePress site' }}
-      </p>
-
-      <p
-        class="action"
-        v-if="data.actionText && data.actionLink"
-      >
-        <NavLink
-          class="action-button"
-          :item="actionLink"
-        />
-      </p>
-    </div>
-
-    <div
-      class="features"
-      v-if="data.features && data.features.length"
-    >
-      <div
-        class="feature"
-        v-for="(feature, index) in data.features"
-        :key="index"
-      >
-        <h2>{{ feature.title }}</h2>
-        <p>{{ feature.details }}</p>
+  <div>
+    <div>
+      <div class="dark">
+        <h1>Turn a mess of tricky Solidity tools into a smooth workflow</h1>
+        <p>
+          Unlock your productivity through flexibility, interoperability, and
+          standardization.
+        </p>
       </div>
     </div>
 
-    <Content custom/>
+    <div class="hero">
+      <img src="/mascots.svg" alt="hero" class="mascots-mobile" />
+      <div class="copy">
+        <div class="text">
+          <h2>
+            <span class="buidler">Buidler</span> is a task runner for Ethereum
+            smart contract developers.
+          </h2>
+          <p>
+            It works with all developer tools, rather than replace any specific
+            ones. It's value comes from being the connective tissue, rather than
+            from specific functionality. It's an integration platform for other
+            tools to build upon.
+          </p>
+        </div>
+        <img src="/mascots.svg" alt="hero" class="mascots" />
+        <div class="cta cta1">
+            <a
+              href="/guides/"
+              rel="noopener noreferrer"
+              class="action-button nav-link"
+            >
+              Get Started
+            </a>
+        </div>
+      </div>
+    </div>
 
-    <div
-      class="footer"
-      v-if="data.footer"
-    >
-      {{ data.footer }}
+    <div class="home">
+      <Content custom />
+
+      <div class="cta2">
+          <a
+            href="/guides/"
+            rel="noopener noreferrer"
+            class="action-button"
+          >
+            Get Started
+          </a>
+      </div>
+
+      <p
+        style="text-align: center;font-style: italic;margin-top: 100px;color: rgb(189, 189, 189);"
+      >
+        Some of the plugins shown above are currently under development.
+      </p>
+
+      <div class="usedby">
+        <h3>Used By</h3>
+        <div class="users">
+          <div class="logo">
+            <a href="https://github.com/decentraland/gate"
+              ><img src="/decentraland.svg" alt="decentraland"
+            /></a>
+          </div>
+          <div class="logo">
+            <a href=""><img src="/spankchain.svg" alt="spankchain"/></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer" v-if="data.footer">
+        {{ data.footer }}
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import NavLink from './NavLink.vue'
+import NavLink from "./NavLink.vue";
 
 export default {
   components: { NavLink },
 
   computed: {
-    data () {
-      return this.$page.frontmatter
+    data() {
+      return this.$page.frontmatter;
     },
 
-    actionLink () {
+    actionLink() {
       return {
         link: this.data.actionLink,
         text: this.data.actionText
-      }
+      };
     }
   }
-}
+};
 </script>
 
 <style lang="stylus">
@@ -104,30 +133,8 @@ export default {
       border-bottom 1px solid darken($accentColor, 10%)
       &:hover
         background-color lighten($accentColor, 10%)
-  .features
-    border-top 1px solid $borderColor
-    padding 1.2rem 0
-    margin-top 2.5rem
-    display flex
-    flex-wrap wrap
-    align-items flex-start
-    align-content stretch
-    justify-content space-between
-  .feature
-    flex-grow 1
-    flex-basis 30%
-    max-width 30%
-    h2
-      font-size 1.4rem
-      font-weight 500
-      border-bottom none
-      padding-bottom 0
-      color lighten($textColor, 10%)
-    p
-      color lighten($textColor, 25%)
   .footer
     padding 2.5rem
-    border-top 1px solid $borderColor
     text-align center
     color lighten($textColor, 25%)
 
@@ -149,13 +156,17 @@ export default {
         margin 2rem auto 1.2rem
       h1
         font-size 2rem
+        
       h1, .description, .action
         margin 1.2rem auto
+        
       .description
         font-size 1.2rem
+        
       .action-button
         font-size 1rem
         padding 0.6rem 1.2rem
+        
     .feature
       h2
         font-size 1.25rem

@@ -1,5 +1,5 @@
 <template>
-  <header class="navbar">
+  <header class="navbar" v-bind:class="{ notFixed : $page.frontmatter.home === true }">
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')"/>
 
     <router-link
@@ -30,7 +30,7 @@
         v-if="isAlgoliaSearch"
         :options="algolia"
       />
-      <SearchBox v-else-if="$site.themeConfig.search !== false"/>
+      <SearchBox v-else-if="$page.frontmatter.search !== false"/>
       <NavLinks class="can-hide"/>
     </div>
   </header>
@@ -110,9 +110,9 @@ $navbar-horizontal-padding = 1.5rem
   .links
     padding-left 1.5rem
     box-sizing border-box
-    background-color #292C32
+    background-color white
     white-space nowrap
-
+    font-size 1rem
     position absolute
     right $navbar-horizontal-padding
     top $navbar-vertical-padding

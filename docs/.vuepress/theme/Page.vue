@@ -2,7 +2,8 @@
   <div class="page">
     <slot name="top"/>
 
-    <Content :custom="false"/>
+    <Content :custom="true" v-if="$page.frontmatter.home"/>
+    <Content :custom="false" v-else />
 
     <div class="page-edit">
       <div
