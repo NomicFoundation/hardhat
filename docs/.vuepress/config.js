@@ -1,7 +1,7 @@
 module.exports = {
   title: "Buidler",
   description: "Buidler is a task runner for Ethereum smart contract developers.",
-  serviceWorker: true,
+  serviceWorker: false,
   ga: 'UA-117668706-2',
   themeConfig: {
     logo: "/logo.svg",
