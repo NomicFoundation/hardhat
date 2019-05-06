@@ -149,23 +149,17 @@ export default {
       this.swUpdateEvent = e;
     },
 
-    removeServiceWorkers() {
+    async removeServiceWorkers() {
       if (typeof navigator.serviceWorker !== "undefined") {
-        let unregistered = false;
+        const registrations = await navigator.serviceWorker.getRegistrations();
 
-        Promise.all(
-          navigator.serviceWorker.getRegistrations().then(registrations =>
-            registrations.map(registration =>
-              registration.unregister().then(_ => {
-                unregistered = true;
-              })
-            )
-          )
-        ).then(_ => {
-          if (unregistered) {
-            window.location.reload(true);
+        if (registrations && registrations.length) {
+          for (const registration of registrations) {
+            await registration.unregister();
           }
-        });
+
+          navigator.location.reload(true);
+        }
       }
     }
   }
