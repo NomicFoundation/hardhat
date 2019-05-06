@@ -152,22 +152,23 @@ export default {
     removeServiceWorkers() {
       if (typeof navigator.serviceWorker !== "undefined") {
         let unregistered = false;
-        
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for (let registration of registrations) {
-            registration.unregister();
-            unregistered = true;
+
+        Promise.all(
+          navigator.serviceWorker.getRegistrations().then(registrations =>
+            registrations.map(registration =>
+              registration.unregister().then(_ => {
+                unregistered = true;
+              })
+            )
+          )
+        ).then(_ => {
+          if (unregistered) {
+            window.location.reload(true);
           }
         });
-
-        if (unregistered) {
-          window.location.reload(true)  
-        }
       }
     }
-  },
-  
-  
+  }
 };
 </script>
 
