@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler",
-  "version": "1.0.0-beta.4",
+  "version": "1.0.0-beta.6",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "homepage": "https://buidler.dev",
@@ -35,7 +35,7 @@
     "coverage": "../../node_modules/.bin/nyc ../../node_modules/.bin/mocha",
     "build": "../../node_modules/.bin/tsc --build src",
     "build-test": "../../node_modules/.bin/tsc --build .",
-    "clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js build-test"
+    "clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "builtin-tasks/",

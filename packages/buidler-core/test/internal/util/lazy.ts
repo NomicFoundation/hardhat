@@ -4,13 +4,15 @@ import { ERRORS } from "../../../src/internal/core/errors";
 import { lazyFunction, lazyObject } from "../../../src/internal/util/lazy";
 import { expectBuidlerError } from "../../helpers/errors";
 
+// tslint:disable no-inferred-empty-object-type
+
 describe("lazy module", () => {
   describe("lazyObject", () => {
     it("shouldn't call the initializer function eagerly", () => {
       let called = false;
       lazyObject(() => {
         called = true;
-        return { a: 1 };
+        return {};
       });
 
       assert.isFalse(called);
@@ -93,7 +95,7 @@ describe("lazy module", () => {
     });
 
     it("should trap defineProperty correctly", () => {
-      const obj = lazyObject(() => ({ a: 1 })) as any;
+      const obj = lazyObject(() => ({})) as any;
       obj.asd = 123;
 
       assert.equal(obj.asd, 123);
@@ -145,7 +147,7 @@ describe("lazy module", () => {
 
     it("should trap isExtensible correctly", () => {
       const obj = lazyObject(() => {
-        const v = { a: 1 };
+        const v = {};
         Object.preventExtensions(v);
 
         return v;
@@ -153,7 +155,7 @@ describe("lazy module", () => {
 
       assert.isFalse(Object.isExtensible(obj));
 
-      const obj2 = lazyObject(() => ({ a: 1 }));
+      const obj2 = lazyObject(() => ({}));
       assert.isTrue(Object.isExtensible(obj2));
     });
 
@@ -172,14 +174,14 @@ describe("lazy module", () => {
     });
 
     it("should trap preventExtensions correctly", () => {
-      const obj = lazyObject(() => ({ a: 1 }));
+      const obj = lazyObject(() => ({}));
       Object.preventExtensions(obj);
 
       assert.isFalse(Object.isExtensible(obj));
     });
 
     it("should trap set correctly", () => {
-      const obj = lazyObject(() => ({ a: 1 })) as any;
+      const obj = lazyObject(() => ({})) as any;
       obj.asd = 123;
 
       assert.deepEqual(Object.getOwnPropertyNames(obj), ["asd"]);
