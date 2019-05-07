@@ -146,6 +146,39 @@ describe("TruffleContracts loading and provisioning", function() {
     useEnvironment(__dirname + "/buidler-project-solc-0.4");
     testArtifactsFunctionality();
   });
+
+  describe("Without accounts", function() {
+    function shouldWorkWithoutAccounts() {
+      it("Should be able to call constant functions", async function() {
+        const Greeter = this.env.artifacts.require("Greeter");
+
+        // We test it this way as actually deploying a contract here, without
+        // accounts, is difficult.
+        const greeterWithAt = new Greeter(
+          "0x0000000000000000000000000000000000000001"
+        );
+
+        // Shouldn't throw.
+        await greeterWithAt.greet.estimateGas();
+      });
+    }
+
+    describe("With solc 0.4.x", function() {
+      useEnvironment(
+        __dirname + "/buidler-project-solc-0.4",
+        "withoutAccounts"
+      );
+      shouldWorkWithoutAccounts();
+    });
+
+    describe("With solc 0.4.x", function() {
+      useEnvironment(
+        __dirname + "/buidler-project-solc-0.5",
+        "withoutAccounts"
+      );
+      shouldWorkWithoutAccounts();
+    });
+  });
 });
 
 describe("Test contracts compilation", function() {

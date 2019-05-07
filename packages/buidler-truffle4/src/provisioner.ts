@@ -87,31 +87,47 @@ export class LazyTruffleContractProvisioner {
     instance: TruffleContractInstance,
     methodName: string
   ) {
+    const abi = instance.contract.abi.filter(
+      (abiElement: any) => abiElement.name === methodName
+    )[0];
+
+    const isConstant =
+      abi !== undefined &&
+      (abi.constant === true ||
+        abi.stateMutability === "view" ||
+        abi.stateMutability === "pure");
+
     const original = instance[methodName];
     const originalCall = original.call;
     const originalEstimateGas = original.estimateGas;
 
     instance[methodName] = async (...args: any[]) => {
-      args = await this._ensureTxParamsWithDefaults(args);
+      args = await this._ensureTxParamsWithDefaults(args, !isConstant);
       return original.apply(instance, args);
     };
 
     instance[methodName].call = async (...args: any[]) => {
-      args = await this._ensureTxParamsWithDefaults(args);
+      args = await this._ensureTxParamsWithDefaults(args, !isConstant);
       return originalCall.apply(originalCall, args);
     };
 
     instance[methodName].estimateGas = async (...args: any[]) => {
-      args = await this._ensureTxParamsWithDefaults(args);
+      args = await this._ensureTxParamsWithDefaults(args, !isConstant);
       return originalEstimateGas.apply(originalEstimateGas, args);
     };
   }
 
-  private async _ensureTxParamsWithDefaults(args: any[]) {
+  private async _ensureTxParamsWithDefaults(
+    args: any[],
+    isDefaultAccountRequired = true
+  ) {
     args = this._ensureTxParamsIsPresent(args);
     const txParams = args[args.length - 1];
 
-    args[args.length - 1] = await this._addDefaultTxParams(txParams);
+    args[args.length - 1] = await this._addDefaultTxParams(
+      txParams,
+      isDefaultAccountRequired
+    );
 
     return args;
   }
@@ -129,14 +145,20 @@ export class LazyTruffleContractProvisioner {
     return lastArg && Object.getPrototypeOf(lastArg) === Object.prototype;
   }
 
-  private async _addDefaultTxParams(txParams: any) {
+  private async _addDefaultTxParams(
+    txParams: any,
+    isDefaultAccountRequired = true
+  ) {
     return {
       ...txParams,
-      from: await this._getDefaultAccount(txParams)
+      from: await this._getDefaultAccount(txParams, isDefaultAccountRequired)
     };
   }
 
-  private async _getDefaultAccount(txParams: any) {
+  private async _getDefaultAccount(
+    txParams: any,
+    isDefaultAccountRequired = true
+  ) {
     if (txParams.from !== undefined) {
       return txParams.from;
     }
@@ -146,9 +168,13 @@ export class LazyTruffleContractProvisioner {
       const accounts = await util.promisify(getAccounts)();
 
       if (accounts.length === 0) {
-        throw new BuidlerPluginError(
-          "There's no account available in the selected network."
-        );
+        if (isDefaultAccountRequired) {
+          throw new BuidlerPluginError(
+            "There's no account available in the selected network."
+          );
+        }
+
+        return undefined;
       }
 
       this._defaultAccount = accounts[0];

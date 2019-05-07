@@ -15,10 +15,10 @@ export function resetBuidler() {
   resetBuidlerContext();
 }
 
-export function useEnvironment(projectPath: string) {
+export function useEnvironment(projectPath: string, networkName = "develop") {
   beforeEach("Loading buidler environment", function() {
     process.chdir(projectPath);
-    process.env.BUIDLER_NETWORK = "develop";
+    process.env.BUIDLER_NETWORK = networkName;
 
     this.env = require("@nomiclabs/buidler");
   });
