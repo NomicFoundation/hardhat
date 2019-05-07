@@ -248,7 +248,7 @@ describe("Dependency Graph", function() {
       localResolver = new Resolver(await getFixtureProjectPath(PROJECT));
     });
 
-    it.only("should work with cyclic dependencies", async () => {
+    it("should work with cyclic dependencies", async () => {
       const fileA = await localResolver.resolveProjectSourceFile(
         "contracts/A.sol"
       );
