@@ -22,18 +22,22 @@ extendEnvironment(env => {
 
     const execute = require("truffle-contract/lib/execute");
 
+    let noDefaultAccounts = false;
     let defaultAccount: string | undefined =
       env.config.networks[env.buidlerArguments.network].from;
 
-    async function addFromIfNeeded(params: any) {
+    async function addFromIfNeededAndAvailable(params: any) {
+      if (noDefaultAccounts) {
+        return;
+      }
+
       if (params.from === undefined) {
         if (defaultAccount === undefined) {
           const accounts = await env.web3.eth.getAccounts();
 
           if (accounts.length === 0) {
-            throw new BuidlerPluginError(
-              "There's no account available in the selected network."
-            );
+            noDefaultAccounts = true;
+            return;
           }
 
           defaultAccount = accounts[0];
@@ -43,16 +47,33 @@ extendEnvironment(env => {
       }
     }
 
+    const web3Path = require.resolve("web3");
+    const formattersPath = require.resolve("web3-core-helpers/src/formatters", {
+      paths: [web3Path]
+    });
+
+    const formatters = require(formattersPath);
+    const originalFormatter = formatters.inputTransactionFormatter;
+    formatters.inputTransactionFormatter = function(options: any) {
+      if (options.from === undefined) {
+        throw new BuidlerPluginError(
+          "There's no account available in the selected network."
+        );
+      }
+
+      return originalFormatter(options);
+    };
+
     const originalGetGasEstimate = execute.getGasEstimate;
     execute.getGasEstimate = async function(params: any, ...others: any[]) {
-      await addFromIfNeeded(params);
+      await addFromIfNeededAndAvailable(params);
       return originalGetGasEstimate.call(this, params, ...others);
     };
 
     const originalPrepareCall = execute.prepareCall;
     execute.prepareCall = async function(...args: any[]) {
       const ret = await originalPrepareCall.apply(this, args);
-      await addFromIfNeeded(ret.params);
+      await addFromIfNeededAndAvailable(ret.params);
 
       return ret;
     };
