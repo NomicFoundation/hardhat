@@ -41,10 +41,9 @@ async function hasConfigFile(rootDirectory: string) {
 
 async function getSolhintConfig(rootDirectory: string) {
   let solhintConfig;
-  const {
-    loadConfig,
-    applyExtends
-  } = await import("solhint/lib/config/config-file");
+  const { loadConfig, applyExtends } = await import(
+    "solhint/lib/config/config-file"
+  );
   if (await hasConfigFile(rootDirectory)) {
     try {
       solhintConfig = await loadConfig();
