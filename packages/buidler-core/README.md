@@ -1,4 +1,4 @@
-![](https://cdn-images-1.medium.com/max/2600/1*EJWKycln-DOgq8bSzP0o9g.png)
+![](https://user-images.githubusercontent.com/232174/57331293-9a042100-70ee-11e9-8c37-8a5d52875bf4.png)
 [![NPM Package](https://img.shields.io/npm/v/@nomiclabs/buidler.svg?style=flat-square)](https://www.npmjs.org/package/@nomiclabs/buidler)
 [![Build Status](https://travis-ci.com/nomiclabs/buidler.svg?branch=master)](https://travis-ci.com/nomiclabs/buidler)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
