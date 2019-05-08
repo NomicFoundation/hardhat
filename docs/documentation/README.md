@@ -155,7 +155,7 @@ The Buidler Runtime Environment, or BRE for short, is an object containing all t
 
 By default, the BRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider. You can find more information about [it in its API docs](/api/classes/environment.html).
 
-Plugins can extend the BRE. For example, [buidler-web3](https://github.com/nomiclabs/buidler-web3) adds a `web3` instance to it, making it available to tasks, tests and scripts.
+Plugins can extend the BRE. For example, [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) adds a `web3` instance to it, making it available to tasks, tests and scripts.
 
 ### Exporting globally
 
