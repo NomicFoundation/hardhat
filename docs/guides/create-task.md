@@ -5,7 +5,7 @@ next: 'truffle-migration'
 
 # Creating a task
 
-In this guide, we will explore the creation of tasks in Buidler, which are the core component used for automation. For a general overview of using Buidler refer to the [Getting started guide](https://medium.com/nomic-labs-blog/how-to-get-started-with-buidler-68beb6b9bb04).
+In this guide, we will explore the creation of tasks in Buidler, which are the core component used for automation. For a general overview of using Buidler refer to the [Getting started guide](/guides/#getting-started).
 
 ## **What exactly are tasks in Buidler?**
 
@@ -17,13 +17,13 @@ As some examples, you could create a task to reset the state of a development en
 
 Let’s go through the process of creating one to interact with a smart contract.
 
-Tasks in Buidler are asynchronous JavaScript functions that get access to the [Buidler Runtime Environment](https://github.com/nomiclabs/buidler/blob/new-readme/README.md#Buidler-Runtime-Environment), through which you get access to the configuration, parameters, programmatic access to other tasks and any objects plugins may have injected.
+Tasks in Buidler are asynchronous JavaScript functions that get access to the [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre), through which you get access to the configuration, parameters, programmatic access to other tasks and any objects plugins may have injected.
 
-For our example we will use Web3.js to interact with our contracts, so we will install the [web3 plugin](https://github.com/nomiclabs/buidler-web3), which injects a Web3 instance into the Buidler environment:
+For our example we will use Web3.js to interact with our contracts, so we will install the [web3 plugin](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), which injects a Web3 instance into the Buidler environment:
 
 `npm install @nomiclabs/buidler-web3 web3@1.0.0-beta.37`
 
-*Take a look at the [list of Buidler plugins](https://github.com/nomiclabs/buidler#Plugins) to see other available libraries.*
+*Take a look at the [list of Buidler plugins](/plugins) to see other available libraries.*
 
 We will require the plugin and add our task creation code to the Buidler configuration file, which is always executed on startup before anything else happens. It’s a good place to create simple tasks. If your task is more complex, you can put it in a separate file and require it, or if you’re writing a Buidler plugin that adds a task, you can create it from a separate npm package. Learn more about creating tasks through plugins in our [How to create a plugin guide](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-plugin-b60432bf6d75).
 
@@ -39,7 +39,7 @@ When you add a parameter to a task, Buidler will handle its help messages for yo
 
 ![](https://cdn-images-1.medium.com/max/1600/1*JxpDYfaZutArBmKdOWt4fg.png)
 
-Let’s now get the account’s balance. The [Buidler Runtime Environment](https://github.com/nomiclabs/buidler#Buidler-Runtime-Environment) will be available in the global scope. By using Buidler’s [web3 plugin](https://github.com/nomiclabs/buidler-web3) we get access to a web3 instance:
+Let’s now get the account’s balance. The [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre) will be available in the global scope. By using Buidler’s [web3 plugin](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) we get access to a web3 instance:
 
 Finally, we can run it:
 
