@@ -16,6 +16,11 @@ To install this project you have to run:
 1. `npm install`
 2. `npx lerna bootstrap`
 
+## Building the projects
+
+Plugins require buidler-core to be built or tested. Our recommendation is to run `npm run watch` from the root folder.
+This will keep everything compiled, and these problems will be avoided.  
+
 ## Testing
 
 All tests are written using [mocha](https://mochajs.org) and [chai](https://www.chaijs.com).
