@@ -27,13 +27,10 @@
         </div>
         <img src="/mascots.svg" alt="hero" class="mascots" />
         <div class="cta cta1">
-            <a
-              href="/guides/"
-              rel="noopener noreferrer"
-              class="action-button nav-link"
-            >
-              Get Started
-            </a>
+          <router-link
+            class="action-button"
+            to="/guides/"
+          >Get Started</router-link>
         </div>
       </div>
     </div>
@@ -45,14 +42,12 @@
       <Content custom />
 
       <div class="cta2">
-          <a
-            href="/guides/"
-            rel="noopener noreferrer"
+          <router-link
             class="action-button"
-          >
-            Get Started
-          </a>
+            to="/guides/"
+          >Get Started</router-link>
       </div>
+
 
       <p
         style="text-align: center;font-style: italic;margin-top: 100px;color: rgb(189, 189, 189);"
