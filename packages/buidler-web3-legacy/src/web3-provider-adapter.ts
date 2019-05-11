@@ -30,14 +30,22 @@ export class Web3HTTPProviderAdapter {
   constructor(provider: IEthereumProvider) {
     this._provider = provider;
 
-    // We bind everything here becase some test suits breack otherwise
+    // We bind everything here because some test suits break otherwise
     this.sendAsync = this.sendAsync.bind(this) as any;
     this.send = this.send.bind(this) as any;
     this.isConnected = this.isConnected.bind(this) as any;
     this._sendJsonRpcRequest = this._sendJsonRpcRequest.bind(this) as any;
   }
 
-  public send(payload: any) {
+  public send(payload?: Partial<JsonRpcRequest>) {
+    if (payload && payload.method) {
+      throw new BuidlerPluginError(
+        `Trying to call RPC method ${
+          payload.method
+        }, but synchronous requests are not supported, use pweb3 instead`
+      );
+    }
+
     throw new BuidlerPluginError(
       "Synchronous requests are not supported, use pweb3 instead"
     );
