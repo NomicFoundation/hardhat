@@ -38,7 +38,7 @@ export class Web3HTTPProviderAdapter {
   }
 
   public send(payload?: Partial<JsonRpcRequest>) {
-    if (payload && payload.method) {
+    if (payload !== undefined && payload.method !== undefined) {
       throw new BuidlerPluginError(
         `Trying to call RPC method ${
           payload.method
