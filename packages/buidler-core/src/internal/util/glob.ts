@@ -1,6 +1,10 @@
-import globModule from "glob";
 import util from "util";
 
-export const glob = util.promisify(globModule);
+export async function glob(pattern: string): Promise<string[]> {
+  const { default: globModule } = await import("glob");
+  return util.promisify(globModule)(pattern);
+}
 
-export const globSync = globModule.sync;
+export function globSync(pattern: string): string[] {
+  return require("glob").sync(pattern);
+}

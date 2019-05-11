@@ -1,4 +1,5 @@
 import colors from "ansi-colors";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import {
@@ -114,7 +115,6 @@ internalTask(TASK_BUILD_ARTIFACTS, async (_, { config, run }) => {
     return;
   }
 
-  const fsExtra = await import("fs-extra");
   await fsExtra.ensureDir(config.paths.artifacts);
   let numberOfContracts = 0;
 

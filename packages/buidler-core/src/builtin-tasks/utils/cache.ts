@@ -1,3 +1,4 @@
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { glob } from "../../internal/util/glob";
@@ -6,7 +7,6 @@ import { ProjectPaths } from "../../types";
 const LAST_CONFIG_USED_FILENAME = "path-to-last-config-used.txt";
 
 async function getModificationDate(file: string): Promise<Date> {
-  const fsExtra = await import("fs-extra");
   const stat = await fsExtra.stat(file);
   return new Date(stat.mtime);
 }
@@ -50,7 +50,6 @@ function getPathToCachedLastConfigPath(paths: ProjectPaths) {
 async function getLastUsedConfig(
   paths: ProjectPaths
 ): Promise<string | undefined> {
-  const fsExtra = await import("fs-extra");
   const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths);
 
   if (!(await fsExtra.pathExists(pathToLastConfigUsed))) {
@@ -61,7 +60,6 @@ async function getLastUsedConfig(
 }
 
 async function saveLastConfigUsed(paths: ProjectPaths) {
-  const fsExtra = await import("fs-extra");
   const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths);
 
   await fsExtra.ensureDir(path.dirname(pathToLastConfigUsed));

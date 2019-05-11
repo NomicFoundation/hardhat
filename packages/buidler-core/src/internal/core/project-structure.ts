@@ -1,11 +1,11 @@
 import findUp from "find-up";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { getPackageRoot } from "../util/packageInfo";
 
 import { BuidlerError, ERRORS } from "./errors";
 import { isTypescriptSupported } from "./typescript-support";
-
 const JS_CONFIG_FILENAME = "buidler.config.js";
 const TS_CONFIG_FILENAME = "buidler.config.ts";
 
@@ -33,7 +33,6 @@ export function getUserConfigPath() {
 }
 
 export async function getRecommendedGitIgnore() {
-  const fsExtra = await import("fs-extra");
   const packageRoot = await getPackageRoot();
   const gitIgnorePath = path.join(packageRoot, "recommended-gitignore.txt");
 

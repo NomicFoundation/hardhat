@@ -1,6 +1,7 @@
 import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { internalTask } from "@nomiclabs/buidler/config";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { SolppConfig } from "./types";
@@ -25,8 +26,6 @@ function getConfig(config: ResolvedBuidlerConfig): SolppConfig {
 }
 
 async function readFiles(filePaths: string[]): Promise<string[][]> {
-  const fsExtra = await import("fs-extra");
-
   return Promise.all(
     filePaths.map(filePath =>
       fsExtra.readFile(filePath, "utf-8").then(content => [filePath, content])
@@ -41,7 +40,6 @@ internalTask(
     { config }: { config: ResolvedBuidlerConfig }
   ) => {
     const processedPaths: string[] = [];
-    const fsExtra = await import("fs-extra");
     const solpp = await import("solpp");
     for (const [filePath, content] of files) {
       const processedFilePath = path.join(

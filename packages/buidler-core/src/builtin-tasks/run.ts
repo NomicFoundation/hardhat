@@ -1,3 +1,5 @@
+import fsExtra from "fs-extra";
+
 import { task } from "../internal/core/config/config-env";
 import { BuidlerError, ERRORS } from "../internal/core/errors";
 import { runScriptWithBuidler } from "../internal/util/scripts-runner";
@@ -15,8 +17,6 @@ task(TASK_RUN, "Runs a user-defined script after compiling the project")
       { script, noCompile }: { script: string; noCompile: boolean },
       { run }
     ) => {
-      const fsExtra = await import("fs-extra");
-
       if (!(await fsExtra.pathExists(script))) {
         throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, script);
       }

@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import { CompilerDownloader } from "./downloader";
 
 export class Compiler {
@@ -75,7 +77,6 @@ export class Compiler {
       module: NodeJS.Module,
       filename: string
     ) {
-      const fs = require("fs");
       const content = fs.readFileSync(filename, "utf8");
       Object.getPrototypeOf(module)._compile.call(module, content, filename);
     };

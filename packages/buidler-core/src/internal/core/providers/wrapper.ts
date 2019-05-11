@@ -1,5 +1,3 @@
-import { cloneDeep } from "lodash";
-
 import { IEthereumProvider } from "../../../types";
 
 export function wrapSend(
@@ -9,6 +7,7 @@ export function wrapSend(
   return new Proxy(provider, {
     get(target: IEthereumProvider, p: PropertyKey, receiver: any): any {
       if (p === "send") {
+        const { cloneDeep } = require("lodash");
         return (method: string, params: any[] = []) =>
           sendWrapper(method, cloneDeep(params));
       }

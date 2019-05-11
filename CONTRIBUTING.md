@@ -46,3 +46,30 @@ We keep our dependencies versions in sync between the different projects.
 Running `node scripts/check-dependencies.js` from the root folder checks that every project specifies the same versions
 of each dependency. It will print an error if the versions get out of sync. 
 
+## Performance and dependencies loading
+
+Buidler and its plugins are optimized for keeping startup time low. 
+
+This is done by selectively requiring dependencies when needed using `import` or `require` following this criteria:
+
+1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod""` 
+1. If a module is in the least below, use a top-level `import ... from "mod""`.
+3. Otherwise, use `await import` or `require` locally in the functions that use it.
+  3.1. If the function is sync, use node's `require`
+  3.2. If the function is an async, use `await import`
+
+Note that these rules don't apply to tests. You can always use top-level imports there.
+
+### Essential modules
+
+This is a list of the modules that always get loaded during startup:
+
+* `fs`
+* `path`
+* `util`
+* `find-up`
+* `fs-extra`
+* `semver`
+* `deepmerge`
+* `source-map-support/register`
+ 
