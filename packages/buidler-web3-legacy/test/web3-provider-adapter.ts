@@ -38,8 +38,13 @@ describe("Web3 provider adapter", function() {
 
   it("Should throw if send is called", async function() {
     assert.throws(
-      () => adaptedProvider.send({}),
+      () => adaptedProvider.send(),
       "Synchronous requests are not supported, use pweb3 instead"
+    );
+
+    assert.throws(
+      () => adaptedProvider.send({ method: "asd" }),
+      `Trying to call RPC method asd, but synchronous requests are not supported, use pweb3 instead`
     );
   });
 
