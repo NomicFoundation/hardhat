@@ -1,3 +1,4 @@
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { BuidlerError, ERRORS } from "../core/errors";
@@ -53,8 +54,6 @@ export class Resolver {
   public async resolveProjectSourceFile(
     pathToResolve: string
   ): Promise<ResolvedFile> {
-    const fsExtra = await import("fs-extra");
-
     if (!(await fsExtra.pathExists(pathToResolve))) {
       throw new BuidlerError(ERRORS.RESOLVER.FILE_NOT_FOUND, pathToResolve);
     }
@@ -83,8 +82,6 @@ export class Resolver {
   public async resolveLibrarySourceFile(
     globalName: string
   ): Promise<ResolvedFile> {
-    const fsExtra = await import("fs-extra");
-
     const libraryName = this._getLibraryName(globalName);
 
     let packagePath;
@@ -192,7 +189,6 @@ export class Resolver {
     libraryName?: string,
     libraryVersion?: string
   ): Promise<ResolvedFile> {
-    const fsExtra = await import("fs-extra");
     const content = await fsExtra.readFile(absolutePath, { encoding: "utf8" });
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.mtime);

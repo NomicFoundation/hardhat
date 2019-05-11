@@ -1,3 +1,4 @@
+import fsExtra from "fs-extra";
 import * as path from "path";
 
 import { Artifact } from "../types";
@@ -41,7 +42,6 @@ function getArtifactPath(artifactsPath: string, contractName: string): string {
  * @param artifact the artifact to be stored.
  */
 export async function saveArtifact(artifactsPath: string, artifact: Artifact) {
-  const fsExtra = await import("fs-extra");
   await fsExtra.writeJSON(
     artifactsPath + "/" + artifact.contractName + ".json",
     artifact,
@@ -61,7 +61,6 @@ export async function readArtifact(
   artifactsPath: string,
   contractName: string
 ): Promise<Artifact> {
-  const fsExtra = require("fs-extra");
   const artifactPath = getArtifactPath(artifactsPath, contractName);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
@@ -81,7 +80,6 @@ export function readArtifactSync(
   artifactsPath: string,
   contractName: string
 ): Artifact {
-  const fsExtra = require("fs-extra");
   const artifactPath = getArtifactPath(artifactsPath, contractName);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {

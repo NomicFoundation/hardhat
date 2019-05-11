@@ -1,3 +1,6 @@
+import * as fs from "fs";
+import fsExtra from "fs-extra";
+
 import { BuidlerError, ERRORS } from "../errors";
 
 /**
@@ -120,8 +123,6 @@ export const inputFile: ArgumentType<string> = {
   name: "inputFile",
   parse(argName: string, strValue: string): string {
     try {
-      const fs = require("fs");
-      const fsExtra = require("fs-extra");
       fs.accessSync(strValue, fsExtra.constants.R_OK);
       const stats = fs.lstatSync(strValue);
 

@@ -1,3 +1,4 @@
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { BuidlerError, ERRORS } from "../../core/errors";
@@ -78,7 +79,6 @@ export class CompilerDownloader {
 
     // We may need to re-download the compilers list.
     if (compilerBuildPath === undefined && compilersListExisted) {
-      const fsExtra = await import("fs-extra");
       await fsExtra.unlink(this.getCompilersListPath());
 
       list = await this.getCompilersList();
@@ -99,7 +99,6 @@ export class CompilerDownloader {
       await this.downloadCompilersList();
     }
 
-    const fsExtra = await import("fs-extra");
     return fsExtra.readJson(this.getCompilersListPath());
   }
 
@@ -108,7 +107,6 @@ export class CompilerDownloader {
   }
 
   public async compilersListExists() {
-    const fsExtra = await import("fs-extra");
     return fsExtra.pathExists(this.getCompilersListPath());
   }
 
@@ -148,7 +146,6 @@ export class CompilerDownloader {
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
-    const fsExtra = await import("fs-extra");
     const ethereumjsUtil = await import("ethereumjs-util");
 
     const expectedKeccak256 = compilerBuild.keccak256;
@@ -169,7 +166,6 @@ export class CompilerDownloader {
   }
 
   private async _fileExists(filePath: string) {
-    const fsExtra = await import("fs-extra");
     return fsExtra.pathExists(filePath);
   }
 }

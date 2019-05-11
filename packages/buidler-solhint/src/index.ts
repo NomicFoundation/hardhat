@@ -1,5 +1,6 @@
 import { internalTask, task } from "@nomiclabs/buidler/config";
 import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
+import * as fs from "fs";
 import { join } from "path";
 
 function getDefaultConfig() {
@@ -30,7 +31,6 @@ async function hasConfigFile(rootDirectory: string) {
     "solhint.config.js"
   ];
 
-  const fs = await import("fs");
   for (const file of files) {
     if (fs.existsSync(join(rootDirectory, file))) {
       return true;

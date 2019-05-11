@@ -1,4 +1,5 @@
 import colors from "ansi-colors";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { BUIDLER_NAME } from "../constants";
@@ -12,7 +13,6 @@ const CREATE_EMPTY_BUIDLER_CONFIG_ACTION = "Create an empty buidler.config.js";
 const QUIT_ACTION = "Quit";
 
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
-  const fsExtra = await import("fs-extra");
   const dirPath = path.join(projectRoot, dirName);
   if (await fsExtra.pathExists(dirPath)) {
     await fsExtra.remove(dirPath);
@@ -51,7 +51,6 @@ async function printWelcomeMessage() {
 }
 
 async function copySampleProject(projectRoot: string) {
-  const fsExtra = await import("fs-extra");
   const packageRoot = await getPackageRoot();
 
   await fsExtra.ensureDir(projectRoot);
@@ -64,7 +63,6 @@ async function copySampleProject(projectRoot: string) {
 }
 
 async function addGitIgnore(projectRoot: string) {
-  const fsExtra = await import("fs-extra");
   const gitIgnorePath = path.join(projectRoot, ".gitignore");
 
   let content = await getRecommendedGitIgnore();
@@ -78,7 +76,6 @@ async function addGitIgnore(projectRoot: string) {
 }
 
 async function addGitAttributes(projectRoot: string) {
-  const fsExtra = await import("fs-extra");
   const gitAttributesPath = path.join(projectRoot, ".gitattributes");
   let content = "*.sol linguist-language=Solidity";
 
@@ -114,7 +111,6 @@ function printSuggestedPlugins() {
 }
 
 async function writeEmptyBuidlerConfig() {
-  const fsExtra = await import("fs-extra");
   return fsExtra.writeFile(
     "buidler.config.js",
     "module.exports = {};\n",

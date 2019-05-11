@@ -1,5 +1,3 @@
-import Transaction from "ethereumjs-tx";
-import { bufferToHex, toBuffer } from "ethereumjs-util";
 import { Account } from "web3x/account";
 import { Tx } from "web3x/eth";
 
@@ -14,6 +12,7 @@ export function createLocalAccountsProvider(
   provider: IEthereumProvider,
   privateKeys: string[]
 ) {
+  const { bufferToHex, toBuffer } = require("ethereumjs-util");
   const accounts: Account[] = privateKeys.map(pkString =>
     Account.fromPrivate(toBuffer(pkString))
   );
@@ -82,7 +81,7 @@ export function createLocalAccountsProvider(
         throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, tx.from);
       }
 
-      // TODO: Remove ethereumjs-tx dependencies in favor of web3x.
+      const { default: Transaction } = await import("ethereumjs-tx");
       const transaction = new Transaction(tx);
       transaction.sign(account.privateKey);
 
@@ -116,6 +115,8 @@ export function createHDWalletProvider(
       Account.createFromMnemonicAndPath(mnemonic, hdpath + i.toString())
     );
   }
+
+  const { bufferToHex } = require("ethereumjs-util");
 
   return createLocalAccountsProvider(
     provider,

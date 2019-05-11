@@ -1,11 +1,11 @@
-import { fork } from "child_process";
-
 export async function runScript(
   scriptPath: string,
   scriptArgs: string[] = [],
   extraNodeArgs: string[] = [],
   extraEnvVars: { [name: string]: string } = {}
 ): Promise<number> {
+  const { fork } = await import("child_process");
+
   return new Promise((resolve, reject) => {
     const nodeArgs = [
       ...process.execArgv,

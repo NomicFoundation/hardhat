@@ -1,14 +1,17 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
 import { lazyObject, readArtifact } from "@nomiclabs/buidler/plugins";
 import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
-import { ContractFactory, ethers, Signer } from "ethers";
+import { ContractFactory, Signer } from "ethers";
 
 import { EthersProviderWrapper } from "./ethers-provider-wrapper";
 
 extendEnvironment((env: BuidlerRuntimeEnvironment) => {
   env.ethers = {
-    provider: lazyObject(() => new EthersProviderWrapper(env.ethereum)),
+    provider: lazyObject(() => {
+      return new EthersProviderWrapper(env.ethereum);
+    }),
     getContract: async (name: string): Promise<ContractFactory> => {
+      const { ethers } = await import("ethers");
       const artifact = await readArtifact(env.config.paths.artifacts, name);
       const bytecode = artifact.bytecode;
       const signers = await env.ethers.signers();
