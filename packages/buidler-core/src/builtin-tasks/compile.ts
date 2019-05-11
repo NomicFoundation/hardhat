@@ -12,6 +12,7 @@ import { getInputFromDependencyGraph } from "../internal/solidity/compiler/compi
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
+import { pluralize } from "../internal/util/strings";
 import { SolcInput } from "../types";
 
 import {
@@ -94,12 +95,16 @@ internalTask(TASK_COMPILE_COMPILE, async (_, { config, run }) => {
 
 internalTask(TASK_BUILD_ARTIFACTS, async (_, { config, run }) => {
   if (await areArtifactsCached(config.paths)) {
+    console.log(
+      "All contracts have already been compiled, skipping compilation."
+    );
     return;
   }
 
   const sources = await run(TASK_COMPILE_GET_SOURCE_PATHS);
 
   if (sources.length === 0) {
+    console.log("No Solidity source files available.");
     return;
   }
 
@@ -111,6 +116,7 @@ internalTask(TASK_BUILD_ARTIFACTS, async (_, { config, run }) => {
 
   const fsExtra = await import("fs-extra");
   await fsExtra.ensureDir(config.paths.artifacts);
+  let numberOfContracts = 0;
 
   for (const file of Object.values(compilationOutput.contracts)) {
     for (const [contractName, contractOutput] of Object.entries(file)) {
@@ -118,10 +124,18 @@ internalTask(TASK_BUILD_ARTIFACTS, async (_, { config, run }) => {
         contractName,
         contractOutput
       );
+      numberOfContracts += 1;
 
       await saveArtifact(config.paths.artifacts, artifact);
     }
   }
+
+  console.log(
+    "Compiled",
+    numberOfContracts,
+    pluralize(numberOfContracts, "contract"),
+    "successfully"
+  );
 });
 
 task(
