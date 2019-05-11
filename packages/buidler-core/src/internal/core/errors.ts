@@ -203,6 +203,11 @@ export const ERRORS = {
     DEFAULT_IN_MANDATORY_PARAM: {
       number: 208,
       message: "Default value for param %s of task %s shouldn't be set."
+    },
+    INVALID_PARAM_NAME_CASING: {
+      number: 209,
+      message:
+        "Invalid param name %s in task %s. Param names must be camelCase."
     }
   },
   ARGUMENTS: {

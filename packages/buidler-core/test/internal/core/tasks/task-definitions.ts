@@ -322,6 +322,48 @@ describe("SimpleTaskDefinition", () => {
     });
 
     describe("addParam", () => {
+      it("Should fail if the param name isn't camelCase", function() {
+        expectBuidlerError(
+          () => taskDefinition.addParam("A"),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+
+        expectBuidlerError(
+          () => taskDefinition.addParam("Aa"),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+
+        expectBuidlerError(
+          () => taskDefinition.addParam("0"),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+
+        expectBuidlerError(
+          () => taskDefinition.addParam("0a"),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+
+        expectBuidlerError(
+          () => taskDefinition.addParam("a "),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+
+        expectBuidlerError(
+          () => taskDefinition.addParam("a-1"),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+
+        expectBuidlerError(
+          () => taskDefinition.addParam("a_"),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+
+        expectBuidlerError(
+          () => taskDefinition.addParam("a_b"),
+          ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
+        );
+      });
+
       it("should add the param correctly", () => {
         taskDefinition.addParam("p", "desc", 123, types.int, true);
         assertParamDefinition(taskDefinition.paramDefinitions.p, {
