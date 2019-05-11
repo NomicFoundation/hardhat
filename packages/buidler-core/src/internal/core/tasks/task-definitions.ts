@@ -106,6 +106,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
       );
     }
 
+    this._validateParamNameCasing(name);
     this._validateNameNotUsed(name);
     this._validateNoDefaultValueForMandatoryParam(
       defaultValue,
@@ -156,6 +157,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * @param description the parameter's description.
    */
   public addFlag(name: string, description?: string) {
+    this._validateParamNameCasing(name);
     this._validateNameNotUsed(name);
 
     this.paramDefinitions[name] = {
@@ -211,6 +213,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
       );
     }
 
+    this._validateParamNameCasing(name);
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
@@ -293,6 +296,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
       );
     }
 
+    this._validateParamNameCasing(name);
     this._validateNameNotUsed(name);
     this._validateNotAfterVariadicParam(name);
     this._validateNoMandatoryParamAfterOptionalOnes(name, isOptional);
@@ -429,6 +433,18 @@ export class SimpleTaskDefinition implements TaskDefinition {
         ERRORS.TASK_DEFINITIONS.MANDATORY_PARAM_AFTER_OPTIONAL,
         name,
         this.name
+      );
+    }
+  }
+
+  private _validateParamNameCasing(name: string) {
+    const pattern = /^[a-z]+([a-zA-Z0-9])*$/;
+    const match = name.match(pattern);
+    if (match === null) {
+      throw new BuidlerError(
+        ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING,
+        this.name,
+        name
       );
     }
   }
