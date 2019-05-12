@@ -1,4 +1,4 @@
-require("../../src/index");
+usePlugin("../..");
 
 module.exports = {
   solpp: {

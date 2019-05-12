@@ -7,14 +7,6 @@ declare module "mocha" {
   }
 }
 
-export function resetBuidler() {
-  // TODO#plugins-refactor: These shouldn't be necessary
-  delete require.cache[require.resolve("../src/index")];
-  delete require.cache[require.resolve("@nomiclabs/buidler-web3-legacy")];
-
-  resetBuidlerContext();
-}
-
 export function useEnvironment(projectPath: string, networkName = "develop") {
   beforeEach("Loading buidler environment", function() {
     process.chdir(projectPath);
@@ -24,6 +16,6 @@ export function useEnvironment(projectPath: string, networkName = "develop") {
   });
 
   afterEach("Resetting buidler", function() {
-    resetBuidler();
+    resetBuidlerContext();
   });
 }

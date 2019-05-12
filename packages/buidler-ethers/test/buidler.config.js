@@ -1,3 +1,3 @@
-require("../src/index");
+usePlugin("..");
 
 module.exports = {};

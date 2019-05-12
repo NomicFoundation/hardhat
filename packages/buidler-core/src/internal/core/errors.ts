@@ -87,7 +87,8 @@ export const ERROR_RANGES: {
   RESOLVER: { min: 400, max: 499 },
   SOLC: { min: 500, max: 599 },
   BUILTIN_TASKS: { min: 600, max: 699 },
-  ARTIFACTS: { min: 700, max: 799 }
+  ARTIFACTS: { min: 700, max: 799 },
+  PLUGINS: { min: 800, max: 899 }
 };
 
 export const ERRORS = {
@@ -336,6 +337,27 @@ export const ERRORS = {
     NOT_FOUND: {
       number: 700,
       message: 'Artifact for contract "%s" not found.'
+    }
+  },
+  PLUGINS: {
+    NOT_INSTALLED: {
+      number: 800,
+      message: "Plugin %s is not installed."
+    },
+    MISSING_DEPENDENCY: {
+      number: 801,
+      message:
+        "Plugin %s requires %s to be installed.\nPlease run: npm install --save-dev %s@%s"
+    },
+    DEPENDENCY_VERSION_MISMATCH: {
+      number: 802,
+      message:
+        "Plugin %s requires %s version %s but got %s.\nPlease install a valid version."
+    },
+    OLD_STYLE_IMPORT_DETECTED: {
+      number: 803,
+      message:
+        "You are trying to load a plugin with a require or import statement.\nThey must be loaded with usePlugin('pluginName')."
     }
   }
 };

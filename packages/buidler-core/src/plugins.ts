@@ -5,3 +5,7 @@ export {
   readArtifactSync
 } from "./internal/artifacts";
 export { lazyObject, lazyFunction } from "./internal/util/lazy";
+export {
+  loadPluginFile,
+  ensurePluginLoadedWithUsePlugin
+} from "./internal/core/plugins";
