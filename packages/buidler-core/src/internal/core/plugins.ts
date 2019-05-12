@@ -2,6 +2,7 @@ import * as path from "path";
 import * as semver from "semver";
 
 import { BuidlerContext } from "../context";
+import { getClosestCallerPackage } from "../util/caller-package";
 
 import { BuidlerError, ERRORS } from "./errors";
 
@@ -49,7 +50,11 @@ export function usePlugin(pluginName: string) {
           pluginName,
           dependencyName,
           versionSpec,
-          installedVersion
+          installedVersion,
+          dependencyName,
+          dependencyName,
+          versionSpec,
+          dependencyName
         );
       }
     }
@@ -103,5 +108,11 @@ export function ensurePluginLoadedWithUsePlugin() {
     }
   }
 
-  throw new BuidlerError(ERRORS.PLUGINS.OLD_STYLE_IMPORT_DETECTED);
+  const pluginName = getClosestCallerPackage();
+
+  throw new BuidlerError(
+    ERRORS.PLUGINS.OLD_STYLE_IMPORT_DETECTED,
+    pluginName !== undefined ? pluginName : "a plugin",
+    pluginName !== undefined ? pluginName : "plugin-name"
+  );
 }
