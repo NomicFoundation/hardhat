@@ -67,7 +67,7 @@ export function loadPluginFile(absolutePluginFilePath: string) {
   }
 }
 
-function readPackageJson(
+export function readPackageJson(
   packageName: string,
   from: string
 ): PackageJson | undefined {
