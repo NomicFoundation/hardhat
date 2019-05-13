@@ -1,11 +1,11 @@
 ---
-prev: 'create-task'
-next: 'truffle-migration'
+prev: "create-task"
+next: "truffle-migration"
 ---
 
 # Creating a plugin
 
-In this guide, we will explore the creation of plugins for Buidler, which are the key component for integrating other tools. 
+In this guide, we will explore the creation of plugins for Buidler, which are the key component for integrating other tools.
 
 Because of the way some Ethereum tools and libraries are designed, it’s not easy or even possible to get them to work together. Through its flexible design Buidler allows most tools to play along through short and simple plugins.
 
@@ -22,16 +22,15 @@ The environment is configured through a queue of extension functions that you ca
 For example, adding the following to `buidler.config.js`:
 
 ```js
-extendEnvironment((env) => {
+extendEnvironment(env => {
   env.hi = "hello, buidler";
 });
-
 ```
 
 Will make `hi` available everywhere where the environment is accessible.
 
 ```js
-extendEnvironment((env) => {
+extendEnvironment(env => {
   env.hi = "hello, buidler";
 });
 
@@ -49,13 +48,13 @@ Will yield:
 This is literally all it takes to put together a plugin for Buidler. Injecting an ethers.js instance into the environment would look like this:
 
 ```js
-extendEnvironment((env) => {
+extendEnvironment(env => {
   const wrapper = new EthersProviderWrapper(env.ethereum);
 
   env.ethers = {
     provider: wrapper,
-    
-    getContract: async function (name) {
+
+    getContract: async function(name) {
       const artifact = await readArtifact(env.config.paths.artifacts, name);
       const bytecode = artifact.bytecode;
       const signers = await env.ethers.signers();
@@ -63,10 +62,10 @@ extendEnvironment((env) => {
       return new ethers.ContractFactory(artifact.abi, bytecode, signers[0]);
     },
 
-    signers: async function () {
+    signers: async function() {
       const accounts = await env.ethereum.send("eth_accounts");
 
-      return accounts.map((account) => wrapper.getSigner(account));
+      return accounts.map(account => wrapper.getSigner(account));
     }
   };
 });
@@ -78,7 +77,7 @@ Full functional code at [here](https://gist.github.com/fzeoli/9cdd9c1182b963682
 
 And that’s it. Ethers.js is now fully available to be used in the Buidler console, your tasks, tests and other plugins.
 
-Now, this is just injecting from the config file, which by itself can be useful if that’s all you care about, but this can also be packaged as a reusable plugin that you can publish for others to benefit as well.
+Now, this is just injecting from the config file, which by itself can be useful if that’s all you care about, but this can also be packaged as a reusable plugin that you can publish for others to benefit as well. You only need to wrap everything in a function, and export it in the plugin's main file.
 
 You can use the [plugin boilerplate repository](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate) as a starting point to create an npm package for your plugin. We highly recommend using TypeScript for your plugins, especially if you’re looking to inject objects into the Buidler Runtime Environment. This way, types can be exported and text editors can autocomplete for your users.
 
