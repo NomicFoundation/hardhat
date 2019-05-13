@@ -332,6 +332,7 @@ If you are still in doubt, these can be helpful:
 - Rule of thumb #1: Buidler MUST be a peer dependency.
 - Rule of thumb #2: If your plugin P depends on another plugin P2, P2 should be a peer dependency of P, and P2's peer dependencies should be peer dependencies of P.
 - Rule of thumb #3: If you have a non-Buidler dependency that your users may `require()`, it should be a peer dependency.
+- Rule of thumb #4: Every `peerDependency` should also be a `devDependency`. 
 
 Also, if you depend on a Buidler plugin written in TypeScript, you should add it's main `.d.ts` to the `include` array of `tsconfig.json`.
 
