@@ -7,13 +7,6 @@ declare module "mocha" {
   }
 }
 
-export function resetBuidler() {
-  // TODO#plugins-refactor: These shouldn't be necessary
-  delete require.cache[require.resolve("../src/index")];
-
-  resetBuidlerContext();
-}
-
 export function useEnvironment(projectPath: string) {
   beforeEach("Loading buidler environment", function() {
     process.chdir(projectPath);
@@ -23,6 +16,6 @@ export function useEnvironment(projectPath: string) {
   });
 
   afterEach("Resetting buidler", function() {
-    resetBuidler();
+    resetBuidlerContext();
   });
 }

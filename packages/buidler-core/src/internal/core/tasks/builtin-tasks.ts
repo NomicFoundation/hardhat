@@ -1,7 +1,11 @@
-import "../../../builtin-tasks/clean";
-import "../../../builtin-tasks/compile";
-import "../../../builtin-tasks/console";
-import "../../../builtin-tasks/flatten";
-import "../../../builtin-tasks/help";
-import "../../../builtin-tasks/run";
-import "../../../builtin-tasks/test";
+import { loadPluginFile } from "../plugins";
+
+export default function() {
+  loadPluginFile(__dirname + "/../../../builtin-tasks/clean");
+  loadPluginFile(__dirname + "/../../../builtin-tasks/compile");
+  loadPluginFile(__dirname + "/../../../builtin-tasks/console");
+  loadPluginFile(__dirname + "/../../../builtin-tasks/flatten");
+  loadPluginFile(__dirname + "/../../../builtin-tasks/help");
+  loadPluginFile(__dirname + "/../../../builtin-tasks/run");
+  loadPluginFile(__dirname + "/../../../builtin-tasks/test");
+}

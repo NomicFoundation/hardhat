@@ -9,9 +9,18 @@ export interface ErrorDescription {
   message: string;
 }
 
+export function isBuidlerError(error: any): error is BuidlerError {
+  return error.isBuidlerError;
+}
+
+export function isBuidlerPluginError(error: any): error is BuidlerPluginError {
+  return error.isBuidlerPluginError;
+}
+
 export class BuidlerError extends Error {
   public readonly number: number;
   public readonly parent?: Error;
+  public readonly isBuidlerError: true;
 
   constructor(
     errorDescription: ErrorDescription,
@@ -43,6 +52,8 @@ export class BuidlerError extends Error {
     if (hasParentError) {
       this.parent = parentError;
     }
+
+    this.isBuidlerError = true;
   }
 }
 
@@ -52,6 +63,7 @@ export class BuidlerError extends Error {
  */
 export class BuidlerPluginError extends Error {
   public readonly pluginName: string;
+  public readonly isBuidlerPluginError: true;
 
   /**
    * Creates a BuidlerPluginError.
@@ -62,6 +74,7 @@ export class BuidlerPluginError extends Error {
     super(message);
 
     this.pluginName = getClosestCallerPackage()!;
+    this.isBuidlerPluginError = true;
   }
 }
 
@@ -87,7 +100,8 @@ export const ERROR_RANGES: {
   RESOLVER: { min: 400, max: 499 },
   SOLC: { min: 500, max: 599 },
   BUILTIN_TASKS: { min: 600, max: 699 },
-  ARTIFACTS: { min: 700, max: 799 }
+  ARTIFACTS: { min: 700, max: 799 },
+  PLUGINS: { min: 800, max: 899 }
 };
 
 export const ERRORS = {
@@ -336,6 +350,31 @@ export const ERRORS = {
     NOT_FOUND: {
       number: 700,
       message: 'Artifact for contract "%s" not found.'
+    }
+  },
+  PLUGINS: {
+    NOT_INSTALLED: {
+      number: 800,
+      message: "Plugin %s is not installed."
+    },
+    MISSING_DEPENDENCY: {
+      number: 801,
+      message:
+        "Plugin %s requires %s to be installed.\n" +
+        "Please run: npm install --save-dev %s@%s"
+    },
+    DEPENDENCY_VERSION_MISMATCH: {
+      number: 802,
+      message:
+        "Plugin %s requires %s version %s but got %s.\n" +
+        "If you haven't installed %s manually, please run: npm install --save-dev %s@%s\n" +
+        "If you have installed %s yourself, please reinstall it with a valid version."
+    },
+    OLD_STYLE_IMPORT_DETECTED: {
+      number: 803,
+      message:
+        "You are trying to load %s with a require or import statement.\n" +
+        'Please replace it with a call to usePlugin("%s").'
     }
   }
 };

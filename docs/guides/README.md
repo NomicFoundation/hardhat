@@ -1,7 +1,8 @@
 ---
 prev: false
-next: 'create-task'
+next: "create-task"
 ---
+
 # Getting started
 
 In this guide, we’ll explore how to start using Buidler in your Ethereum project.
@@ -14,7 +15,9 @@ Out of the box, you can compile your Solidity code, install plugins and create y
 
 Let’s install it to try it out:
 
-`npm install @nomiclabs/buidler`
+```bash
+npm install @nomiclabs/buidler
+```
 
 To create a Buidler project just run `npx buidler` in your project folder:
 
@@ -34,7 +37,7 @@ task("accounts", "Prints a list of the available accounts", async () => {
 module.exports = {};
 ```
 
-*NOTE: in the Buidler 1.0.0 beta release we’ve disabled the automatic ganache instance feature to keep working on its stability, so you’ll need to run it manually. This feature will be back by the time we ship the stable release. Run `ganache-cli.`*
+_NOTE: in the Buidler 1.0.0 beta release we’ve disabled the automatic ganache instance feature to keep working on its stability, so you’ll need to run it manually. This feature will be back by the time we ship the stable release. Run `ganache-cli.`_
 
 To run it, try `npx buidler accounts`:
 
@@ -64,7 +67,9 @@ contract Greeter {
 
 To compile it, simply run:
 
-`npx buidler compile`
+```bash
+npx buidler compile
+```
 
 Now, you’ll likely want to run some tests. Out of the box Buidler provides an [EIP1193-compatible provider](https://eips.ethereum.org/EIPS/eip-1193), which is the new standard for an Ethereum JavaScript interface, but it can be somewhat rough to use directly. For a fully featured development tool with a nice interface, you’ll need to install one of the core plugins that we’ve built.
 
@@ -78,9 +83,11 @@ These are:
 
 The sample project comes with a test written using the Ethereum provider, but let’s also install `buidler-truffle5` and test out the Truffle 5 integration:
 
-`npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37`
+```bash
+npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37
+```
 
-Add `require("@nomiclabs/buidler-truffle5")` to the top of your buidler.config.js, and let’s change `test/sample-test.js` to:
+Add `usePlugin("@nomiclabs/buidler-truffle5")` to the top of your `buidler.config.js`, and let’s change `test/sample-test.js` to:
 
 ```js
 const assert = require("assert");
@@ -124,7 +131,9 @@ main()
   });
 ```
 
-`npx buidler run scripts/deploy.js`
+```bash
+npx buidler run scripts/deploy.js
+```
 
 ![](https://cdn-images-1.medium.com/max/1600/1*QQFgWhKhpnpLeU4FX18sSg.png)
 

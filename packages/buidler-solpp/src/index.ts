@@ -1,10 +1,13 @@
 import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { internalTask } from "@nomiclabs/buidler/config";
+import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
 import path from "path";
 
 import { SolppConfig } from "./types";
+
+ensurePluginLoadedWithUsePlugin();
 
 export const PROCESSED_CACHE_DIRNAME = "solpp-generated-contracts";
 
@@ -33,40 +36,42 @@ async function readFiles(filePaths: string[]): Promise<string[][]> {
   );
 }
 
-internalTask(
-  "buidler-solpp:run-solpp",
-  async (
-    { files, opts }: { files: string[][]; opts: SolppConfig },
-    { config }: { config: ResolvedBuidlerConfig }
-  ) => {
-    const processedPaths: string[] = [];
-    const solpp = await import("solpp");
-    for (const [filePath, content] of files) {
-      const processedFilePath = path.join(
-        config.paths.cache,
-        PROCESSED_CACHE_DIRNAME,
-        path.relative(config.paths.sources, filePath)
-      );
+export default function() {
+  internalTask(
+    "buidler-solpp:run-solpp",
+    async (
+      { files, opts }: { files: string[][]; opts: SolppConfig },
+      { config }: { config: ResolvedBuidlerConfig }
+    ) => {
+      const processedPaths: string[] = [];
+      const solpp = await import("solpp");
+      for (const [filePath, content] of files) {
+        const processedFilePath = path.join(
+          config.paths.cache,
+          PROCESSED_CACHE_DIRNAME,
+          path.relative(config.paths.sources, filePath)
+        );
 
-      await fsExtra.ensureDir(path.dirname(processedFilePath));
+        await fsExtra.ensureDir(path.dirname(processedFilePath));
 
-      const processedCode = await solpp.processCode(content, opts);
+        const processedCode = await solpp.processCode(content, opts);
 
-      await fsExtra.writeFile(processedFilePath, processedCode, "utf-8");
+        await fsExtra.writeFile(processedFilePath, processedCode, "utf-8");
 
-      processedPaths.push(processedFilePath);
+        processedPaths.push(processedFilePath);
+      }
+
+      return processedPaths;
     }
+  );
 
-    return processedPaths;
-  }
-);
-
-internalTask(
-  TASK_COMPILE_GET_SOURCE_PATHS,
-  async (_, { config, run }, runSuper) => {
-    const filePaths: string[] = await runSuper();
-    const files = await readFiles(filePaths);
-    const opts = getConfig(config);
-    return run("buidler-solpp:run-solpp", { files, opts });
-  }
-);
+  internalTask(
+    TASK_COMPILE_GET_SOURCE_PATHS,
+    async (_, { config, run }, runSuper) => {
+      const filePaths: string[] = await runSuper();
+      const files = await readFiles(filePaths);
+      const opts = getConfig(config);
+      return run("buidler-solpp:run-solpp", { files, opts });
+    }
+  );
+}

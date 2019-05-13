@@ -4,11 +4,13 @@ import { task } from "../internal/core/config/config-env";
 
 import { TASK_CLEAN } from "./task-names";
 
-task(
-  TASK_CLEAN,
-  "Clears the cache and deletes all artifacts",
-  async (_, { config }) => {
-    await fsExtra.remove(config.paths.cache);
-    await fsExtra.remove(config.paths.artifacts);
-  }
-);
+export default function() {
+  task(
+    TASK_CLEAN,
+    "Clears the cache and deletes all artifacts",
+    async (_, { config }) => {
+      await fsExtra.remove(config.paths.cache);
+      await fsExtra.remove(config.paths.artifacts);
+    }
+  );
+}

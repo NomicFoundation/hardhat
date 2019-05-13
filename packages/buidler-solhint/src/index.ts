@@ -1,7 +1,10 @@
 import { internalTask, task } from "@nomiclabs/buidler/config";
 import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
+import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 import * as fs from "fs";
 import { join } from "path";
+
+ensurePluginLoadedWithUsePlugin();
 
 function getDefaultConfig() {
   return {
@@ -74,18 +77,20 @@ function printReport(reports: any) {
   console.log(formatter(reports));
 }
 
-internalTask("buidler-solhint:run-solhint", async (_, { config }) => {
-  const { processPath } = await import("solhint/lib/index");
-  return processPath(
-    config.paths.sources + "/**/*.sol",
-    await getSolhintConfig(config.paths.root)
-  );
-});
+export default function() {
+  internalTask("buidler-solhint:run-solhint", async (_, { config }) => {
+    const { processPath } = await import("solhint/lib/index");
+    return processPath(
+      config.paths.sources + "/**/*.sol",
+      await getSolhintConfig(config.paths.root)
+    );
+  });
 
-task("check", async (_, { run }, runSuper) => {
-  await runSuper();
+  task("check", async (_, { run }, runSuper) => {
+    await runSuper();
 
-  const reports = await run("buidler-solhint:run-solhint");
+    const reports = await run("buidler-solhint:run-solhint");
 
-  printReport(reports);
-});
+    printReport(reports);
+  });
+}

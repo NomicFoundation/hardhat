@@ -77,22 +77,34 @@ describe("config loading", function() {
 
   describe("Config env", function() {
     useFixtureProject("config-project");
-    useEnvironment();
+
+    afterEach(function() {
+      resetBuidlerContext();
+    });
 
     it("should remove everything from global state after loading", function() {
       const globalAsAny: any = global;
 
-      assert.isUndefined(globalAsAny.internalTask);
-      assert.isUndefined(globalAsAny.task);
-      assert.isUndefined(globalAsAny.types);
-      assert.isUndefined(globalAsAny.extendEnvironment);
-
-      const _ = loadConfigAndTasks();
+      BuidlerContext.createBuidlerContext();
+      loadConfigAndTasks();
 
       assert.isUndefined(globalAsAny.internalTask);
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
+      assert.isUndefined(globalAsAny.usePlugin);
+
+      resetBuidlerContext();
+
+      BuidlerContext.createBuidlerContext();
+      loadConfigAndTasks();
+
+      assert.isUndefined(globalAsAny.internalTask);
+      assert.isUndefined(globalAsAny.task);
+      assert.isUndefined(globalAsAny.types);
+      assert.isUndefined(globalAsAny.extendEnvironment);
+      assert.isUndefined(globalAsAny.usePlugin);
+      resetBuidlerContext();
     });
   });
 });

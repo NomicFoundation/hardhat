@@ -7,24 +7,25 @@ import {
 import { BuidlerContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
 
-const ctx = BuidlerContext.getBuidlerContext();
-const extenderManager = ctx.extendersManager;
-const dsl = ctx.tasksDSL;
-
 export function task<ArgsT extends TaskArguments>(
   name: string,
   description?: string,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
+
 export function task<ArgsT extends TaskArguments>(
   name: string,
   action: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
+
 export function task<ArgsT extends TaskArguments>(
   name: string,
   descriptionOrAction?: string | ActionType<ArgsT>,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition {
+  const ctx = BuidlerContext.getBuidlerContext();
+  const dsl = ctx.tasksDSL;
+
   if (descriptionOrAction === undefined) {
     return dsl.task(name);
   }
@@ -41,15 +42,20 @@ export function internalTask<ArgsT extends TaskArguments>(
   description?: string,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
+
 export function internalTask<ArgsT extends TaskArguments>(
   name: string,
   action: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
+
 export function internalTask<ArgsT extends TaskArguments>(
   name: string,
   descriptionOrAction?: string | ActionType<ArgsT>,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition {
+  const ctx = BuidlerContext.getBuidlerContext();
+  const dsl = ctx.tasksDSL;
+
   if (descriptionOrAction === undefined) {
     return dsl.internalTask(name);
   }
@@ -71,5 +77,9 @@ export const types = argumentTypes;
  * Environment.
  */
 export function extendEnvironment(extender: EnvironmentExtender) {
+  const ctx = BuidlerContext.getBuidlerContext();
+  const extenderManager = ctx.extendersManager;
   extenderManager.add(extender);
 }
+
+export { usePlugin } from "../plugins";

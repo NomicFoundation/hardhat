@@ -3,10 +3,12 @@ prev: false
 next: false
 sidebar: auto
 ---
+
 # Documentation
 
 ## Overview
-Buidler is designed around the concepts of tasks, and the Buidler Runtime Environment, a set of functionality available for tasks. This document describes both concepts in detail.
+
+Buidler is designed around the concepts of [tasks](/documentation/#tasks), and the [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre), a set of functionality available for tasks. This document describes both concepts in detail.
 
 **You don't need to read this to use Buidler, you can get started with it by reading [this guide](/guides/#getting-started).**
 
@@ -27,24 +29,27 @@ Creating a task is done by calling the [`task` function](/api/#task). It will re
 The simplest task you can define is
 
 ```js
-task(
-  "hello", "Prints 'Hello, World!'", 
-  async function action(taskArguments, env, runSuper) {  
-    console.log('Hello, World!');
-  }
-);
+task("hello", "Prints 'Hello, World!'", async function action(
+  taskArguments,
+  env,
+  runSuper
+) {
+  console.log("Hello, World!");
+});
 ```
 
 `task`'s first argument is the task name. The second one is its description, which is used for printing help messages in the CLI. The third one, `action`, is an async function that receives the following arguments:
 
-* `taskArguments` is an object with the parsed CLI arguments of the task. In this case, it's an empty object.
-* `env` is the [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre).
-* `runSuper` is only relevant if you are overriding an existing task, which we'll learn about next. Its purpose is to let you run the original task's action.
+- `taskArguments` is an object with the parsed CLI arguments of the task. In this case, it's an empty object.
+- `env` is the [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre).
+- `runSuper` is only relevant if you are overriding an existing task, which we'll learn about next. Its purpose is to let you run the original task's action.
 
 Defining the action's arguments is optional. The Buidler Runtime Environment and `runSuper` will also be available in the global scope. We can rewrite our "hello" task this way:
 
 ```js
-task("hello", "Prints 'Hello, World!'", async () => console.log('Hello, World!'));
+task("hello", "Prints 'Hello, World!'", async () =>
+  console.log("Hello, World!")
+);
 ```
 
 #### Tasks' actions requirements
@@ -69,7 +74,7 @@ This other task uses a `Promise` to wait for the timeout to fire.
 task("delayed-hello", "Prints 'Hello, World!' after a second", async () => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      console.log('Hello, World!');
+      console.log("Hello, World!");
       resolve();
     }, 1000);
   });
@@ -86,8 +91,8 @@ Adding a positional parameter to the `hello` task can look like this:
 
 ```js
 task("hello", "Prints a greeting'")
-   .addOptionalParam("greeting", "The greeting to print", "Hello, World!")
-    .setAction(async ({ greeting }) => console.log(greeting));
+  .addOptionalParam("greeting", "The greeting to print", "Hello, World!")
+  .setAction(async ({ greeting }) => console.log(greeting));
 ```
 
 And would be run with `npx buidler hello --greeting Hola`.
@@ -98,8 +103,8 @@ You can read the full documentation of these methods and their possible paramete
 
 Positional and variadic parameters don't have to be named, and have the usual restrictions of a programming language:
 
-* No parameter can follow a variadic one
-* Required/mandatory parameters can't follow an optional one.
+- No parameter can follow a variadic one
+- Required/mandatory parameters can't follow an optional one.
 
 Failing to follow these restrictions will result in an exception being thrown when loading Buidler.
 
@@ -113,12 +118,17 @@ An example of a task defining a type for one of its parameters is
 
 ```js
 task("hello", "Prints 'Hello' multiple times")
-   .addOptionalParam("times", "The number of times to print 'Hello'", 1, types.int)
-    .setAction(async ({ times }) => {
-      for (let i = 0; i < times; i++) {
-        console.log("Hello");
-      }
-    });
+  .addOptionalParam(
+    "times",
+    "The number of times to print 'Hello'",
+    1,
+    types.int
+  )
+  .setAction(async ({ times }) => {
+    for (let i = 0; i < times; i++) {
+      console.log("Hello");
+    }
+  });
 ```
 
 Calling it with `npx buidler hello --times notanumber` will result in an error.
@@ -200,8 +210,8 @@ Running test directly with [mocha](https://www.npmjs.com/package/mocha) instead 
 const env = require("@nomiclabs/buidler");
 const assert = require("assert");
 
-describe("Buidler Runtime Environment", function () {
-  it("should have a config field", function () {
+describe("Buidler Runtime Environment", function() {
+  it("should have a config field", function() {
     assert.notEqual(env.config, undefined);
   });
 });
@@ -262,9 +272,9 @@ develop: {
 
 The `solc` config field is an optional object which can contain the following keys:
 
-- `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.3"`.
+- `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.8"`.
 - `optimizer`: An object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
-- `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, and `"constantinople"`. Default value: `"byzantium"`.
+- `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, and `"petersburg"`. Default value: `"petersburg"`.
 
 ##### Path configuration
 
@@ -322,16 +332,18 @@ If you are still in doubt, these can be helpful:
 - Rule of thumb #1: Buidler MUST be a peer dependency.
 - Rule of thumb #2: If your plugin P depends on another plugin P2, P2 should be a peer dependency of P, and P2's peer dependencies should be peer dependencies of P.
 - Rule of thumb #3: If you have a non-Buidler dependency that your users may `require()`, it should be a peer dependency.
+- Rule of thumb #4: Every `peerDependency` should also be a `devDependency`. 
 
 Also, if you depend on a Buidler plugin written in TypeScript, you should add it's main `.d.ts` to the `include` array of `tsconfig.json`.
 
 ### Hooking into the user's workflow
 
-To integrate into your users' existing workflow, we recommend plugin authors to override built-in tasks whenever it makes sense. 
+To integrate into your users' existing workflow, we recommend plugin authors to override built-in tasks whenever it makes sense.
 
 Examples of suggested overrides are:
-* Preprocessing smart contracts should override one of the `compile` internal tasks.
-* Linter integrations should override the `check` task.
-* Plugins generating intermediate files should override the `clean` task.
+
+- Preprocessing smart contracts should override one of the `compile` internal tasks.
+- Linter integrations should override the `check` task.
+- Plugins generating intermediate files should override the `clean` task.
 
 For a list of all the built-in tasks and internal tasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/buidler/blob/master/packages/buidler-core/src/builtin-tasks/task-names.ts)

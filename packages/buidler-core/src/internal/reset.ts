@@ -21,22 +21,10 @@ export function resetBuidlerContext() {
     BuidlerContext.deleteBuidlerContext();
   }
 
-  // Unload all the buidler's entrypoints.
+  // Unload all the buidler's entry-points.
   unloadModule("../register");
   unloadModule("./cli/cli");
   unloadModule("./lib/buidler-lib");
-
-  // TODO#plugins-refactor: These shouldn't be necessary
-  unloadModule("../config");
-  unloadModule("./core/config/config-env");
-  unloadModule("./core/tasks/builtin-tasks");
-
-  // TODO#plugins-refactor: once the refactor is done, we can make builtin tasks
-  // a plugin so this won't be necessary
-  const tasks = globSync(__dirname + "/../builtin-tasks/**/*");
-  tasks.forEach((task: string) => {
-    unloadModule(task);
-  });
 }
 
 function unloadModule(path: string) {

@@ -1,6 +1,6 @@
 ---
-prev: '/guides/'
-next: 'truffle-migration'
+prev: "/guides/"
+next: "truffle-migration"
 ---
 
 # Creating a task
@@ -11,7 +11,7 @@ In this guide, we will explore the creation of tasks in Buidler, which are the c
 
 Everything you can do in Buidler is defined as a task. The default actions that come out of the box are built-in tasks and they are implemented using the same APIs that are available to you as a user.
 
-![](https://cdn-images-1.medium.com/max/1600/1*6Hs6BHNc-aBBrlzu_GBevw.png)  
+![](https://cdn-images-1.medium.com/max/1600/1*6Hs6BHNc-aBBrlzu_GBevw.png)
 
 As some examples, you could create a task to reset the state of a development environment, interact with your contracts or package your project.
 
@@ -21,11 +21,13 @@ Tasks in Buidler are asynchronous JavaScript functions that get access to the [
 
 For our example we will use Web3.js to interact with our contracts, so we will install the [web3 plugin](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), which injects a Web3 instance into the Buidler environment:
 
-`npm install @nomiclabs/buidler-web3 web3@1.0.0-beta.37`
+```bash
+npm install @nomiclabs/buidler-web3 web3@1.0.0-beta.37
+```
 
-*Take a look at the [list of Buidler plugins](/plugins) to see other available libraries.*
+_Take a look at the [list of Buidler plugins](/plugins) to see other available libraries._
 
-We will require the plugin and add our task creation code to the Buidler configuration file, which is always executed on startup before anything else happens. It’s a good place to create simple tasks. If your task is more complex, you can put it in a separate file and require it, or if you’re writing a Buidler plugin that adds a task, you can create it from a separate npm package. Learn more about creating tasks through plugins in our [How to create a plugin guide](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-plugin-b60432bf6d75).
+We will load the plugin and add our task creation code to the Buidler configuration file, which is always executed on startup before anything else happens. It’s a good place to create simple tasks. If your task is more complex, you can put it in a separate file and require it, or if you’re writing a Buidler plugin that adds a task, you can create it from a separate npm package. Learn more about creating tasks through plugins in our [How to create a plugin guide](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-plugin-b60432bf6d75).
 
 Let’s create a task to get an account’s balance from the terminal. You can do this with the Buidler’s config DSL, which is available in the global scope of `buidler.config.js`:
 
