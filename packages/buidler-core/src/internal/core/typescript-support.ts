@@ -44,6 +44,11 @@ export function isTypescriptSupported() {
 
 export function loadTsNodeIfPresent() {
   if (isTypescriptSupported()) {
+    // See: https://github.com/nomiclabs/buidler/issues/265
+    if (process.env.TS_NODE_FILES === undefined) {
+      process.env.TS_NODE_FILES = "true";
+    }
+
     // tslint:disable-next-line no-implicit-dependencies
     require("ts-node/register");
   }
