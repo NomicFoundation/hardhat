@@ -1,4 +1,4 @@
-const { loadPluginFile } = require("@nomiclabs/buidler/plugins");
+const { loadPluginFile } = require("@nomiclabs/buidler/plugins-testing");
 loadPluginFile(__dirname + "/../../src/index");
 
 module.exports = {};
