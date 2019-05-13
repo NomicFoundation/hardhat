@@ -40,22 +40,22 @@ footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
 
   ```js
   // For unit tests
-  require("@nomiclabs/buidler-truffle5");
-  require("@nomiclabs/buidler-ganache");
+  usePlugin("@nomiclabs/buidler-truffle5");
+  usePlugin("@nomiclabs/buidler-ganache");
 
   // Automatically generate testable contracts where
   // internal methods are exposed as external.
-  require("@nomiclabs/buidler-autoexternal");
+  usePlugin("@nomiclabs/buidler-autoexternal");
 
   // Linting
-  require("@nomiclabs/buidler-solhint");
+  usePlugin("@nomiclabs/buidler-solhint");
 
   // For scripts
-  require("@nomiclabs/buidler-ethers");
-  require("@nomiclabs/buidler-faucets");
+  usePlugin("@nomiclabs/buidler-ethers");
+  usePlugin("@nomiclabs/buidler-faucets");
 
   // Faster compilation
-  require("@nomiclabs/buidler-docker-solc");
+  usePlugin("@nomiclabs/buidler-docker-solc");
 
   module.exports = {};
   ```
