@@ -7,6 +7,7 @@ module.exports = {
     logo: "/logo.svg",
     nav: [
       { text: "Home", link: "/" },
+      { text: "Why Buidler", link: "https://medium.com/nomic-labs-blog/buidler-compounding-value-for-ethereum-developers-425141a41b7b" },
       { text: "Plugins", link: "/plugins/"},
       { text: "Guides", link: "/guides/#getting-started" },
       { text: "Documentation", link: "/documentation/" },
