@@ -6,8 +6,7 @@ const defaultConfig: BuidlerConfig = {
     optimizer: {
       enabled: false,
       runs: 200
-    },
-    evmVersion: "petersburg"
+    }
   },
   networks: {
     develop: {

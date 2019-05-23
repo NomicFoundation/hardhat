@@ -274,7 +274,7 @@ The `solc` config field is an optional object which can contain the following ke
 
 - `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.8"`.
 - `optimizer`: An object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
-- `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, and `"petersburg"`. Default value: `"petersburg"`.
+- `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, and `"petersburg"`. Default value: managed by Solidity. Please, consult its documentation.
 
 ##### Path configuration
 

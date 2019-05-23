@@ -3,8 +3,8 @@ import { DependencyGraph } from "../dependencyGraph";
 
 export function getInputFromDependencyGraph(
   graph: DependencyGraph,
-  evmVersion: string,
-  optimizerConfig: SolcOptimizerConfig
+  optimizerConfig: SolcOptimizerConfig,
+  evmVersion?: string
 ): SolcInput {
   const sources: { [globalName: string]: { content: string } } = {};
   for (const file of graph.getResolvedFiles()) {
@@ -13,11 +13,10 @@ export function getInputFromDependencyGraph(
     };
   }
 
-  return {
+  const input: SolcInput = {
     language: "Solidity",
     sources,
     settings: {
-      evmVersion,
       metadata: {
         useLiteralContent: true
       },
@@ -30,4 +29,10 @@ export function getInputFromDependencyGraph(
       }
     }
   };
+
+  if (evmVersion !== undefined) {
+    input.settings.evmVersion = evmVersion;
+  }
+
+  return input;
 }
