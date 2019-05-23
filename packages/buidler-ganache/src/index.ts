@@ -3,7 +3,13 @@ import { task } from "@nomiclabs/buidler/config";
 import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 import { HttpNetworkConfig } from "@nomiclabs/buidler/types";
 
+import { GanacheWrapper } from "./ganache-wrapper";
+
 ensurePluginLoadedWithUsePlugin();
+
+function isDevelopNetwork(network: string) {
+  return network === "develop";
+}
 
 export default function() {
   task(TASK_TEST, async (_, env, runSuper) => {
@@ -14,13 +20,18 @@ export default function() {
       env.buidlerArguments.network
     ] as HttpNetworkConfig;
 
-    console.log("Selected network's URL", network.url);
+    const ganache = new GanacheWrapper(network.url);
+    const ganacheIsRunning = await ganache.isRunning();
 
-    // Init ganache if necessary
+    if (!isDevelopNetwork(env.buidlerArguments.network) || ganacheIsRunning) {
+      return runSuper();
+    }
+
+    ganache.start();
 
     const ret = await runSuper();
 
-    // Stop ganache if necessary
+    ganache.stop();
 
     return ret;
   });
