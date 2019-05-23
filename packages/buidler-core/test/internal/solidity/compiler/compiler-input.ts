@@ -6,7 +6,7 @@ import {
   ResolvedFile,
   Resolver
 } from "../../../../src/internal/solidity/resolver";
-import { getDefaultEvmVersion } from "../../../helpers/compiler";
+import { SolcInput } from "../../../../src/types";
 
 describe("compiler-input module", function() {
   it("Should construct the right input for a dependency graph", async () => {
@@ -23,14 +23,13 @@ describe("compiler-input module", function() {
     const path2 = "/fake/absolute/path2";
     const content2 = "THE CONTENT2";
 
-    const expectedInput = {
+    const expectedInput: SolcInput = {
       language: "Solidity",
       sources: {
         [globalName1]: { content: content1 },
         [globalName2]: { content: content2 }
       },
       settings: {
-        evmVersion: getDefaultEvmVersion(),
         metadata: {
           useLiteralContent: true
         },
@@ -54,10 +53,20 @@ describe("compiler-input module", function() {
 
     const input = getInputFromDependencyGraph(
       graph,
-      getDefaultEvmVersion(),
-      optimizerConfig
+      optimizerConfig,
+      undefined
     );
 
     assert.deepEqual(input, expectedInput);
+
+    const inputWithEvmVersion = getInputFromDependencyGraph(
+      graph,
+      optimizerConfig,
+      "byzantium"
+    );
+
+    expectedInput.settings.evmVersion = "byzantium";
+
+    assert.deepEqual(inputWithEvmVersion, expectedInput);
   });
 });

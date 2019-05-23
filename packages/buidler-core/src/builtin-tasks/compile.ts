@@ -57,8 +57,8 @@ export default function() {
     const dependencyGraph = await run(TASK_COMPILE_GET_DEPENDENCY_GRAPH);
     return getInputFromDependencyGraph(
       dependencyGraph,
-      config.solc.evmVersion,
-      config.solc.optimizer
+      config.solc.optimizer,
+      config.solc.evmVersion
     );
   });
 

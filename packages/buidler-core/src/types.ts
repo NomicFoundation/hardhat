@@ -86,7 +86,7 @@ type EVMVersion =
 export interface SolcConfig {
   version: string;
   optimizer: SolcOptimizerConfig;
-  evmVersion: EVMVersion;
+  evmVersion?: EVMVersion;
 }
 
 export interface SolcOptimizerConfig {
@@ -99,7 +99,7 @@ export interface SolcInput {
     metadata: { useLiteralContent: boolean };
     optimizer: SolcOptimizerConfig;
     outputSelection: { "*": { "": string[]; "*": string[] } };
-    evmVersion: string;
+    evmVersion?: string;
   };
   sources: { [p: string]: { content: string } };
   language: string;

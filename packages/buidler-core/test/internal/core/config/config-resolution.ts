@@ -26,7 +26,7 @@ describe("Config resolution", () => {
         const config = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
         assert.containsAllKeys(config.networks, ["auto", "develop"]);
-        assert.equal(config.solc.evmVersion, "petersburg");
+        assert.isUndefined(config.solc.evmVersion);
       });
     });
 
