@@ -1,4 +1,4 @@
-import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
+import { TASK_TEST } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { assert } from "chai";
 
 import { useEnvironment } from "./helpers";
@@ -14,10 +14,15 @@ describe("Ganache plugin", async function() {
 
     it("should run a task", async function() {
       // This runs a task and returns the result
-      const result = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+      const result = await this.env.run(TASK_TEST, {
+        testFiles: ["test/mock-test.ts"],
+        noCompile: true
+      });
+
+      console.log(`Result: ${JSON.stringify(result)}`);
 
       // Here you can assert things about the result
-      assert.isArray(result);
+      // assert.isArray(result);
     });
   });
 });

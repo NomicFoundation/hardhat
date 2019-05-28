@@ -9,6 +9,9 @@
 /coverage
 /.nyc_output
 
+# Test cache
+test/buidler-project/cache
+
 # Below is Github's node gitignore template, except for dotenv's entries as it's used by mocha to pass flags to ts-node,
 # and ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing
 

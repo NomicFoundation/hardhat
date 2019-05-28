@@ -43,13 +43,25 @@ describe("Ganache Wrapper", async function() {
   });
 
   describe("start", async function() {
-    it("should start the server if the port is not open", async function() {
+    it("should start the server if the port is not open ", async function() {
+      const ganacheWrapper = new GanacheWrapper(`http://127.0.0.1:8545`);
+
+      ganacheWrapper.start();
+
+      const portStatus = await portScanner.checkPortStatus(8545, "127.0.0.1");
+      assert.strictEqual(portStatus, "open");
+
+      ganacheWrapper.stop();
+    });
+  });
+
+  describe("stop", async function() {
+    it("should stop the running server", async function() {
       const ganacheWrapper = new GanacheWrapper(`http://127.0.0.1:8545`);
 
       ganacheWrapper.start();
 
       let portStatus = await portScanner.checkPortStatus(8545, "127.0.0.1");
-
       assert.strictEqual(portStatus, "open");
 
       ganacheWrapper.stop();

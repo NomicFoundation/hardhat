@@ -13,8 +13,6 @@ function isDevelopNetwork(network: string) {
 
 export default function() {
   task(TASK_TEST, async (_, env, runSuper) => {
-    console.log("Selected network is", env.buidlerArguments.network);
-
     // This type assertion is only needed for now.
     const network = env.config.networks[
       env.buidlerArguments.network
