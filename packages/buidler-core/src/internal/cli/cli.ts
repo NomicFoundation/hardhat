@@ -131,8 +131,11 @@ async function main() {
       console.error(
         colors.red("An unexpected error occurred: " + error.message)
       );
+
+      showStackTraces = true;
     } else {
       console.error(colors.red("An unexpected error occurred."));
+      showStackTraces = true;
     }
 
     console.log("");
@@ -147,7 +150,7 @@ async function main() {
       }
 
       console.error(
-        `For more info run ${BUIDLER_NAME} with --show-stack-traces.`
+        `For more info run ${BUIDLER_NAME} with --show-stack-traces`
       );
     }
 
