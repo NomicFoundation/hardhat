@@ -3,12 +3,9 @@ import { EthereumProvider } from "web3x/providers";
 
 import * as types from "./internal/core/params/argumentTypes";
 
-export interface GanacheOptions {
-  gasLimit?: number;
-  network_id?: number;
-  mnemonic?: string;
-  accounts?: Array<{ balance: string; secretKey: string }>;
-}
+// Begin config types
+
+// IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
 interface CommonNetworkConfig {
   chainId?: number;
@@ -26,7 +23,6 @@ interface AutoNetworkAccount {
 export interface AutoNetworkConfig extends CommonNetworkConfig {
   accounts?: AutoNetworkAccount[];
   blockGasLimit?: number;
-  ganacheOptions?: GanacheOptions;
 }
 
 export interface HDAccountsConfig {
@@ -47,7 +43,7 @@ export type NetworkConfigAccounts =
   | OtherAccountsConfig;
 
 export interface HttpNetworkConfig extends CommonNetworkConfig {
-  url: string;
+  url?: string;
   accounts?: NetworkConfigAccounts;
 }
 
@@ -75,13 +71,7 @@ export interface ProjectPaths {
   tests: string;
 }
 
-type EVMVersion =
-  | "homestead"
-  | "tangerineWhistle"
-  | "spuriousDragon"
-  | "byzantium"
-  | "constantinople"
-  | "petersburg";
+type EVMVersion = string;
 
 export interface SolcConfig {
   version: string;
@@ -92,17 +82,6 @@ export interface SolcConfig {
 export interface SolcOptimizerConfig {
   enabled: boolean;
   runs: number;
-}
-
-export interface SolcInput {
-  settings: {
-    metadata: { useLiteralContent: boolean };
-    optimizer: SolcOptimizerConfig;
-    outputSelection: { "*": { "": string[]; "*": string[] } };
-    evmVersion?: string;
-  };
-  sources: { [p: string]: { content: string } };
-  language: string;
 }
 
 export interface BuidlerConfig {
@@ -116,6 +95,19 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   paths: ProjectPaths;
   networks: Networks;
   solc: SolcConfig;
+}
+
+// End config types
+
+export interface SolcInput {
+  settings: {
+    metadata: { useLiteralContent: boolean };
+    optimizer: SolcOptimizerConfig;
+    outputSelection: { "*": { "": string[]; "*": string[] } };
+    evmVersion?: string;
+  };
+  sources: { [p: string]: { content: string } };
+  language: string;
 }
 
 /**

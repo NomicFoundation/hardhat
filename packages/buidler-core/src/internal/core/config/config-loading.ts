@@ -2,10 +2,12 @@ import * as path from "path";
 
 import { ResolvedBuidlerConfig } from "../../../types";
 import { BuidlerContext } from "../../context";
+import { BuidlerError, ERRORS } from "../errors";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
 import { resolveConfig } from "./config-resolution";
+import { validateConfig } from "./config-validation";
 
 function importCsjOrEsModule(filePath: string): any {
   const imported = require(filePath);
@@ -51,6 +53,8 @@ export function loadConfigAndTasks(configPath?: string): ResolvedBuidlerConfig {
 
   const defaultConfig = importCsjOrEsModule("./default-config");
   const userConfig = importCsjOrEsModule(configPath);
+
+  validateConfig(userConfig);
 
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(configEnv).forEach(key => (globalAsAny[key] = undefined));

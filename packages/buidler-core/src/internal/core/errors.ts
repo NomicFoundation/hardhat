@@ -133,6 +133,14 @@ export const ERRORS = {
     CONTEXT_BRE_ALREADY_DEFINED: {
       number: 7,
       message: "BuidlerRuntime is already defined in the BuidlerContext"
+    },
+    INVALID_CONFIG: {
+      number: 8,
+      message: `There's one or more errors in your config file:
+
+%s
+  
+To learn more about Buidler's configuration, please go to https://buidler.dev/documentation/#configuration`
     }
   },
   NETWORK: {
