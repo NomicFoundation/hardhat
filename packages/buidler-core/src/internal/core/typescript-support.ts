@@ -65,6 +65,7 @@ export function loadTsNodeIfPresent() {
         return;
       }
 
+      // tslint:disable-next-line only-buidler-error
       throw error;
     }
   }
