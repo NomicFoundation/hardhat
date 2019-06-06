@@ -2,7 +2,6 @@
   "scripts": {
     "dev": "vuepress dev .",
     "build": "vuepress build .",
-    "deploy": "vuepress build . && sh deploy/deploy.sh --config-file deploy/.env",
     "apidocs": "typedoc --tsconfig ../packages/buidler-core/src/tsconfig.json"
   },
   "devDependencies": {
