@@ -31,11 +31,20 @@ function getContextPath(context: Context): string {
 
 function getMessage(e: ValidationError): string {
   const lastContext = e.context[e.context.length - 1];
+
   return e.message !== undefined
     ? e.message
-    : `Invalid value ${stringify(e.value)} for ${getContextPath(
-        e.context
-      )} - Expected a value of type ${lastContext.type.name}.`;
+    : getErrorMessage(
+        getContextPath(e.context),
+        e.value,
+        lastContext.type.name
+      );
+}
+
+function getErrorMessage(path: string, value: any, expectedType: string) {
+  return `Invalid value ${stringify(
+    value
+  )} for ${path} - Expected a value of type ${expectedType}.`;
 }
 
 export function failure(es: ValidationError[]): string[] {
@@ -43,7 +52,7 @@ export function failure(es: ValidationError[]): string[] {
 }
 
 export function success(): string[] {
-  return ["No errors!"];
+  return [];
 }
 
 export const DotPathReporter: Reporter<string[]> = {
@@ -173,7 +182,11 @@ export function getValidationErrors(config: any): string[] {
         typeof autoNetwork.blockGasLimit !== "number"
       ) {
         errors.push(
-          "BuidlerConfig.networks.auto.blockGasLimit must be a number"
+          getErrorMessage(
+            "BuidlerConfig.networks.auto.blockGasLimit",
+            autoNetwork.blockGasLimit,
+            "number | undefined"
+          )
         );
       }
 
@@ -182,19 +195,31 @@ export function getValidationErrors(config: any): string[] {
           for (const account of autoNetwork.accounts) {
             if (typeof account.privateKey !== "string") {
               errors.push(
-                "BuidlerConfig.networks.auto.accounts[].privateKey must be of type: string"
+                getErrorMessage(
+                  "BuidlerConfig.networks.auto.accounts[].privateKey",
+                  account.privateKey,
+                  "string"
+                )
               );
             }
 
-            if (typeof account.privateKey !== "string") {
+            if (typeof account.balance !== "string") {
               errors.push(
-                "BuidlerConfig.networks.auto.accounts[].balance must be of type: string"
+                getErrorMessage(
+                  "BuidlerConfig.networks.auto.accounts[].balance",
+                  account.balance,
+                  "string"
+                )
               );
             }
           }
         } else {
           errors.push(
-            "BuidlerConfig.networks.auto.accounts must of type: [{privateKey: string, balance: string}] | undefined"
+            getErrorMessage(
+              "BuidlerConfig.networks.auto.accounts",
+              autoNetwork.accounts,
+              "[{privateKey: string, balance: string}] | undefined"
+            )
           );
         }
       }
@@ -209,7 +234,11 @@ export function getValidationErrors(config: any): string[] {
 
       if (netConfig.url !== undefined && typeof netConfig.url !== "string") {
         errors.push(
-          `BuidlerConfig.networks.${networkName}.url must of type: string | undefined`
+          getErrorMessage(
+            `BuidlerConfig.networks.${networkName}.url`,
+            netConfig.url,
+            "string | undefined"
+          )
         );
       }
     }
