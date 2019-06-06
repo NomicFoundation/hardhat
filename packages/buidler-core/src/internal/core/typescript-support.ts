@@ -1,3 +1,4 @@
+import colors from "ansi-colors";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -49,7 +50,23 @@ export function loadTsNodeIfPresent() {
       process.env.TS_NODE_FILES = "true";
     }
 
-    // tslint:disable-next-line no-implicit-dependencies
-    require("ts-node/register");
+    try {
+      // tslint:disable-next-line no-implicit-dependencies
+      require("ts-node/register");
+    } catch (error) {
+      // See: https://github.com/nomiclabs/buidler/issues/274
+      if (error.message.includes("Cannot find module 'typescript'")) {
+        console.warn(
+          colors.yellow(
+            "Failed to load TypeScript support. Please update ts-node."
+          )
+        );
+
+        return;
+      }
+
+      // tslint:disable-next-line only-buidler-error
+      throw error;
+    }
   }
 }
