@@ -4,8 +4,10 @@ import * as path from "path";
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { BuidlerContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
+import { ERRORS } from "../../../../src/internal/core/errors";
 import { resetBuidlerContext } from "../../../../src/internal/reset";
 import { useEnvironment } from "../../../helpers/environment";
+import { expectBuidlerError } from "../../../helpers/errors";
 import {
   getFixtureProjectPath,
   useFixtureProject
@@ -21,6 +23,27 @@ describe("config loading", function() {
       assert.deepEqual(this.env.config.networks.develop.accounts, [
         "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
       ]);
+    });
+  });
+
+  describe("Config valudation", function() {
+    describe("When the config is invalid", function() {
+      useFixtureProject("invalid-config");
+
+      beforeEach(function() {
+        BuidlerContext.createBuidlerContext();
+      });
+
+      afterEach(function() {
+        resetBuidlerContext();
+      });
+
+      it("Should throw the right error", function() {
+        expectBuidlerError(
+          () => loadConfigAndTasks(),
+          ERRORS.GENERAL.INVALID_CONFIG
+        );
+      });
     });
   });
 
