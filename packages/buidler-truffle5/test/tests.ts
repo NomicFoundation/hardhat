@@ -1,8 +1,10 @@
 import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
+import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import * as fs from "fs";
 
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
+import { DEFAULT_GAS_MULTIPLIER } from "../src/constants";
 import { TruffleContract, TruffleContractInstance } from "../src/types";
 
 import { useEnvironment } from "./helpers";
@@ -221,5 +223,98 @@ describe("Test contracts compilation", function() {
     const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
 
     assert.lengthOf(sources, 2);
+  });
+});
+
+describe("Gas multiplier", function() {
+  async function assertItWorksForDeployments(
+    env: BuidlerRuntimeEnvironment,
+    multiplier: number
+  ) {
+    const Greeter = env.artifacts.require("Greeter");
+
+    const accounts = await env.web3.eth.getAccounts();
+    const web3Estimation = await env.web3.eth.estimateGas({
+      from: accounts[0],
+      data: Greeter.bytecode
+    });
+
+    const greeter = await Greeter.new();
+    const tx = await env.web3.eth.getTransaction(greeter.transactionHash);
+
+    const gasLimit = tx.gas;
+
+    assert.equal(gasLimit, Math.floor(web3Estimation * multiplier));
+  }
+
+  async function assertItWorksForFunctions(
+    env: BuidlerRuntimeEnvironment,
+    multiplier: number
+  ) {
+    const Greeter = env.artifacts.require("Greeter");
+    const greeter = await Greeter.new();
+
+    const greeting = "Hello, Truffle";
+    const callData = env.web3.eth.abi.encodeFunctionCall(
+      {
+        name: "setGreeting",
+        type: "function",
+        inputs: [
+          {
+            type: "string",
+            name: "_greeting"
+          }
+        ]
+      },
+      [greeting]
+    );
+
+    const accounts = await env.web3.eth.getAccounts();
+    const web3Estimation = await env.web3.eth.estimateGas({
+      to: greeter.address,
+      from: accounts[0],
+      data: callData
+    });
+
+    const txResult = await greeter.setGreeting(greeting);
+    const tx = await env.web3.eth.getTransaction(txResult.tx);
+
+    const gasLimit = tx.gas;
+    assert.equal(gasLimit, Math.floor(web3Estimation * multiplier));
+  }
+
+  describe("When it's set in the network", function() {
+    useEnvironment(
+      __dirname + "/buidler-project-solc-0.4",
+      "withGasMultiplier"
+    );
+
+    it("Should use the set one for deployments", async function() {
+      const multiplier = this.env.config.networks[
+        this.env.buidlerArguments.network
+      ].gasMultiplier!;
+
+      await assertItWorksForDeployments(this.env, multiplier);
+    });
+
+    it("Should use the set one for functions", async function() {
+      const multiplier = this.env.config.networks[
+        this.env.buidlerArguments.network
+      ].gasMultiplier!;
+
+      await assertItWorksForFunctions(this.env, multiplier);
+    });
+  });
+
+  describe("When it's not set in the network", function() {
+    useEnvironment(__dirname + "/buidler-project-solc-0.4");
+
+    it("Should use the set one for deployments", async function() {
+      await assertItWorksForDeployments(this.env, DEFAULT_GAS_MULTIPLIER);
+    });
+
+    it("Should use the set one for functions", async function() {
+      await assertItWorksForFunctions(this.env, DEFAULT_GAS_MULTIPLIER);
+    });
   });
 });
