@@ -1,14 +1,20 @@
+import { DEFAULT_GAS_MULTIPLIER } from "./constants";
 import { Linker, TruffleContract } from "./types";
 
 export class LazyTruffleContractProvisioner {
   private readonly _web3: any;
+  private readonly _gasMultiplier?: number;
 
-  constructor(web3: any) {
+  constructor(web3: any, gasMultiplier?: number) {
     this._web3 = web3;
+    this._gasMultiplier =
+      gasMultiplier !== undefined ? gasMultiplier : DEFAULT_GAS_MULTIPLIER;
   }
 
   public provision(Contract: TruffleContract, linker: Linker) {
     Contract.setProvider(this._web3.currentProvider);
+
+    Contract.gasMultiplier = this._gasMultiplier;
 
     const originalLink = Contract.link;
     Contract.link = (...args: any[]) => {
