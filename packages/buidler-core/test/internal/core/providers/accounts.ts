@@ -240,24 +240,6 @@ describe("Local accounts provider", () => {
       assert.deepEqual(params, []);
     });
   });
-
-  it("should throw if chain id is undefined", async () => {
-    const params = [
-      {
-        from: privateKeyToAddress(accounts[0]),
-        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
-        nonce: 0x8,
-        chainId: undefined,
-        gas: 123
-      }
-    ];
-
-    await expectBuidlerErrorAsync(
-      () => wrapper.send("eth_sendTransaction", params),
-      ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-      "chainId"
-    );
-  });
 });
 
 describe("hdwallet provider", () => {

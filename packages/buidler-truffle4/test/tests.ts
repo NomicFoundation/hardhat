@@ -30,6 +30,15 @@ function assertIsContractInstance(
 }
 
 function testArtifactsFunctionality() {
+  beforeEach(async function() {
+    const version = await this.env.ethereum.send("web3_clientVersion");
+    // We only run these test on Ganache, see this:
+    // https://github.com/ethereum/web3.js/issues/935
+    if (!version.toLowerCase().includes("testrpc")) {
+      this.skip();
+    }
+  });
+
   it("Should load existing contracts successfully", function() {
     assertIsContract(this.env.artifacts.require("Greeter"));
     assertIsContract(this.env.artifacts.require("Lib"));

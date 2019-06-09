@@ -4,6 +4,7 @@ import { Tx } from "web3x/eth";
 import { IEthereumProvider } from "../../../types";
 import { BuidlerError, ERRORS } from "../errors";
 
+import { createChainIdGetter } from "./provider-utils";
 import { wrapSend } from "./wrapper";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
@@ -16,6 +17,8 @@ export function createLocalAccountsProvider(
   const accounts: Account[] = privateKeys.map(pkString =>
     Account.fromPrivate(toBuffer(pkString))
   );
+
+  const getChainId = createChainIdGetter(provider);
 
   return wrapSend(provider, async (method: string, params: any[]) => {
     if (method === "eth_accounts" || method === "eth_requestAccounts") {
@@ -44,13 +47,6 @@ export function createLocalAccountsProvider(
 
     if (method === "eth_sendTransaction" && params.length > 0) {
       const tx: Tx = params[0];
-
-      if (tx.chainId === undefined) {
-        throw new BuidlerError(
-          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          "chainId"
-        );
-      }
 
       if (tx.gas === undefined) {
         throw new BuidlerError(
@@ -81,8 +77,12 @@ export function createLocalAccountsProvider(
         throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, tx.from);
       }
 
+      const chainId = await getChainId();
+
       const { default: Transaction } = await import("ethereumjs-tx");
-      const transaction = new Transaction(tx);
+
+      // TODO: EIP155 works differently in ethereumjs-tx 2.0
+      const transaction = new Transaction({ ...tx, chainId });
       transaction.sign(account.privateKey);
 
       return provider.send("eth_sendRawTransaction", [

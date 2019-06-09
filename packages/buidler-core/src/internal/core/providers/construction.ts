@@ -62,13 +62,14 @@ export function wrapEthereumProvider(
   } = require("./accounts");
 
   const {
+    createGanacheGasMultiplierProvider,
     createAutomaticGasPriceProvider,
     createAutomaticGasProvider,
     createFixedGasPriceProvider,
     createFixedGasProvider
   } = require("./gas-providers");
 
-  const { createNetworkProvider } = require("./network");
+  const { createChainIdValidationProvider } = require("./chainId");
 
   const accounts = netConfig.accounts;
   if (Array.isArray(accounts)) {
@@ -85,6 +86,8 @@ export function wrapEthereumProvider(
 
   // TODO: Add some extension mechanism for account plugins here
 
+  provider = createGanacheGasMultiplierProvider(provider);
+
   provider = createSenderProvider(provider, netConfig.from);
 
   if (netConfig.gas === undefined || netConfig.gas === "auto") {
@@ -99,5 +102,9 @@ export function wrapEthereumProvider(
     provider = createFixedGasPriceProvider(provider, netConfig.gasPrice);
   }
 
-  return createNetworkProvider(provider, netConfig.chainId);
+  if (netConfig.chainId !== undefined) {
+    return createChainIdValidationProvider(provider, netConfig.chainId);
+  }
+
+  return provider;
 }
