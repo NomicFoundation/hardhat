@@ -4,11 +4,18 @@ import {
   createAutomaticGasPriceProvider,
   createAutomaticGasProvider,
   createFixedGasPriceProvider,
-  createFixedGasProvider
+  createFixedGasProvider,
+  createGanacheGasMultiplierProvider,
+  GANACHE_GAS_MULTIPLIER
 } from "../../../../src/internal/core/providers/gas-providers";
+import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
 import { IEthereumProvider } from "../../../../src/types";
 
-import { ParamsReturningProvider } from "./mocks";
+import {
+  BasicGanacheMockProvider,
+  BasicMockProvider,
+  ParamsReturningProvider
+} from "./mocks";
 
 describe("createAutomaticGasProvider", () => {
   const FIXED_GAS_LIMIT = 1231;
@@ -19,7 +26,7 @@ describe("createAutomaticGasProvider", () => {
   let provider: IEthereumProvider;
 
   beforeEach(() => {
-    mockedProvider = new ParamsReturningProvider();
+    mockedProvider = new BasicMockProvider();
     fixedGasProvider = createFixedGasProvider(mockedProvider, FIXED_GAS_LIMIT);
     provider = createAutomaticGasProvider(fixedGasProvider, GAS_MULTIPLIER);
   });
@@ -62,7 +69,7 @@ describe("createAutomaticGasProvider", () => {
       }
     ]);
 
-    assert.isAbove(tx.gas, FIXED_GAS_LIMIT);
+    assert.isAbove(rpcQuantityToNumber(tx.gas), FIXED_GAS_LIMIT);
   });
 
   it("Shouldn't replace the provided gas", async () => {
@@ -91,7 +98,7 @@ describe("createAutomaticGasPriceProvider", () => {
   let provider: IEthereumProvider;
 
   beforeEach(() => {
-    const mockedProvider = new ParamsReturningProvider();
+    const mockedProvider = new BasicMockProvider();
     const fixedGasProvider = createFixedGasPriceProvider(
       mockedProvider,
       FIXED_GAS_PRICE
@@ -192,7 +199,7 @@ describe("createFixedGasPriceProvider", () => {
   let provider: IEthereumProvider;
 
   beforeEach(() => {
-    const mockedProvider = new ParamsReturningProvider();
+    const mockedProvider = new BasicMockProvider();
     provider = createFixedGasPriceProvider(mockedProvider, FIXED_GAS_PRICE);
   });
 
@@ -232,5 +239,43 @@ describe("createFixedGasPriceProvider", () => {
     const returned = await provider.send("A", input);
 
     assert.deepEqual(returned, input);
+  });
+});
+
+describe("createGanacheGasMultiplierProvider", () => {
+  it("Should multiply the gas if connected to Ganache", async () => {
+    const baseProvider = createFixedGasProvider(
+      new BasicGanacheMockProvider(),
+      123
+    );
+
+    const wrapped = createGanacheGasMultiplierProvider(baseProvider);
+
+    const estimation = await wrapped.send("eth_estimateGas", [
+      {
+        from: "0x0000000000000000000000000000000000000011",
+        to: "0x0000000000000000000000000000000000000011",
+        value: 1
+      }
+    ]);
+
+    const gas = rpcQuantityToNumber(estimation);
+    assert.equal(gas, Math.floor(123 * GANACHE_GAS_MULTIPLIER));
+  });
+
+  it("Should not multiply the gas if connected to other node", async () => {
+    const baseProvider = createFixedGasProvider(new BasicMockProvider(), 123);
+    const wrapped = createGanacheGasMultiplierProvider(baseProvider);
+
+    const estimation = await wrapped.send("eth_estimateGas", [
+      {
+        from: "0x0000000000000000000000000000000000000011",
+        to: "0x0000000000000000000000000000000000000011",
+        value: 1
+      }
+    ]);
+
+    const gas = rpcQuantityToNumber(estimation);
+    assert.equal(gas, 123);
   });
 });

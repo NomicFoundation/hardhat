@@ -7,7 +7,7 @@ export function wrapSend(
   return new Proxy(provider, {
     get(target: IEthereumProvider, p: PropertyKey, receiver: any): any {
       if (p === "send") {
-        const { cloneDeep } = require("lodash");
+        const cloneDeep = require("lodash/cloneDeep");
         return (method: string, params: any[] = []) =>
           sendWrapper(method, cloneDeep(params));
       }

@@ -12,15 +12,17 @@ import {
 } from "../../../../src/internal/core/providers/construction";
 import {
   createFixedGasPriceProvider,
-  createFixedGasProvider
+  createFixedGasProvider,
+  GANACHE_GAS_MULTIPLIER
 } from "../../../../src/internal/core/providers/gas-providers";
+import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
 import { IEthereumProvider } from "../../../../src/types";
 import {
   expectBuidlerError,
   expectBuidlerErrorAsync
 } from "../../../helpers/errors";
 
-import { ParamsReturningProvider } from "./mocks";
+import { BasicGanacheMockProvider, BasicMockProvider } from "./mocks";
 
 describe("Network config typeguards", async () => {
   it("Should recognize HDAccountsConfig", () => {
@@ -63,7 +65,7 @@ describe("Base providers wrapping", () => {
   let baseProvider: IEthereumProvider;
 
   beforeEach(() => {
-    baseProvider = new ParamsReturningProvider();
+    baseProvider = new BasicMockProvider();
   });
 
   describe("Accounts wrapping", () => {
@@ -121,6 +123,7 @@ describe("Base providers wrapping", () => {
 
   describe("Sender wrapping", () => {
     beforeEach(() => {
+      baseProvider = createFixedGasProvider(baseProvider, 123);
       baseProvider = createLocalAccountsProvider(baseProvider, [
         "0x5ca14ebaee5e4a48b5341d9225f856115be72df55c7621b73fb0b6a1fdefcf24",
         "0x4e24948ea2bbd95ccd2bac641aadf36acd7e7cc011b1186a83dfe8db6cc7b1ae",
@@ -250,18 +253,6 @@ describe("Base providers wrapping", () => {
   });
 
   describe("Chain ID wrapping", () => {
-    it("Should wrap with a chain id validation provider if no chainId is used", async () => {
-      const provider = wrapEthereumProvider(baseProvider, {
-        url: ""
-      });
-
-      await expectBuidlerErrorAsync(
-        () =>
-          provider.send("eth_sendTransaction", [{ from: "0x0", chainId: 1 }]),
-        ERRORS.NETWORK.INVALID_TX_CHAIN_ID
-      );
-    });
-
     it("Should wrap with a chain id validation provider if a chainId is used", async () => {
       const provider = wrapEthereumProvider(baseProvider, {
         url: "",
@@ -269,10 +260,29 @@ describe("Base providers wrapping", () => {
       });
 
       await expectBuidlerErrorAsync(
-        () =>
-          provider.send("eth_sendTransaction", [{ from: "0x0", chainId: 1 }]),
+        () => provider.send("eth_getAccounts", []),
         ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID
       );
+    });
+  });
+
+  describe("Ganache multiplier provider", () => {
+    it("Should wrap with a ganache multiplier provider", async () => {
+      const ganacheWithFixedGasProvider = createFixedGasProvider(
+        new BasicGanacheMockProvider(),
+        123
+      );
+
+      const provider = wrapEthereumProvider(ganacheWithFixedGasProvider, {
+        url: ""
+      });
+
+      const estimation = await provider.send("eth_estimateGas", [
+        { to: "0xa2b6816c50d49101901d93f5302a3a57e0a1281b", value: 1 }
+      ]);
+
+      const gas = rpcQuantityToNumber(estimation);
+      assert.equal(gas, Math.floor(123 * GANACHE_GAS_MULTIPLIER));
     });
   });
 });

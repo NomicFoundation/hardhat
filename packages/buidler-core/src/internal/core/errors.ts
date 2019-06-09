@@ -180,6 +180,11 @@ To learn more about Buidler's configuration, please go to https://buidler.dev/do
       number: 107,
       message:
         'HD path "%s" is invalid. Read BIP32 to know about the valid forms.'
+    },
+    INVALID_RPC_QUANTITY_VALUE: {
+      number: 108,
+      message:
+        "Received invalid value %s from/to the node's JSON-RPC, but a Quantity was expected."
     }
   },
   TASK_DEFINITIONS: {

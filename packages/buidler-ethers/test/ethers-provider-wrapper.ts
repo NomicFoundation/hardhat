@@ -23,18 +23,24 @@ describe("Ethers provider wrapper", function() {
     assert.deepEqual(response, response2);
   });
 
-  it("Should return the same error", function(done) {
-    realProvider
-      .send("error_please", [])
-      .then(_ => assert.fail())
-      .catch(err => {
-        wrapper
-          .send("error_please", [])
-          .then(_ => assert.fail())
-          .catch(err2 => {
-            assert.deepEqual(err2.message, err.message);
-            done();
-          });
-      });
+  it("Should return the same error", async function() {
+    // We disable this test for RskJ
+    // See: https://github.com/rsksmart/rskj/issues/876
+    const version = await this.env.ethereum.send("web3_clientVersion");
+    if (version.includes("RskJ")) {
+      this.skip();
+    }
+
+    try {
+      await realProvider.send("error_please", []);
+      assert.fail("Ethers provider should have failed");
+    } catch (err) {
+      try {
+        await wrapper.send("error_please", []);
+        assert.fail("Wrapped provider should have failed");
+      } catch (err2) {
+        assert.deepEqual(err2.message, err.message);
+      }
+    }
   });
 });
