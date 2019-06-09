@@ -405,7 +405,26 @@ describe("Config validation", function() {
       });
 
       describe("HTTP network config", function() {
-        describe("Accounts filed", function() {
+        describe("Url field", function() {
+          it("Should fail if no url is set for custom networks", function() {
+            expectBuidlerError(
+              () => validateConfig({ networks: { custom: {} } }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Shouldn't fail if no url is set for develop network", function() {
+            const errors = getValidationErrors({ networks: { develop: {} } });
+            assert.isEmpty(errors);
+          });
+
+          it("Shouldn't fail if no url is set for auto network", function() {
+            const errors = getValidationErrors({ networks: { auto: {} } });
+            assert.isEmpty(errors);
+          });
+        });
+
+        describe("Accounts field", function() {
           it("Shouldn't work with invalid types", function() {
             expectBuidlerError(
               () =>
