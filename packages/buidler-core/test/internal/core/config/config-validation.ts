@@ -412,7 +412,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      accounts: 123
+                      accounts: 123,
+                      url: ""
                     }
                   }
                 }),
@@ -424,7 +425,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      accounts: {}
+                      accounts: {},
+                      url: ""
                     }
                   }
                 }),
@@ -436,7 +438,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      accounts: { asd: 123 }
+                      accounts: { asd: 123 },
+                      url: ""
                     }
                   }
                 }),
@@ -453,7 +456,8 @@ describe("Config validation", function() {
                       asd: {
                         accounts: {
                           mnemonic: 123
-                        }
+                        },
+                        url: ""
                       }
                     }
                   }),
@@ -467,7 +471,8 @@ describe("Config validation", function() {
                       asd: {
                         accounts: {
                           initialIndex: "asd"
-                        }
+                        },
+                        url: ""
                       }
                     }
                   }),
@@ -481,7 +486,8 @@ describe("Config validation", function() {
                       asd: {
                         accounts: {
                           count: "asd"
-                        }
+                        },
+                        url: ""
                       }
                     }
                   }),
@@ -495,7 +501,8 @@ describe("Config validation", function() {
                       asd: {
                         accounts: {
                           path: 123
-                        }
+                        },
+                        url: ""
                       }
                     }
                   }),
@@ -513,7 +520,8 @@ describe("Config validation", function() {
                       asd: {
                         accounts: {
                           type: 123
-                        }
+                        },
+                        url: ""
                       }
                     }
                   }),
@@ -529,7 +537,8 @@ describe("Config validation", function() {
                   validateConfig({
                     networks: {
                       asd: {
-                        accounts: [123]
+                        accounts: [123],
+                        url: ""
                       }
                     }
                   }),
@@ -544,7 +553,8 @@ describe("Config validation", function() {
                 getValidationErrors({
                   networks: {
                     asd: {
-                      accounts: "remote"
+                      accounts: "remote",
+                      url: ""
                     }
                   }
                 })
@@ -557,7 +567,8 @@ describe("Config validation", function() {
                   validateConfig({
                     networks: {
                       asd: {
-                        accounts: "asd"
+                        accounts: "asd",
+                        url: ""
                       }
                     }
                   }),
@@ -574,7 +585,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      chainId: ""
+                      chainId: "",
+                      url: ""
                     }
                   }
                 }),
@@ -586,7 +598,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      from: 123
+                      from: 123,
+                      url: ""
                     }
                   }
                 }),
@@ -598,7 +611,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      gas: "asdsad"
+                      gas: "asdsad",
+                      url: ""
                     }
                   }
                 }),
@@ -610,7 +624,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      gasPrice: "asdsad"
+                      gasPrice: "asdsad",
+                      url: ""
                     }
                   }
                 }),
@@ -622,7 +637,8 @@ describe("Config validation", function() {
                 validateConfig({
                   networks: {
                     asd: {
-                      gasMultiplier: "asdsad"
+                      gasMultiplier: "asdsad",
+                      url: ""
                     }
                   }
                 }),
@@ -667,7 +683,8 @@ describe("Config validation", function() {
             from: "0x0001",
             gas: "auto",
             gasPrice: "auto",
-            gasMultiplier: 123
+            gasMultiplier: 123,
+            url: ""
           },
           auto: {
             gas: 678,
@@ -677,13 +694,16 @@ describe("Config validation", function() {
           },
           develop: {
             gas: 678,
-            gasPrice: 123
+            gasPrice: 123,
+            url: ""
           },
           withRemoteAccounts: {
-            accounts: "remote"
+            accounts: "remote",
+            url: ""
           },
           withPrivateKeys: {
-            accounts: ["0x0", "0x1"]
+            accounts: ["0x0", "0x1"],
+            url: ""
           },
           withHdKeys: {
             accounts: {
@@ -691,13 +711,15 @@ describe("Config validation", function() {
               initialIndex: 0,
               count: 123,
               path: "m/123"
-            }
+            },
+            url: ""
           },
           withOtherTypeOfAccounts: {
             accounts: {
               type: "ledger",
               asd: 12
-            }
+            },
+            url: ""
           }
         }
       });
@@ -717,7 +739,8 @@ describe("Config validation", function() {
             }
           },
           unknown: {
-            asd: 123
+            asd: 123,
+            url: ""
           }
         }),
         []

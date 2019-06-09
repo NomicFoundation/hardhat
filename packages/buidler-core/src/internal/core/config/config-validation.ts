@@ -1,7 +1,6 @@
 import * as t from "io-ts";
 import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
-import { error } from "util";
 
 import { BuidlerError, ERRORS } from "../errors";
 
@@ -232,12 +231,16 @@ export function getValidationErrors(config: any): string[] {
         continue;
       }
 
-      if (netConfig.url !== undefined && typeof netConfig.url !== "string") {
+      if (networkName === "develop" && netConfig.url === undefined) {
+        continue;
+      }
+
+      if (typeof netConfig.url !== "string") {
         errors.push(
           getErrorMessage(
             `BuidlerConfig.networks.${networkName}.url`,
             netConfig.url,
-            "string | undefined"
+            "string"
           )
         );
       }
