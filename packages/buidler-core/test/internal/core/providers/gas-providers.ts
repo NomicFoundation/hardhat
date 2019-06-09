@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { DEFAULT_GAS_MULTIPLIER } from "../../../../../buidler-truffle5/src/constants";
 import {
   createAutomaticGasPriceProvider,
   createAutomaticGasProvider,
@@ -69,7 +70,10 @@ describe("createAutomaticGasProvider", () => {
       }
     ]);
 
-    assert.isAbove(rpcQuantityToNumber(tx.gas), FIXED_GAS_LIMIT);
+    assert.equal(
+      rpcQuantityToNumber(tx.gas),
+      FIXED_GAS_LIMIT * DEFAULT_GAS_MULTIPLIER
+    );
   });
 
   it("Shouldn't replace the provided gas", async () => {

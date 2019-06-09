@@ -248,7 +248,7 @@ The `networks` config field is an optional object where network names map to obj
 - `from`: The address to use as default sender. If not present the first account of the node is used.
 - `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: `"auto"`.
 - `gasPrice`: Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `"auto"`.
-- `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertenty of the estimation process. Default: `1.25`.
+- `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertenty of the estimation process. Default: `1`.
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an HD Wallet (see below). Default value: `"remote"`.
 
 ##### HD Wallet config
@@ -332,7 +332,7 @@ If you are still in doubt, these can be helpful:
 - Rule of thumb #1: Buidler MUST be a peer dependency.
 - Rule of thumb #2: If your plugin P depends on another plugin P2, P2 should be a peer dependency of P, and P2's peer dependencies should be peer dependencies of P.
 - Rule of thumb #3: If you have a non-Buidler dependency that your users may `require()`, it should be a peer dependency.
-- Rule of thumb #4: Every `peerDependency` should also be a `devDependency`. 
+- Rule of thumb #4: Every `peerDependency` should also be a `devDependency`.
 
 Also, if you depend on a Buidler plugin written in TypeScript, you should add it's main `.d.ts` to the `include` array of `tsconfig.json`.
 

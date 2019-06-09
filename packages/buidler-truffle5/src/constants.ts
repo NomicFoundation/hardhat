@@ -1,2 +1,3 @@
-// This should be 1.25, but that doesn't work right, so we use 2
-export const DEFAULT_GAS_MULTIPLIER = 2;
+// This should be 1.25 to match truffle-contract's doc, but as Buidler already
+// multiplies Ganache's estimations, we set 1 here.
+export const DEFAULT_GAS_MULTIPLIER = 1;
