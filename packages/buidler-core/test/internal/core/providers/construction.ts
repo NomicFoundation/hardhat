@@ -3,6 +3,7 @@ import Tx from "ethereumjs-tx";
 import { HttpProvider } from "web3x/providers";
 import { bufferToHex } from "web3x/utils";
 
+import { DEFAULT_GAS_MULTIPLIER } from "../../../../../buidler-truffle5/src/constants";
 import { ERRORS } from "../../../../src/internal/core/errors";
 import { createLocalAccountsProvider } from "../../../../src/internal/core/providers/accounts";
 import {
@@ -162,7 +163,6 @@ describe("Base providers wrapping", () => {
   });
 
   describe("Gas wrapping", () => {
-    const DEFAULT_GAS_MULTIPLIER = 1.25;
     const OTHER_GAS_MULTIPLIER = 1.337;
 
     beforeEach(() => {

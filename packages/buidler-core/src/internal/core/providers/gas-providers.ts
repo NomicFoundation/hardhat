@@ -3,6 +3,7 @@ import { IEthereumProvider } from "../../../types";
 import { numberToRpcQuantity, rpcQuantityToNumber } from "./provider-utils";
 import { wrapSend } from "./wrapper";
 
+const DEFAULT_GAS_MULTIPLIER = 1;
 export const GANACHE_GAS_MULTIPLIER = 2;
 
 export function createFixedGasProvider(
@@ -51,7 +52,7 @@ export function createFixedGasPriceProvider(
 
 export function createAutomaticGasProvider(
   provider: IEthereumProvider,
-  gasMultiplier: number = 1.25
+  gasMultiplier: number = DEFAULT_GAS_MULTIPLIER
 ) {
   return wrapSend(provider, async (method, params) => {
     if (method === "eth_sendTransaction") {
