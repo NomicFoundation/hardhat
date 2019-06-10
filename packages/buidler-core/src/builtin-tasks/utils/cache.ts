@@ -4,53 +4,77 @@ import path from "path";
 import { glob } from "../../internal/util/glob";
 import { ProjectPaths } from "../../types";
 
-const LAST_CONFIG_USED_FILENAME = "path-to-last-config-used.txt";
+// Matches the earliest date of modification for compiled files against the latest date for source files (including libraries).
+// A special case if the Buidler config used, as it can be changed (select another config file through a buidler option), or the same file can be modified.
+export const areArtifactsCached = async (
+  sourceGlobalPaths: string[],
+  paths: ProjectPaths
+): Promise<boolean> => {
+  const configDate = await getConfigModificationDate(
+    paths.cache,
+    paths.configFile
+  );
 
-async function getModificationDate(file: string): Promise<Date> {
-  const stat = await fsExtra.stat(file);
-  return new Date(stat.mtime);
-}
-
-async function getConfigModificationDate(configPath: string): Promise<Date> {
-  return getModificationDate(configPath);
-}
-
-async function getModificationDatesInDir(
-  dir: string,
-  filesExtension: string
-): Promise<Date[]> {
-  const pattern = path.join(dir, "**", "*" + filesExtension);
-  const files = await glob(pattern);
-  const promises: Array<Promise<Date>> = files.map(getModificationDate);
-  return Promise.all(promises);
-}
-
-async function getLastModificationDateInDir(
-  dir: string,
-  filesExtension: string
-) {
-  const dates = await getModificationDatesInDir(dir, filesExtension);
-
-  if (dates.length === 0) {
-    return undefined;
+  if (configDate === undefined) {
+    // tslint:disable-next-line: no-floating-promises
+    saveLastConfigUsed(paths);
+    return false;
   }
 
-  return dates.reduce((d1, d2) => (d1.getTime() > d2.getTime() ? d1 : d2));
+  const maxSourceDate = await getMaxSourceDate(sourceGlobalPaths);
+  const minArtifactDate = await getMinArtifactDate(paths.artifacts);
+
+  return maxSourceDate < minArtifactDate && configDate < minArtifactDate;
+};
+
+async function getModificationDatesInDir(dir: string): Promise<number[]> {
+  const pattern = path.join(dir, "**", "*");
+  const files = await glob(pattern);
+
+  return Promise.all(
+    files.map(async file => (await fsExtra.stat(file)).mtimeMs)
+  );
 }
 
-function getPathToCachedLastConfigPath(paths: ProjectPaths) {
-  const pathToLastConfigUsed = path.join(
-    paths.cache,
-    LAST_CONFIG_USED_FILENAME
+const getMaxSourceDate = (sourceGlobalPaths: string[]) =>
+  Promise.all(
+    sourceGlobalPaths.map(globalPath =>
+      fsExtra.stat(globalPath).then(fileStat => fileStat.mtimeMs)
+    )
+  ).then(timestamps => Math.max(...timestamps));
+
+const getMinArtifactDate = (artifactsPath: string) => {
+  return getModificationDatesInDir(artifactsPath).then(timestamps =>
+    Math.min(...timestamps)
   );
+};
+
+const LAST_CONFIG_USED_FILENAME = "path-to-last-config-used.txt";
+
+async function getConfigModificationDate(
+  cachePath: string,
+  currentConfigPath: string
+): Promise<number | undefined> {
+  const lastConfigPath: string | undefined = await getLastUsedConfig(cachePath);
+
+  if (currentConfigPath === lastConfigPath) {
+    const stat = await fsExtra.stat(currentConfigPath);
+
+    return stat.mtimeMs;
+  }
+  return undefined;
+}
+
+function getPathToCachedLastConfigPath(cachePath: string) {
+  const pathToLastConfigUsed = path.join(cachePath, LAST_CONFIG_USED_FILENAME);
 
   return pathToLastConfigUsed;
 }
 
 async function getLastUsedConfig(
-  paths: ProjectPaths
+  cachePath: string
 ): Promise<string | undefined> {
-  const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths);
+  const pathToLastConfigUsed = getPathToCachedLastConfigPath(cachePath);
 
   if (!(await fsExtra.pathExists(pathToLastConfigUsed))) {
     return undefined;
@@ -60,46 +84,9 @@ async function getLastUsedConfig(
 }
 
 async function saveLastConfigUsed(paths: ProjectPaths) {
-  const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths);
+  const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths.cache);
 
   await fsExtra.ensureDir(path.dirname(pathToLastConfigUsed));
 
   return fsExtra.writeFile(pathToLastConfigUsed, paths.configFile, "utf-8");
-}
-
-export async function areArtifactsCached(paths: ProjectPaths) {
-  const lastConfig = await getLastUsedConfig(paths);
-
-  if (lastConfig !== paths.configFile) {
-    await saveLastConfigUsed(paths);
-    return false;
-  }
-
-  const lastSourcesModification = await getLastModificationDateInDir(
-    paths.sources,
-    ".sol"
-  );
-
-  const lastArtifactsModification = await getLastModificationDateInDir(
-    paths.artifacts,
-    ".json"
-  );
-
-  const configModification = await getConfigModificationDate(paths.configFile);
-
-  if (
-    lastArtifactsModification === undefined ||
-    lastSourcesModification === undefined
-  ) {
-    return false;
-  }
-
-  // If the config was changed we invalidate the cache
-  if (configModification.getTime() > lastArtifactsModification.getTime()) {
-    return false;
-  }
-
-  return (
-    lastArtifactsModification.getTime() > lastSourcesModification.getTime()
-  );
 }

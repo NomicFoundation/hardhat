@@ -5,7 +5,7 @@ export class DependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
-  ) {
+  ): Promise<DependencyGraph> {
     const graph = new DependencyGraph();
 
     for (const resolvedFile of resolvedFiles) {
@@ -28,14 +28,17 @@ export class DependencyGraph {
     return Array.from(this.dependenciesPerFile.keys());
   }
 
-  private async _addDependenciesFrom(resolver: Resolver, file: ResolvedFile) {
+  private async _addDependenciesFrom(
+    resolver: Resolver,
+    file: ResolvedFile
+  ): Promise<void> {
     if (this._visitedFiles.has(file.absolutePath)) {
       return;
     }
 
     this._visitedFiles.add(file.absolutePath);
 
-    const dependencies = new Set();
+    const dependencies = new Set<ResolvedFile>();
     this.dependenciesPerFile.set(file, dependencies);
 
     const imports = getImports(file.content);
