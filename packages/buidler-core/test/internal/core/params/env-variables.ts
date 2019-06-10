@@ -4,6 +4,7 @@ import { ERRORS } from "../../../../src/internal/core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/buidler-params";
 import {
   getEnvBuidlerArguments,
+  getEnvVariablesMap,
   paramNameToEnvVariable
 } from "../../../../src/internal/core/params/env-variables";
 import { expectBuidlerError } from "../../../helpers/errors";
@@ -68,6 +69,28 @@ describe("Env vars arguments parsing", () => {
           BUIDLER_HELP: "123"
         }),
       ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE
+    );
+  });
+});
+
+describe("getEnvVariablesMap", () => {
+  it("Should return the right map", () => {
+    assert.deepEqual(
+      getEnvVariablesMap({
+        network: "asd",
+        emoji: false,
+        help: true,
+        showStackTraces: true,
+        version: false,
+        config: undefined // config is optional
+      }),
+      {
+        BUIDLER_NETWORK: "asd",
+        BUIDLER_EMOJI: "false",
+        BUIDLER_HELP: "true",
+        BUIDLER_SHOW_STACK_TRACES: "true",
+        BUIDLER_VERSION: "false"
+      }
     );
   });
 });

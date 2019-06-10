@@ -1,3 +1,6 @@
+import { BuidlerArguments } from "../../types";
+import { getEnvVariablesMap } from "../core/params/env-variables";
+
 export async function runScript(
   scriptPath: string,
   scriptArgs: string[] = [],
@@ -25,6 +28,7 @@ export async function runScript(
 }
 
 export async function runScriptWithBuidler(
+  buidlerArguments: BuidlerArguments,
   scriptPath: string,
   scriptArgs: string[] = [],
   extraNodeArgs: string[] = [],
@@ -34,7 +38,10 @@ export async function runScriptWithBuidler(
     scriptPath,
     scriptArgs,
     [...extraNodeArgs, "--require", __dirname + "/../../register"],
-    extraEnvVars
+    {
+      ...getEnvVariablesMap(buidlerArguments),
+      ...extraEnvVars
+    }
   );
 }
 

@@ -16,7 +16,7 @@ export default function() {
     .setAction(
       async (
         { script, noCompile }: { script: string; noCompile: boolean },
-        { run }
+        { run, buidlerArguments }
       ) => {
         if (!(await fsExtra.pathExists(script))) {
           throw new BuidlerError(
@@ -30,7 +30,10 @@ export default function() {
         }
 
         try {
-          const statusCode = await runScriptWithBuidler(script);
+          const statusCode = await runScriptWithBuidler(
+            buidlerArguments,
+            script
+          );
           process.exit(statusCode);
         } catch (error) {
           throw new BuidlerError(

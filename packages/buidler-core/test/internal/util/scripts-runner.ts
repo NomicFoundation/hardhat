@@ -61,7 +61,10 @@ describe("Scripts runner", function() {
     useEnvironment();
 
     it("Should load buidler/register successfully", async function() {
-      const statusCode = await runScriptWithBuidler("./successful-script.js");
+      const statusCode = await runScriptWithBuidler(
+        this.env.buidlerArguments,
+        "./successful-script.js"
+      );
       assert.equal(statusCode, 0);
 
       // We check here that the script is correctly testing this:
@@ -76,6 +79,7 @@ describe("Scripts runner", function() {
       this.env.buidlerArguments.network = "custom";
 
       const statusCode = await runScriptWithBuidler(
+        this.env.buidlerArguments,
         "./assert-buidler-arguments.js"
       );
 

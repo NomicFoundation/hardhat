@@ -16,6 +16,22 @@ export function paramNameToEnvVariable(paramName: string): string {
     .toUpperCase();
 }
 
+export function getEnvVariablesMap(
+  buidlerArguments: BuidlerArguments
+): { [envVar: string]: string } {
+  const values: { [envVar: string]: string } = {};
+
+  for (const [name, value] of Object.entries(buidlerArguments)) {
+    if (value === undefined) {
+      continue;
+    }
+
+    values[paramNameToEnvVariable(name)] = value.toString();
+  }
+
+  return values;
+}
+
 export function getEnvBuidlerArguments(
   paramDefinitions: BuidlerParamDefinitions,
   envVariables: ProcessEnv
