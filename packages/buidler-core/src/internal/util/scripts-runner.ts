@@ -39,6 +39,7 @@ export async function runScriptWithBuidler(
 }
 
 function getTsNodeArgsIfNeeded() {
+  // This means we are running the tests
   if (!__filename.endsWith(".ts")) {
     return [];
   }
