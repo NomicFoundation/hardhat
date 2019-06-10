@@ -11,7 +11,10 @@ export default function() {
   task(TASK_CONSOLE, "Opens a buidler console")
     .addFlag("noCompile", "Don't compile before running this task")
     .setAction(
-      async ({ noCompile }: { noCompile: boolean }, { config, run }) => {
+      async (
+        { noCompile }: { noCompile: boolean },
+        { config, run, buidlerArguments }
+      ) => {
         if (!noCompile) {
           await run("compile");
         }
@@ -28,7 +31,7 @@ export default function() {
         }
 
         // Running the script "" is like running `node`, so this starts the repl
-        await runScriptWithBuidler("", [], nodeArgs, {
+        await runScriptWithBuidler(buidlerArguments, "", [], nodeArgs, {
           NODE_REPL_HISTORY: historyFile
         });
       }
