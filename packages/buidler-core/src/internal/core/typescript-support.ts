@@ -2,15 +2,9 @@ import colors from "ansi-colors";
 import * as fs from "fs";
 import * as path from "path";
 
-const NODE_MODULES_DIR = "node_modules";
+import { ExecutionMode, getExecutionMode } from "./execution-mode";
 
-/**
- * This function returns true only if Buidler was installed as a dependency. It
- * returns false otherwise, including when it's being linked.
- */
-function isBuidlerInstalledAsADependency() {
-  return __dirname.lastIndexOf(NODE_MODULES_DIR) !== -1;
-}
+const NODE_MODULES_DIR = "node_modules";
 
 function getBuidlerNodeModules() {
   return __dirname.substring(
@@ -23,7 +17,11 @@ let cachedIsTypescriptSupported: boolean | undefined;
 
 export function isTypescriptSupported() {
   if (cachedIsTypescriptSupported === undefined) {
-    if (isBuidlerInstalledAsADependency()) {
+    const executionMode = getExecutionMode();
+    if (
+      executionMode === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION ||
+      executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION
+    ) {
       const nodeModules = getBuidlerNodeModules();
       cachedIsTypescriptSupported =
         fs.existsSync(path.join(nodeModules, "typescript")) &&
