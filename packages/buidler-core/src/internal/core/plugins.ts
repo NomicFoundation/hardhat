@@ -54,17 +54,33 @@ export function usePlugin(
     return;
   }
 
+  let globalFlag = "";
+  let globalWarning = "";
+  if (getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
+    globalFlag = " --global";
+    globalWarning =
+      "You are using a global installation of Buidler. Plugins and their dependencies must also be global.\n";
+  }
+
   if (pluginPackageJson.peerDependencies !== undefined) {
     for (const [dependencyName, versionSpec] of Object.entries(
       pluginPackageJson.peerDependencies
     )) {
       const dependencyPackageJson = readPackageJson(dependencyName, from);
 
+      let installExtraFlags = globalFlag;
+
+      if (versionSpec.match(/^[0-9]/) !== null) {
+        installExtraFlags += " --save-exact";
+      }
+
       if (dependencyPackageJson === undefined) {
         throw new BuidlerError(
           ERRORS.PLUGINS.MISSING_DEPENDENCY,
           pluginName,
           dependencyName,
+          globalWarning,
+          installExtraFlags,
           dependencyName,
           versionSpec
         );
@@ -79,7 +95,9 @@ export function usePlugin(
           dependencyName,
           versionSpec,
           installedVersion,
+          globalWarning,
           dependencyName,
+          installExtraFlags,
           dependencyName,
           versionSpec,
           dependencyName
