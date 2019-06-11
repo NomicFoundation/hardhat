@@ -102,8 +102,16 @@ export function ensurePluginLoadedWithUsePlugin() {
 
   for (const callSite of stack) {
     const fileName = callSite.getFileName();
+    if (fileName === null) {
+      continue;
+    }
+
     const functionName = callSite.getFunctionName();
-    if (fileName === __filename && functionName === loadPluginFile.name) {
+
+    if (
+      path.basename(fileName) === path.basename(__filename) &&
+      functionName === loadPluginFile.name
+    ) {
       return;
     }
   }
