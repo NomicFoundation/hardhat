@@ -141,6 +141,11 @@ export const ERRORS = {
 %s
   
 To learn more about Buidler's configuration, please go to https://buidler.dev/documentation/#configuration`
+    },
+    LIB_IMPORTED_FROM_THE_CONFIG: {
+      number: 9,
+      message: `Error while loading Buidler's configuration.
+You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`
     }
   },
   NETWORK: {
