@@ -15,7 +15,8 @@ This plugin requires [buidler-web3](https://github.com/nomiclabs/buidler/tree/ma
 ## Installation
 
 ```bash
-npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37
+npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 
+npm install --save-exact web3@1.0.0-beta.37
 ```
 
 And add the following statement to your `buidler.config.js`:
