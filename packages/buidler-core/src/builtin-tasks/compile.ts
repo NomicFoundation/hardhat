@@ -120,11 +120,11 @@ export default function() {
       TASK_COMPILE_GET_DEPENDENCY_GRAPH
     );
 
-    const sourcePaths = dependencyGraph
+    const sourceTimestamps = dependencyGraph
       .getResolvedFiles()
-      .map(file => file.absolutePath);
+      .map(file => file.lastModificationDate.getTime());
 
-    return areArtifactsCached(sourcePaths, config.paths);
+    return areArtifactsCached(sourceTimestamps, config.paths);
   });
 
   internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {
@@ -174,7 +174,7 @@ export default function() {
   });
 
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
-    .addFlag("f", "Force compilation ignoring cache")
+    .addFlag("force", "Force compilation ignoring cache")
     .setAction(async ({ f: force }: { f: boolean }, { run }) =>
       run(TASK_BUILD_ARTIFACTS, { force })
     );

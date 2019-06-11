@@ -62,6 +62,7 @@
   },
   "dependencies": {
     "ansi-colors": "^3.2.4",
+    "deep-equal": "^1.0.1",
     "deepmerge": "^2.1.0",
     "download": "^7.1.0",
     "enquirer": "^2.3.0",
