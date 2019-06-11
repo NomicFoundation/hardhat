@@ -53,7 +53,8 @@
       },
       { "type": "type", "format": "PascalCase" },
       { "type": "genericTypeParameter", "suffix": "T" },
-      { "type": "enumMember", "format": "PascalCase" }
+      { "type": "enum", "format": "PascalCase" },
+      { "type": "enumMember", "format": "UPPER_CASE" }
     ]
   }
 }
