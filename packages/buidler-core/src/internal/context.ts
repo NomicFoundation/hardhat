@@ -38,7 +38,7 @@ export class BuidlerContext {
   public readonly tasksDSL = new TasksDSL();
   public readonly extendersManager = new ExtenderManager();
   public environment?: BuidlerRuntimeEnvironment;
-  public configPath?: string;
+  public readonly loadedPlugins: string[] = [];
 
   public setBuidlerRuntimeEnvironment(env: BuidlerRuntimeEnvironment) {
     if (this.environment !== undefined) {
@@ -52,5 +52,9 @@ export class BuidlerContext {
       throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED);
     }
     return this.environment;
+  }
+
+  public setPluginAsLoaded(pluginName: string) {
+    this.loadedPlugins.push(pluginName);
   }
 }

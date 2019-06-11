@@ -74,9 +74,10 @@ describe("plugin system", function() {
     const globalAsAny = global as any;
     const projectPath =
       FIXTURE_PROJECT_PATH + "/doesnt-need-to-exist-config.js";
+    let ctx: BuidlerContext;
 
     beforeEach(function() {
-      BuidlerContext.createBuidlerContext();
+      ctx = BuidlerContext.createBuidlerContext();
     });
 
     afterEach(function() {
@@ -85,32 +86,42 @@ describe("plugin system", function() {
     });
 
     it("Should load a plugin if it has no peer dependency", function() {
-      usePlugin("pack1", projectPath);
+      usePlugin(ctx, "pack1", projectPath);
       assert.isTrue(globalAsAny.loaded);
     });
 
+    it("Shouldn't load a plugin twice", function() {
+      usePlugin(ctx, "pack1", projectPath);
+      assert.isTrue(globalAsAny.loaded);
+
+      globalAsAny.loaded = false;
+
+      usePlugin(ctx, "pack1", projectPath);
+      assert.isFalse(globalAsAny.loaded);
+    });
+
     it("Should load a plugin if it has all of its dependencies", function() {
-      usePlugin("requires-pack1", projectPath);
+      usePlugin(ctx, "requires-pack1", projectPath);
       assert.isTrue(globalAsAny.loaded);
     });
 
     it("Should fail if a peer dependency is missing", function() {
       expectBuidlerError(
-        () => usePlugin("requires-missing-pack", projectPath),
+        () => usePlugin(ctx, "requires-missing-pack", projectPath),
         ERRORS.PLUGINS.MISSING_DEPENDENCY
       );
     });
 
     it("Should fail if a peer dependency has an incompatible version", function() {
       expectBuidlerError(
-        () => usePlugin("requires-other-version-pack1", projectPath),
+        () => usePlugin(ctx, "requires-other-version-pack1", projectPath),
         ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH
       );
     });
 
     it("Should fail if the plugin isn't installed", function() {
       expectBuidlerError(
-        () => usePlugin("not-installed", projectPath),
+        () => usePlugin(ctx, "not-installed", projectPath),
         ERRORS.PLUGINS.NOT_INSTALLED
       );
     });

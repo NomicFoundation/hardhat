@@ -83,6 +83,11 @@ export function extendEnvironment(extender: EnvironmentExtender) {
   extenderManager.add(extender);
 }
 
+/**
+ * Loads a Buidler plugin
+ * @param pluginName The plugin name.
+ */
 export function usePlugin(pluginName: string) {
-  usePluginImplementation(pluginName);
+  const ctx = BuidlerContext.getBuidlerContext();
+  usePluginImplementation(ctx, pluginName);
 }
