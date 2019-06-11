@@ -1,7 +1,6 @@
 import * as path from "path";
 import * as semver from "semver";
 
-import { BuidlerContext } from "../context";
 import { getClosestCallerPackage } from "../util/caller-package";
 
 import { BuidlerError, ERRORS } from "./errors";
@@ -13,11 +12,14 @@ interface PackageJson {
   };
 }
 
-export function usePlugin(pluginName: string) {
-  const ctx = BuidlerContext.getBuidlerContext();
-  const configFileDir = path.dirname(ctx.configPath!);
-
-  const pluginPackageJson = readPackageJson(pluginName, configFileDir);
+/**
+ * Validates a plugin dependencies and loads it.
+ * @param pluginName - The plugin name
+ * @param from - Where to resolve plugins and dependencies from. Only for
+ * testing purposes.
+ */
+export function usePlugin(pluginName: string, from?: string) {
+  const pluginPackageJson = readPackageJson(pluginName, from);
 
   if (pluginPackageJson === undefined) {
     throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, pluginName);
@@ -27,10 +29,7 @@ export function usePlugin(pluginName: string) {
     for (const [dependencyName, versionSpec] of Object.entries(
       pluginPackageJson.peerDependencies
     )) {
-      const dependencyPackageJson = readPackageJson(
-        dependencyName,
-        configFileDir
-      );
+      const dependencyPackageJson = readPackageJson(dependencyName, from);
 
       if (dependencyPackageJson === undefined) {
         throw new BuidlerError(
@@ -60,7 +59,8 @@ export function usePlugin(pluginName: string) {
     }
   }
 
-  const pluginPath = require.resolve(pluginName, { paths: [configFileDir] });
+  const options = from !== undefined ? { paths: [from] } : undefined;
+  const pluginPath = require.resolve(pluginName, options);
   loadPluginFile(pluginPath);
 }
 
@@ -74,14 +74,13 @@ export function loadPluginFile(absolutePluginFilePath: string) {
 
 export function readPackageJson(
   packageName: string,
-  from: string
+  from?: string
 ): PackageJson | undefined {
   try {
+    const options = from !== undefined ? { paths: [from] } : undefined;
     const packageJsonPath = require.resolve(
       path.join(packageName, "package.json"),
-      {
-        paths: [from]
-      }
+      options
     );
 
     return require(packageJsonPath);

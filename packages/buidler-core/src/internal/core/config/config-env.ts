@@ -6,6 +6,7 @@ import {
 } from "../../../types";
 import { BuidlerContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
+import { usePlugin as usePluginImplementation } from "../plugins";
 
 export function task<ArgsT extends TaskArguments>(
   name: string,
@@ -82,4 +83,6 @@ export function extendEnvironment(extender: EnvironmentExtender) {
   extenderManager.add(extender);
 }
 
-export { usePlugin } from "../plugins";
+export function usePlugin(pluginName: string) {
+  usePluginImplementation(pluginName);
+}

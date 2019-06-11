@@ -31,6 +31,10 @@ describe("plugin system", function() {
       assert.isUndefined(readPackageJson("NOPE", FIXTURE_PROJECT_PATH));
       assert.isUndefined(readPackageJson("NOPE2", __dirname));
     });
+
+    it("Should work without from param", function() {
+      assert.isDefined(readPackageJson("mocha"));
+    });
   });
 
   describe("loadPluginFile", function() {
@@ -68,11 +72,11 @@ describe("plugin system", function() {
 
   describe("loadPluginFile", function() {
     const globalAsAny = global as any;
+    const projectPath =
+      FIXTURE_PROJECT_PATH + "/doesnt-need-to-exist-config.js";
 
     beforeEach(function() {
       BuidlerContext.createBuidlerContext();
-      const ctx = BuidlerContext.getBuidlerContext();
-      ctx.configPath = FIXTURE_PROJECT_PATH + "/doesnt-need-to-exist-config.js";
     });
 
     afterEach(function() {
@@ -81,32 +85,32 @@ describe("plugin system", function() {
     });
 
     it("Should load a plugin if it has no peer dependency", function() {
-      usePlugin("pack1");
+      usePlugin("pack1", projectPath);
       assert.isTrue(globalAsAny.loaded);
     });
 
     it("Should load a plugin if it has all of its dependencies", function() {
-      usePlugin("requires-pack1");
+      usePlugin("requires-pack1", projectPath);
       assert.isTrue(globalAsAny.loaded);
     });
 
     it("Should fail if a peer dependency is missing", function() {
       expectBuidlerError(
-        () => usePlugin("requires-missing-pack"),
+        () => usePlugin("requires-missing-pack", projectPath),
         ERRORS.PLUGINS.MISSING_DEPENDENCY
       );
     });
 
     it("Should fail if a peer dependency has an incompatible version", function() {
       expectBuidlerError(
-        () => usePlugin("requires-other-version-pack1"),
+        () => usePlugin("requires-other-version-pack1", projectPath),
         ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH
       );
     });
 
     it("Should fail if the plugin isn't installed", function() {
       expectBuidlerError(
-        () => usePlugin("not-installed"),
+        () => usePlugin("not-installed", projectPath),
         ERRORS.PLUGINS.NOT_INSTALLED
       );
     });
