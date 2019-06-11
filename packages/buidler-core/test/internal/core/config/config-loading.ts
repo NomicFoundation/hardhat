@@ -26,7 +26,7 @@ describe("config loading", function() {
     });
   });
 
-  describe("Config valudation", function() {
+  describe("Config validation", function() {
     describe("When the config is invalid", function() {
       useFixtureProject("invalid-config");
 
@@ -128,6 +128,25 @@ describe("config loading", function() {
       assert.isUndefined(globalAsAny.extendEnvironment);
       assert.isUndefined(globalAsAny.usePlugin);
       resetBuidlerContext();
+    });
+  });
+
+  describe("Config that imports the library", function() {
+    useFixtureProject("config-imports-lib-project");
+
+    beforeEach(function() {
+      BuidlerContext.createBuidlerContext();
+    });
+
+    afterEach(function() {
+      resetBuidlerContext();
+    });
+
+    it("should accept a relative path from the CWD", function() {
+      expectBuidlerError(
+        () => loadConfigAndTasks(),
+        ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG
+      );
     });
   });
 });

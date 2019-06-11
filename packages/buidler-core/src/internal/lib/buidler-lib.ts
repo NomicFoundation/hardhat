@@ -1,20 +1,27 @@
 import { BuidlerRuntimeEnvironment } from "../../types";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
+import { BuidlerError, ERRORS } from "../core/errors";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 
+let ctx: BuidlerContext;
 let env: BuidlerRuntimeEnvironment;
 
-if (!BuidlerContext.isCreated()) {
-  BuidlerContext.createBuidlerContext();
-}
-const ctx: BuidlerContext = BuidlerContext.getBuidlerContext();
+if (BuidlerContext.isCreated()) {
+  ctx = BuidlerContext.getBuidlerContext();
 
-if (ctx.environment !== undefined) {
+  // The most probable reason for this to happen is that this file was imported
+  // from the config file
+  if (ctx.environment === undefined) {
+    throw new BuidlerError(ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG);
+  }
+
   env = ctx.environment;
 } else {
+  ctx = BuidlerContext.createBuidlerContext();
+
   const buidlerArguments = getEnvBuidlerArguments(
     BUIDLER_PARAM_DEFINITIONS,
     process.env
@@ -31,5 +38,4 @@ if (ctx.environment !== undefined) {
   ctx.setBuidlerRuntimeEnvironment(env);
 }
 
-// TODO: Find out a way to export this as a CJS module.
 export = env;
