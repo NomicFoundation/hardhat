@@ -22,6 +22,8 @@ The recommended way of using Buidler is through a local installation in your pro
 Be careful about inconsistent behavior across different projects that use different Buidler versions.
 
     npm -g install @nomiclabs/buidler
+    
+If you choose to install Buidler globally, you have to do the same for its plugins and their dependencies.
 
 ## Documentation
 
