@@ -1,4 +1,5 @@
 import { BuidlerArguments } from "../../types";
+import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
 
 export async function runScript(
@@ -46,8 +47,7 @@ export async function runScriptWithBuidler(
 }
 
 function getTsNodeArgsIfNeeded() {
-  // This means we are running the tests
-  if (!__filename.endsWith(".ts")) {
+  if (getExecutionMode() !== ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS) {
     return [];
   }
 

@@ -5,38 +5,82 @@ import { BuidlerContext } from "../context";
 import { getClosestCallerPackage } from "../util/caller-package";
 
 import { BuidlerError, ERRORS } from "./errors";
+import { ExecutionMode, getExecutionMode } from "./execution-mode";
 
 interface PackageJson {
+  name: string;
   version: string;
   peerDependencies: {
     [name: string]: string;
   };
 }
 
-export function usePlugin(pluginName: string) {
-  const ctx = BuidlerContext.getBuidlerContext();
-  const configFileDir = path.dirname(ctx.configPath!);
+/**
+ * Validates a plugin dependencies and loads it.
+ * @param pluginName - The plugin name
+ * @param buidlerContext - The BuidlerContext
+ * @param from - Where to resolve plugins and dependencies from. Only for
+ * testing purposes.
+ */
+export function usePlugin(
+  buidlerContext: BuidlerContext,
+  pluginName: string,
+  from?: string
+) {
+  // We have a special case for `ExecutionMode.EXECUTION_MODE_LINKED`
+  //
+  // If Buidler is linked, a require without `from` would be executed in the
+  // context of Buidler, and not find any plugin (linked or not). We workaround
+  // this by using the CWD here.
+  //
+  // This is not ideal, but the only reason to link Buidler is testing.
+  if (
+    from === undefined &&
+    getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED
+  ) {
+    from = process.cwd();
+  }
 
-  const pluginPackageJson = readPackageJson(pluginName, configFileDir);
+  const pluginPackageJson = readPackageJson(pluginName, from);
 
   if (pluginPackageJson === undefined) {
     throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, pluginName);
+  }
+
+  // We use the package.json's version of the name, as it is normalized.
+  pluginName = pluginPackageJson.name;
+
+  if (buidlerContext.loadedPlugins.includes(pluginName)) {
+    return;
+  }
+
+  let globalFlag = "";
+  let globalWarning = "";
+  if (getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
+    globalFlag = " --global";
+    globalWarning =
+      "You are using a global installation of Buidler. Plugins and their dependencies must also be global.\n";
   }
 
   if (pluginPackageJson.peerDependencies !== undefined) {
     for (const [dependencyName, versionSpec] of Object.entries(
       pluginPackageJson.peerDependencies
     )) {
-      const dependencyPackageJson = readPackageJson(
-        dependencyName,
-        configFileDir
-      );
+      const dependencyPackageJson = readPackageJson(dependencyName, from);
+
+      let installExtraFlags = globalFlag;
+
+      if (versionSpec.match(/^[0-9]/) !== null) {
+        installExtraFlags += " --save-exact";
+      }
 
       if (dependencyPackageJson === undefined) {
         throw new BuidlerError(
           ERRORS.PLUGINS.MISSING_DEPENDENCY,
           pluginName,
           dependencyName,
+          globalWarning,
+          installExtraFlags,
           dependencyName,
           versionSpec
         );
@@ -51,7 +95,9 @@ export function usePlugin(pluginName: string) {
           dependencyName,
           versionSpec,
           installedVersion,
+          globalWarning,
           dependencyName,
+          installExtraFlags,
           dependencyName,
           versionSpec,
           dependencyName
@@ -60,8 +106,11 @@ export function usePlugin(pluginName: string) {
     }
   }
 
-  const pluginPath = require.resolve(pluginName, { paths: [configFileDir] });
+  const options = from !== undefined ? { paths: [from] } : undefined;
+  const pluginPath = require.resolve(pluginName, options);
   loadPluginFile(pluginPath);
+
+  buidlerContext.setPluginAsLoaded(pluginName);
 }
 
 export function loadPluginFile(absolutePluginFilePath: string) {
@@ -74,14 +123,13 @@ export function loadPluginFile(absolutePluginFilePath: string) {
 
 export function readPackageJson(
   packageName: string,
-  from: string
+  from?: string
 ): PackageJson | undefined {
   try {
+    const options = from !== undefined ? { paths: [from] } : undefined;
     const packageJsonPath = require.resolve(
       path.join(packageName, "package.json"),
-      {
-        paths: [from]
-      }
+      options
     );
 
     return require(packageJsonPath);
@@ -102,8 +150,16 @@ export function ensurePluginLoadedWithUsePlugin() {
 
   for (const callSite of stack) {
     const fileName = callSite.getFileName();
+    if (fileName === null) {
+      continue;
+    }
+
     const functionName = callSite.getFunctionName();
-    if (fileName === __filename && functionName === loadPluginFile.name) {
+
+    if (
+      path.basename(fileName) === path.basename(__filename) &&
+      functionName === loadPluginFile.name
+    ) {
       return;
     }
   }

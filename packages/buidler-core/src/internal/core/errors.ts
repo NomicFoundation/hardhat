@@ -373,14 +373,14 @@ To learn more about Buidler's configuration, please go to https://buidler.dev/do
     MISSING_DEPENDENCY: {
       number: 801,
       message:
-        "Plugin %s requires %s to be installed.\n" +
-        "Please run: npm install --save-dev %s@%s"
+        "Plugin %s requires %s to be installed.\n%s" +
+        "Please run: npm install --save-dev%s %s@%s"
     },
     DEPENDENCY_VERSION_MISMATCH: {
       number: 802,
       message:
-        "Plugin %s requires %s version %s but got %s.\n" +
-        "If you haven't installed %s manually, please run: npm install --save-dev %s@%s\n" +
+        "Plugin %s requires %s version %s but got %s.\n%s" +
+        "If you haven't installed %s manually, please run: npm install --save-dev%s %s@%s\n" +
         "If you have installed %s yourself, please reinstall it with a valid version."
     },
     OLD_STYLE_IMPORT_DETECTED: {
