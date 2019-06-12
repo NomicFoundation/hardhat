@@ -1,0 +1,42 @@
+{
+  "name": "@nomiclabs/buidler-docker",
+  "version": "1.0.0-beta.8",
+  "description": "Buidler plugin for docker",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-docker",
+  "repository": "github:nomiclabs/buidler",
+  "author": "Nomic Labs SRL",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "buidler",
+    "buidler-plugin",
+    "docker"
+  ],
+  "scripts": {
+    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint": "npm run lint-src && npm run lint-tests",
+    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "watch": "../../node_modules/.bin/tsc -w",
+    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "./scripts/run-tests.sh",
+    "build": "../../node_modules/.bin/tsc --build src",
+    "build-test": "../../node_modules/.bin/tsc --build .",
+    "clean": "rm -rf dist build-test",
+    "repl": "ts-node"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {},
+  "peerDependencies": {},
+  "dependencies": {
+    "dockerode": "^2.5.8",
+    "ts-node": "^8.2.0"
+  }
+}
