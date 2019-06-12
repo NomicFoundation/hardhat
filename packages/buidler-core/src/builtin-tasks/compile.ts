@@ -19,6 +19,7 @@ import { SolcInput } from "../types";
 import {
   TASK_BUILD_ARTIFACTS,
   TASK_COMPILE,
+  TASK_COMPILE_CHECK_CACHE,
   TASK_COMPILE_COMPILE,
   TASK_COMPILE_GET_COMPILER_INPUT,
   TASK_COMPILE_GET_DEPENDENCY_GRAPH,
@@ -26,7 +27,7 @@ import {
   TASK_COMPILE_GET_SOURCE_PATHS,
   TASK_COMPILE_RUN_COMPILER
 } from "./task-names";
-import { areArtifactsCached } from "./utils/cache";
+import { areArtifactsCached, cacheBuidlerConfig } from "./utils/cache";
 
 export default function() {
   internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
@@ -49,12 +50,16 @@ export default function() {
     async (_, { config, run }) => {
       const resolver = new Resolver(config.paths.root);
       const localFiles = await run(TASK_COMPILE_GET_RESOLVED_SOURCES);
+
       return DependencyGraph.createFromResolvedFiles(resolver, localFiles);
     }
   );
 
   internalTask(TASK_COMPILE_GET_COMPILER_INPUT, async (_, { config, run }) => {
-    const dependencyGraph = await run(TASK_COMPILE_GET_DEPENDENCY_GRAPH);
+    const dependencyGraph: DependencyGraph = await run(
+      TASK_COMPILE_GET_DEPENDENCY_GRAPH
+    );
+
     return getInputFromDependencyGraph(
       dependencyGraph,
       config.solc.optimizer,
@@ -103,11 +108,31 @@ export default function() {
       throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
     }
 
+    await cacheBuidlerConfig(config.paths, config.solc);
+
     return output;
   });
 
-  internalTask(TASK_BUILD_ARTIFACTS, async (_, { config, run }) => {
-    if (await areArtifactsCached(config.paths)) {
+  internalTask(TASK_COMPILE_CHECK_CACHE, async ({ force }, { config, run }) => {
+    if (force) {
+      return false;
+    }
+
+    const dependencyGraph: DependencyGraph = await run(
+      TASK_COMPILE_GET_DEPENDENCY_GRAPH
+    );
+
+    const sourceTimestamps = dependencyGraph
+      .getResolvedFiles()
+      .map(file => file.lastModificationDate.getTime());
+
+    return areArtifactsCached(sourceTimestamps, config.solc, config.paths);
+  });
+
+  internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {
+    const isCached: boolean = await run(TASK_COMPILE_CHECK_CACHE, { force });
+
+    if (isCached) {
       console.log(
         "All contracts have already been compiled, skipping compilation."
       );
@@ -150,9 +175,9 @@ export default function() {
     );
   });
 
-  task(
-    TASK_COMPILE,
-    "Compiles the entire project, building all artifacts",
-    async (__, { run }) => run(TASK_BUILD_ARTIFACTS)
-  );
+  task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
+    .addFlag("force", "Force compilation ignoring cache")
+    .setAction(async ({ f: force }: { f: boolean }, { run }) =>
+      run(TASK_BUILD_ARTIFACTS, { force })
+    );
 }

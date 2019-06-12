@@ -1,105 +1,121 @@
 import fsExtra from "fs-extra";
+import isEqual from "lodash/isEqual";
 import path from "path";
 
 import { glob } from "../../internal/util/glob";
-import { ProjectPaths } from "../../types";
+import { getPackageJson } from "../../internal/util/packageInfo";
+import { ProjectPaths, SolcConfig } from "../../types";
 
-const LAST_CONFIG_USED_FILENAME = "path-to-last-config-used.txt";
+// Checks the earliest date of modification for compiled files against the latest date for source files (including libraries).
+// Furthermore, cache is invalidated if Buidler's version changes, or a different solc version is set in the buidler config.
+export async function areArtifactsCached(
+  sourceTimestamps: number[],
+  newSolcConfig: SolcConfig,
+  paths: ProjectPaths
+): Promise<boolean> {
+  const oldConfig = await getLastUsedConfig(paths.cache);
 
-async function getModificationDate(file: string): Promise<Date> {
-  const stat = await fsExtra.stat(file);
-  return new Date(stat.mtime);
-}
-
-async function getConfigModificationDate(configPath: string): Promise<Date> {
-  return getModificationDate(configPath);
-}
-
-async function getModificationDatesInDir(
-  dir: string,
-  filesExtension: string
-): Promise<Date[]> {
-  const pattern = path.join(dir, "**", "*" + filesExtension);
-  const files = await glob(pattern);
-  const promises: Array<Promise<Date>> = files.map(getModificationDate);
-  return Promise.all(promises);
-}
-
-async function getLastModificationDateInDir(
-  dir: string,
-  filesExtension: string
-) {
-  const dates = await getModificationDatesInDir(dir, filesExtension);
-
-  if (dates.length === 0) {
-    return undefined;
+  if (
+    oldConfig === undefined ||
+    !compareSolcConfigs({
+      oldConfig: oldConfig.solc,
+      newConfig: newSolcConfig
+    }) ||
+    !(await compareBuidlerVersion(oldConfig.buidlerVersion))
+  ) {
+    return false;
   }
 
-  return dates.reduce((d1, d2) => (d1.getTime() > d2.getTime() ? d1 : d2));
+  const maxSourceDate = getMaxSourceDate(sourceTimestamps);
+  const minArtifactDate = await getMinArtifactDate(paths.artifacts);
+
+  return maxSourceDate < minArtifactDate;
 }
 
-function getPathToCachedLastConfigPath(paths: ProjectPaths) {
-  const pathToLastConfigUsed = path.join(
-    paths.cache,
-    LAST_CONFIG_USED_FILENAME
+async function getModificationDatesInDir(dir: string): Promise<number[]> {
+  const pattern = path.join(dir, "**", "*");
+  const files = await glob(pattern);
+
+  return Promise.all(
+    files.map(async file => (await fsExtra.stat(file)).mtimeMs)
   );
+}
+
+function getMaxSourceDate(sourceTimestamps: number[]): number {
+  return Math.max(...sourceTimestamps);
+}
+
+async function getMinArtifactDate(artifactsPath: string): Promise<number> {
+  const timestamps = await getModificationDatesInDir(artifactsPath);
+
+  return Math.min(...timestamps);
+}
+
+const LAST_CONFIG_USED_FILENAME = "last-solc-config.json";
+
+function getPathToCachedLastConfigPath(cachePath: string) {
+  const pathToLastConfigUsed = path.join(cachePath, LAST_CONFIG_USED_FILENAME);
 
   return pathToLastConfigUsed;
 }
 
 async function getLastUsedConfig(
-  paths: ProjectPaths
-): Promise<string | undefined> {
-  const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths);
+  cachePath: string
+): Promise<{ solc: SolcConfig; buidlerVersion: string } | undefined> {
+  const pathToConfig = getPathToCachedLastConfigPath(cachePath);
 
-  if (!(await fsExtra.pathExists(pathToLastConfigUsed))) {
+  if (!(await fsExtra.pathExists(pathToConfig))) {
     return undefined;
   }
 
-  return fsExtra.readFile(pathToLastConfigUsed, "utf-8");
+  return module.require(pathToConfig);
 }
 
-async function saveLastConfigUsed(paths: ProjectPaths) {
-  const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths);
+export async function cacheBuidlerConfig(
+  paths: ProjectPaths,
+  config: SolcConfig
+) {
+  const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths.cache);
+  const newJson = {
+    solc: config,
+    buidlerVersion: await getCurrentBuidlerVersion()
+  };
 
   await fsExtra.ensureDir(path.dirname(pathToLastConfigUsed));
 
-  return fsExtra.writeFile(pathToLastConfigUsed, paths.configFile, "utf-8");
+  return fsExtra.writeFile(
+    pathToLastConfigUsed,
+    JSON.stringify(newJson),
+    "utf-8"
+  );
 }
 
-export async function areArtifactsCached(paths: ProjectPaths) {
-  const lastConfig = await getLastUsedConfig(paths);
+async function getSolcConfig(configPath: string): Promise<SolcConfig> {
+  const solcConfig: SolcConfig = (await module.require(configPath)).solc;
 
-  if (lastConfig !== paths.configFile) {
-    await saveLastConfigUsed(paths);
-    return false;
-  }
+  return solcConfig;
+}
 
-  const lastSourcesModification = await getLastModificationDateInDir(
-    paths.sources,
-    ".sol"
-  );
+function compareSolcConfigs({
+  oldConfig,
+  newConfig
+}: {
+  oldConfig: SolcConfig;
+  newConfig: SolcConfig;
+}): boolean {
+  return isEqual(oldConfig, newConfig);
+}
 
-  const lastArtifactsModification = await getLastModificationDateInDir(
-    paths.artifacts,
-    ".json"
-  );
+async function getCurrentBuidlerVersion(): Promise<string> {
+  const packageJson = await getPackageJson();
 
-  const configModification = await getConfigModificationDate(paths.configFile);
+  return packageJson.version;
+}
 
-  if (
-    lastArtifactsModification === undefined ||
-    lastSourcesModification === undefined
-  ) {
-    return false;
-  }
+async function compareBuidlerVersion(
+  lastBuidlerVersion: string
+): Promise<boolean> {
+  const currentVersion = await getCurrentBuidlerVersion();
 
-  // If the config was changed we invalidate the cache
-  if (configModification.getTime() > lastArtifactsModification.getTime()) {
-    return false;
-  }
-
-  return (
-    lastArtifactsModification.getTime() > lastSourcesModification.getTime()
-  );
+  return lastBuidlerVersion === currentVersion;
 }

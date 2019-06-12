@@ -31,5 +31,6 @@
     "test": "scripts/run-tests.sh",
     "lint": "lerna exec -- npm run lint",
     "lint:fix": "lerna exec -- npm run lint:fix"
-  }
+  },
+  "dependencies": {}
 }
