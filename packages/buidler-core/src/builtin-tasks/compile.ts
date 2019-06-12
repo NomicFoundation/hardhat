@@ -27,7 +27,7 @@ import {
   TASK_COMPILE_GET_SOURCE_PATHS,
   TASK_COMPILE_RUN_COMPILER
 } from "./task-names";
-import { areArtifactsCached } from "./utils/cache";
+import { areArtifactsCached, cacheBuidlerConfig } from "./utils/cache";
 
 export default function() {
   internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
@@ -108,6 +108,8 @@ export default function() {
       throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
     }
 
+    await cacheBuidlerConfig(config.paths, config.solc);
+
     return output;
   });
 
@@ -124,7 +126,7 @@ export default function() {
       .getResolvedFiles()
       .map(file => file.lastModificationDate.getTime());
 
-    return areArtifactsCached(sourceTimestamps, config.paths);
+    return areArtifactsCached(sourceTimestamps, config.solc, config.paths);
   });
 
   internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {

@@ -32,7 +32,5 @@
     "lint": "lerna exec -- npm run lint",
     "lint:fix": "lerna exec -- npm run lint:fix"
   },
-  "dependencies": {
-    "@types/deep-equal": "^1.0.1"
-  }
+  "dependencies": {}
 }

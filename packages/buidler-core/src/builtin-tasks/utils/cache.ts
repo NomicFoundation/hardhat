@@ -1,5 +1,5 @@
-import deepEqual from "deep-equal";
 import fsExtra from "fs-extra";
+import isEqual from "lodash/isEqual";
 import path from "path";
 
 import { glob } from "../../internal/util/glob";
@@ -10,11 +10,10 @@ import { ProjectPaths, SolcConfig } from "../../types";
 // Furthermore, cache is invalidated if Buidler's version changes, or a different solc version is set in the buidler config.
 export async function areArtifactsCached(
   sourceTimestamps: number[],
+  newSolcConfig: SolcConfig,
   paths: ProjectPaths
 ): Promise<boolean> {
   const oldConfig = await getLastUsedConfig(paths.cache);
-
-  const newSolcConfig = await getSolcConfig(paths.configFile);
 
   if (
     oldConfig === undefined ||
@@ -24,7 +23,6 @@ export async function areArtifactsCached(
     }) ||
     !(await compareBuidlerVersion(oldConfig.buidlerVersion))
   ) {
-    await saveLastConfigUsed(paths, newSolcConfig);
     return false;
   }
 
@@ -73,7 +71,10 @@ async function getLastUsedConfig(
   return module.require(pathToConfig);
 }
 
-async function saveLastConfigUsed(paths: ProjectPaths, config: SolcConfig) {
+export async function cacheBuidlerConfig(
+  paths: ProjectPaths,
+  config: SolcConfig
+) {
   const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths.cache);
   const newJson = {
     solc: config,
@@ -92,7 +93,6 @@ async function saveLastConfigUsed(paths: ProjectPaths, config: SolcConfig) {
 async function getSolcConfig(configPath: string): Promise<SolcConfig> {
   const solcConfig: SolcConfig = (await module.require(configPath)).solc;
 
-  console.log({ solcConfig });
   return solcConfig;
 }
 
@@ -103,7 +103,7 @@ function compareSolcConfigs({
   oldConfig: SolcConfig;
   newConfig: SolcConfig;
 }): boolean {
-  return deepEqual(oldConfig, newConfig, { strict: true });
+  return isEqual(oldConfig, newConfig);
 }
 
 async function getCurrentBuidlerVersion(): Promise<string> {
