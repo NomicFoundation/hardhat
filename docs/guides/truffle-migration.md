@@ -23,7 +23,8 @@ npm install
 Install Buidler and the Truffle 5 plugin:
 
 ```bash
-npm install @nomiclabs/buidler @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37
+npm install @nomiclabs/buidler @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3
+npm install --save-exact web3@1.0.0-beta.37
 ```
 
 Then put the following into `buidler.config.js`:

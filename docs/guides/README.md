@@ -84,7 +84,8 @@ These are:
 The sample project comes with a test written using the Ethereum provider, but let’s also install `buidler-truffle5` and test out the Truffle 5 integration:
 
 ```bash
-npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3@1.0.0-beta.37
+npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 
+npm install --save-exact web3@1.0.0-beta.37
 ```
 
 Add `usePlugin("@nomiclabs/buidler-truffle5")` to the top of your `buidler.config.js`, and let’s change `test/sample-test.js` to:
