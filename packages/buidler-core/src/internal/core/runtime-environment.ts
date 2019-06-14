@@ -3,6 +3,7 @@ import {
   BuidlerRuntimeEnvironment,
   EnvironmentExtender,
   IEthereumProvider,
+  Network,
   ResolvedBuidlerConfig,
   RunSuperFunction,
   RunTaskFunction,
@@ -10,7 +11,6 @@ import {
   TaskDefinition,
   TasksMap
 } from "../../types";
-import { BuidlerContext } from "../context";
 import { lazyObject } from "../util/lazy";
 
 import { BuidlerError, ERRORS } from "./errors";
@@ -27,6 +27,8 @@ export class Environment implements BuidlerRuntimeEnvironment {
    * An EIP1193 Ethereum provider.
    */
   public ethereum: IEthereumProvider;
+
+  public network: Network;
 
   private readonly _extenders: EnvironmentExtender[];
 
@@ -48,11 +50,28 @@ export class Environment implements BuidlerRuntimeEnvironment {
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = []
   ) {
-    this.ethereum = lazyObject(() =>
-      createProvider(buidlerArguments.network, config.networks)
-    );
+    const networkName =
+      buidlerArguments.network !== undefined
+        ? buidlerArguments.network
+        : config.defaultNetwork;
 
+    const networkConfig = config.networks[networkName];
+
+    if (networkConfig === undefined) {
+      throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, networkName);
+    }
+
+    const provider = lazyObject(() => createProvider(networkConfig));
+
+    this.network = {
+      name: networkName,
+      config: config.networks[networkName],
+      provider
+    };
+
+    this.ethereum = provider;
     this._extenders = extenders;
+
     extenders.forEach(extender => extender(this));
   }
 

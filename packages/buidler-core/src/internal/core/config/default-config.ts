@@ -1,6 +1,7 @@
 import { BuidlerConfig } from "../../../types";
 
 const defaultConfig: BuidlerConfig = {
+  defaultNetwork: "develop",
   solc: {
     version: require("solc/package.json").version,
     optimizer: {
@@ -11,9 +12,6 @@ const defaultConfig: BuidlerConfig = {
   networks: {
     develop: {
       url: "http://127.0.0.1:8545"
-    },
-    auto: {
-      blockGasLimit: 7500000
     }
   }
 };

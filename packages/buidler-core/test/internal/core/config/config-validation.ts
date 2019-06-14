@@ -8,6 +8,15 @@ import { ERRORS } from "../../../../src/internal/core/errors";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 describe("Config validation", function() {
+  describe("default network config", function() {
+    it("Should fail if the wrong type is used", function() {
+      expectBuidlerError(
+        () => validateConfig({ defaultNetwork: 123 }),
+        ERRORS.GENERAL.INVALID_CONFIG
+      );
+    });
+  });
+
   describe("Solc config", function() {
     const invalidSolcType = {
       solc: 123

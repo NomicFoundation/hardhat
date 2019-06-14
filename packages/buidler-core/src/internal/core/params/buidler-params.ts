@@ -5,7 +5,7 @@ import * as types from "./argumentTypes";
 export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   network: {
     name: "network",
-    defaultValue: "develop",
+    defaultValue: undefined,
     description: "The network to connect to.",
     type: types.string,
     isOptional: true,

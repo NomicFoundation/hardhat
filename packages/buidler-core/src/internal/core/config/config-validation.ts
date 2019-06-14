@@ -142,6 +142,7 @@ const SolcConfig = t.type({
 
 const BuidlerConfig = t.type(
   {
+    defaultNetwork: optional(t.string),
     networks: optional(Networks),
     paths: optional(ProjectPaths),
     solc: optional(SolcConfig)

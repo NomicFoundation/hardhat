@@ -25,8 +25,9 @@ describe("Config resolution", () => {
       it("should return the default config", () => {
         const config = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
-        assert.containsAllKeys(config.networks, ["auto", "develop"]);
+        assert.containsAllKeys(config.networks, ["develop"]);
         assert.isUndefined(config.solc.evmVersion);
+        assert.equal(config.defaultNetwork, "develop");
       });
     });
 
@@ -37,13 +38,14 @@ describe("Config resolution", () => {
         const config = loadConfigAndTasks();
 
         assert.equal(config.solc.version, getLocalCompilerVersion());
-        assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
+        assert.containsAllKeys(config.networks, ["develop", "custom"]);
+        assert.equal(config.defaultNetwork, "custom");
       });
 
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
-        assert.containsAllKeys(config.networks, ["auto", "develop", "custom"]);
+        assert.containsAllKeys(config.networks, ["develop", "custom"]);
         assert.equal(
           (config.networks.develop as HttpNetworkConfig).url,
           "http://127.0.0.1:8545"

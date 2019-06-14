@@ -2,6 +2,7 @@ import {
   HDAccountsConfig,
   HttpNetworkConfig,
   IEthereumProvider,
+  NetworkConfig,
   NetworkConfigAccounts,
   Networks
 } from "../../../types";
@@ -14,36 +15,15 @@ export function isHDAccountsConfig(
 }
 
 export function createProvider(
-  selectedNetwork: string,
-  networksConfig?: Networks
+  networkConfig: NetworkConfig
 ): IEthereumProvider {
-  if (
-    networksConfig === undefined ||
-    networksConfig[selectedNetwork] === undefined
-  ) {
-    throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, selectedNetwork);
-  }
-
-  if (selectedNetwork === "auto") {
-    throw new BuidlerError(
-      ERRORS.GENERAL.UNSUPPORTED_OPERATION,
-      "auto network"
-    );
-  }
-
-  const netConfig = networksConfig[selectedNetwork] as Partial<
-    HttpNetworkConfig
-  >;
-
   // These dependencies are lazy-loaded because they are really big.
   // We use require() instead of import() here, because we need it to be sync.
 
+  const netConfig = networkConfig as HttpNetworkConfig;
+
   const { HttpProvider } = require("web3x/providers");
-
-  const url =
-    netConfig.url !== undefined ? netConfig.url : "http://localhost:8545";
-
-  const provider: IEthereumProvider = new HttpProvider(url);
+  const provider: IEthereumProvider = new HttpProvider(netConfig.url!);
 
   return wrapEthereumProvider(provider, netConfig);
 }
