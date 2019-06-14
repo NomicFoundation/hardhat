@@ -216,6 +216,14 @@ export class ArgumentsParser {
     } else {
       index++;
       const value = rawCLAs[index];
+
+      if (value === undefined) {
+        throw new BuidlerError(
+          ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+          paramName
+        );
+      }
+
       parsedArguments[paramName] = definition.type.parse(paramName, value);
     }
 
