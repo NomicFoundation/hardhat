@@ -229,13 +229,14 @@ An empty `builder.config.js` is enough for builder to work.
 
 ### Available config options
 
-The exported config object can have the following entries: `networks`, `solc`, and `paths`. A complete configuration would look like this:
+The exported config object can have the following entries: `defaultNetwork`, `networks`, `solc`, and `paths`. A complete configuration would look like this:
 
 ```js
 module.exports = {
+  defaultNetwork: "networkName",
   networks: {...},
-  solc: {…},
-  paths:{…}
+  solc: {...},
+  paths:{...}
 }
 ```
 
@@ -248,8 +249,10 @@ The `networks` config field is an optional object where network names map to obj
 - `from`: The address to use as default sender. If not present the first account of the node is used.
 - `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: `"auto"`.
 - `gasPrice`: Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `"auto"`.
-- `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertenty of the estimation process. Default: `1`.
+- `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an HD Wallet (see below). Default value: `"remote"`.
+
+You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value will be `"develop"`. 
 
 ##### HD Wallet config
 
