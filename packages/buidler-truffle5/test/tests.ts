@@ -290,18 +290,12 @@ describe("Gas multiplier", function() {
     );
 
     it("Should use the set one for deployments", async function() {
-      const multiplier = this.env.config.networks[
-        this.env.buidlerArguments.network
-      ].gasMultiplier!;
-
+      const multiplier = this.env.network.config.gasMultiplier!;
       await assertItWorksForDeployments(this.env, multiplier);
     });
 
     it("Should use the set one for functions", async function() {
-      const multiplier = this.env.config.networks[
-        this.env.buidlerArguments.network
-      ].gasMultiplier!;
-
+      const multiplier = this.env.network.config.gasMultiplier!;
       await assertItWorksForFunctions(this.env, multiplier);
     });
   });
