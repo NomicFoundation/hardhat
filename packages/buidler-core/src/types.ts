@@ -15,13 +15,13 @@ interface CommonNetworkConfig {
   gasMultiplier?: number;
 }
 
-interface AutoNetworkAccount {
+interface BuidlerNetworkAccount {
   privateKey: string;
   balance: string;
 }
 
-export interface AutoNetworkConfig extends CommonNetworkConfig {
-  accounts?: AutoNetworkAccount[];
+export interface BuidlerNetworkConfig extends CommonNetworkConfig {
+  accounts?: BuidlerNetworkAccount[];
   blockGasLimit?: number;
 }
 
@@ -47,7 +47,7 @@ export interface HttpNetworkConfig extends CommonNetworkConfig {
   accounts?: NetworkConfigAccounts;
 }
 
-export type NetworkConfig = AutoNetworkConfig | HttpNetworkConfig;
+export type NetworkConfig = BuidlerNetworkConfig | HttpNetworkConfig;
 
 export interface Networks {
   [networkName: string]: NetworkConfig;

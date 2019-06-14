@@ -9,7 +9,6 @@ describe("Buidler lib", () => {
   useEnvironment();
 
   before(() => {
-    // TODO: This next line can be removed once 'auto' network gets back
     process.env.BUIDLER_NETWORK = "develop";
   });
 
