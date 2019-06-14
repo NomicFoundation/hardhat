@@ -2,7 +2,11 @@ import { assert } from "chai";
 
 import { ArgumentsParser } from "../../../src/internal/cli/ArgumentsParser";
 import { ERRORS } from "../../../src/internal/core/errors";
-import { int, string } from "../../../src/internal/core/params/argumentTypes";
+import {
+  boolean,
+  int,
+  string
+} from "../../../src/internal/core/params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/internal/core/params/buidler-params";
 import { SimpleTaskDefinition } from "../../../src/internal/core/tasks/task-definitions";
 import {
@@ -353,6 +357,19 @@ describe("ArgumentsParser", () => {
         bleep: 1337,
         positional: "foobar"
       });
+    });
+
+    it("Shouldn't throw the right error if the last CLA is a non-flag --param", () => {
+      const rawCLAs: string[] = ["--b"];
+
+      taskDefinition = new SimpleTaskDefinition("t", false)
+        .addOptionalParam("b", "A boolean", true, boolean)
+        .setAction(async () => {});
+
+      expectBuidlerError(
+        () => argumentsParser.parseTaskArguments(taskDefinition, rawCLAs),
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT
+      );
     });
   });
 });
