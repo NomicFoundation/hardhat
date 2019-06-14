@@ -1,4 +1,5 @@
 import * as assert from "assert";
+import * as path from "path";
 
 import {
   getArtifactFromContractOutput,
@@ -149,6 +150,19 @@ describe("Artifacts utils", function() {
 
         assert.deepEqual(storedArtifact, artifact);
       }
+    });
+
+    it("Should save the artifact even if the artifacts directory doesn't exist", async function() {
+      const nonexistentPath = path.join(this.tmpDir, "I-DONT-EXIST");
+      const name = "Lib";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(nonexistentPath, artifact);
+      const storedArtifact = await readArtifact(nonexistentPath, name);
+
+      assert.deepEqual(storedArtifact, artifact);
     });
 
     it("It should write and read (sync) the right artifacts", async function() {

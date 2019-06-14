@@ -42,6 +42,7 @@ function getArtifactPath(artifactsPath: string, contractName: string): string {
  * @param artifact the artifact to be stored.
  */
 export async function saveArtifact(artifactsPath: string, artifact: Artifact) {
+  await fsExtra.ensureDir(artifactsPath);
   await fsExtra.writeJSON(
     artifactsPath + "/" + artifact.contractName + ".json",
     artifact,
