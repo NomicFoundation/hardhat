@@ -8,6 +8,15 @@ import { ERRORS } from "../../../../src/internal/core/errors";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 describe("Config validation", function() {
+  describe("default network config", function() {
+    it("Should fail if the wrong type is used", function() {
+      expectBuidlerError(
+        () => validateConfig({ defaultNetwork: 123 }),
+        ERRORS.GENERAL.INVALID_CONFIG
+      );
+    });
+  });
+
   describe("Solc config", function() {
     const invalidSolcType = {
       solc: 123
@@ -246,13 +255,13 @@ describe("Config validation", function() {
         });
       });
 
-      describe("Auto network config", function() {
+      describe("Buidler network config", function() {
         it("Should fail with invalid types", function() {
           expectBuidlerError(
             () =>
               validateConfig({
                 networks: {
-                  auto: 123
+                  buidler: 123
                 }
               }),
             ERRORS.GENERAL.INVALID_CONFIG
@@ -262,7 +271,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     chainId: "asd"
                   }
                 }
@@ -274,7 +283,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     from: 123
                   }
                 }
@@ -286,7 +295,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     gas: "asdasd"
                   }
                 }
@@ -298,7 +307,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     gasPrice: "6789"
                   }
                 }
@@ -310,7 +319,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     gasMultiplier: "123"
                   }
                 }
@@ -322,7 +331,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     blockGasLimit: "asd"
                   }
                 }
@@ -334,7 +343,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     accounts: 123
                   }
                 }
@@ -346,7 +355,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     accounts: [{}]
                   }
                 }
@@ -358,7 +367,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     accounts: [{ privateKey: "" }]
                   }
                 }
@@ -370,7 +379,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     accounts: [{ balance: "" }]
                   }
                 }
@@ -382,7 +391,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     accounts: [{ privateKey: 123 }]
                   }
                 }
@@ -394,7 +403,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  auto: {
+                  buidler: {
                     accounts: [{ balance: 213 }]
                   }
                 }
@@ -418,8 +427,8 @@ describe("Config validation", function() {
             assert.isEmpty(errors);
           });
 
-          it("Shouldn't fail if no url is set for auto network", function() {
-            const errors = getValidationErrors({ networks: { auto: {} } });
+          it("Shouldn't fail if no url is set for buidler network", function() {
+            const errors = getValidationErrors({ networks: { buidler: {} } });
             assert.isEmpty(errors);
           });
         });
@@ -705,7 +714,7 @@ describe("Config validation", function() {
             gasMultiplier: 123,
             url: ""
           },
-          auto: {
+          buidler: {
             gas: 678,
             gasPrice: 123,
             blockGasLimit: 8000,
@@ -772,7 +781,7 @@ describe("Config validation", function() {
           develop: {
             asd: 1232
           },
-          auto: {
+          buidler: {
             asdasd: "123"
           }
         }

@@ -25,7 +25,7 @@ export default function() {
 
   extendEnvironment(env => {
     env.artifacts = lazyObject(() => {
-      const networkConfig = env.config.networks[env.buidlerArguments.network];
+      const networkConfig = env.network.config;
 
       const provisioner = new LazyTruffleContractProvisioner(
         env.web3,
@@ -40,8 +40,7 @@ export default function() {
       const execute = require("truffle-contract/lib/execute");
 
       let noDefaultAccounts = false;
-      let defaultAccount: string | undefined =
-        env.config.networks[env.buidlerArguments.network].from;
+      let defaultAccount: string | undefined = networkConfig.from;
 
       async function addFromIfNeededAndAvailable(params: any) {
         if (noDefaultAccounts) {

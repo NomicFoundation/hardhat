@@ -34,31 +34,10 @@ describe("Network config typeguards", async () => {
 });
 
 describe("Base provider creation", () => {
-  it("Should fail if trying to use auto network", () => {
-    assert.throws(() => createProvider("auto"));
-  });
-
   it("Should create a valid HTTP provider and wrap it", () => {
-    const provider = createProvider("asd", { asd: { url: "asdads" } });
+    const provider = createProvider({ url: "http://localhost:8545" });
 
     assert.instanceOf(provider, HttpProvider);
-  });
-
-  it("Should set a default url if none is given", () => {
-    const provider: any = createProvider("asd", { asd: {} });
-    assert.equal(provider.provider.host, "http://localhost:8545");
-  });
-
-  it("should fail on getting non existent network config", () => {
-    expectBuidlerError(() => {
-      createProvider("asd", {});
-    }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
-  });
-
-  it("should fail if no networks config is provided", () => {
-    expectBuidlerError(() => {
-      createProvider("asd");
-    }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
   });
 });
 

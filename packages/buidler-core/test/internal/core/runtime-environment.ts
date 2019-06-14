@@ -11,47 +11,50 @@ import {
   ResolvedBuidlerConfig,
   TaskArguments
 } from "../../../src/types";
+import { expectBuidlerError } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
-  let config: ResolvedBuidlerConfig;
-  let args: BuidlerArguments;
+  const config: ResolvedBuidlerConfig = {
+    defaultNetwork: "default",
+    networks: {
+      local: {
+        url: "http://localhost:8545"
+      },
+      default: {
+        url: "http://localhost:8545"
+      }
+    },
+    paths: {
+      root: "",
+      configFile: "",
+      cache: "",
+      artifacts: "",
+      sources: "",
+      tests: ""
+    },
+    solc: {
+      version: "0.5.0",
+      optimizer: {
+        enabled: false,
+        runs: 0
+      },
+      evmVersion: "byzantium"
+    },
+    mocha: {}
+  };
+
+  const args: BuidlerArguments = {
+    network: "local",
+    showStackTraces: false,
+    version: false,
+    help: false,
+    emoji: false
+  };
+
   let tasks: TaskArguments;
   let env: BuidlerRuntimeEnvironment;
   let dsl: TasksDSL;
-  before(() => {
-    config = {
-      networks: {
-        local: {
-          url: "http://localhost:8545"
-        }
-      },
-      paths: {
-        root: "",
-        configFile: "",
-        cache: "",
-        artifacts: "",
-        sources: "",
-        tests: ""
-      },
-      solc: {
-        version: "0.5.0",
-        optimizer: {
-          enabled: false,
-          runs: 0
-        },
-        evmVersion: "byzantium"
-      },
-      mocha: {}
-    };
-    args = {
-      network: "local",
-      showStackTraces: false,
-      version: false,
-      help: false,
-      emoji: false
-    };
-  });
 
   beforeEach(() => {
     const ctx = BuidlerContext.createBuidlerContext();
@@ -72,6 +75,7 @@ describe("Environment", () => {
       assert.deepEqual(env.config, config);
       assert.isDefined(env.tasks);
       assert.isDefined(env.ethereum);
+      assert.isDefined(env.network);
     });
 
     it("should run a task correctly", async () => {
@@ -105,20 +109,54 @@ describe("Environment", () => {
       dsl.task(
         "with-subtask",
         "description",
-        async ({}, { run, config: theConfig }, runSuper) => {
+        async ({}, { run, config: theConfig, network }, runSuper) => {
           const globalAsAny = global as any;
           assert.equal(globalAsAny.config, theConfig);
           assert.isDefined(globalAsAny.config);
           assert.equal(globalAsAny.runSuper, runSuper);
+          assert.isDefined(globalAsAny.network);
 
           await run("example");
 
           assert.equal(globalAsAny.config, theConfig);
           assert.equal(globalAsAny.runSuper, runSuper);
+          assert.equal(globalAsAny.network, network);
         }
       );
 
       await env.run("with-subtask");
+    });
+
+    it("Should define the network field correctly", () => {
+      assert.isDefined(env.network);
+      assert.equal(env.network.name, "local");
+      assert.equal(env.network.config, config.networks.local);
+      assert.equal(env.network.provider, env.ethereum);
+    });
+
+    it("Should throw if the chosen network doesn't exist", () => {
+      expectBuidlerError(() => {
+        const ctx = BuidlerContext.getBuidlerContext();
+        env = new Environment(
+          config,
+          { ...args, network: "NOPE" },
+          tasks,
+          ctx.extendersManager.getExtenders()
+        );
+      }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
+    });
+
+    it("Should choose the default network if none is selected", () => {
+      const ctx = BuidlerContext.getBuidlerContext();
+      env = new Environment(
+        config,
+        { ...args, network: undefined },
+        tasks,
+        ctx.extendersManager.getExtenders()
+      );
+
+      assert.equal(env.network.name, "default");
+      assert.equal(env.network.config, config.networks.default);
     });
   });
 

@@ -15,13 +15,13 @@ interface CommonNetworkConfig {
   gasMultiplier?: number;
 }
 
-interface AutoNetworkAccount {
+interface BuidlerNetworkAccount {
   privateKey: string;
   balance: string;
 }
 
-export interface AutoNetworkConfig extends CommonNetworkConfig {
-  accounts?: AutoNetworkAccount[];
+export interface BuidlerNetworkConfig extends CommonNetworkConfig {
+  accounts?: BuidlerNetworkAccount[];
   blockGasLimit?: number;
 }
 
@@ -47,7 +47,7 @@ export interface HttpNetworkConfig extends CommonNetworkConfig {
   accounts?: NetworkConfigAccounts;
 }
 
-export type NetworkConfig = AutoNetworkConfig | HttpNetworkConfig;
+export type NetworkConfig = BuidlerNetworkConfig | HttpNetworkConfig;
 
 export interface Networks {
   [networkName: string]: NetworkConfig;
@@ -85,6 +85,7 @@ export interface SolcOptimizerConfig {
 }
 
 export interface BuidlerConfig {
+  defaultNetwork?: string;
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
   solc?: DeepPartial<SolcConfig>;
@@ -92,6 +93,7 @@ export interface BuidlerConfig {
 }
 
 export interface ResolvedBuidlerConfig extends BuidlerConfig {
+  defaultNetwork: string;
   paths: ProjectPaths;
   networks: Networks;
   solc: SolcConfig;
@@ -202,7 +204,7 @@ export interface ParamDefinitionsMap {
  * * config: used to specify buidler's config file.
  */
 export interface BuidlerArguments {
-  network: string;
+  network?: string;
   showStackTraces: boolean;
   version: boolean;
   help: boolean;
@@ -232,6 +234,7 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
 export interface TaskArguments {
   [argumentName: string]: any;
 }
+
 export type RunTaskFunction = (
   name: string,
   taskArguments?: TaskArguments
@@ -251,12 +254,19 @@ export type ActionType<ArgsT extends TaskArguments> = (
 // https://ethereum-magicians.org/t/eip-1193-ethereum-provider-javascript-api/640/31?u=alcuadrado
 export type IEthereumProvider = EthereumProvider;
 
+export interface Network {
+  name: string;
+  config: NetworkConfig;
+  provider: IEthereumProvider;
+}
+
 export interface BuidlerRuntimeEnvironment {
-  readonly ethereum: IEthereumProvider;
   readonly config: ResolvedBuidlerConfig;
   readonly buidlerArguments: BuidlerArguments;
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
+  readonly network: Network;
+  readonly ethereum: IEthereumProvider; // DEPRECATED: Use network.provider
 }
 
 /**

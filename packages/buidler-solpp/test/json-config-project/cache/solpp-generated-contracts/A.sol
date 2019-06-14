@@ -1,7 +1,0 @@
-pragma solidity >=0.4.21 <0.6.0;
-
-
-
-contract A {
-  uint a = 48192.418291248;
-}

@@ -72,18 +72,18 @@ function optional<TypeT, OutputT>(
 
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
-const AutoNetworkAccount = t.type({
+const BuidlerNetworkAccount = t.type({
   privateKey: t.string,
   balance: t.string
 });
 
-const AutoNetworkConfig = t.type({
+const BuidlerNetworkConfig = t.type({
   chainId: optional(t.number),
   from: optional(t.string),
   gas: optional(t.union([t.literal("auto"), t.number])),
   gasPrice: optional(t.union([t.literal("auto"), t.number])),
   gasMultiplier: optional(t.number),
-  accounts: optional(t.array(AutoNetworkAccount)),
+  accounts: optional(t.array(BuidlerNetworkAccount)),
   blockGasLimit: optional(t.number)
 });
 
@@ -115,7 +115,7 @@ const HttpNetworkConfig = t.type({
   accounts: optional(NetworkConfigAccounts)
 });
 
-const NetworkConfig = t.union([AutoNetworkConfig, HttpNetworkConfig]);
+const NetworkConfig = t.union([BuidlerNetworkConfig, HttpNetworkConfig]);
 
 const Networks = t.record(t.string, NetworkConfig);
 
@@ -142,6 +142,7 @@ const SolcConfig = t.type({
 
 const BuidlerConfig = t.type(
   {
+    defaultNetwork: optional(t.string),
     networks: optional(Networks),
     paths: optional(ProjectPaths),
     solc: optional(SolcConfig)
@@ -170,32 +171,32 @@ export function getValidationErrors(config: any): string[] {
 
   // These can't be validated with io-ts
   if (config !== undefined && typeof config.networks === "object") {
-    const autoNetwork = config.networks.auto;
-    if (autoNetwork !== undefined) {
-      if (autoNetwork.url !== undefined) {
-        errors.push("BuidlerConfig.networks.auto can't have an url");
+    const buidlerNetwork = config.networks.buidler;
+    if (buidlerNetwork !== undefined) {
+      if (buidlerNetwork.url !== undefined) {
+        errors.push("BuidlerConfig.networks.buidler can't have an url");
       }
 
       if (
-        autoNetwork.blockGasLimit !== undefined &&
-        typeof autoNetwork.blockGasLimit !== "number"
+        buidlerNetwork.blockGasLimit !== undefined &&
+        typeof buidlerNetwork.blockGasLimit !== "number"
       ) {
         errors.push(
           getErrorMessage(
-            "BuidlerConfig.networks.auto.blockGasLimit",
-            autoNetwork.blockGasLimit,
+            "BuidlerConfig.networks.buidler.blockGasLimit",
+            buidlerNetwork.blockGasLimit,
             "number | undefined"
           )
         );
       }
 
-      if (autoNetwork.accounts !== undefined) {
-        if (Array.isArray(autoNetwork.accounts)) {
-          for (const account of autoNetwork.accounts) {
+      if (buidlerNetwork.accounts !== undefined) {
+        if (Array.isArray(buidlerNetwork.accounts)) {
+          for (const account of buidlerNetwork.accounts) {
             if (typeof account.privateKey !== "string") {
               errors.push(
                 getErrorMessage(
-                  "BuidlerConfig.networks.auto.accounts[].privateKey",
+                  "BuidlerConfig.networks.buidler.accounts[].privateKey",
                   account.privateKey,
                   "string"
                 )
@@ -205,7 +206,7 @@ export function getValidationErrors(config: any): string[] {
             if (typeof account.balance !== "string") {
               errors.push(
                 getErrorMessage(
-                  "BuidlerConfig.networks.auto.accounts[].balance",
+                  "BuidlerConfig.networks.buidler.accounts[].balance",
                   account.balance,
                   "string"
                 )
@@ -215,8 +216,8 @@ export function getValidationErrors(config: any): string[] {
         } else {
           errors.push(
             getErrorMessage(
-              "BuidlerConfig.networks.auto.accounts",
-              autoNetwork.accounts,
+              "BuidlerConfig.networks.buidler.accounts",
+              buidlerNetwork.accounts,
               "[{privateKey: string, balance: string}] | undefined"
             )
           );
@@ -227,7 +228,7 @@ export function getValidationErrors(config: any): string[] {
     for (const [networkName, netConfig] of Object.entries<any>(
       config.networks
     )) {
-      if (networkName === "auto") {
+      if (networkName === "buidler") {
         continue;
       }
 

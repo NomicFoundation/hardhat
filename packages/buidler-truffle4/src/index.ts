@@ -26,7 +26,7 @@ export default function() {
     env.artifacts = lazyObject(() => {
       const provisioner = new LazyTruffleContractProvisioner(
         env.web3,
-        env.config.networks[env.buidlerArguments.network].from
+        env.network.config.from
       );
 
       return new TruffleEnvironmentArtifacts(
