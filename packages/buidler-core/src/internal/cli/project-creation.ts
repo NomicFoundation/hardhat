@@ -1,4 +1,4 @@
-import colors from "ansi-colors";
+import chalk from "chalk";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -25,16 +25,16 @@ async function removeTempFilesIfPresent(projectRoot: string) {
 }
 
 function printAsciiLogo() {
-  console.log(colors.blue(`888               d8b      888 888`));
-  console.log(colors.blue(`888               Y8P      888 888`));
-  console.log(colors.blue("888                        888 888"));
+  console.log(chalk.blue(`888               d8b      888 888`));
+  console.log(chalk.blue(`888               Y8P      888 888`));
+  console.log(chalk.blue("888                        888 888"));
   console.log(
-    colors.blue("88888b.  888  888 888  .d88888 888  .d88b.  888d888")
+    chalk.blue("88888b.  888  888 888  .d88888 888  .d88b.  888d888")
   );
-  console.log(colors.blue('888 "88b 888  888 888 d88" 888 888 d8P  Y8b 888P"'));
-  console.log(colors.blue("888  888 888  888 888 888  888 888 88888888 888"));
-  console.log(colors.blue("888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888"));
-  console.log(colors.blue(`88888P"   "Y88888 888  "Y88888 888  "Y8888  888`));
+  console.log(chalk.blue('888 "88b 888  888 888 d88" 888 888 d8P  Y8b 888P"'));
+  console.log(chalk.blue("888  888 888  888 888 888  888 888 88888888 888"));
+  console.log(chalk.blue("888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888"));
+  console.log(chalk.blue(`88888P"   "Y88888 888  "Y88888 888  "Y8888  888`));
   console.log("");
 }
 
@@ -42,7 +42,7 @@ async function printWelcomeMessage() {
   const packageJson = await getPackageJson();
 
   console.log(
-    colors.cyan(
+    chalk.cyan(
       `${emoji("👷 ")}Welcome to ${BUIDLER_NAME} v${packageJson.version}${emoji(
         " 👷‍"
       )}‍\n`
@@ -160,7 +160,7 @@ export async function createProject() {
   if (action === CREATE_EMPTY_BUIDLER_CONFIG_ACTION) {
     await writeEmptyBuidlerConfig();
     console.log(
-      colors.cyan(`${emoji("✨ ")}Config file created${emoji(" ✨")}`)
+      chalk.cyan(`${emoji("✨ ")}Config file created${emoji(" ✨")}`)
     );
     return;
   }
@@ -209,7 +209,7 @@ export async function createProject() {
     await addGitAttributes(projectRoot);
   }
 
-  console.log(colors.cyan(`\n${emoji("✨ ")}Project created${emoji(" ✨")}`));
+  console.log(chalk.cyan(`\n${emoji("✨ ")}Project created${emoji(" ✨")}`));
 
   console.log(``);
 
