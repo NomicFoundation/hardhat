@@ -31,7 +31,7 @@ You can run a package's tests by executing `npm run test` inside its folder. Or 
 ## Code formatting
 
 We use [Prettier](https://prettier.io/) to format all the code without any special configuration. Whatever Prettier does
-is consider The Right Thing. It's completely fine to commit non-prettied code and then reformat it in a later commit.  
+is considered The Right Thing. It's completely fine to commit non-prettied code and then reformat it in a later commit.  
 
 We also have [tslint](https://palantir.github.io/tslint/) installed in all the projects. It checks that you have run
 Prettier and forbids some dangerous patterns.
@@ -52,7 +52,7 @@ Buidler and its plugins are optimized for keeping startup time low.
 
 This is done by selectively requiring dependencies when needed using `import` or `require` following this criteria:
 
-1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod""` 
+1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"` 
 1. If a module is in the least below, use a top-level `import ... from "mod""`.
 3. Otherwise, use `await import` or `require` locally in the functions that use it.
   3.1. If the function is sync, use node's `require`
@@ -69,6 +69,7 @@ This is a list of the modules that always get loaded during startup:
 * `util`
 * `find-up`
 * `fs-extra`
+* `chalk`
 * `semver`
 * `deepmerge`
 * `source-map-support/register`
