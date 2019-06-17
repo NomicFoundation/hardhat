@@ -38,6 +38,8 @@ On [Buidler's website](https://buidler.dev) you will find:
 
 Contributions are always welcome! Feel free to open any issue or send a pull request.
 
+Go to [CONTRIBUTING.md](./CONTRIBUTING.md) to learn about how to set up Buidler's development environment. 
+
 ## Feedback, help and news
 
 [Buidler Support Telegram group](http://t.me/BuidlerSupport): for questions and feedback.

@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-// tslint:disable-next-line
-// tslint:disable-next-line
-import colors from "ansi-colors";
+import chalk from "chalk";
 import semver from "semver";
+// tslint:disable-next-line
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
@@ -121,20 +120,20 @@ async function main() {
 
     if (error instanceof BuidlerError) {
       isBuidlerError = true;
-      console.error(colors.red("Error " + error.message));
+      console.error(chalk.red("Error " + error.message));
     } else if (error instanceof BuidlerPluginError) {
       isBuidlerError = true;
       console.error(
-        colors.red("Error in plugin " + error.pluginName + ": " + error.message)
+        chalk.red("Error in plugin " + error.pluginName + ": " + error.message)
       );
     } else if (error instanceof Error) {
       console.error(
-        colors.red("An unexpected error occurred: " + error.message)
+        chalk.red("An unexpected error occurred: " + error.message)
       );
 
       showStackTraces = true;
     } else {
-      console.error(colors.red("An unexpected error occurred."));
+      console.error(chalk.red("An unexpected error occurred."));
       showStackTraces = true;
     }
 

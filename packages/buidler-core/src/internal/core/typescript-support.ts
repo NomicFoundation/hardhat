@@ -1,4 +1,4 @@
-import colors from "ansi-colors";
+import chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -55,7 +55,7 @@ export function loadTsNodeIfPresent() {
       // See: https://github.com/nomiclabs/buidler/issues/274
       if (error.message.includes("Cannot find module 'typescript'")) {
         console.warn(
-          colors.yellow(
+          chalk.yellow(
             "Failed to load TypeScript support. Please update ts-node."
           )
         );

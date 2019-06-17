@@ -1,4 +1,4 @@
-import colors from "ansi-colors";
+import chalk from "chalk";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -96,10 +96,10 @@ export default function() {
         if (error.severity === "error") {
           hasErrors = true;
           console.log("\n");
-          console.error(colors.red(error.formattedMessage));
+          console.error(chalk.red(error.formattedMessage));
         } else {
           console.log("\n");
-          console.warn(colors.yellow(error.formattedMessage));
+          console.warn(chalk.yellow(error.formattedMessage));
         }
       }
     }
