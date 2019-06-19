@@ -33,10 +33,13 @@
     "LICENSE",
     "README.md"
   ],
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node-fetch": "^2.3.7"
+  },
   "peerDependencies": {},
   "dependencies": {
     "dockerode": "^2.5.8",
+    "node-fetch": "^2.6.0",
     "ts-node": "^8.2.0"
   }
 }
