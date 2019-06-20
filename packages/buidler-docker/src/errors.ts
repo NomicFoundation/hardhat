@@ -73,3 +73,10 @@ export class DockerServerError extends BuidlerDockerError {
     return "Docker server error";
   }
 }
+
+export class ExecutableNotFoundError extends BuidlerDockerError {
+  public constructor(public readonly parent?: Error) {
+    super(parent);
+    Object.setPrototypeOf(this, ExecutableNotFoundError.prototype);
+  }
+}

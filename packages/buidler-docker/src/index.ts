@@ -11,6 +11,7 @@ import {
   DockerNotInstalledError,
   DockerNotRunningError,
   DockerServerError,
+  ExecutableNotFoundError,
   ImageDoesntExistError
 } from "./errors";
 import { WritableBufferStream } from "./streams";
@@ -195,6 +196,14 @@ export class BuidlerDocker {
 
       if (error.statusCode === 500) {
         throw new DockerServerError(error);
+      }
+
+      if (
+        error.statusCode === 400 &&
+        error.message !== undefined &&
+        error.message.includes("executable file not found")
+      ) {
+        throw new ExecutableNotFoundError(error);
       }
 
       throw error;
