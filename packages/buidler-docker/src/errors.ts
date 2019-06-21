@@ -1,6 +1,8 @@
 // For an explanation about these classes constructors go to:
 // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
 
+import { Image } from "./types";
+
 export class BuidlerDockerError extends Error {
   public constructor(public readonly parent?: Error) {
     super();
@@ -8,10 +10,10 @@ export class BuidlerDockerError extends Error {
   }
 }
 
-export class ConnectionError extends BuidlerDockerError {
+export class DockerHubConnectionError extends BuidlerDockerError {
   public constructor(public readonly parent?: Error) {
     super(parent);
-    Object.setPrototypeOf(this, ConnectionError.prototype);
+    Object.setPrototypeOf(this, DockerHubConnectionError.prototype);
   }
 }
 
@@ -37,7 +39,10 @@ export class DockerBadGatewayError extends BuidlerDockerError {
 }
 
 export class ImageDoesntExistError extends BuidlerDockerError {
-  public constructor(public readonly parent?: Error) {
+  public constructor(
+    public readonly image: Image,
+    public readonly parent?: Error
+  ) {
     super(parent);
     Object.setPrototypeOf(this, ImageDoesntExistError.prototype);
   }
