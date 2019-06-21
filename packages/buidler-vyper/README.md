@@ -6,10 +6,10 @@
 
 ## What
 
-This plugin adds support for Vyper to Buidler. Once installed, Vyper contracts will be compile by the `compile` task.
+This plugin adds support for Vyper to Buidler. Once installed, Vyper contracts will can be compiled by running the `compile` task.
 
-This plugin generates teh same artifact format than the Solidity contracts' one, so it can be used in conjunction with
-all the rest of the plugins.
+This plugin generates the same artifact format as the built-in Solidity compiler, so that it can be used in conjunction with
+all other plugins.
 
 The Vyper compiler is run using the [official Docker images](https://hub.docker.com/r/ethereum/vyper).
 
