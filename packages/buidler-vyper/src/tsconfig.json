@@ -1,0 +1,18 @@
+{
+  "extends": "../../../config/typescript/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../dist",
+    "rootDirs": ["."],
+    "composite": true
+  },
+  "include": ["./**/*.ts"],
+  "exclude": [],
+  "references": [
+    {
+      "path": "../../buidler-core/src"
+    },
+    {
+      "path": "../../buidler-docker/src"
+    }
+  ]
+}

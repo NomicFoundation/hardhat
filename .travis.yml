@@ -1,5 +1,11 @@
 language: node_js
 
+services:
+  - docker
+
+before_install:
+  - docker pull ethereum/vyper:0.1.0b10
+
 node_js:
   - "8"
   - "10"
