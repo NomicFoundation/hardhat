@@ -1,6 +1,7 @@
 import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
 import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
+import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 
 import AbiEncoder from "./AbiEncoder";
 import ContractCompiler from "./ContractCompiler";
@@ -8,22 +9,7 @@ import EtherscanService from "./etherscan/EtherscanService";
 import EtherscanVerifyContractRequest from "./etherscan/EtherscanVerifyContractRequest";
 import { getLongVersion } from "./solc/SolcVersions";
 import { EtherscanConfig } from "./types";
-import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
-
-export function getDefaultEtherscanConfig(
-  config: ResolvedBuidlerConfig
-): EtherscanConfig {
-  const url = "https://api.etherscan.io/api";
-  const apiKey = "";
-
-  return { url, apiKey, ...config.etherscan };
-}
-// function getDefaultEtherscanConfig(
-//   url = "https://api.etherscan.io/api",
-//   apiKey = ""
-// ): EtherscanConfig {
-//   return { url, apiKey };
-// }
+import { getDefaultEtherscanConfig } from "./config";
 
 task("verify-contract", "Verifies contract on etherscan")
   .addParam("contractName", "Name of the deployed contract")
@@ -79,10 +65,13 @@ task("verify-contract", "Verifies contract on etherscan")
       );
       const etherscanService = new EtherscanService(etherscan.url);
       const response = await etherscanService.verifyContract(request);
+
       console.log(
         "Successfully submitted contract for verification on etherscan. Waiting for verification result..."
       );
+
       await etherscanService.getVerificationStatus(response.message);
+
       console.log("Successfully verified contract on etherscan");
     }
   );

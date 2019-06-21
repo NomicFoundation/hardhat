@@ -14,12 +14,9 @@ describe("Plugin integration tests", function() {
   useEnvironment(__dirname + "/../buidler-project");
 
   it("Test verifying deployed contract on etherscan", async function() {
-    // function getRandomString(): string {
-    //   return
-    // }
     const flattenedSource: string = (await this.env.run(
       TASK_FLATTEN_GET_FLATTENED_SOURCE
-    )).replace("placeholder", ethers.Wallet.createRandom().address);
+    )).replace("placeholder", getRandomString());
 
     const compilationResult = await new ContractCompiler(this.env.run).compile(
       flattenedSource,
@@ -60,3 +57,7 @@ describe("Plugin integration tests", function() {
     return true;
   });
 });
+
+function getRandomString(): string {
+  return ethers.Wallet.createRandom().address;
+}

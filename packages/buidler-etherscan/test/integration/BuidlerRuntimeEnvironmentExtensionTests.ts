@@ -4,7 +4,7 @@ import {
 } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 
-import { getDefaultEtherscanConfig } from "../../src";
+import { getDefaultEtherscanConfig } from "../../src/config";
 import { useEnvironment } from "../helpers";
 
 describe("BuidlerConfig extension", function() {
