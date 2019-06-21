@@ -14,17 +14,18 @@ describe("Plugin integration tests", function() {
   useEnvironment(__dirname + "/../buidler-project");
 
   it("Test verifying deployed contract on etherscan", async function() {
-    let flattenedSource: string = await this.env.run(
+    // function getRandomString(): string {
+    //   return
+    // }
+    const flattenedSource: string = (await this.env.run(
       TASK_FLATTEN_GET_FLATTENED_SOURCE
-    );
+    )).replace("placeholder", ethers.Wallet.createRandom().address);
 
-    // need non repeating message so it makes bytecode unique
-    const message = ethers.Wallet.createRandom().address;
-    flattenedSource = flattenedSource.replace("placeholder", message);
     const compilationResult = await new ContractCompiler(this.env.run).compile(
       flattenedSource,
       "TestContract1"
     );
+
     compilationResult.bytecode = linker.linkBytecode(
       compilationResult.bytecode,
       {
@@ -37,6 +38,7 @@ describe("Plugin integration tests", function() {
       "0x" + compilationResult.bytecode,
       amount
     );
+
     try {
       await this.env.run("verify-contract", {
         address: deployedAddress,
@@ -48,11 +50,13 @@ describe("Plugin integration tests", function() {
         source: flattenedSource,
         constructorArguments: [amount]
       });
+
       assert.isTrue(true);
-    } catch (e) {
-      console.log(e);
-      assert.fail();
+    } catch (error) {
+      console.log(error);
+      assert.fail(error.message);
     }
+
     return true;
   });
 });

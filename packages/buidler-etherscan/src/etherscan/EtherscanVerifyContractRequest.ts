@@ -1,7 +1,7 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { SolcConfig } from "@nomiclabs/buidler/types";
 
-import { EtherscanBuidlerEnvironment } from "../index";
+import { EtherscanConfig } from "../types";
 
 export default class EtherscanVerifyContractRequest {
   // for that weird etherscan library props
@@ -18,7 +18,7 @@ export default class EtherscanVerifyContractRequest {
   public readonly constructorArguements: string;
 
   constructor(
-    etherscanConfig: EtherscanBuidlerEnvironment,
+    etherscanConfig: EtherscanConfig,
     solcConfig: SolcConfig,
     contractName: string,
     address: string,

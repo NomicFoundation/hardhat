@@ -2,7 +2,7 @@ import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import nock from "nock";
 
-import SolcVersions from "../../../src/solc/SolcVersions";
+import { getLongVersion } from "../../../src/solc/SolcVersions";
 
 describe("SolcVersions tests", () => {
   it("verify full solc version is returned", async () => {
@@ -13,7 +13,8 @@ describe("SolcVersions tests", () => {
           "0.5.1": "soljson-v0.5.1-commitsomething.js"
         }
       });
-    const fullVersion = await SolcVersions.toLong("0.5.1");
+
+    const fullVersion = await getLongVersion("0.5.1");
     assert.equal(fullVersion, "v0.5.1-commitsomething");
   });
 
@@ -21,7 +22,8 @@ describe("SolcVersions tests", () => {
     nock("https://raw.githubusercontent.com")
       .get("/ethereum/solc-bin/gh-pages/bin/list.json")
       .reply(404);
-    SolcVersions.toLong("0.5.1").catch(e =>
+
+    getLongVersion("0.5.1").catch(e =>
       assert.isTrue(e instanceof BuidlerPluginError)
     );
   });
@@ -34,7 +36,8 @@ describe("SolcVersions tests", () => {
           "0.5.2": "soljson-v0.5.2-commitsomething.js"
         }
       });
-    return SolcVersions.toLong("0.5.1")
+
+    return getLongVersion("0.5.1")
       .then(() => {
         assert.fail();
       })

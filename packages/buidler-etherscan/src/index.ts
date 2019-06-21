@@ -1,31 +1,29 @@
 import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { extendEnvironment, task } from "@nomiclabs/buidler/config";
+import { task } from "@nomiclabs/buidler/config";
 import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
 
 import AbiEncoder from "./AbiEncoder";
 import ContractCompiler from "./ContractCompiler";
 import EtherscanService from "./etherscan/EtherscanService";
 import EtherscanVerifyContractRequest from "./etherscan/EtherscanVerifyContractRequest";
-import SolcVersions from "./solc/SolcVersions";
+import { getLongVersion } from "./solc/SolcVersions";
+import { EtherscanConfig } from "./types";
+import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 
-export class EtherscanBuidlerEnvironment {
-  constructor(
-    public readonly url: string = "https://api.etherscan.io/api",
-    public readonly apiKey: string = ""
-  ) {}
+export function getDefaultEtherscanConfig(
+  config: ResolvedBuidlerConfig
+): EtherscanConfig {
+  const url = "https://api.etherscan.io/api";
+  const apiKey = "";
+
+  return { url, apiKey, ...config.etherscan };
 }
-
-extendEnvironment(env => {
-  env.etherscan = lazyObject(() => {
-    if (env.config.etherscan) {
-      return new EtherscanBuidlerEnvironment(
-        env.config.etherscan.url,
-        env.config.etherscan.apiKey
-      );
-    }
-    return new EtherscanBuidlerEnvironment();
-  });
-});
+// function getDefaultEtherscanConfig(
+//   url = "https://api.etherscan.io/api",
+//   apiKey = ""
+// ): EtherscanConfig {
+//   return { url, apiKey };
+// }
 
 task("verify-contract", "Verifies contract on etherscan")
   .addParam("contractName", "Name of the deployed contract")
@@ -48,24 +46,28 @@ task("verify-contract", "Verifies contract on etherscan")
         source: string;
         constructorArguments: string[];
       },
-      { etherscan, config, run }
+      { config, run }
     ) => {
-      if (!etherscan.apiKey || !etherscan.apiKey.trim()) {
+      const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
+
+      if (etherscan.apiKey.trim() === "") {
         throw new BuidlerPluginError(
           "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
         );
       }
-      let source = "";
-      if (taskArgs.source) {
-        source = taskArgs.source;
-      } else {
-        source = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
-      }
+
+      const source =
+        taskArgs.source !== ""
+          ? taskArgs.source
+          : await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+
       const abi = await new ContractCompiler(run).getAbi(
         source,
         taskArgs.contractName
       );
-      config.solc.fullVersion = await SolcVersions.toLong(config.solc.version);
+
+      config.solc.fullVersion = await getLongVersion(config.solc.version);
+
       const request = new EtherscanVerifyContractRequest(
         etherscan,
         config.solc,

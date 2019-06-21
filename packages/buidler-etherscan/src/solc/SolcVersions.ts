@@ -7,28 +7,23 @@ const COMPILER_FILES_DIR_URL =
 
 const COMPILERS_LIST_URL = COMPILER_FILES_DIR_URL + "list.json";
 
-export default class SolcVersions {
-  public static async toLong(shortVersion: string) {
-    const solc = new SolcVersions();
-    return solc.getLongVersion(shortVersion);
+export async function getVersions(): Promise<CompilersList> {
+  try {
+    return await request.get(COMPILERS_LIST_URL, { json: true });
+  } catch (e) {
+    throw new BuidlerPluginError(
+      `Failed to obtain full solc version. Reason: ${e.message}`
+    );
+  }
+}
+
+export async function getLongVersion(shortVersion: string): Promise<string> {
+  const versions = await getVersions();
+  const fullVersion = versions.releases[shortVersion];
+
+  if (fullVersion === undefined || fullVersion === "") {
+    throw new BuidlerPluginError("Given solc version doesn't exists");
   }
 
-  public async getLongVersion(shortVersion: string) {
-    const versions = await this.getVersions();
-    const fullVersion = versions.releases[shortVersion];
-    if (!fullVersion) {
-      throw new BuidlerPluginError("Given solc version doesn't exists");
-    }
-    return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
-  }
-
-  public async getVersions(): Promise<CompilersList> {
-    try {
-      return await request.get(COMPILERS_LIST_URL, { json: true });
-    } catch (e) {
-      throw new BuidlerPluginError(
-        "Failed to obtain full solc version. Reason: " + e.message
-      );
-    }
-  }
+  return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
 }

@@ -1,18 +1,11 @@
-import { EtherscanBuidlerEnvironment } from "./index";
+import { EtherscanConfig } from "./types";
 
 declare module "@nomiclabs/buidler/types" {
-  export interface BuidlerRuntimeEnvironment {
-    etherscan: EtherscanBuidlerEnvironment;
+  interface BuidlerConfig {
+    etherscan?: EtherscanConfig;
   }
 
-  export interface BuidlerConfig {
-    etherscan?: {
-      url?: string;
-      apiKey?: string;
-    };
-  }
-
-  export interface SolcConfig {
+  interface SolcConfig {
     fullVersion: string;
   }
 }
