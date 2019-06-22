@@ -15,10 +15,17 @@ import {
 import { WritableBufferStream } from "./streams";
 import { BindsMap, ContainerConfig, Image, ProcessResult } from "./types";
 
+const DOCKER_SOCKET_PATH = "/var/run/docker.sock";
+
 export class BuidlerDocker {
   public static async create() {
     if (!(await BuidlerDocker.isInstalled())) {
       throw new DockerNotInstalledError();
+    }
+
+    // TODO: This doesn't support windows
+    if (!(await fsExtra.pathExists(DOCKER_SOCKET_PATH))) {
+      throw new DockerNotRunningError();
     }
 
     const { default: DockerImpl } = await import("dockerode");
@@ -41,8 +48,9 @@ export class BuidlerDocker {
   private readonly _docker: Docker;
 
   // The constructor is private, see [[BuidlerDocker.create]].
-  private constructor(DockerImpl: any) {
-    this._docker = new DockerImpl();
+  private constructor(DockerImpl: typeof Docker) {
+    // TODO: This doesn't support windows
+    this._docker = new DockerImpl({ socketPath: DOCKER_SOCKET_PATH });
   }
 
   public async isRunning(): Promise<boolean> {

@@ -30,7 +30,7 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
 
   await validateDockerIsInstalled();
 
-  const docker = await BuidlerDocker.create();
+  const docker = await handleCommonErrors(BuidlerDocker.create());
 
   await handleCommonErrors(
     pullImageIfNecessary(docker, dockerImage, paths.cache)
