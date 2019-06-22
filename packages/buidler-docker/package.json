@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-docker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A library to manage Docker from Buidler plugins",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-docker",
   "repository": "github:nomiclabs/buidler",
