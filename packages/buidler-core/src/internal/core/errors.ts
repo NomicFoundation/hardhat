@@ -59,21 +59,47 @@ export class BuidlerError extends Error {
 
 /**
  * This class is used to throw errors from buidler plugins.
- * Resolves automatically the plugin's name from which it's being thrown.
  */
 export class BuidlerPluginError extends Error {
+  public readonly parent?: Error;
   public readonly pluginName: string;
   public readonly isBuidlerPluginError: true;
 
   /**
    * Creates a BuidlerPluginError.
-   * @param message an error message.
-   * @param parent  an error.
+   *
+   * @param pluginName The name of the plugin.
+   * @param message An error message that will be shown to the user.
+   * @param parent The error that causes this error to be thrown.
    */
-  public constructor(message: string, public readonly parent?: Error) {
-    super(message);
+  public constructor(pluginName: string, message: string, parent?: Error);
 
-    this.pluginName = getClosestCallerPackage()!;
+  /**
+   * A DEPRECATED constructor that automatically obtains the caller package and
+   * use it as plugin name.
+   *
+   * @deprecated Use the above constructor.
+   *
+   * @param message An error message that will be shown to the user.
+   * @param parent The error that causes this error to be thrown.
+   */
+  public constructor(message: string, parent?: Error);
+
+  public constructor(
+    pluginNameOrMessage: string,
+    messageOrParent?: string | Error,
+    parent?: Error
+  ) {
+    if (typeof messageOrParent === "string") {
+      super(messageOrParent);
+      this.pluginName = pluginNameOrMessage;
+      this.parent = parent;
+    } else {
+      super(pluginNameOrMessage);
+      this.pluginName = getClosestCallerPackage()!;
+      this.parent = messageOrParent;
+    }
+
     this.isBuidlerPluginError = true;
   }
 }

@@ -2,6 +2,7 @@ import { assert } from "chai";
 
 import {
   BuidlerError,
+  BuidlerPluginError,
   ERROR_RANGES,
   ErrorDescription,
   ERRORS
@@ -148,5 +149,65 @@ describe("Error descriptions", () => {
         }
       }
     }
+  });
+});
+
+describe("BuidlerPluginError", () => {
+  describe("constructors", () => {
+    describe("automatic plugin name", () => {
+      it("Should accept a parent error", () => {
+        const message = "m";
+        const parent = new Error();
+
+        const error = new BuidlerPluginError(message, parent);
+
+        assert.equal(error.message, message);
+        assert.equal(error.parent, parent);
+      });
+
+      it("Should work without a parent error", () => {
+        const message = "m2";
+
+        const error = new BuidlerPluginError(message);
+
+        assert.equal(error.message, message);
+        assert.isUndefined(error.parent);
+      });
+
+      it("Should autodetect the plugin name", () => {
+        const message = "m";
+        const parent = new Error();
+
+        const error = new BuidlerPluginError(message, parent);
+
+        // This is being called from mocha, so that would be used as plugin name
+        assert.equal(error.pluginName, "mocha");
+      });
+    });
+
+    describe("explicit plugin name", () => {
+      it("Should accept a parent error", () => {
+        const plugin = "p";
+        const message = "m";
+        const parent = new Error();
+
+        const error = new BuidlerPluginError(plugin, message, parent);
+
+        assert.equal(error.pluginName, plugin);
+        assert.equal(error.message, message);
+        assert.equal(error.parent, parent);
+      });
+
+      it("Should work without a parent error", () => {
+        const plugin = "p";
+        const message = "m";
+
+        const error = new BuidlerPluginError(plugin, message);
+
+        assert.equal(error.pluginName, plugin);
+        assert.equal(error.message, message);
+        assert.isUndefined(error.parent);
+      });
+    });
   });
 });
