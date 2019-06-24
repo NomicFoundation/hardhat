@@ -1,12 +1,12 @@
-# buidler-example-plugin
+# buidler-vyper
 
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-vyper.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-vyper)
 
-[Buidler](http://getbuidler.com) plugin example to develop smart contracts with Vyper.
+[Buidler](http://buidler.dev) plugin to develop smart contracts with Vyper.
 
 ## What
 
-This plugin adds support for Vyper to Buidler. Once installed, Vyper contracts will can be compiled by running the `compile` task.
+This plugin adds support for Vyper to Buidler. Once installed, Vyper contracts can be compiled by running the `compile` task.
 
 This plugin generates the same artifact format as the built-in Solidity compiler, so that it can be used in conjunction with
 all other plugins.
@@ -31,7 +31,7 @@ usePlugin("@nomiclabs/buidler-vyper");
 
 ## Required plugins
 
-No plugin is required to use this one.
+No plugins dependencies.
 
 ## Tasks
 
