@@ -1,62 +1,81 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import request from "request-promise";
 
-import EtherscanResponse from "./EtherscanResponse";
-import EtherscanVerifyContractRequest from "./EtherscanVerifyContractRequest";
+import { EtherscanRequestParameters } from "./EtherscanVerifyContractRequest";
 
-export default class EtherscanService {
-  constructor(private readonly url: string) {}
+async function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  public async verifyContract(
-    req: EtherscanVerifyContractRequest
-  ): Promise<EtherscanResponse> {
-    try {
-      const response = new EtherscanResponse(
-        await request.post(this.url, { form: req, json: true })
-      );
+export async function verifyContract(
+  url: string,
+  req: EtherscanRequestParameters
+): Promise<EtherscanResponse> {
+  try {
+    const response = new EtherscanResponse(
+      await request.post(url, { form: req, json: true })
+    );
 
-      if (!response.isOk()) {
-        throw new BuidlerPluginError(response.message);
-      }
-      return response;
-    } catch (e) {
-      throw new BuidlerPluginError(
-        "Failed to send contract verification request. Reason: " + e.message,
-        e
-      );
+    if (!response.isOk()) {
+      throw new BuidlerPluginError(response.message);
     }
+
+    return response;
+  } catch (error) {
+    throw new BuidlerPluginError(
+      `Failed to send contract verification request. Reason: ${error.message}`,
+      error
+    );
+  }
+}
+
+export async function getVerificationStatus(
+  url: string,
+  guid: string
+): Promise<EtherscanResponse> {
+  try {
+    const response = new EtherscanResponse(
+      await request.get(url, {
+        json: true,
+        qs: {
+          module: "contract",
+          action: "checkverifystatus",
+          guid
+        }
+      })
+    );
+    if (response.isPending()) {
+      await delay(1000);
+
+      return getVerificationStatus(url, guid);
+    }
+    if (!response.isOk()) {
+      throw new BuidlerPluginError(response.message);
+    }
+
+    return response;
+  } catch (error) {
+    throw new BuidlerPluginError(
+      `Failed to verify contract. Reason: ${error.message}`
+    );
+  }
+}
+
+export default class EtherscanResponse {
+  public readonly status: number;
+
+  public readonly message: string;
+
+  public constructor(response: any) {
+    this.status = parseInt(response.status, 10);
+    this.message = response.result;
   }
 
-  public async getVerificationStatus(guid: string): Promise<EtherscanResponse> {
-    try {
-      const response = new EtherscanResponse(
-        await request.get(this.url, {
-          json: true,
-          qs: {
-            module: "contract",
-            action: "checkverifystatus",
-            guid
-          }
-        })
-      );
-      if (response.isPending()) {
-        await this.delay(2000);
-        return this.getVerificationStatus(guid);
-      }
-      if (!response.isOk()) {
-        throw new BuidlerPluginError(response.message);
-      }
-      return response;
-    } catch (e) {
-      throw new BuidlerPluginError(
-        "Failed to verify contract. Reason: " + e.message
-      );
-    }
+  public isPending() {
+    return this.message === "Pending in queue";
   }
 
-  private delay(ms: number): Promise<void> {
-    return new Promise(function(resolve) {
-      setTimeout(resolve, ms);
-    });
+  public isOk() {
+    return this.status === 1;
   }
 }

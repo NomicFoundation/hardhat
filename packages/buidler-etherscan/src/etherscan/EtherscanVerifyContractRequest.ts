@@ -1,67 +1,71 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import { SolcConfig } from "@nomiclabs/buidler/types";
 
-import { EtherscanConfig } from "../types";
+export interface EtherscanRequestParameters {
+  apikey: string;
+  module: "contract";
+  action: "verifysourcecode";
+  contractaddress: string;
+  sourceCode: string;
+  contractname: string;
+  compilerversion: string;
+  // The documentation is contradictory, but below is correct at this point in time (checked by experimentation).
+  // 1 = Optimizations used
+  // 0 = No optimizations used
+  optimizationUsed: number;
+  runs: number;
+  // This is misspelt in Etherscan's actual API parameters.
+  // See: https://etherscan.io/apis#contracts
+  constructorArguements: string;
+  // For libraries, these should be pairs of the form
+  // libraryname1, libraryaddress1, ..., libraryname10, libraryaddress10
+  // Yes, up to 10 only.
+}
 
-export default class EtherscanVerifyContractRequest {
-  // for that weird etherscan library props
-  [key: string]: any;
-  public readonly apikey: string;
-  public readonly module: string = "contract";
-  public readonly action: string = "verifysourcecode";
-  public readonly contractaddress: string;
-  public readonly sourceCode: string;
-  public readonly contractname: string;
-  public readonly compilerversion: string;
-  public readonly optimizationUsed: number;
-  public readonly runs: number;
-  public readonly constructorArguements: string;
+export function toRequest(params: {
+  apiKey: string;
+  contractAddress: string;
+  sourceCode: string;
+  contractName: string;
+  compilerVersion: string;
+  optimizationsUsed: boolean;
+  runs: number;
+  constructorArguments: string;
+  libraries: string;
+}): EtherscanRequestParameters {
+  return {
+    apikey: params.apiKey,
+    module: "contract",
+    action: "verifysourcecode",
+    contractaddress: params.contractAddress,
+    sourceCode: params.sourceCode,
+    contractname: params.contractName,
+    compilerversion: params.compilerVersion,
+    optimizationUsed: params.optimizationsUsed ? 1 : 0,
+    runs: params.runs,
+    constructorArguements: params.constructorArguments,
+    ...parseLibraries(params.libraries)
+  };
+}
 
-  constructor(
-    etherscanConfig: EtherscanConfig,
-    solcConfig: SolcConfig,
-    contractName: string,
-    address: string,
-    libraries: string,
-    source: string,
-    constructorArguments: string
-  ) {
-    this.apikey = etherscanConfig.apiKey;
-    this.contractaddress = address;
-    this.sourceCode = source;
-    this.contractname = contractName;
-    this.compilerversion = solcConfig.fullVersion;
-    this.optimizationUsed = solcConfig.optimizer.enabled ? 1 : 0;
-    this.runs = solcConfig.optimizer.runs;
-    this.constructorArguements = constructorArguments;
-    this.setLibraries(libraries);
-  }
-
-  public serialize(): string {
-    return JSON.stringify(this);
-  }
-
-  private setLibraries(libraries: string) {
-    let i: number = 1;
-    let parsedLibraries: { [key: string]: string } = {};
-    try {
-      if (libraries) {
-        parsedLibraries = JSON.parse(libraries);
-      }
-    } catch (e) {
-      throw new BuidlerPluginError(
-        "Failed to parse libraries. Reason: " + e.message
-      );
+function parseLibraries(libraries?: string): { [key: string]: string } {
+  let parsedLibraries: { [key: string]: string } = {};
+  try {
+    if (libraries !== undefined && libraries !== "") {
+      parsedLibraries = JSON.parse(libraries);
     }
-    for (const libraryName in parsedLibraries) {
-      if (parsedLibraries.hasOwnProperty(libraryName)) {
-        this["libraryname" + i] = libraryName;
-        this["libraryaddress" + i] = parsedLibraries[libraryName];
-        i++;
-        if (i >= 10) {
-          break;
-        }
-      }
-    }
+  } catch (e) {
+    throw new BuidlerPluginError(
+      `Failed to parse libraries. Reason: ${e.message}`
+    );
   }
+
+  return Object.entries(parsedLibraries).reduce<{ [key: string]: string }>(
+    (acc, [libraryName, libraryAddress], index) => {
+      acc[`libraryname${index + 1}`] = libraryName;
+      acc[`libraryaddress${index + 1}`] = libraryAddress;
+
+      return acc;
+    },
+    {}
+  );
 }

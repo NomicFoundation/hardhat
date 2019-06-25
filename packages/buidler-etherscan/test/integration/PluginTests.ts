@@ -14,9 +14,14 @@ describe("Plugin integration tests", function() {
   useEnvironment(__dirname + "/../buidler-project");
 
   it("Test verifying deployed contract on etherscan", async function() {
-    const flattenedSource: string = (await this.env.run(
+    const rawFlattenedSource: string = await this.env.run(
       TASK_FLATTEN_GET_FLATTENED_SOURCE
-    )).replace("placeholder", getRandomString());
+    );
+
+    const flattenedSource = rawFlattenedSource.replace(
+      "placeholder",
+      getRandomString()
+    );
 
     const compilationResult = await new ContractCompiler(this.env.run).compile(
       flattenedSource,
@@ -41,9 +46,9 @@ describe("Plugin integration tests", function() {
         address: deployedAddress,
         contractName: "TestContract1",
         // See: https://github.com/nomiclabs/buidler-etherscan/pull/2#discussion_r270282941
-        // libraries: JSON.stringify({
-        //   "SafeMath": "0x292FFB096f7221c0C879c21535058860CcA67f58"
-        // }),
+        libraries: JSON.stringify({
+          SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
+        }),
         source: flattenedSource,
         constructorArguments: [amount]
       });

@@ -4,12 +4,15 @@ import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 
 import AbiEncoder from "./AbiEncoder";
+import { getDefaultEtherscanConfig } from "./config";
 import ContractCompiler from "./ContractCompiler";
-import EtherscanService from "./etherscan/EtherscanService";
-import EtherscanVerifyContractRequest from "./etherscan/EtherscanVerifyContractRequest";
+import {
+  getVerificationStatus,
+  verifyContract
+} from "./etherscan/EtherscanService";
+import { toRequest } from "./etherscan/EtherscanVerifyContractRequest";
 import { getLongVersion } from "./solc/SolcVersions";
 import { EtherscanConfig } from "./types";
-import { getDefaultEtherscanConfig } from "./config";
 
 task("verify-contract", "Verifies contract on etherscan")
   .addParam("contractName", "Name of the deployed contract")
@@ -54,23 +57,28 @@ task("verify-contract", "Verifies contract on etherscan")
 
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
-      const request = new EtherscanVerifyContractRequest(
-        etherscan,
-        config.solc,
-        taskArgs.contractName,
-        taskArgs.address,
-        taskArgs.libraries,
-        source,
-        AbiEncoder.encodeConstructor(abi, taskArgs.constructorArguments)
-      );
-      const etherscanService = new EtherscanService(etherscan.url);
-      const response = await etherscanService.verifyContract(request);
+      const request = toRequest({
+        apiKey: etherscan.apiKey,
+        contractAddress: taskArgs.address,
+        sourceCode: source,
+        contractName: taskArgs.contractName,
+        compilerVersion: config.solc.fullVersion,
+        optimizationsUsed: config.solc.optimizer.enabled,
+        runs: config.solc.optimizer.runs,
+        constructorArguments: AbiEncoder.encodeConstructor(
+          abi,
+          taskArgs.constructorArguments
+        ),
+        libraries: taskArgs.libraries
+      });
+
+      const response = await verifyContract(etherscan.url, request);
 
       console.log(
         "Successfully submitted contract for verification on etherscan. Waiting for verification result..."
       );
 
-      await etherscanService.getVerificationStatus(response.message);
+      await getVerificationStatus(etherscan.url, response.message);
 
       console.log("Successfully verified contract on etherscan");
     }

@@ -1,42 +1,46 @@
-# buidler-etherscan
-Buidler plugin for verifying contracts on Etherscan
+[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-etherscan.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-etherscan)
+
+# buidler-solhint
+
+[Buidler](http://buidler.dev) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
+
+## What
+
+This plugin verifies your contracts on [Etherscan](https://etherscan.io).
 
 ## Installation
 
-We recommend developing Buidler plugins using yarn. To start working on your project, just run
+```bash
+npm install @nomiclabs/buidler-etherscan
+```
 
-- `npm`
-- `yarn add --peer @nomiclabs/buidler@^1.0.0-beta.2`
+And add the following statement to your `buidler.config.js`:
 
-## Updating Buidler or other peer dependencies
+```js
+usePlugin("@nomiclabs/buidler-etherscan");
+```
 
-When updating/adding Buidler or other peer dependencies, you should update the `.travis.yml` file's install section. The right version of all of them has to be installed in a single line, after `yarn`.
+## Tasks
 
-## Testing
+This plugin provides the `verify-contract` task, which allows you to verify contracts through Etherscan's service.
 
-Running `yarn test` will run every test located in the `test/` folder. They use [mocha](https://mochajs.org) and [chai](https://www.chaijs.com/), but you can customize them.
+## Environment extensions
 
-You can run only integration tests with `yarn run test:integration` and unit with `yarn run test:unit`.
+This plugin does not extend the environment.
 
-For integration tests, it is required to set env (.env file) variable `WALLET_PRIVATE_KEY` with ropsten wallet private key.
+## Usage
 
-We recommend creating unit tests for your own modules, and integration tests for the interaction of the plugin with Buidler and its dependencies.
+You need to add the following Etherscan config to your `buidler.config.js` file:
 
-## Linting and autoformat
-
-All all of Buidler projects use [prettier](https://prettier.io/) and [tslint](https://palantir.github.io/tslint/).
-
-You can check if your code style is correct by running `yarn lint`, and fix it with `yarn lint:fix`.
-
-## Building the project
-
-Just run `yarn buidl` ️👷‍
-
-## README file
-
-We recommend writing a README that contains the following information:
-
-* What is it
-* How to install it
-* New tasks
-* Environment extensions
+```js
+module.exports = {
+  etherscan: {
+    // The url for the Etherscan API you want to use.
+    // For example, here we're using the one for the Ropsten test network
+    url: "https://api-ropsten.etherscan.io/api",
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: "YOUR_ETHERSCAN_API_KEY"
+  }
+};
+```

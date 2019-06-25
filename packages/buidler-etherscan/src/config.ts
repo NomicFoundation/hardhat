@@ -5,8 +5,7 @@ import { EtherscanConfig } from "./types";
 export function getDefaultEtherscanConfig(
   config: ResolvedBuidlerConfig
 ): EtherscanConfig {
-  const url = "https://api.etherscan.io/api";
-  const apiKey = "";
+  const defaultConfig = { url: "https://api.etherscan.io/api", apiKey: "" };
 
-  return { url, apiKey, ...config.etherscan };
+  return { ...defaultConfig, ...config.etherscan };
 }
