@@ -68,7 +68,7 @@ export default function() {
       const packageJson = await getPackageJson();
       flattened += `// Sources flattened with buidler v${
         packageJson.version
-      } https://getbuidler.com`;
+      } https://buidler.dev`;
 
       const sortedFiles = getSortedFiles(graph);
 

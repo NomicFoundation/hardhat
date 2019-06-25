@@ -75,7 +75,9 @@ task("verify-contract", "Verifies contract on etherscan")
       const response = await verifyContract(etherscan.url, request);
 
       console.log(
-        "Successfully submitted contract for verification on etherscan. Waiting for verification result..."
+        `Successfully submitted contract at ${
+          taskArgs.address
+        } for verification on etherscan. Waiting for verification result...`
       );
 
       await getVerificationStatus(etherscan.url, response.message);

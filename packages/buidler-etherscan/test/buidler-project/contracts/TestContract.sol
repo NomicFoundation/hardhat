@@ -1,8 +1,11 @@
 pragma solidity 0.5.1;
 
 import "./libraries/SafeMath.sol";
+import "./TestContract1.sol";
 
 contract TestContract {
+
+    TestContract1 tc1;
 
     using SafeMath for uint256;
 

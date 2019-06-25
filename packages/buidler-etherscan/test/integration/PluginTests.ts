@@ -25,7 +25,7 @@ describe("Plugin integration tests", function() {
 
     const compilationResult = await new ContractCompiler(this.env.run).compile(
       flattenedSource,
-      "TestContract1"
+      "TestContract"
     );
 
     compilationResult.bytecode = linker.linkBytecode(
@@ -44,8 +44,7 @@ describe("Plugin integration tests", function() {
     try {
       await this.env.run("verify-contract", {
         address: deployedAddress,
-        contractName: "TestContract1",
-        // See: https://github.com/nomiclabs/buidler-etherscan/pull/2#discussion_r270282941
+        contractName: "TestContract",
         libraries: JSON.stringify({
           SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
         }),
