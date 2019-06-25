@@ -13,6 +13,7 @@ export async function verifyContract(
 ): Promise<EtherscanResponse> {
   try {
     const response = new EtherscanResponse(
+      // tslint:disable-next-line: await-promise
       await request.post(url, { form: req, json: true })
     );
 
@@ -35,6 +36,7 @@ export async function getVerificationStatus(
 ): Promise<EtherscanResponse> {
   try {
     const response = new EtherscanResponse(
+      // tslint:disable-next-line: await-promise
       await request.get(url, {
         json: true,
         qs: {

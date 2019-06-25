@@ -2,8 +2,27 @@ import { TASK_COMPILE_RUN_COMPILER } from "@nomiclabs/buidler/builtin-tasks/task
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { RunTaskFunction } from "@nomiclabs/buidler/types";
 
+function getSolcInput(source: string) {
+  return {
+    language: "Solidity",
+    sources: {
+      contracts: {
+        content: source
+      }
+    },
+
+    settings: {
+      outputSelection: {
+        "*": {
+          "*": ["*"]
+        }
+      }
+    }
+  };
+}
+
 export default class ContractCompiler {
-  constructor(private readonly runTask: RunTaskFunction) {}
+  constructor(private readonly _runTask: RunTaskFunction) {}
 
   public async getAbi(source: string, contractName: string): Promise<any> {
     return (await this.compile(source, contractName)).abi;
@@ -13,8 +32,8 @@ export default class ContractCompiler {
     source: string,
     contractName: string
   ): Promise<{ abi: any[]; bytecode: string }> {
-    const compilationResult = await this.runTask(TASK_COMPILE_RUN_COMPILER, {
-      input: this.getSolcInput(source)
+    const compilationResult = await this._runTask(TASK_COMPILE_RUN_COMPILER, {
+      input: getSolcInput(source)
     });
     if (compilationResult.errors) {
       throw new BuidlerPluginError(
@@ -33,24 +52,5 @@ export default class ContractCompiler {
     throw new BuidlerPluginError(
       `Given contract name (${contractName}) doesn't exist in sources`
     );
-  }
-
-  private getSolcInput(source: string) {
-    return {
-      language: "Solidity",
-      sources: {
-        contracts: {
-          content: source
-        }
-      },
-
-      settings: {
-        outputSelection: {
-          "*": {
-            "*": ["*"]
-          }
-        }
-      }
-    };
   }
 }

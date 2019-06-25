@@ -1,5 +1,6 @@
 import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { assert } from "chai";
+// tslint:disable: no-implicit-dependencies
 import { ethers } from "ethers";
 // @ts-ignore
 import * as linker from "solc/linker";

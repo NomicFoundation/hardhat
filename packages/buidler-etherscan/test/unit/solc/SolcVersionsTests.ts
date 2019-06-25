@@ -1,5 +1,6 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+// tslint:disable: no-implicit-dependencies
 import nock from "nock";
 
 import { getLongVersion } from "../../../src/solc/SolcVersions";

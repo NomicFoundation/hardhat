@@ -9,6 +9,7 @@ const COMPILERS_LIST_URL = COMPILER_FILES_DIR_URL + "list.json";
 
 export async function getVersions(): Promise<CompilersList> {
   try {
+    // tslint:disable-next-line: await-promise
     return await request.get(COMPILERS_LIST_URL, { json: true });
   } catch (e) {
     throw new BuidlerPluginError(
