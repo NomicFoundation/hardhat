@@ -42,7 +42,7 @@ let plugins = [
     description: "Injects Web3 1.x into the Buidler Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   }, {
-    name: "@nomiclabs/buidler-web3",
+    name: "@nomiclabs/buidler-web3-legacy",
     version: "1.0.0-beta.8",
     url: "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3-legacy",
     description: "Injects Web3 0.20.x into the Buidler Runtime Environment",
