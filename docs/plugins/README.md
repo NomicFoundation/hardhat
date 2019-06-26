@@ -1,3 +1,7 @@
+---
+layout: Plugins
+---
+
 # Plugins
 
 - [@nomiclabs/buidler-truffle4](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle4): integration with TruffleContract from Truffle 4.
