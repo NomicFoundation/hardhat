@@ -247,10 +247,10 @@ h3.how
     margin-bottom: 100px
 
 .plugins
-
+  
   .plugin
-    height 97px
-    padding 15px
+    min-height 97px
+    padding 15px 0 15px
     border-bottom 1px solid rgba(44, 62, 79, 0.15)
 
     > div:nth-child(1)
@@ -279,5 +279,8 @@ h3.how
       display inline-flex
       padding 4px 8px
       font-size 0.85em
-      margin-right 8px
-  
+      margin 0 8px 15px 0
+
+@media (max-width: $MQMobileNarrow)
+  .plugins .plugin .version
+    display: none
