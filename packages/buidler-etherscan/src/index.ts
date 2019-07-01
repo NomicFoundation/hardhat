@@ -45,10 +45,19 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      const source =
-        taskArgs.source !== ""
-          ? taskArgs.source
-          : await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+      let source;
+      try {
+        source =
+          taskArgs.source !== undefined && taskArgs.source !== ""
+            ? taskArgs.source
+            : await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+      } catch (_) {
+        throw new BuidlerPluginError(
+          `Your ${
+            taskArgs.contractName
+          } contract constains a cyclic dependency, Etherscan doesn't currently support contracts with such dependencies through its API, please use their GUI at https://etherscan.io/verifyContract to verify your contract.`
+        );
+      }
 
       const abi = await new ContractCompiler(run).getAbi(
         source,
