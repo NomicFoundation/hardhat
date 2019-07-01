@@ -34,4 +34,4 @@ class ContractDeployer {
   }
 }
 
-export default new ContractDeployer();
+export default ContractDeployer;

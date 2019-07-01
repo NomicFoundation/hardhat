@@ -7,7 +7,7 @@ import * as linker from "solc/linker";
 
 import ContractCompiler from "../../src/ContractCompiler";
 import { useEnvironment } from "../helpers";
-import deployer from "../util/ContractDeployer";
+import ContractDeployer from "../util/ContractDeployer";
 
 // These are skipped because they can't currently be run in CI
 describe.skip("Plugin integration tests", function() {
@@ -16,6 +16,7 @@ describe.skip("Plugin integration tests", function() {
   useEnvironment(__dirname + "/../buidler-project");
 
   it("Test verifying deployed contract on etherscan", async function() {
+    const deployer = new ContractDeployer();
     const rawFlattenedSource: string = await this.env.run(
       TASK_FLATTEN_GET_FLATTENED_SOURCE
     );
