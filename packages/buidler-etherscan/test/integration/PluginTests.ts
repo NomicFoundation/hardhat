@@ -9,7 +9,8 @@ import ContractCompiler from "../../src/ContractCompiler";
 import { useEnvironment } from "../helpers";
 import deployer from "../util/ContractDeployer";
 
-describe("Plugin integration tests", function() {
+// These are skipped because they can't currently be run in CI
+describe.skip("Plugin integration tests", function() {
   this.timeout(100000);
 
   useEnvironment(__dirname + "/../buidler-project");
