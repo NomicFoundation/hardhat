@@ -42,4 +42,20 @@ The `ContractFactory`s returned by `getContract` are connected by to the first s
 
 There are no additional steps you need to take for this plugin to work.
 
-Install it and access ethers through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc).
+Install it and access ethers through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `buidler.config.js`:
+
+```js
+// task action function receives the Buidler Runtime Environment as second argument
+task("blockNumber", "Prints the current block number", async (_, { ethers }) => {
+  
+  await ethers.provider.getBlockNumber().then((blockNumber) => {
+    console.log("Current block number: " + blockNumber);
+  });
+  
+});
+
+module.exports = {};
+```
+And then run `npx buiidler blockNumber` to try it.
+
+Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/documentation/#buidler-runtime-environment-bre) to learn how to access the BRE in different ways to use ethers.js from anywhere the BRE is accessible.
