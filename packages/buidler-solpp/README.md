@@ -2,11 +2,11 @@
 
 # buidler-solpp
 
-[Buidler](http://getbuidler.com) plugin for integration with [solpp preprocessor](https://github.com/merklejerk/solpp).
+[Buidler](http://getbuidler.com) plugin for integration with the [solpp preprocessor](https://github.com/merklejerk/solpp).
 
 ## What
 
-This plugin hooks into the compilation pipeline and run the solpp preprocessor.
+This plugin hooks into the compilation pipeline and runs the solpp preprocessor.
 
 ## Installation
 
@@ -28,7 +28,7 @@ This plugin does not extend the environment.
 
 There are no additional steps you need to take for this plugin to work.
 
-Install it, run `npx buidler compile` and solc will compile the solpp generated contracts, which they will be in `cache/solpp-generated-contracts`.
+Install it, run `npx buidler compile` and solc will compile the solpp generated contracts, which will be in `cache/solpp-generated-contracts`.
 
 ## Configuration
 
