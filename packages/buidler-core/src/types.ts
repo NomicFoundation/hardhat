@@ -125,6 +125,11 @@ export interface SolcInput {
  */
 export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
 
+export type ConfigExtender = (
+  config: ResolvedBuidlerConfig,
+  userConfig: BuidlerConfig
+) => void;
+
 export interface TasksMap {
   [name: string]: TaskDefinition;
 }
