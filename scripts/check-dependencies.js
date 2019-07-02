@@ -140,6 +140,11 @@ function main() {
   let success = true;
   const dependencyMaps = [];
   for (const packageJsonPath of getAllPackageJsonPaths()) {
+    if (!fs.existsSync(packageJsonPath)) {
+      console.warn(`${packageJsonPath} doesn't exist, skipping it`);
+      continue;
+    }
+
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
     const peersOk = checkPerrDepedencies(packageJson);
     const dependencyMap = getDependencyMap(packageJson);
