@@ -20,7 +20,12 @@ script:
   - npm run lint
   - node scripts/check-dependencies.js
 
-cache: npm
+cache:
+  npm: true
+  directories:
+    - $HOME/.npm
+    - node_modules
+    - packages/*/node_modules
 
 branches:
   only:
