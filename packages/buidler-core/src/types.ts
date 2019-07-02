@@ -215,7 +215,7 @@ export interface BuidlerArguments {
 export type BuidlerParamDefinitions = {
   [param in keyof Required<BuidlerArguments>]: OptionalParamDefinition<
     BuidlerArguments[param]
-  >
+  >;
 };
 
 export interface TaskDefinition extends ConfigurableTaskDefinition {

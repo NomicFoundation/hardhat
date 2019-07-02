@@ -91,7 +91,7 @@ export class BuidlerPluginError extends Error {
 //    * 600-699: Errors related to the builtin tasks
 //    * 700-799: Errors related to artifacts
 export const ERROR_RANGES: {
-  [category in keyof (typeof ERRORS)]: { min: number; max: number }
+  [category in keyof (typeof ERRORS)]: { min: number; max: number };
 } = {
   GENERAL: { min: 0, max: 99 },
   NETWORK: { min: 100, max: 199 },

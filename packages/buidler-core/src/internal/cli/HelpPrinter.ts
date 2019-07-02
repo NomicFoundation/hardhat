@@ -52,9 +52,7 @@ export class HelpPrinter {
     console.log("");
 
     console.log(
-      `To get help for a specific task run: ${
-        this._executableName
-      } help [task]\n`
+      `To get help for a specific task run: ${this._executableName} help [task]\n`
     );
   }
 
