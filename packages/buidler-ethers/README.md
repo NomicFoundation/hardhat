@@ -45,6 +45,8 @@ There are no additional steps you need to take for this plugin to work.
 Install it and access ethers through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `buidler.config.js`:
 
 ```js
+usePlugin("@nomiclabs/buidler-ethers");
+
 // task action function receives the Buidler Runtime Environment as second argument
 task("blockNumber", "Prints the current block number", async (_, { ethers }) => {
   
@@ -56,6 +58,6 @@ task("blockNumber", "Prints the current block number", async (_, { ethers }) => 
 
 module.exports = {};
 ```
-And then run `npx buiidler blockNumber` to try it.
+And then run `npx buidler blockNumber` to try it.
 
 Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/documentation/#buidler-runtime-environment-bre) to learn how to access the BRE in different ways to use ethers.js from anywhere the BRE is accessible.
