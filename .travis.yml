@@ -25,7 +25,17 @@ cache:
   directories:
     - $HOME/.npm
     - node_modules
-    - packages/*/node_modules
+    - packages/buidler-core/node_modules
+    - packages/buidler-docker/node_modules
+    - packages/buidler-ethers/node_modules
+    - packages/buidler-etherscan/node_modules
+    - packages/buidler-solhint/node_modules
+    - packages/buidler-solpp/node_modules
+    - packages/buidler-truffle4/node_modules
+    - packages/buidler-truffle5/node_modules
+    - packages/buidler-vyper/node_modules
+    - packages/buidler-web3/node_modules
+    - packages/buidler-web3-legacy/node_modules
 
 branches:
   only:
