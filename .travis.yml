@@ -12,8 +12,8 @@ node_js:
   - "11"
 
 install:
-  - npm ci
-  - npx lerna bootstrap --ci
+  - npm install
+  - npx lerna bootstrap --no-ci
 
 script:
   - npm run test
