@@ -1,5 +1,6 @@
 import {
   ActionType,
+  ConfigExtender,
   ConfigurableTaskDefinition,
   EnvironmentExtender,
   TaskArguments
@@ -81,6 +82,11 @@ export function extendEnvironment(extender: EnvironmentExtender) {
   const ctx = BuidlerContext.getBuidlerContext();
   const extenderManager = ctx.extendersManager;
   extenderManager.add(extender);
+}
+
+export function extendConfig(extender: ConfigExtender) {
+  const ctx = BuidlerContext.getBuidlerContext();
+  ctx.configExtenders.push(extender);
 }
 
 /**

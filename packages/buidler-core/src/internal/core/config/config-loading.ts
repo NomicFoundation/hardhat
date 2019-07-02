@@ -1,6 +1,7 @@
 import * as path from "path";
 
 import { ResolvedBuidlerConfig } from "../../../types";
+import { BuidlerContext } from "../../context";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
@@ -42,5 +43,13 @@ export function loadConfigAndTasks(configPath?: string): ResolvedBuidlerConfig {
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(configEnv).forEach(key => (globalAsAny[key] = undefined));
 
-  return resolveConfig(configPath, defaultConfig, userConfig);
+  // This object shouldn't be modified
+  Object.freeze(userConfig);
+
+  return resolveConfig(
+    configPath,
+    defaultConfig,
+    userConfig,
+    BuidlerContext.getBuidlerContext().configExtenders
+  );
 }
