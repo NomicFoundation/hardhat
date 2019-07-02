@@ -27,7 +27,9 @@ async function printVersionMessage(packageJson: PackageJson) {
 function ensureValidNodeVersion(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
-    throw new BuidlerError(ERRORS.GENERAL.INVALID_NODE_VERSION, requirement);
+    throw new BuidlerError(ERRORS.GENERAL.INVALID_NODE_VERSION, {
+      requirement
+    });
   }
 }
 
@@ -91,7 +93,9 @@ async function main() {
     const taskDefinition = taskDefinitions[taskName];
 
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, taskName);
+      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+        task: taskName
+      });
     }
 
     const taskArguments = argumentsParser.parseTaskArguments(

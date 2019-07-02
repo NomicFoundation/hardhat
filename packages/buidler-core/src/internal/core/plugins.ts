@@ -51,7 +51,9 @@ export function usePlugin(
   const pluginPackageJson = readPackageJson(pluginName, from);
 
   if (pluginPackageJson === undefined) {
-    throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, pluginName);
+    throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, {
+      plugin: pluginName
+    });
   }
 
   // We use the package.json's version of the name, as it is normalized.
@@ -82,33 +84,26 @@ export function usePlugin(
       }
 
       if (dependencyPackageJson === undefined) {
-        throw new BuidlerError(
-          ERRORS.PLUGINS.MISSING_DEPENDENCY,
-          pluginName,
-          dependencyName,
-          globalWarning,
-          installExtraFlags,
-          dependencyName,
+        throw new BuidlerError(ERRORS.PLUGINS.MISSING_DEPENDENCY, {
+          plugin: pluginName,
+          dependency: dependencyName,
+          extraMessage: globalWarning,
+          extraFlags: installExtraFlags,
           versionSpec
-        );
+        });
       }
 
       const installedVersion = dependencyPackageJson.version;
 
       if (!semver.satisfies(installedVersion, versionSpec)) {
-        throw new BuidlerError(
-          ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
-          pluginName,
-          dependencyName,
+        throw new BuidlerError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
+          plugin: pluginName,
+          dependency: dependencyName,
+          extraMessage: globalWarning,
+          extraFlags: installExtraFlags,
           versionSpec,
-          installedVersion,
-          globalWarning,
-          dependencyName,
-          installExtraFlags,
-          dependencyName,
-          versionSpec,
-          dependencyName
-        );
+          installedVersion
+        });
       }
     }
   }
@@ -174,9 +169,8 @@ export function ensurePluginLoadedWithUsePlugin() {
 
   const pluginName = getClosestCallerPackage();
 
-  throw new BuidlerError(
-    ERRORS.PLUGINS.OLD_STYLE_IMPORT_DETECTED,
-    pluginName !== undefined ? pluginName : "a plugin",
-    pluginName !== undefined ? pluginName : "plugin-name"
-  );
+  throw new BuidlerError(ERRORS.PLUGINS.OLD_STYLE_IMPORT_DETECTED, {
+    pluginNameText: pluginName !== undefined ? pluginName : "a plugin",
+    pluginNameCode: pluginName !== undefined ? pluginName : "plugin-name"
+  });
 }

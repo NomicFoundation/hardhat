@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
 import {
+  applyErrorMessageTemplate,
   BuidlerError,
   BuidlerPluginError,
   ERROR_RANGES,
@@ -8,6 +9,7 @@ import {
   ERRORS
 } from "../../../src/internal/core/errors";
 import { unsafeObjectKeys } from "../../../src/internal/util/unsafe";
+import { expectBuidlerError } from "../../helpers/errors";
 
 const mockErrorDescription: ErrorDescription = {
   number: 123,
@@ -37,18 +39,21 @@ describe("BuilderError", () => {
       assert.equal(error.message, "BDLR123: " + mockErrorDescription.message);
     });
 
-    it("should format the error message with the extra params", () => {
+    it("should format the error message with the template params", () => {
       const error = new BuidlerError(
-        { number: 12, message: "%s %s %s" },
-        "a",
-        "b",
-        123
+        { number: 12, message: "%a% %b% %c%" },
+        { a: "a", b: "b", c: 123 }
       );
       assert.equal(error.message, "BDLR12: a b 123");
     });
 
     it("shouldn't have a parent", () => {
       assert.isUndefined(new BuidlerError(mockErrorDescription).parent);
+    });
+
+    it("Should work with instanceof", () => {
+      const error = new BuidlerError(mockErrorDescription);
+      assert.isTrue(error instanceof BuidlerError);
     });
   });
 
@@ -59,15 +64,19 @@ describe("BuilderError", () => {
       assert.equal(error.parent, parent);
     });
 
-    it("should format the error message with the extra params", () => {
+    it("should format the error message with the template params", () => {
       const error = new BuidlerError(
-        { number: 12, message: "%s %s %s" },
+        { number: 12, message: "%a% %b% %c%" },
         new Error(),
-        "a",
-        "b",
-        123
+        { a: "a", b: "b", c: 123 }
       );
       assert.equal(error.message, "BDLR12: a b 123");
+    });
+
+    it("Should work with instanceof", () => {
+      const parent = new Error();
+      const error = new BuidlerError(mockErrorDescription, parent);
+      assert.isTrue(error instanceof BuidlerError);
     });
   });
 });
@@ -183,6 +192,15 @@ describe("BuidlerPluginError", () => {
         // This is being called from mocha, so that would be used as plugin name
         assert.equal(error.pluginName, "mocha");
       });
+
+      it("Should work with instanceof", () => {
+        const message = "m";
+        const parent = new Error();
+
+        const error = new BuidlerPluginError(message, parent);
+
+        assert.isTrue(error instanceof BuidlerPluginError);
+      });
     });
 
     describe("explicit plugin name", () => {
@@ -199,14 +217,184 @@ describe("BuidlerPluginError", () => {
       });
 
       it("Should work without a parent error", () => {
-        const plugin = "p";
-        const message = "m";
+        const plugin = "p2";
+        const message = "m2";
 
         const error = new BuidlerPluginError(plugin, message);
 
         assert.equal(error.pluginName, plugin);
         assert.equal(error.message, message);
         assert.isUndefined(error.parent);
+      });
+
+      it("Should work with instanceof", () => {
+        const plugin = "p";
+        const message = "m";
+        const parent = new Error();
+
+        const error = new BuidlerPluginError(plugin, message, parent);
+
+        assert.isTrue(error instanceof BuidlerPluginError);
+      });
+    });
+  });
+});
+
+describe("applyErrorMessageTemplate", () => {
+  describe("Variable names", () => {
+    it("Should reject invalid variable names", () => {
+      expectBuidlerError(
+        () => applyErrorMessageTemplate("", { "1": 1 }),
+        ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME
+      );
+
+      expectBuidlerError(
+        () => applyErrorMessageTemplate("", { "asd%": 1 }),
+        ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME
+      );
+
+      expectBuidlerError(
+        () => applyErrorMessageTemplate("", { "asd asd": 1 }),
+        ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME
+      );
+    });
+  });
+
+  describe("Values", () => {
+    it("shouldn't contain valid variable tags", () => {
+      expectBuidlerError(
+        () => applyErrorMessageTemplate("%asd%", { asd: "%as%" }),
+        ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
+      );
+
+      expectBuidlerError(
+        () => applyErrorMessageTemplate("%asd%", { asd: "%a123%" }),
+        ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
+      );
+
+      expectBuidlerError(
+        () =>
+          applyErrorMessageTemplate("%asd%", {
+            asd: { toString: () => "%asd%" }
+          }),
+        ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
+      );
+    });
+
+    it("Shouldn't contain the %% tag", () => {
+      expectBuidlerError(
+        () => applyErrorMessageTemplate("%asd%", { asd: "%%" }),
+        ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
+      );
+    });
+  });
+
+  describe("Replacements", () => {
+    describe("String values", () => {
+      it("Should replace variable tags for the values", () => {
+        assert.equal(
+          applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: "r" }),
+          "asd r 123 r"
+        );
+
+        assert.equal(
+          applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
+            asd: "r",
+            fgh: "b"
+          }),
+          "asdr r b 123"
+        );
+
+        assert.equal(
+          applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
+            asd: "r",
+            fgh: ""
+          }),
+          "asdr r  123"
+        );
+      });
+    });
+
+    describe("Non-string values", () => {
+      it("Should replace undefined values for undefined", () => {
+        assert.equal(
+          applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: undefined }),
+          "asd undefined 123 undefined"
+        );
+      });
+
+      it("Should replace null values for null", () => {
+        assert.equal(
+          applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: null }),
+          "asd null 123 null"
+        );
+      });
+
+      it("Should use their toString methods", () => {
+        const toR = { toString: () => "r" };
+        const toB = { toString: () => "b" };
+        const toEmpty = { toString: () => "" };
+        const toUndefined = { toString: () => undefined };
+
+        assert.equal(
+          applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: toR }),
+          "asd r 123 r"
+        );
+
+        assert.equal(
+          applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
+            asd: toR,
+            fgh: toB
+          }),
+          "asdr r b 123"
+        );
+
+        assert.equal(
+          applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
+            asd: toR,
+            fgh: toEmpty
+          }),
+          "asdr r  123"
+        );
+
+        assert.equal(
+          applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
+            asd: toR,
+            fgh: toUndefined
+          }),
+          "asdr r undefined 123"
+        );
+      });
+    });
+
+    describe("%% sign", () => {
+      it("Should be replaced with %", () => {
+        assert.equal(applyErrorMessageTemplate("asd%%asd", {}), "asd%asd");
+      });
+
+      it("Shouldn't apply replacements if after this one a new variable tag appears", () => {
+        assert.equal(
+          applyErrorMessageTemplate("asd%%asd%% %asd%", { asd: "123" }),
+          "asd%asd% 123"
+        );
+      });
+    });
+
+    describe("Missing variable tag", () => {
+      it("Should fail if a viable tag is missing and its value is not", () => {
+        expectBuidlerError(
+          () => applyErrorMessageTemplate("", { asd: "123" }),
+          ERRORS.INTERNAL.TEMPLATE_VARIABLE_TAG_MISSING
+        );
+      });
+    });
+
+    describe("Missing variable", () => {
+      it("Should work, leaving the variable tag", () => {
+        assert.equal(
+          applyErrorMessageTemplate("%asd% %fgh%", { asd: "123" }),
+          "123 %fgh%"
+        );
       });
     });
   });

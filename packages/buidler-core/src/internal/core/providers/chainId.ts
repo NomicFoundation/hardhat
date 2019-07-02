@@ -14,11 +14,10 @@ export function createChainIdValidationProvider(
     const realChainId = await getChainId();
 
     if (chainId !== undefined && realChainId !== chainId) {
-      throw new BuidlerError(
-        ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID,
-        chainId,
-        realChainId
-      );
+      throw new BuidlerError(ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID, {
+        configChainId: chainId,
+        connectionChainId: realChainId
+      });
     }
 
     return provider.send(method, params);

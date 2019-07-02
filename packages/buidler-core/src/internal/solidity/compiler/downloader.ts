@@ -88,7 +88,7 @@ export class CompilerDownloader {
     const compilerBuild = list.builds.find(b => b.path === compilerBuildPath);
 
     if (compilerBuild === undefined) {
-      throw new BuidlerError(ERRORS.SOLC.INVALID_VERSION, version);
+      throw new BuidlerError(ERRORS.SOLC.INVALID_VERSION, { version });
     }
 
     return compilerBuild;
@@ -114,11 +114,9 @@ export class CompilerDownloader {
     try {
       await this._download(COMPILERS_LIST_URL, this.getCompilersListPath());
     } catch (error) {
-      throw new BuidlerError(
-        ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
-        error,
-        this._localSolcVersion
-      );
+      throw new BuidlerError(ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED, error, {
+        localVersion: this._localSolcVersion
+      });
     }
   }
 
@@ -133,12 +131,10 @@ export class CompilerDownloader {
     try {
       await this._download(compilerUrl, downloadedFilePath);
     } catch (error) {
-      throw new BuidlerError(
-        ERRORS.SOLC.DOWNLOAD_FAILED,
-        error,
-        compilerBuild.version,
-        this._localSolcVersion
-      );
+      throw new BuidlerError(ERRORS.SOLC.DOWNLOAD_FAILED, error, {
+        remoteVersion: compilerBuild.version,
+        localVersion: this._localSolcVersion
+      });
     }
   }
 
@@ -157,11 +153,10 @@ export class CompilerDownloader {
     if (expectedKeccak256 !== compilerKeccak256) {
       await fsExtra.unlink(downloadedFilePath);
 
-      throw new BuidlerError(
-        ERRORS.SOLC.INVALID_DOWNLOAD,
-        compilerBuild.version,
-        this._localSolcVersion
-      );
+      throw new BuidlerError(ERRORS.SOLC.INVALID_DOWNLOAD, {
+        remoteVersion: compilerBuild.version,
+        localVersion: this._localSolcVersion
+      });
     }
   }
 

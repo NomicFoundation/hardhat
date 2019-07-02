@@ -19,10 +19,9 @@ export default function() {
         { run, buidlerArguments }
       ) => {
         if (!(await fsExtra.pathExists(script))) {
-          throw new BuidlerError(
-            ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
+          throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, {
             script
-          );
+          });
         }
 
         if (!noCompile) {
@@ -36,12 +35,10 @@ export default function() {
           );
           process.exit(statusCode);
         } catch (error) {
-          throw new BuidlerError(
-            ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
-            error,
+          throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR, error, {
             script,
-            error.message
-          );
+            error: error.message
+          });
         }
       }
     );

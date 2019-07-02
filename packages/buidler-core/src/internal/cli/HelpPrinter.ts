@@ -60,7 +60,9 @@ export class HelpPrinter {
     const taskDefinition = this._tasks[taskName];
 
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, taskName);
+      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+        task: taskName
+      });
     }
 
     const description =

@@ -46,7 +46,9 @@ export class SimpleTaskDefinition implements TaskDefinition {
     this._hasVariadicParam = false;
     this._hasOptionalPositionalParam = false;
     this.action = () => {
-      throw new BuidlerError(ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET, name);
+      throw new BuidlerError(ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET, {
+        taskName: name
+      });
     };
   }
 
@@ -92,8 +94,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
       if (defaultValue !== undefined && typeof defaultValue !== "string") {
         throw new BuidlerError(
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
-          name,
-          this.name
+          {
+            paramName: name,
+            taskName: this.name
+          }
         );
       }
 
@@ -199,8 +203,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
       if (defaultValue !== undefined && typeof defaultValue !== "string") {
         throw new BuidlerError(
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
-          name,
-          this.name
+          {
+            paramName: name,
+            taskName: this.name
+          }
         );
       }
 
@@ -282,8 +288,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
       if (defaultValue !== undefined && !this._isStringArray(defaultValue)) {
         throw new BuidlerError(
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
-          name,
-          this.name
+          {
+            paramName: name,
+            taskName: this.name
+          }
         );
       }
 
@@ -372,11 +380,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
    */
   public _validateNotAfterVariadicParam(name: string) {
     if (this._hasVariadicParam) {
-      throw new BuidlerError(
-        ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC,
-        name,
-        this.name
-      );
+      throw new BuidlerError(ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC, {
+        paramName: name,
+        taskName: this.name
+      });
     }
   }
 
@@ -389,18 +396,19 @@ export class SimpleTaskDefinition implements TaskDefinition {
    */
   public _validateNameNotUsed(name: string) {
     if (this._hasParamDefined(name)) {
-      throw new BuidlerError(
-        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED,
-        name,
-        this.name
-      );
+      throw new BuidlerError(ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED, {
+        paramName: name,
+        taskName: this.name
+      });
     }
 
     if (Object.keys(BUIDLER_PARAM_DEFINITIONS).includes(name)) {
       throw new BuidlerError(
         ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM,
-        name,
-        this.name
+        {
+          paramName: name,
+          taskName: this.name
+        }
       );
     }
   }
@@ -431,8 +439,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (!isOptional && this._hasOptionalPositionalParam) {
       throw new BuidlerError(
         ERRORS.TASK_DEFINITIONS.MANDATORY_PARAM_AFTER_OPTIONAL,
-        name,
-        this.name
+        {
+          paramName: name,
+          taskName: this.name
+        }
       );
     }
   }
@@ -443,8 +453,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (match === null) {
       throw new BuidlerError(
         ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING,
-        this.name,
-        name
+        {
+          paramName: name,
+          taskName: this.name
+        }
       );
     }
   }
@@ -457,8 +469,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (defaultValue !== undefined && !isOptional) {
       throw new BuidlerError(
         ERRORS.TASK_DEFINITIONS.DEFAULT_IN_MANDATORY_PARAM,
-        name,
-        this.name
+        {
+          paramName: name,
+          taskName: this.name
+        }
       );
     }
   }
@@ -632,9 +646,8 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   public _throwNoParamsOverrideError(): never {
-    throw new BuidlerError(
-      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS,
-      this.name
-    );
+    throw new BuidlerError(ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS, {
+      taskName: this.name
+    });
   }
 }
