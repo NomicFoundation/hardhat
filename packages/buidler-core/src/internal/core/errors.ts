@@ -267,7 +267,8 @@ You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`
       message:
         "Buidler was set to use chain id %configChainId%, but connected to a chain with id %connectionChainId%."
     },
-    /* DEPRECATED */ INVALID_TX_CHAIN_ID: {
+    /* DEPRECATED: This error only happened because of a misconception in Buidler */
+    INVALID_TX_CHAIN_ID: {
       number: 102,
       message:
         "Trying to send a tx with chain id %txChainId%, but Buidler is connected to a chain with id %chainId%."
