@@ -87,7 +87,9 @@ export default function() {
   });
 
   task("check", async (_, { run }, runSuper) => {
-    await runSuper();
+    if (runSuper.isDefined) {
+      await runSuper();
+    }
 
     const reports = await run("buidler-solhint:run-solhint");
 
