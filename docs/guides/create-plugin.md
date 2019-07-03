@@ -49,7 +49,7 @@ This is literally all it takes to put together a plugin for Buidler. Injecting a
 
 ```js
 extendEnvironment(env => {
-  const wrapper = new EthersProviderWrapper(env.ethereum);
+  const wrapper = new EthersProviderWrapper(env.network.provider);
 
   env.ethers = {
     provider: wrapper,
@@ -63,7 +63,7 @@ extendEnvironment(env => {
     },
 
     signers: async function() {
-      const accounts = await env.ethereum.send("eth_accounts");
+      const accounts = await env.network.provider.send("eth_accounts");
 
       return accounts.map(account => wrapper.getSigner(account));
     }

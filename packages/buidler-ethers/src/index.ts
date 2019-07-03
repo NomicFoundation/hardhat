@@ -15,7 +15,7 @@ export default function() {
   extendEnvironment((env: BuidlerRuntimeEnvironment) => {
     env.ethers = {
       provider: lazyObject(() => {
-        return new EthersProviderWrapper(env.ethereum);
+        return new EthersProviderWrapper(env.network.provider);
       }),
       getContract: async (name: string): Promise<ContractFactory> => {
         const { ethers } = await import("ethers");
