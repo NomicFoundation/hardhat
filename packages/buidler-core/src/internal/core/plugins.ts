@@ -1,3 +1,4 @@
+import debug from "debug";
 import * as path from "path";
 import * as semver from "semver";
 
@@ -6,6 +7,8 @@ import { getClosestCallerPackage } from "../util/caller-package";
 
 import { BuidlerError, ERRORS } from "./errors";
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
+
+const log = debug("buidler:core:plugins");
 
 interface PackageJson {
   name: string;
@@ -27,6 +30,8 @@ export function usePlugin(
   pluginName: string,
   from?: string
 ) {
+  log("Loading plugin %s", pluginName);
+
   // We have a special case for `ExecutionMode.EXECUTION_MODE_LINKED`
   //
   // If Buidler is linked, a require without `from` would be executed in the
@@ -39,6 +44,8 @@ export function usePlugin(
     getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED
   ) {
     from = process.cwd();
+
+    log("Buidler is linked, searching for plugin starting from CWD", from);
   }
 
   const pluginPackageJson = readPackageJson(pluginName, from);
@@ -114,6 +121,7 @@ export function usePlugin(
 }
 
 export function loadPluginFile(absolutePluginFilePath: string) {
+  log("Loading plugin file %s", absolutePluginFilePath);
   const imported = require(absolutePluginFilePath);
   const plugin = imported.default !== undefined ? imported.default : imported;
   if (typeof plugin === "function") {
