@@ -14,7 +14,7 @@
     "lerna": "^3.13.4",
     "mocha": "^5.2.0",
     "nyc": "^14.1.0",
-    "prettier": "^1.17.0",
+    "prettier": "1.18.2",
     "source-map-support": "^0.5.12",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
