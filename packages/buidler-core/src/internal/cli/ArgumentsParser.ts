@@ -180,7 +180,7 @@ export class ArgumentsParser {
           taskArguments[paramName] = definition.defaultValue;
         } else {
           throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
-            param: paramName
+            param: ArgumentsParser.paramNameToCLA(paramName)
           });
         }
       }
@@ -224,7 +224,7 @@ export class ArgumentsParser {
 
       if (value === undefined) {
         throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
-          param: paramName
+          param: ArgumentsParser.paramNameToCLA(paramName)
         });
       }
 
