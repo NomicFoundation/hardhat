@@ -91,9 +91,7 @@ describe("Compiler downloader", function() {
     it("should call the download function with the right params", async function() {
       const compilersDir = this.tmpDir;
       const downloadPath = compilersDir + "/downloadedCompiler";
-      const expectedUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${
-        localCompilerBuild.path
-      }`;
+      const expectedUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${localCompilerBuild.path}`;
 
       let urlUsed: string | undefined;
       let pathUsed: string | undefined;

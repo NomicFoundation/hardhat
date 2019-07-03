@@ -73,9 +73,7 @@ export class BuidlerDocker {
   public async imageExists(image: Image): Promise<boolean> {
     const repositoryPath = this._imageToRepositoryPath(image);
 
-    const imageEndpoint = `https://registry.hub.docker.com/v2/repositories/${repositoryPath}/tags/${
-      image.tag
-    }/`;
+    const imageEndpoint = `https://registry.hub.docker.com/v2/repositories/${repositoryPath}/tags/${image.tag}/`;
 
     try {
       const { default: fetch } = await import("node-fetch");

@@ -14,14 +14,14 @@
     "lerna": "^3.13.4",
     "mocha": "^5.2.0",
     "nyc": "^14.1.0",
-    "prettier": "^1.17.0",
+    "prettier": "1.18.2",
     "source-map-support": "^0.5.12",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-consistent-codestyle": "^1.15.1",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^3.4.5"
+    "typescript": "~3.4.5"
   },
   "scripts": {
     "build": "lerna exec -- npm run build",

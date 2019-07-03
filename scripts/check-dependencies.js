@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 // An array of dependencies whose version checks are ignored for all the
-// pacakges
+// packages
 const IGNORE_FROM_ALL = ["web3"];
 
 // A map from dependencies to package names where it should be ignored
@@ -15,7 +15,7 @@ const IGNORE_FOR_PACKAGES = {
   ]
 };
 
-function checkPerrDepedencies(packageJson) {
+function checkPeerDepedencies(packageJson) {
   if (packageJson.peerDependencies === undefined) {
     return true;
   }
@@ -89,7 +89,7 @@ function addDependencies(packageName, dependenciesToAdd, allDependenciesMap) {
 }
 
 function getDependencyMap(packageJson) {
-  // Map of: dependencyName => veresionSpeck => set of module names
+  // Map of: dependencyName => versionSpec => set of module names
   const dependencies = {};
 
   addDependencies(packageJson.name, packageJson.dependencies, dependencies);
@@ -100,7 +100,7 @@ function getDependencyMap(packageJson) {
 }
 
 function mergeDependenciesMap(dependencyMaps) {
-  // Map of: dependencyName => veresionSpeck => set of module names
+  // Map of: dependencyName => versionSpec => set of module names
   const dependencies = {};
 
   for (const map of dependencyMaps) {
@@ -140,8 +140,13 @@ function main() {
   let success = true;
   const dependencyMaps = [];
   for (const packageJsonPath of getAllPackageJsonPaths()) {
+    if (!fs.existsSync(packageJsonPath)) {
+      console.warn(`${packageJsonPath} doesn't exist, skipping it`);
+      continue;
+    }
+
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-    const peersOk = checkPerrDepedencies(packageJson);
+    const peersOk = checkPeerDepedencies(packageJson);
     const dependencyMap = getDependencyMap(packageJson);
     dependencyMaps.push(dependencyMap);
 

@@ -62,9 +62,7 @@ export function expectBuidlerError(
   }
 
   throw new AssertionError(
-    `BuidlerError number ${
-      errorDescription.number
-    } expected, but no Error was thrown`
+    `BuidlerError number ${errorDescription.number} expected, but no Error was thrown`
   );
 }
 
@@ -77,9 +75,7 @@ export async function expectBuidlerErrorAsync(
   // This makes things easier, at least as long as we don't have async stack
   // traces. This may change in the near-ish future.
   const error = new AssertionError(
-    `BuidlerError number ${
-      errorDescription.number
-    } expected, but no Error was thrown`
+    `BuidlerError number ${errorDescription.number} expected, but no Error was thrown`
   );
 
   const notExactMatch = new AssertionError(
