@@ -5,6 +5,7 @@ import semver from "semver";
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
+import { TaskArguments } from "../../types";
 import { BUIDLER_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
@@ -89,19 +90,28 @@ async function main() {
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
-    const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
-    const taskDefinition = taskDefinitions[taskName];
+    let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
 
-    if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-        task: taskName
-      });
+    let taskArguments: TaskArguments;
+
+    // --help is a also special case
+    if (buidlerArguments.help && taskName !== TASK_HELP) {
+      taskArguments = { task: taskName };
+      taskName = TASK_HELP;
+    } else {
+      const taskDefinition = taskDefinitions[taskName];
+
+      if (taskDefinition === undefined) {
+        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+          task: taskName
+        });
+      }
+
+      taskArguments = argumentsParser.parseTaskArguments(
+        taskDefinition,
+        unparsedCLAs
+      );
     }
-
-    const taskArguments = argumentsParser.parseTaskArguments(
-      taskDefinition,
-      unparsedCLAs
-    );
 
     const env = new Environment(
       config,
@@ -111,12 +121,6 @@ async function main() {
     );
 
     ctx.setBuidlerRuntimeEnvironment(env);
-
-    // --help is a also special case
-    if (buidlerArguments.help && taskName !== TASK_HELP) {
-      await env.run(TASK_HELP, { task: taskName });
-      return;
-    }
 
     await env.run(taskName, taskArguments);
   } catch (error) {
