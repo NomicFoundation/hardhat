@@ -47,10 +47,14 @@ export function getEnvBuidlerArguments(
       try {
         envArgs[paramName] = definition.type.parse(paramName, rawValue);
       } catch (error) {
-        throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE, error, {
-          varName: envVarName,
-          value: rawValue
-        });
+        throw new BuidlerError(
+          ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE,
+          {
+            varName: envVarName,
+            value: rawValue
+          },
+          error
+        );
       }
     } else {
       envArgs[paramName] = definition.defaultValue;

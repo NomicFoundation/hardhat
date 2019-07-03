@@ -35,10 +35,14 @@ export default function() {
           );
           process.exit(statusCode);
         } catch (error) {
-          throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR, error, {
-            script,
-            error: error.message
-          });
+          throw new BuidlerError(
+            ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
+            {
+              script,
+              error: error.message
+            },
+            error
+          );
         }
       }
     );

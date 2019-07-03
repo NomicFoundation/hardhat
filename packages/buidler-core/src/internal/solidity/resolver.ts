@@ -90,18 +90,26 @@ export class Resolver {
         path.join(libraryName, "package.json")
       );
     } catch (error) {
-      throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED, error, {
-        library: libraryName
-      });
+      throw new BuidlerError(
+        ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
+        {
+          library: libraryName
+        },
+        error
+      );
     }
 
     let absolutePath;
     try {
       absolutePath = this._resolveFromProjectRoot(globalName);
     } catch (error) {
-      throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND, error, {
-        file: globalName
-      });
+      throw new BuidlerError(
+        ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
+        {
+          file: globalName
+        },
+        error
+      );
     }
 
     const libraryPath = path.dirname(packagePath);
@@ -167,10 +175,14 @@ export class Resolver {
         error.number === ERRORS.RESOLVER.FILE_NOT_FOUND.number ||
         error.number === ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND.number
       ) {
-        throw new BuidlerError(ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND, error, {
-          imported,
-          from: from.globalName
-        });
+        throw new BuidlerError(
+          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
+          {
+            imported,
+            from: from.globalName
+          },
+          error
+        );
       }
 
       // tslint:disable-next-line only-buidler-error

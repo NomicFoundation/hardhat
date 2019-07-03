@@ -114,9 +114,13 @@ export class CompilerDownloader {
     try {
       await this._download(COMPILERS_LIST_URL, this.getCompilersListPath());
     } catch (error) {
-      throw new BuidlerError(ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED, error, {
-        localVersion: this._localSolcVersion
-      });
+      throw new BuidlerError(
+        ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
+        {
+          localVersion: this._localSolcVersion
+        },
+        error
+      );
     }
   }
 
@@ -131,10 +135,14 @@ export class CompilerDownloader {
     try {
       await this._download(compilerUrl, downloadedFilePath);
     } catch (error) {
-      throw new BuidlerError(ERRORS.SOLC.DOWNLOAD_FAILED, error, {
-        remoteVersion: compilerBuild.version,
-        localVersion: this._localSolcVersion
-      });
+      throw new BuidlerError(
+        ERRORS.SOLC.DOWNLOAD_FAILED,
+        {
+          remoteVersion: compilerBuild.version,
+          localVersion: this._localSolcVersion
+        },
+        error
+      );
     }
   }
 

@@ -17,32 +17,15 @@ export class BuidlerError extends Error {
 
   constructor(
     errorDescription: ErrorDescription,
-    parentError: Error,
-    messageArguments?: { [variableName: string]: any }
-  );
-  constructor(
-    errorDescription: ErrorDescription,
-    messageArguments?: { [variableName: string]: any }
-  );
-  constructor(
-    errorDescription: ErrorDescription,
-    parentError: Error | { [variableName: string]: any } = {},
-    messageArguments: { [variableName: string]: any } = {}
+    messageArguments: { [p: string]: any } = {},
+    parentError?: Error
   ) {
     const prefix = ERROR_PREFIX + errorDescription.number.toString() + ": ";
 
-    let formattedMessage: string;
-    if (parentError instanceof Error) {
-      formattedMessage = applyErrorMessageTemplate(
-        errorDescription.message,
-        messageArguments
-      );
-    } else {
-      formattedMessage = applyErrorMessageTemplate(
-        errorDescription.message,
-        parentError
-      );
-    }
+    const formattedMessage = applyErrorMessageTemplate(
+      errorDescription.message,
+      messageArguments
+    );
 
     super(prefix + formattedMessage);
     this.number = errorDescription.number;

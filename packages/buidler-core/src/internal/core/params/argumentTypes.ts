@@ -129,10 +129,14 @@ export const inputFile: ArgumentType<string> = {
         throw new Error(strValue + " is a directory, not a file");
       }
     } catch (error) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_INPUT_FILE, error, {
-        name: argName,
-        value: strValue
-      });
+      throw new BuidlerError(
+        ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
+        {
+          name: argName,
+          value: strValue
+        },
+        error
+      );
     }
 
     return strValue;
@@ -145,10 +149,14 @@ export const json: ArgumentType<any> = {
     try {
       return JSON.parse(strValue);
     } catch (error) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT, error, {
-        param: argName,
-        error: error.message
-      });
+      throw new BuidlerError(
+        ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT,
+        {
+          param: argName,
+          error: error.message
+        },
+        error
+      );
     }
   }
 };
