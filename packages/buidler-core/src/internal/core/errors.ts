@@ -318,7 +318,7 @@ You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`
     RUNSUPER_NOT_AVAILABLE: {
       number: 206,
       message:
-        "Tried to call runSupper from a non-overridden definition of task %taskName%"
+        "Tried to call runSuper from a non-overridden definition of task %taskName%"
     },
     DEFAULT_VALUE_WRONG_TYPE: {
       number: 207,
