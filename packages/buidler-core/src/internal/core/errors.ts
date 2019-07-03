@@ -299,7 +299,7 @@ You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`
     INVALID_RPC_QUANTITY_VALUE: {
       number: 108,
       message:
-        "Received invalid value %value% from/to the node's JSON-RPC, but a Quantity was expected."
+        "Received invalid value `%value%` from/to the node's JSON-RPC, but a Quantity was expected."
     }
   },
   TASK_DEFINITIONS: {
