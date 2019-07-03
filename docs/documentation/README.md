@@ -149,6 +149,8 @@ Overriding built-in tasks is a great way to customize and extend Buidler. To kno
 
 This function works like [JavaScript's `super` keyword](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super), it calls the task's previously defined action.
 
+If the task isn't overriding a previous task definition calling `runSuper` will result in an error. To check if calling it won't fail, you can use the `boolean` field `runSuper.isDefined`.
+
 The `runSuper` function receives a single optional argument: an object with the task arguments. If this argument isn't provided, the same task arguments received by the action calling it will be used.
 
 ### Internal tasks
@@ -252,7 +254,7 @@ The `networks` config field is an optional object where network names map to obj
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an HD Wallet (see below). Default value: `"remote"`.
 
-You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value will be `"develop"`. 
+You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value will be `"develop"`.
 
 ##### HD Wallet config
 

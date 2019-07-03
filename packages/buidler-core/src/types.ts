@@ -240,9 +240,10 @@ export type RunTaskFunction = (
   taskArguments?: TaskArguments
 ) => Promise<any>;
 
-export type RunSuperFunction<ArgT extends TaskArguments> = (
-  taskArguments?: ArgT
-) => Promise<any>;
+export interface RunSuperFunction<ArgT extends TaskArguments> {
+  (taskArguments?: ArgT): Promise<any>;
+  isDefined: boolean;
+}
 
 export type ActionType<ArgsT extends TaskArguments> = (
   taskArgs: ArgsT,
