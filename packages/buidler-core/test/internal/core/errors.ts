@@ -53,7 +53,7 @@ describe("BuilderError", () => {
 
     it("Should work with instanceof", () => {
       const error = new BuidlerError(mockErrorDescription);
-      assert.isTrue(error instanceof BuidlerError);
+      assert.instanceOf(error, BuidlerError);
     });
   });
 
@@ -76,7 +76,7 @@ describe("BuilderError", () => {
     it("Should work with instanceof", () => {
       const parent = new Error();
       const error = new BuidlerError(mockErrorDescription, parent);
-      assert.isTrue(error instanceof BuidlerError);
+      assert.instanceOf(error, BuidlerError);
     });
   });
 });
@@ -199,7 +199,7 @@ describe("BuidlerPluginError", () => {
 
         const error = new BuidlerPluginError(message, parent);
 
-        assert.isTrue(error instanceof BuidlerPluginError);
+        assert.instanceOf(error, BuidlerPluginError);
       });
     });
 
@@ -234,7 +234,7 @@ describe("BuidlerPluginError", () => {
 
         const error = new BuidlerPluginError(plugin, message, parent);
 
-        assert.isTrue(error instanceof BuidlerPluginError);
+        assert.instanceOf(error, BuidlerPluginError);
       });
     });
   });
