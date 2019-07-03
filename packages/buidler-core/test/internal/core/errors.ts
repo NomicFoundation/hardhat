@@ -60,22 +60,22 @@ describe("BuilderError", () => {
   describe("With parent error", () => {
     it("should have the right parent error", () => {
       const parent = new Error();
-      const error = new BuidlerError(mockErrorDescription, parent);
+      const error = new BuidlerError(mockErrorDescription, {}, parent);
       assert.equal(error.parent, parent);
     });
 
     it("should format the error message with the template params", () => {
       const error = new BuidlerError(
         { number: 12, message: "%a% %b% %c%" },
-        new Error(),
-        { a: "a", b: "b", c: 123 }
+        { a: "a", b: "b", c: 123 },
+        new Error()
       );
       assert.equal(error.message, "BDLR12: a b 123");
     });
 
     it("Should work with instanceof", () => {
       const parent = new Error();
-      const error = new BuidlerError(mockErrorDescription, parent);
+      const error = new BuidlerError(mockErrorDescription, {}, parent);
       assert.instanceOf(error, BuidlerError);
     });
   });
