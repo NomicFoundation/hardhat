@@ -43,8 +43,9 @@ export function usePlugin(
     from === undefined &&
     getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED
   ) {
-    log("Buidler is linked, searching for plugin starting from CWD");
     from = process.cwd();
+
+    log("Buidler is linked, searching for plugin starting from CWD", from);
   }
 
   const pluginPackageJson = readPackageJson(pluginName, from);
