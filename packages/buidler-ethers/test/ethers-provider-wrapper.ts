@@ -39,7 +39,6 @@ describe("Ethers provider wrapper", function() {
         await wrapper.send("error_please", []);
         assert.fail("Wrapped provider should have failed");
       } catch (err2) {
-        console.log(err2);
         assert.deepEqual(err2.message, err.message);
       }
     }
