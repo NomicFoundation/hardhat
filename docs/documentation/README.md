@@ -149,6 +149,8 @@ Overriding built-in tasks is a great way to customize and extend Buidler. To kno
 
 This function works like [JavaScript's `super` keyword](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super), it calls the task's previously defined action.
 
+If the task isn't overriding a previous task definition calling `runSuper` will result in an error. To check if calling it won't fail, you can use the `boolean` field `runSuper.isDefined`.
+
 The `runSuper` function receives a single optional argument: an object with the task arguments. If this argument isn't provided, the same task arguments received by the action calling it will be used.
 
 ### Internal tasks

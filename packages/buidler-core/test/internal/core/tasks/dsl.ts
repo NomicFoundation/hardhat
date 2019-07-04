@@ -45,8 +45,11 @@ describe("TasksDSL", () => {
     assert.isDefined(task.description);
     assert.isDefined(task.action);
 
+    const runSuperNop: any = async () => {};
+    runSuperNop.isDefined = false;
+
     await expectBuidlerErrorAsync(
-      () => task.action({}, {} as any, async () => {}),
+      () => task.action({}, {} as any, runSuperNop),
       ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
     );
   });

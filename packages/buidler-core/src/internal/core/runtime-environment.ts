@@ -144,10 +144,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ) {
-    let runSuper: RunSuperFunction<TaskArguments>;
+    let runSuperFunction: any;
 
     if (taskDefinition instanceof OverriddenTaskDefinition) {
-      runSuper = async (_taskArguments = taskArguments) => {
+      runSuperFunction = async (
+        _taskArguments: TaskArguments = taskArguments
+      ) => {
         log("Running %s's super", taskDefinition.name);
 
         return this._runTaskDefinition(
@@ -155,13 +157,19 @@ export class Environment implements BuidlerRuntimeEnvironment {
           _taskArguments
         );
       };
+
+      runSuperFunction.isDefined = true;
     } else {
-      runSuper = async () => {
+      runSuperFunction = async () => {
         throw new BuidlerError(ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE, {
           taskName: taskDefinition.name
         });
       };
+
+      runSuperFunction.isDefined = false;
     }
+
+    const runSuper: RunSuperFunction<TaskArguments> = runSuperFunction;
 
     const globalAsAny = global as any;
     const previousRunSuper: any = globalAsAny.runSuper;
