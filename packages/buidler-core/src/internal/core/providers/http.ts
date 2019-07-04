@@ -79,7 +79,7 @@ export class HttpProvider extends EventEmitter {
 
       const json = await response.json();
 
-      if (!this._isValidJsonResponse(json)) {
+      if (!isValidJsonResponse(json)) {
         throw new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
           response: await response.text()
         });
@@ -115,30 +115,30 @@ export class HttpProvider extends EventEmitter {
       id: this._nextRequestId++
     };
   }
+}
 
-  private _isValidJsonResponse(payload: any) {
-    if (payload.jsonrpc !== "2.0") {
-      return false;
-    }
-
-    if (typeof payload.id !== "number") {
-      return false;
-    }
-
-    if (payload.result === undefined && payload.error === undefined) {
-      return false;
-    }
-
-    if (payload.error !== undefined) {
-      if (typeof payload.error.code !== "number") {
-        return false;
-      }
-
-      if (typeof payload.error.message !== "string") {
-        return false;
-      }
-    }
-
-    return true;
+export function isValidJsonResponse(payload: any) {
+  if (payload.jsonrpc !== "2.0") {
+    return false;
   }
+
+  if (typeof payload.id !== "number" && typeof payload.id !== "string") {
+    return false;
+  }
+
+  if (payload.result === undefined && payload.error === undefined) {
+    return false;
+  }
+
+  if (payload.error !== undefined) {
+    if (typeof payload.error.code !== "number") {
+      return false;
+    }
+
+    if (typeof payload.error.message !== "string") {
+      return false;
+    }
+  }
+
+  return true;
 }

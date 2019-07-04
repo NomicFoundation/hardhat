@@ -1,5 +1,6 @@
 import { assert } from "chai";
-import Tx from "ethereumjs-tx";
+import Common from "ethereumjs-common";
+import { Transaction } from "ethereumjs-tx";
 import { bufferToHex } from "ethereumjs-util";
 
 import { DEFAULT_GAS_MULTIPLIER } from "../../../../../buidler-truffle5/src/constants";
@@ -16,7 +17,10 @@ import {
   GANACHE_GAS_MULTIPLIER
 } from "../../../../src/internal/core/providers/gas-providers";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
-import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
+import {
+  createChainIdGetter,
+  rpcQuantityToNumber
+} from "../../../../src/internal/core/providers/provider-utils";
 import { IEthereumProvider } from "../../../../src/types";
 import { expectBuidlerErrorAsync } from "../../../helpers/errors";
 
@@ -99,13 +103,26 @@ describe("Base providers wrapping", () => {
   });
 
   describe("Sender wrapping", () => {
-    beforeEach(() => {
+    let common: Common;
+
+    beforeEach(async () => {
       baseProvider = createFixedGasProvider(baseProvider, 123);
       baseProvider = createLocalAccountsProvider(baseProvider, [
         "0x5ca14ebaee5e4a48b5341d9225f856115be72df55c7621b73fb0b6a1fdefcf24",
         "0x4e24948ea2bbd95ccd2bac641aadf36acd7e7cc011b1186a83dfe8db6cc7b1ae",
         "0x6dca0836dc90c159b9240aeff471441a134e1b215a7ffe9d69d335f325932665"
       ]);
+
+      const getChainId = createChainIdGetter(baseProvider);
+      const chainId = await getChainId();
+      common = Common.forCustomChain(
+        "mainnet",
+        {
+          chainId,
+          networkId: chainId
+        },
+        "petersburg"
+      );
     });
 
     it("Should wrap with a fixed sender param", async () => {
@@ -116,9 +133,9 @@ describe("Base providers wrapping", () => {
 
       const [rawTx] = await provider.send("eth_sendTransaction", [{}]);
 
-      const tx = new Tx(rawTx);
+      const tx = new Transaction(rawTx, { common });
       assert.equal(
-        bufferToHex(tx.from),
+        bufferToHex(tx.getSenderAddress()),
         "0xa2b6816c50d49101901d93f5302a3a57e0a1281b"
       );
     });
@@ -130,9 +147,9 @@ describe("Base providers wrapping", () => {
 
       const [rawTx] = await provider.send("eth_sendTransaction", [{}]);
 
-      const tx = new Tx(rawTx);
+      const tx = new Transaction(rawTx, { common });
       assert.equal(
-        bufferToHex(tx.from),
+        bufferToHex(tx.getSenderAddress()),
         "0x04397ae3f38106cebdf03f963074ecfc23d509d9"
       );
     });

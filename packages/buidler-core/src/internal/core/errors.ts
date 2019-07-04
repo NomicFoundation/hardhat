@@ -297,6 +297,11 @@ Please check your internet connection and networks config`
     INVALID_JSON_RESPONSE: {
       number: 111,
       message: "Invalid JSON-RPC response received: %response%"
+    },
+    CANT_DERIVE_KEY: {
+      number: 112,
+      message:
+        "Cannot derive key %path% from mnemonic '%mnemonic%.\nTry using another mnemonic or deriving less keys."
     }
   },
   TASK_DEFINITIONS: {
