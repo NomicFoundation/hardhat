@@ -283,6 +283,20 @@ You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`
       number: 108,
       message:
         "Received invalid value `%value%` from/to the node's JSON-RPC, but a Quantity was expected."
+    },
+    NODE_IS_NOT_RUNNING: {
+      number: 109,
+      message: `Cannot connect to the network %network%.
+Please make sure your node is running, and check your internet connection and networks config`
+    },
+    NETWORK_TIMEOUT: {
+      number: 110,
+      message: `Network connection timed-out.
+Please check your internet connection and networks config`
+    },
+    INVALID_JSON_RESPONSE: {
+      number: 111,
+      message: "Invalid JSON-RPC response received: %response%"
     }
   },
   TASK_DEFINITIONS: {

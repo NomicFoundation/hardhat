@@ -57,6 +57,7 @@
     "@types/fs-extra": "^5.1.0",
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.123",
+    "@types/node-fetch": "^2.3.7",
     "@types/semver": "^5.5.0",
     "chai": "^4.2.0",
     "time-require": "^0.1.2"
@@ -77,6 +78,7 @@
     "is-installed-globally": "^0.2.0",
     "lodash": "^4.17.11",
     "mocha": "^5.2.0",
+    "node-fetch": "^2.6.0",
     "semver": "^5.6.0",
     "solc": "0.5.8",
     "solidity-parser-antlr": "^0.4.2",

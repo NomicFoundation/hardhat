@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import Tx from "ethereumjs-tx";
-import { HttpProvider } from "web3x/providers";
 import { bufferToHex } from "web3x/utils";
 
 import { DEFAULT_GAS_MULTIPLIER } from "../../../../../buidler-truffle5/src/constants";
@@ -16,12 +15,10 @@ import {
   createFixedGasProvider,
   GANACHE_GAS_MULTIPLIER
 } from "../../../../src/internal/core/providers/gas-providers";
+import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
 import { IEthereumProvider } from "../../../../src/types";
-import {
-  expectBuidlerError,
-  expectBuidlerErrorAsync
-} from "../../../helpers/errors";
+import { expectBuidlerErrorAsync } from "../../../helpers/errors";
 
 import { BasicGanacheMockProvider, BasicMockProvider } from "./mocks";
 
@@ -35,7 +32,7 @@ describe("Network config typeguards", async () => {
 
 describe("Base provider creation", () => {
   it("Should create a valid HTTP provider and wrap it", () => {
-    const provider = createProvider({ url: "http://localhost:8545" });
+    const provider = createProvider("net", { url: "http://localhost:8545" });
 
     assert.instanceOf(provider, HttpProvider);
   });

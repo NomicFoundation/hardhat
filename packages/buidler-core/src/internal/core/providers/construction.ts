@@ -3,10 +3,10 @@ import {
   HttpNetworkConfig,
   IEthereumProvider,
   NetworkConfig,
-  NetworkConfigAccounts,
-  Networks
+  NetworkConfigAccounts
 } from "../../../types";
-import { BuidlerError, ERRORS } from "../errors";
+
+import { HttpProvider } from "./http";
 
 export function isHDAccountsConfig(
   accounts?: NetworkConfigAccounts
@@ -15,6 +15,7 @@ export function isHDAccountsConfig(
 }
 
 export function createProvider(
+  networkName: string,
   networkConfig: NetworkConfig
 ): IEthereumProvider {
   // These dependencies are lazy-loaded because they are really big.
@@ -22,8 +23,10 @@ export function createProvider(
 
   const netConfig = networkConfig as HttpNetworkConfig;
 
-  const { HttpProvider } = require("web3x/providers");
-  const provider: IEthereumProvider = new HttpProvider(netConfig.url!);
+  const provider: IEthereumProvider = new HttpProvider(
+    netConfig.url!,
+    networkName
+  );
 
   return wrapEthereumProvider(provider, netConfig);
 }
