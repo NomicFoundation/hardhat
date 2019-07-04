@@ -195,8 +195,8 @@ For example, adding an instance of Web3.js to the BRE can be done in this way:
 extendEnvironment(env => {
   env.Web3 = require("web3");
 
-  // env.ethereum is the EIP1193-compatible provider.
-  env.web3 = new env.Web3(new Web3HTTPProviderAdapter(env.ethereum));
+  // env.network.provider is the EIP1193-compatible provider.
+  env.web3 = new env.Web3(new Web3HTTPProviderAdapter(env.network.provider));
 });
 ```
 
@@ -252,7 +252,7 @@ The `networks` config field is an optional object where network names map to obj
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an HD Wallet (see below). Default value: `"remote"`.
 
-You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value will be `"develop"`. 
+You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value will be `"develop"`.
 
 ##### HD Wallet config
 
