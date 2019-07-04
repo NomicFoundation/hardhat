@@ -2,7 +2,7 @@ import {
   TASK_COMPILE,
   TASK_FLATTEN_GET_FLATTENED_SOURCE
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { readArtifact, BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
 import { assert, expect } from "chai";
 // tslint:disable: no-implicit-dependencies
 import { ethers } from "ethers";
@@ -12,25 +12,27 @@ import path from "path";
 import { useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
-describe("Plugin integration tests", function() {
+describe.skip("Plugin integration tests", function() {
   this.timeout(120000);
 
   describe("Using a correct Buidler project", () => {
     useEnvironment(__dirname + "/../buidler-project");
 
     let placeholder: string;
+    this.beforeEach(() => {
+      placeholder = getRandomString();
+      modifyContract(placeholder);
+    });
 
-    // this.beforeEach(() => {
-    //   placeholder = getRandomString();
-    //   modifyContract(placeholder);
-    // });
-
-    // this.afterEach(() => restoreContract(placeholder));
+    this.afterEach(() => restoreContract(placeholder));
 
     it("Test verifying deployed contract on etherscan", async function() {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const { bytecode, abi } = await readArtifact("artifacts", "TestContract");
+      const { bytecode, abi } = await readArtifact(
+        "artifacts",
+        "TestContract1"
+      );
       const amount = "20";
 
       console.log({ bytecode });
@@ -71,14 +73,14 @@ describe("Plugin integration tests", function() {
           contractName: "TestContract",
           constructorArguments: []
         })
-        .catch(e => assert.instanceOf(e, BuidlerPluginError));
+        .catch((e: any) => assert.instanceOf(e, BuidlerPluginError));
     });
   });
 });
 
 const testContractPath = path.join(
   __dirname,
-  "../buidler-project/contracts/TestContract.sol"
+  "../buidler-project/contracts/TestContract1.sol"
 );
 
 function modifyContract(placeholder: string) {
@@ -122,10 +124,4 @@ async function deployContract(
   await contract.deployed();
   await contract.deployTransaction.wait(3);
   return contract.address;
-}
-
-function link(bytecode: string): string {
-  const safeMathAddress = "0x292FFB096f7221c0C879c21535058860CcA67f58";
-
-  return bytecode.replace(/__(.{36})__/g, safeMathAddress.slice(2));
 }

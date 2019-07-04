@@ -1,14 +1,9 @@
 import {
-  TASK_FLATTEN_GET_FLATTENED_SOURCE,
-  TASK_COMPILE
+  TASK_COMPILE,
+  TASK_FLATTEN_GET_FLATTENED_SOURCE
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import {
-  BuidlerPluginError,
-  lazyObject,
-  readArtifact
-} from "@nomiclabs/buidler/plugins";
-import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
+import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
 
 import AbiEncoder from "./AbiEncoder";
 import { getDefaultEtherscanConfig } from "./config";
