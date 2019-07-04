@@ -35,14 +35,9 @@ describe.skip("Plugin integration tests", function() {
       );
       const amount = "20";
 
-      console.log({ bytecode });
       const deployedAddress = await deployContract(abi, `0x${bytecode}`, [
         amount
       ]);
-
-      console.log({
-        sourceInTest: await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE)
-      });
 
       try {
         await this.env.run("verify-contract", {
@@ -56,7 +51,6 @@ describe.skip("Plugin integration tests", function() {
 
         assert.isTrue(true);
       } catch (error) {
-        console.log(error);
         assert.fail(error.message);
       }
 

@@ -56,7 +56,6 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      console.log({ sourceInTask: source });
       await run(TASK_COMPILE);
       const abi = (await readArtifact("artifacts", taskArgs.contractName)).abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
