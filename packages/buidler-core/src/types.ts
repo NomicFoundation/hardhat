@@ -1,7 +1,6 @@
 import { EventEmitter } from "events";
-import { DeepPartial, Omit } from "ts-essentials";
+import { DeepPartial, DeepReadonly, Omit } from "ts-essentials";
 
-import { Analytics } from "./internal/cli/analytics";
 import * as types from "./internal/core/params/argumentTypes";
 
 // Begin config types
@@ -127,7 +126,7 @@ export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
 
 export type ConfigExtender = (
   config: ResolvedBuidlerConfig,
-  userConfig: BuidlerConfig
+  userConfig: DeepReadonly<BuidlerConfig>
 ) => void;
 
 export interface TasksMap {
