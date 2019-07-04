@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import chalk from "chalk";
+import debug from "debug";
 import semver from "semver";
-// tslint:disable-next-line
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
@@ -20,6 +20,8 @@ import { getPackageJson, PackageJson } from "../util/packageInfo";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
+
+const log = debug("buidler:cli");
 
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
@@ -129,6 +131,8 @@ async function main() {
     ctx.setBuidlerRuntimeEnvironment(env);
 
     await env.run(taskName, taskArguments);
+
+    log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
     let isBuidlerError = false;
 
