@@ -1,11 +1,17 @@
-import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "@nomiclabs/buidler/builtin-tasks/task-names";
+import {
+  TASK_FLATTEN_GET_FLATTENED_SOURCE,
+  TASK_COMPILE
+} from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
+import {
+  BuidlerPluginError,
+  lazyObject,
+  readArtifact
+} from "@nomiclabs/buidler/plugins";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 
 import AbiEncoder from "./AbiEncoder";
 import { getDefaultEtherscanConfig } from "./config";
-import ContractCompiler from "./ContractCompiler";
 import {
   getVerificationStatus,
   verifyContract
@@ -21,7 +27,6 @@ task("verify-contract", "Verifies contract on etherscan")
     "libraries",
     'Stringified JSON object in format of {library1: "0x2956356cd2a2bf3202f771f50d3d14a367b48071"}'
   )
-  .addOptionalParam("source", "Contract source")
   .addOptionalVariadicPositionalParam(
     "constructorArguments",
     "arguments for contract constructor"
@@ -45,12 +50,9 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      let source;
+      let source: string;
       try {
-        source =
-          taskArgs.source !== undefined && taskArgs.source !== ""
-            ? taskArgs.source
-            : await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+        source = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
       } catch (_) {
         throw new BuidlerPluginError(
           `Your ${
@@ -59,11 +61,9 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      const abi = await new ContractCompiler(run).getAbi(
-        source,
-        taskArgs.contractName
-      );
-
+      console.log({ sourceInTask: source });
+      await run(TASK_COMPILE);
+      const abi = (await readArtifact("artifacts", taskArgs.contractName)).abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
       const request = toRequest({

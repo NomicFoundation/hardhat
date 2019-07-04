@@ -1,3 +1,6 @@
+# Allow a dummy project in this directory for testing purposes
+myproject
+
 /node_modules
 /.idea
 *.tsbuildinfo
@@ -90,5 +93,3 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
-# Allow a dummy project in this directory for testing purposes
-myproject

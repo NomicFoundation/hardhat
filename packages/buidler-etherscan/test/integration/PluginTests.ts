@@ -1,70 +1,131 @@
-import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { assert } from "chai";
+import {
+  TASK_COMPILE,
+  TASK_FLATTEN_GET_FLATTENED_SOURCE
+} from "@nomiclabs/buidler/builtin-tasks/task-names";
+import { readArtifact, BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { assert, expect } from "chai";
 // tslint:disable: no-implicit-dependencies
 import { ethers } from "ethers";
-// @ts-ignore
-import * as linker from "solc/linker";
+import { readFileSync, writeFileSync } from "fs";
+import path from "path";
 
-import ContractCompiler from "../../src/ContractCompiler";
 import { useEnvironment } from "../helpers";
-import ContractDeployer from "../util/ContractDeployer";
 
 // These are skipped because they can't currently be run in CI
-describe.skip("Plugin integration tests", function() {
-  this.timeout(100000);
+describe("Plugin integration tests", function() {
+  this.timeout(120000);
 
-  useEnvironment(__dirname + "/../buidler-project");
+  describe("Using a correct Buidler project", () => {
+    useEnvironment(__dirname + "/../buidler-project");
 
-  it("Test verifying deployed contract on etherscan", async function() {
-    const deployer = new ContractDeployer();
-    const rawFlattenedSource: string = await this.env.run(
-      TASK_FLATTEN_GET_FLATTENED_SOURCE
-    );
+    let placeholder: string;
 
-    const flattenedSource = rawFlattenedSource.replace(
-      "placeholder",
-      getRandomString()
-    );
+    // this.beforeEach(() => {
+    //   placeholder = getRandomString();
+    //   modifyContract(placeholder);
+    // });
 
-    const compilationResult = await new ContractCompiler(this.env.run).compile(
-      flattenedSource,
-      "TestContract"
-    );
+    // this.afterEach(() => restoreContract(placeholder));
 
-    compilationResult.bytecode = linker.linkBytecode(
-      compilationResult.bytecode,
-      {
-        "contracts:SafeMath": "0x292FFB096f7221c0C879c21535058860CcA67f58"
-      }
-    );
-    const amount = "20";
-    const deployedAddress = await deployer.deployContract(
-      compilationResult.abi,
-      "0x" + compilationResult.bytecode,
-      amount
-    );
+    it("Test verifying deployed contract on etherscan", async function() {
+      await this.env.run(TASK_COMPILE, { force: false });
 
-    try {
-      await this.env.run("verify-contract", {
-        address: deployedAddress,
-        contractName: "TestContract",
-        libraries: JSON.stringify({
-          SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
-        }),
-        source: flattenedSource,
-        constructorArguments: [amount]
+      const { bytecode, abi } = await readArtifact("artifacts", "TestContract");
+      const amount = "20";
+
+      console.log({ bytecode });
+      const deployedAddress = await deployContract(abi, `0x${bytecode}`, [
+        amount
+      ]);
+
+      console.log({
+        sourceInTest: await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE)
       });
 
-      assert.isTrue(true);
-    } catch (error) {
-      console.log(error);
-      assert.fail(error.message);
-    }
+      try {
+        await this.env.run("verify-contract", {
+          address: deployedAddress,
+          contractName: "TestContract",
+          libraries: JSON.stringify({
+            SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
+          }),
+          constructorArguments: [amount]
+        });
 
-    return true;
+        assert.isTrue(true);
+      } catch (error) {
+        console.log(error);
+        assert.fail(error.message);
+      }
+
+      return true;
+    });
+  });
+
+  describe("Using a Buidler project with circular dependencies", () => {
+    useEnvironment(__dirname + "/../buidler-project-circular-dep");
+    it("Fails with an error message indicating to use Etherscan's GUI", async function() {
+      this.env
+        .run("verify-contract", {
+          address: "0x0",
+          contractName: "TestContract",
+          constructorArguments: []
+        })
+        .catch(e => assert.instanceOf(e, BuidlerPluginError));
+    });
   });
 });
 
+const testContractPath = path.join(
+  __dirname,
+  "../buidler-project/contracts/TestContract.sol"
+);
+
+function modifyContract(placeholder: string) {
+  const data = readFileSync(testContractPath, "utf-8");
+
+  const newData = data.replace("placeholder", placeholder);
+
+  writeFileSync(testContractPath, newData, "utf-8");
+}
+
+function restoreContract(placeholder: string) {
+  const data = readFileSync(testContractPath, "utf-8");
+
+  const newData = data.replace(placeholder, "placeholder");
+
+  writeFileSync(testContractPath, newData, "utf-8");
+}
+
 function getRandomString(): string {
   return ethers.Wallet.createRandom().address;
+}
+
+async function deployContract(
+  abi: any[],
+  bytecode: string,
+  constructorArguments: string[]
+) {
+  const provider = ethers.getDefaultProvider("ropsten");
+
+  if (
+    process.env.WALLET_PRIVATE_KEY === undefined ||
+    process.env.WALLET_PRIVATE_KEY === ""
+  ) {
+    throw new Error("missing WALLET_PRIVATE_KEY env variable");
+  }
+
+  const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
+
+  const factory = new ethers.ContractFactory(abi, bytecode, wallet);
+  const contract = await factory.deploy(...constructorArguments);
+  await contract.deployed();
+  await contract.deployTransaction.wait(3);
+  return contract.address;
+}
+
+function link(bytecode: string): string {
+  const safeMathAddress = "0x292FFB096f7221c0C879c21535058860CcA67f58";
+
+  return bytecode.replace(/__(.{36})__/g, safeMathAddress.slice(2));
 }
