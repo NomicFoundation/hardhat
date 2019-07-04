@@ -65,7 +65,7 @@ export async function readArtifact(
   const artifactPath = getArtifactPath(artifactsPath, contractName);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, contractName);
+    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName });
   }
 
   return fsExtra.readJson(artifactPath);
@@ -84,7 +84,7 @@ export function readArtifactSync(
   const artifactPath = getArtifactPath(artifactsPath, contractName);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, contractName);
+    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName });
   }
 
   return fsExtra.readJsonSync(artifactPath);

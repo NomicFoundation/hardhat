@@ -51,12 +51,11 @@ export const boolean: ArgumentType<boolean> = {
       return false;
     }
 
-    throw new BuidlerError(
-      ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      strValue,
-      argName,
-      "boolean"
-    );
+    throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      value: strValue,
+      name: argName,
+      type: "boolean"
+    });
   }
 };
 
@@ -75,12 +74,11 @@ export const int: ArgumentType<number> = {
       strValue.match(decimalPattern) === null &&
       strValue.match(hexPattern) === null
     ) {
-      throw new BuidlerError(
-        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-        strValue,
-        argName,
-        "int"
-      );
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value: strValue,
+        name: argName,
+        type: "int"
+      });
     }
 
     return Number(strValue);
@@ -102,12 +100,11 @@ export const float: ArgumentType<number> = {
       strValue.match(decimalPattern) === null &&
       strValue.match(hexPattern) === null
     ) {
-      throw new BuidlerError(
-        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-        strValue,
-        argName,
-        "float"
-      );
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value: strValue,
+        name: argName,
+        type: "float"
+      });
     }
 
     return Number(strValue);
@@ -134,9 +131,11 @@ export const inputFile: ArgumentType<string> = {
     } catch (error) {
       throw new BuidlerError(
         ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
-        error,
-        argName,
-        strValue
+        {
+          name: argName,
+          value: strValue
+        },
+        error
       );
     }
 
@@ -152,9 +151,11 @@ export const json: ArgumentType<any> = {
     } catch (error) {
       throw new BuidlerError(
         ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT,
-        error,
-        argName,
-        error.message
+        {
+          param: argName,
+          error: error.message
+        },
+        error
       );
     }
   }

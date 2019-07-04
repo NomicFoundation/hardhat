@@ -64,7 +64,9 @@ export class Environment implements BuidlerRuntimeEnvironment {
     const networkConfig = config.networks[networkName];
 
     if (networkConfig === undefined) {
-      throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, networkName);
+      throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, {
+        network: networkName
+      });
     }
 
     const provider = lazyObject(() => createProvider(networkConfig));
@@ -96,7 +98,9 @@ export class Environment implements BuidlerRuntimeEnvironment {
     log("Running task %s", name);
 
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, name);
+      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+        task: name
+      });
     }
 
     return this._runTaskDefinition(taskDefinition, taskArguments);
@@ -153,10 +157,9 @@ export class Environment implements BuidlerRuntimeEnvironment {
       };
     } else {
       runSuper = async () => {
-        throw new BuidlerError(
-          ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE,
-          taskDefinition.name
-        );
+        throw new BuidlerError(ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE, {
+          taskName: taskDefinition.name
+        });
       };
     }
 

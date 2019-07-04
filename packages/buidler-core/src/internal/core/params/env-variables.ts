@@ -49,9 +49,11 @@ export function getEnvBuidlerArguments(
       } catch (error) {
         throw new BuidlerError(
           ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE,
-          error,
-          envVarName,
-          rawValue
+          {
+            varName: envVarName,
+            value: rawValue
+          },
+          error
         );
       }
     } else {

@@ -24,7 +24,9 @@ export class ArgumentsParser {
 
   public static cLAToParamName(cLA: string): string {
     if (cLA.toLowerCase() !== cLA) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING, cLA);
+      throw new BuidlerError(ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING, {
+        param: cLA
+      });
     }
 
     const parts = cLA.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
@@ -63,7 +65,7 @@ export class ArgumentsParser {
         if (!this._isCLAParamName(arg, buidlerParamDefinitions)) {
           throw new BuidlerError(
             ERRORS.ARGUMENTS.UNRECOGNIZED_COMMAND_LINE_ARG,
-            arg
+            { argument: arg }
           );
         }
 
@@ -134,7 +136,9 @@ export class ArgumentsParser {
       }
 
       if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
-        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME, arg);
+        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME, {
+          param: arg
+        });
       }
 
       i = this._parseArgumentAt(
@@ -175,10 +179,9 @@ export class ArgumentsParser {
         if (definition.isOptional) {
           taskArguments[paramName] = definition.defaultValue;
         } else {
-          throw new BuidlerError(
-            ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
-            paramName
-          );
+          throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+            param: paramName
+          });
         }
       }
     }
@@ -208,7 +211,9 @@ export class ArgumentsParser {
     const definition = paramDefinitions[paramName];
 
     if (parsedArguments[paramName] !== undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.REPEATED_PARAM, claArg);
+      throw new BuidlerError(ERRORS.ARGUMENTS.REPEATED_PARAM, {
+        param: claArg
+      });
     }
 
     if (definition.isFlag) {
@@ -218,10 +223,9 @@ export class ArgumentsParser {
       const value = rawCLAs[index];
 
       if (value === undefined) {
-        throw new BuidlerError(
-          ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
-          paramName
-        );
+        throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+          param: paramName
+        });
       }
 
       parsedArguments[paramName] = definition.type.parse(paramName, value);
@@ -243,10 +247,9 @@ export class ArgumentsParser {
 
       if (rawArg === undefined) {
         if (!definition.isOptional) {
-          throw new BuidlerError(
-            ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG,
-            definition.name
-          );
+          throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG, {
+            param: definition.name
+          });
         }
 
         args[definition.name] = definition.defaultValue;
@@ -269,10 +272,9 @@ export class ArgumentsParser {
       !hasVariadicParam &&
       rawPositionalParamArgs.length > positionalParamDefinitions.length
     ) {
-      throw new BuidlerError(
-        ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG,
-        rawPositionalParamArgs[positionalParamDefinitions.length]
-      );
+      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
+        argument: rawPositionalParamArgs[positionalParamDefinitions.length]
+      });
     }
 
     return args;

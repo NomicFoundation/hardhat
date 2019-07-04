@@ -3,17 +3,18 @@ import { BuidlerError, ERRORS } from "../errors";
 
 export function rpcQuantityToNumber(quantity?: string) {
   if (quantity === undefined) {
-    throw new BuidlerError(
-      ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE,
-      "undefined"
-    );
+    throw new BuidlerError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
+      value: quantity
+    });
   }
 
   if (
     typeof quantity !== "string" ||
     quantity.match(/^0x(?:0|(?:[1-9a-fA-F][0-9a-fA-F]*))$/) === null
   ) {
-    throw new BuidlerError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, quantity);
+    throw new BuidlerError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
+      value: quantity
+    });
   }
 
   return parseInt(quantity.substring(2), 16);

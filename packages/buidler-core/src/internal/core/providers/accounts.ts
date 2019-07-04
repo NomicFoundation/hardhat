@@ -38,7 +38,9 @@ export function createLocalAccountsProvider(
         );
 
         if (account === undefined) {
-          throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, address);
+          throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
+            account: address
+          });
         }
 
         return account.sign(data).signature;
@@ -51,14 +53,14 @@ export function createLocalAccountsProvider(
       if (tx.gas === undefined) {
         throw new BuidlerError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          "gas"
+          { param: "gas" }
         );
       }
 
       if (tx.gasPrice === undefined) {
         throw new BuidlerError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          "gasPrice"
+          { param: "gasPrice" }
         );
       }
 
@@ -74,7 +76,9 @@ export function createLocalAccountsProvider(
       );
 
       if (account === undefined) {
-        throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, tx.from);
+        throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
+          account: tx.from
+        });
       }
 
       const chainId = await getChainId();
@@ -102,7 +106,7 @@ export function createHDWalletProvider(
   count: number = 10
 ) {
   if (hdpath.match(HD_PATH_REGEX) === null) {
-    throw new BuidlerError(ERRORS.NETWORK.INVALID_HD_PATH, hdpath);
+    throw new BuidlerError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
   }
 
   if (!hdpath.endsWith("/")) {

@@ -55,23 +55,23 @@ export class Resolver {
     pathToResolve: string
   ): Promise<ResolvedFile> {
     if (!(await fsExtra.pathExists(pathToResolve))) {
-      throw new BuidlerError(ERRORS.RESOLVER.FILE_NOT_FOUND, pathToResolve);
+      throw new BuidlerError(ERRORS.RESOLVER.FILE_NOT_FOUND, {
+        file: pathToResolve
+      });
     }
 
     const absolutePath = await fsExtra.realpath(pathToResolve);
 
     if (!absolutePath.startsWith(this._projectRoot)) {
-      throw new BuidlerError(
-        ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT,
-        pathToResolve
-      );
+      throw new BuidlerError(ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT, {
+        file: pathToResolve
+      });
     }
 
     if (absolutePath.includes("node_modules")) {
-      throw new BuidlerError(
-        ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL,
-        pathToResolve
-      );
+      throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL, {
+        file: pathToResolve
+      });
     }
 
     const globalName = absolutePath.slice(this._projectRoot.length + 1);
@@ -92,8 +92,10 @@ export class Resolver {
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
-        error,
-        libraryName
+        {
+          library: libraryName
+        },
+        error
       );
     }
 
@@ -103,8 +105,10 @@ export class Resolver {
     } catch (error) {
       throw new BuidlerError(
         ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
-        error,
-        globalName
+        {
+          file: globalName
+        },
+        error
       );
     }
 
@@ -115,13 +119,15 @@ export class Resolver {
       // installations of the library. This can lead to very confusing
       // situations, so we only use the closes installation
       if (absolutePath.includes(`node_modules/${libraryName}`)) {
-        throw new BuidlerError(
-          ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
-          globalName
-        );
+        throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND, {
+          file: globalName
+        });
       }
 
-      throw new BuidlerError(ERRORS.RESOLVER.FILE_OUTSIDE_LIB, globalName);
+      throw new BuidlerError(ERRORS.RESOLVER.FILE_OUTSIDE_LIB, {
+        file: globalName,
+        library: libraryName
+      });
     }
 
     const packageInfo = await fsExtra.readJson(packagePath);
@@ -154,11 +160,10 @@ export class Resolver {
         const isIllegal = !globalName.startsWith(from.library.name + path.sep);
 
         if (isIllegal) {
-          throw new BuidlerError(
-            ERRORS.RESOLVER.ILLEGAL_IMPORT,
+          throw new BuidlerError(ERRORS.RESOLVER.ILLEGAL_IMPORT, {
             imported,
-            from.globalName
-          );
+            from: from.globalName
+          });
         }
 
         imported = globalName;
@@ -172,9 +177,11 @@ export class Resolver {
       ) {
         throw new BuidlerError(
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
-          error,
-          imported,
-          from.globalName
+          {
+            imported,
+            from: from.globalName
+          },
+          error
         );
       }
 

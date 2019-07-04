@@ -33,17 +33,15 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
     () => ({}),
     object => {
       if (object instanceof Function) {
-        throw new BuidlerError(
-          ERRORS.GENERAL.UNSUPPORTED_OPERATION,
-          "Creating lazy functions or classes with lazyObject"
-        );
+        throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
+          operation: "Creating lazy functions or classes with lazyObject"
+        });
       }
 
       if (typeof object !== "object" || object === null) {
-        throw new BuidlerError(
-          ERRORS.GENERAL.UNSUPPORTED_OPERATION,
-          "Using lazyObject with anything other than objects"
-        );
+        throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
+          operation: "Using lazyObject with anything other than objects"
+        });
       }
     }
   );
@@ -56,10 +54,9 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
     () => function() {},
     object => {
       if (!(object instanceof Function)) {
-        throw new BuidlerError(
-          ERRORS.GENERAL.UNSUPPORTED_OPERATION,
-          "lazyFunction should be used for functions"
-        );
+        throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
+          operation: "lazyFunction should be used for functions"
+        });
       }
     }
   );

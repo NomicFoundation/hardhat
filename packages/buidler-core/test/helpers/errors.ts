@@ -50,7 +50,16 @@ export function expectBuidlerError(
   } catch (error) {
     assert.instanceOf(error, BuidlerError);
     assert.equal(error.number, errorDescription.number);
-    assert.notInclude(error.message, "%s", "BuidlerError wrongly formatted");
+    assert.notInclude(
+      error.message,
+      "%s",
+      "BuidlerError has old-style format tag"
+    );
+    assert.notMatch(
+      error.message,
+      /%[a-zA-Z][a-zA-Z0-9]*%/,
+      "BuidlerError has an non-replaced variable tag"
+    );
 
     if (typeof errorMessage === "string") {
       assert.include(error.message, errorMessage);
@@ -91,7 +100,16 @@ export async function expectBuidlerErrorAsync(
   } catch (error) {
     assert.instanceOf(error, BuidlerError);
     assert.equal(error.number, errorDescription.number);
-    assert.notInclude(error.message, "%s", "BuidlerError wrongly formatted");
+    assert.notInclude(
+      error.message,
+      "%s",
+      "BuidlerError has old-style format tag"
+    );
+    assert.notMatch(
+      error.message,
+      /%[a-zA-Z][a-zA-Z0-9]*%/,
+      "BuidlerError has an non-replaced variable tag"
+    );
 
     if (errorMessage !== undefined) {
       if (typeof errorMessage === "string") {
