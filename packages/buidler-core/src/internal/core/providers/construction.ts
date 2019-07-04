@@ -18,9 +18,6 @@ export function createProvider(
   networkName: string,
   networkConfig: NetworkConfig
 ): IEthereumProvider {
-  // These dependencies are lazy-loaded because they are really big.
-  // We use require() instead of import() here, because we need it to be sync.
-
   const netConfig = networkConfig as HttpNetworkConfig;
 
   const provider: IEthereumProvider = new HttpProvider(
