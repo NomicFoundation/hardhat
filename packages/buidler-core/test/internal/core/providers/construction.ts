@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import Tx from "ethereumjs-tx";
-import { bufferToHex } from "web3x/utils";
+import { bufferToHex } from "ethereumjs-util";
 
 import { DEFAULT_GAS_MULTIPLIER } from "../../../../../buidler-truffle5/src/constants";
 import { ERRORS } from "../../../../src/internal/core/errors";
