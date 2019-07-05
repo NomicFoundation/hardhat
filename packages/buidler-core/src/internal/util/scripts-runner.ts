@@ -1,6 +1,10 @@
+import debug from "debug";
+
 import { BuidlerArguments } from "../../types";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
+
+const log = debug("buidler:core:scripts-runner");
 
 export async function runScript(
   scriptPath: string,
@@ -23,7 +27,11 @@ export async function runScript(
       env: { ...process.env, ...extraEnvVars }
     });
 
-    childProcess.once("close", resolve);
+    childProcess.once("close", status => {
+      log(`Script ${scriptPath} exited with status code ${status}`);
+
+      resolve(status);
+    });
     childProcess.once("error", reject);
   });
 }
@@ -35,6 +43,8 @@ export async function runScriptWithBuidler(
   extraNodeArgs: string[] = [],
   extraEnvVars: { [name: string]: string } = {}
 ): Promise<number> {
+  log("Creating Buidler subprocess to run " + scriptPath);
+
   return runScript(
     scriptPath,
     scriptArgs,
