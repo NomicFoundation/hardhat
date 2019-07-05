@@ -1,28 +1,54 @@
-import { Account } from "web3x/account";
-import { Tx } from "web3x/eth";
+import { Transaction as TransactionT } from "ethereumjs-tx";
 
 import { IEthereumProvider } from "../../../types";
+import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
 import { BuidlerError, ERRORS } from "../errors";
 
 import { createChainIdGetter } from "./provider-utils";
 import { wrapSend } from "./wrapper";
 
+export interface JsonRpcTransactionData {
+  from?: string;
+  to?: string;
+  gas?: string | number;
+  gasPrice?: string | number;
+  value?: string | number;
+  data?: string;
+  nonce?: string | number;
+}
+
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
 export function createLocalAccountsProvider(
   provider: IEthereumProvider,
-  privateKeys: string[]
+  hexPrivateKeys: string[]
 ) {
-  const { bufferToHex, toBuffer } = require("ethereumjs-util");
-  const accounts: Account[] = privateKeys.map(pkString =>
-    Account.fromPrivate(toBuffer(pkString))
-  );
+  const {
+    bufferToHex,
+    toBuffer,
+    privateToAddress
+  } = require("ethereumjs-util");
+
+  const privateKeys = hexPrivateKeys.map(h => toBuffer(h));
+  const addresses = privateKeys.map(pk => bufferToHex(privateToAddress(pk)));
 
   const getChainId = createChainIdGetter(provider);
 
+  function getPrivateKey(address: string): Buffer | undefined {
+    for (let i = 0; i < address.length; i++) {
+      if (addresses[i] === address.toLowerCase()) {
+        return privateKeys[i];
+      }
+    }
+  }
+
   return wrapSend(provider, async (method: string, params: any[]) => {
+    const { ecsign, hashPersonalMessage, toRpcSig } = await import(
+      "ethereumjs-util"
+    );
+
     if (method === "eth_accounts" || method === "eth_requestAccounts") {
-      return accounts.map(acc => acc.address.toLowerCase());
+      return [...addresses];
     }
 
     if (method === "eth_sign") {
@@ -33,22 +59,23 @@ export function createLocalAccountsProvider(
           throw new BuidlerError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
         }
 
-        const account = accounts.find(
-          acc => acc.address.toLowerCase() === address.toLowerCase()
-        );
+        const privateKey = getPrivateKey(address);
 
-        if (account === undefined) {
+        if (privateKey === undefined) {
           throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
             account: address
           });
         }
 
-        return account.sign(data).signature;
+        const messageHash = hashPersonalMessage(toBuffer(data));
+
+        const signature = ecsign(messageHash, privateKey);
+        return toRpcSig(signature.v, signature.r, signature.s);
       }
     }
 
     if (method === "eth_sendTransaction" && params.length > 0) {
-      const tx: Tx = params[0];
+      const tx: JsonRpcTransactionData = params[0];
 
       if (tx.gas === undefined) {
         throw new BuidlerError(
@@ -71,11 +98,9 @@ export function createLocalAccountsProvider(
         ]);
       }
 
-      const account = accounts.find(
-        acc => acc.address.toLowerCase() === tx.from!.toLowerCase()
-      );
+      const privateKey = getPrivateKey(tx.from!);
 
-      if (account === undefined) {
+      if (privateKey === undefined) {
         throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
           account: tx.from
         });
@@ -83,14 +108,14 @@ export function createLocalAccountsProvider(
 
       const chainId = await getChainId();
 
-      const { default: Transaction } = await import("ethereumjs-tx");
-
-      // TODO: EIP155 works differently in ethereumjs-tx 2.0
-      const transaction = new Transaction({ ...tx, chainId });
-      transaction.sign(account.privateKey);
+      const rawTransaction = await getSignedTransaction(
+        tx,
+        chainId,
+        privateKey
+      );
 
       return provider.send("eth_sendRawTransaction", [
-        bufferToHex(transaction.serialize())
+        bufferToHex(rawTransaction)
       ]);
     }
 
@@ -113,18 +138,29 @@ export function createHDWalletProvider(
     hdpath += "/";
   }
 
-  const accounts: Account[] = [];
+  const privateKeys: Buffer[] = [];
+
   for (let i = initialIndex; i < initialIndex + count; i++) {
-    accounts.push(
-      Account.createFromMnemonicAndPath(mnemonic, hdpath + i.toString())
+    const privateKey = deriveKeyFromMnemonicAndPath(
+      mnemonic,
+      hdpath + i.toString()
     );
+
+    if (privateKey === undefined) {
+      throw new BuidlerError(ERRORS.NETWORK.CANT_DERIVE_KEY, {
+        mnemonic,
+        path: hdpath
+      });
+    }
+
+    privateKeys.push(privateKey);
   }
 
   const { bufferToHex } = require("ethereumjs-util");
 
   return createLocalAccountsProvider(
     provider,
-    accounts.map(account => bufferToHex(account.privateKey))
+    privateKeys.map(pk => bufferToHex(pk))
   );
 }
 
@@ -136,7 +172,7 @@ export function createSenderProvider(
 
   return wrapSend(provider, async (method: string, params: any[]) => {
     if (method === "eth_sendTransaction" || method === "eth_call") {
-      const tx: Tx = params[0];
+      const tx: JsonRpcTransactionData = params[0];
 
       if (tx !== undefined && tx.from === undefined) {
         const [senderAccount] = await getAccounts();
@@ -160,4 +196,36 @@ export function createSenderProvider(
     addresses = (await provider.send("eth_accounts")) as string[];
     return addresses;
   }
+}
+
+async function getSignedTransaction(
+  tx: JsonRpcTransactionData,
+  chainId: number,
+  privateKey: Buffer
+): Promise<Buffer> {
+  const chains = require("ethereumjs-common/dist/chains");
+
+  const { Transaction } = await import("ethereumjs-tx");
+  let transaction: TransactionT;
+
+  if (chains.chains.names[chainId] !== undefined) {
+    transaction = new Transaction(tx, { chain: chainId });
+  } else {
+    const { default: Common } = await import("ethereumjs-common");
+
+    const common = Common.forCustomChain(
+      "mainnet",
+      {
+        chainId,
+        networkId: chainId
+      },
+      "petersburg"
+    );
+
+    transaction = new Transaction(tx, { common });
+  }
+
+  transaction.sign(privateKey);
+
+  return transaction.serialize();
 }
