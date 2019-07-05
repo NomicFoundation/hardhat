@@ -49,7 +49,8 @@ describe("Environment", () => {
     showStackTraces: false,
     version: false,
     help: false,
-    emoji: false
+    emoji: false,
+    verbose: false
   };
 
   let tasks: TaskArguments;

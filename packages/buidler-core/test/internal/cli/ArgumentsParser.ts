@@ -28,7 +28,8 @@ describe("ArgumentsParser", () => {
       showStackTraces: false,
       version: false,
       help: false,
-      emoji: false
+      emoji: false,
+      verbose: false
     };
     taskDefinition = new SimpleTaskDefinition("compile", true)
       .addParam("param", "just a param", "a default value", string)

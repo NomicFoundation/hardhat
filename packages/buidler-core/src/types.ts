@@ -210,6 +210,7 @@ export interface BuidlerArguments {
   help: boolean;
   emoji: boolean;
   config?: string;
+  verbose: boolean;
 }
 
 export type BuidlerParamDefinitions = {

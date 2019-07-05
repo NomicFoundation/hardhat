@@ -82,6 +82,7 @@ describe("getEnvVariablesMap", () => {
         help: true,
         showStackTraces: true,
         version: false,
+        verbose: true,
         config: undefined // config is optional
       }),
       {
@@ -89,7 +90,8 @@ describe("getEnvVariablesMap", () => {
         BUIDLER_EMOJI: "false",
         BUIDLER_HELP: "true",
         BUIDLER_SHOW_STACK_TRACES: "true",
-        BUIDLER_VERSION: "false"
+        BUIDLER_VERSION: "false",
+        BUIDLER_VERBOSE: "true"
       }
     );
   });
