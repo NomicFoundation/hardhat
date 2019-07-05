@@ -44,3 +44,9 @@ module.exports = {
   }
 };
 ```
+
+Lastly, run the `verify-contract` task like so:
+
+```bash
+npx buidler verify-contract --contract-name MyContract --address DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
+```
