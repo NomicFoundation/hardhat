@@ -52,8 +52,7 @@ export default function() {
         mocha.run(resolve);
       });
 
-      const failures = await runPromise;
-      process.exit(failures);
+      process.exitCode = await runPromise;
     });
 
   task(TASK_TEST, "Runs mocha tests")

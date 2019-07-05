@@ -10,23 +10,6 @@ describe("run task", function() {
   useFixtureProject("project-with-scripts");
   useEnvironment();
 
-  let exitCode: number | undefined;
-  let originalExit: (code?: number) => never;
-
-  before("Patch process.exit", function() {
-    originalExit = process.exit;
-
-    function patchedExit(code?: number) {
-      exitCode = code;
-    }
-
-    process.exit = patchedExit as any;
-  });
-
-  after("Unpatch process.exit", function() {
-    process.exit = originalExit;
-  });
-
   it("Should fail if a script doesn't exist", async function() {
     await expectBuidlerErrorAsync(
       () =>
@@ -41,8 +24,8 @@ describe("run task", function() {
       noCompile: true
     });
 
-    assert.equal(exitCode, 0);
-    exitCode = undefined;
+    assert.equal(process.exitCode, 0);
+    (process as any).exitCode = undefined;
   });
 
   it("Should compile before running", async function() {
@@ -57,8 +40,8 @@ describe("run task", function() {
     await this.env.run("run", {
       script: "./successful-script.js"
     });
-    assert.equal(exitCode, 0);
-    exitCode = undefined;
+    assert.equal(process.exitCode, 0);
+    (process as any).exitCode = undefined;
 
     const files = await fsExtra.readdir("artifacts");
     assert.deepEqual(files, ["A.json"]);
@@ -79,8 +62,8 @@ describe("run task", function() {
       script: "./successful-script.js",
       noCompile: true
     });
-    assert.equal(exitCode, 0);
-    exitCode = undefined;
+    assert.equal(process.exitCode, 0);
+    (process as any).exitCode = undefined;
 
     assert.isFalse(await fsExtra.pathExists("artifacts"));
   });
@@ -90,8 +73,8 @@ describe("run task", function() {
       script: "./successful-script.js",
       noCompile: true
     });
-    assert.equal(exitCode, 0);
-    exitCode = undefined;
+    assert.equal(process.exitCode, 0);
+    (process as any).exitCode = undefined;
   });
 
   it("Should return the script's status code on failure", async function() {
@@ -99,7 +82,7 @@ describe("run task", function() {
       script: "./failing-script.js",
       noCompile: true
     });
-    assert.notEqual(exitCode, 0);
-    exitCode = undefined;
+    assert.notEqual(process.exitCode, 0);
+    (process as any).exitCode = undefined;
   });
 });

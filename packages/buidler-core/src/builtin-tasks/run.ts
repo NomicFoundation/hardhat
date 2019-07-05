@@ -29,11 +29,10 @@ export default function() {
         }
 
         try {
-          const statusCode = await runScriptWithBuidler(
+          process.exitCode = await runScriptWithBuidler(
             buidlerArguments,
             script
           );
-          process.exit(statusCode);
         } catch (error) {
           throw new BuidlerError(
             ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
