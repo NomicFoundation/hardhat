@@ -50,9 +50,7 @@ task("verify-contract", "Verifies contract on etherscan")
         source = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
       } catch (_) {
         throw new BuidlerPluginError(
-          `Your ${
-            taskArgs.contractName
-          } contract constains a cyclic dependency, Etherscan doesn't currently support contracts with such dependencies through its API, please use their GUI at https://etherscan.io/verifyContract to verify your contract.`
+          `Your ${taskArgs.contractName} contract constains a cyclic dependency, Etherscan doesn't currently support contracts with such dependencies through its API, please use their GUI at https://etherscan.io/verifyContract to verify your contract.`
         );
       }
 
@@ -78,9 +76,7 @@ task("verify-contract", "Verifies contract on etherscan")
       const response = await verifyContract(etherscan.url, request);
 
       console.log(
-        `Successfully submitted contract at ${
-          taskArgs.address
-        } for verification on etherscan. Waiting for verification result...`
+        `Successfully submitted contract at ${taskArgs.address} for verification on etherscan. Waiting for verification result...`
       );
 
       await getVerificationStatus(etherscan.url, response.message);

@@ -1,6 +1,6 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-etherscan.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-etherscan)
 
-# buidler-solhint
+# buidler-etherscan
 
 [Buidler](http://buidler.dev) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
 
