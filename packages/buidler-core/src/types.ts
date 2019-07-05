@@ -1,5 +1,5 @@
+import { EventEmitter } from "events";
 import { DeepPartial, Omit } from "ts-essentials";
-import { EthereumProvider } from "web3x/providers";
 
 import * as types from "./internal/core/params/argumentTypes";
 
@@ -215,7 +215,7 @@ export interface BuidlerArguments {
 export type BuidlerParamDefinitions = {
   [param in keyof Required<BuidlerArguments>]: OptionalParamDefinition<
     BuidlerArguments[param]
-  >
+  >;
 };
 
 export interface TaskDefinition extends ConfigurableTaskDefinition {
@@ -240,9 +240,10 @@ export type RunTaskFunction = (
   taskArguments?: TaskArguments
 ) => Promise<any>;
 
-export type RunSuperFunction<ArgT extends TaskArguments> = (
-  taskArguments?: ArgT
-) => Promise<any>;
+export interface RunSuperFunction<ArgT extends TaskArguments> {
+  (taskArguments?: ArgT): Promise<any>;
+  isDefined: boolean;
+}
 
 export type ActionType<ArgsT extends TaskArguments> = (
   taskArgs: ArgsT,
@@ -250,14 +251,17 @@ export type ActionType<ArgsT extends TaskArguments> = (
   runSuper: RunSuperFunction<ArgsT>
 ) => Promise<any>;
 
-// TODO: This may not be the correct interface, see
-// https://ethereum-magicians.org/t/eip-1193-ethereum-provider-javascript-api/640/31?u=alcuadrado
+export interface EthereumProvider extends EventEmitter {
+  send(method: string, params?: any[]): Promise<any>;
+}
+
+// This alias is here for backwards compatibility
 export type IEthereumProvider = EthereumProvider;
 
 export interface Network {
   name: string;
   config: NetworkConfig;
-  provider: IEthereumProvider;
+  provider: EthereumProvider;
 }
 
 export interface BuidlerRuntimeEnvironment {
@@ -266,7 +270,7 @@ export interface BuidlerRuntimeEnvironment {
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
   readonly network: Network;
-  readonly ethereum: IEthereumProvider; // DEPRECATED: Use network.provider
+  readonly ethereum: EthereumProvider; // DEPRECATED: Use network.provider
 }
 
 /**

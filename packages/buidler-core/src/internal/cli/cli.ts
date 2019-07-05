@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import chalk from "chalk";
+import debug from "debug";
 import semver from "semver";
-// tslint:disable-next-line
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
+import { TaskArguments } from "../../types";
 import { BUIDLER_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
@@ -20,6 +21,8 @@ import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
 
+const log = debug("buidler:cli");
+
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
@@ -27,7 +30,9 @@ async function printVersionMessage(packageJson: PackageJson) {
 function ensureValidNodeVersion(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
-    throw new BuidlerError(ERRORS.GENERAL.INVALID_NODE_VERSION, requirement);
+    throw new BuidlerError(ERRORS.GENERAL.INVALID_NODE_VERSION, {
+      requirement
+    });
   }
 }
 
@@ -87,17 +92,34 @@ async function main() {
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
-    const taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
-    const taskDefinition = taskDefinitions[taskName];
+    let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
 
-    if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, taskName);
+    let taskArguments: TaskArguments;
+
+    // --help is a also special case
+    if (buidlerArguments.help && taskName !== TASK_HELP) {
+      taskArguments = { task: taskName };
+      taskName = TASK_HELP;
+    } else {
+      const taskDefinition = taskDefinitions[taskName];
+
+      if (taskDefinition === undefined) {
+        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+          task: taskName
+        });
+      }
+
+      taskArguments = argumentsParser.parseTaskArguments(
+        taskDefinition,
+        unparsedCLAs
+      );
     }
 
-    const taskArguments = argumentsParser.parseTaskArguments(
-      taskDefinition,
-      unparsedCLAs
-    );
+    // TODO: This is here for backwards compatibility
+    // There are very few projects using this.
+    if (buidlerArguments.network === undefined) {
+      buidlerArguments.network = config.defaultNetwork;
+    }
 
     const env = new Environment(
       config,
@@ -108,13 +130,9 @@ async function main() {
 
     ctx.setBuidlerRuntimeEnvironment(env);
 
-    // --help is a also special case
-    if (buidlerArguments.help && taskName !== TASK_HELP) {
-      await env.run(TASK_HELP, { task: taskName });
-      return;
-    }
-
     await env.run(taskName, taskArguments);
+
+    log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
     let isBuidlerError = false;
 

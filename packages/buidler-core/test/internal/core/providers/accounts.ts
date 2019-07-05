@@ -1,12 +1,12 @@
 import { assert } from "chai";
 import { bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
-import { Tx } from "web3x/eth";
 
 import { ERRORS } from "../../../../src/internal/core/errors";
 import {
   createHDWalletProvider,
   createLocalAccountsProvider,
-  createSenderProvider
+  createSenderProvider,
+  JsonRpcTransactionData
 } from "../../../../src/internal/core/providers/accounts";
 import { wrapSend } from "../../../../src/internal/core/providers/wrapper";
 import { IEthereumProvider } from "../../../../src/types";
@@ -321,7 +321,7 @@ describe("Account provider", () => {
   let mock: IEthereumProvider;
   let provider: IEthereumProvider;
   let wrapper: IEthereumProvider;
-  let tx: Tx;
+  let tx: JsonRpcTransactionData;
   beforeEach(() => {
     tx = {
       to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",

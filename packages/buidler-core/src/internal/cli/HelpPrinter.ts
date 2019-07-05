@@ -52,9 +52,7 @@ export class HelpPrinter {
     console.log("");
 
     console.log(
-      `To get help for a specific task run: ${
-        this._executableName
-      } help [task]\n`
+      `To get help for a specific task run: ${this._executableName} help [task]\n`
     );
   }
 
@@ -62,7 +60,9 @@ export class HelpPrinter {
     const taskDefinition = this._tasks[taskName];
 
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, taskName);
+      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+        task: taskName
+      });
     }
 
     const description =

@@ -33,7 +33,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
   help: {
     name: "help",
     defaultValue: false,
-    description: "Shows this message.",
+    description: "Shows this message, or a task's help if its name is provided",
     type: types.boolean,
     isFlag: true,
     isOptional: true,

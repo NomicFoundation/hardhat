@@ -64,9 +64,7 @@ export class TruffleEnvironmentArtifacts {
         library.constructor.network_id === undefined
       ) {
         throw new BuidlerPluginError(
-          `Error while linking library ${
-            library._json.contractName
-          } into contract ${destination.contractName}: library not deployed.`
+          `Error while linking library ${library._json.contractName} into contract ${destination.contractName}: library not deployed.`
         );
       }
     }

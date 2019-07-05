@@ -29,7 +29,7 @@ describe("Solhint plugin", function() {
     it("return a report", async function() {
       const reports = await this.env.run("buidler-solhint:run-solhint");
       assert.equal(reports.length, 1);
-      assert.equal(reports[0].reports.length, 5);
+      assert.equal(reports[0].reports.length, 6);
     });
   });
 

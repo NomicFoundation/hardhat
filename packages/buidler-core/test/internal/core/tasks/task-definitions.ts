@@ -36,6 +36,9 @@ function assertParamDefinition(
   }
 }
 
+const runSuperNop: any = async () => {};
+runSuperNop.isDefined = false;
+
 describe("SimpleTaskDefinition", () => {
   describe("construction", () => {
     let taskDefinition: SimpleTaskDefinition;
@@ -63,7 +66,7 @@ describe("SimpleTaskDefinition", () => {
 
     it("starts with an action that throws", () => {
       expectBuidlerError(
-        () => taskDefinition.action({}, {} as any, async () => {}),
+        () => taskDefinition.action({}, {} as any, runSuperNop),
         ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
       );
     });
@@ -87,12 +90,12 @@ describe("SimpleTaskDefinition", () => {
       const taskDefinition = new SimpleTaskDefinition("name");
 
       taskDefinition.setAction(async () => 1);
-      let result = await taskDefinition.action({}, {} as any, async () => {});
+      let result = await taskDefinition.action({}, {} as any, runSuperNop);
       assert.equal(result, 1);
 
       const obj = {};
       taskDefinition.setAction(async () => obj);
-      result = await taskDefinition.action({}, {} as any, async () => {});
+      result = await taskDefinition.action({}, {} as any, runSuperNop);
       assert.equal(result, obj);
     });
   });

@@ -163,7 +163,7 @@ export function validateConfig(config: any) {
 
   const errorList = "  * " + errors.join("\n  * ");
 
-  throw new BuidlerError(ERRORS.GENERAL.INVALID_CONFIG, errorList);
+  throw new BuidlerError(ERRORS.GENERAL.INVALID_CONFIG, { errors: errorList });
 }
 
 export function getValidationErrors(config: any): string[] {

@@ -13,7 +13,7 @@ describe("Ethers provider wrapper", function() {
 
   beforeEach(function() {
     realProvider = new JsonRpcProvider();
-    wrapper = new EthersProviderWrapper(this.env.ethereum);
+    wrapper = new EthersProviderWrapper(this.env.network.provider);
   });
 
   it("Should return the same as the real provider", async function() {
@@ -26,7 +26,7 @@ describe("Ethers provider wrapper", function() {
   it("Should return the same error", async function() {
     // We disable this test for RskJ
     // See: https://github.com/rsksmart/rskj/issues/876
-    const version = await this.env.ethereum.send("web3_clientVersion");
+    const version = await this.env.network.provider.send("web3_clientVersion");
     if (version.includes("RskJ")) {
       this.skip();
     }

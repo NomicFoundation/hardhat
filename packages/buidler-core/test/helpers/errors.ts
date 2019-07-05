@@ -50,7 +50,16 @@ export function expectBuidlerError(
   } catch (error) {
     assert.instanceOf(error, BuidlerError);
     assert.equal(error.number, errorDescription.number);
-    assert.notInclude(error.message, "%s", "BuidlerError wrongly formatted");
+    assert.notInclude(
+      error.message,
+      "%s",
+      "BuidlerError has old-style format tag"
+    );
+    assert.notMatch(
+      error.message,
+      /%[a-zA-Z][a-zA-Z0-9]*%/,
+      "BuidlerError has an non-replaced variable tag"
+    );
 
     if (typeof errorMessage === "string") {
       assert.include(error.message, errorMessage);
@@ -62,9 +71,7 @@ export function expectBuidlerError(
   }
 
   throw new AssertionError(
-    `BuidlerError number ${
-      errorDescription.number
-    } expected, but no Error was thrown`
+    `BuidlerError number ${errorDescription.number} expected, but no Error was thrown`
   );
 }
 
@@ -77,9 +84,7 @@ export async function expectBuidlerErrorAsync(
   // This makes things easier, at least as long as we don't have async stack
   // traces. This may change in the near-ish future.
   const error = new AssertionError(
-    `BuidlerError number ${
-      errorDescription.number
-    } expected, but no Error was thrown`
+    `BuidlerError number ${errorDescription.number} expected, but no Error was thrown`
   );
 
   const notExactMatch = new AssertionError(
@@ -95,7 +100,16 @@ export async function expectBuidlerErrorAsync(
   } catch (error) {
     assert.instanceOf(error, BuidlerError);
     assert.equal(error.number, errorDescription.number);
-    assert.notInclude(error.message, "%s", "BuidlerError wrongly formatted");
+    assert.notInclude(
+      error.message,
+      "%s",
+      "BuidlerError has old-style format tag"
+    );
+    assert.notMatch(
+      error.message,
+      /%[a-zA-Z][a-zA-Z0-9]*%/,
+      "BuidlerError has an non-replaced variable tag"
+    );
 
     if (errorMessage !== undefined) {
       if (typeof errorMessage === "string") {

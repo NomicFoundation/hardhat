@@ -1,3 +1,5 @@
+import debug from "debug";
+
 import {
   BuidlerArguments,
   BuidlerRuntimeEnvironment,
@@ -16,6 +18,8 @@ import { lazyObject } from "../util/lazy";
 import { BuidlerError, ERRORS } from "./errors";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
+
+const log = debug("buidler:core:bre");
 
 export class Environment implements BuidlerRuntimeEnvironment {
   private static readonly _BLACKLISTED_PROPERTIES: string[] = [
@@ -50,6 +54,8 @@ export class Environment implements BuidlerRuntimeEnvironment {
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = []
   ) {
+    log("Creating BuidlerRuntimeEnvironment");
+
     const networkName =
       buidlerArguments.network !== undefined
         ? buidlerArguments.network
@@ -58,10 +64,14 @@ export class Environment implements BuidlerRuntimeEnvironment {
     const networkConfig = config.networks[networkName];
 
     if (networkConfig === undefined) {
-      throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, networkName);
+      throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, {
+        network: networkName
+      });
     }
 
-    const provider = lazyObject(() => createProvider(networkConfig));
+    const provider = lazyObject(() =>
+      createProvider(networkName, networkConfig)
+    );
 
     this.network = {
       name: networkName,
@@ -87,8 +97,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
     const taskDefinition = this.tasks[name];
 
+    log("Running task %s", name);
+
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, name);
+      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+        task: name
+      });
     }
 
     return this._runTaskDefinition(taskDefinition, taskArguments);
@@ -132,22 +146,32 @@ export class Environment implements BuidlerRuntimeEnvironment {
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ) {
-    let runSuper: RunSuperFunction<TaskArguments>;
+    let runSuperFunction: any;
 
     if (taskDefinition instanceof OverriddenTaskDefinition) {
-      runSuper = async (_taskArguments = taskArguments) =>
-        this._runTaskDefinition(
+      runSuperFunction = async (
+        _taskArguments: TaskArguments = taskArguments
+      ) => {
+        log("Running %s's super", taskDefinition.name);
+
+        return this._runTaskDefinition(
           taskDefinition.parentTaskDefinition,
           _taskArguments
         );
-    } else {
-      runSuper = async () => {
-        throw new BuidlerError(
-          ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE,
-          taskDefinition.name
-        );
       };
+
+      runSuperFunction.isDefined = true;
+    } else {
+      runSuperFunction = async () => {
+        throw new BuidlerError(ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE, {
+          taskName: taskDefinition.name
+        });
+      };
+
+      runSuperFunction.isDefined = false;
     }
+
+    const runSuper: RunSuperFunction<TaskArguments> = runSuperFunction;
 
     const globalAsAny = global as any;
     const previousRunSuper: any = globalAsAny.runSuper;

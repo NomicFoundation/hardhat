@@ -31,7 +31,7 @@ describe("Web3 provider adapter", function() {
 
   beforeEach(function() {
     realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
-    adaptedProvider = new Web3HTTPProviderAdapter(this.env.ethereum);
+    adaptedProvider = new Web3HTTPProviderAdapter(this.env.network.provider);
 
     assert.isDefined(this.env.web3);
   });
@@ -88,7 +88,7 @@ describe("Web3 provider adapter", function() {
   it("Should return the same on error", function(done) {
     // We disable this test for RskJ
     // See: https://github.com/rsksmart/rskj/issues/876
-    this.env.ethereum
+    this.env.network.provider
       .send("web3_clientVersion")
       .then(version => {
         if (version.includes("RskJ")) {
@@ -133,7 +133,7 @@ describe("Web3 provider adapter", function() {
 
           // We disable this test for RskJ
           // See: https://github.com/rsksmart/rskj/issues/876
-          this.env.ethereum
+          this.env.network.provider
             .send("web3_clientVersion")
             .then(version => {
               if (version.includes("RskJ")) {
