@@ -1,0 +1,56 @@
+{
+  "name": "@nomiclabs/buidler-etherscan",
+  "version": "0.0.1",
+  "description": "Buidler plugin for verifying contracts on etherscan",
+  "repository": "github:nomiclabs/buidler",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-etherscan",
+  "contributors": [
+    "Nomic Labs SRL",
+    "Marin Petrunić <marin@nodefactory.io>"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "buidler",
+    "buidler-plugin",
+    "etherscan"
+  ],
+  "scripts": {
+    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint": "npm run lint-src && npm run lint-tests",
+    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "./scripts/run-tests.sh",
+    "build": "../../node_modules/.bin/tsc --build src",
+    "build-test": "../../node_modules/.bin/tsc --build .",
+    "clean": "rm -rf dist build-test"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "ethereumjs-abi": "^0.6.7",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  },
+  "devDependencies": {
+    "@nomiclabs/buidler": "^1.0.0-beta.8",
+    "@types/ethereumjs-abi": "^0.6.3",
+    "@types/nock": "^9.3.1",
+    "@types/request": "^2.48.1",
+    "@types/request-promise": "^4.1.42",
+    "chai": "^4.2.0",
+    "ethers": "^4.0.27",
+    "nock": "^10.0.6",
+    "solc": "0.5.8"
+  },
+  "peerDependencies": {
+    "@nomiclabs/buidler": "^1.0.0-beta.8"
+  }
+}

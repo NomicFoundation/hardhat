@@ -240,7 +240,7 @@ export class BuidlerDocker {
 
       if (!res.ok) {
         throw new Error(
-          "Docker Registry manifest request not successful" + (await res.text())
+          `Docker Registry manifest request not successful ${await res.text()}`
         );
       }
 
@@ -263,7 +263,7 @@ export class BuidlerDocker {
 
       if (!res.ok) {
         throw new Error(
-          "Docker Registry auth request not successful" + (await res.text())
+          `Docker Registry auth request not successful ${await res.text()}`
         );
       }
 
