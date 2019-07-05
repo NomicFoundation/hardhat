@@ -13,8 +13,7 @@ is the main project (i.e. the one that published as [@nomiclabs/buidler](npmjs.c
 
 To install this project you have to run:
 
-1. `npm install`
-2. `npx lerna bootstrap`
+1. `scripts/install.sh`
 
 ## Building the projects
 
