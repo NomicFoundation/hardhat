@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import path from "path";
 
 import { BuidlerContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors";
@@ -166,7 +167,7 @@ describe("Environment", () => {
     useFixtureProject("plugin-project");
 
     it("environment should contains plugin extensions", async () => {
-      require(process.cwd() + "/plugins/example");
+      require(path.join(process.cwd(), "plugins", "example"));
       const ctx = BuidlerContext.getBuidlerContext();
       env = new Environment(
         config,

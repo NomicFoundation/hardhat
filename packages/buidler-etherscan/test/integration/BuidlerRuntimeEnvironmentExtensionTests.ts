@@ -1,14 +1,11 @@
-import {
-  BuidlerConfig,
-  BuidlerRuntimeEnvironment
-} from "@nomiclabs/buidler/types";
 import { assert } from "chai";
+import path from "path";
 
 import { getDefaultEtherscanConfig } from "../../src/config";
 import { useEnvironment } from "../helpers";
 
 describe("BuidlerConfig extension", function() {
-  useEnvironment(__dirname + "/../buidler-project");
+  useEnvironment(path.join(__dirname, "..", "buidler-project"));
 
   it("It should add the etherscan field", function() {
     assert.isDefined(this.env.config.etherscan);

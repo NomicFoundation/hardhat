@@ -96,7 +96,7 @@ describe("Config resolution", () => {
         root: "blah"
       });
 
-      assert.equal(paths.root, __dirname + "/blah");
+      assert.equal(paths.root, path.join(__dirname, "blah"));
     });
 
     it("Should resolve the rest relative to the root", () => {
@@ -109,22 +109,22 @@ describe("Config resolution", () => {
         tests: "t"
       });
 
-      const root = __dirname + "/blah";
+      const root = path.join(__dirname, "blah");
       assert.equal(paths.root, root);
-      assert.equal((paths as any).asdf, root + "/asd");
-      assert.equal(paths.sources, root + "/c");
-      assert.equal(paths.artifacts, root + "/a");
-      assert.equal(paths.cache, root + "/ca");
-      assert.equal(paths.tests, root + "/t");
+      assert.equal((paths as any).asdf, path.join(root, "asd"));
+      assert.equal(paths.sources, path.join(root, "c"));
+      assert.equal(paths.artifacts, path.join(root, "a"));
+      assert.equal(paths.cache, path.join(root, "ca"));
+      assert.equal(paths.tests, path.join(root, "t"));
     });
 
     it("Should have the right default values", () => {
       const paths = resolveProjectPaths(__filename);
       assert.equal(paths.root, __dirname);
-      assert.equal(paths.sources, __dirname + "/contracts");
-      assert.equal(paths.artifacts, __dirname + "/artifacts");
-      assert.equal(paths.cache, __dirname + "/cache");
-      assert.equal(paths.tests, __dirname + "/test");
+      assert.equal(paths.sources, path.join(__dirname, "contracts"));
+      assert.equal(paths.artifacts, path.join(__dirname, "artifacts"));
+      assert.equal(paths.cache, path.join(__dirname, "cache"));
+      assert.equal(paths.tests, path.join(__dirname, "test"));
     });
   });
 });

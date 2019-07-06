@@ -18,14 +18,12 @@ function stringify(v: any): string {
 }
 
 function getContextPath(context: Context): string {
-  return (
-    context[0].type.name +
-    "." +
-    context
-      .slice(1)
-      .map(c => c.key)
-      .join(".")
-  );
+  const keysPath = context
+    .slice(1)
+    .map(c => c.key)
+    .join(".");
+
+  return `${context[0].type.name}.${keysPath}`;
 }
 
 function getMessage(e: ValidationError): string {
@@ -166,7 +164,8 @@ export function validateConfig(config: any) {
     return;
   }
 
-  const errorList = "  * " + errors.join("\n  * ");
+  let errorList = errors.join("\n  * ");
+  errorList = `  * ${errorList}`;
 
   throw new BuidlerError(ERRORS.GENERAL.INVALID_CONFIG, { errors: errorList });
 }

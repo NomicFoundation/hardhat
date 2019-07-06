@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import path from "path";
 
 import {
   runScript,
@@ -31,7 +32,7 @@ describe("Scripts runner", function() {
     const statusCode1 = await runScript(
       "./async-script.js",
       [],
-      ["--require", __dirname + "/../../../src/register"]
+      ["--require", path.join(__dirname, "..", "..", "..", "src", "register")]
     );
     assert.equal(statusCode1, 0);
 
@@ -41,7 +42,7 @@ describe("Scripts runner", function() {
     const statusCode3 = await runScript(
       "./successful-script.js",
       [],
-      ["--require", __dirname + "/../../../src/register"]
+      ["--require", path.join(__dirname, "..", "..", "..", "src", "register")]
     );
     assert.equal(statusCode3, 0);
   });

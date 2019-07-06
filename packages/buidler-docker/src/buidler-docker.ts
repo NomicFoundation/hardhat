@@ -282,6 +282,6 @@ export class BuidlerDocker {
   private _imageToRepositoryPath(image: Image): string {
     return image.repository.includes("/")
       ? image.repository
-      : "library/" + image.repository;
+      : `library/{image.repository}`;
   }
 }

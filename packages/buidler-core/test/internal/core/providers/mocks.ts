@@ -96,6 +96,6 @@ export class ChainIdMockProvider extends EventEmitter
       return numberToRpcQuantity(this._netVersion);
     }
 
-    throw new Error("Unsupported method " + method);
+    throw new Error(`Unsupported method ${method}`);
   }
 }

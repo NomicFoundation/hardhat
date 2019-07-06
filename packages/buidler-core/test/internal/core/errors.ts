@@ -56,7 +56,7 @@ describe("BuilderError", () => {
 
     it("should have the right error message", () => {
       const error = new BuidlerError(mockErrorDescription);
-      assert.equal(error.message, "BDLR123: " + mockErrorDescription.message);
+      assert.equal(error.message, `BDLR123: ${mockErrorDescription.message}`);
     });
 
     it("should format the error message with the template params", () => {

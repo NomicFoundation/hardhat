@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fs from "fs";
+import path from "path";
 
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
 import {
@@ -51,56 +52,56 @@ describe("Dependency Graph", function() {
 
     fileWithoutDependencies = new ResolvedFile(
       "contracts/WD.sol",
-      projectRoot + "/contracts/WD.sol",
+      path.join(projectRoot, "contracts", "WD.sol"),
       "no dependecy",
       new Date()
     );
 
     fileWithoutDependencies2 = new ResolvedFile(
       "contracts/WD2.sol",
-      projectRoot + "/contracts/WD2.sol",
+      path.join(projectRoot, "contracts", "WD2.sol"),
       "no dependecy",
       new Date()
     );
 
     fileWithoutDependencies3 = new ResolvedFile(
       "contracts/WD3.sol",
-      projectRoot + "/contracts/WD3.sol",
+      path.join(projectRoot, "contracts", "WD3.sol"),
       "no dependecy",
       new Date()
     );
 
     dependsOnWDAndW2 = new ResolvedFile(
       "contracts/dependsOnWDAndW2.sol",
-      projectRoot + "/contracts/dependsOnWDAndW2.sol",
+      path.join(projectRoot, "contracts", "dependsOnWDAndW2.sol"),
       'import "./WD.sol"; import "./WD2.sol";',
       new Date()
     );
 
     dependsOnWD = new ResolvedFile(
       "contracts/dependsOnWD.sol",
-      projectRoot + "/contracts/dependsOnWD.sol",
+      path.join(projectRoot, "contracts", "dependsOnWD.sol"),
       'import "./WD.sol";',
       new Date()
     );
 
     loop1 = new ResolvedFile(
       "contracts/loop1.sol",
-      projectRoot + "/contracts/loop1.sol",
+      path.join(projectRoot, "contracts", "loop1.sol"),
       'import "./loop2.sol";',
       new Date()
     );
 
     loop2 = new ResolvedFile(
       "contracts/loop2.sol",
-      projectRoot + "/contracts/loop2.sol",
+      path.join(projectRoot, "contracts", "loop2.sol"),
       'import "./loop1.sol";',
       new Date()
     );
 
     dependsOnLoop2 = new ResolvedFile(
       "contracts/dependsOnLoop2.sol",
-      projectRoot + "/contracts/dependsOnLoop2.sol",
+      path.join(projectRoot, "contracts", "dependsOnLoop2.sol"),
       'import "./loop2.sol";',
       new Date()
     );
@@ -118,7 +119,7 @@ describe("Dependency Graph", function() {
           return loop2;
 
         default:
-          throw new Error(imported + " is not mocked");
+          throw new Error(`${imported} is not mocked`);
       }
     };
   });

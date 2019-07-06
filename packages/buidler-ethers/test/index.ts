@@ -1,9 +1,10 @@
 import { assert } from "chai";
+import path from "path";
 
 import { useEnvironment } from "./helpers";
 
 describe("Ethers plugin", function() {
-  useEnvironment(__dirname + "/buidler-project");
+  useEnvironment(path.join(__dirname, "buidler-project"));
 
   it("should extend buidler runtime environment", function() {
     assert.isDefined(this.env.ethers);

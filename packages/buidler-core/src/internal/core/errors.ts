@@ -28,7 +28,7 @@ export class BuidlerError extends Error {
     messageArguments: { [p: string]: any } = {},
     parentError?: Error
   ) {
-    const prefix = ERROR_PREFIX + errorDescription.number.toString() + ": ";
+    const prefix = `${ERROR_PREFIX}${errorDescription.number}: `;
 
     const formattedMessage = applyErrorMessageTemplate(
       errorDescription.message,
@@ -516,22 +516,19 @@ Please check your internet connection and networks config`
     },
     MISSING_DEPENDENCY: {
       number: 801,
-      message:
-        "Plugin %plugin% requires %dependency% to be installed.\n%extraMessage%" +
-        "Please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%"
+      message: `Plugin %plugin% requires %dependency% to be installed.
+%extraMessage%Please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%`
     },
     DEPENDENCY_VERSION_MISMATCH: {
       number: 802,
-      message:
-        "Plugin %plugin% requires %dependency% version %versionSpec% but got %installedVersion%.\n%extraMessage%" +
-        "If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%\n" +
-        "If you have installed %dependency% yourself, please reinstall it with a valid version."
+      message: `Plugin %plugin% requires %dependency% version %versionSpec% but got %installedVersion%.
+%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%
+If you have installed %dependency% yourself, please reinstall it with a valid version.`
     },
     OLD_STYLE_IMPORT_DETECTED: {
       number: 803,
-      message:
-        "You are trying to load %pluginNameText% with a require or import statement.\n" +
-        'Please replace it with a call to usePlugin("%pluginNameCode%").'
+      message: `You are trying to load %pluginNameText% with a require or import statement.
+Please replace it with a call to usePlugin("%pluginNameCode%").`
     }
   },
   INTERNAL: {

@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
+import path from "path";
 
 import { ERRORS } from "../../../src/internal/core/errors";
 import {
@@ -40,24 +41,32 @@ describe("project structure", () => {
 
     describe("Inside a project", () => {
       useFixtureProject("default-config-project");
-      let path: string;
+      let configPath: string;
 
       before("get root path", async () => {
         // TODO: This is no longer needed once PR #71 gets merged
         const pathToFixtureRoot = await fsExtra.realpath(
-          __dirname + "/../../fixture-projects/default-config-project"
+          path.join(
+            __dirname,
+            "..",
+            "..",
+            "fixture-projects",
+            "default-config-project"
+          )
         );
 
-        path = await fsExtra.realpath(pathToFixtureRoot + "/buidler.config.js");
+        configPath = await fsExtra.realpath(
+          path.join(pathToFixtureRoot, "buidler.config.js")
+        );
       });
 
       it("should work from the project root", () => {
-        assert.equal(getUserConfigPath(), path);
+        assert.equal(getUserConfigPath(), configPath);
       });
 
       it("should work from deeper inside the project", () => {
         process.chdir("contracts");
-        assert.equal(getUserConfigPath(), path);
+        assert.equal(getUserConfigPath(), configPath);
       });
     });
   });
@@ -66,7 +75,7 @@ describe("project structure", () => {
 describe("getRecommendedGitIgnore", () => {
   it("Should return the one from this repo", async () => {
     const content = await fsExtra.readFile(
-      __dirname + "/../../../recommended-gitignore.txt",
+      path.join(__dirname, "..", "..", "..", "recommended-gitignore.txt"),
       "utf-8"
     );
 

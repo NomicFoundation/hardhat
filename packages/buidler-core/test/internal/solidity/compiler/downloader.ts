@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
+import path from "path";
 
 import { ERRORS } from "../../../../src/internal/core/errors";
 import {
@@ -67,7 +68,7 @@ describe("Compiler downloader", function() {
 
     it("Should throw if the download was unsuccessful, and delete it", async function() {
       const compilersDir = this.tmpDir;
-      const corruptCompilerBin = compilersDir + "/asd";
+      const corruptCompilerBin = path.join(compilersDir, "asd");
       await fsExtra.createFile(corruptCompilerBin);
 
       const downloader = new CompilerDownloader(
@@ -90,7 +91,7 @@ describe("Compiler downloader", function() {
   describe("Compiler download", function() {
     it("should call the download function with the right params", async function() {
       const compilersDir = this.tmpDir;
-      const downloadPath = compilersDir + "/downloadedCompiler";
+      const downloadPath = path.join(compilersDir, "downloadedCompiler");
       const expectedUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${localCompilerBuild.path}`;
 
       let urlUsed: string | undefined;
@@ -99,9 +100,9 @@ describe("Compiler downloader", function() {
       const downloader = new CompilerDownloader(
         compilersDir,
         getLocalCompilerVersion(),
-        async (url, path) => {
+        async (url, compilerPath) => {
           urlUsed = url;
-          pathUsed = path;
+          pathUsed = compilerPath;
         }
       );
 
@@ -113,12 +114,12 @@ describe("Compiler downloader", function() {
 
     it("Should throw the right error if the download fails", async function() {
       const compilersDir = this.tmpDir;
-      const downloadPath = compilersDir + "/downloadedCompiler";
+      const downloadPath = path.join(compilersDir, "downloadedCompiler");
 
       const downloader = new CompilerDownloader(
         compilersDir,
         getLocalCompilerVersion(),
-        async (url, path) => {
+        async (url, compilerPath) => {
           throw new Error("Expected");
         }
       );
@@ -141,23 +142,23 @@ describe("Compiler downloader", function() {
       const downloader = new CompilerDownloader(
         compilersDir,
         getLocalCompilerVersion(),
-        async (url, path) => {
+        async (url, compilerPath) => {
           urlUsed = url;
-          pathUsed = path;
+          pathUsed = compilerPath;
         }
       );
 
       await downloader.downloadCompilersList();
 
       assert.equal(urlUsed, expectedUrl);
-      assert.equal(pathUsed, compilersDir + "/list.json");
+      assert.equal(pathUsed, path.join(compilersDir, "list.json"));
     });
 
     it("Should throw the right error if the download fails", async function() {
       const downloader = new CompilerDownloader(
         this.tmpDir,
         getLocalCompilerVersion(),
-        async (url, path) => {
+        async (url, compilerPath) => {
           throw new Error("Expected");
         }
       );
@@ -172,7 +173,7 @@ describe("Compiler downloader", function() {
   describe("Compilers list exists", function() {
     it("Should return true if it does", async function() {
       const compilersDir = this.tmpDir;
-      await fsExtra.createFile(compilersDir + "/list.json");
+      await fsExtra.createFile(path.join(compilersDir, "list.json"));
 
       const downloader = new CompilerDownloader(
         compilersDir,
@@ -217,7 +218,10 @@ describe("Compiler downloader", function() {
     });
 
     async function saveMockCompilersList() {
-      await fsExtra.outputJSON(compilersDir + "/list.json", mockCompilerList);
+      await fsExtra.outputJSON(
+        path.join(compilersDir, "list.json"),
+        mockCompilerList
+      );
     }
 
     describe("When there's an already downloaded list", function() {
@@ -298,10 +302,13 @@ describe("Compiler downloader", function() {
     beforeEach(async function() {
       compilersDir = this.tmpDir;
 
-      downloadedPath = compilersDir + "/" + localCompilerBuild.path;
+      downloadedPath = path.join(compilersDir, localCompilerBuild.path);
 
       downloadCalled = false;
-      await fsExtra.outputJSON(compilersDir + "/list.json", mockCompilerList);
+      await fsExtra.outputJSON(
+        path.join(compilersDir, "list.json"),
+        mockCompilerList
+      );
 
       mockDownloader = new CompilerDownloader(
         compilersDir,
@@ -319,10 +326,10 @@ describe("Compiler downloader", function() {
         const compilerBin = require.resolve("solc/soljson.js");
         await fsExtra.copy(compilerBin, downloadedPath);
 
-        const path = await mockDownloader.getDownloadedCompilerPath(
+        const compilerPath = await mockDownloader.getDownloadedCompilerPath(
           localCompilerBuild.version
         );
-        assert.equal(path, downloadedPath);
+        assert.equal(compilerPath, downloadedPath);
       });
 
       it("Should throw and delete it if it doesn't", async function() {

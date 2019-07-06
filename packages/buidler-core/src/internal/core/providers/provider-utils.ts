@@ -21,7 +21,8 @@ export function rpcQuantityToNumber(quantity?: string) {
 }
 
 export function numberToRpcQuantity(n: number) {
-  return "0x" + n.toString(16);
+  const hex = n.toString(16);
+  return `0x${hex}`;
 }
 
 export function createChainIdGetter(provider: IEthereumProvider) {

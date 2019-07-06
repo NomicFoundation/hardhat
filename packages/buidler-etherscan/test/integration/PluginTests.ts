@@ -1,9 +1,6 @@
-import {
-  TASK_COMPILE,
-  TASK_FLATTEN_GET_FLATTENED_SOURCE
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
+import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
-import { assert, expect } from "chai";
+import { assert } from "chai";
 // tslint:disable: no-implicit-dependencies
 import { ethers } from "ethers";
 import { readFileSync, writeFileSync } from "fs";
@@ -16,7 +13,7 @@ describe.skip("Plugin integration tests", function() {
   this.timeout(120000);
 
   describe("Using a correct Buidler project", () => {
-    useEnvironment(__dirname + "/../buidler-project");
+    useEnvironment(path.join(__dirname, "..", "buidler-project"));
 
     let placeholder: string;
     this.beforeEach(() => {
@@ -59,7 +56,7 @@ describe.skip("Plugin integration tests", function() {
   });
 
   describe("Using a Buidler project with circular dependencies", () => {
-    useEnvironment(__dirname + "/../buidler-project-circular-dep");
+    useEnvironment(path.join(__dirname, "..", "buidler-project-circular-dep"));
     it("Fails with an error message indicating to use Etherscan's GUI", async function() {
       this.env
         .run("verify-contract", {

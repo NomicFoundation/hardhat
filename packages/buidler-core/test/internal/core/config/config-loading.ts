@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import * as path from "path";
+import path from "path";
 
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { BuidlerContext } from "../../../../src/internal/context";
@@ -69,7 +69,7 @@ describe("config loading", function() {
 
     it("should accept an absolute path", async function() {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
-      const config = loadConfigAndTasks(fixtureDir + "/config.js");
+      const config = loadConfigAndTasks(path.join(fixtureDir, "config.js"));
 
       assert.equal(
         config.paths.configFile,

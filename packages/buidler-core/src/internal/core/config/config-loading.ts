@@ -1,8 +1,6 @@
 import * as path from "path";
 
 import { ResolvedBuidlerConfig } from "../../../types";
-import { BuidlerContext } from "../../context";
-import { BuidlerError, ERRORS } from "../errors";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
@@ -34,7 +32,7 @@ export function loadConfigAndTasks(configPath?: string): ResolvedBuidlerConfig {
     ([key, value]) => (globalAsAny[key] = value)
   );
 
-  loadPluginFile(__dirname + "/../tasks/builtin-tasks");
+  loadPluginFile(path.join(__dirname, "..", "tasks", "builtin-tasks"));
 
   const defaultConfig = importCsjOrEsModule("./default-config");
   const userConfig = importCsjOrEsModule(configPath);

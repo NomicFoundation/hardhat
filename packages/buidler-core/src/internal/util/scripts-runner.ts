@@ -1,4 +1,5 @@
 import debug from "debug";
+import path from "path";
 
 import { BuidlerArguments } from "../../types";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
@@ -43,12 +44,16 @@ export async function runScriptWithBuidler(
   extraNodeArgs: string[] = [],
   extraEnvVars: { [name: string]: string } = {}
 ): Promise<number> {
-  log("Creating Buidler subprocess to run " + scriptPath);
+  log(`Creating Buidler subprocess to run ${scriptPath}`);
 
   return runScript(
     scriptPath,
     scriptArgs,
-    [...extraNodeArgs, "--require", __dirname + "/../../register"],
+    [
+      ...extraNodeArgs,
+      "--require",
+      path.join(__dirname, "..", "..", "register")
+    ],
     {
       ...getEnvVariablesMap(buidlerArguments),
       ...extraEnvVars
