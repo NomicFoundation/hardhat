@@ -71,6 +71,13 @@ let plugins = [
     url: "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-vyper",
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"]
+  },
+  {
+    name: "buidler-gas-reporter",
+    version: "0.1.2",
+    url: "https://github.com/cgewecke/buidler-gas-reporter",
+    description: "Gas usage per unit test. Average gas usage per method. A mocha reporter.",
+    tags: ["Testing", "Gas"]
   }
 ];
 
