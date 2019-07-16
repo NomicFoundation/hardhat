@@ -63,6 +63,10 @@ async function main() {
       process.argv.slice(2)
     );
 
+    if (buidlerArguments.verbose) {
+      debug.enable("buidler*");
+    }
+
     if (buidlerArguments.emoji) {
       enableEmoji();
     }

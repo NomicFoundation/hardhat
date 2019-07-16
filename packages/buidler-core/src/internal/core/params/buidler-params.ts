@@ -56,5 +56,14 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     isFlag: false,
     isOptional: true,
     isVariadic: false
+  },
+  verbose: {
+    name: "verbose",
+    defaultValue: false,
+    description: "Enables Buidler verbose logging",
+    type: types.boolean,
+    isFlag: true,
+    isOptional: true,
+    isVariadic: false
   }
 };

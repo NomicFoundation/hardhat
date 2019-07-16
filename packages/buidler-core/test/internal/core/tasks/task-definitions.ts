@@ -198,7 +198,8 @@ describe("SimpleTaskDefinition", () => {
           network: "",
           version: false,
           emoji: false,
-          help: false
+          help: false,
+          verbose: false
         };
 
         Object.keys(buidlerArgs).forEach(name => testClashWith(name));
