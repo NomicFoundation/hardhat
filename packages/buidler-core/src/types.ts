@@ -1,8 +1,8 @@
 import { EventEmitter } from "events";
 import { DeepPartial, Omit } from "ts-essentials";
 
-import * as types from "./internal/core/params/argumentTypes";
 import { Analytics } from "./internal/cli/analytics";
+import * as types from "./internal/core/params/argumentTypes";
 
 // Begin config types
 

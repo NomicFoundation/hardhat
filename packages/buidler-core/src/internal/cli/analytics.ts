@@ -1,14 +1,15 @@
-import debug from "debug";
-import path from "path";
-import fetch from "node-fetch";
 import AbortController from "abort-controller";
-import qs from "qs";
-import uuid from "uuid/v4";
+import ci from "ci-info";
+import debug from "debug";
 import { keccak256 } from "ethereumjs-util";
 import fs from "fs-extra";
+import fetch from "node-fetch";
 import os from "os";
-import ci from "ci-info";
-import { getExecutionMode } from "../core/execution-mode";
+import path from "path";
+import qs from "qs";
+import uuid from "uuid/v4";
+
+import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 
 const log = debug("buidler:analytics");
 
@@ -170,31 +171,31 @@ export class Analytics {
    * Checks whether we're using Buidler in development mode (that is, we're working _on_ Buidler).
    * We don't want the tasks we run at these moments to be tracked, so we disable analytics if so.
    */
-  private isLocalDev(): boolean {
+  private _isLocalDev(): boolean {
     const executionMode = getExecutionMode();
 
     return (
-      executionMode === EXECUTION_MODE_TS_NODE_TESTS ||
-      executionMode === EXECUTION_MODE_LINKED
+      executionMode === ExecutionMode.EXECUTION_MODE_LINKED ||
+      executionMode === ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS
     );
   }
 }
 
 // TODO: Check Windows support for this approach
-const globalNomicConfigFile = path.join(
+const globalBuidlerConfigFile = path.join(
   os.homedir(),
   ".buidler",
   "config.json"
 );
 
 async function getClientId() {
-  await fs.ensureFile(globalNomicConfigFile);
+  await fs.ensureFile(globalBuidlerConfigFile);
 
   let clientId;
 
-  log(`Looking up Client Id at ${globalNomicConfigFile}`);
+  log(`Looking up Client Id at ${globalBuidlerConfigFile}`);
   try {
-    const data = JSON.parse(await fs.readFile(globalNomicConfigFile, "utf8"));
+    const data = JSON.parse(await fs.readFile(globalBuidlerConfigFile, "utf8"));
 
     clientId = data.analytics.clientId;
 
@@ -204,7 +205,7 @@ async function getClientId() {
     clientId = uuid();
 
     await fs.writeFile(
-      globalNomicConfigFile,
+      globalBuidlerConfigFile,
       JSON.stringify({
         analytics: {
           clientId

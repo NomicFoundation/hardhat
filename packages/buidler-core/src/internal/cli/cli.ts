@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { Analytics } from "./analytics";
 import chalk from "chalk";
 import debug from "debug";
 import semver from "semver";
@@ -18,6 +17,7 @@ import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
+import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
