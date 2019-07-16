@@ -2,6 +2,7 @@ import { EventEmitter } from "events";
 import { DeepPartial, Omit } from "ts-essentials";
 
 import * as types from "./internal/core/params/argumentTypes";
+import { Analytics } from "./internal/cli/analytics";
 
 // Begin config types
 
@@ -84,12 +85,17 @@ export interface SolcOptimizerConfig {
   runs: number;
 }
 
+export interface AnalyticsConfig {
+  enabled: boolean;
+}
+
 export interface BuidlerConfig {
   defaultNetwork?: string;
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
   solc?: DeepPartial<SolcConfig>;
   mocha?: Mocha.MochaOptions;
+  analytics?: Partial<AnalyticsConfig>;
 }
 
 export interface ResolvedBuidlerConfig extends BuidlerConfig {
@@ -97,6 +103,7 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   paths: ProjectPaths;
   networks: Networks;
   solc: SolcConfig;
+  analytics: AnalyticsConfig;
 }
 
 // End config types

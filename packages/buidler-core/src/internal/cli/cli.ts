@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Analytics } from "./analytics";
 import chalk from "chalk";
 import debug from "debug";
 import semver from "semver";
@@ -89,6 +90,11 @@ async function main() {
     const ctx = BuidlerContext.createBuidlerContext();
     const config = loadConfigAndTasks(buidlerArguments.config);
 
+    const analytics = await Analytics.getInstance(
+      config.paths.root,
+      config.analytics.enabled
+    );
+
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
@@ -130,7 +136,11 @@ async function main() {
 
     ctx.setBuidlerRuntimeEnvironment(env);
 
+    const abortAnalytics = analytics.sendTaskHit(taskName);
+
     await env.run(taskName, taskArguments);
+
+    abortAnalytics();
 
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
