@@ -55,8 +55,7 @@ export class Analytics {
   private readonly _enabled: boolean;
   private readonly _userType: string;
   // Buidler's tracking id. I guess there's no other choice than keeping it here.
-  // private readonly _trackingId: string = "UA-117668706-3";
-  private readonly _trackingId: string = "UA-143872511-1";
+  private readonly _trackingId: string = "UA-117668706-3";
 
   private constructor({
     projectId,
@@ -88,9 +87,11 @@ export class Analytics {
    *
    * @returns The abort function
    */
-  public async sendTaskHit(taskName: string): Promise<void> {
+  public async sendTaskHit(
+    taskName: string
+  ): Promise<[AbortAnalytics, Promise<void>]> {
     if (!this._enabled) {
-      return;
+      return [() => {}, Promise.resolve()];
     }
 
     return this._sendHit(await this._taskHit(taskName));
@@ -136,55 +137,46 @@ export class Analytics {
       // https://support.google.com/tagmanager/answer/6164990
       //
       // Custom dimension 1: Project Id
+      // This is computed as the keccak256 hash of the project's absolute path.
       cd1: this._projectId,
       // Custom dimension 2: User type
+      //   Possible values: "CI", "Developer".
       cd2: this._userType,
+      // Custom dimension 3: Buidler Version
+      //   Example: "Buidler 1.0.0-beta.8".
       cd3: await getBuidlerVersion()
     };
   }
 
-  private _sendHit(hit: RawAnalytics): Promise<void> {
+  private _sendHit(hit: RawAnalytics): [AbortAnalytics, Promise<void>] {
     log(`Sending hit for ${hit.dp}`);
 
     const controller = new AbortController();
 
-    let abort = () => {
+    const abortAnalytics = () => {
       log(`Aborting hit for ${JSON.stringify(hit.dp)}`);
 
       controller.abort();
     };
 
-    const actualAbort = () => {
-      abort();
-    };
-
     const hitPayload = qs.stringify(hit);
 
     log(`Hit payload: ${JSON.stringify(hit)}`);
-    log(`qs: ${hitPayload}`);
 
-    setTimeout(actualAbort, 1000);
-
-    const fetchP = fetch(googleAnalyticsUrl, {
+    const hitPromise = fetch(googleAnalyticsUrl, {
       body: hitPayload,
       method: "POST",
       signal: controller.signal
-    });
-    log(fetchP);
-    return (
-      fetchP
-        .then(() => {
-          log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
+    })
+      .then(() => {
+        log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
+      })
+      // We're not really interested in handling failed analytics requests
+      .catch(() => {
+        log("Hit request failed");
+      });
 
-          abort = () => {
-            log("Hit abort no-op");
-          };
-        })
-        // We're not really interested in handling failed analytics requests
-        .catch(() => {
-          log("Hit request failed");
-        })
-    );
+    return [abortAnalytics, hitPromise];
   }
 
   /**
