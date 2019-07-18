@@ -10,6 +10,7 @@ import qs from "qs";
 import uuid from "uuid/v4";
 
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
+import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("buidler:analytics");
 
@@ -26,8 +27,11 @@ interface RawAnalytics {
   dh: string;
   t: string;
   ua: string;
+  cs: string;
+  cm: string;
   cd1: string;
   cd2: string;
+  cd3: string;
 }
 
 type AbortAnalytics = () => void;
@@ -51,7 +55,8 @@ export class Analytics {
   private readonly _enabled: boolean;
   private readonly _userType: string;
   // Buidler's tracking id. I guess there's no other choice than keeping it here.
-  private readonly _trackingId: string = "UA-117668706-3";
+  // private readonly _trackingId: string = "UA-117668706-3";
+  private readonly _trackingId: string = "UA-143872511-1";
 
   private constructor({
     projectId,
@@ -83,15 +88,15 @@ export class Analytics {
    *
    * @returns The abort function
    */
-  public sendTaskHit(taskName: string): AbortAnalytics {
+  public async sendTaskHit(taskName: string): Promise<void> {
     if (!this._enabled) {
-      return () => {};
+      return;
     }
 
-    return this._sendHit(this._taskHit(taskName));
+    return this._sendHit(await this._taskHit(taskName));
   }
 
-  private _taskHit(taskName: string): RawAnalytics {
+  private async _taskHit(taskName: string): Promise<RawAnalytics> {
     return {
       // Measurement protocol version.
       v: "1",
@@ -115,7 +120,12 @@ export class Analytics {
       // We use it to inform Node version used and OS.
       // Example:
       //   Node/v8.12.0 (Darwin 17.7.0)
-      ua: `Node/${process.version} (${os.type()} ${os.release()})`,
+      ua: getUserAgent(),
+
+      // We're using the following values (Campaign source, Campaign medium) to track
+      // whether the user is a Developer or CI, as Custom Dimensions are not working for us atm.
+      cs: this._userType,
+      cm: "User Type",
 
       // We're using custom dimensions for tracking different user projects, and user types (Developer/CI).
       //
@@ -128,11 +138,12 @@ export class Analytics {
       // Custom dimension 1: Project Id
       cd1: this._projectId,
       // Custom dimension 2: User type
-      cd2: this._userType
+      cd2: this._userType,
+      cd3: await getBuidlerVersion()
     };
   }
 
-  private _sendHit(hit: RawAnalytics): AbortAnalytics {
+  private _sendHit(hit: RawAnalytics): Promise<void> {
     log(`Sending hit for ${hit.dp}`);
 
     const controller = new AbortController();
@@ -143,28 +154,37 @@ export class Analytics {
       controller.abort();
     };
 
-    const actualAbort = () => abort();
+    const actualAbort = () => {
+      abort();
+    };
 
     const hitPayload = qs.stringify(hit);
 
     log(`Hit payload: ${JSON.stringify(hit)}`);
+    log(`qs: ${hitPayload}`);
 
-    fetch(googleAnalyticsUrl, {
+    setTimeout(actualAbort, 1000);
+
+    const fetchP = fetch(googleAnalyticsUrl, {
       body: hitPayload,
       method: "POST",
       signal: controller.signal
-    })
-      .then(() => {
-        log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
+    });
+    log(fetchP);
+    return (
+      fetchP
+        .then(() => {
+          log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
 
-        abort = () => {
-          log("Hit abort no-op");
-        };
-      })
-      // We're not really interested in handling failed analytics requests
-      .catch(() => {});
-
-    return actualAbort;
+          abort = () => {
+            log("Hit abort no-op");
+          };
+        })
+        // We're not really interested in handling failed analytics requests
+        .catch(() => {
+          log("Hit request failed");
+        })
+    );
   }
 
   /**
@@ -231,4 +251,26 @@ function getProjectId(rootPath: string) {
 
 function getUserType(): string {
   return ci.isCI ? "CI" : "Developer";
+}
+
+function getOperatingSystem(): string {
+  switch (os.type()) {
+    case "Windows_NT":
+      return "(Windows NT 6.1; Win64; x64)";
+    case "Darwin":
+      return "(Macintosh; Intel Mac OS X 10_13_6)";
+    case "Linux":
+      return "(X11; Linux x86_64)";
+    default:
+      return "(Unknown)";
+  }
+}
+function getUserAgent(): string {
+  return `Node/${process.version} ${getOperatingSystem()}`;
+}
+
+async function getBuidlerVersion(): Promise<string> {
+  const { version } = await getPackageJson();
+
+  return `Buidler ${version}`;
 }

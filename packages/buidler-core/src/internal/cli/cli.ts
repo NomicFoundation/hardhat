@@ -136,11 +136,10 @@ async function main() {
 
     ctx.setBuidlerRuntimeEnvironment(env);
 
-    const abortAnalytics = analytics.sendTaskHit(taskName);
-
-    await env.run(taskName, taskArguments);
-
-    abortAnalytics();
+    await Promise.all([
+      env.run(taskName, taskArguments),
+      analytics.sendTaskHit(taskName)
+    ]);
 
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
