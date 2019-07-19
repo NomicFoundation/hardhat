@@ -149,10 +149,7 @@ async function main() {
         chalk.red("Error in plugin " + error.pluginName + ": " + error.message)
       );
     } else if (error instanceof Error) {
-      console.error(
-        chalk.red("An unexpected error occurred: " + error.message)
-      );
-
+      console.error(chalk.red("An unexpected error occurred:"));
       showStackTraces = true;
     } else {
       console.error(chalk.red("An unexpected error occurred."));
