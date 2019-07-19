@@ -6,21 +6,26 @@ export default class AbiEncoder {
     contractAbi: any[],
     constructorArguments: string[]
   ): string {
-    let constructorAbis: any[] = contractAbi.filter(
+    const constructorAbi: any | undefined = contractAbi.find(
       value => value.type === "constructor"
     );
-    if (constructorAbis.length === 0) {
+
+    if (constructorAbi === undefined) {
       return "";
     }
-    constructorAbis = constructorAbis.filter(
-      value => value.inputs.length === constructorArguments.length
-    );
-    if (constructorAbis.length === 0) {
-      throw new BuidlerPluginError("Invalid number of constructor arguments");
+
+    if (constructorAbi.inputs.length !== constructorArguments.length) {
+      throw new BuidlerPluginError(
+        `Invalid number of constructor arguments:
+          Expected: ${constructorAbi.inputs.length}
+          Received: ${constructorArguments.length}`
+      );
     }
-    const types = constructorAbis[0].inputs.map(
+
+    const types = constructorAbi.inputs.map(
       (value: { type: string }) => value.type
     );
+
     return abi.rawEncode(types, constructorArguments).toString("hex");
   }
 }

@@ -24,7 +24,8 @@ task("verify-contract", "Verifies contract on etherscan")
   )
   .addOptionalVariadicPositionalParam(
     "constructorArguments",
-    "arguments for contract constructor"
+    "arguments for contract constructor",
+    []
   )
   .setAction(
     async (
