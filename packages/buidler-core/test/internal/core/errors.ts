@@ -17,6 +17,26 @@ const mockErrorDescription: ErrorDescription = {
 };
 
 describe("BuilderError", () => {
+  describe("Type guard", () => {
+    it("Should return true for BuidlerErrors", () => {
+      assert.isTrue(
+        BuidlerError.isBuidlerError(new BuidlerError(mockErrorDescription))
+      );
+    });
+
+    it("Should return false for everything else", () => {
+      assert.isFalse(BuidlerError.isBuidlerError(new Error()));
+      assert.isFalse(
+        BuidlerError.isBuidlerError(new BuidlerPluginError("asd", "asd"))
+      );
+      assert.isFalse(BuidlerError.isBuidlerError(undefined));
+      assert.isFalse(BuidlerError.isBuidlerError(null));
+      assert.isFalse(BuidlerError.isBuidlerError(123));
+      assert.isFalse(BuidlerError.isBuidlerError("123"));
+      assert.isFalse(BuidlerError.isBuidlerError({ asd: 123 }));
+    });
+  });
+
   describe("Without parent error", () => {
     it("should have the right error number", () => {
       const error = new BuidlerError(mockErrorDescription);
@@ -162,6 +182,30 @@ describe("Error descriptions", () => {
 });
 
 describe("BuidlerPluginError", () => {
+  describe("Type guard", () => {
+    it("Should return true for BuidlerPluginError", () => {
+      assert.isTrue(
+        BuidlerPluginError.isBuidlerPluginError(
+          new BuidlerPluginError("asd", "asd")
+        )
+      );
+    });
+
+    it("Should return false for everything else", () => {
+      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(new Error()));
+      assert.isFalse(
+        BuidlerPluginError.isBuidlerPluginError(
+          new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
+        )
+      );
+      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(undefined));
+      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(null));
+      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(123));
+      assert.isFalse(BuidlerPluginError.isBuidlerPluginError("123"));
+      assert.isFalse(BuidlerPluginError.isBuidlerPluginError({ asd: 123 }));
+    });
+  });
+
   describe("constructors", () => {
     describe("automatic plugin name", () => {
       it("Should accept a parent error", () => {

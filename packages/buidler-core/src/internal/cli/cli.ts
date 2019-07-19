@@ -140,10 +140,10 @@ async function main() {
   } catch (error) {
     let isBuidlerError = false;
 
-    if (error instanceof BuidlerError) {
+    if (BuidlerError.isBuidlerError(error)) {
       isBuidlerError = true;
       console.error(chalk.red("Error " + error.message));
-    } else if (error instanceof BuidlerPluginError) {
+    } else if (BuidlerPluginError.isBuidlerPluginError(error)) {
       isBuidlerError = true;
       console.error(
         chalk.red("Error in plugin " + error.pluginName + ": " + error.message)
