@@ -71,7 +71,7 @@ export class Analytics {
     this._projectId = projectId;
     this._clientId = clientId;
     // TODO: Remove the comment before merging.
-    this._enabled = enabled; // && !this.isLocalDev();
+    this._enabled = enabled && !this._isLocalDev();
     this._userType = userType;
   }
 
@@ -115,7 +115,7 @@ export class Analytics {
       dp: `/task/${taskName}`,
 
       // Host name.
-      dh: "buidler.dev",
+      dh: "cli.buidler.dev",
 
       // User agent, must be present.
       // We use it to inform Node version used and OS.
@@ -193,14 +193,14 @@ export class Analytics {
   }
 }
 
-// TODO: Check Windows support for this approach
-const globalBuidlerConfigFile = path.join(
-  os.homedir(),
-  ".buidler",
-  "config.json"
-);
-
 async function getClientId() {
+  // TODO: Check Windows support for this approach
+  const globalBuidlerConfigFile = path.join(
+    os.homedir(),
+    ".buidler",
+    "config.json"
+  );
+
   await fs.ensureFile(globalBuidlerConfigFile);
 
   let clientId;
@@ -245,6 +245,12 @@ function getUserType(): string {
   return ci.isCI ? "CI" : "Developer";
 }
 
+/**
+ * At the moment, we couldn't find a reliably way to report the OS () in Node,
+ * as the versions reported by the various `os` APIs (`os.platform()`, `os.type()`, etc)
+ * return values different to those expected by Google Analytics
+ * We decided to take the compromise of just reporting the OS Platform (OSX/Linux/Windows) for now (version information is bogus for now).
+ */
 function getOperatingSystem(): string {
   switch (os.type()) {
     case "Windows_NT":
@@ -257,6 +263,7 @@ function getOperatingSystem(): string {
       return "(Unknown)";
   }
 }
+
 function getUserAgent(): string {
   return `Node/${process.version} ${getOperatingSystem()}`;
 }

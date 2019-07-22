@@ -24,6 +24,8 @@ import { createProject } from "./project-creation";
 
 const log = debug("buidler:cli");
 
+const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
+
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
@@ -103,9 +105,6 @@ async function main() {
     // tslint:disable-next-line: prefer-const
     let [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
 
-    // tslint:disable-next-line: no-floating-promises
-    delay(300).then(() => (abortAnalytics = () => {}));
-
     let taskArguments: TaskArguments;
 
     // --help is a also special case
@@ -142,12 +141,19 @@ async function main() {
 
     ctx.setBuidlerRuntimeEnvironment(env);
 
+    const timestampBeforeRun = new Date().getTime();
+
     await env.run(taskName, taskArguments);
 
-    await delay(0).then(abortAnalytics);
-
-    await hitPromise;
-
+    const timestampAfterRun = new Date().getTime();
+    if (
+      timestampAfterRun - timestampBeforeRun >
+      ANALYTICS_SLOW_TASK_THRESHOLD
+    ) {
+      await hitPromise;
+    } else {
+      abortAnalytics();
+    }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
     let isBuidlerError = false;
@@ -197,9 +203,3 @@ main()
     console.error(error);
     process.exit(1);
   });
-
-async function delay(ms: number) {
-  return new Promise<void>(resolve => {
-    setTimeout(() => resolve(), ms);
-  });
-}

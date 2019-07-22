@@ -41,7 +41,8 @@ describe("Environment", () => {
       },
       evmVersion: "byzantium"
     },
-    mocha: {}
+    mocha: {},
+    analytics: { enabled: true }
   };
 
   const args: BuidlerArguments = {
