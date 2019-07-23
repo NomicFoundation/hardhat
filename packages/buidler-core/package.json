@@ -59,14 +59,19 @@
     "@types/lodash": "^4.14.123",
     "@types/node-fetch": "^2.3.7",
     "@types/semver": "^5.5.0",
+    "@types/ci-info": "^2.0.0",
+    "@types/qs": "^6.5.3",
+    "@types/uuid": "^3.4.5",
     "chai": "^4.2.0",
     "time-require": "^0.1.2"
   },
   "dependencies": {
     "@types/bn.js": "^4.11.5",
+    "abort-controller": "^3.0.0",
     "bip32": "^2.0.3",
     "bip39": "^3.0.2",
     "chalk": "^2.4.2",
+    "ci-info": "^2.0.0",
     "debug": "^4.1.1",
     "deepmerge": "^2.1.0",
     "download": "^7.1.0",
@@ -83,12 +88,14 @@
     "lodash": "^4.17.11",
     "mocha": "^5.2.0",
     "node-fetch": "^2.6.0",
+    "qs": "^6.7.0",
     "semver": "^5.6.0",
     "solc": "0.5.8",
     "solidity-parser-antlr": "^0.4.2",
     "source-map-support": "^0.5.12",
     "ts-essentials": "^2.0.7",
-    "tsort": "0.0.1"
+    "tsort": "0.0.1",
+    "uuid": "^3.3.2"
   },
   "nyc": {
     "extension": [

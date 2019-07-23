@@ -17,11 +17,14 @@ import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
+import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
 
 const log = debug("buidler:cli");
+
+const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
@@ -93,10 +96,18 @@ async function main() {
     const ctx = BuidlerContext.createBuidlerContext();
     const config = loadConfigAndTasks(buidlerArguments.config);
 
+    const analytics = await Analytics.getInstance(
+      config.paths.root,
+      config.analytics.enabled
+    );
+
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
     let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
+
+    // tslint:disable-next-line: prefer-const
+    let [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
 
     let taskArguments: TaskArguments;
 
@@ -134,8 +145,19 @@ async function main() {
 
     ctx.setBuidlerRuntimeEnvironment(env);
 
+    const timestampBeforeRun = new Date().getTime();
+
     await env.run(taskName, taskArguments);
 
+    const timestampAfterRun = new Date().getTime();
+    if (
+      timestampAfterRun - timestampBeforeRun >
+      ANALYTICS_SLOW_TASK_THRESHOLD
+    ) {
+      await hitPromise;
+    } else {
+      abortAnalytics();
+    }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
     let isBuidlerError = false;

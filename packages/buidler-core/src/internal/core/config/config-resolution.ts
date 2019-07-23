@@ -42,7 +42,8 @@ export function resolveConfig(
     paths,
     networks: config.networks!,
     solc: config.solc!,
-    defaultNetwork: config.defaultNetwork!
+    defaultNetwork: config.defaultNetwork!,
+    analytics: config.analytics!
   };
 }
 

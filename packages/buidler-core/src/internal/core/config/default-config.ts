@@ -13,6 +13,9 @@ const defaultConfig: BuidlerConfig = {
     develop: {
       url: "http://127.0.0.1:8545"
     }
+  },
+  analytics: {
+    enabled: true
   }
 };
 

@@ -140,12 +140,17 @@ const SolcConfig = t.type({
   evmVersion: optional(EVMVersion)
 });
 
+const AnalyticsConfig = t.type({
+  enabled: optional(t.boolean)
+});
+
 const BuidlerConfig = t.type(
   {
     defaultNetwork: optional(t.string),
     networks: optional(Networks),
     paths: optional(ProjectPaths),
-    solc: optional(SolcConfig)
+    solc: optional(SolcConfig),
+    analytics: optional(AnalyticsConfig)
   },
   "BuidlerConfig"
 );
