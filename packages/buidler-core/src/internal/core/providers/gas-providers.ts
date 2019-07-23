@@ -116,14 +116,14 @@ export function createGanacheGasMultiplierProvider(
 }
 
 let cachedGasLimit: number | undefined;
-async function getGasLimit(provider: IEthereumProvider): Promise<number> {
+async function getBlockGasLimit(provider: IEthereumProvider): Promise<number> {
   if (cachedGasLimit === undefined) {
-    const pendingBlock = await provider.send("eth_getBlockByNumber", [
+    const latestBlock = await provider.send("eth_getBlockByNumber", [
       "latest",
       false
     ]);
 
-    const fetchedGasLimit = rpcQuantityToNumber(pendingBlock.gasLimit);
+    const fetchedGasLimit = rpcQuantityToNumber(latestBlock.gasLimit);
 
     // For future uses, we store a lower value in case the gas limit varies slightly
     cachedGasLimit = fetchedGasLimit * 0.95;
@@ -146,7 +146,7 @@ async function getMultipliedGasEstimation(
   }
 
   const normalGas = rpcQuantityToNumber(realEstimation);
-  const gasLimit = await getGasLimit(provider);
+  const gasLimit = await getBlockGasLimit(provider);
 
   const multiplied = Math.floor(normalGas * gasMultiplier);
   const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
