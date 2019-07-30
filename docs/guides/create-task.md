@@ -67,7 +67,8 @@ For this tutorial, we're going to create a task to get an account’s balance fr
 ```js
 usePlugin("@nomiclabs/buidler-web3");
 
-task("balance", "Prints an account's balance");
+task("balance", "Prints an account's balance")
+  .setAction(async () => {});
 
 module.exports = {};
 ```
@@ -110,7 +111,8 @@ Now let’s implement the functionality we want. We need to get the account addr
 usePlugin("@nomiclabs/buidler-web3");
 
 task("balance", "Prints an account's balance")
-  .addParam("account", "The account's address");
+  .addParam("account", "The account's address")
+  .setAction(async () => {});
 
 module.exports = {};
 ```
