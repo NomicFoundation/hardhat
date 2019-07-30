@@ -25,6 +25,39 @@ To create a Buidler project just run `npx buidler` in your project folder:
 
 Let’s create the sample project and go through the steps to try out the sample task, compile, test and deploy the sample contract.
 
+To first get a quick sense of what's available and what's going on, run `npx buidler` in your project folder:
+```
+$ npx buidler
+Buidler version 1.0.0-beta.8
+
+Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
+
+GLOBAL OPTIONS:
+
+  --config              A Buidler config file.
+  --emoji               Use emoji in messages.
+  --help                Shows this message.
+  --network             The network to connect to. (default: "develop")
+  --show-stack-traces   Show stack traces.
+  --version             Shows buidler's version.
+
+
+AVAILABLE TASKS:
+
+  accounts      Prints a list of the available accounts
+  clean         Clears the cache and deletes all artifacts
+  compile       Compiles the entire project, building all artifacts
+  console       Opens a buidler console
+  flatten       Flattens and prints all contracts and their dependencies
+  help          Prints this message
+  run           Runs a user-defined script after compiling the project
+  test          Runs mocha tests
+
+To get help for a specific task run: buidler help [task]
+```
+
+This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 
+
 If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
 
 ```js
@@ -37,13 +70,25 @@ task("accounts", "Prints a list of the available accounts", async () => {
 module.exports = {};
 ```
 
-_NOTE: in the Buidler 1.0.0 beta release we’ve disabled the automatic ganache instance feature to keep working on its stability, so you’ll need to run it manually. This feature will be back by the time we ship the stable release. Run `ganache-cli.`_
+_NOTE: in the Buidler 1.0.0 beta release we’ve disabled the automatic ganache instance feature to keep working on its stability, so you’ll need to run it manually. This feature will be back by the time we ship the stable release. Please run `ganache-cli` in a separate terminal to keep going._
 
 To run it, try `npx buidler accounts`:
 
-![](https://cdn-images-1.medium.com/max/1600/1*2bJCtJV4kjvmWt85mY3wTg.png)
+```
+$ npx buidler accounts
+Accounts: [ '0x9d6bd5939d6e2629f2bdffac5417ba22e31ea6a5',
+  '0xdb981036cf05c2219121c778578300cc6b91bd34',
+  '0xdc66201940a7ced201b1e4ed9fa72047fa029dc1',
+  '0x6a0ead959f30e51e86bb2285ab5e36a68ac22d98',
+  '0x9bc40d79da06d28d57982eb9e40cd0ba095cdae8',
+  '0xcff265234958dfe27e7e1bbfcbd253ac4882bcae',
+  '0x13447a4658db5f9bdab4f82656958b7688c4435f',
+  '0x7dce2d4229cb4ccbcd050ffe7bc405d936314a73',
+  '0x2f52b335f53f16a5d9727da8d2231923fa04f0c5',
+  '0x23024feafd6587ef4576496484fee2796ba66e3c' ]
+```
 
-If you would like to learn how to create your own tasks, take a look at our [task creation guide](https://medium.com/nomic-labs-blog/how-to-create-a-buidler-task-55658aa89aff).
+You will learn how to create your own tasks in the [next guide](/guides/create-task.md).
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
 
@@ -71,24 +116,29 @@ To compile it, simply run:
 npx buidler compile
 ```
 
-Now, you’ll likely want to run some tests. Out of the box Buidler provides an [EIP1193-compatible provider](https://eips.ethereum.org/EIPS/eip-1193), which is the new standard for an Ethereum JavaScript interface, but it can be somewhat rough to use directly. For a fully featured development tool with a nice interface, you’ll need to install one of the core plugins that we’ve built.
+Now, you’ll likely want to run some tests. Out of the box Buidler provides an [EIP1193-compatible provider](https://eips.ethereum.org/EIPS/eip-1193), which is the new standard for an Ethereum JavaScript interface, but it can be somewhat rough to use directly. That's what the Ethereum libraries plugins are for. Take a look at the [plugins section](/plugins/) for the full list.
 
-These are:
-
-- [@nomiclabs/buidler-truffle4](https://github.com/nomiclabs/buidler-truffle4) Integration with TruffleContract from Truffle 4.
-- [@nomiclabs/buidler-truffle5](https://github.com/nomiclabs/buidler-truffle5) Integration with TruffleContract from Truffle 5.
-- [@nomiclabs/buidler-web3](https://github.com/nomiclabs/buidler-web3) Injects the Web3 1.x module and a live instance into the Buidler Runtime Environment.
-- [@nomiclabs/buidler-web3-legacy](https://github.com/nomiclabs/buidler-web3-legacy) Injects the Web3 0.20.x module and a live instance into the Buidler Runtime Environment.
-- [@nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers) Injects ethers.js into the Buidler Runtime Environment.
-
-The sample project comes with a test written using the Ethereum provider, but let’s also install `buidler-truffle5` and test out the Truffle 5 integration:
+The sample project comes with a test written using the Ethereum provider directly, but let’s also install `buidler-truffle5` and test out the Truffle 5 integration:
 
 ```bash
 npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 
 npm install --save-exact web3@1.0.0-beta.37
 ```
 
-Add `usePlugin("@nomiclabs/buidler-truffle5")` to the top of your `buidler.config.js`, and let’s change `test/sample-test.js` to:
+Add `usePlugin("@nomiclabs/buidler-truffle5")` to the top of your `buidler.config.js`, so that it looks like this:
+```js
+usePlugin("@nomiclabs/buidler-truffle5")
+
+task("accounts", "Prints a list of the available accounts", async () => {
+  const accounts = await ethereum.send("eth_accounts");
+
+  console.log("Accounts:", accounts);
+});
+
+module.exports = {};
+```
+
+Change `test/sample-test.js` to:
 
 ```js
 const assert = require("assert");
@@ -112,9 +162,23 @@ contract("Greeter", function() {
 
 And run `npx buidler test`
 
-![](https://cdn-images-1.medium.com/max/1600/1*jI5V8qIjm6_iz7mFxxsFPg.png)
+```
+$ npx buidler test
+Compiling...
+Compiled 1 contract successfully
 
-You can then deploy by writing a deployment script `deploy.js` with the Truffle 5 plugin:
+
+  Ethereum provider
+    ✓ Should return the accounts
+
+  Greeter
+    ✓ Should give the correct greeting (376ms)
+
+
+  2 passing (383ms)
+```
+
+Next, to deploy the contract we will use the Truffle plugin again. Create a file `deploy.js` in `scripts/`:
 
 ```js
 async function main() {
@@ -131,15 +195,15 @@ main()
     process.exit(1);
   });
 ```
-
-```bash
-npx buidler run scripts/deploy.js
+And run it with `npx buidler run scripts/deploy.js`:
 ```
-
-![](https://cdn-images-1.medium.com/max/1600/1*QQFgWhKhpnpLeU4FX18sSg.png)
+$ npx buidler run scripts/deploy.js
+All contracts have already been compiled, skipping compilation.
+Greeter deployed to: 0x080f632fB4211CFc19d1E795F3f3109f221D44C9
+```
 
 Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Truffle integration plugin, wrote and ran a test using the Truffle plugin, and deployed a contract.
 
-These cover the basics to start using Buidler. Head over to [Github](https://github.com/nomiclabs/buidler) for more guides that cover the more advanced usage that allow your process and dev toolkit to be amazingly flexible.
+These cover the basics to start using Buidler. Move on to the next section to learn how to create your own tasks.
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
