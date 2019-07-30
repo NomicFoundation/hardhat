@@ -28,7 +28,8 @@ module.exports = {
           '/guides/',
           'create-task',
           'create-plugin',
-          'truffle-migration'
+          'truffle-migration',
+          'scripts.md'
         ]
       }],
       '/documentation/': {
