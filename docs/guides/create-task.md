@@ -157,5 +157,6 @@ $ npx buidler balance --account 0x080f632fb4211cfc19d1e795f3f3109f221d44c9
 ```
 
 And there you have it. Your first fully functional Buidler task, allowing you to interact with the Ethereum blockchain in an easy way.
+For more detailed information about creating tasks, refer to the [tasks documentation page](/documentation/#tasks).
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
