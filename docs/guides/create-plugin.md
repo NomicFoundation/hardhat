@@ -43,7 +43,10 @@ module.exports = {};
 
 Will yield:
 
-![](https://cdn-images-1.medium.com/max/1600/1*RnZoV1rwlK8j-TD2gGz8VQ.png)
+```
+$ npx buidler envtest
+hello, buidler
+```
 
 This is literally all it takes to put together a plugin for Buidler. Injecting an ethers.js instance into the environment would look like this:
 
@@ -73,7 +76,7 @@ extendEnvironment(env => {
 module.exports = {};
 ```
 
-Full functional code at [here](https://gist.github.com/fzeoli/9cdd9c1182b9636829bf71bfacb82c43).
+Full functional code [here](https://gist.github.com/fzeoli/9cdd9c1182b9636829bf71bfacb82c43).
 
 And that’s it. Ethers.js is now fully available to be used in the Buidler console, your tasks, tests and other plugins.
 
@@ -83,6 +86,6 @@ You can use the [plugin boilerplate repository](https://github.com/nomiclabs/b
 
 For a fully functional ethers plugin written in TypeScript take a look at [nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers) on Github.
 
-If you end up publishing a plugin, send us a pull request and we’ll add it to the [Buidler README file](https://github.com/nomiclabs/buidler).
+Take a look at the [plugin best practices documentation](/docs/guides/create-plugin.md) and if you end up publishing a plugin, send us a pull request to add it to our [plugins section](/plugins).
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
