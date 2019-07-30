@@ -30,7 +30,8 @@ module.exports = {
           'create-task',
           'create-plugin',
           'truffle-migration',
-          'scripts.md'
+          'scripts',
+          'typescript'
         ]
       }],
       '/documentation/': {
