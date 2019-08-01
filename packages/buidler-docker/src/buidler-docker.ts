@@ -89,11 +89,13 @@ export class BuidlerDocker {
       this._docker.listImages()
     );
 
-    return images.some(img =>
-      img.RepoTags.some(
-        (repoAndTag: string) =>
-          repoAndTag === BuidlerDocker.imageToRepoTag(image)
-      )
+    return images.some(
+      img =>
+        img.RepoTags !== null &&
+        img.RepoTags.some(
+          (repoAndTag: string) =>
+            repoAndTag === BuidlerDocker.imageToRepoTag(image)
+        )
     );
   }
 
@@ -102,11 +104,13 @@ export class BuidlerDocker {
       this._docker.listImages()
     );
 
-    const imageInfo = images.find(img =>
-      img.RepoTags.some(
-        (repoAndTag: string) =>
-          repoAndTag === BuidlerDocker.imageToRepoTag(image)
-      )
+    const imageInfo = images.find(
+      img =>
+        img.RepoTags !== null &&
+        img.RepoTags.some(
+          (repoAndTag: string) =>
+            repoAndTag === BuidlerDocker.imageToRepoTag(image)
+        )
     );
 
     if (imageInfo === undefined) {
