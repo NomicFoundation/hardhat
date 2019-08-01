@@ -12,8 +12,16 @@ export interface ErrorDescription {
 // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
 
 export class BuidlerError extends Error {
+  public static isBuidlerError(other: any): other is BuidlerError {
+    return (
+      other !== undefined && other !== null && other._isBuidlerError === true
+    );
+  }
+
   public readonly number: number;
   public readonly parent?: Error;
+
+  private readonly _isBuidlerError: boolean;
 
   constructor(
     errorDescription: ErrorDescription,
@@ -34,6 +42,7 @@ export class BuidlerError extends Error {
       this.parent = parentError;
     }
 
+    this._isBuidlerError = true;
     Object.setPrototypeOf(this, BuidlerError.prototype);
   }
 }
@@ -42,8 +51,18 @@ export class BuidlerError extends Error {
  * This class is used to throw errors from buidler plugins.
  */
 export class BuidlerPluginError extends Error {
+  public static isBuidlerPluginError(other: any): other is BuidlerPluginError {
+    return (
+      other !== undefined &&
+      other !== null &&
+      other._isBuidlerPluginError === true
+    );
+  }
+
   public readonly parent?: Error;
   public readonly pluginName: string;
+
+  private readonly _isBuidlerPluginError: boolean;
 
   /**
    * Creates a BuidlerPluginError.
@@ -80,6 +99,7 @@ export class BuidlerPluginError extends Error {
       this.parent = messageOrParent;
     }
 
+    this._isBuidlerPluginError = true;
     Object.setPrototypeOf(this, BuidlerPluginError.prototype);
   }
 }

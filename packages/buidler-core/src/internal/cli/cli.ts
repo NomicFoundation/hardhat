@@ -162,19 +162,16 @@ async function main() {
   } catch (error) {
     let isBuidlerError = false;
 
-    if (error instanceof BuidlerError) {
+    if (BuidlerError.isBuidlerError(error)) {
       isBuidlerError = true;
       console.error(chalk.red("Error " + error.message));
-    } else if (error instanceof BuidlerPluginError) {
+    } else if (BuidlerPluginError.isBuidlerPluginError(error)) {
       isBuidlerError = true;
       console.error(
         chalk.red("Error in plugin " + error.pluginName + ": " + error.message)
       );
     } else if (error instanceof Error) {
-      console.error(
-        chalk.red("An unexpected error occurred: " + error.message)
-      );
-
+      console.error(chalk.red("An unexpected error occurred:"));
       showStackTraces = true;
     } else {
       console.error(chalk.red("An unexpected error occurred."));
