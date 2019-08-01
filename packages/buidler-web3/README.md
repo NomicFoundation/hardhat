@@ -2,7 +2,7 @@
 
 # buidler-web3
 
-This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `1.x` into [Buidler](http://getbuidler.com). Tested against Web3@1.0.0-beta.37.
+This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `1.x` into [Buidler](http://getbuidler.com).
 
 ## What
 
@@ -11,8 +11,7 @@ This plugin brings to Buidler the Web3 module and an initialized instance of Web
 # Installation
 
 ```bash
-npm install @nomiclabs/buidler-web3
-npm install --save-exact web3@1.0.0-beta.37
+npm install @nomiclabs/buidler-web3 web3
 ```
 
 And add the following statement to your `buidler.config.js`:
