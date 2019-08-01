@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
+import path from "path";
 
 import { ERRORS } from "../../../src/internal/core/errors";
 import { getImports } from "../../../src/internal/solidity/imports";
@@ -83,7 +84,7 @@ describe("Resolved file", function() {
     it("Should add the version if the file is from a library", function() {
       assert.equal(
         resolvedFileWithLibrary.getVersionedName(),
-        globalName + "@v" + libraryVersion
+        `${globalName}@v${libraryVersion}`
       );
     });
   });
@@ -195,7 +196,15 @@ describe("Resolver", function() {
       await expectBuidlerErrorAsync(
         () =>
           resolver.resolveProjectSourceFile(
-            __dirname + "/../../../sample-project/contracts/Greeter.sol"
+            path.join(
+              __dirname,
+              "..",
+              "..",
+              "..",
+              "sample-project",
+              "contracts",
+              "Greeter.sol"
+            )
           ),
         ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT
       );

@@ -29,7 +29,7 @@
     "watch": "tsc --build --watch packages/*/src",
     "clean": "lerna exec -- npm run clean",
     "test": "scripts/run-tests.sh",
-    "lint": "lerna exec -- npm run lint",
+    "lint": "lerna exec --no-bail -- npm run lint",
     "lint:fix": "lerna exec -- npm run lint:fix"
   },
   "dependencies": {}

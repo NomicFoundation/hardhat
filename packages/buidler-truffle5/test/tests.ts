@@ -2,6 +2,7 @@ import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/
 import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import * as fs from "fs";
+import path from "path";
 
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
 import { DEFAULT_GAS_MULTIPLIER } from "../src/constants";
@@ -131,7 +132,7 @@ function testArtifactsFunctionality() {
 }
 
 describe("BuidlerRuntimeEnvironment extension", function() {
-  useEnvironment(__dirname + "/buidler-project-solc-0.5");
+  useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
 
   it("It should add the artifacts object", function() {
     assert.instanceOf(this.env.artifacts, TruffleEnvironmentArtifacts);
@@ -140,12 +141,12 @@ describe("BuidlerRuntimeEnvironment extension", function() {
 
 describe("TruffleContracts loading and provisioning", function() {
   describe("When compiling with solc 0.5.x", function() {
-    useEnvironment(__dirname + "/buidler-project-solc-0.5");
+    useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.4.x", function() {
-    useEnvironment(__dirname + "/buidler-project-solc-0.4");
+    useEnvironment(path.join(__dirname, "buidler-project-solc-0.4"));
     testArtifactsFunctionality();
   });
 
@@ -167,7 +168,7 @@ describe("TruffleContracts loading and provisioning", function() {
 
     describe("With solc 0.4.x", function() {
       useEnvironment(
-        __dirname + "/buidler-project-solc-0.4",
+        path.join(__dirname, "buidler-project-solc-0.4"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -175,7 +176,7 @@ describe("TruffleContracts loading and provisioning", function() {
 
     describe("With solc 0.4.x", function() {
       useEnvironment(
-        __dirname + "/buidler-project-solc-0.5",
+        path.join(__dirname, "buidler-project-solc-0.5"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -184,7 +185,7 @@ describe("TruffleContracts loading and provisioning", function() {
 });
 
 describe("Test contracts compilation", function() {
-  useEnvironment(__dirname + "/project-with-test-contracts");
+  useEnvironment(path.join(__dirname, "project-with-test-contracts"));
 
   it("Should include sources from sources", async function() {
     const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
@@ -192,7 +193,12 @@ describe("Test contracts compilation", function() {
     assert.include(
       sources,
       fs.realpathSync(
-        __dirname + "/project-with-test-contracts/contracts/fromContracts.sol"
+        path.join(
+          __dirname,
+          "project-with-test-contracts",
+          "contracts",
+          "fromContracts.sol"
+        )
       )
     );
   });
@@ -203,7 +209,12 @@ describe("Test contracts compilation", function() {
     assert.include(
       sources,
       fs.realpathSync(
-        __dirname + "/project-with-test-contracts/test/fromTest.sol"
+        path.join(
+          __dirname,
+          "project-with-test-contracts",
+          "test",
+          "fromTest.sol"
+        )
       )
     );
   });
@@ -214,7 +225,12 @@ describe("Test contracts compilation", function() {
     assert.notInclude(
       sources,
       fs.realpathSync(
-        __dirname + "/project-with-test-contracts/test/shouldBeIgnored.txt"
+        path.join(
+          __dirname,
+          "project-with-test-contracts",
+          "test",
+          "shouldBeIgnored.txt"
+        )
       )
     );
   });
@@ -285,7 +301,7 @@ describe("Gas multiplier", function() {
 
   describe("When it's set in the network", function() {
     useEnvironment(
-      __dirname + "/buidler-project-solc-0.4",
+      path.join(__dirname, "buidler-project-solc-0.4"),
       "withGasMultiplier"
     );
 
@@ -301,7 +317,7 @@ describe("Gas multiplier", function() {
   });
 
   describe("When it's not set in the network", function() {
-    useEnvironment(__dirname + "/buidler-project-solc-0.4");
+    useEnvironment(path.join(__dirname, "buidler-project-solc-0.4"));
 
     it("Should use the set one for deployments", async function() {
       await assertItWorksForDeployments(this.env, DEFAULT_GAS_MULTIPLIER);

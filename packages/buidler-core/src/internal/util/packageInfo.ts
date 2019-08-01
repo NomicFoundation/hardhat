@@ -26,5 +26,5 @@ function findClosestPackageJson(file: string): string | null {
 
 export async function getPackageJson(): Promise<PackageJson> {
   const root = await getPackageRoot();
-  return fsExtra.readJSON(root + "/package.json");
+  return fsExtra.readJSON(path.join(root, "package.json"));
 }

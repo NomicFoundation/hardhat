@@ -164,11 +164,11 @@ async function main() {
 
     if (BuidlerError.isBuidlerError(error)) {
       isBuidlerError = true;
-      console.error(chalk.red("Error " + error.message));
+      console.error(chalk.red(`Error ${error.message}`));
     } else if (BuidlerPluginError.isBuidlerPluginError(error)) {
       isBuidlerError = true;
       console.error(
-        chalk.red("Error in plugin " + error.pluginName + ": " + error.message)
+        chalk.red(`Error in plugin ${error.pluginName}: ${error.message}`)
       );
     } else if (error instanceof Error) {
       console.error(chalk.red("An unexpected error occurred:"));

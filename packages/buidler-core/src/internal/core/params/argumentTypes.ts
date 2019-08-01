@@ -126,7 +126,7 @@ export const inputFile: ArgumentType<string> = {
       if (stats.isDirectory()) {
         // This is caught and encapsulated in a buidler error.
         // tslint:disable-next-line only-buidler-error
-        throw new Error(strValue + " is a directory, not a file");
+        throw new Error(`${strValue} is a directory, not a file`);
       }
     } catch (error) {
       throw new BuidlerError(

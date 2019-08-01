@@ -16,7 +16,7 @@ export function pluralize(n: number, singular: string, plural?: string) {
     return plural;
   }
 
-  return singular + "s";
+  return `${singular}s`;
 }
 
 /**

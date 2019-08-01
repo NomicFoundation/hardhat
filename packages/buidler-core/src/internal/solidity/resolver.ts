@@ -154,7 +154,7 @@ export class Resolver {
         }
 
         const globalName = path.normalize(
-          path.dirname(from.globalName) + "/" + imported
+          path.join(path.dirname(from.globalName), imported)
         );
 
         const isIllegal = !globalName.startsWith(from.library.name + path.sep);

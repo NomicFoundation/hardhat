@@ -81,7 +81,7 @@ export default function() {
   internalTask("buidler-solhint:run-solhint", async (_, { config }) => {
     const { processPath } = await import("solhint/lib/index");
     return processPath(
-      config.paths.sources + "/**/*.sol",
+      join(config.paths.sources, "**", "*.sol"),
       await getSolhintConfig(config.paths.root)
     );
   });

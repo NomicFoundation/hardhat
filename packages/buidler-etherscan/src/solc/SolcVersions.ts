@@ -2,10 +2,8 @@ import { CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/dow
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import request from "request-promise";
 
-const COMPILER_FILES_DIR_URL =
-  "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
-
-const COMPILERS_LIST_URL = COMPILER_FILES_DIR_URL + "list.json";
+const COMPILERS_LIST_URL =
+  "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json";
 
 export async function getVersions(): Promise<CompilersList> {
   try {

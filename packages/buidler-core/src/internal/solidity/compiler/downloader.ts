@@ -23,7 +23,7 @@ export interface CompilersList {
 const COMPILER_FILES_DIR_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
 
-const COMPILERS_LIST_URL = COMPILER_FILES_DIR_URL + "list.json";
+const COMPILERS_LIST_URL = `${COMPILER_FILES_DIR_URL}list.json`;
 
 async function downloadFile(
   url: string,
@@ -128,7 +128,7 @@ export class CompilerDownloader {
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
-    console.debug("Downloading compiler version " + compilerBuild.version);
+    console.debug(`Downloading compiler version ${compilerBuild.version}`);
 
     const compilerUrl = COMPILER_FILES_DIR_URL + compilerBuild.path;
 
@@ -155,8 +155,9 @@ export class CompilerDownloader {
     const expectedKeccak256 = compilerBuild.keccak256;
     const compiler = await fsExtra.readFile(downloadedFilePath);
 
-    const compilerKeccak256 =
-      "0x" + ethereumjsUtil.keccak(compiler).toString("hex");
+    const compilerKeccak256 = ethereumjsUtil.bufferToHex(
+      ethereumjsUtil.keccak(compiler)
+    );
 
     if (expectedKeccak256 !== compilerKeccak256) {
       await fsExtra.unlink(downloadedFilePath);

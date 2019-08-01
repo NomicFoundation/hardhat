@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import path from "path";
 
 import { BuidlerContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors";
@@ -10,8 +11,13 @@ import {
 import { expectBuidlerError } from "../../helpers/errors";
 
 describe("plugin system", function() {
-  const FIXTURE_PROJECT_PATH =
-    __dirname + "/../../fixture-projects/plugin-loading-project";
+  const FIXTURE_PROJECT_PATH = path.join(
+    __dirname,
+    "..",
+    "..",
+    "fixture-projects",
+    "plugin-loading-project"
+  );
 
   describe("readPackageJson", function() {
     function assertPackageLoaded(packageName: string, version: string) {
@@ -46,7 +52,12 @@ describe("plugin system", function() {
 
     it("Should work when the plugin exports a function", function() {
       loadPluginFile(
-        FIXTURE_PROJECT_PATH + "/node_modules/pack1/plugin-with-function.js"
+        path.join(
+          FIXTURE_PROJECT_PATH,
+          "node_modules",
+          "pack1",
+          "plugin-with-function.js"
+        )
       );
 
       assert.isTrue(globalAsAny.loaded);
@@ -54,8 +65,12 @@ describe("plugin system", function() {
 
     it("Should work when the plugin exports a function with exports.default", function() {
       loadPluginFile(
-        FIXTURE_PROJECT_PATH +
-          "/node_modules/pack1/plugin-with-function-default-export.js"
+        path.join(
+          FIXTURE_PROJECT_PATH,
+          "node_modules",
+          "pack1",
+          "plugin-with-function-default-export.js"
+        )
       );
 
       assert.isTrue(globalAsAny.loaded);
@@ -63,7 +78,12 @@ describe("plugin system", function() {
 
     it("Should work when the plugin doesn't export a function", function() {
       loadPluginFile(
-        FIXTURE_PROJECT_PATH + "/node_modules/pack1/plugin-without-function.js"
+        path.join(
+          FIXTURE_PROJECT_PATH,
+          "node_modules",
+          "pack1",
+          "plugin-without-function.js"
+        )
       );
 
       assert.isTrue(globalAsAny.loaded);
@@ -72,8 +92,10 @@ describe("plugin system", function() {
 
   describe("loadPluginFile", function() {
     const globalAsAny = global as any;
-    const projectPath =
-      FIXTURE_PROJECT_PATH + "/doesnt-need-to-exist-config.js";
+    const projectPath = path.join(
+      FIXTURE_PROJECT_PATH,
+      "doesnt-need-to-exist-config.js"
+    );
     let ctx: BuidlerContext;
 
     beforeEach(function() {
@@ -131,7 +153,12 @@ describe("plugin system", function() {
     const globalAsAny = global as any;
 
     const pluginFile = require.resolve(
-      FIXTURE_PROJECT_PATH + "/node_modules/validates-import-style/index.js"
+      path.join(
+        FIXTURE_PROJECT_PATH,
+        "node_modules",
+        "validates-import-style",
+        "index.js"
+      )
     );
 
     afterEach(function() {

@@ -4,12 +4,13 @@ import {
   readArtifactSync
 } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import path from "path";
 
 import { useEnvironment } from "./helpers";
 
 describe("Vyper plugin", async function() {
   describe("Successful compilation", async function() {
-    useEnvironment(__dirname + "/projects/successful-compilation");
+    useEnvironment(path.join(__dirname, "projects", "successful-compilation"));
 
     it("Should successfully compile the contract", async function() {
       await this.env.run(TASK_COMPILE);
@@ -21,7 +22,7 @@ describe("Vyper plugin", async function() {
   });
 
   describe("Partial compilation", async function() {
-    useEnvironment(__dirname + "/projects/partial-compilation");
+    useEnvironment(path.join(__dirname, "projects", "partial-compilation"));
 
     it("Should successfully compile the contract", async function() {
       try {

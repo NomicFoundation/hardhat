@@ -69,7 +69,8 @@ async function addGitIgnore(projectRoot: string) {
 
   if (await fsExtra.pathExists(gitIgnorePath)) {
     const existingContent = await fsExtra.readFile(gitIgnorePath, "utf-8");
-    content = existingContent + "\n" + content;
+    content = `${existingContent}
+${content}`;
   }
 
   await fsExtra.writeFile(gitIgnorePath, content);
@@ -86,7 +87,8 @@ async function addGitAttributes(projectRoot: string) {
       return;
     }
 
-    content = existingContent + "\n" + content;
+    content = `${existingContent}
+${content}`;
   }
 
   await fsExtra.writeFile(gitAttributesPath, content);
