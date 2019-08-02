@@ -4,7 +4,7 @@ import { numberToRpcQuantity, rpcQuantityToNumber } from "./provider-utils";
 import { wrapSend } from "./wrapper";
 
 const DEFAULT_GAS_MULTIPLIER = 1;
-export const GANACHE_GAS_MULTIPLIER = 2;
+export const GANACHE_GAS_MULTIPLIER = 5;
 
 export function createFixedGasProvider(
   provider: IEthereumProvider,
