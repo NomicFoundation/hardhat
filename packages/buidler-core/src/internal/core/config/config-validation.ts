@@ -66,7 +66,7 @@ function optional<TypeT, OutputT>(
     name,
     (u: unknown): u is TypeT | undefined => u === undefined || codec.is(u),
     (u, c) => (u === undefined ? t.success(u) : codec.validate(u, c)),
-    a => (a === undefined ? a : codec.encode(a))
+    a => (a === undefined ? undefined : codec.encode(a))
   );
 }
 

@@ -132,7 +132,7 @@ export interface TasksMap {
 export interface ConfigurableTaskDefinition {
   setDescription(description: string): this;
 
-  setAction<ArgsT>(action: ActionType<ArgsT>): this;
+  setAction(action: ActionType<TaskArguments>): this;
 
   addParam<T>(
     name: string,
@@ -239,9 +239,7 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
   readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
 }
 
-export interface TaskArguments {
-  [argumentName: string]: any;
-}
+export type TaskArguments = any;
 
 export type RunTaskFunction = (
   name: string,

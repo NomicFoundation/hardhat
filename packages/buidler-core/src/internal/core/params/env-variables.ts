@@ -36,7 +36,7 @@ export function getEnvBuidlerArguments(
   paramDefinitions: BuidlerParamDefinitions,
   envVariables: ProcessEnv
 ): BuidlerArguments {
-  const envArgs: Partial<BuidlerArguments> = {};
+  const envArgs: any = {};
 
   for (const paramName of unsafeObjectKeys(paramDefinitions)) {
     const definition = paramDefinitions[paramName];

@@ -65,9 +65,9 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Sets the task's action.
    * @param action The action.
    */
-  public setAction<ArgsT>(action: ActionType<ArgsT>) {
+  public setAction<ArgsT extends TaskArguments>(action: ActionType<ArgsT>) {
     // TODO: There's probably something bad here. See types.ts for more info.
-    this.action = action as ActionType<TaskArguments>;
+    this.action = action;
     return this;
   }
 
@@ -91,7 +91,17 @@ export class SimpleTaskDefinition implements TaskDefinition {
     isOptional: boolean = defaultValue !== undefined
   ): this {
     if (type === undefined) {
-      if (defaultValue !== undefined && typeof defaultValue !== "string") {
+      if (defaultValue === undefined) {
+        return this.addParam(
+          name,
+          description,
+          undefined,
+          types.string,
+          isOptional
+        );
+      }
+
+      if (typeof defaultValue !== "string") {
         throw new BuidlerError(
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           {
@@ -200,7 +210,17 @@ export class SimpleTaskDefinition implements TaskDefinition {
     isOptional = defaultValue !== undefined
   ): this {
     if (type === undefined) {
-      if (defaultValue !== undefined && typeof defaultValue !== "string") {
+      if (defaultValue === undefined) {
+        return this.addPositionalParam(
+          name,
+          description,
+          undefined,
+          types.string,
+          isOptional
+        );
+      }
+
+      if (typeof defaultValue !== "string") {
         throw new BuidlerError(
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           {
@@ -285,7 +305,17 @@ export class SimpleTaskDefinition implements TaskDefinition {
     }
 
     if (type === undefined) {
-      if (defaultValue !== undefined && !this._isStringArray(defaultValue)) {
+      if (defaultValue === undefined) {
+        return this.addVariadicPositionalParam(
+          name,
+          description,
+          undefined,
+          types.string,
+          isOptional
+        );
+      }
+
+      if (!this._isStringArray(defaultValue)) {
         throw new BuidlerError(
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           {
@@ -512,9 +542,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overrides the parent task's action.
    * @param action the action.
    */
-  public setAction<ArgsT>(action: ActionType<ArgsT>) {
+  public setAction<ArgsT extends TaskArguments>(action: ActionType<ArgsT>) {
     // TODO: There's probably something bad here. See types.ts for more info.
-    this._action = action as ActionType<TaskArguments>;
+    this._action = action;
     return this;
   }
 

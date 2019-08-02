@@ -155,7 +155,7 @@ export default function() {
     await fsExtra.ensureDir(config.paths.artifacts);
     let numberOfContracts = 0;
 
-    for (const file of Object.values(compilationOutput.contracts)) {
+    for (const file of Object.values<any>(compilationOutput.contracts)) {
       for (const [contractName, contractOutput] of Object.entries(file)) {
         const artifact = getArtifactFromContractOutput(
           contractName,
