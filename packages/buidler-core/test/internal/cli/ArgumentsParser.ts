@@ -233,20 +233,14 @@ describe("ArgumentsParser", () => {
     });
 
     it("should only add non-present arguments", () => {
-      const rawCLAs: string[] = [
-        "--showStackTraces",
-        "--network",
-        "local",
-        "compile"
-      ];
-      const buidlerArguments: TaskArguments = {
-        showStackTraces: true
-      };
-      argumentsParser._addBuidlerDefaultArguments(
+      const buidlerArguments = argumentsParser._addBuidlerDefaultArguments(
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
-        buidlerArguments
+        {
+          showStackTraces: true
+        }
       );
+
       assert.isTrue(buidlerArguments.showStackTraces);
       assert.isFalse(buidlerArguments.emoji);
     });

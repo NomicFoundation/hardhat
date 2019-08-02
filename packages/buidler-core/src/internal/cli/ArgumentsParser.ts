@@ -49,7 +49,7 @@ export class ArgumentsParser {
     taskName?: string;
     unparsedCLAs: string[];
   } {
-    const buidlerArguments = {};
+    const buidlerArguments: Partial<BuidlerArguments> = {};
     let taskName: string | undefined;
     const unparsedCLAs: string[] = [];
 
@@ -90,14 +90,12 @@ export class ArgumentsParser {
       }
     }
 
-    this._addBuidlerDefaultArguments(
-      buidlerParamDefinitions,
-      envVariableArguments,
-      buidlerArguments
-    );
-
     return {
-      buidlerArguments: buidlerArguments as BuidlerArguments,
+      buidlerArguments: this._addBuidlerDefaultArguments(
+        buidlerParamDefinitions,
+        envVariableArguments,
+        buidlerArguments
+      ),
       taskName,
       unparsedCLAs
     };
@@ -158,14 +156,11 @@ export class ArgumentsParser {
     buidlerParamDefinitions: BuidlerParamDefinitions,
     envVariableArguments: BuidlerArguments,
     buidlerArguments: Partial<BuidlerArguments>
-  ) {
-    for (const paramName of unsafeObjectKeys(buidlerParamDefinitions)) {
-      const envVarArgument = envVariableArguments[paramName];
-
-      if (buidlerArguments[paramName] === undefined) {
-        buidlerArguments[paramName] = envVarArgument;
-      }
-    }
+  ): BuidlerArguments {
+    return {
+      ...envVariableArguments,
+      ...buidlerArguments
+    };
   }
 
   public _addTaskDefaultArguments(
