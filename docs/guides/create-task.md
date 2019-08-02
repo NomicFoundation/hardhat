@@ -14,7 +14,7 @@ Everything you can do in Buidler is defined as a task. The default actions that 
 To see the currently available tasks in your project, run `npx buidler`:
 ```
 $ npx buidler
-Buidler version 1.0.0-beta.8
+Buidler version 1.0.0-beta.9
 
 Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
@@ -76,7 +76,7 @@ After saving the file, you should already be able to see the task in Buidler:
 
 ```
 $ npx buidler
-Buidler version 1.0.0-beta.8
+Buidler version 1.0.0-beta.9
 
 Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
@@ -120,7 +120,7 @@ When you add a parameter to a task, Buidler will handle its help messages for yo
 
 ```
 $ npx buidler help balance
-Buidler version 1.0.0-beta.8
+Buidler version 1.0.0-beta.9
 
 Usage: buidler [GLOBAL OPTIONS] balance --account <STRING>
 
