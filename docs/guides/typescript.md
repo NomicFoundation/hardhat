@@ -87,16 +87,17 @@ For these to be taken into account, you'll need to add the type extension files 
 
 Plugins that include type extensions should have documentation detailing their existance and the path to the type extension file.
 
-## Writing tests
+## Writing tests and scripts
 
-To write your smart contract tests you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5), [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) or [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment]. To use them, simply import the BRE:
+To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5), [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) or [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment]. When using JavaScript, all the properties in the BRE are injected into the global scope, and are also available by getting the BRE explicitly. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly.
 
+An example for tests:
 ```ts
 import env from '@nomiclabs/buidler'
 const web3 = env.web3;
 
 // Could also be
-// import { web3 } form "@nomiclabs/buidler"
+// import { web3 } form '@nomiclabs/buidler'
 
 describe('Token', function() {
   
@@ -112,4 +113,24 @@ describe('Token', function() {
 }
 ```
 
+An example for scripts:
+
+```ts
+import env from "@nomiclabs/buidler";
+
+async function main() {
+  await env.run("compile");
+
+  const accounts = await env.ethereum.send("eth_accounts");
+
+  console.log("Accounts:", accounts);
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
+  });
+```
 [Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
