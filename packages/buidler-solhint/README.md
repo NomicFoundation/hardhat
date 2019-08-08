@@ -1,4 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-solhint.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-solhint)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-solhint
 
