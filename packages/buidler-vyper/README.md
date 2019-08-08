@@ -1,6 +1,7 @@
 # buidler-vyper
 
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-vyper.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-vyper)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 [Buidler](http://buidler.dev) plugin to develop smart contracts with Vyper.
 
