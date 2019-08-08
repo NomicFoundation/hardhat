@@ -1,4 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-solpp)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-solpp
 
@@ -40,3 +41,7 @@ This plugin can by configured by setting a `solpp` entry in `buidler.config.js`.
 - `noPreprocessor: boolean`: disable preprocessor, false by default.
 - `noFlatten: boolean`: won't flatten contracts, true by default.
 - `tolerant: boolean`: ignore if an imported contract file is missing when flattening, false by default.
+
+## TypeScript support
+
+You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-solpp/src/type-extensions.d.ts"`
