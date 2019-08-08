@@ -1,4 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-ethers)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-ethers
 
@@ -61,3 +62,7 @@ module.exports = {};
 And then run `npx buidler blockNumber` to try it.
 
 Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/documentation/#buidler-runtime-environment-bre) to learn how to access the BRE in different ways to use ethers.js from anywhere the BRE is accessible.
+
+## TypeScript support
+
+You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts"`
