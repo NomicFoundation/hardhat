@@ -1,6 +1,5 @@
 ---
 prev: false
-next: "create-task"
 ---
 
 # Getting started
@@ -203,6 +202,6 @@ Greeter deployed to: 0x080f632fB4211CFc19d1E795F3f3109f221D44C9
 
 Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Truffle integration plugin, wrote and ran a test using the Truffle plugin, and deployed a contract.
 
-These cover the basics to start using Buidler. Move on to the next section to learn how to create your own tasks.
+These cover the basics to start using Buidler. Move on to the next section to learn more.
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).

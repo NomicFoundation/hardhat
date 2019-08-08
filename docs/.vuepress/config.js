@@ -26,6 +26,7 @@ module.exports = {
         collapsable: false,
         children: [
           '/guides/',
+          'testing',
           'create-task',
           'create-plugin',
           'truffle-migration'

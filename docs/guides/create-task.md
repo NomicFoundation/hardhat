@@ -1,7 +1,4 @@
----
-prev: "/guides/"
-next: "truffle-migration"
----
+
 
 # Creating a task
 
