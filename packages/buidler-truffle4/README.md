@@ -1,4 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-truffle4.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-truffle4)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-truffle4
 
@@ -39,3 +40,7 @@ An instance of [`TruffleEnvironmentArtifacts`](./src/artifacts.ts) is injected i
 There are no additional steps you need to take for this plugin to work.
 
 Install it, run `npx buidler test` and your Truffle tests should run with no need to make any modifications.
+
+## TypeScript support
+
+You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-truffle4/src/type-extensions.d.ts"`
