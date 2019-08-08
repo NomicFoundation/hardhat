@@ -1,4 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-web3.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-web3)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-web3
 
@@ -48,3 +49,7 @@ module.exports = {};
 And then run `npx buidler accounts` to try it.
 
 Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/documentation/#buidler-runtime-environment-bre) to learn how to access the BRE in different ways to use Web3.js from anywhere the BRE is accessible.
+
+## TypeScript support
+
+You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts"`
