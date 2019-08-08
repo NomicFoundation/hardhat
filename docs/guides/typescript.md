@@ -4,7 +4,7 @@
 In this guide, we will go through the steps to get a Buidler project working with TypeScript. This means that you can write your Buidler config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/). For a general overview of using Buidler refer to the [Getting started guide](/guides/#getting-started).
 
 
-TypeScript is only supported in local Buidler installations, and not global ones. This is due to global modules not being included in `import`, which isn't compatible with Buidler's library architecture.
+To use Buidler with TypeScript you need to be able to import Buidler from your project to access the [Buidler Runtime Environment], and this wouldn't be possible with a global installation. Because of this Buidler only supports TypeScript on local installations.
 
 ## Installing dependencies
 
