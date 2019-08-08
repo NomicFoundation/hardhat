@@ -6,7 +6,15 @@ The built-in task `test` allows smart contracts to be tested using Mocha, and th
 
 For compatibility purposes with other JavaScript tools, Buidler injects the properties in the [Buidler Runtime Environment] into the global scope when running tests. Let's create a new sample project to see how this plays out.
 
-Run `npx buidler` inside your project folder and create a sample project. This is what the file structure should look like once you're done:
+Run these to start:
+```
+mkdir my-project
+cd my-project
+npm init --yes
+npm install @nomiclabs/buidler
+```
+
+Now run `npx buidler` inside your project folder and create a sample project. This is what the file structure should look like once you're done:
 
 ```
 $ ls -l
