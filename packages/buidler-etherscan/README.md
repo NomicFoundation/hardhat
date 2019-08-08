@@ -1,4 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-etherscan.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-etherscan)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-etherscan
 
@@ -50,3 +51,7 @@ Lastly, run the `verify-contract` task like so:
 ```bash
 npx buidler verify-contract --contract-name MyContract --address DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
+
+## TypeScript support
+
+You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-etherscan/src/type-extensions.d.ts"`
