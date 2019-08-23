@@ -1,0 +1,43 @@
+{
+  "name": "@nomiclabs/buidler-ganache",
+  "version": "1.0.0-beta.9",
+  "description": "Buidler plugin for managing ganache",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ganache",
+  "repository": "github:nomiclabs/buidler",
+  "author": "Nomic Labs SRL",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "buidler",
+    "buidler-plugin",
+    "Ganache",
+    "testing-network"
+  ],
+  "scripts": {
+    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint": "npm run lint-src && npm run lint-tests",
+    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "./scripts/run-tests.sh",
+    "build": "../../node_modules/.bin/tsc --build src",
+    "build-test": "../../node_modules/.bin/tsc --build .",
+    "clean": "rm -rf dist build-test"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomiclabs/buidler": "^1.0.0-beta.9",
+    "@types/fs-extra": "^5.1.0",
+    "chai": "^4.2.0"
+  },
+  "peerDependencies": {
+    "@nomiclabs/buidler": "^1.0.0-beta.9"
+  }
+}
