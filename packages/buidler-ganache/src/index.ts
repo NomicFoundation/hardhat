@@ -5,8 +5,31 @@ import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 ensurePluginLoadedWithUsePlugin();
 
 export default function() {
-  task(TASK_TEST, (_, __, runSuper) => {
-    console.log("ACA");
-    return runSuper();
+  task(TASK_TEST, (args, env, runSuper) => {
+    console.log(">> Test Task in buidler-ganache\n");
+
+    // Get Ganache config
+    const ganachePort = 8545;
+
+    console.log(">> Start Ganache\n");
+    const ganache = require("ganache-cli");
+    const server = ganache.server();
+    server.listen(ganachePort, function(err: any, blockchain: any) {
+      if (err) {
+        console.log(">> Ganache Error:\n");
+        console.log(err);
+      }
+
+      // Only for debug
+      // console.log(blockchain);
+    });
+
+    // Run original TEST TASK
+    const ret = runSuper(); // TODO This is running async and should run sync
+
+    console.log(">> TODO - Stop Ganache\n");
+    // server.close();
+
+    return ret;
   });
 }
