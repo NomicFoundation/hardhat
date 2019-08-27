@@ -1,35 +1,55 @@
-import { TASK_TEST } from "@nomiclabs/buidler/builtin-tasks/task-names";
+import {
+  TASK_RUN,
+  TASK_TEST
+} from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
+import {
+  ensurePluginLoadedWithUsePlugin,
+  lazyObject
+} from "@nomiclabs/buidler/plugins";
+import {
+  BuidlerRuntimeEnvironment,
+  RunSuperFunction,
+  TaskArguments
+} from "@nomiclabs/buidler/src/types";
+
+import { GanacheService } from "./ganache-service";
 
 ensurePluginLoadedWithUsePlugin();
 
 export default function() {
-  task(TASK_TEST, (args, env, runSuper) => {
-    console.log(">> Test Task in buidler-ganache\n");
-
-    // Get Ganache config
-    const ganachePort = 8545;
-
-    console.log(">> Start Ganache\n");
-    const ganache = require("ganache-cli");
-    const server = ganache.server();
-    server.listen(ganachePort, function(err: any, blockchain: any) {
-      if (err) {
-        console.log(">> Ganache Error:\n");
-        console.log(err);
-      }
-
-      // Only for debug
-      // console.log(blockchain);
-    });
-
-    // Run original TEST TASK
-    const ret = runSuper(); // TODO This is running async and should run sync
-
-    console.log(">> TODO - Stop Ganache\n");
-    // server.close();
-
-    return ret;
+  task(TASK_TEST, async (args, env, runSuper) => {
+    return handlePluginTask(args, env, runSuper);
   });
+
+  task(TASK_RUN, async (args, env, runSuper) => {
+    return handlePluginTask(args, env, runSuper);
+  });
+}
+
+async function handlePluginTask(
+  args: string,
+  env: BuidlerRuntimeEnvironment,
+  runSuper: RunSuperFunction<TaskArguments>
+) {
+  if (env.network.name === "ganache") {
+    console.log(">> Buidler Ganache > NO Handling Task");
+    return runSuper();
+  }
+
+  console.log(">> Buidler Ganache > Handling Task");
+
+  // Init ganache service with current configs
+  const ganacheService = lazyObject(() => new GanacheService(args, env));
+
+  // Start ganache server and log errors
+  ganacheService.startServer();
+
+  // Run normal TEST TASK
+  const ret = await runSuper();
+
+  // Stop ganache server
+  ganacheService.stopServer();
+
+  return ret;
 }

@@ -4,7 +4,7 @@
     "outDir": "./build-test",
     "rootDirs": ["./test"]
   },
-  "include": ["./test/**/*.ts", "./src/type-extensions.d.ts"],
+  "include": ["./test/**/*.ts", "./src/types.d.ts"],
   "exclude": ["./test/**/buidler.config.ts"],
   "references": [
     {
