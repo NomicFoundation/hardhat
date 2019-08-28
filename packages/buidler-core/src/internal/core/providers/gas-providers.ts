@@ -126,7 +126,7 @@ async function getBlockGasLimit(provider: IEthereumProvider): Promise<number> {
     const fetchedGasLimit = rpcQuantityToNumber(latestBlock.gasLimit);
 
     // For future uses, we store a lower value in case the gas limit varies slightly
-    cachedGasLimit = fetchedGasLimit * 0.95;
+    cachedGasLimit = Math.floor(fetchedGasLimit * 0.95);
 
     return fetchedGasLimit;
   }
