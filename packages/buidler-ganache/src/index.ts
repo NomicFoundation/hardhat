@@ -4,6 +4,7 @@ import {
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { BuidlerConfig, extendConfig, task } from "@nomiclabs/buidler/config";
 import {
+  BuidlerPluginError,
   ensurePluginLoadedWithUsePlugin,
   lazyObject
 } from "@nomiclabs/buidler/plugins";
@@ -12,6 +13,9 @@ import {
   RunSuperFunction,
   TaskArguments
 } from "@nomiclabs/buidler/src/types";
+import debug from "debug";
+
+const log = debug("buidler:plugin:ganache");
 
 import { GanacheService } from "./ganache-service";
 
@@ -20,23 +24,20 @@ ensurePluginLoadedWithUsePlugin();
 export default function() {
   // Original parameters: resolvedConfig: ResolvedBuidlerConfig, config: DeepReadonly<BuidlerConfig>)
   extendConfig((resolvedConfig: any, config: any) => {
-    // TODO Extract all this to a GanacheService function
     // Set ganache as default network if no value was given
     if (!config.defaultNetwork) {
       resolvedConfig.defaultNetwork = "ganache";
     }
 
-    // Get all default values
-    resolvedConfig.networks.ganache = { url: "http://127.0.0.1:8545" };
+    // Get all default values and set to resolved config map
+    const defaultOptions = GanacheService.getDefaultOptions();
+    resolvedConfig.networks.ganache = defaultOptions;
+    resolvedConfig.networks.ganache.url = `http://${defaultOptions.hostname}:${defaultOptions.port}`;
 
     // Override ganache network with custom user values if needed
     if (config.networks && config.networks.ganache) {
-      if (config.networks.ganache.host) {
-        resolvedConfig.networks.ganache.url = `${config.networks.ganache.host}:8545`;
-      }
-
-      if (config.networks.ganache.port) {
-        resolvedConfig.networks.ganache.url = `http://127.0.0.1:${config.networks.ganache.port}`;
+      if (config.networks.ganache.hostname && config.networks.ganache.port) {
+        resolvedConfig.networks.ganache.url = `${config.networks.ganache.hostname}:${config.networks.ganache.port}`;
       }
     }
   });
@@ -56,23 +57,35 @@ async function handlePluginTask(
   runSuper: RunSuperFunction<TaskArguments>
 ) {
   if (env.network.name !== "ganache") {
-    console.log(">> Buidler Ganache > No handling Task\n");
+    log("Buidler Ganache > No handling Task\n");
     return runSuper();
   }
 
-  console.log(">> Buidler Ganache > Handling Task");
+  log("Buidler Ganache > Handling Task");
 
   // Init ganache service with current configs
   const ganacheService = lazyObject(() => new GanacheService(env));
 
-  // Start ganache server and log errors
-  ganacheService.startServer();
+  try {
+    // Start ganache server and log errors
+    ganacheService.startServer();
+  } catch (e) {
+    const msg = "Buidler Ganache > Starting ganache error";
+    console.log(e);
+    throw new BuidlerPluginError(msg);
+  }
 
-  // Run normal TEST TASK
+  // Run normal TEST or RUN task
   const ret = await runSuper();
 
   // Stop ganache server
-  ganacheService.stopServer();
+  try {
+    ganacheService.stopServer();
+  } catch (e) {
+    const msg = "Buidler Ganache > Stopping ganache error";
+    console.log(e);
+    throw new BuidlerPluginError(msg);
+  }
 
   return ret;
 }
