@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "ganache-core": "^2.7.0",
-    "ts-essentials": "^2.0.7"
+    "ts-essentials": "^2.0.7",
+    "debug": "^4.1.1"
   }
 }
