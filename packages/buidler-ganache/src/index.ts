@@ -22,6 +22,14 @@ import { GanacheService } from "./ganache-service";
 ensurePluginLoadedWithUsePlugin();
 
 export default function() {
+  task(TASK_TEST, async (args, env, runSuper) => {
+    return handlePluginTask(args, env, runSuper);
+  });
+
+  task(TASK_RUN, async (args, env, runSuper) => {
+    return handlePluginTask(args, env, runSuper);
+  });
+
   // Original parameters: resolvedConfig: ResolvedBuidlerConfig, config: DeepReadonly<BuidlerConfig>)
   extendConfig((resolvedConfig: any, config: any) => {
     // Set ganache as default network if no value was given
@@ -31,23 +39,26 @@ export default function() {
 
     // Get all default values and set to resolved config map
     const defaultOptions = GanacheService.getDefaultOptions();
-    resolvedConfig.networks.ganache = defaultOptions;
-    resolvedConfig.networks.ganache.url = `http://${defaultOptions.hostname}:${defaultOptions.port}`;
 
-    // Override ganache network with custom user values if needed
+    // Override ganache network with custom config values (if needed)
     if (config.networks && config.networks.ganache) {
-      if (config.networks.ganache.hostname && config.networks.ganache.port) {
-        resolvedConfig.networks.ganache.url = `${config.networks.ganache.hostname}:${config.networks.ganache.port}`;
-      }
+      // Case A: There is some custom config for ganache network (use merged options)
+      const options = config.networks.ganache;
+
+      // Make convert Buidler network url to hostname and port
+      const url = config.networks.ganache.url.replace("http://", "");
+      options.hostname = url.split(":")[0];
+      options.port = url.split(":")[1];
+
+      // Merge default options with config ones (with config priority)
+      resolvedConfig.networks.ganache = { ...defaultOptions, ...options };
+    } else {
+      // Case B: There is NO custom config for ganache network (use defaults options)
+      resolvedConfig.networks.ganache = defaultOptions;
+
+      // Add Buidler URL parameter
+      resolvedConfig.networks.ganache.url = `http://${defaultOptions.hostname}:${defaultOptions.port}`;
     }
-  });
-
-  task(TASK_TEST, async (args, env, runSuper) => {
-    return handlePluginTask(args, env, runSuper);
-  });
-
-  task(TASK_RUN, async (args, env, runSuper) => {
-    return handlePluginTask(args, env, runSuper);
   });
 }
 
@@ -57,34 +68,29 @@ async function handlePluginTask(
   runSuper: RunSuperFunction<TaskArguments>
 ) {
   if (env.network.name !== "ganache") {
-    log("Buidler Ganache > No handling Task\n");
+    log("No handling Task (skip all)");
     return runSuper();
   }
 
-  log("Buidler Ganache > Handling Task");
-
-  // Init ganache service with current configs
-  const ganacheService = lazyObject(() => new GanacheService(env));
+  // Start Task handling
+  log("Handling Task");
+  let ret: any;
 
   try {
+    // Init ganache service with resolved options
+    const options = env.network.config;
+    const ganacheService = lazyObject(() => new GanacheService(options));
+
     // Start ganache server and log errors
-    ganacheService.startServer();
-  } catch (e) {
-    const msg = "Buidler Ganache > Starting ganache error";
-    console.log(e);
-    throw new BuidlerPluginError(msg);
-  }
+    await ganacheService.startServer();
 
-  // Run normal TEST or RUN task
-  const ret = await runSuper();
+    // Run normal TEST or RUN task
+    ret = await runSuper();
 
-  // Stop ganache server
-  try {
-    ganacheService.stopServer();
+    // Stop ganache server and log errors
+    await ganacheService.stopServer();
   } catch (e) {
-    const msg = "Buidler Ganache > Stopping ganache error";
-    console.log(e);
-    throw new BuidlerPluginError(msg);
+    throw new BuidlerPluginError(e.message);
   }
 
   return ret;
