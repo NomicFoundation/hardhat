@@ -97,6 +97,7 @@ export class GanacheService {
 
   public validateOptions(options: any) {
     // TODO Put here some ganache options validations
+    // console.log(options);
     return options;
   }
 

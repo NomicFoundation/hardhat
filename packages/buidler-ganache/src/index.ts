@@ -30,7 +30,6 @@ export default function() {
     return handlePluginTask(args, env, runSuper);
   });
 
-  // Original parameters: resolvedConfig: ResolvedBuidlerConfig, config: DeepReadonly<BuidlerConfig>)
   extendConfig((resolvedConfig: any, config: any) => {
     // Set ganache as default network if no value was given
     if (!config.defaultNetwork) {
@@ -45,10 +44,15 @@ export default function() {
       // Case A: There is some custom config for ganache network (use merged options)
       const options = config.networks.ganache;
 
-      // Make convert Buidler network url to hostname and port
-      const url = config.networks.ganache.url.replace("http://", "");
-      options.hostname = url.split(":")[0];
-      options.port = url.split(":")[1];
+      // Transform Buidler network url to hostname and port
+      const url = options.url.replace("http://", "");
+      const urlArray = url.split(":");
+      if (urlArray.length === 2) {
+        options.hostname = urlArray[0];
+        options.port = urlArray[1];
+      } else {
+        options.url = `http://${defaultOptions.hostname}:${defaultOptions.port}`;
+      }
 
       // Merge default options with config ones (with config priority)
       resolvedConfig.networks.ganache = { ...defaultOptions, ...options };
