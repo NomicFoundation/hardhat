@@ -33,7 +33,7 @@ export class GanacheService {
   }
 
   public async startServer() {
-    // Verify service state before start (TODO Extract this to a decorator)
+    // Verify service state before start (TODO Maybe extract this to a decorator)
     this._checkForServiceErrors();
 
     try {
@@ -42,47 +42,52 @@ export class GanacheService {
       // Only for debug
       // console.log(env);
 
+      // Get port and hostname from validated options
       const port = this._options.port;
       const hostname = this._options.hostname;
-      const listeningListener = (err: any, blockchain: any) => {
-        if (err) {
-          log("Ganache Initialization Error:");
-          log(err);
-        }
 
-        // Only for debug
-        // console.log(">> Ganache Event:\n");
-        // console.log(blockchain);
-      };
-
-      this._server.listen(port, hostname, listeningListener);
-      await delay(10);
+      // Start server with current configs (port and hostname)
+      await new Promise((resolve, reject) => {
+        this._server.on("listening", resolve);
+        this._server.on("error", reject);
+        this._server.listen(port, hostname);
+      });
     } catch (e) {
-      throw new Error("Starting ganache error");
+      if (!GanacheService.error) {
+        log(e.message || e);
+        GanacheService.error = new Error(`start server > ${e.message}`);
+      }
     }
 
-    // Verify service state after start (TODO Extract this to a decorator)
+    // Verify service state after start (TODO Maybe extract this to a decorator)
     this._checkForServiceErrors();
   }
 
   public async stopServer() {
-    // Verify service state before continue (TODO Extract this to a decorator)
+    // Verify service state before continue (TODO Maybe extract this to a decorator)
     this._checkForServiceErrors();
 
     try {
       log("Ganache Service > Stopping server");
 
-      // TODO Make this function
-      this._server.close();
-      await delay(10);
+      // Stop server and Wait for it
+      await new Promise((resolve, reject) => {
+        this._server.close((err: Error) => {
+          if (err) {
+            reject();
+          } else {
+            resolve();
+          }
+        });
+      });
     } catch (e) {
-      // Only for debug
-      console.log(e);
-
-      throw new Error("Stopping ganache error");
+      if (!GanacheService.error) {
+        log(e.message || e);
+        GanacheService.error = new Error(`stop server > ${e.message}`);
+      }
     }
 
-    // Verify service state before continue (TODO Extract this to a decorator)
+    // Verify service state before continue (TODO Maybe extract this to a decorator)
     this._checkForServiceErrors();
   }
 
@@ -98,22 +103,19 @@ export class GanacheService {
   private _registerSystemErrorsHandlers() {
     const server = this._server;
 
-    // Add listener for server errors
+    // Add listener for general server errors
     server.on("error", function(err: any) {
-      log(err.message || err);
-      GanacheService.error = err;
+      if (!GanacheService.error && err) {
+        log(err.message || err);
+        GanacheService.error = err;
+      }
     });
 
-    server.on("", function(err: any) {
-      log(err.message || err);
-      GanacheService.error = err;
-    });
-
-    // Add listener for process uncaught errors
+    // Add listener for process uncaught errors (warning: this may catch non plugin related errors)
     process.on("uncaughtException", function(e) {
-      log("Error:", e.message);
+      log("Uncaught Exception", e.message);
       server.close(function(err: any) {
-        if (err) {
+        if (!GanacheService.error && err) {
           log(err.message || err.stack || err);
           GanacheService.error = err;
         }
@@ -124,12 +126,14 @@ export class GanacheService {
     process.on("SIGINT", function() {
       log("SIGINT detected");
       server.close(function(err: any) {
-        if (err) {
+        if (!GanacheService.error && err) {
           log(err.message || err.stack || err);
           GanacheService.error = err;
         }
       });
     });
+
+    // TODO Maybe add, in new threat, some kind of ping checker to the server (every 30 seg)
   }
 
   private _checkForServiceErrors() {
@@ -148,10 +152,7 @@ export interface GanacheOptions extends Ganache.IServerOptions {
   hostname?: string;
 }
 
-function isInstanceOfGanacheOption(object: any): object is GanacheOptions {
-  return object.discriminator === "I-AM-A";
-}
-
-function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// function isInstanceOfGanacheOption(object: any): object is GanacheOptions {
+//   // TODO Maybe use this function to make type validatatin in custom options
+//   return object.discriminator === "I-AM-A";
+// }
