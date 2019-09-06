@@ -2,7 +2,7 @@ import {
   TASK_RUN,
   TASK_TEST
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { BuidlerConfig, extendConfig, task } from "@nomiclabs/buidler/config";
+import { extendConfig, task } from "@nomiclabs/buidler/config";
 import {
   BuidlerPluginError,
   ensurePluginLoadedWithUsePlugin,
