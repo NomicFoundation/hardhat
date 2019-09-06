@@ -137,9 +137,9 @@ Calling it with `npx buidler hello --times notanumber` will result in an error.
 
 Defining a task with the same name than an existing one will override it. This is useful to change or extend the behavior of built-in and plugin-provided tasks.
 
-Tasks overriding works very similarly to overriding methods when extending a class. You can set your own action, which can call the previous one. The only restriction when overriding tasks, is that you can't add or remove parameters.
+Task overriding works very similarly to overriding methods when extending a class. You can set your own action, which can call the previous one. The only restriction when overriding tasks, is that you can't add or remove parameters.
 
-Tasks override order is important since actions can only call the immediately previous definition, using the `runSuper` function.
+Task override hierarchy order is important since actions can only call the immediately previous definition, using the `runSuper` function.
 
 Overriding built-in tasks is a great way to customize and extend Buidler. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-core/src/builtin-tasks).
 
@@ -183,7 +183,7 @@ When writing tests or scripts, you can use `require("@nomiclabs/buidler")` to im
 
 ### Extending
 
-The BRE only provides the core functionality that users and plugin developers need to start building on top of Buidler. Using it directly in your project can be somewhat harder than expected.
+The BRE only provides the core functionality that users and plugin developers need to start building on top of Buidler. Using it to interface directly with Ethereum in your project can be somewhat harder than expected.
 
 Everything gets easier when you use higher-level libraries, like [web3.js](https://web3js.readthedocs.io/en/latest/) or [truffle-contract](https://github.com/trufflesuite/truffle-contract), but these libraries need some initialization to work, and that could get repetitive.
 
@@ -262,8 +262,8 @@ To use an HD Wallet with Buidler you should set your network's `accounts` field 
 
 - `mnemonic`: A required string with the mnemonic of the wallet.
 - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
-- initialIndex: The initial index to derive. Default value: `0`.
-- count: The number of accounts to derive. Default value: `10`.
+- `initialIndex`: The initial index to derive. Default value: `0`.
+- `count`: The number of accounts to derive. Default value: `10`.
 
 ##### Default networks object
 
