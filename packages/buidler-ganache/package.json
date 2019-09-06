@@ -32,17 +32,16 @@
     "LICENSE",
     "README.md"
   ],
+  "dependencies": {
+    "ganache-core": "^2.7.0",
+    "ts-essentials": "^2.0.7",
+    "debug": "^4.1.1"
+  },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.9",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0"
   },
   "peerDependencies": {
     "@nomiclabs/buidler": "^1.0.0-beta.9"
-  },
-  "dependencies": {
-    "ganache-core": "^2.7.0",
-    "ts-essentials": "^2.0.7",
-    "debug": "^4.1.1"
   }
 }
