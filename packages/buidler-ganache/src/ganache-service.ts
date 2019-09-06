@@ -91,6 +91,7 @@ export class GanacheService {
     this._checkForServiceErrors();
   }
 
+  // TODO remove this function
   public async send(method: string, params: any): Promise<any> {
     return this._server.send(method, params);
   }
@@ -134,7 +135,7 @@ export class GanacheService {
       });
     });
 
-    // TODO Maybe add, in new threat, some kind of ping checker to the server (every 30 seg)
+    // TODO Maybe in the future, in new threat, some kind of ping checker to the server (every 30 seg)
   }
 
   private _checkForServiceErrors() {
