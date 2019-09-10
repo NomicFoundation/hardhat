@@ -1,2 +1,1 @@
-// TODO Add plugin custom types here
-declare module "debug";
+// Add plugin custom types here if needed
