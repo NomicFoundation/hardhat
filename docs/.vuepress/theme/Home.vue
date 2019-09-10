@@ -11,7 +11,7 @@
     </div>
 
     <div class="hero">
-      <img src="/mascots.svg" alt="hero" class="mascots-mobile" />
+      <img src="/mascots.svg?1" alt="hero" class="mascots-mobile" />
       <div class="copy">
         <div class="text">
           <h2>
