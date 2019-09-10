@@ -57,7 +57,7 @@ _Take a look at the [list of Buidler plugins](/plugins) to see other available
 
 Task creation code can go in `buidler.config.js`, or whatever your configuration file is called. It’s a good place to create simple tasks. If your task is more complex, it's also perfectly valid to split the code into several files and `require` from the configuration file.
 
-_If you’re writing a Buidler plugin that adds a task, they can also be created from a separate npm package. Learn more about creating tasks through plugins in our [How to create a plugin guide](/create-plugin.md)._
+_If you’re writing a Buidler plugin that adds a task, they can also be created from a separate npm package. Learn more about creating tasks through plugins in our [How to create a plugin guide](/guides/create-plugin.md)._
 
 **The configuration file is always executed on startup before anything else happens.** It's good to keep this in mind. We will load the Web3.js plugin and add our task creation code to it. 
 
