@@ -1,10 +1,10 @@
 import debug from "debug";
-import Ganache from "ganache-core";
 
-const log = debug("buidler:plugin:ganache");
+const log = debug("buidler:plugin:ganache-service");
 
 export class GanacheService {
   public static error: Error;
+
   public static getDefaultOptions(): GanacheOptions {
     return {
       hostname: "127.0.0.1",
@@ -16,11 +16,16 @@ export class GanacheService {
     };
   }
 
+  public static async create(options: any): Promise<GanacheService> {
+    const { default: Ganache } = await import("ganache-core");
+    return new GanacheService(Ganache, options);
+  }
+
   private readonly _server: any;
   private readonly _options: GanacheOptions;
 
-  constructor(options: any) {
-    log("Ganache Service > Initializing server");
+  private constructor(Ganache: any, options: any) {
+    log("Initializing server");
 
     // Validate received options before initialize server
     this._options = this.validateOptions(options);
@@ -37,7 +42,7 @@ export class GanacheService {
     this._checkForServiceErrors();
 
     try {
-      log("Ganache Service > Starting server");
+      log("Starting server");
 
       // Only for debug
       // console.log(env);
@@ -48,8 +53,8 @@ export class GanacheService {
 
       // Start server with current configs (port and hostname)
       await new Promise((resolve, reject) => {
-        this._server.on("listening", resolve);
-        this._server.on("error", reject);
+        this._server.once("listening", resolve);
+        this._server.once("error", reject);
         this._server.listen(port, hostname);
       });
     } catch (e) {
@@ -68,13 +73,13 @@ export class GanacheService {
     this._checkForServiceErrors();
 
     try {
-      log("Ganache Service > Stopping server");
+      log("Stopping server");
 
       // Stop server and Wait for it
       await new Promise((resolve, reject) => {
         this._server.close((err: Error) => {
           if (err) {
-            reject();
+            reject(err);
           } else {
             resolve();
           }
@@ -114,26 +119,26 @@ export class GanacheService {
     });
 
     // Add listener for process uncaught errors (warning: this may catch non plugin related errors)
-    process.on("uncaughtException", function(e) {
-      log("Uncaught Exception", e.message);
-      server.close(function(err: any) {
-        if (!GanacheService.error && err) {
-          log(err.message || err.stack || err);
-          GanacheService.error = err;
-        }
-      });
-    });
+    // process.on("uncaughtException", function(e) {
+    //   log("Uncaught Exception", e.message);
+    //   server.close(function(err: any) {
+    //     if (!GanacheService.error && err) {
+    //       log(err.message || err.stack || err);
+    //       GanacheService.error = err;
+    //     }
+    //   });
+    // });
 
     // Add listener for standard POSIX signal SIGINT (usually generated with <Ctrl>+C)
-    process.on("SIGINT", function() {
-      log("SIGINT detected");
-      server.close(function(err: any) {
-        if (!GanacheService.error && err) {
-          log(err.message || err.stack || err);
-          GanacheService.error = err;
-        }
-      });
-    });
+    // process.on("SIGINT", function() {
+    //   log("SIGINT detected");
+    //   server.close(function(err: any) {
+    //     if (!GanacheService.error && err) {
+    //       log(err.message || err.stack || err);
+    //       GanacheService.error = err;
+    //     }
+    //   });
+    // });
 
     // TODO Maybe in the future, in new threat, some kind of ping checker to the server (every 30 seg)
   }
@@ -150,8 +155,36 @@ export class GanacheService {
   }
 }
 
-export interface GanacheOptions extends Ganache.IServerOptions {
+export interface GanacheOptions {
   hostname?: string;
+  account_keys_path?: string;
+  accounts?: object[];
+  allowUnlimitedContractSize?: boolean;
+  blockTime?: number;
+  db_path?: string;
+  debug?: boolean;
+  default_balance_ether?: number;
+  fork?: string | object;
+  fork_block_number?: string | number;
+  gasLimit?: number;
+  gasPrice?: string;
+  hardfork?: "byzantium" | "constantinople" | "petersburg";
+  hd_path?: string;
+  locked?: boolean;
+  logger?: {
+    log(msg: string): void;
+  };
+  mnemonic?: string;
+  network_id?: number;
+  networkId?: number;
+  port?: number;
+  seed?: any;
+  time?: Date;
+  total_accounts?: number;
+  unlocked_accounts?: string[];
+  verbose?: boolean;
+  vmErrorsOnRPCResponse?: boolean;
+  ws?: boolean;
 }
 
 // function isInstanceOfGanacheOption(object: any): object is GanacheOptions {

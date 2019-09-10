@@ -36,6 +36,11 @@ export default function() {
       resolvedConfig.defaultNetwork = "ganache";
     }
 
+    if (resolvedConfig.defaultNetwork !== "ganache") {
+      log("No extending config (skip all)");
+      return;
+    }
+
     // Get all default values and set to resolved config map
     const defaultOptions = GanacheService.getDefaultOptions();
 
@@ -79,22 +84,27 @@ async function handlePluginTask(
   // Start Task handling
   log("Handling Task");
   let ret: any;
+  let ganacheService: GanacheService;
 
   try {
     // Init ganache service with resolved options
     const options = env.network.config;
-    const ganacheService = lazyObject(() => new GanacheService(options));
+    ganacheService = await GanacheService.create(options);
 
     // Start ganache server and log errors
     await ganacheService.startServer();
+  } catch (e) {
+    throw new BuidlerPluginError(e);
+  }
 
-    // Run normal TEST or RUN task
-    ret = await runSuper();
+  // Run normal TEST or RUN task
+  ret = await runSuper();
 
+  try {
     // Stop ganache server and log errors
     await ganacheService.stopServer();
   } catch (e) {
-    throw new BuidlerPluginError(e.message);
+    throw new BuidlerPluginError(e);
   }
 
   return ret;
