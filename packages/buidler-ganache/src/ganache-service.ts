@@ -11,8 +11,8 @@ export class GanacheService {
       port: 8545,
       gasPrice: "20000000000",
       gasLimit: 0x6691b7,
-      default_balance_ether: 100,
-      total_accounts: 10
+      defaultBalanceEther: 100,
+      totalAccounts: 10
     };
   }
 
@@ -104,6 +104,15 @@ export class GanacheService {
   public validateOptions(options: any) {
     // TODO Put here some ganache options validations
     // console.log(options);
+
+    // Transform service options to Ganache core server
+    options.account_keys_path = options.accountKeysPath;
+    options.db_path = options.dbPath;
+    options.default_balance_ether = options.defaultBalanceEther;
+    options.fork_block_number = options.forkBlockNumber;
+    options.total_accounts = options.totalAccounts;
+    options.unlocked_accounts = options.unlockedAccounts;
+
     return options;
   }
 
@@ -157,19 +166,24 @@ export class GanacheService {
 
 export interface GanacheOptions {
   hostname?: string;
-  account_keys_path?: string;
+  accountKeysPath?: string;
+  // account_keys_path?: string;
   accounts?: object[];
   allowUnlimitedContractSize?: boolean;
   blockTime?: number;
-  db_path?: string;
+  dbPath?: string;
+  // db_path?: string;
   debug?: boolean;
-  default_balance_ether?: number;
+  defaultBalanceEther?: number;
+  // default_balance_ether?: number;
   fork?: string | object;
-  fork_block_number?: string | number;
+  forkBlockNumber?: string | number;
+  // fork_block_number?: string | number;
   gasLimit?: number;
   gasPrice?: string;
   hardfork?: "byzantium" | "constantinople" | "petersburg";
-  hd_path?: string;
+  hdPath?: string;
+  // hd_path?: string;
   locked?: boolean;
   logger?: {
     log(msg: string): void;
@@ -180,8 +194,10 @@ export interface GanacheOptions {
   port?: number;
   seed?: any;
   time?: Date;
-  total_accounts?: number;
-  unlocked_accounts?: string[];
+  totalAccounts?: number;
+  // total_accounts?: number;
+  unlockedAccounts?: string[];
+  // unlocked_accounts?: string[];
   verbose?: boolean;
   vmErrorsOnRPCResponse?: boolean;
   ws?: boolean;
