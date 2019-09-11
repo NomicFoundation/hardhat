@@ -40,16 +40,17 @@ export default function() {
   internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { pweb3 }) => {
     const accounts = await pweb3.eth.getAccounts();
 
-    const { assert } = await import("chai");
+    const { assert, expect } = await import("chai");
 
     const globalAsAny = global as any;
     globalAsAny.assert = assert;
+    globalAsAny.expect = expect;
 
     globalAsAny.contract = (
       description: string,
       definition: (accounts: string) => any
     ) =>
-      describe(description, () => {
+      describe(`Contract: ${description}`, () => {
         definition(accounts);
       });
   });
