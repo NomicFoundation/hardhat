@@ -1,101 +1,48 @@
 import { EventEmitter } from "events";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { IEthereumProvider } from "../../../../src/types";
 
-export class MethodReturningProvider extends EventEmitter
-  implements IEthereumProvider {
-  public async send(method: string, params?: any[]): Promise<any> {
-    return method;
+export class MockedProvider extends EventEmitter implements IEthereumProvider {
+  private _returnValues: any = {};
+  private _latestParams: any = {};
+  private _numberOfCalls: { [call: string]: number } = {};
+
+  // If a lambda is passed as value, it's return value is used.
+  public setReturnValue(method: string, value: any) {
+    this._returnValues[method] = value;
   }
-}
 
-export class ParamsReturningProvider extends EventEmitter
-  implements IEthereumProvider {
-  public async send(method: string, params?: any[]): Promise<any> {
-    return params;
+  public getNumberOfCalls(method: string): number {
+    if (this._numberOfCalls[method] === undefined) {
+      return 0;
+    }
+
+    return this._numberOfCalls[method];
   }
-}
 
-/**
- * This mock is like the ParamsReturningProvider except it returns some hardcoded values
- */
-export class BasicMockProvider extends EventEmitter
-  implements IEthereumProvider {
-  public async send(method: string, params?: any[]): Promise<any> {
-    if (method === "eth_getBlockByNumber") {
-      return {
-        gasLimit: numberToRpcQuantity(8000000)
-      };
-    }
-
-    if (method === "eth_chainId") {
-      return numberToRpcQuantity(123);
-    }
-
-    if (method === "web3_clientVersion") {
-      return "Parity-Ethereum//v2.5.1-beta-e0141f8-20190510/x86_64-linux-gnu/rustc1.34.1";
-    }
-
-    return params;
+  public getLatestParams(method: string): any {
+    return this._latestParams[method];
   }
-}
 
-export class BasicGanacheMockProvider extends BasicMockProvider {
-  public async send(method: string, params?: any[]): Promise<any> {
-    if (method === "web3_clientVersion") {
-      return "EthereumJS TestRPC/v2.5.5/ethereum-js";
-    }
-
-    return super.send(method, params);
-  }
-}
-
-export class CountProvider extends EventEmitter implements IEthereumProvider {
-  public transactionsCountParams: any[] | undefined = undefined;
-  public numberOfCallsToNetVersion: number = 0;
-
-  public async send(method: string, params?: any[]): Promise<any> {
-    if (method === "eth_getTransactionCount") {
-      this.transactionsCountParams = params;
-      return numberToRpcQuantity(0x08);
-    }
-
-    if (method === "net_version") {
-      this.numberOfCallsToNetVersion += 1;
-      return numberToRpcQuantity(123);
-    }
-
-    if (method === "eth_accounts") {
-      return [];
-    }
-
-    return params;
-  }
-}
-
-export class ChainIdMockProvider extends EventEmitter
-  implements IEthereumProvider {
-  public numberOfCalls: number = 0;
-
-  constructor(
-    private readonly _chainId?: number,
-    private readonly _netVersion?: number
-  ) {
-    super();
+  public getTotalNumberOfCalls(): number {
+    return Object.values(this._numberOfCalls).reduce((p, c) => p + c, 0);
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
-    this.numberOfCalls += 1;
+    this._latestParams[method] = params;
 
-    if (method === "eth_chainId" && this._chainId !== undefined) {
-      return numberToRpcQuantity(this._chainId);
+    if (this._numberOfCalls[method] === undefined) {
+      this._numberOfCalls[method] = 1;
+    } else {
+      this._numberOfCalls[method] += 1;
     }
 
-    if (method === "net_version" && this._netVersion !== undefined) {
-      return numberToRpcQuantity(this._netVersion);
+    let ret = this._returnValues[method];
+
+    if (ret instanceof Function) {
+      ret = ret();
     }
 
-    throw new Error(`Unsupported method ${method}`);
+    return ret;
   }
 }

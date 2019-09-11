@@ -66,7 +66,9 @@ export function wrapEthereumProvider(
 
   // TODO: Add some extension mechanism for account plugins here
 
-  provider = createGanacheGasMultiplierProvider(provider);
+  if (typeof netConfig.gas !== "number") {
+    provider = createGanacheGasMultiplierProvider(provider);
+  }
 
   provider = createSenderProvider(provider, netConfig.from);
 

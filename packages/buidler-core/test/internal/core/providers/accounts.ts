@@ -8,6 +8,7 @@ import {
   createSenderProvider,
   JsonRpcTransactionData
 } from "../../../../src/internal/core/providers/accounts";
+import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { wrapSend } from "../../../../src/internal/core/providers/wrapper";
 import { IEthereumProvider } from "../../../../src/types";
 import {
@@ -15,26 +16,28 @@ import {
   expectBuidlerErrorAsync
 } from "../../../helpers/errors";
 
-import { CountProvider } from "./mocks";
+import { MockedProvider } from "./mocks";
 
 function privateKeyToAddress(privateKey: string): string {
   return bufferToHex(privateToAddress(toBuffer(privateKey))).toLowerCase();
 }
 
 describe("Local accounts provider", () => {
-  let mock: CountProvider;
+  let mock: MockedProvider;
   let wrapper: IEthereumProvider;
-
-  let accounts: string[] = [];
+  const accounts = [
+    "0xb2e31025a2474b37e4c2d2931929a00b5752b98a3af45e3fd9a62ddc3cdf370e",
+    "0x6d7229c1db5892730b84b4bc10543733b72cabf4cd3130d910faa8e459bb8eca",
+    "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
+    "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2"
+  ];
 
   beforeEach(() => {
-    accounts = [
-      "0xb2e31025a2474b37e4c2d2931929a00b5752b98a3af45e3fd9a62ddc3cdf370e",
-      "0x6d7229c1db5892730b84b4bc10543733b72cabf4cd3130d910faa8e459bb8eca",
-      "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
-      "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2"
-    ];
-    mock = new CountProvider();
+    mock = new MockedProvider();
+    mock.setReturnValue("net_version", numberToRpcQuantity(123));
+    mock.setReturnValue("eth_getTransactionCount", numberToRpcQuantity(0x8));
+    mock.setReturnValue("eth_accounts", []);
+
     wrapper = createLocalAccountsProvider(mock, accounts);
   });
 
@@ -87,8 +90,8 @@ describe("Local accounts provider", () => {
     );
   });
 
-  it("Should, given two identical tx, return the same", async () => {
-    const [rawTransaction] = await wrapper.send("eth_sendTransaction", [
+  it("Should, given two identical tx, return send the same raw tansaction", async () => {
+    await wrapper.send("eth_sendTransaction", [
       {
         from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
         to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
@@ -100,6 +103,8 @@ describe("Local accounts provider", () => {
       }
     ]);
 
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
     // This transaction was submitted to a blockchain it was accepted, so the
     // signature must be valid
     const expectedRaw =
@@ -108,7 +113,7 @@ describe("Local accounts provider", () => {
       "adc1a53a3ebe8c4d1f0aa06aebf2fbbe82703e5075965c65c776a9caeeff4b637f203" +
       "d65383e1ed2e22654";
 
-    assert.equal(bufferToHex(rawTransaction), expectedRaw);
+    assert.equal(rawTransaction, expectedRaw);
   });
 
   it("Should throw if trying to send from an account that isn't local", async () => {
@@ -132,9 +137,9 @@ describe("Local accounts provider", () => {
 
   it("Should forward other methods", async () => {
     const input = [1, 2];
-    const params = await wrapper.send("eth_sarasa", input);
+    await wrapper.send("eth_sarasa", input);
 
-    assert.deepEqual(params, input);
+    assert.deepEqual(mock.getLatestParams("eth_sarasa"), input);
   });
 
   it("Should get the nonce if not provided", async () => {
@@ -149,11 +154,7 @@ describe("Local accounts provider", () => {
       }
     ]);
 
-    assert.isDefined(mock.transactionsCountParams);
-    assert.deepEqual(mock!.transactionsCountParams, [
-      "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      "pending"
-    ]);
+    assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
   });
 
   describe("Describe eth_sign", () => {
@@ -161,7 +162,7 @@ describe("Local accounts provider", () => {
       // This test was created by using Parity Ethereum
       // v2.2.5-beta-7fbcdfeed-20181213 and calling eth_sign
 
-      const provider = createLocalAccountsProvider(new CountProvider(), [
+      const provider = createLocalAccountsProvider(mock, [
         "0x6e59a6617c48d76d3b21d722eaba867e16ecf54ab3da7a93724f51812bc6d1aa"
       ]);
 
@@ -179,7 +180,7 @@ describe("Local accounts provider", () => {
     it("Should be compatible with ganache-cli's implementation", async () => {
       // This test was created by using Ganache CLI v6.1.6 (ganache-core: 2.1.5)
 
-      const provider = createLocalAccountsProvider(new CountProvider(), [
+      const provider = createLocalAccountsProvider(mock, [
         "0xf159c85082f4dd4ee472583a37a1b5683c727ec99708f3d94ff05faa7a7a70ce"
       ]);
 
@@ -202,7 +203,7 @@ describe("Local accounts provider", () => {
     it("Should be compatible with geth's implementation", async () => {
       // This test was created by using Geth 1.8.20-stable
 
-      const provider = createLocalAccountsProvider(new CountProvider(), [
+      const provider = createLocalAccountsProvider(mock, [
         "0xf2d19e944851ea0faa9440e24a22ddab850210cae46b306a3fde4c98b22a0dcb"
       ]);
 
@@ -236,8 +237,8 @@ describe("Local accounts provider", () => {
     });
 
     it("Should just forward if no address is given", async () => {
-      const params = await wrapper.send("eth_sign");
-      assert.deepEqual(params, []);
+      await wrapper.send("eth_sign");
+      assert.deepEqual(mock.getLatestParams("eth_sign"), []);
     });
   });
 });
@@ -245,14 +246,12 @@ describe("Local accounts provider", () => {
 describe("hdwallet provider", () => {
   let mock: IEthereumProvider;
   let wrapper: IEthereumProvider;
-  let mnemonic: string;
-  let hdpath: string;
+  const mnemonic =
+    "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
+  const hdpath = "m/44'/60'/0'/0/";
 
   beforeEach(() => {
-    mnemonic =
-      "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
-    hdpath = "m/44'/60'/0'/0/";
-    mock = new CountProvider();
+    mock = new MockedProvider();
     wrapper = createHDWalletProvider(mock, mnemonic, hdpath);
   });
 
@@ -318,7 +317,7 @@ describe("hdwallet provider", () => {
 });
 
 describe("Account provider", () => {
-  let mock: IEthereumProvider;
+  let mock: MockedProvider;
   let provider: IEthereumProvider;
   let wrapper: IEthereumProvider;
   let tx: JsonRpcTransactionData;
@@ -330,13 +329,16 @@ describe("Account provider", () => {
       nonce: 0,
       value: 1
     };
-    mock = new CountProvider();
+
+    mock = new MockedProvider();
+
     provider = wrapSend(mock, async (method, params) => {
       if (method === "eth_accounts") {
         return ["0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"];
       }
       return mock.send(method, params);
     });
+
     wrapper = createSenderProvider(
       provider,
       "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
@@ -344,36 +346,40 @@ describe("Account provider", () => {
   });
 
   it("Should set the from value into the transaction", async () => {
-    const response = await wrapper.send("eth_sendTransaction", [tx]);
-    assert.equal(
-      response[0].from,
-      "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
-    );
+    await wrapper.send("eth_sendTransaction", [tx]);
+
+    const params = mock.getLatestParams("eth_sendTransaction");
+
+    assert.equal(params[0].from, "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
 
   it("Should not replace transaction's from", async () => {
     tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
-    const response = await wrapper.send("eth_sendTransaction", [tx]);
-    assert.equal(
-      response[0].from,
-      "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
-    );
+    await wrapper.send("eth_sendTransaction", [tx]);
+
+    const params = mock.getLatestParams("eth_sendTransaction");
+
+    assert.equal(params[0].from, "0x000006d4548a3ac17d72b372ae1e416bf65b8ead");
   });
 
   it("Should use the first account if from is missing", async () => {
     wrapper = createSenderProvider(provider);
+
     tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
-    const response = await wrapper.send("eth_sendTransaction", [tx]);
-    assert.equal(
-      response[0].from,
-      "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
-    );
+    await wrapper.send("eth_sendTransaction", [tx]);
+
+    const params = mock.getLatestParams("eth_sendTransaction");
+    assert.equal(params[0].from, "0x000006d4548a3ac17d72b372ae1e416bf65b8ead");
   });
 
   it("Should not fail if provider doesn't have any accounts", async () => {
-    tx.value = "asd";
+    mock.setReturnValue("eth_accounts", []);
     wrapper = createSenderProvider(mock);
-    const response = await wrapper.send("eth_call", [tx]);
-    assert.equal(response[0].value, "asd");
+
+    tx.value = "asd";
+    await wrapper.send("eth_call", [tx]);
+
+    const params = mock.getLatestParams("eth_call");
+    assert.equal(params[0].value, "asd");
   });
 });
