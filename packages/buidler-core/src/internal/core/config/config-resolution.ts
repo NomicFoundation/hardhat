@@ -9,6 +9,7 @@ import {
   ResolvedBuidlerConfig
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
+import { BuidlerError, ERRORS } from "../errors";
 
 function mergeUserAndDefaultConfigs(
   defaultConfig: BuidlerConfig,
@@ -36,6 +37,8 @@ export function resolveConfig(
   userConfig: BuidlerConfig,
   configExtenders: ConfigExtender[]
 ): ResolvedBuidlerConfig {
+  userConfig = deepFreezeUserConfig(userConfig);
+
   const config = mergeUserAndDefaultConfigs(defaultConfig, userConfig);
 
   const paths = resolveProjectPaths(userConfigPath, userConfig.paths);
@@ -103,4 +106,35 @@ export function resolveProjectPaths(
     artifacts: resolvePathFrom(root, "artifacts", userPaths.artifacts),
     tests: resolvePathFrom(root, "test", userPaths.tests)
   };
+}
+
+function deepFreezeUserConfig(
+  config: any,
+  propertyPath: Array<string | number | symbol> = []
+) {
+  if (typeof config !== "object" || config === null) {
+    return config;
+  }
+
+  return new Proxy(config, {
+    get(target: any, property: string | number | symbol, receiver: any): any {
+      return deepFreezeUserConfig(Reflect.get(target, property, receiver), [
+        ...propertyPath,
+        property
+      ]);
+    },
+
+    set(
+      target: any,
+      property: string | number | symbol,
+      value: any,
+      receiver: any
+    ): boolean {
+      throw new BuidlerError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
+        path: [...propertyPath, property]
+          .map(pathPart => pathPart.toString())
+          .join(".")
+      });
+    }
+  });
 }

@@ -258,6 +258,11 @@ To learn more about Buidler's configuration, please go to https://buidler.dev/do
       number: 9,
       message: `Error while loading Buidler's configuration.
 You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`
+    },
+    USER_CONFIG_MODIFIED: {
+      number: 10,
+      message: `Error while loading Buidler's configuration.
+You or one of your plugins is trying to modify the userConfig.%path% value from a config extender`
     }
   },
   NETWORK: {

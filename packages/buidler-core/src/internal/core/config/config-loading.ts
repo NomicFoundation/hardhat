@@ -43,9 +43,6 @@ export function loadConfigAndTasks(configPath?: string): ResolvedBuidlerConfig {
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(configEnv).forEach(key => (globalAsAny[key] = undefined));
 
-  // This object shouldn't be modified
-  Object.freeze(userConfig);
-
   return resolveConfig(
     configPath,
     defaultConfig,
