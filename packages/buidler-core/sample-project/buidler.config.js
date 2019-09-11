@@ -1,7 +1,7 @@
-task("accounts", "Prints a list of the available accounts", async () => {
-  const accounts = await ethereum.send("eth_accounts");
-
-  console.log("Accounts:", accounts);
+task("sample-task", "A sample Buidler task", async () => {
+  console.log(
+    "To learn how to create your own tasks go to https://buidler.dev/guides/create-task.html"
+  );
 });
 
 module.exports = {};
