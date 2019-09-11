@@ -37,8 +37,10 @@ export function createChainIdGetter(provider: IEthereumProvider) {
         // If eth_chainId fails we default to net_version
         // TODO: This should be removed in the future.
         // See: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-695.md
-        const id = await provider.send("net_version");
-        cachedChainId = rpcQuantityToNumber(id);
+        const id: string = await provider.send("net_version");
+        cachedChainId = id.startsWith("0x")
+          ? rpcQuantityToNumber(id)
+          : parseInt(id, 10);
       }
     }
 

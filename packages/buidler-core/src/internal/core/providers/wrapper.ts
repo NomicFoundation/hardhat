@@ -4,12 +4,15 @@ export function wrapSend(
   provider: IEthereumProvider,
   sendWrapper: (method: string, params: any[]) => Promise<any>
 ): IEthereumProvider {
+  const cloningSendWrapper = (method: string, params: any[] = []) => {
+    const cloneDeep = require("lodash/cloneDeep");
+    return sendWrapper(method, cloneDeep(params));
+  };
+
   return new Proxy(provider, {
     get(target: IEthereumProvider, p: PropertyKey, receiver: any): any {
       if (p === "send") {
-        const cloneDeep = require("lodash/cloneDeep");
-        return (method: string, params: any[] = []) =>
-          sendWrapper(method, cloneDeep(params));
+        return cloningSendWrapper;
       }
 
       const originalValue = Reflect.get(target, p, receiver);

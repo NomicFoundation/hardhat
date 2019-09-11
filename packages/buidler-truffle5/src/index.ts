@@ -29,7 +29,7 @@ export default function() {
 
       const provisioner = new LazyTruffleContractProvisioner(
         env.web3,
-        networkConfig.gasMultiplier
+        networkConfig
       );
 
       const artifacts = new TruffleEnvironmentArtifacts(

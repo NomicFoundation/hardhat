@@ -8,7 +8,7 @@ import {
 } from "../../../../src/internal/core/providers/provider-utils";
 import { expectBuidlerError } from "../../../helpers/errors";
 
-import { ChainIdMockProvider } from "./mocks";
+import { MockedProvider } from "./mocks";
 
 describe("Provider utils", function() {
   describe("rpcQuantityToNumber", function() {
@@ -63,48 +63,63 @@ describe("Provider utils", function() {
 
   describe("createChainIdGetter", function() {
     it("Should call the provider only once", async function() {
-      const chainIdProvider = new ChainIdMockProvider(1, 2);
-      const chainIdGetter = createChainIdGetter(chainIdProvider);
+      const mockedProvider = new MockedProvider();
+      mockedProvider.setReturnValue("eth_chainId", numberToRpcQuantity(1));
+      mockedProvider.setReturnValue("net_version", "2");
 
-      assert.equal(chainIdProvider.numberOfCalls, 0);
-      await chainIdGetter();
-      assert.equal(chainIdProvider.numberOfCalls, 1);
-      await chainIdGetter();
-      assert.equal(chainIdProvider.numberOfCalls, 1);
-      await chainIdGetter();
-      assert.equal(chainIdProvider.numberOfCalls, 1);
+      const chainIdGetter = createChainIdGetter(mockedProvider);
 
-      const netVersionProvider = new ChainIdMockProvider(undefined, 2);
-      const netVersionGetter = createChainIdGetter(netVersionProvider);
+      assert.equal(mockedProvider.getTotalNumberOfCalls(), 0);
+      await chainIdGetter();
+      assert.equal(mockedProvider.getTotalNumberOfCalls(), 1);
+      await chainIdGetter();
+      assert.equal(mockedProvider.getTotalNumberOfCalls(), 1);
+      await chainIdGetter();
+      assert.equal(mockedProvider.getTotalNumberOfCalls(), 1);
 
-      assert.equal(netVersionProvider.numberOfCalls, 0);
+      const mockedProvider2 = new MockedProvider();
+      mockedProvider2.setReturnValue("net_version", "2");
+      const netVersionGetter = createChainIdGetter(mockedProvider2);
+
+      assert.equal(mockedProvider2.getTotalNumberOfCalls(), 0);
       await netVersionGetter();
 
       // First eth_chainId is called, then net_version, hence 2
-      assert.equal(netVersionProvider.numberOfCalls, 2);
+      assert.equal(mockedProvider2.getTotalNumberOfCalls(), 2);
       await netVersionGetter();
-      assert.equal(netVersionProvider.numberOfCalls, 2);
+      assert.equal(mockedProvider2.getTotalNumberOfCalls(), 2);
       await netVersionGetter();
-      assert.equal(netVersionProvider.numberOfCalls, 2);
+      assert.equal(mockedProvider2.getTotalNumberOfCalls(), 2);
     });
 
     it("Should use eth_chainId if supported", async function() {
-      const chainIdProvider = new ChainIdMockProvider(1, 2);
-      const chainIdGetter = createChainIdGetter(chainIdProvider);
+      const mockedProvider = new MockedProvider();
+      mockedProvider.setReturnValue("eth_chainId", numberToRpcQuantity(1));
+      mockedProvider.setReturnValue("net_version", "2");
+
+      const chainIdGetter = createChainIdGetter(mockedProvider);
 
       assert.equal(await chainIdGetter(), 1);
     });
 
     it("Should use net_version if eth_chainId is not supported", async function() {
-      const netVersionProvider = new ChainIdMockProvider(undefined, 2);
-      const netVersionGetter = createChainIdGetter(netVersionProvider);
+      const mockedProvider = new MockedProvider();
+      mockedProvider.setReturnValue("net_version", "2");
+      const netVersionGetter = createChainIdGetter(mockedProvider);
 
       assert.equal(await netVersionGetter(), 2);
     });
 
     it("Should throw if both eth_chainId and net_version fail", async function() {
-      const failingProvider = new ChainIdMockProvider(undefined, undefined);
-      const failingGetter = createChainIdGetter(failingProvider);
+      const mockedProvider = new MockedProvider();
+      mockedProvider.setReturnValue("eth_chainId", () => {
+        throw new Error("Unsupported method");
+      });
+      mockedProvider.setReturnValue("net_version", () => {
+        throw new Error("Unsupported method");
+      });
+
+      const failingGetter = createChainIdGetter(mockedProvider);
 
       try {
         await failingGetter();

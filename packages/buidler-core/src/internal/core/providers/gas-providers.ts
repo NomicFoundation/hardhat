@@ -13,10 +13,6 @@ export function createFixedGasProvider(
   const rpcGasLimit = numberToRpcQuantity(gasLimit);
 
   return wrapSend(provider, async (method, params) => {
-    if (method === "eth_estimateGas") {
-      return rpcGasLimit;
-    }
-
     if (method === "eth_sendTransaction") {
       const tx = params[0];
       if (tx !== undefined && tx.gas === undefined) {
@@ -35,10 +31,6 @@ export function createFixedGasPriceProvider(
   const rpcGasPrice = numberToRpcQuantity(gasPrice);
 
   return wrapSend(provider, async (method, params) => {
-    if (method === "eth_gasPrice") {
-      return rpcGasPrice;
-    }
-
     if (method === "eth_sendTransaction") {
       const tx = params[0];
       if (tx !== undefined && tx.gasPrice === undefined) {
@@ -54,6 +46,8 @@ export function createAutomaticGasProvider(
   provider: IEthereumProvider,
   gasMultiplier: number = DEFAULT_GAS_MULTIPLIER
 ) {
+  const getMultipliedGasEstimation = createMultipliedGasEstimationGetter();
+
   return wrapSend(provider, async (method, params) => {
     if (method === "eth_sendTransaction") {
       const tx = params[0];
@@ -71,11 +65,17 @@ export function createAutomaticGasProvider(
 }
 
 export function createAutomaticGasPriceProvider(provider: IEthereumProvider) {
+  let gasPrice: string | undefined;
+
   return wrapSend(provider, async (method, params) => {
     if (method === "eth_sendTransaction") {
       const tx = params[0];
       if (tx !== undefined && tx.gasPrice === undefined) {
-        tx.gasPrice = await provider.send("eth_gasPrice");
+        if (gasPrice === undefined) {
+          gasPrice = await provider.send("eth_gasPrice");
+        }
+
+        tx.gasPrice = gasPrice;
       }
     }
 
@@ -95,6 +95,7 @@ export function createGanacheGasMultiplierProvider(
   provider: IEthereumProvider
 ) {
   let isGanache: boolean | undefined;
+  const getMultipliedGasEstimation = createMultipliedGasEstimationGetter();
 
   return wrapSend(provider, async (method, params) => {
     if (isGanache === undefined) {
@@ -115,41 +116,48 @@ export function createGanacheGasMultiplierProvider(
   });
 }
 
-let cachedGasLimit: number | undefined;
-async function getBlockGasLimit(provider: IEthereumProvider): Promise<number> {
-  if (cachedGasLimit === undefined) {
-    const latestBlock = await provider.send("eth_getBlockByNumber", [
-      "latest",
-      false
-    ]);
+function createMultipliedGasEstimationGetter() {
+  // We create this getter this way so this cache is recreated when the BRE
+  // is reseted
+  let cachedGasLimit: number | undefined;
 
-    const fetchedGasLimit = rpcQuantityToNumber(latestBlock.gasLimit);
+  async function getBlockGasLimit(
+    provider: IEthereumProvider
+  ): Promise<number> {
+    if (cachedGasLimit === undefined) {
+      const latestBlock = await provider.send("eth_getBlockByNumber", [
+        "latest",
+        false
+      ]);
 
-    // For future uses, we store a lower value in case the gas limit varies slightly
-    cachedGasLimit = Math.floor(fetchedGasLimit * 0.95);
+      const fetchedGasLimit = rpcQuantityToNumber(latestBlock.gasLimit);
 
-    return fetchedGasLimit;
+      // For future uses, we store a lower value in case the gas limit varies slightly
+      cachedGasLimit = Math.floor(fetchedGasLimit * 0.95);
+
+      return fetchedGasLimit;
+    }
+
+    return cachedGasLimit;
   }
 
-  return cachedGasLimit;
-}
+  return async function getMultipliedGasEstimation(
+    provider: IEthereumProvider,
+    params: any[],
+    gasMultiplier: number
+  ): Promise<string> {
+    const realEstimation = await provider.send("eth_estimateGas", params);
 
-async function getMultipliedGasEstimation(
-  provider: IEthereumProvider,
-  params: any[],
-  gasMultiplier: number
-): Promise<string> {
-  const realEstimation = await provider.send("eth_estimateGas", params);
+    if (gasMultiplier === 1) {
+      return realEstimation;
+    }
 
-  if (gasMultiplier === 1) {
-    return realEstimation;
-  }
+    const normalGas = rpcQuantityToNumber(realEstimation);
+    const gasLimit = await getBlockGasLimit(provider);
 
-  const normalGas = rpcQuantityToNumber(realEstimation);
-  const gasLimit = await getBlockGasLimit(provider);
+    const multiplied = Math.floor(normalGas * gasMultiplier);
+    const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
 
-  const multiplied = Math.floor(normalGas * gasMultiplier);
-  const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
-
-  return numberToRpcQuantity(gas);
+    return numberToRpcQuantity(gas);
+  };
 }
