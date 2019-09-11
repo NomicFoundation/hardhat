@@ -1,3 +1,5 @@
+import debug from "debug";
+
 import { BuidlerRuntimeEnvironment } from "../../types";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
@@ -26,6 +28,10 @@ if (BuidlerContext.isCreated()) {
     BUIDLER_PARAM_DEFINITIONS,
     process.env
   );
+
+  if (buidlerArguments.verbose) {
+    debug.enable("buidler*");
+  }
 
   const config = loadConfigAndTasks(buidlerArguments.config);
 
