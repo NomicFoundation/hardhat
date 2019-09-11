@@ -1,23 +1,41 @@
 import debug from "debug";
+import { createCheckers } from "ts-interface-checker";
+
+import GanacheOptionsTi from "./ganache-options-ti";
+import { GanacheOptions } from "./types";
 
 const log = debug("buidler:plugin:ganache-service");
+log.color = "6";
 
 export class GanacheService {
   public static error: Error;
 
   public static getDefaultOptions(): GanacheOptions {
     return {
-      hostname: "127.0.0.1",
-      port: 8545,
-      gasPrice: "20000000000",
-      gasLimit: 0x6691b7,
+      url: "http://127.0.0.1:8545",
+      gasPrice: 20000000000,
+      gasLimit: 6721975,
       defaultBalanceEther: 100,
-      totalAccounts: 10
+      totalAccounts: 10,
+      keepAliveTimeout: 5000
     };
+  }
+
+  public static getMergedOptions(
+    defaultOptions: any,
+    customOptions: any
+  ): GanacheOptions {
+    // Merge default options with config ones (with custom options priority)
+    const mergedOptions = { ...defaultOptions, ...customOptions };
+
+    // TODO Take in consideration array object merging
+
+    return mergedOptions;
   }
 
   public static async create(options: any): Promise<GanacheService> {
     const { default: Ganache } = await import("ganache-core");
+    // const { createCheckers } = await import("ts-interface-checker");
     return new GanacheService(Ganache, options);
   }
 
@@ -28,13 +46,29 @@ export class GanacheService {
     log("Initializing server");
 
     // Validate received options before initialize server
-    this._options = this.validateOptions(options);
+    this._options = this._validateOptions(options);
 
     // Only for debug
     // console.log(this._options);
 
-    this._server = Ganache.server(this._options);
-    this._registerSystemErrorsHandlers();
+    try {
+      // Initialize server and provider with given options
+      this._server = Ganache.server(this._options);
+
+      // Register server and system error handlers
+      this._registerSystemErrorsHandlers();
+    } catch (e) {
+      // Verify the expected error or throw it again
+      if (e.name === "TypeError") {
+        e.message = `One or more invalid values in ganache network options`;
+        if (!GanacheService.error) {
+          log(e.message || e);
+          GanacheService.error = e;
+        }
+      } else {
+        throw e;
+      }
+    }
   }
 
   public async startServer() {
@@ -58,9 +92,10 @@ export class GanacheService {
         this._server.listen(port, hostname);
       });
     } catch (e) {
+      e.message = `Start Server > ${e.message}`;
       if (!GanacheService.error) {
         log(e.message || e);
-        GanacheService.error = new Error(`start server > ${e.message}`);
+        GanacheService.error = e;
       }
     }
 
@@ -86,9 +121,10 @@ export class GanacheService {
         });
       });
     } catch (e) {
+      e.message = `Stop Server > ${e.message}`;
       if (!GanacheService.error) {
         log(e.message || e);
-        GanacheService.error = new Error(`stop server > ${e.message}`);
+        GanacheService.error = e;
       }
     }
 
@@ -96,24 +132,44 @@ export class GanacheService {
     this._checkForServiceErrors();
   }
 
-  // TODO remove this function
-  public async send(method: string, params: any): Promise<any> {
-    return this._server.send(method, params);
-  }
+  public _validateOptions(options: GanacheOptions): any {
+    const validatedOptions: any = options;
 
-  public validateOptions(options: any) {
-    // TODO Put here some ganache options validations
-    // console.log(options);
+    // Validate and parse hostname and port from URL
+    const url = new URL(options.url);
+    validatedOptions.hostname = url.hostname;
+    validatedOptions.port = url.port || 80;
+    if (options.hostname !== "locahost" && options.hostname !== "127.0.0.1") {
+      throw new Error("Config: hostname must resolve to locahost");
+    }
+
+    const { checker } = createCheckers(GanacheOptionsTi);
+
+    // TODO This checker is not Working DUNNO WHY (11/9)
+    log(checker, "< this Not should be undefined");
+    // checker.check(options);
 
     // Transform service options to Ganache core server
-    options.account_keys_path = options.accountKeysPath;
-    options.db_path = options.dbPath;
-    options.default_balance_ether = options.defaultBalanceEther;
-    options.fork_block_number = options.forkBlockNumber;
-    options.total_accounts = options.totalAccounts;
-    options.unlocked_accounts = options.unlockedAccounts;
+    if (options.accountKeysPath) {
+      validatedOptions.account_keys_path = options.accountKeysPath;
+    }
+    if (options.dbPath) {
+      validatedOptions.db_path = options.dbPath;
+    }
+    if (options.defaultBalanceEther) {
+      validatedOptions.default_balance_ether = options.defaultBalanceEther;
+    }
+    if (options.forkBlockNumber) {
+      validatedOptions.fork_block_number = options.forkBlockNumber;
+    }
+    if (options.totalAccounts) {
+      validatedOptions.total_accounts = options.totalAccounts;
+    }
+    if (options.unlockedAccounts) {
+      validatedOptions.unlocked_accounts = options.unlockedAccounts;
+    }
 
-    return options;
+    return validatedOptions;
   }
 
   private _registerSystemErrorsHandlers() {
@@ -121,6 +177,7 @@ export class GanacheService {
 
     // Add listener for general server errors
     server.on("error", function(err: any) {
+      console.log("PASEEE");
       if (!GanacheService.error && err) {
         log(err.message || err);
         GanacheService.error = err;
@@ -163,47 +220,3 @@ export class GanacheService {
     }
   }
 }
-
-export interface GanacheOptions {
-  hostname?: string;
-  accountKeysPath?: string;
-  // account_keys_path?: string;
-  accounts?: object[];
-  allowUnlimitedContractSize?: boolean;
-  blockTime?: number;
-  dbPath?: string;
-  // db_path?: string;
-  debug?: boolean;
-  defaultBalanceEther?: number;
-  // default_balance_ether?: number;
-  fork?: string | object;
-  forkBlockNumber?: string | number;
-  // fork_block_number?: string | number;
-  gasLimit?: number;
-  gasPrice?: string;
-  hardfork?: "byzantium" | "constantinople" | "petersburg";
-  hdPath?: string;
-  // hd_path?: string;
-  locked?: boolean;
-  logger?: {
-    log(msg: string): void;
-  };
-  mnemonic?: string;
-  network_id?: number;
-  networkId?: number;
-  port?: number;
-  seed?: any;
-  time?: Date;
-  totalAccounts?: number;
-  // total_accounts?: number;
-  unlockedAccounts?: string[];
-  // unlocked_accounts?: string[];
-  verbose?: boolean;
-  vmErrorsOnRPCResponse?: boolean;
-  ws?: boolean;
-}
-
-// function isInstanceOfGanacheOption(object: any): object is GanacheOptions {
-//   // TODO Maybe use this function to make type validatatin in custom options
-//   return object.discriminator === "I-AM-A";
-// }
