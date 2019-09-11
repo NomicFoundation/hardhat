@@ -18,9 +18,10 @@ let cachedIsTypescriptSupported: boolean | undefined;
 export function isTypescriptSupported() {
   if (cachedIsTypescriptSupported === undefined) {
     const executionMode = getExecutionMode();
-    if (
-      executionMode === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION ||
-      executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION
+    if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
+      cachedIsTypescriptSupported = false;
+    } else if (
+      executionMode === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION
     ) {
       const nodeModules = getBuidlerNodeModules();
       cachedIsTypescriptSupported =
