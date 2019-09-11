@@ -1,8 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-truffle5.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-truffle5)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-truffle5
 
-[Buidler](http://getbuidler.com) plugin for integration with TruffleContract from Truffle 5
+[Buidler](http://getbuidler.com) plugin for integration with TruffleContract from Truffle 5. This allows tests and scripts written for Truffle to work with Buidler.
 
 ## What
 
@@ -35,5 +36,18 @@ An instance of [`TruffleEnvironmentArtifacts`](./src/artifacts.ts) is injected i
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.
-
 Install it, run `npx buidler test` and your Truffle tests should run with no need to make any modifications.
+
+Take a look at the [testing guide](https://buidler.dev/guides/testing) for a tutorial using it.
+
+## TypeScript support
+
+This plugin supports TypeScript through a type extensions file `type-extensions.d.ts`. Add it to the `files` field of your `tsconfig.json` file to enable TypeScript support. This plugins depends on the [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) plugin, so you should add that plugin's type extensions file as well, like this:
+
+```json
+"files": [
+    "./buidler.config.ts",
+    "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts",
+    "./node_modules/@nomiclabs/buidler-truffle5/src/type-extensions.d.ts"
+  ]
+```
