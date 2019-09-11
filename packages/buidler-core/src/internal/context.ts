@@ -1,4 +1,4 @@
-import { BuidlerRuntimeEnvironment } from "../types";
+import { BuidlerRuntimeEnvironment, ConfigExtender } from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";
 import { BuidlerError, ERRORS } from "./core/errors";
@@ -39,6 +39,7 @@ export class BuidlerContext {
   public readonly extendersManager = new ExtenderManager();
   public environment?: BuidlerRuntimeEnvironment;
   public readonly loadedPlugins: string[] = [];
+  public readonly configExtenders: ConfigExtender[] = [];
 
   public setBuidlerRuntimeEnvironment(env: BuidlerRuntimeEnvironment) {
     if (this.environment !== undefined) {

@@ -4,10 +4,12 @@ import path from "path";
 
 import {
   BuidlerConfig,
+  ConfigExtender,
   ProjectPaths,
   ResolvedBuidlerConfig
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
+import { BuidlerError, ERRORS } from "../errors";
 
 function mergeUserAndDefaultConfigs(
   defaultConfig: BuidlerConfig,
@@ -25,19 +27,23 @@ function mergeUserAndDefaultConfigs(
  * @param userConfigPath the user config filepath
  * @param defaultConfig  the buidler's default config object
  * @param userConfig     the user config object
+ * @param configExtenders An array of ConfigExtenders
  *
  * @returns the resolved config
  */
 export function resolveConfig(
   userConfigPath: string,
   defaultConfig: BuidlerConfig,
-  userConfig: BuidlerConfig
+  userConfig: BuidlerConfig,
+  configExtenders: ConfigExtender[]
 ): ResolvedBuidlerConfig {
+  userConfig = deepFreezeUserConfig(userConfig);
+
   const config = mergeUserAndDefaultConfigs(defaultConfig, userConfig);
 
   const paths = resolveProjectPaths(userConfigPath, userConfig.paths);
 
-  return {
+  const resolved = {
     ...config,
     paths,
     networks: config.networks!,
@@ -45,6 +51,12 @@ export function resolveConfig(
     defaultNetwork: config.defaultNetwork!,
     analytics: config.analytics!
   };
+
+  for (const extender of configExtenders) {
+    extender(resolved, userConfig);
+  }
+
+  return resolved;
 }
 
 function resolvePathFrom(
@@ -94,4 +106,35 @@ export function resolveProjectPaths(
     artifacts: resolvePathFrom(root, "artifacts", userPaths.artifacts),
     tests: resolvePathFrom(root, "test", userPaths.tests)
   };
+}
+
+function deepFreezeUserConfig(
+  config: any,
+  propertyPath: Array<string | number | symbol> = []
+) {
+  if (typeof config !== "object" || config === null) {
+    return config;
+  }
+
+  return new Proxy(config, {
+    get(target: any, property: string | number | symbol, receiver: any): any {
+      return deepFreezeUserConfig(Reflect.get(target, property, receiver), [
+        ...propertyPath,
+        property
+      ]);
+    },
+
+    set(
+      target: any,
+      property: string | number | symbol,
+      value: any,
+      receiver: any
+    ): boolean {
+      throw new BuidlerError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
+        path: [...propertyPath, property]
+          .map(pathPart => pathPart.toString())
+          .join(".")
+      });
+    }
+  });
 }
