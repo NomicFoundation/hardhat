@@ -1,3 +1,4 @@
+import debug from "debug";
 import fsExtra from "fs-extra";
 
 import { task } from "../internal/core/config/config-env";
@@ -7,6 +8,8 @@ import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 import { TASK_COMPILE, TASK_RUN } from "./task-names";
 
 export default function() {
+  const log = debug("buidler:core:tasks:run");
+
   task(TASK_RUN, "Runs a user-defined script after compiling the project")
     .addPositionalParam(
       "script",
@@ -27,6 +30,10 @@ export default function() {
         if (!noCompile) {
           await run(TASK_COMPILE);
         }
+
+        log(
+          `Running script ${script} in a subprocess so we can wait for it to complete`
+        );
 
         try {
           process.exitCode = await runScriptWithBuidler(
