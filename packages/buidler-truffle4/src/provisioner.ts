@@ -1,4 +1,5 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NetworkConfig } from "@nomiclabs/buidler/types";
 import util from "util";
 
 import { Linker, TruffleContract, TruffleContractInstance } from "./types";
@@ -7,13 +8,18 @@ export class LazyTruffleContractProvisioner {
   private readonly _web3: any;
   private _defaultAccount?: string;
 
-  constructor(web3: any, defaultAccount?: string) {
+  constructor(
+    web3: any,
+    private readonly _networkConfig: NetworkConfig,
+    defaultAccount?: string
+  ) {
     this._defaultAccount = defaultAccount;
     this._web3 = web3;
   }
 
   public provision(Contract: TruffleContract, linker: Linker) {
     Contract.setProvider(this._web3.currentProvider);
+    this._setDefaultValues(Contract);
     this._addDefaultParamsHooks(Contract, linker);
     this._hookCloneCalls(Contract, linker);
 
@@ -26,6 +32,29 @@ export class LazyTruffleContractProvisioner {
         return Reflect.construct(target, argumentsList, newTarget);
       }
     });
+  }
+
+  private _setDefaultValues(Contract: TruffleContract) {
+    const defaults: any = {};
+    let hasDefaults = false;
+    if (typeof this._networkConfig.gas === "number") {
+      defaults.gas = this._networkConfig.gas;
+      hasDefaults = true;
+    }
+
+    if (typeof this._networkConfig.gasPrice === "number") {
+      defaults.gas = this._networkConfig.gasPrice;
+      hasDefaults = true;
+    }
+
+    if (this._defaultAccount !== undefined) {
+      defaults.from = this._defaultAccount;
+      hasDefaults = true;
+    }
+
+    if (hasDefaults) {
+      Contract.defaults(defaults);
+    }
   }
 
   private _addDefaultParamsHooks(Contract: TruffleContract, linker: Linker) {
