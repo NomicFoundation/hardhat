@@ -22,7 +22,7 @@ import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
 
-const log = debug("buidler:cli");
+const log = debug("buidler:core:cli");
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 

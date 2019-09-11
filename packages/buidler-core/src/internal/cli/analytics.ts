@@ -12,7 +12,7 @@ import uuid from "uuid/v4";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getPackageJson } from "../util/packageInfo";
 
-const log = debug("buidler:analytics");
+const log = debug("buidler:core:analytics");
 
 // VERY IMPORTANT:
 // The documentation doesn't say so, but the user-agent parameter is required (ua).
