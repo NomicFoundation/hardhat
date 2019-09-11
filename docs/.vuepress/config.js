@@ -29,7 +29,8 @@ module.exports = {
           'testing',
           'create-task',
           'create-plugin',
-          'truffle-migration'
+          'truffle-migration',
+          'scripts.md'
         ]
       }],
       '/documentation/': {
