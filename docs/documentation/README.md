@@ -6,21 +6,33 @@ sidebar: auto
 
 # Documentation
 
+**You don't need to read this to use Buidler, you can get started quickly by reading the [Getting Started](/guides/#getting-started) guide.**
+
 ## Overview
 
-Buidler is designed around the concepts of [tasks](/documentation/#tasks), and the [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre), a set of functionality available for tasks. This document describes both concepts in detail.
+Buidler is designed around the concepts of _tasks_, and the _Buidler Runtime Environment_: a set of functionality to create tasks. This document describes both concepts in detail.
 
-**You don't need to read this to use Buidler, you can get started with it by reading [this guide](/guides/#getting-started).**
+If you want to write your own tasks, create plugins, or want to understand Buidler internals, keep reading.
 
-If you want to write your own tasks, create your own plugins, or are just curious about Buidler internals, keep reading.
-
-## Tasks
+### Tasks
 
 Buidler helps smart contract developers automate their workflow by letting them run and create tasks. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
 
 A task is a JavaScript async function with some associated metadata. This metadata is used by Buidler to automate some things for you. Arguments parsing, validation, and help messages are taken care of.
 
-### Creating your own tasks
+### Buidler Runtime Environment (BRE)
+
+The Buidler Runtime Environment, or BRE for short, is an object containing all the functionality that Buidler exposes when running a task, test or script. In reality, Buidler _is_ the BRE. 
+
+When you require Buidler (`const buidler = require("@nomiclabs/buidler")`) you're getting an instance of the BRE. 
+
+During initialization, the Buidler configuration file essentially constructs a list of things to be added to the BRE. This includes tasks, configs and plugins. Then when tasks, tests or scripts run, the BRE is always present and available to access anything that is contained in it.
+
+The BRE has a role of centralizing coordination across all Buidler components. This architecture allows for plugins to inject functionality that becomes available everywhere the BRE is accessible.
+
+Check out the [Using the Buidler Runtime Environment (BRE)](#using-the-buidler-runtime-environment-bre) section for more information on how to use it.
+
+## Creating your own tasks
 
 You can create your own tasks in your `buidler.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("@nomiclabs/buidler/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
 
@@ -41,7 +53,7 @@ task("hello", "Prints 'Hello, World!'", async function action(
 `task`'s first argument is the task name. The second one is its description, which is used for printing help messages in the CLI. The third one, `action`, is an async function that receives the following arguments:
 
 - `taskArguments` is an object with the parsed CLI arguments of the task. In this case, it's an empty object.
-- `env` is the [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre).
+- `env` is the [Buidler Runtime Environment].
 - `runSuper` is only relevant if you are overriding an existing task, which we'll learn about next. Its purpose is to let you run the original task's action.
 
 Defining the action's arguments is optional. The Buidler Runtime Environment and `runSuper` will also be available in the global scope. We can rewrite our "hello" task this way:
@@ -161,9 +173,7 @@ For example, the `compile` task is implemented as a pipeline of six tasks. It ju
 
 To avoid help messages getting cluttered with lots of intermediate tasks, you can define those using the `internalTask` config DSL function. The `internalTask` function works almost exactly like `task`. The only difference is that tasks defined with it won't be included in help messages.
 
-## Buidler Runtime Environment (BRE)
-
-The Buidler Runtime Environment, or BRE for short, is an object containing all the functionality that Buidler exposes when running a task, test and script.
+## Using the Buidler Runtime Environment (BRE)
 
 By default, the BRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider. You can find more information about [it in its API docs](/api/classes/environment.html).
 
@@ -352,3 +362,7 @@ Examples of suggested overrides are:
 - Plugins generating intermediate files should override the `clean` task.
 
 For a list of all the built-in tasks and internal tasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/buidler/blob/master/packages/buidler-core/src/builtin-tasks/task-names.ts)
+
+
+[tasks]: #tasks
+[Buidler Runtime Environment]: #buidler-runtime-environment-bre
