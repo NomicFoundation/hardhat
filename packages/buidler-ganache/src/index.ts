@@ -5,8 +5,7 @@ import {
 import { extendConfig, task } from "@nomiclabs/buidler/config";
 import {
   BuidlerPluginError,
-  ensurePluginLoadedWithUsePlugin,
-  lazyObject
+  ensurePluginLoadedWithUsePlugin
 } from "@nomiclabs/buidler/plugins";
 import {
   BuidlerRuntimeEnvironment,
@@ -16,6 +15,7 @@ import {
 import debug from "debug";
 
 const log = debug("buidler:plugin:ganache");
+log.color = "6";
 
 import { GanacheService } from "./ganache-service";
 
@@ -47,26 +47,16 @@ export default function() {
     // Override ganache network with custom config values (if needed)
     if (config.networks && config.networks.ganache) {
       // Case A: There is some custom config for ganache network (use merged options)
-      const options = config.networks.ganache;
+      const customOptions = config.networks.ganache;
 
-      // Transform Buidler network url to hostname and port
-      const url = options.url.replace("http://", "");
-      const urlArray = url.split(":");
-      if (urlArray.length === 2) {
-        options.hostname = urlArray[0];
-        options.port = urlArray[1];
-      } else {
-        options.url = `http://${defaultOptions.hostname}:${defaultOptions.port}`;
-      }
-
-      // Merge default options with config ones (with config priority)
-      resolvedConfig.networks.ganache = { ...defaultOptions, ...options };
+      resolvedConfig.networks.ganache = GanacheService.getMergedOptions(
+        defaultOptions,
+        customOptions
+      );
     } else {
       // Case B: There is NO custom config for ganache network (use defaults options)
       resolvedConfig.networks.ganache = defaultOptions;
 
-      // Add Buidler URL parameter
-      resolvedConfig.networks.ganache.url = `http://${defaultOptions.hostname}:${defaultOptions.port}`;
     }
   });
 }
