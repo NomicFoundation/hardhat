@@ -69,9 +69,10 @@ export class Environment implements BuidlerRuntimeEnvironment {
       });
     }
 
-    const provider = lazyObject(() =>
-      createProvider(networkName, networkConfig)
-    );
+    const provider = lazyObject(() => {
+      log(`Creating provider for network ${networkName}`);
+      return createProvider(networkName, networkConfig);
+    });
 
     this.network = {
       name: networkName,
