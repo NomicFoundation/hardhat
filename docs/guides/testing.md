@@ -2,7 +2,7 @@
 
 In this guide, we will explore the testing of smart contracts with Buidler. For a general overview of using Buidler refer to the [Getting started guide](/guides/#getting-started).
 
-The built-in task `test` allows smart contracts to be tested using Mocha, and the testing framework of your choice.
+The built-in task `test` allows smart contracts to be tested using Mocha as the test runner, and the testing framework of your choice.
 
 For compatibility purposes with other JavaScript tools, Buidler injects the properties in the [Buidler Runtime Environment] into the global scope when running tests. Let's create a new sample project to see how this plays out.
 
