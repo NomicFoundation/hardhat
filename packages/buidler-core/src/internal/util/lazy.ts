@@ -71,10 +71,13 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
 
   // tslint:disable-next-line
   const dummyTarget: ActualT = dummyTargetCreator() as any;
+  let isBeingCreated = false;
 
   function getRealTarget(): ActualT {
     if (realTarget === undefined) {
+      isBeingCreated = true;
       const target = targetCreator();
+      isBeingCreated = false;
 
       validator(target);
 
@@ -110,6 +113,23 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
     },
 
     get(target, property, receiver) {
+      // We have this short-circuit logic here to avoid a cyclic require when
+      // loading Web3.js.
+      //
+      // If a lazy object is somehow accessed while its real target is being
+      // created, it would trigger an endless loop of recreation, which node
+      // detects and resolve to an empty object.
+      //
+      // This happens with Web3.js because we a lazyFunction that loads it,
+      // and expose it as `global.Web3`. This Web3.js file accesses
+      // `global.Web3` when it's being loaded, triggering the loop we mentioned
+      // before: https://github.com/ethereum/web3.js/blob/8574bd3bf11a2e9cf4bcf8850cab13e1db56653f/packages/web3-core-requestmanager/src/givenProvider.js#L41
+      //
+      // We just return `undefined` in that case, to not enter into the loop.
+      if (isBeingCreated) {
+        return undefined;
+      }
+
       return Reflect.get(getRealTarget(), property, receiver);
     },
 
