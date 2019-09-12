@@ -48,15 +48,10 @@ export default function() {
     if (config.networks && config.networks.ganache) {
       // Case A: There is some custom config for ganache network (use merged options)
       const customOptions = config.networks.ganache;
-
-      resolvedConfig.networks.ganache = GanacheService.getMergedOptions(
-        defaultOptions,
-        customOptions
-      );
+      resolvedConfig.networks.ganache = { ...defaultOptions, ...customOptions };
     } else {
       // Case B: There is NO custom config for ganache network (use defaults options)
       resolvedConfig.networks.ganache = defaultOptions;
-
     }
   });
 }

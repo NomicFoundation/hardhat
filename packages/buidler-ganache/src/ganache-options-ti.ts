@@ -3,7 +3,7 @@
  */
 import * as t from "ts-interface-checker";
 
-export const GanacheOptions = t.iface([], {
+export const GanacheOptionsTi = t.iface([], {
   url: "string",
   keepAliveTimeout: t.opt("number"),
   accountKeysPath: t.opt("string"),
@@ -42,6 +42,6 @@ export const GanacheOptions = t.iface([], {
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
-  GanacheOptions
+  GanacheOptionsTi
 };
 export default exportedTypeSuite;

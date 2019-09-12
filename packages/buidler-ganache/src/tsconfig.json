@@ -5,7 +5,7 @@
     "rootDirs": ["."],
     "composite": true
   },
-  "include": ["./**/*.ts", "./src/types.d.ts"],
+  "include": ["./**/*.ts"],
   "exclude": [],
   "references": [
     {
