@@ -45,7 +45,7 @@ export class GanacheService {
     this._options = this._validateAndTransformOptions(options);
 
     // Only for debug
-    console.log(this._options);
+    // console.log(this._options);
 
     try {
       // Initialize server and provider with given options
@@ -147,7 +147,7 @@ export class GanacheService {
 
     // Test for unsupported commands
     if (options.accounts !== undefined) {
-      throw new Error("Config: ganache.accounts unsupported property");
+      throw new Error("Config: ganache.accounts unsupported for this network");
     }
 
     // Transform needed options to Ganache core server (not using SnakeCase lib for performance)
