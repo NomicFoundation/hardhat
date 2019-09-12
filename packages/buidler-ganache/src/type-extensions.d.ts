@@ -1,5 +1,4 @@
-// Add plugin custom types here if needed
-export interface GanacheOptions {
+declare interface GanacheOptions {
   url: string;
   keepAliveTimeout?: number;
   accountKeysPath?: string; // Translates to: account_keys_path

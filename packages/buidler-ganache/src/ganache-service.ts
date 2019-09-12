@@ -1,14 +1,11 @@
 import debug from "debug";
-import { createCheckers } from "ts-interface-checker";
-
-import GanacheOptionsTi from "./ganache-options-ti";
-import { GanacheOptions } from "./types";
 
 const log = debug("buidler:plugin:ganache-service");
 log.color = "6";
 
 export class GanacheService {
   public static error: Error;
+  public static optionValidator: any;
 
   public static getDefaultOptions(): GanacheOptions {
     return {
@@ -17,25 +14,24 @@ export class GanacheService {
       gasLimit: 6721975,
       defaultBalanceEther: 100,
       totalAccounts: 10,
+      hardfork: "petersburg",
+      allowUnlimitedContractSize: false,
+      locked: false,
+      hdPath: "m/44'/60'/0'/0/",
       keepAliveTimeout: 5000
     };
   }
 
-  public static getMergedOptions(
-    defaultOptions: any,
-    customOptions: any
-  ): GanacheOptions {
-    // Merge default options with config ones (with custom options priority)
-    const mergedOptions = { ...defaultOptions, ...customOptions };
-
-    // TODO Take in consideration array object merging
-
-    return mergedOptions;
-  }
-
   public static async create(options: any): Promise<GanacheService> {
-    const { default: Ganache } = await import("ganache-core");
-    // const { createCheckers } = await import("ts-interface-checker");
+    // Get Ganache lib
+    const Ganache = await import("ganache-core");
+
+    // Get and initialize option validator
+    const { default: optionsSchema } = await import("./ganache-options-ti");
+    const { createCheckers } = await import("ts-interface-checker");
+    const { GanacheOptionsTi } = createCheckers(optionsSchema);
+    GanacheService.optionValidator = GanacheOptionsTi;
+
     return new GanacheService(Ganache, options);
   }
 
@@ -45,11 +41,11 @@ export class GanacheService {
   private constructor(Ganache: any, options: any) {
     log("Initializing server");
 
-    // Validate received options before initialize server
-    this._options = this._validateOptions(options);
+    // Validate and Transform received options before initialize server
+    this._options = this._validateAndTransformOptions(options);
 
     // Only for debug
-    // console.log(this._options);
+    console.log(this._options);
 
     try {
       // Initialize server and provider with given options
@@ -60,7 +56,7 @@ export class GanacheService {
     } catch (e) {
       // Verify the expected error or throw it again
       if (e.name === "TypeError") {
-        e.message = `One or more invalid values in ganache network options`;
+        e.message = "One or more invalid values in ganache network options";
         if (!GanacheService.error) {
           log(e.message || e);
           GanacheService.error = e;
@@ -132,41 +128,44 @@ export class GanacheService {
     this._checkForServiceErrors();
   }
 
-  public _validateOptions(options: GanacheOptions): any {
+  public _validateAndTransformOptions(options: GanacheOptions): any {
     const validatedOptions: any = options;
 
-    // Validate and parse hostname and port from URL
+    // Validate and parse hostname and port from URL (this validation is priority)
     const url = new URL(options.url);
+    if (url.hostname !== "locahost" && url.hostname !== "127.0.0.1") {
+      throw new Error("Config: ganache.hostname must resolve to locahost");
+    }
+
+    // Validate all options agains validator
+    try {
+      GanacheService.optionValidator.check(options);
+    } catch (e) {
+      e.message = e.message.replace("value.", "Config: ganache.");
+      throw e;
+    }
+
+    // Test for unsupported commands
+    if (options.accounts !== undefined) {
+      throw new Error("Config: ganache.accounts unsupported property");
+    }
+
+    // Transform needed options to Ganache core server (not using SnakeCase lib for performance)
     validatedOptions.hostname = url.hostname;
-    validatedOptions.port = url.port || 80;
-    if (options.hostname !== "locahost" && options.hostname !== "127.0.0.1") {
-      throw new Error("Config: hostname must resolve to locahost");
-    }
+    validatedOptions.port = Number(url.port) || 80;
 
-    const { checker } = createCheckers(GanacheOptionsTi);
-
-    // TODO This checker is not Working DUNNO WHY (11/9)
-    log(checker, "< this Not should be undefined");
-    // checker.check(options);
-
-    // Transform service options to Ganache core server
-    if (options.accountKeysPath) {
-      validatedOptions.account_keys_path = options.accountKeysPath;
-    }
-    if (options.dbPath) {
-      validatedOptions.db_path = options.dbPath;
-    }
-    if (options.defaultBalanceEther) {
-      validatedOptions.default_balance_ether = options.defaultBalanceEther;
-    }
-    if (options.forkBlockNumber) {
-      validatedOptions.fork_block_number = options.forkBlockNumber;
-    }
-    if (options.totalAccounts) {
-      validatedOptions.total_accounts = options.totalAccounts;
-    }
-    if (options.unlockedAccounts) {
-      validatedOptions.unlocked_accounts = options.unlockedAccounts;
+    const optionsToInclude = [
+      "accountsKeyPath",
+      "dbPath",
+      "defaultBalanceEther",
+      "totalAccounts",
+      "unlockedAccounts"
+    ];
+    for (const [key, value] of Object.entries(options)) {
+      if (value && optionsToInclude.includes(key)) {
+        validatedOptions[this._snakeCase(key)] = value;
+        delete validatedOptions[key];
+      }
     }
 
     return validatedOptions;
@@ -218,5 +217,9 @@ export class GanacheService {
 
       throw new Error(GanacheService.error.message);
     }
+  }
+
+  private _snakeCase(str: string) {
+    return str.replace(/([A-Z]){1}/g, match => `_${match.toLowerCase()}`);
   }
 }
