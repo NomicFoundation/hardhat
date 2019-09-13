@@ -159,6 +159,11 @@ export function ensurePluginLoadedWithUsePlugin() {
 
     const functionName = callSite.getFunctionName();
 
+    // We omit this when using ts-node, as it mutates the stack trace
+    if (fileName.includes("node_modules/ts-node")) {
+      return;
+    }
+
     if (
       path.basename(fileName) === path.basename(__filename) &&
       functionName === loadPluginFile.name

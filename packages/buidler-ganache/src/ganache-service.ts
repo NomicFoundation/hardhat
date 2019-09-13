@@ -1,4 +1,5 @@
 import debug from "debug";
+import { URL } from "url";
 
 const log = debug("buidler:plugin:ganache-service");
 log.color = "6";
