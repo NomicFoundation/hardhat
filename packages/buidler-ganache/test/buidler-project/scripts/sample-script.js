@@ -2,9 +2,8 @@
 const env = require("@nomiclabs/buidler");
 
 async function main() {
-  await env.run("compile");
   const accounts = await env.network.provider.send("eth_accounts");
-  console.log(">> Accounts detected! ", accounts.length);
+  // console.log(">> Accounts detected! ", accounts.length);
 }
 
 main()
