@@ -19,12 +19,12 @@ start_ganache() {
   sleep 4
 }
 
-if ganache_running; then
-  echo "Using existing ganache instance"
-else
-  echo "Starting our own ganache instance"
-  start_ganache
-fi
+#if ganache_running; then
+#  echo "Using existing ganache instance"
+#else
+#  echo "Starting our own ganache instance"
+#  start_ganache
+#fi
 
 node_modules/.bin/lerna exec -- npm run build
 node_modules/.bin/lerna exec -- npm run build-test

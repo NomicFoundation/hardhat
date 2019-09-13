@@ -2,7 +2,7 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
 
-import { ERRORS } from "../../../src/internal/core/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
 import {
   getRecommendedGitIgnore,
   getUserConfigPath,

@@ -1,17 +1,23 @@
-
 # TypeScript Support
 
-In this guide, we will go through the steps to get a Buidler project working with TypeScript. This means that you can write your Buidler config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/). For a general overview of using Buidler refer to the [Getting started guide](/guides/#getting-started).
-
-
-To use Buidler with TypeScript you need to be able to import Buidler from your project to access the [Buidler Runtime Environment], and this wouldn't be possible with a global installation. Because of this Buidler only supports TypeScript on local installations.
+In this guide, we will go through the steps to get a Buidler project working with TypeScript. This means that you can write your Buidler config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/). For a general overview of using Buidler refer to the [Getting started guide](../getting-started).
 
 ## Installing dependencies
 
-We will need to install the TypeScript packages to do this.
+Buidler detects if `typescript` and `ts-node` are installed in its npm project,
+and automatically enables TypeScript support.
 
-In your terminal, run
-```npm i -D ts-node typescript```
+To install them, open your terminal, go to your Buidler project, and run:
+
+```sh
+npm install --save-dev ts-node typescript
+```
+
+You also need these typings:
+
+```sh
+npm install --save-dev @types/node @types/mocha
+```
 
 ## Configuration
 
@@ -30,16 +36,59 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 ```
 
 Now we are going to rename the config file from `buidler.config.js` to `buidler.config.ts`, run:
- ```mv buidler.config.js buidler.config.ts```
+
+```sh
+mv buidler.config.js buidler.config.ts
+```
+
+We also need to adapt it to explicitly import the Buidler config DSL, and use the [Buidler Runtime Environment] explicitly.
+
+For example, the sample project's config turns from this
+```js{1,6,13}
+usePlugin("@nomiclabs/buidler-truffle5");
+
+// This is a sample Buidler task. To learn how to create your own go to
+// https://buidler.dev/guides/create-task.html
+task("accounts", "Prints the list of accounts", async () => {
+  const accounts = await web3.eth.getAccounts();
+
+  for (const account of accounts) {
+    console.log(account);
+  }
+});
+
+module.exports = {};
+``` 
+
+into this
+
+```typescript{1,7,8,15}
+import { task, usePlugin } from "@nomiclabs/buidler/config";
+
+usePlugin("@nomiclabs/buidler-truffle5");
+
+// This is a sample Buidler task. To learn how to create your own go to
+// https://buidler.dev/guides/create-task.html
+task("accounts", "Prints the list of accounts", async (taskArgs, env) => {
+  const accounts = await env.web3.eth.getAccounts();
+
+  for (const account of accounts) {
+    console.log(account);
+  }
+});
+
+export default {};
+```
+
 
 Next, create a file `tsconfig.json` in your project directory and put the following in it:
 
 ```json
 {
   "compilerOptions": {
-    "target": "es5",  
+    "target": "es5",
     "module": "commonjs",
-    "strict": true,      
+    "strict": true,
     "esModuleInterop": true,
     "outDir": "dist"
   },
@@ -50,78 +99,74 @@ Next, create a file `tsconfig.json` in your project directory and put the follow
 }
 ```
 
-And that's really all it takes. Now the configuration file will be run as TypeScript. Let's add some code to `buidler.config.ts` to test it out:
+And that's really all it takes. Now the configuration file will be run as TypeScript.
+
+## Type-safe configuration
+
+One of the advantages of using TypeScript, is that you can have an type-safe configuration, and avoid typos and other common errors.
+
+To do that, you have to write your config in TypeScript in this way:
 
 ```ts
-import { task } from '@nomiclabs/buidler/config'
+import { BuidlerConfig } from "@nomiclabs/buidler/config";
 
-class PointlessLogger {
-  log(content: string) {
-    console.log(content);
-  }
-}
+const config: BuidlerConfig = {
+  // Your type-safe config goes here
+};
 
-task("accounts", "Prints a list of the available accounts", async (taskParams, env, runSuper) => {
-  const accounts = await env.ethereum.send("eth_accounts");
-  const logger = new PointlessLogger();
-
-  logger.log("Accounts:\n" + accounts.join("\n"));
-});
-
-module.exports = {};
+export default config;
 ```
-And run it with `npx buidler accounts`.
-
 
 ## Plugin type extensions
-Some Buidler plugins, like [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5) and [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), provide type extensions to the [Buidler Runtime Environment] for the variables and types they inject.
+
+Some Buidler plugins, like [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5) and [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), add new properties to the [Buidler Runtime Environment]. To keep everything type-safe and make using them with TypeScript possible, they provide type extension files.
 
 For these to be taken into account, you'll need to add the type extension files to the `files` field in your `tsconfig.json`, like this:
-```js
+
+```json
 "files": [
-    "./buidler.config.ts",
-    "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts",
-    "./node_modules/@nomiclabs/buidler-truffle5/src/type-extensions.d.ts"
-  ]
+  "./buidler.config.ts",
+  "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts",
+  "./node_modules/@nomiclabs/buidler-truffle5/src/type-extensions.d.ts"
+]
 ```
 
 Plugins that include type extensions should have documentation detailing their existance and the path to the type extension file.
 
 ## Writing tests and scripts
 
-To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5), [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) or [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment]. When using JavaScript, all the properties in the BRE are injected into the global scope, and are also available by getting the BRE explicitly. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly.
+To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5), [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) or [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment].
+
+When using JavaScript, all the properties in the BRE are injected into the global scope, and are also available by getting the BRE explicitly. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly.
 
 An example for tests:
-```ts
-import env from '@nomiclabs/buidler'
-const web3 = env.web3;
 
-// Could also be
-// import { web3 } form '@nomiclabs/buidler'
+```typescript
+import { web3 } from "@nomiclabs/buidler";
 
-describe('Token', function() {
-  
-  let accounts;
-  
+describe("Token", function() {
+  let accounts: string[];
+
   beforeEach(async function() {
     accounts = await web3.eth.getAccounts();
   });
 
-  it('should test', async function() {
-    ...
+  it("should do something right", async function() {
+    // Do something with the accounts
   });
-}
+});
+
 ```
 
 An example for scripts:
 
-```ts
-import env from "@nomiclabs/buidler";
+```typescript
+import { run, web3 } from "@nomiclabs/buidler";
 
 async function main() {
-  await env.run("compile");
+  await run("compile");
 
-  const accounts = await env.ethereum.send("eth_accounts");
+  const accounts = await web3.eth.getAccounts();
 
   console.log("Accounts:", accounts);
 }
@@ -133,4 +178,23 @@ main()
     process.exit(1);
   });
 ```
-[Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
+
+## Performance optimizations
+
+Under the hood, Buidler uses [ts-node](https://www.npmjs.com/package/ts-node) to support TypeScript. By default, it
+will recompile and type-check everything on every run. Depending on your project's size, this can get slow.
+
+You can make Buidler run faster by preventing `ts-node` from type-checking your project. This is done by setting the
+`TS_NODE_TRANSPILE_ONLY` en variable to `1`. For example, you can run your TypeScript-based tests faster like this
+`TS_NODE_TRANSPILE_ONLY=1 npx buidler test`.
+
+## `ts-node` support
+
+When running Buidler scripts without the CLI, you need to use `ts-node`'s [`--files` flag](https://www.npmjs.com/package/ts-node#help-my-types-are-missing).
+This can also be enabled with `TS_NODE_FILES=true`. 
+
+## Limitations
+
+To use Buidler with TypeScript you need to be able to import Buidler from your project to access the [Buidler Runtime Environment], and this wouldn't be possible with a global installation. Because of this Buidler only supports TypeScript on local installations.
+
+[Buidler runtime environment]: ../advanced/buidler-runtime-environment.md

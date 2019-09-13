@@ -3,7 +3,7 @@ home: true
 heroImage: ./mascots.svg
 actionText: Get Started
 search: false
-footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
+footer: Copyright © 2018-2019 Nomic Labs LLC
 ---
 <div>
 
@@ -93,7 +93,7 @@ footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
 
   ```sh
   $ npx buidler help shoot
-  Buidler version 1.0.0-beta.13
+  Buidler version 1.0.0
 
   Usage: buidler [GLOBAL OPTIONS] shoot --target <STRING>
 

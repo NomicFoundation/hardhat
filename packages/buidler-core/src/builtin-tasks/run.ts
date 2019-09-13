@@ -2,7 +2,8 @@ import debug from "debug";
 import fsExtra from "fs-extra";
 
 import { task } from "../internal/core/config/config-env";
-import { BuidlerError, ERRORS } from "../internal/core/errors";
+import { BuidlerError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
 import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 
 import { TASK_COMPILE, TASK_RUN } from "./task-names";

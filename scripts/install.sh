@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+set -x
+set -e
+
 npm install --no-package-lock
 npx lerna bootstrap --no-package-lock --no-ci
 

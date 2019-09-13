@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { ArgumentsParser } from "../../../src/internal/cli/ArgumentsParser";
-import { ERRORS } from "../../../src/internal/core/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
 import {
   boolean,
   int,

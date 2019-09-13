@@ -12,7 +12,7 @@ This plugin brings to Buidler the Web3 module and an initialized instance of Web
 # Installation
 
 ```bash
-npm install @nomiclabs/buidler-web3-legacy web3@^0.20.7
+npm install --save-dev @nomiclabs/buidler-web3-legacy web3@^0.20.7
 ```
 
 And add the following statement to your `buidler.config.js`:

@@ -2,8 +2,6 @@
 /* tslint:disable */
 import chalk from "chalk";
 
-console.error(chalk.cyan("You probably wanted to type buidler, not builder."));
-console.error(chalk.cyan("Don't worry, we've got you covered!"));
-console.error("");
+console.error(chalk.cyan("You probably meant to type buidler. We got you."));
 
-require("./cli");
+require("./bootstrap");

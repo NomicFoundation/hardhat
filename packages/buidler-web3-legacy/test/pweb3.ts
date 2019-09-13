@@ -3,6 +3,48 @@ import Web3 from "web3";
 
 import { promisifyWeb3 } from "../src/pweb3";
 
+const CONTRACT_SOURCE = `pragma solidity 0.5.10;
+
+contract Test {
+    
+    function constantFunction() public pure returns (uint256) {
+        return 1;
+    }
+    
+    function nonConstantFunction() public {
+    }
+    
+}`;
+
+const CONTRACT_BYTECODE =
+  "6080604052348015600f57600080fd5b50609b8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80635a44b650146037578063e730f60b146053575b600080fd5b603d605b565b6040518082815260200191505060405180910390f35b60596064565b005b60006001905090565b56fea265627a7a7230582075918bec172b335d3087851edc0735dd08bf398d38b6680f77bd9d9765d02be464736f6c634300050a0032";
+
+const ABI = [
+  {
+    constant: true,
+    inputs: [],
+    name: "constantFunction",
+    outputs: [
+      {
+        name: "",
+        type: "uint256"
+      }
+    ],
+    payable: false,
+    stateMutability: "pure",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [],
+    name: "nonConstantFunction",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  }
+];
+
 describe("pweb3", () => {
   let web3: any;
   let pweb3: any;
@@ -20,11 +62,19 @@ describe("pweb3", () => {
     );
   });
 
-  it("Should throw if an unsupported thing is used", () => {
-    assert.throws(
-      () => pweb3.eth.contract,
-      "pweb3.eth.contract is not supported."
-    );
+  it("Should promisify contracts", async () => {
+    const accounts = await pweb3.eth.getAccounts();
+    const TestContract = pweb3.eth.contract(ABI);
+
+    const test = await TestContract.new({
+      data: CONTRACT_BYTECODE,
+      from: accounts[0],
+      gas: 456789
+    });
+
+    await test.nonConstantFunction({ from: accounts[0] });
+
+    assert.equal(await test.constantFunction(), 1);
   });
 
   it("Should give the same result as calling web3 but promisified", done => {

@@ -2,7 +2,7 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
 
-import { ERRORS } from "../../../src/internal/core/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
 import { getImports } from "../../../src/internal/solidity/imports";
 import {
   ResolvedFile,
@@ -102,33 +102,33 @@ describe("Resolver", function() {
 
     it("should resolve from absolute paths", async function() {
       const absolutePath = await fsExtra.realpath("contracts/A.sol");
-      const { mtime } = await fsExtra.stat(absolutePath);
+      const { ctime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveProjectSourceFile(absolutePath);
 
       assertResolvedFile(resolved, {
         globalName: "contracts/A.sol",
         absolutePath,
         content: "A",
-        lastModificationDate: mtime,
+        lastModificationDate: ctime,
         library: undefined
       });
 
       const absolutePath2 = await fsExtra.realpath("contracts/subdir/C.sol");
-      const { mtime: mtime2 } = await fsExtra.stat(absolutePath2);
+      const { ctime: ctime2 } = await fsExtra.stat(absolutePath2);
       const resolved2 = await resolver.resolveProjectSourceFile(absolutePath2);
 
       assertResolvedFile(resolved2, {
         globalName: "contracts/subdir/C.sol",
         absolutePath: absolutePath2,
         content: "C",
-        lastModificationDate: mtime2,
+        lastModificationDate: ctime2,
         library: undefined
       });
     });
 
     it("should resolve from the global name", async function() {
       const absolutePath = await fsExtra.realpath("contracts/B.sol");
-      const { mtime } = await fsExtra.stat(absolutePath);
+      const { ctime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveProjectSourceFile(
         "contracts/B.sol"
       );
@@ -137,14 +137,14 @@ describe("Resolver", function() {
         globalName: "contracts/B.sol",
         absolutePath,
         content: "B",
-        lastModificationDate: mtime,
+        lastModificationDate: ctime,
         library: undefined
       });
     });
 
     it("should resolve from a path relative to the project root", async function() {
       const absolutePath = await fsExtra.realpath("contracts/B.sol");
-      const { mtime } = await fsExtra.stat(absolutePath);
+      const { ctime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveProjectSourceFile(
         "./contracts/subdir/../B.sol"
       );
@@ -153,7 +153,7 @@ describe("Resolver", function() {
         globalName: "contracts/B.sol",
         absolutePath,
         content: "B",
-        lastModificationDate: mtime,
+        lastModificationDate: ctime,
         library: undefined
       });
     });
@@ -244,7 +244,7 @@ describe("Resolver", function() {
         const absolutePath = await fsExtra.realpath(
           "node_modules/lib/contracts/L.sol"
         );
-        const { mtime } = await fsExtra.stat(absolutePath);
+        const { ctime } = await fsExtra.stat(absolutePath);
         const resolved = await resolver.resolveLibrarySourceFile(
           "lib/contracts/L.sol"
         );
@@ -253,7 +253,7 @@ describe("Resolver", function() {
           globalName: "lib/contracts/L.sol",
           absolutePath,
           content: "L",
-          lastModificationDate: mtime,
+          lastModificationDate: ctime,
           library: {
             name: "lib",
             version: "1.2.3"
@@ -263,7 +263,7 @@ describe("Resolver", function() {
         const absolutePath2 = await fsExtra.realpath(
           "node_modules/lib/contracts/subdir/L3.sol"
         );
-        const { mtime: mtime2 } = await fsExtra.stat(absolutePath2);
+        const { ctime: ctime2 } = await fsExtra.stat(absolutePath2);
         const resolved2 = await resolver.resolveLibrarySourceFile(
           "lib/contracts/subdir/L3.sol"
         );
@@ -272,7 +272,7 @@ describe("Resolver", function() {
           globalName: "lib/contracts/subdir/L3.sol",
           absolutePath: absolutePath2,
           content: "L3",
-          lastModificationDate: mtime2,
+          lastModificationDate: ctime2,
           library: {
             name: "lib",
             version: "1.2.3"
@@ -294,7 +294,7 @@ describe("Resolver", function() {
         const absolutePath = await fsExtra.realpath(
           "node_modules/inner/contracts/L.sol"
         );
-        const { mtime } = await fsExtra.stat(absolutePath);
+        const { ctime } = await fsExtra.stat(absolutePath);
         const resolved = await resolver.resolveLibrarySourceFile(
           "inner/contracts/L.sol"
         );
@@ -303,7 +303,7 @@ describe("Resolver", function() {
           globalName: "inner/contracts/L.sol",
           absolutePath,
           content: "L",
-          lastModificationDate: mtime,
+          lastModificationDate: ctime,
           library: {
             name: "inner",
             version: "0.1.0"
@@ -315,7 +315,7 @@ describe("Resolver", function() {
         const absolutePath = await fsExtra.realpath(
           "../node_modules/outer/contracts/L.sol"
         );
-        const { mtime } = await fsExtra.stat(absolutePath);
+        const { ctime } = await fsExtra.stat(absolutePath);
         const resolved = await resolver.resolveLibrarySourceFile(
           "outer/contracts/L.sol"
         );
@@ -324,7 +324,7 @@ describe("Resolver", function() {
           globalName: "outer/contracts/L.sol",
           absolutePath,
           content: "L",
-          lastModificationDate: mtime,
+          lastModificationDate: ctime,
           library: {
             name: "outer",
             version: "0.0.1"
@@ -337,7 +337,7 @@ describe("Resolver", function() {
           const absolutePath = await fsExtra.realpath(
             "node_modules/clashed/contracts/I.sol"
           );
-          const { mtime } = await fsExtra.stat(absolutePath);
+          const { ctime } = await fsExtra.stat(absolutePath);
           const resolved = await resolver.resolveLibrarySourceFile(
             "clashed/contracts/I.sol"
           );
@@ -346,7 +346,7 @@ describe("Resolver", function() {
             globalName: "clashed/contracts/I.sol",
             absolutePath,
             content: "I",
-            lastModificationDate: mtime,
+            lastModificationDate: ctime,
             library: {
               name: "clashed",
               version: "2.0.0"
@@ -365,7 +365,7 @@ describe("Resolver", function() {
           const absolutePath = await fsExtra.realpath(
             "node_modules/clashed/contracts/L.sol"
           );
-          const { mtime } = await fsExtra.stat(absolutePath);
+          const { ctime } = await fsExtra.stat(absolutePath);
           const resolved = await resolver.resolveLibrarySourceFile(
             "clashed/contracts/L.sol"
           );
@@ -374,7 +374,7 @@ describe("Resolver", function() {
             globalName: "clashed/contracts/L.sol",
             absolutePath,
             content: "INNER",
-            lastModificationDate: mtime,
+            lastModificationDate: ctime,
             library: {
               name: "clashed",
               version: "2.0.0"
@@ -406,7 +406,7 @@ describe("Resolver", function() {
       const absolutePath = await fsExtra.realpath(
         "node_modules/lib/contracts/L2.sol"
       );
-      const { mtime } = await fsExtra.stat(absolutePath);
+      const { ctime } = await fsExtra.stat(absolutePath);
       const resolvedFromLocalFile = await resolver.resolveImport(
         resolvedLocalFile,
         "lib/contracts/L2.sol"
@@ -421,7 +421,7 @@ describe("Resolver", function() {
         globalName: "lib/contracts/L2.sol",
         absolutePath,
         content: "L2",
-        lastModificationDate: mtime,
+        lastModificationDate: ctime,
         library: {
           name: "lib",
           version: "1.2.3"
@@ -434,7 +434,7 @@ describe("Resolver", function() {
 
     it("Should resolve relative imports from local files", async function() {
       const absolutePath = await fsExtra.realpath("contracts/B.sol");
-      const { mtime } = await fsExtra.stat(absolutePath);
+      const { ctime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveImport(
         resolvedLocalFile,
         "./subdir/../B.sol"
@@ -444,7 +444,7 @@ describe("Resolver", function() {
         globalName: "contracts/B.sol",
         absolutePath,
         content: "B",
-        lastModificationDate: mtime,
+        lastModificationDate: ctime,
         library: undefined
       });
     });
@@ -453,7 +453,7 @@ describe("Resolver", function() {
       const absolutePath = await fsExtra.realpath(
         "node_modules/lib/contracts/subdir/L3.sol"
       );
-      const { mtime } = await fsExtra.stat(absolutePath);
+      const { ctime } = await fsExtra.stat(absolutePath);
       const resolved = await resolver.resolveImport(
         resolvedLibFile,
         "./subdir/L3.sol"
@@ -463,7 +463,7 @@ describe("Resolver", function() {
         globalName: "lib/contracts/subdir/L3.sol",
         absolutePath,
         content: "L3",
-        lastModificationDate: mtime,
+        lastModificationDate: ctime,
         library: {
           name: "lib",
           version: "1.2.3"

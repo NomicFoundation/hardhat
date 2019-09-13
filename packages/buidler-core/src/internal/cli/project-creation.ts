@@ -3,6 +3,7 @@ import fsExtra from "fs-extra";
 import path from "path";
 
 import { BUIDLER_NAME } from "../constants";
+import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
@@ -11,6 +12,12 @@ import { emoji } from "./emoji";
 const CREATE_SAMPLE_PROJECT_ACTION = "Create a sample project";
 const CREATE_EMPTY_BUIDLER_CONFIG_ACTION = "Create an empty buidler.config.js";
 const QUIT_ACTION = "Quit";
+
+const SAMPLE_PROJECT_DEPENDENCIES = [
+  "@nomiclabs/buidler-truffle5",
+  "@nomiclabs/buidler-web3",
+  "web3"
+];
 
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
   const dirPath = path.join(projectRoot, dirName);
@@ -95,21 +102,27 @@ ${content}`;
 }
 
 function printSuggestedCommands() {
+  const npx =
+    getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION
+      ? ""
+      : "npx ";
+
   console.log(`Try running some of the following tasks:`);
-  console.log(`  buidler accounts`);
-  console.log(`  buidler compile`);
-  console.log(`  buidler test`);
-  console.log(`  node scripts/sample-script.js`);
-  console.log(`  buidler help`);
+  console.log(`  ${npx}buidler accounts`);
+  console.log(`  ${npx}buidler compile`);
+  console.log(`  ${npx}buidler test`);
+  console.log(`  ${npx}node scripts/sample-script.js`);
+  console.log(`  ${npx}buidler help`);
 }
 
-function printSuggestedPlugins() {
-  console.log(``);
-  console.log(`Try installing some plugins:`);
-  console.log(`  https://github.com/nomiclabs/buidler-truffle5`);
-  console.log(`  https://github.com/nomiclabs/buidler-web3`);
-  console.log(`  https://github.com/nomiclabs/buidler-ethers`);
-  console.log(``);
+async function printTrufflePluginInstallationInstructions() {
+  console.log(
+    `You need to install these dependencies to run the sample project:`
+  );
+
+  const cmd = await getRecommendedDependenciesInstallationCommand();
+
+  console.log(`  ${cmd.join(" ")}`);
 }
 
 async function writeEmptyBuidlerConfig() {
@@ -122,29 +135,38 @@ async function writeEmptyBuidlerConfig() {
 
 async function getAction() {
   const { default: enquirer } = await import("enquirer");
-  const actionResponse = await enquirer.prompt<{ action: string }>([
-    {
-      name: "action",
-      type: "select",
-      message: "What do you want to do?",
-      initial: 0,
-      choices: [
-        {
-          name: CREATE_SAMPLE_PROJECT_ACTION,
-          message: CREATE_SAMPLE_PROJECT_ACTION,
-          value: CREATE_SAMPLE_PROJECT_ACTION
-        },
-        {
-          name: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
-          message: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
-          value: CREATE_EMPTY_BUIDLER_CONFIG_ACTION
-        },
-        { name: QUIT_ACTION, message: QUIT_ACTION, value: QUIT_ACTION }
-      ]
-    }
-  ]);
+  try {
+    const actionResponse = await enquirer.prompt<{ action: string }>([
+      {
+        name: "action",
+        type: "select",
+        message: "What do you want to do?",
+        initial: 0,
+        choices: [
+          {
+            name: CREATE_SAMPLE_PROJECT_ACTION,
+            message: CREATE_SAMPLE_PROJECT_ACTION,
+            value: CREATE_SAMPLE_PROJECT_ACTION
+          },
+          {
+            name: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
+            message: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
+            value: CREATE_EMPTY_BUIDLER_CONFIG_ACTION
+          },
+          { name: QUIT_ACTION, message: QUIT_ACTION, value: QUIT_ACTION }
+        ]
+      }
+    ]);
 
-  return actionResponse.action;
+    return actionResponse.action;
+  } catch (e) {
+    if (e === "") {
+      return QUIT_ACTION;
+    }
+
+    // tslint:disable-next-line only-buidler-error
+    throw e;
+  }
 }
 
 export async function createProject() {
@@ -162,7 +184,7 @@ export async function createProject() {
   if (action === CREATE_EMPTY_BUIDLER_CONFIG_ACTION) {
     await writeEmptyBuidlerConfig();
     console.log(
-      chalk.cyan(`${emoji("✨ ")}Config file created${emoji(" ✨")}`)
+      `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`
     );
     return;
   }
@@ -211,12 +233,45 @@ export async function createProject() {
     await addGitAttributes(projectRoot);
   }
 
-  console.log(chalk.cyan(`\n${emoji("✨ ")}Project created${emoji(" ✨")}`));
+  let shouldShowInstallationInstructions = true;
+
+  if (await canInstallTrufflePlugin()) {
+    const installedRecommendedDeps = SAMPLE_PROJECT_DEPENDENCIES.filter(
+      isInstalled
+    );
+
+    if (
+      installedRecommendedDeps.length === SAMPLE_PROJECT_DEPENDENCIES.length
+    ) {
+      shouldShowInstallationInstructions = false;
+    } else if (installedRecommendedDeps.length === 0) {
+      const shouldInstall = await confirmTrufflePluginInstallation();
+      if (shouldInstall) {
+        const installed = await installRecommendedDependencies();
+
+        if (!installed) {
+          console.warn(
+            chalk.red("Failed to install the sample project's dependencies")
+          );
+        }
+
+        shouldShowInstallationInstructions = !installed;
+      }
+    }
+  }
+
+  if (shouldShowInstallationInstructions) {
+    console.log(``);
+    await printTrufflePluginInstallationInstructions();
+  }
+
+  console.log(
+    `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
+  );
 
   console.log(``);
 
   printSuggestedCommands();
-  printSuggestedPlugins();
 }
 
 function createConfirmationPrompt(name: string, message: string) {
@@ -251,4 +306,114 @@ function createConfirmationPrompt(name: string, message: string) {
       return value;
     }
   };
+}
+
+async function canInstallTrufflePlugin() {
+  return (
+    (await fsExtra.pathExists("package.json")) &&
+    (getExecutionMode() === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION ||
+      getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED)
+  );
+}
+
+function isInstalled(dep: string) {
+  const packageJson = fsExtra.readJSONSync("package.json");
+
+  const allDependencies = {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies,
+    ...packageJson.optionalDependencies
+  };
+
+  return dep in allDependencies;
+}
+
+async function isYarnProject() {
+  return fsExtra.pathExists("yarn.lock");
+}
+
+async function installRecommendedDependencies() {
+  console.log("");
+  const installCmd = await getRecommendedDependenciesInstallationCommand();
+  return installDependencies(installCmd[0], installCmd.slice(1));
+}
+
+async function confirmTrufflePluginInstallation(): Promise<boolean> {
+  const { default: enquirer } = await import("enquirer");
+
+  let responses: {
+    shouldInstallPlugin: boolean;
+  };
+
+  const packageManager = (await isYarnProject()) ? "yarn" : "npm";
+
+  try {
+    responses = await enquirer.prompt<typeof responses>([
+      createConfirmationPrompt(
+        "shouldInstallPlugin",
+        `Do you want to install the sample project's dependencies with ${packageManager} (${SAMPLE_PROJECT_DEPENDENCIES.join(
+          " "
+        )})?`
+      )
+    ]);
+  } catch (e) {
+    if (e === "") {
+      return false;
+    }
+
+    // tslint:disable-next-line only-buidler-error
+    throw e;
+  }
+
+  return responses.shouldInstallPlugin === true;
+}
+
+async function installDependencies(
+  packageManager: string,
+  args: string[]
+): Promise<boolean> {
+  const { spawn } = await import("child_process");
+
+  console.log(`${packageManager} ${args.join(" ")}`);
+
+  const childProcess = spawn(packageManager, args, {
+    stdio: "inherit" as any // There's an error in the TS definition of ForkOptions
+  });
+
+  return new Promise((resolve, reject) => {
+    childProcess.once("close", status => {
+      childProcess.removeAllListeners("error");
+
+      if (status === 0) {
+        resolve(true);
+        return;
+      }
+
+      reject(false);
+    });
+
+    childProcess.once("error", status => {
+      childProcess.removeAllListeners("close");
+      reject(false);
+    });
+  });
+}
+
+async function getRecommendedDependenciesInstallationCommand(): Promise<
+  string[]
+> {
+  const isGlobal =
+    getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION;
+
+  if (!isGlobal && (await isYarnProject())) {
+    return ["yarn", "add", "--dev", ...SAMPLE_PROJECT_DEPENDENCIES];
+  }
+
+  const npmInstall = ["npm", "install"];
+
+  if (isGlobal) {
+    npmInstall.push("--global");
+  }
+
+  return [...npmInstall, "--save-dev", ...SAMPLE_PROJECT_DEPENDENCIES];
 }

@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-ganache",
-  "version": "1.0.0-beta.13",
+  "version": "1.0.0",
   "description": "Buidler plugin for managing Ganache",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ganache",
   "repository": "github:nomiclabs/buidler",
@@ -39,13 +39,17 @@
     "ts-interface-checker": "^0.1.9"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13",
+    "@nomiclabs/buidler": "^1.0.0",
+    "@types/chai": "^4.2.0",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^5.1.0",
+    "@types/web3": "^1.0.20",
     "chai": "^4.2.0",
-    "ts-interface-builder": "^0.2.0"
+    "ts-interface-builder": "^0.2.0",
+    "ts-node": "^8.1.0",
+    "typescript": "~3.5.3"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13"
+    "@nomiclabs/buidler": "^1.0.0"
   }
 }

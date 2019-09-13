@@ -38,7 +38,7 @@ export function getExecutionMode(): ExecutionMode {
     }
   } catch (error) {
     log(
-      "Failed to load is-installed-globally. Using alternative local installation detection",
+      "Failed to load is-installed-globally. Using alternative local installation detection\n",
       error
     );
 

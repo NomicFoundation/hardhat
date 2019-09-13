@@ -121,6 +121,7 @@ export function resolveSidebarItems (page, route, site, localePath) {
   }
 
   const sidebarConfig = localeConfig.sidebar || themeConfig.sidebar
+  
   if (!sidebarConfig) {
     return []
   } else {
@@ -196,7 +197,8 @@ function resolveItem (item, pages, base, isNested) {
     return resolvePage(pages, item, base)
   } else if (Array.isArray(item)) {
     return Object.assign(resolvePage(pages, item[0], base), {
-      title: item[1]
+      title: item[1],
+      depth: item[2]
     })
   } else {
     if (isNested) {
@@ -210,7 +212,8 @@ function resolveItem (item, pages, base, isNested) {
       type: 'group',
       title: item.title,
       children: children.map(child => resolveItem(child, pages, base, true)),
-      collapsable: item.collapsable !== false
+      collapsable: item.collapsable !== false,
+      depth: item.depth
     }
   }
 }

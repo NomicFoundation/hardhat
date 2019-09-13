@@ -4,7 +4,7 @@ import {
   BuidlerArguments,
   BuidlerRuntimeEnvironment,
   EnvironmentExtender,
-  IEthereumProvider,
+  EthereumProvider,
   Network,
   ResolvedBuidlerConfig,
   RunSuperFunction,
@@ -15,7 +15,8 @@ import {
 } from "../../types";
 import { lazyObject } from "../util/lazy";
 
-import { BuidlerError, ERRORS } from "./errors";
+import { BuidlerError } from "./errors";
+import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
@@ -30,7 +31,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
   /**
    * An EIP1193 Ethereum provider.
    */
-  public ethereum: IEthereumProvider;
+  public ethereum: EthereumProvider;
 
   public network: Network;
 
@@ -71,7 +72,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
 
     const provider = lazyObject(() => {
       log(`Creating provider for network ${networkName}`);
-      return createProvider(networkName, networkConfig);
+      return createProvider(
+        networkName,
+        networkConfig,
+        config.solc.version,
+        config.paths
+      );
     });
 
     this.network = {

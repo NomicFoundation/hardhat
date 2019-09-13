@@ -12,7 +12,7 @@ This plugin runs solhint on the project's sources and prints the report.
 ## Installation
 
 ```bash
-npm install @nomiclabs/buidler-solhint
+npm install --save-dev @nomiclabs/buidler-solhint
 ```
 
 And add the following statement to your `buidler.config.js`:

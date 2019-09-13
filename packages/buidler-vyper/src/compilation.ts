@@ -95,13 +95,13 @@ async function isAlreadyCompiled(
     return false;
   }
 
-  const artifactMtime = (await fsExtra.stat(artifactPath)).mtimeMs;
+  const artifactCtime = (await fsExtra.stat(artifactPath)).ctimeMs;
 
   const stats = await Promise.all(sources.map(f => fsExtra.stat(f)));
 
-  const lastSourcesMtime = Math.max(...stats.map(s => s.mtimeMs));
+  const lastSourcesCtime = Math.max(...stats.map(s => s.ctimeMs));
 
-  return lastSourcesMtime < artifactMtime;
+  return lastSourcesCtime < artifactCtime;
 }
 
 async function getVyperSources(paths: ProjectPaths) {
@@ -123,9 +123,21 @@ function getArtifactFromVyperOutput(sourceFile: string, output: any) {
   return {
     contractName,
     abi: output.abi,
-    bytecode: output.bytecode,
-    linkReferences: {}
+    bytecode: add0xPrefixIfNecessary(output.bytecode),
+    deployedBytecode: add0xPrefixIfNecessary(output.bytecode_runtime),
+    linkReferences: {},
+    deployedLinkReferences: {}
   };
+}
+
+function add0xPrefixIfNecessary(hex: string): string {
+  hex = hex.toLowerCase();
+
+  if (hex.slice(0, 2) === "0x") {
+    return hex;
+  }
+
+  return `0x${hex}`;
 }
 
 async function getLastVyperVersionUsed(paths: ProjectPaths) {

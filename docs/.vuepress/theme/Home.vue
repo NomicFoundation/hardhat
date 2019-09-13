@@ -101,7 +101,7 @@ export default {
 @import './styles/config.styl'
 
 .home
-  padding $navbarHeight 2rem 0
+  padding $navbarAndBannerHeight 2rem 0
   max-width 960px
   margin 0px auto
   .hero

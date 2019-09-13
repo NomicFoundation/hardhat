@@ -1,6 +1,12 @@
-import * as path from "path";
+import chalk from "chalk";
+import path from "path";
 
-import { ResolvedBuidlerConfig } from "../../../types";
+import {
+  BuidlerArguments,
+  BuidlerConfig,
+  ResolvedBuidlerConfig
+} from "../../../types";
+import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
 import { BuidlerContext } from "../../context";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
@@ -13,7 +19,12 @@ function importCsjOrEsModule(filePath: string): any {
   return imported.default !== undefined ? imported.default : imported;
 }
 
-export function loadConfigAndTasks(configPath?: string): ResolvedBuidlerConfig {
+export function loadConfigAndTasks(
+  buidlerArguments?: Partial<BuidlerArguments>
+): ResolvedBuidlerConfig {
+  let configPath =
+    buidlerArguments !== undefined ? buidlerArguments.config : undefined;
+
   if (configPath === undefined) {
     configPath = getUserConfigPath();
   } else {
@@ -43,10 +54,52 @@ export function loadConfigAndTasks(configPath?: string): ResolvedBuidlerConfig {
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(configEnv).forEach(key => (globalAsAny[key] = undefined));
 
-  return resolveConfig(
+  const resolved = resolveConfig(
     configPath,
     defaultConfig,
     userConfig,
     BuidlerContext.getBuidlerContext().configExtenders
+  );
+
+  showBuidlerEVMActivationWarningIfNecessary(
+    userConfig,
+    resolved,
+    defaultConfig,
+    buidlerArguments
+  );
+
+  return resolved;
+}
+
+function showBuidlerEVMActivationWarningIfNecessary(
+  userConfig: BuidlerConfig,
+  resolved: ResolvedBuidlerConfig,
+  defaultConfig: BuidlerConfig,
+  buidlerArguments?: Partial<BuidlerArguments>
+) {
+  if (defaultConfig.defaultNetwork !== BUIDLEREVM_NETWORK_NAME) {
+    return;
+  }
+
+  if (
+    buidlerArguments === undefined ||
+    buidlerArguments.network !== undefined
+  ) {
+    return;
+  }
+
+  if (userConfig.defaultNetwork !== undefined) {
+    return;
+  }
+
+  if (resolved.defaultNetwork !== BUIDLEREVM_NETWORK_NAME) {
+    return;
+  }
+
+  console.warn(
+    chalk.yellow(
+      `Using the built-in experimental development network "${BUIDLEREVM_NETWORK_NAME}". This enables combined JavaScript and Solidity stack traces.
+To silence this warning set defaultNetwork in your config to "${BUIDLEREVM_NETWORK_NAME}", or to the network of your choosing (also works through --network).`
+    )
   );
 }

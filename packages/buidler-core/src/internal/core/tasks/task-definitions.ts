@@ -5,7 +5,8 @@ import {
   TaskArguments,
   TaskDefinition
 } from "../../../types";
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
 

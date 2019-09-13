@@ -1,7 +1,8 @@
 import * as fs from "fs";
 import fsExtra from "fs-extra";
 
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 /**
  * Provides an interface for every valid task argument type.

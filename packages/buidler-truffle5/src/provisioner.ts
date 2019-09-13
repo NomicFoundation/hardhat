@@ -1,3 +1,4 @@
+import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import { NetworkConfig } from "@nomiclabs/buidler/types";
 
 import { DEFAULT_GAS_MULTIPLIER } from "./constants";
@@ -5,6 +6,9 @@ import { Linker, TruffleContract } from "./types";
 
 export class LazyTruffleContractProvisioner {
   private readonly _web3: any;
+  private readonly _deploymentAddresses: {
+    [contractName: string]: string;
+  } = {};
 
   constructor(web3: any, private readonly _networkConfig: NetworkConfig) {
     this._web3 = web3;
@@ -16,16 +20,66 @@ export class LazyTruffleContractProvisioner {
     this._setDefaultValues(Contract);
 
     const originalLink = Contract.link;
+
+    const alreadyLinkedLibs: { [libName: string]: boolean } = {};
+    let linkingByInstance = false;
+
     Contract.link = (...args: any[]) => {
       // This is a simple way to detect if it is being called with a contract as first argument.
-      if (Array.isArray(args[0].abi)) {
-        return linker.link(Contract, args[0]);
+      if (args[0].constructor.name === "TruffleContract") {
+        const libName = args[0].constructor.contractName;
+
+        if (alreadyLinkedLibs[libName]) {
+          throw new BuidlerPluginError(
+            "@nomiclabs/buidler-truffle5",
+            `Contract ${Contract.contractName} has already been linked to ${libName}.`
+          );
+        }
+
+        linkingByInstance = true;
+        const ret = linker.link(Contract, args[0]);
+        alreadyLinkedLibs[libName] = true;
+        linkingByInstance = false;
+
+        return ret;
       }
 
-      // TODO: This may break if called manually with (name, address), as solc changed
-      // the format of its symbols.
+      if (!linkingByInstance) {
+        if (typeof args[0] === "string") {
+          throw new BuidlerPluginError(
+            "@nomiclabs/buidler-truffle5",
+            `Linking contracts by name is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+          );
+        }
+
+        throw new BuidlerPluginError(
+          "@nomiclabs/buidler-truffle5",
+          `Linking contracts with a map of addresses is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+        );
+      }
 
       originalLink.apply(Contract, args);
+    };
+
+    Contract.deployed = async () => {
+      const address = this._deploymentAddresses[Contract.contractName];
+
+      if (address === undefined) {
+        throw new BuidlerPluginError(
+          "@nomiclabs/buidler-truffle5",
+          `Trying to get deployed instance of ${Contract.contractName}, but none was set.`
+        );
+      }
+
+      return Contract.at(address);
+    };
+
+    Contract.setAsDeployed = (instance?: any) => {
+      if (instance === undefined) {
+        delete this._deploymentAddresses[Contract.contractName];
+      } else {
+        this._deploymentAddresses[Contract.contractName] = instance.address;
+      }
     };
 
     this._hookCloneCalls(Contract, linker);

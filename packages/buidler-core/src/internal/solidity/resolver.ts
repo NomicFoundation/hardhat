@@ -1,7 +1,8 @@
 import fsExtra from "fs-extra";
 import path from "path";
 
-import { BuidlerError, ERRORS } from "../core/errors";
+import { BuidlerError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
 
 export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
@@ -19,6 +20,8 @@ export class ResolvedFile {
     public readonly globalName: string,
     public readonly absolutePath: string,
     public readonly content: string,
+    // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
+    // properties (e.g. its name) are changed, only when it's content changes.
     public readonly lastModificationDate: Date,
     libraryName?: string,
     libraryVersion?: string
@@ -198,7 +201,7 @@ export class Resolver {
   ): Promise<ResolvedFile> {
     const content = await fsExtra.readFile(absolutePath, { encoding: "utf8" });
     const stats = await fsExtra.stat(absolutePath);
-    const lastModificationDate = new Date(stats.mtime);
+    const lastModificationDate = new Date(stats.ctime);
 
     return new ResolvedFile(
       globalName,

@@ -1,7 +1,8 @@
 import { BuidlerRuntimeEnvironment, ConfigExtender } from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";
-import { BuidlerError, ERRORS } from "./core/errors";
+import { BuidlerError } from "./core/errors";
+import { ERRORS } from "./core/errors-list";
 import { TasksDSL } from "./core/tasks/dsl";
 import { GlobalWithBuidlerContext } from "./internalTypes";
 

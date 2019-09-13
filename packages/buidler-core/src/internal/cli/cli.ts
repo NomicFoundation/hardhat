@@ -9,7 +9,8 @@ import { TaskArguments } from "../../types";
 import { BUIDLER_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { BuidlerError, BuidlerPluginError, ERRORS } from "../core/errors";
+import { BuidlerError, BuidlerPluginError } from "../core/errors";
+import { ERRORS, getErrorCode } from "../core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
@@ -94,7 +95,7 @@ async function main() {
     loadTsNodeIfPresent();
 
     const ctx = BuidlerContext.createBuidlerContext();
-    const config = loadConfigAndTasks(buidlerArguments.config);
+    const config = loadConfigAndTasks(buidlerArguments);
 
     const analytics = await Analytics.getInstance(
       config.paths.root,
@@ -189,9 +190,19 @@ async function main() {
         );
       }
 
-      console.error(
-        `For more info run ${BUIDLER_NAME} with --show-stack-traces`
-      );
+      if (BuidlerError.isBuidlerError(error)) {
+        const link = `https://buidler.dev/${getErrorCode(
+          error.errorDescriptor
+        )}`;
+
+        console.error(
+          `For more info go to ${link} or run ${BUIDLER_NAME} with --show-stack-traces`
+        );
+      } else {
+        console.error(
+          `For more info run ${BUIDLER_NAME} with --show-stack-traces`
+        );
+      }
     }
 
     process.exit(1);

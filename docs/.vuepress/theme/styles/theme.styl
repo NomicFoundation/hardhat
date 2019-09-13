@@ -26,7 +26,7 @@ body
   top 0
   left 0
   right 0
-  height $navbarHeight
+  height $navbarAndBannerHeight
   background-color #fff
   box-sizing border-box
   border-bottom 1px solid $borderColor
@@ -47,7 +47,7 @@ body
   position fixed
   z-index 10
   margin 0
-  top $navbarHeight
+  top $navbarAndBannerHeight
   left 0
   bottom 0
   box-sizing border-box
@@ -57,7 +57,7 @@ body
 .content:not(.custom)
   @extend $wrapper
   > *:first-child
-    margin-top $navbarHeight
+    margin-top $navbarAndBannerHeight
   a:hover
     text-decoration underline
   p.demo
@@ -106,8 +106,8 @@ h1, h2, h3, h4, h5, h6
   font-weight 600
   line-height 1.25
   .content:not(.custom) > &
-    margin-top (0.5rem - $navbarHeight)
-    padding-top ($navbarHeight + 1rem)
+    margin-top (0.5rem - $navbarAndBannerHeight)
+    padding-top ($navbarAndBannerHeight + 1rem)
     margin-bottom 0
     &:first-child
       margin-top -1.5rem
@@ -164,7 +164,7 @@ th, td
   padding .6em 1em
 
 .custom-layout
-  padding-top $navbarHeight
+  padding-top $navbarAndBannerHeight
 
 .theme-container
   &.sidebar-open

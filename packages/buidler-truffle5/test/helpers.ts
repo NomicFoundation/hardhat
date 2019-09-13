@@ -7,7 +7,7 @@ declare module "mocha" {
   }
 }
 
-export function useEnvironment(projectPath: string, networkName = "develop") {
+export function useEnvironment(projectPath: string, networkName = "localhost") {
   beforeEach("Loading buidler environment", function() {
     process.chdir(projectPath);
     process.env.BUIDLER_NETWORK = networkName;
@@ -17,5 +17,6 @@ export function useEnvironment(projectPath: string, networkName = "develop") {
 
   afterEach("Resetting buidler", function() {
     resetBuidlerContext();
+    delete process.env.BUIDLER_NETWORK;
   });
 }

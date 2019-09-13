@@ -8,7 +8,7 @@ import {
   BuidlerRuntimeEnvironment,
   RunSuperFunction,
   TaskArguments
-} from "@nomiclabs/buidler/src/types";
+} from "@nomiclabs/buidler/types";
 import debug from "debug";
 
 const log = debug("buidler:plugin:ganache");

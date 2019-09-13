@@ -23,6 +23,9 @@ interface BuidlerNetworkAccount {
 export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   accounts?: BuidlerNetworkAccount[];
   blockGasLimit?: number;
+  hardfork?: string;
+  throwOnTransactionFailures?: boolean;
+  throwOnCallFailures?: boolean;
 }
 
 export interface HDAccountsConfig {
@@ -223,6 +226,7 @@ export interface BuidlerArguments {
   emoji: boolean;
   config?: string;
   verbose: boolean;
+  maxMemory?: number;
 }
 
 export type BuidlerParamDefinitions = {
@@ -284,12 +288,17 @@ export interface BuidlerRuntimeEnvironment {
   readonly ethereum: EthereumProvider; // DEPRECATED: Use network.provider
 }
 
-/**
- * The artifact object.
- */
 export interface Artifact {
   contractName: string;
   abi: any;
-  bytecode: string;
-  linkReferences: any;
+  bytecode: string; // "0x"-prefixed hex string
+  deployedBytecode: string; // "0x"-prefixed hex string
+  linkReferences: LinkReferences;
+  deployedLinkReferences: LinkReferences;
+}
+
+export interface LinkReferences {
+  [libraryFileName: string]: {
+    [libraryName: string]: Array<{ length: number; start: number }>;
+  };
 }

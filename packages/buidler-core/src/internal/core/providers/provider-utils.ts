@@ -1,5 +1,6 @@
 import { IEthereumProvider } from "../../../types";
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 export function rpcQuantityToNumber(quantity?: string) {
   if (quantity === undefined) {

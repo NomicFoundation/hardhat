@@ -2,7 +2,7 @@ import { assert } from "chai";
 import path from "path";
 
 import { BuidlerContext } from "../../../src/internal/context";
-import { ERRORS } from "../../../src/internal/core/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
 import { resetBuidlerContext } from "../../../src/internal/reset";

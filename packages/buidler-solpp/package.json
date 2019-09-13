@@ -1,10 +1,10 @@
 {
   "name": "@nomiclabs/buidler-solpp",
-  "version": "1.0.0-beta.13",
+  "version": "1.0.0",
   "description": "Buidler plugin for solpp",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-solpp",
-  "author": "Nomic Labs SRL",
+  "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,11 +38,12 @@
     "solpp": "^0.10.1"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13",
+    "@types/chai": "^4.2.0",
+    "@nomiclabs/buidler": "^1.0.0",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13"
+    "@nomiclabs/buidler": "^1.0.0"
   }
 }

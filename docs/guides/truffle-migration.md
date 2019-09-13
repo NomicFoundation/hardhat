@@ -1,49 +1,80 @@
----
-prev: false
-next: false
----
-
 # Migrating from Truffle
 
-In this guide, we will show you how to use the Buidler Truffle integration plugins that allow you to use TruffleContract with Buidler. This means that you can use the `contract()` function you always use in your Truffle tests and elsewhere.
+To migrate an existing Truffle project onto Buidler there are 
+two main things to consider: testing and deployment.
 
-Use the plugin that corresponds to the Truffle version you wrote your tests with: [buidler-truffle4](https://github.com/nomiclabs/buidler-truffle4) or [buidler-truffle5](https://github.com/nomiclabs/buidler-truffle5). To make it a real example, let’s go through the process of running an existing project’s Truffle 5 tests with Buidler.
+### Testing
 
-What better project to showcase this than [OpenZeppelin](https://openzeppelin.org), the widely-used smart contract development framework from our friends at [Zeppelin](https://zeppelin.solutions/).
+When it comes to unit tests, there are two Buidler plugins 
+that support the Truffle testing APIs: `buidler-truffle4` and `buidler-truffle5`. 
+Both plugins support Solidity 4 and 5. Using these you can run your existing tests with Buidler.
 
-Let’s checkout the Github repo and install its dependencies:
+Read [this guide](./truffle-testing.md) If you want to learn the details of writing Truffle tests to run in Buidler, but it's not necessary to migrate your existing test suite.
 
-```bash
-git clone git@github.com:OpenZeppelin/openzeppelin-solidity.git
-cd openzeppelin-solidity/
-git checkout v2.1.2 -b buidler-migration
-npm install
-```
+#### Migrations and buidler-truffle fixtures
 
-Install Buidler and the Truffle 5 plugin:
+If your project uses [Truffle Migrations](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations) to initialize your testing environment (i.e. your tests call `Contract.deployed()`), then there's some more work to do to be able to run your tests.
 
-```bash
-npm install @nomiclabs/buidler @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
-```
+The Truffle plugins currently don't fully support Migrations. 
+Instead, you need to adapt your Migrations to become a buidler-truffle fixture.
+This file, located at `test/truffle-fixture.js`, deploys your contracts
+and calls the `setAsDeployed()` method on each of the contract abstractions 
+you want to test.
 
-Then put the following into `buidler.config.js`:
+For example, this migration:
 
 ```js
-usePlugin("@nomiclabs/buidler-truffle5");
+const Greeter = artifacts.require("Greeter");
 
-module.exports = {
-  solc: { version: "0.5.2" }
+module.exports = function(deployer) {
+  deployer.deploy(Greeter);
 };
+
 ```
 
-And that’s it. Run `npx buidler test` to run all the tests. They will work.
+should become this buidler-truffle fixture:
 
-You may think “What if my tests are written with Truffle 4?” Well, there’s a plugin for that.
+```js
+const Greeter = artifacts.require("Greeter");
 
-```bash
-npm install @nomiclabs/buidler-truffle4 @nomiclabs/buidler-web3-legacy web3@0.20.7
+module.exports = async () => {
+  const greeter = await Greeter.new();
+  Greeter.setAsDeployed(greeter);
+}
 ```
 
-Set the appropriate compiler version in `buidler.config.js`, load the plugin with `usePlugin()`, and you’re good to go.
+These fixtures will run on Mocha's `before`, which runs before each `contract()` function runs, just like Truffle migrations do.
 
-For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+If you have multiple migrations, you don't need to create multiple 
+buidler-truffle fixture files. You can deploy all your contracts from the same one.
+
+### Deployment
+
+When it comes to deploying, there are no plugins that implement a deployment system for Buidler yet, but there's [an open issue](https://github.com/nomiclabs/buidler/issues/381) with some ideas and we'd value your opinion on how to best design it.
+
+### Truffle 4 and Web3.js' synchronous calls
+
+Truffle 4 uses Web3.js `0.20.x`, which supports doing synchronous calls. 
+These aren't supported by the `buidler-web3-legacy` plugin, which is the plugin that integrates Web3.js `0.20.x`.
+
+Instead, you should use the promisified version of Web3.js offered by the plugin: `pweb3`. It's available
+as a global variable in your tests and tasks, and in the [Buidler Runtime Environment](../advanced/buidler-runtime-environment.md).
+It has the same API as Web3.js, but asynchronous operations return promises.
+
+For example, this code:
+
+```js
+console.log(web3.eth.accounts)
+``` 
+
+should become:
+
+```js
+console.log(await pweb3.eth.getAccounts())
+``` 
+
+
+
+
+
+For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).

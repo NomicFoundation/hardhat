@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   createHDWalletProvider,
   createLocalAccountsProvider,
@@ -157,7 +157,7 @@ describe("Local accounts provider", () => {
     assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
   });
 
-  describe("Describe eth_sign", () => {
+  describe("eth_sign", () => {
     it("Should be compatible with parity's implementation", async () => {
       // This test was created by using Parity Ethereum
       // v2.2.5-beta-7fbcdfeed-20181213 and calling eth_sign
@@ -240,6 +240,10 @@ describe("Local accounts provider", () => {
       await wrapper.send("eth_sign");
       assert.deepEqual(mock.getLatestParams("eth_sign"), []);
     });
+  });
+
+  describe("eth_signTypedData", () => {
+    // TODO: Test this. Note that it just forwards to/from eth-sign-util
   });
 });
 

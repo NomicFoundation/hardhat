@@ -1,5 +1,6 @@
 import { IEthereumProvider } from "../../../types";
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 import { createChainIdGetter, rpcQuantityToNumber } from "./provider-utils";
 import { wrapSend } from "./wrapper";

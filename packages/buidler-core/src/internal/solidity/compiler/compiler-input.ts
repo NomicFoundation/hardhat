@@ -23,8 +23,13 @@ export function getInputFromDependencyGraph(
       optimizer: optimizerConfig,
       outputSelection: {
         "*": {
-          "*": ["evm.bytecode.object", "abi"],
-          "": ["ast"]
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers"
+          ],
+          "": ["id", "ast"]
         }
       }
     }

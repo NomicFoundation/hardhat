@@ -1,8 +1,3 @@
----
-prev: "create-task"
-next: "truffle-migration"
----
-
 # Creating a plugin
 
 In this guide, we will explore the creation of plugins for Buidler, which are the key component for integrating other tools and extending the built-in functionality.
@@ -21,7 +16,7 @@ For example, adding the following to `buidler.config.js`:
 
 ```js
 extendEnvironment(env => {
-  env.hi = "hello, buidler";
+  env.hi = "Hello, Buidler!";
 });
 ```
 
@@ -29,7 +24,7 @@ Will make `hi` available everywhere where the environment is accessible.
 
 ```js
 extendEnvironment(env => {
-  env.hi = "hello, buidler";
+  env.hi = "Hello, Buidler!";
 });
 
 task("envtest", (args, env) => {
@@ -43,7 +38,7 @@ Will yield:
 
 ```
 $ npx buidler envtest
-hello, buidler
+Hello, Buidler!
 ```
 
 This is literally all it takes to put together a plugin for Buidler. Injecting an ethers.js instance into the environment would look like this:
@@ -82,11 +77,10 @@ Now, this is just injecting from the config file, which by itself can be useful 
 
 You can use the [plugin boilerplate repository](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate) as a starting point to create an npm package for your plugin. We highly recommend using TypeScript for your plugins, especially if you’re looking to inject objects into the [Buidler Runtime Environment]. This way, types can be exported and text editors can autocomplete for your users.
 
-For a fully functional ethers plugin written in TypeScript take a look at [nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers) on Github.
+For a fully functional ethers.js plugin written in TypeScript take a look at [nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers) on Github.
 
-Take a look at the [plugin best practices documentation](/docs/guides/create-plugin.md) and if you end up publishing a plugin, send us a pull request to add it to our [plugins section](/plugins).
+Take a look at the [plugin best practices documentation](../advanced/building-plugins.md) and if you end up publishing a plugin, send us a pull request to add it to our [plugins section](../plugins/README.md).
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
 
-
-[Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
+[Buidler runtime environment]: ../advanced/buidler-runtime-environment.md

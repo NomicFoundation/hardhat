@@ -2,10 +2,15 @@ import { Transaction as TransactionT } from "ethereumjs-tx";
 
 import { IEthereumProvider } from "../../../types";
 import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 import { createChainIdGetter } from "./provider-utils";
 import { wrapSend } from "./wrapper";
+
+// This library's types are wrong, they don't type check
+// tslint:disable-next-line no-var-requires
+const ethSigUtil = require("@nomiclabs/eth-sig-util");
 
 export interface JsonRpcTransactionData {
   from?: string;
@@ -71,6 +76,28 @@ export function createLocalAccountsProvider(
 
         const signature = ecsign(messageHash, privateKey);
         return toRpcSig(signature.v, signature.r, signature.s);
+      }
+    }
+
+    if (method === "eth_signTypedData") {
+      const [address, data] = params;
+
+      if (address !== undefined) {
+        if (data === undefined) {
+          throw new BuidlerError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+        }
+
+        const privateKey = getPrivateKey(address);
+
+        if (privateKey === undefined) {
+          throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
+            account: address
+          });
+        }
+
+        return ethSigUtil.signTypedData_v4(privateKey, {
+          data
+        });
       }
     }
 
@@ -171,7 +198,11 @@ export function createSenderProvider(
   let addresses = from === undefined ? undefined : [from];
 
   return wrapSend(provider, async (method: string, params: any[]) => {
-    if (method === "eth_sendTransaction" || method === "eth_call") {
+    if (
+      method === "eth_sendTransaction" ||
+      method === "eth_call" ||
+      method === "eth_estimateGas"
+    ) {
       const tx: JsonRpcTransactionData = params[0];
 
       if (tx !== undefined && tx.from === undefined) {

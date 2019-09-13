@@ -1,11 +1,12 @@
 {
   "name": "@nomiclabs/buidler-etherscan",
-  "version": "1.0.0-beta.13",
+  "version": "1.0.0",
   "description": "Buidler plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-etherscan",
+  "author": "Nomic Labs LLC",
   "contributors": [
-    "Nomic Labs SRL",
+    "Nomic Labs LLC",
     "Marin Petrunić <marin@nodefactory.io>"
   ],
   "license": "MIT",
@@ -35,12 +36,13 @@
     "README.md"
   ],
   "dependencies": {
-    "ethereumjs-abi": "^0.6.7",
+    "ethereumjs-abi": "^0.6.8",
     "request": "^2.88.0",
     "request-promise": "^4.2.4"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13",
+    "@types/chai": "^4.2.0",
+    "@nomiclabs/buidler": "^1.0.0",
     "@types/ethereumjs-abi": "^0.6.3",
     "@types/nock": "^9.3.1",
     "@types/request": "^2.48.1",
@@ -48,9 +50,9 @@
     "chai": "^4.2.0",
     "ethers": "^4.0.27",
     "nock": "^10.0.6",
-    "solc": "0.5.8"
+    "solc": "0.5.11"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13"
+    "@nomiclabs/buidler": "^1.0.0"
   }
 }

@@ -6,15 +6,20 @@ import {
   getArtifactFromContractOutput,
   saveArtifact
 } from "../internal/artifacts";
+import {
+  SOLC_INPUT_FILENAME,
+  SOLC_OUTPUT_FILENAME
+} from "../internal/constants";
 import { internalTask, task, types } from "../internal/core/config/config-env";
-import { BuidlerError, ERRORS } from "../internal/core/errors";
+import { BuidlerError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromDependencyGraph } from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import { SolcInput } from "../types";
+import { ResolvedBuidlerConfig, SolcInput } from "../types";
 
 import {
   TASK_BUILD_ARTIFACTS,
@@ -28,6 +33,31 @@ import {
   TASK_COMPILE_RUN_COMPILER
 } from "./task-names";
 import { areArtifactsCached, cacheBuidlerConfig } from "./utils/cache";
+
+async function cacheSolcJsonFiles(
+  config: ResolvedBuidlerConfig,
+  input: any,
+  output: any
+) {
+  await fsExtra.ensureDir(config.paths.cache);
+
+  // TODO: This could be much better. It feels somewhat hardcoded
+  await fsExtra.writeFile(
+    path.join(config.paths.cache, SOLC_INPUT_FILENAME),
+    JSON.stringify(input, undefined, 2),
+    {
+      encoding: "utf8"
+    }
+  );
+
+  await fsExtra.writeFile(
+    path.join(config.paths.cache, SOLC_OUTPUT_FILENAME),
+    JSON.stringify(output, undefined, 2),
+    {
+      encoding: "utf8"
+    }
+  );
+}
 
 export default function() {
   internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
@@ -108,6 +138,8 @@ export default function() {
       throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
     }
 
+    await cacheSolcJsonFiles(config, input, output);
+
     await cacheBuidlerConfig(config.paths, config.solc);
 
     return output;
@@ -130,19 +162,19 @@ export default function() {
   });
 
   internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {
+    const sources = await run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+    if (sources.length === 0) {
+      console.log("No Solidity source file available.");
+      return;
+    }
+
     const isCached: boolean = await run(TASK_COMPILE_CHECK_CACHE, { force });
 
     if (isCached) {
       console.log(
         "All contracts have already been compiled, skipping compilation."
       );
-      return;
-    }
-
-    const sources = await run(TASK_COMPILE_GET_SOURCE_PATHS);
-
-    if (sources.length === 0) {
-      console.log("No Solidity source files available.");
       return;
     }
 
@@ -177,7 +209,7 @@ export default function() {
 
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
-    .setAction(async ({ f: force }: { f: boolean }, { run }) =>
+    .setAction(async ({ force: force }: { force: boolean }, { run }) =>
       run(TASK_BUILD_ARTIFACTS, { force })
     );
 }

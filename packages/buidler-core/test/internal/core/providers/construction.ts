@@ -2,7 +2,7 @@ import { assert } from "chai";
 import Common from "ethereumjs-common";
 
 import { DEFAULT_GAS_MULTIPLIER } from "../../../../../buidler-truffle5/src/constants";
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   createProvider,
   isHDAccountsConfig,

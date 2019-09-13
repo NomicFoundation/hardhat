@@ -1,10 +1,10 @@
 {
   "name": "@nomiclabs/buidler-truffle4",
-  "version": "1.0.0-beta.13",
+  "version": "1.0.0",
   "description": "Truffle 4 Buidler compatibility plugin",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle4",
   "repository": "github:nomiclabs/buidler",
-  "author": "Nomic Labs SRL",
+  "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,18 +33,22 @@
     "README.md"
   ],
   "dependencies": {
+    "@types/chai": "4.1.2",
     "chai": "4.1.2",
-    "truffle-contract": "^3.0.7"
+    "ethereumjs-util": "^6.1.0",
+    "truffle-contract": "^3.0.7",
+    "fs-extra": "^7.0.1"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13",
-    "@nomiclabs/buidler-web3-legacy": "^1.0.0-beta.13",
+    "@types/fs-extra": "^5.1.0",
+    "@nomiclabs/buidler": "^1.0.0",
+    "@nomiclabs/buidler-web3-legacy": "^1.0.0",
     "@types/glob": "^7.1.1",
-    "web3": "^0.20.7"
+    "web3": "^0.20.0"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13",
-    "@nomiclabs/buidler-web3-legacy": "^1.0.0-beta.13",
-    "web3": "^0.20.7"
+    "@nomiclabs/buidler": "^1.0.0",
+    "@nomiclabs/buidler-web3-legacy": "^1.0.0",
+    "web3": "^0.20.0"
   }
 }

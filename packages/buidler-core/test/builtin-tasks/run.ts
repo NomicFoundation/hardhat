@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 
-import { ERRORS } from "../../src/internal/core/errors";
+import { ERRORS } from "../../src/internal/core/errors-list";
 import { useEnvironment } from "../helpers/environment";
 import { expectBuidlerErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
