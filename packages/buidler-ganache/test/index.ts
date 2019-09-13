@@ -28,16 +28,13 @@ describe("Ganache plugin with empty configs", function() {
   });
 
   it("Should run Buidler TEST task using Ganache", async function() {
-    const accounts = await this.env.ethereum.send("eth_accounts");
-
-    console.log("\n");
-    console.log("\n");
-    console.log(accounts);
+    const accounts = await this.env.run("test");
   });
 
-  // it("Should run Buidler RUN task using ganache", async function() {
-  //   await this.env.run(TASK_RUN);
-  // });
+  it("Should get accounts from Ganache", async function() {
+    const accounts = await this.env.ethereum.send("eth_accounts");
+    assert.equal(accounts.length, 10);
+  });
 });
 
 // describe("Ganache plugin with custom configs", function() {
