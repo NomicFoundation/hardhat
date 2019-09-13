@@ -115,9 +115,7 @@ To compile it, simply run:
 npx buidler compile
 ```
 
-Now, you’ll likely want to run some tests. Out of the box Buidler provides an [EIP1193-compatible provider](https://eips.ethereum.org/EIPS/eip-1193), which is the new standard for an Ethereum JavaScript interface, but it can be somewhat rough to use directly. That's what the Ethereum libraries plugins are for. Take a look at the [plugins section](/plugins/) for the full list.
-
-The sample project comes with a test written using the Ethereum provider directly, but let’s also install `buidler-truffle5` and test out the Truffle 5 integration:
+Now, you’ll likely want to run some tests. Let’s install `buidler-truffle5` and test out the Truffle integration:
 
 ```bash
 npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3

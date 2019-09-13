@@ -5,17 +5,15 @@ next: "truffle-migration"
 
 # Creating a plugin
 
-In this guide, we will explore the creation of plugins for Buidler, which are the key component for integrating other tools.
+In this guide, we will explore the creation of plugins for Buidler, which are the key component for integrating other tools and extending the built-in functionality.
 
-Because of the way some Ethereum tools and libraries are designed, it’s not easy or even possible to get them to work together. Through its flexible design Buidler allows most tools to play along through short and simple plugins.
+### What exactly are plugins in Buidler?
 
-What exactly are plugins in Buidler?
+Plugins in Buidler are essentially reusable bits of configuration, which are defined programmatically using a DSL. When developing a plugin the main tools available to integrate new functionality are extending the [Buidler Runtime Environment], extending the Buidler config, defining new tasks and overriding existing ones, which are all configuration actions achieved through code.
 
-Plugins in Buidler are essentially reusable bits of configuration, which are defined programmatically using a DSL. When developing a plugin the main tools available to integrate new functionality are extending the [Buidler Runtime Environment](https://github.com/nomiclabs/buidler#Buidler-Runtime-Environment), extending the Buidler config, defining new tasks and overriding existing ones, which are all configuration actions achieved through code.
+Some examples of things you could achieve by creating a plugin are running a linter when the `check` task runs, using different compiler versions for different files or generating an UML diagram for your contracts.
 
-Some examples of things you could achieve by creating a plugin are running a linter when the `check` task runs, injecting an instance of the Ethereum library of your liking to the Buidler Runtime Environment, or adding a task to run a code coverage tool.
-
-Let’s go through the process of creating a plugin to inject ethers.js to the Buidler Runtime Environment.
+Let’s go through the process of creating a plugin to inject ethers.js to the [Buidler Runtime Environment].
 
 The environment is configured through a queue of extension functions that you can add to using the `extendEnvironment()` function. It receives one parameter which is an async function which will be executed after the required initialization is done, in order.
 
@@ -82,10 +80,13 @@ And that’s it. Ethers.js is now fully available to be used in the Buidler cons
 
 Now, this is just injecting from the config file, which by itself can be useful if that’s all you care about, but this can also be packaged as a reusable plugin that you can publish for others to benefit as well. You only need to wrap everything in a function, and export it in the plugin's main file.
 
-You can use the [plugin boilerplate repository](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate) as a starting point to create an npm package for your plugin. We highly recommend using TypeScript for your plugins, especially if you’re looking to inject objects into the Buidler Runtime Environment. This way, types can be exported and text editors can autocomplete for your users.
+You can use the [plugin boilerplate repository](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate) as a starting point to create an npm package for your plugin. We highly recommend using TypeScript for your plugins, especially if you’re looking to inject objects into the [Buidler Runtime Environment]. This way, types can be exported and text editors can autocomplete for your users.
 
 For a fully functional ethers plugin written in TypeScript take a look at [nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers) on Github.
 
 Take a look at the [plugin best practices documentation](/docs/guides/create-plugin.md) and if you end up publishing a plugin, send us a pull request to add it to our [plugins section](/plugins).
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+
+
+[Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
