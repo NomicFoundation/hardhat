@@ -20,7 +20,6 @@ declare interface GanacheOptions {
     log(msg: string): void;
   };
   mnemonic?: string;
-  network_id?: number;
   networkId?: number;
   port?: number;
   seed?: any;

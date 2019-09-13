@@ -44,9 +44,6 @@ export class GanacheService {
     // Validate and Transform received options before initialize server
     this._options = this._validateAndTransformOptions(options);
 
-    // Only for debug
-    // console.log(this._options);
-
     try {
       // Initialize server and provider with given options
       this._server = Ganache.server(this._options);
@@ -73,9 +70,6 @@ export class GanacheService {
 
     try {
       log("Starting server");
-
-      // Only for debug
-      // console.log(env);
 
       // Get port and hostname from validated options
       const port = this._options.port;
@@ -176,7 +170,6 @@ export class GanacheService {
 
     // Add listener for general server errors
     server.on("error", function(err: any) {
-      console.log("PASEEE");
       if (!GanacheService.error && err) {
         log(err.message || err);
         GanacheService.error = err;

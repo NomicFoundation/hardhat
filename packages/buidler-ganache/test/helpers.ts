@@ -10,7 +10,7 @@ declare module "mocha" {
 export function useEnvironment(projectPath: string) {
   beforeEach("Loading buidler environment", function() {
     process.chdir(projectPath);
-    process.env.BUIDLER_NETWORK = "develop";
+    // process.env.BUIDLER_NETWORK = "develop";
 
     this.env = require("@nomiclabs/buidler");
   });
