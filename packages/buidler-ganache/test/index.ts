@@ -31,11 +31,12 @@ describe("Ganache plugin with empty configs", function() {
     await this.env.run("test", { noCompile: true, testFiles: [] });
   });
 
-  // TODO This test pass but with some errors, should be fixed
   it("Should run Buidler RUN task using Ganache", async function() {
     await this.env.run("run", {
       noCompile: true,
       script: "scripts/sample-script.js"
     });
+
+    assert.equal(process.exitCode, 0);
   });
 });
