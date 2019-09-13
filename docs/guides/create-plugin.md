@@ -84,7 +84,7 @@ You can use the [plugin boilerplate repository](https://github.com/nomiclabs/b
 
 For a fully functional ethers plugin written in TypeScript take a look at [nomiclabs/buidler-ethers](https://github.com/nomiclabs/buidler-ethers) on Github.
 
-Take a look at the [plugin best practices documentation](/docs/guides/create-plugin.md) and if you end up publishing a plugin, send us a pull request to add it to our [plugins section](/plugins).
+Take a look at the [plugin best practices documentation](/documentation/#plugin-development-best-practices) and if you end up publishing a plugin, send us a pull request to add it to our [plugins section](/plugins).
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
 

@@ -1,15 +1,4 @@
----
-prev: false
-next: false
-sidebar: auto
----
-
-# Documentation
-
-**You don't need to read this to use Buidler, you can get started quickly by reading the [Getting Started](/guides/#getting-started) guide.**
-
 ## Overview
-
 Buidler is designed around the concepts of _tasks_, and the _Buidler Runtime Environment_: a set of functionality to create tasks. This document describes both concepts in detail.
 
 If you want to write your own tasks, create plugins, or want to understand Buidler internals, keep reading.
@@ -32,204 +21,223 @@ The BRE has a role of centralizing coordination across all Buidler components. T
 
 Check out the [Using the Buidler Runtime Environment (BRE)](#using-the-buidler-runtime-environment-bre) section for more information on how to use it.
 
-## Creating your own tasks
+## Quick Start
 
-You can create your own tasks in your `buidler.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("@nomiclabs/buidler/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
+In this guide, we’ll explore how to start using Buidler in your Ethereum project.
 
-Creating a task is done by calling the [`task` function](/api/#task). It will return a [`TaskDefinition`](/api/interfaces/taskdefinition.html) object, which can be used to define the task's parameters. There are multiple ways of calling `task`, take a look at [its API documentation](/api/#task).
+**What makes Buidler special? What can you achieve with it?**
 
-The simplest task you can define is
+Buidler allows you to streamline your development workflow by making it easy to incorporate other tools into your process, as well as granting you all the flexibility you need to adapt the tools to your exact needs. What dependencies and tools you use is up to you. Buidler will only help you orchestrate them.
+
+Out of the box, you can compile your Solidity code, install plugins and create your own tasks.
+
+Let’s install it to try it out:
+
+```bash
+npm install @nomiclabs/buidler
+```
+
+To create a Buidler project just run `npx buidler` in your project folder:
+
+![](https://cdn-images-1.medium.com/max/1600/1*Ri6bdhh0eIJTJT31dy6DhQ.png)
+
+Let’s create the sample project and go through the steps to try out the sample task, compile, test and deploy the sample contract.
+
+To first get a quick sense of what's available and what's going on, run `npx buidler` in your project folder:
+```
+$ npx buidler
+Buidler version 1.0.0-beta.10
+
+Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
+
+GLOBAL OPTIONS:
+
+  --config              A Buidler config file.
+  --emoji               Use emoji in messages.
+  --help                Shows this message.
+  --network             The network to connect to. (default: "develop")
+  --show-stack-traces   Show stack traces.
+  --version             Shows buidler's version.
+
+
+AVAILABLE TASKS:
+
+  accounts      Prints a list of the available accounts
+  clean         Clears the cache and deletes all artifacts
+  compile       Compiles the entire project, building all artifacts
+  console       Opens a buidler console
+  flatten       Flattens and prints all contracts and their dependencies
+  help          Prints this message
+  run           Runs a user-defined script after compiling the project
+  test          Runs mocha tests
+
+To get help for a specific task run: buidler help [task]
+```
+
+This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 
+
+If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
 
 ```js
-task("hello", "Prints 'Hello, World!'", async function action(
-  taskArguments,
-  env,
-  runSuper
-) {
-  console.log("Hello, World!");
+task("accounts", "Prints a list of the available accounts", async () => {
+  const accounts = await ethereum.send("eth_accounts");
+
+  console.log("Accounts:", accounts);
 });
+
+module.exports = {};
 ```
 
-`task`'s first argument is the task name. The second one is its description, which is used for printing help messages in the CLI. The third one, `action`, is an async function that receives the following arguments:
+_NOTE: in the Buidler 1.0.0 beta release we’ve disabled the automatic ganache instance feature to keep working on its stability, so you’ll need to run it manually. This feature will be back by the time we ship the stable release. Please run `ganache-cli` in a separate terminal to keep going._
 
-- `taskArguments` is an object with the parsed CLI arguments of the task. In this case, it's an empty object.
-- `env` is the [Buidler Runtime Environment].
-- `runSuper` is only relevant if you are overriding an existing task, which we'll learn about next. Its purpose is to let you run the original task's action.
+To run it, try `npx buidler accounts`:
 
-Defining the action's arguments is optional. The Buidler Runtime Environment and `runSuper` will also be available in the global scope. We can rewrite our "hello" task this way:
-
-```js
-task("hello", "Prints 'Hello, World!'", async () =>
-  console.log("Hello, World!")
-);
+```
+$ npx buidler accounts
+Accounts: [ '0x9d6bd5939d6e2629f2bdffac5417ba22e31ea6a5',
+  '0xdb981036cf05c2219121c778578300cc6b91bd34',
+  '0xdc66201940a7ced201b1e4ed9fa72047fa029dc1',
+  '0x6a0ead959f30e51e86bb2285ab5e36a68ac22d98',
+  '0x9bc40d79da06d28d57982eb9e40cd0ba095cdae8',
+  '0xcff265234958dfe27e7e1bbfcbd253ac4882bcae',
+  '0x13447a4658db5f9bdab4f82656958b7688c4435f',
+  '0x7dce2d4229cb4ccbcd050ffe7bc405d936314a73',
+  '0x2f52b335f53f16a5d9727da8d2231923fa04f0c5',
+  '0x23024feafd6587ef4576496484fee2796ba66e3c' ]
 ```
 
-#### Tasks' actions requirements
+You will learn how to create your own tasks in the [next guide](/guides/create-task.md).
 
-The only requirement for writing a task is that the `Promise` returned by its action must not resolve before every async process it started is finished.
-
-This is an example of a task whose action doesn't meet this requirement.
+Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
 
 ```js
-task("BAD", "This task is broken", async () => {
-  setTimeout(() => {
-    throw new Error(
-      "This tasks' action returned a promise that resolved before I was thrown"
-    );
-  }, 1000);
-});
-```
+pragma solidity ^0.5.1;
 
-This other task uses a `Promise` to wait for the timeout to fire.
+contract Greeter {
 
-```js
-task("delayed-hello", "Prints 'Hello, World!' after a second", async () => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      console.log("Hello, World!");
-      resolve();
-    }, 1000);
-  });
-});
-```
+    string greeting;
 
-Manually creating a `Promise` can look challenging, but you don't have to do that if you stick to `async`/`await` and `Promise`-based APIs. For example, you can use the npm package [`delay`](https://www.npmjs.com/package/delay) for a promisified version of `setTimeout`.
-
-#### Defining parameters
-
-Buidler tasks can receive `--named` parameters with a value, `--flags`, positional and variadic parameters. Variadic parameters act like JavaScript's rest parameters. The Config DSL `task` function returns an object with methods to define all of them. Once defined, Buidler takes control of parsing parameters, validating them, and printing help messages.
-
-Adding a positional parameter to the `hello` task can look like this:
-
-```js
-task("hello", "Prints a greeting'")
-  .addOptionalParam("greeting", "The greeting to print", "Hello, World!")
-  .setAction(async ({ greeting }) => console.log(greeting));
-```
-
-And would be run with `npx buidler hello --greeting Hola`.
-
-You can read the full documentation of these methods and their possible parameters in the [TaskDefinition API doc](/api/interfaces/taskdefinition.html#methods).
-
-##### Positional parameters restrictions
-
-Positional and variadic parameters don't have to be named, and have the usual restrictions of a programming language:
-
-- No parameter can follow a variadic one
-- Required/mandatory parameters can't follow an optional one.
-
-Failing to follow these restrictions will result in an exception being thrown when loading Buidler.
-
-##### Type validations
-
-Buidler takes care of validating and parsing the values provided for each parameter. You can declare the type of a parameter, and Buidler will get the CLI strings and convert it into your desired type. If this conversion fails, it will print an error message explaining why.
-
-A number of types are available in the Config DSL through a `types` object. This object is injected into the global scope before processing your `buidler.config.js`, but you can also import it explicitly with `const { types } = require("@nomiclabs/buidler/config")` and take advantage of your editor's autocomplete.
-
-An example of a task defining a type for one of its parameters is
-
-```js
-task("hello", "Prints 'Hello' multiple times")
-  .addOptionalParam(
-    "times",
-    "The number of times to print 'Hello'",
-    1,
-    types.int
-  )
-  .setAction(async ({ times }) => {
-    for (let i = 0; i < times; i++) {
-      console.log("Hello");
+    constructor(string memory _greeting) public {
+        greeting = _greeting;
     }
-  });
+
+    function greet() public view returns (string memory) {
+        return greeting;
+    }
+
+}
 ```
 
-Calling it with `npx buidler hello --times notanumber` will result in an error.
+To compile it, simply run:
 
-### Overriding tasks
+```bash
+npx buidler compile
+```
 
-Defining a task with the same name than an existing one will override it. This is useful to change or extend the behavior of built-in and plugin-provided tasks.
+Now, you’ll likely want to run some tests. Let’s install `buidler-truffle5` and test out the Truffle integration:
 
-Task overriding works very similarly to overriding methods when extending a class. You can set your own action, which can call the previous one. The only restriction when overriding tasks, is that you can't add or remove parameters.
+```bash
+npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
+```
 
-Task override hierarchy order is important since actions can only call the immediately previous definition, using the `runSuper` function.
-
-Overriding built-in tasks is a great way to customize and extend Buidler. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-core/src/builtin-tasks).
-
-#### The `runSuper` function
-
-`runSuper` is a function available to override task's actions. It can be received as the third argument of the task or used directly from the global object.
-
-This function works like [JavaScript's `super` keyword](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super), it calls the task's previously defined action.
-
-If the task isn't overriding a previous task definition calling `runSuper` will result in an error. To check if calling it won't fail, you can use the `boolean` field `runSuper.isDefined`.
-
-The `runSuper` function receives a single optional argument: an object with the task arguments. If this argument isn't provided, the same task arguments received by the action calling it will be used.
-
-### Internal tasks
-
-Creating tasks with lots of logic makes it hard to extend or customize them. Making multiple small and focused tasks that call each other is better to allow for extension. If you design your tasks in this way, users that want to change only a small aspect of them can override one of your internal tasks.
-
-For example, the `compile` task is implemented as a pipeline of six tasks. It just calls internal tasks like `compile:get-source-paths`, `compile:get-dependency-graph`, and `compile:build-artifacts`. We recommend prefixing intermediate tasks with their main task and a colon.
-
-To avoid help messages getting cluttered with lots of intermediate tasks, you can define those using the `internalTask` config DSL function. The `internalTask` function works almost exactly like `task`. The only difference is that tasks defined with it won't be included in help messages.
-
-## Using the Buidler Runtime Environment (BRE)
-
-By default, the BRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider. You can find more information about [it in its API docs](/api/classes/environment.html).
-
-Plugins can extend the BRE. For example, [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) adds a `web3` instance to it, making it available to tasks, tests and scripts.
-
-### Exporting globally
-
-Before running a task, test or script, Buidler injects the BRE into the global scope, turning all of its fields into global variables. When the task execution is completed, these global variables are removed, restoring their original value, if they had one.
-
-### Explicit usage
-
-Not everyone likes magic global variables, and Buidler doesn't force you to use them. Everything can be done explicitly in tasks, tests and scripts.
-
-You can import the config DSL explicitly when defining your tasks, and receive the BRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](#creating-your-own-tasks).
-
-When writing tests or scripts, you can use `require("@nomiclabs/buidler")` to import the BRE. You can read more about this in [Accessing the BRE from outside a task](/documentation/#accessing-from-outside-a-task).
-
-### Extending
-
-The BRE only provides the core functionality that users and plugin developers need to start building on top of Buidler. Using it to interface directly with Ethereum in your project can be somewhat harder than expected.
-
-Everything gets easier when you use higher-level libraries, like [web3.js](https://web3js.readthedocs.io/en/latest/) or [truffle-contract](https://github.com/trufflesuite/truffle-contract), but these libraries need some initialization to work, and that could get repetitive.
-
-Buidler lets you hook into the BRE construction, and extend it with new functionality. This way, you only have to initialize everything once, and your new features or libraries will be available everywhere the BRE is used.
-
-You can do this by adding a BRE extender into a queue. This extender is just a synchronous function that receives the BRE, and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
-
-For example, adding an instance of Web3.js to the BRE can be done in this way:
-
+Add `usePlugin("@nomiclabs/buidler-truffle5")` to the top of your `buidler.config.js`, so that it looks like this:
 ```js
-extendEnvironment(env => {
-  env.Web3 = require("web3");
+usePlugin("@nomiclabs/buidler-truffle5")
 
-  // env.network.provider is the EIP1193-compatible provider.
-  env.web3 = new env.Web3(new Web3HTTPProviderAdapter(env.network.provider));
+task("accounts", "Prints a list of the available accounts", async () => {
+  const accounts = await ethereum.send("eth_accounts");
+
+  console.log("Accounts:", accounts);
 });
+
+module.exports = {};
 ```
 
-### Accessing from outside a task
-
-The BRE can be used from any JavaScript or TypeScript file. To do so, you only have to import it with `require("@nomiclabs/buidler")`. You can do this to keep more control over your development workflow, create your own tools, or to use Buidler with other dev tools from the node.js ecosystem.
-
-Running test directly with [mocha](https://www.npmjs.com/package/mocha) instead of `npx buidler test` can be done by explicitly importing the BRE in them like this:
+Change `test/sample-test.js` to:
 
 ```js
-const env = require("@nomiclabs/buidler");
 const assert = require("assert");
 
-describe("Buidler Runtime Environment", function() {
-  it("should have a config field", function() {
-    assert.notEqual(env.config, undefined);
+describe("Ethereum provider", function() {
+  it("Should return the accounts", async function() {
+    const accounts = await ethereum.send("eth_accounts");
+    assert(accounts.length !== 0, "No account was returned");
+  });
+});
+
+contract("Greeter", function() {
+  it("Should give the correct greeting", async function() {
+    const Greeter = artifacts.require("Greeter");
+    const greeter = await Greeter.new("Hello, Buidler!");
+
+    assert.equal(await greeter.greet(), "Hello, Buidler!");
   });
 });
 ```
 
-This way, tests written for Buidler are just normal mocha tests. This enables you to run them from your favorite editor without the need of any Buidler-specific plugin. For example, you can run them from Visual Studio Code using [Mocha sidebar](https://marketplace.visualstudio.com/items?itemName=maty.vscode-mocha-sidebar).
+And run `npx buidler test`
+
+```
+$ npx buidler test
+Compiling...
+Compiled 1 contract successfully
+
+
+  Ethereum provider
+    ✓ Should return the accounts
+
+  Greeter
+    ✓ Should give the correct greeting (376ms)
+
+
+  2 passing (383ms)
+```
+
+Next, to deploy the contract we will use the Truffle plugin again. Create a file `deploy.js` in `scripts/`:
+
+```js
+async function main() {
+  const Greeter = artifacts.require("Greeter");
+
+  const greeter = await Greeter.new("Hello, Buidler!");
+  console.log("Greeter deployed to:", greeter.address);
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
+  });
+```
+And run it with `npx buidler run scripts/deploy.js`:
+```
+$ npx buidler run scripts/deploy.js
+All contracts have already been compiled, skipping compilation.
+Greeter deployed to: 0x080f632fB4211CFc19d1E795F3f3109f221D44C9
+```
+
+Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Truffle integration plugin, wrote and ran a test using the Truffle plugin, and deployed a contract.
+
+These cover the basics to start using Buidler. Move on to the next section to learn more.
+
+For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+
+## Installation
+
+### Local installation (recommended)
+
+The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
+
+    npm install --save-dev @nomiclabs/buidler
+
+### Global installation
+
+Be careful about inconsistent behavior across different projects that use different Buidler versions.
+
+    npm -g install @nomiclabs/buidler
+    
+If you choose to install Buidler globally, you have to do the same for its plugins and their dependencies.
 
 ## Configuration
 
@@ -252,7 +260,7 @@ module.exports = {
 }
 ```
 
-#### Networks configuration
+### Networks configuration
 
 The `networks` config field is an optional object where network names map to objects with the following fields:
 
@@ -266,7 +274,7 @@ The `networks` config field is an optional object where network names map to obj
 
 You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value will be `"develop"`.
 
-##### HD Wallet config
+### HD Wallet config
 
 To use an HD Wallet with Buidler you should set your network's `accounts` field to an object with the following fields:
 
@@ -275,7 +283,7 @@ To use an HD Wallet with Buidler you should set your network's `accounts` field 
 - `initialIndex`: The initial index to derive. Default value: `0`.
 - `count`: The number of accounts to derive. Default value: `10`.
 
-##### Default networks object
+### Default networks object
 
 ```js
 develop: {
@@ -283,7 +291,7 @@ develop: {
 }
 ```
 
-##### Solc configuration
+### Solc configuration
 
 The `solc` config field is an optional object which can contain the following keys:
 
@@ -291,7 +299,7 @@ The `solc` config field is an optional object which can contain the following ke
 - `optimizer`: An object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
 - `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, and `"petersburg"`. Default value: managed by Solidity. Please, consult its documentation.
 
-##### Path configuration
+### Path configuration
 
 You can customize the different paths that buidler uses by providing an object with the following keys:
 
@@ -302,67 +310,6 @@ You can customize the different paths that buidler uses by providing an object w
 - `cache`: The directory used by Buidler to cache its internal stuff. This path is resolved from the project's root. Default value: './cache'.
 - `artifacts`: The directory where the compilation artifacts are stored. This path is resolved from the project's root. Default value: './artifacts'.
 
-### Quickly integrating other tools
+## Quickly integrating other tools
 
 Buidler's config file will always run before any task, so you can use it to integrate with other tools, like importing `@babel/register`.
-
-## Plugin development best practices
-
-This is based on the [TypeScript plugin boilerplate project](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/). We highly recommend to develop plugins in TypeScript.
-
-### Plugin functionality
-
-Plugins are bits of reusable configuration. Anything that you can do in a plugin, can also be done in your config file. You can test your ideas in a config file, and move them into a plugin when ready.
-
-The main things that plugins can do are extending the Buidler Runtime Environment, extending the Buidler config, defining new tasks, and overriding existing ones.
-
-#### Extending the BRE
-
-To learn how to successfully extend the [BRE](/documentation/#buidler-runtime-environment-bre) in TypeScript, and to give your users type information about your extension, take a look at [`src/index.ts`](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts) in the boilerplate repo and read the [Extending the BRE](/documentation/#extending) documentation.
-
-Make sure to keep the type extension in your main file, as that convention is used across different plugins.
-
-#### Extending the Buidler config
-
-An example on how to add fields to the Buidler config can be found in [`src/index.ts`](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts).
-
-Note that all config extension's have to be optional.
-
-#### Throwing errors from your plugins
-
-To show better stack traces to your users, please only throw [`BuidlerPluginError`](/api/classes/buidlerpluginerror.html#constructors) errors, which can be found in `@nomiclabs/buidler/plugins`.
-
-#### Optimizing your plugin for better startup time
-
-Keeping startup time short is vital to give a good user experience. To do so, Buidler and its plugins delay any slow import or initialization until the very last moment. To do so, you can use `lazyObject`, and `lazyFunction` from `@nomiclabs/buidler/plugins`.
-
-An example on how to use them is present in [`src/index.ts`](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts).
-
-### Notes on dependencies
-
-Knowing when to use a `dependency` or a `peerDependency` can be tricky. We recommend [these](https://yarnpkg.com/blog/2018/04/18/dependencies-done-right/) [articles](https://lexi-lambda.github.io/blog/2016/08/24/understanding-the-npm-dependency-model/) to learn about their distinctions.
-
-If you are still in doubt, these can be helpful:
-
-- Rule of thumb #1: Buidler MUST be a peer dependency.
-- Rule of thumb #2: If your plugin P depends on another plugin P2, P2 should be a peer dependency of P, and P2's peer dependencies should be peer dependencies of P.
-- Rule of thumb #3: If you have a non-Buidler dependency that your users may `require()`, it should be a peer dependency.
-- Rule of thumb #4: Every `peerDependency` should also be a `devDependency`.
-
-Also, if you depend on a Buidler plugin written in TypeScript, you should add it's main `.d.ts` to the `include` array of `tsconfig.json`.
-
-### Hooking into the user's workflow
-
-To integrate into your users' existing workflow, we recommend plugin authors to override built-in tasks whenever it makes sense.
-
-Examples of suggested overrides are:
-
-- Preprocessing smart contracts should override one of the `compile` internal tasks.
-- Linter integrations should override the `check` task.
-- Plugins generating intermediate files should override the `clean` task.
-
-For a list of all the built-in tasks and internal tasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/buidler/blob/master/packages/buidler-core/src/builtin-tasks/task-names.ts)
-
-
-[tasks]: #tasks
-[Buidler Runtime Environment]: #buidler-runtime-environment-bre
