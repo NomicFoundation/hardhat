@@ -23,9 +23,8 @@ module.exports = {
         collapsable: false,
         children: [
           ['/documentation/#overview', 'Overview'],
-          ['/documentation/#quick-start', 'Quick start'],
           ['/documentation/#installation', 'Installation'],
-          ['/documentation/#configuration', 'Configuration']
+          ['/documentation/#quick-start', 'Quick start']
         ]
       }, {
         title: "Guides",
@@ -46,6 +45,7 @@ module.exports = {
         title: "Reference",
         collapsable: false,
         children: [
+          ['/documentation/#configuration', 'Configuration'],
           ['/reference/#buidler-runtime-environment-bre', 'Buidler Runtime Environment (BRE)'],
           ['/reference/#building-plugins', 'Building plugins'],
           ['/reference/#stack-traces', 'Stack traces'],
