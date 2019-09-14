@@ -1,25 +1,12 @@
 ## Overview
-Buidler is designed around the concepts of _tasks_, and the _Buidler Runtime Environment_: a set of functionality to create tasks. This document describes both concepts in detail.
 
-If you want to write your own tasks, create plugins, or want to understand Buidler internals, keep reading.
+Buidler is a task runner that facilitates building Ethereum smart contracts. It helps developer manage and automate the recurring tasks that are inherent to the process of building smart contracts, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-### Tasks
+Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task.
 
-Buidler helps smart contract developers automate their workflow by letting them run and create tasks. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
+The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
-A task is a JavaScript async function with some associated metadata. This metadata is used by Buidler to automate some things for you. Arguments parsing, validation, and help messages are taken care of.
-
-### Buidler Runtime Environment (BRE)
-
-The Buidler Runtime Environment, or BRE for short, is an object containing all the functionality that Buidler exposes when running a task, test or script. In reality, Buidler _is_ the BRE. 
-
-When you require Buidler (`const buidler = require("@nomiclabs/buidler")`) you're getting an instance of the BRE. 
-
-During initialization, the Buidler configuration file essentially constructs a list of things to be added to the BRE. This includes tasks, configs and plugins. Then when tasks, tests or scripts run, the BRE is always present and available to access anything that is contained in it.
-
-The BRE has a role of centralizing coordination across all Buidler components. This architecture allows for plugins to inject functionality that becomes available everywhere the BRE is accessible.
-
-Check out the [Using the Buidler Runtime Environment (BRE)](#using-the-buidler-runtime-environment-bre) section for more information on how to use it.
+Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
 
 ## Quick Start
 

@@ -2,9 +2,11 @@
 
 # Creating a task
 
-In this guide, we will explore the creation of tasks in Buidler, which are the core component used for automation. For a general overview of using Buidler refer to the [Getting started guide](/guides/#getting-started).
+In this guide, we will explore the creation of tasks in Buidler, which are the core component used for automation. 
 
-## **What exactly are tasks in Buidler?**
+A task is a JavaScript async function with some associated metadata. This metadata is used by Buidler to automate some things for you. Arguments parsing, validation, and help messages are taken care of.
+
+## What exactly are tasks in Buidler?**
 
 Everything you can do in Buidler is defined as a task. The default actions that come out of the box are built-in tasks and they are implemented using the same APIs that are available to you as a user.
 

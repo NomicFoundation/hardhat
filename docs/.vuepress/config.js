@@ -46,10 +46,10 @@ module.exports = {
         title: "Reference",
         collapsable: false,
         children: [
-          ['/reference/using-bre.md', 'Using the Buidler Runtime Environment'],
-          ['/reference/plugin-dev.md', 'Plugin development'],
-          ['/reference/stack-traces.md', 'Stack traces'],
-          ['/reference/verbose.md', 'Verbose logging'],
+          ['/reference/#buidler-runtime-environment-bre', 'Buidler Runtime Environment (BRE)'],
+          ['/reference/#building-plugins', 'Building plugins'],
+          ['/reference/#stack-traces', 'Stack traces'],
+          ['/reference/#verbose-logging', 'Verbose logging'],
         ]
       }
     ]
