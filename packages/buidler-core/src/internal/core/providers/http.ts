@@ -38,7 +38,7 @@ export class HttpProvider extends EventEmitter {
     private readonly _url: string,
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
-    private readonly _timeout = 3000
+    private readonly _timeout = 20000
   ) {
     super();
   }

@@ -44,6 +44,7 @@ export type NetworkConfigAccounts =
 
 export interface HttpNetworkConfig extends CommonNetworkConfig {
   url?: string;
+  timeout?: number;
   accounts?: NetworkConfigAccounts;
 }
 

@@ -22,7 +22,9 @@ export function createProvider(
 
   const provider: IEthereumProvider = new HttpProvider(
     netConfig.url!,
-    networkName
+    networkName,
+    undefined,
+    netConfig.timeout
   );
 
   return wrapEthereumProvider(provider, netConfig);
