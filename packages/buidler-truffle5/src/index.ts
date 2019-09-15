@@ -8,17 +8,11 @@ import {
   usePlugin
 } from "@nomiclabs/buidler/config";
 import { glob } from "@nomiclabs/buidler/internal/util/glob";
-import {
-  BuidlerPluginError,
-  ensurePluginLoadedWithUsePlugin,
-  lazyObject
-} from "@nomiclabs/buidler/plugins";
+import { BuidlerPluginError, lazyObject } from "@nomiclabs/buidler/plugins";
 import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 import { LazyTruffleContractProvisioner } from "./provisioner";
-
-ensurePluginLoadedWithUsePlugin();
 
 export default function() {
   usePlugin("@nomiclabs/buidler-web3");

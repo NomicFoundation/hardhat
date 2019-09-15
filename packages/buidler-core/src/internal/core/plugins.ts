@@ -3,7 +3,6 @@ import * as path from "path";
 import * as semver from "semver";
 
 import { BuidlerContext } from "../context";
-import { getClosestCallerPackage } from "../util/caller-package";
 
 import { BuidlerError, ERRORS } from "./errors";
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
@@ -142,35 +141,5 @@ export function readPackageJson(
 }
 
 export function ensurePluginLoadedWithUsePlugin() {
-  const previousPrepareStackTrace = Error.prepareStackTrace;
-
-  Error.prepareStackTrace = (e, s) => s;
-
-  const error = new Error();
-  const stack: NodeJS.CallSite[] = error.stack as any;
-
-  Error.prepareStackTrace = previousPrepareStackTrace;
-
-  for (const callSite of stack) {
-    const fileName = callSite.getFileName();
-    if (fileName === null) {
-      continue;
-    }
-
-    const functionName = callSite.getFunctionName();
-
-    if (
-      path.basename(fileName) === path.basename(__filename) &&
-      functionName === loadPluginFile.name
-    ) {
-      return;
-    }
-  }
-
-  const pluginName = getClosestCallerPackage();
-
-  throw new BuidlerError(ERRORS.PLUGINS.OLD_STYLE_IMPORT_DETECTED, {
-    pluginNameText: pluginName !== undefined ? pluginName : "a plugin",
-    pluginNameCode: pluginName !== undefined ? pluginName : "plugin-name"
-  });
+  // No-op. Only here for backwards compatibility
 }

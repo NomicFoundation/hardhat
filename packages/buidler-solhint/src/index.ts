@@ -1,10 +1,7 @@
 import { internalTask, task } from "@nomiclabs/buidler/config";
 import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
-import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 import * as fs from "fs";
 import { join } from "path";
-
-ensurePluginLoadedWithUsePlugin();
 
 function getDefaultConfig() {
   return {

@@ -1,13 +1,10 @@
 import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { internalTask } from "@nomiclabs/buidler/config";
-import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
 import path from "path";
 
 import { SolppConfig } from "./types";
-
-ensurePluginLoadedWithUsePlugin();
 
 export const PROCESSED_CACHE_DIRNAME = "solpp-generated-contracts";
 

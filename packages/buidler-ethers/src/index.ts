@@ -1,15 +1,9 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
-import {
-  ensurePluginLoadedWithUsePlugin,
-  lazyObject,
-  readArtifact
-} from "@nomiclabs/buidler/plugins";
+import { lazyObject, readArtifact } from "@nomiclabs/buidler/plugins";
 import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { ContractFactory, Signer } from "ethers";
 
 import { EthersProviderWrapper } from "./ethers-provider-wrapper";
-
-ensurePluginLoadedWithUsePlugin();
 
 export default function() {
   extendEnvironment((env: BuidlerRuntimeEnvironment) => {
