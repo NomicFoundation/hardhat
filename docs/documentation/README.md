@@ -257,6 +257,7 @@ module.exports = {
 The `networks` config field is an optional object where network names map to objects with the following fields:
 
 - `url`: The url of the node. This argument is required for custom networks.
+- `timeout`: The amount of milliseconds before an RPC call timeouts. Default value: `20000`.
 - `chainId`: An optional number, used to validate the network Buidler connects to. If not present, this validation is omitted.
 - `from`: The address to use as default sender. If not present the first account of the node is used.
 - `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: `"auto"`.
