@@ -16,6 +16,9 @@ const defaultConfig: BuidlerConfig = {
   },
   analytics: {
     enabled: true
+  },
+  mocha: {
+    timeout: 20000
   }
 };
 
