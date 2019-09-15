@@ -148,35 +148,4 @@ describe("plugin system", function() {
       );
     });
   });
-
-  describe("ensurePluginLoadedWithUsePlugin", function() {
-    const globalAsAny = global as any;
-
-    const pluginFile = require.resolve(
-      path.join(
-        FIXTURE_PROJECT_PATH,
-        "node_modules",
-        "validates-import-style",
-        "index.js"
-      )
-    );
-
-    afterEach(function() {
-      delete globalAsAny.loaded;
-      delete require.cache[pluginFile];
-    });
-
-    it("Should do nothing special if loadPluginFile is used", function() {
-      loadPluginFile(pluginFile);
-
-      assert.isTrue(globalAsAny.loaded);
-    });
-
-    it("Should throw if imported with a require", function() {
-      expectBuidlerError(
-        () => require(pluginFile),
-        ERRORS.PLUGINS.OLD_STYLE_IMPORT_DETECTED
-      );
-    });
-  });
 });
