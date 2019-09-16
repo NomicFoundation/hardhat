@@ -20,13 +20,29 @@ usePlugin("@nomiclabs/buidler-ganache");
 This plugin creates no additional tasks.
 
 ## Environment extensions
-This plugin adds all ganache running configs (defaults and set by the config file) to `.
+This plugin adds all ganache running configs (defaults and set by the config file) to the BRE.
+The default ganache options exposed are:
+```js
+defaultOptions = {
+    url: "http://127.0.0.1:8545",
+    gasPrice: 20000000000,
+    gasLimit: 6721975,
+    defaultBalanceEther: 100,
+    totalAccounts: 10,
+    hardfork: "petersburg",
+    allowUnlimitedContractSize: false,
+    locked: false,
+    hdPath: "m/44'/60'/0'/0/",
+    keepAliveTimeout: 5000
+}
+```  
+
 
 ## Usage
 There are no additional steps you need to take for this plugin to work.
 
 ## Configuration
-Configuration is optional.
+Any configuration is optional. But here it's an example that you can ass to your `buidler.config.js` file.
 ```js
 module.exports = {
     defaultNetwork: "ganache",
@@ -42,16 +58,6 @@ module.exports = {
     }
 };
 ```
-:bulb: **Pro Tip**
-
-The options include an `enabled` key that lets you toggle gas reporting on and off using shell
-environment variables. When `enabled` is false, mocha's (faster) default spec reporter is used.
-Example:
-
-```js
-module.exports = {
-  gasReporter: {
-    enabled: (process.env.REPORT_GAS) ? true : false
-  }
-}
-```
+Here the list of all available options and constrains: [ganache-core options](https://github.com/trufflesuite/ganache-core#options).
+###
+Note: The `accounts` option it's not currently supported.

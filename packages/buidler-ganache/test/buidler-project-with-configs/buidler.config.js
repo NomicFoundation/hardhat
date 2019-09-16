@@ -1,5 +1,3 @@
-import {TASK_RUN, TASK_TEST} from "@nomiclabs/buidler/builtin-tasks/task-names";
-
 const { loadPluginFile } = require("@nomiclabs/buidler/plugins-testing");
 
 loadPluginFile(__dirname + "/../../src/index");
