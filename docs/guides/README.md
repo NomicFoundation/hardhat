@@ -27,7 +27,7 @@ Let’s create the sample project and go through the steps to try out the sample
 To first get a quick sense of what's available and what's going on, run `npx buidler` in your project folder:
 ```
 $ npx buidler
-Buidler version 1.0.0-beta.10
+Buidler version 1.0.0-beta.11
 
 Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
