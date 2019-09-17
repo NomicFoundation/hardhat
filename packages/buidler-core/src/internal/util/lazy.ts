@@ -63,6 +63,8 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   );
 }
 
+const creationsStack: boolean[] = [];
+
 function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
   targetCreator: () => ActualT,
   dummyTargetCreator: () => GuardT,
@@ -72,13 +74,12 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
 
   // tslint:disable-next-line
   const dummyTarget: ActualT = dummyTargetCreator() as any;
-  let isBeingCreated = false;
 
   function getRealTarget(): ActualT {
     if (realTarget === undefined) {
-      isBeingCreated = true;
+      creationsStack.push(true);
       const target = targetCreator();
-      isBeingCreated = false;
+      creationsStack.pop();
 
       validator(target);
 
@@ -127,7 +128,11 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       // before: https://github.com/ethereum/web3.js/blob/8574bd3bf11a2e9cf4bcf8850cab13e1db56653f/packages/web3-core-requestmanager/src/givenProvider.js#L41
       //
       // We just return `undefined` in that case, to not enter into the loop.
-      if (realTarget === undefined && property === "currentProvider") {
+      if (
+        creationsStack.length > 0 &&
+        realTarget === undefined &&
+        property === "currentProvider"
+      ) {
         return undefined;
       }
 
