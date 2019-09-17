@@ -55,7 +55,8 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
     object => {
       if (!(object instanceof Function)) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-          operation: "lazyFunction should be used for functions"
+          operation:
+            "Using lazyFunction with anything other than functions or classes"
         });
       }
     }
