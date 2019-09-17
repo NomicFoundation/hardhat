@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-vyper",
-  "version": "1.0.0-beta.11",
+  "version": "1.0.0-beta.12",
   "description": "Buidler plugin to develop smart contracts in Vyper",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-vyper",
