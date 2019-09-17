@@ -127,7 +127,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       // before: https://github.com/ethereum/web3.js/blob/8574bd3bf11a2e9cf4bcf8850cab13e1db56653f/packages/web3-core-requestmanager/src/givenProvider.js#L41
       //
       // We just return `undefined` in that case, to not enter into the loop.
-      if (isBeingCreated) {
+      if (realTarget === undefined && property === "currentProvider") {
         return undefined;
       }
 
