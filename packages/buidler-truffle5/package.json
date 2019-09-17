@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-truffle5",
-  "version": "1.0.0-beta.10",
+  "version": "1.0.0-beta.11",
   "description": "Truffle 5 Buidler compatibility plugin",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5",
@@ -37,15 +37,15 @@
     "truffle-contract": "^4.0.27"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.10",
-    "@nomiclabs/buidler-web3": "^1.0.0-beta.10",
+    "@nomiclabs/buidler": "^1.0.0-beta.11",
+    "@nomiclabs/buidler-web3": "^1.0.0-beta.11",
     "@types/chai": "^4.1.7",
     "@types/glob": "^7.1.1",
     "web3": "^1.2.0"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.10",
-    "@nomiclabs/buidler-web3": "^1.0.0-beta.10",
+    "@nomiclabs/buidler": "^1.0.0-beta.11",
+    "@nomiclabs/buidler-web3": "^1.0.0-beta.11",
     "web3": "^1.2.0"
   }
 }
