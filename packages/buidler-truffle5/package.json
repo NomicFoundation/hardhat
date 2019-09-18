@@ -39,7 +39,6 @@
   "devDependencies": {
     "@nomiclabs/buidler": "^1.0.0-beta.11",
     "@nomiclabs/buidler-web3": "^1.0.0-beta.11",
-    "@types/chai": "^4.1.7",
     "@types/glob": "^7.1.1",
     "web3": "^1.2.0"
   },
