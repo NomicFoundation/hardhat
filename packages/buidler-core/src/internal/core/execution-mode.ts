@@ -1,3 +1,9 @@
+import debug from "debug";
+import findUp from "find-up";
+import path from "path";
+
+const log = debug("buidler:core:execution-mode");
+
 /**
  * This module defines different Buidler execution modes and autodetects them.
  *
@@ -26,9 +32,46 @@ export function getExecutionMode(): ExecutionMode {
     return ExecutionMode.EXECUTION_MODE_LINKED;
   }
 
-  if (require("is-installed-globally")) {
-    return ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION;
+  try {
+    if (require("is-installed-globally")) {
+      return ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION;
+    }
+  } catch (error) {
+    log(
+      "Failed to load is-installed-globally. Using alternative local installation detection",
+      error
+    );
+
+    if (!alternativeIsLocalInstallation()) {
+      return ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION;
+    }
   }
 
   return ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION;
+}
+
+/**
+ * This is a somewhat more limited detection, but we use it if
+ * is-installed-globally fails.
+ *
+ * If a user installs buidler locally, and executes it from outside the
+ * directory that contains the `node_module` with the installation, this will
+ * fail and return `false`.
+ */
+function alternativeIsLocalInstallation(): boolean {
+  let cwd = workingDirectoryOnLoad;
+
+  while (true) {
+    const nodeModules = findUp.sync("node_modules", { cwd });
+
+    if (nodeModules === null) {
+      return false;
+    }
+
+    if (__dirname.startsWith(nodeModules)) {
+      return true;
+    }
+
+    cwd = path.join(nodeModules, "..", "..");
+  }
 }
