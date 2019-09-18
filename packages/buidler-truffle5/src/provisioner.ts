@@ -42,7 +42,7 @@ export class LazyTruffleContractProvisioner {
     }
 
     if (typeof this._networkConfig.gasPrice === "number") {
-      defaults.gas = this._networkConfig.gasPrice;
+      defaults.gasPrice = this._networkConfig.gasPrice;
       hasDefaults = true;
     }
 
