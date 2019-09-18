@@ -146,18 +146,27 @@ function createMultipliedGasEstimationGetter() {
     params: any[],
     gasMultiplier: number
   ): Promise<string> {
-    const realEstimation = await provider.send("eth_estimateGas", params);
+    try {
+      const realEstimation = await provider.send("eth_estimateGas", params);
 
-    if (gasMultiplier === 1) {
-      return realEstimation;
+      if (gasMultiplier === 1) {
+        return realEstimation;
+      }
+
+      const normalGas = rpcQuantityToNumber(realEstimation);
+      const gasLimit = await getBlockGasLimit(provider);
+
+      const multiplied = Math.floor(normalGas * gasMultiplier);
+      const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
+
+      return numberToRpcQuantity(gas);
+    } catch (error) {
+      if (error.message.toLowerCase().includes("execution error")) {
+        const blockGasLimit = await getBlockGasLimit(provider);
+        return numberToRpcQuantity(blockGasLimit);
+      }
+
+      throw error;
     }
-
-    const normalGas = rpcQuantityToNumber(realEstimation);
-    const gasLimit = await getBlockGasLimit(provider);
-
-    const multiplied = Math.floor(normalGas * gasMultiplier);
-    const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
-
-    return numberToRpcQuantity(gas);
   };
 }
