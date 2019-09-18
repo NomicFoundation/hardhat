@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-web3-legacy",
-  "version": "1.0.0-beta.12",
+  "version": "1.0.0-beta.13",
   "author": "Nomic Labs SRL",
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3-legacy",
@@ -33,12 +33,12 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.12",
+    "@nomiclabs/buidler": "^1.0.0-beta.13",
     "chai": "^4.2.0",
     "web3": "^0.20.7"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.12",
+    "@nomiclabs/buidler": "^1.0.0-beta.13",
     "web3": "^0.20.7"
   }
 }
