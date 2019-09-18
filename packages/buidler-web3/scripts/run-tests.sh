@@ -27,3 +27,7 @@ else
 fi
 
 ../../node_modules/.bin/mocha --exit
+
+node web3-lazy-object-tests/when-accessing-web3-class.js
+node web3-lazy-object-tests/when-accessing-web3-object.js
+node web3-lazy-object-tests/when-requiring-web3-module.js
