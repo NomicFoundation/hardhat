@@ -166,6 +166,7 @@ function createMultipliedGasEstimationGetter() {
         return numberToRpcQuantity(blockGasLimit);
       }
 
+      // tslint:disable-next-line only-buidler-error
       throw error;
     }
   };
