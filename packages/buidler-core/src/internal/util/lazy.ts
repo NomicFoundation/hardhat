@@ -63,8 +63,6 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   );
 }
 
-const creationsStack: boolean[] = [];
-
 function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
   targetCreator: () => ActualT,
   dummyTargetCreator: () => GuardT,
@@ -77,10 +75,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
 
   function getRealTarget(): ActualT {
     if (realTarget === undefined) {
-      creationsStack.push(true);
       const target = targetCreator();
-      creationsStack.pop();
-
       validator(target);
 
       // We copy all properties. We won't use them, but help us avoid Proxy
@@ -122,16 +117,17 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       // created, it would trigger an endless loop of recreation, which node
       // detects and resolve to an empty object.
       //
-      // This happens with Web3.js because we a lazyFunction that loads it,
-      // and expose it as `global.Web3`. This Web3.js file accesses
-      // `global.Web3` when it's being loaded, triggering the loop we mentioned
+      // This happens with Web3.js because we a lazyObject that loads it,
+      // and expose it as `global.web3`. This Web3.js file accesses
+      // `global.web3` when it's being loaded, triggering the loop we mentioned
       // before: https://github.com/ethereum/web3.js/blob/8574bd3bf11a2e9cf4bcf8850cab13e1db56653f/packages/web3-core-requestmanager/src/givenProvider.js#L41
       //
       // We just return `undefined` in that case, to not enter into the loop.
+      const stack = new Error().stack;
       if (
-        creationsStack.length > 0 &&
-        realTarget === undefined &&
-        property === "currentProvider"
+        stack !== undefined &&
+        stack.includes("givenProvider.js") &&
+        realTarget === undefined
       ) {
         return undefined;
       }
