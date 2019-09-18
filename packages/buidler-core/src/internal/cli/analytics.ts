@@ -143,7 +143,7 @@ export class Analytics {
       //   Possible values: "CI", "Developer".
       cd2: this._userType,
       // Custom dimension 3: Buidler Version
-      //   Example: "Buidler 1.0.0-beta.12".
+      //   Example: "Buidler 1.0.0-beta.13".
       cd3: await getBuidlerVersion()
     };
   }

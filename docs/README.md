@@ -93,7 +93,7 @@ footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
 
   ```sh
   $ npx buidler help shoot
-  Buidler version 1.0.0-beta.2
+  Buidler version 1.0.0-beta.13
 
   Usage: buidler [GLOBAL OPTIONS] shoot --target <STRING>
 
