@@ -45,7 +45,7 @@ module.exports = {
         title: "Reference",
         collapsable: false,
         children: [
-          ['/documentation/#configuration', 'Configuration'],
+          ['/reference/#configuration', 'Configuration'],
           ['/reference/#buidler-runtime-environment-bre', 'Buidler Runtime Environment (BRE)'],
           ['/reference/#building-plugins', 'Building plugins'],
           ['/reference/#stack-traces', 'Stack traces'],
