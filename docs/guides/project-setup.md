@@ -41,7 +41,11 @@ Except for `scripts/`, which is just an organizational directory unrelated to co
 
 If you need to change these paths, take a look at the [paths configuration section](/reference/#path-configuration).
 
-By default, Buidler projects use the built-in [Buidler EVM]() as a development network to run tests. If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can use the `defaultNetwork` and `networks` configuration entries in the exported object in `buidler.config.js`, which is how Buidler projects manages settings.
+When it comes to testing your contracts, Buidler comes with some built-in defaults:
+- [Mocha](https://mochajs.org/) as the test runner
+- The built-in [Buidler EVM]() as the development network to test on
+
+If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can use the `defaultNetwork` and `networks` configuration entries in the exported object in `buidler.config.js`, which is how Buidler projects manages settings.
 
 Take a look at the [networks configuration section](/reference/#networks-configuration) to learn more about setting up different networks.
 

@@ -30,7 +30,7 @@ module.exports = {
         title: "Guides",
         collapsable: false,
         children: [
-          ['/guides/create-project.md', 'Setting up a project'],
+          ['/guides/project-setup.md', 'Setting up a project'],
           ['/guides/compile-contracts.md', 'Compiling your contracts'],
           ['/guides/truffle-testing.md', 'Testing with Truffle'],
           ['/guides/waffle-testing.md', 'Testing with Waffle'],
