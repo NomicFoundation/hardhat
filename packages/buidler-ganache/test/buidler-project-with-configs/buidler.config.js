@@ -11,7 +11,8 @@ module.exports = {
       gasLimit: 6000000000,
       defaultBalanceEther: 9,
       totalAccounts: 3,
-      mnemonic: "polar velvet stereo oval echo senior cause cruel tube hobby exact angry",
-    },
+      mnemonic:
+        "polar velvet stereo oval echo senior cause cruel tube hobby exact angry"
+    }
   }
 };

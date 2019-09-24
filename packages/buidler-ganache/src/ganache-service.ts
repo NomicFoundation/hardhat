@@ -1,16 +1,51 @@
+import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import debug from "debug";
 import { URL } from "url";
 
 const log = debug("buidler:plugin:ganache-service");
-log.color = "6";
+
+declare interface GanacheOptions {
+  url: string;
+  keepAliveTimeout?: number;
+  accountKeysPath?: string; // Translates to: account_keys_path
+  accounts?: object[];
+  allowUnlimitedContractSize?: boolean;
+  blockTime?: number;
+  dbPath?: string; // Translates to: db_path
+  debug?: boolean;
+  defaultBalanceEther?: number; // Translates to: default_balance_ether
+  fork?: string | object;
+  forkBlockNumber?: string | number; // Translates to: fork_block_number
+  gasLimit?: number;
+  gasPrice?: string | number;
+  hardfork?: "byzantium" | "constantinople" | "petersburg";
+  hdPath?: string; // Translates to: hd_path
+  hostname?: string;
+  locked?: boolean;
+  logger?: {
+    log(msg: string): void;
+  };
+  mnemonic?: string;
+  networkId?: number;
+  port?: number;
+  seed?: any;
+  time?: any; // Date
+  totalAccounts?: number; // Translates to: total_accounts
+  unlockedAccounts?: string[]; // Translates to: unlocked_accounts
+  verbose?: boolean;
+  vmErrorsOnRPCResponse?: boolean;
+  ws?: boolean;
+}
+
+const DEFAULT_PORT = 7545;
 
 export class GanacheService {
-  public static error: Error;
+  public static error?: Error;
   public static optionValidator: any;
 
   public static getDefaultOptions(): GanacheOptions {
     return {
-      url: "http://127.0.0.1:8545",
+      url: `http://127.0.0.1:${DEFAULT_PORT}`,
       gasPrice: 20000000000,
       gasLimit: 6721975,
       defaultBalanceEther: 100,
@@ -54,13 +89,20 @@ export class GanacheService {
     } catch (e) {
       // Verify the expected error or throw it again
       if (e.name === "TypeError") {
-        e.message = "One or more invalid values in ganache network options";
-        if (!GanacheService.error) {
-          log(e.message || e);
-          GanacheService.error = e;
+        if (GanacheService.error === undefined) {
+          const error = new BuidlerPluginError(
+            `Ganache plugin config is invalid: ${e.message}`,
+            e
+          );
+
+          log("Failed to initialize GanacheService\n", error);
+          GanacheService.error = error;
         }
       } else {
-        throw e;
+        throw new BuidlerPluginError(
+          `Failed to initialize GanacheService: ${e.message}`,
+          e
+        );
       }
     }
   }
@@ -78,15 +120,31 @@ export class GanacheService {
 
       // Start server with current configs (port and hostname)
       await new Promise((resolve, reject) => {
-        this._server.once("listening", resolve);
-        this._server.once("error", reject);
+        let onError: (err: Error) => void;
+
+        const onListening = () => {
+          this._server.removeListener("error", onError);
+          resolve();
+        };
+
+        onError = err => {
+          this._server.removeListener("listening", onListening);
+          reject(err);
+        };
+
+        this._server.once("listening", onListening);
+        this._server.once("error", onError);
         this._server.listen(port, hostname);
       });
     } catch (e) {
-      e.message = `Start Server > ${e.message}`;
-      if (!GanacheService.error) {
-        log(e.message || e);
-        GanacheService.error = e;
+      const error = new BuidlerPluginError(
+        `Failed to start GanacheService: ${e.message}`,
+        e
+      );
+
+      if (GanacheService.error === undefined) {
+        log("Failed to start GanacheService\n", error);
+        GanacheService.error = error;
       }
     }
 
@@ -104,7 +162,7 @@ export class GanacheService {
       // Stop server and Wait for it
       await new Promise((resolve, reject) => {
         this._server.close((err: Error) => {
-          if (err) {
+          if (err !== undefined && err !== null) {
             reject(err);
           } else {
             resolve();
@@ -112,14 +170,17 @@ export class GanacheService {
         });
       });
     } catch (e) {
-      e.message = `Stop Server > ${e.message}`;
-      if (!GanacheService.error) {
-        log(e.message || e);
-        GanacheService.error = e;
+      const error = new BuidlerPluginError(
+        `Failed to stop GanacheService: ${e.message}`,
+        e
+      );
+
+      if (GanacheService.error === undefined) {
+        log("Failed to stop GanacheService\n", error);
+        GanacheService.error = error;
       }
     }
 
-    // Verify service state before continue (TODO Maybe extract this to a decorator)
     this._checkForServiceErrors();
   }
 
@@ -129,25 +190,33 @@ export class GanacheService {
     // Validate and parse hostname and port from URL (this validation is priority)
     const url = new URL(options.url);
     if (url.hostname !== "locahost" && url.hostname !== "127.0.0.1") {
-      throw new Error("Config: ganache.hostname must resolve to locahost");
+      throw new BuidlerPluginError("Ganache network only works with locahost");
     }
 
     // Validate all options agains validator
     try {
       GanacheService.optionValidator.check(options);
     } catch (e) {
-      e.message = e.message.replace("value.", "Config: ganache.");
-      throw e;
+      throw new BuidlerPluginError(
+        `Ganache network config is invalid: ${e.message}`,
+        e
+      );
     }
 
     // Test for unsupported commands
     if (options.accounts !== undefined) {
-      throw new Error("Config: ganache.accounts unsupported for this network");
+      throw new BuidlerPluginError(
+        "Config: ganache.accounts unsupported for this network"
+      );
     }
 
     // Transform needed options to Ganache core server (not using SnakeCase lib for performance)
     validatedOptions.hostname = url.hostname;
-    validatedOptions.port = Number(url.port) || 80;
+
+    validatedOptions.port =
+      url.port !== undefined && url.port !== ""
+        ? parseInt(url.port, 10)
+        : DEFAULT_PORT;
 
     const optionsToInclude = [
       "accountsKeyPath",
@@ -157,7 +226,7 @@ export class GanacheService {
       "unlockedAccounts"
     ];
     for (const [key, value] of Object.entries(options)) {
-      if (value && optionsToInclude.includes(key)) {
+      if (value !== undefined && optionsToInclude.includes(key)) {
         validatedOptions[this._snakeCase(key)] = value;
         delete validatedOptions[key];
       }
@@ -171,45 +240,27 @@ export class GanacheService {
 
     // Add listener for general server errors
     server.on("error", function(err: any) {
-      if (!GanacheService.error && err) {
-        log(err.message || err);
+      if (
+        GanacheService.error === undefined &&
+        err !== undefined &&
+        err !== null
+      ) {
+        log("An error occurred in GanacheService\n", err);
         GanacheService.error = err;
       }
     });
-
-    // Add listener for process uncaught errors (warning: this may catch non plugin related errors)
-    // process.on("uncaughtException", function(e) {
-    //   log("Uncaught Exception", e.message);
-    //   server.close(function(err: any) {
-    //     if (!GanacheService.error && err) {
-    //       log(err.message || err.stack || err);
-    //       GanacheService.error = err;
-    //     }
-    //   });
-    // });
-
-    // Add listener for standard POSIX signal SIGINT (usually generated with <Ctrl>+C)
-    // process.on("SIGINT", function() {
-    //   log("SIGINT detected");
-    //   server.close(function(err: any) {
-    //     if (!GanacheService.error && err) {
-    //       log(err.message || err.stack || err);
-    //       GanacheService.error = err;
-    //     }
-    //   });
-    // });
-
-    // TODO Maybe in the future, in new threat, some kind of ping checker to the server (every 30 seg)
   }
 
   private _checkForServiceErrors() {
-    if (GanacheService.error) {
-      // Close server (if needed)
-      if (this._server) {
+    if (GanacheService.error !== undefined) {
+      if (this._server !== undefined) {
         this._server.close();
       }
 
-      throw new Error(GanacheService.error.message);
+      throw new BuidlerPluginError(
+        `An error occurred in GanacheService: ${GanacheService.error.message}`,
+        GanacheService.error
+      );
     }
   }
 

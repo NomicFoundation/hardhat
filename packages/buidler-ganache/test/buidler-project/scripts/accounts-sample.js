@@ -5,12 +5,12 @@ async function main() {
   const accounts = await env.network.provider.send("eth_accounts");
 
   // Test for existence
-  if(!accounts) {
+  if (!accounts) {
     throw new Error("Accounts not detected");
   }
 
   // Test for validity of all data
-  if(accounts.length !== 10){
+  if (accounts.length !== 10) {
     throw new Error("Invalid Accounts amount");
   }
 }

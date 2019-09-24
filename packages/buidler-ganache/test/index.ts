@@ -8,15 +8,11 @@ import { useEnvironment } from "./helpers";
 describe("Ganache plugin with empty configs", function() {
   useEnvironment(path.join(__dirname, "buidler-project"));
 
-  it("Should set ganache as default network", function() {
-    assert.equal(this.env.config.defaultNetwork, "ganache");
-  });
-
-  it("Should add ganache network to buidler runtime environment", function() {
+  it("Should add ganache network to the config", function() {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it("Should expose ganache defaults configs in buidler runtime environment", function() {
+  it("Should expose ganache defaults configs in buidler's config", function() {
     assert.isDefined(this.env.config.networks.ganache);
     const defaultOptions = GanacheService.getDefaultOptions() as any;
     const options = this.env.config.networks.ganache as any;
@@ -53,11 +49,11 @@ describe("Ganache plugin with empty configs", function() {
 describe("Ganache plugin with custom configs", function() {
   useEnvironment(path.join(__dirname, "buidler-project-with-configs"));
 
-  it("Should add ganache network to buidler runtime environment", function() {
+  it("Should add ganache network to buidler's config", function() {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it("Should load custom configs in buidler runtime environment", function() {
+  it("Should load custom configs in buidler's config'", function() {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs = require("./buidler-project-with-configs/buidler.config.js");
 
@@ -72,7 +68,7 @@ describe("Ganache plugin with custom configs", function() {
     }
   });
 
-  it("Should expose merged (custom + defaults) configs in buidler runtime environment", function() {
+  it("Should expose merged (custom + defaults) configs in buidler's config", function() {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs = require("./buidler-project-with-configs/buidler.config.js");
     const defaultOptions = GanacheService.getDefaultOptions() as any;
