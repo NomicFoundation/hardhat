@@ -81,6 +81,8 @@ buidler.network               buidler.run                   buidler.tasks
 
 You will also notice that the console has the handy history feature you expect out of most interactive terminals. Try it by pressing the up arrow key.
 
+To use top-level await (i.e. `console.log(await web3.eth.getBalance()`) in the console you will node Node >10, otherwise you can use the Promise API (i.e. `getBalance().then(console.log)`)
+
 For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
 
 [Buidler Runtime Environment]: /reference/#buidler-runtime-environment-bre
