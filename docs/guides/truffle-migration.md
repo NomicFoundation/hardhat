@@ -1,49 +1,33 @@
----
-prev: false
-next: false
----
-
 # Migrating from Truffle
 
-In this guide, we will show you how to use the Buidler Truffle integration plugins that allow you to use TruffleContract with Buidler. This means that you can use the `contract()` function you always use in your Truffle tests and elsewhere.
+To migrate an existing Truffle project onto Buidler there are two main things to consider: testing and deployment.
 
-Use the plugin that corresponds to the Truffle version you wrote your tests with: [buidler-truffle4](https://github.com/nomiclabs/buidler-truffle4) or [buidler-truffle5](https://github.com/nomiclabs/buidler-truffle5). To make it a real example, let’s go through the process of running an existing project’s Truffle 5 tests with Buidler.
+When it comes to unit tests, there are two Buidler plugins that support the Truffle testing APIs: `buidler-truffle4` and `buidler-truffle5`. Both plugins support Solidity 5. Generally, using these you can run your existing tests with Buidler.
 
-What better project to showcase this than [OpenZeppelin](https://openzeppelin.org), the widely-used smart contract development framework from our friends at [Zeppelin](https://zeppelin.solutions/).
+If your project uses [Truffle Migrations](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations) to initialize your testing environment (i.e. your tests call `deployed()`), then there's some more work to do to be able to run your tests.
 
-Let’s checkout the Github repo and install its dependencies:
+The Truffle plugin currently doesn't fully support Migrations. Instead, you need to adapt your Migrations to become `buidler-truffle5` fixtures. Generally this entails calling `setAsDeployed()` on each of the contract abstractions you want to test to set an instance of the deployed contract.
 
-```bash
-git clone git@github.com:OpenZeppelin/openzeppelin-solidity.git
-cd openzeppelin-solidity/
-git checkout v2.1.2 -b buidler-migration
-npm install
-```
-
-Install Buidler and the Truffle 5 plugin:
-
-```bash
-npm install @nomiclabs/buidler @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
-```
-
-Then put the following into `buidler.config.js`:
-
+For this migration
 ```js
-usePlugin("@nomiclabs/buidler-truffle5");
+const Greeter = artifacts.require("Greeter");
 
-module.exports = {
-  solc: { version: "0.5.2" }
+module.exports = function(deployer) {
+  deployer.deploy(Greeter);
 };
 ```
+this is what the `buidler-truffle5` fixture would look like
+```js
+const Greeter = artifacts.require("Greeter");
 
-And that’s it. Run `npx buidler test` to run all the tests. They will work.
-
-You may think “What if my tests are written with Truffle 4?” Well, there’s a plugin for that.
-
-```bash
-npm install @nomiclabs/buidler-truffle4 @nomiclabs/buidler-web3-legacy web3@0.20.7
+module.exports = async () => {
+  const greeter = await Greeter.new();
+  Greeter.setAsDeployed(greeter);
+}
 ```
 
-Set the appropriate compiler version in `buidler.config.js`, load the plugin with `usePlugin()`, and you’re good to go.
+These fixtures will run on Mocha's `before`, which runs before each `contract()` function is run -- just like Truffle does.
 
-For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+When it comes to deploying, there are no plugins that implement a deployment system for Buidler yet, but there's [an open issue](https://github.com/nomiclabs/buidler/issues/381) with some ideas and we'd value your opinion on how to best design it.
+
+For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
