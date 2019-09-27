@@ -1,14 +1,15 @@
 ## Configuration
 
-Buidler is exporting a JavaScript object from a `buidler.config.js` file, which, by default, lives in the root of your project.
+When Buidler is run, it searches for the closest `buidler.config.js` file starting
+from the Current Working Directory. This file normally lives in the root of your project. An empty `builder.config.js` is enough for builder to work.
 
-The entirety of your Builder setup is contained in this file. Feel free to add any ad-hoc configs you may find useful for your project, just make sure to assign them to `module.exports` so they'll be accessible later on through the config object in the [Builder Runtime Environment](/documentation/#buidler-runtime-environment-bre).
-
-An empty `builder.config.js` is enough for builder to work.
+The entirety of your Builder setup (i.e. your config, plugins and custom tasks) is contained in this file.
 
 ### Available config options
 
-The exported config object can have the following entries: `defaultNetwork`, `networks`, `solc`, and `paths`. A complete configuration would look like this:
+To set up your config, you have to export an object from `buidler.config.js`.
+
+This object can have the following entries: `defaultNetwork`, `networks`, `solc`, and `paths`. A complete configuration would look like this:
 
 ```js
 module.exports = {
@@ -24,16 +25,22 @@ module.exports = {
 The `networks` config field is an optional object where network names map to objects with the following fields:
 
 - `url`: The url of the node. This argument is required for custom networks.
+
 - `chainId`: An optional number, used to validate the network Buidler connects to. If not present, this validation is omitted.
+
 - `from`: The address to use as default sender. If not present the first account of the node is used.
+
 - `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: `"auto"`.
+
 - `gasPrice`: Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `"auto"`.
+
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
+
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an HD Wallet (see below). Default value: `"remote"`.
 
 You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value will be `"develop"`.
 
-### HD Wallet config
+#### HD Wallet config
 
 To use an HD Wallet with Buidler you should set your network's `accounts` field to an object with the following fields:
 
@@ -42,7 +49,7 @@ To use an HD Wallet with Buidler you should set your network's `accounts` field 
 - `initialIndex`: The initial index to derive. Default value: `0`.
 - `count`: The number of accounts to derive. Default value: `10`.
 
-### Default networks object
+#### Default networks object
 
 ```js
 develop: {
@@ -54,54 +61,58 @@ develop: {
 
 The `solc` config field is an optional object which can contain the following keys:
 
-- `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.8"`.
+- `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.11"`.
+
 - `optimizer`: An object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
-- `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, and `"petersburg"`. Default value: managed by Solidity. Please, consult its documentation.
+
+- `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul""`. Default value: managed by Solidity. Please, consult its documentation.
 
 ### Path configuration
 
-You can customize the different paths that buidler uses by providing an object with the following keys:
+You can customize the different paths that Buidler uses by providing an object with the following keys:
 
-- `root`: The root of the Buidler project. This path is resolved from the `buidler.config.js`'s directory. Default value: '.'.
+- `root`: The root of the Buidler project. This path is resolved from the `buidler.config.js`'s directory. Default value: The directory containing the config file.
 - `sources`: The directory where your contract are stored. This path is resolved from the project's root. Default value: './contracts'.
 - `tests`: The directory where your tests are located. This path is resolved from the project's root. Default value: './test'.
 
 - `cache`: The directory used by Buidler to cache its internal stuff. This path is resolved from the project's root. Default value: './cache'.
 - `artifacts`: The directory where the compilation artifacts are stored. This path is resolved from the project's root. Default value: './artifacts'.
 
-## Quickly integrating other tools
+### Quickly integrating other tools from Buidler's config
 
 Buidler's config file will always run before any task, so you can use it to integrate with other tools, like importing `@babel/register`.
 
 ## Buidler Runtime Environment (BRE)
 
 ### Overview
-The Buidler Runtime Environment, or BRE for short, is an object containing all the functionality that Buidler exposes when running a task, test or script. In reality, Buidler _is_ the BRE. 
 
-When you require Buidler (`const buidler = require("@nomiclabs/buidler")`) you're getting an instance of the BRE. 
+The Buidler Runtime Environment, or BRE for short, is an object containing all the functionality that Buidler exposes when running a task, test or script. In reality, Buidler _is_ the BRE.
+
+When you require Buidler (`const buidler = require("@nomiclabs/buidler")`) you're getting an instance of the BRE.
 
 During initialization, the Buidler configuration file essentially constructs a list of things to be added to the BRE. This includes tasks, configs and plugins. Then when tasks, tests or scripts run, the BRE is always present and available to access anything that is contained in it.
 
 The BRE has a role of centralizing coordination across all Buidler components. This architecture allows for plugins to inject functionality that becomes available everywhere the BRE is accessible.
 
 ### Using the BRE
+
 By default, the BRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider. You can find more information about [it in its API docs](/api/classes/environment.html).
 
 Plugins can extend the BRE. For example, [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) adds a `web3` instance to it, making it available to tasks, tests and scripts.
 
-### Exporting globally
+#### As global variables
 
 Before running a task, test or script, Buidler injects the BRE into the global scope, turning all of its fields into global variables. When the task execution is completed, these global variables are removed, restoring their original value, if they had one.
 
-### Explicit usage
+#### Explicitly
 
 Not everyone likes magic global variables, and Buidler doesn't force you to use them. Everything can be done explicitly in tasks, tests and scripts.
 
+When writing tests or scripts, you can use `require("@nomiclabs/buidler")` to import the BRE. You can read more about this in [Accessing the BRE from outside a task](#accessing-the-bre-from-outside-a-task).
+
 You can import the config DSL explicitly when defining your tasks, and receive the BRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](#creating-your-own-tasks).
 
-When writing tests or scripts, you can use `require("@nomiclabs/buidler")` to import the BRE. You can read more about this in [Accessing the BRE from outside a task](/documentation/#accessing-from-outside-a-task).
-
-### Extending
+### Extending the BRE
 
 The BRE only provides the core functionality that users and plugin developers need to start building on top of Buidler. Using it to interface directly with Ethereum in your project can be somewhat harder than expected.
 
@@ -115,18 +126,19 @@ For example, adding an instance of Web3.js to the BRE can be done in this way:
 
 ```js
 extendEnvironment(env => {
-  env.Web3 = require("web3");
+  const Web3 = require("web3");
+  env.Web3 = Web3;
 
-  // env.network.provider is the EIP1193-compatible provider.
-  env.web3 = new env.Web3(new Web3HTTPProviderAdapter(env.network.provider));
+  // env.network.provider is an EIP1193-compatible provider.
+  env.web3 = new Web3(new Web3HTTPProviderAdapter(env.network.provider));
 });
 ```
 
-### Accessing from outside a task
+### Accessing the BRE from outside a task
 
 The BRE can be used from any JavaScript or TypeScript file. To do so, you only have to import it with `require("@nomiclabs/buidler")`. You can do this to keep more control over your development workflow, create your own tools, or to use Buidler with other dev tools from the node.js ecosystem.
 
-Running test directly with [mocha](https://www.npmjs.com/package/mocha) instead of `npx buidler test` can be done by explicitly importing the BRE in them like this:
+Running test directly with [Mocha](https://www.npmjs.com/package/mocha) instead of `npx buidler test` can be done by explicitly importing the BRE in them like this:
 
 ```js
 const env = require("@nomiclabs/buidler");
@@ -139,9 +151,10 @@ describe("Buidler Runtime Environment", function() {
 });
 ```
 
-This way, tests written for Buidler are just normal mocha tests. This enables you to run them from your favorite editor without the need of any Buidler-specific plugin. For example, you can run them from Visual Studio Code using [Mocha sidebar](https://marketplace.visualstudio.com/items?itemName=maty.vscode-mocha-sidebar).
+This way, tests written for Buidler are just normal Mocha tests. This enables you to run them from your favorite editor without the need of any Buidler-specific plugin. For example, you can run them from [Visual Studio Code](https://code.visualstudio.com/) using [Mocha Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-mocha-test-adapter).
 
 ## Building plugins
+
 This is based on the [TypeScript plugin boilerplate project](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/). We highly recommend to develop plugins in TypeScript.
 
 ### Plugin functionality
@@ -197,35 +210,32 @@ Examples of suggested overrides are:
 
 For a list of all the built-in tasks and internal tasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/buidler/blob/master/packages/buidler-core/src/builtin-tasks/task-names.ts)
 
-
-## Stack traces
-
 ## Verbose logging
 
-Buidler uses the [debug](https://github.com/visionmedia/debug) package to manage logging. A `DEBUG` environment variable that can be used to turn on the verbose logging and filter it using a simple wildcard pattern.
+You can enable Buidler's verbose mode by running it with its `--verbose` flag, or by setting the `BUIDLER_VERBOSE` environment variable to `true`.
+
+This mode will print a lot of output that can be super useful for debugging. An example of Buidler run in verbose mode is:
 
 ```
-$ DEBUG=buidler:* npx buidler
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/internal/core/tasks/builtin-tasks +0ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/builtin-tasks/clean +2ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/builtin-tasks/compile +1ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/builtin-tasks/console +24ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/builtin-tasks/flatten +2ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/builtin-tasks/help +0ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/builtin-tasks/run +2ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler/builtin-tasks/test +0ms
+pato@pmbp:asd% npx buidler --verbose
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/internal/core/tasks/builtin-tasks +0ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/builtin-tasks/clean +3ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/builtin-tasks/compile +2ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/builtin-tasks/console +53ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/builtin-tasks/flatten +3ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/builtin-tasks/help +1ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/builtin-tasks/run +2ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-core/builtin-tasks/test +1ms
   buidler:core:plugins Loading plugin @nomiclabs/buidler-truffle5 +2ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler-truffle5/dist/index.js +2ms
-  buidler:core:plugins Loading plugin @nomiclabs/buidler-web3 +2ms
-  buidler:core:plugins Loading plugin file /Users/fzeoli/Work/nomic/Buidler/repos/moloch/node_modules/@nomiclabs/buidler-web3/dist/index.js +0ms
-  buidler:core:analytics Computing Project Id for /Users/fzeoli/Work/nomic/Buidler/repos/moloch +0ms
-  buidler:core:analytics Project Id set to f2d71cba31a116a384d21dcb0e2490a77e82fdbba0c7b3d6a1a9028c6aa66024 +1ms
-  buidler:core:analytics Looking up Client Id at /Users/fzeoli/.buidler/config.json +0ms
-  buidler:core:analytics Client Id found: 7073d89f-166b-4c60-a382-6ec7630856b2 +1ms
-  buidler:core:analytics Sending hit for /task/help +1ms
-  buidler:core:analytics Hit payload: {"v":"1","t":"pageview","tid":"UA-117668706-3","cid":"7073d89f-166b-4c60-a382-6ec7630856b2","dp":"/task/help","dh":"cli$
-buidler.dev","ua":"Node/v10.16.0 (Macintosh; Intel Mac OS X 10_13_6)","cs":"Developer","cm":"User Type","cd1":"f2d71cba31a116a384d21dcb0e2490a77e82fdbba0c7b3d
-6a1a9028c6aa66024","cd2":"Developer","cd3":"Buidler 1.0.0-beta.10"} +1ms
+  buidler:core:plugins Buidler is linked, searching for plugin starting from CWD /private/tmp/asd +0ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-truffle5/dist/index.js +5ms
+  buidler:core:plugins Loading plugin @nomiclabs/buidler-web3 +60ms
+  buidler:core:plugins Buidler is linked, searching for plugin starting from CWD /private/tmp/asd +0ms
+  buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-web3/dist/index.js +0ms
+  buidler:core:analytics Computing Project Id for /private/tmp/asd +0ms
+  buidler:core:analytics Project Id set to acce19ef71fcff30788e87c9d69ca4d0a5aee84c8f8cf696183a21b788730078 +1ms
+  buidler:core:analytics Looking up Client Id at /Users/pato/.buidler/config.json +1ms
+  buidler:core:analytics Client Id found: 61cf5dde-8c57-447b-bfe0-d57bdd80ab68 +1ms
   buidler:core:bre Creating BuidlerRuntimeEnvironment +0ms
   buidler:core:bre Running task help +1ms
 Buidler version 1.0.0-beta.10
@@ -237,6 +247,7 @@ GLOBAL OPTIONS:
   --config              A Buidler config file.
   --emoji               Use emoji in messages.
   --help                Shows this message, or a task's help if its name is provided
+  --max-memory          The maximum amount of memory that Buidler can use.
   --network             The network to connect to.
   --show-stack-traces   Show stack traces.
   --verbose             Enables Buidler verbose logging
@@ -245,29 +256,33 @@ GLOBAL OPTIONS:
 
 AVAILABLE TASKS:
 
-  clean                         Clears the cache and deletes all artifacts
-  compile                       Compiles the entire project, building all artifacts
-  console                       Opens a buidler console
-  flatten                       Flattens and prints all contracts and their dependencies
-  help                          Prints this message
-  moloch-deploy                 Deploys a new instance of the Moloch DAO
-  moloch-process-proposal       Processes a proposal
-  moloch-ragequit               Ragequits, burning some shares and getting tokens back
-  moloch-submit-proposal        Submits a proposal
-  moloch-submit-vote            Submits a vote
-  moloch-update-delegate        Updates your delegate
-  pool-add-keeper               Adds a keeper
-  pool-deploy                   Deploys a new instance of the pool and activates it
-  pool-deposit                  Donates tokens to the pool
-  pool-keeper-withdraw          Withdraw other users' tokens from the pool
-  pool-remove-keeper            Removes a keeper
-  pool-sync                     Syncs the pool
-  pool-withdraw                 Withdraw tokens from the pool
-  run                           Runs a user-defined script after compiling the project
-  test                          Runs mocha tests
+  clean         Clears the cache and deletes all artifacts
+  compile       Compiles the entire project, building all artifacts
+  console       Opens a buidler console
+  flatten       Flattens and prints all contracts and their dependencies
+  help          Prints this message
+  run           Runs a user-defined script after compiling the project
+  sample-task   A sample Buidler task
+  test          Runs mocha tests
 
 To get help for a specific task run: buidler help [task]
 
-  buidler:core:analytics Aborting hit for "/task/help" +26ms
   buidler:core:cli Killing Buidler after successfully running task help +0ms
 ```
+
+Buidler uses the [debug](https://github.com/visionmedia/debug) package to manage logging. The `DEBUG` environment variable that can be used to turn on the verbose logging and filter it using a simple wildcard pattern.
+
+## Common problems
+
+### Out of memory errors when compiling large projects
+
+If your project has lots of smart contracts, compiling them may require more memory than what
+Node allows by default and crash.
+
+If you are experiencing this problem, you can use Buidler's `--max-memory` argument:
+
+```sh
+npx buidler --max-memory 4096 compile
+```
+
+If you find yourself using this all the time, you can set it with an environment variable in your `.bashrc`: `export BUIDLER_MAX_MEMORY=4096`.

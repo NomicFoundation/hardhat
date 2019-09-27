@@ -164,27 +164,25 @@ Creating a task is done by calling the [`task` function](/api/#task). It will re
 The simplest task you can define is
 
 ```js
-task("hello", "Prints 'Hello, World!'", async function action(
-  taskArguments,
-  env,
-  runSuper
-) {
+task("hello", "Prints 'Hello, World!'", async function(taskArguments, env, runSuper) {
   console.log("Hello, World!");
 });
 ```
 
-`task`'s first argument is the task name. The second one is its description, which is used for printing help messages in the CLI. The third one, `action`, is an async function that receives the following arguments:
+`task`'s first argument is the task name. The second one is its description, which is used for printing help messages in the CLI. The third one is an async function that receives the following arguments:
 
 - `taskArguments` is an object with the parsed CLI arguments of the task. In this case, it's an empty object.
-- `env` is the [Buidler Runtime Environment].
+
+- `env` is the [Buidler Runtime Environment](/documentation/#buidler-runtime-environment-bre).
+
 - `runSuper` is only relevant if you are overriding an existing task, which we'll learn about next. Its purpose is to let you run the original task's action.
 
 Defining the action's arguments is optional. The Buidler Runtime Environment and `runSuper` will also be available in the global scope. We can rewrite our "hello" task this way:
 
 ```js
-task("hello", "Prints 'Hello, World!'", async () =>
+task("hello", "Prints 'Hello, World!'", async () => {
   console.log("Hello, World!")
-);
+});
 ```
 
 ### Tasks' actions requirements
@@ -222,7 +220,7 @@ Manually creating a `Promise` can look challenging, but you don't have to do tha
 
 Buidler tasks can receive `--named` parameters with a value, `--flags`, positional and variadic parameters. Variadic parameters act like JavaScript's rest parameters. The Config DSL `task` function returns an object with methods to define all of them. Once defined, Buidler takes control of parsing parameters, validating them, and printing help messages.
 
-Adding a positional parameter to the `hello` task can look like this:
+Adding an optional parameter to the `hello` task can look like this:
 
 ```js
 task("hello", "Prints a greeting'")
@@ -238,14 +236,14 @@ You can read the full documentation of these methods and their possible paramete
 
 Positional and variadic parameters don't have to be named, and have the usual restrictions of a programming language:
 
-- No parameter can follow a variadic one
+- No positional parameter can follow a variadic one
 - Required/mandatory parameters can't follow an optional one.
 
 Failing to follow these restrictions will result in an exception being thrown when loading Buidler.
 
 #### Type validations
 
-Buidler takes care of validating and parsing the values provided for each parameter. You can declare the type of a parameter, and Buidler will get the CLI strings and convert it into your desired type. If this conversion fails, it will print an error message explaining why.
+Buidler takes care of validating and parsing the values provided for each parameter. You can declare the type of a parameter, and Buidler will get the CLI strings and convert them into your desired type. If this conversion fails, it will print an error message explaining why.
 
 A number of types are available in the Config DSL through a `types` object. This object is injected into the global scope before processing your `buidler.config.js`, but you can also import it explicitly with `const { types } = require("@nomiclabs/buidler/config")` and take advantage of your editor's autocomplete.
 
@@ -253,12 +251,7 @@ An example of a task defining a type for one of its parameters is
 
 ```js
 task("hello", "Prints 'Hello' multiple times")
-  .addOptionalParam(
-    "times",
-    "The number of times to print 'Hello'",
-    1,
-    types.int
-  )
+  .addOptionalParam("times", "The number of times to print 'Hello'", 1, types.int)
   .setAction(async ({ times }) => {
     for (let i = 0; i < times; i++) {
       console.log("Hello");
@@ -274,7 +267,7 @@ Defining a task with the same name than an existing one will override it. This i
 
 Task overriding works very similarly to overriding methods when extending a class. You can set your own action, which can call the previous one. The only restriction when overriding tasks, is that you can't add or remove parameters.
 
-Task override hierarchy order is important since actions can only call the immediately previous definition, using the `runSuper` function.
+Task override order is important since actions can only call the immediately previous definition, using the `runSuper` function.
 
 Overriding built-in tasks is a great way to customize and extend Buidler. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-core/src/builtin-tasks).
 
@@ -292,7 +285,7 @@ The `runSuper` function receives a single optional argument: an object with the 
 
 Creating tasks with lots of logic makes it hard to extend or customize them. Making multiple small and focused tasks that call each other is better to allow for extension. If you design your tasks in this way, users that want to change only a small aspect of them can override one of your internal tasks.
 
-For example, the `compile` task is implemented as a pipeline of six tasks. It just calls internal tasks like `compile:get-source-paths`, `compile:get-dependency-graph`, and `compile:build-artifacts`. We recommend prefixing intermediate tasks with their main task and a colon.
+For example, the `compile` task is implemented as a pipeline of several tasks. It just calls internal tasks like `compile:get-source-paths`, `compile:get-dependency-graph`, and `compile:build-artifacts`. We recommend prefixing intermediate tasks with their main task and a colon.
 
 To avoid help messages getting cluttered with lots of intermediate tasks, you can define those using the `internalTask` config DSL function. The `internalTask` function works almost exactly like `task`. The only difference is that tasks defined with it won't be included in help messages.
 

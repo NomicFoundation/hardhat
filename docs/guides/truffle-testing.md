@@ -1,6 +1,6 @@
 # Testing contracts with Truffle
 
-This guide will explore the testing of smart contracts using the Truffle plugin, which integrates `TruffleContract` into Buidler.
+This guide will explore the testing of smart contracts using the Truffle plugin, which integrates [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) into Buidler.
 
 The built-in task `test` allows smart contracts to be tested using Mocha as the test runner, and the testing framework of your choice.
 
