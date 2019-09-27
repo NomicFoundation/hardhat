@@ -32,19 +32,25 @@ module.exports = {
         children: [
           ['/guides/project-setup.md', 'Setting up a project'],
           ['/guides/compile-contracts.md', 'Compiling your contracts'],
+          ['/guides/truffle-migration.md', 'Migrating from Truffle'],
           ['/guides/truffle-testing.md', 'Testing with Truffle'],
           ['/guides/waffle-testing.md', 'Testing with Waffle'],
           ['/guides/ethers-testing.md', 'Testing with ethers.js'],
           ['/guides/ganache-tests.md', 'Running tests on ganache'],
+          ['/guides/vscode-tests.md', 'Running tests on VS Code'],
+          ['/guides/deploying.md', 'Deploying your contracts'],
           ['/guides/create-task.md', 'Creating a task'],
           ['/guides/scripts.md', 'Writing scripts'],
           ['/guides/buidler-console.md', 'Using the Buidler console'],
           ['/guides/typescript.md', 'TypeScript support'],
+          ['/guides/troubleshooting.md', 'Troubleshooting'],
         ]
       }, {
         title: "Reference",
         collapsable: false,
         children: [
+          ['/reference/buidlerevm.md', 'Buidler EVM'],
+          ['/reference/plugins.md', 'Plugins'],
           ['/reference/#configuration', 'Configuration'],
           ['/reference/#buidler-runtime-environment-bre', 'Buidler Runtime Environment (BRE)'],
           ['/reference/#building-plugins', 'Building plugins'],
