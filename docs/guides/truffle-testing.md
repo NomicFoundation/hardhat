@@ -35,7 +35,7 @@ const assert = require("assert");
 
 describe("Ethereum provider", function() {
   it("Should return the accounts", async function() {
-    const accounts = await ethereum.send("eth_accounts");
+    const accounts = await network.provider.send("eth_accounts");
     assert(accounts.length !== 0, "No account was returned");
   });
 });
@@ -56,7 +56,7 @@ All contracts have already been compiled, skipping compilation.
 
 Now, if you look closely at the test, you can see that in this line:
 ```js
-const accounts = await ethereum.send("eth_accounts");
+const accounts = await network.provider.send("eth_accounts");
 ```
 
 the `ethereum` object is being accessed from the global scope. It's coming from the [Buidler Runtime Environment] injecting its properties into it. 
@@ -71,7 +71,7 @@ And add `usePlugin("@nomiclabs/buidler-truffle5")` to the top of `buidler.config
 usePlugin("@nomiclabs/buidler-truffle5");
 
 task("accounts", "Prints a list of the available accounts", async () => {
-  const accounts = await ethereum.send("eth_accounts");
+  const accounts = await network.provider.send("eth_accounts");
 
   console.log("Accounts:", accounts);
 });
