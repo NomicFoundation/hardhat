@@ -34,7 +34,7 @@ module.exports = {
           ['/guides/compile-contracts.md', 'Compiling your contracts'],
           ['/guides/truffle-migration.md', 'Migrating from Truffle'],
           ['/guides/truffle-testing.md', 'Testing with Truffle'],
-          ['/guides/waffle-testing.md', 'Testing with Waffle'],
+          ['/guides/waffle-testing.md', 'Testing with ethers.js & Waffle'],
           ['/guides/ethers-testing.md', 'Testing with ethers.js'],
           ['/guides/ganache-tests.md', 'Running tests on ganache'],
           ['/guides/vscode-tests.md', 'Running tests on VS Code'],
