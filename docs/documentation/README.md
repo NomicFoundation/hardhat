@@ -88,32 +88,46 @@ This is the list of built-in tasks, and the sample `accounts` task. Further ahea
 
 If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
 
-```js
-task("accounts", "Prints a list of the available accounts", async () => {
-  const accounts = await ethereum.send("eth_accounts");
+```js{5-11}
+usePlugin("@nomiclabs/buidler-truffle5");
 
-  console.log("Accounts:", accounts);
+// This is a sample Buidler task. To learn how to create your own go to
+// https://buidler.dev/guides/create-task.html
+task("accounts", "Prints the list of accounts", async () => {
+  const accounts = await web3.eth.getAccounts();
+
+  for (const account of accounts) {
+    console.log(account);
+  }
 });
 
 module.exports = {};
 ```
 
-_NOTE: in the Buidler 1.0.0 beta release we’ve disabled the automatic ganache instance feature to keep working on its stability, so you’ll need to run it manually. This feature will be back by the time we ship the stable release. Please install `npm install ganache-cli` and run `ganache-cli` in a separate terminal to keep going._
-
 To run it, try `npx buidler accounts`:
 
 ```
 $ npx buidler accounts
-Accounts: [ '0x9d6bd5939d6e2629f2bdffac5417ba22e31ea6a5',
-  '0xdb981036cf05c2219121c778578300cc6b91bd34',
-  '0xdc66201940a7ced201b1e4ed9fa72047fa029dc1',
-  '0x6a0ead959f30e51e86bb2285ab5e36a68ac22d98',
-  '0x9bc40d79da06d28d57982eb9e40cd0ba095cdae8',
-  '0xcff265234958dfe27e7e1bbfcbd253ac4882bcae',
-  '0x13447a4658db5f9bdab4f82656958b7688c4435f',
-  '0x7dce2d4229cb4ccbcd050ffe7bc405d936314a73',
-  '0x2f52b335f53f16a5d9727da8d2231923fa04f0c5',
-  '0x23024feafd6587ef4576496484fee2796ba66e3c' ]
+0xc783df8a850f42e7F7e57013759C285caa701eB6
+0xeAD9C93b79Ae7C1591b1FB5323BD777E86e150d4
+0xE5904695748fe4A84b40b3fc79De2277660BD1D3
+0x92561F28Ec438Ee9831D00D1D59fbDC981b762b2
+0x2fFd013AaA7B5a7DA93336C2251075202b33FB2B
+0x9FC9C2DfBA3b6cF204C37a5F690619772b926e39
+0xFbC51a9582D031f2ceaaD3959256596C5D3a5468
+0x84Fae3d3Cba24A97817b2a18c2421d462dbBCe9f
+0xfa3BdC8709226Da0dA13A4d904c8b66f16c3c8BA
+0x6c365935CA8710200C7595F0a72EB6023A7706Cd
+0xD7de703D9BBC4602242D0f3149E5fFCD30Eb3ADF
+0x532792B73C0C6E7565912E7039C59986f7E1dD1f
+0xEa960515F8b4C237730F028cBAcF0a28E7F45dE0
+0x3d91185a02774C70287F6c74Dd26d13DFB58ff16
+0x5585738127d12542a8fd6C71c19d2E4CECDaB08a
+0x0e0b5a3F244686Cf9E7811754379B9114D42f78B
+0x704cF59B16Fd50Efd575342B46Ce9C5e07076A4a
+0x0a057a7172d0466AEF80976D7E8c80647DfD35e3
+0x68dfc526037E9030c8F813D014919CC89E7d4d74
+0x26C43a1D431A4e5eE86cD55Ed7Ef9Edf3641e901
 ```
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
