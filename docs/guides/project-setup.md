@@ -43,22 +43,29 @@ If you need to change these paths, take a look at the [paths configuration secti
 
 When it comes to testing your contracts, Buidler comes with some built-in defaults:
 - [Mocha](https://mochajs.org/) as the test runner
-- The built-in [Buidler EVM]() as the development network to test on
+- The built-in [Buidler EVM] as the development network to test on
 
-If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can use the `defaultNetwork` and `networks` configuration entries in the exported object in `buidler.config.js`, which is how Buidler projects manages settings.
+If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `buidler.config.js`, which is how Buidler projects manage settings. Make use of the `--network` CLI parameter to quickly change the network.
 
 Take a look at the [networks configuration section](/reference/#networks-configuration) to learn more about setting up different networks.
 
-Most of Buidler's functionality comes from plugins, so the next step in setting up your Buidler project should be choosing the plugins you will be using. Check out the [plugins section](/plugins/) for the official list.
+You may have seen this notice when creating the sample project:
 
-The most commonly used ones are the `buidler-web3` and `buidler-truffle` plugins, which integrate the Web3.js and Truffle projects respectively, facilitating the testing of smart contracts.
+```
+You need to install these dependencies to run the sample project:
+  npm install --save-dev web3 @nomiclabs/buidler-web3 @nomiclabs/buidler-truffle5
+```
 
-To use a plugin, first install it using npm:
+This stems from the fact that **most of Buidler's functionality comes from plugins**, so check out the [plugins section](/plugins/) for the official list and see if there are any other ones that look interesting.
+
+The sample project uses the `@nomiclabs/buidler-truffle5` plugin, which depends on the `@nomiclabs/buidler-web3` plugin. These integrate the Web3.js and Truffle tools into your project. 
+
+To use a plugin, the first step is always to install it using `npm`, like so:
 ```
 $ npm install @nomiclabs/buidler-truffle5
 ```
 
-and add a call to `usePlugin(<npm package name>)` in your config file, like this:
+and then adding a call to `usePlugin(<npm package name>)` in your config file, like this:
 
 ```js
 usePlugin("@nomiclabs/buidler-truffle5");
