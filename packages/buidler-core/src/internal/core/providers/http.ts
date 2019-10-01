@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 export interface JsonRpcRequest {
   jsonrpc: string;
@@ -25,6 +26,11 @@ interface FailedJsonRpcResponse {
   };
 }
 
+interface ProviderError extends Error {
+  code?: number;
+  data?: any;
+}
+
 export type JsonRpcResponse = SuccessfulJsonRpcResponse | FailedJsonRpcResponse;
 
 function isErrorResponse(response: any): response is FailedJsonRpcResponse {
@@ -44,15 +50,17 @@ export class HttpProvider extends EventEmitter {
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
-    // We defined the error here to capture this stack traces at this point,
+    // We create the error here to capture the stack traces at this point,
     // the async call that follows would probably loose of the stack trace
-    const error = new Error();
+    const error: ProviderError = new Error();
 
     const jsonRpcRequest = this._getJsonRpcRequest(method, params);
     const jsonRpcResponse = await this._fetchJsonRpcResponse(jsonRpcRequest);
 
     if (isErrorResponse(jsonRpcResponse)) {
       error.message = jsonRpcResponse.error.message;
+      error.code = jsonRpcResponse.error.code;
+      error.data = jsonRpcResponse.error.data;
       // tslint:disable-next-line only-buidler-error
       throw error;
     }

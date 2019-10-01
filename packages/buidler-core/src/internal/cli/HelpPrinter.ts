@@ -4,7 +4,8 @@ import {
   ParamDefinitionsMap,
   TasksMap
 } from "../../types";
-import { BuidlerError, ERRORS } from "../core/errors";
+import { BuidlerError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
 
 import { ArgumentsParser } from "./ArgumentsParser";
 

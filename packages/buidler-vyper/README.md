@@ -21,7 +21,7 @@ First, you have to install Docker Desktop by following its [Get Started guide](h
 Then, you need to install the plugin by running
 
 ```bash
-npm install @nomiclabs/buidler-vyper
+npm install --save-dev @nomiclabs/buidler-vyper
 ```
 
 And add the following statement to your `buidler.config.js`:

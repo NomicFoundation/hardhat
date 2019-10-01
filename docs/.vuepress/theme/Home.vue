@@ -29,7 +29,7 @@
         <div class="cta cta1">
           <router-link
             class="action-button"
-            to="/guides/"
+            to="/getting-started/"
           >Get Started</router-link>
         </div>
       </div>
@@ -44,16 +44,16 @@
       <div class="cta2">
           <router-link
             class="action-button"
-            to="/guides/"
+            to="/getting-started/"
           >Get Started</router-link>
       </div>
 
 
-      <p
+<!--       <p
         style="text-align: center;font-style: italic;margin-top: 100px;color: rgb(189, 189, 189);"
       >
         Some of the plugins shown above are currently under development.
-      </p>
+      </p> -->
 
       <div class="usedby">
         <h3>Used By</h3>
@@ -101,7 +101,7 @@ export default {
 @import './styles/config.styl'
 
 .home
-  padding $navbarHeight 2rem 0
+  padding $navbarAndBannerHeight 2rem 0
   max-width 960px
   margin 0px auto
   .hero

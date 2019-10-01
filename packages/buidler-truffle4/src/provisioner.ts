@@ -1,3 +1,4 @@
+import { wrapWithSolidityErrorsCorrection } from "@nomiclabs/buidler/internal/buidler-evm/stack-traces/solidity-errors";
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { NetworkConfig } from "@nomiclabs/buidler/types";
 import util from "util";
@@ -7,6 +8,9 @@ import { Linker, TruffleContract, TruffleContractInstance } from "./types";
 export class LazyTruffleContractProvisioner {
   private readonly _web3: any;
   private _defaultAccount?: string;
+  private readonly _deploymentAddresses: {
+    [contractName: string]: string;
+  } = {};
 
   constructor(
     web3: any,
@@ -19,9 +23,11 @@ export class LazyTruffleContractProvisioner {
 
   public provision(Contract: TruffleContract, linker: Linker) {
     Contract.setProvider(this._web3.currentProvider);
-    this._setDefaultValues(Contract);
-    this._addDefaultParamsHooks(Contract, linker);
     this._hookCloneCalls(Contract, linker);
+    this._setDefaultValues(Contract);
+    this._addDefaultParamsHooks(Contract);
+    this._hookLink(Contract, linker);
+    this._hookDeployed(Contract);
 
     return new Proxy(Contract, {
       construct(target, argumentsList, newTarget) {
@@ -57,37 +63,74 @@ export class LazyTruffleContractProvisioner {
     }
   }
 
-  private _addDefaultParamsHooks(Contract: TruffleContract, linker: Linker) {
+  private _addDefaultParamsHooks(Contract: TruffleContract) {
     const originalNew = Contract.new;
     const originalAt = Contract.at;
-    const originalLink = Contract.link;
 
     Contract.new = async (...args: any[]) => {
-      args = await this._ensureTxParamsWithDefaults(args);
+      return wrapWithSolidityErrorsCorrection(async () => {
+        args = await this._ensureTxParamsWithDefaults(args);
 
-      const contractInstance = await originalNew.apply(Contract, args);
+        const contractInstance = await originalNew.apply(Contract, args);
 
-      this._addDefaultParamsToAllInstanceMethods(Contract, contractInstance);
+        this._addDefaultParamsToAllInstanceMethods(Contract, contractInstance);
 
-      return contractInstance;
+        return contractInstance;
+      }, 3);
     };
 
     Contract.at = (...args: any[]) => {
       const contractInstance = originalAt.apply(Contract, args);
+      contractInstance.then = (resolve: any, reject: any) => {
+        delete contractInstance.then;
+        Promise.resolve(contractInstance).then(resolve, reject);
+      };
 
       this._addDefaultParamsToAllInstanceMethods(Contract, contractInstance);
 
       return contractInstance;
     };
+  }
+
+  private _hookLink(Contract: TruffleContract, linker: Linker) {
+    const originalLink = Contract.link;
+
+    const alreadyLinkedLibs: { [libName: string]: boolean } = {};
+    let linkingByInstance = false;
 
     Contract.link = (...args: any[]) => {
       // This is a simple way to detect if it is being called with a contract as first argument.
-      if (Array.isArray(args[0].abi)) {
-        return linker.link(Contract, args[0]);
+      if (args[0].constructor.name === "TruffleContract") {
+        const libName = args[0].constructor.contractName;
+
+        if (alreadyLinkedLibs[libName]) {
+          throw new BuidlerPluginError(
+            "@nomiclabs/buidler-truffle4",
+            `Contract ${Contract.contractName} has already been linked to ${libName}.`
+          );
+        }
+
+        linkingByInstance = true;
+        const ret = linker.link(Contract, args[0]);
+        alreadyLinkedLibs[libName] = true;
+        linkingByInstance = false;
+
+        return ret;
       }
 
-      // TODO: This may break if called manually with (name, address), as solc changed
-      // the format of its symbols.
+      if (!linkingByInstance) {
+        if (typeof args[0] === "string") {
+          throw new BuidlerPluginError(
+            "@nomiclabs/buidler-truffle4",
+            `Linking contracts by name is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+          );
+        }
+
+        throw new BuidlerPluginError(
+          "@nomiclabs/buidler-truffle4",
+          `Linking contracts with a map of addresses is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+        );
+      }
 
       originalLink.apply(Contract, args);
     };
@@ -129,20 +172,39 @@ export class LazyTruffleContractProvisioner {
     const original = instance[methodName];
     const originalCall = original.call;
     const originalEstimateGas = original.estimateGas;
+    const originalSendTransaction = original.sendTransaction;
+    const originalRequest = original.request;
 
     instance[methodName] = async (...args: any[]) => {
-      args = await this._ensureTxParamsWithDefaults(args, !isConstant);
-      return original.apply(instance, args);
+      return wrapWithSolidityErrorsCorrection(async () => {
+        args = await this._ensureTxParamsWithDefaults(args, !isConstant);
+        return original.apply(instance, args);
+      }, 3);
     };
 
     instance[methodName].call = async (...args: any[]) => {
-      args = await this._ensureTxParamsWithDefaults(args, !isConstant);
-      return originalCall.apply(originalCall, args);
+      return wrapWithSolidityErrorsCorrection(async () => {
+        args = await this._ensureTxParamsWithDefaults(args, !isConstant);
+        return originalCall.apply(original, args);
+      }, 3);
     };
 
     instance[methodName].estimateGas = async (...args: any[]) => {
-      args = await this._ensureTxParamsWithDefaults(args, !isConstant);
-      return originalEstimateGas.apply(originalEstimateGas, args);
+      return wrapWithSolidityErrorsCorrection(async () => {
+        args = await this._ensureTxParamsWithDefaults(args, !isConstant);
+        return originalEstimateGas.apply(original, args);
+      }, 3);
+    };
+
+    instance[methodName].sendTransaction = async (...args: any[]) => {
+      return wrapWithSolidityErrorsCorrection(async () => {
+        args = await this._ensureTxParamsWithDefaults(args, !isConstant);
+        return originalSendTransaction.apply(original, args);
+      }, 3);
+    };
+
+    instance[methodName].request = (...args: any[]) => {
+      return originalRequest.apply(original, args);
     };
   }
 
@@ -219,6 +281,29 @@ export class LazyTruffleContractProvisioner {
       const cloned = originalClone.apply(Contract, args);
 
       return this.provision(cloned, linker);
+    };
+  }
+
+  private _hookDeployed(Contract: TruffleContract) {
+    Contract.deployed = async () => {
+      const address = this._deploymentAddresses[Contract.contractName];
+
+      if (address === undefined) {
+        throw new BuidlerPluginError(
+          "@nomiclabs/buidler-truffle5",
+          `Trying to get deployed instance of ${Contract.contractName}, but none was set.`
+        );
+      }
+
+      return Contract.at(address);
+    };
+
+    Contract.setAsDeployed = (instance?: any) => {
+      if (instance === undefined) {
+        delete this._deploymentAddresses[Contract.contractName];
+      } else {
+        this._deploymentAddresses[Contract.contractName] = instance.address;
+      }
     };
   }
 }

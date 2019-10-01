@@ -1,5 +1,6 @@
 import { internalTask, task } from "../internal/core/config/config-env";
-import { BuidlerError, ERRORS } from "../internal/core/errors";
+import { BuidlerError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
 import { getPackageJson } from "../internal/util/packageInfo";

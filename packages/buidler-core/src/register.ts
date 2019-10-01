@@ -32,7 +32,7 @@ if (!BuidlerContext.isCreated()) {
     debug.enable("buidler*");
   }
 
-  const config = loadConfigAndTasks(buidlerArguments.config);
+  const config = loadConfigAndTasks(buidlerArguments);
 
   // TODO: This is here for backwards compatibility.
   // There are very few projects using this.

@@ -2,7 +2,10 @@ import * as t from "io-ts";
 import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
 
-import { BuidlerError, ERRORS } from "../errors";
+import { SUPPORTED_HARDFORKS } from "../../buidler-evm/provider/node";
+import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 function stringify(v: any): string {
   if (typeof v === "function") {
@@ -76,13 +79,16 @@ const BuidlerNetworkAccount = t.type({
 });
 
 const BuidlerNetworkConfig = t.type({
+  hardfork: optional(t.string),
   chainId: optional(t.number),
   from: optional(t.string),
   gas: optional(t.union([t.literal("auto"), t.number])),
   gasPrice: optional(t.union([t.literal("auto"), t.number])),
   gasMultiplier: optional(t.number),
   accounts: optional(t.array(BuidlerNetworkAccount)),
-  blockGasLimit: optional(t.number)
+  blockGasLimit: optional(t.number),
+  throwOnTransactionFailures: optional(t.boolean),
+  throwOnCallFailures: optional(t.boolean)
 });
 
 const HDAccountsConfig = t.type({
@@ -175,10 +181,49 @@ export function getValidationErrors(config: any): string[] {
 
   // These can't be validated with io-ts
   if (config !== undefined && typeof config.networks === "object") {
-    const buidlerNetwork = config.networks.buidler;
+    const buidlerNetwork = config.networks[BUIDLEREVM_NETWORK_NAME];
     if (buidlerNetwork !== undefined) {
+      if (
+        buidlerNetwork.hardfork !== undefined &&
+        !SUPPORTED_HARDFORKS.includes(buidlerNetwork.hardfork)
+      ) {
+        errors.push(
+          `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.hardfork is not supported. Use one of ${SUPPORTED_HARDFORKS.join(
+            ", "
+          )}`
+        );
+      }
+
+      if (
+        buidlerNetwork.throwOnTransactionFailures !== undefined &&
+        typeof buidlerNetwork.throwOnTransactionFailures !== "boolean"
+      ) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnTransactionFailures`,
+            buidlerNetwork.throwOnTransactionFailures,
+            "boolean | undefined"
+          )
+        );
+      }
+
+      if (
+        buidlerNetwork.throwOnCallFailures !== undefined &&
+        typeof buidlerNetwork.throwOnCallFailures !== "boolean"
+      ) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnCallFailures`,
+            buidlerNetwork.throwOnCallFailures,
+            "boolean | undefined"
+          )
+        );
+      }
+
       if (buidlerNetwork.url !== undefined) {
-        errors.push("BuidlerConfig.networks.buidler can't have an url");
+        errors.push(
+          `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME} can't have an url`
+        );
       }
 
       if (
@@ -187,7 +232,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            "BuidlerConfig.networks.buidler.blockGasLimit",
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.blockGasLimit`,
             buidlerNetwork.blockGasLimit,
             "number | undefined"
           )
@@ -200,7 +245,7 @@ export function getValidationErrors(config: any): string[] {
             if (typeof account.privateKey !== "string") {
               errors.push(
                 getErrorMessage(
-                  "BuidlerConfig.networks.buidler.accounts[].privateKey",
+                  `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].privateKey`,
                   account.privateKey,
                   "string"
                 )
@@ -210,7 +255,7 @@ export function getValidationErrors(config: any): string[] {
             if (typeof account.balance !== "string") {
               errors.push(
                 getErrorMessage(
-                  "BuidlerConfig.networks.buidler.accounts[].balance",
+                  `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].balance`,
                   account.balance,
                   "string"
                 )
@@ -220,7 +265,7 @@ export function getValidationErrors(config: any): string[] {
         } else {
           errors.push(
             getErrorMessage(
-              "BuidlerConfig.networks.buidler.accounts",
+              `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
               buidlerNetwork.accounts,
               "[{privateKey: string, balance: string}] | undefined"
             )
@@ -232,11 +277,11 @@ export function getValidationErrors(config: any): string[] {
     for (const [networkName, netConfig] of Object.entries<any>(
       config.networks
     )) {
-      if (networkName === "buidler") {
+      if (networkName === BUIDLEREVM_NETWORK_NAME) {
         continue;
       }
 
-      if (networkName === "develop" && netConfig.url === undefined) {
+      if (networkName === "localhost" && netConfig.url === undefined) {
         continue;
       }
 
@@ -250,6 +295,13 @@ export function getValidationErrors(config: any): string[] {
         );
       }
     }
+  }
+
+  // io-ts can get confused if there are errors that it can't understand.
+  // Especially around BuidlerEVM's config. It will treat it as an HTTPConfig,
+  // and may give a loot of errors.
+  if (errors.length > 0) {
+    return errors;
   }
 
   const result = BuidlerConfig.decode(config);

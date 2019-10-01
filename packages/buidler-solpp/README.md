@@ -12,7 +12,7 @@ This plugin hooks into the compilation pipeline and runs the solpp preprocessor.
 ## Installation
 
 ```bash
-npm install @nomiclabs/buidler-solpp
+npm install --save-dev @nomiclabs/buidler-solpp
 ```
 
 And add the following statement to your `buidler.config.js`:

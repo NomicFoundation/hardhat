@@ -1,10 +1,11 @@
 import { assert } from "chai";
 
+import { BUIDLEREVM_NETWORK_NAME } from "../../../../src/internal/constants";
 import {
   getValidationErrors,
   validateConfig
 } from "../../../../src/internal/core/config/config-validation";
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 describe("Config validation", function() {
@@ -255,13 +256,13 @@ describe("Config validation", function() {
         });
       });
 
-      describe("Buidler network config", function() {
+      describe("BuidlerEVM network config", function() {
         it("Should fail with invalid types", function() {
           expectBuidlerError(
             () =>
               validateConfig({
                 networks: {
-                  buidler: 123
+                  [BUIDLEREVM_NETWORK_NAME]: 123
                 }
               }),
             ERRORS.GENERAL.INVALID_CONFIG
@@ -271,7 +272,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     chainId: "asd"
                   }
                 }
@@ -283,7 +284,43 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    hardfork: "not-supported"
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    throwOnCallFailures: "a"
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    throwOnTransactionFailures: "a"
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     from: 123
                   }
                 }
@@ -295,7 +332,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     gas: "asdasd"
                   }
                 }
@@ -307,7 +344,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     gasPrice: "6789"
                   }
                 }
@@ -319,7 +356,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     gasMultiplier: "123"
                   }
                 }
@@ -331,7 +368,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     blockGasLimit: "asd"
                   }
                 }
@@ -343,7 +380,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     accounts: 123
                   }
                 }
@@ -355,7 +392,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     accounts: [{}]
                   }
                 }
@@ -367,7 +404,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     accounts: [{ privateKey: "" }]
                   }
                 }
@@ -379,7 +416,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     accounts: [{ balance: "" }]
                   }
                 }
@@ -391,7 +428,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     accounts: [{ privateKey: 123 }]
                   }
                 }
@@ -403,7 +440,7 @@ describe("Config validation", function() {
             () =>
               validateConfig({
                 networks: {
-                  buidler: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
                     accounts: [{ balance: 213 }]
                   }
                 }
@@ -422,13 +459,15 @@ describe("Config validation", function() {
             );
           });
 
-          it("Shouldn't fail if no url is set for develop network", function() {
-            const errors = getValidationErrors({ networks: { develop: {} } });
+          it("Shouldn't fail if no url is set for localhost network", function() {
+            const errors = getValidationErrors({ networks: { localhost: {} } });
             assert.isEmpty(errors);
           });
 
           it("Shouldn't fail if no url is set for buidler network", function() {
-            const errors = getValidationErrors({ networks: { buidler: {} } });
+            const errors = getValidationErrors({
+              networks: { [BUIDLEREVM_NETWORK_NAME]: {} }
+            });
             assert.isEmpty(errors);
           });
         });
@@ -714,13 +753,13 @@ describe("Config validation", function() {
             gasMultiplier: 123,
             url: ""
           },
-          buidler: {
+          [BUIDLEREVM_NETWORK_NAME]: {
             gas: 678,
             gasPrice: 123,
             blockGasLimit: 8000,
             accounts: [{ privateKey: "asd", balance: "123" }]
           },
-          develop: {
+          localhost: {
             gas: 678,
             gasPrice: 123,
             url: ""
@@ -760,7 +799,7 @@ describe("Config validation", function() {
             custom: {
               url: "http://localhost:8545"
             },
-            develop: {
+            localhost: {
               accounts: [
                 "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
               ]
@@ -778,10 +817,10 @@ describe("Config validation", function() {
     it("Shouldn't fail with unrecognized params", function() {
       const errors = getValidationErrors({
         networks: {
-          develop: {
+          localhost: {
             asd: 1232
           },
-          buidler: {
+          [BUIDLEREVM_NETWORK_NAME]: {
             asdasd: "123"
           }
         }

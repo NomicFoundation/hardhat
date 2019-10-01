@@ -3,7 +3,7 @@ home: true
 heroImage: ./mascots.svg
 actionText: Get Started
 search: false
-footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
+footer: Copyright © 2018-2019 Nomic Labs LLC
 ---
 <div>
 
@@ -12,9 +12,11 @@ footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
 
   ```js
 
+  import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
   pragma solidity ^0.5.1;
       
-  contract DeathStar {
+  contract DeathStar is ERC721 {
 
     address private owner;
 
@@ -28,8 +30,6 @@ footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
     }
   }
 
-
-
   ```
 
   </div>
@@ -42,22 +42,22 @@ footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
   // For unit tests
   usePlugin("@nomiclabs/buidler-truffle5");
   usePlugin("@nomiclabs/buidler-ganache");
-
-  // Automatically generate testable contracts where
-  // internal methods are exposed as external.
-  usePlugin("@nomiclabs/buidler-autoexternal");
+  usePlugin("buidler-gas-reporter");
 
   // Linting
   usePlugin("@nomiclabs/buidler-solhint");
 
   // For scripts
   usePlugin("@nomiclabs/buidler-ethers");
-  usePlugin("@nomiclabs/buidler-faucets");
-
+  
   // Faster compilation
   usePlugin("@nomiclabs/buidler-docker-solc");
 
-  module.exports = {};
+  module.exports = {
+    buidlerevm: {
+      throwOnTransactionFailures: true
+    }
+  };
   ```
 
   </div>
@@ -65,48 +65,48 @@ footer: MIT Licensed | Copyright © 2018-2019 Nomic Labs
   <div class="clear"></div>
 
   <div class="example-3">
-  <h3>3. Write your tasks</h3>
+  <h3>3. Write your tests</h3>
 
-  ```js
+```js
+contract('ERC721', function () {
+  describe('safeTransferFrom to a contract that does not implement the required function', function () {
+    it('reverts', async function () {
 
+      const invalidReceiver = this.token;
 
-  task("shoot", "Shoots the laser. Handle with care.")
-    .addParam("target", "The target planet")
-    .setAction(async (target) => {
-      const DeathStar = artifacts.require("DeathStar");
-      await DeathStar.at(..).shoot(target);
-      
-      console.log("Target destroyed.")
+      await this.token.safeTransferFrom(
+        owner,
+        invalidReceiver.address,
+        tokenId,
+        { from: owner }
+      )        
     });
-
-
-  module.exports = {};
-
-
-  ```
+  });
+});
+```
 
   </div>
 
 
   <div class="example-4">
-  <h3>4. Interact with your contract easily</h3>
+  <h3>4. Debug your code with Buidler EVM</h3>
 
-  ```sh
-  $ npx buidler help shoot
-  Buidler version 1.0.0-beta.13
+  ```
+$ npx buidler test
 
-  Usage: buidler [GLOBAL OPTIONS] shoot --target <STRING>
+Contract: DeathStar
+    safeTransferFrom to a contract that does not implement the required function:
 
-  OPTIONS:
+Error: Transaction reverted: function selector was not recognized and there's no fallback function
+    at DeathStar.<unrecognized-selector> (contracts/DeathStar.sol:9)
+    at DeathStar._checkOnERC721Received (contracts/token/ERC721/ERC721.sol:334)
+    at DeathStar._safeTransferFrom (contracts/token/ERC721/ERC721.sol:196)
+    at DeathStar.safeTransferFrom (contracts/token/ERC721/ERC721.sol:179)
+    at DeathStar.safeTransferFrom (contracts/token/ERC721/ERC721.sol:162)
+    at TruffleContract.safeTransferFrom (node_modules/@nomiclabs/truffle-contract/lib/execute.js:157:24)
+    at Context.<anonymous> (test/DeathStar-test.js:321:26)
 
-      --target      The target planet
 
-  shoot: Shoots the laser. Handle with care.
-
-  For global options help run: buidler help
-
-  $ npx buidler shoot --target alderaan
-  Target destroyed.
   ```
 
   </div>

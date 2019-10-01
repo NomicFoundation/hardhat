@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { TasksDSL } from "../../../../src/internal/core/tasks/dsl";
 import { expectBuidlerErrorAsync } from "../../../helpers/errors";
 

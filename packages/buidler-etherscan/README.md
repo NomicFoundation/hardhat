@@ -12,7 +12,7 @@ This plugin verifies your contracts on [Etherscan](https://etherscan.io).
 ## Installation
 
 ```bash
-npm install @nomiclabs/buidler-etherscan
+npm install --save-dev @nomiclabs/buidler-etherscan
 ```
 
 And add the following statement to your `buidler.config.js`:

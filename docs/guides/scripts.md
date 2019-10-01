@@ -1,14 +1,22 @@
-# Standalone scripts
+# Writing scripts with Buidler
 
-In this guide we will go through the steps of creating a standalone script with Buidler. For a general overview of using Buidler refer to the [Getting started guide](/guides/#getting-started).
+In this guide we will go through the steps of creating a script with Buidler. For a general overview of using Buidler refer to the [Getting started guide].
 
-The classic use case is writing a deployment script for your smart contracts, and there are two ways of writing a script that accesses the [Buidler Runtime Environment].
+You can write your custom scripts that can use all of Buidler's functionality. A classic use case is writing a deployment script for your smart contracts. 
+
+There are two ways of writing a script that accesses the [Buidler Runtime Environment].
 
 ## Buidler CLI dependant
 
-The first option injects an instance of the [Buidler Runtime Environment] into the global scope, and then executes the script. These scripts must be run through Buidler: `npx buidler run script.js`. This makes it easy to reuse scripts that were developed for Truffle, which follows this approach. By using the [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5) the scripts are fully compatible.
+You can write scripts that access the [Buidler Runtime Environment]'s properties
+as global variables.
 
-## Fully standalone. Buidler as a library.
+These scripts must be run through Buidler: `npx buidler run script.js`. 
+
+This makes it easy to port scripts that were developed for Truffle, which follows this approach,
+by using the [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5). 
+
+## Standalone scripts: using Buidler as a library
 
 The second option leverages Buidler's architecture to allow for more flexibility. Buidler has been designed as a library, allowing you to get creative and build standalone CLI tools that access your development environment. This means that by simply requiring it:
 
@@ -34,15 +42,18 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 
 Inside `scripts/` you will find `sample-script.js`:
 ```js
-// We require the Buidler Runtime Environment explicitly here. This is optional.
 const env = require("@nomiclabs/buidler");
 
 async function main() {
+  // You can run Buidler tasks from a script.
+  // For example, we make sure everything is compiled by running "compile"
   await env.run("compile");
 
-  const accounts = await env.ethereum.send("eth_accounts");
+  // We require the artifacts once our contracts are compiled
+  const Greeter = env.artifacts.require("Greeter");
+  const greeter = await Greeter.new("Hello, world!");
 
-  console.log("Accounts:", accounts);
+  console.log("Greeter address:", greeter.address);
 }
 
 main()
@@ -58,33 +69,31 @@ And there you can see how the [Buidler Runtime Environment] is accessed at the t
 ```
 $ node scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
-Accounts: [ '0x494d39079b81c620c0ebea503b9295331bfc34c2',
-  '0x125dc724edc761400dfc87eed3709799d8c1a7e2',
-  '0x4040a6e01eb8c196cda46921cad8d946c9d21f0b',
-  '0x908ec1e984e0eb00771601ea726ad2d859cccb2e',
-  '0xd0d23d20fd000ac9330d380b32d64a0ae10441bb',
-  '0xc0374e60de5bec55e7da971bb75333fef8f577fb',
-  '0x1f670b090d7490a3815b5140936c2e08f597e669',
-  '0x655d8651b5494b6635f2bc038a8b2eaf7ccf59fb',
-  '0x88523b122e819424ead8cc6007869186bf21f234',
-  '0xf6eb3c71526fc84a41479a88af4ff5b15f0ba4f7' ]
+Greeter address: 0x494d39079b81c620c0ebea503b9295331bfc34c2
 ```
 
-But the script can also run through Buidler, Truffle-style:
+But the script can also run through Buidler:
+
 ```
 $ npx buidler run scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
-Accounts: [ '0x494d39079b81c620c0ebea503b9295331bfc34c2',
-  '0x125dc724edc761400dfc87eed3709799d8c1a7e2',
-  '0x4040a6e01eb8c196cda46921cad8d946c9d21f0b',
-  '0x908ec1e984e0eb00771601ea726ad2d859cccb2e',
-  '0xd0d23d20fd000ac9330d380b32d64a0ae10441bb',
-  '0xc0374e60de5bec55e7da971bb75333fef8f577fb',
-  '0x1f670b090d7490a3815b5140936c2e08f597e669',
-  '0x655d8651b5494b6635f2bc038a8b2eaf7ccf59fb',
-  '0x88523b122e819424ead8cc6007869186bf21f234',
-  '0xf6eb3c71526fc84a41479a88af4ff5b15f0ba4f7' ]
+Greeter address: 0x494d39079b81c620c0ebea503b9295331bfc34c2
 ```
 
+### Buidler arguments
 
-[Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
+You can still pass arguments to Buidler when using it as a library. This is done
+by setting environment variables. These are: 
+
+* `BUIDLER_NETWORK`: Sets the network to connect to.
+
+* `BUIDLER_SHOW_STACK_TRACES`: Enables JavaScript stack traces of expected errors.
+
+* `BUIDLER_VERBOSE`: Enables Buidler verbose logging.
+
+* `BUIDLER_MAX_MEMORY`: Sets the maximum amount of memory that Buidler can use.
+
+   
+
+[Buidler Runtime Environment]: ../advanced/buidler-runtime-environment.md
+[Getting started guide]: ../getting-started/README.md

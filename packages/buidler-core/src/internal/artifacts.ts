@@ -3,7 +3,8 @@ import * as path from "path";
 
 import { Artifact } from "../types";
 
-import { BuidlerError, ERRORS } from "./core/errors";
+import { BuidlerError } from "./core/errors";
+import { ERRORS } from "./core/errors-list";
 
 /**
  * Retrieves an artifact for the given `contractName` from the compilation output.
@@ -16,18 +17,38 @@ export function getArtifactFromContractOutput(
   contractOutput: any
 ): Artifact {
   const evmBytecode = contractOutput.evm && contractOutput.evm.bytecode;
-
-  const bytecode: string =
+  let bytecode: string =
     evmBytecode && evmBytecode.object ? evmBytecode.object : "";
+
+  if (bytecode.slice(0, 2).toLowerCase() !== "0x") {
+    bytecode = `0x${bytecode}`;
+  }
+
+  const evmDeployedBytecode =
+    contractOutput.evm && contractOutput.evm.deployedBytecode;
+  let deployedBytecode: string =
+    evmDeployedBytecode && evmDeployedBytecode.object
+      ? evmDeployedBytecode.object
+      : "";
+
+  if (deployedBytecode.slice(0, 2).toLowerCase() !== "0x") {
+    deployedBytecode = `0x${deployedBytecode}`;
+  }
 
   const linkReferences =
     evmBytecode && evmBytecode.linkReferences ? evmBytecode.linkReferences : {};
+  const deployedLinkReferences =
+    evmDeployedBytecode && evmDeployedBytecode.linkReferences
+      ? evmDeployedBytecode.linkReferences
+      : {};
 
   return {
     contractName,
     abi: contractOutput.abi,
     bytecode,
-    linkReferences
+    deployedBytecode,
+    linkReferences,
+    deployedLinkReferences
   };
 }
 

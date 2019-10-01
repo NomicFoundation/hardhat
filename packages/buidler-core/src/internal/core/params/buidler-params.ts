@@ -65,5 +65,14 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     isFlag: true,
     isOptional: true,
     isVariadic: false
+  },
+  maxMemory: {
+    name: "maxMemory",
+    defaultValue: undefined,
+    description: "The maximum amount of memory that Buidler can use.",
+    type: types.int,
+    isOptional: true,
+    isFlag: false,
+    isVariadic: false
   }
 };

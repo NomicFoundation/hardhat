@@ -1,7 +1,8 @@
 import fsExtra from "fs-extra";
 import path from "path";
 
-import { BuidlerError, ERRORS } from "../../core/errors";
+import { BuidlerError } from "../../core/errors";
+import { ERRORS } from "../../core/errors-list";
 
 export interface CompilerBuild {
   path: string;

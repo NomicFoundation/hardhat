@@ -1,0 +1,24 @@
+{
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C"
+    },
+    {
+      "to": 0,
+      "function": "a",
+      "params": [0],
+      "stackTrace": [
+        {
+          "type": "REVERT_ERROR",
+          "sourceReference": {
+            "contract": "C",
+            "file": "c.sol",
+            "function": "a",
+            "line": 6
+          }
+        }
+      ]
+    }
+  ]
+}

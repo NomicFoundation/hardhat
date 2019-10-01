@@ -16,6 +16,8 @@
       "type": "function"
     }
   ],
-  "bytecode": "",
-  "linkReferences": {}
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
 }

@@ -9,7 +9,8 @@ import {
   ResolvedBuidlerConfig
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 function mergeUserAndDefaultConfigs(
   defaultConfig: BuidlerConfig,

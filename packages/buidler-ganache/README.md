@@ -1,19 +1,19 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-ethers)
+[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
 # buidler-ganache
 
-This Buidler plugin automatically starts and stop [Ganache](https://github.com/trufflesuite/ganache-core) when running
-tests or scripts.
+This Buidler plugin automatically starts and stops [Ganache](https://github.com/trufflesuite/ganache-core) when running tests or scripts.
 
 ## What
 
-This plugin creates an especial network named `ganache`. When this network is used, a Ganache server will be
+This plugin creates a network named `ganache`. When this network is used, a Ganache server will be
 automatically started before running tests and scripts, and stopped when finished.
 
 ## Installation
 
 ```bash
-npm install @nomiclabs/buidler-ganache
+npm install --save-dev @nomiclabs/buidler-ganache
 ```
 
 And add the following statement to your `buidler.config.js`:
@@ -24,6 +24,7 @@ usePlugin("@nomiclabs/buidler-ganache");
 
 ## Tasks
 
+This plugin hooks into the `test` and `run` tasks to wrap them in the instantiation and termination of a `ganache-core` instance.
 This plugin creates no additional tasks.
 
 ## Environment extensions
@@ -53,4 +54,4 @@ module.exports = {
 };
 ```
 
-Note: The `accounts` option it's not currently supported.
+Note: The `accounts` option is not currently supported.

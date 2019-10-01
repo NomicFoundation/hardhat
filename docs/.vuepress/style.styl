@@ -56,9 +56,12 @@ a code
   float: right;
 
 .example-1 .language-js.extra-class::before
-  content: "DeathStar.sol" !important
+  content: "contracts/DeathStar.sol" !important
 
 .example-2 .language-js.extra-class::before, .example-3 .language-js.extra-class::before
+  content: "test/DeathStar-test.js" !important
+
+.example-2 .language-js.extra-class::before
   content: "buidler.config.js" !important
 
 div.clear
@@ -284,3 +287,24 @@ h3.how
 @media (max-width: $MQMobileNarrow)
   .plugins .plugin .version
     display: none
+  
+  .search-box
+    display none
+
+.navbar
+  
+  .banner
+    background #222
+    box-sizing: border-box
+    border-bottom 0.5px solid #1c1c1c
+    padding 0.5rem
+    text-align center
+    height: $bannerHeight
+    color: $yellow
+    font-weight 600
+    
+    // To remove the banner set: $bannerHeight to 0rem
+    // And uncomment this 
+    display none
+  
+  

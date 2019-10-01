@@ -2,7 +2,7 @@ import { assert } from "chai";
 import fsExtra from "fs-extra";
 import path from "path";
 
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   CompilerBuild,
   CompilerDownloader,
@@ -27,14 +27,14 @@ describe("Compiler downloader", function() {
 
   before(function() {
     localCompilerBuild = {
-      path: "soljson-v0.5.8+commit.23d335f2.js",
-      version: "0.5.8",
-      build: "commit.23d335f2",
-      longVersion: "0.5.8+commit.23d335f2",
+      path: "soljson-v0.5.11+commit.c082d0b4.js",
+      version: "0.5.11",
+      build: "commit.c082d0b4",
+      longVersion: "0.5.11+commit.c082d0b4",
       keccak256:
-        "0x7bdfc3e09790d5b1f488b10a8c0da4f85a8a64482c2be5566969feafdd7deb9d",
+        "0xc17ac23500f490e479bd4f82f7ac93111cb950af5b388d1002972d42613feda2",
       urls: [
-        "bzzr://8923240b6d3f6e2f38ced6d5f8bfeb1b8a64ee49cdd358ea5c582dde194a699a"
+        "bzzr://f7136a4e9d4771a12407ff4dd8a5932840a79d77cafed760caacaa63d7a60d81"
       ]
     };
 

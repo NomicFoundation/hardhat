@@ -1,4 +1,5 @@
-import { BuidlerError, ERRORS } from "../core/errors";
+import { BuidlerError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
 
 /**
  * This module provides function to implement proxy-based object, functions, and
@@ -88,6 +89,15 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
 
       Object.setPrototypeOf(dummyTarget, Object.getPrototypeOf(target));
 
+      // Using a null prototype seems to tirgger a V8 bug, so we forbid it
+      // See: https://github.com/nodejs/node/issues/29730
+      if (Object.getPrototypeOf(target) === null) {
+        throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
+          operation:
+            "Using lazyFunction or lazyObject to construct objects/functions with prototype null"
+        });
+      }
+
       if (!Object.isExtensible(target)) {
         Object.preventExtensions(dummyTarget);
       }
@@ -136,7 +146,16 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
     },
 
     getOwnPropertyDescriptor(target, property) {
-      return Reflect.getOwnPropertyDescriptor(getRealTarget(), property);
+      const descriptor = Reflect.getOwnPropertyDescriptor(
+        getRealTarget(),
+        property
+      );
+
+      if (descriptor !== undefined) {
+        Object.defineProperty(dummyTarget, property, descriptor);
+      }
+
+      return descriptor;
     },
 
     getPrototypeOf(target) {

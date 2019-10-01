@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/buidler-params";
 import {
   getEnvBuidlerArguments,

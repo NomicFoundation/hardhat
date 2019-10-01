@@ -1,4 +1,4 @@
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { createChainIdValidationProvider } from "../../../../src/internal/core/providers/chainId";
 import { expectBuidlerErrorAsync } from "../../../helpers/errors";
 

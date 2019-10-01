@@ -19,10 +19,6 @@ export interface JsonRpcResponse {
   };
 }
 
-export interface JsonRpcError extends Error {
-  code?: string;
-}
-
 export class Web3HTTPProviderAdapter {
   private readonly _provider: IEthereumProvider;
 
@@ -84,6 +80,10 @@ export class Web3HTTPProviderAdapter {
       const result = await this._provider.send(request.method, request.params);
       response.result = result;
     } catch (error) {
+      if (error.code === undefined) {
+        throw error;
+      }
+
       response.error = {
         code: error.code ? +error.code : 404,
         message: error.message,

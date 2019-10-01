@@ -16,9 +16,10 @@ export default {
       ? selfActive || item.children.some(c => isActive($route, item.basePath + '#' + c.slug))
       : selfActive
     const link = renderLink(h, item.path, item.title || item.path, active)
-    const configDepth = $page.frontmatter.sidebarDepth != null
-      ? $page.frontmatter.sidebarDepth
-      : $site.themeConfig.sidebarDepth
+    const configDepth = item.depth !== undefined ? item.depth : 
+      $page.frontmatter.sidebarDepth != null
+        ? $page.frontmatter.sidebarDepth
+        : $site.themeConfig.sidebarDepth
     const maxDepth = configDepth == null ? 1 : configDepth
     const displayAllHeaders = !!$site.themeConfig.displayAllHeaders
     if (item.type === 'auto') {

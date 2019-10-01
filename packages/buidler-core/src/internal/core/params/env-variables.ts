@@ -3,7 +3,8 @@ import ProcessEnv = NodeJS.ProcessEnv;
 import { BuidlerArguments, BuidlerParamDefinitions } from "../../../types";
 import { ArgumentsParser } from "../../cli/ArgumentsParser";
 import { unsafeObjectKeys } from "../../util/unsafe";
-import { BuidlerError, ERRORS } from "../errors";
+import { BuidlerError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
 
@@ -60,6 +61,8 @@ export function getEnvBuidlerArguments(
       envArgs[paramName] = definition.defaultValue;
     }
   }
+
+  delete envArgs.config;
 
   // TODO: This is a little type-unsafe, but we know we have all the needed arguments
   return envArgs as BuidlerArguments;

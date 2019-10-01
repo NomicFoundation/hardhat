@@ -9,6 +9,7 @@ import path from "path";
 import qs from "qs";
 import uuid from "uuid/v4";
 
+import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getPackageJson } from "../util/packageInfo";
 
@@ -70,7 +71,6 @@ export class Analytics {
   }) {
     this._projectId = projectId;
     this._clientId = clientId;
-    // TODO: Remove the comment before merging.
     this._enabled = enabled && !this._isLocalDev();
     this._userType = userType;
   }
@@ -90,11 +90,21 @@ export class Analytics {
   public async sendTaskHit(
     taskName: string
   ): Promise<[AbortAnalytics, Promise<void>]> {
+    if (this._isABuiltinTaskName(taskName)) {
+      taskName = "builtin";
+    } else {
+      taskName = "custom";
+    }
+
     if (!this._enabled) {
       return [() => {}, Promise.resolve()];
     }
 
     return this._sendHit(await this._taskHit(taskName));
+  }
+
+  private _isABuiltinTaskName(taskName: string) {
+    return Object.values<string>(builtinTaskNames).includes(taskName);
   }
 
   private async _taskHit(taskName: string): Promise<RawAnalytics> {
@@ -143,7 +153,7 @@ export class Analytics {
       //   Possible values: "CI", "Developer".
       cd2: this._userType,
       // Custom dimension 3: Buidler Version
-      //   Example: "Buidler 1.0.0-beta.13".
+      //   Example: "Buidler 1.0.0".
       cd3: await getBuidlerVersion()
     };
   }

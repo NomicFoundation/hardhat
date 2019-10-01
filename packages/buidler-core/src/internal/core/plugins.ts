@@ -4,7 +4,8 @@ import * as semver from "semver";
 
 import { BuidlerContext } from "../context";
 
-import { BuidlerError, ERRORS } from "./errors";
+import { BuidlerError } from "./errors";
+import { ERRORS } from "./errors-list";
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
 
 const log = debug("buidler:core:plugins");
@@ -47,11 +48,23 @@ export function usePlugin(
     log("Buidler is linked, searching for plugin starting from CWD", from);
   }
 
+  let globalFlag = "";
+  let globalWarning = "";
+  if (getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
+    globalFlag = " --global";
+    globalWarning =
+      "You are using a global installation of Buidler. Plugins and their dependencies must also be global.\n";
+  }
+
   const pluginPackageJson = readPackageJson(pluginName, from);
 
   if (pluginPackageJson === undefined) {
+    const installExtraFlags = globalFlag;
+
     throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, {
-      plugin: pluginName
+      plugin: pluginName,
+      extraMessage: globalWarning,
+      extraFlags: installExtraFlags
     });
   }
 
@@ -60,14 +73,6 @@ export function usePlugin(
 
   if (buidlerContext.loadedPlugins.includes(pluginName)) {
     return;
-  }
-
-  let globalFlag = "";
-  let globalWarning = "";
-  if (getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
-    globalFlag = " --global";
-    globalWarning =
-      "You are using a global installation of Buidler. Plugins and their dependencies must also be global.\n";
   }
 
   if (pluginPackageJson.peerDependencies !== undefined) {

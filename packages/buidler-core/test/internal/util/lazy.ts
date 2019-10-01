@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { ERRORS } from "../../../src/internal/core/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
 import { lazyFunction, lazyObject } from "../../../src/internal/util/lazy";
 import { expectBuidlerError } from "../../helpers/errors";
 
@@ -189,14 +189,20 @@ describe("lazy module", () => {
     });
 
     it("should trap setPrototypeOf correctly", () => {
-      const obj = lazyObject(() => Object.create(null));
-      assert.isNull(Object.getPrototypeOf(obj));
+      const proto = Object.create(null);
+      const obj = lazyObject(() => Object.create(proto));
+      assert.equal(Object.getPrototypeOf(obj), proto);
       assert.isUndefined(obj.a);
 
       const newProto = { a: 123 };
       Object.setPrototypeOf(obj, newProto);
       assert.equal(Object.getPrototypeOf(obj), newProto);
       assert.equal(obj.a, 123);
+    });
+
+    it("should throw if it's used to create an object without prototype", () => {
+      const obj = lazyObject(() => Object.create(null));
+      expectBuidlerError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
     });
   });
 });

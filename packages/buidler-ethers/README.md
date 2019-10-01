@@ -12,7 +12,7 @@ This plugin brings to Buidler the Ethereum library ethers.js, which allows you t
 ## Installation
 
 ```bash
-npm install @nomiclabs/buidler-ethers ethers@^4.0.23
+npm install --save-dev @nomiclabs/buidler-ethers ethers@^4.0.23
 ```
 
 And add the following statement to your `buidler.config.js`:

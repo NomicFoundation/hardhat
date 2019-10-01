@@ -3,24 +3,28 @@ import { assert } from "chai";
 import {
   applyErrorMessageTemplate,
   BuidlerError,
-  BuidlerPluginError,
-  ERROR_RANGES,
-  ErrorDescription,
-  ERRORS
+  BuidlerPluginError
 } from "../../../src/internal/core/errors";
+import {
+  ERROR_RANGES,
+  ErrorDescriptor,
+  ERRORS
+} from "../../../src/internal/core/errors-list";
 import { unsafeObjectKeys } from "../../../src/internal/util/unsafe";
 import { expectBuidlerError } from "../../helpers/errors";
 
-const mockErrorDescription: ErrorDescription = {
+const mockErrorDescriptor: ErrorDescriptor = {
   number: 123,
-  message: "error message"
+  message: "error message",
+  title: "Mock error",
+  description: "This is a mock error"
 };
 
 describe("BuilderError", () => {
   describe("Type guard", () => {
     it("Should return true for BuidlerErrors", () => {
       assert.isTrue(
-        BuidlerError.isBuidlerError(new BuidlerError(mockErrorDescription))
+        BuidlerError.isBuidlerError(new BuidlerError(mockErrorDescriptor))
       );
     });
 
@@ -39,40 +43,50 @@ describe("BuilderError", () => {
 
   describe("Without parent error", () => {
     it("should have the right error number", () => {
-      const error = new BuidlerError(mockErrorDescription);
-      assert.equal(error.number, mockErrorDescription.number);
+      const error = new BuidlerError(mockErrorDescriptor);
+      assert.equal(error.number, mockErrorDescriptor.number);
     });
 
     it("should format the error code to 4 digits", () => {
-      const error = new BuidlerError(mockErrorDescription);
+      const error = new BuidlerError(mockErrorDescriptor);
       assert.equal(error.message.substr(0, 9), "BDLR123: ");
 
       assert.equal(
-        new BuidlerError({ number: 1, message: "" }).message.substr(0, 7),
+        new BuidlerError({
+          number: 1,
+          message: "",
+          title: "Title",
+          description: "Description"
+        }).message.substr(0, 7),
 
         "BDLR1: "
       );
     });
 
     it("should have the right error message", () => {
-      const error = new BuidlerError(mockErrorDescription);
-      assert.equal(error.message, `BDLR123: ${mockErrorDescription.message}`);
+      const error = new BuidlerError(mockErrorDescriptor);
+      assert.equal(error.message, `BDLR123: ${mockErrorDescriptor.message}`);
     });
 
     it("should format the error message with the template params", () => {
       const error = new BuidlerError(
-        { number: 12, message: "%a% %b% %c%" },
+        {
+          number: 12,
+          message: "%a% %b% %c%",
+          title: "Title",
+          description: "Description"
+        },
         { a: "a", b: "b", c: 123 }
       );
       assert.equal(error.message, "BDLR12: a b 123");
     });
 
     it("shouldn't have a parent", () => {
-      assert.isUndefined(new BuidlerError(mockErrorDescription).parent);
+      assert.isUndefined(new BuidlerError(mockErrorDescriptor).parent);
     });
 
     it("Should work with instanceof", () => {
-      const error = new BuidlerError(mockErrorDescription);
+      const error = new BuidlerError(mockErrorDescriptor);
       assert.instanceOf(error, BuidlerError);
     });
   });
@@ -80,13 +94,18 @@ describe("BuilderError", () => {
   describe("With parent error", () => {
     it("should have the right parent error", () => {
       const parent = new Error();
-      const error = new BuidlerError(mockErrorDescription, {}, parent);
+      const error = new BuidlerError(mockErrorDescriptor, {}, parent);
       assert.equal(error.parent, parent);
     });
 
     it("should format the error message with the template params", () => {
       const error = new BuidlerError(
-        { number: 12, message: "%a% %b% %c%" },
+        {
+          number: 12,
+          message: "%a% %b% %c%",
+          title: "Title",
+          description: "Description"
+        },
         { a: "a", b: "b", c: 123 },
         new Error()
       );
@@ -95,7 +114,7 @@ describe("BuilderError", () => {
 
     it("Should work with instanceof", () => {
       const parent = new Error();
-      const error = new BuidlerError(mockErrorDescription, {}, parent);
+      const error = new BuidlerError(mockErrorDescriptor, {}, parent);
       assert.instanceOf(error, BuidlerError);
     });
   });
@@ -138,21 +157,21 @@ describe("Error ranges", () => {
   });
 });
 
-describe("Error descriptions", () => {
+describe("Error descriptors", () => {
   it("Should have all errors inside their ranges", () => {
     for (const errorGroup of unsafeObjectKeys(ERRORS)) {
       const range = ERROR_RANGES[errorGroup];
 
-      for (const [name, errorDescription] of Object.entries(
+      for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
         ERRORS[errorGroup]
       )) {
         assert.isAtLeast(
-          errorDescription.number,
+          errorDescriptor.number,
           range.min,
           `ERRORS.${errorGroup}.${name}'s number is out of range`
         );
         assert.isAtMost(
-          errorDescription.number,
+          errorDescriptor.number,
           range.max - 1,
           `ERRORS.${errorGroup}.${name}'s number is out of range`
         );
@@ -162,16 +181,16 @@ describe("Error descriptions", () => {
 
   it("Shouldn't repeat error numbers", () => {
     for (const errorGroup of unsafeObjectKeys(ERRORS)) {
-      for (const [name, errorDescription] of Object.entries(
+      for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
         ERRORS[errorGroup]
       )) {
-        for (const [name2, errorDescription2] of Object.entries(
+        for (const [name2, errorDescriptor2] of Object.entries<ErrorDescriptor>(
           ERRORS[errorGroup]
         )) {
           if (name !== name2) {
             assert.notEqual(
-              errorDescription.number,
-              errorDescription2.number,
+              errorDescriptor.number,
+              errorDescriptor2.number,
               `ERRORS.${errorGroup}.${name} and ${errorGroup}.${name2} have repeated numbers`
             );
           }

@@ -1,6 +1,7 @@
 import { assert, AssertionError, expect } from "chai";
 
-import { BuidlerError, ErrorDescription } from "../../src/internal/core/errors";
+import { BuidlerError } from "../../src/internal/core/errors";
+import { ErrorDescriptor } from "../../src/internal/core/errors-list";
 
 export async function expectErrorAsync(
   f: () => Promise<any>,
@@ -42,14 +43,14 @@ export async function expectErrorAsync(
 
 export function expectBuidlerError(
   f: () => any,
-  errorDescription: ErrorDescription,
+  errorDescriptor: ErrorDescriptor,
   errorMessage?: string | RegExp
 ) {
   try {
     f();
   } catch (error) {
     assert.instanceOf(error, BuidlerError);
-    assert.equal(error.number, errorDescription.number);
+    assert.equal(error.number, errorDescriptor.number);
     assert.notInclude(
       error.message,
       "%s",
@@ -71,20 +72,20 @@ export function expectBuidlerError(
   }
 
   throw new AssertionError(
-    `BuidlerError number ${errorDescription.number} expected, but no Error was thrown`
+    `BuidlerError number ${errorDescriptor.number} expected, but no Error was thrown`
   );
 }
 
 export async function expectBuidlerErrorAsync(
   f: () => Promise<any>,
-  errorDescription: ErrorDescription,
+  errorDescriptor: ErrorDescriptor,
   errorMessage?: string | RegExp
 ) {
   // We create the error here to capture the stack trace before the await.
   // This makes things easier, at least as long as we don't have async stack
   // traces. This may change in the near-ish future.
   const error = new AssertionError(
-    `BuidlerError number ${errorDescription.number} expected, but no Error was thrown`
+    `BuidlerError number ${errorDescriptor.number} expected, but no Error was thrown`
   );
 
   const notExactMatch = new AssertionError(
@@ -99,7 +100,7 @@ export async function expectBuidlerErrorAsync(
     await f();
   } catch (error) {
     assert.instanceOf(error, BuidlerError);
-    assert.equal(error.number, errorDescription.number);
+    assert.equal(error.number, errorDescriptor.number);
     assert.notInclude(
       error.message,
       "%s",

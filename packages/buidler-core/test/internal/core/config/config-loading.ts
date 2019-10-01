@@ -4,7 +4,7 @@ import path from "path";
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { BuidlerContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
-import { ERRORS } from "../../../../src/internal/core/errors";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetBuidlerContext } from "../../../../src/internal/reset";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectBuidlerError } from "../../../helpers/errors";
@@ -19,8 +19,8 @@ describe("config loading", function() {
     useEnvironment();
 
     it("should load the default config if none is given", function() {
-      assert.isDefined(this.env.config.networks.develop);
-      assert.deepEqual(this.env.config.networks.develop.accounts, [
+      assert.isDefined(this.env.config.networks.localhost);
+      assert.deepEqual(this.env.config.networks.localhost.accounts, [
         "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
       ]);
     });
@@ -59,7 +59,7 @@ describe("config loading", function() {
     });
 
     it("should accept a relative path from the CWD", function() {
-      const config = loadConfigAndTasks("config.js");
+      const config = loadConfigAndTasks({ config: "config.js" });
 
       assert.equal(
         config.paths.configFile,
@@ -69,7 +69,9 @@ describe("config loading", function() {
 
     it("should accept an absolute path", async function() {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
-      const config = loadConfigAndTasks(path.join(fixtureDir, "config.js"));
+      const config = loadConfigAndTasks({
+        config: path.join(fixtureDir, "config.js")
+      });
 
       assert.equal(
         config.paths.configFile,

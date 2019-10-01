@@ -123,7 +123,7 @@ export class TruffleEnvironmentArtifacts {
           // link data is exressed in bytes, but the bytecode is hex encoded, so we
           // need to multiply everything by 2.
           const linkPlaceholder = destinationArtifact.bytecode.substr(
-            firstLinkData.start * 2,
+            firstLinkData.start * 2 + 2, // The + 2 is because of the 0x prefix
             firstLinkData.length * 2
           );
 
@@ -134,6 +134,31 @@ export class TruffleEnvironmentArtifacts {
 
           libraryAddresses[libraryIdentifier] = library.address;
         }
+      }
+    }
+
+    const arraysOfLibs = Object.values<{ [lib: string]: any }>(
+      linkReferences
+    ).map(v => Object.keys(v));
+    // This is just a flatten
+    const libs: string[] = ([] as string[]).concat.apply([], arraysOfLibs);
+
+    for (const lib of libraries) {
+      const libName = lib.constructor.contractName;
+      if (libs.length === 0) {
+        throw new BuidlerPluginError(
+          `Tried to link contract ${destination.contractName} with library ${libName}, but it uses no libraries.`
+        );
+      }
+
+      if (!libs.includes(libName)) {
+        throw new BuidlerPluginError(
+          `Tried to link contract ${
+            destination.contractName
+          } with library ${libName}, but it's not one of its libraries. ${
+            destination.contractName
+          }'s libraries are: ${libs.join(", ")}`
+        );
       }
     }
 

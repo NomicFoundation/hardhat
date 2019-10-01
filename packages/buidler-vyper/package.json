@@ -1,10 +1,10 @@
 {
   "name": "@nomiclabs/buidler-vyper",
-  "version": "1.0.0-beta.13",
+  "version": "1.0.1",
   "description": "Buidler plugin to develop smart contracts in Vyper",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-vyper",
-  "author": "Nomic Labs SRL",
+  "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,12 +38,13 @@
     "@nomiclabs/buidler-docker": "^0.1.2"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13",
+    "@types/chai": "^4.2.0",
+    "@nomiclabs/buidler": "^1.0.1",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "@types/glob": "^7.1.1"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.0-beta.13"
+    "@nomiclabs/buidler": "^1.0.1"
   }
 }

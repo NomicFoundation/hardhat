@@ -16,7 +16,7 @@ This plugin requires [buidler-web3](https://github.com/nomiclabs/buidler/tree/ma
 ## Installation
 
 ```bash
-npm install @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
+npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
 ```
 
 And add the following statement to your `buidler.config.js`:
@@ -31,7 +31,7 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-An instance of [`TruffleEnvironmentArtifacts`](./src/artifacts.ts) is injected into `env.artifacts` and the method `contract()` is injected into the global scope for using in tests.
+An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/buidler/blob/master/packages/buidler-truffle5/src/artifacts.ts) is injected into `env.artifacts` and the method `contract()` is injected into the global scope for using in tests.
 
 ## Usage
 

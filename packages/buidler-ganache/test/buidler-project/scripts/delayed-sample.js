@@ -2,7 +2,7 @@ const env = require("@nomiclabs/buidler");
 
 async function main() {
   const accounts = await env.network.provider.send("eth_accounts");
-  await delay(10);
+  await delay(0.2);
   const accountsAux = await env.network.provider.send("eth_accounts");
 
   // Test for existence

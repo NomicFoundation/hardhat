@@ -5,7 +5,7 @@ import { BuidlerContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { resolveProjectPaths } from "../../../../src/internal/core/config/config-resolution";
 import { resetBuidlerContext } from "../../../../src/internal/reset";
-import { HttpNetworkConfig } from "../../../../src/types";
+import { BuidlerNetworkConfig, HttpNetworkConfig } from "../../../../src/types";
 import { getLocalCompilerVersion } from "../../../helpers/compiler";
 import { useFixtureProject } from "../../../helpers/project";
 
@@ -25,9 +25,15 @@ describe("Config resolution", () => {
       it("should return the default config", () => {
         const config = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
-        assert.containsAllKeys(config.networks, ["develop"]);
+        assert.containsAllKeys(config.networks, ["localhost"]);
         assert.isUndefined(config.solc.evmVersion);
-        assert.equal(config.defaultNetwork, "develop");
+        assert.equal(config.defaultNetwork, "buidlerevm");
+
+        const buidlerEvmConfig: BuidlerNetworkConfig = config.networks
+          .buidlerevm as BuidlerNetworkConfig;
+
+        assert.equal(buidlerEvmConfig.throwOnTransactionFailures, true);
+        assert.equal(buidlerEvmConfig.throwOnCallFailures, true);
       });
     });
 
@@ -38,19 +44,19 @@ describe("Config resolution", () => {
         const config = loadConfigAndTasks();
 
         assert.equal(config.solc.version, getLocalCompilerVersion());
-        assert.containsAllKeys(config.networks, ["develop", "custom"]);
+        assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(config.defaultNetwork, "custom");
       });
 
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
         assert.equal(config.solc.version, getLocalCompilerVersion());
-        assert.containsAllKeys(config.networks, ["develop", "custom"]);
+        assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(
-          (config.networks.develop as HttpNetworkConfig).url,
+          (config.networks.localhost as HttpNetworkConfig).url,
           "http://127.0.0.1:8545"
         );
-        assert.deepEqual(config.networks.develop.accounts, [
+        assert.deepEqual(config.networks.localhost.accounts, [
           "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
         ]);
       });

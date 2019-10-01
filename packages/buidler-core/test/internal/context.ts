@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { BuidlerContext } from "../../src/internal/context";
-import { ERRORS } from "../../src/internal/core/errors";
+import { ERRORS } from "../../src/internal/core/errors-list";
 import { resetBuidlerContext } from "../../src/internal/reset";
 import { useEnvironment } from "../helpers/environment";
 import { expectBuidlerError } from "../helpers/errors";

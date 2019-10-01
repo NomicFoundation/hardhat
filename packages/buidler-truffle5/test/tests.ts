@@ -185,7 +185,7 @@ describe("TruffleContracts loading and provisioning", function() {
 });
 
 describe("Test contracts compilation", function() {
-  useEnvironment(path.join(__dirname, "project-with-test-contracts"));
+  useEnvironment(path.join(__dirname, "buidler-project-with-test-contracts"));
 
   it("Should include sources from sources", async function() {
     const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
@@ -195,7 +195,7 @@ describe("Test contracts compilation", function() {
       fs.realpathSync(
         path.join(
           __dirname,
-          "project-with-test-contracts",
+          "buidler-project-with-test-contracts",
           "contracts",
           "fromContracts.sol"
         )
@@ -211,7 +211,7 @@ describe("Test contracts compilation", function() {
       fs.realpathSync(
         path.join(
           __dirname,
-          "project-with-test-contracts",
+          "buidler-project-with-test-contracts",
           "test",
           "fromTest.sol"
         )
@@ -227,7 +227,7 @@ describe("Test contracts compilation", function() {
       fs.realpathSync(
         path.join(
           __dirname,
-          "project-with-test-contracts",
+          "buidler-project-with-test-contracts",
           "test",
           "shouldBeIgnored.txt"
         )

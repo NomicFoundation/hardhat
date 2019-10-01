@@ -2,6 +2,10 @@ import fsExtra from "fs-extra";
 import isEqual from "lodash/isEqual";
 import path from "path";
 
+import {
+  SOLC_INPUT_FILENAME,
+  SOLC_OUTPUT_FILENAME
+} from "../../internal/constants";
 import { glob } from "../../internal/util/glob";
 import { getPackageJson } from "../../internal/util/packageInfo";
 import { ProjectPaths, SolcConfig } from "../../types";
@@ -17,10 +21,7 @@ export async function areArtifactsCached(
 
   if (
     oldConfig === undefined ||
-    !compareSolcConfigs({
-      oldConfig: oldConfig.solc,
-      newConfig: newSolcConfig
-    }) ||
+    !compareSolcConfigs(oldConfig.solc, newSolcConfig) ||
     !(await compareBuidlerVersion(oldConfig.buidlerVersion))
   ) {
     return false;
@@ -28,6 +29,18 @@ export async function areArtifactsCached(
 
   const maxSourceDate = getMaxSourceDate(sourceTimestamps);
   const minArtifactDate = await getMinArtifactDate(paths.artifacts);
+
+  if (
+    !(await fsExtra.pathExists(path.join(paths.cache, SOLC_INPUT_FILENAME)))
+  ) {
+    return false;
+  }
+
+  if (
+    !(await fsExtra.pathExists(path.join(paths.cache, SOLC_OUTPUT_FILENAME)))
+  ) {
+    return false;
+  }
 
   return maxSourceDate < minArtifactDate;
 }
@@ -37,7 +50,7 @@ async function getModificationDatesInDir(dir: string): Promise<number[]> {
   const files = await glob(pattern);
 
   return Promise.all(
-    files.map(async file => (await fsExtra.stat(file)).mtimeMs)
+    files.map(async file => (await fsExtra.stat(file)).ctimeMs)
   );
 }
 
@@ -47,6 +60,10 @@ function getMaxSourceDate(sourceTimestamps: number[]): number {
 
 async function getMinArtifactDate(artifactsPath: string): Promise<number> {
   const timestamps = await getModificationDatesInDir(artifactsPath);
+
+  if (timestamps.length === 0) {
+    return 0;
+  }
 
   return Math.min(...timestamps);
 }
@@ -85,24 +102,15 @@ export async function cacheBuidlerConfig(
 
   return fsExtra.writeFile(
     pathToLastConfigUsed,
-    JSON.stringify(newJson),
+    JSON.stringify(newJson, undefined, 2),
     "utf-8"
   );
 }
 
-async function getSolcConfig(configPath: string): Promise<SolcConfig> {
-  const solcConfig: SolcConfig = (await module.require(configPath)).solc;
-
-  return solcConfig;
-}
-
-function compareSolcConfigs({
-  oldConfig,
-  newConfig
-}: {
-  oldConfig: SolcConfig;
-  newConfig: SolcConfig;
-}): boolean {
+function compareSolcConfigs(
+  oldConfig: SolcConfig,
+  newConfig: SolcConfig
+): boolean {
   return isEqual(oldConfig, newConfig);
 }
 
