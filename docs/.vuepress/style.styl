@@ -306,7 +306,19 @@ h3.how
     // To remove the banner set: $bannerHeight to 0rem
     // And uncomment this 
     //display none
+
+.only-narrow
   
+  display: none !important
+  
+@media (max-width: $MQMobileNarrow)
+  
+  .not-narrow
+    display none !important
+  
+  .only-narrow
+    display inline-block !important
+
 
 .migrate
   display none
