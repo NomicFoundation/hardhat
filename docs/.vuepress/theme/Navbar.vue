@@ -5,7 +5,7 @@
   >
     <div style="position: relative">
       <div class="banner">
-        <a href="">Try Buidler EVM's Solidity stack traces now!</a>
+        <a href="">Better Solidity debugging: stack traces are finally here →</a>
       </div>
       <div style="position: relative">
         <header>

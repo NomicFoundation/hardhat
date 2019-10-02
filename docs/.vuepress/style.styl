@@ -307,4 +307,36 @@ h3.how
     // And uncomment this 
     display none
   
+
+.migrate
+  display none
+  color: $black;
+  background-color: $yellow;
+  border-bottom 1px solid darken($yellow, 10%)
+  font-size 1.1em
+  border-radius 4px
+  //height 3rem;
+  //box-sizing border-box
+  &:hover
+    background-color lighten($yellow, 10%)
+
+  padding: 20px 20px;
+  z-index: 10;
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  font-weight: 400
+
+@media (min-width: $MQMobile)
+  body.show-cta .migrate 
+    display block
+    animation: fadein 0.2s;
+    //box-shadow: none;
+    //transform: translate3d(0, -100%, 0);
+
   
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}

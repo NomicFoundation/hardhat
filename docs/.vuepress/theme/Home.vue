@@ -72,6 +72,8 @@
       <div class="footer" v-if="data.footer">
         {{ data.footer }}
       </div>
+      <router-link to="/guides/truffle-migration.html" class="migrate">Migrate from Truffle now</router-link>
+      
     </div>
   </div>
 </template>
@@ -92,8 +94,39 @@ export default {
         link: this.data.actionLink,
         text: this.data.actionText
       };
+    },
+  },
+    mounted () {
+      const CLASS_NAME = "show-cta";
+      const SCROLL_POSITION = 500;
+
+      let __timeout;
+
+      window.addEventListener("scroll", debounce);
+
+      function debounce(event) {
+          if(__timeout) {
+              clearTimeout(__timeout);
+              __timeout = undefined;
+          }
+
+          setTimeout(actualCallback, 100);
+      }
+
+      function actualCallback(event) {
+        var scrollTop = window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+        if (scrollTop >= SCROLL_POSITION) {
+          if (!window.document.body.classList.contains(CLASS_NAME)) {
+            console.log('add')
+            window.document.body.classList.add(CLASS_NAME);
+          }
+        } else {
+          window.document.body.classList.remove("show-cta")
+          console.log('remove')
+        }
+      }
     }
-  }
+  
 };
 </script>
 
