@@ -1,5 +1,12 @@
 # Migrating from Truffle
 
+
+Buidler is a task runner that facilitates building Ethereum smart contracts. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
+
+The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. There are plugins for Truffle 4 and 5 that make migrating to Buidler easy.
+
+
+
 To migrate an existing Truffle project onto Buidler there are 
 two main things to consider: testing and deployment.
 
@@ -47,6 +54,9 @@ These fixtures will run on Mocha's `before`, which runs before each `contract()`
 
 If you have multiple migrations, you don't need to create multiple 
 buidler-truffle fixture files. You can deploy all your contracts from the same one.
+
+Once you've written your buidler-truffle fixtures for your migrations and completed your setup you can run your tests
+with `npx buidler test`. Take a look at the [Truffle testing guide](/guides/truffle-testing.md) to learn more about using Truffle with Buidler.
 
 ### Deployment
 
