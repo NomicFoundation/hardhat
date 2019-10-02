@@ -5,7 +5,7 @@
   >
     <div style="position: relative">
       <div class="banner">
-        <a href="">Better Solidity debugging: stack traces are finally here →</a>
+        <a href="https://medium.com/nomic-labs-blog/better-solidity-debugging-stack-traces-are-finally-here-dd80a56f92bb">Better Solidity debugging: stack traces are finally here →</a>
       </div>
       <div style="position: relative">
         <header>
