@@ -17,7 +17,7 @@ install it and create a file named `.mocharc.json` in your project's root direct
 Finally, make sure you have the latest version of Mocha by running:
 
 ```sh
-node install --save-dev mocha
+npm install --save-dev mocha
 ```
 
 Now, you can set a shortcut for this VS Code command `test-explorer.run-test-at-cursor`, and you
