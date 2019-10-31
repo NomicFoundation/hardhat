@@ -27,7 +27,7 @@ describe.skip("Plugin integration tests", function() {
       await this.env.run(TASK_COMPILE, { force: false });
 
       const { bytecode, abi } = await readArtifact(
-        "artifacts",
+        this.env.config.paths.artifacts,
         "TestContract1"
       );
       const amount = "20";

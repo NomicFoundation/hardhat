@@ -40,7 +40,7 @@ task("verify-contract", "Verifies contract on etherscan")
     ) => {
       const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
 
-      if (etherscan.apiKey.trim() === "") {
+      if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
         throw new BuidlerPluginError(
           "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
         );
@@ -56,7 +56,10 @@ task("verify-contract", "Verifies contract on etherscan")
       }
 
       await run(TASK_COMPILE);
-      const abi = (await readArtifact("artifacts", taskArgs.contractName)).abi;
+      const abi = (await readArtifact(
+        config.paths.artifacts,
+        taskArgs.contractName
+      )).abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
       const request = toRequest({
