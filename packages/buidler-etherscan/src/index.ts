@@ -56,7 +56,10 @@ task("verify-contract", "Verifies contract on etherscan")
       }
 
       await run(TASK_COMPILE);
-      const abi = (await readArtifact("artifacts", taskArgs.contractName)).abi;
+      const abi = (await readArtifact(
+        config.paths.artifacts,
+        taskArgs.contractName
+      )).abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
       const request = toRequest({
