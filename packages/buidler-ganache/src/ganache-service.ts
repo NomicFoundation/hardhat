@@ -60,7 +60,7 @@ export class GanacheService {
 
   public static async create(options: any): Promise<GanacheService> {
     // Get Ganache lib
-    const Ganache = await import("ganache-core");
+    const Ganache = require("ganache-core");
 
     // Get and initialize option validator
     const { default: optionsSchema } = await import("./ganache-options-ti");
