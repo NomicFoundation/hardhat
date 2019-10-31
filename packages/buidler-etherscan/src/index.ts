@@ -40,7 +40,7 @@ task("verify-contract", "Verifies contract on etherscan")
     ) => {
       const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
 
-      if (etherscan.apiKey.trim() === "") {
+      if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
         throw new BuidlerPluginError(
           "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
         );
