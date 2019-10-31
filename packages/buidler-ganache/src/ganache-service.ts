@@ -59,8 +59,9 @@ export class GanacheService {
   }
 
   public static async create(options: any): Promise<GanacheService> {
-    // Get Ganache lib
-    const Ganache = require("ganache-core");
+    // We use this weird way of importing this library here as a workaround
+    // to this issue https://github.com/trufflesuite/ganache-core/issues/465
+    const Ganache = (() => require)()("ganache-core");
 
     // Get and initialize option validator
     const { default: optionsSchema } = await import("./ganache-options-ti");

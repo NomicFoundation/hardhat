@@ -43,7 +43,6 @@
     "@types/chai": "^4.2.0",
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^5.1.0",
-    "@types/web3": "^1.0.20",
     "chai": "^4.2.0",
     "ts-interface-builder": "^0.2.0",
     "ts-node": "^8.1.0",
