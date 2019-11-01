@@ -107,11 +107,11 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
 
 %errors%
   
-To learn more about Buidler's configuration, please go to https://buidler.dev/documentation/#configuration`,
+To learn more about Buidler's configuration, please go to https://buidler.dev/config/`,
       title: "Invalid Buidler config",
       description: `You have one or more errors in your config file. 
       
-Please consult the error message for details, or go to [documentation](https://buidler.dev/documentation/#configuration) to learn more.`
+Check the error message for details, or go to [documentation](https://buidler.dev/config/) to learn more.`
     },
     LIB_IMPORTED_FROM_THE_CONFIG: {
       number: 9,
@@ -143,7 +143,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Selected network doesn't exist",
       description: `You are trying to run Buidler with a non-existent network. 
 
-Please, consult the [documentation](https://buidler.dev/documentation/#configuration) to learn how to define custom networks.`
+Read the [documentation](https://buidler.dev/config/#networks-configuration) to learn how to define custom networks.`
     },
     INVALID_GLOBAL_CHAIN_ID: {
       number: 101,
@@ -207,7 +207,7 @@ Please make sure that your Ethereum node has unlocked accounts.`
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Please, consult the [documentation](https://buidler.dev/documentation/#configuration) to define HD accounts correctly.`
+Read the [documentation](https://buidler.dev/config/#hd-wallet-config) to learn how to define HD accounts correctly.`
     },
     INVALID_RPC_QUANTITY_VALUE: {
       number: 108,
