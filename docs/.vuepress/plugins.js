@@ -87,5 +87,13 @@ module.exports = [
     description:
       "Gas usage per unit test. Average gas usage per method. A mocha reporter.",
     tags: ["Testing", "Gas"]
+  },
+  {
+    name: "buidler-typechain",
+    version: "0.0.5",
+    url: "https://github.com/rhlsthrm/buidler-typechain",
+    description:
+      "Generate TypeChain typedefs for smart contracts.",
+    tags: ["Testing", "Tasks"]
   }
 ];
