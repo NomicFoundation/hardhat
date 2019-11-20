@@ -91,7 +91,7 @@ module.exports = [
   {
     name: "buidler-typechain",
     version: "0.0.5",
-    url: "https://github.com/rhlsthrm/buidler-typechain",
+    url: "https://github.com/rhlsthrm/buidler-typechain/tree/master",
     description:
       "Generate TypeChain typedefs for smart contracts.",
     tags: ["Testing", "Tasks"]
