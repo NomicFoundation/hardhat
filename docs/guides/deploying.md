@@ -7,11 +7,11 @@ with some ideas and we'd value your opinion on how to best design it.
 
 In the meantime, we recommend deploying your smart contracts using
 scripts. You can deploy the `Greeter` contract from the sample project
-by creating a file `scripts/deploy.js` with this contents
+by creating a file `scripts/deploy.js` with these contents
 
 ```js
 // This script uses @nomiclabs/buidler-truffle5
-const Greeter = env.artifacts.require("Greeter");
+const Greeter = artifacts.require("Greeter");
 
 async function main() {
   const greeter = await Greeter.new("Hello, world!");
