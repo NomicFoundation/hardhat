@@ -11,7 +11,12 @@ function getDefaultConfig() {
 
 function getFormatter(formatterName = "stylish") {
   try {
-    return require(`eslint/lib/formatters/${formatterName}`);
+    const solhintPath = require.resolve("solhint");
+    const formatterPath = require.resolve(
+      `eslint/lib/formatters/${formatterName}`,
+      { paths: [solhintPath] }
+    );
+    return require(formatterPath);
   } catch (ex) {
     throw new BuidlerPluginError(
       `An error occurred loading the solhint formatter ${formatterName}`,
