@@ -1,3 +1,4 @@
 # Manual redirects
 
 /links/stack-traces / 302
+/reportbug https://github.com/nomiclabs/buidler/issues/new 302
