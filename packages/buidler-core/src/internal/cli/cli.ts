@@ -186,7 +186,7 @@ async function main() {
     } else {
       if (!isBuidlerError) {
         console.error(
-          `This shouldn't have happened, please report it to help us improve ${BUIDLER_NAME}.`
+          `If you think this is a bug in Buidler, please report it here: https://buidler.dev/reportbug`
         );
       }
 
