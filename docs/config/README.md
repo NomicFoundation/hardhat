@@ -118,7 +118,7 @@ To use an HD Wallet with Buidler you should set your network's `accounts` field 
 
 The `solc` config field is an optional object which can contain the following keys:
 
-- `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.11"`.
+- `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.15"`.
 
 - `optimizer`: An object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
 

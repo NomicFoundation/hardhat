@@ -50,7 +50,7 @@
     "chai": "^4.2.0",
     "ethers": "^4.0.27",
     "nock": "^10.0.6",
-    "solc": "0.5.11"
+    "solc": "0.5.15"
   },
   "peerDependencies": {
     "@nomiclabs/buidler": "^1.0.1"

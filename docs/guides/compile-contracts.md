@@ -39,7 +39,7 @@ Each artifact consists of a json with the following properties:
 
 If you need to customize the `solc` compiler options, then you can do so through the `solc` config field in your `buidler.config.js`, which is an optional object that can contain the following properties:
 
-- `version`: the solc version to use. We recommend always setting this field. Default value: `"0.5.11"`.
+- `version`: the solc version to use. We recommend always setting this field. Default value: `"0.5.15"`.
 
 - `optimizer`: an object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
 
