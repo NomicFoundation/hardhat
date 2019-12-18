@@ -10,7 +10,7 @@ import { wrapSend } from "./wrapper";
 
 // This library's types are wrong, they don't type check
 // tslint:disable-next-line no-var-requires
-const ethSigUtil = require("@nomiclabs/eth-sig-util");
+const ethSigUtil = require("eth-sig-util");
 
 export interface JsonRpcTransactionData {
   from?: string;

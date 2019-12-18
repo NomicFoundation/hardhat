@@ -78,7 +78,7 @@
     "deepmerge": "^2.1.0",
     "download": "^7.1.0",
     "enquirer": "^2.3.0",
-    "@nomiclabs/eth-sig-util": "^2.4.4",
+    "eth-sig-util": "^2.5.2",
     "ethereumjs-abi": "^0.6.8",
     "ethereumjs-account": "^3.0.0",
     "ethereumjs-block": "^2.2.0",
