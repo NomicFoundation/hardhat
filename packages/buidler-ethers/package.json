@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-ethers",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Buidler plugin for ethers",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers",
   "repository": "github:nomiclabs/buidler",
@@ -33,13 +33,13 @@
   ],
   "devDependencies": {
     "@types/chai": "^4.2.0",
-    "@nomiclabs/buidler": "^1.0.1",
+    "@nomiclabs/buidler": "^1.0.2",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "ethers": "^4.0.27"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.1",
+    "@nomiclabs/buidler": "^1.0.2",
     "ethers": "^4.0.27"
   }
 }
