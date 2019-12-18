@@ -250,7 +250,7 @@ async function getSignedTransaction(
         chainId,
         networkId: chainId
       },
-      "petersburg"
+      "istanbul"
     );
 
     transaction = new Transaction(tx, { common });

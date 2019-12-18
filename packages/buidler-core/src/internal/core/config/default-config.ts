@@ -4,7 +4,7 @@ import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
 export const BUIDLEREVM_DEFAULT_GAS_PRICE = 8e9;
 
 const DEFAULT_BUIDLER_NETWORK_CONFIG: BuidlerNetworkConfig = {
-  hardfork: "petersburg",
+  hardfork: "istanbul",
   blockGasLimit: 9500000,
   gas: 9500000,
   gasPrice: BUIDLEREVM_DEFAULT_GAS_PRICE,

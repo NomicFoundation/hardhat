@@ -11,7 +11,7 @@ declare module "mocha" {
   }
 }
 
-export const DEFAULT_HARDFORK = "petersburg";
+export const DEFAULT_HARDFORK = "istanbul";
 export const DEFAULT_NETWORK_NAME = "TestNet";
 export const DEFAULT_CHAIN_ID = 123;
 export const DEFAULT_NETWORK_ID = 234;
