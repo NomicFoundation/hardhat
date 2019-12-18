@@ -85,7 +85,7 @@
     "ethereumjs-common": "^1.3.2",
     "ethereumjs-tx": "^2.1.1",
     "ethereumjs-util": "^6.1.0",
-    "@nomiclabs/ethereumjs-vm": "^4.1.0",
+    "@nomiclabs/ethereumjs-vm": "^4.1.1",
     "find-up": "^2.1.0",
     "fp-ts": "1.19.3",
     "fs-extra": "^7.0.1",
