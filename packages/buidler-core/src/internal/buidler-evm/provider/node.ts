@@ -44,7 +44,7 @@ const log = debug("buidler:core:buidler-evm:node");
 
 // This library's types are wrong, they don't type check
 // tslint:disable-next-line no-var-requires
-const ethSigUtil = require("@nomiclabs/eth-sig-util");
+const ethSigUtil = require("eth-sig-util");
 
 export type Block = any;
 
