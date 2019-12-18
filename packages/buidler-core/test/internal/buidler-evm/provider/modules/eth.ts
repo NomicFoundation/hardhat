@@ -110,7 +110,7 @@ function getSignedTxHash(
     common: Common.forCustomChain(
       "mainnet",
       { chainId: DEFAULT_CHAIN_ID },
-      "petersburg"
+      "istanbul"
     )
   });
 
@@ -1684,13 +1684,18 @@ describe("Eth module", function() {
       );
 
       // Out of gas. This a deployment transaction that pushes 0x00 multiple times
-      // The transaction gets executed anyway, so the account is updated
+      // The transaction gets executed anyway, so the account is updated.
+      //
+      // Note: this test is pretty fragile, as the tx needs to have enough gas
+      // to pay for the calldata, but not enough to execute. This costs changed
+      // with istanbul, and may change again in the future.
       await assertTransactionFailure(
         this.provider,
         {
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-          data: "0x600060006000600060006000",
-          gas: numberToRpcQuantity(53432)
+          data:
+            "0x6000600060006000600060006000600060006000600060006000600060006000600060006000600060006000600060006000",
+          gas: numberToRpcQuantity(53500)
         },
         "out of gas"
       );

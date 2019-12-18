@@ -54,7 +54,7 @@ You can set the following fields on the `buidlerevm` config:
 
 - `blockGasLimit`: The block gas limit to use in Buidler EVM's blockchain. Default value: `9500000`
 
-- `hardfork`: This setting changes how Buidler EVM works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, and `"istanbul"`. Default value: `"petersburg"`
+- `hardfork`: This setting changes how Buidler EVM works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, and `"istanbul"`. Default value: `"istanbul"`
  
 - `throwOnTransactionFailures`: A boolean that controls if Buidler EVM throws on transaction failures. 
 If this value is `true`, Buidler EVM will throw [combined JavaScript and Soldity stack traces](../buidler-evm/README.md#solidity-stack-traces)
