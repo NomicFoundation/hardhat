@@ -20,16 +20,15 @@ export class ConsoleLogger {
     this._consoleLogs[4163653873] = [Uint];
   }
 
-  public getLogs(maybeDecodedMessageTrace: MessageTrace): ConsoleLogs {
+  public printLogs(maybeDecodedMessageTrace: MessageTrace) {
     if (isPrecompileTrace(maybeDecodedMessageTrace)) {
-      return [];
+      return;
     }
 
-    return this._getExecutionLogs(maybeDecodedMessageTrace);
+    this._printExecutionLogs(maybeDecodedMessageTrace);
   }
 
-  private _getExecutionLogs(trace: EvmMessageTrace): ConsoleLogs {
-    const logs: ConsoleLogs = [];
+  private _printExecutionLogs(trace: EvmMessageTrace) {
     for (const messageTrace of trace.steps) {
       if (isEvmStep(messageTrace) || !isCallTrace(messageTrace)) {
         continue;
@@ -37,17 +36,12 @@ export class ConsoleLogger {
 
       const log = this._maybeConsoleLog(messageTrace);
       if (log !== undefined) {
-        logs.push(log);
+        console.log(log);
+        continue;
       }
 
-      // TODO: maybe optimize this part
-      const executionLogs = this._getExecutionLogs(messageTrace);
-      if (executionLogs.length > 0) {
-        logs.push(executionLogs);
-      }
+      this._printExecutionLogs(messageTrace);
     }
-
-    return logs;
   }
 
   private _maybeConsoleLog(

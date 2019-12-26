@@ -323,11 +323,7 @@ export class BuidlerNode {
     });
 
     const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
-    const logs = this._consoleLogger!.getLogs(messageTrace);
-    // tslint:disable-next-line:no-shadowed-variable
-    for (const log of logs) {
-      console.log(log);
-    }
+    this._consoleLogger!.printLogs(messageTrace);
 
     const error = !this._throwOnTransactionFailures
       ? undefined
