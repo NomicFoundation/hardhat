@@ -29,6 +29,7 @@ import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
@@ -208,6 +209,7 @@ export class BuidlerNode {
   private readonly _stackTracesEnabled: boolean = false;
   private readonly _vmTracer?: VMTracer;
   private readonly _solidityTracer?: SolidityTracer;
+  private readonly _consoleLogger?: ConsoleLogger;
 
   private readonly _getLatestBlock: () => Promise<Block>;
   private readonly _getBlock: (hashOrNumber: Buffer | BN) => Promise<Block>;
@@ -260,6 +262,7 @@ export class BuidlerNode {
         }
 
         this._solidityTracer = new SolidityTracer(contractsIdentifier);
+        this._consoleLogger = new ConsoleLogger();
       } catch (error) {
         console.warn(
           chalk.yellow(
@@ -268,7 +271,8 @@ export class BuidlerNode {
         );
 
         this._stackTracesEnabled = false;
-        this._vmTracer.disableTracing();
+        // TODO: make sure its safe to remove next line
+        // this._vmTracer.disableTracing();
 
         log(
           "Solidity stack traces disabled: SolidityTracer failed to be initialized. Please report this to help us improve Buidler.\n",
@@ -317,6 +321,13 @@ export class BuidlerNode {
       generate: true,
       skipBlockValidation: true
     });
+
+    const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
+    const logs = this._consoleLogger!.getLogs(messageTrace);
+    // tslint:disable-next-line:no-shadowed-variable
+    for (const log of logs) {
+      console.log(log);
+    }
 
     const error = !this._throwOnTransactionFailures
       ? undefined

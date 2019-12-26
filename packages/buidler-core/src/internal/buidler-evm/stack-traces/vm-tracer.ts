@@ -8,7 +8,6 @@ import { promisify } from "util";
 
 import { getUserConfigPath } from "../../core/project-structure";
 
-import { maybeConsoleLog } from "./console";
 import {
   CallMessageTrace,
   CreateMessageTrace,
@@ -174,20 +173,6 @@ export class VMTracer {
   }
 
   private async _stepHandler(step: InterpreterStep, next: any) {
-    // For testing purposes
-    // TODO: move to tracer.
-    if (step.opcode.name === "STATICCALL") {
-      const size = step.stack.length;
-      const memory = toBuffer(step.memory);
-      const start = step.stack[size - 3].toNumber();
-      const end = start + step.stack[size - 4].toNumber();
-      const input = memory.slice(start, end);
-      const log = maybeConsoleLog(input);
-      if (log !== undefined) {
-        console.log(log);
-      }
-    }
-
     if (!this._shouldKeepTracing()) {
       next();
       return;
