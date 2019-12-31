@@ -338,7 +338,7 @@ export class ConsoleLogger {
           break;
 
         case BoolTy:
-          if (data[i * 32 + 32] === 0) {
+          if (data[i * 32 + 31] === 0) {
             logs.push(false);
           } else {
             logs.push(true);
