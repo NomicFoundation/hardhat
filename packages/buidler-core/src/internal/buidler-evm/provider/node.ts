@@ -322,8 +322,15 @@ export class BuidlerNode {
       skipBlockValidation: true
     });
 
-    const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
-    this._consoleLogger!.printLogs(messageTrace);
+    try {
+      const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
+      this._consoleLogger!.printLogs(messageTrace);
+    } catch (error) {
+      log(
+        "Could not print console log. Please report this to help us improve Buidler.\n",
+        error
+      );
+    }
 
     const error = !this._throwOnTransactionFailures
       ? undefined
