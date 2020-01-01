@@ -16,6 +16,7 @@ describe("Flatten task", () => {
 
   describe("When there no contracts", function() {
     useFixtureProject("default-config-project");
+
     it("should return empty string", async function() {
       const flattenedFiles = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
@@ -28,7 +29,7 @@ describe("Flatten task", () => {
   describe("When has contracts", function() {
     useFixtureProject("contracts-project");
 
-    it("should flattened files should sorted correctly", async function() {
+    it("should flatten files sorted correctly", async function() {
       const flattenedFiles = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
@@ -36,10 +37,10 @@ describe("Flatten task", () => {
     });
   });
 
-  describe.only("When has contracts with name clash", function() {
+  describe("When has contracts with name clash", function() {
     useFixtureProject("contracts-nameclash-project");
 
-    it("should flattened files sorted correctly", async function() {
+    it("should flatten files sorted correctly with repetition", async function() {
       const flattenedFiles = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
