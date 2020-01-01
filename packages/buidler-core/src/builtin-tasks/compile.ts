@@ -14,7 +14,10 @@ import { internalTask, task, types } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { Compiler } from "../internal/solidity/compiler";
-import { getInputFromDependencyGraph } from "../internal/solidity/compiler/compiler-input";
+import {
+  getInputFromDependencyGraph,
+  saveSolcInput
+} from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
@@ -115,6 +118,8 @@ export default function() {
 
   internalTask(TASK_COMPILE_COMPILE, async (_, { config, run }) => {
     const input = await run(TASK_COMPILE_GET_COMPILER_INPUT);
+
+    await saveSolcInput(config.paths.artifacts, input);
 
     console.log("Compiling...");
     const output = await run(TASK_COMPILE_RUN_COMPILER, { input });

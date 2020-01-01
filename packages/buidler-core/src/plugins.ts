@@ -7,3 +7,4 @@ export {
 export { lazyObject, lazyFunction } from "./internal/util/lazy";
 export { ensurePluginLoadedWithUsePlugin } from "./internal/core/plugins";
 export { BUIDLEREVM_NETWORK_NAME } from "./internal/constants";
+export { loadSolcInput } from "./internal/solidity/compiler/compiler-input";

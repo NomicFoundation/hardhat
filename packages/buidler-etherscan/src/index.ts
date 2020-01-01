@@ -3,7 +3,11 @@ import {
   TASK_FLATTEN_GET_FLATTENED_SOURCE
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
+import {
+  BuidlerPluginError,
+  loadSolcInput,
+  readArtifact
+} from "@nomiclabs/buidler/plugins";
 
 import AbiEncoder from "./AbiEncoder";
 import { getDefaultEtherscanConfig } from "./config";
@@ -62,14 +66,16 @@ task("verify-contract", "Verifies contract on etherscan")
       )).abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
+      source = JSON.stringify(await loadSolcInput(config.paths.artifacts));
+
       const request = toRequest({
         apiKey: etherscan.apiKey,
         contractAddress: taskArgs.address,
         sourceCode: source,
-        contractName: taskArgs.contractName,
+        contractName: `contracts/${taskArgs.contractName}.sol:${taskArgs.contractName}`,
         compilerVersion: config.solc.fullVersion,
-        optimizationsUsed: config.solc.optimizer.enabled,
-        runs: config.solc.optimizer.runs,
+        // optimizationsUsed: config.solc.optimizer.enabled,
+        // runs: config.solc.optimizer.runs,
         constructorArguments: AbiEncoder.encodeConstructor(
           abi,
           taskArgs.constructorArguments
