@@ -35,4 +35,15 @@ describe("Flatten task", () => {
       assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A"]);
     });
   });
+
+  describe.only("When has contracts with name clash", function() {
+    useFixtureProject("contracts-nameclash-project");
+
+    it("should flattened files sorted correctly", async function() {
+      const flattenedFiles = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE
+      );
+      assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A", "C"]);
+    });
+  });
 });
