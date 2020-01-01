@@ -1,4 +1,4 @@
-pragma solidity 0.5.1;
+pragma solidity 0.5.15;
 
 contract TestContract1 {
 
