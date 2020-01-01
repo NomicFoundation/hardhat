@@ -30,7 +30,7 @@ main()
 You can run it with
 
 ```sh
-npx buidler --network your-network scripts/deploy.js
+npx buidler run --network your-network scripts/deploy.js
 ```
 
 ### Truffle migrations support
