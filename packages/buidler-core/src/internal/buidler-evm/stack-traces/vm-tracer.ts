@@ -3,7 +3,7 @@ import { EVMResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { InterpreterStep } from "@nomiclabs/ethereumjs-vm/dist/evm/interpreter";
 import Message from "@nomiclabs/ethereumjs-vm/dist/evm/message";
 import { precompiles } from "@nomiclabs/ethereumjs-vm/dist/evm/precompiles";
-import { BN, toBuffer } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import { promisify } from "util";
 
 import { getUserConfigPath } from "../../core/project-structure";
