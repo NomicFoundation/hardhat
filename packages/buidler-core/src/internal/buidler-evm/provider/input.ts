@@ -200,6 +200,8 @@ export function validateParams(
   data: typeof rpcUnknown
 ): [Buffer, any];
 
+export function validateParams(params: any[], number: typeof rpcQuantity): [BN];
+
 // tslint:disable only-buidler-error
 
 export function validateParams(params: any[], ...types: Array<t.Type<any>>) {

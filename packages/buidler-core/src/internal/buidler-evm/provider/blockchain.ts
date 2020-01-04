@@ -94,4 +94,21 @@ export class Blockchain {
   public getDetails(_: string, cb: any): void {
     cb(null);
   }
+
+  public deleteAllFollowingBlocks(block: Block): void {
+    const blockNumber = bufferToInt(block.header.number);
+    const actualBlock = this._blocks[blockNumber];
+
+    if (actualBlock === undefined || !block.hash().equals(actualBlock.hash())) {
+      // tslint:disable-next-line only-buidler-error
+      throw new Error("Invalid block");
+    }
+
+    for (let i = blockNumber + 1; i < this._blocks.length; i++) {
+      const blockToDelete = this._blocks[i];
+      this._blockNumberByHash.delete(bufferToHex(blockToDelete.hash()));
+    }
+
+    this._blocks.splice(blockNumber + 1);
+  }
 }
