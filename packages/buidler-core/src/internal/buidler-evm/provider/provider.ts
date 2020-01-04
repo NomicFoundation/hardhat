@@ -55,7 +55,7 @@ export class BuidlerEVMProvider extends EventEmitter
     const release = await this._mutex.acquire();
 
     try {
-      return await this._send(method, params);
+      return await this._sendDebug(method, params);
     } finally {
       release();
     }

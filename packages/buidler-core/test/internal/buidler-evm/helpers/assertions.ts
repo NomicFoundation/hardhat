@@ -18,6 +18,7 @@ import {
   RpcTransactionReceiptOutput
 } from "../../../../src/internal/buidler-evm/provider/output";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { EthereumProvider } from "../../../../src/types";
 
 export async function assertBuidlerEVMProviderError(
   provider: BuidlerEVMProvider,
@@ -199,4 +200,14 @@ export function assertTransaction(
   assert.isTrue(rpcQuantity.decode(tx.r).isRight());
   assert.isTrue(rpcQuantity.decode(tx.s).isRight());
   assert.isTrue(rpcQuantity.decode(tx.v).isRight());
+}
+
+export async function assertLatestBlockNumber(
+  provider: EthereumProvider,
+  latestBlockNumber: number
+) {
+  const block = await provider.send("eth_getBlockByNumber", ["latest", false]);
+
+  assert.isNotNull(block);
+  assert.equal(block.number, numberToRpcQuantity(latestBlockNumber));
 }

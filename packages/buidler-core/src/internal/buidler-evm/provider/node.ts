@@ -99,6 +99,18 @@ export const SUPPORTED_HARDFORKS = [
   "istanbul"
 ];
 
+interface Snapshot {
+  id: number;
+  date: Date;
+  latestBlock: Block;
+  stateRoot: Buffer;
+  blockTimeOffsetSeconds: BN;
+  transactionByHash: Map<string, Transaction>;
+  transactionHashToBlockHash: Map<string, string>;
+  blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
+  blockHashToTotalDifficulty: Map<string, BN>;
+}
+
 export class BuidlerNode {
   public static async create(
     hardfork: string,
@@ -182,6 +194,7 @@ export class BuidlerNode {
 
     const node = new BuidlerNode(
       vm,
+      blockchain,
       genesisAccounts.map(acc => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
@@ -195,26 +208,29 @@ export class BuidlerNode {
 
   private readonly _common: Common;
   private readonly _stateManager: PStateManager;
-  private _blockTimeOffsetSeconds: BN = new BN(0);
 
   private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
-  private readonly _transactionByHash: Map<string, Transaction> = new Map();
-  private readonly _transactionHashToBlockHash: Map<string, string> = new Map();
-  private readonly _blockHashToTxBlockResults: Map<
-    string,
-    TxBlockResult[]
-  > = new Map();
-  private readonly _blockHashToTotalDifficulty: Map<string, BN> = new Map();
+
+  private _blockTimeOffsetSeconds: BN = new BN(0);
+  private _transactionByHash: Map<string, Transaction> = new Map();
+  private _transactionHashToBlockHash: Map<string, string> = new Map();
+  private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
+  private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
+
+  private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
+  private readonly _snapshots: Snapshot[] = [];
+
   private readonly _stackTracesEnabled: boolean = false;
   private readonly _vmTracer?: VMTracer;
   private readonly _solidityTracer?: SolidityTracer;
+  private _failedStackTraces = 0;
 
   private readonly _getLatestBlock: () => Promise<Block>;
   private readonly _getBlock: (hashOrNumber: Buffer | BN) => Promise<Block>;
-  private _failedStackTraces = 0;
 
   private constructor(
     private readonly _vm: VM,
+    private readonly _blockchain: Blockchain,
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
@@ -563,6 +579,85 @@ export class BuidlerNode {
 
   public async getStackTraceFailuresCount(): Promise<number> {
     return this._failedStackTraces;
+  }
+
+  public async takeSnapshot(): Promise<number> {
+    const id = this._nextSnapshotId;
+
+    const snapshot: Snapshot = {
+      id,
+      date: new Date(),
+      latestBlock: await this.getLatestBlock(),
+      stateRoot: await this._stateManager.getStateRoot(),
+      blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
+      transactionByHash: new Map(this._transactionByHash.entries()),
+      transactionHashToBlockHash: new Map(
+        this._transactionHashToBlockHash.entries()
+      ),
+      blockHashToTxBlockResults: new Map(
+        this._blockHashToTxBlockResults.entries()
+      ),
+      blockHashToTotalDifficulty: new Map(
+        this._blockHashToTotalDifficulty.entries()
+      )
+    };
+
+    this._snapshots.push(snapshot);
+    this._nextSnapshotId += 1;
+
+    return id;
+  }
+
+  public async revertToSnapshot(id: number): Promise<boolean> {
+    const snapshotIndex = this._getSnapshotIndex(id);
+    if (snapshotIndex === undefined) {
+      return false;
+    }
+
+    const snapshot = this._snapshots[snapshotIndex];
+
+    // We compute a new offset such that
+    //  now + new_offset === snapshot_date + old_offset
+    const now = new Date();
+    const offsetToSnapshotInMillis = snapshot.date.valueOf() - now.valueOf();
+    const offsetToSnapshotInSecs = Math.ceil(offsetToSnapshotInMillis / 1000);
+    const newOffset = snapshot.blockTimeOffsetSeconds.addn(
+      offsetToSnapshotInSecs
+    );
+
+    // We delete all following blocks, changes the state root, and all the
+    // relevant Node fields.
+    //
+    // Note: There's no need to copy the maps here, as snapshots can only be
+    // used once
+    this._blockchain.deleteAllFollowingBlocks(snapshot.latestBlock);
+    await this._stateManager.setStateRoot(snapshot.stateRoot);
+    this._blockTimeOffsetSeconds = newOffset;
+    this._transactionByHash = snapshot.transactionByHash;
+    this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
+    this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
+    this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
+
+    // We delete this and the following snapshots, as they can only be used
+    // once in Ganache
+    this._snapshots.splice(snapshotIndex);
+
+    return true;
+  }
+
+  private _getSnapshotIndex(id: number): number | undefined {
+    for (const [i, snapshot] of this._snapshots.entries()) {
+      if (snapshot.id === id) {
+        return i;
+      }
+
+      // We already removed the snapshot we are looking for
+      if (snapshot.id > id) {
+        return undefined;
+      }
+    }
+
+    return undefined;
   }
 
   private _initLocalAccounts(localAccounts: Buffer[]) {
