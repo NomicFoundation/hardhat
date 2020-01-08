@@ -1,4 +1,4 @@
-import { BN, bufferToHex, bufferToInt, fromSigned } from "ethereumjs-util";
+import { bufferToHex, bufferToInt, fromSigned } from "ethereumjs-util";
 
 import {
   CallMessageTrace,
@@ -16,6 +16,8 @@ const StringTy = "String";
 const AddressTy = "Address";
 const BytesTy = "Bytes";
 const FixedBytesTy = "FixedBytes";
+
+const M_SIZE = 32;
 
 interface ConsoleLogArray extends Array<ConsoleLogEntry> {}
 
@@ -480,47 +482,37 @@ export class ConsoleLogger {
   }
 
   private _decode(data: Buffer, types: string[]): ConsoleLogs {
-    const logs: ConsoleLogs = [];
-
-    // tslint:disable-next-line:prefer-for-of
-    for (let i = 0; i < types.length; ++i) {
+    return types.map((type, i) => {
       const position = i * 32;
       switch (types[i]) {
         case UintTy:
         case IntTy:
-          logs.push(fromSigned(data.slice(position, position + 32)).toString());
-          break;
+          return fromSigned(data.slice(position, position + M_SIZE)).toString();
 
         case BoolTy:
-          if (data[i * 32 + 31] === 0) {
-            logs.push(false);
-          } else {
-            logs.push(true);
-          }
-          break;
+          return data[position + 31] !== 0;
 
         case StringTy:
-          const sStart = bufferToInt(data.slice(position, position + 32));
-          const sLen = bufferToInt(data.slice(sStart, sStart + 32));
-          logs.push(data.slice(sStart + 32, sStart + 32 + sLen).toString());
-          break;
+          const sStart = bufferToInt(data.slice(position, position + M_SIZE));
+          const sLen = bufferToInt(data.slice(sStart, sStart + M_SIZE));
+          return data.slice(sStart + M_SIZE, sStart + M_SIZE + sLen).toString();
 
         case AddressTy:
-          logs.push(bufferToHex(data.slice(position + 12, position + 32)));
-          break;
+          return bufferToHex(data.slice(position + 12, position + M_SIZE));
 
         case BytesTy:
-          const bStart = bufferToInt(data.slice(position, position + 32));
-          const bLen = bufferToInt(data.slice(bStart, bStart + 32));
-          logs.push(bufferToHex(data.slice(bStart + 32, bStart + 32 + bLen)));
-          break;
+          const bStart = bufferToInt(data.slice(position, position + M_SIZE));
+          const bLen = bufferToInt(data.slice(bStart, bStart + M_SIZE));
+          return bufferToHex(
+            data.slice(bStart + M_SIZE, bStart + M_SIZE + bLen)
+          );
 
         case FixedBytesTy:
-          logs.push(bufferToHex(data.slice(position, position + 32)));
-          break;
-      }
-    }
+          return bufferToHex(data.slice(position, position + M_SIZE));
 
-    return logs;
+        default:
+          return "";
+      }
+    });
   }
 }
