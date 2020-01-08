@@ -28,6 +28,8 @@ export class ConsoleLogger {
     [key: number]: string[];
   } = {};
 
+  // In order to optimize map lookup
+  // we'll store 4byte signature as int
   constructor() {
     this._consoleLogs[4163653873] = [UintTy];
     this._consoleLogs[1404955895] = [IntTy];
@@ -435,22 +437,33 @@ export class ConsoleLogger {
       return;
     }
 
-    this._printExecutionLogs(maybeDecodedMessageTrace);
+    const logs = this.getExecutionLogs(maybeDecodedMessageTrace);
+    for (const log of logs) {
+      console.log(...log);
+    }
   }
 
-  private _printExecutionLogs(trace: EvmMessageTrace) {
+  public getExecutionLogs(
+    maybeDecodedMessageTrace: EvmMessageTrace
+  ): ConsoleLogs[] {
+    const logs: ConsoleLogs[] = [];
+    this._collectExecutionLogs(maybeDecodedMessageTrace, logs);
+    return logs;
+  }
+
+  private _collectExecutionLogs(trace: EvmMessageTrace, logs: ConsoleLogs) {
     for (const messageTrace of trace.steps) {
       if (isEvmStep(messageTrace) || !isCallTrace(messageTrace)) {
         continue;
       }
 
-      const logs = this._maybeConsoleLog(messageTrace);
-      if (logs !== undefined) {
-        console.log(...logs);
+      const log = this._maybeConsoleLog(messageTrace);
+      if (log !== undefined) {
+        logs.push(log);
         continue;
       }
 
-      this._printExecutionLogs(messageTrace);
+      this._collectExecutionLogs(messageTrace, logs);
     }
   }
 
