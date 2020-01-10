@@ -287,8 +287,6 @@ export class BuidlerNode {
         );
 
         this._stackTracesEnabled = false;
-        // TODO: make sure its safe to remove next line
-        // this._vmTracer.disableTracing();
 
         log(
           "Solidity stack traces disabled: SolidityTracer failed to be initialized. Please report this to help us improve Buidler.\n",
