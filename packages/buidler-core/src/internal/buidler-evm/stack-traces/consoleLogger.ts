@@ -21,7 +21,7 @@ const M_SIZE = 32;
 
 interface ConsoleLogArray extends Array<ConsoleLogEntry> {}
 
-export type ConsoleLogEntry = boolean | string | ConsoleLogArray;
+export type ConsoleLogEntry = string | ConsoleLogArray;
 
 export type ConsoleLogs = ConsoleLogEntry[];
 
@@ -490,7 +490,10 @@ export class ConsoleLogger {
           return fromSigned(data.slice(position, position + M_SIZE)).toString();
 
         case BoolTy:
-          return data[position + 31] !== 0;
+          if (data[position + 31] !== 0) {
+            return "true";
+          }
+          return "false";
 
         case StringTy:
           const sStart = bufferToInt(data.slice(position, position + M_SIZE));
