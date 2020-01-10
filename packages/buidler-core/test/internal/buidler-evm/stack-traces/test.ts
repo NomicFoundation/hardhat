@@ -76,7 +76,7 @@ interface DeploymentTransaction {
     };
   };
   stackTrace?: StackFrameDescription[]; // No stack trace === the tx MUST be successful
-  console?: string; // Include internal console library
+  imports?: string[]; // Imports needed for successful compilation
   consoleLogs?: ConsoleLogs[];
 }
 
@@ -113,10 +113,9 @@ function defineDirTests(dirPath: string) {
         fs.readFileSync(testPath, "utf8")
       );
 
-      // TODO: find a better way to inject console library
       for (const tx of testDefinition.transactions) {
-        if ("console" in tx) {
-          sources.push(dirPath + tx.console);
+        if ("imports" in tx && tx.imports !== undefined) {
+          sources.push(...tx.imports.map((p: string) => dirPath + p));
           break;
         }
       }
