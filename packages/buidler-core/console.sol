@@ -1,45 +1,205 @@
-pragma solidity >=0.4.11 <0.6.0;
+pragma solidity ^0.5.0;
 
 library console {
 	address constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);
 
-	struct WrappedBytes {
-		bytes b;
-	}
-
-	struct WrappedBytes32 {
-		bytes32 b;
-	}
-
-	struct WrappedInt {
-		int i;
-	}
-
-	function asHex(bytes memory p0) internal pure returns (WrappedBytes memory) {
-		return WrappedBytes({
-			b: p0
-		});
-	}
-
-	function asHex(bytes32 p0) internal pure returns (WrappedBytes32 memory) {
-		return WrappedBytes32({
-			b: p0
-		});
-	}
-
-	function asInt(int256 p0) internal pure returns (WrappedInt memory) {
-		return WrappedInt({
-			i: p0
-		});
-	}
-
-	function log(uint256 p0) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256)", p0));
+	function logInt(int p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(int)", p0));
 		ignored;
 	}
 
-	function log(WrappedInt memory p0) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256))", p0.i));
+	function logUint(uint p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint)", p0));
+		ignored;
+	}
+
+	function logString(string memory p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string)", p0));
+		ignored;
+	}
+
+	function logBool(bool p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool)", p0));
+		ignored;
+	}
+
+	function logAddress(address p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address)", p0));
+		ignored;
+	}
+
+	function logBytes(bytes memory p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes)", p0));
+		ignored;
+	}
+
+	function logByte(byte p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(byte)", p0));
+		ignored;
+	}
+
+	function logBytes1(bytes1 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes1)", p0));
+		ignored;
+	}
+
+	function logBytes2(bytes2 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes2)", p0));
+		ignored;
+	}
+
+	function logBytes3(bytes3 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes3)", p0));
+		ignored;
+	}
+
+	function logBytes4(bytes4 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes4)", p0));
+		ignored;
+	}
+
+	function logBytes5(bytes5 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes5)", p0));
+		ignored;
+	}
+
+	function logBytes6(bytes6 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes6)", p0));
+		ignored;
+	}
+
+	function logBytes7(bytes7 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes7)", p0));
+		ignored;
+	}
+
+	function logBytes8(bytes8 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes8)", p0));
+		ignored;
+	}
+
+	function logBytes9(bytes9 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes9)", p0));
+		ignored;
+	}
+
+	function logBytes10(bytes10 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes10)", p0));
+		ignored;
+	}
+
+	function logBytes11(bytes11 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes11)", p0));
+		ignored;
+	}
+
+	function logBytes12(bytes12 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes12)", p0));
+		ignored;
+	}
+
+	function logBytes13(bytes13 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes13)", p0));
+		ignored;
+	}
+
+	function logBytes14(bytes14 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes14)", p0));
+		ignored;
+	}
+
+	function logBytes15(bytes15 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes15)", p0));
+		ignored;
+	}
+
+	function logBytes16(bytes16 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes16)", p0));
+		ignored;
+	}
+
+	function logBytes17(bytes17 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes17)", p0));
+		ignored;
+	}
+
+	function logBytes18(bytes18 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes18)", p0));
+		ignored;
+	}
+
+	function logBytes19(bytes19 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes19)", p0));
+		ignored;
+	}
+
+	function logBytes20(bytes20 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes20)", p0));
+		ignored;
+	}
+
+	function logBytes21(bytes21 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes21)", p0));
+		ignored;
+	}
+
+	function logBytes22(bytes22 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes22)", p0));
+		ignored;
+	}
+
+	function logBytes23(bytes23 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes23)", p0));
+		ignored;
+	}
+
+	function logBytes24(bytes24 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes24)", p0));
+		ignored;
+	}
+
+	function logBytes25(bytes25 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes25)", p0));
+		ignored;
+	}
+
+	function logBytes26(bytes26 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes26)", p0));
+		ignored;
+	}
+
+	function logBytes27(bytes27 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes27)", p0));
+		ignored;
+	}
+
+	function logBytes28(bytes28 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes28)", p0));
+		ignored;
+	}
+
+	function logBytes29(bytes29 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes29)", p0));
+		ignored;
+	}
+
+	function logBytes30(bytes30 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes30)", p0));
+		ignored;
+	}
+
+	function logBytes31(bytes31 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes31)", p0));
+		ignored;
+	}
+
+	function logBytes32(bytes32 p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bytes32)", p0));
+		ignored;
+	}
+
+	function log(uint p0) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint)", p0));
 		ignored;
 	}
 
@@ -58,93 +218,28 @@ library console {
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes))", p0.b));
+	function log(uint p0, uint p1) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint)", p0, p1));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32))", p0.b));
+	function log(uint p0, string memory p1) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string)", p0, p1));
 		ignored;
 	}
 
-	function log(uint256 p0, uint256 p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256)", p0, p1));
+	function log(uint p0, bool p1) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool)", p0, p1));
 		ignored;
 	}
 
-	function log(uint256 p0, WrappedInt memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256))", p0, p1.i));
+	function log(uint p0, address p1) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address)", p0, p1));
 		ignored;
 	}
 
-	function log(uint256 p0, string memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string)", p0, p1));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool)", p0, p1));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address)", p0, p1));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes))", p0, p1.b));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32))", p0, p1.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256)", p0.i, p1));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256))", p0.i, p1.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string)", p0.i, p1));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool)", p0.i, p1));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address)", p0.i, p1));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes))", p0.i, p1.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32))", p0.i, p1.b));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256)", p0, p1));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256))", p0, p1.i));
+	function log(string memory p0, uint p1) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint)", p0, p1));
 		ignored;
 	}
 
@@ -163,23 +258,8 @@ library console {
 		ignored;
 	}
 
-	function log(string memory p0, WrappedBytes memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes))", p0, p1.b));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32))", p0, p1.b));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256)", p0, p1));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256))", p0, p1.i));
+	function log(bool p0, uint p1) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint)", p0, p1));
 		ignored;
 	}
 
@@ -198,23 +278,8 @@ library console {
 		ignored;
 	}
 
-	function log(bool p0, WrappedBytes memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes))", p0, p1.b));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32))", p0, p1.b));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256)", p0, p1));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256))", p0, p1.i));
+	function log(address p0, uint p1) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint)", p0, p1));
 		ignored;
 	}
 
@@ -233,653 +298,108 @@ library console {
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes))", p0, p1.b));
+	function log(uint p0, uint p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,uint)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32))", p0, p1.b));
+	function log(uint p0, uint p1, string memory p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,string)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256)", p0.b, p1));
+	function log(uint p0, uint p1, bool p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,bool)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256))", p0.b, p1.i));
+	function log(uint p0, uint p1, address p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,address)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string)", p0.b, p1));
+	function log(uint p0, string memory p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,uint)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool)", p0.b, p1));
+	function log(uint p0, string memory p1, string memory p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,string)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address)", p0.b, p1));
+	function log(uint p0, string memory p1, bool p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,bool)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes))", p0.b, p1.b));
+	function log(uint p0, string memory p1, address p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,address)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32))", p0.b, p1.b));
+	function log(uint p0, bool p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,uint)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256)", p0.b, p1));
+	function log(uint p0, bool p1, string memory p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,string)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256))", p0.b, p1.i));
+	function log(uint p0, bool p1, bool p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,bool)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string)", p0.b, p1));
+	function log(uint p0, bool p1, address p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,address)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool)", p0.b, p1));
+	function log(uint p0, address p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,uint)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address)", p0.b, p1));
+	function log(uint p0, address p1, string memory p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,string)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes))", p0.b, p1.b));
+	function log(uint p0, address p1, bool p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,bool)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32))", p0.b, p1.b));
+	function log(uint p0, address p1, address p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,address)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(uint256 p0, uint256 p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256,uint256)", p0, p1, p2));
+	function log(string memory p0, uint p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,uint)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(uint256 p0, uint256 p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256,(int256))", p0, p1, p2.i));
+	function log(string memory p0, uint p1, string memory p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,string)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(uint256 p0, uint256 p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256,string)", p0, p1, p2));
+	function log(string memory p0, uint p1, bool p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,bool)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(uint256 p0, uint256 p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256,bool)", p0, p1, p2));
+	function log(string memory p0, uint p1, address p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,address)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(uint256 p0, uint256 p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256,address)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, uint256 p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, uint256 p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,uint256,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedInt memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256),uint256)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedInt memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256),(int256))", p0, p1.i, p2.i));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedInt memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256),string)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedInt memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256),bool)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedInt memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256),address)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedInt memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256),(bytes))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedInt memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(int256),(bytes32))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, string memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, string memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string,(int256))", p0, p1, p2.i));
-		ignored;
-	}
-
-	function log(uint256 p0, string memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string,string)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, string memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string,bool)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, string memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string,address)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, string memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, string memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,string,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool,(int256))", p0, p1, p2.i));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool,string)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool,bool)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool,address)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, bool p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,bool,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address,(int256))", p0, p1, p2.i));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address,string)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address,bool)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address,address)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, address p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,address,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes),uint256)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes),(int256))", p0, p1.b, p2.i));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes),string)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes),bool)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes),address)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes),(bytes))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes),(bytes32))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32),uint256)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32),(int256))", p0, p1.b, p2.i));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32),string)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32),bool)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32),address)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32),(bytes))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(uint256 p0, WrappedBytes32 memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint256,(bytes32),(bytes32))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256,uint256)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256,(int256))", p0.i, p1, p2.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256,string)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256,bool)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256,address)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256,(bytes))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, uint256 p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),uint256,(bytes32))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256),uint256)", p0.i, p1.i, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256),(int256))", p0.i, p1.i, p2.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256),string)", p0.i, p1.i, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256),bool)", p0.i, p1.i, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256),address)", p0.i, p1.i, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256),(bytes))", p0.i, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedInt memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(int256),(bytes32))", p0.i, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string,uint256)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string,(int256))", p0.i, p1, p2.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string,string)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string,bool)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string,address)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string,(bytes))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, string memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),string,(bytes32))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool,uint256)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool,(int256))", p0.i, p1, p2.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool,string)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool,bool)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool,address)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool,(bytes))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, bool p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),bool,(bytes32))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address,uint256)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address,(int256))", p0.i, p1, p2.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address,string)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address,bool)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address,address)", p0.i, p1, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address,(bytes))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, address p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),address,(bytes32))", p0.i, p1, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes),uint256)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes),(int256))", p0.i, p1.b, p2.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes),string)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes),bool)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes),address)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes),(bytes))", p0.i, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes),(bytes32))", p0.i, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32),uint256)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32),(int256))", p0.i, p1.b, p2.i));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32),string)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32),bool)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32),address)", p0.i, p1.b, p2));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32),(bytes))", p0.i, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(WrappedInt memory p0, WrappedBytes32 memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((int256),(bytes32),(bytes32))", p0.i, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256,(int256))", p0, p1, p2.i));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256,string)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256,bool)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256,address)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, uint256 p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint256,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256),uint256)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256),(int256))", p0, p1.i, p2.i));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256),string)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256),bool)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256),address)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256),(bytes))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedInt memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(int256),(bytes32))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, string memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(string memory p0, string memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,(int256))", p0, p1, p2.i));
+	function log(string memory p0, string memory p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -898,23 +418,8 @@ library console {
 		ignored;
 	}
 
-	function log(string memory p0, string memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, string memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, bool p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(string memory p0, bool p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,(int256))", p0, p1, p2.i));
+	function log(string memory p0, bool p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -933,23 +438,8 @@ library console {
 		ignored;
 	}
 
-	function log(string memory p0, bool p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, bool p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, address p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(string memory p0, address p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,(int256))", p0, p1, p2.i));
+	function log(string memory p0, address p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -968,163 +458,28 @@ library console {
 		ignored;
 	}
 
-	function log(string memory p0, address p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,(bytes))", p0, p1, p2.b));
+	function log(bool p0, uint p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,uint)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(string memory p0, address p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,(bytes32))", p0, p1, p2.b));
+	function log(bool p0, uint p1, string memory p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,string)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(string memory p0, WrappedBytes memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes),uint256)", p0, p1.b, p2));
+	function log(bool p0, uint p1, bool p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,bool)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(string memory p0, WrappedBytes memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes),(int256))", p0, p1.b, p2.i));
+	function log(bool p0, uint p1, address p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,address)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(string memory p0, WrappedBytes memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes),string)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes),bool)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes),address)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes),(bytes))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes),(bytes32))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32),uint256)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32),(int256))", p0, p1.b, p2.i));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32),string)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32),bool)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32),address)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32),(bytes))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(string memory p0, WrappedBytes32 memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,(bytes32),(bytes32))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256,(int256))", p0, p1, p2.i));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256,string)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256,bool)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256,address)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, uint256 p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint256,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256),uint256)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256),(int256))", p0, p1.i, p2.i));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256),string)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256),bool)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256),address)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256),(bytes))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, WrappedInt memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(int256),(bytes32))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, string memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(bool p0, string memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,(int256))", p0, p1, p2.i));
+	function log(bool p0, string memory p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -1143,23 +498,8 @@ library console {
 		ignored;
 	}
 
-	function log(bool p0, string memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, string memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, bool p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(bool p0, bool p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,(int256))", p0, p1, p2.i));
+	function log(bool p0, bool p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -1178,23 +518,8 @@ library console {
 		ignored;
 	}
 
-	function log(bool p0, bool p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, bool p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, address p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(bool p0, address p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,(int256))", p0, p1, p2.i));
+	function log(bool p0, address p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -1213,163 +538,28 @@ library console {
 		ignored;
 	}
 
-	function log(bool p0, address p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,(bytes))", p0, p1, p2.b));
+	function log(address p0, uint p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,uint)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(bool p0, address p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,(bytes32))", p0, p1, p2.b));
+	function log(address p0, uint p1, string memory p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,string)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(bool p0, WrappedBytes memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes),uint256)", p0, p1.b, p2));
+	function log(address p0, uint p1, bool p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,bool)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(bool p0, WrappedBytes memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes),(int256))", p0, p1.b, p2.i));
+	function log(address p0, uint p1, address p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,address)", p0, p1, p2));
 		ignored;
 	}
 
-	function log(bool p0, WrappedBytes memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes),string)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes),bool)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes),address)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes),(bytes))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes),(bytes32))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32),uint256)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32),(int256))", p0, p1.b, p2.i));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32),string)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32),bool)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32),address)", p0, p1.b, p2));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32),(bytes))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(bool p0, WrappedBytes32 memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,(bytes32),(bytes32))", p0, p1.b, p2.b));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256,(int256))", p0, p1, p2.i));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256,string)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256,bool)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256,address)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(address p0, uint256 p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint256,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256),uint256)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256),(int256))", p0, p1.i, p2.i));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256),string)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256),bool)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256),address)", p0, p1.i, p2));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256),(bytes))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(address p0, WrappedInt memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(int256),(bytes32))", p0, p1.i, p2.b));
-		ignored;
-	}
-
-	function log(address p0, string memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(address p0, string memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,(int256))", p0, p1, p2.i));
+	function log(address p0, string memory p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -1388,23 +578,8 @@ library console {
 		ignored;
 	}
 
-	function log(address p0, string memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(address p0, string memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(address p0, bool p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(address p0, bool p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,(int256))", p0, p1, p2.i));
+	function log(address p0, bool p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -1423,23 +598,8 @@ library console {
 		ignored;
 	}
 
-	function log(address p0, bool p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,(bytes))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(address p0, bool p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,(bytes32))", p0, p1, p2.b));
-		ignored;
-	}
-
-	function log(address p0, address p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,uint256)", p0, p1, p2));
-		ignored;
-	}
-
-	function log(address p0, address p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,(int256))", p0, p1, p2.i));
+	function log(address p0, address p1, uint p2) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,uint)", p0, p1, p2));
 		ignored;
 	}
 
@@ -1458,573 +618,1283 @@ library console {
 		ignored;
 	}
 
-	function log(address p0, address p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,(bytes))", p0, p1, p2.b));
+	function log(uint p0, uint p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, address p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,(bytes32))", p0, p1, p2.b));
+	function log(uint p0, uint p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,uint,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes),uint256)", p0, p1.b, p2));
+	function log(uint p0, uint p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,uint,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes),(int256))", p0, p1.b, p2.i));
+	function log(uint p0, uint p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,uint,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes),string)", p0, p1.b, p2));
+	function log(uint p0, uint p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,string,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes),bool)", p0, p1.b, p2));
+	function log(uint p0, uint p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,string,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes),address)", p0, p1.b, p2));
+	function log(uint p0, uint p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,string,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes),(bytes))", p0, p1.b, p2.b));
+	function log(uint p0, uint p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,string,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes),(bytes32))", p0, p1.b, p2.b));
+	function log(uint p0, uint p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,bool,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32),uint256)", p0, p1.b, p2));
+	function log(uint p0, uint p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,bool,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32),(int256))", p0, p1.b, p2.i));
+	function log(uint p0, uint p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,bool,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32),string)", p0, p1.b, p2));
+	function log(uint p0, uint p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,bool,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32),bool)", p0, p1.b, p2));
+	function log(uint p0, uint p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,address,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32),address)", p0, p1.b, p2));
+	function log(uint p0, uint p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,address,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32),(bytes))", p0, p1.b, p2.b));
+	function log(uint p0, uint p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,address,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(address p0, WrappedBytes32 memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,(bytes32),(bytes32))", p0, p1.b, p2.b));
+	function log(uint p0, uint p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,uint,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256,uint256)", p0.b, p1, p2));
+	function log(uint p0, string memory p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256,(int256))", p0.b, p1, p2.i));
+	function log(uint p0, string memory p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,uint,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256,string)", p0.b, p1, p2));
+	function log(uint p0, string memory p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,uint,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256,bool)", p0.b, p1, p2));
+	function log(uint p0, string memory p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,uint,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256,address)", p0.b, p1, p2));
+	function log(uint p0, string memory p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,string,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256,(bytes))", p0.b, p1, p2.b));
+	function log(uint p0, string memory p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,string,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, uint256 p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),uint256,(bytes32))", p0.b, p1, p2.b));
+	function log(uint p0, string memory p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,string,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256),uint256)", p0.b, p1.i, p2));
+	function log(uint p0, string memory p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,string,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256),(int256))", p0.b, p1.i, p2.i));
+	function log(uint p0, string memory p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,bool,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256),string)", p0.b, p1.i, p2));
+	function log(uint p0, string memory p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,bool,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256),bool)", p0.b, p1.i, p2));
+	function log(uint p0, string memory p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,bool,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256),address)", p0.b, p1.i, p2));
+	function log(uint p0, string memory p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,bool,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256),(bytes))", p0.b, p1.i, p2.b));
+	function log(uint p0, string memory p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,address,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedInt memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(int256),(bytes32))", p0.b, p1.i, p2.b));
+	function log(uint p0, string memory p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,address,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string,uint256)", p0.b, p1, p2));
+	function log(uint p0, string memory p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,address,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string,(int256))", p0.b, p1, p2.i));
+	function log(uint p0, string memory p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,string,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string,string)", p0.b, p1, p2));
+	function log(uint p0, bool p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string,bool)", p0.b, p1, p2));
+	function log(uint p0, bool p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,uint,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string,address)", p0.b, p1, p2));
+	function log(uint p0, bool p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,uint,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string,(bytes))", p0.b, p1, p2.b));
+	function log(uint p0, bool p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,uint,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, string memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),string,(bytes32))", p0.b, p1, p2.b));
+	function log(uint p0, bool p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,string,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool,uint256)", p0.b, p1, p2));
+	function log(uint p0, bool p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,string,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool,(int256))", p0.b, p1, p2.i));
+	function log(uint p0, bool p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,string,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool,string)", p0.b, p1, p2));
+	function log(uint p0, bool p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,string,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool,bool)", p0.b, p1, p2));
+	function log(uint p0, bool p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,bool,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool,address)", p0.b, p1, p2));
+	function log(uint p0, bool p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,bool,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool,(bytes))", p0.b, p1, p2.b));
+	function log(uint p0, bool p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,bool,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, bool p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),bool,(bytes32))", p0.b, p1, p2.b));
+	function log(uint p0, bool p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,bool,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address,uint256)", p0.b, p1, p2));
+	function log(uint p0, bool p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,address,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address,(int256))", p0.b, p1, p2.i));
+	function log(uint p0, bool p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,address,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address,string)", p0.b, p1, p2));
+	function log(uint p0, bool p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,address,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address,bool)", p0.b, p1, p2));
+	function log(uint p0, bool p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,bool,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address,address)", p0.b, p1, p2));
+	function log(uint p0, address p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address,(bytes))", p0.b, p1, p2.b));
+	function log(uint p0, address p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,uint,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, address p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),address,(bytes32))", p0.b, p1, p2.b));
+	function log(uint p0, address p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,uint,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes),uint256)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,uint,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes),(int256))", p0.b, p1.b, p2.i));
+	function log(uint p0, address p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,string,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes),string)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,string,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes),bool)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,string,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes),address)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,string,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes),(bytes))", p0.b, p1.b, p2.b));
+	function log(uint p0, address p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,bool,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes),(bytes32))", p0.b, p1.b, p2.b));
+	function log(uint p0, address p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,bool,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32),uint256)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,bool,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32),(int256))", p0.b, p1.b, p2.i));
+	function log(uint p0, address p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,bool,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32),string)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,address,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32),bool)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,address,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32),address)", p0.b, p1.b, p2));
+	function log(uint p0, address p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,address,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32),(bytes))", p0.b, p1.b, p2.b));
+	function log(uint p0, address p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(uint,address,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes memory p0, WrappedBytes32 memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes),(bytes32),(bytes32))", p0.b, p1.b, p2.b));
+	function log(string memory p0, uint p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256,uint256)", p0.b, p1, p2));
+	function log(string memory p0, uint p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,uint,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256,(int256))", p0.b, p1, p2.i));
+	function log(string memory p0, uint p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,uint,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256,string)", p0.b, p1, p2));
+	function log(string memory p0, uint p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,uint,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256,bool)", p0.b, p1, p2));
+	function log(string memory p0, uint p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,string,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256,address)", p0.b, p1, p2));
+	function log(string memory p0, uint p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,string,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256,(bytes))", p0.b, p1, p2.b));
+	function log(string memory p0, uint p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,string,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, uint256 p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),uint256,(bytes32))", p0.b, p1, p2.b));
+	function log(string memory p0, uint p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,string,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256),uint256)", p0.b, p1.i, p2));
+	function log(string memory p0, uint p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,bool,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256),(int256))", p0.b, p1.i, p2.i));
+	function log(string memory p0, uint p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,bool,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256),string)", p0.b, p1.i, p2));
+	function log(string memory p0, uint p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,bool,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256),bool)", p0.b, p1.i, p2));
+	function log(string memory p0, uint p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,bool,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256),address)", p0.b, p1.i, p2));
+	function log(string memory p0, uint p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,address,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256),(bytes))", p0.b, p1.i, p2.b));
+	function log(string memory p0, uint p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,address,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedInt memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(int256),(bytes32))", p0.b, p1.i, p2.b));
+	function log(string memory p0, uint p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,address,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string,uint256)", p0.b, p1, p2));
+	function log(string memory p0, uint p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,uint,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string,(int256))", p0.b, p1, p2.i));
+	function log(string memory p0, string memory p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string,string)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,uint,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string,bool)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,uint,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string,address)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,uint,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string,(bytes))", p0.b, p1, p2.b));
+	function log(string memory p0, string memory p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,string,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, string memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),string,(bytes32))", p0.b, p1, p2.b));
+	function log(string memory p0, string memory p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,string,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool,uint256)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,string,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool,(int256))", p0.b, p1, p2.i));
+	function log(string memory p0, string memory p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,string,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool,string)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,bool,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool,bool)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,bool,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool,address)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,bool,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool,(bytes))", p0.b, p1, p2.b));
+	function log(string memory p0, string memory p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,bool,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, bool p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),bool,(bytes32))", p0.b, p1, p2.b));
+	function log(string memory p0, string memory p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,address,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address,uint256)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,address,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address,(int256))", p0.b, p1, p2.i));
+	function log(string memory p0, string memory p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,address,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address,string)", p0.b, p1, p2));
+	function log(string memory p0, string memory p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,string,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address,bool)", p0.b, p1, p2));
+	function log(string memory p0, bool p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address,address)", p0.b, p1, p2));
+	function log(string memory p0, bool p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,uint,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address,(bytes))", p0.b, p1, p2.b));
+	function log(string memory p0, bool p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,uint,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, address p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),address,(bytes32))", p0.b, p1, p2.b));
+	function log(string memory p0, bool p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,uint,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes),uint256)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,string,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes),(int256))", p0.b, p1.b, p2.i));
+	function log(string memory p0, bool p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,string,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes),string)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,string,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes),bool)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,string,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes),address)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,bool,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes),(bytes))", p0.b, p1.b, p2.b));
+	function log(string memory p0, bool p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,bool,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes),(bytes32))", p0.b, p1.b, p2.b));
+	function log(string memory p0, bool p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,bool,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1, uint256 p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32),uint256)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,bool,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1, WrappedInt memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32),(int256))", p0.b, p1.b, p2.i));
+	function log(string memory p0, bool p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,address,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1, string memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32),string)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,address,string)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1, bool p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32),bool)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,address,bool)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1, address p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32),address)", p0.b, p1.b, p2));
+	function log(string memory p0, bool p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,bool,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1, WrappedBytes memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32),(bytes))", p0.b, p1.b, p2.b));
+	function log(string memory p0, address p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,uint,uint)", p0, p1, p2, p3));
 		ignored;
 	}
 
-	function log(WrappedBytes32 memory p0, WrappedBytes32 memory p1, WrappedBytes32 memory p2) internal view {
-		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log((bytes32),(bytes32),(bytes32))", p0.b, p1.b, p2.b));
+	function log(string memory p0, address p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(string memory p0, address p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(string,address,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, uint p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,uint,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, string memory p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,string,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, bool p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,bool,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(bool p0, address p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(bool,address,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, uint p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,uint,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, string memory p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,string,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, bool p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,bool,address,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, uint p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,uint,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, uint p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,uint,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, uint p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,uint,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, uint p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,uint,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, string memory p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,string,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, string memory p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,string,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, string memory p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,string,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, string memory p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,string,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, bool p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,bool,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, bool p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,bool,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, bool p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,bool,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, bool p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,bool,address)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, address p2, uint p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,address,uint)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, address p2, string memory p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,address,string)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, address p2, bool p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,address,bool)", p0, p1, p2, p3));
+		ignored;
+	}
+
+	function log(address p0, address p1, address p2, address p3) internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(address,address,address,address)", p0, p1, p2, p3));
 		ignored;
 	}
 
