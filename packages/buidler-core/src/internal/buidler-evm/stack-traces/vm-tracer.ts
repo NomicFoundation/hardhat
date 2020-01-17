@@ -186,7 +186,6 @@ export class VMTracer {
           "This should not happen: step event fired while a precompile was executing"
         );
       }
-      console.log(step.pc);
 
       trace.steps.push({ pc: step.pc });
       next();
