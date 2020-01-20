@@ -50,7 +50,7 @@ for (let i = 0; i < singleTypes.length; i++) {
   const nameSuffix = type.charAt(0).toUpperCase() + type.slice(1);
   
   const sigInt = eutil.bufferToInt(eutil.keccak256("log" + "(" + type + ")").slice(0, 4));
-  keys.push("\t" + sigInt + ": [" + type.charAt(0).toUpperCase() + type.slice(1) + "Ty],\n");
+  keys.push("  " + sigInt + ": [" + type.charAt(0).toUpperCase() + type.slice(1) + "Ty],\n");
   
   code +=
     functionPrefix + " log" + nameSuffix + 
@@ -101,7 +101,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 
     if (sigParams.length !== 1) {
       const sigInt = eutil.bufferToInt(eutil.keccak256("log(" + sigParams.join(",") + ")").slice(0, 4));
-      keys.push("\t" + sigInt + ": [" + constParams.join(", ") + "],\n");
+      keys.push("  " + sigInt + ": [" + constParams.join(", ") + "],\n");
     }
 
     code +=
@@ -121,5 +121,5 @@ if (keys.length > 0) {
 }
 keys.push("};\n"); 
   
-console.log(...keys);
+fs.writeFileSync("../src/internal/buidler-evm/stack-traces/logger.ts", keys.join(""));
 fs.writeFileSync("../console.sol", code);
