@@ -37,8 +37,7 @@ import {
   Bytes9Ty,
   BytesTy,
   ByteTy,
-  CONSOLE_ADDRESS,
-  getConsoleLogs,
+  ConsoleLogs,
   IntTy,
   StringTy,
   UintTy
@@ -52,6 +51,7 @@ import {
   MessageTrace
 } from "./message-trace";
 
+const CONSOLE_ADDRESS = "0x000000000000000000636F6e736F6c652e6c6f67"; // toHex("console.log")
 const REGISTER_SIZE = 32;
 
 interface ConsoleLogArray extends Array<ConsoleLogEntry> {}
@@ -66,7 +66,7 @@ export class ConsoleLogger {
   } = {};
 
   constructor() {
-    this._consoleLogs = getConsoleLogs();
+    this._consoleLogs = ConsoleLogs;
   }
 
   public printLogs(maybeDecodedMessageTrace: MessageTrace) {
