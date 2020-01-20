@@ -68,7 +68,7 @@ export async function traceTransaction(
 ): Promise<MessageTrace> {
   const tx = new Transaction({
     value: 0,
-    gasLimit: 2000000, // We assume that 2M is enough,
+    gasLimit: 4000000, // We assume that 4M is enough,
     gasPrice: 1,
     nonce: nonce++,
     ...txData
