@@ -94,7 +94,8 @@ Next, create a file `tsconfig.json` in your project directory and put the follow
   },
   "include": ["./scripts", "./test"],
   "files": [
-    "./buidler.config.ts"
+    "./buidler.config.ts",
+    "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts"
   ]
 }
 ```
