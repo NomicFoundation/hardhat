@@ -16,7 +16,7 @@ const QUIT_ACTION = "Quit";
 const SAMPLE_PROJECT_DEPENDENCIES = [
   "@nomiclabs/buidler-truffle5",
   "@nomiclabs/buidler-web3",
-  "web3"
+  "web3@^1.2.0"
 ];
 
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
