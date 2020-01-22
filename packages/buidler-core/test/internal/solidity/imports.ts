@@ -61,4 +61,18 @@ import "./1.sol";
 
     assert.deepEqual(imports, ["./asd.sol", "./1.sol"]);
   });
+
+  it("Should work when the parser doesn't detect some invalid syntax and the visitor breaks", () => {
+    const imports = getImports(`
+      import "a.sol";
+
+      contract C {
+        fallback () function {
+
+        }
+      }
+    `);
+
+    assert.deepEqual(imports, ["a.sol"]);
+  });
 });
