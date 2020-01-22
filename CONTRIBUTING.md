@@ -7,7 +7,7 @@ This document contains some tips on how to collaborate in this project.
 This repository is a monorepo handled with [Lerna](https://github.com/lerna/lerna).
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/buidler-core` which
-is the main project (i.e. the one that published as [@nomiclabs/buidler](npmjs.com/package/@nomiclabs/buidler)).
+is the main project (i.e. the one that's published as [@nomiclabs/buidler](https://npmjs.com/package/@nomiclabs/buidler)).
 
 ## Installing
 
@@ -54,8 +54,8 @@ This is done by selectively requiring dependencies when needed using `import` or
 1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`
 1. If a module is in the least below, use a top-level `import ... from "mod""`.
 1. Otherwise, use `await import` or `require` locally in the functions that use it.
-   3.1. If the function is sync, use node's `require`
-   3.2. If the function is an async, use `await import`
+   1. If the function is sync, use node's `require`
+   2. If the function is an async, use `await import`
 
 Note that these rules don't apply to tests. You can always use top-level imports there.
 
