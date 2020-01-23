@@ -139,4 +139,12 @@ describe("Libraries linking", function() {
     );
     linkingShouldWorkCorrectly();
   });
+
+  describe("When using solc 0.6.x", function() {
+    useEnvironment(
+      path.join(__dirname, "buidler-project-solc-0.6"),
+      BUIDLEREVM_NETWORK_NAME
+    );
+    linkingShouldWorkCorrectly();
+  });
 });

@@ -157,6 +157,11 @@ describe("TruffleContracts loading and provisioning", function() {
     testArtifactsFunctionality();
   });
 
+  describe("When compiling with solc 0.6.x", function() {
+    useEnvironment(path.join(__dirname, "buidler-project-solc-0.6"));
+    testArtifactsFunctionality();
+  });
+
   describe("Without accounts", function() {
     function shouldWorkWithoutAccounts() {
       it("Should be able to call constant functions", async function() {
@@ -181,9 +186,17 @@ describe("TruffleContracts loading and provisioning", function() {
       shouldWorkWithoutAccounts();
     });
 
-    describe("With solc 0.4.x", function() {
+    describe("With solc 0.5.x", function() {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.5"),
+        "withoutAccounts"
+      );
+      shouldWorkWithoutAccounts();
+    });
+
+    describe("With solc 0.6.x", function() {
+      useEnvironment(
+        path.join(__dirname, "buidler-project-solc-0.6"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
