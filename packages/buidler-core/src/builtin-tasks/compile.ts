@@ -151,8 +151,7 @@ export default function() {
     if (hasConsoleLogErrors) {
       console.error(
         chalk.red(
-          `You are trying to use an unsupported version of console.log.
-See https://buidler.dev/console-log for the list of supported methods.`
+          `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
         )
       );
       console.log();
