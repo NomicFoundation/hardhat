@@ -62,44 +62,6 @@ error message in the following cases:
 
 - Incorrectly calling a precompiled contract
 
-## Solidity console library
-
-Buidler EVM supports console.log functionality similar to the one in javascript with up to 4 parameters.
-
-In order to use it, import solidity console library:
-
-```
-import "@nomiclabs/buidler/console.sol";
-```
-
-Supported parameter types:
-* uint
-* string
-* bool
-* address
-
-Due to the limitations in solidity, `int` and `bytes` parameters are excluded from the list, instead make use of single log functions:
-* `console.logInt(int i)` 
-* `console.logUint(uint i)` 
-* `console.logString(string memory s)`
-* `console.logBool(bool b)`
-* `console.logAddress(address a)`
-* `console.logBytes(bytes memory b)`
-* `console.logByte(byte b)`
-* `console.logBytesX(bytes1 b);, where X is a number beetween 1 and 32, inclusive.`
-
-Example:
-```
-    function log(uint a, int b, string memory c, bool d, address e, bytes memory f, bytes32 g) public {
-        console.log("Uint ", a);
-        console.logInt(b);
-        console.log(c);
-        console.log(d, e);
-        console.logBytes(f);
-        console.logBytes32(g);
-    }
-```
-
 ## Limitations
 
 ### Supported Solidity versions
