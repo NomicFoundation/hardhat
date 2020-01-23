@@ -411,6 +411,56 @@ describe("Evm module", function() {
 
         assert.equal(balanceAfterRevert, balanceBeforeTx);
       });
+
+      it("Should restore block filters", async function() {
+        await this.provider.send("evm_mine", []);
+
+        const firstId = await this.provider.send("eth_newBlockFilter", []);
+        assert.equal(firstId, "0x1");
+
+        const firstFilterInitialChanges = await this.provider.send(
+          "eth_getFilterChanges",
+          [firstId]
+        );
+
+        assert.lengthOf(firstFilterInitialChanges, 1);
+
+        await this.provider.send("evm_mine", []);
+
+        const snapshotId: string = await this.provider.send("evm_snapshot", []);
+
+        await this.provider.send("evm_mine", []);
+
+        const secondId = await this.provider.send("eth_newBlockFilter", []);
+        assert.equal(secondId, "0x2");
+
+        const firstFilterSecondChanges = await this.provider.send(
+          "eth_getFilterChanges",
+          [firstId]
+        );
+        assert.lengthOf(firstFilterSecondChanges, 2);
+
+        const reverted: boolean = await this.provider.send("evm_revert", [
+          snapshotId
+        ]);
+        assert.isTrue(reverted);
+
+        const secondIdAfterRevert = await this.provider.send(
+          "eth_newBlockFilter",
+          []
+        );
+        assert.equal(secondIdAfterRevert, "0x2");
+
+        const firstFilterSecondChangesAfterRevert = await this.provider.send(
+          "eth_getFilterChanges",
+          [firstId]
+        );
+        assert.lengthOf(firstFilterSecondChangesAfterRevert, 1);
+        assert.equal(
+          firstFilterSecondChangesAfterRevert[0],
+          firstFilterSecondChanges[0]
+        );
+      });
     });
   });
 });

@@ -109,6 +109,8 @@ interface Snapshot {
   transactionHashToBlockHash: Map<string, string>;
   blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
   blockHashToTotalDifficulty: Map<string, BN>;
+  lastFilterId: number;
+  blockFiltersLastBlockSent: Map<number, BN>;
 }
 
 export class BuidlerNode {
@@ -216,6 +218,9 @@ export class BuidlerNode {
   private _transactionHashToBlockHash: Map<string, string> = new Map();
   private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
   private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
+
+  private _lastFilterId = 0;
+  private _blockFiltersLastBlockSent: Map<number, BN> = new Map();
 
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
   private readonly _snapshots: Snapshot[] = [];
@@ -584,6 +589,7 @@ export class BuidlerNode {
   public async takeSnapshot(): Promise<number> {
     const id = this._nextSnapshotId;
 
+    // We copy all the maps here, as they may be modified
     const snapshot: Snapshot = {
       id,
       date: new Date(),
@@ -599,6 +605,10 @@ export class BuidlerNode {
       ),
       blockHashToTotalDifficulty: new Map(
         this._blockHashToTotalDifficulty.entries()
+      ),
+      lastFilterId: this._lastFilterId,
+      blockFiltersLastBlockSent: new Map(
+        this._blockFiltersLastBlockSent.entries()
       )
     };
 
@@ -637,12 +647,74 @@ export class BuidlerNode {
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
     this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
+    this._lastFilterId = snapshot.lastFilterId;
+    this._blockFiltersLastBlockSent = snapshot.blockFiltersLastBlockSent;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
     this._snapshots.splice(snapshotIndex);
 
     return true;
+  }
+
+  public async createBlockFilter(): Promise<number> {
+    const filterId = this._lastFilterId + 1;
+
+    const block = await this.getLatestBlock();
+    const currentBlockNumber = new BN(block.header.number);
+
+    // We always show the last block in the initial getChanges
+    const lastBlockSent = currentBlockNumber.subn(1);
+
+    this._blockFiltersLastBlockSent.set(filterId, lastBlockSent);
+
+    this._lastFilterId += 1;
+
+    return filterId;
+  }
+
+  public async uninstallFilter(filterId: number): Promise<boolean> {
+    // This should be able to uninstall any kind of filter, not just
+    // block filters
+
+    if (this._blockFiltersLastBlockSent.has(filterId)) {
+      this._blockFiltersLastBlockSent.delete(filterId);
+      return true;
+    }
+
+    return false;
+  }
+
+  public async isBlockFilter(filterId: number): Promise<boolean> {
+    return this._blockFiltersLastBlockSent.has(filterId);
+  }
+
+  public async getBlockFilterChanges(
+    filterId: number
+  ): Promise<string[] | undefined> {
+    if (!this._blockFiltersLastBlockSent.has(filterId)) {
+      return undefined;
+    }
+
+    const lastBlockSent = this._blockFiltersLastBlockSent.get(filterId)!;
+
+    const latestBlock = await this.getLatestBlock();
+    const currentBlockNumber = new BN(latestBlock.header.number);
+
+    const blockHashes: string[] = [];
+    let blockNumber: BN;
+    for (
+      blockNumber = lastBlockSent.addn(1);
+      blockNumber.lte(currentBlockNumber);
+      blockNumber = blockNumber.addn(1)
+    ) {
+      const block = await this.getBlockByNumber(blockNumber);
+      blockHashes.push(bufferToHex(block.header.hash()));
+    }
+
+    this._blockFiltersLastBlockSent.set(filterId, blockNumber.subn(1));
+
+    return blockHashes;
   }
 
   private _getSnapshotIndex(id: number): number | undefined {
