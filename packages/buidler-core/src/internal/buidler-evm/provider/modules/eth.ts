@@ -43,8 +43,6 @@ import {
 // tslint:disable only-buidler-error
 
 export class EthModule {
-  private _blockFilters: Map<number, BN | undefined> = new Map();
-
   constructor(
     private readonly _common: Common,
     private readonly _node: BuidlerNode
@@ -467,29 +465,20 @@ export class EthModule {
   private async _getFilterChangesAction(
     filterId: BN
   ): Promise<string[] | null> {
-    const lastBlockSent = this._blockFilters.get(filterId.toNumber());
+    const id = filterId.toNumber(); // This may throw, but it's ok
 
-    if (lastBlockSent === undefined) {
-      return null;
+    if (await this._node.isBlockFilter(id)) {
+      const blockHashes = await this._node.getBlockFilterChanges(id);
+      if (blockHashes === undefined) {
+        return null;
+      }
+
+      return blockHashes;
     }
 
-    const latestBlock = await this._node.getLatestBlock();
-    const currentBlockNumber = new BN(latestBlock.header.number);
+    // This should return changes for the other filter types
 
-    const blockHashes: string[] = [];
-    let blockNumber: BN;
-    for (
-      blockNumber = lastBlockSent.addn(1);
-      blockNumber.lte(currentBlockNumber);
-      blockNumber = blockNumber.addn(1)
-    ) {
-      const block = await this._node.getBlockByNumber(blockNumber);
-      blockHashes.push(bufferToHex(block.header.hash()));
-    }
-
-    this._blockFilters.set(filterId.toNumber(), blockNumber.subn(1));
-
-    return blockHashes;
+    return null;
   }
 
   // eth_getFilterLogs
@@ -681,15 +670,8 @@ export class EthModule {
   }
 
   private async _newBlockFilterAction(): Promise<string> {
-    const filterNumber = this._blockFilters.size;
-
-    const block = await this._node.getLatestBlock();
-    const currentBlockNumber = new BN(block.header.number);
-    const lastBlockSent = currentBlockNumber.subn(1);
-
-    this._blockFilters.set(filterNumber, lastBlockSent);
-
-    return numberToRpcQuantity(filterNumber);
+    const filterId = await this._node.createBlockFilter();
+    return numberToRpcQuantity(filterId);
   }
 
   // eth_newFilter
@@ -805,10 +787,9 @@ export class EthModule {
   }
 
   private async _uninstallFilterAction(filterId: BN): Promise<boolean> {
-    const lastBlockSent = this._blockFilters.get(filterId.toNumber());
-    this._blockFilters.set(filterId.toNumber(), undefined);
-
-    return lastBlockSent !== undefined;
+    // NOTE: This will throw if the filter id is too large for a number, but
+    // we don't care
+    return this._node.uninstallFilter(filterId.toNumber());
   }
 
   // eth_unsubscribe
