@@ -48,7 +48,8 @@
     "*.js.map",
     "LICENSE",
     "README.md",
-    "recommended-gitignore.txt"
+    "recommended-gitignore.txt",
+    "console.sol"
   ],
   "devDependencies": {
     "@types/chai": "^4.2.0",
