@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity >= 0.5.0 <0.7.0;
 
 library console {
 	address constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);

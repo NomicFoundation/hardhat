@@ -31,7 +31,7 @@ for (let i = 1; i <= 32; i++) {
 
 const types = ["uint", "string memory", "bool", "address"];
 
-let consoleSolFIle = "pragma solidity ^0.5.0;" +
+let consoleSolFIle = "pragma solidity >= 0.5.0 <0.7.0;" +
   "\n" +
   "\n" +
   "library console {" +
@@ -125,6 +125,5 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 consoleSolFIle += "}\n";
 logger = logger.slice(0, logger.length - 2) + logger.slice(logger.length - 1) + "};\n";
 
-console.log(consoleSolFIle)
 fs.writeFileSync(__dirname + "/../src/internal/buidler-evm/stack-traces/logger.ts", logger);
 fs.writeFileSync(__dirname + "/../console.sol", consoleSolFIle);
