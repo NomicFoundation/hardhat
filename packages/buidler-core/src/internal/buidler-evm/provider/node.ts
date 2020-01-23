@@ -29,6 +29,7 @@ import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
@@ -228,6 +229,7 @@ export class BuidlerNode {
   private readonly _stackTracesEnabled: boolean = false;
   private readonly _vmTracer?: VMTracer;
   private readonly _solidityTracer?: SolidityTracer;
+  private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
   private readonly _getLatestBlock: () => Promise<Block>;
@@ -261,13 +263,13 @@ export class BuidlerNode {
       this._vm.blockchain.getBlock.bind(this._vm.blockchain)
     );
 
+    this._vmTracer = new VMTracer(this._vm, true);
+    this._vmTracer.enableTracing();
+
     if (stackTracesOptions !== undefined) {
       this._stackTracesEnabled = true;
-      this._vmTracer = new VMTracer(this._vm, true);
 
       try {
-        this._vmTracer.enableTracing();
-
         const bytecodes = createModelsAndDecodeBytecodes(
           stackTracesOptions.solidityVersion,
           stackTracesOptions.compilerInput,
@@ -289,7 +291,6 @@ export class BuidlerNode {
         );
 
         this._stackTracesEnabled = false;
-        this._vmTracer.disableTracing();
 
         log(
           "Solidity stack traces disabled: SolidityTracer failed to be initialized. Please report this to help us improve Buidler.\n",
@@ -338,6 +339,8 @@ export class BuidlerNode {
       generate: true,
       skipBlockValidation: true
     });
+
+    await this._printLogs();
 
     const error = !this._throwOnTransactionFailures
       ? undefined
@@ -402,7 +405,7 @@ export class BuidlerNode {
       nonce: await this.getAccountNonce(call.from)
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx, false, false);
 
     const error = !this._throwOnCallFailures
       ? undefined
@@ -451,7 +454,7 @@ export class BuidlerNode {
       gasLimit: await this.getBlockGasLimit()
     });
 
-    const result = await this._runTxAndRevertMutations(tx, true);
+    const result = await this._runTxAndRevertMutations(tx, true, true);
 
     // This is only considered if the call to _runTxAndRevertMutations doesn't
     // manage errors
@@ -738,6 +741,25 @@ export class BuidlerNode {
     }
   }
 
+  private async _printLogs() {
+    try {
+      const vmTracerError = this._vmTracer!.getLastError();
+      // in case stack traces are enabled we dont want to clear last error
+      if (vmTracerError !== undefined && !this._stackTracesEnabled) {
+        this._vmTracer!.clearLastError();
+        throw vmTracerError;
+      }
+
+      const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
+      this._consoleLogger.printLogs(messageTrace);
+    } catch (error) {
+      log(
+        "Could not print console log. Please report this to help us improve Buidler.\n",
+        error
+      );
+    }
+  }
+
   private async _manageErrors(
     vmResult: ExecResult
   ): Promise<TransactionExecutionError | undefined> {
@@ -1020,7 +1042,7 @@ export class BuidlerNode {
       });
     }
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx, false, true);
 
     if (result.execResult.exceptionError === undefined) {
       return initialEstimation;
@@ -1088,7 +1110,7 @@ export class BuidlerNode {
       gasLimit: newEstimation
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx, false, true);
 
     if (result.execResult.exceptionError === undefined) {
       return this._binarySearchEstimation(
@@ -1109,7 +1131,8 @@ export class BuidlerNode {
 
   private async _runTxAndRevertMutations(
     tx: Transaction,
-    manageErrors = true
+    manageErrors = true,
+    estimateGas = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
@@ -1131,6 +1154,10 @@ export class BuidlerNode {
         skipNonce: true,
         skipBalance: true
       });
+
+      if (!estimateGas) {
+        await this._printLogs();
+      }
 
       if (manageErrors) {
         const error = await this._manageErrors(result.execResult);
