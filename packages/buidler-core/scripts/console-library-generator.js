@@ -31,18 +31,27 @@ for (let i = 1; i <= 32; i++) {
 
 const types = ["uint", "string memory", "bool", "address"];
 
-let console = "pragma solidity ^0.5.0;" +
+let consoleSolFIle = "pragma solidity ^0.5.0;" +
   "\n" +
   "\n" +
   "library console {" +
   "\n" +
     "\taddress constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);" +
   "\n" +
-  "\n";
+  "\n" +
+  "\tfunction log() internal view {\n" +
+  "\t\t(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature(\"log()\"));\n" +
+  "\t\tignored;\n" +
+  "\t}";
 
 logger += "\n// In order to optimize map lookup\n" +
   "// we'll store 4byte signature as int\n" +
   "export const ConsoleLogs = {\n";
+
+
+// Add the empty log() first
+const sigInt = eutil.bufferToInt(eutil.keccak256("log" + "()").slice(0, 4));
+logger += "  " + sigInt + ": [],\n";
 
 for (let i = 0; i < singleTypes.length; i++) {
   const type = singleTypes[i].replace(" memory", "");
@@ -51,7 +60,7 @@ for (let i = 0; i < singleTypes.length; i++) {
   const sigInt = eutil.bufferToInt(eutil.keccak256("log" + "(" + type + ")").slice(0, 4));
   logger += "  " + sigInt + ": [" + type.charAt(0).toUpperCase() + type.slice(1) + "Ty],\n";
   
-  console +=
+  consoleSolFIle +=
     functionPrefix + " log" + nameSuffix + 
     "(" + singleTypes[i] + " p0"+
     functionBody +
@@ -98,7 +107,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
       constParams.push(param.charAt(0).toUpperCase() + param.slice(1) + "Ty")
     }
 
-    console +=
+    consoleSolFIle +=
       functionPrefix + ' log(' +
       input.substr(0, input.length - 2) +
       functionBody +
@@ -113,8 +122,9 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
   }
 }
 
-console += "}\n";
+consoleSolFIle += "}\n";
 logger = logger.slice(0, logger.length - 2) + logger.slice(logger.length - 1) + "};\n";
-  
-fs.writeFileSync("../src/internal/buidler-evm/stack-traces/logger.ts", logger);
-fs.writeFileSync("../console.sol", console);
+
+console.log(consoleSolFIle)
+fs.writeFileSync(__dirname + "/../src/internal/buidler-evm/stack-traces/logger.ts", logger);
+fs.writeFileSync(__dirname + "/../console.sol", consoleSolFIle);

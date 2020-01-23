@@ -46,6 +46,7 @@ export const Bytes32Ty = "Bytes32";
 // In order to optimize map lookup
 // we'll store 4byte signature as int
 export const ConsoleLogs = {
+  1368866505: [],
   1309416733: [IntTy],
   4122065833: [UintTy],
   1093685164: [StringTy],

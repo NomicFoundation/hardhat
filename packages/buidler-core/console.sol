@@ -3,7 +3,10 @@ pragma solidity ^0.5.0;
 library console {
 	address constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);
 
-	function logInt(int p0) internal view {
+	function log() internal view {
+		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log()"));
+		ignored;
+	}	function logInt(int p0) internal view {
 		(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(int)", p0));
 		ignored;
 	}
