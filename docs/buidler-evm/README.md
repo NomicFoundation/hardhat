@@ -7,7 +7,7 @@ Buidler comes built in with Buidler EVM, a local Ethereum network designed for d
 - It's backed by the `ethereumjs-vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
 - It supports the following hardforks:
     - byzantium
-    - constantinople1
+    - constantinople
     - petersburg
     - istanbul
 
@@ -100,7 +100,10 @@ Buidler EVM allows you to print logging messages and contract variables calling 
   - `console.log` is implemented in standard Solidity and then detected in Buidler EVM. This makes its compilation work with any other tools (like Remix or Truffle).
   - `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but spend a minimal amount of gas.
 
-### Initial state
+## Buidler EVM initial state
+
+Buidler EVM is initialized by default in this state:
+
   - A brand new blockchain, just with the genesis block.
   - 20 accounts with 10.000 ETH each
       - `0xc783df8a850f42e7f7e57013759c285caa701eb6`
@@ -123,9 +126,13 @@ Buidler EVM allows you to print logging messages and contract variables calling 
       - `0x0a057a7172d0466aef80976d7e8c80647dfd35e3`
       - `0x68dfc526037e9030c8f813d014919cc89e7d4d74`
       - `0x26c43a1d431a4e5ee86cd55ed7ef9edf3641e901`
-  - See configuration default values in [the configuration section](/config/#buidler-evm-network).
+      
+To customise it, take a look at [the configuration section](/config/#buidler-evm-network).
 
-### Supported RPC methods
+## JSON-RPC methods support
+
+### Supported methods
+
   - `eth_accounts`
   - `eth_blockNumber`
   - `eth_call`
@@ -160,33 +167,36 @@ Buidler EVM allows you to print logging messages and contract variables calling 
   - `net_version`
   - `web3_clientVersion`
   - `web3_sha3`
-  - Special testing/debugging methods
-      - `evm_increaseTime` – same as Ganache.
-      - `evm_mine` – same as Ganache, except it doesn’t accept a timestamp.
-      - `evm_revert` – same as Ganache.
-      - `evm_snapshot` – same as Ganache.
-  - Unsupported (for now)
-      - `eth_getFilterLogs`
-      - `eth_getLogs`
-      - `eth_getProof`
-      - `eth_getUncleByBlockHashAndIndex`
-      - `eth_getUncleByBlockNumberAndIndex`
-      - `eth_getUncleCountByBlockHash`
-      - `eth_getUncleCountByBlockNumber`
-      - `eth_getWork`
-      - `eth_hashrate`
-      - `eth_newFilter`
-      - `eth_newPendingTransactionFilter`
-      - `eth_protocolVersion`
-      - `eth_signTransaction`
-      - `eth_submitHashrate`
-      - `eth_submitWork`
-      - `eth_subscribe`
-      - `eth_unsubscribe`
-      - `eth_compileLLL`
-      - `eth_compileSerpent`
-      - `eth_compileSolidity`
-      - `eth_getCompilers`
+  
+#### Special testing/debugging methods
+
+  - `evm_increaseTime` – same as Ganache.
+  - `evm_mine` – same as Ganache, except it doesn’t accept a timestamp.
+  - `evm_revert` – same as Ganache.
+  - `evm_snapshot` – same as Ganache.
+      
+### Unsupported methods
+  - `eth_getFilterLogs`
+  - `eth_getLogs`
+  - `eth_getProof`
+  - `eth_getUncleByBlockHashAndIndex`
+  - `eth_getUncleByBlockNumberAndIndex`
+  - `eth_getUncleCountByBlockHash`
+  - `eth_getUncleCountByBlockNumber`
+  - `eth_getWork`
+  - `eth_hashrate`
+  - `eth_newFilter`
+  - `eth_newPendingTransactionFilter`
+  - `eth_protocolVersion`
+  - `eth_signTransaction`
+  - `eth_submitHashrate`
+  - `eth_submitWork`
+  - `eth_subscribe`
+  - `eth_unsubscribe`
+  - `eth_compileLLL`
+  - `eth_compileSerpent`
+  - `eth_compileSolidity`
+  - `eth_getCompilers`
 
 ## Limitations
 
