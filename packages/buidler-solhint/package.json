@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-solhint",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Buidler plugin for solhint",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-solhint",
@@ -38,12 +38,12 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
-    "@nomiclabs/buidler": "^1.0.2",
+    "@nomiclabs/buidler": "^1.1.0",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "fs-extra": "^7.0.1"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.2"
+    "@nomiclabs/buidler": "^1.1.0"
   }
 }
