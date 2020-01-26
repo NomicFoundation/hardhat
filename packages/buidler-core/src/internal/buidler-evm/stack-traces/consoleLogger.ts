@@ -90,11 +90,14 @@ export class ConsoleLogger {
 
   private _collectExecutionLogs(trace: EvmMessageTrace, logs: ConsoleLogs) {
     for (const messageTrace of trace.steps) {
-      if (isEvmStep(messageTrace) || !isCallTrace(messageTrace)) {
+      if (isEvmStep(messageTrace) || isPrecompileTrace(messageTrace)) {
         continue;
       }
 
-      if (bufferToHex(messageTrace.address) === CONSOLE_ADDRESS.toLowerCase()) {
+      if (
+        isCallTrace(messageTrace) &&
+        bufferToHex(messageTrace.address) === CONSOLE_ADDRESS.toLowerCase()
+      ) {
         const log = this._maybeConsoleLog(messageTrace);
         if (log !== undefined) {
           logs.push(log);
