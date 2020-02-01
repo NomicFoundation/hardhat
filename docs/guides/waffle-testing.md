@@ -117,7 +117,11 @@ export default {
 Now, when testing using a standalone Waffle setup, this is how the provider is initialized for testing:
 
 ```js
+// legacy Waffle API
 const provider = createMockProvider();
+
+// new Waffle API
+const provider = new MockProvider();
 ```
 
 To use Waffle with Buidler you should do this instead:
