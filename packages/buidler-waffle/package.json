@@ -1,0 +1,53 @@
+{
+  "name": "@nomiclabs/buidler-waffle",
+  "version": "1.1.2",
+  "description": "Buidler plugin to test smart contracts with Waffle",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
+  "repository": "github:nomiclabs/buidler",
+  "author": "Nomic Labs LLC",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "buidler",
+    "buidler-plugin",
+    "ethers.js"
+  ],
+  "scripts": {
+    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint": "npm run lint-src && npm run lint-tests",
+    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "./scripts/run-tests.sh",
+    "build": "../../node_modules/.bin/tsc --build src",
+    "build-test": "../../node_modules/.bin/tsc --build .",
+    "clean": "rm -rf dist build-test"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomiclabs/buidler": "^1.1.2",
+    "@nomiclabs/buidler-ethers": "^1.1.2",
+    "@types/chai": "^4.2.0",
+    "@types/fs-extra": "^5.1.0",
+    "@types/sinon-chai": "^3.2.3",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^2.3.0",
+    "ethers": "^4.0.27"
+  },
+  "peerDependencies": {
+    "@nomiclabs/buidler": "^1.1.2",
+    "@nomiclabs/buidler-ethers": "^1.1.2",
+    "ethers": "^4.0.27",
+    "ethereum-waffle": "^2.3.0"
+  },
+  "dependencies": {
+    "@types/web3": "1.0.19"
+  }
+}
