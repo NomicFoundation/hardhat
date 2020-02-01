@@ -13,10 +13,10 @@ To install them, open your terminal, go to your Buidler project, and run:
 npm install --save-dev ts-node typescript
 ```
 
-You also need these typings:
+You also need these packages:
 
 ```sh
-npm install --save-dev @types/node @types/mocha
+npm install --save-dev chai @types/node @types/mocha @types/chai
 ```
 
 ## Configuration
