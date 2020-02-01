@@ -1,13 +1,14 @@
 import defaultConfig from "@nomiclabs/buidler/internal/core/config/default-config";
 import { BuidlerNetworkConfig } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
+import { getWallets } from "ethereum-waffle";
 import path from "path";
 
 import { useEnvironment } from "./helpers";
 
 describe("Waffle plugin plugin", function() {
   describe("Buidler's Waffle provider adapter", function() {
-    describe("getWallet", function() {
+    describe("provider.getWallets", function() {
       describe("With buidlerevm", function() {
         describe("With the default buidlerevm accounts", function() {
           useEnvironment(path.join(__dirname, "buidler-project"));
@@ -61,6 +62,29 @@ describe("Waffle plugin plugin", function() {
             () => this.env.waffle.provider.getWallets(),
             "This method only works with Buidler EVM"
           );
+        });
+      });
+
+      describe("Deprecated getWallets", function() {
+        describe("With buidlerevm", function() {
+          describe("With the default buidlerevm accounts", function() {
+            useEnvironment(path.join(__dirname, "buidler-project"));
+
+            it("Should return a wallet for each of the default accounts", function() {
+              const wallets = getWallets(this.env.waffle.provider);
+              const accounts = (defaultConfig.networks!
+                .buidlerevm! as BuidlerNetworkConfig).accounts!;
+
+              assert.lengthOf(wallets, accounts.length);
+
+              for (let i = 0; i < wallets.length; i++) {
+                assert.equal(
+                  wallets[i].privateKey.toLowerCase(),
+                  accounts[i].privateKey.toLowerCase()
+                );
+              }
+            });
+          });
         });
       });
     });
