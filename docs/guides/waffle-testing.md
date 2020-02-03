@@ -1,43 +1,55 @@
 # Testing with ethers.js & Waffle
 
-[Waffle](https://getwaffle.io/) is a simple smart contract testing library built on `ethers.js` that supports TypeScript. It's our recommended choice for testing.
+[Waffle](https://getwaffle.io/) is a simple smart contract testing library built on top of `ethers.js` that supports TypeScript. It's our recommended choice for testing.
 
 This guide will cover setting up a Buidler project to use Waffle and TypeScript, and to do so we will pick up from the [TypeScript Support](./typescript.md) guide. Follow that guide to setup your TypeScript project and come back.
 
-Done? Great. Let's now install `ethers.js` and the `buidler-ethers` plugin, which will allow Waffle to use [Buidler EVM] and get stack traces functionality.
+Done? Great. Let's now install `ethers.js`, `Waffle` and their Buidler plugins, which will allow Waffle to use [Buidler EVM] and get stack traces and `console.log` functionality.
 
+```sh
+npm install --save-dev @nomiclabs/buidler-ethers ethers @nomiclabs/buidler-waffle ethereum-waffle
 ```
-$ npm install --save-dev @nomiclabs/buidler-ethers ethers
+
+Waffle also depends on [`sinon-chai`](https://www.chaijs.com/plugins/sinon-chai/), so let's install its typings:
+
+```sh
+npm install --save-dev @types/sinon-chai
 ```
 
-Add the `buidler-ethers` type extensions to your `tsconfig.json` that you should've created following the TypeScript guide:
+Add the `buidler-ethers` and `buidler-waffle` type extensions to your `tsconfig.json` that you should've created following the TypeScript guide:
 
-```json{12}
+```json{8,13,14}
 {
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "resolveJsonModule": true
   },
   "include": ["./scripts", "./test"],
   "files": [
     "./buidler.config.ts",
-    "./node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts"
+    "./node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts",
+    "./node_modules/@nomiclabs/buidler-waffle/src/type-extensions.d.ts"
   ]
 }
 ```
 
-And let's enable the `buidler-ethers` plugin in `buidler.config.ts`:
+Note that we also enabled `resolveJsonModule`, as importing JSON files is common practice when using Waffle.
+
+Now, let's enable the `buidler-waffle` plugin in `buidler.config.ts`:
 
 ```typescript
 import { usePlugin } from "@nomiclabs/buidler/config";
 
-usePlugin("@nomiclabs/buidler-ethers");
+usePlugin("@nomiclabs/buidler-waffle");
 
 export default {};
 ```
+
+There's no need for `usePlugin("@nomiclabs/buidler-ethers")`, as `buidler-waffle` already does it.
 
 ## Migrating an existing Waffle project
 
@@ -91,36 +103,11 @@ If you're migrating an existing Waffle project to Buidler, then the minimum conf
 ```typescript
 import { usePlugin } from "@nomiclabs/buidler/config";
 
-usePlugin("@nomiclabs/buidler-ethers");
+usePlugin("@nomiclabs/buidler-waffle");
 
 export default {
   paths: {
     artifacts: "./build"
-  }
-};
-```
-
-## Connecting Waffle and Buidler EVM
-
-Next we'll tweak the configuration to synchronize Waffle's default accounts with [Buidler EVM]. Soon this will be handled by a Waffle integration plugin.
-
-```typescript
-import { usePlugin } from "@nomiclabs/buidler/config";
-import waffleDefaultAccounts from "ethereum-waffle/dist/config/defaultAccounts";
-
-usePlugin("@nomiclabs/buidler-ethers");
-
-export default {
-  paths: {
-    artifacts: "./build"
-  },
-  networks: {
-    buidlerevm: {
-      accounts: waffleDefaultAccounts.map(acc => ({
-        balance: acc.balance,
-        privateKey: acc.secretKey
-      }))
-    }
   }
 };
 ```
@@ -130,14 +117,18 @@ export default {
 Now, when testing using a standalone Waffle setup, this is how the provider is initialized for testing:
 
 ```js
+// legacy Waffle API
 const provider = createMockProvider();
+
+// new Waffle API
+const provider = new MockProvider();
 ```
 
 To use Waffle with Buidler you should do this instead:
 
 ```js
-import { ethers } from "@nomiclabs/buidler";
-const provider = ethers.provider;
+import { waffle } from "@nomiclabs/buidler";
+const provider = waffle.provider;
 ```
 
 And you're set. Run your tests with `npx buidler test` and you should get stack traces when a transaction fails.
