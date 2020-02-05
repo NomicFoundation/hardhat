@@ -44,7 +44,7 @@ describe("run task", function() {
     (process as any).exitCode = undefined;
 
     const files = await fsExtra.readdir("artifacts");
-    assert.deepEqual(files, ["A.json", "SolcInput.json"]);
+    assert.deepEqual(files, ["A.json"]);
 
     await fsExtra.remove("artifacts");
   });

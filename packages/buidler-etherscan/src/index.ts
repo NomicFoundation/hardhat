@@ -1,13 +1,10 @@
 import {
   TASK_COMPILE,
+  TASK_COMPILE_GET_COMPILER_INPUT,
   TASK_FLATTEN_GET_FLATTENED_SOURCE
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import {
-  BuidlerPluginError,
-  loadSolcInput,
-  readArtifact
-} from "@nomiclabs/buidler/plugins";
+import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
 
 import AbiEncoder from "./AbiEncoder";
 import { getDefaultEtherscanConfig } from "./config";
@@ -50,15 +47,6 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      let source: string;
-      try {
-        source = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
-      } catch (_) {
-        throw new BuidlerPluginError(
-          `Your ${taskArgs.contractName} contract constains a cyclic dependency, Etherscan doesn't currently support contracts with such dependencies through its API, please use their GUI at https://etherscan.io/verifyContract to verify your contract.`
-        );
-      }
-
       await run(TASK_COMPILE);
       const abi = (await readArtifact(
         config.paths.artifacts,
@@ -66,7 +54,7 @@ task("verify-contract", "Verifies contract on etherscan")
       )).abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
-      source = JSON.stringify(await loadSolcInput(config.paths.artifacts));
+      const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
 
       const request = toRequest({
         apiKey: etherscan.apiKey,
