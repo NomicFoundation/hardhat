@@ -586,6 +586,18 @@ Please check Buidler's output for more details.`
       description: `Buidler flatten doesn't support cyclic dependencies. 
 
 We recommend not using this kind of dependencies.`
+    },
+    JSONRPC_SERVER_ERROR: {
+      number: 604,
+      message: "Error running JSON-RPC server: %error%",
+      title: "Error running JSON-RPC server",
+      description: `There was error while starting the JSON-RPC HTTP server.`
+    },
+    JSONRPC_HANDLER_ERROR: {
+      number: 605,
+      message: "Error handling JSON-RPC request: %error%",
+      title: "Error handling JSON-RPC request",
+      description: `Handling an incoming JSON-RPC request resulted in an error.`
     }
   },
   ARTIFACTS: {

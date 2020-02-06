@@ -23,6 +23,8 @@ export const TASK_HELP = "help";
 
 export const TASK_RUN = "run";
 
+export const TASK_JSONRPC = "jsonrpc";
+
 export const TASK_TEST = "test";
 
 export const TASK_TEST_RUN_MOCHA_TESTS = "test:run-mocha-tests";

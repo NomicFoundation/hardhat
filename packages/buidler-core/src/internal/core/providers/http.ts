@@ -125,6 +125,26 @@ export class HttpProvider extends EventEmitter {
   }
 }
 
+export function isValidJsonRequest(payload: any): boolean {
+  if (payload.jsonrpc !== "2.0") {
+    return false;
+  }
+
+  if (typeof payload.id !== "number" && typeof payload.id !== "string") {
+    return false;
+  }
+
+  if (typeof payload.method !== "string") {
+    return false;
+  }
+
+  if (payload.params !== undefined && !Array.isArray(payload.params)) {
+    return false;
+  }
+
+  return true;
+}
+
 export function isValidJsonResponse(payload: any) {
   if (payload.jsonrpc !== "2.0") {
     return false;
