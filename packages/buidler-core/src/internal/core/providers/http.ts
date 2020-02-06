@@ -71,7 +71,7 @@ export class HttpProvider extends EventEmitter {
   private async _fetchJsonRpcResponse(
     request: JsonRpcRequest
   ): Promise<JsonRpcResponse> {
-    const { default: fetch } = await import("node-fetch");
+    const { default: fetch, FetchError } = await import("node-fetch");
 
     try {
       const response = await fetch(this._url, {
@@ -85,11 +85,20 @@ export class HttpProvider extends EventEmitter {
         }
       });
 
-      const json = await response.json();
+      const text = await response.text();
+      let json: any;
+      try {
+        json = JSON.parse(text);
+      } catch (error) {
+        throw new FetchError(
+          `invalid json response body at ${this._url} reason: ${error.message}`,
+          "invalid-json"
+        );
+      }
 
       if (!isValidJsonResponse(json)) {
         throw new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
-          response: await response.text()
+          response: text
         });
       }
 

@@ -1,15 +1,19 @@
 import chalk from "chalk";
 import debug from "debug";
 import http, { IncomingMessage, ServerResponse } from "http";
+import getRawBody from "raw-body";
 
-import { BUIDLER_NAME } from "../internal/constants";
+import { BUIDLER_NAME, BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
 import { task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS, getErrorCode } from "../internal/core/errors-list";
+import { createProvider } from "../internal/core/providers/construction";
 import {
   isValidJsonRequest,
-  JsonRpcRequest
+  JsonRpcRequest,
+  JsonRpcResponse
 } from "../internal/core/providers/http";
+import { lazyObject } from "../internal/util/lazy";
 import { EthereumProvider } from "../types";
 
 import { TASK_JSONRPC } from "./task-names";
@@ -32,7 +36,7 @@ class Server {
 
   public listen = (): Promise<number> => {
     return new Promise<number>((resolve, reject) => {
-      const server = http.createServer(this._handleRequest);
+      const server = http.createServer(this._httpHandler);
 
       server.listen(this._config.port, this._config.hostname, () => {
         console.log(
@@ -50,16 +54,20 @@ class Server {
     });
   };
 
-  private _handleRequest = async (
-    req: IncomingMessage,
-    res: ServerResponse
-  ) => {
+  private _httpHandler = async (req: IncomingMessage, res: ServerResponse) => {
+    let rpcReq: JsonRpcRequest | undefined;
     try {
-      const rpcReq: JsonRpcRequest = await this._readRequest(req);
+      rpcReq = await this._readRequest(req);
 
       console.log(rpcReq.method);
 
-      const rpcResp = await this._ethereum.send(rpcReq.method, rpcReq.params);
+      const result = await this._ethereum.send(rpcReq.method, rpcReq.params);
+
+      const rpcResp: JsonRpcResponse = {
+        jsonrpc: "2.0",
+        id: rpcReq.id,
+        result
+      };
 
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
@@ -69,25 +77,33 @@ class Server {
 
       res.statusCode = 500;
       res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify(error.message));
+
+      if (rpcReq === undefined) {
+        res.end(JSON.stringify(error.message));
+        return;
+      }
+
+      const rpcResp: JsonRpcResponse = {
+        jsonrpc: "2.0",
+        id: rpcReq.id,
+        error: {
+          code: -1,
+          message: error.message
+        }
+      };
+
+      res.end(JSON.stringify(rpcResp));
     }
   };
 
   private _readRequest = (req: IncomingMessage): Promise<JsonRpcRequest> => {
-    return new Promise<Buffer>((resolve, reject) => {
-      const dataParts: Buffer[] = [];
-
-      req
-        .on("data", (chunk: Buffer) => dataParts.push(chunk))
-        .on("end", () => resolve(Buffer.concat(dataParts)))
-        .on("error", reject);
-    }).then(
+    return getRawBody(req).then(
       (buf): JsonRpcRequest => {
-        const raw = buf.toString("UTF8");
-        const json: any = JSON.parse(raw);
+        const text = buf.toString();
+        const json = JSON.parse(text);
 
         if (!isValidJsonRequest(json)) {
-          throw new Error(`Invalid JSON-RPC request: ${raw}`);
+          throw new Error(`Invalid JSON-RPC request: ${text}`);
         }
 
         return json;
@@ -142,17 +158,36 @@ class Server {
 
 export default function() {
   task(TASK_JSONRPC, "Starts a buidler JSON-RPC server").setAction(
-    async (_, { ethereum }) => {
+    async (_, { config }) => {
       const hostname = "localhost";
       const port = 8545;
 
       log(`Starting JSON-RPC server on port ${port}`);
 
       try {
+        log("Creating BuidlerRuntimeEnvironment");
+
+        const networkName = BUIDLEREVM_NETWORK_NAME;
+        const networkConfig = config.networks[networkName];
+
+        const ethereum = lazyObject(() => {
+          log(`Creating buidlerevm provider for JSON-RPC sever`);
+          return createProvider(
+            networkName,
+            networkConfig,
+            config.solc.version,
+            config.paths
+          );
+        });
+
         const srv = new Server({ hostname, port }, ethereum);
 
         process.exitCode = await srv.listen();
       } catch (error) {
+        if (BuidlerError.isBuidlerError(error)) {
+          throw error;
+        }
+
         throw new BuidlerError(
           ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
           {
