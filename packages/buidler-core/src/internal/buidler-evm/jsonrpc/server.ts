@@ -11,7 +11,7 @@ export interface JsonRpcServerConfig {
   hostname: string;
   port: number;
 
-  ethereum: EthereumProvider;
+  provider: EthereumProvider;
 }
 
 export class JsonRpcServer {
@@ -23,11 +23,11 @@ export class JsonRpcServer {
 
   public listen = (): Promise<number> => {
     return new Promise<number>((resolve, reject) => {
-      const { hostname, port, ethereum } = this._config;
+      const { hostname, port, provider } = this._config;
 
       log(`Starting JSON-RPC server on port ${port}`);
 
-      const handler = new JsonRpcHandler(ethereum);
+      const handler = new JsonRpcHandler(provider);
       const server = http.createServer(handler.requestListener);
 
       process.once("SIGINT", async () => {

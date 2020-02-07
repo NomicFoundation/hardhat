@@ -71,7 +71,7 @@ export class HttpProvider extends EventEmitter {
   private async _fetchJsonRpcResponse(
     request: JsonRpcRequest
   ): Promise<JsonRpcResponse> {
-    const { default: fetch, FetchError } = await import("node-fetch");
+    const { default: fetch } = await import("node-fetch");
 
     try {
       const response = await fetch(this._url, {
@@ -85,24 +85,7 @@ export class HttpProvider extends EventEmitter {
         }
       });
 
-      const text = await response.text();
-      let json: any;
-      try {
-        json = JSON.parse(text);
-      } catch (error) {
-        throw new FetchError(
-          `invalid json response body at ${this._url} reason: ${error.message}`,
-          "invalid-json"
-        );
-      }
-
-      if (!isValidJsonResponse(json)) {
-        throw new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
-          response: text
-        });
-      }
-
-      return json;
+      return parseJsonResponse(await response.text());
     } catch (error) {
       if (error.code === "ECONNREFUSED") {
         throw new BuidlerError(
@@ -131,6 +114,22 @@ export class HttpProvider extends EventEmitter {
       params,
       id: this._nextRequestId++
     };
+  }
+}
+
+export function parseJsonResponse(text: string): JsonRpcResponse {
+  try {
+    const json = JSON.parse(text);
+
+    if (!isValidJsonResponse(json)) {
+      throw new Error();
+    }
+
+    return json;
+  } catch (error) {
+    throw new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
+      response: text
+    });
   }
 }
 

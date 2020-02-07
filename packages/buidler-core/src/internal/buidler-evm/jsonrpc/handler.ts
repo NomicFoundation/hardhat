@@ -23,10 +23,10 @@ import {
 const log = debug("buidler:core:buidler-evm:jsonrpc");
 
 export default class JsonRpcHandler {
-  private _ethereum: EthereumProvider;
+  private _provider: EthereumProvider;
 
-  constructor(ethereum: EthereumProvider) {
-    this._ethereum = ethereum;
+  constructor(provider: EthereumProvider) {
+    this._provider = provider;
   }
 
   public requestListener = async (
@@ -83,7 +83,7 @@ export default class JsonRpcHandler {
   ): Promise<JsonRpcResponse> => {
     console.log(req.method);
 
-    const result = await this._ethereum.send(req.method, req.params);
+    const result = await this._provider.send(req.method, req.params);
 
     return {
       jsonrpc: "2.0",

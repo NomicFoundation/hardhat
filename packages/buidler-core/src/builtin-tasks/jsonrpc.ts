@@ -5,7 +5,7 @@ import {
   JsonRpcServerConfig
 } from "../internal/buidler-evm/jsonrpc/server";
 import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
-import { task } from "../internal/core/config/config-env";
+import { task, types } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
@@ -16,10 +16,10 @@ import { TASK_JSONRPC } from "./task-names";
 
 const log = debug("buidler:core:tasks:jsonrpc");
 
-function _createBuidlerRuntimeEnvironment(
+function _createBuidlerEVMProvider(
   config: ResolvedBuidlerConfig
 ): EthereumProvider {
-  log("Creating BuidlerRuntimeEnvironment");
+  log("Creating BuidlerEVM Provider");
 
   const networkName = BUIDLEREVM_NETWORK_NAME;
   const networkConfig = config.networks[networkName];
@@ -36,13 +36,25 @@ function _createBuidlerRuntimeEnvironment(
 }
 
 export default function() {
-  task(TASK_JSONRPC, "Starts a buidler JSON-RPC server").setAction(
-    async (_, { config }) => {
+  task(TASK_JSONRPC, "Starts a buidler JSON-RPC server")
+    .addOptionalParam(
+      "hostname",
+      "The host to which to bind to for new connections",
+      "localhost",
+      types.string
+    )
+    .addOptionalParam(
+      "port",
+      "The port on which to listen for new connections",
+      8545,
+      types.int
+    )
+    .setAction(async ({ hostname, port }, { config }) => {
       try {
         const serverConfig: JsonRpcServerConfig = {
-          hostname: "localhost",
-          port: 8545,
-          ethereum: _createBuidlerRuntimeEnvironment(config)
+          hostname,
+          port,
+          provider: _createBuidlerEVMProvider(config)
         };
 
         const server = new JsonRpcServer(serverConfig);
@@ -61,6 +73,5 @@ export default function() {
           error
         );
       }
-    }
-  );
+    });
 }
