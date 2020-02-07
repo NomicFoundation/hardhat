@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
-import { isValidJsonResponse } from "../../../../src/internal/core/providers/http";
+import { isValidJsonResponse } from "../../../internal/util/jsonrpc";
 
-describe("HttpProvider", function() {
+describe("JSON-RPC", function() {
   describe("JSON-RPC response validation", function() {
     describe("Invalid responses", function() {
       it("Should validate the jsonrpc field", function() {

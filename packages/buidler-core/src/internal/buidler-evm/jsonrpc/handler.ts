@@ -12,7 +12,7 @@ import {
   isValidJsonResponse,
   JsonRpcRequest,
   JsonRpcResponse
-} from "../../core/providers/http";
+} from "../../util/jsonrpc";
 import {
   BuidlerEVMProviderError,
   InternalError,

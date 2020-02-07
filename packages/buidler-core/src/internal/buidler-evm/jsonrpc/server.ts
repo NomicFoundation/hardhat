@@ -36,8 +36,6 @@ export class JsonRpcServer {
         resolve(0);
       });
 
-      process.once("uncaughtException", reject);
-
       server.listen(port, hostname, () => {
         console.log(`Started JSON-RPC server at http://${hostname}:${port}/`);
       });
