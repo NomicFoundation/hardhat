@@ -18,7 +18,7 @@ interface SuccessfulJsonRpcResponse {
 
 interface FailedJsonRpcResponse {
   jsonrpc: string;
-  id: number;
+  id?: number;
   error: {
     code: number;
     message: string;
@@ -159,7 +159,11 @@ export function isValidJsonResponse(payload: any) {
     return false;
   }
 
-  if (typeof payload.id !== "number" && typeof payload.id !== "string") {
+  if (
+    typeof payload.id !== "number" &&
+    typeof payload.id !== "string" &&
+    payload.id !== undefined
+  ) {
     return false;
   }
 
