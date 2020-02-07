@@ -61,11 +61,12 @@ export default class JsonRpcHandler {
   private _readRequest = async (
     req: IncomingMessage
   ): Promise<JsonRpcRequest> => {
-    const buf = await getRawBody(req);
-    const text = buf.toString();
     let json;
 
     try {
+      const buf = await getRawBody(req);
+      const text = buf.toString();
+
       json = JSON.parse(text);
     } catch (error) {
       throw new InvalidJsonInputError(`Parse error: ${error.message}`);
