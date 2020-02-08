@@ -41,5 +41,8 @@
   "peerDependencies": {
     "@nomiclabs/buidler": "^1.1.2",
     "web3": "^1.2.0"
+  },
+  "dependencies": {
+    "@types/bignumber.js": "^5.0.0"
   }
 }
