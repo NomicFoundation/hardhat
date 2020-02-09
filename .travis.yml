@@ -13,7 +13,8 @@ node_js:
   - "13"
 
 install:
-  - scripts/install.sh
+  - npm install
+  - node scripts/install.js
 
 script:
   - npx tsc --version
