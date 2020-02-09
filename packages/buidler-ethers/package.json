@@ -16,13 +16,13 @@
     "ethers.js"
   ],
   "scripts": {
-    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint:fix": "cross-env ../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "lint-tests": "cross-env ../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "cross-env ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "./scripts/run-tests.sh",
-    "build": "../../node_modules/.bin/tsc --build src",
-    "build-test": "../../node_modules/.bin/tsc --build .",
+    "build": "cross-env ../../node_modules/.bin/tsc --build src",
+    "build-test": "cross-env ../../node_modules/.bin/tsc --build .",
     "clean": "rm -rf dist build-test"
   },
   "files": [
@@ -32,10 +32,11 @@
     "README.md"
   ],
   "devDependencies": {
-    "@types/chai": "^4.2.0",
     "@nomiclabs/buidler": "^1.1.2",
+    "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
+    "cross-env": "^7.0.0",
     "ethers": "^4.0.27"
   },
   "peerDependencies": {

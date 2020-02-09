@@ -1,0 +1,35 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    name: Test on node ${{ matrix.node }} and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node: [10] # [8, 10, 12, 13]
+        os: [windows-latest] # [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+          registry-url: https://registry.npmjs.org
+      - name: install
+        run: npm install
+      - name: run install script
+        run: node scripts/install.js
+      # - name: install vyper
+      #   run: docker pull ethereum/vyper:0.1.0b10
+      - name: lint
+        run: npm run lint
+        continue-on-error: true
+      - name: build
+        run: npm run build
+      - name: test
+        run: npm test

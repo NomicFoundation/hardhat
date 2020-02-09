@@ -27,14 +27,14 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint:fix": "cross-env ../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "../../node_modules/.bin/mocha",
-    "coverage": "../../node_modules/.bin/nyc ../../node_modules/.bin/mocha",
-    "build": "../../node_modules/.bin/tsc --build src",
-    "build-test": "../../node_modules/.bin/tsc --build .",
+    "lint-tests": "cross-env NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "cross-env NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "cross-env ../../node_modules/.bin/mocha",
+    "coverage": "cross-env ../../node_modules/.bin/nyc ../../node_modules/.bin/mocha",
+    "build": "cross-env ../../node_modules/.bin/tsc --build src",
+    "build-test": "cross-env ../../node_modules/.bin/tsc --build .",
     "clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
   "files": [
@@ -53,6 +53,7 @@
   ],
   "devDependencies": {
     "@types/chai": "^4.2.0",
+    "@types/ci-info": "^2.0.0",
     "@types/debug": "^4.1.4",
     "@types/download": "^6.2.4",
     "@types/find-up": "^2.1.1",
@@ -60,11 +61,11 @@
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.123",
     "@types/node-fetch": "^2.3.7",
-    "@types/semver": "^6.0.2",
-    "@types/ci-info": "^2.0.0",
     "@types/qs": "^6.5.3",
+    "@types/semver": "^6.0.2",
     "@types/uuid": "^3.4.5",
     "chai": "^4.2.0",
+    "cross-env": "^7.0.0",
     "time-require": "^0.1.2"
   },
   "dependencies": {
