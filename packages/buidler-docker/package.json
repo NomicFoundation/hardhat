@@ -18,7 +18,7 @@
     "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "watch": "node ../../node_modules/typescript/bin/tsc -w",
     "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "./scripts/run-tests.sh",
+    "test": "node ./scripts/run-tests.js",
     "build": "node ../../node_modules/typescript/bin/tsc --build src",
     "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
     "clean": "node ../../node_modules/rimraf/bin.js dist build-test"
