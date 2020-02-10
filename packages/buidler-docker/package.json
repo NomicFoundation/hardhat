@@ -13,15 +13,15 @@
     "docker"
   ],
   "scripts": {
-    "lint:fix": "cross-env ../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "cross-env ../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
-    "watch": "cross-env ../../node_modules/.bin/tsc -w",
-    "lint-src": "cross-env ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
+    "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "watch": "node ../../node_modules/typescript/bin/tsc -w",
+    "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "./scripts/run-tests.sh",
-    "build": "cross-env ../../node_modules/.bin/tsc --build src",
-    "build-test": "cross-env ../../node_modules/.bin/tsc --build .",
-    "clean": "rm -rf dist build-test"
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist build-test"
   },
   "files": [
     "dist/",
@@ -33,8 +33,7 @@
     "@types/chai": "^4.2.0",
     "@types/dockerode": "^2.5.19",
     "@types/fs-extra": "^5.1.0",
-    "@types/node-fetch": "^2.3.7",
-    "cross-env": "^7.0.0"
+    "@types/node-fetch": "^2.3.7"
   },
   "peerDependencies": {},
   "dependencies": {
