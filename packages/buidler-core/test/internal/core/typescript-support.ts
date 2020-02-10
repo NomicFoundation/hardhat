@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
+import slash from "slash";
 
 import { TASK_TEST_GET_TEST_FILES } from "../../../src/builtin-tasks/task-names";
 import { isTypescriptSupported } from "../../../src/internal/core/typescript-support";
@@ -59,8 +60,8 @@ describe("Typescript support", function() {
       });
 
       assert.deepEqual(tests.sort(), [
-        await fsExtra.realpath("test/js-test.js"),
-        await fsExtra.realpath("test/ts-test.ts")
+        await fsExtra.realpath("test/js-test.js").then(slash),
+        await fsExtra.realpath("test/ts-test.ts").then(slash)
       ]);
     });
   });

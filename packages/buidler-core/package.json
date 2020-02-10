@@ -100,6 +100,7 @@
     "node-fetch": "^2.6.0",
     "qs": "^6.7.0",
     "semver": "^6.3.0",
+    "slash": "^3.0.0",
     "solc": "0.5.15",
     "solidity-parser-antlr": "^0.4.2",
     "source-map-support": "^0.5.13",

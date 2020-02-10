@@ -1,5 +1,6 @@
 import fsExtra from "fs-extra";
 import path from "path";
+import slash from "slash";
 
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -77,7 +78,7 @@ export class Resolver {
       });
     }
 
-    const globalName = absolutePath.slice(this._projectRoot.length + 1);
+    const globalName = slash(absolutePath.slice(this._projectRoot.length + 1));
 
     return this._resolveFile(globalName, absolutePath);
   }
@@ -121,7 +122,7 @@ export class Resolver {
       // that the package.json and the file are being resolved to different
       // installations of the library. This can lead to very confusing
       // situations, so we only use the closes installation
-      if (absolutePath.includes(`node_modules/${libraryName}`)) {
+      if (absolutePath.includes(path.join("node_modules", libraryName))) {
         throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND, {
           file: globalName
         });
@@ -169,7 +170,7 @@ export class Resolver {
           });
         }
 
-        imported = globalName;
+        imported = slash(globalName);
       }
 
       return await this.resolveLibrarySourceFile(imported);
