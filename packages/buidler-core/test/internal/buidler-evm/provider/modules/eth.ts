@@ -1197,7 +1197,8 @@ describe("Eth module", function() {
               gas: numberToRpcQuantity(txParams.gasLimit),
               gasPrice: numberToRpcQuantity(txParams.gasPrice)
             },
-            "Transaction reverted without a reason"
+            "Transaction reverted without a reason",
+            -32003
           );
 
           const tx = await this.provider.send("eth_getTransactionByHash", [
@@ -1413,7 +1414,8 @@ describe("Eth module", function() {
               gas: numberToRpcQuantity(txParams.gasLimit),
               gasPrice: numberToRpcQuantity(txParams.gasPrice)
             },
-            "Transaction reverted without a reason"
+            "Transaction reverted without a reason",
+            -32003
           );
 
           const receipt = await this.provider.send(
@@ -1589,7 +1591,8 @@ describe("Eth module", function() {
                 gas: numberToRpcQuantity(21000),
                 gasPrice: numberToRpcQuantity(1)
               },
-              "unknown account"
+              "unknown account",
+              -32000
             );
           });
 
@@ -1599,7 +1602,8 @@ describe("Eth module", function() {
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0]
               },
-              "contract creation without any data provided"
+              "contract creation without any data provided",
+              -32000
             );
 
             await assertTransactionFailure(
@@ -1609,7 +1613,8 @@ describe("Eth module", function() {
                 gas: numberToRpcQuantity(21000),
                 gasPrice: numberToRpcQuantity(1)
               },
-              "contract creation without any data provided"
+              "contract creation without any data provided",
+              -32000
             );
 
             await assertTransactionFailure(
@@ -1620,7 +1625,8 @@ describe("Eth module", function() {
                 gas: numberToRpcQuantity(21000),
                 gasPrice: numberToRpcQuantity(1)
               },
-              "contract creation without any data provided"
+              "contract creation without any data provided",
+              -32000
             );
           });
         });
@@ -1668,7 +1674,8 @@ describe("Eth module", function() {
               to: zeroAddress(),
               gas: numberToRpcQuantity(1)
             },
-            "Transaction requires at least 21000 gas but got 1"
+            "Transaction requires at least 21000 gas but got 1",
+            -32000
           );
 
           // Not enough balance
@@ -1680,7 +1687,8 @@ describe("Eth module", function() {
               gas: numberToRpcQuantity(21000),
               gasPrice: numberToRpcQuantity(DEFAULT_ACCOUNTS_BALANCES[0])
             },
-            "sender doesn't have enough funds to send tx"
+            "sender doesn't have enough funds to send tx",
+            -32003
           );
 
           // Gas is larger than block gas limit
@@ -1692,7 +1700,8 @@ describe("Eth module", function() {
               gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1)
             },
             `Transaction gas limit is ${DEFAULT_BLOCK_GAS_LIMIT +
-              1} and exceeds block gas limit of ${DEFAULT_BLOCK_GAS_LIMIT}`
+              1} and exceeds block gas limit of ${DEFAULT_BLOCK_GAS_LIMIT}`,
+            -32000
           );
 
           // Invalid opcode. We try to deploy a contract with an invalid opcode in the deployment code
@@ -1703,7 +1712,8 @@ describe("Eth module", function() {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               data: "0xAA"
             },
-            "Transaction failed: revert"
+            "Transaction failed: revert",
+            -32003
           );
 
           // Out of gas. This a deployment transaction that pushes 0x00 multiple times
@@ -1720,7 +1730,8 @@ describe("Eth module", function() {
                 "0x6000600060006000600060006000600060006000600060006000600060006000600060006000600060006000600060006000",
               gas: numberToRpcQuantity(53500)
             },
-            "out of gas"
+            "out of gas",
+            -32003
           );
 
           // Invalid nonce
@@ -1731,7 +1742,8 @@ describe("Eth module", function() {
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               nonce: numberToRpcQuantity(1)
             },
-            "Invalid nonce. Expected 2 but got 1"
+            "Invalid nonce. Expected 2 but got 1",
+            -32000
           );
 
           // Revert. This a deployment transaction that immediately reverts without a reason
@@ -1742,7 +1754,8 @@ describe("Eth module", function() {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               data: "0x60006000fd"
             },
-            "Transaction reverted without a reason"
+            "Transaction reverted without a reason",
+            -32003
           );
 
           // This is a contract that reverts with A in its constructor
@@ -1753,7 +1766,8 @@ describe("Eth module", function() {
               data:
                 "0x6080604052348015600f57600080fd5b506040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260018152602001807f410000000000000000000000000000000000000000000000000000000000000081525060200191505060405180910390fdfe"
             },
-            "revert A"
+            "revert A",
+            -32003
           );
         });
 
@@ -1773,7 +1787,8 @@ describe("Eth module", function() {
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               nonce: numberToRpcQuantity(0)
             },
-            `known transaction: ${bufferToHex(hash)}`
+            `known transaction: ${bufferToHex(hash)}`,
+            -32000
           );
         });
 
@@ -1804,7 +1819,8 @@ describe("Eth module", function() {
           await assertTransactionFailure(
             this.provider,
             txParams,
-            `known transaction: ${bufferToHex(hash)}`
+            `known transaction: ${bufferToHex(hash)}`,
+            -32000
           );
         });
       });

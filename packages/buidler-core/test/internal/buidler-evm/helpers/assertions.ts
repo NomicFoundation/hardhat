@@ -107,11 +107,16 @@ export async function assertNodeBalances(
 export async function assertTransactionFailure(
   provider: EthereumProvider,
   txData: RpcTransactionRequestInput,
-  message?: string
+  message?: string,
+  code?: number
 ) {
   try {
     await provider.send("eth_sendTransaction", [txData]);
   } catch (error) {
+    if (code !== undefined) {
+      assert.equal(error.code, code);
+    }
+
     if (message !== undefined) {
       assert.include(error.message, message);
     }

@@ -5,6 +5,7 @@ import {
   RunBlockResult,
   TxReceipt
 } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
@@ -336,11 +337,16 @@ export class BuidlerNode {
 
     await this._addTransactionToBlock(block, tx);
 
-    const result = await this._vm.runBlock({
-      block,
-      generate: true,
-      skipBlockValidation: true
-    });
+    let result: RunBlockResult;
+    try {
+      result = await this._vm.runBlock({
+        block,
+        generate: true,
+        skipBlockValidation: true
+      });
+    } catch (error) {
+      throw new TransactionExecutionError(error.message);
+    }
 
     await this._printLogs();
 
