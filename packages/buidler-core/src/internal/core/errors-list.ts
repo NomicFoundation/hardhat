@@ -598,6 +598,15 @@ We recommend not using this kind of dependencies.`
       message: "Error handling JSON-RPC request: %error%",
       title: "Error handling JSON-RPC request",
       description: `Handling an incoming JSON-RPC request resulted in an error.`
+    },
+    JSONRPC_UNSUPPORTED_NETWORK: {
+      number: 606,
+      message:
+        "Unsupported network for JSON-RPC server. Only buidlerevm is currently supported.",
+      title: "Unsupported network for JSON-RPC server.",
+      description: `JSON-RPC server can only be started when running the BuidlerEVM network.
+      
+To start the JSON-RPC server, retry the command without the --network parameter.`
     }
   },
   ARTIFACTS: {

@@ -49,29 +49,40 @@ export default function() {
       8545,
       types.int
     )
-    .setAction(async ({ hostname, port }, { config }) => {
-      try {
-        const serverConfig: JsonRpcServerConfig = {
-          hostname,
-          port,
-          provider: _createBuidlerEVMProvider(config)
-        };
-
-        const server = new JsonRpcServer(serverConfig);
-
-        process.exitCode = await server.listen();
-      } catch (error) {
-        if (BuidlerError.isBuidlerError(error)) {
-          throw error;
+    .setAction(
+      async ({ hostname, port }, { network, buidlerArguments, config }) => {
+        if (
+          network.name !== BUIDLEREVM_NETWORK_NAME &&
+          buidlerArguments.network !== undefined
+        ) {
+          throw new BuidlerError(
+            ERRORS.BUILTIN_TASKS.JSONRPC_UNSUPPORTED_NETWORK
+          );
         }
 
-        throw new BuidlerError(
-          ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
-          {
-            error: error.message
-          },
-          error
-        );
+        try {
+          const serverConfig: JsonRpcServerConfig = {
+            hostname,
+            port,
+            provider: _createBuidlerEVMProvider(config)
+          };
+
+          const server = new JsonRpcServer(serverConfig);
+
+          process.exitCode = await server.listen();
+        } catch (error) {
+          if (BuidlerError.isBuidlerError(error)) {
+            throw error;
+          }
+
+          throw new BuidlerError(
+            ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
+            {
+              error: error.message
+            },
+            error
+          );
+        }
       }
-    });
+    );
 }
