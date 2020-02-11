@@ -16,8 +16,22 @@
 // -32003	Transaction rejected	Transaction creation failed	        non-standard
 
 export class BuidlerEVMProviderError extends Error {
+  public static isBuidlerEVMProviderError(
+    other: any
+  ): other is BuidlerEVMProviderError {
+    return (
+      other !== undefined &&
+      other !== null &&
+      other._isBuidlerEVMProviderError === true
+    );
+  }
+
+  private readonly _isBuidlerEVMProviderError: boolean;
+
   constructor(message: string, public readonly code: number) {
     super(message);
+
+    this._isBuidlerEVMProviderError = true;
   }
 }
 
@@ -54,6 +68,12 @@ export class InternalError extends BuidlerEVMProviderError {
 export class InvalidInputError extends BuidlerEVMProviderError {
   constructor(message: string) {
     super(message, -32000);
+  }
+}
+
+export class TransactionExecutionError extends BuidlerEVMProviderError {
+  constructor(message: string) {
+    super(message, -32003);
   }
 }
 

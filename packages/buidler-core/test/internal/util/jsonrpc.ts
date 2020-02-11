@@ -31,7 +31,10 @@ describe("JSON-RPC", function() {
       });
 
       it("Should validate the id field", function() {
-        assert.isFalse(
+        // Response without the id field is still a valid response,
+        // returned when an invalid JSON was provided as the request
+        // and id could not be parsed from it.
+        assert.isTrue(
           isValidJsonResponse({
             jsonrpc: "2.0",
             result: "asd"

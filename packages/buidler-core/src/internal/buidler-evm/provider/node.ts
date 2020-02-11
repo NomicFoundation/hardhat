@@ -38,7 +38,11 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { Blockchain } from "./blockchain";
-import { InternalError, InvalidInputError } from "./errors";
+import {
+  InternalError,
+  InvalidInputError,
+  TransactionExecutionError
+} from "./errors";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -76,8 +80,6 @@ export interface TransactionParams {
   data: Buffer;
   nonce: BN;
 }
-
-export class TransactionExecutionError extends Error {}
 
 export interface TxBlockResult {
   receipt: TxReceipt;
