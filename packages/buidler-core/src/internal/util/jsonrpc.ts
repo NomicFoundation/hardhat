@@ -5,18 +5,18 @@ export interface JsonRpcRequest {
   jsonrpc: string;
   method: string;
   params: any[];
-  id: number;
+  id: number | string;
 }
 
 interface SuccessfulJsonRpcResponse {
   jsonrpc: string;
-  id: number;
+  id: number | string;
   result: any;
 }
 
 export interface FailedJsonRpcResponse {
   jsonrpc: string;
-  id?: number;
+  id: number | string | null;
   error: {
     code: number;
     message: string;
@@ -70,8 +70,12 @@ export function isValidJsonResponse(payload: any) {
   if (
     typeof payload.id !== "number" &&
     typeof payload.id !== "string" &&
-    payload.id !== undefined
+    payload.id !== null
   ) {
+    return false;
+  }
+
+  if (payload.id === null && payload.error === undefined) {
     return false;
   }
 

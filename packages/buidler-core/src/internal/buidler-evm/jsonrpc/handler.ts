@@ -103,6 +103,7 @@ export default class JsonRpcHandler {
 
     return {
       jsonrpc: "2.0",
+      id: null,
       error: {
         code: error.code,
         message: error.message
