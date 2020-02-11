@@ -157,11 +157,11 @@ export class Resolver {
           );
         }
 
-        const globalName = path.normalize(
-          path.join(path.dirname(from.globalName), imported)
+        const globalName = slash(
+          path.normalize(path.join(path.dirname(from.globalName), imported))
         );
 
-        const isIllegal = !globalName.startsWith(from.library.name + path.sep);
+        const isIllegal = !globalName.startsWith(`${from.library.name}/`);
 
         if (isIllegal) {
           throw new BuidlerError(ERRORS.RESOLVER.ILLEGAL_IMPORT, {
@@ -170,7 +170,7 @@ export class Resolver {
           });
         }
 
-        imported = slash(globalName);
+        imported = globalName;
       }
 
       return await this.resolveLibrarySourceFile(imported);
