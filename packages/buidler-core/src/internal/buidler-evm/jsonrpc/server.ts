@@ -60,15 +60,18 @@ export class JsonRpcServer {
   };
 
   public close = async () => {
-    return new Promise(resolve => {
-      this._server.on("close", () => {
-        log("JSON-RPC server closed");
+    return new Promise((resolve, reject) => {
+      log("Closing JSON-RPC server");
+      this._server.close(err => {
+        if (err) {
+          log("Failed to close JSON-RPC server");
+          reject(err);
+          return;
+        }
 
+        log("JSON-RPC server closed");
         resolve();
       });
-
-      log("Closing JSON-RPC server");
-      this._server.close();
     });
   };
 }
