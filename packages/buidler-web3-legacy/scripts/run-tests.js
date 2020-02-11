@@ -32,13 +32,15 @@ async function main() {
   }
 
   try {
-    shell.exec("node ../../node_modules/mocha/bin/mocha --exit", { fatal: true })
-    shell.exec("node web3-lazy-object-tests/when-accessing-web3-class.js", { fatal: true })
-    shell.exec("node web3-lazy-object-tests/when-accessing-web3-object.js", { fatal: true })
-    shell.exec("node web3-lazy-object-tests/when-requiring-web3-module.js", { fatal: true })
+    shell.config.fatal = true
+    shell.exec("node ../../node_modules/mocha/bin/mocha --exit")
+    shell.exec("node web3-lazy-object-tests/when-accessing-web3-class.js")
+    shell.exec("node web3-lazy-object-tests/when-accessing-web3-object.js")
+    shell.exec("node web3-lazy-object-tests/when-requiring-web3-module.js")
   } finally {
     cleanup()
   }
 }
 
 main()
+  .catch(() => process.exit(1))

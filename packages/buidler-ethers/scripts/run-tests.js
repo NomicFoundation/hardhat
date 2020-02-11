@@ -32,10 +32,12 @@ async function main() {
   }
 
   try {
-    shell.exec("node ../../node_modules/mocha/bin/mocha --exit", { fatal: true })
+    shell.config.fatal = true
+    shell.exec("node ../../node_modules/mocha/bin/mocha --exit")
   } finally {
     cleanup()
   }
 }
 
 main()
+  .catch(() => process.exit(1))
