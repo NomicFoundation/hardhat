@@ -31,6 +31,8 @@ export function parseJsonResponse(text: string): JsonRpcResponse {
     const json = JSON.parse(text);
 
     if (!isValidJsonResponse(json)) {
+      // We are sending the proper error inside the catch part of the statement.
+      // We just need to raise anything here.
       throw new Error();
     }
 
