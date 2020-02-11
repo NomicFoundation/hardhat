@@ -10,25 +10,38 @@ import {
 import * as t from "io-ts";
 
 import {
+  InvalidArgumentsError,
   InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError
 } from "../errors";
 import {
+  LogAddress,
+  LogTopics,
   OptionalBlockTag,
   optionalBlockTag,
   rpcAddress,
   rpcCallRequest,
   RpcCallRequest,
   rpcData,
+  RpcFilterRequest,
+  rpcFilterRequest,
   rpcHash,
   rpcQuantity,
   rpcTransactionRequest,
   RpcTransactionRequest,
   rpcUnknown,
+  subscribeFilter,
+  SubscribeRequest,
   validateParams
 } from "../input";
-import { Block, BuidlerNode, CallParams, TransactionParams } from "../node";
+import {
+  Block,
+  BuidlerNode,
+  CallParams,
+  FilterParams,
+  TransactionParams
+} from "../node";
 import {
   bufferToRpcData,
   getRpcBlock,
@@ -36,6 +49,7 @@ import {
   getRpcTransactionReceipt,
   numberToRpcQuantity,
   RpcBlockOutput,
+  RpcLogOutput,
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../output";
@@ -118,10 +132,10 @@ export class EthModule {
         );
 
       case "eth_getFilterLogs":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._getFilterLogsAction(...this._getFilterLogsParams(params));
 
       case "eth_getLogs":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._getLogsAction(...this._getLogsParams(params));
 
       case "eth_getProof":
         throw new MethodNotSupportedError(`Method ${method} is not supported`);
@@ -181,10 +195,12 @@ export class EthModule {
         );
 
       case "eth_newFilter":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._newFilterAction(...this._newFilterParams(params));
 
       case "eth_newPendingTransactionFilter":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._newPendingTransactionAction(
+          ...this._newPendingTransactionParams(params)
+        );
 
       case "eth_pendingTransactions":
         return this._pendingTransactionsAction(
@@ -464,26 +480,72 @@ export class EthModule {
 
   private async _getFilterChangesAction(
     filterId: BN
-  ): Promise<string[] | null> {
-    const id = filterId.toNumber(); // This may throw, but it's ok
-
-    if (await this._node.isBlockFilter(id)) {
-      const blockHashes = await this._node.getBlockFilterChanges(id);
-      if (blockHashes === undefined) {
-        return null;
-      }
-
-      return blockHashes;
+  ): Promise<string[] | RpcLogOutput[] | null> {
+    const id = filterId.toNumber();
+    const changes = await this._node.getFilterChanges(id);
+    if (changes === undefined) {
+      return null;
     }
 
-    // This should return changes for the other filter types
-
-    return null;
+    return changes;
   }
 
   // eth_getFilterLogs
 
+  private _getFilterLogsParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _getFilterLogsAction(
+    filterId: BN
+  ): Promise<RpcLogOutput[] | null> {
+    const id = filterId.toNumber();
+    const changes = await this._node.getFilterLogs(id);
+    if (changes === undefined) {
+      return null;
+    }
+
+    return changes;
+  }
+
   // eth_getLogs
+
+  private _getLogsParams(params: any[]): [RpcFilterRequest] {
+    return validateParams(params, rpcFilterRequest);
+  }
+
+  private async _rpcFilterRequestToGetLogsParams(
+    filter: RpcFilterRequest
+  ): Promise<FilterParams> {
+    if (filter.blockHash !== undefined) {
+      if (filter.fromBlock !== undefined || filter.toBlock !== undefined) {
+        throw new InvalidArgumentsError(
+          "blockHash is mutually exclusive with fromBlock/toBlock"
+        );
+      }
+      const block = await this._node.getBlockByHash(filter.blockHash);
+      if (block === undefined) {
+        throw new InvalidArgumentsError("blockHash cannot be found");
+      }
+
+      filter.fromBlock = new BN(block.header.number);
+      filter.toBlock = new BN(block.header.number);
+    }
+
+    return {
+      fromBlock: this._extractBlock(filter.fromBlock),
+      toBlock: this._extractBlock(filter.toBlock),
+      topics: this._extractLogTopics(filter.topics),
+      addresses: this._extractLogAddresses(filter.address)
+    };
+  }
+
+  private async _getLogsAction(
+    filter: RpcFilterRequest
+  ): Promise<RpcLogOutput[]> {
+    const filterParams = await this._rpcFilterRequestToGetLogsParams(filter);
+    return this._node.getLogs(filterParams);
+  }
 
   // eth_getProof
 
@@ -670,13 +732,32 @@ export class EthModule {
   }
 
   private async _newBlockFilterAction(): Promise<string> {
-    const filterId = await this._node.createBlockFilter();
+    const filterId = await this._node.newBlockFilter();
     return numberToRpcQuantity(filterId);
   }
 
   // eth_newFilter
 
+  private _newFilterParams(params: any[]): [RpcFilterRequest] {
+    return validateParams(params, rpcFilterRequest);
+  }
+
+  private async _newFilterAction(filter: RpcFilterRequest): Promise<string> {
+    const filterParams = await this._rpcFilterRequestToGetLogsParams(filter);
+    const filterId = await this._node.newFilter(filterParams);
+    return numberToRpcQuantity(filterId);
+  }
+
   // eth_newPendingTransactionFilter
+
+  private _newPendingTransactionParams(params: any[]): [] {
+    return [];
+  }
+
+  private async _newPendingTransactionAction(): Promise<string> {
+    const filterId = await this._node.newPendingTransactionFilter();
+    return numberToRpcQuantity(filterId);
+  }
 
   // eth_pendingTransactions
 
@@ -768,7 +849,13 @@ export class EthModule {
 
   // eth_submitWork
 
-  // eth_subscribe
+  private _subscribeParams(params: any[]): [SubscribeRequest] {
+    return validateParams(params, subscribeFilter);
+  }
+
+  // private _subscribeAction(
+  //   subscribeRequest: SubscribeRequest
+  // ): Promise<string> {}
 
   // eth_syncing
 
@@ -782,17 +869,21 @@ export class EthModule {
 
   // eth_uninstallFilter
 
-  private _uninstallFilterParams(params: any[]): [BN] {
+  private _uninstallFilterParams(params: any): [BN] {
     return validateParams(params, rpcQuantity);
   }
 
   private async _uninstallFilterAction(filterId: BN): Promise<boolean> {
-    // NOTE: This will throw if the filter id is too large for a number, but
-    // we don't care
     return this._node.uninstallFilter(filterId.toNumber());
   }
 
-  // eth_unsubscribe
+  private _unsubscribeParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  // private async _unsubscribeAction(filterId: BN): Promise<boolean> {
+  //   return this._node.uninstallFilter(filterId.toNumber());
+  // }
 
   // Utility methods
 
@@ -853,6 +944,51 @@ export class EthModule {
         "Only latest and pending block params are supported"
       );
     }
+  }
+
+  private _extractBlock(blockTag: OptionalBlockTag): number {
+    switch (blockTag) {
+      case "earliest":
+        return 0;
+      case undefined:
+      case "latest":
+        return -1;
+      case "pending":
+        throw new InvalidArgumentsError("pending not supported");
+    }
+
+    return blockTag.toNumber();
+  }
+
+  private _extractLogTopics(
+    logTopics: LogTopics
+  ): Array<Array<Buffer | null> | null> {
+    if (logTopics === undefined || logTopics.length === 0) {
+      return [];
+    }
+
+    const topics: Array<Array<Buffer | null> | null> = [];
+    for (const logTopic of logTopics) {
+      if (Buffer.isBuffer(logTopic)) {
+        topics.push([logTopic]);
+      } else {
+        topics.push(logTopic);
+      }
+    }
+
+    return topics;
+  }
+
+  private _extractLogAddresses(address: LogAddress): Buffer[] {
+    if (address === undefined) {
+      return [];
+    }
+
+    if (Buffer.isBuffer(address)) {
+      return [address];
+    }
+
+    return address;
   }
 
   private async _getDefaultCallFrom(): Promise<Buffer> {

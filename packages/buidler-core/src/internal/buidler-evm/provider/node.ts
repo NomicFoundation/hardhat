@@ -1,4 +1,5 @@
 import VM from "@nomiclabs/ethereumjs-vm";
+import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import {
@@ -16,6 +17,7 @@ import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
   BN,
   bufferToHex,
+  bufferToInt,
   ECDSASignature,
   ecsign,
   hashPersonalMessage,
@@ -39,6 +41,8 @@ import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { Blockchain } from "./blockchain";
 import { InternalError, InvalidInputError } from "./errors";
+import { bloomFilter, Filter, filterLogs, Type } from "./filter";
+import { getRpcLog, RpcLogOutput } from "./output";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -77,6 +81,13 @@ export interface TransactionParams {
   nonce: BN;
 }
 
+export interface FilterParams {
+  fromBlock: number;
+  toBlock: number;
+  addresses: Buffer[];
+  topics: Array<Array<Buffer | null> | null>;
+}
+
 export class TransactionExecutionError extends Error {}
 
 export interface TxBlockResult {
@@ -110,8 +121,6 @@ interface Snapshot {
   transactionHashToBlockHash: Map<string, string>;
   blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
   blockHashToTotalDifficulty: Map<string, BN>;
-  lastFilterId: number;
-  blockFiltersLastBlockSent: Map<number, BN>;
 }
 
 export class BuidlerNode {
@@ -221,7 +230,7 @@ export class BuidlerNode {
   private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
   private _lastFilterId = 0;
-  private _blockFiltersLastBlockSent: Map<number, BN> = new Map();
+  private _filters: Map<number, Filter> = new Map();
 
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
   private readonly _snapshots: Snapshot[] = [];
@@ -608,10 +617,6 @@ export class BuidlerNode {
       ),
       blockHashToTotalDifficulty: new Map(
         this._blockHashToTotalDifficulty.entries()
-      ),
-      lastFilterId: this._lastFilterId,
-      blockFiltersLastBlockSent: new Map(
-        this._blockFiltersLastBlockSent.entries()
       )
     };
 
@@ -650,8 +655,9 @@ export class BuidlerNode {
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
     this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
-    this._lastFilterId = snapshot.lastFilterId;
-    this._blockFiltersLastBlockSent = snapshot.blockFiltersLastBlockSent;
+
+    // Mark logs in log filters as removed
+    this._removeLogs(snapshot.latestBlock);
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -660,64 +666,139 @@ export class BuidlerNode {
     return true;
   }
 
-  public async createBlockFilter(): Promise<number> {
-    const filterId = this._lastFilterId + 1;
+  public async newFilter(filterParams: FilterParams): Promise<number> {
+    filterParams = await this._computeFilterParams(filterParams, true);
 
+    const rpcID: number = this._rpcID();
+    this._filters.set(rpcID, {
+      id: rpcID,
+      type: Type.LOGS_SUBSCRIPTION,
+      criteria: {
+        fromBlock: filterParams.fromBlock,
+        toBlock: filterParams.toBlock,
+        addresses: filterParams.addresses,
+        topics: filterParams.topics
+      },
+      deadline: this._newDeadline(),
+      hashes: [],
+      logs: await this.getLogs(filterParams)
+    });
+
+    return rpcID;
+  }
+
+  public async newBlockFilter(): Promise<number> {
     const block = await this.getLatestBlock();
-    const currentBlockNumber = new BN(block.header.number);
 
-    // We always show the last block in the initial getChanges
-    const lastBlockSent = currentBlockNumber.subn(1);
+    const rpcID: number = this._rpcID();
+    this._filters.set(rpcID, {
+      id: rpcID,
+      type: Type.BLOCK_SUBSCRIPTION,
+      deadline: this._newDeadline(),
+      hashes: [bufferToHex(block.header.hash())],
+      logs: []
+    });
 
-    this._blockFiltersLastBlockSent.set(filterId, lastBlockSent);
+    return rpcID;
+  }
 
-    this._lastFilterId += 1;
+  public async newPendingTransactionFilter(): Promise<number> {
+    const rpcID: number = this._rpcID();
 
-    return filterId;
+    this._filters.set(rpcID, {
+      id: rpcID,
+      type: Type.PENDING_TRANSACTION_SUBSCRIPTION,
+      deadline: this._newDeadline(),
+      hashes: [],
+      logs: []
+    });
+
+    return rpcID;
   }
 
   public async uninstallFilter(filterId: number): Promise<boolean> {
-    // This should be able to uninstall any kind of filter, not just
-    // block filters
-
-    if (this._blockFiltersLastBlockSent.has(filterId)) {
-      this._blockFiltersLastBlockSent.delete(filterId);
-      return true;
+    if (!this._filters.has(filterId)) {
+      return false;
     }
 
-    return false;
+    this._filters.delete(filterId);
+    return true;
   }
 
-  public async isBlockFilter(filterId: number): Promise<boolean> {
-    return this._blockFiltersLastBlockSent.has(filterId);
-  }
-
-  public async getBlockFilterChanges(
+  public async getFilterChanges(
     filterId: number
-  ): Promise<string[] | undefined> {
-    if (!this._blockFiltersLastBlockSent.has(filterId)) {
+  ): Promise<string[] | RpcLogOutput[] | undefined> {
+    const filter = this._filters.get(filterId);
+    if (filter === undefined) {
       return undefined;
     }
 
-    const lastBlockSent = this._blockFiltersLastBlockSent.get(filterId)!;
-
-    const latestBlock = await this.getLatestBlock();
-    const currentBlockNumber = new BN(latestBlock.header.number);
-
-    const blockHashes: string[] = [];
-    let blockNumber: BN;
-    for (
-      blockNumber = lastBlockSent.addn(1);
-      blockNumber.lte(currentBlockNumber);
-      blockNumber = blockNumber.addn(1)
-    ) {
-      const block = await this.getBlockByNumber(blockNumber);
-      blockHashes.push(bufferToHex(block.header.hash()));
+    filter.deadline = this._newDeadline();
+    switch (filter.type) {
+      case Type.BLOCK_SUBSCRIPTION:
+      case Type.PENDING_TRANSACTION_SUBSCRIPTION:
+        const hashes = filter.hashes;
+        filter.hashes = [];
+        return hashes;
+      case Type.LOGS_SUBSCRIPTION:
+        const logs = filter.logs;
+        filter.logs = [];
+        return logs;
     }
 
-    this._blockFiltersLastBlockSent.set(filterId, blockNumber.subn(1));
+    return undefined;
+  }
 
-    return blockHashes;
+  public async getFilterLogs(
+    filterId: number
+  ): Promise<RpcLogOutput[] | undefined> {
+    const filter = this._filters.get(filterId);
+    if (filter === undefined) {
+      return undefined;
+    }
+
+    const logs = filter.logs;
+    filter.logs = [];
+    filter.deadline = this._newDeadline();
+    return logs;
+  }
+
+  public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
+    filterParams = await this._computeFilterParams(filterParams, false);
+
+    const logs: RpcLogOutput[] = [];
+    for (let i = filterParams.fromBlock; i <= filterParams.toBlock; i++) {
+      const block = await this._getBlock(new BN(i));
+      const blockResults = this._blockHashToTxBlockResults.get(
+        bufferToHex(block.hash())
+      );
+      if (blockResults === undefined) {
+        continue;
+      }
+
+      if (
+        !bloomFilter(
+          new Bloom(block.header.bloom),
+          filterParams.addresses,
+          filterParams.topics
+        )
+      ) {
+        continue;
+      }
+
+      for (const tx of blockResults) {
+        logs.push(
+          ...filterLogs(tx.receipt.logs, {
+            fromBlock: filterParams.fromBlock,
+            toBlock: filterParams.toBlock,
+            addresses: filterParams.addresses,
+            topics: filterParams.topics
+          })
+        );
+      }
+    }
+
+    return logs;
   }
 
   private _getSnapshotIndex(id: number): number | undefined {
@@ -866,6 +947,11 @@ export class BuidlerNode {
 
   private async _saveTransactionAsReceived(tx: Transaction) {
     this._transactionByHash.set(bufferToHex(tx.hash(true)), tx);
+    this._filters.forEach(filter => {
+      if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
+        filter.hashes.push(bufferToHex(tx.hash(true)));
+      }
+    });
   }
 
   private async _getLocalAccountPrivateKey(sender: Buffer): Promise<Buffer> {
@@ -896,6 +982,17 @@ export class BuidlerNode {
     for (let i = 0; i < runBlockResult.results.length; i += 1) {
       const result = runBlockResult.results[i];
 
+      runBlockResult.receipts[i].logs.forEach(
+        (rcpLog, logIndex) =>
+          (runBlockResult.receipts[i].logs[logIndex] = getRpcLog(
+            rcpLog,
+            block.transactions[i],
+            block,
+            i,
+            logIndex
+          ))
+      );
+
       txBlockResults.push({
         bloomBitvector: result.bloom.bitvector,
         createAddresses: result.createdAddress,
@@ -908,6 +1005,34 @@ export class BuidlerNode {
 
     const td = this._computeTotalDifficulty(block);
     this._blockHashToTotalDifficulty.set(blockHash, td);
+
+    const rpcLogs: RpcLogOutput[] = [];
+    for (const receipt of runBlockResult.receipts) {
+      rpcLogs.push(...receipt.logs);
+    }
+
+    this._filters.forEach((filter, key) => {
+      if (filter.deadline < new Date()) {
+        this._filters.delete(key);
+      }
+
+      switch (filter.type) {
+        case Type.BLOCK_SUBSCRIPTION:
+          filter.hashes.push(block.hash());
+          break;
+        case Type.LOGS_SUBSCRIPTION:
+          if (
+            bloomFilter(
+              new Bloom(block.header.bloom),
+              filter.criteria!.addresses,
+              filter.criteria!.topics
+            )
+          ) {
+            filter.logs.push(...filterLogs(rpcLogs, filter.criteria!));
+          }
+          break;
+      }
+    });
   }
 
   private async _putBlock(block: Block): Promise<void> {
@@ -1171,5 +1296,54 @@ export class BuidlerNode {
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
     }
+  }
+
+  private _removeLogs(blockNumber: number) {
+    this._filters.forEach(filter => {
+      if (filter.type !== Type.LOGS_SUBSCRIPTION) {
+        return;
+      }
+
+      for (let i = filter.logs.length - 1; i >= 0; i--) {
+        if (
+          new BN(toBuffer(filter.logs[i].blockNumber!)).toNumber() <=
+          blockNumber
+        ) {
+          break;
+        }
+
+        filter.logs[i].removed = true;
+      }
+    });
+  }
+
+  private async _computeFilterParams(
+    filterParams: FilterParams,
+    isFilter: boolean
+  ): Promise<FilterParams> {
+    if (filterParams.fromBlock === -1 || filterParams.toBlock === -1) {
+      const block = await this.getLatestBlock();
+      if (filterParams.fromBlock === -1) {
+        filterParams.fromBlock = bufferToInt(block.header.number);
+      }
+
+      if (!isFilter && filterParams.toBlock === -1) {
+        filterParams.toBlock = bufferToInt(block.header.number);
+      }
+    }
+
+    return filterParams;
+  }
+
+  private _newDeadline(): Date {
+    const dt = new Date();
+    dt.setMinutes(dt.getMinutes() + 5);
+    return dt;
+  }
+
+  private _rpcID(): number {
+    this._lastFilterId += 1;
+
+    return this._lastFilterId;
   }
 }

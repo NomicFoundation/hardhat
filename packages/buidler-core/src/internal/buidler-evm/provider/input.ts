@@ -60,6 +60,21 @@ export const rpcAddress = new t.Type<Buffer>(
   t.identity
 );
 
+export const logAddress = t.union([
+  rpcAddress,
+  t.array(rpcAddress),
+  t.undefined
+]);
+
+export type LogAddress = t.TypeOf<typeof logAddress>;
+
+export const logTopics = t.union([
+  t.array(t.union([t.null, rpcHash, t.array(t.union([t.null, rpcHash]))])),
+  t.undefined
+]);
+
+export type LogTopics = t.TypeOf<typeof logTopics>;
+
 export const optionalBlockTag = t.union([
   rpcQuantity,
   t.keyof({
@@ -119,6 +134,29 @@ export interface RpcCallRequestInput {
 }
 
 export type RpcCallRequest = t.TypeOf<typeof rpcCallRequest>;
+
+export const rpcFilterRequest = t.type(
+  {
+    fromBlock: optionalBlockTag,
+    toBlock: optionalBlockTag,
+    address: logAddress,
+    topics: logTopics,
+    blockHash: optional(rpcHash)
+  },
+  "RpcFilterRequest"
+);
+
+export type SubscribeRequest = t.TypeOf<typeof subscribeFilter>;
+
+export const subscribeFilter = t.union([
+  t.keyof({
+    heads: null,
+    pendingTransaction: null
+  }),
+  rpcFilterRequest
+]);
+
+export type RpcFilterRequest = t.TypeOf<typeof rpcFilterRequest>;
 
 export function validateParams(params: any[]): [];
 
@@ -199,6 +237,16 @@ export function validateParams(
   addr: typeof rpcAddress,
   data: typeof rpcUnknown
 ): [Buffer, any];
+
+export function validateParams(
+  params: any[],
+  filterRequest: typeof rpcFilterRequest
+): [RpcFilterRequest];
+
+export function validateParams(
+  params: any[],
+  subscribeRequest: typeof subscribeFilter
+): [SubscribeRequest];
 
 export function validateParams(params: any[], number: typeof rpcQuantity): [BN];
 
