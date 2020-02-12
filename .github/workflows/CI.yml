@@ -24,8 +24,9 @@ jobs:
         run: npm install
       - name: run install script
         run: node scripts/install.js
-      # - name: install vyper
-      #   run: docker pull ethereum/vyper:0.1.0b10
+      - name: install vyper
+        run: docker pull ethereum/vyper:0.1.0b10
+        if: runner.os == 'Linux'
       - name: show installed dependencies
         run: npx lerna exec -- npm ls
         continue-on-error: true
