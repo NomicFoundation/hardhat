@@ -1,2 +1,2 @@
-# prevent github actions to checkout files with crlf line endigns
+# prevent github actions to checkout files with crlf line endings
 * -text
