@@ -1,18 +1,32 @@
 const os = require("os");
+const process = require("process");
 const shell = require("shelljs");
 
-shell.config.fatal = true; // throw if a command fails
+process.env.FORCE_COLOR = "3";
 
+// throw if a command fails
+shell.config.fatal = true;
+
+const isGithubActions = process.env.GITHUB_WORKFLOW !== undefined;
 const isLinux = os.type() === "Linux";
 const isWindows = os.type() === "Windows_NT";
 
-shell.exec("npx lerna exec -- npm run build");
-shell.exec("npx lerna exec -- npm run build-test");
+const shouldBuildTests = !isGithubActions;
+const shouldIgnoreVyperTests = isGithubActions && !isLinux;
+const shouldIgnoreSolppTests = isWindows;
+
+shell.exec("npm run build");
+
+if (shouldBuildTests) {
+  shell.exec("npm run build-test");
+}
+
+process.env.TS_NODE_TRANSPILE_ONLY = "true";
+
 shell.exec(
-  `npx lerna exec ${!isLinux ? '--ignore "@nomiclabs/buidler-vyper"' : ""} ${
-    isWindows ? '--ignore "@nomiclabs/buidler-solpp"' : ""
-  } --concurrency 1 -- npm run test`,
-  {
-    TS_NODE_TRANSPILE_ONLY: "true"
-  }
+  `npx lerna exec ${
+    shouldIgnoreVyperTests ? '--ignore "@nomiclabs/buidler-vyper"' : ""
+  } ${
+    shouldIgnoreSolppTests ? '--ignore "@nomiclabs/buidler-solpp"' : ""
+  } --concurrency 1 -- npm run test`
 );
