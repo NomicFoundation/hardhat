@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import os from "os";
 import path from "path";
 
 import {
@@ -30,6 +31,10 @@ describe("Scripts runner", function() {
 
   it("Should resolve to the status code of the script run", async function() {
     this.timeout(35000);
+
+    if (os.type() === "Windows_NT") {
+      this.skip();
+    }
 
     const statusCode1 = await runScript(
       "./async-script.js",
