@@ -2,6 +2,7 @@ import chalk from "chalk";
 import debug from "debug";
 import { IncomingMessage, ServerResponse } from "http";
 import getRawBody from "raw-body";
+import WebSocket from "ws";
 
 import { EthereumProvider } from "../../../types";
 import { BuidlerError } from "../../core/errors";
@@ -28,15 +29,12 @@ export default class JsonRpcHandler {
     this._provider = provider;
   }
 
-  public requestListener = async (
-    req: IncomingMessage,
-    res: ServerResponse
-  ) => {
+  public handleHttp = async (req: IncomingMessage, res: ServerResponse) => {
     let rpcReq: JsonRpcRequest | undefined;
     let rpcResp: JsonRpcResponse | undefined;
 
     try {
-      rpcReq = await this._readRequest(req);
+      rpcReq = await this._readHttpRequest(req);
 
       rpcResp = await this._handleRequest(rpcReq);
     } catch (error) {
@@ -58,7 +56,32 @@ export default class JsonRpcHandler {
     res.end(JSON.stringify(rpcResp));
   };
 
-  private _readRequest = async (
+  public handleWs = async (ws: WebSocket, msg: string) => {
+    let rpcReq: JsonRpcRequest | undefined;
+    let rpcResp: JsonRpcResponse | undefined;
+
+    try {
+      rpcReq = await this._readWsRequest(msg);
+
+      rpcResp = await this._handleRequest(rpcReq);
+    } catch (error) {
+      rpcResp = await this._handleError(error);
+    }
+
+    // Validate the RPC response.
+    if (!isValidJsonResponse(rpcResp)) {
+      // Malformed response coming from the provider, report to user as an internal error.
+      rpcResp = await this._handleError(new InternalError("Internal error"));
+    }
+
+    if (rpcReq !== undefined) {
+      rpcResp.id = rpcReq.id;
+    }
+
+    ws.send(JSON.stringify(rpcResp));
+  };
+
+  private _readHttpRequest = async (
     req: IncomingMessage
   ): Promise<JsonRpcRequest> => {
     let json;
@@ -78,6 +101,21 @@ export default class JsonRpcHandler {
 
     return json;
   };
+
+  private _readWsRequest(msg: string): JsonRpcRequest {
+    let json: any;
+    try {
+      json = JSON.parse(msg);
+    } catch (error) {
+      throw new InvalidJsonInputError(`Parse error: ${error.message}`);
+    }
+
+    if (!isValidJsonRequest(json)) {
+      throw new InvalidRequestError("Invalid request");
+    }
+
+    return json;
+  }
 
   private _handleRequest = async (
     req: JsonRpcRequest
