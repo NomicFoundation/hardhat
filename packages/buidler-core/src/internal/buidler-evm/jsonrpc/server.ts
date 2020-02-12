@@ -1,6 +1,6 @@
 import debug from "debug";
 import http, { Server } from "http";
-import WebSocket, { Server as WSServer } from "ws";
+import { Server as WSServer } from "ws";
 
 import { EthereumProvider } from "../../../types";
 import { HttpProvider } from "../../core/providers/http";
@@ -32,9 +32,7 @@ export class JsonRpcServer {
     });
 
     this._httpServer.on("request", handler.handleHttp);
-    this._wsServer.on("connection", ws => {
-      ws.on("message", msg => handler.handleWs(ws, msg as string));
-    });
+    this._wsServer.on("connection", handler.handleWs);
   }
 
   public getProvider = (name = "json-rpc"): EthereumProvider => {

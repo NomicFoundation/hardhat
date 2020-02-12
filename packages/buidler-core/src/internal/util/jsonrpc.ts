@@ -97,3 +97,9 @@ export function isValidJsonResponse(payload: any) {
 
   return true;
 }
+
+export function isSuccessfulJsonResponse(
+  payload: JsonRpcResponse
+): payload is SuccessfulJsonRpcResponse {
+  return "response" in payload;
+}
