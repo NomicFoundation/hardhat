@@ -29,6 +29,8 @@ describe("Scripts runner", function() {
   });
 
   it("Should resolve to the status code of the script run", async function() {
+    this.timeout(35000);
+
     const statusCode1 = await runScript(
       "./async-script.js",
       [],
