@@ -54,6 +54,63 @@ describe.skip("Plugin integration tests", function() {
       return true;
     });
 
+    it("Should verify deployed contract on etherscan using full name", async function() {
+      await this.env.run(TASK_COMPILE, { force: false });
+
+      const { bytecode, abi } = await readArtifact(
+        this.env.config.paths.artifacts,
+        "TestContract1"
+      );
+      const amount = "20";
+
+      const deployedAddress = await deployContract(abi, `${bytecode}`, [
+        amount
+      ]);
+
+      try {
+        await this.env.run("verify-contract", {
+          address: deployedAddress,
+          contractName: "contracts/TestContract1.sol:TestContract1",
+          libraries: JSON.stringify({
+            // SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
+          }),
+          constructorArguments: [amount]
+        });
+
+        assert.isTrue(true);
+      } catch (error) {
+        assert.fail(error.message);
+      }
+
+      return true;
+    });
+
+    it("Should verify deployed inner contract on etherscan using full name", async function() {
+      await this.env.run(TASK_COMPILE, { force: false });
+
+      const { bytecode, abi } = await readArtifact(
+        this.env.config.paths.artifacts,
+        "InnerContract"
+      );
+
+      const deployedAddress = await deployContract(abi, `${bytecode}`, []);
+
+      try {
+        await this.env.run("verify-contract", {
+          address: deployedAddress,
+          contractName: "contracts/TestContract1.sol:InnerContract",
+          libraries: JSON.stringify({}),
+          constructorArguments: []
+        });
+
+        assert.isTrue(true);
+      } catch (error) {
+        assert.fail(error.message);
+      }
+
+      return true;
+    });
+
     it("Should verify deployed contract with name clash on etherscan", async function() {
       await this.env.run(TASK_COMPILE, { force: false });
 

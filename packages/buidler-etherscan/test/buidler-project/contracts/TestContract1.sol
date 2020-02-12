@@ -10,3 +10,10 @@ contract TestContract1 {
         amount = _amount;
     }
 }
+
+contract InnerContract {
+
+  function foo() public payable {
+    msg.sender.transfer(msg.value);
+  }
+}

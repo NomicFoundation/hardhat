@@ -47,11 +47,20 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
+      const index: number = taskArgs.contractName.indexOf(":");
+      let etherscanContractName: string;
+      let contractName: string;
+      if (index !== -1) {
+        etherscanContractName = taskArgs.contractName;
+        contractName = taskArgs.contractName.substring(index + 1);
+      } else {
+        etherscanContractName = `contracts/${taskArgs.contractName}:${taskArgs.contractName}`;
+        contractName = taskArgs.contractName;
+      }
+
       await run(TASK_COMPILE);
-      const abi = (await readArtifact(
-        config.paths.artifacts,
-        taskArgs.contractName
-      )).abi;
+      const abi = (await readArtifact(config.paths.artifacts, contractName))
+        .abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
       const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
@@ -60,7 +69,7 @@ task("verify-contract", "Verifies contract on etherscan")
         apiKey: etherscan.apiKey,
         contractAddress: taskArgs.address,
         sourceCode: source,
-        contractName: `contracts/${taskArgs.contractName}.sol:${taskArgs.contractName}`,
+        contractName: `${etherscanContractName}`,
         compilerVersion: config.solc.fullVersion,
         // optimizationsUsed: config.solc.optimizer.enabled,
         // runs: config.solc.optimizer.runs,
