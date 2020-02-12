@@ -32,7 +32,7 @@ jobs:
         continue-on-error: true
       - name: lint
         run: npm run lint
-        continue-on-error: true
+        if: runner.os == 'Linux'
       - name: build
         run: npm run build
       - name: test
