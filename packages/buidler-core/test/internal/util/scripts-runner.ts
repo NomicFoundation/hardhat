@@ -38,11 +38,7 @@ describe("Scripts runner", function() {
     );
     assert.equal(statusCode1, 0);
 
-    const statusCode2 = await runScript(
-      "./failing-script.js",
-      [],
-      ["--require", path.join(__dirname, "..", "..", "..", "src", "register")]
-    );
+    const statusCode2 = await runScript("./failing-script.js");
     assert.equal(statusCode2, 123);
 
     const statusCode3 = await runScript(
