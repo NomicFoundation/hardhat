@@ -5,6 +5,9 @@ set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+npm install -g node-gyp-cache
+npm config set node_gyp node-gyp-cache
+
 cd ../
 npm install
 node scripts/install.js
