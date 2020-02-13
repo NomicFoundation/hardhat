@@ -14,6 +14,8 @@
     "mocha": "^5.2.0",
     "nyc": "^14.1.0",
     "prettier": "1.18.2",
+    "rimraf": "^3.0.2",
+    "shelljs": "^0.8.3",
     "source-map-support": "^0.5.13",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
@@ -27,7 +29,7 @@
     "build-test": "lerna exec -- npm run build-test",
     "watch": "tsc --build --watch packages/*/src",
     "clean": "lerna exec -- npm run clean",
-    "test": "scripts/run-tests.sh",
+    "test": "node scripts/run-tests.js",
     "lint": "lerna exec --no-bail -- npm run lint",
     "lint:fix": "lerna exec -- npm run lint:fix"
   },

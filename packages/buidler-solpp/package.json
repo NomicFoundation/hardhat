@@ -18,14 +18,14 @@
     "solpp"
   ],
   "scripts": {
-    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "./scripts/run-tests.sh",
-    "build": "../../node_modules/.bin/tsc --build src",
-    "build-test": "../../node_modules/.bin/tsc --build .",
-    "clean": "rm -rf dist build-test"
+    "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "node scripts/run-tests.js",
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist build-test"
   },
   "files": [
     "dist/",
@@ -38,8 +38,8 @@
     "solpp": "^0.10.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.0",
     "@nomiclabs/buidler": "^1.1.2",
+    "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0"
   },
