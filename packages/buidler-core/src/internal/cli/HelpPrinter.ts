@@ -43,10 +43,8 @@ export class HelpPrinter {
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(tasksToShow).sort()) {
-      const description =
-        this._tasks[name].description !== undefined
-          ? this._tasks[name].description
-          : "";
+      const { description = "" } = this._tasks[name];
+
       console.log(`  ${name.padEnd(nameLength)}\t${description}`);
     }
 
@@ -66,42 +64,41 @@ export class HelpPrinter {
       });
     }
 
-    const description =
-      taskDefinition.description !== undefined
-        ? taskDefinition.description
-        : "";
+    const {
+      description = "",
+      name,
+      paramDefinitions,
+      positionalParamDefinitions
+    } = taskDefinition;
 
     console.log(`${this._programName} version ${this._version}\n`);
 
-    console.log(
-      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${
-        taskDefinition.name
-      }${this._getParamsList(
-        taskDefinition.paramDefinitions
-      )}${this._getPositionalParamsList(
-        taskDefinition.positionalParamDefinitions
-      )}\n`
+    const paramsList = this._getParamsList(paramDefinitions);
+    const positionalParamsList = this._getPositionalParamsList(
+      positionalParamDefinitions
     );
 
-    if (Object.keys(taskDefinition.paramDefinitions).length > 0) {
+    console.log(
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${name}${paramsList}${positionalParamsList}\n`
+    );
+
+    if (Object.keys(paramDefinitions).length > 0) {
       console.log("OPTIONS:\n");
 
-      this._printParamDetails(taskDefinition.paramDefinitions);
+      this._printParamDetails(paramDefinitions);
 
       console.log("");
     }
 
-    if (taskDefinition.positionalParamDefinitions.length > 0) {
+    if (positionalParamDefinitions.length > 0) {
       console.log("POSITIONAL ARGUMENTS:\n");
 
-      this._printPositionalParamDetails(
-        taskDefinition.positionalParamDefinitions
-      );
+      this._printPositionalParamDetails(positionalParamDefinitions);
 
       console.log("");
     }
 
-    console.log(`${taskDefinition.name}: ${description}\n`);
+    console.log(`${name}: ${description}\n`);
 
     console.log(`For global options help run: ${this._executableName} help\n`);
   }
@@ -115,20 +112,21 @@ export class HelpPrinter {
 
     for (const name of Object.keys(paramDefinitions).sort()) {
       const definition = paramDefinitions[name];
+      const { defaultValue, isFlag } = definition;
 
       paramsList += " ";
 
-      if (definition.defaultValue !== undefined) {
+      if (defaultValue !== undefined) {
         paramsList += "[";
       }
 
       paramsList += `${ArgumentsParser.paramNameToCLA(name)}`;
 
-      if (!definition.isFlag) {
+      if (!isFlag) {
         paramsList += ` ${this._getParamValueDescription(definition)}`;
       }
 
-      if (definition.defaultValue !== undefined) {
+      if (defaultValue !== undefined) {
         paramsList += "]";
       }
     }
@@ -142,19 +140,21 @@ export class HelpPrinter {
     let paramsList = "";
 
     for (const definition of positionalParamDefinitions) {
+      const { defaultValue, isVariadic, name } = definition;
+
       paramsList += " ";
 
-      if (definition.defaultValue !== undefined) {
+      if (defaultValue !== undefined) {
         paramsList += "[";
       }
 
-      if (definition.isVariadic) {
+      if (isVariadic) {
         paramsList += "...";
       }
 
-      paramsList += definition.name;
+      paramsList += name;
 
-      if (definition.defaultValue !== undefined) {
+      if (defaultValue !== undefined) {
         paramsList += "]";
       }
     }
@@ -168,9 +168,12 @@ export class HelpPrinter {
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(paramDefinitions).sort()) {
-      const definition = paramDefinitions[name];
-      const description = definition.description;
-      const defaultValue = definition.defaultValue;
+      const {
+        description,
+        defaultValue,
+        isOptional,
+        isFlag
+      } = paramDefinitions[name];
 
       let msg = `  ${ArgumentsParser.paramNameToCLA(name).padEnd(
         paramsNameLength
@@ -180,11 +183,7 @@ export class HelpPrinter {
         msg += `${description} `;
       }
 
-      if (
-        definition.isOptional &&
-        defaultValue !== undefined &&
-        !definition.isFlag
-      ) {
+      if (isOptional && defaultValue !== undefined && !isFlag) {
         msg += `(default: ${JSON.stringify(defaultValue)})`;
       }
 
@@ -200,8 +199,7 @@ export class HelpPrinter {
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const definition of positionalParamDefinitions) {
-      const name = definition.name;
-      const description = definition.description;
+      const { name, description, isOptional, defaultValue } = definition;
 
       let msg = `  ${name.padEnd(paramsNameLength)}\t`;
 
@@ -209,8 +207,8 @@ export class HelpPrinter {
         msg += `${description} `;
       }
 
-      if (definition.isOptional && definition.defaultValue !== undefined) {
-        msg += `(default: ${JSON.stringify(definition.defaultValue)})`;
+      if (isOptional && defaultValue !== undefined) {
+        msg += `(default: ${JSON.stringify(defaultValue)})`;
       }
 
       console.log(msg);
