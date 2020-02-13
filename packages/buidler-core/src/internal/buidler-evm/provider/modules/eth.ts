@@ -20,6 +20,8 @@ import {
   LogTopics,
   OptionalBlockTag,
   optionalBlockTag,
+  optionalRpcFilterRequest,
+  OptionalRpcFilterRequest,
   rpcAddress,
   rpcCallRequest,
   RpcCallRequest,
@@ -28,11 +30,11 @@ import {
   rpcFilterRequest,
   rpcHash,
   rpcQuantity,
+  rpcSubscribeRequest,
+  RpcSubscribeRequest,
   rpcTransactionRequest,
   RpcTransactionRequest,
   rpcUnknown,
-  subscribeFilter,
-  SubscribeRequest,
   validateParams
 } from "../input";
 import {
@@ -236,7 +238,7 @@ export class EthModule {
         throw new MethodNotSupportedError(`Method ${method} is not supported`);
 
       case "eth_subscribe":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._subscribeAction(...this._subscribeParams(params));
 
       case "eth_syncing":
         return this._syncingAction(...this._syncingParams(params));
@@ -247,7 +249,7 @@ export class EthModule {
         );
 
       case "eth_unsubscribe":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._unsubscribeAction(...this._unsubscribeParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -849,13 +851,60 @@ export class EthModule {
 
   // eth_submitWork
 
-  private _subscribeParams(params: any[]): [SubscribeRequest] {
-    return validateParams(params, subscribeFilter);
+  private _subscribeParams(
+    params: any[]
+  ): [RpcSubscribeRequest, OptionalRpcFilterRequest, (emit: any) => {}] {
+    if (params.length === 0) {
+      throw new InvalidInputError("Notifications not supported");
+    }
+
+    if (params.length === 1) {
+      throw new InvalidInputError(
+        "Expected subscription name as first argument"
+      );
+    }
+
+    const callback = params.pop();
+    if (!(typeof callback === "function")) {
+      throw new InvalidInputError("Notifications not supported");
+    }
+
+    const validatedParams: [
+      RpcSubscribeRequest,
+      OptionalRpcFilterRequest,
+      (emit: any) => {}
+    ] = validateParams(params, rpcSubscribeRequest, optionalRpcFilterRequest);
+
+    validatedParams.push(callback);
+    return validatedParams;
   }
 
-  // private _subscribeAction(
-  //   subscribeRequest: SubscribeRequest
-  // ): Promise<string> {}
+  private async _subscribeAction(
+    subscribeRequest: RpcSubscribeRequest,
+    optionalFilterRequest: OptionalRpcFilterRequest,
+    callback: (emit: any) => {}
+  ): Promise<string> {
+    let filterId: number;
+    switch (subscribeRequest) {
+      case "newHeads":
+        filterId = await this._node.newBlockFilter(callback);
+        return numberToRpcQuantity(filterId);
+      case "newPendingTransactions":
+        filterId = await this._node.newPendingTransactionFilter(callback);
+        return numberToRpcQuantity(filterId);
+      case "logs":
+        if (optionalFilterRequest === undefined) {
+          throw new InvalidArgumentsError("missing params argument");
+        }
+
+        const filterParams = await this._rpcFilterRequestToGetLogsParams(
+          optionalFilterRequest
+        );
+
+        filterId = await this._node.newFilter(filterParams, callback);
+        return numberToRpcQuantity(filterId);
+    }
+  }
 
   // eth_syncing
 
@@ -874,16 +923,16 @@ export class EthModule {
   }
 
   private async _uninstallFilterAction(filterId: BN): Promise<boolean> {
-    return this._node.uninstallFilter(filterId.toNumber());
+    return this._node.uninstallFilter(filterId.toNumber(), false);
   }
 
   private _unsubscribeParams(params: any[]): [BN] {
     return validateParams(params, rpcQuantity);
   }
 
-  // private async _unsubscribeAction(filterId: BN): Promise<boolean> {
-  //   return this._node.uninstallFilter(filterId.toNumber());
-  // }
+  private async _unsubscribeAction(filterId: BN): Promise<boolean> {
+    return this._node.uninstallFilter(filterId.toNumber(), true);
+  }
 
   // Utility methods
 

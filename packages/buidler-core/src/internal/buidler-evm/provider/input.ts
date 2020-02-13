@@ -146,15 +146,29 @@ export const rpcFilterRequest = t.type(
   "RpcFilterRequest"
 );
 
-export type SubscribeRequest = t.TypeOf<typeof subscribeFilter>;
+export interface RpcSubscribe {
+  request: RpcFilterRequest;
+}
 
-export const subscribeFilter = t.union([
-  t.keyof({
-    heads: null,
-    pendingTransaction: null
-  }),
-  rpcFilterRequest
+export type OptionalRpcFilterRequest = t.TypeOf<
+  typeof optionalRpcFilterRequest
+>;
+
+export const optionalRpcFilterRequest = t.union([
+  rpcFilterRequest,
+  t.undefined
 ]);
+
+export type RpcSubscribeRequest = t.TypeOf<typeof rpcSubscribeRequest>;
+
+export const rpcSubscribeRequest = t.keyof(
+  {
+    newHeads: null,
+    newPendingTransactions: null,
+    logs: null
+  },
+  "RpcSubscribe"
+);
 
 export type RpcFilterRequest = t.TypeOf<typeof rpcFilterRequest>;
 
@@ -245,8 +259,9 @@ export function validateParams(
 
 export function validateParams(
   params: any[],
-  subscribeRequest: typeof subscribeFilter
-): [SubscribeRequest];
+  subscribeRequest: typeof rpcSubscribeRequest,
+  optionalFilterRequest: typeof optionalRpcFilterRequest
+): [RpcSubscribeRequest, OptionalRpcFilterRequest, (emit: any) => {}];
 
 export function validateParams(params: any[], number: typeof rpcQuantity): [BN];
 

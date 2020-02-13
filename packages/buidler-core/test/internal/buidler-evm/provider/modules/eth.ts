@@ -17,6 +17,7 @@ import {
 import {
   numberToRpcQuantity,
   RpcBlockOutput,
+  RpcLogOutput,
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../../../../../src/internal/buidler-evm/provider/output";
@@ -2468,8 +2469,80 @@ describe("Eth module", function() {
   });
 
   describe("eth_subscribe", async function() {
-    it("is not supported", async function() {
-      await assertNotSupported(this.provider, "eth_subscribe");
+    it("Supports newHeads subscribe", async function() {
+      const heads: Buffer[] = [];
+      const filterId = await this.provider.send("eth_subscribe", [
+        "newHeads",
+        (emit: any) => {
+          heads.push(emit);
+        }
+      ]);
+
+      await this.provider.send("evm_mine", []);
+      await this.provider.send("evm_mine", []);
+      await this.provider.send("evm_mine", []);
+
+      assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
+
+      await this.provider.send("evm_mine", []);
+
+      assert.lengthOf(heads, 3);
+    });
+
+    it("Supports newPendingTransactions subscribe", async function() {
+      const pendingTransactions: string[] = [];
+      const filterId = await this.provider.send("eth_subscribe", [
+        "newPendingTransactions",
+        (emit: any) => {
+          pendingTransactions.push(emit);
+        }
+      ]);
+
+      const accounts = await this.provider.send("eth_accounts");
+      const burnTxParams = {
+        from: accounts[0],
+        to: zeroAddress(),
+        gas: numberToRpcQuantity(21000)
+      };
+
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
+
+      assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
+
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
+
+      assert.lengthOf(pendingTransactions, 1);
+    });
+
+    it("Supports logs subscribe", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const logs: RpcLogOutput[] = [];
+      await this.provider.send("eth_subscribe", [
+        "logs",
+        {
+          address: exampleContract
+        },
+        (emit: any) => {
+          logs.push(emit);
+        }
+      ]);
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000007b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(logs, 1);
     });
   });
 
@@ -2480,8 +2553,19 @@ describe("Eth module", function() {
   });
 
   describe("eth_unsubscribe", async function() {
-    it("is not supported", async function() {
-      await assertNotSupported(this.provider, "eth_unsubscribe");
+    it("Supports unsubscribe", async function() {
+      const filterId = await this.provider.send("eth_subscribe", [
+        "newHeads",
+        (emit: any) => {
+          console.log(emit);
+        }
+      ]);
+
+      assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
+    });
+
+    it("Doesn't fail when unsubscribe is called for a non-existent filter", async function() {
+      assert.isFalse(await this.provider.send("eth_unsubscribe", ["0x1"]));
     });
   });
 });

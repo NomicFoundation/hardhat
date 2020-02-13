@@ -23,6 +23,7 @@ export interface Filter {
   deadline: Date;
   hashes: string[];
   logs: RpcLogOutput[];
+  subscription?: (emit: any) => {};
 }
 
 export function bloomFilter(

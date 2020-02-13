@@ -666,7 +666,10 @@ export class BuidlerNode {
     return true;
   }
 
-  public async newFilter(filterParams: FilterParams): Promise<number> {
+  public async newFilter(
+    filterParams: FilterParams,
+    callback?: (emit: any) => {}
+  ): Promise<number> {
     filterParams = await this._computeFilterParams(filterParams, true);
 
     const rpcID: number = this._rpcID();
@@ -681,13 +684,16 @@ export class BuidlerNode {
       },
       deadline: this._newDeadline(),
       hashes: [],
-      logs: await this.getLogs(filterParams)
+      logs: await this.getLogs(filterParams),
+      subscription: callback
     });
 
     return rpcID;
   }
 
-  public async newBlockFilter(): Promise<number> {
+  public async newBlockFilter(
+    filterSubscription?: (emit: any) => {}
+  ): Promise<number> {
     const block = await this.getLatestBlock();
 
     const rpcID: number = this._rpcID();
@@ -696,13 +702,16 @@ export class BuidlerNode {
       type: Type.BLOCK_SUBSCRIPTION,
       deadline: this._newDeadline(),
       hashes: [bufferToHex(block.header.hash())],
-      logs: []
+      logs: [],
+      subscription: filterSubscription
     });
 
     return rpcID;
   }
 
-  public async newPendingTransactionFilter(): Promise<number> {
+  public async newPendingTransactionFilter(
+    filterSubscription?: (emit: any) => {}
+  ): Promise<number> {
     const rpcID: number = this._rpcID();
 
     this._filters.set(rpcID, {
@@ -710,14 +719,26 @@ export class BuidlerNode {
       type: Type.PENDING_TRANSACTION_SUBSCRIPTION,
       deadline: this._newDeadline(),
       hashes: [],
-      logs: []
+      logs: [],
+      subscription: filterSubscription
     });
 
     return rpcID;
   }
 
-  public async uninstallFilter(filterId: number): Promise<boolean> {
+  public async uninstallFilter(
+    filterId: number,
+    subscription: boolean
+  ): Promise<boolean> {
     if (!this._filters.has(filterId)) {
+      return false;
+    }
+
+    const filter = this._filters.get(filterId);
+    if (
+      (filter!.subscription !== undefined && !subscription) ||
+      (filter!.subscription === undefined && subscription)
+    ) {
       return false;
     }
 
@@ -949,7 +970,13 @@ export class BuidlerNode {
     this._transactionByHash.set(bufferToHex(tx.hash(true)), tx);
     this._filters.forEach(filter => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
-        filter.hashes.push(bufferToHex(tx.hash(true)));
+        const hash = bufferToHex(tx.hash(true));
+        if (filter.subscription !== undefined) {
+          filter.subscription(hash);
+          return;
+        }
+
+        filter.hashes.push(hash);
       }
     });
   }
@@ -1018,7 +1045,13 @@ export class BuidlerNode {
 
       switch (filter.type) {
         case Type.BLOCK_SUBSCRIPTION:
-          filter.hashes.push(block.hash());
+          const hash = block.hash();
+          if (filter.subscription !== undefined) {
+            filter.subscription(hash);
+            return;
+          }
+
+          filter.hashes.push(hash);
           break;
         case Type.LOGS_SUBSCRIPTION:
           if (
@@ -1028,7 +1061,19 @@ export class BuidlerNode {
               filter.criteria!.topics
             )
           ) {
-            filter.logs.push(...filterLogs(rpcLogs, filter.criteria!));
+            const logs = filterLogs(rpcLogs, filter.criteria!);
+            if (logs.length === 0) {
+              return;
+            }
+
+            if (filter.subscription !== undefined) {
+              logs.forEach(rpcLog => {
+                filter.subscription!(rpcLog);
+              });
+              return;
+            }
+
+            filter.logs.push(...logs);
           }
           break;
       }
