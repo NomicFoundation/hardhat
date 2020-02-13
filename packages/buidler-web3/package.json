@@ -36,7 +36,7 @@
     "@nomiclabs/buidler": "^1.1.2",
     "@types/chai": "^4.2.0",
     "chai": "^4.2.0",
-    "web3": "1.2.0"
+    "web3": "^1.2.0"
   },
   "peerDependencies": {
     "@nomiclabs/buidler": "^1.1.2",
