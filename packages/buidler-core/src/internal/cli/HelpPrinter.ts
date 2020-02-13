@@ -66,42 +66,41 @@ export class HelpPrinter {
       });
     }
 
-    const description =
-      taskDefinition.description !== undefined
-        ? taskDefinition.description
-        : "";
+    const {
+      description = "",
+      name,
+      paramDefinitions,
+      positionalParamDefinitions
+    } = taskDefinition;
 
     console.log(`${this._programName} version ${this._version}\n`);
 
-    console.log(
-      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${
-        taskDefinition.name
-      }${this._getParamsList(
-        taskDefinition.paramDefinitions
-      )}${this._getPositionalParamsList(
-        taskDefinition.positionalParamDefinitions
-      )}\n`
+    const paramsList = this._getParamsList(paramDefinitions);
+    const positionalParamsList = this._getPositionalParamsList(
+      positionalParamDefinitions
     );
 
-    if (Object.keys(taskDefinition.paramDefinitions).length > 0) {
+    console.log(
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${name}${paramsList}${positionalParamsList}\n`
+    );
+
+    if (Object.keys(paramDefinitions).length > 0) {
       console.log("OPTIONS:\n");
 
-      this._printParamDetails(taskDefinition.paramDefinitions);
+      this._printParamDetails(paramDefinitions);
 
       console.log("");
     }
 
-    if (taskDefinition.positionalParamDefinitions.length > 0) {
+    if (positionalParamDefinitions.length > 0) {
       console.log("POSITIONAL ARGUMENTS:\n");
 
-      this._printPositionalParamDetails(
-        taskDefinition.positionalParamDefinitions
-      );
+      this._printPositionalParamDetails(positionalParamDefinitions);
 
       console.log("");
     }
 
-    console.log(`${taskDefinition.name}: ${description}\n`);
+    console.log(`${name}: ${description}\n`);
 
     console.log(`For global options help run: ${this._executableName} help\n`);
   }
