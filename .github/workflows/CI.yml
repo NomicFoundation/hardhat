@@ -97,10 +97,10 @@ jobs:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
 
-      - name: Install node-gyp-cache
-        run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
+#      - name: Install node-gyp-cache
+#        run: |
+#          npm install -g node-gyp-cache
+#          npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
       - name: run install script
