@@ -33,6 +33,7 @@ export function parseJsonResponse(text: string): JsonRpcResponse {
     if (!isValidJsonResponse(json)) {
       // We are sending the proper error inside the catch part of the statement.
       // We just need to raise anything here.
+      // tslint:disable-next-line only-buidler-error
       throw new Error();
     }
 

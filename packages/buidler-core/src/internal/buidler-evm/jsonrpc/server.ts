@@ -74,7 +74,7 @@ export class JsonRpcServer {
       new Promise((resolve, reject) => {
         log("Closing JSON-RPC server");
         this._httpServer.close(err => {
-          if (err) {
+          if (err !== null && err !== undefined) {
             log("Failed to close JSON-RPC server");
             reject(err);
             return;
@@ -87,7 +87,7 @@ export class JsonRpcServer {
       new Promise((resolve, reject) => {
         log("Closing websocket server");
         this._wsServer.close(err => {
-          if (err) {
+          if (err !== null && err !== undefined) {
             log("Failed to close websocket server");
             reject(err);
             return;

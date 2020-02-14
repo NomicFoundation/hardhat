@@ -21,6 +21,8 @@ import {
   InvalidRequestError
 } from "../provider/errors";
 
+// tslint:disable only-buidler-error
+
 const log = debug("buidler:core:buidler-evm:jsonrpc");
 
 export default class JsonRpcHandler {
@@ -39,13 +41,13 @@ export default class JsonRpcHandler {
 
       rpcResp = await this._handleRequest(rpcReq);
     } catch (error) {
-      rpcResp = await _handleError(error);
+      rpcResp = _handleError(error);
     }
 
     // Validate the RPC response.
     if (!isValidJsonResponse(rpcResp)) {
       // Malformed response coming from the provider, report to user as an internal error.
-      rpcResp = await _handleError(new InternalError("Internal error"));
+      rpcResp = _handleError(new InternalError("Internal error"));
     }
 
     if (rpcReq !== undefined) {
@@ -89,7 +91,7 @@ export default class JsonRpcHandler {
       let rpcResp: JsonRpcResponse | undefined;
 
       try {
-        rpcReq = await _readWsRequest(msg as string);
+        rpcReq = _readWsRequest(msg as string);
 
         rpcResp = await this._handleRequest(rpcReq);
 
@@ -102,13 +104,13 @@ export default class JsonRpcHandler {
           subscriptions.push(rpcResp.result.id);
         }
       } catch (error) {
-        rpcResp = await _handleError(error);
+        rpcResp = _handleError(error);
       }
 
       // Validate the RPC response.
       if (!isValidJsonResponse(rpcResp)) {
         // Malformed response coming from the provider, report to user as an internal error.
-        rpcResp = await _handleError(new InternalError("Internal error"));
+        rpcResp = _handleError(new InternalError("Internal error"));
       }
 
       if (rpcReq !== undefined) {
@@ -181,7 +183,7 @@ const _readWsRequest = (msg: string): JsonRpcRequest => {
   return json;
 };
 
-const _handleError = async (error: any): Promise<JsonRpcResponse> => {
+const _handleError = (error: any): JsonRpcResponse => {
   _printError(error);
 
   // In case of non-buidler error, treat it as internal and associate the appropriate error code.
