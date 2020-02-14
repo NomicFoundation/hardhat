@@ -345,7 +345,7 @@ export class BuidlerNode {
         skipBlockValidation: true
       });
     } catch (error) {
-      throw new TransactionExecutionError(error.message);
+      throw new TransactionExecutionError(error);
     }
 
     await this._printLogs();
@@ -403,7 +403,7 @@ export class BuidlerNode {
       // rollback of this block.
       await this._stateManager.setStateRoot(previousRoot);
 
-      throw error;
+      throw new TransactionExecutionError(error);
     }
   }
 
@@ -1156,12 +1156,17 @@ export class BuidlerNode {
 
       await this._addTransactionToBlock(block, tx);
 
-      const result = await this._vm.runTx({
-        block,
-        tx,
-        skipNonce: true,
-        skipBalance: true
-      });
+      let result: RunTxResult;
+      try {
+        result = await this._vm.runTx({
+          block,
+          tx,
+          skipNonce: true,
+          skipBalance: true
+        });
+      } catch (error) {
+        throw new TransactionExecutionError(error);
+      }
 
       if (!estimateGas) {
         await this._printLogs();

@@ -72,8 +72,17 @@ export class InvalidInputError extends BuidlerEVMProviderError {
 }
 
 export class TransactionExecutionError extends BuidlerEVMProviderError {
-  constructor(message: string) {
-    super(message, -32003);
+  public parent: Error;
+
+  constructor(parent: Error | string) {
+    if (typeof parent === "string") {
+      parent = new Error(parent);
+    }
+
+    super(parent.message, -32003);
+
+    this.parent = parent;
+    this.stack = parent.stack;
   }
 }
 
