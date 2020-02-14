@@ -213,17 +213,17 @@ export class Resolver {
     );
   }
 
-  public _isRelativeImport(imported: string): boolean {
+  private _isRelativeImport(imported: string): boolean {
     return imported.startsWith("./") || imported.startsWith("../");
   }
 
-  public _resolveFromProjectRoot(fileName: string) {
+  private _resolveFromProjectRoot(fileName: string) {
     return require.resolve(fileName, {
       paths: [this._projectRoot]
     });
   }
 
-  public _getLibraryName(globalName: string): string {
+  private _getLibraryName(globalName: string): string {
     if (globalName.startsWith("@")) {
       return globalName.slice(
         0,

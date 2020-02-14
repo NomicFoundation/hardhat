@@ -103,11 +103,11 @@ export class HelpPrinter {
     console.log(`For global options help run: ${this._executableName} help\n`);
   }
 
-  public _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
+  private _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
     return `<${paramDefinition.type.name.toUpperCase()}>`;
   }
 
-  public _getParamsList(paramDefinitions: ParamDefinitionsMap) {
+  private _getParamsList(paramDefinitions: ParamDefinitionsMap) {
     let paramsList = "";
 
     for (const name of Object.keys(paramDefinitions).sort()) {
@@ -134,7 +134,7 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  public _getPositionalParamsList(
+  private _getPositionalParamsList(
     positionalParamDefinitions: Array<ParamDefinition<any>>
   ) {
     let paramsList = "";
@@ -162,7 +162,7 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  public _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
+  private _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
     const paramsNameLength = Object.keys(paramDefinitions)
       .map(n => ArgumentsParser.paramNameToCLA(n).length)
       .reduce((a, b) => Math.max(a, b), 0);
@@ -191,7 +191,7 @@ export class HelpPrinter {
     }
   }
 
-  public _printPositionalParamDetails(
+  private _printPositionalParamDetails(
     positionalParamDefinitions: Array<ParamDefinition<any>>
   ) {
     const paramsNameLength = positionalParamDefinitions
