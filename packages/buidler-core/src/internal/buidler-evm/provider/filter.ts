@@ -1,7 +1,9 @@
 import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
-import { getRpcLog, RpcLogOutput } from "./output";
+import { RpcLogOutput } from "./output";
+
+export const LATEST_BLOCK = -1;
 
 export enum Type {
   LOGS_SUBSCRIPTION = 0,
@@ -23,7 +25,7 @@ export interface Filter {
   deadline: Date;
   hashes: string[];
   logs: RpcLogOutput[];
-  subscription?: (emit: any) => {};
+  subscription: boolean;
 }
 
 export function bloomFilter(
@@ -66,49 +68,18 @@ export function filterLogs(
       continue;
     }
 
-    if (criteria.toBlock !== -1 && blockNumber > criteria.toBlock) {
+    if (criteria.toBlock !== LATEST_BLOCK && blockNumber > criteria.toBlock) {
       continue;
     }
 
-    let match: boolean = false;
-    const bAddress = toBuffer(log.address);
-    if (criteria.addresses.length !== 0) {
-      for (const address of criteria.addresses) {
-        if (Buffer.compare(address, bAddress) === 0) {
-          match = true;
-        }
-      }
-
-      if (!match) {
-        continue;
-      }
+    if (
+      criteria.addresses.length !== 0 &&
+      !includes(criteria.addresses, toBuffer(log.address))
+    ) {
+      continue;
     }
 
-    match = true;
-    for (let i = 0; i < criteria.topics.length; i++) {
-      if (criteria.topics.length > log.topics.length) {
-        match = false;
-        continue;
-      }
-
-      const sub = criteria.topics[i];
-      if (sub == null) {
-        continue;
-      }
-
-      match = sub.length === 0;
-      for (const topic of sub) {
-        if (topic === null || log.topics[i] === bufferToHex(topic)) {
-          match = true;
-          break;
-        }
-      }
-      if (!match) {
-        break;
-      }
-    }
-
-    if (!match) {
+    if (!topicMatched(criteria.topics, log.topics)) {
       continue;
     }
 
@@ -116,4 +87,44 @@ export function filterLogs(
   }
 
   return filteredLogs;
+}
+
+export function includes(addresses: Buffer[], a: Buffer): boolean {
+  for (const address of addresses) {
+    if (Buffer.compare(address, a) === 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function topicMatched(
+  topics: Array<Array<Buffer | null> | null>,
+  logTopics: string[]
+): boolean {
+  let match = true;
+  for (let i = 0; i < topics.length; i++) {
+    if (topics.length > logTopics.length) {
+      return false;
+    }
+
+    const sub = topics[i];
+    if (sub == null) {
+      continue;
+    }
+
+    match = sub.length === 0;
+    for (const topic of sub) {
+      if (topic === null || logTopics[i] === bufferToHex(topic)) {
+        match = true;
+        break;
+      }
+    }
+    if (!match) {
+      return false;
+    }
+  }
+
+  return true;
 }

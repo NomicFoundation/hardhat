@@ -24,6 +24,7 @@ import {
   privateToAddress,
   toBuffer
 } from "ethereumjs-util";
+import EventEmitter from "events";
 import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
@@ -41,8 +42,13 @@ import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { Blockchain } from "./blockchain";
 import { InternalError, InvalidInputError } from "./errors";
-import { bloomFilter, Filter, filterLogs, Type } from "./filter";
-import { getRpcLog, RpcLogOutput } from "./output";
+import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
+import {
+  getRpcBlock,
+  getRpcLog,
+  numberToRpcQuantity,
+  RpcLogOutput
+} from "./output";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -123,7 +129,7 @@ interface Snapshot {
   blockHashToTotalDifficulty: Map<string, BN>;
 }
 
-export class BuidlerNode {
+export class BuidlerNode extends EventEmitter {
   public static async create(
     hardfork: string,
     networkName: string,
@@ -254,6 +260,7 @@ export class BuidlerNode {
     private readonly _throwOnCallFailures: boolean,
     stackTracesOptions?: SolidityTracerOptions
   ) {
+    super();
     const config = getUserConfigPath();
     this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
@@ -668,7 +675,7 @@ export class BuidlerNode {
 
   public async newFilter(
     filterParams: FilterParams,
-    callback?: (emit: any) => {}
+    isSubscription: boolean
   ): Promise<number> {
     filterParams = await this._computeFilterParams(filterParams, true);
 
@@ -685,15 +692,13 @@ export class BuidlerNode {
       deadline: this._newDeadline(),
       hashes: [],
       logs: await this.getLogs(filterParams),
-      subscription: callback
+      subscription: isSubscription
     });
 
     return rpcID;
   }
 
-  public async newBlockFilter(
-    filterSubscription?: (emit: any) => {}
-  ): Promise<number> {
+  public async newBlockFilter(isSubscription: boolean): Promise<number> {
     const block = await this.getLatestBlock();
 
     const rpcID: number = this._rpcID();
@@ -703,14 +708,14 @@ export class BuidlerNode {
       deadline: this._newDeadline(),
       hashes: [bufferToHex(block.header.hash())],
       logs: [],
-      subscription: filterSubscription
+      subscription: isSubscription
     });
 
     return rpcID;
   }
 
   public async newPendingTransactionFilter(
-    filterSubscription?: (emit: any) => {}
+    isSubscription: boolean
   ): Promise<number> {
     const rpcID: number = this._rpcID();
 
@@ -720,7 +725,7 @@ export class BuidlerNode {
       deadline: this._newDeadline(),
       hashes: [],
       logs: [],
-      subscription: filterSubscription
+      subscription: isSubscription
     });
 
     return rpcID;
@@ -736,8 +741,8 @@ export class BuidlerNode {
 
     const filter = this._filters.get(filterId);
     if (
-      (filter!.subscription !== undefined && !subscription) ||
-      (filter!.subscription === undefined && subscription)
+      (filter!.subscription && !subscription) ||
+      (!filter!.subscription && subscription)
     ) {
       return false;
     }
@@ -971,8 +976,11 @@ export class BuidlerNode {
     this._filters.forEach(filter => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
         const hash = bufferToHex(tx.hash(true));
-        if (filter.subscription !== undefined) {
-          filter.subscription(hash);
+        if (filter.subscription) {
+          this.emit("ethEvent", {
+            result: hash,
+            subscription: numberToRpcQuantity(filter.id)
+          });
           return;
         }
 
@@ -1046,8 +1054,11 @@ export class BuidlerNode {
       switch (filter.type) {
         case Type.BLOCK_SUBSCRIPTION:
           const hash = block.hash();
-          if (filter.subscription !== undefined) {
-            filter.subscription(hash);
+          if (filter.subscription) {
+            this.emit("ethEvent", {
+              result: getRpcBlock(block, td, false),
+              subscription: numberToRpcQuantity(filter.id)
+            });
             return;
           }
 
@@ -1066,9 +1077,12 @@ export class BuidlerNode {
               return;
             }
 
-            if (filter.subscription !== undefined) {
+            if (filter.subscription) {
               logs.forEach(rpcLog => {
-                filter.subscription!(rpcLog);
+                this.emit("ethEvent", {
+                  result: rpcLog,
+                  subscription: numberToRpcQuantity(filter.id)
+                });
               });
               return;
             }
@@ -1366,13 +1380,16 @@ export class BuidlerNode {
     filterParams: FilterParams,
     isFilter: boolean
   ): Promise<FilterParams> {
-    if (filterParams.fromBlock === -1 || filterParams.toBlock === -1) {
+    if (
+      filterParams.fromBlock === LATEST_BLOCK ||
+      filterParams.toBlock === LATEST_BLOCK
+    ) {
       const block = await this.getLatestBlock();
-      if (filterParams.fromBlock === -1) {
+      if (filterParams.fromBlock === LATEST_BLOCK) {
         filterParams.fromBlock = bufferToInt(block.header.number);
       }
 
-      if (!isFilter && filterParams.toBlock === -1) {
+      if (!isFilter && filterParams.toBlock === LATEST_BLOCK) {
         filterParams.toBlock = bufferToInt(block.header.number);
       }
     }

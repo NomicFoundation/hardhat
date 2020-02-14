@@ -181,5 +181,12 @@ export class BuidlerEVMProvider extends EventEmitter
     this._web3Module = new Web3Module();
     this._evmModule = new EvmModule(node);
     this._buidlerModule = new BuidlerModule(node);
+
+    const listener = (payload: { subscription: string; result: any }) => {
+      this.emit("notifications", payload);
+    };
+
+    // Handle eth_subscribe events and proxy them to handler
+    this._node.addListener("ethEvent", listener);
   }
 }

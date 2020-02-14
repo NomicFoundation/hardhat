@@ -2470,13 +2470,16 @@ describe("Eth module", function() {
 
   describe("eth_subscribe", async function() {
     it("Supports newHeads subscribe", async function() {
-      const heads: Buffer[] = [];
-      const filterId = await this.provider.send("eth_subscribe", [
-        "newHeads",
-        (emit: any) => {
-          heads.push(emit);
+      const heads: any[] = [];
+      const filterId = await this.provider.send("eth_subscribe", ["newHeads"]);
+
+      const listener = (payload: { subscription: string; result: any }) => {
+        if (filterId === payload.subscription) {
+          heads.push(payload.result);
         }
-      ]);
+      };
+
+      this.provider.addListener("notifications", listener);
 
       await this.provider.send("evm_mine", []);
       await this.provider.send("evm_mine", []);
@@ -2484,19 +2487,22 @@ describe("Eth module", function() {
 
       assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
 
-      await this.provider.send("evm_mine", []);
-
       assert.lengthOf(heads, 3);
     });
 
     it("Supports newPendingTransactions subscribe", async function() {
       const pendingTransactions: string[] = [];
       const filterId = await this.provider.send("eth_subscribe", [
-        "newPendingTransactions",
-        (emit: any) => {
-          pendingTransactions.push(emit);
-        }
+        "newPendingTransactions"
       ]);
+
+      const listener = (payload: { subscription: string; result: any }) => {
+        if (filterId === payload.subscription) {
+          pendingTransactions.push(payload.result);
+        }
+      };
+
+      this.provider.addListener("notifications", listener);
 
       const accounts = await this.provider.send("eth_accounts");
       const burnTxParams = {
@@ -2521,15 +2527,20 @@ describe("Eth module", function() {
       );
 
       const logs: RpcLogOutput[] = [];
-      await this.provider.send("eth_subscribe", [
+      const filterId = await this.provider.send("eth_subscribe", [
         "logs",
         {
           address: exampleContract
-        },
-        (emit: any) => {
-          logs.push(emit);
         }
       ]);
+
+      const listener = (payload: { subscription: string; result: any }) => {
+        if (filterId === payload.subscription) {
+          logs.push(payload.result);
+        }
+      };
+
+      this.provider.addListener("notifications", listener);
 
       const newState =
         "000000000000000000000000000000000000000000000000000000000000007b";
@@ -2554,12 +2565,7 @@ describe("Eth module", function() {
 
   describe("eth_unsubscribe", async function() {
     it("Supports unsubscribe", async function() {
-      const filterId = await this.provider.send("eth_subscribe", [
-        "newHeads",
-        (emit: any) => {
-          console.log(emit);
-        }
-      ]);
+      const filterId = await this.provider.send("eth_subscribe", ["newHeads"]);
 
       assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
     });

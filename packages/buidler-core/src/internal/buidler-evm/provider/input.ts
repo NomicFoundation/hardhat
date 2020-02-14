@@ -261,7 +261,7 @@ export function validateParams(
   params: any[],
   subscribeRequest: typeof rpcSubscribeRequest,
   optionalFilterRequest: typeof optionalRpcFilterRequest
-): [RpcSubscribeRequest, OptionalRpcFilterRequest, (emit: any) => {}];
+): [RpcSubscribeRequest, OptionalRpcFilterRequest];
 
 export function validateParams(params: any[], number: typeof rpcQuantity): [BN];
 

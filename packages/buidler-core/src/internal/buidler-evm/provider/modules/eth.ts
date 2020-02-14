@@ -734,7 +734,7 @@ export class EthModule {
   }
 
   private async _newBlockFilterAction(): Promise<string> {
-    const filterId = await this._node.newBlockFilter();
+    const filterId = await this._node.newBlockFilter(false);
     return numberToRpcQuantity(filterId);
   }
 
@@ -746,7 +746,7 @@ export class EthModule {
 
   private async _newFilterAction(filter: RpcFilterRequest): Promise<string> {
     const filterParams = await this._rpcFilterRequestToGetLogsParams(filter);
-    const filterId = await this._node.newFilter(filterParams);
+    const filterId = await this._node.newFilter(filterParams, false);
     return numberToRpcQuantity(filterId);
   }
 
@@ -757,7 +757,7 @@ export class EthModule {
   }
 
   private async _newPendingTransactionAction(): Promise<string> {
-    const filterId = await this._node.newPendingTransactionFilter();
+    const filterId = await this._node.newPendingTransactionFilter(false);
     return numberToRpcQuantity(filterId);
   }
 
@@ -853,44 +853,31 @@ export class EthModule {
 
   private _subscribeParams(
     params: any[]
-  ): [RpcSubscribeRequest, OptionalRpcFilterRequest, (emit: any) => {}] {
+  ): [RpcSubscribeRequest, OptionalRpcFilterRequest] {
     if (params.length === 0) {
-      throw new InvalidInputError("Notifications not supported");
-    }
-
-    if (params.length === 1) {
       throw new InvalidInputError(
         "Expected subscription name as first argument"
       );
     }
 
-    const callback = params.pop();
-    if (!(typeof callback === "function")) {
-      throw new InvalidInputError("Notifications not supported");
-    }
-
-    const validatedParams: [
-      RpcSubscribeRequest,
-      OptionalRpcFilterRequest,
-      (emit: any) => {}
-    ] = validateParams(params, rpcSubscribeRequest, optionalRpcFilterRequest);
-
-    validatedParams.push(callback);
-    return validatedParams;
+    return validateParams(
+      params,
+      rpcSubscribeRequest,
+      optionalRpcFilterRequest
+    );
   }
 
   private async _subscribeAction(
     subscribeRequest: RpcSubscribeRequest,
-    optionalFilterRequest: OptionalRpcFilterRequest,
-    callback: (emit: any) => {}
+    optionalFilterRequest: OptionalRpcFilterRequest
   ): Promise<string> {
     let filterId: number;
     switch (subscribeRequest) {
       case "newHeads":
-        filterId = await this._node.newBlockFilter(callback);
+        filterId = await this._node.newBlockFilter(true);
         return numberToRpcQuantity(filterId);
       case "newPendingTransactions":
-        filterId = await this._node.newPendingTransactionFilter(callback);
+        filterId = await this._node.newPendingTransactionFilter(true);
         return numberToRpcQuantity(filterId);
       case "logs":
         if (optionalFilterRequest === undefined) {
@@ -901,7 +888,7 @@ export class EthModule {
           optionalFilterRequest
         );
 
-        filterId = await this._node.newFilter(filterParams, callback);
+        filterId = await this._node.newFilter(filterParams, true);
         return numberToRpcQuantity(filterId);
     }
   }
