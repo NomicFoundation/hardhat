@@ -61,28 +61,35 @@ export default class JsonRpcHandler {
     const subscriptions: string[] = [];
     let isClosed = false;
 
+    const listener = (payload: { subscription: string; result: any }) => {
+      // Don't attempt to send a message to the websocket if we already know it is closed,
+      // or the current websocket connection isn't interested in the particular subscription.
+      if (isClosed || subscriptions.includes(payload.subscription)) {
+        return;
+      }
+
+      try {
+        ws.send(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            method: "eth_subscribe",
+            params: payload
+          })
+        );
+      } catch (error) {
+        _handleError(error);
+      }
+    };
+
+    // Handle eth_subscribe notifications.
+    this._provider.addListener("notification", listener);
+
     ws.on("message", async msg => {
       let rpcReq: JsonRpcRequest | undefined;
       let rpcResp: JsonRpcResponse | undefined;
 
       try {
         rpcReq = await _readWsRequest(msg as string);
-
-        // In case of eth_subscribe, we want to provide an emit function to the BuidlerEVM Provider.
-        if (rpcReq.method === "eth_subscribe") {
-          rpcReq.params.push(function emit(event: any) {
-            // Don't attempt to send a message to the websocket if we already know it is closed.
-            if (isClosed) {
-              return;
-            }
-
-            try {
-              ws.send(JSON.stringify(event));
-            } catch (error) {
-              _handleError(error);
-            }
-          });
-        }
 
         rpcResp = await this._handleRequest(rpcReq);
 
@@ -112,10 +119,13 @@ export default class JsonRpcHandler {
     });
 
     ws.on("close", () => {
+      // Remove eth_subscribe listener.
+      this._provider.removeListener("notification", listener);
+
       // Clear any active subscriptions for the closed websocket connection.
       isClosed = true;
-      subscriptions.forEach(async subscription => {
-        await this._provider.send("eth_unsubscribe", [subscription]);
+      subscriptions.forEach(async subscriptionId => {
+        await this._provider.send("eth_unsubscribe", [subscriptionId]);
       });
     });
   };
