@@ -60,7 +60,9 @@ export class JsonRpcServer {
         // We get the address and port directly from the server in order to handle random port allocation with `0`.
         const { address, port } = this._httpServer.address();
 
-        console.log(`Started JSON-RPC server at http://${address}:${port}/`);
+        console.log(
+          `Started HTTP and WebSocket JSON-RPC server at ${address}:${port}/`
+        );
 
         resolve();
       });
