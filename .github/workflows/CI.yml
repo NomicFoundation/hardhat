@@ -1,6 +1,6 @@
 name: CI
 
-on: [pr, push]
+on: [pull_request, push]
 
 jobs:
   lint:
