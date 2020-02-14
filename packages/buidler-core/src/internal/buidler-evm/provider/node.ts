@@ -5,6 +5,7 @@ import {
   RunBlockResult,
   TxReceipt
 } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
@@ -38,7 +39,11 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { Blockchain } from "./blockchain";
-import { InternalError, InvalidInputError } from "./errors";
+import {
+  InternalError,
+  InvalidInputError,
+  TransactionExecutionError
+} from "./errors";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -76,8 +81,6 @@ export interface TransactionParams {
   data: Buffer;
   nonce: BN;
 }
-
-export class TransactionExecutionError extends Error {}
 
 export interface TxBlockResult {
   receipt: TxReceipt;
@@ -334,11 +337,16 @@ export class BuidlerNode {
 
     await this._addTransactionToBlock(block, tx);
 
-    const result = await this._vm.runBlock({
-      block,
-      generate: true,
-      skipBlockValidation: true
-    });
+    let result: RunBlockResult;
+    try {
+      result = await this._vm.runBlock({
+        block,
+        generate: true,
+        skipBlockValidation: true
+      });
+    } catch (error) {
+      throw new TransactionExecutionError(error);
+    }
 
     await this._printLogs();
 
@@ -395,7 +403,7 @@ export class BuidlerNode {
       // rollback of this block.
       await this._stateManager.setStateRoot(previousRoot);
 
-      throw error;
+      throw new TransactionExecutionError(error);
     }
   }
 
@@ -1148,12 +1156,17 @@ export class BuidlerNode {
 
       await this._addTransactionToBlock(block, tx);
 
-      const result = await this._vm.runTx({
-        block,
-        tx,
-        skipNonce: true,
-        skipBalance: true
-      });
+      let result: RunTxResult;
+      try {
+        result = await this._vm.runTx({
+          block,
+          tx,
+          skipNonce: true,
+          skipBalance: true
+        });
+      } catch (error) {
+        throw new TransactionExecutionError(error);
+      }
 
       if (!estimateGas) {
         await this._printLogs();

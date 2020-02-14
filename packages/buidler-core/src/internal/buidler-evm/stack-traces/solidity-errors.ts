@@ -1,6 +1,8 @@
 import { bufferToHex } from "ethereumjs-util";
 import { inspect } from "util";
 
+import { TransactionExecutionError } from "../provider/errors";
+
 import { decodeRevertReason } from "./revert-reasons";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
@@ -237,7 +239,7 @@ function getMessageFromLastStackTraceEntry(
   }
 }
 
-export class SolidityError extends Error {
+export class SolidityError extends TransactionExecutionError {
   public readonly stackTrace: SolidityStackTrace;
 
   constructor(message: string, stackTrace: SolidityStackTrace) {
