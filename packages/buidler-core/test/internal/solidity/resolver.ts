@@ -546,4 +546,21 @@ describe("Scoped dependencies project", () => {
       "library"
     );
   });
+
+  it("should retrieve relative dependency inside library", async function() {
+    const resolvedImporter = await this.resolver.resolveLibrarySourceFile(
+      "@scope/package/contracts/nested/dir/Importer.sol"
+    );
+    const imports = getImports(resolvedImporter.content);
+    assert.equal(imports[0], "../A.sol");
+
+    const resolvedImported = await this.resolver.resolveImport(
+      resolvedImporter,
+      imports[0]
+    );
+    assert.equal(
+      resolvedImported.globalName,
+      "@scope/package/contracts/nested/A.sol"
+    );
+  });
 });
