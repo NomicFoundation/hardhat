@@ -1,0 +1,190 @@
+name: CI
+
+on: [push]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - name: Get date
+        id: get-date
+        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
+      - name: Get node exact version
+        id: get-node-version
+        run: echo "::set-output name=version::$(node --version)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
+
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
+      - name: Install
+        run: npm install
+      - name: run install script
+        run: node scripts/install.js
+      - name: lint
+        run: npm run lint
+      - name: Check dependency versions
+        run: node scripts/check-dependencies.js
+
+  typecheck_tests:
+    name: Typecheck tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - name: Get date
+        id: get-date
+        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
+      - name: Get node exact version
+        id: get-node-version
+        run: echo "::set-output name=version::$(node --version)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
+
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
+      - name: Install
+        run: npm install
+      - name: run install script
+        run: node scripts/install.js
+      - name: Build tests
+        run: npm run build-test
+
+  test_windows:
+    name: Test on Windows with Node 10
+    runs-on: windows-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - name: Get date
+        id: get-date
+        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
+      - name: Get node exact version
+        id: get-node-version
+        run: echo "::set-output name=version::$(node --version)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
+
+      #      - name: Install node-gyp-cache
+      #        run: |
+      #          npm install -g node-gyp-cache
+      #          npm config set node_gyp node-gyp-cache
+      - name: Install
+        run: npm install
+      - name: run install script
+        run: node scripts/install.js
+      - name: Run tests
+        run: npm run test
+
+  test_macos:
+    name: Test on MacOS with Node 10
+    runs-on: macos-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - name: Get date
+        id: get-date
+        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
+      - name: Get node exact version
+        id: get-node-version
+        run: echo "::set-output name=version::$(node --version)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
+
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
+      - name: Install
+        run: npm install
+      - name: run install script
+        run: node scripts/install.js
+      - name: Run tests
+        run: npm run test
+
+  test_linux:
+    name: Test on Linux with Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10, 12, 13]
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: install vyper
+        run: docker pull ethereum/vyper:0.1.0b10
+      - uses: actions/checkout@v2
+
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - name: Get date
+        id: get-date
+        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
+      - name: Get node exact version
+        id: get-node-version
+        run: echo "::set-output name=version::$(node --version)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
+
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
+      - name: Install
+        run: npm install
+      - name: run install script
+        run: node scripts/install.js
+      - name: install
+        run: npm install
+      - name: run install script
+        run: node scripts/install.js
+      - name: Run tests
+        run: npm run test

@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
+import * as os from "os";
 import * as path from "path";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
@@ -235,7 +236,10 @@ describe("argumentTypes", () => {
       );
     });
 
-    it("Should throw if the file isn't readable", async () => {
+    it("Should throw if the file isn't readable", async function() {
+      if (os.type() === "Windows_NT") {
+        this.skip();
+      }
       await fsExtra.createFile("A");
       await fsExtra.chmod("A", 0);
 

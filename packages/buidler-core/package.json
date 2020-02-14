@@ -27,15 +27,15 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "../../node_modules/.bin/mocha",
-    "coverage": "../../node_modules/.bin/nyc ../../node_modules/.bin/mocha",
-    "build": "../../node_modules/.bin/tsc --build src",
-    "build-test": "../../node_modules/.bin/tsc --build .",
-    "clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
+    "lint-tests": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "node ../../node_modules/mocha/bin/mocha",
+    "coverage": "node ../../node_modules/nyc/bin/nyc.js ../../node_modules/mocha/bin/mocha",
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js builtin-tasks internal *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "builtin-tasks/",
@@ -101,6 +101,7 @@
     "qs": "^6.7.0",
     "raw-body": "^2.4.1",
     "semver": "^6.3.0",
+    "slash": "^3.0.0",
     "solc": "0.5.15",
     "solidity-parser-antlr": "^0.4.2",
     "source-map-support": "^0.5.13",

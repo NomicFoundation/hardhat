@@ -13,7 +13,7 @@ is the main project (i.e. the one that's published as [@nomiclabs/buidler](https
 
 To install this project you have to run:
 
-1. `scripts/install.sh`
+1. `npm install && node scripts/install.js`
 
 ## Building the projects
 
