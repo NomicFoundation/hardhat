@@ -24,8 +24,8 @@ This will keep everything compiled, and these problems will be avoided.
 
 All tests are written using [mocha](https://mochajs.org) and [chai](https://www.chaijs.com).
 
-You can run a package's tests by executing `npm run test` inside its folder. Or you can run all the tests at once with
-`npm run test` from the root folder.
+You can run a package's tests by executing `npm test` inside its folder. Or you can run all the tests at once with
+`npm test` from the root folder.
 
 ## Code formatting
 
