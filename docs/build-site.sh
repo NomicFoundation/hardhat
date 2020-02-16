@@ -10,7 +10,6 @@ npm config set node_gyp node-gyp-cache
 
 cd ../
 npm install
-node scripts/install.js
 
 cd "$DIR"
 npm install

@@ -33,8 +33,6 @@ jobs:
           npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
-      - name: run install script
-        run: node scripts/install.js
       - name: lint
         run: npm run lint
       - name: Check dependency versions
@@ -70,8 +68,6 @@ jobs:
           npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
-      - name: run install script
-        run: node scripts/install.js
       - name: Build tests
         run: npm run build-test
 
@@ -105,8 +101,6 @@ jobs:
       #          npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
-      - name: run install script
-        run: node scripts/install.js
       - name: Run tests
         run: npm run test
 
@@ -140,8 +134,6 @@ jobs:
           npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
-      - name: run install script
-        run: node scripts/install.js
       - name: Run tests
         run: npm run test
 
@@ -180,11 +172,5 @@ jobs:
           npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
-      - name: run install script
-        run: node scripts/install.js
-      - name: install
-        run: npm install
-      - name: run install script
-        run: node scripts/install.js
       - name: Run tests
         run: npm run test
