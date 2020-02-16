@@ -25,6 +25,7 @@
     "typescript": "~3.5.3"
   },
   "scripts": {
+    "postinstall": "node scripts/install.js",
     "build": "lerna exec -- npm run build",
     "build-test": "lerna exec -- npm run build-test",
     "watch": "tsc --build --watch packages/*/src",
