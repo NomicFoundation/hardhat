@@ -3,7 +3,7 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { RpcLogOutput } from "./output";
 
-export const LATEST_BLOCK = -1;
+export const LATEST_BLOCK = new BN(-1);
 
 export enum Type {
   LOGS_SUBSCRIPTION = 0,
@@ -12,14 +12,14 @@ export enum Type {
 }
 
 export interface FilterCriteria {
-  fromBlock: number;
-  toBlock: number;
+  fromBlock: BN;
+  toBlock: BN;
   addresses: Buffer[];
-  topics: Array<Array<Buffer | null> | null>;
+  normalizedTopics: Array<Array<Buffer | null> | null>;
 }
 
 export interface Filter {
-  id: number;
+  id: string;
   type: Type;
   criteria?: FilterCriteria;
   deadline: Date;
@@ -31,18 +31,28 @@ export interface Filter {
 export function bloomFilter(
   bloom: Bloom,
   addresses: Buffer[],
-  topics: Array<Array<Buffer | null> | null>
+  normalizedTopics: Array<Array<Buffer | null> | null>
 ): boolean {
-  if (addresses.length > 0 && !bloom.multiCheck(addresses)) {
-    return false;
+  if (addresses.length > 0) {
+    let included = false;
+    for (const address of addresses) {
+      if (bloom.check(address)) {
+        included = true;
+        break;
+      }
+    }
+
+    if (!included) {
+      return false;
+    }
   }
 
-  for (const sub of topics) {
-    if (sub == null) {
+  for (const sub of normalizedTopics) {
+    if (sub == null || sub.length === 0) {
       continue;
     }
 
-    let included = sub.length === 1;
+    let included = false;
     for (const topic of sub) {
       if (topic != null && bloom.check(topic)) {
         included = true;
@@ -63,12 +73,15 @@ export function filterLogs(
 ): RpcLogOutput[] {
   const filteredLogs: RpcLogOutput[] = [];
   for (const log of logs) {
-    const blockNumber = new BN(toBuffer(log.blockNumber!)).toNumber();
-    if (blockNumber < criteria.fromBlock) {
+    const blockNumber = new BN(toBuffer(log.blockNumber!));
+    if (blockNumber.lt(criteria.fromBlock)) {
       continue;
     }
 
-    if (criteria.toBlock !== LATEST_BLOCK && blockNumber > criteria.toBlock) {
+    if (
+      !criteria.toBlock.eq(LATEST_BLOCK) &&
+      blockNumber.gt(criteria.toBlock)
+    ) {
       continue;
     }
 
@@ -79,7 +92,7 @@ export function filterLogs(
       continue;
     }
 
-    if (!topicMatched(criteria.topics, log.topics)) {
+    if (!topicMatched(criteria.normalizedTopics, log.topics)) {
       continue;
     }
 
@@ -100,21 +113,20 @@ export function includes(addresses: Buffer[], a: Buffer): boolean {
 }
 
 export function topicMatched(
-  topics: Array<Array<Buffer | null> | null>,
+  normalizedTopics: Array<Array<Buffer | null> | null>,
   logTopics: string[]
 ): boolean {
-  let match = true;
-  for (let i = 0; i < topics.length; i++) {
-    if (topics.length > logTopics.length) {
+  for (let i = 0; i < normalizedTopics.length; i++) {
+    if (normalizedTopics.length > logTopics.length) {
       return false;
     }
 
-    const sub = topics[i];
-    if (sub == null) {
+    const sub = normalizedTopics[i];
+    if (sub == null || sub.length === 0) {
       continue;
     }
 
-    match = sub.length === 0;
+    let match: boolean = false;
     for (const topic of sub) {
       if (topic === null || logTopics[i] === bufferToHex(topic)) {
         match = true;

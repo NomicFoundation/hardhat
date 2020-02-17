@@ -17,7 +17,6 @@ import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
   BN,
   bufferToHex,
-  bufferToInt,
   ECDSASignature,
   ecsign,
   hashPersonalMessage,
@@ -88,13 +87,20 @@ export interface TransactionParams {
 }
 
 export interface FilterParams {
-  fromBlock: number;
-  toBlock: number;
+  fromBlock: BN;
+  toBlock: BN;
   addresses: Buffer[];
-  topics: Array<Array<Buffer | null> | null>;
+  normalizedTopics: Array<Array<Buffer | null> | null>;
 }
 
 export class TransactionExecutionError extends Error {}
+
+export interface TxReceipt {
+  status: 0 | 1;
+  gasUsed: Buffer;
+  bitvector: Buffer;
+  logs: RpcLogOutput[];
+}
 
 export interface TxBlockResult {
   receipt: TxReceipt;
@@ -236,7 +242,7 @@ export class BuidlerNode extends EventEmitter {
   private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
   private _lastFilterId = 0;
-  private _filters: Map<number, Filter> = new Map();
+  private _filters: Map<string, Filter> = new Map();
 
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
   private readonly _snapshots: Snapshot[] = [];
@@ -676,10 +682,10 @@ export class BuidlerNode extends EventEmitter {
   public async newFilter(
     filterParams: FilterParams,
     isSubscription: boolean
-  ): Promise<number> {
+  ): Promise<string> {
     filterParams = await this._computeFilterParams(filterParams, true);
 
-    const rpcID: number = this._rpcID();
+    const rpcID: string = this._rpcID();
     this._filters.set(rpcID, {
       id: rpcID,
       type: Type.LOGS_SUBSCRIPTION,
@@ -687,7 +693,7 @@ export class BuidlerNode extends EventEmitter {
         fromBlock: filterParams.fromBlock,
         toBlock: filterParams.toBlock,
         addresses: filterParams.addresses,
-        topics: filterParams.topics
+        normalizedTopics: filterParams.normalizedTopics
       },
       deadline: this._newDeadline(),
       hashes: [],
@@ -698,10 +704,10 @@ export class BuidlerNode extends EventEmitter {
     return rpcID;
   }
 
-  public async newBlockFilter(isSubscription: boolean): Promise<number> {
+  public async newBlockFilter(isSubscription: boolean): Promise<string> {
     const block = await this.getLatestBlock();
 
-    const rpcID: number = this._rpcID();
+    const rpcID: string = this._rpcID();
     this._filters.set(rpcID, {
       id: rpcID,
       type: Type.BLOCK_SUBSCRIPTION,
@@ -716,8 +722,8 @@ export class BuidlerNode extends EventEmitter {
 
   public async newPendingTransactionFilter(
     isSubscription: boolean
-  ): Promise<number> {
-    const rpcID: number = this._rpcID();
+  ): Promise<string> {
+    const rpcID: string = this._rpcID();
 
     this._filters.set(rpcID, {
       id: rpcID,
@@ -732,7 +738,7 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async uninstallFilter(
-    filterId: number,
+    filterId: string,
     subscription: boolean
   ): Promise<boolean> {
     if (!this._filters.has(filterId)) {
@@ -752,7 +758,7 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getFilterChanges(
-    filterId: number
+    filterId: string
   ): Promise<string[] | RpcLogOutput[] | undefined> {
     const filter = this._filters.get(filterId);
     if (filter === undefined) {
@@ -776,7 +782,7 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getFilterLogs(
-    filterId: number
+    filterId: string
   ): Promise<RpcLogOutput[] | undefined> {
     const filter = this._filters.get(filterId);
     if (filter === undefined) {
@@ -793,7 +799,11 @@ export class BuidlerNode extends EventEmitter {
     filterParams = await this._computeFilterParams(filterParams, false);
 
     const logs: RpcLogOutput[] = [];
-    for (let i = filterParams.fromBlock; i <= filterParams.toBlock; i++) {
+    for (
+      let i = filterParams.fromBlock;
+      i <= filterParams.toBlock;
+      i = i.addn(1)
+    ) {
       const block = await this._getBlock(new BN(i));
       const blockResults = this._blockHashToTxBlockResults.get(
         bufferToHex(block.hash())
@@ -806,7 +816,7 @@ export class BuidlerNode extends EventEmitter {
         !bloomFilter(
           new Bloom(block.header.bloom),
           filterParams.addresses,
-          filterParams.topics
+          filterParams.normalizedTopics
         )
       ) {
         continue;
@@ -818,7 +828,7 @@ export class BuidlerNode extends EventEmitter {
             fromBlock: filterParams.fromBlock,
             toBlock: filterParams.toBlock,
             addresses: filterParams.addresses,
-            topics: filterParams.topics
+            normalizedTopics: filterParams.normalizedTopics
           })
         );
       }
@@ -979,7 +989,7 @@ export class BuidlerNode extends EventEmitter {
         if (filter.subscription) {
           this.emit("ethEvent", {
             result: hash,
-            subscription: numberToRpcQuantity(filter.id)
+            subscription: filter.id
           });
           return;
         }
@@ -1017,7 +1027,8 @@ export class BuidlerNode extends EventEmitter {
     for (let i = 0; i < runBlockResult.results.length; i += 1) {
       const result = runBlockResult.results[i];
 
-      runBlockResult.receipts[i].logs.forEach(
+      const receipt = runBlockResult.receipts[i];
+      const logs = receipt.logs.map(
         (rcpLog, logIndex) =>
           (runBlockResult.receipts[i].logs[logIndex] = getRpcLog(
             rcpLog,
@@ -1031,7 +1042,12 @@ export class BuidlerNode extends EventEmitter {
       txBlockResults.push({
         bloomBitvector: result.bloom.bitvector,
         createAddresses: result.createdAddress,
-        receipt: runBlockResult.receipts[i]
+        receipt: {
+          status: receipt.status,
+          gasUsed: receipt.gasUsed,
+          bitvector: receipt.bitvector,
+          logs
+        }
       });
     }
 
@@ -1057,19 +1073,19 @@ export class BuidlerNode extends EventEmitter {
           if (filter.subscription) {
             this.emit("ethEvent", {
               result: getRpcBlock(block, td, false),
-              subscription: numberToRpcQuantity(filter.id)
+              subscription: filter.id
             });
             return;
           }
 
-          filter.hashes.push(hash);
+          filter.hashes.push(bufferToHex(hash));
           break;
         case Type.LOGS_SUBSCRIPTION:
           if (
             bloomFilter(
               new Bloom(block.header.bloom),
               filter.criteria!.addresses,
-              filter.criteria!.topics
+              filter.criteria!.normalizedTopics
             )
           ) {
             const logs = filterLogs(rpcLogs, filter.criteria!);
@@ -1081,7 +1097,7 @@ export class BuidlerNode extends EventEmitter {
               logs.forEach(rpcLog => {
                 this.emit("ethEvent", {
                   result: rpcLog,
-                  subscription: numberToRpcQuantity(filter.id)
+                  subscription: filter.id
                 });
               });
               return;
@@ -1357,17 +1373,15 @@ export class BuidlerNode extends EventEmitter {
     }
   }
 
-  private _removeLogs(blockNumber: number) {
+  private _removeLogs(block: Block) {
+    const blockNumber = new BN(block.header.number);
     this._filters.forEach(filter => {
       if (filter.type !== Type.LOGS_SUBSCRIPTION) {
         return;
       }
 
       for (let i = filter.logs.length - 1; i >= 0; i--) {
-        if (
-          new BN(toBuffer(filter.logs[i].blockNumber!)).toNumber() <=
-          blockNumber
-        ) {
+        if (new BN(filter.logs[i].blockNumber!).lte(blockNumber)) {
           break;
         }
 
@@ -1386,11 +1400,11 @@ export class BuidlerNode extends EventEmitter {
     ) {
       const block = await this.getLatestBlock();
       if (filterParams.fromBlock === LATEST_BLOCK) {
-        filterParams.fromBlock = bufferToInt(block.header.number);
+        filterParams.fromBlock = new BN(block.header.number);
       }
 
       if (!isFilter && filterParams.toBlock === LATEST_BLOCK) {
-        filterParams.toBlock = bufferToInt(block.header.number);
+        filterParams.toBlock = new BN(block.header.number);
       }
     }
 
@@ -1399,13 +1413,13 @@ export class BuidlerNode extends EventEmitter {
 
   private _newDeadline(): Date {
     const dt = new Date();
-    dt.setMinutes(dt.getMinutes() + 5);
+    dt.setMinutes(dt.getMinutes() + 5); // This will not overflow
     return dt;
   }
 
-  private _rpcID(): number {
+  private _rpcID(): string {
     this._lastFilterId += 1;
 
-    return this._lastFilterId;
+    return `0x${this._lastFilterId.toString(16)}`;
   }
 }

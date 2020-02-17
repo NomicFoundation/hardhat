@@ -15,6 +15,7 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError
 } from "../errors";
+import { LATEST_BLOCK } from "../filter";
 import {
   LogAddress,
   LogTopics,
@@ -55,6 +56,7 @@ import {
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../output";
+import { BNtoHex } from "../utils";
 
 // tslint:disable only-buidler-error
 
@@ -483,7 +485,7 @@ export class EthModule {
   private async _getFilterChangesAction(
     filterId: BN
   ): Promise<string[] | RpcLogOutput[] | null> {
-    const id = filterId.toNumber();
+    const id = BNtoHex(filterId);
     const changes = await this._node.getFilterChanges(id);
     if (changes === undefined) {
       return null;
@@ -501,7 +503,7 @@ export class EthModule {
   private async _getFilterLogsAction(
     filterId: BN
   ): Promise<RpcLogOutput[] | null> {
-    const id = filterId.toNumber();
+    const id = BNtoHex(filterId);
     const changes = await this._node.getFilterLogs(id);
     if (changes === undefined) {
       return null;
@@ -537,7 +539,7 @@ export class EthModule {
     return {
       fromBlock: this._extractBlock(filter.fromBlock),
       toBlock: this._extractBlock(filter.toBlock),
-      topics: this._extractLogTopics(filter.topics),
+      normalizedTopics: this._extractNormalizedLogTopics(filter.topics),
       addresses: this._extractLogAddresses(filter.address)
     };
   }
@@ -734,8 +736,7 @@ export class EthModule {
   }
 
   private async _newBlockFilterAction(): Promise<string> {
-    const filterId = await this._node.newBlockFilter(false);
-    return numberToRpcQuantity(filterId);
+    return this._node.newBlockFilter(false);
   }
 
   // eth_newFilter
@@ -746,8 +747,7 @@ export class EthModule {
 
   private async _newFilterAction(filter: RpcFilterRequest): Promise<string> {
     const filterParams = await this._rpcFilterRequestToGetLogsParams(filter);
-    const filterId = await this._node.newFilter(filterParams, false);
-    return numberToRpcQuantity(filterId);
+    return this._node.newFilter(filterParams, false);
   }
 
   // eth_newPendingTransactionFilter
@@ -757,8 +757,7 @@ export class EthModule {
   }
 
   private async _newPendingTransactionAction(): Promise<string> {
-    const filterId = await this._node.newPendingTransactionFilter(false);
-    return numberToRpcQuantity(filterId);
+    return this._node.newPendingTransactionFilter(false);
   }
 
   // eth_pendingTransactions
@@ -871,14 +870,11 @@ export class EthModule {
     subscribeRequest: RpcSubscribeRequest,
     optionalFilterRequest: OptionalRpcFilterRequest
   ): Promise<string> {
-    let filterId: number;
     switch (subscribeRequest) {
       case "newHeads":
-        filterId = await this._node.newBlockFilter(true);
-        return numberToRpcQuantity(filterId);
+        return this._node.newBlockFilter(true);
       case "newPendingTransactions":
-        filterId = await this._node.newPendingTransactionFilter(true);
-        return numberToRpcQuantity(filterId);
+        return this._node.newPendingTransactionFilter(true);
       case "logs":
         if (optionalFilterRequest === undefined) {
           throw new InvalidArgumentsError("missing params argument");
@@ -888,8 +884,7 @@ export class EthModule {
           optionalFilterRequest
         );
 
-        filterId = await this._node.newFilter(filterParams, true);
-        return numberToRpcQuantity(filterId);
+        return this._node.newFilter(filterParams, true);
     }
   }
 
@@ -910,7 +905,8 @@ export class EthModule {
   }
 
   private async _uninstallFilterAction(filterId: BN): Promise<boolean> {
-    return this._node.uninstallFilter(filterId.toNumber(), false);
+    const id = BNtoHex(filterId);
+    return this._node.uninstallFilter(id, false);
   }
 
   private _unsubscribeParams(params: any[]): [BN] {
@@ -918,7 +914,8 @@ export class EthModule {
   }
 
   private async _unsubscribeAction(filterId: BN): Promise<boolean> {
-    return this._node.uninstallFilter(filterId.toNumber(), true);
+    const id = BNtoHex(filterId);
+    return this._node.uninstallFilter(id, true);
   }
 
   // Utility methods
@@ -982,37 +979,37 @@ export class EthModule {
     }
   }
 
-  private _extractBlock(blockTag: OptionalBlockTag): number {
+  private _extractBlock(blockTag: OptionalBlockTag): BN {
     switch (blockTag) {
       case "earliest":
-        return 0;
+        return new BN(0);
       case undefined:
       case "latest":
-        return -1;
+        return LATEST_BLOCK;
       case "pending":
         throw new InvalidArgumentsError("pending not supported");
     }
 
-    return blockTag.toNumber();
+    return blockTag;
   }
 
-  private _extractLogTopics(
-    logTopics: LogTopics
+  private _extractNormalizedLogTopics(
+    topics: LogTopics
   ): Array<Array<Buffer | null> | null> {
-    if (logTopics === undefined || logTopics.length === 0) {
+    if (topics === undefined || topics.length === 0) {
       return [];
     }
 
-    const topics: Array<Array<Buffer | null> | null> = [];
-    for (const logTopic of logTopics) {
-      if (Buffer.isBuffer(logTopic)) {
-        topics.push([logTopic]);
+    const normalizedTopics: Array<Array<Buffer | null> | null> = [];
+    for (const topic of topics) {
+      if (Buffer.isBuffer(topic)) {
+        normalizedTopics.push([topic]);
       } else {
-        topics.push(logTopic);
+        normalizedTopics.push(topic);
       }
     }
 
-    return topics;
+    return normalizedTopics;
   }
 
   private _extractLogAddresses(address: LogAddress): Buffer[] {

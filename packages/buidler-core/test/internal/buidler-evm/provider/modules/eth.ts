@@ -806,13 +806,14 @@ describe("Eth module", function() {
         1
       );
 
+      const snapshotId: string = await this.provider.send("evm_snapshot", []);
+
       await this.provider.send("evm_mine", []);
       const block1 = await this.provider.send("eth_getBlockByNumber", [
         await this.provider.send("eth_blockNumber"),
         false
       ]);
 
-      const snapshotId: string = await this.provider.send("evm_snapshot", []);
       await this.provider.send("evm_revert", [snapshotId]);
 
       await this.provider.send("evm_mine", []);
@@ -825,10 +826,7 @@ describe("Eth module", function() {
         filterId
       ]);
 
-      assert.deepEqual(blockHashes, [
-        toBuffer(block1.hash),
-        toBuffer(block2.hash)
-      ]);
+      assert.deepEqual(blockHashes, [block1.hash, block2.hash]);
     });
   });
 
@@ -2087,7 +2085,7 @@ describe("Eth module", function() {
         gas: numberToRpcQuantity(21000)
       };
 
-      this.provider.send("eth_sendTransaction", [burnTxParams]);
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
       const txHashes = await this.provider.send("eth_getFilterChanges", [
         filterId
       ]);
@@ -2114,7 +2112,7 @@ describe("Eth module", function() {
         gas: numberToRpcQuantity(21000)
       };
 
-      this.provider.send("eth_sendTransaction", [burnTxParams]);
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
       const txHashes = await this.provider.send("eth_getFilterChanges", [
         filterId
       ]);
