@@ -13,7 +13,7 @@ is the main project (i.e. the one that's published as [@nomiclabs/buidler](https
 
 To install this project you have to run:
 
-1. `scripts/install.sh`
+1. `npm install`
 
 ## Building the projects
 
@@ -24,8 +24,16 @@ This will keep everything compiled, and these problems will be avoided.
 
 All tests are written using [mocha](https://mochajs.org) and [chai](https://www.chaijs.com).
 
-You can run a package's tests by executing `npm run test` inside its folder. Or you can run all the tests at once with
-`npm run test` from the root folder.
+### Per-package
+You can run a package's tests by executing `npm test` inside its folder.
+
+_Note_: for package [buidler-vyper](./packages/buidler-vyper) case, a running instance of Docker Desktop is required, with `ethereum/vyper` image pulled. To install it, run:
+```
+docker pull ethereum/vyper:0.1.0b10
+```
+
+### Entire project
+You can run all the tests at once by running `npm test` from the root folder. Requires `ethereum/vyper` docker instance installed for package [buidler-vyper](./packages/buidler-vyper), see previous section for details.
 
 ## Code formatting
 

@@ -106,7 +106,7 @@ To use an HD Wallet with Buidler you should set your network's `accounts` field 
 ```js
 {
     localhost: {
-      url: "http://127.0.0.1:8545";
+      url: "http://127.0.0.1:8545"
     },
     buidlerevm: {
       // See its defaults
