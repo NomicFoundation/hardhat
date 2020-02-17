@@ -33,7 +33,9 @@ docker pull ethereum/vyper:0.1.0b10
 ```
 
 ### Entire project
-You can run all the tests at once by running `npm test` from the root folder. Requires `ethereum/vyper` docker instance installed for package [buidler-vyper](./packages/buidler-vyper), see previous section for details.
+You can run all the tests at once by running `npm test` from the root folder.
+
+For the case of package [buidler-vyper](./packages/buidler-vyper), an `ethereum/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
 
 ## Code formatting
 
