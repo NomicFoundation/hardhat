@@ -7,7 +7,7 @@ set -e
 `;
 
 plugins.forEach(plugin => {
-  const readmeUrl = plugin.url.replace(
+  const readmeUrl = plugin.readmeUrl ? plugin.readmeUrl : plugin.url.replace(
     /.+github.com(.+)\/tree(.+)$/,
     "https://raw.githubusercontent.com$1$2" + "/README.md"
   );
