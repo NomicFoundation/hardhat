@@ -11,8 +11,13 @@ const isGithubActions = process.env.GITHUB_WORKFLOW !== undefined;
 const isLinux = os.type() === "Linux";
 const isWindows = os.type() === "Windows_NT";
 
+// only Build tests in local environment
 const shouldBuildTests = !isGithubActions;
-const shouldIgnoreVyperTests = isGithubActions && !isLinux;
+
+// only run Vyper tests in Linux CI environment, and ignore if using a Windows machine (since Docker Desktop is required, only available windows Pro)
+const shouldIgnoreVyperTests = isGithubActions && !isLinux || isWindows;
+
+// Solpp tests don't work in Windows
 const shouldIgnoreSolppTests = isWindows;
 
 shell.exec("npm run build");
