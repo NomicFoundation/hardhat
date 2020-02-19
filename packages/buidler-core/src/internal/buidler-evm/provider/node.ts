@@ -32,6 +32,7 @@ import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-mode
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
+import { MessageTrace } from "../stack-traces/message-trace";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
@@ -127,7 +128,8 @@ export class BuidlerNode {
     throwOnTransactionFailures: boolean,
     throwOnCallFailures: boolean,
     genesisAccounts: GenesisAccount[] = [],
-    stackTracesOptions?: SolidityTracerOptions
+    stackTracesOptions?: SolidityTracerOptions,
+    loggingEnabled = true
   ): Promise<[Common, BuidlerNode]> {
     const stateTrie = new Trie();
     const putIntoStateTrie = promisify(stateTrie.put.bind(stateTrie));
@@ -206,7 +208,8 @@ export class BuidlerNode {
       genesisBlock,
       throwOnTransactionFailures,
       throwOnCallFailures,
-      stackTracesOptions
+      stackTracesOptions,
+      loggingEnabled
     );
 
     return [common, node];
@@ -230,7 +233,7 @@ export class BuidlerNode {
   private readonly _snapshots: Snapshot[] = [];
 
   private readonly _stackTracesEnabled: boolean = false;
-  private readonly _vmTracer?: VMTracer;
+  private readonly _vmTracer: VMTracer;
   private readonly _solidityTracer?: SolidityTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
@@ -246,7 +249,8 @@ export class BuidlerNode {
     genesisBlock: Block,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
-    stackTracesOptions?: SolidityTracerOptions
+    stackTracesOptions?: SolidityTracerOptions,
+    private readonly _loggingEnabled = false
   ) {
     const config = getUserConfigPath();
     this._stateManager = new PStateManager(this._vm.stateManager);
@@ -348,12 +352,6 @@ export class BuidlerNode {
       throw new TransactionExecutionError(error);
     }
 
-    await this._printLogs();
-
-    const error = !this._throwOnTransactionFailures
-      ? undefined
-      : await this._manageErrors(result.results[0].execResult);
-
     if (needsTimestampIncrease) {
       await this.increaseTime(new BN(1));
     }
@@ -361,8 +359,22 @@ export class BuidlerNode {
     await this._saveBlockAsSuccessfullyRun(block, result);
     await this._saveTransactionAsSuccessfullyRun(tx, block);
 
-    if (error !== undefined) {
-      throw error;
+    const vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
+
+    await this._printLogs(vmTrace, vmTracerError);
+
+    if (this._throwOnTransactionFailures) {
+      const error = await this._manageErrors(
+        result.results[0].execResult,
+        vmTrace,
+        vmTracerError
+      );
+
+      if (error !== undefined) {
+        throw error;
+      }
     }
 
     return result;
@@ -413,14 +425,24 @@ export class BuidlerNode {
       nonce: await this.getAccountNonce(call.from)
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false, false);
+    const result = await this._runTxAndRevertMutations(tx, false);
 
-    const error = !this._throwOnCallFailures
-      ? undefined
-      : await this._manageErrors(result.execResult);
+    const vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
 
-    if (error !== undefined) {
-      throw error;
+    await this._printLogs(vmTrace, vmTracerError);
+
+    if (this._throwOnCallFailures) {
+      const error = await this._manageErrors(
+        result.execResult,
+        vmTrace,
+        vmTracerError
+      );
+
+      if (error !== undefined) {
+        throw error;
+      }
     }
 
     if (
@@ -431,7 +453,7 @@ export class BuidlerNode {
     }
 
     // If we got here we found another kind of error and we throw anyway
-    throw this._manageErrors(result.execResult)!;
+    throw await this._manageErrors(result.execResult, vmTrace, vmTracerError)!;
   }
 
   public async getAccountBalance(address: Buffer): Promise<BN> {
@@ -462,7 +484,7 @@ export class BuidlerNode {
       gasLimit: await this.getBlockGasLimit()
     });
 
-    const result = await this._runTxAndRevertMutations(tx, true, true);
+    const result = await this._runTxAndRevertMutations(tx, true);
 
     // This is only considered if the call to _runTxAndRevertMutations doesn't
     // manage errors
@@ -749,27 +771,26 @@ export class BuidlerNode {
     }
   }
 
-  private async _printLogs() {
-    try {
-      const vmTracerError = this._vmTracer!.getLastError();
-      // in case stack traces are enabled we dont want to clear last error
-      if (vmTracerError !== undefined && !this._stackTracesEnabled) {
-        this._vmTracer!.clearLastError();
-        throw vmTracerError;
-      }
-
-      const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
-      this._consoleLogger.printLogs(messageTrace);
-    } catch (error) {
+  private async _printLogs(
+    vmTrace: MessageTrace,
+    vmTracerError: Error | undefined
+  ) {
+    if (vmTracerError !== undefined) {
       log(
         "Could not print console log. Please report this to help us improve Buidler.\n",
-        error
+        vmTracerError
       );
+
+      return;
     }
+
+    this._consoleLogger.printLogs(vmTrace);
   }
 
   private async _manageErrors(
-    vmResult: ExecResult
+    vmResult: ExecResult,
+    vmTrace: MessageTrace,
+    vmTracerError?: Error
   ): Promise<TransactionExecutionError | undefined> {
     if (vmResult.exceptionError === undefined) {
       return undefined;
@@ -779,15 +800,12 @@ export class BuidlerNode {
 
     if (this._stackTracesEnabled) {
       try {
-        const vmTracerError = this._vmTracer!.getLastError();
         if (vmTracerError !== undefined) {
-          this._vmTracer!.clearLastError();
           throw vmTracerError;
         }
 
-        const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
         const decodedTrace = this._solidityTracer!.tryToDecodeMessageTrace(
-          messageTrace
+          vmTrace
         );
 
         stackTrace = this._solidityTracer!.getStackTrace(decodedTrace);
@@ -1050,7 +1068,7 @@ export class BuidlerNode {
       });
     }
 
-    const result = await this._runTxAndRevertMutations(tx, false, true);
+    const result = await this._runTxAndRevertMutations(tx, false);
 
     if (result.execResult.exceptionError === undefined) {
       return initialEstimation;
@@ -1118,7 +1136,7 @@ export class BuidlerNode {
       gasLimit: newEstimation
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false, true);
+    const result = await this._runTxAndRevertMutations(tx, false);
 
     if (result.execResult.exceptionError === undefined) {
       return this._binarySearchEstimation(
@@ -1137,10 +1155,17 @@ export class BuidlerNode {
     );
   }
 
+  /**
+   * This function runs a transaction and reverts all the modifications that it
+   * makes.
+   *
+   * If throwOnError is true, errors are managed locally and thrown on
+   * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
+   * inspected/resetted.
+   */
   private async _runTxAndRevertMutations(
     tx: Transaction,
-    manageErrors = true,
-    estimateGas = false
+    throwOnError = true
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
@@ -1168,12 +1193,16 @@ export class BuidlerNode {
         throw new TransactionExecutionError(error);
       }
 
-      if (!estimateGas) {
-        await this._printLogs();
-      }
+      if (throwOnError) {
+        const vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+        const vmTracerError = this._vmTracer.getLastError();
+        this._vmTracer.clearLastError();
 
-      if (manageErrors) {
-        const error = await this._manageErrors(result.execResult);
+        const error = await this._manageErrors(
+          result.execResult,
+          vmTrace,
+          vmTracerError
+        );
 
         if (error !== undefined) {
           throw error;

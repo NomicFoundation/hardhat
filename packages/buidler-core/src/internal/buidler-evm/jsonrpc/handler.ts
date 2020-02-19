@@ -135,7 +135,7 @@ export default class JsonRpcHandler {
   private _handleRequest = async (
     req: JsonRpcRequest
   ): Promise<JsonRpcResponse> => {
-    console.log(req.method);
+    // console.log(req.method);
 
     const result = await this._provider.send(req.method, req.params);
 
@@ -202,6 +202,7 @@ const _handleError = (error: any): JsonRpcResponse => {
 };
 
 const _printError = (error: any) => {
+  return;
   if (BuidlerEVMProviderError.isBuidlerEVMProviderError(error)) {
     // Report the error to console in the format of other BuidlerErrors (wrappedError.message),
     // while preserving the stack from the originating error (error.stack).
