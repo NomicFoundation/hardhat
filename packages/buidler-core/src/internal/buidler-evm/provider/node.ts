@@ -144,8 +144,7 @@ export class BuidlerNode extends EventEmitter {
     throwOnTransactionFailures: boolean,
     throwOnCallFailures: boolean,
     genesisAccounts: GenesisAccount[] = [],
-    stackTracesOptions?: SolidityTracerOptions,
-    loggingEnabled = true
+    stackTracesOptions?: SolidityTracerOptions
   ): Promise<[Common, BuidlerNode]> {
     const stateTrie = new Trie();
     const putIntoStateTrie = promisify(stateTrie.put.bind(stateTrie));
@@ -224,8 +223,7 @@ export class BuidlerNode extends EventEmitter {
       genesisBlock,
       throwOnTransactionFailures,
       throwOnCallFailures,
-      stackTracesOptions,
-      loggingEnabled
+      stackTracesOptions
     );
 
     return [common, node];
@@ -265,8 +263,7 @@ export class BuidlerNode extends EventEmitter {
     genesisBlock: Block,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
-    stackTracesOptions?: SolidityTracerOptions,
-    private readonly _loggingEnabled = false
+    stackTracesOptions?: SolidityTracerOptions
   ) {
     super();
     const config = getUserConfigPath();
