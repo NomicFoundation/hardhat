@@ -2,7 +2,6 @@ import { assert } from "chai";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import {
-  BuidlerEVMProviderError,
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotSupportedError
@@ -17,15 +16,13 @@ import {
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../../../../src/internal/buidler-evm/provider/output";
-import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
 import { EthereumProvider } from "../../../../src/types";
 
 export async function assertBuidlerEVMProviderError(
-  provider: BuidlerEVMProvider,
+  provider: EthereumProvider,
   method: string,
   params: any[] = [],
   message?: string,
-  exceptionType?: typeof BuidlerEVMProviderError,
   code?: number
 ) {
   let res: any;
@@ -36,12 +33,6 @@ export async function assertBuidlerEVMProviderError(
       assert.equal(error.code, code);
     }
 
-    if (exceptionType !== undefined) {
-      assert.instanceOf(error, exceptionType);
-    } else {
-      assert.instanceOf(error, BuidlerEVMProviderError);
-    }
-
     if (message !== undefined) {
       assert.include(error.message, message);
     }
@@ -50,12 +41,12 @@ export async function assertBuidlerEVMProviderError(
   }
 
   assert.fail(
-    `Method ${method} should have thrown ${exceptionType} but returned ${res}`
+    `Method ${method} should have thrown [${code}] ${message} but returned ${res}`
   );
 }
 
 export async function assertNotSupported(
-  provider: BuidlerEVMProvider,
+  provider: EthereumProvider,
   method: string
 ) {
   return assertBuidlerEVMProviderError(
@@ -63,13 +54,12 @@ export async function assertNotSupported(
     method,
     [],
     `Method ${method} is not supported`,
-    MethodNotSupportedError,
-    -32004
+    MethodNotSupportedError.CODE
   );
 }
 
 export async function assertInvalidArgumentsError(
-  provider: BuidlerEVMProvider,
+  provider: EthereumProvider,
   method: string,
   params: any[] = [],
   message?: string
@@ -79,13 +69,12 @@ export async function assertInvalidArgumentsError(
     method,
     params,
     message,
-    InvalidArgumentsError,
-    -32602
+    InvalidArgumentsError.CODE
   );
 }
 
 export async function assertInvalidInputError(
-  provider: BuidlerEVMProvider,
+  provider: EthereumProvider,
   method: string,
   params: any[] = [],
   message?: string
@@ -95,8 +84,7 @@ export async function assertInvalidInputError(
     method,
     params,
     message,
-    InvalidInputError,
-    -32000
+    InvalidInputError.CODE
   );
 }
 
@@ -109,7 +97,7 @@ export function assertQuantity(
 }
 
 export async function assertNodeBalances(
-  provider: BuidlerEVMProvider,
+  provider: EthereumProvider,
   expectedBalances: Array<number | BN>
 ) {
   const accounts: string[] = await provider.send("eth_accounts");
@@ -122,20 +110,20 @@ export async function assertNodeBalances(
 }
 
 export async function assertTransactionFailure(
-  provider: BuidlerEVMProvider,
+  provider: EthereumProvider,
   txData: RpcTransactionRequestInput,
   message?: string,
-  exceptionType?: typeof BuidlerEVMProviderError
+  code?: number
 ) {
   try {
     await provider.send("eth_sendTransaction", [txData]);
   } catch (error) {
-    if (message !== undefined) {
-      assert.include(error.message, message);
+    if (code !== undefined) {
+      assert.equal(error.code, code);
     }
 
-    if (exceptionType !== undefined) {
-      assert.instanceOf(error, exceptionType);
+    if (message !== undefined) {
+      assert.include(error.message, message);
     }
 
     return;

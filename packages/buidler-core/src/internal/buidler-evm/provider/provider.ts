@@ -45,7 +45,8 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _throwOnCallFailures: boolean,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _solcVersion?: string,
-    private readonly _paths?: ProjectPaths
+    private readonly _paths?: ProjectPaths,
+    private readonly _loggingEnabled = false
   ) {
     super();
     const config = getUserConfigPath();
@@ -55,23 +56,27 @@ export class BuidlerEVMProvider extends EventEmitter
     const release = await this._mutex.acquire();
 
     try {
+      if (this._loggingEnabled) {
+        return await this._sendWithLogging(method, params);
+      }
+
       return await this._send(method, params);
     } finally {
       release();
     }
   }
 
-  private async _sendDebug(method: string, params: any[] = []): Promise<any> {
+  private async _sendWithLogging(
+    method: string,
+    params: any[] = []
+  ): Promise<any> {
     try {
-      console.log(chalk.green(`RPC CALL ${method}`), params);
+      console.log(chalk.green(`JSON-RPC call: ${method}`));
 
-      const res = await this._send(method, params);
-
-      console.log(chalk.green(`Response of ${method}`), res);
-
-      return res;
+      return await this._send(method, params);
     } catch (err) {
-      console.error(chalk.red(`Error running ${method}`), err);
+      console.error(chalk.red(err.message));
+      console.error(err);
 
       throw err;
     }
@@ -170,7 +175,8 @@ export class BuidlerEVMProvider extends EventEmitter
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
       this._genesisAccounts,
-      stackTracesOptions
+      stackTracesOptions,
+      this._loggingEnabled
     );
 
     this._common = common;
