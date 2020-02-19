@@ -17,6 +17,7 @@ import {
 import {
   numberToRpcQuantity,
   RpcBlockOutput,
+  RpcLogOutput,
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../../../../../src/internal/buidler-evm/provider/output";
@@ -730,8 +731,7 @@ describe("Eth module", function() {
 
   describe("block filters", function() {
     it("Supports block filters", async function() {
-      const filterId = await this.provider.send("eth_newBlockFilter", []);
-      assert.isString(filterId);
+      assert.isString(await this.provider.send("eth_newBlockFilter"));
     });
 
     it("Supports uninstalling an existing filter", async function() {
@@ -743,7 +743,7 @@ describe("Eth module", function() {
       assert.isTrue(uninstalled);
     });
 
-    it("doesn't fail on uninstalling a non-existent filter", async function() {
+    it("Doesn't fail on uninstalling a non-existent filter", async function() {
       const uninstalled = await this.provider.send("eth_uninstallFilter", [
         "0x1"
       ]);
@@ -797,17 +797,569 @@ describe("Eth module", function() {
 
       assert.lengthOf(blockHashes, 3);
     });
+
+    it("should return reorganized block", async function() {
+      const filterId = await this.provider.send("eth_newBlockFilter", []);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getFilterChanges", [filterId]),
+        1
+      );
+
+      const snapshotId: string = await this.provider.send("evm_snapshot", []);
+
+      await this.provider.send("evm_mine", []);
+      const block1 = await this.provider.send("eth_getBlockByNumber", [
+        await this.provider.send("eth_blockNumber"),
+        false
+      ]);
+
+      await this.provider.send("evm_revert", [snapshotId]);
+
+      await this.provider.send("evm_mine", []);
+      const block2 = await this.provider.send("eth_getBlockByNumber", [
+        await this.provider.send("eth_blockNumber"),
+        false
+      ]);
+
+      const blockHashes = await this.provider.send("eth_getFilterChanges", [
+        filterId
+      ]);
+
+      assert.deepEqual(blockHashes, [block1.hash, block2.hash]);
+    });
   });
 
   describe("eth_getFilterLogs", async function() {
-    it("is not supported", async function() {
-      await assertNotSupported(this.provider, "eth_getFilterLogs");
+    it("Supports get filter logs", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      const filterId = await this.provider.send("eth_newFilter", [{}]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      const logs = await this.provider.send("eth_getFilterLogs", [filterId]);
+      assert.lengthOf(logs, 1);
+
+      const log = logs[0];
+      assert.equal(log.removed, false);
+      assert.equal(log.logIndex, "0x0");
+      assert.equal(log.transactionIndex, "0x0");
+      assert.equal(log.blockNumber, "0x2");
+      assert.equal(log.address, exampleContract);
+      assert.equal(log.data, `0x${newState}`);
+    });
+
+    it("Supports uninstalling an existing log filter", async function() {
+      const filterId = await this.provider.send("eth_newFilter", [{}]);
+      const uninstalled = await this.provider.send("eth_uninstallFilter", [
+        filterId
+      ]);
+
+      assert.isTrue(uninstalled);
+    });
+
+    it("Supports get filter logs with address", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      const filterId = await this.provider.send("eth_newFilter", [
+        {
+          address: exampleContract
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getFilterLogs", [filterId]),
+        1
+      );
+    });
+
+    it("Supports get filter logs with topics", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      const filterId = await this.provider.send("eth_newFilter", [
+        {
+          topics: [
+            "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d",
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          ]
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getFilterLogs", [filterId]),
+        1
+      );
+    });
+
+    it("Supports get filter logs with null topic", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      const filterId = await this.provider.send("eth_newFilter", [
+        {
+          topics: [
+            "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d",
+            null
+          ]
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getFilterLogs", [filterId]),
+        1
+      );
+    });
+
+    it("Supports get filter logs with multiple topics", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      const filterId = await this.provider.send("eth_newFilter", [
+        {
+          topics: [
+            [
+              "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d",
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ],
+            [
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ]
+          ]
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getFilterLogs", [filterId]),
+        1
+      );
+    });
+
+    it("Supports get filter logs with fromBlock", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      const filterId = await this.provider.send("eth_newFilter", [
+        {
+          fromBlock: "0x0",
+          address: exampleContract,
+          topics: [
+            [
+              "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d"
+            ],
+            [
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "0x000000000000000000000000000000000000000000000000000000000000003b"
+            ]
+          ]
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getFilterLogs", [filterId]),
+        2
+      );
+    });
+
+    it("Supports get filter logs with toBlock", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      const filterId = await this.provider.send("eth_newFilter", [
+        {
+          fromBlock: "0x0",
+          toBlock: "0x2",
+          address: exampleContract,
+          topics: [
+            [
+              "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d"
+            ],
+            [
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "0x000000000000000000000000000000000000000000000000000000000000003b"
+            ]
+          ]
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getFilterLogs", [filterId]),
+        1
+      );
     });
   });
 
   describe("eth_getLogs", async function() {
-    it("is not supported", async function() {
-      await assertNotSupported(this.provider, "eth_getLogs");
+    it("Supports get logs", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000007b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            address: "0x0000000000000000000000000000000000000000"
+          }
+        ]),
+        0
+      );
+
+      const logs = await this.provider.send("eth_getLogs", [
+        {
+          address: exampleContract
+        }
+      ]);
+      assert.lengthOf(logs, 1);
+
+      const log = logs[0];
+      assert.equal(log.removed, false);
+      assert.equal(log.logIndex, "0x0");
+      assert.equal(log.transactionIndex, "0x0");
+      assert.equal(log.blockNumber, "0x2");
+      assert.equal(log.address, exampleContract);
+      assert.equal(log.data, `0x${newState}`);
+    });
+
+    it("Supports get logs with address", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            address: exampleContract
+          }
+        ]),
+        1
+      );
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            address: "0x0000000000000000000000000000000000000000"
+          }
+        ]),
+        0
+      );
+    });
+
+    it("Supports get logs with topics", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            topics: [
+              "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d"
+            ]
+          }
+        ]),
+        1
+      );
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            topics: [
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ]
+          }
+        ]),
+        0
+      );
+    });
+
+    it("Supports get logs with null topic", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            topics: [
+              null,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ]
+          }
+        ]),
+        1
+      );
+    });
+
+    it("Supports get logs with multiple topic", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            fromBlock: "0x2",
+            topics: [
+              [
+                "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d"
+              ],
+              [
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "0x000000000000000000000000000000000000000000000000000000000000003b"
+              ]
+            ]
+          }
+        ]),
+        2
+      );
+    });
+
+    it("Supports get logs with fromBlock", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            fromBlock: "0x3"
+          }
+        ]),
+        1
+      );
+    });
+
+    it("Supports get logs with toBlock", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000003b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(
+        await this.provider.send("eth_getLogs", [
+          {
+            fromBlock: "0x0",
+            toBlock: "0x2"
+          }
+        ]),
+        1
+      );
     });
   });
 
@@ -1458,11 +2010,70 @@ describe("Eth module", function() {
   });
 
   describe("eth_newPendingTransactionFilter", async function() {
-    it("is not supported", async function() {
-      await assertNotSupported(
-        this.provider,
-        "eth_newPendingTransactionFilter"
+    it("Supports pending transaction filter", async function() {
+      assert.isString(
+        await this.provider.send("eth_newPendingTransactionFilter")
       );
+    });
+
+    it("Supports uninstalling an existing filter", async function() {
+      const filterId = await this.provider.send(
+        "eth_newPendingTransactionFilter",
+        []
+      );
+      const uninstalled = await this.provider.send("eth_uninstallFilter", [
+        filterId
+      ]);
+
+      assert.isTrue(uninstalled);
+    });
+
+    it("Should return new pending transactions", async function() {
+      const filterId = await this.provider.send(
+        "eth_newPendingTransactionFilter",
+        []
+      );
+
+      const accounts = await this.provider.send("eth_accounts");
+      const burnTxParams = {
+        from: accounts[0],
+        to: zeroAddress(),
+        gas: numberToRpcQuantity(21000)
+      };
+
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
+      const txHashes = await this.provider.send("eth_getFilterChanges", [
+        filterId
+      ]);
+
+      assert.isNotEmpty(txHashes);
+    });
+
+    it("Should not return new pending transactions after uninstall", async function() {
+      const filterId = await this.provider.send(
+        "eth_newPendingTransactionFilter",
+        []
+      );
+
+      const uninstalled = await this.provider.send("eth_uninstallFilter", [
+        filterId
+      ]);
+
+      assert.isTrue(uninstalled);
+
+      const accounts = await this.provider.send("eth_accounts");
+      const burnTxParams = {
+        from: accounts[0],
+        to: zeroAddress(),
+        gas: numberToRpcQuantity(21000)
+      };
+
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
+      const txHashes = await this.provider.send("eth_getFilterChanges", [
+        filterId
+      ]);
+
+      assert.isNull(txHashes);
     });
   });
 
@@ -1812,8 +2423,91 @@ describe("Eth module", function() {
   });
 
   describe("eth_subscribe", async function() {
-    it("is not supported", async function() {
-      await assertNotSupported(this.provider, "eth_subscribe");
+    it("Supports newHeads subscribe", async function() {
+      const heads: any[] = [];
+      const filterId = await this.provider.send("eth_subscribe", ["newHeads"]);
+
+      const listener = (payload: { subscription: string; result: any }) => {
+        if (filterId === payload.subscription) {
+          heads.push(payload.result);
+        }
+      };
+
+      this.provider.addListener("notifications", listener);
+
+      await this.provider.send("evm_mine", []);
+      await this.provider.send("evm_mine", []);
+      await this.provider.send("evm_mine", []);
+
+      assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
+
+      assert.lengthOf(heads, 3);
+    });
+
+    it("Supports newPendingTransactions subscribe", async function() {
+      const pendingTransactions: string[] = [];
+      const filterId = await this.provider.send("eth_subscribe", [
+        "newPendingTransactions"
+      ]);
+
+      const listener = (payload: { subscription: string; result: any }) => {
+        if (filterId === payload.subscription) {
+          pendingTransactions.push(payload.result);
+        }
+      };
+
+      this.provider.addListener("notifications", listener);
+
+      const accounts = await this.provider.send("eth_accounts");
+      const burnTxParams = {
+        from: accounts[0],
+        to: zeroAddress(),
+        gas: numberToRpcQuantity(21000)
+      };
+
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
+
+      assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
+
+      await this.provider.send("eth_sendTransaction", [burnTxParams]);
+
+      assert.lengthOf(pendingTransactions, 1);
+    });
+
+    it("Supports logs subscribe", async function() {
+      const exampleContract = await deployContract(
+        this.provider,
+        `0x${EXAMPLE_CONTRACT.bytecode.object}`
+      );
+
+      const logs: RpcLogOutput[] = [];
+      const filterId = await this.provider.send("eth_subscribe", [
+        "logs",
+        {
+          address: exampleContract
+        }
+      ]);
+
+      const listener = (payload: { subscription: string; result: any }) => {
+        if (filterId === payload.subscription) {
+          logs.push(payload.result);
+        }
+      };
+
+      this.provider.addListener("notifications", listener);
+
+      const newState =
+        "000000000000000000000000000000000000000000000000000000000000007b";
+
+      await this.provider.send("eth_sendTransaction", [
+        {
+          to: exampleContract,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
+        }
+      ]);
+
+      assert.lengthOf(logs, 1);
     });
   });
 
@@ -1824,8 +2518,14 @@ describe("Eth module", function() {
   });
 
   describe("eth_unsubscribe", async function() {
-    it("is not supported", async function() {
-      await assertNotSupported(this.provider, "eth_unsubscribe");
+    it("Supports unsubscribe", async function() {
+      const filterId = await this.provider.send("eth_subscribe", ["newHeads"]);
+
+      assert.isTrue(await this.provider.send("eth_unsubscribe", [filterId]));
+    });
+
+    it("Doesn't fail when unsubscribe is called for a non-existent filter", async function() {
+      assert.isFalse(await this.provider.send("eth_unsubscribe", ["0x1"]));
     });
   });
 });

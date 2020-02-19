@@ -1,4 +1,5 @@
 import VM from "@nomiclabs/ethereumjs-vm";
+import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import {
@@ -22,6 +23,7 @@ import {
   privateToAddress,
   toBuffer
 } from "ethereumjs-util";
+import EventEmitter from "events";
 import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
@@ -39,6 +41,8 @@ import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { Blockchain } from "./blockchain";
 import { InternalError, InvalidInputError } from "./errors";
+import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
+import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -77,7 +81,21 @@ export interface TransactionParams {
   nonce: BN;
 }
 
+export interface FilterParams {
+  fromBlock: BN;
+  toBlock: BN;
+  addresses: Buffer[];
+  normalizedTopics: Array<Array<Buffer | null> | null>;
+}
+
 export class TransactionExecutionError extends Error {}
+
+export interface TxReceipt {
+  status: 0 | 1;
+  gasUsed: Buffer;
+  bitvector: Buffer;
+  logs: RpcLogOutput[];
+}
 
 export interface TxBlockResult {
   receipt: TxReceipt;
@@ -110,11 +128,9 @@ interface Snapshot {
   transactionHashToBlockHash: Map<string, string>;
   blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
   blockHashToTotalDifficulty: Map<string, BN>;
-  lastFilterId: number;
-  blockFiltersLastBlockSent: Map<number, BN>;
 }
 
-export class BuidlerNode {
+export class BuidlerNode extends EventEmitter {
   public static async create(
     hardfork: string,
     networkName: string,
@@ -221,7 +237,7 @@ export class BuidlerNode {
   private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
   private _lastFilterId = 0;
-  private _blockFiltersLastBlockSent: Map<number, BN> = new Map();
+  private _filters: Map<string, Filter> = new Map();
 
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
   private readonly _snapshots: Snapshot[] = [];
@@ -245,6 +261,7 @@ export class BuidlerNode {
     private readonly _throwOnCallFailures: boolean,
     stackTracesOptions?: SolidityTracerOptions
   ) {
+    super();
     const config = getUserConfigPath();
     this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
@@ -608,10 +625,6 @@ export class BuidlerNode {
       ),
       blockHashToTotalDifficulty: new Map(
         this._blockHashToTotalDifficulty.entries()
-      ),
-      lastFilterId: this._lastFilterId,
-      blockFiltersLastBlockSent: new Map(
-        this._blockFiltersLastBlockSent.entries()
       )
     };
 
@@ -650,8 +663,6 @@ export class BuidlerNode {
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
     this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
-    this._lastFilterId = snapshot.lastFilterId;
-    this._blockFiltersLastBlockSent = snapshot.blockFiltersLastBlockSent;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -660,64 +671,162 @@ export class BuidlerNode {
     return true;
   }
 
-  public async createBlockFilter(): Promise<number> {
-    const filterId = this._lastFilterId + 1;
+  public async newFilter(
+    filterParams: FilterParams,
+    isSubscription: boolean
+  ): Promise<string> {
+    filterParams = await this._computeFilterParams(filterParams, true);
 
-    const block = await this.getLatestBlock();
-    const currentBlockNumber = new BN(block.header.number);
+    const rpcID: string = this._rpcID();
+    this._filters.set(rpcID, {
+      id: rpcID,
+      type: Type.LOGS_SUBSCRIPTION,
+      criteria: {
+        fromBlock: filterParams.fromBlock,
+        toBlock: filterParams.toBlock,
+        addresses: filterParams.addresses,
+        normalizedTopics: filterParams.normalizedTopics
+      },
+      deadline: this._newDeadline(),
+      hashes: [],
+      logs: await this.getLogs(filterParams),
+      subscription: isSubscription
+    });
 
-    // We always show the last block in the initial getChanges
-    const lastBlockSent = currentBlockNumber.subn(1);
-
-    this._blockFiltersLastBlockSent.set(filterId, lastBlockSent);
-
-    this._lastFilterId += 1;
-
-    return filterId;
+    return rpcID;
   }
 
-  public async uninstallFilter(filterId: number): Promise<boolean> {
-    // This should be able to uninstall any kind of filter, not just
-    // block filters
+  public async newBlockFilter(isSubscription: boolean): Promise<string> {
+    const block = await this.getLatestBlock();
 
-    if (this._blockFiltersLastBlockSent.has(filterId)) {
-      this._blockFiltersLastBlockSent.delete(filterId);
-      return true;
+    const rpcID: string = this._rpcID();
+    this._filters.set(rpcID, {
+      id: rpcID,
+      type: Type.BLOCK_SUBSCRIPTION,
+      deadline: this._newDeadline(),
+      hashes: [bufferToHex(block.header.hash())],
+      logs: [],
+      subscription: isSubscription
+    });
+
+    return rpcID;
+  }
+
+  public async newPendingTransactionFilter(
+    isSubscription: boolean
+  ): Promise<string> {
+    const rpcID: string = this._rpcID();
+
+    this._filters.set(rpcID, {
+      id: rpcID,
+      type: Type.PENDING_TRANSACTION_SUBSCRIPTION,
+      deadline: this._newDeadline(),
+      hashes: [],
+      logs: [],
+      subscription: isSubscription
+    });
+
+    return rpcID;
+  }
+
+  public async uninstallFilter(
+    filterId: string,
+    subscription: boolean
+  ): Promise<boolean> {
+    if (!this._filters.has(filterId)) {
+      return false;
     }
 
-    return false;
+    const filter = this._filters.get(filterId);
+    if (
+      (filter!.subscription && !subscription) ||
+      (!filter!.subscription && subscription)
+    ) {
+      return false;
+    }
+
+    this._filters.delete(filterId);
+    return true;
   }
 
-  public async isBlockFilter(filterId: number): Promise<boolean> {
-    return this._blockFiltersLastBlockSent.has(filterId);
-  }
-
-  public async getBlockFilterChanges(
-    filterId: number
-  ): Promise<string[] | undefined> {
-    if (!this._blockFiltersLastBlockSent.has(filterId)) {
+  public async getFilterChanges(
+    filterId: string
+  ): Promise<string[] | RpcLogOutput[] | undefined> {
+    const filter = this._filters.get(filterId);
+    if (filter === undefined) {
       return undefined;
     }
 
-    const lastBlockSent = this._blockFiltersLastBlockSent.get(filterId)!;
-
-    const latestBlock = await this.getLatestBlock();
-    const currentBlockNumber = new BN(latestBlock.header.number);
-
-    const blockHashes: string[] = [];
-    let blockNumber: BN;
-    for (
-      blockNumber = lastBlockSent.addn(1);
-      blockNumber.lte(currentBlockNumber);
-      blockNumber = blockNumber.addn(1)
-    ) {
-      const block = await this.getBlockByNumber(blockNumber);
-      blockHashes.push(bufferToHex(block.header.hash()));
+    filter.deadline = this._newDeadline();
+    switch (filter.type) {
+      case Type.BLOCK_SUBSCRIPTION:
+      case Type.PENDING_TRANSACTION_SUBSCRIPTION:
+        const hashes = filter.hashes;
+        filter.hashes = [];
+        return hashes;
+      case Type.LOGS_SUBSCRIPTION:
+        const logs = filter.logs;
+        filter.logs = [];
+        return logs;
     }
 
-    this._blockFiltersLastBlockSent.set(filterId, blockNumber.subn(1));
+    return undefined;
+  }
 
-    return blockHashes;
+  public async getFilterLogs(
+    filterId: string
+  ): Promise<RpcLogOutput[] | undefined> {
+    const filter = this._filters.get(filterId);
+    if (filter === undefined) {
+      return undefined;
+    }
+
+    const logs = filter.logs;
+    filter.logs = [];
+    filter.deadline = this._newDeadline();
+    return logs;
+  }
+
+  public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
+    filterParams = await this._computeFilterParams(filterParams, false);
+
+    const logs: RpcLogOutput[] = [];
+    for (
+      let i = filterParams.fromBlock;
+      i <= filterParams.toBlock;
+      i = i.addn(1)
+    ) {
+      const block = await this._getBlock(new BN(i));
+      const blockResults = this._blockHashToTxBlockResults.get(
+        bufferToHex(block.hash())
+      );
+      if (blockResults === undefined) {
+        continue;
+      }
+
+      if (
+        !bloomFilter(
+          new Bloom(block.header.bloom),
+          filterParams.addresses,
+          filterParams.normalizedTopics
+        )
+      ) {
+        continue;
+      }
+
+      for (const tx of blockResults) {
+        logs.push(
+          ...filterLogs(tx.receipt.logs, {
+            fromBlock: filterParams.fromBlock,
+            toBlock: filterParams.toBlock,
+            addresses: filterParams.addresses,
+            normalizedTopics: filterParams.normalizedTopics
+          })
+        );
+      }
+    }
+
+    return logs;
   }
 
   private _getSnapshotIndex(id: number): number | undefined {
@@ -866,6 +975,20 @@ export class BuidlerNode {
 
   private async _saveTransactionAsReceived(tx: Transaction) {
     this._transactionByHash.set(bufferToHex(tx.hash(true)), tx);
+    this._filters.forEach(filter => {
+      if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
+        const hash = bufferToHex(tx.hash(true));
+        if (filter.subscription) {
+          this.emit("ethEvent", {
+            result: hash,
+            subscription: filter.id
+          });
+          return;
+        }
+
+        filter.hashes.push(hash);
+      }
+    });
   }
 
   private async _getLocalAccountPrivateKey(sender: Buffer): Promise<Buffer> {
@@ -896,10 +1019,27 @@ export class BuidlerNode {
     for (let i = 0; i < runBlockResult.results.length; i += 1) {
       const result = runBlockResult.results[i];
 
+      const receipt = runBlockResult.receipts[i];
+      const logs = receipt.logs.map(
+        (rcpLog, logIndex) =>
+          (runBlockResult.receipts[i].logs[logIndex] = getRpcLog(
+            rcpLog,
+            block.transactions[i],
+            block,
+            i,
+            logIndex
+          ))
+      );
+
       txBlockResults.push({
         bloomBitvector: result.bloom.bitvector,
         createAddresses: result.createdAddress,
-        receipt: runBlockResult.receipts[i]
+        receipt: {
+          status: receipt.status,
+          gasUsed: receipt.gasUsed,
+          bitvector: receipt.bitvector,
+          logs
+        }
       });
     }
 
@@ -908,6 +1048,58 @@ export class BuidlerNode {
 
     const td = this._computeTotalDifficulty(block);
     this._blockHashToTotalDifficulty.set(blockHash, td);
+
+    const rpcLogs: RpcLogOutput[] = [];
+    for (const receipt of runBlockResult.receipts) {
+      rpcLogs.push(...receipt.logs);
+    }
+
+    this._filters.forEach((filter, key) => {
+      if (filter.deadline < new Date()) {
+        this._filters.delete(key);
+      }
+
+      switch (filter.type) {
+        case Type.BLOCK_SUBSCRIPTION:
+          const hash = block.hash();
+          if (filter.subscription) {
+            this.emit("ethEvent", {
+              result: getRpcBlock(block, td, false),
+              subscription: filter.id
+            });
+            return;
+          }
+
+          filter.hashes.push(bufferToHex(hash));
+          break;
+        case Type.LOGS_SUBSCRIPTION:
+          if (
+            bloomFilter(
+              new Bloom(block.header.bloom),
+              filter.criteria!.addresses,
+              filter.criteria!.normalizedTopics
+            )
+          ) {
+            const logs = filterLogs(rpcLogs, filter.criteria!);
+            if (logs.length === 0) {
+              return;
+            }
+
+            if (filter.subscription) {
+              logs.forEach(rpcLog => {
+                this.emit("ethEvent", {
+                  result: rpcLog,
+                  subscription: filter.id
+                });
+              });
+              return;
+            }
+
+            filter.logs.push(...logs);
+          }
+          break;
+      }
+    });
   }
 
   private async _putBlock(block: Block): Promise<void> {
@@ -1171,5 +1363,38 @@ export class BuidlerNode {
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
     }
+  }
+
+  private async _computeFilterParams(
+    filterParams: FilterParams,
+    isFilter: boolean
+  ): Promise<FilterParams> {
+    if (
+      filterParams.fromBlock === LATEST_BLOCK ||
+      filterParams.toBlock === LATEST_BLOCK
+    ) {
+      const block = await this.getLatestBlock();
+      if (filterParams.fromBlock === LATEST_BLOCK) {
+        filterParams.fromBlock = new BN(block.header.number);
+      }
+
+      if (!isFilter && filterParams.toBlock === LATEST_BLOCK) {
+        filterParams.toBlock = new BN(block.header.number);
+      }
+    }
+
+    return filterParams;
+  }
+
+  private _newDeadline(): Date {
+    const dt = new Date();
+    dt.setMinutes(dt.getMinutes() + 5); // This will not overflow
+    return dt;
+  }
+
+  private _rpcID(): string {
+    this._lastFilterId += 1;
+
+    return `0x${this._lastFilterId.toString(16)}`;
   }
 }
