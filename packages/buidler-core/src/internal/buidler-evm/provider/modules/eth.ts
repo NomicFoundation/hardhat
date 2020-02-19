@@ -56,7 +56,6 @@ import {
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../output";
-import { BNtoHex } from "../utils";
 
 // tslint:disable only-buidler-error
 
@@ -485,8 +484,7 @@ export class EthModule {
   private async _getFilterChangesAction(
     filterId: BN
   ): Promise<string[] | RpcLogOutput[] | null> {
-    const id = BNtoHex(filterId);
-    const changes = await this._node.getFilterChanges(id);
+    const changes = await this._node.getFilterChanges(filterId);
     if (changes === undefined) {
       return null;
     }
@@ -503,8 +501,7 @@ export class EthModule {
   private async _getFilterLogsAction(
     filterId: BN
   ): Promise<RpcLogOutput[] | null> {
-    const id = BNtoHex(filterId);
-    const changes = await this._node.getFilterLogs(id);
+    const changes = await this._node.getFilterLogs(filterId);
     if (changes === undefined) {
       return null;
     }
@@ -736,7 +733,8 @@ export class EthModule {
   }
 
   private async _newBlockFilterAction(): Promise<string> {
-    return this._node.newBlockFilter(false);
+    const filterId = await this._node.newBlockFilter(false);
+    return numberToRpcQuantity(filterId);
   }
 
   // eth_newFilter
@@ -747,7 +745,8 @@ export class EthModule {
 
   private async _newFilterAction(filter: RpcFilterRequest): Promise<string> {
     const filterParams = await this._rpcFilterRequestToGetLogsParams(filter);
-    return this._node.newFilter(filterParams, false);
+    const filterId = await this._node.newFilter(filterParams, false);
+    return numberToRpcQuantity(filterId);
   }
 
   // eth_newPendingTransactionFilter
@@ -757,7 +756,8 @@ export class EthModule {
   }
 
   private async _newPendingTransactionAction(): Promise<string> {
-    return this._node.newPendingTransactionFilter(false);
+    const filterId = await this._node.newPendingTransactionFilter(false);
+    return numberToRpcQuantity(filterId);
   }
 
   // eth_pendingTransactions
@@ -872,9 +872,11 @@ export class EthModule {
   ): Promise<string> {
     switch (subscribeRequest) {
       case "newHeads":
-        return this._node.newBlockFilter(true);
+        return numberToRpcQuantity(await this._node.newBlockFilter(true));
       case "newPendingTransactions":
-        return this._node.newPendingTransactionFilter(true);
+        return numberToRpcQuantity(
+          await this._node.newPendingTransactionFilter(true)
+        );
       case "logs":
         if (optionalFilterRequest === undefined) {
           throw new InvalidArgumentsError("missing params argument");
@@ -884,7 +886,9 @@ export class EthModule {
           optionalFilterRequest
         );
 
-        return this._node.newFilter(filterParams, true);
+        return numberToRpcQuantity(
+          await this._node.newFilter(filterParams, true)
+        );
     }
   }
 
@@ -905,8 +909,7 @@ export class EthModule {
   }
 
   private async _uninstallFilterAction(filterId: BN): Promise<boolean> {
-    const id = BNtoHex(filterId);
-    return this._node.uninstallFilter(id, false);
+    return this._node.uninstallFilter(filterId, false);
   }
 
   private _unsubscribeParams(params: any[]): [BN] {
@@ -914,8 +917,7 @@ export class EthModule {
   }
 
   private async _unsubscribeAction(filterId: BN): Promise<boolean> {
-    const id = BNtoHex(filterId);
-    return this._node.uninstallFilter(id, true);
+    return this._node.uninstallFilter(filterId, true);
   }
 
   // Utility methods

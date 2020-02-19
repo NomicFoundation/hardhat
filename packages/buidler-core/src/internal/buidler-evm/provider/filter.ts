@@ -19,7 +19,7 @@ export interface FilterCriteria {
 }
 
 export interface Filter {
-  id: string;
+  id: BN;
   type: Type;
   criteria?: FilterCriteria;
   deadline: Date;

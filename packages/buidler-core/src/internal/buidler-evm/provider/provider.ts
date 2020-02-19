@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import debug from "debug";
 import Common from "ethereumjs-common";
+import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -175,8 +176,7 @@ export class BuidlerEVMProvider extends EventEmitter
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
       this._genesisAccounts,
-      stackTracesOptions,
-      this._loggingEnabled
+      stackTracesOptions
     );
 
     this._common = common;
@@ -188,8 +188,11 @@ export class BuidlerEVMProvider extends EventEmitter
     this._evmModule = new EvmModule(node);
     this._buidlerModule = new BuidlerModule(node);
 
-    const listener = (payload: { subscription: string; result: any }) => {
-      this.emit("notifications", payload);
+    const listener = (payload: { filterId: BN; result: any }) => {
+      this.emit("notifications", {
+        subscription: `0x${payload.filterId.toString(16)}`,
+        result: payload.result
+      });
     };
 
     // Handle eth_subscribe events and proxy them to handler

@@ -240,7 +240,7 @@ export class BuidlerNode extends EventEmitter {
   private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
   private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
-  private _lastFilterId = 0;
+  private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
 
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
@@ -701,12 +701,12 @@ export class BuidlerNode extends EventEmitter {
   public async newFilter(
     filterParams: FilterParams,
     isSubscription: boolean
-  ): Promise<string> {
+  ): Promise<BN> {
     filterParams = await this._computeFilterParams(filterParams, true);
 
-    const rpcID: string = this._rpcID();
-    this._filters.set(rpcID, {
-      id: rpcID,
+    const filterId = this._getNextFilterId();
+    this._filters.set(this._filterIdToFiltersKey(filterId), {
+      id: filterId,
       type: Type.LOGS_SUBSCRIPTION,
       criteria: {
         fromBlock: filterParams.fromBlock,
@@ -720,15 +720,15 @@ export class BuidlerNode extends EventEmitter {
       subscription: isSubscription
     });
 
-    return rpcID;
+    return filterId;
   }
 
-  public async newBlockFilter(isSubscription: boolean): Promise<string> {
+  public async newBlockFilter(isSubscription: boolean): Promise<BN> {
     const block = await this.getLatestBlock();
 
-    const rpcID: string = this._rpcID();
-    this._filters.set(rpcID, {
-      id: rpcID,
+    const filterId = this._getNextFilterId();
+    this._filters.set(this._filterIdToFiltersKey(filterId), {
+      id: filterId,
       type: Type.BLOCK_SUBSCRIPTION,
       deadline: this._newDeadline(),
       hashes: [bufferToHex(block.header.hash())],
@@ -736,16 +736,16 @@ export class BuidlerNode extends EventEmitter {
       subscription: isSubscription
     });
 
-    return rpcID;
+    return filterId;
   }
 
   public async newPendingTransactionFilter(
     isSubscription: boolean
-  ): Promise<string> {
-    const rpcID: string = this._rpcID();
+  ): Promise<BN> {
+    const filterId = this._getNextFilterId();
 
-    this._filters.set(rpcID, {
-      id: rpcID,
+    this._filters.set(this._filterIdToFiltersKey(filterId), {
+      id: filterId,
       type: Type.PENDING_TRANSACTION_SUBSCRIPTION,
       deadline: this._newDeadline(),
       hashes: [],
@@ -753,18 +753,20 @@ export class BuidlerNode extends EventEmitter {
       subscription: isSubscription
     });
 
-    return rpcID;
+    return filterId;
   }
 
   public async uninstallFilter(
-    filterId: string,
+    filterId: BN,
     subscription: boolean
   ): Promise<boolean> {
-    if (!this._filters.has(filterId)) {
+    const key = this._filterIdToFiltersKey(filterId);
+    const filter = this._filters.get(key);
+
+    if (filter === undefined) {
       return false;
     }
 
-    const filter = this._filters.get(filterId);
     if (
       (filter!.subscription && !subscription) ||
       (!filter!.subscription && subscription)
@@ -772,14 +774,15 @@ export class BuidlerNode extends EventEmitter {
       return false;
     }
 
-    this._filters.delete(filterId);
+    this._filters.delete(key);
     return true;
   }
 
   public async getFilterChanges(
-    filterId: string
+    filterId: BN
   ): Promise<string[] | RpcLogOutput[] | undefined> {
-    const filter = this._filters.get(filterId);
+    const key = this._filterIdToFiltersKey(filterId);
+    const filter = this._filters.get(key);
     if (filter === undefined) {
       return undefined;
     }
@@ -801,9 +804,10 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getFilterLogs(
-    filterId: string
+    filterId: BN
   ): Promise<RpcLogOutput[] | undefined> {
-    const filter = this._filters.get(filterId);
+    const key = this._filterIdToFiltersKey(filterId);
+    const filter = this._filters.get(key);
     if (filter === undefined) {
       return undefined;
     }
@@ -1002,10 +1006,7 @@ export class BuidlerNode extends EventEmitter {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
         const hash = bufferToHex(tx.hash(true));
         if (filter.subscription) {
-          this.emit("ethEvent", {
-            result: hash,
-            subscription: filter.id
-          });
+          this._emitEthEvent(filter.id, hash);
           return;
         }
 
@@ -1086,10 +1087,7 @@ export class BuidlerNode extends EventEmitter {
         case Type.BLOCK_SUBSCRIPTION:
           const hash = block.hash();
           if (filter.subscription) {
-            this.emit("ethEvent", {
-              result: getRpcBlock(block, td, false),
-              subscription: filter.id
-            });
+            this._emitEthEvent(filter.id, getRpcBlock(block, td, false));
             return;
           }
 
@@ -1110,10 +1108,7 @@ export class BuidlerNode extends EventEmitter {
 
             if (filter.subscription) {
               logs.forEach(rpcLog => {
-                this.emit("ethEvent", {
-                  result: rpcLog,
-                  subscription: filter.id
-                });
+                this._emitEthEvent(filter.id, rpcLog);
               });
               return;
             }
@@ -1431,9 +1426,20 @@ export class BuidlerNode extends EventEmitter {
     return dt;
   }
 
-  private _rpcID(): string {
-    this._lastFilterId += 1;
+  private _getNextFilterId(): BN {
+    this._lastFilterId = this._lastFilterId.addn(1);
 
-    return `0x${this._lastFilterId.toString(16)}`;
+    return this._lastFilterId;
+  }
+
+  private _filterIdToFiltersKey(filterId: BN): string {
+    return filterId.toString();
+  }
+
+  private _emitEthEvent(filterId: BN, result: any) {
+    this.emit("ethEvent", {
+      result,
+      filterId
+    });
   }
 }
