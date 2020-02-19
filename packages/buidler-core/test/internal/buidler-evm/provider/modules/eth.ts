@@ -1096,50 +1096,6 @@ describe("Eth module", function() {
         1
       );
     });
-
-    it("Supports get filter logs with revert", async function() {
-      const exampleContract = await deployContract(
-        this.provider,
-        `0x${EXAMPLE_CONTRACT.bytecode.object}`
-      );
-
-      const newState =
-        "000000000000000000000000000000000000000000000000000000000000003b";
-
-      const filterId = await this.provider.send("eth_newFilter", [
-        {
-          address: exampleContract,
-          topics: [
-            [
-              "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d"
-            ]
-          ]
-        }
-      ]);
-
-      const snapshotId: string = await this.provider.send("evm_snapshot", []);
-
-      await this.provider.send("eth_sendTransaction", [
-        {
-          to: exampleContract,
-          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-          data: EXAMPLE_CONTRACT.selectors.modifiesState + newState
-        }
-      ]);
-
-      await this.provider.send("evm_revert", [snapshotId]);
-
-      const logs = await this.provider.send("eth_getFilterLogs", [filterId]);
-      assert.lengthOf(logs, 1);
-
-      const log = logs[0];
-      assert.equal(log.removed, true);
-      assert.equal(log.logIndex, "0x0");
-      assert.equal(log.transactionIndex, "0x0");
-      assert.equal(log.blockNumber, "0x2");
-      assert.equal(log.address, exampleContract);
-      assert.equal(log.data, `0x${newState}`);
-    });
   });
 
   describe("eth_getLogs", async function() {

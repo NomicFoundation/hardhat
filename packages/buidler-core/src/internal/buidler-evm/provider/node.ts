@@ -42,12 +42,7 @@ import { VMTracer } from "../stack-traces/vm-tracer";
 import { Blockchain } from "./blockchain";
 import { InternalError, InvalidInputError } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
-import {
-  getRpcBlock,
-  getRpcLog,
-  numberToRpcQuantity,
-  RpcLogOutput
-} from "./output";
+import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -668,9 +663,6 @@ export class BuidlerNode extends EventEmitter {
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
     this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
-
-    // Mark logs in log filters as removed
-    this._removeLogs(snapshot.latestBlock);
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1371,23 +1363,6 @@ export class BuidlerNode extends EventEmitter {
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
     }
-  }
-
-  private _removeLogs(block: Block) {
-    const blockNumber = new BN(block.header.number);
-    this._filters.forEach(filter => {
-      if (filter.type !== Type.LOGS_SUBSCRIPTION) {
-        return;
-      }
-
-      for (let i = filter.logs.length - 1; i >= 0; i--) {
-        if (new BN(filter.logs[i].blockNumber!).lte(blockNumber)) {
-          break;
-        }
-
-        filter.logs[i].removed = true;
-      }
-    });
   }
 
   private async _computeFilterParams(
