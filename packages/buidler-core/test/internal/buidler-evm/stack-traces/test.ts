@@ -32,6 +32,7 @@ import {
   StackTraceEntryType
 } from "../../../../src/internal/buidler-evm/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/buidler-evm/stack-traces/solidityTracer";
+import { VmTraceDecoder } from "../../../../src/internal/buidler-evm/stack-traces/vm-trace-decoder";
 import { setCWD } from "../helpers/cwd";
 
 import { compile, getSolidityVersion } from "./compilation";
@@ -360,7 +361,8 @@ async function runTest(
     contractsIdentifier.addBytecode(bytecode);
   }
 
-  const tracer = new SolidityTracer(contractsIdentifier);
+  const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+  const tracer = new SolidityTracer();
   const logger = new ConsoleLogger();
 
   const vm = await instantiateVm();
@@ -411,7 +413,7 @@ async function runTest(
 
     compareConsoleLogs(logger.getExecutionLogs(trace), tx.consoleLogs);
 
-    const decodedTrace = tracer.tryToDecodeMessageTrace(trace);
+    const decodedTrace = vmTraceDecoder.tryToDecodeMessageTrace(trace);
 
     try {
       if (tx.stackTrace === undefined) {

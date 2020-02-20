@@ -10,6 +10,7 @@ import semver from "semver";
 import { EthereumProvider, ProjectPaths } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
 import { getUserConfigPath } from "../../core/project-structure";
+import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 
@@ -114,7 +115,8 @@ export class BuidlerEVMProvider extends EventEmitter
       return;
     }
 
-    let stackTracesOptions: SolidityTracerOptions | undefined;
+    let compilerInput: CompilerInput | undefined;
+    let compilerOutput: CompilerOutput | undefined;
 
     if (this._solcVersion !== undefined && this._paths !== undefined) {
       if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
@@ -142,15 +144,12 @@ export class BuidlerEVMProvider extends EventEmitter
               SOLC_OUTPUT_FILENAME
             );
 
-            stackTracesOptions = {
-              solidityVersion: this._solcVersion,
-              compilerInput: await fsExtra.readJSON(solcInputPath, {
-                encoding: "utf8"
-              }),
-              compilerOutput: await fsExtra.readJSON(solcOutputPath, {
-                encoding: "utf8"
-              })
-            };
+            compilerInput = await fsExtra.readJSON(solcInputPath, {
+              encoding: "utf8"
+            });
+            compilerOutput = await fsExtra.readJSON(solcOutputPath, {
+              encoding: "utf8"
+            });
           } catch (error) {
             console.warn(
               chalk.yellow(
@@ -176,7 +175,9 @@ export class BuidlerEVMProvider extends EventEmitter
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
       this._genesisAccounts,
-      stackTracesOptions
+      this._solcVersion,
+      compilerInput,
+      compilerOutput
     );
 
     this._common = common;
