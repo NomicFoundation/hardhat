@@ -88,7 +88,8 @@ const BuidlerNetworkConfig = t.type({
   accounts: optional(t.array(BuidlerNetworkAccount)),
   blockGasLimit: optional(t.number),
   throwOnTransactionFailures: optional(t.boolean),
-  throwOnCallFailures: optional(t.boolean)
+  throwOnCallFailures: optional(t.boolean),
+  loggingEnabled: optional(t.boolean)
 });
 
 const HDAccountsConfig = t.type({
@@ -235,6 +236,32 @@ export function getValidationErrors(config: any): string[] {
             `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.blockGasLimit`,
             buidlerNetwork.blockGasLimit,
             "number | undefined"
+          )
+        );
+      }
+
+      if (
+        buidlerNetwork.chainId !== undefined &&
+        typeof buidlerNetwork.chainId !== "number"
+      ) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.chainId`,
+            buidlerNetwork.chainId,
+            "number | undefined"
+          )
+        );
+      }
+
+      if (
+        buidlerNetwork.loggingEnabled !== undefined &&
+        typeof buidlerNetwork.loggingEnabled !== "boolean"
+      ) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.chainId`,
+            buidlerNetwork.loggingEnabled,
+            "boolean | undefined"
           )
         );
       }

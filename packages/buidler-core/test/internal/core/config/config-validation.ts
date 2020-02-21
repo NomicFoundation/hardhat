@@ -447,6 +447,30 @@ describe("Config validation", function() {
               }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
+
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    loggingEnabled: 123
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    loggingEnabled: "a"
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
         });
       });
 
