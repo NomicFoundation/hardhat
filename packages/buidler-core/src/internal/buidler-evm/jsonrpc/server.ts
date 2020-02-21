@@ -42,9 +42,7 @@ export class JsonRpcServer {
   };
 
   public listen = (): Promise<{ address: string; port: number }> => {
-    process.once("SIGINT", async () => {
-      await this.close();
-    });
+    process.once("SIGINT", this._onSigint);
 
     return new Promise(resolve => {
       log(`Starting JSON-RPC server on port ${this._config.port}`);
@@ -68,6 +66,8 @@ export class JsonRpcServer {
   };
 
   public close = async () => {
+    process.removeListener("SIGINT", this._onSigint);
+
     return Promise.all([
       new Promise((resolve, reject) => {
         log("Closing JSON-RPC server");
@@ -96,5 +96,9 @@ export class JsonRpcServer {
         });
       })
     ]);
+  };
+
+  private _onSigint = async () => {
+    await this.close();
   };
 }
