@@ -984,7 +984,9 @@ export class BuidlerNode {
     const actualNonce = new BN(tx.nonce);
     if (!expectedNonce.eq(actualNonce)) {
       throw new InvalidInputError(
-        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}`
+        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}.
+
+This usually means that you are sending multiple transactions form the same account in parallel. If you are using JavaScript, you probably forgot an await.`
       );
     }
 
