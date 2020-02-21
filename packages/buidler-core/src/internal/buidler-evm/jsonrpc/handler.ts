@@ -1,12 +1,9 @@
-import chalk from "chalk";
 import debug from "debug";
 import { IncomingMessage, ServerResponse } from "http";
 import getRawBody from "raw-body";
 import WebSocket from "ws";
 
 import { EthereumProvider } from "../../../types";
-import { BuidlerError } from "../../core/errors";
-import { ERRORS } from "../../core/errors-list";
 import {
   isSuccessfulJsonResponse,
   isValidJsonRequest,
@@ -33,30 +30,28 @@ export default class JsonRpcHandler {
   }
 
   public handleHttp = async (req: IncomingMessage, res: ServerResponse) => {
-    let rpcReq: JsonRpcRequest | undefined;
-    let rpcResp: JsonRpcResponse | undefined;
-
+    let jsonHttpRequest: any;
     try {
-      rpcReq = await _readHttpRequest(req);
-
-      rpcResp = await this._handleRequest(rpcReq);
+      jsonHttpRequest = await _readJsonHttpRequest(req);
     } catch (error) {
-      rpcResp = _handleError(error);
+      this._sendResponse(res, _handleError(error));
+      return;
     }
 
-    // Validate the RPC response.
-    if (!isValidJsonResponse(rpcResp)) {
-      // Malformed response coming from the provider, report to user as an internal error.
-      rpcResp = _handleError(new InternalError("Internal error"));
+    if (Array.isArray(jsonHttpRequest)) {
+      const responses = await Promise.all(
+        jsonHttpRequest.map((singleReq: any) =>
+          this._handleSingleRequest(singleReq)
+        )
+      );
+
+      this._sendResponse(res, responses);
+      return;
     }
 
-    if (rpcReq !== undefined) {
-      rpcResp.id = rpcReq.id;
-    }
+    const rpcResp = await this._handleSingleRequest(jsonHttpRequest);
 
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify(rpcResp));
+    this._sendResponse(res, rpcResp);
   };
 
   public handleWs = async (ws: WebSocket) => {
@@ -92,6 +87,10 @@ export default class JsonRpcHandler {
 
       try {
         rpcReq = _readWsRequest(msg as string);
+
+        if (!isValidJsonRequest(rpcReq)) {
+          throw new InvalidRequestError("Invalid request");
+        }
 
         rpcResp = await this._handleRequest(rpcReq);
 
@@ -132,11 +131,45 @@ export default class JsonRpcHandler {
     });
   };
 
+  private _sendResponse(
+    res: ServerResponse,
+    rpcResp: JsonRpcResponse | JsonRpcResponse[]
+  ) {
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(rpcResp));
+  }
+
+  private async _handleSingleRequest(req: any): Promise<JsonRpcResponse> {
+    if (!isValidJsonRequest(req)) {
+      return _handleError(new InvalidRequestError("Invalid request"));
+    }
+
+    const rpcReq: JsonRpcRequest = req;
+    let rpcResp: JsonRpcResponse | undefined;
+
+    try {
+      rpcResp = await this._handleRequest(rpcReq);
+    } catch (error) {
+      rpcResp = _handleError(error);
+    }
+
+    // Validate the RPC response.
+    if (!isValidJsonResponse(rpcResp)) {
+      // Malformed response coming from the provider, report to user as an internal error.
+      rpcResp = _handleError(new InternalError("Internal error"));
+    }
+
+    if (rpcReq !== undefined) {
+      rpcResp.id = rpcReq.id !== undefined ? rpcReq.id : null;
+    }
+
+    return rpcResp;
+  }
+
   private _handleRequest = async (
     req: JsonRpcRequest
   ): Promise<JsonRpcResponse> => {
-    // console.log(req.method);
-
     const result = await this._provider.send(req.method, req.params);
 
     return {
@@ -147,9 +180,7 @@ export default class JsonRpcHandler {
   };
 }
 
-const _readHttpRequest = async (
-  req: IncomingMessage
-): Promise<JsonRpcRequest> => {
+const _readJsonHttpRequest = async (req: IncomingMessage): Promise<any> => {
   let json;
 
   try {
@@ -159,10 +190,6 @@ const _readHttpRequest = async (
     json = JSON.parse(text);
   } catch (error) {
     throw new InvalidJsonInputError(`Parse error: ${error.message}`);
-  }
-
-  if (!isValidJsonRequest(json)) {
-    throw new InvalidRequestError("Invalid request");
   }
 
   return json;
@@ -176,16 +203,10 @@ const _readWsRequest = (msg: string): JsonRpcRequest => {
     throw new InvalidJsonInputError(`Parse error: ${error.message}`);
   }
 
-  if (!isValidJsonRequest(json)) {
-    throw new InvalidRequestError("Invalid request");
-  }
-
   return json;
 };
 
 const _handleError = (error: any): JsonRpcResponse => {
-  _printError(error);
-
   // In case of non-buidler error, treat it as internal and associate the appropriate error code.
   if (!BuidlerEVMProviderError.isBuidlerEVMProviderError(error)) {
     error = new InternalError(error.message);
@@ -199,31 +220,4 @@ const _handleError = (error: any): JsonRpcResponse => {
       message: error.message
     }
   };
-};
-
-const _printError = (error: any) => {
-  return;
-  if (BuidlerEVMProviderError.isBuidlerEVMProviderError(error)) {
-    // Report the error to console in the format of other BuidlerErrors (wrappedError.message),
-    // while preserving the stack from the originating error (error.stack).
-    const wrappedError = new BuidlerError(
-      ERRORS.BUILTIN_TASKS.JSONRPC_HANDLER_ERROR,
-      {
-        error: error.message
-      },
-      error
-    );
-
-    console.error(chalk.red(`Error ${wrappedError.message}`));
-  } else if (BuidlerError.isBuidlerError(error)) {
-    console.error(chalk.red(`Error ${error.message}`));
-  } else if (error instanceof Error) {
-    console.error(chalk.red(`An unexpected error occurred: ${error.message}`));
-  } else {
-    console.error(chalk.red("An unexpected error occurred."));
-  }
-
-  console.log("");
-
-  console.error(error.stack);
 };
