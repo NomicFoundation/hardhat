@@ -146,7 +146,9 @@ To customise it, take a look at [the configuration section](/config/#buidler-evm
   - `eth_getBlockTransactionCountByHash`
   - `eth_getBlockTransactionCountByNumber`
   - `eth_getCode`
-  - `eth_getFilterChanges – Only for block filters`
+  - `eth_getFilterChanges`
+  - `eth_getFilterLogs`
+  - `eth_getLogs`
   - `eth_getStorageAt`
   - `eth_getTransactionByBlockHashAndIndex`
   - `eth_getTransactionByBlockNumberAndIndex`
@@ -155,13 +157,17 @@ To customise it, take a look at [the configuration section](/config/#buidler-evm
   - `eth_getTransactionReceipt`
   - `eth_mining`
   - `eth_newBlockFilter`
+  - `eth_newFilter`
+  - `eth_newPendingTransactionFilter`
   - `eth_pendingTransactions`
   - `eth_sendRawTransaction`
   - `eth_sendTransaction`
+  - `eth_signTypedData`
   - `eth_sign`
+  - `eth_subscribe`
   - `eth_syncing`
   - `eth_uninstallFilter`
-  - `eth_signTypedData`
+  - `eth_unsubscribe`
   - `net_listening`
   - `net_peerCount`
   - `net_version`
@@ -174,10 +180,13 @@ To customise it, take a look at [the configuration section](/config/#buidler-evm
   - `evm_mine` – same as Ganache, except it doesn’t accept a timestamp.
   - `evm_revert` – same as Ganache.
   - `evm_snapshot` – same as Ganache.
-      
+        
 ### Unsupported methods
-  - `eth_getFilterLogs`
-  - `eth_getLogs`
+
+  - `eth_compileLLL`
+  - `eth_compileSerpent`
+  - `eth_compileSolidity`
+  - `eth_getCompilers`
   - `eth_getProof`
   - `eth_getUncleByBlockHashAndIndex`
   - `eth_getUncleByBlockNumberAndIndex`
@@ -185,18 +194,10 @@ To customise it, take a look at [the configuration section](/config/#buidler-evm
   - `eth_getUncleCountByBlockNumber`
   - `eth_getWork`
   - `eth_hashrate`
-  - `eth_newFilter`
-  - `eth_newPendingTransactionFilter`
   - `eth_protocolVersion`
   - `eth_signTransaction`
   - `eth_submitHashrate`
   - `eth_submitWork`
-  - `eth_subscribe`
-  - `eth_unsubscribe`
-  - `eth_compileLLL`
-  - `eth_compileSerpent`
-  - `eth_compileSolidity`
-  - `eth_getCompilers`
 
 ## Limitations
 
