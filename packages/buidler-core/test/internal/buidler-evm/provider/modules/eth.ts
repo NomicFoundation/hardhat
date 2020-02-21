@@ -120,7 +120,7 @@ function getSignedTxHash(
   return bufferToHex(txToSign.hash(true));
 }
 
-describe.only("Eth module", function() {
+describe("Eth module", function() {
   PROVIDERS.forEach(provider => {
     describe(`Provider ${provider.name}`, function() {
       setCWD();
