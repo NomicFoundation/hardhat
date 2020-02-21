@@ -6,8 +6,8 @@ on:
       - master
   pull_request:
     branches:
-      - *
-      
+      - "*"
+
 jobs:
   lint:
     name: Lint
