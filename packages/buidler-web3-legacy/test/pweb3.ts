@@ -67,7 +67,7 @@ describe("pweb3", () => {
     const TestContract = pweb3.eth.contract(ABI);
 
     const test = await TestContract.new({
-      data: CONTRACT_BYTECODE,
+      data: `0x${CONTRACT_BYTECODE}`,
       from: accounts[0],
       gas: 456789
     });
