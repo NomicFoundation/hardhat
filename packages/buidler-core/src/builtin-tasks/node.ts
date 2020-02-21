@@ -18,9 +18,9 @@ import {
   ResolvedBuidlerConfig
 } from "../types";
 
-import { TASK_JSONRPC } from "./task-names";
+import { TASK_NODE } from "./task-names";
 
-const log = debug("buidler:core:tasks:jsonrpc");
+const log = debug("buidler:core:tasks:node");
 
 function _createBuidlerEVMProvider(
   config: ResolvedBuidlerConfig
@@ -63,7 +63,7 @@ Private Key: ${privateKey}
 }
 
 export default function() {
-  task(TASK_JSONRPC, "Starts a buidler JSON-RPC server")
+  task(TASK_NODE, "Starts a buidler JSON-RPC server")
     .addOptionalParam(
       "hostname",
       "The host to which to bind to for new connections",

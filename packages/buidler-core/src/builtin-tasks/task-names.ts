@@ -23,7 +23,7 @@ export const TASK_HELP = "help";
 
 export const TASK_RUN = "run";
 
-export const TASK_JSONRPC = "jsonrpc";
+export const TASK_NODE = "node";
 
 export const TASK_TEST = "test";
 
