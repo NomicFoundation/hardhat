@@ -259,7 +259,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.chainId`,
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.loggingEnabled`,
             buidlerNetwork.loggingEnabled,
             "boolean | undefined"
           )
