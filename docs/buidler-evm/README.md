@@ -24,7 +24,7 @@ Buidler comes built-in with Buidler EVM, a local Ethereum network designed for d
 
 Buidler EVM can be run as a server or testing node. To do this, you just need to run
 
-```shell
+```sh
 npx buidler node
 ```
 
