@@ -63,7 +63,7 @@ Private Key: ${privateKey}
 }
 
 export default function() {
-  task(TASK_NODE, "Starts a buidler JSON-RPC server")
+  task(TASK_NODE, "Starts a Buidler EVM as a JSON-RPC server")
     .addOptionalParam(
       "hostname",
       "The host to which to bind to for new connections",
