@@ -1,4 +1,6 @@
+import chalk from "chalk";
 import debug from "debug";
+import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import {
   JsonRpcServer,
@@ -10,7 +12,11 @@ import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
 import { lazyObject } from "../internal/util/lazy";
-import { EthereumProvider, ResolvedBuidlerConfig } from "../types";
+import {
+  BuidlerNetworkConfig,
+  EthereumProvider,
+  ResolvedBuidlerConfig
+} from "../types";
 
 import { TASK_JSONRPC } from "./task-names";
 
@@ -22,17 +28,38 @@ function _createBuidlerEVMProvider(
   log("Creating BuidlerEVM Provider");
 
   const networkName = BUIDLEREVM_NETWORK_NAME;
-  const networkConfig = config.networks[networkName];
+  const networkConfig = config.networks[networkName] as BuidlerNetworkConfig;
 
   return lazyObject(() => {
     log(`Creating buidlerevm provider for JSON-RPC sever`);
     return createProvider(
       networkName,
-      networkConfig,
+      { loggingEnabled: true, ...networkConfig },
       config.solc.version,
       config.paths
     );
   });
+}
+
+function logBuidlerEvmAccounts(networkConfig: BuidlerNetworkConfig) {
+  if (networkConfig.accounts === undefined) {
+    return;
+  }
+
+  console.log("Accounts");
+  console.log("========");
+
+  for (const [index, account] of networkConfig.accounts.entries()) {
+    const address = bufferToHex(privateToAddress(toBuffer(account.privateKey)));
+    const privateKey = bufferToHex(toBuffer(account.privateKey));
+    const balance = new BN(account.balance)
+      .div(new BN(10).pow(new BN(18)))
+      .toString(10);
+
+    console.log(`Account #${index}: ${address} (${balance} ETH)
+Private Key: ${privateKey}
+`);
+  }
 }
 
 export default function() {
@@ -69,7 +96,22 @@ export default function() {
 
           const server = new JsonRpcServer(serverConfig);
 
-          process.exitCode = await server.listen();
+          const { port: actualPort, address } = await server.listen();
+
+          console.log(
+            chalk.green(
+              `Started HTTP and WebSocket JSON-RPC server at ${address}:${actualPort}/`
+            )
+          );
+
+          console.log();
+
+          const networkConfig = config.networks[
+            BUIDLEREVM_NETWORK_NAME
+          ] as BuidlerNetworkConfig;
+          logBuidlerEvmAccounts(networkConfig);
+
+          await server.waitUntilClosed();
         } catch (error) {
           if (BuidlerError.isBuidlerError(error)) {
             throw error;

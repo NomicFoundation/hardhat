@@ -36,7 +36,10 @@ import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import { MessageTrace } from "../stack-traces/message-trace";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
-import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
+import {
+  encodeSolidityStackTrace,
+  SolidityError
+} from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
@@ -142,8 +145,6 @@ export class BuidlerNode extends EventEmitter {
     chainId: number,
     networkId: number,
     blockGasLimit: number,
-    throwOnTransactionFailures: boolean,
-    throwOnCallFailures: boolean,
     genesisAccounts: GenesisAccount[] = [],
     solidityVersion?: string,
     compilerInput?: CompilerInput,
@@ -224,8 +225,6 @@ export class BuidlerNode extends EventEmitter {
       genesisAccounts.map(acc => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
-      throwOnTransactionFailures,
-      throwOnCallFailures,
       solidityVersion,
       compilerInput,
       compilerOutput
@@ -251,7 +250,6 @@ export class BuidlerNode extends EventEmitter {
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
   private readonly _snapshots: Snapshot[] = [];
 
-  private readonly _stackTracesEnabled: boolean = false;
   private readonly _vmTracer: VMTracer;
   private readonly _vmTraceDecoder?: VmTraceDecoder;
   private readonly _solidityTracer?: SolidityTracer;
@@ -267,8 +265,6 @@ export class BuidlerNode extends EventEmitter {
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
-    private readonly _throwOnTransactionFailures: boolean,
-    private readonly _throwOnCallFailures: boolean,
     solidityVersion?: string,
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput
@@ -351,7 +347,13 @@ export class BuidlerNode extends EventEmitter {
 
   public async runTransactionInNewBlock(
     tx: Transaction
-  ): Promise<RunBlockResult> {
+  ): Promise<{
+    trace: MessageTrace;
+    block: Block;
+    blockResult: RunBlockResult;
+    error?: Error;
+    consoleLogMessages: string[];
+  }> {
     await this._validateTransaction(tx);
     await this._saveTransactionAsReceived(tx);
 
@@ -366,16 +368,11 @@ export class BuidlerNode extends EventEmitter {
 
     await this._addTransactionToBlock(block, tx);
 
-    let result: RunBlockResult;
-    try {
-      result = await this._vm.runBlock({
-        block,
-        generate: true,
-        skipBlockValidation: true
-      });
-    } catch (error) {
-      throw new TransactionExecutionError(error);
-    }
+    const result = await this._vm.runBlock({
+      block,
+      generate: true,
+      skipBlockValidation: true
+    });
 
     if (needsTimestampIncrease) {
       await this.increaseTime(new BN(1));
@@ -392,21 +389,24 @@ export class BuidlerNode extends EventEmitter {
       vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
     }
 
-    await this._printLogs(vmTrace, vmTracerError);
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
 
-    if (this._throwOnTransactionFailures) {
-      const error = await this._manageErrors(
-        result.results[0].execResult,
-        vmTrace,
-        vmTracerError
-      );
+    const error = await this._manageErrors(
+      result.results[0].execResult,
+      vmTrace,
+      vmTracerError
+    );
 
-      if (error !== undefined) {
-        throw error;
-      }
-    }
-
-    return result;
+    return {
+      trace: vmTrace,
+      block,
+      blockResult: result,
+      error,
+      consoleLogMessages
+    };
   }
 
   public async mineEmptyBlock() {
@@ -448,13 +448,20 @@ export class BuidlerNode extends EventEmitter {
     }
   }
 
-  public async runCall(call: CallParams): Promise<Buffer> {
+  public async runCall(
+    call: CallParams
+  ): Promise<{
+    result: Buffer;
+    trace: MessageTrace;
+    error?: Error;
+    consoleLogMessages: string[];
+  }> {
     const tx = await this._getFakeTransaction({
       ...call,
       nonce: await this.getAccountNonce(call.from)
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx);
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
@@ -464,29 +471,23 @@ export class BuidlerNode extends EventEmitter {
       vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
     }
 
-    await this._printLogs(vmTrace, vmTracerError);
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
 
-    if (this._throwOnCallFailures) {
-      const error = await this._manageErrors(
-        result.execResult,
-        vmTrace,
-        vmTracerError
-      );
+    const error = await this._manageErrors(
+      result.execResult,
+      vmTrace,
+      vmTracerError
+    );
 
-      if (error !== undefined) {
-        throw error;
-      }
-    }
-
-    if (
-      result.execResult.exceptionError === undefined ||
-      result.execResult.exceptionError.error === ERROR.REVERT
-    ) {
-      return result.execResult.returnValue;
-    }
-
-    // If we got here we found another kind of error and we throw anyway
-    throw await this._manageErrors(result.execResult, vmTrace, vmTracerError)!;
+    return {
+      result: result.execResult.returnValue,
+      trace: vmTrace,
+      error,
+      consoleLogMessages
+    };
   }
 
   public async getAccountBalance(address: Buffer): Promise<BN> {
@@ -511,23 +512,59 @@ export class BuidlerNode extends EventEmitter {
     return this._blockGasLimit;
   }
 
-  public async estimateGas(txParams: TransactionParams): Promise<BN> {
+  public async estimateGas(
+    txParams: TransactionParams
+  ): Promise<{
+    estimation: BN;
+    trace: MessageTrace;
+    error?: Error;
+    consoleLogMessages: string[];
+  }> {
     const tx = await this._getFakeTransaction({
       ...txParams,
       gasLimit: await this.getBlockGasLimit()
     });
 
-    const result = await this._runTxAndRevertMutations(tx, true);
+    const result = await this._runTxAndRevertMutations(tx);
+
+    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
+
+    if (this._vmTraceDecoder !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
 
     // This is only considered if the call to _runTxAndRevertMutations doesn't
     // manage errors
     if (result.execResult.exceptionError !== undefined) {
-      return this.getBlockGasLimit();
+      return {
+        estimation: await this.getBlockGasLimit(),
+        trace: vmTrace,
+        error: await this._manageErrors(
+          result.execResult,
+          vmTrace,
+          vmTracerError
+        ),
+        consoleLogMessages
+      };
     }
 
     const initialEstimation = result.gasUsed;
 
-    return this._correctInitialEstimation(txParams, initialEstimation);
+    return {
+      estimation: await this._correctInitialEstimation(
+        txParams,
+        initialEstimation
+      ),
+      trace: vmTrace,
+      consoleLogMessages
+    };
   }
 
   public async getGasPrice(): Promise<BN> {
@@ -787,8 +824,8 @@ export class BuidlerNode extends EventEmitter {
     }
 
     if (
-      (filter!.subscription && !subscription) ||
-      (!filter!.subscription && subscription)
+      (filter.subscription && !subscription) ||
+      (!filter.subscription && subscription)
     ) {
       return false;
     }
@@ -900,40 +937,40 @@ export class BuidlerNode extends EventEmitter {
     }
   }
 
-  private async _printLogs(
+  private async _getConsoleLogMessages(
     vmTrace: MessageTrace,
     vmTracerError: Error | undefined
-  ) {
+  ): Promise<string[]> {
     if (vmTracerError !== undefined) {
       log(
         "Could not print console log. Please report this to help us improve Buidler.\n",
         vmTracerError
       );
 
-      return;
+      return [];
     }
 
-    this._consoleLogger.printLogs(vmTrace);
+    return this._consoleLogger.getLogMessages(vmTrace);
   }
 
   private async _manageErrors(
     vmResult: ExecResult,
     vmTrace: MessageTrace,
     vmTracerError?: Error
-  ): Promise<TransactionExecutionError | undefined> {
+  ): Promise<SolidityError | TransactionExecutionError | undefined> {
     if (vmResult.exceptionError === undefined) {
       return undefined;
     }
 
     let stackTrace: SolidityStackTrace | undefined;
 
-    if (this._stackTracesEnabled) {
+    if (this._solidityTracer !== undefined) {
       try {
         if (vmTracerError !== undefined) {
           throw vmTracerError;
         }
 
-        stackTrace = this._solidityTracer!.getStackTrace(vmTrace);
+        stackTrace = this._solidityTracer.getStackTrace(vmTrace);
       } catch (error) {
         this._failedStackTraces += 1;
         log(
@@ -1267,7 +1304,7 @@ export class BuidlerNode extends EventEmitter {
       });
     }
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx);
 
     if (result.execResult.exceptionError === undefined) {
       return initialEstimation;
@@ -1335,7 +1372,7 @@ export class BuidlerNode extends EventEmitter {
       gasLimit: newEstimation
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx);
 
     if (result.execResult.exceptionError === undefined) {
       return this._binarySearchEstimation(
@@ -1362,10 +1399,7 @@ export class BuidlerNode extends EventEmitter {
    * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
    * inspected/resetted.
    */
-  private async _runTxAndRevertMutations(
-    tx: Transaction,
-    throwOnError = true
-  ): Promise<EVMResult> {
+  private async _runTxAndRevertMutations(tx: Transaction): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     try {
@@ -1380,35 +1414,12 @@ export class BuidlerNode extends EventEmitter {
 
       await this._addTransactionToBlock(block, tx);
 
-      let result: RunTxResult;
-      try {
-        result = await this._vm.runTx({
-          block,
-          tx,
-          skipNonce: true,
-          skipBalance: true
-        });
-      } catch (error) {
-        throw new TransactionExecutionError(error);
-      }
-
-      if (throwOnError) {
-        const vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-        const vmTracerError = this._vmTracer.getLastError();
-        this._vmTracer.clearLastError();
-
-        const error = await this._manageErrors(
-          result.execResult,
-          vmTrace,
-          vmTracerError
-        );
-
-        if (error !== undefined) {
-          throw error;
-        }
-      }
-
-      return result;
+      return await this._vm.runTx({
+        block,
+        tx,
+        skipNonce: true,
+        skipBalance: true
+      });
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
     }

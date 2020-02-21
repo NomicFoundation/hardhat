@@ -41,34 +41,30 @@ export class JsonRpcServer {
     return new HttpProvider(`http://${address}:${port}/`, name);
   };
 
-  public listen = (): Promise<number> => {
-    return new Promise<number>(async resolve => {
-      process.once("SIGINT", async () => {
-        await this.close();
-
-        resolve(0);
-      });
-
-      await this.start();
+  public listen = (): Promise<{ address: string; port: number }> => {
+    process.once("SIGINT", async () => {
+      await this.close();
     });
-  };
 
-  public start = async (logOnStarted = true) => {
     return new Promise(resolve => {
       log(`Starting JSON-RPC server on port ${this._config.port}`);
       this._httpServer.listen(this._config.port, this._config.hostname, () => {
         // We get the address and port directly from the server in order to handle random port allocation with `0`.
-        const { address, port } = this._httpServer.address();
-
-        if (logOnStarted) {
-          console.log(
-            `Started HTTP and WebSocket JSON-RPC server at ${address}:${port}/`
-          );
-        }
-
-        resolve();
+        resolve(this._httpServer.address());
       });
     });
+  };
+
+  public waitUntilClosed = async () => {
+    const httpServerClosed = new Promise(resolve => {
+      this._httpServer.once("close", resolve);
+    });
+
+    const wsServerClosed = new Promise(resolve => {
+      this._wsServer.once("close", resolve);
+    });
+
+    return Promise.all([httpServerClosed, wsServerClosed]);
   };
 
   public close = async () => {

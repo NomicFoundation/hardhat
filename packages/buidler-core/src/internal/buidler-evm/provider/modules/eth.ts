@@ -1,3 +1,4 @@
+import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import {
@@ -8,7 +9,19 @@ import {
   zeroAddress
 } from "ethereumjs-util";
 import * as t from "io-ts";
+import util from "util";
 
+import {
+  isCreateTrace,
+  isPrecompileTrace,
+  MessageTrace
+} from "../../stack-traces/message-trace";
+import { ContractFunctionType } from "../../stack-traces/model";
+import {
+  FALLBACK_FUNCTION_NAME,
+  UNRECOGNIZED_CONTRACT_NAME,
+  UNRECOGNIZED_FUNCTION_NAME
+} from "../../stack-traces/solidity-stack-trace";
 import {
   InvalidArgumentsError,
   InvalidInputError,
@@ -57,12 +70,16 @@ import {
   RpcTransactionReceiptOutput
 } from "../output";
 
-// tslint:disable only-buidler-error
+import { ModulesLogger } from "./logger";
 
+// tslint:disable only-buidler-error
 export class EthModule {
   constructor(
     private readonly _common: Common,
-    private readonly _node: BuidlerNode
+    private readonly _node: BuidlerNode,
+    private readonly _throwOnTransactionFailures: boolean,
+    private readonly _throwOnCallFailures: boolean,
+    private readonly _logger?: ModulesLogger
   ) {}
 
   public async processRequest(
@@ -291,7 +308,27 @@ export class EthModule {
     this._validateBlockTag(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
-    const returnData = await this._node.runCall(callParams);
+    const {
+      result: returnData,
+      trace,
+      error,
+      consoleLogMessages
+    } = await this._node.runCall(callParams);
+
+    this._logCallTrace(callParams, trace);
+
+    this._logConsoleLogMessages(consoleLogMessages);
+
+    if (error !== undefined) {
+      if (this._throwOnCallFailures) {
+        throw error;
+      }
+
+      // TODO: This is a little duplicated with the provider, it should be
+      //  refactored away
+      // TODO: This will log the error, but the RPC method won't be red
+      this._logError(error);
+    }
 
     return bufferToRpcData(returnData);
   }
@@ -340,7 +377,24 @@ export class EthModule {
       transactionRequest
     );
 
-    return numberToRpcQuantity(await this._node.estimateGas(txParams));
+    const {
+      estimation,
+      error,
+      trace,
+      consoleLogMessages
+    } = await this._node.estimateGas(txParams);
+
+    if (error !== undefined) {
+      this._logContractAndFunctionName(trace);
+      this._logFrom(txParams.from);
+      this._logValue(new BN(txParams.value));
+
+      this._logConsoleLogMessages(consoleLogMessages);
+
+      throw error;
+    }
+
+    return numberToRpcQuantity(estimation);
   }
 
   // eth_gasPrice
@@ -795,9 +849,7 @@ export class EthModule {
       throw error;
     }
 
-    await this._node.runTransactionInNewBlock(tx);
-
-    return bufferToRpcData(tx.hash(true));
+    return this._sendTransactionAndReturnHash(tx);
   }
 
   // eth_sendTransaction
@@ -814,9 +866,8 @@ export class EthModule {
     );
 
     const tx = await this._node.getSignedTransaction(txParams);
-    await this._node.runTransactionInNewBlock(tx);
 
-    return bufferToRpcData(tx.hash(true));
+    return this._sendTransactionAndReturnHash(tx);
   }
 
   // eth_sign
@@ -1034,5 +1085,192 @@ export class EthModule {
     }
 
     return toBuffer(localAccounts[0]);
+  }
+
+  private _logTransactionTrace(
+    tx: Transaction,
+    trace: MessageTrace,
+    block: Block,
+    blockResult: RunBlockResult
+  ) {
+    if (this._logger === undefined) {
+      return;
+    }
+
+    this._logContractAndFunctionName(trace);
+    this._logger.log(`Transaction: ${bufferToHex(tx.hash(true))}`);
+    this._logFrom(tx.getSenderAddress());
+    this._logValue(new BN(tx.value));
+    this._logger.log(
+      `Gas used: ${new BN(blockResult.receipts[0].gasUsed).toString(
+        10
+      )} of ${new BN(tx.gasLimit).toString(10)}`
+    );
+    this._logger.log(
+      `Block: #${new BN(block.header.number).toString(
+        10
+      )} - Hash: ${bufferToHex(block.hash())}`
+    );
+  }
+
+  private _logConsoleLogMessages(messages: string[]) {
+    // This is a especial case, as we always want to print the console.log
+    // messages. The difference is how.
+    // If we have a logger, we should use that, so that logs are printed in
+    // order. If we don't, we just print the messages here.
+    if (this._logger === undefined) {
+      for (const msg of messages) {
+        console.log(msg);
+      }
+      return;
+    }
+
+    if (messages.length === 0) {
+      return;
+    }
+
+    this._logger.log("");
+
+    this._logger.log("console.log:");
+    for (const msg of messages) {
+      this._logger.log(`  ${msg}`);
+    }
+  }
+
+  private _logCallTrace(callParams: CallParams, trace: MessageTrace) {
+    if (this._logger === undefined) {
+      return;
+    }
+
+    this._logContractAndFunctionName(trace);
+    this._logFrom(callParams.from);
+    if (callParams.value.gtn(0)) {
+      this._logValue(callParams.value);
+    }
+  }
+
+  private _logContractAndFunctionName(trace: MessageTrace) {
+    if (this._logger === undefined) {
+      return;
+    }
+
+    if (isPrecompileTrace(trace)) {
+      this._logger.log(
+        `Precompile call: <PrecompileContract ${trace.precompile}>`
+      );
+      return;
+    }
+
+    if (isCreateTrace(trace)) {
+      if (trace.bytecode === undefined) {
+        this._logger.log(`Contract deployment: ${UNRECOGNIZED_CONTRACT_NAME}`);
+      } else {
+        this._logger.log(
+          `Contract deployment: ${trace.bytecode.contract.name}`
+        );
+      }
+
+      if (trace.deployedContract !== undefined) {
+        this._logger.log(
+          `Contract address: ${bufferToHex(trace.deployedContract)}`
+        );
+      }
+
+      return;
+    }
+
+    if (trace.bytecode === undefined) {
+      this._logger.log(`Contract call: ${UNRECOGNIZED_CONTRACT_NAME}`);
+      return;
+    }
+
+    const func = trace.bytecode.contract.getFunctionFromSelector(
+      trace.calldata.slice(0, 4)
+    );
+
+    const functionName: string =
+      func === undefined
+        ? UNRECOGNIZED_FUNCTION_NAME
+        : func.type === ContractFunctionType.FALLBACK
+        ? FALLBACK_FUNCTION_NAME
+        : func.name;
+
+    this._logger.log(
+      `Contract call: ${trace.bytecode.contract.name}#${functionName}`
+    );
+  }
+
+  private _logValue(value: BN) {
+    if (this._logger === undefined) {
+      return;
+    }
+    // eth = 1e18
+    // gwei = 1e9
+    // 0.0001 eth = 1e14 = 1e5gwei
+    // 0.0001 gwei = 1e5
+
+    if (value.eqn(0)) {
+      this._logger.log(`Value: 0 ETH`);
+      return;
+    }
+
+    if (value.lt(new BN(10).pow(new BN(5)))) {
+      this._logger.log(`Value: ${value} wei`);
+      return;
+    }
+
+    if (value.lt(new BN(10).pow(new BN(14)))) {
+      this._logger.log(`Value: ${value.sub(new BN(10).pow(new BN(9)))} gwei`);
+      return;
+    }
+
+    this._logger.log(`Value: ${value.sub(new BN(10).pow(new BN(18)))} ETH`);
+  }
+
+  private _logError(error: Error) {
+    if (this._logger === undefined) {
+      return;
+    }
+
+    // TODO: We log an empty line here because this is only used when throwing
+    //   errors is disabled. The empty line is normally printed by the provider
+    //   when an exception is thrown. As we don't throw, we do it here.
+    this._logger.log("");
+    this._logger.log(util.inspect(error));
+  }
+
+  private _logFrom(from: Buffer) {
+    if (this._logger === undefined) {
+      return;
+    }
+
+    this._logger.log(`From: ${bufferToHex(from)}`);
+  }
+
+  private async _sendTransactionAndReturnHash(tx: Transaction) {
+    const {
+      trace,
+      block,
+      blockResult,
+      consoleLogMessages,
+      error
+    } = await this._node.runTransactionInNewBlock(tx);
+
+    this._logTransactionTrace(tx, trace, block, blockResult);
+
+    this._logConsoleLogMessages(consoleLogMessages);
+
+    if (error !== undefined) {
+      if (this._throwOnTransactionFailures) {
+        throw error;
+      }
+
+      // TODO: This is a little duplicated with the provider, it should be
+      //  refactored away
+      // TODO: This will log the error, but the RPC method won't be red
+      this._logError(error);
+    }
+
+    return bufferToRpcData(tx.hash(true));
   }
 }

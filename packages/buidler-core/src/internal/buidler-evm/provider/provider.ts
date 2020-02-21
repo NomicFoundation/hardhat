@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk, { Chalk } from "chalk";
 import debug from "debug";
 import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
@@ -6,23 +6,33 @@ import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
+import util from "util";
 
 import { EthereumProvider, ProjectPaths } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
 import { getUserConfigPath } from "../../core/project-structure";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 
-import { MethodNotFoundError } from "./errors";
+import {
+  BuidlerEVMProviderError,
+  MethodNotFoundError,
+  MethodNotSupportedError
+} from "./errors";
 import { BuidlerModule } from "./modules/buidler";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
+import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
 import { BuidlerNode, GenesisAccount, SolidityTracerOptions } from "./node";
 
 const log = debug("buidler:core:buidler-evm:provider");
+
+// Set of methods that are never logged
+const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);
 
 // tslint:disable only-buidler-error
 
@@ -36,6 +46,7 @@ export class BuidlerEVMProvider extends EventEmitter
   private _evmModule?: EvmModule;
   private _buidlerModule?: BuidlerModule;
   private readonly _mutex = new Mutex();
+  private readonly _logger = new ModulesLogger();
 
   constructor(
     private readonly _hardfork: string,
@@ -58,7 +69,7 @@ export class BuidlerEVMProvider extends EventEmitter
     const release = await this._mutex.acquire();
 
     try {
-      if (this._loggingEnabled) {
+      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(method)) {
         return await this._sendWithLogging(method, params);
       }
 
@@ -73,14 +84,55 @@ export class BuidlerEVMProvider extends EventEmitter
     params: any[] = []
   ): Promise<any> {
     try {
-      console.log(chalk.green(`JSON-RPC call: ${method}`));
+      const result = await this._send(method, params);
 
-      return await this._send(method, params);
+      // TODO: If an eth_call, eth_sendTransaction, or eth_sendRawTransaction
+      //  fails without throwing, this will be displayed in green. It's unclear
+      //  if this is correct. See Eth module's TODOs for more info.
+      // We log after running the method, because we want to use different
+      // colors depending on whether it failed or not
+      this._log(method, false, chalk.green);
+
+      const loggedSomething = this._logModuleMessages();
+      if (loggedSomething) {
+        this._log("");
+      }
+
+      return result;
     } catch (err) {
-      console.error(chalk.red(err.message));
-      console.error(err);
+      if (
+        err instanceof MethodNotFoundError ||
+        err instanceof MethodNotSupportedError
+      ) {
+        this._log(`${method} - Method not supported`, false, chalk.red);
+
+        throw err;
+      }
+
+      this._log(method, false, chalk.red);
+
+      const loggedSomething = this._logModuleMessages();
+      if (loggedSomething) {
+        this._log("");
+      }
+
+      if (err instanceof SolidityError) {
+        this._logError(err);
+      } else if (err instanceof BuidlerEVMProviderError) {
+        this._log(err.message, true);
+      } else {
+        this._logError(err, true);
+        this._log(
+          "If you think this is a bug in Buidler, please report it here: https://buidler.dev/reportbug",
+          true
+        );
+      }
+
+      this._log("");
 
       throw err;
+    } finally {
+      this._logger.clearLogs();
     }
   }
 
@@ -172,8 +224,6 @@ export class BuidlerEVMProvider extends EventEmitter
       this._chainId,
       this._networkId,
       this._blockGasLimit,
-      this._throwOnTransactionFailures,
-      this._throwOnCallFailures,
       this._genesisAccounts,
       this._solcVersion,
       compilerInput,
@@ -183,7 +233,14 @@ export class BuidlerEVMProvider extends EventEmitter
     this._common = common;
     this._node = node;
 
-    this._ethModule = new EthModule(common, node);
+    this._ethModule = new EthModule(
+      common,
+      node,
+      this._throwOnTransactionFailures,
+      this._throwOnCallFailures,
+      this._loggingEnabled ? this._logger : undefined
+    );
+
     this._netModule = new NetModule(common);
     this._web3Module = new Web3Module();
     this._evmModule = new EvmModule(node);
@@ -198,5 +255,38 @@ export class BuidlerEVMProvider extends EventEmitter
 
     // Handle eth_subscribe events and proxy them to handler
     this._node.addListener("ethEvent", listener);
+  }
+
+  private _logModuleMessages(): boolean {
+    const logs = this._logger.getLogs();
+    if (logs.length === 0) {
+      return false;
+    }
+
+    for (const msg of logs) {
+      this._log(msg, true);
+    }
+
+    return true;
+  }
+
+  private _logError(err: Error, logInRed = false) {
+    this._log(util.inspect(err), true, logInRed ? chalk.red : undefined);
+  }
+
+  private _log(msg: string, indent = false, color?: Chalk) {
+    if (indent) {
+      msg = msg
+        .split("\n")
+        .map(line => `  ${line}`)
+        .join("\n");
+    }
+
+    if (color !== undefined) {
+      console.log(color(msg));
+      return;
+    }
+
+    console.log(msg);
   }
 }

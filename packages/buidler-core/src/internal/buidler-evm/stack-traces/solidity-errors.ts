@@ -239,7 +239,10 @@ function getMessageFromLastStackTraceEntry(
   }
 }
 
-export class SolidityError extends TransactionExecutionError {
+// Note: This error class MUST NOT extend BuidlerEVMProviderError, as libraries
+//   use the code property to detect if they are dealing with a JSON-RPC error,
+//   and take control of errors.
+export class SolidityError extends Error {
   public readonly stackTrace: SolidityStackTrace;
 
   constructor(message: string, stackTrace: SolidityStackTrace) {
@@ -247,12 +250,14 @@ export class SolidityError extends TransactionExecutionError {
     this.stackTrace = stackTrace;
   }
 
-  public [inspect.custom]() {
-    return this.stack;
+  public [inspect.custom](): string {
+    return this.inspect();
   }
 
-  public inspect() {
-    return this.stack;
+  public inspect(): string {
+    return this.stack !== undefined
+      ? this.stack
+      : "Internal error when encoding SolidityError";
   }
 }
 

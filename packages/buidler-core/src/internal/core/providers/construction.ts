@@ -43,7 +43,8 @@ export function createProvider(
       buidlerNetConfig.throwOnCallFailures!,
       buidlerNetConfig.accounts,
       solcVersion,
-      paths
+      paths,
+      buidlerNetConfig.loggingEnabled
     );
   } else {
     const httpNetConfig = networkConfig as HttpNetworkConfig;

@@ -10,6 +10,7 @@ declare module "mocha" {
   interface Context {
     provider: EthereumProvider;
     common: Common;
+    server?: JsonRpcServer;
   }
 }
 
@@ -73,8 +74,6 @@ export function useProvider(
       chainId,
       networkId,
       blockGasLimit,
-      true,
-      true,
       accounts
     );
 
@@ -97,7 +96,7 @@ export function useProvider(
         provider: this.provider
       });
 
-      await this.server.start(false);
+      await this.server.listen();
 
       this.provider = this.server.getProvider();
     }
@@ -107,7 +106,7 @@ export function useProvider(
     delete this.common;
     delete this.provider;
 
-    if (useJsonRpc) {
+    if (this.server !== undefined) {
       await this.server.close();
 
       delete this.server;
