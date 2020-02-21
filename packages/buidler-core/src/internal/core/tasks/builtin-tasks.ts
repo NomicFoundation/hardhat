@@ -28,7 +28,7 @@ export default function() {
   );
 
   loadPluginFile(
-    path.join(__dirname, "..", "..", "..", "builtin-tasks", "jsonrpc")
+    path.join(__dirname, "..", "..", "..", "builtin-tasks", "node")
   );
 
   loadPluginFile(
