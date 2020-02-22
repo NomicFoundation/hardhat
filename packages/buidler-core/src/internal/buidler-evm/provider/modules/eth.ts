@@ -1047,7 +1047,7 @@ If this error persists, try resetting your wallet's accounts.`
       case "latest":
         return LATEST_BLOCK;
       case "pending":
-        throw new InvalidArgumentsError("pending not supported");
+        return LATEST_BLOCK;
     }
 
     return blockTag;
