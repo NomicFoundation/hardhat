@@ -11,6 +11,7 @@ import {
 import * as t from "io-ts";
 import util from "util";
 
+import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
   isPrecompileTrace,
@@ -1242,24 +1243,8 @@ If this error persists, try resetting your wallet's accounts.`
     if (this._logger === undefined) {
       return;
     }
-    // eth = 1e18
-    // gwei = 1e9
-    // 0.0001 eth = 1e14 = 1e5gwei
-    // 0.0001 gwei = 1e5
 
-    let valueString: string;
-
-    if (value.eqn(0)) {
-      valueString = "0 ETH";
-    } else if (value.lt(new BN(10).pow(new BN(5)))) {
-      valueString = `${value} wei`;
-    } else if (value.lt(new BN(10).pow(new BN(14)))) {
-      valueString = `${value.sub(new BN(10).pow(new BN(9)))} gwei`;
-    } else {
-      valueString = `${value.sub(new BN(10).pow(new BN(18)))} ETH`;
-    }
-
-    this._logger.logWithTitle("Value", valueString);
+    this._logger.logWithTitle("Value", weiToHumanReadableString(value));
   }
 
   private _logError(error: Error) {
