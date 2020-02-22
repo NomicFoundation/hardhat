@@ -100,7 +100,7 @@ export default function() {
 
           console.log(
             chalk.green(
-              `Started HTTP and WebSocket JSON-RPC server at ${address}:${actualPort}/`
+              `Started HTTP and WebSocket JSON-RPC server at http://${address}:${actualPort}/`
             )
           );
 
