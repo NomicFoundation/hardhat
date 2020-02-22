@@ -124,6 +124,7 @@ export class BuidlerEVMProvider extends EventEmitter
         this._log(err.message, true);
       } else {
         this._logError(err, true);
+        this._log("");
         this._log(
           "If you think this is a bug in Buidler, please report it here: https://buidler.dev/reportbug",
           true
