@@ -290,8 +290,7 @@ export class EthModule {
   }
 
   private async _blockNumberAction(): Promise<string> {
-    const block = await this._node.getLatestBlock();
-    const blockNumber = new BN(block.header.number);
+    const blockNumber = await this._node.getLatestBlockNumber();
     return numberToRpcQuantity(blockNumber);
   }
 

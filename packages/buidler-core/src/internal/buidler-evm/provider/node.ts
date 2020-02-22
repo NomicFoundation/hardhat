@@ -504,6 +504,10 @@ export class BuidlerNode extends EventEmitter {
     return this._getLatestBlock();
   }
 
+  public async getLatestBlockNumber(): Promise<BN> {
+    return new BN((await this._getLatestBlock()).header.number);
+  }
+
   public async getLocalAccountAddresses(): Promise<string[]> {
     return [...this._accountPrivateKeys.keys()];
   }
