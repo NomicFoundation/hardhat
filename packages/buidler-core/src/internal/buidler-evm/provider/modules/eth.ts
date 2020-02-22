@@ -304,7 +304,7 @@ export class EthModule {
     rpcCall: RpcCallRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    this._validateBlockTag(blockTag);
+    await this._validateBlockTag(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
     const {
@@ -370,7 +370,7 @@ export class EthModule {
     transactionRequest: RpcTransactionRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    this._validateBlockTag(blockTag);
+    await this._validateBlockTag(blockTag);
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
@@ -416,7 +416,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    this._validateBlockTag(blockTag);
+    await this._validateBlockTag(blockTag);
 
     return numberToRpcQuantity(await this._node.getAccountBalance(address));
   }
@@ -521,7 +521,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    this._validateBlockTag(blockTag);
+    await this._validateBlockTag(blockTag);
 
     return bufferToRpcData(await this._node.getCode(address));
   }
@@ -614,7 +614,7 @@ export class EthModule {
     slot: BN,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    this._validateBlockTag(blockTag);
+    await this._validateBlockTag(blockTag);
 
     const data = await this._node.getStorageAt(address, slot);
 
@@ -718,7 +718,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    this._validateBlockTag(blockTag);
+    await this._validateBlockTag(blockTag);
 
     return numberToRpcQuantity(await this._node.getAccountNonce(address));
   }
@@ -1017,7 +1017,13 @@ export class EthModule {
     };
   }
 
-  private _validateBlockTag(blockTag: OptionalBlockTag) {
+  private async _validateBlockTag(blockTag: OptionalBlockTag) {
+    const latestBlock = await this._node.getLatestBlockNumber();
+
+    if (BN.isBN(blockTag) && latestBlock.eq(blockTag)) {
+      return;
+    }
+
     // We only support latest and pending. As this provider doesn't have pending transactions, its
     // actually just latest.
     if (
