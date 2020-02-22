@@ -1030,7 +1030,11 @@ export class EthModule {
       blockTag !== "pending"
     ) {
       throw new InvalidInputError(
-        "Only latest and pending block params are supported"
+        `Received block param ${blockTag.toString()} and latest block is ${latestBlock.toString()}.
+
+Only latest and pending block params are supported.
+
+If this error persists, try resetting your wallet's accounts.`
       );
     }
   }
