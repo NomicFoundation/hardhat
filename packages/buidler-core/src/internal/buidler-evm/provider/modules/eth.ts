@@ -314,7 +314,7 @@ export class EthModule {
       consoleLogMessages
     } = await this._node.runCall(callParams);
 
-    this._logCallTrace(callParams, trace);
+    await this._logCallTrace(callParams, trace);
 
     this._logConsoleLogMessages(consoleLogMessages);
 
@@ -384,9 +384,7 @@ export class EthModule {
     } = await this._node.estimateGas(txParams);
 
     if (error !== undefined) {
-      this._logContractAndFunctionName(trace);
-      this._logFrom(txParams.from);
-      this._logValue(new BN(txParams.value));
+      await this._logEstimateGasTrace(txParams, trace);
 
       this._logConsoleLogMessages(consoleLogMessages);
 
@@ -1092,7 +1090,17 @@ export class EthModule {
     return toBuffer(localAccounts[0]);
   }
 
-  private _logTransactionTrace(
+  private async _logEstimateGasTrace(
+    txParams: TransactionParams,
+    trace: MessageTrace
+  ) {
+    await this._logContractAndFunctionName(trace, true);
+    this._logFrom(txParams.from);
+    this._logTo(trace, txParams.to);
+    this._logValue(new BN(txParams.value));
+  }
+
+  private async _logTransactionTrace(
     tx: Transaction,
     trace: MessageTrace,
     block: Block,
@@ -1102,19 +1110,20 @@ export class EthModule {
       return;
     }
 
-    this._logContractAndFunctionName(trace);
-    this._logger.log(`Transaction: ${bufferToHex(tx.hash(true))}`);
+    await this._logContractAndFunctionName(trace, false);
+    this._logger.logWithTitle("Transaction", bufferToHex(tx.hash(true)));
     this._logFrom(tx.getSenderAddress());
+    this._logTo(trace, tx.to);
     this._logValue(new BN(tx.value));
-    this._logger.log(
-      `Gas used: ${new BN(blockResult.receipts[0].gasUsed).toString(
-        10
-      )} of ${new BN(tx.gasLimit).toString(10)}`
+    this._logger.logWithTitle(
+      "Gas used",
+      `${new BN(blockResult.receipts[0].gasUsed).toString(10)} of ${new BN(
+        tx.gasLimit
+      ).toString(10)}`
     );
-    this._logger.log(
-      `Block: #${new BN(block.header.number).toString(
-        10
-      )} - Hash: ${bufferToHex(block.hash())}`
+    this._logger.logWithTitle(
+      `Block #${new BN(block.header.number).toString(10)}`,
+      bufferToHex(block.hash())
     );
   }
 
@@ -1142,50 +1151,69 @@ export class EthModule {
     }
   }
 
-  private _logCallTrace(callParams: CallParams, trace: MessageTrace) {
+  private async _logCallTrace(callParams: CallParams, trace: MessageTrace) {
     if (this._logger === undefined) {
       return;
     }
 
-    this._logContractAndFunctionName(trace);
+    await this._logContractAndFunctionName(trace, true);
     this._logFrom(callParams.from);
+    this._logTo(trace, callParams.to);
     if (callParams.value.gtn(0)) {
       this._logValue(callParams.value);
     }
   }
 
-  private _logContractAndFunctionName(trace: MessageTrace) {
+  private async _logContractAndFunctionName(
+    trace: MessageTrace,
+    shouldBeContract: boolean
+  ) {
     if (this._logger === undefined) {
       return;
     }
 
     if (isPrecompileTrace(trace)) {
-      this._logger.log(
-        `Precompile call: <PrecompileContract ${trace.precompile}>`
+      this._logger.logWithTitle(
+        "Precompile call",
+        `<PrecompileContract ${trace.precompile}>`
       );
       return;
     }
 
     if (isCreateTrace(trace)) {
       if (trace.bytecode === undefined) {
-        this._logger.log(`Contract deployment: ${UNRECOGNIZED_CONTRACT_NAME}`);
+        this._logger.logWithTitle(
+          "Contract deployment",
+          UNRECOGNIZED_CONTRACT_NAME
+        );
       } else {
-        this._logger.log(
-          `Contract deployment: ${trace.bytecode.contract.name}`
+        this._logger.logWithTitle(
+          "Contract deployment",
+          trace.bytecode.contract.name
         );
       }
 
       if (trace.deployedContract !== undefined) {
-        this._logger.log(
-          `Contract address: ${bufferToHex(trace.deployedContract)}`
+        this._logger.logWithTitle(
+          "Contract address",
+          bufferToHex(trace.deployedContract)
         );
       }
 
       return;
     }
 
+    const code = await this._node.getCode(trace.address);
+    if (code.length === 0) {
+      if (shouldBeContract) {
+        this._logger.log(`WARNING: Calling an account which is not a contract`);
+      }
+
+      return;
+    }
+
     if (trace.bytecode === undefined) {
-      this._logger.log(`Contract call: ${UNRECOGNIZED_CONTRACT_NAME}`);
+      this._logger.logWithTitle("Contract call", UNRECOGNIZED_CONTRACT_NAME);
       return;
     }
 
@@ -1200,8 +1228,9 @@ export class EthModule {
         ? FALLBACK_FUNCTION_NAME
         : func.name;
 
-    this._logger.log(
-      `Contract call: ${trace.bytecode.contract.name}#${functionName}`
+    this._logger.logWithTitle(
+      "Contract call",
+      `${trace.bytecode.contract.name}#${functionName}`
     );
   }
 
@@ -1214,22 +1243,19 @@ export class EthModule {
     // 0.0001 eth = 1e14 = 1e5gwei
     // 0.0001 gwei = 1e5
 
+    let valueString: string;
+
     if (value.eqn(0)) {
-      this._logger.log(`Value: 0 ETH`);
-      return;
+      valueString = "0 ETH";
+    } else if (value.lt(new BN(10).pow(new BN(5)))) {
+      valueString = `${value} wei`;
+    } else if (value.lt(new BN(10).pow(new BN(14)))) {
+      valueString = `${value.sub(new BN(10).pow(new BN(9)))} gwei`;
+    } else {
+      valueString = `${value.sub(new BN(10).pow(new BN(18)))} ETH`;
     }
 
-    if (value.lt(new BN(10).pow(new BN(5)))) {
-      this._logger.log(`Value: ${value} wei`);
-      return;
-    }
-
-    if (value.lt(new BN(10).pow(new BN(14)))) {
-      this._logger.log(`Value: ${value.sub(new BN(10).pow(new BN(9)))} gwei`);
-      return;
-    }
-
-    this._logger.log(`Value: ${value.sub(new BN(10).pow(new BN(18)))} ETH`);
+    this._logger.logWithTitle("Value", valueString);
   }
 
   private _logError(error: Error) {
@@ -1249,7 +1275,7 @@ export class EthModule {
       return;
     }
 
-    this._logger.log(`From: ${bufferToHex(from)}`);
+    this._logger.logWithTitle("From", bufferToHex(from));
   }
 
   private async _sendTransactionAndReturnHash(tx: Transaction) {
@@ -1261,7 +1287,7 @@ export class EthModule {
       error
     } = await this._node.runTransactionInNewBlock(tx);
 
-    this._logTransactionTrace(tx, trace, block, blockResult);
+    await this._logTransactionTrace(tx, trace, block, blockResult);
 
     this._logConsoleLogMessages(consoleLogMessages);
 
@@ -1277,5 +1303,17 @@ export class EthModule {
     }
 
     return bufferToRpcData(tx.hash(true));
+  }
+
+  private _logTo(trace: MessageTrace, to: Buffer) {
+    if (this._logger === undefined) {
+      return;
+    }
+
+    if (isCreateTrace(trace)) {
+      return;
+    }
+
+    this._logger.logWithTitle("To", bufferToHex(to));
   }
 }

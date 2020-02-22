@@ -83,6 +83,8 @@ export class BuidlerEVMProvider extends EventEmitter
     method: string,
     params: any[] = []
   ): Promise<any> {
+    this._logger.clearLogs();
+
     try {
       const result = await this._send(method, params);
 
@@ -131,8 +133,6 @@ export class BuidlerEVMProvider extends EventEmitter
       this._log("");
 
       throw err;
-    } finally {
-      this._logger.clearLogs();
     }
   }
 
