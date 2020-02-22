@@ -1,3 +1,4 @@
+import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
 import debug from "debug";
 import Common from "ethereumjs-common";
@@ -34,6 +35,14 @@ const log = debug("buidler:core:buidler-evm:provider");
 // Set of methods that are never logged
 const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);
 
+// These methods are shown every time, even if repeated right next to the other
+const NON_COLLAPSIBLE_METHODS = new Set([
+  "eth_sendTransaction",
+  "eth_sendRawTransaction",
+  "eth_call",
+  "eth_estimateGas"
+]);
+
 // tslint:disable only-buidler-error
 
 export class BuidlerEVMProvider extends EventEmitter
@@ -47,6 +56,9 @@ export class BuidlerEVMProvider extends EventEmitter
   private _buidlerModule?: BuidlerModule;
   private readonly _mutex = new Mutex();
   private readonly _logger = new ModulesLogger();
+
+  private _methodBeingCollapsed?: string;
+  private _methodCollapsedCount: number = 0;
 
   constructor(
     private readonly _hardfork: string,
@@ -87,21 +99,30 @@ export class BuidlerEVMProvider extends EventEmitter
 
     try {
       const result = await this._send(method, params);
+      // We log after running the method, because we want to use different
+      // colors depending on whether it failed or not
 
       // TODO: If an eth_call, eth_sendTransaction, or eth_sendRawTransaction
       //  fails without throwing, this will be displayed in green. It's unclear
       //  if this is correct. See Eth module's TODOs for more info.
-      // We log after running the method, because we want to use different
-      // colors depending on whether it failed or not
-      this._log(method, false, chalk.green);
+
+      if (this._shouldCollapseMethod(method)) {
+        this._logCollapsedMethod(method);
+      } else {
+        this._startCollapsingMethod(method);
+        this._log(method, false, chalk.green);
+      }
 
       const loggedSomething = this._logModuleMessages();
       if (loggedSomething) {
+        this._stopCollapsingMethod();
         this._log("");
       }
 
       return result;
     } catch (err) {
+      this._stopCollapsingMethod();
+
       if (
         err instanceof MethodNotFoundError ||
         err instanceof MethodNotSupportedError
@@ -135,6 +156,35 @@ export class BuidlerEVMProvider extends EventEmitter
 
       throw err;
     }
+  }
+
+  private _logCollapsedMethod(method: string) {
+    this._methodCollapsedCount += 1;
+    this._clearLastLogLine();
+    this._log(`${method} (${this._methodCollapsedCount})`, false, chalk.green);
+  }
+
+  private _startCollapsingMethod(method: string) {
+    this._methodBeingCollapsed = method;
+    this._methodCollapsedCount = 1;
+  }
+
+  private _stopCollapsingMethod() {
+    this._methodBeingCollapsed = undefined;
+    this._methodCollapsedCount = 0;
+  }
+
+  private _clearLastLogLine() {
+    process.stdout.write(ansiEscapes.eraseLines(2));
+  }
+
+  private _shouldCollapseMethod(method: string) {
+    return (
+      method === this._methodBeingCollapsed &&
+      !this._logger.hasLogs() &&
+      !NON_COLLAPSIBLE_METHODS.has(method) &&
+      this._methodCollapsedCount > 0
+    );
   }
 
   private async _send(method: string, params: any[] = []): Promise<any> {

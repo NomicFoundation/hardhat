@@ -26,6 +26,10 @@ export class ModulesLogger {
     this._logs = [];
   }
 
+  public hasLogs(): boolean {
+    return this._logs.length > 0;
+  }
+
   public getLogs(): string[] {
     return this._logs.map(l => {
       if (typeof l === "string") {
