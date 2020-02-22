@@ -160,8 +160,16 @@ export class BuidlerEVMProvider extends EventEmitter
 
   private _logCollapsedMethod(method: string) {
     this._methodCollapsedCount += 1;
-    this._clearLastLogLine();
-    this._log(`${method} (${this._methodCollapsedCount})`, false, chalk.green);
+
+    process.stdout.write(
+      // tslint:disable-next-line:prefer-template
+      ansiEscapes.cursorHide +
+        ansiEscapes.cursorPrevLine +
+        chalk.green(`${method} (${this._methodCollapsedCount})`) +
+        "\n" +
+        ansiEscapes.eraseEndLine +
+        ansiEscapes.cursorShow
+    );
   }
 
   private _startCollapsingMethod(method: string) {
@@ -172,10 +180,6 @@ export class BuidlerEVMProvider extends EventEmitter
   private _stopCollapsingMethod() {
     this._methodBeingCollapsed = undefined;
     this._methodCollapsedCount = 0;
-  }
-
-  private _clearLastLogLine() {
-    process.stdout.write(ansiEscapes.eraseLines(2));
   }
 
   private _shouldCollapseMethod(method: string) {
