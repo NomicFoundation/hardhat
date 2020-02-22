@@ -717,6 +717,24 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
+    // TODO: MetaMask does some eth_getTransactionCount(sender, currentBlock)
+    //   calls right after sending a transaction.
+    //   As we insta-mine, the currentBlock that they send is different from the
+    //   one we have, which results on an error.
+    //   This is not a big deal TBH, MM eventually resynchronizes, but it shows
+    //   some hard to understand errors to our users.
+    //   To avoid confusing our users, we have a special case here, just
+    //   for now.
+    //   This should be changed ASAP.
+    if (
+      BN.isBN(blockTag) &&
+      blockTag.eq((await this._node.getLatestBlockNumber()).subn(1))
+    ) {
+      return numberToRpcQuantity(
+        await this._node.getAccountNonceInPreviousBlock(address)
+      );
+    }
+
     await this._validateBlockTag(blockTag);
 
     return numberToRpcQuantity(await this._node.getAccountNonce(address));
