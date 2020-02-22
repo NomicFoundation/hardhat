@@ -30,6 +30,12 @@ export default class JsonRpcHandler {
   }
 
   public handleHttp = async (req: IncomingMessage, res: ServerResponse) => {
+    this._setCorsHeaders(res);
+    if (req.method === "OPTIONS") {
+      this._sendEmptyResponse(res);
+      return;
+    }
+
     let jsonHttpRequest: any;
     try {
       jsonHttpRequest = await _readJsonHttpRequest(req);
@@ -130,6 +136,18 @@ export default class JsonRpcHandler {
       });
     });
   };
+
+  private _sendEmptyResponse(res: ServerResponse) {
+    res.writeHead(200);
+    res.end();
+  }
+
+  private _setCorsHeaders(res: ServerResponse) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Request-Method", "*");
+    res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+  }
 
   private _sendResponse(
     res: ServerResponse,
