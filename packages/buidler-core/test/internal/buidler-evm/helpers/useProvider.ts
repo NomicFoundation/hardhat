@@ -1,10 +1,10 @@
 import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 
-import { JsonRpcServer } from "../../../../internal/buidler-evm/jsonrpc/server";
+import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
 import { BuidlerNode } from "../../../../src/internal/buidler-evm/provider/node";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
-import { EthereumProvider } from "../../../../types";
+import { EthereumProvider } from "../../../../src/types";
 
 declare module "mocha" {
   interface Context {

@@ -21,7 +21,7 @@ import {
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../../../../../src/internal/buidler-evm/provider/output";
-import { EthereumProvider } from "../../../../../types";
+import { EthereumProvider } from "../../../../../src/types";
 import {
   assertInvalidInputError,
   assertNodeBalances,

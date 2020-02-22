@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { isValidJsonResponse } from "../../../internal/util/jsonrpc";
+import { isValidJsonResponse } from "../../../src/internal/util/jsonrpc";
 
 describe("JSON-RPC", function() {
   describe("JSON-RPC response validation", function() {
