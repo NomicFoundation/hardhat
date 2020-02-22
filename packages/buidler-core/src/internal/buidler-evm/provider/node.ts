@@ -1250,7 +1250,12 @@ export class BuidlerNode extends EventEmitter {
     const actualNonce = new BN(tx.nonce);
     if (!expectedNonce.eq(actualNonce)) {
       throw new InvalidInputError(
-        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}`
+        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}.
+
+If you are running a script or test, you may be sending transactions in parallel.
+Using JavaScript? You probably forgot an await.
+
+If you are using a wallet or dapp, try resetting your wallet's accounts.`
       );
     }
 
