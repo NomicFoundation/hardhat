@@ -16,49 +16,94 @@
 // -32003	Transaction rejected	Transaction creation failed	        non-standard
 
 export class BuidlerEVMProviderError extends Error {
+  public static isBuidlerEVMProviderError(
+    other: any
+  ): other is BuidlerEVMProviderError {
+    return (
+      other !== undefined &&
+      other !== null &&
+      other._isBuidlerEVMProviderError === true
+    );
+  }
+
+  private readonly _isBuidlerEVMProviderError: boolean;
+
   constructor(message: string, public readonly code: number) {
     super(message);
+
+    this._isBuidlerEVMProviderError = true;
   }
 }
 
 export class InvalidJsonInputError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32700;
+
   constructor(message: string) {
-    super(message, -32700);
+    super(message, InvalidJsonInputError.CODE);
   }
 }
 
 export class InvalidRequestError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32600;
+
   constructor(message: string) {
-    super(message, -32600);
+    super(message, InvalidRequestError.CODE);
   }
 }
 
 export class MethodNotFoundError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32601;
+
   constructor(message: string) {
-    super(message, -32601);
+    super(message, MethodNotFoundError.CODE);
   }
 }
 
 export class InvalidArgumentsError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32602;
+
   constructor(message: string) {
-    super(message, -32602);
+    super(message, InvalidArgumentsError.CODE);
   }
 }
 
 export class InternalError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32603;
+
   constructor(message: string) {
-    super(message, -32603);
+    super(message, InternalError.CODE);
   }
 }
 
 export class InvalidInputError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32000;
+
   constructor(message: string) {
-    super(message, -32000);
+    super(message, InvalidInputError.CODE);
+  }
+}
+
+export class TransactionExecutionError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32003;
+
+  public parent: Error;
+
+  constructor(parent: Error | string) {
+    if (typeof parent === "string") {
+      parent = new Error(parent);
+    }
+
+    super(parent.message, TransactionExecutionError.CODE);
+
+    this.parent = parent;
+    this.stack = parent.stack;
   }
 }
 
 export class MethodNotSupportedError extends BuidlerEVMProviderError {
+  public static readonly CODE = -32004;
+
   constructor(message: string) {
-    super(message, -32004);
+    super(message, MethodNotSupportedError.CODE);
   }
 }

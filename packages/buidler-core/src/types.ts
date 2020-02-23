@@ -26,6 +26,7 @@ export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   hardfork?: string;
   throwOnTransactionFailures?: boolean;
   throwOnCallFailures?: boolean;
+  loggingEnabled?: boolean;
 }
 
 export interface HDAccountsConfig {

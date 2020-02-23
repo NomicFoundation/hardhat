@@ -1,6 +1,8 @@
 import { bufferToHex } from "ethereumjs-util";
 import { inspect } from "util";
 
+import { TransactionExecutionError } from "../provider/errors";
+
 import { decodeRevertReason } from "./revert-reasons";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
@@ -237,6 +239,9 @@ function getMessageFromLastStackTraceEntry(
   }
 }
 
+// Note: This error class MUST NOT extend BuidlerEVMProviderError, as libraries
+//   use the code property to detect if they are dealing with a JSON-RPC error,
+//   and take control of errors.
 export class SolidityError extends Error {
   public readonly stackTrace: SolidityStackTrace;
 
@@ -245,12 +250,14 @@ export class SolidityError extends Error {
     this.stackTrace = stackTrace;
   }
 
-  public [inspect.custom]() {
-    return this.stack;
+  public [inspect.custom](): string {
+    return this.inspect();
   }
 
-  public inspect() {
-    return this.stack;
+  public inspect(): string {
+    return this.stack !== undefined
+      ? this.stack
+      : "Internal error when encoding SolidityError";
   }
 }
 

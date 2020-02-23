@@ -47,26 +47,6 @@ export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
 const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";
 
 export class SolidityTracer {
-  constructor(private readonly _contractsIdentifier: ContractsIdentifier) {
-    const config = getUserConfigPath();
-  }
-
-  public tryToDecodeMessageTrace(messageTrace: MessageTrace): MessageTrace {
-    if (isPrecompileTrace(messageTrace)) {
-      return messageTrace;
-    }
-
-    return {
-      ...messageTrace,
-      bytecode: this._contractsIdentifier.getBytecodeFromMessageTrace(
-        messageTrace
-      ),
-      steps: messageTrace.steps.map(s =>
-        isEvmStep(s) ? s : this.tryToDecodeMessageTrace(s)
-      )
-    };
-  }
-
   public getStackTrace(
     maybeDecodedMessageTrace: MessageTrace
   ): SolidityStackTrace {

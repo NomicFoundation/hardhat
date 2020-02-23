@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
-import { isValidJsonResponse } from "../../../../src/internal/core/providers/http";
+import { isValidJsonResponse } from "../../../src/internal/util/jsonrpc";
 
-describe("HttpProvider", function() {
+describe("JSON-RPC", function() {
   describe("JSON-RPC response validation", function() {
     describe("Invalid responses", function() {
       it("Should validate the jsonrpc field", function() {
@@ -31,10 +31,32 @@ describe("HttpProvider", function() {
       });
 
       it("Should validate the id field", function() {
+        // Response without the id field is still a valid response,
+        // returned when an invalid JSON was provided as the request
+        // and id could not be parsed from it.
         assert.isFalse(
           isValidJsonResponse({
             jsonrpc: "2.0",
             result: "asd"
+          })
+        );
+
+        assert.isTrue(
+          isValidJsonResponse({
+            jsonrpc: "2.0",
+            id: null,
+            error: {
+              code: 123,
+              message: "asd"
+            }
+          })
+        );
+
+        assert.isFalse(
+          isValidJsonResponse({
+            jsonrpc: "2.0",
+            id: null,
+            result: 123
           })
         );
 
