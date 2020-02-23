@@ -33,8 +33,6 @@ mock provider.
 ```ts
 waffle: {
   provider: JsonRpcProvider;
-  getContract: (name: string) => Promise<ContractFactory>;
-  signers: () => Promise<Signer[]>;
 }
 ```
 

@@ -7,6 +7,7 @@
       "name": "greet",
       "outputs": [
         {
+          "internalType": "string",
           "name": "",
           "type": "string"
         }
