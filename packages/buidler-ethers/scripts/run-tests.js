@@ -16,7 +16,7 @@ function cleanup() {
 }
 
 async function startGanache() {
-  ganacheChild = spawn("node", ["../../node_modules/ganache-cli/cli.js"], {
+  ganacheChild = spawn("node", ["../../node_modules/ganache-cli/cli.js", "-d"], {
     stdio: "ignore"
   });
   await sleep(4000);

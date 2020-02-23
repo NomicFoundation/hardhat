@@ -7,7 +7,7 @@
 
 ## What
 
-This plugin brings to Buidler the Ethereum library ethers.js, which allows you to interact with the Ethereum blockchain in a simple way.
+This plugin brings to Buidler the Ethereum library `ethers.js`, which allows you to interact with the Ethereum blockchain in a simple way.
 
 ## Installation
 
@@ -27,17 +27,43 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-An initialized `ethers` object is injected into the environment:
+This plugins adds an `ethers` object to the Buidler Runtime Environment. 
 
-```ts
-ethers: {
-  provider: JsonRpcProvider;
-  getContract: (name: string) => Promise<ContractFactory>;
-  signers: () => Promise<Signer[]>;
-}
+This object has the same API than `ethers.js`, with some extra Buidler-specific 
+functionality. Read
+
+### Provider
+
+A `provider` field is added to `ethers`, which is automatically connected to the
+selected network.
+
+### Helpers
+
+These helpers are added to the `ethers` object:
+
+```typescript
+function getContractFactory(name: string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
+
+function getContractFactory(abi: any[], bytecode: ethers.utils.Arrayish | string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
+
+function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+
+function getSigners() => Promise<ethers.Signer[]>;
 ```
 
-The `ContractFactory`s returned by `getContract` are connected by to the first signer returned by `env.ethers.signers`.
+The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` be default.
+
+#### Deprecated helpers
+
+These helpers are also added, but deprecated:
+
+```typescript
+// Use getContractFactory instead
+function getContract(name: string): Promise<ethers.ContractFactory>;
+
+// Use getSigners instead
+function signers(): Promise<ethers.Signer[]>;
+```
 
 ## Usage
 
@@ -49,16 +75,19 @@ Install it and access ethers through the Buidler Runtime Environment anywhere yo
 usePlugin("@nomiclabs/buidler-ethers");
 
 // task action function receives the Buidler Runtime Environment as second argument
-task("blockNumber", "Prints the current block number", async (_, { ethers }) => {
-  
-  await ethers.provider.getBlockNumber().then((blockNumber) => {
-    console.log("Current block number: " + blockNumber);
-  });
-  
-});
+task(
+  "blockNumber",
+  "Prints the current block number",
+  async (_, { ethers }) => {
+    await ethers.provider.getBlockNumber().then(blockNumber => {
+      console.log("Current block number: " + blockNumber);
+    });
+  }
+);
 
 module.exports = {};
 ```
+
 And then run `npx buidler blockNumber` to try it.
 
 Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/documentation/#buidler-runtime-environment-bre) to learn how to access the BRE in different ways to use ethers.js from anywhere the BRE is accessible.
