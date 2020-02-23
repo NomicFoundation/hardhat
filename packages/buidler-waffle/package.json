@@ -36,7 +36,6 @@
     "@nomiclabs/buidler-ethers": "^1.1.2",
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
-    "@types/sinon-chai": "^3.2.3",
     "chai": "^4.2.0",
     "ethereum-waffle": "^2.3.0",
     "ethers": "^4.0.27"
