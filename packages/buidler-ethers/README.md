@@ -27,15 +27,15 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugins adds an `ethers` object to the Buidler Runtime Environment. 
+This plugins adds an `ethers` object to the Buidler Runtime Environment.
 
-This object has the same API than `ethers.js`, with some extra Buidler-specific 
-functionality. Read
+This object has the same API than `ethers.js`, with some extra Buidler-specific
+functionality.
 
-### Provider
+### Provider object
 
-A `provider` field is added to `ethers`, which is automatically connected to the
-selected network.
+A `provider` field is added to `ethers`, which is an `ethers.providers.Provider`
+automatically connected to the selected network.
 
 ### Helpers
 
