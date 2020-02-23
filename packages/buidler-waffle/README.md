@@ -7,7 +7,11 @@
 
 ## What
 
-You can use this plugin to build smart contract tests using Waffle in Buidler, taking advantage of both.
+You can use this plugin to build smart contract tests using Waffle in Buidler,
+taking advantage of both.
+
+This plugin adds a Waffle-compatible provider to the Buidler Runtime Environment,
+and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
 ## Installation
 
@@ -45,7 +49,7 @@ Once installed, you can build your tests just like in Waffle. The only differenc
 instead of `createMockProvider()`.
 
 Note that by default, Buidler save its compilation output into `artifacts/` instead of `build/`. You can either use
-that directory in your tests, or [customize your Buidler config](https://buidler.dev/config/#path-configuration).  
+that directory in your tests, or [customize your Buidler config](https://buidler.dev/config/#path-configuration).
 
 ## TypeScript support
 
