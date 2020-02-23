@@ -10,12 +10,6 @@ Done? Great. Let's now install `ethers.js`, `Waffle` and their Buidler plugins, 
 npm install --save-dev @nomiclabs/buidler-ethers ethers @nomiclabs/buidler-waffle ethereum-waffle
 ```
 
-Waffle also depends on [`sinon-chai`](https://www.chaijs.com/plugins/sinon-chai/), so let's install its typings:
-
-```sh
-npm install --save-dev @types/sinon-chai
-```
-
 Add the `buidler-ethers` and `buidler-waffle` type extensions to your `tsconfig.json` that you should've created following the TypeScript guide:
 
 ```json{8,13,14}
