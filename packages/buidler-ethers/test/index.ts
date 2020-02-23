@@ -1,9 +1,8 @@
 import { readArtifact } from "@nomiclabs/buidler/plugins";
+import { Artifact } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import { ethers } from "ethers";
 import path from "path";
-
-import { Artifact } from "../../buidler-core/src/types";
 
 import { useEnvironment } from "./helpers";
 
@@ -88,6 +87,15 @@ describe("Ethers plugin", function() {
           );
         });
 
+        it("Should be able to send txs and make calls", async function() {
+          const Greeter = await this.env.ethers.getContractFactory("Greeter");
+          const greeter = await Greeter.deploy();
+
+          assert.equal(await greeter.functions.greet(), "Hi");
+          await greeter.functions.setGreeting("Hola");
+          assert.equal(await greeter.functions.greet(), "Hola");
+        });
+
         describe("with custom signer", function() {
           it("should return a contract factory connected to the custom signer", async function() {
             // It's already compiled in artifacts/
@@ -110,12 +118,57 @@ describe("Ethers plugin", function() {
       });
 
       describe("by abi and bytecode", function() {
-        describe("By name", function() {
-          it("should return a contract factory", async function() {
+        it("should return a contract factory", async function() {
+          // It's already compiled in artifacts/
+          const contract = await this.env.ethers.getContractFactory(
+            greeterArtifact.abi,
+            greeterArtifact.bytecode
+          );
+
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()"
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signers[0].getAddress()
+          );
+        });
+
+        it("should return a contract factory for an interface", async function() {
+          const contract = await this.env.ethers.getContractFactory(
+            iGreeterArtifact.abi,
+            iGreeterArtifact.bytecode
+          );
+          assert.equal(contract.bytecode, "0x");
+          assert.containsAllKeys(contract.interface.functions, ["greet()"]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signers[0].getAddress()
+          );
+        });
+
+        it("Should be able to send txs and make calls", async function() {
+          const Greeter = await this.env.ethers.getContractFactory(
+            greeterArtifact.abi,
+            greeterArtifact.bytecode
+          );
+          const greeter = await Greeter.deploy();
+
+          assert.equal(await greeter.functions.greet(), "Hi");
+          await greeter.functions.setGreeting("Hola");
+          assert.equal(await greeter.functions.greet(), "Hola");
+        });
+
+        describe("with custom signer", function() {
+          it("should return a contract factory connected to the custom signer", async function() {
             // It's already compiled in artifacts/
             const contract = await this.env.ethers.getContractFactory(
               greeterArtifact.abi,
-              greeterArtifact.bytecode
+              greeterArtifact.bytecode,
+              signers[1]
             );
 
             assert.containsAllKeys(contract.interface.functions, [
@@ -125,43 +178,8 @@ describe("Ethers plugin", function() {
 
             assert.equal(
               await contract.signer.getAddress(),
-              await signers[0].getAddress()
+              await signers[1].getAddress()
             );
-          });
-
-          it("should return a contract factory for an interface", async function() {
-            const contract = await this.env.ethers.getContractFactory(
-              iGreeterArtifact.abi,
-              iGreeterArtifact.bytecode
-            );
-            assert.equal(contract.bytecode, "0x");
-            assert.containsAllKeys(contract.interface.functions, ["greet()"]);
-
-            assert.equal(
-              await contract.signer.getAddress(),
-              await signers[0].getAddress()
-            );
-          });
-
-          describe("with custom signer", function() {
-            it("should return a contract factory connected to the custom signer", async function() {
-              // It's already compiled in artifacts/
-              const contract = await this.env.ethers.getContractFactory(
-                greeterArtifact.abi,
-                greeterArtifact.bytecode,
-                signers[1]
-              );
-
-              assert.containsAllKeys(contract.interface.functions, [
-                "setGreeting(string)",
-                "greet()"
-              ]);
-
-              assert.equal(
-                await contract.signer.getAddress(),
-                await signers[1].getAddress()
-              );
-            });
           });
         });
       });
@@ -205,6 +223,17 @@ describe("Ethers plugin", function() {
             await contract.signer.getAddress(),
             await signers[0].getAddress()
           );
+        });
+
+        it("Should be able to send txs and make calls", async function() {
+          const greeter = await this.env.ethers.getContractAt(
+            "Greeter",
+            deployedGreeter.address
+          );
+
+          assert.equal(await greeter.functions.greet(), "Hi");
+          await greeter.functions.setGreeting("Hola");
+          assert.equal(await greeter.functions.greet(), "Hola");
         });
 
         describe("with custom signer", function() {
@@ -253,6 +282,17 @@ describe("Ethers plugin", function() {
             await contract.signer.getAddress(),
             await signers[0].getAddress()
           );
+        });
+
+        it("Should be able to send txs and make calls", async function() {
+          const greeter = await this.env.ethers.getContractAt(
+            greeterArtifact.abi,
+            deployedGreeter.address
+          );
+
+          assert.equal(await greeter.functions.greet(), "Hi");
+          await greeter.functions.setGreeting("Hola");
+          assert.equal(await greeter.functions.greet(), "Hola");
         });
 
         describe("with custom signer", function() {
