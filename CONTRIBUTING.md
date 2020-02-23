@@ -48,6 +48,15 @@ Prettier and forbids some dangerous patterns.
 The linter is always run in the CI, so make sure it passes before pushing code. You can use `npm run lint` and
 `npm run lint:fix` inside the packages' folders.
 
+## Branching
+
+We work on the branch [`development`](https://github.com/nomiclabs/buidler/tree/development)
+and keep `master` in sync with the latest release.
+
+Please, branch from `development` when implementing a new feature or fixing a 
+bug, and use it as the base branch in every pull request.
+
+
 ## Dependencies
 
 We keep our dependencies versions in sync between the different projects.
