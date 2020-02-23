@@ -42,6 +42,14 @@ export async function areArtifactsCached(
     return false;
   }
 
+  const lastConfigTimestamp = await getLastUsedConfigTimestamp(paths.cache);
+  if (
+    lastConfigTimestamp !== undefined &&
+    lastConfigTimestamp > maxSourceDate
+  ) {
+    return true;
+  }
+
   return maxSourceDate < minArtifactDate;
 }
 
@@ -86,6 +94,18 @@ async function getLastUsedConfig(
   }
 
   return module.require(pathToConfig);
+}
+
+async function getLastUsedConfigTimestamp(
+  cachePath: string
+): Promise<number | undefined> {
+  const pathToConfig = getPathToCachedLastConfigPath(cachePath);
+
+  if (!(await fsExtra.pathExists(pathToConfig))) {
+    return undefined;
+  }
+
+  return (await fsExtra.stat(pathToConfig)).ctimeMs;
 }
 
 export async function cacheBuidlerConfig(
