@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
 import path from "path";
+import os from "os";
 
 import { BUIDLER_NAME } from "../constants";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
@@ -312,7 +313,9 @@ async function canInstallTrufflePlugin() {
   return (
     (await fsExtra.pathExists("package.json")) &&
     (getExecutionMode() === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION ||
-      getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED)
+      getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED) &&
+    // TODO: Figure out why this doesn't work on Win
+    os.type() !== "Windows_NT"
   );
 }
 
