@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
-import path from "path";
 import os from "os";
+import path from "path";
 
 import { BUIDLER_NAME } from "../constants";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
