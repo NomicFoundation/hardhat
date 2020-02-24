@@ -80,7 +80,12 @@ export default function() {
       async ({ hostname, port }, { network, buidlerArguments, config }) => {
         if (
           network.name !== BUIDLEREVM_NETWORK_NAME &&
-          buidlerArguments.network !== undefined
+          // We normally set the default network as buidlerArguments.network,
+          // so this check isn't enough, and we add the next one. This has the
+          // effect of `--network <defaultNetwork>` being a false negative, but
+          // not a big deal.
+          buidlerArguments.network !== undefined &&
+          buidlerArguments.network !== config.defaultNetwork
         ) {
           throw new BuidlerError(
             ERRORS.BUILTIN_TASKS.JSONRPC_UNSUPPORTED_NETWORK
