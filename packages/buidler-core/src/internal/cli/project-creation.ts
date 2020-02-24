@@ -112,7 +112,8 @@ function printSuggestedCommands() {
   console.log(`  ${npx}buidler accounts`);
   console.log(`  ${npx}buidler compile`);
   console.log(`  ${npx}buidler test`);
-  console.log(`  ${npx}node scripts/sample-script.js`);
+  console.log(`  ${npx}buidler node`);
+  console.log(`  node scripts/sample-script.js`);
   console.log(`  ${npx}buidler help`);
 }
 
