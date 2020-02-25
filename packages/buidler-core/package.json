@@ -63,8 +63,10 @@
     "@types/node-fetch": "^2.3.7",
     "@types/qs": "^6.5.3",
     "@types/semver": "^6.0.2",
+    "@types/sinon": "^7.5.1",
     "@types/uuid": "^3.4.5",
     "chai": "^4.2.0",
+    "sinon": "^9.0.0",
     "time-require": "^0.1.2"
   },
   "dependencies": {

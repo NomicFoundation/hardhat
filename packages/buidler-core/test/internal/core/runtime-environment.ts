@@ -1,6 +1,8 @@
 import { assert } from "chai";
 import path from "path";
+import sinon from "sinon";
 
+import { types } from "../../../src/config";
 import { BuidlerContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Environment } from "../../../src/internal/core/runtime-environment";
@@ -9,10 +11,14 @@ import { resetBuidlerContext } from "../../../src/internal/reset";
 import {
   BuidlerArguments,
   BuidlerRuntimeEnvironment,
+  ParamDefinition,
   ResolvedBuidlerConfig,
-  TaskArguments
+  TasksMap
 } from "../../../src/types";
-import { expectBuidlerError } from "../../helpers/errors";
+import {
+  expectBuidlerError,
+  expectBuidlerErrorAsync
+} from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
@@ -55,7 +61,7 @@ describe("Environment", () => {
     verbose: false
   };
 
-  let tasks: TaskArguments;
+  let tasks: TasksMap;
   let env: BuidlerRuntimeEnvironment;
   let dsl: TasksDSL;
 
@@ -65,6 +71,26 @@ describe("Environment", () => {
     dsl.task("example", async ret => {
       return 27;
     });
+
+    dsl
+      .task("complexExampleTask", "a complex example task")
+      .addOptionalParam("optParam", "an opt param", 123, types.int)
+      .addFlag("flag", "some flag")
+      .addPositionalParam(
+        "positionalRequiredStringParam",
+        "a positional required type 'string' param",
+        undefined,
+        types.string,
+        false
+      )
+      .addOptionalPositionalParam(
+        "posOptJsonParamWithDefault",
+        "a positional optional type 'json' param",
+        JSON.stringify({ a: 1 }),
+        types.json
+      )
+      .setAction(async () => 42);
+
     tasks = ctx.tasksDSL.getTaskDefinitions();
 
     env = new Environment(config, args, tasks);
@@ -73,7 +99,7 @@ describe("Environment", () => {
 
   afterEach(() => resetBuidlerContext());
 
-  describe("Enviroment", () => {
+  describe("Environment", () => {
     it("should create an environment", () => {
       assert.deepEqual(env.config, config);
       assert.isDefined(env.tasks);
@@ -84,6 +110,81 @@ describe("Environment", () => {
     it("should run a task correctly", async () => {
       const ret = await env.run("example");
       assert.equal(ret, 27);
+    });
+
+    describe("run task arguments validation", () => {
+      it("should throw on missing required argument", async () => {
+        const taskName = "complexExampleTask";
+        const requiredParamName = "positionalRequiredStringParam";
+        const task = env.tasks[taskName];
+        const param = task.positionalParamDefinitions.find(
+          ({ name }) => name === requiredParamName
+        );
+        assert.isDefined(param);
+
+        // task runs with required param present
+        const taskResult = await env.run(taskName, {
+          [requiredParamName]: "some value"
+        });
+        assert.isDefined(taskResult);
+
+        // same task throws with required param missing
+        await expectBuidlerErrorAsync(async () => {
+          await env.run("complexExampleTask", {});
+        }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
+      });
+
+      it("should use default value on missing optional argument with default param", async () => {
+        const taskName = "complexExampleTask";
+        const optParamName = "posOptJsonParamWithDefault";
+        const task = env.tasks[taskName];
+        const param = task.positionalParamDefinitions.find(
+          ({ name }) => name === optParamName
+        ) as ParamDefinition<any>;
+
+        assert.isDefined(param);
+
+        // specified arg value, should be different from the default for this test
+        const paramValue = JSON.stringify({ value: 20 });
+        const { defaultValue } = param;
+        assert.notEqual(defaultValue, paramValue);
+
+        const taskMinimalArgs = {
+          positionalRequiredStringParam: "a string value"
+        };
+
+        const taskArgumentsSpecified = {
+          ...taskMinimalArgs,
+          [optParamName]: paramValue
+        };
+
+        // setup task action spy
+        const taskActionSpy = sinon.spy(task, "action");
+
+        // task should run with *specified* value on defined param argument
+        await env.run(taskName, taskArgumentsSpecified);
+
+        // task should run with *default* value on empty param argument
+        await env.run(taskName, taskMinimalArgs);
+
+        // assertions
+        const [
+          taskWithSpecifiedArgsCall,
+          taskWithDefaultArgsCall
+        ] = taskActionSpy.getCalls();
+
+        assert.equal(
+          taskWithSpecifiedArgsCall.args[0][optParamName],
+          paramValue,
+          "should include specified param value in task action call"
+        );
+
+        assert.equal(
+          taskWithDefaultArgsCall.args[0][optParamName],
+          defaultValue,
+          "should include default param value in task action call"
+        );
+      });
     });
 
     it("should fail trying to run a non existent task", () => {

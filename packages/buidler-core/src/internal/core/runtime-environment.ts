@@ -6,6 +6,7 @@ import {
   EnvironmentExtender,
   EthereumProvider,
   Network,
+  ParamDefinition,
   ResolvedBuidlerConfig,
   RunSuperFunction,
   RunTaskFunction,
@@ -112,7 +113,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
       });
     }
 
-    return this._runTaskDefinition(taskDefinition, taskArguments);
+    const parsedTaskArguments = this._parseValidTaskArguments(
+      taskDefinition,
+      taskArguments
+    );
+
+    return this._runTaskDefinition(taskDefinition, parsedTaskArguments);
   };
 
   /**
@@ -192,5 +198,113 @@ export class Environment implements BuidlerRuntimeEnvironment {
       uninjectFromGlobal();
       globalAsAny.runSuper = previousRunSuper;
     }
+  }
+
+  /**
+   * Check that task arguments are within TaskDefinition defined params constraints.
+   * Also, populate missing, non-mandatory arguments with default param values (if any).
+   *
+   * @private
+   * @throws BuidlerError if any of the following are true:
+   *  > a required argument is missing
+   *  > an argument's value's type doesn't match the defined param type
+   *
+   * @param taskDefinition
+   * @param taskArguments
+   * @returns parsedTaskArguments
+   */
+  private _parseValidTaskArguments(
+    taskDefinition: TaskDefinition,
+    taskArguments: TaskArguments
+  ): TaskArguments {
+    const { paramDefinitions, positionalParamDefinitions } = taskDefinition;
+
+    const nonPositionalParamDefinitions = Object.entries(
+      paramDefinitions
+    ).reduce(
+      (arr, [name, paramDefinition]) => [...arr, { name, ...paramDefinition }],
+      [] as Array<ParamDefinition<any>>
+    );
+
+    // gather all task param definitions
+    const allTaskParamDefinitions = [
+      ...nonPositionalParamDefinitions,
+      ...positionalParamDefinitions
+    ];
+
+    // parses an argument according to a ParamDefinition rules.
+    const parseArgument = (
+      paramDefinition: ParamDefinition<any>,
+      argumentValue: any
+    ) => {
+      const { name, isOptional, defaultValue, type } = paramDefinition;
+
+      if (argumentValue === undefined) {
+        if (isOptional) {
+          // undefined & optional argument
+          if (defaultValue !== undefined) {
+            // has defaultValue -> use it and proceed
+            return defaultValue;
+          }
+          // no default value -> ignore.
+          return;
+        }
+
+        // undefined & mandatory argument -> error
+        throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+          param: name
+        });
+      }
+
+      // arg was present -> validate type
+      try {
+        type.validate(name, argumentValue);
+      } catch (error) {
+        if (!(error instanceof BuidlerError)) {
+          throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+            value: argumentValue,
+            name,
+            type: type.name
+          });
+        }
+        throw error;
+      }
+
+      return argumentValue;
+    };
+
+    const initParsedArguments: {
+      errors: BuidlerError[];
+      values: TaskArguments;
+    } = { errors: [], values: {} };
+
+    const parsedArguments = allTaskParamDefinitions.reduce(
+      ({ errors, values }, paramDefinition) => {
+        try {
+          const paramName = paramDefinition.name;
+          const argumentValue = taskArguments[paramName];
+          const parsedArgumentValue = parseArgument(
+            paramDefinition,
+            argumentValue
+          );
+          if (parsedArgumentValue !== undefined) {
+            values[paramName] = parsedArgumentValue;
+          }
+        } catch (error) {
+          errors.push(error);
+        }
+        return { errors, values };
+      },
+      initParsedArguments
+    );
+
+    const { errors: parseErrors, values: parsedValues } = parsedArguments;
+
+    // if has argument errors, throw the first one
+    if (parseErrors.length > 0) {
+      throw parseErrors[0];
+    }
+
+    return parsedValues;
   }
 }
