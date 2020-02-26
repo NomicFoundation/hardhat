@@ -1216,7 +1216,7 @@ If this error persists, try resetting your wallet's accounts.`
         );
       }
 
-      if (trace.deployedContract !== undefined) {
+      if (trace.deployedContract !== undefined && trace.error === undefined) {
         this._logger.logWithTitle(
           "Contract address",
           bufferToHex(trace.deployedContract)
