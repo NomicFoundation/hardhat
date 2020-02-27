@@ -35,14 +35,6 @@ const log = debug("buidler:core:buidler-evm:provider");
 // Set of methods that are never logged
 const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);
 
-// These methods are shown every time, even if repeated right next to the other
-const NON_COLLAPSIBLE_METHODS = new Set([
-  "eth_sendTransaction",
-  "eth_sendRawTransaction",
-  "eth_call",
-  "eth_estimateGas"
-]);
-
 // tslint:disable only-buidler-error
 
 export class BuidlerEVMProvider extends EventEmitter
@@ -186,7 +178,6 @@ export class BuidlerEVMProvider extends EventEmitter
     return (
       method === this._methodBeingCollapsed &&
       !this._logger.hasLogs() &&
-      !NON_COLLAPSIBLE_METHODS.has(method) &&
       this._methodCollapsedCount > 0
     );
   }
