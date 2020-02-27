@@ -41,12 +41,12 @@ You can do this by adding a BRE extender into a queue. This extender is just a s
 For example, adding an instance of Web3.js to the BRE can be done in this way:
 
 ```js
-extendEnvironment(env => {
+extendEnvironment(bre => {
   const Web3 = require("web3");
-  env.Web3 = Web3;
+  bre.Web3 = Web3;
 
-  // env.network.provider is an EIP1193-compatible provider.
-  env.web3 = new Web3(new Web3HTTPProviderAdapter(env.network.provider));
+  // bre.network.provider is an EIP1193-compatible provider.
+  bre.web3 = new Web3(new Web3HTTPProviderAdapter(bre.network.provider));
 });
 ```
 
@@ -57,12 +57,12 @@ The BRE can be used from any JavaScript or TypeScript file. To do so, you only h
 Running test directly with [Mocha](https://www.npmjs.com/package/mocha) instead of `npx buidler test` can be done by explicitly importing the BRE in them like this:
 
 ```js
-const env = require("@nomiclabs/buidler");
+const bre = require("@nomiclabs/buidler");
 const assert = require("assert");
 
 describe("Buidler Runtime Environment", function() {
   it("should have a config field", function() {
-    assert.notEqual(env.config, undefined);
+    assert.notEqual(bre.config, undefined);
   });
 });
 ```

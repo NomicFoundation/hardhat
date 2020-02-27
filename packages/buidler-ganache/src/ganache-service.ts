@@ -190,8 +190,8 @@ export class GanacheService {
 
     // Validate and parse hostname and port from URL (this validation is priority)
     const url = new URL(options.url);
-    if (url.hostname !== "locahost" && url.hostname !== "127.0.0.1") {
-      throw new BuidlerPluginError("Ganache network only works with locahost");
+    if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
+      throw new BuidlerPluginError("Ganache network only works with localhost");
     }
 
     // Validate all options agains validator

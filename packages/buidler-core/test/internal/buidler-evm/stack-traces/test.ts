@@ -11,6 +11,10 @@ import {
   CompilerOutput,
   CompilerOutputBytecode
 } from "../../../../src/internal/buidler-evm/stack-traces/compiler-types";
+import {
+  ConsoleLogger,
+  ConsoleLogs
+} from "../../../../src/internal/buidler-evm/stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../../../../src/internal/buidler-evm/stack-traces/contracts-identifier";
 import {
   printMessageTrace,
@@ -28,6 +32,7 @@ import {
   StackTraceEntryType
 } from "../../../../src/internal/buidler-evm/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/buidler-evm/stack-traces/solidityTracer";
+import { VmTraceDecoder } from "../../../../src/internal/buidler-evm/stack-traces/vm-trace-decoder";
 import { setCWD } from "../helpers/cwd";
 
 import { compile, getSolidityVersion } from "./compilation";
@@ -72,6 +77,8 @@ interface DeploymentTransaction {
     };
   };
   stackTrace?: StackFrameDescription[]; // No stack trace === the tx MUST be successful
+  imports?: string[]; // Imports needed for successful compilation
+  consoleLogs?: ConsoleLogs[];
 }
 
 interface CallTransaction {
@@ -85,6 +92,7 @@ interface CallTransaction {
   // The second one is with function and parms
   function?: string; // Default: no data
   params?: Array<string | number>; // Default: no param
+  consoleLogs?: ConsoleLogs[];
 }
 
 interface DeployedContract {
@@ -105,6 +113,13 @@ function defineDirTests(dirPath: string) {
       const testDefinition: TestDefinition = JSON.parse(
         fs.readFileSync(testPath, "utf8")
       );
+
+      for (const tx of testDefinition.transactions) {
+        if ("imports" in tx && tx.imports !== undefined) {
+          sources.push(...tx.imports.map((p: string) => dirPath + p));
+          break;
+        }
+      }
 
       const desc =
         testDefinition.description !== undefined
@@ -299,6 +314,25 @@ function compareStackTraces(
   }
 }
 
+function compareConsoleLogs(logs: ConsoleLogs[], expectedLogs?: ConsoleLogs[]) {
+  if (expectedLogs === undefined) {
+    return;
+  }
+
+  assert.lengthOf(logs, expectedLogs.length);
+
+  for (let i = 0; i < logs.length; i++) {
+    const actual = logs[i];
+    const expected = expectedLogs[i];
+
+    assert.lengthOf(actual, expected.length);
+
+    for (let j = 0; j < actual.length; j++) {
+      assert.equal(actual[j], expected[j]);
+    }
+  }
+}
+
 async function runTest(
   testDir: string,
   testDefinition: TestDefinition,
@@ -327,7 +361,9 @@ async function runTest(
     contractsIdentifier.addBytecode(bytecode);
   }
 
-  const tracer = new SolidityTracer(contractsIdentifier);
+  const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+  const tracer = new SolidityTracer();
+  const logger = new ConsoleLogger();
 
   const vm = await instantiateVm();
 
@@ -375,7 +411,9 @@ async function runTest(
       );
     }
 
-    const decodedTrace = tracer.tryToDecodeMessageTrace(trace);
+    compareConsoleLogs(logger.getExecutionLogs(trace), tx.consoleLogs);
+
+    const decodedTrace = vmTraceDecoder.tryToDecodeMessageTrace(trace);
 
     try {
       if (tx.stackTrace === undefined) {

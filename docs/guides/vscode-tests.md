@@ -23,4 +23,12 @@ npm install --save-dev mocha
 Now, you can set a shortcut for this VS Code command `test-explorer.run-test-at-cursor`, and you
 will be to run the test you are currently editing with it.
 
+## Running TypeScript test
+
+Running tests written in TypeScript from [Visual Studio Code](https://code.visualstudio.com) requires two extra steps.
+
+First, you have to add this property to your `.mocharc.json`: `"extension": ["ts"]`.
+
+Then, you have to set the vscode option `"mochaExplorer.files"` to `"test/**/*.{j,t}s"`.
+
 For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).

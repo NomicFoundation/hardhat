@@ -15,20 +15,20 @@ The environment is configured through a queue of extension functions that you ca
 For example, adding the following to `buidler.config.js`:
 
 ```js
-extendEnvironment(env => {
-  env.hi = "Hello, Buidler!";
+extendEnvironment(bre => {
+  bre.hi = "Hello, Buidler!";
 });
 ```
 
 Will make `hi` available everywhere where the environment is accessible.
 
 ```js
-extendEnvironment(env => {
-  env.hi = "Hello, Buidler!";
+extendEnvironment(bre => {
+  bre.hi = "Hello, Buidler!";
 });
 
-task("envtest", (args, env) => {
-  console.log(env.hi);
+task("envtest", (args, bre) => {
+  console.log(bre.hi);
 });
 
 module.exports = {};
@@ -44,22 +44,22 @@ Hello, Buidler!
 This is literally all it takes to put together a plugin for Buidler. Injecting an ethers.js instance into the environment would look like this:
 
 ```js
-extendEnvironment(env => {
-  const wrapper = new EthersProviderWrapper(env.network.provider);
+extendEnvironment(bre => {
+  const wrapper = new EthersProviderWrapper(bre.network.provider);
 
-  env.ethers = {
+  bre.ethers = {
     provider: wrapper,
 
     getContract: async function(name) {
-      const artifact = await readArtifact(env.config.paths.artifacts, name);
+      const artifact = await readArtifact(bre.config.paths.artifacts, name);
       const bytecode = artifact.bytecode;
-      const signers = await env.ethers.signers();
+      const signers = await bre.ethers.signers();
 
       return new ethers.ContractFactory(artifact.abi, bytecode, signers[0]);
     },
 
     signers: async function() {
-      const accounts = await env.network.provider.send("eth_accounts");
+      const accounts = await bre.network.provider.send("eth_accounts");
 
       return accounts.map(account => wrapper.getSigner(account));
     }

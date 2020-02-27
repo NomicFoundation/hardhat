@@ -5,8 +5,8 @@
   >
     <div style="position: relative">
       <div class="banner">
-        <a class="not-narrow" href="https://medium.com/nomic-labs-blog/better-solidity-debugging-stack-traces-are-finally-here-dd80a56f92bb">Better Solidity debugging: stack traces are finally here →</a>
-        <a class="only-narrow" href="https://medium.com/nomic-labs-blog/better-solidity-debugging-stack-traces-are-finally-here-dd80a56f92bb">Solidity stack traces are here →</a>
+        <a class="not-narrow" href="https://medium.com/nomic-labs-blog/better-solidity-debugging-console-log-is-finally-here-fc66c54f2c4a">Better Solidity debugging: stack traces and console.log are finally here →</a>
+        <a class="only-narrow" href="https://medium.com/nomic-labs-blog/better-solidity-debugging-console-log-is-finally-here-fc66c54f2c4a">Stack traces and console.log are here →</a>
       </div>
       <div style="position: relative">
         <header>

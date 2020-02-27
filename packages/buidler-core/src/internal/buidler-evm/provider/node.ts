@@ -1,10 +1,12 @@
 import VM from "@nomiclabs/ethereumjs-vm";
+import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import {
   RunBlockResult,
   TxReceipt
 } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
@@ -22,6 +24,7 @@ import {
   privateToAddress,
   toBuffer
 } from "ethereumjs-util";
+import EventEmitter from "events";
 import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
@@ -29,15 +32,27 @@ import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
+import { MessageTrace } from "../stack-traces/message-trace";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
-import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
+import {
+  encodeSolidityStackTrace,
+  SolidityError
+} from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
+import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { Blockchain } from "./blockchain";
-import { InternalError, InvalidInputError } from "./errors";
+import {
+  InternalError,
+  InvalidInputError,
+  TransactionExecutionError
+} from "./errors";
+import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
+import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -76,7 +91,19 @@ export interface TransactionParams {
   nonce: BN;
 }
 
-export class TransactionExecutionError extends Error {}
+export interface FilterParams {
+  fromBlock: BN;
+  toBlock: BN;
+  addresses: Buffer[];
+  normalizedTopics: Array<Array<Buffer | null> | null>;
+}
+
+export interface TxReceipt {
+  status: 0 | 1;
+  gasUsed: Buffer;
+  bitvector: Buffer;
+  logs: RpcLogOutput[];
+}
 
 export interface TxBlockResult {
   receipt: TxReceipt;
@@ -99,17 +126,29 @@ export const SUPPORTED_HARDFORKS = [
   "istanbul"
 ];
 
-export class BuidlerNode {
+interface Snapshot {
+  id: number;
+  date: Date;
+  latestBlock: Block;
+  stateRoot: Buffer;
+  blockTimeOffsetSeconds: BN;
+  transactionByHash: Map<string, Transaction>;
+  transactionHashToBlockHash: Map<string, string>;
+  blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
+  blockHashToTotalDifficulty: Map<string, BN>;
+}
+
+export class BuidlerNode extends EventEmitter {
   public static async create(
     hardfork: string,
     networkName: string,
     chainId: number,
     networkId: number,
     blockGasLimit: number,
-    throwOnTransactionFailures: boolean,
-    throwOnCallFailures: boolean,
     genesisAccounts: GenesisAccount[] = [],
-    stackTracesOptions?: SolidityTracerOptions
+    solidityVersion?: string,
+    compilerInput?: CompilerInput,
+    compilerOutput?: CompilerOutput
   ): Promise<[Common, BuidlerNode]> {
     const stateTrie = new Trie();
     const putIntoStateTrie = promisify(stateTrie.put.bind(stateTrie));
@@ -182,12 +221,13 @@ export class BuidlerNode {
 
     const node = new BuidlerNode(
       vm,
+      blockchain,
       genesisAccounts.map(acc => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
-      throwOnTransactionFailures,
-      throwOnCallFailures,
-      stackTracesOptions
+      solidityVersion,
+      compilerInput,
+      compilerOutput
     );
 
     return [common, node];
@@ -195,33 +235,41 @@ export class BuidlerNode {
 
   private readonly _common: Common;
   private readonly _stateManager: PStateManager;
-  private _blockTimeOffsetSeconds: BN = new BN(0);
 
   private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
-  private readonly _transactionByHash: Map<string, Transaction> = new Map();
-  private readonly _transactionHashToBlockHash: Map<string, string> = new Map();
-  private readonly _blockHashToTxBlockResults: Map<
-    string,
-    TxBlockResult[]
-  > = new Map();
-  private readonly _blockHashToTotalDifficulty: Map<string, BN> = new Map();
-  private readonly _stackTracesEnabled: boolean = false;
-  private readonly _vmTracer?: VMTracer;
+
+  private _blockTimeOffsetSeconds: BN = new BN(0);
+  private _transactionByHash: Map<string, Transaction> = new Map();
+  private _transactionHashToBlockHash: Map<string, string> = new Map();
+  private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
+  private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
+
+  private _lastFilterId = new BN(0);
+  private _filters: Map<string, Filter> = new Map();
+
+  private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
+  private readonly _snapshots: Snapshot[] = [];
+
+  private readonly _vmTracer: VMTracer;
+  private readonly _vmTraceDecoder?: VmTraceDecoder;
   private readonly _solidityTracer?: SolidityTracer;
+  private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
+  private _failedStackTraces = 0;
 
   private readonly _getLatestBlock: () => Promise<Block>;
   private readonly _getBlock: (hashOrNumber: Buffer | BN) => Promise<Block>;
-  private _failedStackTraces = 0;
 
   private constructor(
     private readonly _vm: VM,
+    private readonly _blockchain: Blockchain,
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
-    private readonly _throwOnTransactionFailures: boolean,
-    private readonly _throwOnCallFailures: boolean,
-    stackTracesOptions?: SolidityTracerOptions
+    solidityVersion?: string,
+    compilerInput?: CompilerInput,
+    compilerOutput?: CompilerOutput
   ) {
+    super();
     const config = getUserConfigPath();
     this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
@@ -240,41 +288,43 @@ export class BuidlerNode {
       this._vm.blockchain.getBlock.bind(this._vm.blockchain)
     );
 
-    if (stackTracesOptions !== undefined) {
-      this._stackTracesEnabled = true;
-      this._vmTracer = new VMTracer(this._vm, true);
+    this._vmTracer = new VMTracer(this._vm, true);
+    this._vmTracer.enableTracing();
 
-      try {
-        this._vmTracer.enableTracing();
+    if (
+      solidityVersion === undefined ||
+      compilerInput === undefined ||
+      compilerOutput === undefined
+    ) {
+      return;
+    }
 
-        const bytecodes = createModelsAndDecodeBytecodes(
-          stackTracesOptions.solidityVersion,
-          stackTracesOptions.compilerInput,
-          stackTracesOptions.compilerOutput
-        );
+    try {
+      const bytecodes = createModelsAndDecodeBytecodes(
+        solidityVersion,
+        compilerInput,
+        compilerOutput
+      );
 
-        const contractsIdentifier = new ContractsIdentifier();
+      const contractsIdentifier = new ContractsIdentifier();
 
-        for (const bytecode of bytecodes) {
-          contractsIdentifier.addBytecode(bytecode);
-        }
-
-        this._solidityTracer = new SolidityTracer(contractsIdentifier);
-      } catch (error) {
-        console.warn(
-          chalk.yellow(
-            "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
-          )
-        );
-
-        this._stackTracesEnabled = false;
-        this._vmTracer.disableTracing();
-
-        log(
-          "Solidity stack traces disabled: SolidityTracer failed to be initialized. Please report this to help us improve Buidler.\n",
-          error
-        );
+      for (const bytecode of bytecodes) {
+        contractsIdentifier.addBytecode(bytecode);
       }
+
+      this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+      this._solidityTracer = new SolidityTracer();
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "The Buidler EVM tracing engine could not be initialized. Run Buidler with --verbose to learn more."
+        )
+      );
+
+      log(
+        "Buidler EVM tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Buidler.\n",
+        error
+      );
     }
   }
 
@@ -297,7 +347,13 @@ export class BuidlerNode {
 
   public async runTransactionInNewBlock(
     tx: Transaction
-  ): Promise<RunBlockResult> {
+  ): Promise<{
+    trace: MessageTrace;
+    block: Block;
+    blockResult: RunBlockResult;
+    error?: Error;
+    consoleLogMessages: string[];
+  }> {
     await this._validateTransaction(tx);
     await this._saveTransactionAsReceived(tx);
 
@@ -318,10 +374,6 @@ export class BuidlerNode {
       skipBlockValidation: true
     });
 
-    const error = !this._throwOnTransactionFailures
-      ? undefined
-      : await this._manageErrors(result.results[0].execResult);
-
     if (needsTimestampIncrease) {
       await this.increaseTime(new BN(1));
     }
@@ -329,11 +381,32 @@ export class BuidlerNode {
     await this._saveBlockAsSuccessfullyRun(block, result);
     await this._saveTransactionAsSuccessfullyRun(tx, block);
 
-    if (error !== undefined) {
-      throw error;
+    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
+
+    if (this._vmTraceDecoder !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
     }
 
-    return result;
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
+
+    const error = await this._manageErrors(
+      result.results[0].execResult,
+      vmTrace,
+      vmTracerError
+    );
+
+    return {
+      trace: vmTrace,
+      block,
+      blockResult: result,
+      error,
+      consoleLogMessages
+    };
   }
 
   public async mineEmptyBlock() {
@@ -371,35 +444,50 @@ export class BuidlerNode {
       // rollback of this block.
       await this._stateManager.setStateRoot(previousRoot);
 
-      throw error;
+      throw new TransactionExecutionError(error);
     }
   }
 
-  public async runCall(call: CallParams): Promise<Buffer> {
+  public async runCall(
+    call: CallParams
+  ): Promise<{
+    result: Buffer;
+    trace: MessageTrace;
+    error?: Error;
+    consoleLogMessages: string[];
+  }> {
     const tx = await this._getFakeTransaction({
       ...call,
       nonce: await this.getAccountNonce(call.from)
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx);
 
-    const error = !this._throwOnCallFailures
-      ? undefined
-      : await this._manageErrors(result.execResult);
+    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
 
-    if (error !== undefined) {
-      throw error;
+    if (this._vmTraceDecoder !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
     }
 
-    if (
-      result.execResult.exceptionError === undefined ||
-      result.execResult.exceptionError.error === ERROR.REVERT
-    ) {
-      return result.execResult.returnValue;
-    }
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
 
-    // If we got here we found another kind of error and we throw anyway
-    throw this._manageErrors(result.execResult)!;
+    const error = await this._manageErrors(
+      result.execResult,
+      vmTrace,
+      vmTracerError
+    );
+
+    return {
+      result: result.execResult.returnValue,
+      trace: vmTrace,
+      error,
+      consoleLogMessages
+    };
   }
 
   public async getAccountBalance(address: Buffer): Promise<BN> {
@@ -412,8 +500,23 @@ export class BuidlerNode {
     return new BN(account.nonce);
   }
 
+  public async getAccountNonceInPreviousBlock(address: Buffer): Promise<BN> {
+    const account = await this._stateManager.getAccount(address);
+
+    const latestBlock = await this._getLatestBlock();
+    const latestBlockTxsFromAccount = latestBlock.transactions.filter(
+      (tx: Transaction) => tx.getSenderAddress().equals(address)
+    );
+
+    return new BN(account.nonce).subn(latestBlockTxsFromAccount.length);
+  }
+
   public async getLatestBlock(): Promise<Block> {
     return this._getLatestBlock();
+  }
+
+  public async getLatestBlockNumber(): Promise<BN> {
+    return new BN((await this._getLatestBlock()).header.number);
   }
 
   public async getLocalAccountAddresses(): Promise<string[]> {
@@ -424,23 +527,59 @@ export class BuidlerNode {
     return this._blockGasLimit;
   }
 
-  public async estimateGas(txParams: TransactionParams): Promise<BN> {
+  public async estimateGas(
+    txParams: TransactionParams
+  ): Promise<{
+    estimation: BN;
+    trace: MessageTrace;
+    error?: Error;
+    consoleLogMessages: string[];
+  }> {
     const tx = await this._getFakeTransaction({
       ...txParams,
       gasLimit: await this.getBlockGasLimit()
     });
 
-    const result = await this._runTxAndRevertMutations(tx, true);
+    const result = await this._runTxAndRevertMutations(tx);
+
+    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
+
+    if (this._vmTraceDecoder !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
 
     // This is only considered if the call to _runTxAndRevertMutations doesn't
     // manage errors
     if (result.execResult.exceptionError !== undefined) {
-      return this.getBlockGasLimit();
+      return {
+        estimation: await this.getBlockGasLimit(),
+        trace: vmTrace,
+        error: await this._manageErrors(
+          result.execResult,
+          vmTrace,
+          vmTracerError
+        ),
+        consoleLogMessages
+      };
     }
 
     const initialEstimation = result.gasUsed;
 
-    return this._correctInitialEstimation(txParams, initialEstimation);
+    return {
+      estimation: await this._correctInitialEstimation(
+        txParams,
+        initialEstimation
+      ),
+      trace: vmTrace,
+      consoleLogMessages
+    };
   }
 
   public async getGasPrice(): Promise<BN> {
@@ -565,35 +704,288 @@ export class BuidlerNode {
     return this._failedStackTraces;
   }
 
+  public async takeSnapshot(): Promise<number> {
+    const id = this._nextSnapshotId;
+
+    // We copy all the maps here, as they may be modified
+    const snapshot: Snapshot = {
+      id,
+      date: new Date(),
+      latestBlock: await this.getLatestBlock(),
+      stateRoot: await this._stateManager.getStateRoot(),
+      blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
+      transactionByHash: new Map(this._transactionByHash.entries()),
+      transactionHashToBlockHash: new Map(
+        this._transactionHashToBlockHash.entries()
+      ),
+      blockHashToTxBlockResults: new Map(
+        this._blockHashToTxBlockResults.entries()
+      ),
+      blockHashToTotalDifficulty: new Map(
+        this._blockHashToTotalDifficulty.entries()
+      )
+    };
+
+    this._snapshots.push(snapshot);
+    this._nextSnapshotId += 1;
+
+    return id;
+  }
+
+  public async revertToSnapshot(id: number): Promise<boolean> {
+    const snapshotIndex = this._getSnapshotIndex(id);
+    if (snapshotIndex === undefined) {
+      return false;
+    }
+
+    const snapshot = this._snapshots[snapshotIndex];
+
+    // We compute a new offset such that
+    //  now + new_offset === snapshot_date + old_offset
+    const now = new Date();
+    const offsetToSnapshotInMillis = snapshot.date.valueOf() - now.valueOf();
+    const offsetToSnapshotInSecs = Math.ceil(offsetToSnapshotInMillis / 1000);
+    const newOffset = snapshot.blockTimeOffsetSeconds.addn(
+      offsetToSnapshotInSecs
+    );
+
+    // We delete all following blocks, changes the state root, and all the
+    // relevant Node fields.
+    //
+    // Note: There's no need to copy the maps here, as snapshots can only be
+    // used once
+    this._blockchain.deleteAllFollowingBlocks(snapshot.latestBlock);
+    await this._stateManager.setStateRoot(snapshot.stateRoot);
+    this._blockTimeOffsetSeconds = newOffset;
+    this._transactionByHash = snapshot.transactionByHash;
+    this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
+    this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
+    this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
+
+    // We delete this and the following snapshots, as they can only be used
+    // once in Ganache
+    this._snapshots.splice(snapshotIndex);
+
+    return true;
+  }
+
+  public async newFilter(
+    filterParams: FilterParams,
+    isSubscription: boolean
+  ): Promise<BN> {
+    filterParams = await this._computeFilterParams(filterParams, true);
+
+    const filterId = this._getNextFilterId();
+    this._filters.set(this._filterIdToFiltersKey(filterId), {
+      id: filterId,
+      type: Type.LOGS_SUBSCRIPTION,
+      criteria: {
+        fromBlock: filterParams.fromBlock,
+        toBlock: filterParams.toBlock,
+        addresses: filterParams.addresses,
+        normalizedTopics: filterParams.normalizedTopics
+      },
+      deadline: this._newDeadline(),
+      hashes: [],
+      logs: await this.getLogs(filterParams),
+      subscription: isSubscription
+    });
+
+    return filterId;
+  }
+
+  public async newBlockFilter(isSubscription: boolean): Promise<BN> {
+    const block = await this.getLatestBlock();
+
+    const filterId = this._getNextFilterId();
+    this._filters.set(this._filterIdToFiltersKey(filterId), {
+      id: filterId,
+      type: Type.BLOCK_SUBSCRIPTION,
+      deadline: this._newDeadline(),
+      hashes: [bufferToHex(block.header.hash())],
+      logs: [],
+      subscription: isSubscription
+    });
+
+    return filterId;
+  }
+
+  public async newPendingTransactionFilter(
+    isSubscription: boolean
+  ): Promise<BN> {
+    const filterId = this._getNextFilterId();
+
+    this._filters.set(this._filterIdToFiltersKey(filterId), {
+      id: filterId,
+      type: Type.PENDING_TRANSACTION_SUBSCRIPTION,
+      deadline: this._newDeadline(),
+      hashes: [],
+      logs: [],
+      subscription: isSubscription
+    });
+
+    return filterId;
+  }
+
+  public async uninstallFilter(
+    filterId: BN,
+    subscription: boolean
+  ): Promise<boolean> {
+    const key = this._filterIdToFiltersKey(filterId);
+    const filter = this._filters.get(key);
+
+    if (filter === undefined) {
+      return false;
+    }
+
+    if (
+      (filter.subscription && !subscription) ||
+      (!filter.subscription && subscription)
+    ) {
+      return false;
+    }
+
+    this._filters.delete(key);
+    return true;
+  }
+
+  public async getFilterChanges(
+    filterId: BN
+  ): Promise<string[] | RpcLogOutput[] | undefined> {
+    const key = this._filterIdToFiltersKey(filterId);
+    const filter = this._filters.get(key);
+    if (filter === undefined) {
+      return undefined;
+    }
+
+    filter.deadline = this._newDeadline();
+    switch (filter.type) {
+      case Type.BLOCK_SUBSCRIPTION:
+      case Type.PENDING_TRANSACTION_SUBSCRIPTION:
+        const hashes = filter.hashes;
+        filter.hashes = [];
+        return hashes;
+      case Type.LOGS_SUBSCRIPTION:
+        const logs = filter.logs;
+        filter.logs = [];
+        return logs;
+    }
+
+    return undefined;
+  }
+
+  public async getFilterLogs(
+    filterId: BN
+  ): Promise<RpcLogOutput[] | undefined> {
+    const key = this._filterIdToFiltersKey(filterId);
+    const filter = this._filters.get(key);
+    if (filter === undefined) {
+      return undefined;
+    }
+
+    const logs = filter.logs;
+    filter.logs = [];
+    filter.deadline = this._newDeadline();
+    return logs;
+  }
+
+  public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
+    filterParams = await this._computeFilterParams(filterParams, false);
+
+    const logs: RpcLogOutput[] = [];
+    for (
+      let i = filterParams.fromBlock;
+      i <= filterParams.toBlock;
+      i = i.addn(1)
+    ) {
+      const block = await this._getBlock(new BN(i));
+      const blockResults = this._blockHashToTxBlockResults.get(
+        bufferToHex(block.hash())
+      );
+      if (blockResults === undefined) {
+        continue;
+      }
+
+      if (
+        !bloomFilter(
+          new Bloom(block.header.bloom),
+          filterParams.addresses,
+          filterParams.normalizedTopics
+        )
+      ) {
+        continue;
+      }
+
+      for (const tx of blockResults) {
+        logs.push(
+          ...filterLogs(tx.receipt.logs, {
+            fromBlock: filterParams.fromBlock,
+            toBlock: filterParams.toBlock,
+            addresses: filterParams.addresses,
+            normalizedTopics: filterParams.normalizedTopics
+          })
+        );
+      }
+    }
+
+    return logs;
+  }
+
+  private _getSnapshotIndex(id: number): number | undefined {
+    for (const [i, snapshot] of this._snapshots.entries()) {
+      if (snapshot.id === id) {
+        return i;
+      }
+
+      // We already removed the snapshot we are looking for
+      if (snapshot.id > id) {
+        return undefined;
+      }
+    }
+
+    return undefined;
+  }
+
   private _initLocalAccounts(localAccounts: Buffer[]) {
     for (const pk of localAccounts) {
       this._accountPrivateKeys.set(bufferToHex(privateToAddress(pk)), pk);
     }
   }
 
+  private async _getConsoleLogMessages(
+    vmTrace: MessageTrace,
+    vmTracerError: Error | undefined
+  ): Promise<string[]> {
+    if (vmTracerError !== undefined) {
+      log(
+        "Could not print console log. Please report this to help us improve Buidler.\n",
+        vmTracerError
+      );
+
+      return [];
+    }
+
+    return this._consoleLogger.getLogMessages(vmTrace);
+  }
+
   private async _manageErrors(
-    vmResult: ExecResult
-  ): Promise<TransactionExecutionError | undefined> {
+    vmResult: ExecResult,
+    vmTrace: MessageTrace,
+    vmTracerError?: Error
+  ): Promise<SolidityError | TransactionExecutionError | undefined> {
     if (vmResult.exceptionError === undefined) {
       return undefined;
     }
 
     let stackTrace: SolidityStackTrace | undefined;
 
-    if (this._stackTracesEnabled) {
+    if (this._solidityTracer !== undefined) {
       try {
-        const vmTracerError = this._vmTracer!.getLastError();
         if (vmTracerError !== undefined) {
-          this._vmTracer!.clearLastError();
           throw vmTracerError;
         }
 
-        const messageTrace = this._vmTracer!.getLastTopLevelMessageTrace();
-        const decodedTrace = this._solidityTracer!.tryToDecodeMessageTrace(
-          messageTrace
-        );
-
-        stackTrace = this._solidityTracer!.getStackTrace(decodedTrace);
+        stackTrace = this._solidityTracer.getStackTrace(vmTrace);
       } catch (error) {
         this._failedStackTraces += 1;
         log(
@@ -677,6 +1069,17 @@ export class BuidlerNode {
 
   private async _saveTransactionAsReceived(tx: Transaction) {
     this._transactionByHash.set(bufferToHex(tx.hash(true)), tx);
+    this._filters.forEach(filter => {
+      if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
+        const hash = bufferToHex(tx.hash(true));
+        if (filter.subscription) {
+          this._emitEthEvent(filter.id, hash);
+          return;
+        }
+
+        filter.hashes.push(hash);
+      }
+    });
   }
 
   private async _getLocalAccountPrivateKey(sender: Buffer): Promise<Buffer> {
@@ -707,10 +1110,27 @@ export class BuidlerNode {
     for (let i = 0; i < runBlockResult.results.length; i += 1) {
       const result = runBlockResult.results[i];
 
+      const receipt = runBlockResult.receipts[i];
+      const logs = receipt.logs.map(
+        (rcpLog, logIndex) =>
+          (runBlockResult.receipts[i].logs[logIndex] = getRpcLog(
+            rcpLog,
+            block.transactions[i],
+            block,
+            i,
+            logIndex
+          ))
+      );
+
       txBlockResults.push({
         bloomBitvector: result.bloom.bitvector,
         createAddresses: result.createdAddress,
-        receipt: runBlockResult.receipts[i]
+        receipt: {
+          status: receipt.status,
+          gasUsed: receipt.gasUsed,
+          bitvector: receipt.bitvector,
+          logs
+        }
       });
     }
 
@@ -719,6 +1139,52 @@ export class BuidlerNode {
 
     const td = this._computeTotalDifficulty(block);
     this._blockHashToTotalDifficulty.set(blockHash, td);
+
+    const rpcLogs: RpcLogOutput[] = [];
+    for (const receipt of runBlockResult.receipts) {
+      rpcLogs.push(...receipt.logs);
+    }
+
+    this._filters.forEach((filter, key) => {
+      if (filter.deadline < new Date()) {
+        this._filters.delete(key);
+      }
+
+      switch (filter.type) {
+        case Type.BLOCK_SUBSCRIPTION:
+          const hash = block.hash();
+          if (filter.subscription) {
+            this._emitEthEvent(filter.id, getRpcBlock(block, td, false));
+            return;
+          }
+
+          filter.hashes.push(bufferToHex(hash));
+          break;
+        case Type.LOGS_SUBSCRIPTION:
+          if (
+            bloomFilter(
+              new Bloom(block.header.bloom),
+              filter.criteria!.addresses,
+              filter.criteria!.normalizedTopics
+            )
+          ) {
+            const logs = filterLogs(rpcLogs, filter.criteria!);
+            if (logs.length === 0) {
+              return;
+            }
+
+            if (filter.subscription) {
+              logs.forEach(rpcLog => {
+                this._emitEthEvent(filter.id, rpcLog);
+              });
+              return;
+            }
+
+            filter.logs.push(...logs);
+          }
+          break;
+      }
+    });
   }
 
   private async _putBlock(block: Block): Promise<void> {
@@ -795,7 +1261,12 @@ export class BuidlerNode {
     const actualNonce = new BN(tx.nonce);
     if (!expectedNonce.eq(actualNonce)) {
       throw new InvalidInputError(
-        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}`
+        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}.
+
+If you are running a script or test, you may be sending transactions in parallel.
+Using JavaScript? You probably forgot an await.
+
+If you are using a wallet or dapp, try resetting your wallet's accounts.`
       );
     }
 
@@ -853,7 +1324,7 @@ export class BuidlerNode {
       });
     }
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx);
 
     if (result.execResult.exceptionError === undefined) {
       return initialEstimation;
@@ -921,7 +1392,7 @@ export class BuidlerNode {
       gasLimit: newEstimation
     });
 
-    const result = await this._runTxAndRevertMutations(tx, false);
+    const result = await this._runTxAndRevertMutations(tx);
 
     if (result.execResult.exceptionError === undefined) {
       return this._binarySearchEstimation(
@@ -940,10 +1411,15 @@ export class BuidlerNode {
     );
   }
 
-  private async _runTxAndRevertMutations(
-    tx: Transaction,
-    manageErrors = true
-  ): Promise<EVMResult> {
+  /**
+   * This function runs a transaction and reverts all the modifications that it
+   * makes.
+   *
+   * If throwOnError is true, errors are managed locally and thrown on
+   * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
+   * inspected/resetted.
+   */
+  private async _runTxAndRevertMutations(tx: Transaction): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     try {
@@ -958,24 +1434,58 @@ export class BuidlerNode {
 
       await this._addTransactionToBlock(block, tx);
 
-      const result = await this._vm.runTx({
+      return await this._vm.runTx({
         block,
         tx,
         skipNonce: true,
         skipBalance: true
       });
-
-      if (manageErrors) {
-        const error = await this._manageErrors(result.execResult);
-
-        if (error !== undefined) {
-          throw error;
-        }
-      }
-
-      return result;
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
     }
+  }
+
+  private async _computeFilterParams(
+    filterParams: FilterParams,
+    isFilter: boolean
+  ): Promise<FilterParams> {
+    if (
+      filterParams.fromBlock === LATEST_BLOCK ||
+      filterParams.toBlock === LATEST_BLOCK
+    ) {
+      const block = await this.getLatestBlock();
+      if (filterParams.fromBlock === LATEST_BLOCK) {
+        filterParams.fromBlock = new BN(block.header.number);
+      }
+
+      if (!isFilter && filterParams.toBlock === LATEST_BLOCK) {
+        filterParams.toBlock = new BN(block.header.number);
+      }
+    }
+
+    return filterParams;
+  }
+
+  private _newDeadline(): Date {
+    const dt = new Date();
+    dt.setMinutes(dt.getMinutes() + 5); // This will not overflow
+    return dt;
+  }
+
+  private _getNextFilterId(): BN {
+    this._lastFilterId = this._lastFilterId.addn(1);
+
+    return this._lastFilterId;
+  }
+
+  private _filterIdToFiltersKey(filterId: BN): string {
+    return filterId.toString();
+  }
+
+  private _emitEthEvent(filterId: BN, result: any) {
+    this.emit("ethEvent", {
+      result,
+      filterId
+    });
   }
 }

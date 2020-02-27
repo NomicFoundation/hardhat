@@ -1,27 +1,30 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
-import { lazyObject, readArtifact } from "@nomiclabs/buidler/plugins";
+import { lazyObject } from "@nomiclabs/buidler/plugins";
 import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import EthersT from "ethers";
+
+import { getContractAt, getContractFactory, getSigners } from "./helpers";
 
 export default function() {
   extendEnvironment((env: BuidlerRuntimeEnvironment) => {
     env.ethers = lazyObject(() => {
       const { EthersProviderWrapper } = require("./ethers-provider-wrapper");
 
+      const { ethers } = require("ethers") as typeof EthersT;
+
       return {
+        ...ethers,
         provider: new EthersProviderWrapper(env.network.provider),
-        getContract: async (name: string) => {
-          const { ethers } = await import("ethers");
-          const artifact = await readArtifact(env.config.paths.artifacts, name);
-          const bytecode = artifact.bytecode;
-          const signers = await env.ethers.signers();
-          return new ethers.ContractFactory(artifact.abi, bytecode, signers[0]);
-        },
-        signers: async () => {
-          const accounts = await env.ethers.provider.listAccounts();
-          return accounts.map((account: string) =>
-            env.ethers.provider.getSigner(account)
-          );
-        }
+
+        getSigners: async () => getSigners(env),
+        // We cast to any here as we hit a limitation of Function#bind and
+        // overloads. See: https://github.com/microsoft/TypeScript/issues/28582
+        getContractFactory: getContractFactory.bind(null, env) as any,
+        getContractAt: getContractAt.bind(null, env),
+
+        // Deprecated:
+        getContract: (name: string) => getContractFactory(env, name),
+        signers: () => getSigners(env)
       };
     });
   });

@@ -2,3 +2,4 @@
 --require ts-node/register
 --require source-map-support/register
 --recursive test/**/*.ts
+--timeout 6000

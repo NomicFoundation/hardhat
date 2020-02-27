@@ -1,15 +1,41 @@
 import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 
+import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
 import { BuidlerNode } from "../../../../src/internal/buidler-evm/provider/node";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { EthereumProvider } from "../../../../src/types";
 
 declare module "mocha" {
   interface Context {
-    provider: BuidlerEVMProvider;
+    provider: EthereumProvider;
     common: Common;
+    server?: JsonRpcServer;
   }
 }
+
+export const PROVIDERS = [
+  {
+    name: "BuidlerEVM",
+    useProvider: () => {
+      useProvider();
+    }
+  },
+  {
+    name: "JSON-RPC",
+    useProvider: () => {
+      useProvider(
+        DEFAULT_HARDFORK,
+        DEFAULT_NETWORK_NAME,
+        DEFAULT_CHAIN_ID,
+        DEFAULT_NETWORK_ID,
+        DEFAULT_BLOCK_GAS_LIMIT,
+        DEFAULT_ACCOUNTS,
+        true
+      );
+    }
+  }
+];
 
 export const DEFAULT_HARDFORK = "istanbul";
 export const DEFAULT_NETWORK_NAME = "TestNet";
@@ -28,6 +54,7 @@ export const DEFAULT_ACCOUNTS = [
     balance: new BN(10).pow(new BN(18))
   }
 ];
+export const DEFAULT_USE_JSON_RPC = false;
 
 export function useProvider(
   hardfork = DEFAULT_HARDFORK,
@@ -35,7 +62,8 @@ export function useProvider(
   chainId = DEFAULT_CHAIN_ID,
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
-  accounts = DEFAULT_ACCOUNTS
+  accounts = DEFAULT_ACCOUNTS,
+  useJsonRpc = DEFAULT_USE_JSON_RPC
 ) {
   beforeEach("Initialize provider", async function() {
     // We create two Nodes here, and don't use this one.
@@ -46,8 +74,6 @@ export function useProvider(
       chainId,
       networkId,
       blockGasLimit,
-      true,
-      true,
       accounts
     );
 
@@ -62,10 +88,28 @@ export function useProvider(
       true,
       accounts
     );
+
+    if (useJsonRpc) {
+      this.server = new JsonRpcServer({
+        port: 0,
+        hostname: "localhost",
+        provider: this.provider
+      });
+
+      await this.server.listen();
+
+      this.provider = this.server.getProvider();
+    }
   });
 
   afterEach("Remove provider", async function() {
     delete this.common;
     delete this.provider;
+
+    if (this.server !== undefined) {
+      await this.server.close();
+
+      delete this.server;
+    }
   });
 }

@@ -95,5 +95,13 @@ module.exports = [
     description:
       "Generate TypeChain typedefs for smart contracts.",
     tags: ["Testing", "Tasks"]
+  },
+  {
+    name: "solidity-coverage",
+    version: "0.7.0",
+    url: "https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md",
+    readmeUrl: "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/BUIDLER_README.md",
+    description: "Code coverage for Solidity",
+    tags: ["Testing", "Coverage"]
   }
 ];

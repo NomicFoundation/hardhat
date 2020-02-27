@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler",
-  "version": "1.0.2",
+  "version": "1.2.0",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://buidler.dev",
@@ -27,15 +27,15 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "NODE_OPTIONS=\"-r ts-node/register\" ../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "../../node_modules/.bin/mocha",
-    "coverage": "../../node_modules/.bin/nyc ../../node_modules/.bin/mocha",
-    "build": "../../node_modules/.bin/tsc --build src",
-    "build-test": "../../node_modules/.bin/tsc --build .",
-    "clean": "rm -rf builtin-tasks internal *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
+    "lint-tests": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "node ../../node_modules/mocha/bin/mocha",
+    "coverage": "node ../../node_modules/nyc/bin/nyc.js ../../node_modules/mocha/bin/mocha",
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js builtin-tasks internal *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "builtin-tasks/",
@@ -48,10 +48,12 @@
     "*.js.map",
     "LICENSE",
     "README.md",
-    "recommended-gitignore.txt"
+    "recommended-gitignore.txt",
+    "console.sol"
   ],
   "devDependencies": {
     "@types/chai": "^4.2.0",
+    "@types/ci-info": "^2.0.0",
     "@types/debug": "^4.1.4",
     "@types/download": "^6.2.4",
     "@types/find-up": "^2.1.1",
@@ -59,17 +61,19 @@
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.123",
     "@types/node-fetch": "^2.3.7",
-    "@types/semver": "^6.0.2",
-    "@types/ci-info": "^2.0.0",
     "@types/qs": "^6.5.3",
+    "@types/semver": "^6.0.2",
     "@types/uuid": "^3.4.5",
+    "@types/ws": "^7.2.1",
     "chai": "^4.2.0",
     "time-require": "^0.1.2"
   },
   "dependencies": {
+    "@nomiclabs/ethereumjs-vm": "^4.1.1",
     "@types/bn.js": "^4.11.5",
     "@types/lru-cache": "^5.1.0",
     "abort-controller": "^3.0.0",
+    "ansi-escapes": "^4.3.0",
     "bip32": "^2.0.3",
     "bip39": "^3.0.2",
     "chalk": "^2.4.2",
@@ -85,7 +89,6 @@
     "ethereumjs-common": "^1.3.2",
     "ethereumjs-tx": "^2.1.1",
     "ethereumjs-util": "^6.1.0",
-    "@nomiclabs/ethereumjs-vm": "^4.1.1",
     "find-up": "^2.1.0",
     "fp-ts": "1.19.3",
     "fs-extra": "^7.0.1",
@@ -97,13 +100,16 @@
     "mocha": "^5.2.0",
     "node-fetch": "^2.6.0",
     "qs": "^6.7.0",
+    "raw-body": "^2.4.1",
     "semver": "^6.3.0",
+    "slash": "^3.0.0",
     "solc": "0.5.15",
     "solidity-parser-antlr": "^0.4.2",
     "source-map-support": "^0.5.13",
     "ts-essentials": "^2.0.7",
     "tsort": "0.0.1",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "ws": "^7.2.1"
   },
   "nyc": {
     "extension": [

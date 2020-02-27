@@ -59,6 +59,15 @@ async function cacheSolcJsonFiles(
   );
 }
 
+function isConsoleLogError(error: any): boolean {
+  return (
+    error.type === "TypeError" &&
+    typeof error.message === "string" &&
+    error.message.includes("log") &&
+    error.message.includes("type(library console)")
+  );
+}
+
 export default function() {
   internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
     return glob(path.join(config.paths.sources, "**/*.sol"));
@@ -120,18 +129,32 @@ export default function() {
     const output = await run(TASK_COMPILE_RUN_COMPILER, { input });
 
     let hasErrors = false;
+    let hasConsoleLogErrors = false;
     if (output.errors) {
       for (const error of output.errors) {
         hasErrors = hasErrors || error.severity === "error";
         if (error.severity === "error") {
           hasErrors = true;
-          console.log("\n");
+
+          if (isConsoleLogError(error)) {
+            hasConsoleLogErrors = true;
+          }
+
           console.error(chalk.red(error.formattedMessage));
         } else {
           console.log("\n");
           console.warn(chalk.yellow(error.formattedMessage));
         }
       }
+    }
+
+    if (hasConsoleLogErrors) {
+      console.error(
+        chalk.red(
+          `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
+        )
+      );
+      console.log();
     }
 
     if (hasErrors || !output.contracts) {

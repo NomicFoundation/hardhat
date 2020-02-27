@@ -21,7 +21,7 @@ by using the [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master
 The second option leverages Buidler's architecture to allow for more flexibility. Buidler has been designed as a library, allowing you to get creative and build standalone CLI tools that access your development environment. This means that by simply requiring it:
 
 ```js
-const env = require("@nomiclabs/buidler");
+const bre = require("@nomiclabs/buidler");
 ```
 
 You can get access to all your tasks and plugins. To run these scripts you simply go through node: `node script.js`.
@@ -42,15 +42,15 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 
 Inside `scripts/` you will find `sample-script.js`:
 ```js
-const env = require("@nomiclabs/buidler");
+const bre = require("@nomiclabs/buidler");
 
 async function main() {
   // You can run Buidler tasks from a script.
   // For example, we make sure everything is compiled by running "compile"
-  await env.run("compile");
+  await bre.run("compile");
 
   // We require the artifacts once our contracts are compiled
-  const Greeter = env.artifacts.require("Greeter");
+  const Greeter = bre.artifacts.require("Greeter");
   const greeter = await Greeter.new("Hello, world!");
 
   console.log("Greeter address:", greeter.address);

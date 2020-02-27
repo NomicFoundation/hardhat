@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-web3-legacy",
-  "version": "1.0.2",
+  "version": "1.2.0",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3-legacy",
@@ -17,14 +17,14 @@
     "web3.js"
   ],
   "scripts": {
-    "lint:fix": "../../node_modules/.bin/prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && npm run lint-src -- --fix && npm run lint-tests -- --fix",
     "lint": "npm run lint-src && npm run lint-tests",
-    "lint-tests": "../../node_modules/.bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "../../node_modules/.bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "./scripts/run-tests.sh",
-    "build": "../../node_modules/.bin/tsc --build src",
-    "build-test": "../../node_modules/.bin/tsc --build .",
-    "clean": "rm -rf dist build-test"
+    "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
+    "test": "node scripts/run-tests.js",
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist build-test"
   },
   "files": [
     "dist/",
@@ -33,13 +33,13 @@
     "README.md"
   ],
   "devDependencies": {
+    "@nomiclabs/buidler": "^1.2.0",
     "@types/chai": "^4.2.0",
-    "@nomiclabs/buidler": "^1.0.2",
     "chai": "^4.2.0",
     "web3": "^0.20.0"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.0.2",
+    "@nomiclabs/buidler": "^1.2.0",
     "web3": "^0.20.0"
   }
 }

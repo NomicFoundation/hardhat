@@ -7,13 +7,13 @@ This document contains some tips on how to collaborate in this project.
 This repository is a monorepo handled with [Lerna](https://github.com/lerna/lerna).
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/buidler-core` which
-is the main project (i.e. the one that published as [@nomiclabs/buidler](npmjs.com/package/@nomiclabs/buidler)).
+is the main project (i.e. the one that's published as [@nomiclabs/buidler](https://npmjs.com/package/@nomiclabs/buidler)).
 
 ## Installing
 
 To install this project you have to run:
 
-1. `scripts/install.sh`
+1. `npm install`
 
 ## Building the projects
 
@@ -24,8 +24,18 @@ This will keep everything compiled, and these problems will be avoided.
 
 All tests are written using [mocha](https://mochajs.org) and [chai](https://www.chaijs.com).
 
-You can run a package's tests by executing `npm run test` inside its folder. Or you can run all the tests at once with
-`npm run test` from the root folder.
+### Per-package
+You can run a package's tests by executing `npm test` inside its folder.
+
+_Note_: for package [buidler-vyper](./packages/buidler-vyper) case, a running instance of Docker Desktop is required, with `ethereum/vyper` image pulled. To install it, run:
+```
+docker pull ethereum/vyper:0.1.0b10
+```
+
+### Entire project
+You can run all the tests at once by running `npm test` from the root folder.
+
+For the case of package [buidler-vyper](./packages/buidler-vyper), an `ethereum/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
 
 ## Code formatting
 
@@ -37,6 +47,15 @@ Prettier and forbids some dangerous patterns.
 
 The linter is always run in the CI, so make sure it passes before pushing code. You can use `npm run lint` and
 `npm run lint:fix` inside the packages' folders.
+
+## Branching
+
+We work on the branch [`development`](https://github.com/nomiclabs/buidler/tree/development)
+and keep `master` in sync with the latest release.
+
+Please, branch from `development` when implementing a new feature or fixing a 
+bug, and use it as the base branch in every pull request.
+
 
 ## Dependencies
 
@@ -54,8 +73,8 @@ This is done by selectively requiring dependencies when needed using `import` or
 1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`
 1. If a module is in the least below, use a top-level `import ... from "mod""`.
 1. Otherwise, use `await import` or `require` locally in the functions that use it.
-   3.1. If the function is sync, use node's `require`
-   3.2. If the function is an async, use `await import`
+   1. If the function is sync, use node's `require`
+   2. If the function is an async, use `await import`
 
 Note that these rules don't apply to tests. You can always use top-level imports there.
 

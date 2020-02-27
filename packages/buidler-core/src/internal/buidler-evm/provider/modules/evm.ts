@@ -2,7 +2,7 @@ import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { MethodNotFoundError, MethodNotSupportedError } from "../errors";
-import { validateParams } from "../input";
+import { rpcQuantity, validateParams } from "../input";
 import { BuidlerNode } from "../node";
 import { numberToRpcQuantity } from "../output";
 
@@ -23,10 +23,10 @@ export class EvmModule {
         return this._mineAction(...this._mineParams(params));
 
       case "evm_revert":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._revertAction(...this._revertParams(params));
 
       case "evm_snapshot":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        return this._snapshotAction(...this._snapshotParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -58,5 +58,22 @@ export class EvmModule {
 
   // evm_revert
 
+  private _revertParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _revertAction(snapshotId: BN): Promise<boolean> {
+    return this._node.revertToSnapshot(snapshotId.toNumber());
+  }
+
   // evm_snapshot
+
+  private _snapshotParams(params: any[]): [] {
+    return [];
+  }
+
+  private async _snapshotAction(): Promise<string> {
+    const snapshotId = await this._node.takeSnapshot();
+    return numberToRpcQuantity(snapshotId);
+  }
 }
