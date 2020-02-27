@@ -260,7 +260,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
       try {
         type.validate(name, argumentValue);
       } catch (error) {
-        if (!(error instanceof BuidlerError)) {
+        // ensure error is instance of BuidlerError, and of type ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+        // or wrap it otherwise.
+        if (
+          !(error instanceof BuidlerError) ||
+          error.errorDescriptor !== ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+        ) {
           throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
             value: argumentValue,
             name,

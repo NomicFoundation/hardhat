@@ -74,8 +74,6 @@ describe("Environment", () => {
 
     dsl
       .task("complexExampleTask", "a complex example task")
-      .addOptionalParam("optParam", "an opt param", 123, types.int)
-      .addFlag("flag", "some flag")
       .addPositionalParam(
         "positionalRequiredStringParam",
         "a positional required type 'string' param",
@@ -86,6 +84,31 @@ describe("Environment", () => {
       .addOptionalPositionalParam(
         "posOptJsonParamWithDefault",
         "a positional optional type 'json' param",
+        JSON.stringify({ a: 1 }),
+        types.json
+      )
+      .setAction(async () => 42);
+
+    dsl
+      .task("taskWithMultipleTypesParams", "a task with many types params")
+      .addFlag("flagParam", "some flag")
+      .addOptionalParam("optIntParam", "an opt int param", 123, types.int)
+      .addOptionalParam("optFloatParam", "an opt float param", 2.5, types.float)
+      .addOptionalParam(
+        "optFileParam",
+        "an opt file param",
+        undefined,
+        types.inputFile
+      )
+      .addOptionalParam(
+        "optStringParam",
+        "an opt string param",
+        "some default",
+        types.string
+      )
+      .addOptionalParam(
+        "optJsonParam",
+        "an opt 'json' param",
         JSON.stringify({ a: 1 }),
         types.json
       )
@@ -184,6 +207,58 @@ describe("Environment", () => {
           defaultValue,
           "should include default param value in task action call"
         );
+      });
+
+      it("should validate argument type matches the param type", async () => {
+        const taskName = "taskWithMultipleTypesParams";
+
+        const typesValidationTestCases = {
+          flagParam: { valid: true, invalid: 1 },
+          optIntParam: { valid: 10, invalid: 1.2 },
+          optFloatParam: { valid: 1.2, invalid: 10 },
+          optStringParam: { valid: "a string", invalid: 123 },
+          optJsonParam: { valid: JSON.stringify({ a: 20 }), invalid: 123 },
+          optFileParam: { valid: __filename, invalid: __dirname }
+        };
+
+        const expectTaskRunsSuccesfully = async (
+          taskNameToRun: string,
+          taskArguments: any
+        ) => {
+          const argsString = JSON.stringify(taskArguments);
+          try {
+            await env.run(taskNameToRun, taskArguments);
+          } catch (error) {
+            assert.fail(
+              error,
+              undefined,
+              `Should not throw error task ${taskNameToRun} with args ${argsString}. Error message: ${error.message ||
+                error}`
+            );
+          }
+        };
+
+        const expectTaskRunsWithError = async (
+          taskNameToRun: string,
+          taskArguments: any
+        ) => {
+          await expectBuidlerErrorAsync(async () => {
+            await env.run(taskNameToRun, taskArguments);
+          }, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);
+        };
+
+        for (const [paramName, { valid, invalid }] of Object.entries(
+          typesValidationTestCases
+        )) {
+          const validTaskArguments = { [paramName]: valid };
+          const invalidTaskArguments = { [paramName]: invalid };
+
+          // should run task successfully with valid type arguments
+          await expectTaskRunsSuccesfully(taskName, validTaskArguments);
+
+          // should throw error with argument of type not same type as the param type
+          await expectTaskRunsWithError(taskName, invalidTaskArguments);
+        }
       });
     });
 
