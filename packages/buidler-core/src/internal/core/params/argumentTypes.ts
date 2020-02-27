@@ -4,6 +4,14 @@ import fsExtra from "fs-extra";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
 
+export type ArgumentTypeName =
+  | "boolean"
+  | "int"
+  | "float"
+  | "string"
+  | "json"
+  | "inputFile";
+
 /**
  * Provides an interface for every valid task argument type.
  */
@@ -11,19 +19,29 @@ export interface ArgumentType<T> {
   /**
    * Type's name.
    */
-  name: string;
+  name: ArgumentTypeName;
 
   /**
    * Parses strValue. This function MUST throw BDLR301 if it
    * can parse the given value.
    *
-   * @param argName argument's name.
-   * @param strValue argument's value.
+   * @param argName argument's name - used for context in case of error.
+   * @param strValue argument's string value to be parsed.
    *
    * @throws BDLR301 if an invalid value is given.
    * @returns the parsed value.
    */
   parse(argName: string, strValue: string): T;
+
+  /**
+   * Check if argument value is of type <T>
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type <t>
+   */
+  validate(argName: string, value: any): void;
 }
 
 /**
@@ -33,7 +51,17 @@ export interface ArgumentType<T> {
  */
 export const string: ArgumentType<string> = {
   name: "string",
-  parse: (argName, strValue) => strValue
+  parse: (argName, strValue) => strValue,
+  validate: (argName: string, value: any): void => {
+    const type = "string";
+    if (typeof value !== type) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type
+      });
+    }
+  }
 };
 
 /**
@@ -57,6 +85,16 @@ export const boolean: ArgumentType<boolean> = {
       name: argName,
       type: "boolean"
     });
+  },
+  validate: (argName: string, value: any): void => {
+    const type = "boolean";
+    if (typeof value !== type) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type
+      });
+    }
   }
 };
 
@@ -78,11 +116,20 @@ export const int: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
-        type: "int"
+        type: int.name
       });
     }
 
     return Number(strValue);
+  },
+  validate: (argName: string, value: any): void => {
+    if (!Number.isInteger(value)) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: int.name
+      });
+    }
   }
 };
 
@@ -104,11 +151,21 @@ export const float: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
-        type: "float"
+        type: float.name
       });
     }
 
     return Number(strValue);
+  },
+  validate: (argName: string, value: any): void => {
+    const isFloat = Math.floor(value) !== value;
+    if (!isFloat) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: float.name
+      });
+    }
   }
 };
 
@@ -141,6 +198,12 @@ export const inputFile: ArgumentType<string> = {
     }
 
     return strValue;
+  },
+  /**
+   * File string validation succeeds if it can be parsed, ie. is a valid accessible file dir*
+   */
+  validate: (argName: string, value: any): void => {
+    inputFile.parse(argName, value);
   }
 };
 
@@ -158,6 +221,31 @@ export const json: ArgumentType<any> = {
         },
         error
       );
+    }
+  },
+  /**
+   *   json string validation succeeds if it can be JSON parsed,
+   *   and is not simply a 'null', 'false' or numeric value.
+   */
+  validate: (argName: string, value: any): void => {
+    let parsedValue: any;
+
+    try {
+      parsedValue = JSON.parse(value);
+    } catch (error) {
+      // do nothing here (will throw an error below)
+    }
+
+    // Handle both exception & non-exception-throwing cases:
+    // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+    // but... JSON.parse(null) returns null, and typeof null === "object",
+    // so we must check for that, too. Thankfully, null is falsey, so this suffices:
+    if (!parsedValue || typeof parsedValue !== "object") {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: json.name
+      });
     }
   }
 };
