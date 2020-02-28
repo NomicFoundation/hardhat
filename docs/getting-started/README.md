@@ -148,11 +148,14 @@ Next, if you take a look at `contracts/`, you should be able to find `Greeter.
 ```js
 pragma solidity ^0.5.1;
 
+import "@nomiclabs/buidler/console.sol";
+
 contract Greeter {
 
     string greeting;
 
     constructor(string memory _greeting) public {
+        console.log("Deploying a Greeter with greeting:", _greeting);
         greeting = _greeting;
     }
 
@@ -160,7 +163,13 @@ contract Greeter {
         return greeting;
     }
 
+    function setGreeting(string memory _greeting) public {
+        console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
+        greeting = _greeting;
+    }
+
 }
+
 ```
 
 To compile it, simply run:
@@ -195,13 +204,23 @@ You can run your tests with `npx buidler test`
 ```
 $ npx buidler test
 Compiling...
-Compiled 1 contract successfully
+Compiled 2 contracts successfully
 
 
   Contract: Greeter
-    ✓ Should return the new greeting once it's changed (323ms)
+Deploying a Greeter with greeting: Hello, world!
+Changing greeting from 'Hello, world!' to 'Hola, mundo!'
+    ✓ Should return the new greeting once it's changed (344ms)
 
-  1 passing (323ms)
+  Greeter contract
+    Deployment
+Deploying a Greeter with greeting: Hello, world!
+Deploying a Greeter with greeting: Hola, mundo!
+      ✓ Should deploy with the right greeting (82ms)
+
+
+  2 passing (434ms)
+
 ```
 
 ### Deploying your contracts

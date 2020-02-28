@@ -155,7 +155,7 @@ the in-process Buidler EVM provider. See [Buidler EVM's config](../config/README
 Buidler EVM is initialized by default in this state:
 
 - A brand new blockchain, just with the genesis block.
-- 20 accounts with 10.000 ETH each
+- 20 accounts with 10000 ETH each
   - `0xc783df8a850f42e7f7e57013759c285caa701eb6`
   - `0xead9c93b79ae7c1591b1fb5323bd777e86e150d4`
   - `0xe5904695748fe4a84b40b3fc79de2277660bd1d3`
