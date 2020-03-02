@@ -84,7 +84,7 @@ describe("Environment", () => {
       .addOptionalPositionalParam(
         "posOptJsonParamWithDefault",
         "a positional optional type 'json' param",
-        JSON.stringify({ a: 1 }),
+        { a: 1 },
         types.json
       )
       .setAction(async () => 42);
@@ -168,7 +168,7 @@ describe("Environment", () => {
         assert.isDefined(param);
 
         // specified arg value, should be different from the default for this test
-        const paramValue = JSON.stringify({ value: 20 });
+        const paramValue = { value: 20 };
         const { defaultValue } = param;
         assert.notEqual(defaultValue, paramValue);
 
@@ -217,7 +217,7 @@ describe("Environment", () => {
           optIntParam: { valid: 10, invalid: 1.2 },
           optFloatParam: { valid: 1.2, invalid: 10 },
           optStringParam: { valid: "a string", invalid: 123 },
-          optJsonParam: { valid: JSON.stringify({ a: 20 }), invalid: 123 },
+          optJsonParam: { valid: { a: 20 }, invalid: 1234 },
           optFileParam: { valid: __filename, invalid: __dirname }
         };
 

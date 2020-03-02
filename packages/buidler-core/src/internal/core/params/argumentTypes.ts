@@ -224,23 +224,14 @@ export const json: ArgumentType<any> = {
     }
   },
   /**
-   *   json string validation succeeds if it can be JSON parsed,
-   *   and is not simply a 'null', 'false' or numeric value.
+   *   'json' value validation succeeds if it is of "object" map-like {} type,
+   *   this excludes 'null', function, date, regexp, etc.
    */
   validate: (argName: string, value: any): void => {
-    let parsedValue: any;
+    const isJsonValue =
+      Object.prototype.toString.call(value) === "[object Object]";
 
-    try {
-      parsedValue = JSON.parse(value);
-    } catch (error) {
-      // do nothing here (will throw an error below)
-    }
-
-    // Handle both exception & non-exception-throwing cases:
-    // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
-    // but... JSON.parse(null) returns null, and typeof null === "object",
-    // so we must check for that, too. Thankfully, null is falsey, so this suffices:
-    if (!parsedValue || typeof parsedValue !== "object") {
+    if (!isJsonValue) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
