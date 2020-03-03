@@ -310,6 +310,9 @@ export class Environment implements BuidlerRuntimeEnvironment {
       throw parseErrors[0];
     }
 
-    return parsedValues;
+    // append the rest of arguments that where not in the task param definitions
+    const parsedTaskArguments = { ...taskArguments, ...parsedValues };
+
+    return parsedTaskArguments;
   }
 }
