@@ -16,6 +16,14 @@ export async function runScript(
   const { fork } = await import("child_process");
 
   return new Promise((resolve, reject) => {
+    const processExecArgv = process.execArgv.map(arg => {
+      if (arg.toLowerCase().includes("--inspect-brk=")) {
+        // directly use '--inspect' flag, for debuggability
+        return "--inspect";
+      }
+      return arg;
+    });
+
     const nodeArgs = [
       ...process.execArgv,
       ...getTsNodeArgsIfNeeded(),
