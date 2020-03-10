@@ -25,8 +25,8 @@ export async function runScript(
     });
 
     const nodeArgs = [
-      ...process.execArgv,
-      ...getTsNodeArgsIfNeeded(),
+      ...processExecArgv,
+      ...getTsNodeArgsIfNeeded(scriptPath),
       ...extraNodeArgs
     ];
 
@@ -54,14 +54,12 @@ export async function runScriptWithBuidler(
 ): Promise<number> {
   log(`Creating Buidler subprocess to run ${scriptPath}`);
 
+  const buidlerRegisterPath = resolveBuidlerRegisterPath();
+
   return runScript(
     scriptPath,
     scriptArgs,
-    [
-      ...extraNodeArgs,
-      "--require",
-      path.join(__dirname, "..", "..", "register")
-    ],
+    [...extraNodeArgs, "--require", buidlerRegisterPath],
     {
       ...getEnvVariablesMap(buidlerArguments),
       ...extraEnvVars
@@ -69,8 +67,32 @@ export async function runScriptWithBuidler(
   );
 }
 
-function getTsNodeArgsIfNeeded() {
+/**
+ * Ensure buidler register source path is resolved to compiled JS file
+ * instead of TS source file, so we don't need to run ts-node unnecessarily.
+ */
+function resolveBuidlerRegisterPath() {
+  const executionMode = getExecutionMode();
+  const isInstalled = [
+    ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION,
+    ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION,
+    ExecutionMode.EXECUTION_MODE_LINKED
+  ].includes(executionMode);
+
+  let buidlerCoreCompiledPath = path.join(__dirname, "..", "..");
+  if (!isInstalled) {
+    buidlerCoreCompiledPath = path.join(buidlerCoreCompiledPath, "..");
+  }
+
+  return path.join(buidlerCoreCompiledPath, "register");
+}
+
+function getTsNodeArgsIfNeeded(scriptPath: string) {
   if (getExecutionMode() !== ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS) {
+    return [];
+  }
+
+  if (!/\.tsx?$/i.test(scriptPath)) {
     return [];
   }
 
