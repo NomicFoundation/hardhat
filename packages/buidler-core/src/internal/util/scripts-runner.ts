@@ -68,23 +68,29 @@ export async function runScriptWithBuidler(
 }
 
 /**
- * Ensure buidler register source path is resolved to compiled JS file
+ * Ensure buidler/register source file path is resolved to compiled JS file
  * instead of TS source file, so we don't need to run ts-node unnecessarily.
  */
-function resolveBuidlerRegisterPath() {
+export function resolveBuidlerRegisterPath() {
   const executionMode = getExecutionMode();
-  const isInstalled = [
+  const isCompiledInstallation = [
     ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION,
     ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION,
     ExecutionMode.EXECUTION_MODE_LINKED
   ].includes(executionMode);
 
-  let buidlerCoreCompiledPath = path.join(__dirname, "..", "..");
-  if (!isInstalled) {
-    buidlerCoreCompiledPath = path.join(buidlerCoreCompiledPath, "..");
-  }
+  const buidlerCoreBaseDir = path.join(__dirname, "..", "..");
 
-  return path.join(buidlerCoreCompiledPath, "register");
+  const buidlerCoreCompiledDir = isCompiledInstallation
+    ? buidlerCoreBaseDir
+    : path.join(buidlerCoreBaseDir, "..");
+
+  const buidlerCoreRegisterCompiledPath = path.join(
+    buidlerCoreCompiledDir,
+    "register"
+  );
+
+  return buidlerCoreRegisterCompiledPath;
 }
 
 function getTsNodeArgsIfNeeded(scriptPath: string) {

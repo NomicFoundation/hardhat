@@ -1,8 +1,7 @@
 import { assert } from "chai";
-import os from "os";
-import path from "path";
 
 import {
+  resolveBuidlerRegisterPath,
   runScript,
   runScriptWithBuidler
 } from "../../../src/internal/util/scripts-runner";
@@ -30,16 +29,12 @@ describe("Scripts runner", function() {
   });
 
   it("Should resolve to the status code of the script run", async function() {
-    this.timeout(35000);
-
-    if (os.type() === "Windows_NT") {
-      this.skip();
-    }
+    const buidlerRegisterPath = resolveBuidlerRegisterPath();
 
     const statusCode1 = await runScript(
       "./async-script.js",
       [],
-      ["--require", path.join(__dirname, "..", "..", "..", "src", "register")]
+      ["--require", buidlerRegisterPath]
     );
     assert.equal(statusCode1, 0);
 
@@ -49,7 +44,7 @@ describe("Scripts runner", function() {
     const statusCode3 = await runScript(
       "./successful-script.js",
       [],
-      ["--require", path.join(__dirname, "..", "..", "..", "src", "register")]
+      ["--require", buidlerRegisterPath]
     );
     assert.equal(statusCode3, 0);
   });
