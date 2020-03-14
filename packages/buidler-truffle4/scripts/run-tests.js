@@ -38,7 +38,7 @@ async function main() {
 
   try {
     shell.config.fatal = true;
-    shell.exec("node ../../node_modules/mocha/bin/mocha --exit");
+    shell.exec("node ../../node_modules/mocha/bin/mocha --recursive test/**/*.ts --exit");
   } finally {
     cleanup();
   }
