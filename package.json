@@ -7,6 +7,7 @@
   "devDependencies": {
     "@types/mocha": "^5.2.6",
     "@types/node": "^8.10.44",
+    "@types/shelljs": "^0.8.6",
     "chai": "^4.2.0",
     "ganache-cli": "^6.4.3",
     "lerna": "^3.13.4",
