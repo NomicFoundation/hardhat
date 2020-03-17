@@ -109,7 +109,7 @@ jobs:
       - name: Install
         run: npm install
       - name: Run tests
-        run: npm run test
+        run: npm run test -- --reporter dot
 
   test_macos:
     name: Test on MacOS with Node 10
@@ -142,7 +142,7 @@ jobs:
       - name: Install
         run: npm install
       - name: Run tests
-        run: npm run test
+        run: npm run test -- --reporter dot
 
   test_linux:
     name: Test on Linux with Node ${{ matrix.node }}
@@ -180,4 +180,4 @@ jobs:
       - name: Install
         run: npm install
       - name: Run tests
-        run: npm run test
+        run: npm run test -- --reporter dot
