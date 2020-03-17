@@ -49,9 +49,57 @@ function packagesToGlobStr(packages) {
   return `{${packages.join(",")}}`;
 }
 
-const ignoredPackagesGlobStr = packagesToGlobStr(ignoredPackages);
+// ** setup packages to be run in parallel and in series ** //
+const parallelizablePackages = [
+  "@nomiclabs/buidler",
+  "@nomiclabs/buidler-docker",
+  // "@nomiclabs/buidler-ethers",
+  // "@nomiclabs/buidler-etherscan",
+  "@nomiclabs/buidler-ganache",
+  "@nomiclabs/buidler-solhint",
+  "@nomiclabs/buidler-solpp",
+  // "@nomiclabs/buidler-truffle4",
+  // "@nomiclabs/buidler-truffle5",x`
+  "@nomiclabs/buidler-vyper",
+  "@nomiclabs/buidler-waffle"
+].filter(p => !ignoredPackages.includes(p));
 
-shell.exec(
-  `npx lerna exec --ignore "${ignoredPackagesGlobStr}" ` +
-  `--concurrency 1 -- ${testRunCommand}`
-);
+const ignoredPackagesGlobStr = packagesToGlobStr(ignoredPackages);
+const parallelPackagesGlobStr = packagesToGlobStr(parallelizablePackages);
+
+const parallelPackageFilter = `--scope "${parallelPackagesGlobStr}"`;
+const seriesPackageFilter = ` --ignore "${ignoredPackagesGlobStr}" --ignore "${parallelPackagesGlobStr}"`;
+
+// list packages to run in parallel
+console.log("Running parallel tests in packages: ");
+console.time("ls parallel");
+shell.exec(`npx lerna ls ${parallelPackageFilter}`);
+console.timeEnd("ls parallel");
+
+// list packages to run in series
+console.log("Running tests in series in the rest of packages: ");
+console.time("ls series");
+shell.exec(`npx lerna ls ${seriesPackageFilter}`);
+console.timeEnd("ls series");
+
+const lernaExecParallel = `npx lerna exec --parallel ${parallelPackageFilter} -- ${testRunCommand}`;
+const lernaExecSeries = `npx lerna exec ${seriesPackageFilter} --stream --concurrency 1 -- ${testRunCommand}`;
+
+// run parallelizable packages first
+console.time("parallel");
+shell.exec(lernaExecParallel, code => {
+  console.log(`Parallel finished with status ${code}`); //TODO if status !== 0 force exit ?
+  console.timeEnd("parallel");
+});
+
+// run the remaining packages in series
+console.time("series");
+shell.exec(lernaExecSeries, code => {
+  console.log(`Series finished with status ${code}`);
+  console.timeEnd("series");
+});
+
+// shell.exec(
+//   `npx lerna exec --ignore "${ignoredPackagesGlobStr}" ` +
+//   `--concurrency 1 -- ${testRunCommand}`
+// );
