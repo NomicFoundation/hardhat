@@ -3,9 +3,6 @@ import * as os from "os";
 // tslint:disable-next-line:no-implicit-dependencies
 import * as shell from "shelljs";
 
-const sleep = (timeout: number) =>
-  new Promise(resolve => setTimeout(resolve, timeout));
-
 export function cleanup(ganacheChild: ChildProcess) {
   if (!ganacheChild) {
     return;
@@ -16,12 +13,31 @@ export function cleanup(ganacheChild: ChildProcess) {
 async function startGanache(args: string[] = []): Promise<ChildProcess> {
   const ganacheCliPath = "../../node_modules/ganache-cli/cli.js";
 
-  const ganacheChild = spawn("node", [ganacheCliPath, ...args], {
-    stdio: "ignore"
-  });
+  const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
+  console.time("Ganache spawn");
+  // wait for ganache child process to start
+  await new Promise((resolve, reject) => {
+    ganacheChild.stdout.setEncoding("utf8");
+    ganacheChild.stderr.setEncoding("utf8");
 
-  // TODO would be better if here we wait for instance to effectively start...
-  await sleep(4000);
+    function checkIsRunning(data) {
+      const log = data.toString();
+
+      const logLower = log.toLowerCase();
+      const isRunning = logLower.includes("listening on");
+      if (isRunning) {
+        return resolve();
+      }
+      const isError = logLower.includes("error") && !log.includes("mnemonic");
+      if (isError) {
+        return reject(new Error(log));
+      }
+    }
+
+    ganacheChild.stdout.on("data", checkIsRunning);
+    ganacheChild.stderr.on("data", checkIsRunning);
+  });
+  console.timeEnd("Ganache spawn");
   return ganacheChild;
 }
 
