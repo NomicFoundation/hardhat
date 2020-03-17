@@ -28,10 +28,17 @@ if (shouldBuildTests) {
 
 process.env.TS_NODE_TRANSPILE_ONLY = "true";
 
+const nodeArgs = process.argv.slice(2);
+const testArgs = nodeArgs.length > 0 && `-- ${nodeArgs.join(" ")}`;
+
+const testRunCommand = `npm run test ${testArgs || ""}`;
+
+
+
 shell.exec(
   `npx lerna exec ${
     shouldIgnoreVyperTests ? '--ignore "@nomiclabs/buidler-vyper"' : ""
   } ${
     shouldIgnoreSolppTests ? '--ignore "@nomiclabs/buidler-solpp"' : ""
-  } --concurrency 1 -- npm run test`
+  } --concurrency 1 -- ${testRunCommand}`
 );
