@@ -1,3 +1,6 @@
 {
-  "extends": "../../config/tslint/tslint.json"
+  "extends": "../../config/tslint/tslint.json",
+  "rules": {
+    "no-implicit-dependencies": [true, "dev"]
+  }
 }

@@ -2,7 +2,9 @@ import { ChildProcess } from "child_process";
 
 import { cleanup, ganacheSetup } from "./helper/ganache-provider";
 
-const ganacheCliArgs = (process.env.GANACHE_CLI_ARGS || "")
+const { GANACHE_CLI_ARGS } = process.env;
+
+const ganacheCliArgs = (GANACHE_CLI_ARGS !== undefined ? GANACHE_CLI_ARGS : "")
   .split(/[\s,]+/)
   .filter(arg => arg.length > 0);
 
@@ -17,10 +19,20 @@ before(async () => {
       ? `with args: '${JSON.stringify(ganacheCliArgs)}'`
       : "";
 
-  console.log(`### Setting up ganache instance ${ganacheArgsStr}###\n`);
-  ganacheInstance = await ganacheSetup(ganacheCliArgs);
-  if (ganacheInstance) {
-    console.log("### Started our own ganache instance ###");
+  let setupMs = Date.now();
+  try {
+    ganacheInstance = await ganacheSetup(ganacheCliArgs);
+    setupMs = Date.now() - setupMs;
+  } catch (error) {
+    console.log(
+      `Could not setup a ganache instance: ${error.message || error}`
+    );
+  }
+
+  if (ganacheInstance !== null) {
+    console.log(
+      `### Started our own ganache instance ${ganacheArgsStr} in ${setupMs}ms ###`
+    );
   } else {
     console.log("### Using existing ganache instance ###");
   }
@@ -30,7 +42,7 @@ before(async () => {
  * Cleanup ganache instance down after test finishes.
  */
 after(async () => {
-  if (!ganacheInstance) {
+  if (ganacheInstance === null) {
     return;
   }
   cleanup(ganacheInstance);
