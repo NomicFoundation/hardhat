@@ -632,7 +632,7 @@ Please follow Buidler's instructions to resolve this.`
     MISSING_DEPENDENCY: {
       number: 801,
       message: `Plugin %plugin% requires %dependency% to be installed.
-%extraMessage%Please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%`,
+%extraMessage%Please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"`,
       title: "Plugin dependencies not installed",
       description: `You are trying to use a plugin with unmet dependencies. 
 
@@ -641,7 +641,7 @@ Please follow Buidler's instructions to resolve this.`
     DEPENDENCY_VERSION_MISMATCH: {
       number: 802,
       message: `Plugin %plugin% requires %dependency% version %versionSpec% but got %installedVersion%.
-%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%
+%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"
 If you have installed %dependency% yourself, please reinstall it with a valid version.`,
       title: "Plugin dependencies's version mismatch",
       description: `You are trying to use a plugin that requires a different version of one of its dependencies. 
