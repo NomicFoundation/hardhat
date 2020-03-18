@@ -1,5 +1,5 @@
 import { ChildProcess, spawn } from "child_process";
-import * as detect from "detect-port";
+import detect from "detect-port";
 
 const { GANACHE_PORT } = process.env;
 
@@ -13,7 +13,7 @@ export function cleanup(ganacheChild: ChildProcess) {
 }
 
 async function startGanache(args: string[] = []): Promise<ChildProcess> {
-  const ganacheCliPath = "../../node_modules/ganache-cli/cli.js";
+  const ganacheCliPath = require.resolve("ganache-cli/cli.js");
 
   const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
   console.time("Ganache spawn");

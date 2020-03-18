@@ -6,5 +6,9 @@
   },
   "include": ["./test/**/*.ts", "./src/type-extensions.d.ts"],
   "exclude": ["./test/**/buidler.config.ts"],
-  "references": []
+  "references": [
+    {
+      "path": "./src"
+    }
+  ]
 }

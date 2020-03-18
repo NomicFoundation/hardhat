@@ -1,6 +1,6 @@
 import { ChildProcess } from "child_process";
 
-import { cleanup, ganacheSetup } from "./helper/ganache-provider";
+import { cleanup, ganacheSetup } from "../src/helper/ganache-provider";
 
 const { GANACHE_CLI_ARGS } = process.env;
 

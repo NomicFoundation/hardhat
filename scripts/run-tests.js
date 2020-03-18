@@ -55,7 +55,48 @@ const ignoredPackagesFilter =
     ? `--ignore "${packagesToGlobStr(ignoredPackages)}"`
     : "";
 
-shell.exec(
-  `npx lerna exec ${ignoredPackagesFilter} ` +
-    `--concurrency 1 -- ${testRunCommand}`
-);
+const {
+  cleanup,
+  ganacheSetup
+} = require("../packages/common/dist/helper/ganache-provider");
+
+async function useGanacheInstance() {
+  try {
+    return await ganacheSetup(["--deterministic"]);
+  } catch (error) {
+    error.message = `Could not setup own ganache instance: ${error.message}`;
+    throw error;
+  }
+}
+
+async function main() {
+  /* Ensure a ganache instance is running */
+  const ganacheInstance = await useGanacheInstance();
+  if (ganacheInstance) {
+    console.log("** Running a Ganache instance for tests **");
+  } else {
+    console.log("** Using existing Ganache instance for tests **");
+  }
+
+  try {
+    /* Run all tests */
+    console.time("test all");
+    shell.exec(
+      `npx lerna exec ${ignoredPackagesFilter} --no-private ` +
+        ` --concurrency 1  ` +
+        ` -- ${testRunCommand}`
+    );
+    console.timeEnd("test all");
+  } finally {
+    /* Cleanup ganache instance */
+    if (ganacheInstance) {
+      console.log("** Tearing ganache instance down **");
+      cleanup(ganacheInstance);
+    }
+  }
+}
+
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
