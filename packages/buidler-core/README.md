@@ -1,4 +1,4 @@
-![](https://user-images.githubusercontent.com/232174/57331293-9a042100-70ee-11e9-8c37-8a5d52875bf4.png)
+![](https://user-images.githubusercontent.com/232174/75543992-f1c39e00-5a1a-11ea-8fd4-8933638b5910.png)
 [![NPM Package](https://img.shields.io/npm/v/@nomiclabs/buidler.svg?style=flat-square)](https://www.npmjs.org/package/@nomiclabs/buidler)
 ![Build Status](https://github.com/nomiclabs/buidler/workflows/CI/badge.svg)
 ---------
