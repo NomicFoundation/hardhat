@@ -16,13 +16,7 @@ export async function runScript(
   const { fork } = await import("child_process");
 
   return new Promise((resolve, reject) => {
-    const processExecArgv = process.execArgv.map(arg => {
-      if (arg.toLowerCase().includes("--inspect-brk=")) {
-        // directly use '--inspect' flag, for debuggability
-        return "--inspect";
-      }
-      return arg;
-    });
+    const processExecArgv = withFixedInspectArg(process.execArgv);
 
     const nodeArgs = [
       ...processExecArgv,
@@ -65,6 +59,31 @@ export async function runScriptWithBuidler(
       ...extraEnvVars
     }
   );
+}
+
+/**
+ * Fix debugger "inspect" arg from process.argv, if present.
+ *
+ * When running this process with a debugger, a debugger port
+ * is specified via the "--inspect-brk=" arg param in some IDEs/setups.
+ *
+ * This normally works, but if we do a fork afterwards, we'll get an error stating
+ * that the port is already in use (since the fork would also use the same args,
+ * therefore the same port number). To prevent this issue, we could replace the port number with
+ * a different free one, or simply use the port-agnostic --inspect" flag, and leave the debugger
+ * port selection to the Node process itself, which will pick an empty AND valid one.
+ *
+ * This way, we can properly use the debugger for this process AND for the executed
+ * script itself - even if it's compiled using ts-node.
+ */
+function withFixedInspectArg(argv: string[]) {
+  const fixIfInspectArg = (arg: string) => {
+    if (arg.toLowerCase().includes("--inspect-brk=")) {
+      return "--inspect";
+    }
+    return arg;
+  };
+  return argv.map(fixIfInspectArg);
 }
 
 /**
