@@ -41,19 +41,59 @@ if (shouldIgnoreSolppTests) {
   ignoredPackages.push("@nomiclabs/buidler-solpp");
 }
 
-const nodeArgs = process.argv.slice(2);
-const testArgs = nodeArgs.length > 0 && `-- ${nodeArgs.join(" ")}`;
+function getTestArgsOrDefaults() {
+  const testNodeArgs = process.argv.slice(2);
+  const testNodeArgsLookupStr = testNodeArgs.join(" ");
 
-const testRunCommand = `npm run test ${testArgs || ""}`;
+  // use default unlimited timeout, as we are running most of them in parallel and some tests may take too long.
+  if (!/(no-)?timeout/.test(testNodeArgsLookupStr)) {
+    testNodeArgs.push('--timeout "0"');
+  }
+
+  // use default reporter "dot", for less verbose output
+  // this reporter is good for limited output of mostly failed errors and elapsed times
+  if (!/reporter(?!-)/.test(testNodeArgsLookupStr)) {
+    testNodeArgs.push('--reporter "dot"');
+  }
+
+  return testNodeArgs.length > 0 ? `-- ${testNodeArgs.join(" ")}` : "";
+}
+
+const testRunCommand = `npm run test ${getTestArgsOrDefaults()}`;
+console.log({testRunCommand});
 
 function packagesToGlobStr(packages) {
   return packages.length === 1 ? packages[0] : `{${packages.join(",")}}`;
 }
 
+// ** setup packages to be run in parallel and in series ** //
+
+// Packages requiring a running ganache instance are run in series
+// as an attempt to not overload the process resulting in a slower
+// operation.  The rest of packages, are all run in parallel.
+const ganacheDependantPackages = [
+  "@nomiclabs/buidler-ethers",
+  "@nomiclabs/buidler-etherscan",
+  "@nomiclabs/buidler-truffle4",
+  "@nomiclabs/buidler-truffle5",
+  "@nomiclabs/buidler-web3",
+  "@nomiclabs/buidler-web3-legacy"
+].filter(p => !ignoredPackages.includes(p));
+
+const ganacheDependantPackagesGlobStr = packagesToGlobStr(
+  ganacheDependantPackages
+);
+
 const ignoredPackagesFilter =
   Array.isArray(ignoredPackages) && ignoredPackages.length > 0
     ? `--ignore "${packagesToGlobStr(ignoredPackages)}"`
     : "";
+
+const parallelPackageFilter = `${ignoredPackagesFilter} --ignore "${ganacheDependantPackagesGlobStr}"`;
+const seriesPackageFilter = ` ${ignoredPackagesFilter} --scope "${ganacheDependantPackagesGlobStr}"`;
+
+const lernaExecParallel = `npx lerna exec --parallel ${parallelPackageFilter} -- ${testRunCommand}`;
+const lernaExecSeries = `npx lerna exec --concurrency 1 --stream ${seriesPackageFilter} -- ${testRunCommand}`;
 
 const {
   cleanup,
@@ -69,6 +109,34 @@ async function useGanacheInstance() {
   }
 }
 
+function shellExecAsync(cmd, opts = {}) {
+  return new Promise(function(resolve, reject) {
+    // Execute the command, reject if we exit non-zero (i.e. error)
+    shell.exec(cmd, opts, function(code, stdout, stderr) {
+      if (code !== 0) return reject(new Error(stderr));
+      return resolve(stdout);
+    });
+  });
+}
+
+async function runTests() {
+  console.log({lernaExecParallel});
+  console.log({lernaExecSeries});
+
+  // Measure execution times
+  console.time("Total test time");
+  console.time("parallel exec");
+  console.time("series exec");
+  await Promise.all([
+    shellExecAsync(lernaExecParallel).then(() =>
+      console.timeEnd("parallel exec")
+    ),
+    shellExecAsync(lernaExecSeries).then(() => console.timeEnd("series exec"))
+  ]);
+
+  console.timeEnd("Total test time");
+}
+
 async function main() {
   /* Ensure a ganache instance is running */
   const ganacheInstance = await useGanacheInstance();
@@ -80,13 +148,7 @@ async function main() {
 
   try {
     /* Run all tests */
-    console.time("test all");
-    shell.exec(
-      `npx lerna exec ${ignoredPackagesFilter} --no-private ` +
-        ` --concurrency 1  ` +
-        ` -- ${testRunCommand}`
-    );
-    console.timeEnd("test all");
+    await runTests();
   } finally {
     /* Cleanup ganache instance */
     if (ganacheInstance) {
