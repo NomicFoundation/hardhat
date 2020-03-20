@@ -41,22 +41,30 @@ if (shouldIgnoreSolppTests) {
   ignoredPackages.push("@nomiclabs/buidler-solpp");
 }
 
-const nodeArgs = process.argv.slice(2);
-const testArgs = nodeArgs.length > 0 && `-- ${nodeArgs.join(" ")}`;
+function getTestArgsOrDefaults() {
+  const testNodeArgs = process.argv.slice(2);
+  const testNodeArgsLookupStr = testNodeArgs.join(" ");
 
-// default unlimited timeout for tests as we are running most of them in parallel.
-const defaultTestArgs = '-- --timeout "0"';
+  // use default unlimited timeout, as we are running most of them in parallel and some tests may take too long.
+  if (!/(no-)?timeout/.test(testNodeArgsLookupStr)) {
+    testNodeArgs.push('--timeout "0"');
+  }
 
-const testRunCommand = `npm run test ${testArgs || defaultTestArgs}`;
+  // use default reporter "dot", for less verbose output
+  // this reporter is good for limited output of mostly failed errors and elapsed times
+  if (!/reporter(?!-)/.test(testNodeArgsLookupStr)) {
+    testNodeArgs.push('--reporter "dot"');
+  }
+
+  return testNodeArgs.length > 0 ? `-- ${testNodeArgs.join(" ")}` : "";
+}
+
+const testRunCommand = `npm run test ${getTestArgsOrDefaults()}`;
+console.log({testRunCommand});
 
 function packagesToGlobStr(packages) {
   return packages.length === 1 ? packages[0] : `{${packages.join(",")}}`;
 }
-
-const ignoredPackagesFilter =
-  Array.isArray(ignoredPackages) && ignoredPackages.length > 0
-    ? `--ignore "${packagesToGlobStr(ignoredPackages)}"`
-    : "";
 
 // ** setup packages to be run in parallel and in series ** //
 
@@ -72,10 +80,14 @@ const ganacheDependantPackages = [
   "@nomiclabs/buidler-web3-legacy"
 ].filter(p => !ignoredPackages.includes(p));
 
-const ignoredPackagesGlobStr = packagesToGlobStr(ignoredPackages);
 const ganacheDependantPackagesGlobStr = packagesToGlobStr(
   ganacheDependantPackages
 );
+
+const ignoredPackagesFilter =
+  Array.isArray(ignoredPackages) && ignoredPackages.length > 0
+    ? `--ignore "${packagesToGlobStr(ignoredPackages)}"`
+    : "";
 
 const parallelPackageFilter = `${ignoredPackagesFilter} --ignore "${ganacheDependantPackagesGlobStr}"`;
 const seriesPackageFilter = ` ${ignoredPackagesFilter} --scope "${ganacheDependantPackagesGlobStr}"`;
@@ -108,7 +120,8 @@ function shellExecAsync(cmd, opts = {}) {
 }
 
 async function runTests() {
-  console.log("Running: ", { lernaExecParallel }, { lernaExecSeries });
+  console.log({lernaExecParallel});
+  console.log({lernaExecSeries});
 
   // Measure execution times
   console.time("Total test time");
