@@ -1,26 +1,29 @@
 import { ChildProcess, spawn } from "child_process";
-import * as os from "os";
-// tslint:disable-next-line:no-implicit-dependencies
-import * as shell from "shelljs";
+import detect from "detect-port";
+
+const { GANACHE_PORT } = process.env;
+
+const port = GANACHE_PORT !== undefined ? Number(GANACHE_PORT) : 8545;
 
 export function cleanup(ganacheChild: ChildProcess) {
-  if (!ganacheChild) {
+  if (ganacheChild === undefined || ganacheChild === null) {
     return;
   }
   ganacheChild.kill();
 }
 
 async function startGanache(args: string[] = []): Promise<ChildProcess> {
-  const ganacheCliPath = "../../node_modules/ganache-cli/cli.js";
+  const ganacheCliPath = require.resolve("ganache-cli/cli.js");
 
   const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
   console.time("Ganache spawn");
+
   // wait for ganache child process to start
   await new Promise((resolve, reject) => {
     ganacheChild.stdout.setEncoding("utf8");
     ganacheChild.stderr.setEncoding("utf8");
 
-    function checkIsRunning(data) {
+    function checkIsRunning(data: string | Buffer) {
       const log = data.toString();
 
       const logLower = log.toLowerCase();
@@ -41,25 +44,20 @@ async function startGanache(args: string[] = []): Promise<ChildProcess> {
   return ganacheChild;
 }
 
-function isWindows() {
-  return os.type() === "Windows_NT";
-}
+/**
+ * Returns true if port is already in use.
+ */
+async function isGanacheRunning() {
+  const suggestedFreePort = await detect(port);
+  const isPortInUse = suggestedFreePort !== port;
 
-function isGanacheRunning() {
-  if (isWindows()) {
-    // not checking for running ganache instance in Windows
-    return false;
-  }
-
-  const nc = shell.exec("nc -z localhost 8545");
-
-  return nc.code === 0;
+  return isPortInUse;
 }
 
 export async function ganacheSetup(
   args: string[] = []
 ): Promise<ChildProcess | null> {
-  if (isGanacheRunning()) {
+  if (await isGanacheRunning()) {
     // if ganache is already running, we just reuse the instance
     return null;
   }

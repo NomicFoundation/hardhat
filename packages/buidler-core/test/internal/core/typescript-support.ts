@@ -17,7 +17,7 @@ describe("Typescript support", function() {
     it("Should fail if an implicit any is used and the tsconfig forbids them", function() {
       // If we run this test in transpilation only mode, it will fail
       if (process.env.TS_NODE_TRANSPILE_ONLY === "true") {
-        return;
+        this.skip();
       }
 
       assert.throws(
