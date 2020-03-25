@@ -1,4 +1,5 @@
---require dotenv/config
+--require test/mocha.env
 --require ts-node/register
 --require source-map-support/register
---recursive test/**/*.ts
+--file ../common/test/run-with-ganache
+--timeout 6000
