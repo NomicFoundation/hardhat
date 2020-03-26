@@ -4,14 +4,6 @@ import fsExtra from "fs-extra";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
 
-export type ArgumentTypeName =
-  | "boolean"
-  | "int"
-  | "float"
-  | "string"
-  | "json"
-  | "inputFile";
-
 /**
  * Provides an interface for every valid task argument type.
  */
@@ -19,7 +11,7 @@ export interface ArgumentType<T> {
   /**
    * Type's name.
    */
-  name: ArgumentTypeName;
+  name: string;
 
   /**
    * Parses strValue. This function MUST throw BDLR301 if it
@@ -34,14 +26,14 @@ export interface ArgumentType<T> {
   parse(argName: string, strValue: string): T;
 
   /**
-   * Check if argument value is of type <T>
+   * Check if argument value is of type <T>. Optional method.
    *
    * @param argName {string} argument's name - used for context in case of error.
    * @param value {any} argument's value to validate.
    *
    * @throws BDLR301 if value is not of type <t>
    */
-  validate(argName: string, value: any): void;
+  validate?(argName: string, value: any): void;
 }
 
 /**
@@ -52,6 +44,14 @@ export interface ArgumentType<T> {
 export const string: ArgumentType<string> = {
   name: "string",
   parse: (argName, strValue) => strValue,
+  /**
+   * Check if argument value is of type "string"
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "string"
+   */
   validate: (argName: string, value: any): void => {
     const type = "string";
     if (typeof value !== type) {
@@ -86,6 +86,14 @@ export const boolean: ArgumentType<boolean> = {
       type: "boolean"
     });
   },
+  /**
+   * Check if argument value is of type "boolean"
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "boolean"
+   */
   validate: (argName: string, value: any): void => {
     const type = "boolean";
     if (typeof value !== type) {
@@ -122,6 +130,14 @@ export const int: ArgumentType<number> = {
 
     return Number(strValue);
   },
+  /**
+   * Check if argument value is of type "int"
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "int"
+   */
   validate: (argName: string, value: any): void => {
     if (!Number.isInteger(value)) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
@@ -157,6 +173,15 @@ export const float: ArgumentType<number> = {
 
     return Number(strValue);
   },
+  /**
+   * Check if argument value is of type "float".
+   * Both decimal and integer number values are valid.
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "number"
+   */
   validate: (argName: string, value: any): void => {
     const isNumber = typeof value === "number" && !isNaN(value);
     if (!isNumber) {
@@ -200,7 +225,13 @@ export const inputFile: ArgumentType<string> = {
     return strValue;
   },
   /**
-   * File string validation succeeds if it can be parsed, ie. is a valid accessible file dir*
+   * Check if argument value is of type "inputFile"
+   * File string validation succeeds if it can be parsed, ie. is a valid accessible file dir
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "inputFile"
    */
   validate: (argName: string, value: any): void => {
     inputFile.parse(argName, value);
@@ -224,8 +255,14 @@ export const json: ArgumentType<any> = {
     }
   },
   /**
-   *   'json' value validation succeeds if it is of "object" map-like {} type,
-   *   this excludes 'null', function, date, regexp, etc.
+   * Check if argument value is of type "json"
+   * "json" validation succeeds if it is of "object" map-like {} type
+   * - this excludes 'null', function, date, regexp, etc./
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "json"
    */
   validate: (argName: string, value: any): void => {
     const isJsonValue =

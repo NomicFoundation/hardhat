@@ -248,7 +248,10 @@ export class Environment implements BuidlerRuntimeEnvironment {
 
       // arg was present -> validate type
       try {
-        type.validate(name, argumentValue);
+        if (type.validate !== undefined) {
+          // ensure validate() method is defined for this type.
+          type.validate(name, argumentValue);
+        }
       } catch (error) {
         // ensure error is instance of BuidlerError, and of type ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
         // or wrap it otherwise.
