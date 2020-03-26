@@ -18,6 +18,7 @@ import { lazyObject } from "../util/lazy";
 
 import { BuidlerError } from "./errors";
 import { ERRORS } from "./errors-list";
+import { ArgumentType } from "./params/argumentTypes";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
@@ -113,12 +114,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
       });
     }
 
-    const parsedTaskArguments = this._parseValidTaskArguments(
+    const resolvedTaskArguments = this._resolveValidTaskArguments(
       taskDefinition,
       taskArguments
     );
 
-    return this._runTaskDefinition(taskDefinition, parsedTaskArguments);
+    return this._runTaskDefinition(taskDefinition, resolvedTaskArguments);
   };
 
   /**
@@ -211,9 +212,9 @@ export class Environment implements BuidlerRuntimeEnvironment {
    *
    * @param taskDefinition
    * @param taskArguments
-   * @returns parsedTaskArguments
+   * @returns resolvedTaskArguments
    */
-  private _parseValidTaskArguments(
+  private _resolveValidTaskArguments(
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ): TaskArguments {
@@ -227,89 +228,114 @@ export class Environment implements BuidlerRuntimeEnvironment {
       ...positionalParamDefinitions
     ];
 
-    // parses an argument according to a ParamDefinition rules.
-    const parseArgument = (
-      paramDefinition: ParamDefinition<any>,
-      argumentValue: any
-    ) => {
-      const { name, isOptional, defaultValue, type } = paramDefinition;
-
-      if (argumentValue === undefined) {
-        if (isOptional) {
-          // undefined & optional argument -> return defaultValue
-          return defaultValue;
-        }
-
-        // undefined & mandatory argument -> error
-        throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
-          param: name
-        });
-      }
-
-      // arg was present -> validate type
-      try {
-        if (type.validate !== undefined) {
-          // ensure validate() method is defined for this type.
-          type.validate(name, argumentValue);
-        }
-      } catch (error) {
-        // ensure error is instance of BuidlerError, and of type ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
-        // or wrap it otherwise.
-        if (
-          !(error instanceof BuidlerError) ||
-          error.errorDescriptor !== ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
-        ) {
-          throw new BuidlerError(
-            ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-            {
-              value: argumentValue,
-              name,
-              type: type.name
-            },
-            error
-          );
-        }
-        throw error;
-      }
-
-      return argumentValue;
-    };
-
-    const initParsedArguments: {
+    const initResolvedArguments: {
       errors: BuidlerError[];
       values: TaskArguments;
     } = { errors: [], values: {} };
 
-    const parsedArguments = allTaskParamDefinitions.reduce(
+    const resolvedArguments = allTaskParamDefinitions.reduce(
       ({ errors, values }, paramDefinition) => {
         try {
           const paramName = paramDefinition.name;
           const argumentValue = taskArguments[paramName];
-          const parsedArgumentValue = parseArgument(
+          const resolvedArgumentValue = this._resolveArgument(
             paramDefinition,
             argumentValue
           );
-          if (parsedArgumentValue !== undefined) {
-            values[paramName] = parsedArgumentValue;
+          if (resolvedArgumentValue !== undefined) {
+            values[paramName] = resolvedArgumentValue;
           }
         } catch (error) {
           errors.push(error);
         }
         return { errors, values };
       },
-      initParsedArguments
+      initResolvedArguments
     );
 
-    const { errors: parseErrors, values: parsedValues } = parsedArguments;
+    const { errors: resolveErrors, values: resolvedValues } = resolvedArguments;
 
     // if has argument errors, throw the first one
-    if (parseErrors.length > 0) {
-      throw parseErrors[0];
+    if (resolveErrors.length > 0) {
+      throw resolveErrors[0];
     }
 
     // append the rest of arguments that where not in the task param definitions
-    const parsedTaskArguments = { ...taskArguments, ...parsedValues };
+    const resolvedTaskArguments = { ...taskArguments, ...resolvedValues };
 
-    return parsedTaskArguments;
+    return resolvedTaskArguments;
+  }
+
+  /**
+   * Resolves an argument according to a ParamDefinition rules.
+   *
+   * @param paramDefinition
+   * @param argumentValue
+   * @private
+   */
+  private _resolveArgument(
+    paramDefinition: ParamDefinition<any>,
+    argumentValue: any
+  ) {
+    const { name, isOptional, defaultValue, type } = paramDefinition;
+
+    if (argumentValue === undefined) {
+      if (isOptional) {
+        // undefined & optional argument -> return defaultValue
+        return defaultValue;
+      }
+
+      // undefined & mandatory argument -> error
+      throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+        param: name
+      });
+    }
+
+    // arg was present -> validate type
+    this._checkTypeValidation(type, name, argumentValue);
+
+    return argumentValue;
+  }
+
+  /**
+   * Checks if value is valid for the specified param type.
+   *
+   * @param type {ArgumentType} - the type to validate
+   * @param argumentValue - the value to be validated
+   * @param paramName - the param definition name
+   * @private
+   * @throws BDLR301 if value is not valid for the param type
+   */
+  private _checkTypeValidation(
+    type: ArgumentType<any>,
+    paramName: string,
+    argumentValue: any
+  ) {
+    if (type.validate === undefined) {
+      // no validate() method defined for this type, so we just skip validation.
+      return;
+    }
+
+    try {
+      type.validate(paramName, argumentValue);
+    } catch (error) {
+      // ensure error is instance of BuidlerError, and of type ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      // or wrap it otherwise.
+      if (
+        !(error instanceof BuidlerError) ||
+        error.errorDescriptor !== ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      ) {
+        throw new BuidlerError(
+          ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: argumentValue,
+            name: paramName,
+            type: type.name
+          },
+          error
+        );
+      }
+      throw error;
+    }
   }
 }
