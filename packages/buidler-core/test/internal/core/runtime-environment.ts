@@ -221,7 +221,7 @@ describe("Environment", () => {
         const typesValidationTestCases = {
           flagParam: { valid: true, invalid: 1 },
           optIntParam: { valid: 10, invalid: 1.2 },
-          optFloatParam: { valid: 1.2, invalid: 10 },
+          optFloatParam: { valid: 1.2, invalid: NaN },
           optStringParam: { valid: "a string", invalid: 123 },
           optJsonParam: { valid: { a: 20 }, invalid: 1234 },
           optFileParam: { valid: __filename, invalid: __dirname },
@@ -251,6 +251,7 @@ describe("Environment", () => {
         ) => {
           await expectBuidlerErrorAsync(async () => {
             await env.run(taskNameToRun, taskArguments);
+            console.log("should have thrown: ", taskNameToRun, taskArguments);
           }, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);
         };
 

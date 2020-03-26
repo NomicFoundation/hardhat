@@ -219,12 +219,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
   ): TaskArguments {
     const { paramDefinitions, positionalParamDefinitions } = taskDefinition;
 
-    const nonPositionalParamDefinitions = Object.entries(
-      paramDefinitions
-    ).reduce(
-      (arr, [name, paramDefinition]) => [...arr, { name, ...paramDefinition }],
-      [] as Array<ParamDefinition<any>>
-    );
+    const nonPositionalParamDefinitions = Object.values(paramDefinitions);
 
     // gather all task param definitions
     const allTaskParamDefinitions = [
@@ -241,13 +236,8 @@ export class Environment implements BuidlerRuntimeEnvironment {
 
       if (argumentValue === undefined) {
         if (isOptional) {
-          // undefined & optional argument
-          if (defaultValue !== undefined) {
-            // has defaultValue -> use it and proceed
-            return defaultValue;
-          }
-          // no default value -> ignore.
-          return;
+          // undefined & optional argument -> return defaultValue
+          return defaultValue;
         }
 
         // undefined & mandatory argument -> error
@@ -266,11 +256,15 @@ export class Environment implements BuidlerRuntimeEnvironment {
           !(error instanceof BuidlerError) ||
           error.errorDescriptor !== ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
         ) {
-          throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
-            value: argumentValue,
-            name,
-            type: type.name
-          });
+          throw new BuidlerError(
+            ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: argumentValue,
+              name,
+              type: type.name
+            },
+            error
+          );
         }
         throw error;
       }

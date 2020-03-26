@@ -159,8 +159,8 @@ export const float: ArgumentType<number> = {
     return Number(strValue);
   },
   validate: (argName: string, value: any): void => {
-    const isFloat = Math.floor(value) !== value;
-    if (!isFloat) {
+    const isNumber = typeof value === "number" && !isNaN(value);
+    if (!isNumber) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
