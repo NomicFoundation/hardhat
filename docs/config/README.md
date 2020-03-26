@@ -24,7 +24,7 @@ module.exports = {
 
 The `networks` config field is an optional object where network names map to their configuration.
 
-There are two kinds of networks in Buidler: [JSON-RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) based networks, 
+There are two kinds of networks in Buidler: [JSON-RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) based networks,
 and the built-in Buidler EVM network.
 
 You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"buidlerevm"`.
@@ -55,21 +55,23 @@ You can set the following fields on the `buidlerevm` config:
 - `blockGasLimit`: The block gas limit to use in Buidler EVM's blockchain. Default value: `9500000`
 
 - `hardfork`: This setting changes how Buidler EVM works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, and `"istanbul"`. Default value: `"istanbul"`
- 
-- `throwOnTransactionFailures`: A boolean that controls if Buidler EVM throws on transaction failures. 
-If this value is `true`, Buidler EVM will throw [combined JavaScript and Soldity stack traces](../buidler-evm/README.md#solidity-stack-traces)
-on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases 
-the transactions are added into the blockchain. Default value: `true`
-  
-- `throwOnCallFailures`: A boolean that controls if Buidler EVM throws on call failures. 
-If this value is `true`, Buidler EVM will throw [combined JavaScript and Soldity stack traces](../buidler-evm/README.md#solidity-stack-traces)
-when a call fails. If it is `false`, it will return the call's `return data`, which can contain
-a revert reason. Default value: `true`
+
+- `throwOnTransactionFailures`: A boolean that controls if Buidler EVM throws on transaction failures.
+  If this value is `true`, Buidler EVM will throw [combined JavaScript and Soldity stack traces](../buidler-evm/README.md#solidity-stack-traces)
+  on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases
+  the transactions are added into the blockchain. Default value: `true`
+- `throwOnCallFailures`: A boolean that controls if Buidler EVM throws on call failures.
+  If this value is `true`, Buidler EVM will throw [combined JavaScript and Soldity stack traces](../buidler-evm/README.md#solidity-stack-traces)
+  when a call fails. If it is `false`, it will return the call's `return data`, which can contain
+  a revert reason. Default value: `true`
+
+- `loggingEnabled`: A boolean that controls if Buidler EVM logs every request or not. Default value: `false` for the
+  in-process Buidler EVM provider, `true` for the Buidler EVM backed JSON-RPC server (i.e. the `node` task).
 
 ### JSON-RPC based networks
 
-These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, 
-like Infura. 
+These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely,
+like Infura.
 
 This kind of networks are configured with objects with the following fields:
 
@@ -87,7 +89,6 @@ This kind of networks are configured with objects with the following fields:
 
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an [HD Wallet](#hd-wallet-config). Default value: `"remote"`.
 
-
 ### HD Wallet config
 
 To use an HD Wallet with Buidler you should set your network's `accounts` field to an object with the following fields:
@@ -99,7 +100,6 @@ To use an HD Wallet with Buidler you should set your network's `accounts` field 
 - `initialIndex`: The initial index to derive. Default value: `0`.
 
 - `count`: The number of accounts to derive. Default value: `10`.
-
 
 ### Default networks object
 

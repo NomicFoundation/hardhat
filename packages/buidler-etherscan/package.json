@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-etherscan",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Buidler plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-etherscan",
@@ -24,7 +24,7 @@
     "lint": "npm run lint-src && npm run lint-tests",
     "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "node scripts/run-tests.js",
+    "test": "node ../../node_modules/mocha/bin/mocha --recursive test/**/*.ts --exit",
     "build": "node ../../node_modules/typescript/bin/tsc --build src",
     "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
     "clean": "node ../../node_modules/rimraf/bin.js dist build-test"
@@ -41,7 +41,7 @@
     "request-promise": "^4.2.4"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.1.2",
+    "@nomiclabs/buidler": "^1.2.0",
     "@types/chai": "^4.2.0",
     "@types/ethereumjs-abi": "^0.6.3",
     "@types/nock": "^9.3.1",
@@ -53,6 +53,6 @@
     "solc": "0.5.15"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.1.2"
+    "@nomiclabs/buidler": "^1.2.0"
   }
 }

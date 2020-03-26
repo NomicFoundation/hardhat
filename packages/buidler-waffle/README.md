@@ -7,7 +7,11 @@
 
 ## What
 
-You can use this plugin to build smart contract tests using Waffle in Buidler, taking advantage of both.
+You can use this plugin to build smart contract tests using Waffle in Buidler,
+taking advantage of both.
+
+This plugin adds a Waffle-compatible provider to the Buidler Runtime Environment,
+and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
 ## Installation
 
@@ -33,8 +37,6 @@ mock provider.
 ```ts
 waffle: {
   provider: JsonRpcProvider;
-  getContract: (name: string) => Promise<ContractFactory>;
-  signers: () => Promise<Signer[]>;
 }
 ```
 
@@ -47,7 +49,7 @@ Once installed, you can build your tests just like in Waffle. The only differenc
 instead of `createMockProvider()`.
 
 Note that by default, Buidler save its compilation output into `artifacts/` instead of `build/`. You can either use
-that directory in your tests, or [customize your Buidler config](https://buidler.dev/config/#path-configuration).  
+that directory in your tests, or [customize your Buidler config](https://buidler.dev/config/#path-configuration).
 
 ## TypeScript support
 
@@ -57,7 +59,10 @@ This plugin supports TypeScript by following these steps:
    1.1. `"node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts"`
    1.2. `"node_modules/@nomiclabs/buidler-waffle/src/type-extensions.d.ts"`
 
-2. Install this packages: `npm install --save-dev @types/mocha @types/chai @types/sinon-chai`
+2. Install this packages: `npm install --save-dev @types/mocha @types/chai`
 
 We also recommend enabling `resolveJsonModule` in your `tsconfig.json`, as it's common
 to import JSON files directly when using Waffle.
+
+There's no need to import the Waffle's `solidity` Chai matchers. They are
+automatically imported and initialized by this plugin, including its types.

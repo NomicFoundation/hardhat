@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
+import os from "os";
 import path from "path";
 
 import { BUIDLER_NAME } from "../constants";
@@ -111,7 +112,8 @@ function printSuggestedCommands() {
   console.log(`  ${npx}buidler accounts`);
   console.log(`  ${npx}buidler compile`);
   console.log(`  ${npx}buidler test`);
-  console.log(`  ${npx}node scripts/sample-script.js`);
+  console.log(`  ${npx}buidler node`);
+  console.log(`  node scripts/sample-script.js`);
   console.log(`  ${npx}buidler help`);
 }
 
@@ -312,7 +314,9 @@ async function canInstallTrufflePlugin() {
   return (
     (await fsExtra.pathExists("package.json")) &&
     (getExecutionMode() === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION ||
-      getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED)
+      getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED) &&
+    // TODO: Figure out why this doesn't work on Win
+    os.type() !== "Windows_NT"
   );
 }
 

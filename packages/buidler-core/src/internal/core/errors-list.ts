@@ -586,6 +586,27 @@ Please check Buidler's output for more details.`
       description: `Buidler flatten doesn't support cyclic dependencies. 
 
 We recommend not using this kind of dependencies.`
+    },
+    JSONRPC_SERVER_ERROR: {
+      number: 604,
+      message: "Error running JSON-RPC server: %error%",
+      title: "Error running JSON-RPC server",
+      description: `There was error while starting the JSON-RPC HTTP server.`
+    },
+    JSONRPC_HANDLER_ERROR: {
+      number: 605,
+      message: "Error handling JSON-RPC request: %error%",
+      title: "Error handling JSON-RPC request",
+      description: `Handling an incoming JSON-RPC request resulted in an error.`
+    },
+    JSONRPC_UNSUPPORTED_NETWORK: {
+      number: 606,
+      message:
+        "Unsupported network for JSON-RPC server. Only buidlerevm is currently supported.",
+      title: "Unsupported network for JSON-RPC server.",
+      description: `JSON-RPC server can only be started when running the BuidlerEVM network.
+      
+To start the JSON-RPC server, retry the command without the --network parameter.`
     }
   },
   ARTIFACTS: {
@@ -611,7 +632,7 @@ Please follow Buidler's instructions to resolve this.`
     MISSING_DEPENDENCY: {
       number: 801,
       message: `Plugin %plugin% requires %dependency% to be installed.
-%extraMessage%Please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%`,
+%extraMessage%Please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"`,
       title: "Plugin dependencies not installed",
       description: `You are trying to use a plugin with unmet dependencies. 
 
@@ -620,7 +641,7 @@ Please follow Buidler's instructions to resolve this.`
     DEPENDENCY_VERSION_MISMATCH: {
       number: 802,
       message: `Plugin %plugin% requires %dependency% version %versionSpec% but got %installedVersion%.
-%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%
+%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"
 If you have installed %dependency% yourself, please reinstall it with a valid version.`,
       title: "Plugin dependencies's version mismatch",
       description: `You are trying to use a plugin that requires a different version of one of its dependencies. 

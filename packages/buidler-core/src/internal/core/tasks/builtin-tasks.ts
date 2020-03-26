@@ -28,6 +28,10 @@ export default function() {
   );
 
   loadPluginFile(
+    path.join(__dirname, "..", "..", "..", "builtin-tasks", "node")
+  );
+
+  loadPluginFile(
     path.join(__dirname, "..", "..", "..", "builtin-tasks", "test")
   );
 }

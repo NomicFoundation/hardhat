@@ -1,0 +1,23 @@
+{
+  "name": "@nomiclabs/common",
+  "version": "1.2.0",
+  "description": "Common logic and utilities to use throughout the project",
+  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle4",
+  "repository": "github:nomiclabs/buidler",
+  "author": "Nomic Labs LLC",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && npm run lint -- --fix",
+    "lint": "npm run lint-src && npm run lint-tests",
+    "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist build-test"
+  },
+  "devDependencies": {
+    "@types/detect-port": "^1.1.0",
+    "detect-port": "^1.3.0"
+  }
+}

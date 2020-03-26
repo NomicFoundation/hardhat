@@ -1,4 +1,4 @@
-![](https://user-images.githubusercontent.com/232174/57331293-9a042100-70ee-11e9-8c37-8a5d52875bf4.png)
+![](https://user-images.githubusercontent.com/232174/75543992-f1c39e00-5a1a-11ea-8fd4-8933638b5910.png)
 [![NPM Package](https://img.shields.io/npm/v/@nomiclabs/buidler.svg?style=flat-square)](https://www.npmjs.org/package/@nomiclabs/buidler)
 ![Build Status](https://github.com/nomiclabs/buidler/workflows/CI/badge.svg)
 ---------
@@ -7,6 +7,8 @@ Buidler is a task runner for Ethereum smart contract developers. It facilitates 
 Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
 Join our [Buidler Telegram group](http://t.me/BuidlerSupport) to stay up to date on new releases, plugins and tutorials.
+
+🚧 **This is the development branch of Buidler. For the most recently published code, look at [`master`](https://github.com/nomiclabs/buidler/tree/master)** 🚧
 
 ## Installation
 

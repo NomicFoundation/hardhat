@@ -16,6 +16,7 @@ export function useEnvironment(projectPath: string) {
   });
 
   afterEach("Resetting buidler", function() {
+    delete process.env.BUIDLER_NETWORK;
     resetBuidlerContext();
   });
 }

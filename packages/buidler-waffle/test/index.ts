@@ -89,4 +89,14 @@ describe("Waffle plugin plugin", function() {
       });
     });
   });
+
+  describe("Test environment initialization", function() {
+    useEnvironment(path.join(__dirname, "buidler-project"));
+
+    it("Should load the Waffle chai matchers", async function() {
+      await this.env.run("test", { testFiles: [] });
+      assert.equal(process.exitCode, 1);
+      process.exitCode = 0;
+    });
+  });
 });

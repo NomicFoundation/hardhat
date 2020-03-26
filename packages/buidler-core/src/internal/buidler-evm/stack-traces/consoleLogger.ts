@@ -1,4 +1,5 @@
 import { bufferToHex, bufferToInt, fromSigned } from "ethereumjs-util";
+import util from "util";
 
 import {
   AddressTy,
@@ -69,20 +70,23 @@ export class ConsoleLogger {
     this._consoleLogs = ConsoleLogs;
   }
 
-  public printLogs(maybeDecodedMessageTrace: MessageTrace) {
-    if (isPrecompileTrace(maybeDecodedMessageTrace)) {
-      return;
-    }
+  public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
+    return this.getExecutionLogs(maybeDecodedMessageTrace).map(log => {
+      if (log === undefined) {
+        return "";
+      }
 
-    const logs = this.getExecutionLogs(maybeDecodedMessageTrace);
-    for (const log of logs) {
-      console.log(...log);
-    }
+      return util.format(log[0], ...log.slice(1));
+    });
   }
 
   public getExecutionLogs(
-    maybeDecodedMessageTrace: EvmMessageTrace
+    maybeDecodedMessageTrace: MessageTrace
   ): ConsoleLogs[] {
+    if (isPrecompileTrace(maybeDecodedMessageTrace)) {
+      return [];
+    }
+
     const logs: ConsoleLogs[] = [];
     this._collectExecutionLogs(maybeDecodedMessageTrace, logs);
     return logs;

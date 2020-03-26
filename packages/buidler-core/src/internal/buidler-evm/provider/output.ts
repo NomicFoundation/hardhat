@@ -187,9 +187,7 @@ export function getRpcTransactionReceipt(
     gasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
     contractAddress:
       createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
-    logs: receipt.logs.map((log, logIndex) =>
-      getRpcLog(log, tx, block, index, logIndex)
-    ),
+    logs: receipt.logs,
     logsBloom: bufferToRpcData(txBlockResults[index].bloomBitvector),
     status: numberToRpcQuantity(receipt.status)
   };
