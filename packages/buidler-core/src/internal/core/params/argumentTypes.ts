@@ -10,8 +10,7 @@ export type ArgumentTypeName =
   | "float"
   | "string"
   | "json"
-  | "inputFile"
-  | "array";
+  | "inputFile";
 
 /**
  * Provides an interface for every valid task argument type.
@@ -237,42 +236,6 @@ export const json: ArgumentType<any> = {
         value,
         name: argName,
         type: json.name
-      });
-    }
-  }
-};
-
-/**
- * Array type.
- * Accepts an array of strings or numbers.
- * @throws BDLR301
- */
-export const array: ArgumentType<any[]> = {
-  name: "array",
-  parse(argName: string, strValue: string): any[] {
-    let parsed: any[] | undefined;
-    try {
-      parsed = JSON.parse(strValue);
-    } catch (error) {
-      // do nothing here (will throw an error below)
-    }
-    if (parsed === undefined || !Array.isArray(parsed)) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
-        value: strValue,
-        name: argName,
-        type: array.name
-      });
-    }
-    return parsed;
-  },
-  validate: (argName: string, value: any): void => {
-    const isArray = Object.prototype.toString.call(value) === "[object Array]";
-
-    if (!isArray) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
-        value,
-        name: argName,
-        type: array.name
       });
     }
   }

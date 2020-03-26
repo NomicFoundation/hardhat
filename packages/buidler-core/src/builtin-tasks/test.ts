@@ -2,7 +2,7 @@ import chalk from "chalk";
 import path from "path";
 
 import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
-import { internalTask, task, types } from "../internal/core/config/config-env";
+import { internalTask, task } from "../internal/core/config/config-env";
 import { isTypescriptSupported } from "../internal/core/typescript-support";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
@@ -20,8 +20,7 @@ export default function() {
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
-      [],
-      types.array
+      []
     )
     .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
       if (testFiles.length !== 0) {
@@ -45,8 +44,7 @@ export default function() {
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
-      [],
-      types.array
+      []
     )
     .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
       const { default: Mocha } = await import("mocha");
@@ -64,8 +62,7 @@ export default function() {
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
-      [],
-      types.array
+      []
     )
     .addFlag("noCompile", "Don't compile before running this task")
     .setAction(

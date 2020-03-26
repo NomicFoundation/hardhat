@@ -95,12 +95,6 @@ describe("Environment", () => {
       .addOptionalParam("optIntParam", "an opt int param", 123, types.int)
       .addOptionalParam("optFloatParam", "an opt float param", 2.5, types.float)
       .addOptionalParam(
-        "optArrayParam",
-        "an opt array param",
-        ["foo", 2],
-        types.array
-      )
-      .addOptionalParam(
         "optFileParam",
         "an opt file param",
         undefined,
@@ -224,8 +218,7 @@ describe("Environment", () => {
           optFloatParam: { valid: 1.2, invalid: NaN },
           optStringParam: { valid: "a string", invalid: 123 },
           optJsonParam: { valid: { a: 20 }, invalid: 1234 },
-          optFileParam: { valid: __filename, invalid: __dirname },
-          optArrayParam: { valid: ["foo", 123, ["bar"]], invalid: "asd" }
+          optFileParam: { valid: __filename, invalid: __dirname }
         };
 
         const expectTaskRunsSuccesfully = async (
