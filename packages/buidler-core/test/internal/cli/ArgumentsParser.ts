@@ -9,7 +9,10 @@ import {
   string
 } from "../../../src/internal/core/params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/internal/core/params/buidler-params";
-import { SimpleTaskDefinition } from "../../../src/internal/core/tasks/task-definitions";
+import {
+  OverriddenTaskDefinition,
+  SimpleTaskDefinition
+} from "../../../src/internal/core/tasks/task-definitions";
 import {
   BuidlerArguments,
   TaskArguments,
@@ -21,6 +24,7 @@ describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
   let envArgs: BuidlerArguments;
   let taskDefinition: TaskDefinition;
+  let overridenTaskDefinition: OverriddenTaskDefinition;
 
   beforeEach(() => {
     argumentsParser = new ArgumentsParser();
@@ -35,6 +39,14 @@ describe("ArgumentsParser", () => {
     taskDefinition = new SimpleTaskDefinition("compile", true)
       .addParam("param", "just a param", "a default value", string)
       .addParam("bleep", "useless param", 1602, int, true);
+
+    const baseTaskDefinition = new SimpleTaskDefinition("overriddenTask")
+      .addParam("strParam", "a str param", "defaultValue", string)
+      .addFlag("aFlag", "a flag param");
+
+    overridenTaskDefinition = new OverriddenTaskDefinition(
+      baseTaskDefinition
+    ).addFlag("extraFlag", "added flag param");
   });
 
   it("should transform a param name into CLA", () => {
@@ -257,6 +269,24 @@ describe("ArgumentsParser", () => {
       assert.equal(rawPositionalArguments.length, 0);
     });
 
+    it("should parse overridden tasks arguments", () => {
+      const rawCLAs: string[] = [
+        "--str-param",
+        "testing",
+        "--a-flag",
+        "--extra-flag"
+      ];
+      const { paramArguments, rawPositionalArguments } = argumentsParser[
+        "_parseTaskParamArguments"
+      ](overridenTaskDefinition, rawCLAs);
+      assert.deepEqual(paramArguments, {
+        strParam: "testing",
+        aFlag: true,
+        extraFlag: true
+      });
+      assert.equal(rawPositionalArguments.length, 0);
+    });
+
     it("should parse task with variadic arguments", () => {
       taskDefinition.addVariadicPositionalParam(
         "variadic",
@@ -355,7 +385,7 @@ describe("ArgumentsParser", () => {
       });
     });
 
-    it("Shouldn't throw the right error if the last CLA is a non-flag --param", () => {
+    it("Should throw the right error if the last CLA is a non-flag --param", () => {
       const rawCLAs: string[] = ["--b"];
 
       taskDefinition = new SimpleTaskDefinition("t", false)
