@@ -112,6 +112,12 @@ describe("Environment", () => {
         JSON.stringify({ a: 1 }),
         types.json
       )
+      .addOptionalVariadicPositionalParam(
+        "variadicOptStrParam",
+        "an opt variadic 'str' param",
+        [],
+        types.string
+      )
       .setAction(async () => 42);
 
     tasks = ctx.tasksDSL.getTaskDefinitions();
@@ -218,7 +224,8 @@ describe("Environment", () => {
           optFloatParam: { valid: 1.2, invalid: NaN },
           optStringParam: { valid: "a string", invalid: 123 },
           optJsonParam: { valid: { a: 20 }, invalid: 1234 },
-          optFileParam: { valid: __filename, invalid: __dirname }
+          optFileParam: { valid: __filename, invalid: __dirname },
+          variadicOptStrParam: { valid: ["a", "b"], invalid: ["a", 1] }
         };
 
         const expectTaskRunsSuccesfully = async (
@@ -244,20 +251,22 @@ describe("Environment", () => {
         ) => {
           await expectBuidlerErrorAsync(async () => {
             await env.run(taskNameToRun, taskArguments);
-            console.log("should have thrown: ", taskNameToRun, taskArguments);
+            console.error(
+              `should have thrown task run: '${taskNameToRun}' with arguments: `,
+              taskArguments
+            );
           }, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);
         };
 
         for (const [paramName, { valid, invalid }] of Object.entries(
           typesValidationTestCases
         )) {
-          const validTaskArguments = { [paramName]: valid };
-          const invalidTaskArguments = { [paramName]: invalid };
-
           // should run task successfully with valid type arguments
+          const validTaskArguments = { [paramName]: valid };
           await expectTaskRunsSuccesfully(taskName, validTaskArguments);
 
           // should throw error with argument of type not same type as the param type
+          const invalidTaskArguments = { [paramName]: invalid };
           await expectTaskRunsWithError(taskName, invalidTaskArguments);
         }
       });

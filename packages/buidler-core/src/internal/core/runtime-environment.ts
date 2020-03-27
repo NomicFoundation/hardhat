@@ -291,51 +291,36 @@ export class Environment implements BuidlerRuntimeEnvironment {
       });
     }
 
-    // arg was present -> validate type
-    this._checkTypeValidation(type, name, argumentValue);
+    // arg was present -> validate type, if applicable
+    this._checkTypeValidation(paramDefinition, argumentValue);
 
     return argumentValue;
   }
 
   /**
-   * Checks if value is valid for the specified param type.
+   * Checks if value is valid for the specified param definition.
    *
-   * @param type {ArgumentType} - the type to validate
+   * @param paramDefinition {ParamDefinition} - the param definition for validation
    * @param argumentValue - the value to be validated
-   * @param paramName - the param definition name
    * @private
    * @throws BDLR301 if value is not valid for the param type
    */
   private _checkTypeValidation(
-    type: ArgumentType<any>,
-    paramName: string,
+    paramDefinition: ParamDefinition<any>,
     argumentValue: any
   ) {
-    if (type.validate === undefined) {
-      // no validate() method defined for this type, so we just skip validation.
+    const { name: paramName, type, isVariadic } = paramDefinition;
+    if (type === undefined || type.validate === undefined) {
+      // no type or no validate() method defined, just skip validation.
       return;
     }
 
-    try {
-      type.validate(paramName, argumentValue);
-    } catch (error) {
-      // ensure error is instance of BuidlerError, and of type ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
-      // or wrap it otherwise.
-      if (
-        !(error instanceof BuidlerError) ||
-        error.errorDescriptor !== ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
-      ) {
-        throw new BuidlerError(
-          ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-          {
-            value: argumentValue,
-            name: paramName,
-            type: type.name
-          },
-          error
-        );
-      }
-      throw error;
+    // in case of variadic param, argValue is an array and the type validation must pass for all values.
+    // otherwise, it's a single value that is to be validated
+    const argumentValueContainer = isVariadic ? argumentValue : [argumentValue];
+
+    for (const value of argumentValueContainer) {
+      type.validate(paramName, value);
     }
   }
 }

@@ -29,11 +29,11 @@ export interface ArgumentType<T> {
    * Check if argument value is of type <T>. Optional method.
    *
    * @param argName {string} argument's name - used for context in case of error.
-   * @param value {any} argument's value to validate.
+   * @param argumentValue - value to be validated
    *
    * @throws BDLR301 if value is not of type <t>
    */
-  validate?(argName: string, value: any): void;
+  validate?(argName: string, argumentValue: any): void;
 }
 
 /**
@@ -53,12 +53,13 @@ export const string: ArgumentType<string> = {
    * @throws BDLR301 if value is not of type "string"
    */
   validate: (argName: string, value: any): void => {
-    const type = "string";
-    if (typeof value !== type) {
+    const isString = typeof value === "string";
+
+    if (!isString) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
-        type
+        type: string.name
       });
     }
   }
@@ -95,12 +96,13 @@ export const boolean: ArgumentType<boolean> = {
    * @throws BDLR301 if value is not of type "boolean"
    */
   validate: (argName: string, value: any): void => {
-    const type = "boolean";
-    if (typeof value !== type) {
+    const isBoolean = typeof value === "boolean";
+
+    if (!isBoolean) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
-        type
+        type: boolean.name
       });
     }
   }
@@ -139,7 +141,8 @@ export const int: ArgumentType<number> = {
    * @throws BDLR301 if value is not of type "int"
    */
   validate: (argName: string, value: any): void => {
-    if (!Number.isInteger(value)) {
+    const isInt = Number.isInteger(value);
+    if (!isInt) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
@@ -183,8 +186,9 @@ export const float: ArgumentType<number> = {
    * @throws BDLR301 if value is not of type "number"
    */
   validate: (argName: string, value: any): void => {
-    const isNumber = typeof value === "number" && !isNaN(value);
-    if (!isNumber) {
+    const isFloatOrInteger = typeof value === "number" && !isNaN(value);
+
+    if (!isFloatOrInteger) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
@@ -234,7 +238,20 @@ export const inputFile: ArgumentType<string> = {
    * @throws BDLR301 if value is not of type "inputFile"
    */
   validate: (argName: string, value: any): void => {
-    inputFile.parse(argName, value);
+    try {
+      inputFile.parse(argName, value);
+    } catch (error) {
+      // the input value is considered invalid, throw error.
+      throw new BuidlerError(
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value,
+          name: argName,
+          type: inputFile.name
+        },
+        error
+      );
+    }
   }
 };
 
@@ -266,7 +283,6 @@ export const json: ArgumentType<any> = {
    */
   validate: (argName: string, value: any): void => {
     const valueTypeString = Object.prototype.toString.call(value);
-
     const isJsonValue =
       valueTypeString === "[object Object]" ||
       valueTypeString === "[object Array]";
