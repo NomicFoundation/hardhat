@@ -8,7 +8,6 @@ import {
 } from "../../types";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
-import { unsafeObjectKeys } from "../util/unsafe";
 
 export class ArgumentsParser {
   public static readonly PARAM_PREFIX = "--";
@@ -119,7 +118,7 @@ export class ArgumentsParser {
     return { ...paramArguments, ...positionalArguments };
   }
 
-  public _parseTaskParamArguments(
+  private _parseTaskParamArguments(
     taskDefinition: TaskDefinition,
     rawCLAs: string[]
   ) {
@@ -153,7 +152,7 @@ export class ArgumentsParser {
     return { paramArguments, rawPositionalArguments };
   }
 
-  public _addBuidlerDefaultArguments(
+  private _addBuidlerDefaultArguments(
     buidlerParamDefinitions: BuidlerParamDefinitions,
     envVariableArguments: BuidlerArguments,
     buidlerArguments: Partial<BuidlerArguments>
@@ -164,26 +163,27 @@ export class ArgumentsParser {
     };
   }
 
-  public _addTaskDefaultArguments(
+  private _addTaskDefaultArguments(
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ) {
     for (const paramName of Object.keys(taskDefinition.paramDefinitions)) {
       const definition = taskDefinition.paramDefinitions[paramName];
 
-      if (taskArguments[paramName] === undefined) {
-        if (definition.isOptional) {
-          taskArguments[paramName] = definition.defaultValue;
-        } else {
-          throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
-            param: ArgumentsParser.paramNameToCLA(paramName)
-          });
-        }
+      if (taskArguments[paramName] !== undefined) {
+        continue;
       }
+      if (!definition.isOptional) {
+        throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+          param: ArgumentsParser.paramNameToCLA(paramName)
+        });
+      }
+
+      taskArguments[paramName] = definition.defaultValue;
     }
   }
 
-  public _isCLAParamName(str: string, paramDefinitions: ParamDefinitionsMap) {
+  private _isCLAParamName(str: string, paramDefinitions: ParamDefinitionsMap) {
     if (!this._hasCLAParamNameFormat(str)) {
       return false;
     }
@@ -192,11 +192,11 @@ export class ArgumentsParser {
     return paramDefinitions[name] !== undefined;
   }
 
-  public _hasCLAParamNameFormat(str: string) {
+  private _hasCLAParamNameFormat(str: string) {
     return str.startsWith(ArgumentsParser.PARAM_PREFIX);
   }
 
-  public _parseArgumentAt(
+  private _parseArgumentAt(
     rawCLAs: string[],
     index: number,
     paramDefinitions: ParamDefinitionsMap,
@@ -230,7 +230,7 @@ export class ArgumentsParser {
     return index;
   }
 
-  public _parsePositionalParamArgs(
+  private _parsePositionalParamArgs(
     rawPositionalParamArgs: string[],
     positionalParamDefinitions: Array<ParamDefinition<any>>
   ): TaskArguments {
