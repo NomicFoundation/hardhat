@@ -670,10 +670,13 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Add a flag param to the overridden task.
+   * @throws BDLR201 if param name was already defined in any parent task.
+   * @throws BDLR209 if param name is not in camelCase.
    */
   public addFlag(name: string, description?: string): this {
-    return this._throwNoParamsOverrideError();
+    this.parentTaskDefinition.addFlag(name, description);
+    return this;
   }
 
   private _throwNoParamsOverrideError(): never {

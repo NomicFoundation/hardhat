@@ -891,7 +891,31 @@ describe("OverriddenTaskDefinition", () => {
     });
   });
 
-  describe("Param definitions are forbidden", () => {
+  describe("Param definitions can be added only in compatible cases", () => {
+    it("should add a flag param if addFlag is called", () => {
+      overriddenTask.addFlag("flagParam", "flag in overriden task");
+      assertParamDefinition(overriddenTask.paramDefinitions.flagParam, {
+        name: "flagParam",
+        description: "flag in overriden task",
+        defaultValue: false,
+        type: types.boolean,
+        isOptional: true,
+        isVariadic: false,
+        isFlag: true
+      });
+    });
+
+    it("should throw if addFlag is called for a param name already defined in parent task", () => {
+      // a param definition in an overridenTask is present in the parentTask ref as well
+      assert.isDefined(overriddenTask.paramDefinitions.f);
+      assert.isDefined(parentTask.paramDefinitions.f);
+
+      expectBuidlerError(
+        () => overriddenTask.addFlag("f"),
+        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
+      );
+    });
+
     it("should throw if addParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addParam("p"),
@@ -902,13 +926,6 @@ describe("OverriddenTaskDefinition", () => {
     it("should throw if addOptionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addOptionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
-      );
-    });
-
-    it("should throw if addFlag is called", () => {
-      expectBuidlerError(
-        () => overriddenTask.addFlag("p"),
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
