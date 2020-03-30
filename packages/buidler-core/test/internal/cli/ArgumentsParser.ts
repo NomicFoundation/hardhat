@@ -44,9 +44,9 @@ describe("ArgumentsParser", () => {
       .addParam("strParam", "a str param", "defaultValue", string)
       .addFlag("aFlag", "a flag param");
 
-    overridenTaskDefinition = new OverriddenTaskDefinition(
-      baseTaskDefinition
-    ).addFlag("extraFlag", "added flag param");
+    overridenTaskDefinition = new OverriddenTaskDefinition(baseTaskDefinition)
+      .addFlag("overriddenFlag", "added flag param")
+      .addOptionalParam("overriddenOptParam", "added opt param");
   });
 
   it("should transform a param name into CLA", () => {
@@ -274,7 +274,9 @@ describe("ArgumentsParser", () => {
         "--str-param",
         "testing",
         "--a-flag",
-        "--extra-flag"
+        "--overridden-flag",
+        "--overridden-opt-param",
+        "optValue"
       ];
 
       const { paramArguments, rawPositionalArguments } = argumentsParser[
@@ -283,7 +285,8 @@ describe("ArgumentsParser", () => {
       assert.deepEqual(paramArguments, {
         strParam: "testing",
         aFlag: true,
-        extraFlag: true
+        overriddenFlag: true,
+        overriddenOptParam: "optValue"
       });
       assert.equal(rawPositionalArguments.length, 0);
     });

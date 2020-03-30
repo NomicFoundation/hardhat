@@ -905,29 +905,71 @@ describe("OverriddenTaskDefinition", () => {
       });
     });
 
-    it("should throw if addFlag is called for a param name already defined in parent task", () => {
+    it("should throw if adding a param of same name that was already defined in parent task", () => {
+      const definedParamName = "f";
       // a param definition in an overridenTask is present in the parentTask ref as well
-      assert.isDefined(overriddenTask.paramDefinitions.f);
-      assert.isDefined(parentTask.paramDefinitions.f);
+      assert.isDefined(overriddenTask.paramDefinitions[definedParamName]);
+      assert.isDefined(parentTask.paramDefinitions[definedParamName]);
 
+      // expect PARAM_ALREADY_DEFINED for add flag param
       expectBuidlerError(
-        () => overriddenTask.addFlag("f"),
+        () => overriddenTask.addFlag(definedParamName),
+        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
+      );
+
+      // expect PARAM_ALREADY_DEFINED for add optional param using addParam method
+      expectBuidlerError(
+        () =>
+          overriddenTask.addParam(
+            definedParamName,
+            undefined,
+            undefined,
+            undefined,
+            true
+          ),
+        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
+      );
+
+      // expect PARAM_ALREADY_DEFINED for add optional param using addParam method
+      expectBuidlerError(
+        () =>
+          overriddenTask.addOptionalParam(
+            definedParamName,
+            undefined,
+            undefined,
+            undefined
+          ),
         ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
       );
     });
 
-    it("should throw if addParam is called", () => {
+    it("should throw if addParam is called with isOptional = false", () => {
       expectBuidlerError(
         () => overriddenTask.addParam("p"),
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
       );
     });
 
-    it("should throw if addOptionalParam is called", () => {
-      expectBuidlerError(
-        () => overriddenTask.addOptionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+    it("should add an optional param if addParam is called with isOptional = true", () => {
+      const optParamName = "optParam";
+      assert.isUndefined(overriddenTask.paramDefinitions[optParamName], "");
+
+      overriddenTask.addParam(
+        optParamName,
+        undefined,
+        undefined,
+        undefined,
+        true
       );
+
+      assert.isDefined(overriddenTask.paramDefinitions[optParamName]);
+    });
+
+    it("should add an optional param if addOptionalParam is called", () => {
+      const optParamName = "optParam";
+      assert.isUndefined(overriddenTask.paramDefinitions[optParamName], "");
+      overriddenTask.addOptionalParam(optParamName);
+      assert.isDefined(overriddenTask.paramDefinitions[optParamName]);
     });
 
     it("should throw if addPositionalParam is called", () => {

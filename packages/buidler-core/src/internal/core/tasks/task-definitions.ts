@@ -604,6 +604,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
+    if (isOptional !== undefined && isOptional) {
+      return this.addOptionalParam(name, description, defaultValue, type);
+    }
     return this._throwNoParamsOverrideError();
   }
 
@@ -616,7 +619,13 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     defaultValue?: T,
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverrideError();
+    this.parentTaskDefinition.addOptionalParam(
+      name,
+      description,
+      defaultValue,
+      type
+    );
+    return this;
   }
 
   /**
