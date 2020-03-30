@@ -53,14 +53,14 @@ function getTestArgsOrDefaults() {
   // use default reporter "dot", for less verbose output
   // this reporter is good for limited output of mostly failed errors and elapsed times
   if (!/reporter(?!-)/.test(testNodeArgsLookupStr)) {
-    testNodeArgs.push('--reporter "dot"');
+    // testNodeArgs.push('--reporter "dot"');
   }
 
   return testNodeArgs.length > 0 ? `-- ${testNodeArgs.join(" ")}` : "";
 }
 
 const testRunCommand = `npm run test ${getTestArgsOrDefaults()}`;
-console.log({testRunCommand});
+console.log({ testRunCommand });
 
 function packagesToGlobStr(packages) {
   return packages.length === 1 ? packages[0] : `{${packages.join(",")}}`;
@@ -92,8 +92,10 @@ const ignoredPackagesFilter =
 const parallelPackageFilter = `${ignoredPackagesFilter} --ignore "${ganacheDependantPackagesGlobStr}"`;
 const seriesPackageFilter = ` ${ignoredPackagesFilter} --scope "${ganacheDependantPackagesGlobStr}"`;
 
-const lernaExecParallel = `npx lerna exec --parallel ${parallelPackageFilter} -- ${testRunCommand}`;
-const lernaExecSeries = `npx lerna exec --concurrency 1 --stream ${seriesPackageFilter} -- ${testRunCommand}`;
+const runTest = `run test`;
+const testArgs = `--  ${getTestArgsOrDefaults()}`;
+const lernaExecParallel = `npx lerna ${runTest} --parallel ${parallelPackageFilter} ${testArgs}`;
+const lernaExecSeries = `npx lerna ${runTest} --concurrency 1 --stream ${seriesPackageFilter} ${testArgs}`;
 
 const {
   cleanup,
@@ -120,8 +122,8 @@ function shellExecAsync(cmd, opts = {}) {
 }
 
 async function runTests() {
-  console.log({lernaExecParallel});
-  console.log({lernaExecSeries});
+  console.log({ lernaExecParallel });
+  console.log({ lernaExecSeries });
 
   // Measure execution times
   console.time("Total test time");
