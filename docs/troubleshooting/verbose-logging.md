@@ -53,7 +53,7 @@ AVAILABLE TASKS:
   sample-task   A sample Buidler task
   test          Runs mocha tests
 
-To get help for a specific task run: buidler help [task]
+To get help for a specific task run: npx buidler help [task]
 
   buidler:core:cli Killing Buidler after successfully running task help +0ms
 ```
