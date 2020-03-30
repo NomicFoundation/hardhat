@@ -94,8 +94,10 @@ const seriesPackageFilter = ` ${ignoredPackagesFilter} --scope "${ganacheDependa
 
 const runTest = `run test`;
 const testArgs = `--  ${getTestArgsOrDefaults()}`;
-const lernaExecParallel = `npx lerna ${runTest} --parallel ${parallelPackageFilter} ${testArgs}`;
-const lernaExecSeries = `npx lerna ${runTest} --concurrency 1 --stream ${seriesPackageFilter} ${testArgs}`;
+const lernaExecParallel = `echo 'no parallel run'` ; //`npx lerna ${runTest} --parallel ${parallelPackageFilter} ${testArgs}`;
+// const lernaExecSeries = `npx lerna ${runTest} --concurrency 1 --stream ${seriesPackageFilter} ${testArgs}`;
+
+const lernaExecSeries = `npx lerna ${runTest} --concurrency 1 --stream ${ignoredPackagesFilter} ${testArgs}`;
 
 const {
   cleanup,
