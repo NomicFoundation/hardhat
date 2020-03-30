@@ -185,7 +185,7 @@ export class GanacheService {
     this._checkForServiceErrors();
   }
 
-  public _validateAndTransformOptions(options: GanacheOptions): any {
+  private _validateAndTransformOptions(options: GanacheOptions): any {
     const validatedOptions: any = options;
 
     // Validate and parse hostname and port from URL (this validation is priority)

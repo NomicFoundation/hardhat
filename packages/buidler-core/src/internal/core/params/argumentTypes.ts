@@ -17,13 +17,23 @@ export interface ArgumentType<T> {
    * Parses strValue. This function MUST throw BDLR301 if it
    * can parse the given value.
    *
-   * @param argName argument's name.
-   * @param strValue argument's value.
+   * @param argName argument's name - used for context in case of error.
+   * @param strValue argument's string value to be parsed.
    *
    * @throws BDLR301 if an invalid value is given.
    * @returns the parsed value.
    */
   parse(argName: string, strValue: string): T;
+
+  /**
+   * Check if argument value is of type <T>. Optional method.
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param argumentValue - value to be validated
+   *
+   * @throws BDLR301 if value is not of type <t>
+   */
+  validate?(argName: string, argumentValue: any): void;
 }
 
 /**
@@ -33,7 +43,26 @@ export interface ArgumentType<T> {
  */
 export const string: ArgumentType<string> = {
   name: "string",
-  parse: (argName, strValue) => strValue
+  parse: (argName, strValue) => strValue,
+  /**
+   * Check if argument value is of type "string"
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "string"
+   */
+  validate: (argName: string, value: any): void => {
+    const isString = typeof value === "string";
+
+    if (!isString) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: string.name
+      });
+    }
+  }
 };
 
 /**
@@ -57,6 +86,25 @@ export const boolean: ArgumentType<boolean> = {
       name: argName,
       type: "boolean"
     });
+  },
+  /**
+   * Check if argument value is of type "boolean"
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "boolean"
+   */
+  validate: (argName: string, value: any): void => {
+    const isBoolean = typeof value === "boolean";
+
+    if (!isBoolean) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: boolean.name
+      });
+    }
   }
 };
 
@@ -78,11 +126,29 @@ export const int: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
-        type: "int"
+        type: int.name
       });
     }
 
     return Number(strValue);
+  },
+  /**
+   * Check if argument value is of type "int"
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "int"
+   */
+  validate: (argName: string, value: any): void => {
+    const isInt = Number.isInteger(value);
+    if (!isInt) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: int.name
+      });
+    }
   }
 };
 
@@ -104,11 +170,31 @@ export const float: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
-        type: "float"
+        type: float.name
       });
     }
 
     return Number(strValue);
+  },
+  /**
+   * Check if argument value is of type "float".
+   * Both decimal and integer number values are valid.
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "number"
+   */
+  validate: (argName: string, value: any): void => {
+    const isFloatOrInteger = typeof value === "number" && !isNaN(value);
+
+    if (!isFloatOrInteger) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: float.name
+      });
+    }
   }
 };
 
@@ -141,6 +227,31 @@ export const inputFile: ArgumentType<string> = {
     }
 
     return strValue;
+  },
+  /**
+   * Check if argument value is of type "inputFile"
+   * File string validation succeeds if it can be parsed, ie. is a valid accessible file dir
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "inputFile"
+   */
+  validate: (argName: string, value: any): void => {
+    try {
+      inputFile.parse(argName, value);
+    } catch (error) {
+      // the input value is considered invalid, throw error.
+      throw new BuidlerError(
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value,
+          name: argName,
+          type: inputFile.name
+        },
+        error
+      );
+    }
   }
 };
 
@@ -158,6 +269,30 @@ export const json: ArgumentType<any> = {
         },
         error
       );
+    }
+  },
+  /**
+   * Check if argument value is of type "json"
+   * "json" validation succeeds if it is of "object map"-like structure or of "array" structure
+   * ie. this excludes 'null', function, numbers, date, regexp, etc.
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param value {any} argument's value to validate.
+   *
+   * @throws BDLR301 if value is not of type "json"
+   */
+  validate: (argName: string, value: any): void => {
+    const valueTypeString = Object.prototype.toString.call(value);
+    const isJsonValue =
+      valueTypeString === "[object Object]" ||
+      valueTypeString === "[object Array]";
+
+    if (!isJsonValue) {
+      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        value,
+        name: argName,
+        type: json.name
+      });
     }
   }
 };

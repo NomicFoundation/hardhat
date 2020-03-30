@@ -6,6 +6,7 @@ import {
   EnvironmentExtender,
   EthereumProvider,
   Network,
+  ParamDefinition,
   ResolvedBuidlerConfig,
   RunSuperFunction,
   RunTaskFunction,
@@ -17,6 +18,7 @@ import { lazyObject } from "../util/lazy";
 
 import { BuidlerError } from "./errors";
 import { ERRORS } from "./errors-list";
+import { ArgumentType } from "./params/argumentTypes";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
@@ -112,7 +114,12 @@ export class Environment implements BuidlerRuntimeEnvironment {
       });
     }
 
-    return this._runTaskDefinition(taskDefinition, taskArguments);
+    const resolvedTaskArguments = this._resolveValidTaskArguments(
+      taskDefinition,
+      taskArguments
+    );
+
+    return this._runTaskDefinition(taskDefinition, resolvedTaskArguments);
   };
 
   /**
@@ -191,6 +198,129 @@ export class Environment implements BuidlerRuntimeEnvironment {
     } finally {
       uninjectFromGlobal();
       globalAsAny.runSuper = previousRunSuper;
+    }
+  }
+
+  /**
+   * Check that task arguments are within TaskDefinition defined params constraints.
+   * Also, populate missing, non-mandatory arguments with default param values (if any).
+   *
+   * @private
+   * @throws BuidlerError if any of the following are true:
+   *  > a required argument is missing
+   *  > an argument's value's type doesn't match the defined param type
+   *
+   * @param taskDefinition
+   * @param taskArguments
+   * @returns resolvedTaskArguments
+   */
+  private _resolveValidTaskArguments(
+    taskDefinition: TaskDefinition,
+    taskArguments: TaskArguments
+  ): TaskArguments {
+    const { paramDefinitions, positionalParamDefinitions } = taskDefinition;
+
+    const nonPositionalParamDefinitions = Object.values(paramDefinitions);
+
+    // gather all task param definitions
+    const allTaskParamDefinitions = [
+      ...nonPositionalParamDefinitions,
+      ...positionalParamDefinitions
+    ];
+
+    const initResolvedArguments: {
+      errors: BuidlerError[];
+      values: TaskArguments;
+    } = { errors: [], values: {} };
+
+    const resolvedArguments = allTaskParamDefinitions.reduce(
+      ({ errors, values }, paramDefinition) => {
+        try {
+          const paramName = paramDefinition.name;
+          const argumentValue = taskArguments[paramName];
+          const resolvedArgumentValue = this._resolveArgument(
+            paramDefinition,
+            argumentValue
+          );
+          if (resolvedArgumentValue !== undefined) {
+            values[paramName] = resolvedArgumentValue;
+          }
+        } catch (error) {
+          errors.push(error);
+        }
+        return { errors, values };
+      },
+      initResolvedArguments
+    );
+
+    const { errors: resolveErrors, values: resolvedValues } = resolvedArguments;
+
+    // if has argument errors, throw the first one
+    if (resolveErrors.length > 0) {
+      throw resolveErrors[0];
+    }
+
+    // append the rest of arguments that where not in the task param definitions
+    const resolvedTaskArguments = { ...taskArguments, ...resolvedValues };
+
+    return resolvedTaskArguments;
+  }
+
+  /**
+   * Resolves an argument according to a ParamDefinition rules.
+   *
+   * @param paramDefinition
+   * @param argumentValue
+   * @private
+   */
+  private _resolveArgument(
+    paramDefinition: ParamDefinition<any>,
+    argumentValue: any
+  ) {
+    const { name, isOptional, defaultValue, type } = paramDefinition;
+
+    if (argumentValue === undefined) {
+      if (isOptional) {
+        // undefined & optional argument -> return defaultValue
+        return defaultValue;
+      }
+
+      // undefined & mandatory argument -> error
+      throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+        param: name
+      });
+    }
+
+    // arg was present -> validate type, if applicable
+    this._checkTypeValidation(paramDefinition, argumentValue);
+
+    return argumentValue;
+  }
+
+  /**
+   * Checks if value is valid for the specified param definition.
+   *
+   * @param paramDefinition {ParamDefinition} - the param definition for validation
+   * @param argumentValue - the value to be validated
+   * @private
+   * @throws BDLR301 if value is not valid for the param type
+   */
+  private _checkTypeValidation(
+    paramDefinition: ParamDefinition<any>,
+    argumentValue: any
+  ) {
+    const { name: paramName, type, isVariadic } = paramDefinition;
+    if (type === undefined || type.validate === undefined) {
+      // no type or no validate() method defined, just skip validation.
+      return;
+    }
+
+    // in case of variadic param, argValue is an array and the type validation must pass for all values.
+    // otherwise, it's a single value that is to be validated
+    const argumentValueContainer = isVariadic ? argumentValue : [argumentValue];
+
+    for (const value of argumentValueContainer) {
+      type.validate(paramName, value);
     }
   }
 }

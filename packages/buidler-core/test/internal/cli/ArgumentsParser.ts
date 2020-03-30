@@ -1,3 +1,4 @@
+/* tslint:disable:no-string-literal */ // TODO this is for unit testing priv methods. We shouldn't test these at all?
 import { assert } from "chai";
 
 import { ArgumentsParser } from "../../../src/internal/cli/ArgumentsParser";
@@ -71,22 +72,22 @@ describe("ArgumentsParser", () => {
   });
 
   it("should detect param name format", () => {
-    assert.isTrue(argumentsParser._hasCLAParamNameFormat("--run"));
-    assert.isFalse(argumentsParser._hasCLAParamNameFormat("run"));
+    assert.isTrue(argumentsParser["_hasCLAParamNameFormat"]("--run"));
+    assert.isFalse(argumentsParser["_hasCLAParamNameFormat"]("run"));
   });
 
   it("should detect parameter names", () => {
     assert.isTrue(
-      argumentsParser._isCLAParamName(
+      argumentsParser["_isCLAParamName"](
         "--show-stack-traces",
         BUIDLER_PARAM_DEFINITIONS
       )
     );
     assert.isFalse(
-      argumentsParser._isCLAParamName("sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser["_isCLAParamName"]("sarasa", BUIDLER_PARAM_DEFINITIONS)
     );
     assert.isFalse(
-      argumentsParser._isCLAParamName("--sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser["_isCLAParamName"]("--sarasa", BUIDLER_PARAM_DEFINITIONS)
     );
   });
 
@@ -174,7 +175,7 @@ describe("ArgumentsParser", () => {
       const buidlerArguments: TaskArguments = {};
       assert.equal(
         0,
-        argumentsParser._parseArgumentAt(
+        argumentsParser["_parseArgumentAt"](
           rawCLAs,
           0,
           BUIDLER_PARAM_DEFINITIONS,
@@ -184,7 +185,7 @@ describe("ArgumentsParser", () => {
       assert.equal(buidlerArguments.showStackTraces, true);
       assert.equal(
         2,
-        argumentsParser._parseArgumentAt(
+        argumentsParser["_parseArgumentAt"](
           rawCLAs,
           1,
           BUIDLER_PARAM_DEFINITIONS,
@@ -233,7 +234,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should only add non-present arguments", () => {
-      const buidlerArguments = argumentsParser._addBuidlerDefaultArguments(
+      const buidlerArguments = argumentsParser["_addBuidlerDefaultArguments"](
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
         {
@@ -249,10 +250,9 @@ describe("ArgumentsParser", () => {
   describe("tasks arguments", () => {
     it("should parse tasks arguments", () => {
       const rawCLAs: string[] = ["--param", "testing", "--bleep", "1337"];
-      const {
-        paramArguments,
-        rawPositionalArguments
-      } = argumentsParser._parseTaskParamArguments(taskDefinition, rawCLAs);
+      const { paramArguments, rawPositionalArguments } = argumentsParser[
+        "_parseTaskParamArguments"
+      ](taskDefinition, rawCLAs);
       assert.deepEqual(paramArguments, { param: "testing", bleep: 1337 });
       assert.equal(rawPositionalArguments.length, 0);
     });
@@ -266,7 +266,7 @@ describe("ArgumentsParser", () => {
       );
 
       const rawPositionalArguments = ["16", "02"];
-      const positionalArguments = argumentsParser._parsePositionalParamArgs(
+      const positionalArguments = argumentsParser["_parsePositionalParamArgs"](
         rawPositionalArguments,
         taskDefinition.positionalParamDefinitions
       );
@@ -282,7 +282,8 @@ describe("ArgumentsParser", () => {
       );
 
       const rawPositionalArguments: string[] = [];
-      const positionalArguments = argumentsParser._parsePositionalParamArgs(
+      // tslint:disable-next-line:no-string-literal
+      const positionalArguments = argumentsParser["_parsePositionalParamArgs"](
         rawPositionalArguments,
         taskDefinition.positionalParamDefinitions
       );
