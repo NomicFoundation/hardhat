@@ -293,8 +293,17 @@ Please double check your task definitions.`
       
 Please double check your task definitions.`
     },
-    OVERRIDE_NO_MANDATORY_PARAMS: {
+    OVERRIDE_NO_PARAMS: {
       number: 204,
+      message:
+        "Redefinition of task %taskName% failed. You can't change param definitions in an overridden task.",
+      title: "Attempted to add params to an overridden task",
+      description: `You can't change param definitions in an overridden task.
+
+Please, double check your task definitions.`
+    },
+    OVERRIDE_NO_MANDATORY_PARAMS: {
+      number: 210,
       message:
         "Redefinition of task %taskName% failed. Unsupported operation adding mandatory (non optional) param definitions in an overridden task.",
       title: "Attempted to add mandatory params to an overridden task",
@@ -305,7 +314,7 @@ and optional params.
 Please, double check your task definitions.`
     },
     OVERRIDE_NO_POSITIONAL_PARAMS: {
-      number: 204,
+      number: 211,
       message:
         "Redefinition of task %taskName% failed. Unsupported operation adding positional param definitions in an overridden task.",
       title: "Attempted to add positional params to an overridden task",
@@ -316,7 +325,7 @@ and optional params.
 Please, double check your task definitions.`
     },
     OVERRIDE_NO_VARIADIC_PARAMS: {
-      number: 204,
+      number: 212,
       message:
         "Redefinition of task %taskName% failed. Unsupported operation adding variadic param definitions in an overridden task.",
       title: "Attempted to add variadic params to an overridden task",
