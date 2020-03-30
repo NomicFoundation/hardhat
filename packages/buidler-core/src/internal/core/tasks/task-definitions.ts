@@ -6,7 +6,7 @@ import {
   TaskDefinition
 } from "../../../types";
 import { BuidlerError } from "../errors";
-import { ERRORS } from "../errors-list";
+import { ErrorDescriptor, ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
 
@@ -604,10 +604,12 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    if (isOptional !== undefined && isOptional) {
-      return this.addOptionalParam(name, description, defaultValue, type);
+    if (isOptional === undefined || !isOptional) {
+      return this._throwNoParamsOverrideError(
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_MANDATORY_PARAMS
+      );
     }
-    return this._throwNoParamsOverrideError();
+    return this.addOptionalParam(name, description, defaultValue, type);
   }
 
   /**
@@ -638,7 +640,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
+    );
   }
 
   /**
@@ -650,7 +654,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     defaultValue?: T,
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
+    );
   }
 
   /**
@@ -663,7 +669,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
+    );
   }
 
   /**
@@ -675,7 +683,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     defaultValue?: T[],
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
+    );
   }
 
   /**
@@ -688,8 +698,8 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     return this;
   }
 
-  private _throwNoParamsOverrideError(): never {
-    throw new BuidlerError(ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS, {
+  private _throwNoParamsOverrideError(errorDescriptor: ErrorDescriptor): never {
+    throw new BuidlerError(errorDescriptor, {
       taskName: this.name
     });
   }

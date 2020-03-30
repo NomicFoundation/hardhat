@@ -946,7 +946,7 @@ describe("OverriddenTaskDefinition", () => {
     it("should throw if addParam is called with isOptional = false", () => {
       expectBuidlerError(
         () => overriddenTask.addParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_MANDATORY_PARAMS
       );
     });
 
@@ -975,28 +975,28 @@ describe("OverriddenTaskDefinition", () => {
     it("should throw if addPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
       );
     });
 
     it("should throw if addOptionalPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addOptionalPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
       );
     });
 
     it("should throw if addVariadicPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addVariadicPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );
     });
 
     it("should throw if addOptionalVariadicPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addOptionalVariadicPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );
     });
   });

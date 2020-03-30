@@ -293,15 +293,40 @@ Please double check your task definitions.`
       
 Please double check your task definitions.`
     },
-    OVERRIDE_NO_PARAMS: {
+    OVERRIDE_NO_MANDATORY_PARAMS: {
       number: 204,
       message:
-        "Redefinition of task %taskName% failed. You can't change param definitions in an overridden task.",
-      title: "Attempted to add params to an overridden task",
-      description: `You can't change param definitions in an overridden task.
+        "Redefinition of task %taskName% failed. Unsupported operation adding mandatory (non optional) param definitions in an overridden task.",
+      title: "Attempted to add mandatory params to an overridden task",
+      description: `You can't add mandatory (non optional) param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
 
-Please double check your task definitions.`
+Please, double check your task definitions.`
     },
+    OVERRIDE_NO_POSITIONAL_PARAMS: {
+      number: 204,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding positional param definitions in an overridden task.",
+      title: "Attempted to add positional params to an overridden task",
+      description: `You can't add positional param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`
+    },
+    OVERRIDE_NO_VARIADIC_PARAMS: {
+      number: 204,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding variadic param definitions in an overridden task.",
+      title: "Attempted to add variadic params to an overridden task",
+      description: `You can't add variadic param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`
+    },
+
     ACTION_NOT_SET: {
       number: 205,
       message: "No action set for task %taskName%.",
