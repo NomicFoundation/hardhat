@@ -34,7 +34,7 @@ AVAILABLE TASKS:
   run           Runs a user-defined script after compiling the project
   test          Runs mocha tests
 
-To get help for a specific task run: buidler help [task]
+To get help for a specific task run: npx buidler help [task]
 ```
 
 For some ideas, you could create a task to reset the state of a development environment, interact with your contracts or package your project.
@@ -97,7 +97,7 @@ AVAILABLE TASKS:
   run           Runs a user-defined script after compiling the project
   test          Runs mocha tests
 
-To get help for a specific task run: buidler help [task]
+To get help for a specific task run: npx buidler help [task]
 ```
 
 Now let’s implement the functionality we want. We need to get the account address from the user. We can do this by adding a parameter to our task:
