@@ -76,12 +76,13 @@ export interface ProjectPaths {
   tests: string;
 }
 
-type EVMVersion = string;
+export type EVMVersion = string;
 
 export interface SolcConfig {
   version: string;
   optimizer: SolcOptimizerConfig;
   evmVersion?: EVMVersion;
+  settings?: SolcSettings;
 }
 
 export interface SolcOptimizerConfig {
@@ -112,13 +113,15 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
 
 // End config types
 
+export interface SolcSettings {
+  metadata: { useLiteralContent: boolean };
+  optimizer: SolcOptimizerConfig;
+  outputSelection: { "*": { "": string[]; "*": string[] } };
+  evmVersion?: string;
+}
+
 export interface SolcInput {
-  settings: {
-    metadata: { useLiteralContent: boolean };
-    optimizer: SolcOptimizerConfig;
-    outputSelection: { "*": { "": string[]; "*": string[] } };
-    evmVersion?: string;
-  };
+  settings: SolcSettings;
   sources: { [p: string]: { content: string } };
   language: string;
 }
@@ -310,6 +313,7 @@ export interface Artifact {
   deployedBytecode: string; // "0x"-prefixed hex string
   linkReferences: LinkReferences;
   deployedLinkReferences: LinkReferences;
+  metadata?: string;
 }
 
 export interface LinkReferences {

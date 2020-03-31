@@ -101,8 +101,11 @@ export default function() {
 
     return getInputFromDependencyGraph(
       dependencyGraph,
-      config.solc.optimizer,
-      config.solc.evmVersion
+      {
+        optimizer: config.solc.optimizer,
+        evmVersion: config.solc.evmVersion,
+        solcSettings: config.solc.settings
+      }
     );
   });
 

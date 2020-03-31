@@ -42,7 +42,9 @@ export function getArtifactFromContractOutput(
       ? evmDeployedBytecode.linkReferences
       : {};
 
+  // TODO return full contractOutput ?
   return {
+    metadata: contractOutput.metadata,
     contractName,
     abi: contractOutput.abi,
     bytecode,

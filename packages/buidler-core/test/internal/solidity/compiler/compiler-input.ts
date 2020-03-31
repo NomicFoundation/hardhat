@@ -58,16 +58,17 @@ describe("compiler-input module", function() {
 
     const input = getInputFromDependencyGraph(
       graph,
-      optimizerConfig,
-      undefined
+      {optimizer: optimizerConfig}
     );
 
     assert.deepEqual(input, expectedInput);
 
     const inputWithEvmVersion = getInputFromDependencyGraph(
       graph,
-      optimizerConfig,
-      "byzantium"
+      {
+        optimizer: optimizerConfig,
+        evmVersion: "byzantium"
+      }
     );
 
     expectedInput.settings.evmVersion = "byzantium";
