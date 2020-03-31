@@ -1,14 +1,6 @@
 name: CI
 
-on:
-  push:
-    branches:
-      - master
-      - development
-      - "[Ww][Ii][Pp]*" # run on any branch that starts with "wip*", ignoring case.
-  pull_request:
-    branches:
-      - "*"
+on: [push, pull_request]
 
 jobs:
   lint:
