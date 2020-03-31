@@ -20,10 +20,7 @@ export function getInputFromDependencyGraph(
   const input: SolcInput = {
     language: "Solidity",
     sources,
-    settings: <SolcSettings> JSON.parse(JSON.stringify(solcSettings)) || {
-      metadata: {
-        useLiteralContent: true
-      },
+    settings: <SolcSettings> solcSettings ? JSON.parse(JSON.stringify(solcSettings)) : {
       optimizer: optimizer,
       outputSelection: {
         "*": {
