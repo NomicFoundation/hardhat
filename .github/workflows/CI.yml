@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - development
+      - "[Ww][Ii][Pp]*" # run on any branch that starts with "wip*", ignoring case.
   pull_request:
     branches:
       - "*"
