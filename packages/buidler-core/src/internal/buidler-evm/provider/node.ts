@@ -409,8 +409,11 @@ export class BuidlerNode extends EventEmitter {
     };
   }
 
-  public async mineEmptyBlock() {
+  public async mineEmptyBlock(timestamp?: BN) {
     const block = await this._getNextBlockTemplate();
+    if (timestamp) {
+      await this._setBlockTimestamp(block, timestamp);
+    }
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
     );
@@ -1232,6 +1235,10 @@ export class BuidlerNode extends EventEmitter {
     const latestBlockTimestamp = new BN(latestBlock.header.timestamp);
 
     return latestBlockTimestamp.eq(blockTimestamp);
+  }
+
+  private async _setBlockTimestamp(block: Block, timestamp: BN) {
+    block.header.timestamp = new BN(timestamp);
   }
 
   private async _increaseBlockTimestamp(block: Block) {

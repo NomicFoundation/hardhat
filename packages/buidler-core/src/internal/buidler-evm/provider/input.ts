@@ -316,6 +316,5 @@ export function validateParams(params: any[], ...types: Array<t.Type<any>>) {
 
     decoded.push(result.value);
   }
-
   return decoded;
 }

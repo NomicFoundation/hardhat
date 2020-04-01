@@ -48,11 +48,23 @@ export class EvmModule {
   // evm_mine
 
   private _mineParams(params: any[]): [] {
-    return validateParams(params);
+    if (params.length == 1) {
+      return validateParams(params, t.number);
+    } else {
+      return validateParams(params);
+    }
   }
 
-  private async _mineAction(): Promise<string> {
-    await this._node.mineEmptyBlock();
+  private async _mineAction(timestamp?: BN): Promise<string> {
+    if (timestamp) {
+      const latestBlock = await this._node.getLatestBlock();
+      const increment = new BN(timestamp).sub(new BN(latestBlock.header.timestamp));
+      if (increment.lte(new BN(0))) {
+        throw new InvalidInputError(`Timestamp ${timestamp} is lower than previous block's timestamp`);
+      }
+      await this._node.increaseTime(increment);
+    }
+    await this._node.mineEmptyBlock(timestamp);
     return numberToRpcQuantity(0);
   }
 

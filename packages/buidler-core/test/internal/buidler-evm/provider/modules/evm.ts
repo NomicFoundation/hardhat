@@ -100,6 +100,30 @@ describe("Evm module", function() {
 
           assert.isEmpty(block2.transactions);
         });
+        it("should mine an empty block with exact timestamp", async function() {
+          const timestamp = new Date().getTime() / 1000 | 0 + 60;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(1), false]
+          );
+
+          assert.equal(block.timestamp, timestamp);
+        });
+        it("should mine an empty block with the timestamp and other later blocks have higher timestamp", async function() {
+          const timestamp = new Date().getTime() / 1000 | 0 + 60;
+          await this.provider.send("evm_mine", [timestamp]);
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_mine");
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(2), false]
+          );
+
+          assert.isTrue(block.timestamp > timestamp);
+        });
       });
 
       describe("Snapshot functionality", function() {
