@@ -252,7 +252,11 @@ function getProjectId(rootPath: string) {
 }
 
 function getUserType(): string {
-  return ci.isCI ? "CI" : "Developer";
+  // ci-info hasn't released support for github actions yet, so we
+  // test it manually here. See: https://github.com/watson/ci-info/issues/48
+  return ci.isCI || process.env.GITHUB_ACTIONS !== undefined
+    ? "CI"
+    : "Developer";
 }
 
 /**
