@@ -132,6 +132,7 @@ interface Snapshot {
   latestBlock: Block;
   stateRoot: Buffer;
   blockTimeOffsetSeconds: BN;
+  nextBlockTimestamp: BN;
   transactionByHash: Map<string, Transaction>;
   transactionHashToBlockHash: Map<string, string>;
   blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
@@ -239,6 +240,7 @@ export class BuidlerNode extends EventEmitter {
   private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
+  private _nextBlockTimestamp: BN = new BN(0);
   private _transactionByHash: Map<string, Transaction> = new Map();
   private _transactionHashToBlockHash: Map<string, string> = new Map();
   private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
@@ -358,6 +360,12 @@ export class BuidlerNode extends EventEmitter {
     await this._saveTransactionAsReceived(tx);
 
     const block = await this._getNextBlockTemplate();
+
+    const timestamp = await this._getNextUsableBlockTimestamp();
+    if (!timestamp.eq(new BN(0))) {
+      await this._setBlockTimestamp(block, timestamp);
+    }
+
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
     );
@@ -400,6 +408,8 @@ export class BuidlerNode extends EventEmitter {
       vmTracerError
     );
 
+    await this._resetNextBlockTimestamp();
+
     return {
       trace: vmTrace,
       block,
@@ -409,8 +419,11 @@ export class BuidlerNode extends EventEmitter {
     };
   }
 
-  public async mineEmptyBlock() {
+  public async mineEmptyBlock(timestamp: BN) {
     const block = await this._getNextBlockTemplate();
+    if (!timestamp.eq(new BN(0))) {
+      await this._setBlockTimestamp(block, timestamp);
+    }
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
     );
@@ -437,6 +450,8 @@ export class BuidlerNode extends EventEmitter {
       }
 
       await this._saveBlockAsSuccessfullyRun(block, result);
+
+      await this._resetNextBlockTimestamp();
 
       return result;
     } catch (error) {
@@ -653,12 +668,20 @@ export class BuidlerNode extends EventEmitter {
     return this._stateManager.getContractCode(address);
   }
 
+  public async setNextBlockTimestamp(timestamp: BN) {
+    this._nextBlockTimestamp = new BN(timestamp);
+  }
+
   public async increaseTime(increment: BN) {
     this._blockTimeOffsetSeconds = this._blockTimeOffsetSeconds.add(increment);
   }
 
   public async getTimeIncrement(): Promise<BN> {
     return this._blockTimeOffsetSeconds;
+  }
+
+  public async getNextBlockTimestamp(): Promise<BN> {
+    return this._nextBlockTimestamp;
   }
 
   public async getSuccessfulTransactionByHash(
@@ -714,6 +737,7 @@ export class BuidlerNode extends EventEmitter {
       latestBlock: await this.getLatestBlock(),
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
+      nextBlockTimestamp: new BN(this._nextBlockTimestamp),
       transactionByHash: new Map(this._transactionByHash.entries()),
       transactionHashToBlockHash: new Map(
         this._transactionHashToBlockHash.entries()
@@ -757,6 +781,7 @@ export class BuidlerNode extends EventEmitter {
     this._blockchain.deleteAllFollowingBlocks(snapshot.latestBlock);
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
+    this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
     this._transactionByHash = snapshot.transactionByHash;
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
@@ -1044,7 +1069,7 @@ export class BuidlerNode extends EventEmitter {
         header: {
           gasLimit: this._blockGasLimit,
           nonce: "0x42",
-          timestamp: await this._getNextBlockTimestamp()
+          timestamp: await this._getNextUsableBlockTimestamp()
         }
       },
       { common: this._common }
@@ -1062,9 +1087,16 @@ export class BuidlerNode extends EventEmitter {
     return block;
   }
 
-  private async _getNextBlockTimestamp(): Promise<BN> {
-    const realTimestamp = new BN(getCurrentTimestamp());
-    return realTimestamp.add(this._blockTimeOffsetSeconds);
+  private async _resetNextBlockTimestamp() {
+    this._nextBlockTimestamp = new BN(0);
+  }
+
+  private async _getNextUsableBlockTimestamp(): Promise<BN> {
+    if (this._nextBlockTimestamp.eq(new BN(0))) {
+      const realTimestamp = new BN(getCurrentTimestamp());
+      return realTimestamp.add(this._blockTimeOffsetSeconds);
+    }
+    return new BN(this._nextBlockTimestamp);
   }
 
   private async _saveTransactionAsReceived(tx: Transaction) {
@@ -1232,6 +1264,10 @@ export class BuidlerNode extends EventEmitter {
     const latestBlockTimestamp = new BN(latestBlock.header.timestamp);
 
     return latestBlockTimestamp.eq(blockTimestamp);
+  }
+
+  private async _setBlockTimestamp(block: Block, timestamp: BN) {
+    block.header.timestamp = new BN(timestamp);
   }
 
   private async _increaseBlockTimestamp(block: Block) {
