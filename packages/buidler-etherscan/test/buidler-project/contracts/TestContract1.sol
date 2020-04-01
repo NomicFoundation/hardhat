@@ -1,4 +1,4 @@
-pragma solidity 0.5.1;
+pragma solidity 0.5.15;
 
 contract TestContract1 {
 
@@ -9,4 +9,11 @@ contract TestContract1 {
     constructor(uint _amount) public {
         amount = _amount;
     }
+}
+
+contract InnerContract {
+
+  function foo() public payable {
+    msg.sender.transfer(msg.value);
+  }
 }

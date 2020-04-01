@@ -6,13 +6,14 @@ export interface EtherscanRequestParameters {
   action: "verifysourcecode";
   contractaddress: string;
   sourceCode: string;
+  codeformat: string;
   contractname: string;
   compilerversion: string;
   // The documentation is contradictory, but below is correct at this point in time (checked by experimentation).
   // 1 = Optimizations used
   // 0 = No optimizations used
-  optimizationUsed: number;
-  runs: number;
+  // optimizationUsed: number;
+  // runs: number;
   // This is misspelt in Etherscan's actual API parameters.
   // See: https://etherscan.io/apis#contracts
   constructorArguements: string;
@@ -27,8 +28,8 @@ export function toRequest(params: {
   sourceCode: string;
   contractName: string;
   compilerVersion: string;
-  optimizationsUsed: boolean;
-  runs: number;
+  // optimizationsUsed: boolean;
+  // runs: number;
   constructorArguments: string;
   libraries: string;
 }): EtherscanRequestParameters {
@@ -38,10 +39,11 @@ export function toRequest(params: {
     action: "verifysourcecode",
     contractaddress: params.contractAddress,
     sourceCode: params.sourceCode,
+    codeformat: "solidity-standard-json-input",
     contractname: params.contractName,
     compilerversion: params.compilerVersion,
-    optimizationUsed: params.optimizationsUsed ? 1 : 0,
-    runs: params.runs,
+    // optimizationUsed: params.optimizationsUsed ? 1 : 0,
+    // runs: params.runs,
     constructorArguements: params.constructorArguments,
     ...parseLibraries(params.libraries)
   };

@@ -8,7 +8,7 @@ module.exports = {
     apiKey: process.env.ETHERSCAN_API_KEY || "testtoken"
   },
   solc: {
-    version: "0.5.1"
+    version: "0.5.15"
   },
   paths: {
     artifacts: "artifacts-dir"
