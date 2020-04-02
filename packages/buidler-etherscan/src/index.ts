@@ -1,23 +1,25 @@
 import {
   TASK_COMPILE,
-  TASK_COMPILE_GET_COMPILER_INPUT,
-  TASK_FLATTEN_GET_FLATTENED_SOURCE,
+  TASK_COMPILE_GET_COMPILER_INPUT
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
+import { getArtifactFromContractOutput } from "@nomiclabs/buidler/internal/artifacts";
+import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { Artifact } from "@nomiclabs/buidler/types";
 
 import AbiEncoder from "./AbiEncoder";
 import { getDefaultEtherscanConfig } from "./config";
 import {
+  EtherscanGetResponse,
+  getCode,
   getVerificationStatus,
-  verifyContract,
+  verifyContract
 } from "./etherscan/EtherscanService";
 import { toRequest } from "./etherscan/EtherscanVerifyContractRequest";
 import { getLongVersion } from "./solc/SolcVersions";
 import { EtherscanConfig } from "./types";
 
 task("verify-contract", "Verifies contract on etherscan")
-  .addParam("contractName", "Name of the deployed contract")
   .addParam("address", "Deployed address of smart contract")
   .addOptionalParam(
     "libraries",
@@ -31,7 +33,6 @@ task("verify-contract", "Verifies contract on etherscan")
   .setAction(
     async (
       taskArgs: {
-        contractName: string;
         address: string;
         libraries: string;
         source: string;
@@ -47,20 +48,63 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      const index: number = taskArgs.contractName.indexOf(":");
-      let etherscanContractName: string;
-      let contractName: string;
-      if (index !== -1) {
-        etherscanContractName = taskArgs.contractName;
-        contractName = taskArgs.contractName.substring(index + 1);
-      } else {
-        etherscanContractName = `contracts/${taskArgs.contractName}:${taskArgs.contractName}`;
-        contractName = taskArgs.contractName;
+      if (etherscan.url === undefined || etherscan.url.trim() === "") {
+        throw new BuidlerPluginError(
+          "Please provide etherscan url token via buidler.config.js (etherscan.url)"
+        );
       }
 
-      await run(TASK_COMPILE);
-      const abi = (await readArtifact(config.paths.artifacts, contractName))
-        .abi;
+      // Get the contract bytecode deployed on chain
+      console.log(
+        `Getting deployed bytecode at ${taskArgs.address} from etherscan...`
+      );
+
+      const rsp: EtherscanGetResponse = await getCode(
+        etherscan.url,
+        etherscan.apiKey,
+        taskArgs.address
+      );
+      const deployedBytecode = rsp.result;
+
+      console.log(
+        `Successfully got deployed bytecode at ${
+          taskArgs.address
+        } from etherscan: size is ${
+          Buffer.from(deployedBytecode.substring(2), "hex").length
+        } bytes`
+      );
+
+      // Find the contract artifact by verifying deployed bytecode vs local bytecode
+      let artifactFileName: string | null = null;
+      let artifact: Artifact | null = null;
+      const compilerOutput = await run(TASK_COMPILE);
+      const fileEntries = Object.entries<any>(compilerOutput.contracts);
+      for (const [fileName, contracts] of fileEntries) {
+        const contractEntries = Object.entries<any>(contracts);
+        for (const [contractName, contractOutput] of contractEntries) {
+          const evmDeployedBytecode =
+            contractOutput.evm && contractOutput.evm.deployedBytecode;
+          const localBytecode = `0x${evmDeployedBytecode.object}`;
+
+          if (localBytecode === deployedBytecode) {
+            artifactFileName = fileName;
+            artifact = getArtifactFromContractOutput(
+              contractName,
+              contractOutput
+            );
+          }
+        }
+      }
+
+      if (artifact === null) {
+        throw new BuidlerPluginError(
+          `Deployed bytecode does not match any local bytecode for contract at ${taskArgs.address}`
+        );
+      }
+
+      const etherscanContractName = `${artifactFileName}:${artifact.contractName}`;
+
+      const { abi } = artifact;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
 
       const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
@@ -71,14 +115,16 @@ task("verify-contract", "Verifies contract on etherscan")
         sourceCode: source,
         contractName: `${etherscanContractName}`,
         compilerVersion: config.solc.fullVersion,
-        // optimizationsUsed: config.solc.optimizer.enabled,
-        // runs: config.solc.optimizer.runs,
         constructorArguments: AbiEncoder.encodeConstructor(
           abi,
           taskArgs.constructorArguments
         ),
-        libraries: taskArgs.libraries,
+        libraries: taskArgs.libraries
       });
+
+      console.log(
+        `Submitting contract ${etherscanContractName} for verification on etherscan...`
+      );
 
       const response = await verifyContract(etherscan.url, request);
 
@@ -86,7 +132,11 @@ task("verify-contract", "Verifies contract on etherscan")
         `Successfully submitted contract at ${taskArgs.address} for verification on etherscan. Waiting for verification result...`
       );
 
-      await getVerificationStatus(etherscan.url, response.message);
+      await getVerificationStatus(
+        etherscan.url,
+        etherscan.apiKey,
+        response.message
+      );
 
       console.log("Successfully verified contract on etherscan");
     }

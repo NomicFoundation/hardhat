@@ -27,6 +27,7 @@ import {
   TASK_COMPILE_CHECK_CACHE,
   TASK_COMPILE_COMPILE,
   TASK_COMPILE_GET_COMPILER_INPUT,
+  TASK_COMPILE_GET_COMPILER_OUTPUT,
   TASK_COMPILE_GET_DEPENDENCY_GRAPH,
   TASK_COMPILE_GET_RESOLVED_SOURCES,
   TASK_COMPILE_GET_SOURCE_PATHS,
@@ -57,6 +58,14 @@ async function cacheSolcJsonFiles(
       encoding: "utf8",
     }
   );
+}
+
+async function getSolcOutputFromCache(config: ResolvedBuidlerConfig) {
+  await fsExtra.ensureDir(config.paths.cache);
+
+  return fsExtra.readJSON(path.join(config.paths.cache, SOLC_OUTPUT_FILENAME), {
+    encoding: "utf8"
+  });
 }
 
 function isConsoleLogError(error: any): boolean {
@@ -104,6 +113,10 @@ export default function () {
       config.solc.optimizer,
       config.solc.evmVersion
     );
+  });
+
+  internalTask(TASK_COMPILE_GET_COMPILER_OUTPUT, async (_, { config }) => {
+    return getSolcOutputFromCache(config);
   });
 
   internalTask(TASK_COMPILE_RUN_COMPILER)
@@ -198,7 +211,8 @@ export default function () {
       console.log(
         "All contracts have already been compiled, skipping compilation."
       );
-      return;
+      const output = await run(TASK_COMPILE_GET_COMPILER_OUTPUT);
+      return output;
     }
 
     const compilationOutput = await run(TASK_COMPILE_COMPILE);
@@ -228,6 +242,8 @@ export default function () {
       pluralize(numberOfContracts, "contract"),
       "successfully"
     );
+
+    return compilationOutput;
   });
 
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
