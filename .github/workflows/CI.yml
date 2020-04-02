@@ -1,7 +1,15 @@
 name: CI
 
 on:
-  push
+  push:
+    branches:
+      - master
+      - development
+      # We want to build "wip*" branches since they are not intended for PRs.
+      - "[Ww][Ii][Pp]*"
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
   lint:
