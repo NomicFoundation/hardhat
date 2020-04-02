@@ -122,7 +122,6 @@ describe.skip("Plugin integration tests", function() {
       this.env
         .run("verify-contract", {
           address: "0x0",
-          contractName: "TestContract",
           constructorArguments: []
         })
         .catch((e: any) => assert.instanceOf(e, BuidlerPluginError));
