@@ -56,7 +56,7 @@ export class EvmModule {
   }
 
   private async _mineAction(timestamp?: BN): Promise<string> {
-    if (timestamp) {
+    if (timestamp !== undefined) {
       const latestBlock = await this._node.getLatestBlock();
       const increment = new BN(timestamp).sub(new BN(latestBlock.header.timestamp));
       if (increment.lte(new BN(0))) {
