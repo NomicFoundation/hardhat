@@ -1,3 +1,23 @@
 # 2. Installing Buidler
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Labore reprehenderit obcaecati consequatur voluptatem dolore laudantium? Earum eius dolores inventore perspiciatis officiis vel nisi ratione deleniti quasi distinctio, aliquam similique magni fugiat minus dignissimos, ipsum, aut sequi reprehenderit possimus! Fugiat nesciunt quisquam soluta sit deleniti amet laboriosam voluptatem? Ut minima quam aliquam cumque nostrum officia reprehenderit, optio iure quia vero repellat eaque, culpa distinctio, quo molestiae quos alias dicta odio debitis natus voluptatibus magni quisquam. Veritatis magni, quos sed enim neque facilis voluptatem qui perferendis impedit possimus praesentium reprehenderit maxime quaerat ipsam voluptatum nostrum optio, dolorum, vel molestiae quasi nihil quibusdam culpa. Veritatis maxime ea, unde voluptatum. Autem nesciunt iste corporis. Ex repellendus harum in, animi cumque accusantium deleniti assumenda corrupti, quae magnam porro aliquam nam veniam iste minus dignissimos sed tempore? Eius facere obcaecati nemo pariatur aspernatur accusantium dolore, voluptatibus officiis vel, quibusdam excepturi et porro! Repudiandae magnam expedita accusantium eveniet fuga perferendis quidem a quae deserunt maiores cupiditate dolore molestiae, culpa illo autem ab sit eligendi sapiente pariatur nulla. Quia at placeat recusandae maiores assumenda, dolore ratione vitae natus tenetur quod dolor voluptate, corporis animi aut. Corporis doloribus modi ipsa ab nesciunt quasi veritatis excepturi aliquid laboriosam! Fugit, eligendi?
+We will install **Buidler** through `npm`. `npm` (Node Package Manager) is two things: first and foremost, it is an online repository for the publishing of open-source Node.js project such as **Buidler**; second, it is a command-line utility for interacting with said repository.
+
+Open a new terminal, copy and paste these commands:
+
+```
+mkdir buidler-tutorial # Create a new folder
+cd buidler-tutorial # Access the folder
+npm init --yes # Initialize a new npm project
+npm install --save-dev @nomiclabs/buidler # Install Buidler and dependencies
+```
+
+::: warning
+**Buidler** package will also install all its dependencies, so it might take a while.
+:::
+
+## What is Buidler?
+You might think of **Buidler** as a runtime environment designed around the concepts of tasks and plugins. This means interoperability and flexibility turning **Buidler** into the perfect toolkit for smart contract and dapp development.
+
+It also comes with **Buidler EVM**, a local Ethereum network that allows you to test, debug and deploy your contracts more quickly. You can even use `console.log` inside your Solidity code. And no, that was not possible before **Buidler EVM** :sunglasses:
+
+When installation completes, go to step 3: [Configuring Buidler.](../3-config/)
