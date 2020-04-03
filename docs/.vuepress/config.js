@@ -36,6 +36,7 @@ module.exports = {
     sidebar: {
       '/tutorial/': [
         ["", "Overview", 1],
+        ["0-guidelines/", "Guidelines", 0],
         {
           title: "Tutorial",
           url: "1-setup/",
