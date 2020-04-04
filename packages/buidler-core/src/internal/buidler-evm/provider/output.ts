@@ -101,6 +101,8 @@ export function getRpcBlock(
     number: numberToRpcQuantity(new BN(block.header.number)), // TODO: null when it's a pending block,
     hash: bufferToRpcData(block.hash()), // TODO: null when it's a pending block,
     parentHash: bufferToRpcData(block.header.parentHash),
+    // We pad this to 8 bytes because of a limitation in The Graph
+    // See: https://github.com/nomiclabs/buidler/issues/491
     nonce: bufferToRpcData(block.header.nonce, 16), // TODO: null when it's a pending block,
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
     logsBloom: bufferToRpcData(block.header.bloom), // TODO: null when it's a pending block,
