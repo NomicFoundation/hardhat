@@ -453,13 +453,15 @@ export class EthModule {
     let block: Block;
 
     if (typeof tag === "string") {
-      if (tag === "earliest" || tag === "pending") {
+      if (tag === "earliest") {
+        block = await this._node.getBlockByNumber(new BN(0));
+      } else if (tag === "latest") {
+        block = await this._node.getLatestBlock();
+      } else {
         throw new InvalidInputError(
-          "eth_getBlockByNumber doesn't support earliest nor pending "
+          "eth_getBlockByNumber doesn't support " + tag
         );
       }
-
-      block = await this._node.getLatestBlock();
     } else {
       // The tag can't be undefined because the includeTransactions param is
       // required.
