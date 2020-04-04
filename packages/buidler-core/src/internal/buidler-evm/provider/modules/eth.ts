@@ -459,7 +459,7 @@ export class EthModule {
         block = await this._node.getLatestBlock();
       } else {
         throw new InvalidInputError(
-          "eth_getBlockByNumber doesn't support " + tag
+          `eth_getBlockByNumber doesn't support ${tag}`
         );
       }
     } else {

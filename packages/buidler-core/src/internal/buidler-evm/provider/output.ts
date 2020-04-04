@@ -84,10 +84,10 @@ export function numberToRpcQuantity(n: number | BN): string {
   return `0x${n.toString(16)}`;
 }
 
-export function bufferToRpcData(buffer: Buffer, pad : number = 0): string {
+export function bufferToRpcData(buffer: Buffer, pad: number = 0): string {
   let s = bufferToHex(buffer);
-  if (pad > 0 && s.length < pad + 2){
-    s = '0x' + '0'.repeat((pad + 2) - s.length) + s.slice(2)
+  if (pad > 0 && s.length < pad + 2) {
+    s = `0x${"0".repeat(pad + 2 - s.length)}${s.slice(2)}`;
   }
   return s;
 }
