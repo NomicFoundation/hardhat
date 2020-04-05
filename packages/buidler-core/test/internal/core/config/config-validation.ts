@@ -484,6 +484,19 @@ describe("Config validation", function() {
               }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
+
+          // Non string initialDate
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    initialDate: 123
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
         });
       });
 

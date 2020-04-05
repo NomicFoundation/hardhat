@@ -64,7 +64,8 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _solcVersion?: string,
     private readonly _paths?: ProjectPaths,
     private readonly _loggingEnabled = false,
-    private readonly _allowUnlimitedContractSize = false
+    private readonly _allowUnlimitedContractSize = false,
+    private readonly _initialDate?: Date
   ) {
     super();
     const config = getUserConfigPath();
@@ -274,6 +275,7 @@ export class BuidlerEVMProvider extends EventEmitter
       this._genesisAccounts,
       this._solcVersion,
       this._allowUnlimitedContractSize,
+      this._initialDate,
       compilerInput,
       compilerOutput
     );

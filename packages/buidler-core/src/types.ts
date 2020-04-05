@@ -28,6 +28,7 @@ export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   throwOnCallFailures?: boolean;
   loggingEnabled?: boolean;
   allowUnlimitedContractSize?: boolean;
+  initialDate?: string;
 }
 
 export interface HDAccountsConfig {

@@ -1,4 +1,11 @@
+import { assert } from "chai";
+
 import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
+import {
+  dateToTimestampSeconds,
+  parseDateString
+} from "../../../../src/internal/util/date";
+import { BuidlerNetworkConfig } from "../../../../src/types";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
@@ -43,6 +50,37 @@ describe("Buidler EVM special options", function() {
           /out of gas/
         );
       });
+    });
+  });
+
+  describe("initialDate", function() {
+    useFixtureProject("buidler-evm-initial-date");
+    useEnvironment();
+
+    it("Should set the blockchain date to the initialDate", async function() {
+      const firstBlock = await this.env.network.provider.send(
+        "eth_getBlockByNumber",
+        ["latest", false]
+      );
+
+      await this.env.network.provider.send("evm_mine", []);
+
+      const secondBlock = await this.env.network.provider.send(
+        "eth_getBlockByNumber",
+        ["latest", false]
+      );
+
+      const buidlerEvmConfig = this.env.config.networks
+        .buidlerevm as BuidlerNetworkConfig;
+      const initialDateString = buidlerEvmConfig.initialDate!;
+      const initialDate = dateToTimestampSeconds(
+        parseDateString(initialDateString)
+      );
+
+      assert.equal(firstBlock.timestamp, initialDate);
+      // We don't know the exact timestamp of the second one, but we can cap it
+      assert.isAtLeast(+secondBlock.timestamp, initialDate + 1);
+      assert.isBelow(+secondBlock.timestamp, initialDate + 20);
     });
   });
 });

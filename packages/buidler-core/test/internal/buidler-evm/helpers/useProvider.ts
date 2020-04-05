@@ -76,6 +76,7 @@ export function useProvider(
       networkId,
       blockGasLimit,
       accounts,
+      undefined,
       allowUnlimitedContractSize
     );
 

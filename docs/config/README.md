@@ -68,6 +68,8 @@ You can set the following fields on the `buidlerevm` config:
 - `loggingEnabled`: A boolean that controls if Buidler EVM logs every request or not. Default value: `false` for the
   in-process Buidler EVM provider, `true` for the Buidler EVM backed JSON-RPC server (i.e. the `node` task).
 
+- `intialDate`: An optional string setting the date of the blockchain. If no option is set, the current date is used. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format).
+
 ### JSON-RPC based networks
 
 These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely,

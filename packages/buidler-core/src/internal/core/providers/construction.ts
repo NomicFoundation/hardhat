@@ -9,6 +9,7 @@ import {
   ProjectPaths
 } from "../../../types";
 import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
+import { parseDateString } from "../../util/date";
 
 import { HttpProvider } from "./http";
 
@@ -45,7 +46,10 @@ export function createProvider(
       solcVersion,
       paths,
       buidlerNetConfig.loggingEnabled,
-      buidlerNetConfig.allowUnlimitedContractSize
+      buidlerNetConfig.allowUnlimitedContractSize,
+      buidlerNetConfig.initialDate !== undefined
+        ? parseDateString(buidlerNetConfig.initialDate)
+        : undefined
     );
   } else {
     const httpNetConfig = networkConfig as HttpNetworkConfig;
