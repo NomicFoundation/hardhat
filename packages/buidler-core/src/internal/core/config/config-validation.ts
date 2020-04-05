@@ -110,6 +110,8 @@ const NetworkConfigAccounts = t.union([
   OtherAccountsConfig
 ]);
 
+const HttpHeaders = t.record(t.string, t.string, "httpHeaders");
+
 const HttpNetworkConfig = t.type({
   chainId: optional(t.number),
   from: optional(t.string),
@@ -117,7 +119,8 @@ const HttpNetworkConfig = t.type({
   gasPrice: optional(t.union([t.literal("auto"), t.number])),
   gasMultiplier: optional(t.number),
   url: optional(t.string),
-  accounts: optional(NetworkConfigAccounts)
+  accounts: optional(NetworkConfigAccounts),
+  httpHeaders: optional(HttpHeaders)
 });
 
 const NetworkConfig = t.union([BuidlerNetworkConfig, HttpNetworkConfig]);
@@ -318,6 +321,17 @@ export function getValidationErrors(config: any): string[] {
             `BuidlerConfig.networks.${networkName}.url`,
             netConfig.url,
             "string"
+          )
+        );
+      }
+
+      const netConfigResult = HttpNetworkConfig.decode(netConfig);
+      if (netConfigResult.isLeft()) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${networkName}`,
+            netConfig,
+            "HttpNetworkConfig"
           )
         );
       }

@@ -52,7 +52,7 @@ export function createProvider(
     provider = new HttpProvider(
       httpNetConfig.url!,
       networkName,
-      httpNetConfig.headers,
+      httpNetConfig.httpHeaders,
       httpNetConfig.timeout
     );
   }
