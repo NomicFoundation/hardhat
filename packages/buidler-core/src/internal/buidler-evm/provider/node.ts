@@ -148,6 +148,7 @@ export class BuidlerNode extends EventEmitter {
     blockGasLimit: number,
     genesisAccounts: GenesisAccount[] = [],
     solidityVersion?: string,
+    allowUnlimitedContractSize?: boolean,
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput
   ): Promise<[Common, BuidlerNode]> {
@@ -210,7 +211,8 @@ export class BuidlerNode extends EventEmitter {
       common: common as any, // TS error because of a version mismatch
       activatePrecompiles: true,
       stateManager,
-      blockchain: blockchain as any
+      blockchain: blockchain as any,
+      allowUnlimitedContractSize
     });
 
     const genesisBlock = new Block(null, { common });

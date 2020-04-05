@@ -196,6 +196,19 @@ export function getValidationErrors(config: any): string[] {
       }
 
       if (
+        buidlerNetwork.allowUnlimitedContractSize !== undefined &&
+        typeof buidlerNetwork.allowUnlimitedContractSize !== "boolean"
+      ) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.allowUnlimitedContractSize`,
+            buidlerNetwork.allowUnlimitedContractSize,
+            "boolean | undefined"
+          )
+        );
+      }
+
+      if (
         buidlerNetwork.throwOnTransactionFailures !== undefined &&
         typeof buidlerNetwork.throwOnTransactionFailures !== "boolean"
       ) {

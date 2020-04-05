@@ -44,7 +44,8 @@ export function createProvider(
       buidlerNetConfig.accounts,
       solcVersion,
       paths,
-      buidlerNetConfig.loggingEnabled
+      buidlerNetConfig.loggingEnabled,
+      buidlerNetConfig.allowUnlimitedContractSize
     );
   } else {
     const httpNetConfig = networkConfig as HttpNetworkConfig;

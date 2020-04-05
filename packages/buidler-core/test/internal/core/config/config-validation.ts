@@ -471,6 +471,19 @@ describe("Config validation", function() {
               }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
+
+          // Non boolean allowUnlimitedContractSize
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    allowUnlimitedContractSize: "a"
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
         });
       });
 
