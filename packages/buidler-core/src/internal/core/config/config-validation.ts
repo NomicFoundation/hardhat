@@ -89,7 +89,8 @@ const BuidlerNetworkConfig = t.type({
   blockGasLimit: optional(t.number),
   throwOnTransactionFailures: optional(t.boolean),
   throwOnCallFailures: optional(t.boolean),
-  loggingEnabled: optional(t.boolean)
+  loggingEnabled: optional(t.boolean),
+  allowUnlimitedContractSize: optional(t.boolean)
 });
 
 const HDAccountsConfig = t.type({
