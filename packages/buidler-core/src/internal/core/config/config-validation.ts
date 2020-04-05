@@ -321,6 +321,17 @@ export function getValidationErrors(config: any): string[] {
           )
         );
       }
+
+      const netConfigResult = HttpNetworkConfig.decode(netConfig);
+      if (netConfigResult.isLeft()) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${networkName}`,
+            netConfig,
+            "HttpNetworkConfig"
+          )
+        );
+      }
     }
   }
 
