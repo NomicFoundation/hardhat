@@ -89,7 +89,9 @@ const BuidlerNetworkConfig = t.type({
   blockGasLimit: optional(t.number),
   throwOnTransactionFailures: optional(t.boolean),
   throwOnCallFailures: optional(t.boolean),
-  loggingEnabled: optional(t.boolean)
+  loggingEnabled: optional(t.boolean),
+  allowUnlimitedContractSize: optional(t.boolean),
+  initialDate: optional(t.string)
 });
 
 const HDAccountsConfig = t.type({
@@ -195,6 +197,32 @@ export function getValidationErrors(config: any): string[] {
           `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.hardfork is not supported. Use one of ${SUPPORTED_HARDFORKS.join(
             ", "
           )}`
+        );
+      }
+
+      if (
+        buidlerNetwork.allowUnlimitedContractSize !== undefined &&
+        typeof buidlerNetwork.allowUnlimitedContractSize !== "boolean"
+      ) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.allowUnlimitedContractSize`,
+            buidlerNetwork.allowUnlimitedContractSize,
+            "boolean | undefined"
+          )
+        );
+      }
+
+      if (
+        buidlerNetwork.initialDate !== undefined &&
+        typeof buidlerNetwork.initialDate !== "string"
+      ) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.initialDate`,
+            buidlerNetwork.initialDate,
+            "string | undefined"
+          )
         );
       }
 

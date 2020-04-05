@@ -30,6 +30,10 @@ import { promisify } from "util";
 
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
+import {
+  dateToTimestampSeconds,
+  getDifferenceInSeconds
+} from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
@@ -148,6 +152,8 @@ export class BuidlerNode extends EventEmitter {
     blockGasLimit: number,
     genesisAccounts: GenesisAccount[] = [],
     solidityVersion?: string,
+    allowUnlimitedContractSize?: boolean,
+    initialDate?: Date,
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput
   ): Promise<[Common, BuidlerNode]> {
@@ -180,6 +186,11 @@ export class BuidlerNode extends EventEmitter {
       );
     }
 
+    const initialBlockTimestamp =
+      initialDate !== undefined
+        ? dateToTimestampSeconds(initialDate)
+        : getCurrentTimestamp();
+
     const common = Common.forCustomChain(
       "mainnet",
       {
@@ -187,7 +198,7 @@ export class BuidlerNode extends EventEmitter {
         networkId,
         name: networkName,
         genesis: {
-          timestamp: `0x${getCurrentTimestamp().toString(16)}`,
+          timestamp: `0x${initialBlockTimestamp.toString(16)}`,
           hash: "0x",
           gasLimit: blockGasLimit,
           difficulty: 1,
@@ -210,7 +221,8 @@ export class BuidlerNode extends EventEmitter {
       common: common as any, // TS error because of a version mismatch
       activatePrecompiles: true,
       stateManager,
-      blockchain: blockchain as any
+      blockchain: blockchain as any,
+      allowUnlimitedContractSize
     });
 
     const genesisBlock = new Block(null, { common });
@@ -227,6 +239,7 @@ export class BuidlerNode extends EventEmitter {
       new BN(blockGasLimit),
       genesisBlock,
       solidityVersion,
+      initialDate,
       compilerInput,
       compilerOutput
     );
@@ -268,6 +281,7 @@ export class BuidlerNode extends EventEmitter {
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
     solidityVersion?: string,
+    initialDate?: Date,
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput
   ) {
@@ -292,6 +306,12 @@ export class BuidlerNode extends EventEmitter {
 
     this._vmTracer = new VMTracer(this._vm, true);
     this._vmTracer.enableTracing();
+
+    if (initialDate !== undefined) {
+      this._blockTimeOffsetSeconds = new BN(
+        getDifferenceInSeconds(initialDate, new Date())
+      );
+    }
 
     if (
       solidityVersion === undefined ||
