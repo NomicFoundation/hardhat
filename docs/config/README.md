@@ -89,6 +89,8 @@ This kind of networks are configured with objects with the following fields:
 
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an [HD Wallet](#hd-wallet-config). Default value: `"remote"`.
 
+- `httpHeaders`: You can use this field to set extra HTTP Headers to be used when making JSON-RPC requests. It accepts a JavaScript object which maps header names to their values. Default value: `undefined`.
+
 ### HD Wallet config
 
 To use an HD Wallet with Buidler you should set your network's `accounts` field to an object with the following fields:
