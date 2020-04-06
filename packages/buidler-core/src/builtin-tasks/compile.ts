@@ -99,14 +99,12 @@ export default function() {
       TASK_COMPILE_GET_DEPENDENCY_GRAPH
     );
 
-    return getInputFromDependencyGraph(
-      dependencyGraph,
-      {
-        optimizer: config.solc.optimizer,
-        evmVersion: config.solc.evmVersion,
-        solcSettings: config.solc.settings
-      }
-    );
+    return getInputFromDependencyGraph(dependencyGraph, {
+      optimizer: config.solc.optimizer,
+      evmVersion: config.solc.evmVersion,
+      outputMetadata: config.solc.outputMetadata,
+      solcSettings: config.solc.settings
+    });
   });
 
   internalTask(TASK_COMPILE_RUN_COMPILER)
@@ -217,7 +215,9 @@ export default function() {
       for (const [contractName, contractOutput] of Object.entries(file)) {
         const artifact = getArtifactFromContractOutput(
           contractName,
-          contractOutput
+          contractOutput,
+          config.solc.settings != null &&
+            config.solc.settings.outputSelection != null
         );
         numberOfContracts += 1;
 

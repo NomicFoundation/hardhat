@@ -14,7 +14,8 @@ import { ERRORS } from "./core/errors-list";
  */
 export function getArtifactFromContractOutput(
   contractName: string,
-  contractOutput: any
+  contractOutput: any,
+  saveSolcOutput?: boolean
 ): Artifact {
   const evmBytecode = contractOutput.evm && contractOutput.evm.bytecode;
   let bytecode: string =
@@ -45,6 +46,8 @@ export function getArtifactFromContractOutput(
   // TODO return full contractOutput ?
   return {
     metadata: contractOutput.metadata,
+    solcOutput:
+      saveSolcOutput != null && saveSolcOutput ? contractOutput : undefined,
     contractName,
     abi: contractOutput.abi,
     bytecode,

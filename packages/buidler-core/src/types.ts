@@ -82,6 +82,7 @@ export interface SolcConfig {
   version: string;
   optimizer: SolcOptimizerConfig;
   evmVersion?: EVMVersion;
+  outputMetadata?: boolean | { useLiteralContent: boolean };
   settings?: SolcSettings;
 }
 
@@ -314,6 +315,7 @@ export interface Artifact {
   linkReferences: LinkReferences;
   deployedLinkReferences: LinkReferences;
   metadata?: string;
+  solcOutput?: any;
 }
 
 export interface LinkReferences {

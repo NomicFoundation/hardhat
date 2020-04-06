@@ -15,10 +15,15 @@ import { useTmpDir } from "../helpers/fs";
 describe("Artifacts utils", function() {
   describe("getArtifactFromContractOutput", function() {
     it("Should always return a bytecode, linkReference, deployedBytecode and deployedLinkReferences", function() {
-      const artifact = getArtifactFromContractOutput("Interface", {
-        ...COMPILER_OUTPUTS.Interface,
-        evm: undefined
-      });
+      const artifact = getArtifactFromContractOutput(
+        "Interface",
+        {
+          ...COMPILER_OUTPUTS.Interface,
+          evm: undefined
+        },
+        false,
+        false
+      );
 
       const expectedArtifact: Artifact = {
         contractName: "Interface",

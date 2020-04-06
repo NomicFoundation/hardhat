@@ -1,4 +1,9 @@
-import { SolcInput, SolcOptimizerConfig, EVMVersion, SolcSettings } from "../../../types";
+import {
+  EVMVersion,
+  SolcInput,
+  SolcOptimizerConfig,
+  SolcSettings
+} from "../../../types";
 import { DependencyGraph } from "../dependencyGraph";
 
 export function getInputFromDependencyGraph(
@@ -6,10 +11,11 @@ export function getInputFromDependencyGraph(
   config: {
     optimizer: SolcOptimizerConfig;
     evmVersion?: EVMVersion;
-    solcSettings?: SolcSettings
+    outputMetadata?: boolean | { useLiteralContent: boolean };
+    solcSettings?: SolcSettings;
   }
 ): SolcInput {
-  const {optimizer, evmVersion, solcSettings} = config;
+  const { optimizer, evmVersion, solcSettings, outputMetadata } = config;
   const sources: { [globalName: string]: { content: string } } = {};
   for (const file of graph.getResolvedFiles()) {
     sources[file.globalName] = {
@@ -17,67 +23,84 @@ export function getInputFromDependencyGraph(
     };
   }
 
+  const settings =
+    (solcSettings as SolcSettings) !== undefined
+      ? JSON.parse(JSON.stringify(solcSettings))
+      : {
+          optimizer,
+          outputSelection: {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ],
+              "": ["id", "ast"]
+            }
+          }
+        };
+
+  ensureMinimalSettingsForBuidler(settings);
+
+  // override settings via solc top level settings
+  if (outputMetadata !== undefined) {
+    if (typeof outputMetadata !== "boolean") {
+      settings.metadata = outputMetadata;
+    }
+    addIfNotPresent(settings.outputSelection["*"]["*"], "metadata");
+  }
+
+  if (optimizer !== undefined) {
+    settings.optimizer = optimizer;
+  }
+
+  if (evmVersion !== undefined) {
+    settings.evmVersion = evmVersion;
+  }
+
   const input: SolcInput = {
     language: "Solidity",
     sources,
-    settings: <SolcSettings> solcSettings ? JSON.parse(JSON.stringify(solcSettings)) : {
-      optimizer: optimizer,
-      outputSelection: {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers"
-          ],
-          "": ["id", "ast"]
-        }
-      }
-    }
+    settings
   };
 
+  return input;
+}
+
+function addIfNotPresent(array: string[], value: string) {
+  if (array.indexOf(value) === -1) {
+    array.push(value);
+  }
+}
+
+function ensureMinimalSettingsForBuidler(settings: SolcSettings): void {
   // ENSURE SOLC SETTINGS ARE SUFFICIENT FOR BUIDLER :
-  if (!input.settings.outputSelection) {
-    input.settings.outputSelection = {
+  if (settings.outputSelection === undefined) {
+    settings.outputSelection = {
       "*": {
         "*": [],
         "": []
       }
     };
   }
-  if (!input.settings.outputSelection["*"]) {
-    input.settings.outputSelection["*"]= {
+  if (settings.outputSelection["*"] === undefined) {
+    settings.outputSelection["*"] = {
       "*": [],
       "": []
-    }
+    };
   }
-  if (!input.settings.outputSelection["*"]["*"]) {
-    input.settings.outputSelection["*"]["*"] = [];
+  if (settings.outputSelection["*"]["*"] === undefined) {
+    settings.outputSelection["*"]["*"] = [];
   }
-  if (!input.settings.outputSelection["*"][""]) {
-    input.settings.outputSelection["*"][""] = [];
-  }
-  function addIfNotPresent(array : string[], value: string) {
-    if (array.indexOf(value) === -1) {
-      array.push(value);
-    }
-  }
-  addIfNotPresent(input.settings.outputSelection["*"]["*"], "abi");
-  addIfNotPresent(input.settings.outputSelection["*"]["*"], "evm.bytecode");
-  addIfNotPresent(input.settings.outputSelection["*"]["*"], "evm.deployedBytecode");
-  addIfNotPresent(input.settings.outputSelection["*"]["*"], "evm.methodIdentifiers");
-  addIfNotPresent(input.settings.outputSelection["*"][""], "id");
-  addIfNotPresent(input.settings.outputSelection["*"][""], "ast");
-
-
-  // ALLOW OLD CONFIG TO STILL WORK AS OVERRIDE
-  if (optimizer) {
-    input.settings.optimizer = optimizer;
+  if (settings.outputSelection["*"][""] === undefined) {
+    settings.outputSelection["*"][""] = [];
   }
 
-  if (evmVersion !== undefined) {
-    input.settings.evmVersion = evmVersion;
-  }
-
-  return input;
+  addIfNotPresent(settings.outputSelection["*"]["*"], "abi");
+  addIfNotPresent(settings.outputSelection["*"]["*"], "evm.bytecode");
+  addIfNotPresent(settings.outputSelection["*"]["*"], "evm.deployedBytecode");
+  addIfNotPresent(settings.outputSelection["*"]["*"], "evm.methodIdentifiers");
+  addIfNotPresent(settings.outputSelection["*"][""], "id");
+  addIfNotPresent(settings.outputSelection["*"][""], "ast");
 }
