@@ -1,31 +1,84 @@
 # 5. Testing contracts
 
-Smart contracts are normally tested using JavaScript. You develop the contract in Solidity, but use an Ethereum library (such as ethers.js) to have a JavaScript model of your contract and write your tests with it. This saves a lot of time making you more productive because you don’t have to spend the time manually testing the code yourself. 
+Smart contracts are normally tested using JavaScript. You develop the contract in Solidity, but use an Ethereum library to have a JavaScript model of your contract and write your tests with it. This saves a lot of time because you don’t have to spend the time manually executing the code yourself. 
+
+For this tutorial we've choose `ethers.js`, being the Ethereum library and `Mocha` being the test framework.
 
 ## ethers.js
-ethers.js is a complete Ethereum library that can be used in Node.js and the web. It lets you interact with Ethereum and your contracts with easy-to-use JavaScript models.
-
-This section explains the main ethers' abstractions that we are going to work with.
+`ethers.js` is a complete Ethereum library that can be used in Node.js and the web. It has three main abstractions that we are going to work with: an Ethereum Provider, the Signers and the Contract Factory. We will go through them using the **Buidler** console, an interactive JavaScript console that uses the same environment as tasks.
 
 ### Ethereum Provider
-A Provider abstracts a connection to the Ethereum blockchain. It lets you read the state of the blockchain and send transactions to the network. When using **Buidler**, you can access an already-initialized provider with `ethers.provider`.
+A `Provider` abstracts a connection to the Ethereum blockchain. It lets you read the state of the blockchain and send transactions to the network. When using **Buidler**, you can access an already-initialized provider with `ethers.provider`. 
 
-Some examples of things you can do with it include getting the balance of an address, or getting the latest block number.
+Open a new **Buidler** console by `npx buidler console` from your project. Copy and paste the following examples:
+
+```js
+console.log(`Address 0xc783df8a850f42e7F7e57013759C285caa701eB6 has ${await ethers.provider.getBalance("0xc783df8a850f42e7F7e57013759C285caa701eB6")} wei`);
+
+console.log("The latest block number is", await ethers.provider.getBlockNumber());
+```
+
+::: tip
+To learn more about `Provider`s, you can look at [their documentation](https://docs.ethers.io/ethers.js/html/api-providers.html).
+:::
 
 ### Signers
-A Signer in ethers is an object that represents an Ethereum account. It is used to send transactions to contracts and other accounts, and to read its state in the network.
+A Signer in `ethers.js` is an object that represents an Ethereum account. It is used to send transactions to contracts and other accounts, and to read its state in the network.
 
-When using **Buidler**, you can access the signers that represent the accounts of the node you are connected to by using await `ethers.getSigners()`.
+When using **Buidler**, you can access the signers that represent the accounts of the node you are connected to by using `await ethers.getSigners()`.
+
+You can try them in the **Buidler** console with:
+
+```js
+const [signer, ...otherSigners] = await ethers.getSigners();
+console.log("The signer's address is", await signer.getAddress());
+console.log("The signer's balance is", (await signer.getBalance()).toString());
+```
+
+::: tip
+To learn more about `Signers`s, you can look at the [Wallet and Signers documentation](https://docs.ethers.io/ethers.js/html/api-wallet.html). Note that a `Wallet` is just a `Signer` that manages its own private key.
+:::
 
 ### ContractFactory's
 A contract factory is an abstraction used to deploy new smart contracts. You can get one in **Buidler** using `await ethers.getContractFactory("ContractName")`.
 
 When you deploy a contract using a ContractFactory you get a Contract instance. This is the object that has a JavaScript function for each of your smart contract functions.
 
+Let's call some of them from the Buidler console:
+
+```js
+const Token = await ethers.getContractFactory("Token");
+const token = await Token.deploy();
+await token.deployed();
+
+console.log("Total supply of tokens", (await token.totalSupply()).toString());
+
+const [signer, addr1, ...otherSigners] = await ethers.getSigners();
+
+const tx = await token.transfer(addr1.getAddress(), 100);
+console.log("Transfer 100 tokens with tx", tx.hash);
+
+// Wait for the tx to be mined
+await tx.wait();
+console.log("Transaction confirmed");
+```
+
 ### Calling contract functions from other accounts
 When using **Buidler**, all your ContractFactorys and Contracts are associated by default to the first Signers account. This means that transactions to deploy and call functions will be sent from it.
 
-To use other accounts to deploy or send transactions, you have to use the `connect()` method of your factories and contracts. You will find an example in the tests below.
+To use other accounts to deploy or send transactions, you have to use the `connect()` method of your factories and contracts. Let's deploy our contract with another account:
+
+```js
+const [signer, addr1, ...otherSigners] = await ethers.getSigners();
+const Token = await ethers.getContractFactory("Token");
+const token = await Token.connect(addr1).deploy();
+await token.deployed();
+
+console.log("Token balance for signer is", (await token.balanceOf(signer.getAddress())).toString());
+console.log("Token balance for addr1 is", (await token.balanceOf(addr1.getAddress())).toString());
+
+```
+
 
 ## Mocha & Chai
 Just like in most JavaScript projects, smart contract tests are written using Mocha and Chai. These are not Ethereum specific tools, but super popular JavaScript projects.
@@ -49,9 +102,7 @@ Waffle comes with matchers for:
 - Addresses validation
 
 ## Writing tests
-Done with the theory, let's put it all together.
-
-Create a new directory called `test` inside our project root folder and add a new file called `Token.js`. Copy and paste the code below, we included a lot of comments for starters:
+Create a new directory called `test` inside our project root folder and add a new file called `Token.js`. Copy and paste the code below, we decided to include a lot of comments for starters:
 
 ```js
 // Mocha is a Node.js test runner. You use it to define and run tests.
@@ -230,7 +281,7 @@ Running `npx buidler test` will compile all your contracts. In our case we had `
   1 failing
 ```
 
-This is how Mocha informs which tests have run, passed and failed. We included a failing test in order to show you an amazing **Buidler** feature:
+This is how Mocha informs which tests have run, passed and failed. We included a failing test in order to show you the power of **Buidler**:
 
 ```
   1) Token contract
@@ -241,4 +292,4 @@ This is how Mocha informs which tests have run, passed and failed. We included a
       at process._tickCallback (internal/process/next_tick.js:68:7)
 ```
 
-Stack traces! Note that the trace combines JavaScript and Solidity code informing which lines triggered the error. This is possible thanks to **Buidler** EVM, we will dig deeper into it in the next section.
+Stack traces! Note that the trace combines JavaScript and Solidity code informing which lines triggered the error. This is possible thanks to **Buidler EVM**, we will dig deeper into it in the next section.

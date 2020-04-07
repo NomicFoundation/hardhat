@@ -19,6 +19,6 @@ Welcome to our beginners guide to smart contract development. Before we start, y
 
 If you can't do any of the above — specially step 5 — please refer to the [Guidelines](./0-guidelines/) section. There you will find some insightful links to follow. Still here? Well, keep reading.
 
-This tutorial will introduce you into smart contract development through the building of a real decentralized application (dapp). Amazing, right? We will start simple by setting up your environment but at the end you will be able to build dapps from scratch.
+This tutorial will introduce you into smart contract development through the building of a real decentralized application (dapp). We will start simple by setting up your environment but at the end you will be able to build dapps from scratch.
 
 [Let's jump right into it.](./1-setup/)

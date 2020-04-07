@@ -1,8 +1,6 @@
-# 4. Creating and compiling smart contracts
+# 4. Writing and compiling smart contracts
 
-Now onto the fun stuff! 
-
-We will create a simple token smart contract. Token contracts are used (mostly) to exchange or store value. We won't focus on the Solidity code on this tutorial, but there are some important features you need to know:
+We will create a simple token smart contract. Token contracts are used to exchange or store value. We won't focus on the Solidity code of our contract on this tutorial, but there are some important rules we defined you need to know:
 
 - There is a fixed amount of tokens and cannot be changed
 - The fixed amount of tokens is assigned to the address that deploys the contract
@@ -11,20 +9,23 @@ We will create a simple token smart contract. Token contracts are used (mostly) 
 - The token is non divisible, you might transfer 1, 2, 3 or 37 tokens but not 2.5
 
 ::: tip
-You might have heard about ERC20s. ERC20 is a token standard in Ethereum. Tokens such as DAI, USDC, LINK and MANA follow the ERC20 standard. [explain more?]
+You might have heard about ERC20s. ERC20 is a token standard in Ethereum. Tokens such as DAI, USDC, LINK and MANA follow the ERC20 standard.
 :::
 
-## Creating smart contracts
+## Writing smart contracts
 
-Start by creating a new folder named `contracts`. Create a file inside `contracts` named `Token.sol`. Open it with your favorite IDE, copy and paste the code below. Take a minute or so to read the code, it's pretty straightforward and it's filled with comments explaining the basics of Solidity.
+Start by creating a new folder named `contracts`. Create a file inside the folder named `Token.sol`. Open it with your favorite IDE, copy and paste the code below. Take a minute or so to read the code, it's pretty straightforward and it's filled with comments explaining the basics of Solidity.
 
 ::: tip
 `*.sol` stands for Solidity. You don't need to match the file and the contract name, but it is common practice and we recommend doing so. 
 :::
 
 ```c
+// Every contract should start with `pragma Solidity` 
+// This will be used by the Solidity compiler
 pragma solidity ^0.5.15;
 
+// This is the main building block of smart contracts
 contract Token {
 
     // Some string type variables to identify the token
@@ -66,15 +67,12 @@ contract Token {
 }
 ```
 
-[podríamos explicar más el código en comments]
-
-
 ::: tip
 You might want to add some Solidity support to your IDE. Just look for Solidity or Ethereum plugins. We recommend using VS Code or Sublime Text 3. If you don't know how to do this, feel free to reach us!
 ::: 
 
 
-## Compiling smart contracts
+## Note on Solidity version and compiling
 While Solidity 0.6.x has been recently released, our recommendation is to stick with 0.5.15 for this tutorial. Some tools and libraries haven't been fully migrated yet, and you don't want to spend your time debugging those.
 
 To compile your contracts, run the task `npx buidler compile`. As we mentioned in the previous section, there are some tasks that come built-in in **Buidler** so you don't need to worry on how this is handled under the hood.

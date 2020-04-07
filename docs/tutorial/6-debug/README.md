@@ -38,7 +38,7 @@ contract Token {
 
 Add some `console.log` to the `transfer()` function as you were using it in JavaScript:
 
-```c{5}
+```c{2,3}
 function transfer(address to, uint256 amount) external {
     console.log("Sender balance is %s tokens", balances[msg.sender]);
     console.log("Trying to send %s tokens to %s", amount, to);

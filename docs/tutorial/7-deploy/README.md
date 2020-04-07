@@ -39,32 +39,34 @@ You can run the script with `npx buidler run scripts/deploy.js --network <networ
 
 The `--network` parameters indicates which network we want to deploy to. If none is provided, Buidler will start a new instance of Buidler EVM, deploy your contracts into it, and then destroy it, which wouldn't be useful.
 
-This project has multiple networks already setup:
+Buidler has multiple networks already setup:
+- `buidlerevm`
+- `localhost`: a local testing network powered by `buidlerevm`
+- `mainnet`: the main Ethereum network.
+- Testnets:
+  - `ropsten`
+  - `kovan`
+  - `rinkeby`
+  - `gorli`
 
-    localhost: A local testing network. Start one with `npx buidler node`. You need to restart it after recompiling your contracts.
-    mainnet: The main Ethereum network.
-    Testnets:
-        ropsten
-        kovan
-        rinkeby
-        gorli
+::: tip
+You need to have ETH in the account that you are going to use to deploy your contracts. You can get some for testnets from faucet, a service that distributes testing-ETH for free: 
 
-Rember that you need to have ETH in the account that you are going to use to deploy your contracts. You can get some for testnets from faucet, a service that distributes testing-ETH for free.
-
-    Ropsten faucet
-    Kovan faucet
-    Rinkeby faucet
-    Gorli faucet
+* [Ropsten faucet](https://faucet.metamask.io/)
+* [Kovan faucet](https://faucet.kovan.network/)
+* [Rinkeby faucet](https://faucet.rinkeby.io/)
+* [Gorli faucet](https://goerli-faucet.slock.it/)
+:::
 
 
 ## Deploying to remote networks
-If you were to deploy to a remote network such as `mainnet` or `rinkeby`, you will need to add a network config to your `buidler.config.js` file. We’ll use rinkeby for this, but you can add any network (i.e. mainnet) similarly:
+If you were to deploy to a remote network such as `mainnet` or any testnet, you will need to add a network config to your `buidler.config.js` file. We’ll use `rinkeby` for this, but you can add any network similarly:
 
 ```js
 usePlugin("@nomiclabs/buidler-waffle");
 
-const INFURA_API_KEY = "";
-const RINKEBY_PRIVATE_KEY = "";
+const INFURA_API_KEY = "YOUR INFURA API KEY";
+const RINKEBY_PRIVATE_KEY = "YOUR RINKEBY PRIVATE KEY";
 
 module.exports = {
   networks: {

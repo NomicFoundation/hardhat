@@ -4,14 +4,14 @@ We already created, tested and deployed a smart contract. If you were to deploy 
 
 Metamask is a browser extension that connects users and applications (dapps) with Ethereum. It does so by injecting an Ethereum provider into the browser. This provider serves as a bridge between dapps and Ethereum being the users the ones in control of what happens in between (a.k.a signing transactions).
 
-Besides Main Net, Metamask allows the user to connect to other networks such as Rinkeby, Ropsten or localhost. We will take advantage of this feature and connect Metamask to **Buidler EVM**. 
+Metamask allows the user to connect to different networks such as Rinkeby, Ropsten or even localhost. We will take advantage of this feature and connect Metamask to **Buidler EVM**. But first, lest's start creating the frontend.
 
 ## Setting up a React App
 React has proven to be a relatively easy learning curve for many developers and also one of the most popular libraries for frontend development. We choose [Facebook's Create React App](https://github.com/facebook/create-react-app) to avoid any kind of build configuration problem and get to the basics of building a dapp as soon as possible.
 
 Open a terminal on your project root directory and run `npx create-react-app frontend`. This command will create a new React app inside a folder named `frontend` (you should see this folder alongside `contracts` and `test`).
 
-After installation ends, run `cd frontend` and `npm install --save bootstrap`. This will install Bootstrap for some basic styling with. Finally, run `npm start`. If everything went well, your app should be available on `http://localhost:3000`.
+After installation ends, run `cd frontend` and `npm install --save bootstrap`. This will install Bootstrap for some basic styling. Finally, run `npm start`. If everything went well, your app should be available on `http://localhost:3000`.
 
 ## Deploying to `localhost`
 On the previous section we learned how to deploy contracts to different networks. For this part of the tutorial we will need to deploy to `localhost`. `localhost` is a local testing network powered by **Buidler EVM**. It comes with all the features provided by **Buidler EVM** but unlike `buidlerevm` network, it keeps running on the background. 
@@ -70,23 +70,23 @@ main()
 Go to the projects root folder and run `npx buidler node`, then open a new terminal and deploy `Token.sol` by running `npx buidler run scripts/deploy-frontend.js --network localhost`. 
 
 ::: warning
-If you change and recompile your contract, you will need restart the network and re-deploy it.
+If you change and recompile your contract, you will need to restart the network and re-deploy it.
 :::
 
 ## Setting up Metamask
 In case you don't have Metamask installed, [follow this link](https://metamask.io/download.html). When installation completes, open Metamask and follow the instructions to create a new wallet.
 
 ### Connecting Metamask to Buidler EVM
-Open Metamask and click on *Main Ethereum Network*, a list of networks should be displayed. Select *Localhost 8545*, it should connect to the local node of **Buidler EVM**.
+Open Metamask and click on *Main Ethereum Network*, a list of networks should be displayed. Select *Localhost 8545*, it should connect to the local node of **Buidler EVM** that we already started by running `npx buidler node`.
 
-Your wallet comes with some accounts but Metamask allows you to import other accounts by using their private key. Open Metamask and click on your account (top right circle). Select "Import Account" and use any of the private keys provided by `npx buidler node`. If import succeed, you will see a balance of 1000 ETH.
+Your wallet comes with a default account but Metamask allows you to import external accounts by using their private key. Open Metamask and click on your account (top right circle). Select "Import Account" and use any of the private keys provided by `npx buidler node`. If import succeed, you will see a balance of 1000 ETH.
 
 ::: tip
 You can switch between networks on Metamask and keep using the same accounts. Try switching to Ropsten and observe how the imported account balance change. Be aware of never putting real Ether into test accounts.
 :::
 
 ## Putting it all together
-Open `frontend/src/App.js` with your IDE and replace its content with the following code, everything is well-commented but we will explain the most important parts below.
+Open `frontend/src/App.js` with your IDE and replace its content with the following code, we will explain the most important parts below.
 
 ```jsx
 import React, { useState, useEffect } from 'react';
@@ -397,6 +397,7 @@ if (
 
 As we mentioned before, Metamask injects an Ethereum provider into the browser by storing it inside `window.ethereum`. As this provider comes locked by default, we need to check if it has been unlocked. One common way of doing this is by reading `window.ethereum.selectedAddress` as it is used to store the active wallet account.
 
+Second, if the provider has been unlocked, `ethers` is initialized:
 
 ```jsx
 _provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -407,10 +408,10 @@ _token = new ethers.Contract(
 );
 ```
 
-Second, if the provider has been unlocked, `ethers` is initialized. With that instance of ethers, we get the first Signer, which will be associated to the wallet. Any transaction sent to the Token contract will go through this account. If the transaction has a gas cost associated, then the wallet will prompt the user to sign it.
+With that instance of ethers, we get the first Signer, which will be associated to the wallet. Any transaction sent to the Token contract will go through this account. If the transaction has a gas cost associated, then the wallet will prompt the user to sign it.
 
 ### Transactions
-Transactions must be defined as `async` functions. In a production environment (such as Main Net), transactions might take several seconds to get mined, sometimes minutes or hours. In the context of Buidler EVM, transactions go through almost immediately, so we don't need to worry about this. Just remember to let your users know that something is happening under the hood.
+Transactions must be defined as `async` functions. In a production environment (such as Main Net), transactions might take several seconds to get mined, sometimes minutes or even hours. In the context of Buidler EVM, transactions go through almost immediately, so we don't need to worry about this. Just remember to let your users know that something is happening on the background.
 
 Some transactions are gas-free, just like the function below:
 
@@ -423,10 +424,6 @@ async function updateBalance(_address) {
   setBalance(balance.toString());
 }
 ```
-
-::: warning
-Note that some numeric values are represented with Big Numbers, and they can't be rendered directly. Calling `toString()` method on those variables will do the trick and print them as formated numbers. 
-:::
 
 Transactions that *write* on the blockchain (change the contract state) have an associated gas cost. Sending tokens to another account will change the contract state, therefore Metamask will prompt to sign it before going through.
 
@@ -444,6 +441,10 @@ async function transferTokens(event) {
   }
 }
 ```
+
+::: warning
+Note that some numeric values are represented with Big Numbers, and they can't be rendered directly. Calling `toString()` method on those variables will do the trick and print them as formated numbers. 
+:::
 
 
 ### Components & Render

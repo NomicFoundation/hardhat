@@ -4,13 +4,13 @@ prev: false
 
 # 1. Setting up the environment
 
-First things first. Most Ethereum libraries and tools use Node.js and **Buidler** is no exception. In case you are not familiar with Node.js, you might think of it as "JavaScript running on your computer" — but it’s so much more as well. For now we are just installing it.
+Most Ethereum libraries and tools use Node.js and **Buidler** is no exception. In case you are not familiar with Node.js, you might think of it as "JavaScript running on your computer" — but it’s so much more as well. For now we are just installing it.
 
 ## Installing Node.js
 
 This section has instructions for installing Node.js in the operating system of your choice. Feel free to skip any step you don't consider necessary.
 
-::: tip
+::: warning
 If you have Node.js `>=10.0` already installed, please skip to: [Checking your environment](#checking-your-environment).
 :::
 
