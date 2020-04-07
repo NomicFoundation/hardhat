@@ -16,8 +16,8 @@ npm install --save-dev @nomiclabs/buidler # Install Buidler and dependencies
 :::
 
 ## What is Buidler?
-You might think of **Buidler** as a runtime environment designed around the concepts of tasks and plugins. This means interoperability and flexibility turning **Buidler** into the perfect toolkit for smart contract and dapp development.
+**Buidler** is a task runner that facilitates building Ethereum smart contracts. It is designed around the concepts of tasks and plugins. This means interoperability and flexibility turning **Buidler** into the perfect toolkit for smart contract and dapp development.
 
-It also comes with **Buidler EVM**, a local Ethereum network that allows you to test, debug and deploy your contracts more quickly. You can even use `console.log` inside your Solidity code. And no, that was not possible before **Buidler EVM** :sunglasses:
+It also comes with **Buidler EVM**, a local Ethereum network that allows you to test, debug and deploy your contracts more quickly. You can even use `console.log` inside your Solidity code. 
 
 When installation completes, go to step 3: [Configuring Buidler.](../3-config/)

@@ -1,4 +1,4 @@
-# 3. Configuring Buidler
+# 3. Creating a Buidler project
 
 In the same folder where you installed **Buidler** run:
 
@@ -29,18 +29,14 @@ $ npx buidler
 ```
 
 ## Tasks
-A task is a JavaScript async function with some associated metadata. This metadata is used by **Buidler** to automate some things for you. 
-
-To see the currently available tasks in your project, run `npx buidler`. Feel free to explore any task by running `npx buidler help [task]`. 
-
-[algo como que por ahora no vamos a profundizar en esto? o presentar los tasks de compile y test?]
+Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. To see the currently available tasks in your project, run `npx buidler`. Feel free to explore any task by running `npx buidler help [task]`. 
 
 ::: tip
 You can create tasks by defining them inside`buidler.config.js`. For some ideas, you could create a task to reset the state of a development environment, interact with your contracts or package your project.
 :::
 
 ## Plugins
-Plugins are built using the same API that you use in your configuration and are useful to extend **Buidler's** functionality.
+The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
 For this tutorial, we are going to install two plugins (ether.js and Waffle) and some needed libraries. We will explain their functionality later, for now install them by running:
 
@@ -57,11 +53,6 @@ usePlugin("@nomiclabs/buidler-waffle");
 
 module.exports = {};
 ```
-
-::: tip
-There's no need for `usePlugin("@nomiclabs/buidler-ethers")`, as `buidler-waffle` already does it.
-:::
-
 
 ## Setting up Typescript (optional)
 Skip this section if you want to continue with plain JavaScript and go straight forward to: [4. Creating and compiling contracts.](../4-contracts/)

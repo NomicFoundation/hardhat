@@ -1,11 +1,6 @@
 # 5. Testing contracts
 
-This is the longest and hardest part of the tutorial full of potentially new concepts. Take a deep breath before start, we will cover every essential aspect of testing smart contracts.
-
-## Why testing
-There are many benefits to writing tests on different languages but regarding smart contract development there's one worth mention: you’re more productive because you don’t have to spend the time manually testing the code yourself. If this is your first time writing a smart contract or dapp, believe us the amount of time saved is huge.
-
-Smart contracts are normally tested using JavaScript. You develop the contract in Solidity, but use an Ethereum library (such as ethers.js) to have a JavaScript model of your contract and write your tests with it. 
+Smart contracts are normally tested using JavaScript. You develop the contract in Solidity, but use an Ethereum library (such as ethers.js) to have a JavaScript model of your contract and write your tests with it. This saves a lot of time making you more productive because you don’t have to spend the time manually testing the code yourself. 
 
 ## ethers.js
 ethers.js is a complete Ethereum library that can be used in Node.js and the web. It lets you interact with Ethereum and your contracts with easy-to-use JavaScript models.

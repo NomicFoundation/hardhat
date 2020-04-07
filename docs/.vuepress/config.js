@@ -45,7 +45,7 @@ module.exports = {
           children: [
             ["1-setup/", "1. Setting up the environment", 0],
             ["2-install/", "2. Installing Buidler", 0],
-            ["3-config/", "3. Configuring Buidler", 0],
+            ["3-config/", "3. Creating a Buidler project", 0],
             ["4-contracts/", "4. Creating and compiling contracts", 0],
             ["5-test/", "5. Testing contracts", 0],
             ["6-debug/", "6. Debugging contracts with Buidler EVM", 0],

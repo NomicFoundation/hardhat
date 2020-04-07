@@ -86,13 +86,3 @@ Compiled 1 contract successfully
 ```
 
 The contract has been successfully compiled and it's ready to be used. Let's go ahead to the next section and write some tests.
-
-
-## Note on function modifiers
-Contracts functions be constant (i.e. pure or view) or non-constant. These are treated differently from outside of Solidity.
-
-Calling a constant function doesn't modify the Ethereum state, so no transaction needs to be sent, and there's no associated gas cost to calling it.
-
-Calling a non-constant function, normally modifies the Ethereum state, so you have to call them with a transaction.
-
-You won't have to worry about this because we are going to use ethers.js to interact with the contract. ether.js automatically knows what to do, but you should keep the distinction in mind, as constant functions will return a value, and non-constants won't. Also, normally have to wait from your transaction to get mined.
