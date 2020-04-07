@@ -11,13 +11,12 @@ If you have used **Buidler** before, we invite you to skip this tutorial, [clone
 
 Welcome to our beginners guide to smart contract development. Before we start, you should be capable to:
 
-  1. code in JavaScript,
-  2. open a terminal,
-  3. clone a Git repository,
-  4. understand smart contracts and
-  5. follow a tutorial.
+  1. code in [JavaScript](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/JavaScript_basics),
+  2. open a [terminal](https://en.wikipedia.org/wiki/Terminal_emulator),
+  3. clone a [`git`](https://git-scm.com/doc) repository and
+  4. understand [smart contracts](https://ethereum.org/learn/#smart-contracts).
 
-If you can't do any of the above — specially step 5 — please refer to the [Guidelines](./0-guidelines/) section. There you will find some insightful links to follow. Still here? Well, keep reading.
+If you can't do any of the above, follow the links and take some minutes to get to the basics. Still here? Well, keep reading.
 
 This tutorial will introduce you into smart contract development through the building of a real decentralized application (dapp). We will start simple by setting up your environment but at the end you will be able to build dapps from scratch.
 
