@@ -16,11 +16,6 @@ You might have heard about ERC20s. ERC20 is a token standard in Ethereum. Tokens
 
 Start by creating a new folder named `contracts`. Create a file inside the folder named `Token.sol`. 
 
-```
-mkdir contracts
-touch contracts/Token.sol
-```
-
 Open `Token.sol` with your favorite IDE and copy and paste the code below. Take a minute or so to read the code, it's pretty straightforward and it's filled with comments explaining the basics of Solidity.
 
 ```c

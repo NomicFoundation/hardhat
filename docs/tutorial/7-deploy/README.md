@@ -1,14 +1,7 @@
 # 7. Deploying contracts
 To deploy a smart contract you just need to get an `ethers` `ContractFactory` instance and use its deployment functionality we already saw.
 
-Create a new directory `scripts` inside the project root's folder.
-
-```
-mkdir scripts
-touch scripts/deploy.js
-```
-
-Copy and paste the `deploy.js` script:
+Create a new directory `scripts` inside the project root's folder. Copy and paste the `deploy.js` script:
 
 ```js
 const fs = require("fs");

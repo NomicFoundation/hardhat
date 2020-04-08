@@ -28,10 +28,6 @@ On the previous section we learned how to deploy contracts to different networks
 
 Create a new file named `deploy-frontend.js` inside the `/scripts` folder. 
 
-```
-touch scripts/deploy-frontend.js
-```
-
 Copy and paste the code below: 
 
 ```js
@@ -83,9 +79,14 @@ main()
   });
 ```
 
-Go to the projects root folder and run `npx buidler node`.
+The script is similar to the script we create on the previous section but we are copying some files to the React App `src` directory. 
+
+Go to the projects root folder and run `npx buidler compile` followed by `npx buidler node`.
 
 ```
+$ npx buidler compile
+Compiling...
+Compiled 1 contract successfully
 $ npx buidler node
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 
@@ -114,7 +115,7 @@ Open Metamask and click on *Main Ethereum Network*, a list of networks should be
 
 ![metamask-network-selection](./metamask-1.gif)
 
-Your wallet comes with a default account but Metamask allows you to import external accounts by using their private key. Open Metamask and click on your account (top right circle). Select "Import Account" and use any of the private keys provided by `npx buidler node`. If import succeed, you will see a balance of 10.000 ETH.
+Your wallet comes with a default account but Metamask allows you to import external accounts by using their private key. Open Metamask and click on your account (top right circle). Select "Import Account" and use any of the private keys provided by `npx buidler node`. If import succeed, you will see a balance of \~10000 ETH.
 
 
 ![metamask-network-selection](./metamask-2.gif)

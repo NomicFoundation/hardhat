@@ -108,11 +108,6 @@ Waffle comes with matchers for:
 ## Writing tests
 Create a new directory called `test` inside our project root folder and add a new file called `Token.js`. 
 
-```
-mkdir test
-touch test/Token.js
-```
-
 Copy and paste the code below, we included a lot of comments for starters:
 
 ```js
