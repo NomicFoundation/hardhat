@@ -4,15 +4,12 @@ prev: false
 
 # 1. Setting up the environment
 
-Most Ethereum libraries and tools use Node.js and **Buidler** is no exception. In case you are not familiar with Node.js, you might think of it as "JavaScript running on your computer" — but it’s so much more as well. For now we are just installing it.
+Most Ethereum libraries and tools are written in JavaScript, and so is **Buidler**. If you're not familiar with Node.js, it's a JavaScript runtime built on Chrome's V8 JavaScript engine. It's the most popular solution to run JavaScript outside of a web browser and **Buidler** is built on top of it.
 
 ## Installing Node.js
 
-This section has instructions for installing Node.js in the operating system of your choice. Feel free to skip any step you don't consider necessary.
+You can skip this section if you already have a working Node.js `>=10.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
 
-::: warning
-If you have Node.js `>=10.0` already installed, please skip to: [Checking your environment](#checking-your-environment).
-:::
 
 ### Linux
 
@@ -32,7 +29,7 @@ sudo apt install nodejs
 
 Make sure you have `git` installed. Otherwise, follow [these instructions](https://www.atlassian.com/git/tutorials/install-git).
 
-There are multiple ways of installing Node.js in MacOs, we will be using [Node Version Manager (nvm)](http://github.com/creationix/nvm). Copy and paste these commands in a terminal:
+There are multiple ways of installing Node.js on MacOS. We will be using [Node Version Manager (nvm)](http://github.com/creationix/nvm). Copy and paste these commands in a terminal:
 
 ```
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.2/install.sh | bash
@@ -41,7 +38,6 @@ nvm use 10
 nvm alias default 10
 npm install npm --global # Upgrade npm to the latest version
 npm install -g node-gyp # Make sure we have node-gyp installed
-
 # This next setp is needed to build native dependencies.
 # A popup will appear and you have to proceed with an installation.
 # It will take some time, and may download a few GB of data.
@@ -50,11 +46,16 @@ xcode-select --install
 
 ### Windows
 
-Installing Node.js on Windows requires some manual installations first. Please follow them.
+Installing Node.js on Windows requires a few manual steps. We'll install git, Node.js 10.x and NPM's Windows Build Tools. Download and run these:
+1. [Git's installer for Windows](https://git-scm.com/download/win)
+2. `node-v10.XX.XX-x64.msi` from [here](https://nodejs.org/dist/latest-v10.x)
 
-1. If you don't have `git` installed, please [download and install it](https://git-scm.com/download/win).
-2. Install Node.js 10.x by going to [its download page](https://nodejs.org/dist/latest-v10.x), downloading `node-v10.XX.XX-x64.msi`, and running it.
-3. [Open your terminal as Administrator](https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/) and run the following command: `npm install --global --production windows-build-tools`. It will take several minutes and may download a few GB of data.
+Then [open your terminal as Administrator](https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/) and run the following command: 
+```
+npm install --global --production windows-build-tools
+```
+
+It will take several minutes and may download a few GB of data.
 
 
 ## Checking your environment
@@ -67,27 +68,25 @@ cd ethereum-hackathon-setup-checker
 npm install
 ```
 
-If they went well, you should see a confirmation message meaning that your development environment is ready. Feel free to remove the repository and refer to the next step: [Installing Buidler.](../2-install/)
+If this is succesful you should see a confirmation message meaning that your development environment is ready. Feel free to delete the repository directory and move on to [Installing Buidler.](../2-install/)
 
-If any of them failed, your environment is not ready. Make sure to have `git` and Node.js `>=10.0` installed. If you have an older version of Node.js, please refer to the next section. If the issues persists, please contact us on our [Telegram Support Channel](https://t.me/BuidlerSupport).
+If any of them failed, your environment is not properly setup. Make sure you have `git` and Node.js `>=10.0` installed. If you have an older version of Node.js, please refer to the next section.
 
-## Upgrading your version of Node.js
+## Upgrading your Node.js installation
 
-If your version of Node.js is too old (`<10.0`) follow these instructions. After you are done, go back to [Checking your environment](#checking-your-environment).
+If your version of Node.js is older than `10.0` follow the instructions below to upgrade. After you are done, go back to [Checking your environment](#checking-your-environment).
 
 ### Linux
 
 #### Ubuntu
 
-1. Remove nodejs with `sudo apt remove nodejs`.
-2. Go to the [NodeSource's Node.js Binary Distributions](https://github.com/nodesource/distributions#debinstall), and install their PPA for the version of Node.js that you are looking for.
-3. Run `sudo apt update && sudo apt install nodejs`
+1. Run `sudo apt remove nodejs` in a terminal to remove Node.js.
+2. Find the version of Node.js that you want to install [here](https://github.com/nodesource/distributions#debinstall) and follow the instructions.
+3. Run `sudo apt update && sudo apt install nodejs` in a terminal to install Node.js again.
 
 ### MacOS
 
-You can change your Node.js version using [nvm](http://github.com/creationix/nvm).
-
-For example, this is how you'd upgrade to Node.js 12.x:
+You can change your Node.js version using [nvm](http://github.com/creationix/nvm). To upgrade to Node.js `12.x` run these in a terminal:
 
 ```
 nvm install 12
@@ -99,4 +98,4 @@ npm install -g node-gyp # Make sure we have node-gyp installed
 
 ### Windows
 
-You need to follow the same installation instructions but choosing [another version of Node.js from its website](https://nodejs.org/en/download/releases/).
+You need to follow the [same installation instructions](#windows) as before but choose a different version. You can check the list of all available versions [here](https://nodejs.org/en/download/releases/).
