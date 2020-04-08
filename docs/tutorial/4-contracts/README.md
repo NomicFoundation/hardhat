@@ -14,11 +14,14 @@ You might have heard about ERC20s. ERC20 is a token standard in Ethereum. Tokens
 
 ## Writing smart contracts
 
-Start by creating a new folder named `contracts`. Create a file inside the folder named `Token.sol`. Open it with your favorite IDE, copy and paste the code below. Take a minute or so to read the code, it's pretty straightforward and it's filled with comments explaining the basics of Solidity.
+Start by creating a new folder named `contracts`. Create a file inside the folder named `Token.sol`. 
 
-::: tip
-`*.sol` stands for Solidity. You don't need to match the file and the contract name, but it is common practice and we recommend doing so. 
-:::
+```
+mkdir contracts
+touch contracts/Token.sol
+```
+
+Open `Token.sol` with your favorite IDE and copy and paste the code below. Take a minute or so to read the code, it's pretty straightforward and it's filled with comments explaining the basics of Solidity.
 
 ```c
 // Every contract should start with `pragma Solidity` 
@@ -68,13 +71,15 @@ contract Token {
 ```
 
 ::: tip
+`*.sol` stands for Solidity. You don't need to match the file and the contract name, but it is common practice and we recommend doing so. 
+:::
+
+::: tip
 You might want to add some Solidity support to your IDE. Just look for Solidity or Ethereum plugins. We recommend using VS Code or Sublime Text 3. If you don't know how to do this, feel free to reach us!
 ::: 
 
 
-## Note on Solidity version and compiling
-While Solidity 0.6.x has been recently released, our recommendation is to stick with 0.5.15 for this tutorial. Some tools and libraries haven't been fully migrated yet, and you don't want to spend your time debugging those.
-
+## Compiling contracts
 To compile your contracts, run the task `npx buidler compile`. As we mentioned in the previous section, there are some tasks that come built-in in **Buidler** so you don't need to worry on how this is handled under the hood.
 
 ```
@@ -84,3 +89,7 @@ Compiled 1 contract successfully
 ```
 
 The contract has been successfully compiled and it's ready to be used. Let's go ahead to the next section and write some tests.
+
+::: warning
+While Solidity 0.6.x has been recently released, our recommendation is to stick with 0.5.15 for this tutorial as defined in the `pragma` directive. Some tools and libraries haven't been fully migrated yet, and you don't want to spend your time debugging those.
+:::

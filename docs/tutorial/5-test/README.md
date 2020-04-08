@@ -5,29 +5,35 @@ Smart contracts are normally tested using JavaScript. You develop the contract i
 For this tutorial we've choose `ethers.js`, being the Ethereum library and `Mocha` being the test framework.
 
 ## ethers.js
-`ethers.js` is a complete Ethereum library that can be used in Node.js and the web. It has three main abstractions that we are going to work with: an Ethereum Provider, the Signers and the Contract Factory. We will go through them using the **Buidler** console, an interactive JavaScript console that uses the same environment as tasks.
+`ethers.js` is a complete Ethereum library that can be used in Node.js and the web. It has three main abstractions that we are going to work with: an **Ethereum Provider**, the **Signers** and the **Contract Factory**. We will go through them using the **Buidler** console, an interactive JavaScript console that uses the same environment as tasks.
 
 ### Ethereum Provider
 A `Provider` abstracts a connection to the Ethereum blockchain. It lets you read the state of the blockchain and send transactions to the network. When using **Buidler**, you can access an already-initialized provider with `ethers.provider`. 
 
-Open a new **Buidler** console by `npx buidler console` from your project. Copy and paste the following examples:
+Open a new **Buidler** console by `npx buidler console` from your project. 
+
+```
+$ npx buidler console
+All contracts have already been compiled, skipping compilation.
+> 
+```
+Copy and paste the following examples:
 
 ```js
 console.log(`Address 0xc783df8a850f42e7F7e57013759C285caa701eB6 has ${await ethers.provider.getBalance("0xc783df8a850f42e7F7e57013759C285caa701eB6")} wei`);
-
 console.log("The latest block number is", await ethers.provider.getBlockNumber());
 ```
 
 ::: tip
-To learn more about `Provider`s, you can look at [their documentation](https://docs.ethers.io/ethers.js/html/api-providers.html).
+To learn more about `Providers`, you can look at [their documentation](https://docs.ethers.io/ethers.js/html/api-providers.html).
 :::
 
 ### Signers
-A Signer in `ethers.js` is an object that represents an Ethereum account. It is used to send transactions to contracts and other accounts, and to read its state in the network.
+A `Signer` in `ethers.js` is an object that represents an Ethereum account. It is used to send transactions to contracts and other accounts, and to read its state in the network.
 
 When using **Buidler**, you can access the signers that represent the accounts of the node you are connected to by using `await ethers.getSigners()`.
 
-You can try them in the **Buidler** console with:
+Use the **Buidler** console and run the following examples:
 
 ```js
 const [signer, ...otherSigners] = await ethers.getSigners();
@@ -40,11 +46,11 @@ To learn more about `Signers`s, you can look at the [Wallet and Signers document
 :::
 
 ### ContractFactory's
-A contract factory is an abstraction used to deploy new smart contracts. You can get one in **Buidler** using `await ethers.getContractFactory("ContractName")`.
+A `ContractFactory` is an abstraction used to deploy new smart contracts. You can get one in **Buidler** using `await ethers.getContractFactory("ContractName")`.
 
-When you deploy a contract using a ContractFactory you get a Contract instance. This is the object that has a JavaScript function for each of your smart contract functions.
+When you deploy a contract using a `ContractFactory` you get a `Contract` instance. This is the object that has a JavaScript function for each of your smart contract functions.
 
-Let's call some of them from the Buidler console:
+Let's call some of them from the Buidler console. Copy and paste the following code:
 
 ```js
 const Token = await ethers.getContractFactory("Token");
@@ -64,9 +70,11 @@ console.log("Transaction confirmed");
 ```
 
 ### Calling contract functions from other accounts
-When using **Buidler**, all your ContractFactorys and Contracts are associated by default to the first Signers account. This means that transactions to deploy and call functions will be sent from it.
+When using **Buidler**, all your `ContractFactory`s and `Contracts` are associated by default to the first `Signers` account. This means that transactions to deploy and call functions will be sent from it.
 
-To use other accounts to deploy or send transactions, you have to use the `connect()` method of your factories and contracts. Let's deploy our contract with another account:
+To use other accounts to deploy or send transactions, you have to use the `connect()` method of your factories and contracts. Let's deploy our contract with another account.
+
+Copy and paste the code below in the **Buidler** console:
 
 ```js
 const [signer, addr1, ...otherSigners] = await ethers.getSigners();
@@ -74,27 +82,23 @@ const Token = await ethers.getContractFactory("Token");
 const token = await Token.connect(addr1).deploy();
 await token.deployed();
 
+// The first account of `ethers.getSigners()` (signer) doesn't get the tokens
 console.log("Token balance for signer is", (await token.balanceOf(signer.getAddress())).toString());
+// Tokens are assigned instead to the second account of the Signers array
 console.log("Token balance for addr1 is", (await token.balanceOf(addr1.getAddress())).toString());
 
 ```
 
-
 ## Mocha & Chai
 Just like in most JavaScript projects, smart contract tests are written using Mocha and Chai. These are not Ethereum specific tools, but super popular JavaScript projects.
 
-If you've never worked with Mocha and Chai, we have included a lot of comments in the test below in order to introduce you to them.
-
 ### Waffle's Chai matchers
 
-Chai comes with a lot of assertion functions, called matchers, built-in. This are incredibly useful when testing JavaScript applications, but are not enough for testing smart contracts. 
+Chai comes with a lot of assertion functions built-in, called matchers. This are incredibly useful when testing JavaScript applications, but are not enough for testing smart contracts. 
 
-Waffle's Chai matchers are extra assertion functions that get added to Chai to make it easier to test transactions. For example, you can check if a transaction reverted (failed) by doing:
-
-`await expect(mycontract.method()).to.be.reverted;`
+Waffle's Chai matchers are extra assertion functions that get added to Chai to make it easier to test transactions. For example, you can check if a transaction reverted (a.k.a failed) by doing `await expect(mycontract.method()).to.be.reverted;`.
 
 Waffle comes with matchers for:
-
 - Big Numbers
 - Events
 - Reverts and revert reasons
@@ -102,7 +106,14 @@ Waffle comes with matchers for:
 - Addresses validation
 
 ## Writing tests
-Create a new directory called `test` inside our project root folder and add a new file called `Token.js`. Copy and paste the code below, we decided to include a lot of comments for starters:
+Create a new directory called `test` inside our project root folder and add a new file called `Token.js`. 
+
+```
+mkdir test
+touch test/Token.js
+```
+
+Copy and paste the code below, we included a lot of comments for starters:
 
 ```js
 // Mocha is a Node.js test runner. You use it to define and run tests.
@@ -230,9 +241,10 @@ describe("Token contract", function() {
 });
 ````
 
-Open your terminal and run `npx buidler test`. You should see the following output:
+On your terminal run `npx buidler test`. You should see the following output:
 
 ```
+$ npx buidler test
 All contracts have already been compiled, skipping compilation.
 
   Token contract
@@ -263,7 +275,9 @@ Let's divide the output into parts:
 All contracts have already been compiled, skipping compilation.
 ```
 
-Running `npx buidler test` will compile all your contracts. In our case we had `Token.sol` already compiled, try changing the name of the token, save the file and instead of compiling, run the test again.
+Running `npx buidler test` will compile all your contracts. In our case we had `Token.sol` already compiled, try changing the name of the token, save the file and instead of compiling, run the test again. You will see that the contract get automatically re-compiled.
+
+Second,
 
 ```
   Token contract

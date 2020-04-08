@@ -24,7 +24,7 @@ When running your contracts on Buidler EVM, you can use `console.log` from Solid
 
 Let's add a `console.log` to our `Token.sol` contract.
 
-All you need to do is to import the console library. Add it between the `pragma` and `contract` instructions:
+All you need to do is to import the console library:
 
 ```c{3}
 pragma solidity ^0.5.15;

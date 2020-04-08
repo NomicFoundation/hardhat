@@ -5,10 +5,10 @@ We will install **Buidler** through `npm`. `npm` (Node Package Manager) is two t
 Open a new terminal, copy and paste these commands:
 
 ```
-mkdir buidler-tutorial # Create a new folder
-cd buidler-tutorial # Access the folder
-npm init --yes # Initialize a new npm project
-npm install --save-dev @nomiclabs/buidler # Install Buidler and dependencies
+mkdir buidler-tutorial 
+cd buidler-tutorial 
+npm init --yes 
+npm install --save-dev @nomiclabs/buidler 
 ```
 
 ::: warning

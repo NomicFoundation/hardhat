@@ -9,7 +9,7 @@ npx buidler
 You will see the following output, move down with your keyboard, select `Create an empty buidler.config.js` and hit enter.
 
 
-```
+```{15}
 $ npx buidler
 888               d8b      888 888
 888               Y8P      888 888
@@ -48,8 +48,6 @@ Add the following statement to your `buidler.config.js`:
 
 ```js {1}
 usePlugin("@nomiclabs/buidler-waffle");
-
-// ...
 
 module.exports = {};
 ```

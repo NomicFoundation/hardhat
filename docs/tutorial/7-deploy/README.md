@@ -1,7 +1,14 @@
 # 7. Deploying contracts
-To deploy a smart contract you just need to get an ethers ContractFactory and use its deployment functionality we already saw.
+To deploy a smart contract you just need to get an `ethers` `ContractFactory` instance and use its deployment functionality we already saw.
 
-Create a new directory `scripts` inside the project root's folder and copy and paste the `deploy.js` script:
+Create a new directory `scripts` inside the project root's folder.
+
+```
+mkdir scripts
+touch scripts/deploy.js
+```
+
+Copy and paste the `deploy.js` script:
 
 ```js
 const fs = require("fs");
@@ -60,7 +67,7 @@ You need to have ETH in the account that you are going to use to deploy your con
 
 
 ## Deploying to remote networks
-If you were to deploy to a remote network such as `mainnet` or any testnet, you will need to add a network config to your `buidler.config.js` file. We’ll use `rinkeby` for this, but you can add any network similarly:
+To deploy to a remote network such as `mainnet` or any testnet, you need to add the `network` to your `buidler.config.js` file. We’ll use `rinkeby` for this example, but you can add any network similarly:
 
 ```js
 usePlugin("@nomiclabs/buidler-waffle");
@@ -78,4 +85,4 @@ module.exports = {
 };
 ```
 
-We are using Infura as the Ethereum node endpoint, but any remote endpoint would work. If you haven’t done this ever, grab an API key from Infura.
+We are using Infura as the Ethereum node endpoint, but any remote endpoint would work. 
