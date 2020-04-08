@@ -189,6 +189,59 @@ describe("Evm module", function() {
 
           assertQuantity(block.timestamp, timestamp + 100);
         });
+        it("should also advance time offset for future blocks", async function() {
+          let timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await this.provider.send("evm_mine", []);
+
+          timestamp = getCurrentTimestamp() + 90;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          timestamp = getCurrentTimestamp() + 120;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+        });
+        it("shouldn't set if specified timestamp is less or equal to the previous block", async function() {
+          const timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          this.provider
+            .send("evm_setNextBlockTimestamp", [timestamp - 1])
+            .then(function() {
+              assert.fail("should have failed setting next block timestamp");
+            })
+            .catch(function(e) {});
+
+          this.provider
+            .send("evm_setNextBlockTimestamp", [timestamp])
+            .then(function() {
+              assert.fail("should have failed setting next block timestamp");
+            })
+            .catch(function(e) {});
+        });
+        it.skip("should still set the nextBlockTimestamp if it is less than the real time but larger than the previous block", async function() {});
+        it("should advance the time offset accordingly to the timestamp", async function() {
+          let timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_mine", [timestamp]);
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_setNextBlockTimestamp", [
+            timestamp + 100
+          ]);
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_increaseTime", [30]);
+          await this.provider.send("evm_mine");
+          timestamp = getCurrentTimestamp();
+          // 200 - 1 as we use ceil to round time to seconds
+          assert.isTrue(timestamp >= 199);
+        });
       });
 
       describe("evm_mine", async function() {
