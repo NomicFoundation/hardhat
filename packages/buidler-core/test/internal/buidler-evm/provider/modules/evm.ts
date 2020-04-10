@@ -14,6 +14,8 @@ import {
 import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils";
 import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { EthereumProvider } from "../../../../../src/types";
+import { useEnvironment } from "../../../../helpers/environment";
+import { useFixtureProject } from "../../../../helpers/project";
 import {
   assertInvalidArgumentsError,
   assertLatestBlockNumber,
@@ -227,7 +229,7 @@ describe("Evm module", function() {
             })
             .catch(function(e) {});
         });
-        it.skip("should still set the nextBlockTimestamp if it is less than the real time but larger than the previous block", async function() {});
+
         it("should advance the time offset accordingly to the timestamp", async function() {
           let timestamp = getCurrentTimestamp() + 70;
           await this.provider.send("evm_mine", [timestamp]);
@@ -241,6 +243,41 @@ describe("Evm module", function() {
           timestamp = getCurrentTimestamp();
           // 200 - 1 as we use ceil to round time to seconds
           assert.isTrue(timestamp >= 199);
+        });
+
+        describe("When the initial date is in the past", function() {
+          // These test use a Buidler EVM instance with an initialDate in the
+          // past. We do this by using a fixture project and useEnvironment(),
+          // so instead of using this.provider they must use
+          // this.env.network.provider
+
+          useFixtureProject("buidler-evm-initial-date");
+          useEnvironment();
+
+          it("should still set the nextBlockTimestamp if it is less than the real time but larger than the previous block", async function() {
+            const timestamp = getCurrentTimestamp();
+
+            await this.env.network.provider.send("evm_mine", [
+              timestamp - 1000
+            ]);
+            const latestBlock = await this.env.network.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assertQuantity(latestBlock.timestamp, timestamp - 1000);
+
+            await this.env.network.provider.send("evm_setNextBlockTimestamp", [
+              timestamp - 500
+            ]);
+
+            await this.env.network.provider.send("evm_mine");
+            const latestBlock2 = await this.env.network.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            assertQuantity(latestBlock2.timestamp, timestamp - 500);
+          });
         });
       });
 
