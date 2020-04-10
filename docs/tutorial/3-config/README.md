@@ -1,12 +1,12 @@
 # 3. Creating a Buidler project
 
-In the same folder where you installed **Buidler** run:
+In the same directory where you installed **Buidler** run:
 
 ```
 npx buidler
 ```
 
-You will see the following output, move down with your keyboard, select `Create an empty buidler.config.js` and hit enter.
+Select `Create an empty buidler.config.js` with your keyboard and hit enter.
 
 
 ```{15}
@@ -28,23 +28,25 @@ $ npx buidler
   Quit
 ```
 
+Let's go through the two main concepts before we start using this file.
+
 ## Tasks
 Every time you're running **Buidler** from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. To see the currently available tasks in your project, run `npx buidler`. Feel free to explore any task by running `npx buidler help [task]`. 
 
 ::: tip
-You can create tasks by defining them inside`buidler.config.js`. For some ideas, you could create a task to reset the state of a development environment, interact with your contracts or package your project.
+You can create your own tasks. Check out the [Creating a task](/guides/create-task.md) guide.
 :::
 
 ## Plugins
 The bulk of **Buidler's** functionality comes from plugins, which as a developer you're free to choose the ones you want to use. **Buidler** is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
-For this tutorial, we are going to install two plugins (ether.js and Waffle) and some needed libraries. We will explain their functionality later, for now install them by running:
+For this tutorial we are going to use the Ethers.js and Waffle plugins. They'll allow you to interact with Ethereum and to test your contracts. We'll explain how they're used later on. To install them, in your project directory run:
 
 ```
 npm install --save-dev @nomiclabs/buidler-ethers ethers @nomiclabs/buidler-waffle ethereum-waffle chai
 ```
 
-Add the following statement to your `buidler.config.js`:
+Add the highlighted line to your `buidler.config.js` so that it looks like this:
 
 ```js {1}
 usePlugin("@nomiclabs/buidler-waffle");
@@ -52,8 +54,10 @@ usePlugin("@nomiclabs/buidler-waffle");
 module.exports = {};
 ```
 
-## Setting up Typescript (optional)
+<!---
+## Setting up TypeScript (optional)
 Skip this section if you want to continue with plain JavaScript and go straight forward to: [4. Creating and compiling contracts.](../4-contracts/)
+
 
 Install the required Typescript dependencies:
 
@@ -98,3 +102,4 @@ export default config;
 ```
 
 Done! You are ready for the next step.
+-->
