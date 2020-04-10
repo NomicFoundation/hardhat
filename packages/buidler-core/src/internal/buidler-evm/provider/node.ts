@@ -379,7 +379,13 @@ export class BuidlerNode extends EventEmitter {
     await this._validateTransaction(tx);
     await this._saveTransactionAsReceived(tx);
 
-    const block = await this._getNextBlockTemplate();
+    const [
+      blockTimestamp,
+      offsetShouldChange,
+      newOffset
+    ] = this._calculateTimestampAndOffset();
+
+    const block = await this._getNextBlockTemplate(blockTimestamp);
 
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
@@ -423,6 +429,10 @@ export class BuidlerNode extends EventEmitter {
       vmTracerError
     );
 
+    if (offsetShouldChange) {
+      await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
+    }
+
     await this._resetNextBlockTimestamp();
 
     return {
@@ -435,11 +445,16 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async mineEmptyBlock(timestamp: BN) {
-    const block = await this._getNextBlockTemplate();
+    // need to check if timestamp is specified or nextBlockTimestamp is set
+    // if it is, time offset must be set to timestamp|nextBlockTimestamp - Date.now
+    // if it is not, time offset remain the same
+    const [
+      blockTimestamp,
+      offsetShouldChange,
+      newOffset
+    ] = this._calculateTimestampAndOffset(timestamp);
 
-    if (!timestamp.eq(new BN(0))) {
-      await this._setBlockTimestamp(block, timestamp);
-    }
+    const block = await this._getNextBlockTemplate(blockTimestamp);
 
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
@@ -468,6 +483,10 @@ export class BuidlerNode extends EventEmitter {
 
       await this._saveBlockAsSuccessfullyRun(block, result);
 
+      if (offsetShouldChange) {
+        await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
+      }
+
       await this._resetNextBlockTimestamp();
 
       return result;
@@ -481,7 +500,8 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async runCall(
-    call: CallParams
+    call: CallParams,
+    runOnNewBlock: boolean
   ): Promise<{
     result: Buffer;
     trace: MessageTrace;
@@ -493,7 +513,7 @@ export class BuidlerNode extends EventEmitter {
       nonce: await this.getAccountNonce(call.from)
     });
 
-    const result = await this._runTxAndRevertMutations(tx);
+    const result = await this._runTxAndRevertMutations(tx, runOnNewBlock);
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
@@ -1080,13 +1100,43 @@ export class BuidlerNode extends EventEmitter {
     return new TransactionExecutionError("Transaction failed: revert");
   }
 
-  private async _getNextBlockTemplate(): Promise<Block> {
+  private _calculateTimestampAndOffset(timestamp?: BN): [BN, boolean, BN] {
+    let blockTimestamp: BN;
+    let offsetShouldChange: boolean;
+    let newOffset: BN = new BN(0);
+
+    // if timestamp is not provided, we check nextBlockTimestamp, if it is
+    // set, we use it as the timestamp instead. If it is not set, we use
+    // time offset + real time as the timestamp.
+    if (timestamp === undefined || timestamp.eq(new BN(0))) {
+      if (this._nextBlockTimestamp.eq(new BN(0))) {
+        blockTimestamp = new BN(getCurrentTimestamp()).add(
+          this._blockTimeOffsetSeconds
+        );
+        offsetShouldChange = false;
+      } else {
+        blockTimestamp = new BN(this._nextBlockTimestamp);
+        offsetShouldChange = true;
+      }
+    } else {
+      offsetShouldChange = true;
+      blockTimestamp = timestamp;
+    }
+
+    if (offsetShouldChange) {
+      newOffset = blockTimestamp.sub(new BN(getCurrentTimestamp()));
+    }
+
+    return [blockTimestamp, offsetShouldChange, newOffset];
+  }
+
+  private async _getNextBlockTemplate(timestamp: BN): Promise<Block> {
     const block = new Block(
       {
         header: {
           gasLimit: this._blockGasLimit,
           nonce: "0x42",
-          timestamp: await this._getNextUsableBlockTimestamp()
+          timestamp
         }
       },
       { common: this._common }
@@ -1106,14 +1156,6 @@ export class BuidlerNode extends EventEmitter {
 
   private async _resetNextBlockTimestamp() {
     this._nextBlockTimestamp = new BN(0);
-  }
-
-  private async _getNextUsableBlockTimestamp(): Promise<BN> {
-    if (this._nextBlockTimestamp.eq(new BN(0))) {
-      const realTimestamp = new BN(getCurrentTimestamp());
-      return realTimestamp.add(this._blockTimeOffsetSeconds);
-    }
-    return new BN(this._nextBlockTimestamp);
   }
 
   private async _saveTransactionAsReceived(tx: Transaction) {
@@ -1472,23 +1514,44 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
    * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
    * inspected/resetted.
    */
-  private async _runTxAndRevertMutations(tx: Transaction): Promise<EVMResult> {
+  private async _runTxAndRevertMutations(
+    tx: Transaction,
+    runOnNewBlock: boolean = true
+  ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     try {
-      const block = await this._getNextBlockTemplate();
-      const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-        block
-      );
+      let blockContext;
+      // if the context is to estimate gas or run calls in pending block
+      if (runOnNewBlock) {
+        const [
+          blockTimestamp,
+          offsetShouldChange,
+          newOffset
+        ] = this._calculateTimestampAndOffset();
 
-      if (needsTimestampIncrease) {
-        await this._increaseBlockTimestamp(block);
+        blockContext = await this._getNextBlockTemplate(blockTimestamp);
+        const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
+          blockContext
+        );
+
+        if (needsTimestampIncrease) {
+          await this._increaseBlockTimestamp(blockContext);
+        }
+
+        // in the context of running estimateGas call, we have to do binary
+        // search for the gas and run the call multiple times. Since it is
+        // an approximate approach to calculate the gas, it is important to
+        // run the call in a block that is as close to the real one as
+        // possible, hence putting the tx to the block is good to have here.
+        await this._addTransactionToBlock(blockContext, tx);
+      } else {
+        // if the context is to run calls with the latest block
+        blockContext = await this.getLatestBlock();
       }
 
-      await this._addTransactionToBlock(block, tx);
-
       return await this._vm.runTx({
-        block,
+        block: blockContext,
         tx,
         skipNonce: true,
         skipBalance: true

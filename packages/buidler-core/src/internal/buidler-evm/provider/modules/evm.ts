@@ -86,27 +86,19 @@ export class EvmModule {
     return validateParams(params, t.number);
   }
 
-  private async _advanceTimeOffsetAccordingToTimestamp(timestamp: BN) {
-    const latestBlock = await this._node.getLatestBlock();
-    const increment = new BN(timestamp).sub(
-      new BN(latestBlock.header.timestamp)
-    );
-    if (increment.lte(new BN(0))) {
-      throw new InvalidInputError(
-        `Timestamp ${timestamp} is lower than previous block's timestamp`
-      );
-    }
-    await this._node.increaseTime(increment);
-  }
-
   private async _mineAction(timestamp: number): Promise<string> {
+    // if timestamp is specified, make sure it is bigger than previous
+    // block's timestamp
     if (timestamp !== 0) {
-      await this._advanceTimeOffsetAccordingToTimestamp(new BN(timestamp));
-    } else {
-      const nextBlockTimestamp = await this._node.getNextBlockTimestamp();
-      if (!nextBlockTimestamp.eq(new BN(0))) {
-        timestamp = nextBlockTimestamp.toNumber();
-        await this._advanceTimeOffsetAccordingToTimestamp(new BN(timestamp));
+      const latestBlock = await this._node.getLatestBlock();
+      const increment = new BN(timestamp).sub(
+        new BN(latestBlock.header.timestamp)
+      );
+      if (increment.lte(new BN(0))) {
+        throw new InvalidInputError(
+          `Timestamp ${timestamp} is lower than previous block's timestamp` +
+            `${new BN(latestBlock.header.timestamp).toNumber()}`
+        );
       }
     }
     await this._node.mineEmptyBlock(new BN(timestamp));

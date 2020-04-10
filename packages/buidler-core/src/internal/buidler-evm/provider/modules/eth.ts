@@ -313,7 +313,10 @@ export class EthModule {
       trace,
       error,
       consoleLogMessages
-    } = await this._node.runCall(callParams);
+    } = await this._node.runCall(
+      callParams,
+      this._shouldCallOnNewBlock(blockTag)
+    );
 
     await this._logCallTrace(callParams, trace);
 
@@ -1058,6 +1061,10 @@ Only latest and pending block params are supported.
 If this error persists, try resetting your wallet's accounts.`
       );
     }
+  }
+
+  private _shouldCallOnNewBlock(blockTag: OptionalBlockTag): boolean {
+    return blockTag === "pending";
   }
 
   private _extractBlock(blockTag: OptionalBlockTag): BN {
