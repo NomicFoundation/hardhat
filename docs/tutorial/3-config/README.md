@@ -54,6 +54,8 @@ usePlugin("@nomiclabs/buidler-waffle");
 module.exports = {};
 ```
 
+We're only invoking `buidler-waffle` here because it depends on `buidler-ethers` so adding both isn't necessary.
+
 <!---
 ## Setting up TypeScript (optional)
 Skip this section if you want to continue with plain JavaScript and go straight forward to: [4. Creating and compiling contracts.](../4-contracts/)
