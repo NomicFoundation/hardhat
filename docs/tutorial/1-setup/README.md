@@ -70,7 +70,9 @@ npm install
 
 If this is succesful you should see a confirmation message meaning that your development environment is ready. Feel free to delete the repository directory and move on to [Installing Buidler.](../2-install/)
 
-If any of them failed, your environment is not properly setup. Make sure you have `git` and Node.js `>=10.0` installed. If you have an older version of Node.js, please refer to the next section.
+If any of them failed, your environment is not properly setup. Make sure you have `git` and Node.js `>=10.0` installed. If you're seeing errors mentioning "node-gyp", make sure you installed the build tools mentioned before.
+
+If you have an older version of Node.js, please refer to the next section.
 
 ## Upgrading your Node.js installation
 
