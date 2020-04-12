@@ -72,6 +72,7 @@
   },
   "dependencies": {
     "@nomiclabs/ethereumjs-vm": "^4.1.1",
+    "@solidity-parser/parser": "^0.5.2",
     "@types/bn.js": "^4.11.5",
     "@types/lru-cache": "^5.1.0",
     "abort-controller": "^3.0.0",
@@ -106,7 +107,6 @@
     "semver": "^6.3.0",
     "slash": "^3.0.0",
     "solc": "0.5.15",
-    "solidity-parser-antlr": "^0.4.2",
     "source-map-support": "^0.5.13",
     "ts-essentials": "^2.0.7",
     "tsort": "0.0.1",
