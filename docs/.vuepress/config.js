@@ -48,7 +48,7 @@ module.exports = {
             ["4-contracts/", "4. Writing and compiling contracts", 0],
             ["5-test/", "5. Testing contracts", 0],
             ["6-debug/", "6. Debugging with Buidler EVM", 0],
-            ["7-deploy/", "7. Deploying contracts", 0],
+            ["7-deploy/", "7. Deploying to a live network", 0],
             ["8-frontend/", "8. Creating a frontend", 0],
             ["9-final-thoughts/", "9. Final thoughts", 0],
           ]
