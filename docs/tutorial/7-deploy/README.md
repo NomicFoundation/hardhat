@@ -1,21 +1,21 @@
-# 7. Deploying contracts
-To deploy a smart contract you just need to get an `ethers` `ContractFactory` instance and use its deployment functionality we already saw.
+# 7. Deploying to a live network
+Once you're ready to share your dApp with other people what you may want to do is deploy to a live network. This way others can access an instance that's not running locally on your system. 
 
-Create a new directory `scripts` inside the project root's folder. Copy and paste the `deploy.js` script:
+There's the Ethereum network that deals with real money which is called "mainnet", and then there are other live networks that don't deal with real money but do mimic the real world scenario well, and can be used by others as a shared staging environment. These are called "testnets" and Ethereum has multiple ones: *Ropsten*, *Kovan*, *Rinkeby* and *Goerli*. We recommend you deploy your contracts to the *Ropsten* testnet.
+
+At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using ethers.js would look like.
+
+The main concepts used are `Signer`, `ContractFactory` and `Contract` which we explained back in the [testing](/tutorial/5-test) section. There's nothing new that needs to be done when compared to testing, given that when you're testing your contracts you're *actually* making a deployment to your development network. This makes the code very similar, or the same.
+
+Let's create a new directory `scripts` inside the project root's directory, and paste the following into a `deploy.js` file:
 
 ```js
-const fs = require("fs");
-
 async function main() {
-  if (network.name === "buidlerevm") {
-    throw new Error(
-      `You are trying to deploy a contract to the Buidler EVM network, which gets automatically created and destroyed every time. Use the Buidler option '--network localhost'`
-    );
-  }
 
   const [deployer] = await ethers.getSigners();
+
   console.log(
-    "Deploying the contracts with the account:",
+    "Deploying contracts with the account:",
     await deployer.getAddress()
   );
   
@@ -23,6 +23,8 @@ async function main() {
 
   const Token = await ethers.getContractFactory("Token");
   const token = await Token.deploy();
+
+  await token.deployed();
 
   console.log("Token address:", token.address);
 }
@@ -35,29 +37,37 @@ main()
   });
 ```
 
-You can run the script with `npx buidler run scripts/deploy.js --network <network-name>`.
+To indicate **Buidler** to connect to a specific Ethereum network when running any tasks, you can use the `--network` parameter. Like this:
 
-The `--network` parameters indicates which network we want to deploy to. If none is provided, Buidler will start a new instance of Buidler EVM, deploy your contracts into it, and then destroy it, which wouldn't be useful.
+```
+npx buidler run scripts/deploy.js --network <network-name>
+```
 
-Buidler has multiple networks already setup:
-- `buidlerevm`
-- `localhost`: a local testing network powered by `buidlerevm`
-- `mainnet`: the main Ethereum network.
-- Testnets:
-  - `ropsten`
-  - `kovan`
-  - `rinkeby`
-  - `gorli`
+In this case, running it without the `--network` parameter would get the code to run against an embedded instance of **Buidler EVM**, so the deployment actually gets lost when **Buidler** finishes running, but it's still useful to test that our deployment code works:
+
+```
+$ npx buidler run scripts/deploy.js
+All contracts have already been compiled, skipping compilation.
+Deploying contracts with the account: 0xc783df8a850f42e7F7e57013759C285caa701eB6
+Account balance: 10000000000000000000000
+Token address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
+```
+
+To deploy on `ropsten` you  need to send ropsten-ETH into the address that's going to be making the deployment (`0xc783df8a850f42e7F7e57013759C285caa701eB6` in the example above), and then run:
+```
+npx buidler run scripts/deploy.js --network ropsten
+```
 
 ::: tip
-You need to have ETH in the account that you are going to use to deploy your contracts. You can get some for testnets from faucet, a service that distributes testing-ETH for free: 
+You can get some ETH for testnets from a faucet, a service that distributes testing-ETH for free: 
 
 * [Ropsten faucet](https://faucet.metamask.io/)
 * [Kovan faucet](https://faucet.kovan.network/)
 * [Rinkeby faucet](https://faucet.rinkeby.io/)
-* [Gorli faucet](https://goerli-faucet.slock.it/)
+* [Goerli faucet](https://goerli-faucet.slock.it/)
 :::
 
+<!--
 
 ## Deploying to remote networks
 To deploy to a remote network such as `mainnet` or any testnet, you need to add the `network` to your `buidler.config.js` file. We’ll use `rinkeby` for this example, but you can add any network similarly:
@@ -79,3 +89,5 @@ module.exports = {
 ```
 
 We are using Infura as the Ethereum node endpoint, but any remote endpoint would work. 
+
+-->
