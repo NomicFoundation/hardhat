@@ -83,7 +83,7 @@ const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
 
 Once the contract is deployed, we can call our contract methods on `buidlerToken` and use them to get the balance of the owner account by calling `balanceOf()`.
 
-Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `buidler-ethers` plugin  `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `getAddress()` should return the entire supply amount.
+Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `buidler-ethers` plugin  `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
 expect(await buidlerToken.totalSupply()).to.equal(ownerBalance);
