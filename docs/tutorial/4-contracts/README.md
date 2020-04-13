@@ -9,7 +9,7 @@ We're going to create a simple smart contract that implements a token that can b
 - The token is non-divisible. You can transfer 1, 2, 3 or 37 tokens but not 2.5.
 
 ::: tip
-You might have heard about ERC20, which is a token standard in Ethereum. Tokens such as DAI, USDC, MKR and ZRX follow the ERC20 standard which allows them all to be compatible with any software that can deal with ERC20 tokens.
+You might have heard about ERC20, which is a token standard in Ethereum. Tokens such as DAI, USDC, MKR and ZRX follow the ERC20 standard which allows them all to be compatible with any software that can deal with ERC20 tokens. **For simplicity's sake the token we're going to build is *not* an ERC20.**
 :::
 
 ## Writing smart contracts
