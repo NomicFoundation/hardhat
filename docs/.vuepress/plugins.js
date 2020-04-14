@@ -1,5 +1,20 @@
 module.exports = [
   {
+    name: "@nomiclabs/buidler-ethers",
+    version: require("../../packages/buidler-ethers/package").version,
+    url:
+      "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers",
+    description: "Injects ethers.js into the Buidler Runtime Environment",
+    tags: ["Ethers.js", "Testing", "Tasks", "Scripts"]
+  },
+  {
+    name: "@nomiclabs/buidler-waffle",
+    version: require("../../packages/buidler-waffle/package").version,
+    url: "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
+    description: "Adds a Waffle-compatible provider to the Buidler Runtime Environment",
+    tags: ["Waffle", "Testing"]
+  },
+  {
     name: "@nomiclabs/buidler-truffle4",
     version: require("../../packages/buidler-truffle4/package").version,
     url:
@@ -30,14 +45,6 @@ module.exports = [
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3-legacy",
     description: "Injects Web3 0.20.x into the Buidler Runtime Environment",
     tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"]
-  },
-  {
-    name: "@nomiclabs/buidler-ethers",
-    version: require("../../packages/buidler-ethers/package").version,
-    url:
-      "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers",
-    description: "Injects ethers.js into the Buidler Runtime Environment",
-    tags: ["Ethers.js", "Testing", "Tasks", "Scripts"]
   },
   {
     name: "@nomiclabs/buidler-etherscan",
@@ -105,17 +112,10 @@ module.exports = [
     tags: ["Testing", "Coverage"]
   },
   {
-    name: "@nomiclabs/buidler-waffle",
-    version: require("../../packages/buidler-waffle/package").version,
-    url: "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
-    description: "Adds a Waffle-compatible provider to the Buidler Runtime Environment",
-    tags: ["Waffle", "Testing"]
-  },
-  {
     name: "@aragon/buidler-aragon",
     version: "0.2.3",
     url: "https://github.com/aragon/buidler-aragon",
     description: "Buidler plugin for Aragon App development",
     tags: ["Aragon", "Apps"]
-  },
+  }
 ];
