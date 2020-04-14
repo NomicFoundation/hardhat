@@ -103,5 +103,19 @@ module.exports = [
     readmeUrl: "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/BUIDLER_README.md",
     description: "Code coverage for Solidity",
     tags: ["Testing", "Coverage"]
-  }
+  },
+  {
+    name: "@nomiclabs/buidler-waffle",
+    version: require("../../packages/buidler-waffle/package").version,
+    url: "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
+    description: "Adds a Waffle-compatible provider to the Buidler Runtime Environment",
+    tags: ["Waffle", "Testing"]
+  },
+  {
+    name: "@aragon/buidler-aragon",
+    version: "0.2.3",
+    url: "https://github.com/aragon/buidler-aragon",
+    description: "Buidler plugin for Aragon App development",
+    tags: ["Aragon", "Apps"]
+  },
 ];
