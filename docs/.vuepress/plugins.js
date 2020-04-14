@@ -129,7 +129,7 @@ module.exports = [
     name: "@aragon/buidler-aragon",
     author: "Aragon Association",
     version: "0.2.3",
-    url: "https://github.com/aragon/buidler-aragon",
+    url: "https://github.com/aragon/buidler-aragon/tree/master",
     description: "Buidler plugin for Aragon App development",
     tags: ["Aragon", "Apps"]
   }
