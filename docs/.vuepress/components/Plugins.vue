@@ -14,6 +14,7 @@
       <div class="tags">
         <div v-for="tag in plugin.tags">{{ tag }}</div>
       </div>
+      <small>Author: {{ plugin.author }}</small>
     </div>
   </div>
 </div>
