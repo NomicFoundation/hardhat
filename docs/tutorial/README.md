@@ -13,12 +13,10 @@ To orchestrate this process we're going to use **Buidler**, which is a task runn
 In this tutorial we'll guide you through:
 - Setting up your Node.js environment for Ethereum development
 - Creating and configuring a **Buidler** project
-- The basics of a Solidity smart contract
-- Writing automated tests for your contract
+- The basics of a Solidity smart contract that implements a token
+- Writing automated tests for your contract using [Ethers.js](https://docs.ethers.io/ethers.js/html/) and [Waffle](https://getwaffle.io/)
 - Debugging Solidity with `console.log()` using **Buidler EVM**
 - Deploying your contract to **Buidler EVM** and Ethereum testnets
-
-
 
  To follow this tutorial you should be able to:
 
