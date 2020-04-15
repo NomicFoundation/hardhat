@@ -15,7 +15,7 @@ module.exports = [
     authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-waffle/package").version,
     url: "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
-    description: "Adds a Waffle-compatible provider to the Buidler Runtime Environment",
+    description: "Adds a Waffle-compatible provider to the Buidler Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"]
   },
   {
