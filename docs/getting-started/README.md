@@ -56,7 +56,7 @@ Let’s create the sample project and go through the steps to try out the sample
 The sample project will ask you to install `buidler-waffle` and `buidler-ethers`, which makes Buidler compatible with tests built for Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
 
 ::: tip
-You can install those dependencies manually with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`.
+You can install those dependencies manually with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
 :::
 
 ### Running tasks

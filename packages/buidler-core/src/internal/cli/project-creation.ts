@@ -15,9 +15,11 @@ const CREATE_EMPTY_BUIDLER_CONFIG_ACTION = "Create an empty buidler.config.js";
 const QUIT_ACTION = "Quit";
 
 const SAMPLE_PROJECT_DEPENDENCIES = [
-  "@nomiclabs/buidler-truffle5",
-  "@nomiclabs/buidler-web3",
-  "web3@^1.2.0"
+  "@nomiclabs/buidler-waffle",
+  "ethereum-waffle",
+  "chai",
+  "@nomiclabs/buidler-ethers",
+  "ethers"
 ];
 
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
