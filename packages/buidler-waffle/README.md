@@ -1,7 +1,7 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-waffle.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-waffle)
 [![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
 
-# buidler-ethers
+# buidler-waffle
 
 [Buidler](http://getbuidler.com) plugin for integration with [Waffle](https://getwaffle.io/).
 

@@ -14,6 +14,7 @@
       <div class="tags">
         <div v-for="tag in plugin.tags">{{ tag }}</div>
       </div>
+      <!-- <small>Author: <a :href="plugin.authorUrl">{{ plugin.author }}</a></small> -->
     </div>
   </div>
 </div>
