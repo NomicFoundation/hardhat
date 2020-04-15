@@ -2,7 +2,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-ethers",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-ethers/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers",
@@ -12,7 +12,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-waffle",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-waffle/package").version,
     url: "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
     description: "Adds a Waffle-compatible provider to the Buidler Runtime Environment",
@@ -21,7 +21,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-truffle4",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-truffle4/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle4",
@@ -31,7 +31,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-truffle5",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-truffle5/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5",
@@ -41,7 +41,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-web3",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-web3/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3",
@@ -51,7 +51,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-web3-legacy",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-web3-legacy/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3-legacy",
@@ -61,7 +61,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-etherscan",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-etherscan/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-etherscan",
@@ -71,7 +71,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-ganache",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-ganache/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ganache",
@@ -81,7 +81,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-solpp",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-solpp/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-solpp",
@@ -92,7 +92,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-solhint",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-solhint/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-solhint",
@@ -102,7 +102,7 @@ module.exports = [
   {
     name: "@nomiclabs/buidler-vyper",
     author: "Nomic Labs",
-    author_url: "https://twitter.com/nomiclabs",
+    authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/buidler-vyper/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-vyper",
@@ -112,7 +112,7 @@ module.exports = [
   {
     name: "buidler-gas-reporter",
     author: "Chris Gewecke",
-    author_url: "https://github.com/cgewecke",
+    authorUrl: "https://github.com/cgewecke",
     version: "0.1.2",
     url: "https://github.com/cgewecke/buidler-gas-reporter/tree/master",
     description:
@@ -122,7 +122,7 @@ module.exports = [
   {
     name: "buidler-typechain",
     author: "Rahul Sethuram",
-    author_url: "https://twitter.com/rhlsthrm",
+    authorUrl: "https://twitter.com/rhlsthrm",
     version: "0.0.5",
     url: "https://github.com/rhlsthrm/buidler-typechain/tree/master",
     description:
@@ -132,7 +132,7 @@ module.exports = [
   {
     name: "solidity-coverage",
     author: "Chris Gewecke",
-    author_url: "https://github.com/cgewecke",
+    authorUrl: "https://github.com/cgewecke",
     version: "0.7.0",
     url: "https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md",
     readmeUrl: "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/BUIDLER_README.md",
@@ -142,7 +142,7 @@ module.exports = [
   {
     name: "@aragon/buidler-aragon",
     author: "Aragon",
-    author_url: "https://github.com/aragon",
+    authorUrl: "https://github.com/aragon",
     version: "0.2.3",
     url: "https://github.com/aragon/buidler-aragon/tree/master",
     description: "Buidler plugin for Aragon App development",
