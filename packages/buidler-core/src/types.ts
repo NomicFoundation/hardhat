@@ -13,6 +13,7 @@ interface CommonNetworkConfig {
   gas?: "auto" | number;
   gasPrice?: "auto" | number;
   gasMultiplier?: number;
+  solc?: SolcConfig;
 }
 
 interface BuidlerNetworkAccount {

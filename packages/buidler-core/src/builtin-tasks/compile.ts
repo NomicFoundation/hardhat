@@ -19,7 +19,11 @@ import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import { ResolvedBuidlerConfig, SolcInput } from "../types";
+import {
+  BuidlerRuntimeEnvironment,
+  ResolvedBuidlerConfig,
+  SolcInput
+} from "../types";
 
 import {
   TASK_BUILD_ARTIFACTS,
@@ -33,6 +37,13 @@ import {
   TASK_COMPILE_RUN_COMPILER
 } from "./task-names";
 import { areArtifactsCached, cacheBuidlerConfig } from "./utils/cache";
+
+function getSolcConfig(bre: BuidlerRuntimeEnvironment) {
+  if (bre.network.config.solc !== undefined) {
+    return bre.network.config.solc;
+  }
+  return bre.config.solc;
+}
 
 async function cacheSolcJsonFiles(
   config: ResolvedBuidlerConfig,
@@ -94,15 +105,17 @@ export default function() {
     }
   );
 
-  internalTask(TASK_COMPILE_GET_COMPILER_INPUT, async (_, { config, run }) => {
+  internalTask(TASK_COMPILE_GET_COMPILER_INPUT, async (_, bre) => {
+    const { run } = bre;
+    const solcConfig = getSolcConfig(bre);
     const dependencyGraph: DependencyGraph = await run(
       TASK_COMPILE_GET_DEPENDENCY_GRAPH
     );
 
     return getInputFromDependencyGraph(
       dependencyGraph,
-      config.solc.optimizer,
-      config.solc.evmVersion
+      solcConfig.optimizer,
+      solcConfig.evmVersion
     );
   });
 
@@ -113,9 +126,11 @@ export default function() {
       undefined,
       types.json
     )
-    .setAction(async ({ input }: { input: SolcInput }, { config }) => {
+    .setAction(async ({ input }: { input: SolcInput }, bre) => {
+      const { config } = bre;
+      const solcConfig = getSolcConfig(bre);
       const compiler = new Compiler(
-        config.solc.version,
+        solcConfig.version,
         path.join(config.paths.cache, "compilers")
       );
 
