@@ -13,8 +13,8 @@ as global variables.
 
 These scripts must be run through Buidler: `npx buidler run script.js`. 
 
-This makes it easy to port scripts that were developed for Truffle, which follows this approach,
-by using the [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5). 
+This makes it easy to port scripts that were developed for other tools such as Waffle, which follows this approach,
+by using the [buidler-waffle](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle). 
 
 ## Standalone scripts: using Buidler as a library
 
@@ -40,20 +40,22 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 scripts
 drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 ```
 
-Inside `scripts/` you will find `sample-script.js`:
-```js
+Inside `scripts/` you will find `sample-script.js`. Add the highlighted lines to it:
+
+```js{1-2,5}
 const bre = require("@nomiclabs/buidler");
+const ethers = bre.ethers;
 
 async function main() {
-  // You can run Buidler tasks from a script.
-  // For example, we make sure everything is compiled by running "compile"
   await bre.run("compile");
 
-  // We require the artifacts once our contracts are compiled
-  const Greeter = bre.artifacts.require("Greeter");
-  const greeter = await Greeter.new("Hello, world!");
+  // We get the contract to deploy
+  const Greeter = await ethers.getContractFactory("Greeter");
+  const greeter = await Greeter.deploy("Hello, Buidler!");
 
-  console.log("Greeter address:", greeter.address);
+  await greeter.deployed();
+
+  console.log("Greeter deployed to:", greeter.address);
 }
 
 main()
@@ -62,6 +64,7 @@ main()
     console.error(error);
     process.exit(1);
   });
+
 ```
 
 And there you can see how the [Buidler Runtime Environment] is accessed at the top, which makes this script work in a standalone fashion:
@@ -69,7 +72,7 @@ And there you can see how the [Buidler Runtime Environment] is accessed at the t
 ```
 $ node scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
-Greeter address: 0x494d39079b81c620c0ebea503b9295331bfc34c2
+Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
 But the script can also run through Buidler:
@@ -77,8 +80,13 @@ But the script can also run through Buidler:
 ```
 $ npx buidler run scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
-Greeter address: 0x494d39079b81c620c0ebea503b9295331bfc34c2
+All contracts have already been compiled, skipping compilation.
+Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
+
+::: tip
+Did you notice the double compile message? When running a script through `npx buidler run`, Buidler looks after changes on your contracts and takes care of re-compiling them. There's no need to manually execute `compile` unless you are running the script explicitly through `node`.
+:::
 
 ### Buidler arguments
 
