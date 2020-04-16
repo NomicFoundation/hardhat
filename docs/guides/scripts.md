@@ -78,14 +78,14 @@ Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 But the script can also run through Buidler:
 
 ```
-$ npx buidler run scripts/sample-script.js
+$ npx buidler run scripts/sample-script.js 
 All contracts have already been compiled, skipping compilation.
 All contracts have already been compiled, skipping compilation.
 Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
 ::: tip
-Did you notice the double compile message? When running a script through `npx buidler run`, Buidler looks after changes on your contracts and takes care of re-compiling them. There's no need to manually execute `compile` unless you are running the script explicitly through `node`.
+Did you notice the double compile message? When running a script through `npx buidler run`, the `compile` task will be called before running the script, but you can skip this with the `--no-compile` parameter.
 :::
 
 ### Buidler arguments
