@@ -30,6 +30,10 @@ import { promisify } from "util";
 
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
+import {
+  dateToTimestampSeconds,
+  getDifferenceInSeconds
+} from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
@@ -132,6 +136,7 @@ interface Snapshot {
   latestBlock: Block;
   stateRoot: Buffer;
   blockTimeOffsetSeconds: BN;
+  nextBlockTimestamp: BN;
   transactionByHash: Map<string, Transaction>;
   transactionHashToBlockHash: Map<string, string>;
   blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
@@ -147,6 +152,8 @@ export class BuidlerNode extends EventEmitter {
     blockGasLimit: number,
     genesisAccounts: GenesisAccount[] = [],
     solidityVersion?: string,
+    allowUnlimitedContractSize?: boolean,
+    initialDate?: Date,
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput
   ): Promise<[Common, BuidlerNode]> {
@@ -179,6 +186,11 @@ export class BuidlerNode extends EventEmitter {
       );
     }
 
+    const initialBlockTimestamp =
+      initialDate !== undefined
+        ? dateToTimestampSeconds(initialDate)
+        : getCurrentTimestamp();
+
     const common = Common.forCustomChain(
       "mainnet",
       {
@@ -186,7 +198,7 @@ export class BuidlerNode extends EventEmitter {
         networkId,
         name: networkName,
         genesis: {
-          timestamp: `0x${getCurrentTimestamp().toString(16)}`,
+          timestamp: `0x${initialBlockTimestamp.toString(16)}`,
           hash: "0x",
           gasLimit: blockGasLimit,
           difficulty: 1,
@@ -209,7 +221,8 @@ export class BuidlerNode extends EventEmitter {
       common: common as any, // TS error because of a version mismatch
       activatePrecompiles: true,
       stateManager,
-      blockchain: blockchain as any
+      blockchain: blockchain as any,
+      allowUnlimitedContractSize
     });
 
     const genesisBlock = new Block(null, { common });
@@ -226,6 +239,7 @@ export class BuidlerNode extends EventEmitter {
       new BN(blockGasLimit),
       genesisBlock,
       solidityVersion,
+      initialDate,
       compilerInput,
       compilerOutput
     );
@@ -239,6 +253,7 @@ export class BuidlerNode extends EventEmitter {
   private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
+  private _nextBlockTimestamp: BN = new BN(0);
   private _transactionByHash: Map<string, Transaction> = new Map();
   private _transactionHashToBlockHash: Map<string, string> = new Map();
   private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
@@ -266,6 +281,7 @@ export class BuidlerNode extends EventEmitter {
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
     solidityVersion?: string,
+    initialDate?: Date,
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput
   ) {
@@ -290,6 +306,12 @@ export class BuidlerNode extends EventEmitter {
 
     this._vmTracer = new VMTracer(this._vm, true);
     this._vmTracer.enableTracing();
+
+    if (initialDate !== undefined) {
+      this._blockTimeOffsetSeconds = new BN(
+        getDifferenceInSeconds(initialDate, new Date())
+      );
+    }
 
     if (
       solidityVersion === undefined ||
@@ -357,7 +379,14 @@ export class BuidlerNode extends EventEmitter {
     await this._validateTransaction(tx);
     await this._saveTransactionAsReceived(tx);
 
-    const block = await this._getNextBlockTemplate();
+    const [
+      blockTimestamp,
+      offsetShouldChange,
+      newOffset
+    ] = this._calculateTimestampAndOffset();
+
+    const block = await this._getNextBlockTemplate(blockTimestamp);
+
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
     );
@@ -400,6 +429,12 @@ export class BuidlerNode extends EventEmitter {
       vmTracerError
     );
 
+    if (offsetShouldChange) {
+      await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
+    }
+
+    await this._resetNextBlockTimestamp();
+
     return {
       trace: vmTrace,
       block,
@@ -409,8 +444,18 @@ export class BuidlerNode extends EventEmitter {
     };
   }
 
-  public async mineEmptyBlock() {
-    const block = await this._getNextBlockTemplate();
+  public async mineEmptyBlock(timestamp: BN) {
+    // need to check if timestamp is specified or nextBlockTimestamp is set
+    // if it is, time offset must be set to timestamp|nextBlockTimestamp - Date.now
+    // if it is not, time offset remain the same
+    const [
+      blockTimestamp,
+      offsetShouldChange,
+      newOffset
+    ] = this._calculateTimestampAndOffset(timestamp);
+
+    const block = await this._getNextBlockTemplate(blockTimestamp);
+
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
     );
@@ -438,6 +483,12 @@ export class BuidlerNode extends EventEmitter {
 
       await this._saveBlockAsSuccessfullyRun(block, result);
 
+      if (offsetShouldChange) {
+        await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
+      }
+
+      await this._resetNextBlockTimestamp();
+
       return result;
     } catch (error) {
       // We set the state root to the previous one. This is equivalent to a
@@ -449,7 +500,8 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async runCall(
-    call: CallParams
+    call: CallParams,
+    runOnNewBlock: boolean
   ): Promise<{
     result: Buffer;
     trace: MessageTrace;
@@ -461,7 +513,7 @@ export class BuidlerNode extends EventEmitter {
       nonce: await this.getAccountNonce(call.from)
     });
 
-    const result = await this._runTxAndRevertMutations(tx);
+    const result = await this._runTxAndRevertMutations(tx, runOnNewBlock);
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
@@ -653,12 +705,20 @@ export class BuidlerNode extends EventEmitter {
     return this._stateManager.getContractCode(address);
   }
 
+  public async setNextBlockTimestamp(timestamp: BN) {
+    this._nextBlockTimestamp = new BN(timestamp);
+  }
+
   public async increaseTime(increment: BN) {
     this._blockTimeOffsetSeconds = this._blockTimeOffsetSeconds.add(increment);
   }
 
   public async getTimeIncrement(): Promise<BN> {
     return this._blockTimeOffsetSeconds;
+  }
+
+  public async getNextBlockTimestamp(): Promise<BN> {
+    return this._nextBlockTimestamp;
   }
 
   public async getSuccessfulTransactionByHash(
@@ -714,6 +774,7 @@ export class BuidlerNode extends EventEmitter {
       latestBlock: await this.getLatestBlock(),
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
+      nextBlockTimestamp: new BN(this._nextBlockTimestamp),
       transactionByHash: new Map(this._transactionByHash.entries()),
       transactionHashToBlockHash: new Map(
         this._transactionHashToBlockHash.entries()
@@ -757,6 +818,7 @@ export class BuidlerNode extends EventEmitter {
     this._blockchain.deleteAllFollowingBlocks(snapshot.latestBlock);
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
+    this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
     this._transactionByHash = snapshot.transactionByHash;
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
@@ -1038,13 +1100,43 @@ export class BuidlerNode extends EventEmitter {
     return new TransactionExecutionError("Transaction failed: revert");
   }
 
-  private async _getNextBlockTemplate(): Promise<Block> {
+  private _calculateTimestampAndOffset(timestamp?: BN): [BN, boolean, BN] {
+    let blockTimestamp: BN;
+    let offsetShouldChange: boolean;
+    let newOffset: BN = new BN(0);
+
+    // if timestamp is not provided, we check nextBlockTimestamp, if it is
+    // set, we use it as the timestamp instead. If it is not set, we use
+    // time offset + real time as the timestamp.
+    if (timestamp === undefined || timestamp.eq(new BN(0))) {
+      if (this._nextBlockTimestamp.eq(new BN(0))) {
+        blockTimestamp = new BN(getCurrentTimestamp()).add(
+          this._blockTimeOffsetSeconds
+        );
+        offsetShouldChange = false;
+      } else {
+        blockTimestamp = new BN(this._nextBlockTimestamp);
+        offsetShouldChange = true;
+      }
+    } else {
+      offsetShouldChange = true;
+      blockTimestamp = timestamp;
+    }
+
+    if (offsetShouldChange) {
+      newOffset = blockTimestamp.sub(new BN(getCurrentTimestamp()));
+    }
+
+    return [blockTimestamp, offsetShouldChange, newOffset];
+  }
+
+  private async _getNextBlockTemplate(timestamp: BN): Promise<Block> {
     const block = new Block(
       {
         header: {
           gasLimit: this._blockGasLimit,
           nonce: "0x42",
-          timestamp: await this._getNextBlockTimestamp()
+          timestamp
         }
       },
       { common: this._common }
@@ -1062,9 +1154,8 @@ export class BuidlerNode extends EventEmitter {
     return block;
   }
 
-  private async _getNextBlockTimestamp(): Promise<BN> {
-    const realTimestamp = new BN(getCurrentTimestamp());
-    return realTimestamp.add(this._blockTimeOffsetSeconds);
+  private async _resetNextBlockTimestamp() {
+    this._nextBlockTimestamp = new BN(0);
   }
 
   private async _saveTransactionAsReceived(tx: Transaction) {
@@ -1236,6 +1327,10 @@ export class BuidlerNode extends EventEmitter {
 
   private async _increaseBlockTimestamp(block: Block) {
     block.header.timestamp = new BN(block.header.timestamp).addn(1);
+  }
+
+  private async _setBlockTimestamp(block: Block, timestamp: BN) {
+    block.header.timestamp = new BN(timestamp);
   }
 
   private async _validateTransaction(tx: Transaction) {
@@ -1419,23 +1514,44 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
    * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
    * inspected/resetted.
    */
-  private async _runTxAndRevertMutations(tx: Transaction): Promise<EVMResult> {
+  private async _runTxAndRevertMutations(
+    tx: Transaction,
+    runOnNewBlock: boolean = true
+  ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     try {
-      const block = await this._getNextBlockTemplate();
-      const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-        block
-      );
+      let blockContext;
+      // if the context is to estimate gas or run calls in pending block
+      if (runOnNewBlock) {
+        const [
+          blockTimestamp,
+          offsetShouldChange,
+          newOffset
+        ] = this._calculateTimestampAndOffset();
 
-      if (needsTimestampIncrease) {
-        await this._increaseBlockTimestamp(block);
+        blockContext = await this._getNextBlockTemplate(blockTimestamp);
+        const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
+          blockContext
+        );
+
+        if (needsTimestampIncrease) {
+          await this._increaseBlockTimestamp(blockContext);
+        }
+
+        // in the context of running estimateGas call, we have to do binary
+        // search for the gas and run the call multiple times. Since it is
+        // an approximate approach to calculate the gas, it is important to
+        // run the call in a block that is as close to the real one as
+        // possible, hence putting the tx to the block is good to have here.
+        await this._addTransactionToBlock(blockContext, tx);
+      } else {
+        // if the context is to run calls with the latest block
+        blockContext = await this.getLatestBlock();
       }
 
-      await this._addTransactionToBlock(block, tx);
-
       return await this._vm.runTx({
-        block,
+        block: blockContext,
         tx,
         skipNonce: true,
         skipBalance: true

@@ -1,3 +1,59 @@
+export const EXAMPLE_READ_CONTRACT = {
+  sourceCode: `pragma solidity 0.5.10;
+
+contract Example {
+    function blockNumber() public view returns(uint) {
+        return block.number;
+    }
+    function blockTimestamp() public view returns(uint) {
+        return now;
+    }
+}`,
+  bytecode: {
+    linkReferences: {},
+    object:
+      "608060405234801561001057600080fd5b5060b48061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806357e871e7146037578063adb61832146053575b600080fd5b603d606f565b6040518082815260200191505060405180910390f35b60596077565b6040518082815260200191505060405180910390f35b600043905090565b60004290509056fea265627a7a7230582067cf509ba4c2899d7af194c53bec23be5750c2152ace2bcf9668f88dc0a01c4064736f6c634300050a0032",
+    opcodes:
+      "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0x10 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0xB4 DUP1 PUSH2 0x1F PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH1 0x32 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x57E871E7 EQ PUSH1 0x37 JUMPI DUP1 PUSH4 0xADB61832 EQ PUSH1 0x53 JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH1 0x3D PUSH1 0x6F JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 DUP3 DUP2 MSTORE PUSH1 0x20 ADD SWAP2 POP POP PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x59 PUSH1 0x77 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 DUP3 DUP2 MSTORE PUSH1 0x20 ADD SWAP2 POP POP PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x0 NUMBER SWAP1 POP SWAP1 JUMP JUMPDEST PUSH1 0x0 TIMESTAMP SWAP1 POP SWAP1 JUMP INVALID LOG2 PUSH6 0x627A7A723058 KECCAK256 PUSH8 0xCF509BA4C2899D7A CALL SWAP5 0xc5 EXTCODESIZE 0xec 0x23 0xbe JUMPI POP 0xc2 ISZERO 0x2a 0xce 0x2b 0xcf SWAP7 PUSH9 0xF88DC0A01C4064736F PUSH13 0x634300050A0032000000000000 ",
+    sourceMap: "25:194:0:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;25:194:0;;;;;;;"
+  },
+  abi: [
+    {
+      constant: true,
+      inputs: [],
+      name: "blockNumber",
+      outputs: [
+        {
+          name: "",
+          type: "uint256"
+        }
+      ],
+      payable: false,
+      stateMutability: "view",
+      type: "function"
+    },
+    {
+      constant: true,
+      inputs: [],
+      name: "blockTimestamp",
+      outputs: [
+        {
+          name: "",
+          type: "uint256"
+        }
+      ],
+      payable: false,
+      stateMutability: "view",
+      type: "function"
+    }
+  ],
+  selectors: {
+    blockNumber: "0x57e871e7",
+    blockTimestamp: "0xadb61832"
+  },
+  topics: {}
+};
+
 export const EXAMPLE_CONTRACT = {
   sourceCode: `pragma solidity 0.5.10;
 

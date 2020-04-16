@@ -63,7 +63,8 @@ export function useProvider(
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
-  useJsonRpc = DEFAULT_USE_JSON_RPC
+  useJsonRpc = DEFAULT_USE_JSON_RPC,
+  allowUnlimitedContractSize = false
 ) {
   beforeEach("Initialize provider", async function() {
     // We create two Nodes here, and don't use this one.
@@ -74,7 +75,9 @@ export function useProvider(
       chainId,
       networkId,
       blockGasLimit,
-      accounts
+      accounts,
+      undefined,
+      allowUnlimitedContractSize
     );
 
     this.common = common;
@@ -86,7 +89,11 @@ export function useProvider(
       blockGasLimit,
       true,
       true,
-      accounts
+      accounts,
+      undefined,
+      undefined,
+      undefined,
+      allowUnlimitedContractSize
     );
 
     if (useJsonRpc) {

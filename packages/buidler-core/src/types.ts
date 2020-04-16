@@ -27,6 +27,8 @@ export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   throwOnTransactionFailures?: boolean;
   throwOnCallFailures?: boolean;
   loggingEnabled?: boolean;
+  allowUnlimitedContractSize?: boolean;
+  initialDate?: string;
 }
 
 export interface HDAccountsConfig {
@@ -49,6 +51,7 @@ export type NetworkConfigAccounts =
 export interface HttpNetworkConfig extends CommonNetworkConfig {
   url?: string;
   timeout?: number;
+  httpHeaders?: { [name: string]: string };
   accounts?: NetworkConfigAccounts;
 }
 

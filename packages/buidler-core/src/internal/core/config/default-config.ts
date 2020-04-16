@@ -11,6 +11,7 @@ const DEFAULT_BUIDLER_NETWORK_CONFIG: BuidlerNetworkConfig = {
   chainId: 31337,
   throwOnTransactionFailures: true,
   throwOnCallFailures: true,
+  allowUnlimitedContractSize: false,
   accounts: [
     // 20 accounts with 10k ETH each
     // Addresses:
