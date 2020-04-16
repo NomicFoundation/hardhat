@@ -286,6 +286,18 @@ export type ActionType<ArgsT extends TaskArguments> = (
 
 export interface EthereumProvider extends EventEmitter {
   send(method: string, params?: any[]): Promise<any>;
+  sendAsync(
+    req: {
+      id: number;
+      jsonrpc: string;
+      method: string;
+      params: any[];
+    },
+    callback: (
+      error: any,
+      result: { result: any; id: number; jsonrpc: string }
+    ) => void
+  ): void;
 }
 
 // This alias is here for backwards compatibility

@@ -49,6 +49,23 @@ export class HttpProvider extends EventEmitter {
     return jsonRpcResponse.result;
   }
 
+  public sendAsync(
+    req: {
+      id: number;
+      jsonrpc: string;
+      method: string;
+      params: any[];
+    },
+    callback: (error: any, result: any) => void
+  ): void {
+    this.send(req.method, req.params)
+      .then((result: any) => {
+        const response = { result, id: req.id, jsonrpc: req.jsonrpc };
+        callback(null, response);
+      })
+      .catch(e => callback(e, null));
+  }
+
   private async _fetchJsonRpcResponse(
     request: JsonRpcRequest
   ): Promise<JsonRpcResponse> {
