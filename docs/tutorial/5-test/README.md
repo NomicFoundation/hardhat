@@ -1,6 +1,6 @@
 # 5. Testing contracts
 
-Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Buidler EVM**, a local Ethereum network designed for development that is built-in and the default network in **Buidler**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to model and interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
+Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Buidler EVM**, a local Ethereum network designed for development that is built-in and the default network in **Buidler**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
 
 ## Writing tests
 Create a new directory called `test` inside our project root directory and create a new file called `Token.js`. 
@@ -12,13 +12,11 @@ const { expect } = require("chai");
 
 describe("Token contract", function() {
   it("Deployment should assign the total supply of tokens to the owner", async function() {
+    const [owner] = await ethers.getSigners();
 
-    let owner;
-    [owner, ] = await ethers.getSigners();
+    const Token = await ethers.getContractFactory("Token");
 
-    let Token = await ethers.getContractFactory("Token");
-
-    let buidlerToken = await Token.deploy();
+    const buidlerToken = await Token.deploy();
     await buidlerToken.deployed();
 
     const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
@@ -45,7 +43,7 @@ All contracts have already been compiled, skipping compilation.
 This means the test passed. Let's now explain each line:
 
 ```js
-[owner, ] = await ethers.getSigners();
+const [owner] = await ethers.getSigners();
 ```
 
 A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Buidler EVM**, and only keeping the first one.
@@ -60,19 +58,19 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 :::
 
 ```js
-let Token = await ethers.getContractFactory("Token");
+const Token = await ethers.getContractFactory("Token");
 ```
 
 A `ContractFactory` in ethers.js is an abstraction used to deploy new smart contracts, so `Token` here is a factory for instances of our token contract.
 
 ```js
-let buidlerToken = await Token.deploy();
+const buidlerToken = await Token.deploy();
 ```
 
 Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
 
 ```js
-await buidlerToken.deployed();
+const buidlerToken.deployed();
 ```
 
 When you call on `deploy()` the transaction is sent, but the contract isn't actually deployed until the transaction is mined. Calling `deployed()` will return a `Promise` that resolves once this happens, so this code is blocking until the deployment finishes.
@@ -97,18 +95,17 @@ To do this we're using [Chai](https://www.chaijs.com/) which is an assertions li
 
 If you need to send a transaction from an account (or `Signer` in ethers.js speak) other than the default one to test your code, you can use the `connect()` method in your ethers.js `Contract` to connect it to a different account. Like this:
 
-```js{19}
+```js{18}
 const { expect } = require("chai");
 
 describe("Transactions", function () {
 
   it("Should transfer tokens between accounts", async function() {
-    let owner;
-    [owner, addr1, addr2, ] = await ethers.getSigners();
+    const [owner, addr1, addr2] = await ethers.getSigners();
 
-    let Token = await ethers.getContractFactory("Token");
+    const Token = await ethers.getContractFactory("Token");
 
-    let buidlerToken = await Token.deploy();
+    const buidlerToken = await Token.deploy();
     await buidlerToken.deployed();
    
     // Transfer 50 tokens from owner to addr1
@@ -127,24 +124,17 @@ describe("Transactions", function () {
 Now that we've covered the basics you'll need for testing your contracts, here's a full test suite for the token with a lot of additional information about Mocha and how to structure your tests. We recommend reading through.
 
 ```js
-// Import Chai for its asserting functions.
+// We import Chai to use its asserting functions here.
 const { expect } = require("chai");
 
-// `describe` is a Mocha function that allows you to organize your tests. It's not
-// actually needed, but having your tests organized makes debugging them easier.
-// All Mocha functions are available in the global scope.
+// `describe` is a Mocha function that allows you to organize your tests. It's
+// not actually needed, but having your tests organized makes debugging them
+// easier. All Mocha functions are available in the global scope.
 
-// `describe` recieves the name of a section of your test suite, and a callback.
+// `describe` receives the name of a section of your test suite, and a callback.
 // The callback must define the tests of that section. This callback can't be
 // an async function.
-describe("Token contract", function() {
-  let Token;
-  let buidlerToken;
-  let owner;
-  let addr1;
-  let addr2;
-  let addrs;
-
+describe("Token contract", function () {
   // Mocha has four functions that let you hook into the the test runner's
   // lifecyle. These are: `before`, `beforeEach`, `after`, `afterEach`.
 
@@ -154,14 +144,27 @@ describe("Token contract", function() {
   // A common pattern is to declare some variables, and assign them in the
   // `before` and `beforeEach` callbacks.
 
-  // `beforeEach` will run before each test, re-deploying the contract every time.
-  beforeEach(async function() {
+  let Token;
+  let buidlerToken;
+  let owner;
+  let addr1;
+  let addr2;
+  let addrs;
+
+  // `beforeEach` will run before each test, re-deploying the contract every
+  // time. It receives a callback, which can be async.
+  beforeEach(async function () {
     // Get the ContractFactory and Signers here.
     Token = await ethers.getContractFactory("Token");
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
-    
-    // We can interact with the contract by calling `buidlerToken.method()`
+
+    // To deploy our contract, we just have to call Token.deploy() and await
+    // for it to be deployed(), which happens onces its transaction has been
+    // mined.
     buidlerToken = await Token.deploy();
+    await buidlerToken.deployed();
+
+    // We can interact with the contract by calling `buidlerToken.method()`
     await buidlerToken.deployed();
   });
 
@@ -171,36 +174,43 @@ describe("Token contract", function() {
     // tests. It receives the test name, and a callback function.
 
     // If the callback function is async, Mocha will `await` it.
-    it("Should set the right owner", async function() {
+    it("Should set the right owner", async function () {
       // Expect receives a value, and wraps it in an assertion objet. These
       // objects have a lot of utility methods to assert values.
 
-      // This test expects that the owner variable stored in the contract
-      // is equal to our Signer's owner.
+      // This test expects the owner variable stored in the contract to be equal
+      // to our Signer's owner.
       expect(await buidlerToken.owner()).to.equal(await owner.getAddress());
     });
 
-    it("Should assign the total supply of tokens to the owner", async function() {
+    it("Should assign the total supply of tokens to the owner", async function () {
       const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
       expect(await buidlerToken.totalSupply()).to.equal(ownerBalance);
     });
-
   });
 
   describe("Transactions", function () {
-
-    it("Should transfer tokens between accounts", async function() {
+    it("Should transfer tokens between accounts", async function () {
       // Transfer 50 tokens from owner to addr1
       await buidlerToken.transfer(await addr1.getAddress(), 50);
-      expect(await buidlerToken.balanceOf(await addr1.getAddress())).to.equal(50);
+      const addr1Balance = await buidlerToken.balanceOf(
+        await addr1.getAddress()
+      );
+      expect(addr1Balance).to.equal(50);
 
       // Transfer 50 tokens from addr1 to addr2
+      // We use .connect(signer) to send a transaction from another account
       await buidlerToken.connect(addr1).transfer(await addr2.getAddress(), 50);
-      expect(await buidlerToken.balanceOf(await addr2.getAddress())).to.equal(50);
+      const addr2Balance = await buidlerToken.balanceOf(
+        await addr2.getAddress()
+      );
+      expect(addr2Balance).to.equal(50);
     });
 
-    it("Should fail if sender doesn’t have enough tokens", async function() {
-      const initialOwnerBalance = await buidlerToken.balanceOf(await owner.getAddress());
+    it("Should fail if sender doesn’t have enough tokens", async function () {
+      const initialOwnerBalance = await buidlerToken.balanceOf(
+        await owner.getAddress()
+      );
 
       // Try to send 1 token from addr1 (0 tokens) to owner (1000 tokens).
       // `require` will evaluate false and revert the transaction.
@@ -209,26 +219,39 @@ describe("Token contract", function() {
       ).to.be.revertedWith("Not enough tokens");
 
       // Owner balance shouldn't have changed.
-      expect(await buidlerToken.balanceOf(await owner.getAddress())).to.equal(initialOwnerBalance);
+      expect(await buidlerToken.balanceOf(await owner.getAddress())).to.equal(
+        initialOwnerBalance
+      );
     });
 
-    it("Should update balances after transfers", async function() {
-      const initialOwnerBalance = await buidlerToken.balanceOf(await owner.getAddress());
+    it("Should update balances after transfers", async function () {
+      const initialOwnerBalance = await buidlerToken.balanceOf(
+        await owner.getAddress()
+      );
 
       // Transfer 100 tokens from owner to addr1.
       await buidlerToken.transfer(await addr1.getAddress(), 100);
 
-      // Transfer another 100 tokens from owner to addr2.
-      await buidlerToken.transfer(await addr2.getAddress(), 100);
+      // Transfer another 50 tokens from owner to addr2.
+      await buidlerToken.transfer(await addr2.getAddress(), 50);
 
       // Check balances.
-      expect(await buidlerToken.balanceOf(await owner.getAddress())).to.equal(initialOwnerBalance - 200);
-      expect(await buidlerToken.balanceOf(await addr1.getAddress())).to.equal(100);
-      expect(await buidlerToken.balanceOf(await addr2.getAddress())).to.equal(100);
-    });
+      const finalOwnerBalance = await buidlerToken.balanceOf(
+        await owner.getAddress()
+      );
+      expect(finalOwnerBalance).to.equal(initialOwnerBalance - 150);
 
+      const addr1Balance = await buidlerToken.balanceOf(
+        await addr1.getAddress()
+      );
+      expect(addr1Balance).to.equal(100);
+
+      const addr2Balance = await buidlerToken.balanceOf(
+        await addr2.getAddress()
+      );
+      expect(addr2Balance).to.equal(50);
+    });
   });
-  
 });
 ````
 This is what the output of `npx buidler test` should look like:
