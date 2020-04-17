@@ -6,12 +6,13 @@ If you want to get started with your dApp quickly or see what this whole project
 
 ## What's included
 
-- Solidity contract we used in this tutorial
-- Test suite using ethers.js and Waffle
+- The Solidity contract we used in this tutorial
+- A test suite using ethers.js and Waffle
 - A minimal front-end to interact with the contract using ethers.js
 
 ### Solidity contract & tests
-In `contracts/` you'll find the **Buidler** project we put together through this tutorial with the `Token` contract. To refresh your memory on what it implements:
+
+In the root of the repo you'll find the **Buidler** project we put together through this tutorial with the `Token` contract. To refresh your memory on what it implements:
 
 - There is a fixed total supply of tokens that can't be changed.
 - The entire supply is assigned to the address that deploys the contract.
@@ -25,7 +26,7 @@ In `frontend/` you'll find a simple app that allows the user to do two things:
 - Check the connected wallet's balance
 - Send tokens to an address
 
-It's an npm project and it was created using `create-react-app`, so this means that it uses webpack and babel.
+It's a separate npm project and it was created using `create-react-app`, so this means that it uses webpack and babel.
 
 ### Frontend file architecture
 
