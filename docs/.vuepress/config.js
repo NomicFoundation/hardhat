@@ -42,11 +42,11 @@ module.exports = {
         collapsable: false,
         depth: 1,
         children: [
-          ["/guides/truffle-migration.md", "Migrating from Truffle", 0],
           ["/guides/project-setup.md", "Setting up a project", 0],
           ["/guides/compile-contracts.md", "Compiling your contracts", 0],
-          ["/guides/truffle-testing.md", "Testing with Web3.js & Truffle", 0],
           ["/guides/waffle-testing.md", "Testing with ethers.js & Waffle", 0],
+          ["/guides/truffle-testing.md", "Testing with Web3.js & Truffle", 0],
+          ["/guides/truffle-migration.md", "Migrating from Truffle", 0],
           ["/guides/deploying.md", "Deploying your contracts", 0],
           ["/guides/scripts.md", "Writing scripts", 0],
           ["/guides/buidler-console.md", "Using the Buidler console", 0],
