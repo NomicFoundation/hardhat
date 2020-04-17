@@ -53,7 +53,27 @@ Account balance: 10000000000000000000000
 Token address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-To deploy on `ropsten` you  need to send ropsten-ETH into the address that's going to be making the deployment (`0xc783df8a850f42e7F7e57013759C285caa701eB6` in the example above), and then run:
+## Deploying to remote networks
+To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `buidler.config.js` file. We’ll use Ropsten for this example, but you can add any network similarly:
+
+```js
+usePlugin("@nomiclabs/buidler-waffle");
+
+const INFURA_API_KEY = "YOUR INFURA API KEY";
+const RINKEBY_PRIVATE_KEY = "YOUR ROPSTEN PRIVATE KEY";
+
+module.exports = {
+  networks: {
+    rinkeby: {
+      url: `https://ropsten.infura.io/v3/${INFURA_API_KEY}`,
+      accounts: [RINKEBY_PRIVATE_KEY]
+    }
+  }
+};
+```
+We're using [Infura](https://infura.io/), but pointing `url` to any Ethereum node or gateway would work.
+
+To deploy on Ropsten you  need to send ropsten-ETH into the address that's going to be making the deployment, and then run:
 ```
 npx buidler run scripts/deploy.js --network ropsten
 ```
@@ -66,28 +86,3 @@ You can get some ETH for testnets from a faucet, a service that distributes test
 * [Rinkeby faucet](https://faucet.rinkeby.io/)
 * [Goerli faucet](https://goerli-faucet.slock.it/)
 :::
-
-<!--
-
-## Deploying to remote networks
-To deploy to a remote network such as `mainnet` or any testnet, you need to add the `network` to your `buidler.config.js` file. We’ll use `rinkeby` for this example, but you can add any network similarly:
-
-```js
-usePlugin("@nomiclabs/buidler-waffle");
-
-const INFURA_API_KEY = "YOUR INFURA API KEY";
-const RINKEBY_PRIVATE_KEY = "YOUR RINKEBY PRIVATE KEY";
-
-module.exports = {
-  networks: {
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [RINKEBY_PRIVATE_KEY]
-    }
-  }
-};
-```
-
-We are using Infura as the Ethereum node endpoint, but any remote endpoint would work. 
-
--->
