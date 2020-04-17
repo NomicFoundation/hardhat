@@ -1,16 +1,18 @@
 # 9. Final thoughts
 
-Congratulations on reaching the end of the tutorial, you are now ready to start coding your own project. 
+Congratulations on finishing the tutorial!
 
 Here are some links you might find useful throughout your journey:
 
-- [Buidler's Hackathon Boilerplate](#): a repository that contains a sample project that you can use as a starting point for your own project.
-- [Buidler's Full Documentation](https://buidler.dev/getting-started/)
-- [Our Telegram Support Group](https://t.me/BuidlerSupport): a community of over 100 buidlers.
-- [Ethers Documentation](https://docs.ethers.io/ethers.js/html/)
+- [Buidler's Hackathon Boilerplate](https://github.com/nomiclabs/buidler-hackathon-boilerplate)
+- [Buidler's documentation site](https://buidler.dev/getting-started/)
+- [Telegram Buidler Support Group](https://t.me/BuidlerSupport)
+- [Ethers.js Documentation](https://docs.ethers.io/ethers.js/html/)
 - [Waffle Documentation](https://getwaffle.io/)
 - [Mocha Documentation](https://mochajs.org/)
 - [Chai Documentation](https://www.chaijs.com/)
 
+Happy hacking!
 
-Happy *buidling*!
+
+![](/cool-buidler.svg)
