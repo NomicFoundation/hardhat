@@ -137,7 +137,8 @@ export default function() {
       return compiler.compile(input);
     });
 
-  internalTask(TASK_COMPILE_COMPILE, async (_, { config, run }) => {
+  internalTask(TASK_COMPILE_COMPILE, async (_, bre) => {
+    const { run, config } = bre;
     const input = await run(TASK_COMPILE_GET_COMPILER_INPUT);
 
     console.log("Compiling...");
@@ -178,15 +179,16 @@ export default function() {
 
     await cacheSolcJsonFiles(config, input, output);
 
-    await cacheBuidlerConfig(config.paths, config.solc);
+    await cacheBuidlerConfig(config.paths, getSolcConfig(bre));
 
     return output;
   });
 
-  internalTask(TASK_COMPILE_CHECK_CACHE, async ({ force }, { config, run }) => {
+  internalTask(TASK_COMPILE_CHECK_CACHE, async ({ force }, bre) => {
     if (force) {
       return false;
     }
+    const { run, config } = bre;
 
     const dependencyGraph: DependencyGraph = await run(
       TASK_COMPILE_GET_DEPENDENCY_GRAPH
@@ -196,7 +198,11 @@ export default function() {
       .getResolvedFiles()
       .map(file => file.lastModificationDate.getTime());
 
-    return areArtifactsCached(sourceTimestamps, config.solc, config.paths);
+    return areArtifactsCached(
+      sourceTimestamps,
+      getSolcConfig(bre),
+      config.paths
+    );
   });
 
   internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {
