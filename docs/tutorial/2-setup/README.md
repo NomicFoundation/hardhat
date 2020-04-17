@@ -68,7 +68,7 @@ cd ethereum-hackathon-setup-checker
 npm install
 ```
 
-If this is succesful you should see a confirmation message meaning that your development environment is ready. Feel free to delete the repository directory and move on to [Creating a new Buidler project](../2-config/).
+If this is succesful you should see a confirmation message meaning that your development environment is ready. Feel free to delete the repository directory and move on to [Creating a new Buidler project](../3-config/).
 
 If any of them failed, your environment is not properly setup. Make sure you have `git` and Node.js `>=10.0` installed. If you're seeing errors mentioning "node-gyp", make sure you installed the build tools mentioned before.
 

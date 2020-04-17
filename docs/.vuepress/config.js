@@ -42,7 +42,7 @@ module.exports = {
           depth: 1,
           children: [
             ["", "1. Overview", 1],
-            ["1-setup/", "2. Setting up the environment", 0],
+            ["2-setup/", "2. Setting up the environment", 0],
             ["3-config/", "3. Creating a new Buidler project", 0],
             ["4-contracts/", "4. Writing and compiling contracts", 0],
             ["5-test/", "5. Testing contracts", 0],
