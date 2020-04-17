@@ -97,21 +97,7 @@ This is the list of built-in tasks, and the sample `accounts` task. Further ahea
 
 If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
 
-```js{5-11}
-usePlugin("@nomiclabs/buidler-waffle");
-
-// This is a sample Buidler task. To learn how to create your own go to
-// https://buidler.dev/guides/create-task.html
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(await account.getAddress());
-  }
-});
-
-module.exports = {};
-```
+<<< @/../packages/buidler-core/sample-project/buidler.config.js{5-11}
 
 To run it, try `npx buidler accounts`:
 
@@ -143,23 +129,7 @@ $ npx buidler accounts
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
 
-```js
-pragma solidity ^0.5.1;
-
-contract Greeter {
-
-    string greeting;
-
-    constructor(string memory _greeting) public {
-        greeting = _greeting;
-    }
-
-    function greet() public view returns (string memory) {
-        return greeting;
-    }
-
-}
-```
+<<< @/../packages/buidler-core/sample-project/contracts/Greeter.sol
 
 To compile it, simply run:
 
@@ -172,23 +142,7 @@ npx buidler compile
 The sample project comes with these tests that use [`@ethereum-waffle`](https://www.npmjs.com/package/ethereum-waffle) and 
 [ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want, check the integrations described in our guides.
 
-```js
-const { expect } = require("chai");
-
-describe("Greeter", function() {
-  it("Should return the new greeting once it's changed", async function() {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    
-    await greeter.deployed();
-    expect(await greeter.greet()).to.equal("Hello, world!");
-
-    await greeter.setGreeting("Hola, mundo!");
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
-  });
-});
-
-```
+<<< @/../packages/buidler-core/sample-project/test/sample-test.js
 
 You can run your tests with `npx buidler test`
 
@@ -209,23 +163,8 @@ Compiled 1 contract successfully
 Next, to deploy the contract we will use a Buidler script. 
 Create a file `deploy.js` in `scripts/` with the following code:
 
-```js
-async function main() {
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Buidler!");
+<<< @/../packages/buidler-core/sample-project/scripts/sample-script.js
 
-  await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
-}
-
-main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
-```
 And run it with `npx buidler run scripts/deploy.js`:
 ```
 $ npx buidler run scripts/deploy.js
