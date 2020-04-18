@@ -313,7 +313,10 @@ export class EthModule {
       trace,
       error,
       consoleLogMessages
-    } = await this._node.runCall(callParams);
+    } = await this._node.runCall(
+      callParams,
+      this._shouldCallOnNewBlock(blockTag)
+    );
 
     await this._logCallTrace(callParams, trace);
 
@@ -453,13 +456,15 @@ export class EthModule {
     let block: Block;
 
     if (typeof tag === "string") {
-      if (tag === "earliest" || tag === "pending") {
+      if (tag === "earliest") {
+        block = await this._node.getBlockByNumber(new BN(0));
+      } else if (tag === "latest") {
+        block = await this._node.getLatestBlock();
+      } else {
         throw new InvalidInputError(
-          "eth_getBlockByNumber doesn't support earliest nor pending "
+          `eth_getBlockByNumber doesn't support ${tag}`
         );
       }
-
-      block = await this._node.getLatestBlock();
     } else {
       // The tag can't be undefined because the includeTransactions param is
       // required.
@@ -1056,6 +1061,10 @@ Only latest and pending block params are supported.
 If this error persists, try resetting your wallet's accounts.`
       );
     }
+  }
+
+  private _shouldCallOnNewBlock(blockTag: OptionalBlockTag): boolean {
+    return blockTag === "pending";
   }
 
   private _extractBlock(blockTag: OptionalBlockTag): BN {

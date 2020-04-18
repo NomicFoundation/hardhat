@@ -68,6 +68,8 @@ You can set the following fields on the `buidlerevm` config:
 - `loggingEnabled`: A boolean that controls if Buidler EVM logs every request or not. Default value: `false` for the
   in-process Buidler EVM provider, `true` for the Buidler EVM backed JSON-RPC server (i.e. the `node` task).
 
+- `intialDate`: An optional string setting the date of the blockchain. If no option is set, the current date is used. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format).
+
 ### JSON-RPC based networks
 
 These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely,
@@ -88,6 +90,8 @@ This kind of networks are configured with objects with the following fields:
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 
 - `accounts`: This field controls which accounts Buidler uses. It can use the node's accounts (by setting it to `"remote"`), a list of local accounts (by setting it to an array of hex-encoded private keys), or use an [HD Wallet](#hd-wallet-config). Default value: `"remote"`.
+
+- `httpHeaders`: You can use this field to set extra HTTP Headers to be used when making JSON-RPC requests. It accepts a JavaScript object which maps header names to their values. Default value: `undefined`.
 
 ### HD Wallet config
 

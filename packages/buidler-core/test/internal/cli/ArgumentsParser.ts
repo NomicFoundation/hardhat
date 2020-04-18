@@ -1,3 +1,4 @@
+/* tslint:disable:no-string-literal */ // TODO this is for unit testing priv methods. We shouldn't test these at all?
 import { assert } from "chai";
 
 import { ArgumentsParser } from "../../../src/internal/cli/ArgumentsParser";
@@ -8,7 +9,10 @@ import {
   string
 } from "../../../src/internal/core/params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/internal/core/params/buidler-params";
-import { SimpleTaskDefinition } from "../../../src/internal/core/tasks/task-definitions";
+import {
+  OverriddenTaskDefinition,
+  SimpleTaskDefinition
+} from "../../../src/internal/core/tasks/task-definitions";
 import {
   BuidlerArguments,
   TaskArguments,
@@ -20,6 +24,7 @@ describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
   let envArgs: BuidlerArguments;
   let taskDefinition: TaskDefinition;
+  let overridenTaskDefinition: OverriddenTaskDefinition;
 
   beforeEach(() => {
     argumentsParser = new ArgumentsParser();
@@ -34,6 +39,14 @@ describe("ArgumentsParser", () => {
     taskDefinition = new SimpleTaskDefinition("compile", true)
       .addParam("param", "just a param", "a default value", string)
       .addParam("bleep", "useless param", 1602, int, true);
+
+    const baseTaskDefinition = new SimpleTaskDefinition("overriddenTask")
+      .addParam("strParam", "a str param", "defaultValue", string)
+      .addFlag("aFlag", "a flag param");
+
+    overridenTaskDefinition = new OverriddenTaskDefinition(baseTaskDefinition)
+      .addFlag("overriddenFlag", "added flag param")
+      .addOptionalParam("overriddenOptParam", "added opt param");
   });
 
   it("should transform a param name into CLA", () => {
@@ -71,22 +84,22 @@ describe("ArgumentsParser", () => {
   });
 
   it("should detect param name format", () => {
-    assert.isTrue(argumentsParser._hasCLAParamNameFormat("--run"));
-    assert.isFalse(argumentsParser._hasCLAParamNameFormat("run"));
+    assert.isTrue(argumentsParser["_hasCLAParamNameFormat"]("--run"));
+    assert.isFalse(argumentsParser["_hasCLAParamNameFormat"]("run"));
   });
 
   it("should detect parameter names", () => {
     assert.isTrue(
-      argumentsParser._isCLAParamName(
+      argumentsParser["_isCLAParamName"](
         "--show-stack-traces",
         BUIDLER_PARAM_DEFINITIONS
       )
     );
     assert.isFalse(
-      argumentsParser._isCLAParamName("sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser["_isCLAParamName"]("sarasa", BUIDLER_PARAM_DEFINITIONS)
     );
     assert.isFalse(
-      argumentsParser._isCLAParamName("--sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser["_isCLAParamName"]("--sarasa", BUIDLER_PARAM_DEFINITIONS)
     );
   });
 
@@ -174,7 +187,7 @@ describe("ArgumentsParser", () => {
       const buidlerArguments: TaskArguments = {};
       assert.equal(
         0,
-        argumentsParser._parseArgumentAt(
+        argumentsParser["_parseArgumentAt"](
           rawCLAs,
           0,
           BUIDLER_PARAM_DEFINITIONS,
@@ -184,7 +197,7 @@ describe("ArgumentsParser", () => {
       assert.equal(buidlerArguments.showStackTraces, true);
       assert.equal(
         2,
-        argumentsParser._parseArgumentAt(
+        argumentsParser["_parseArgumentAt"](
           rawCLAs,
           1,
           BUIDLER_PARAM_DEFINITIONS,
@@ -233,7 +246,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should only add non-present arguments", () => {
-      const buidlerArguments = argumentsParser._addBuidlerDefaultArguments(
+      const buidlerArguments = argumentsParser["_addBuidlerDefaultArguments"](
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
         {
@@ -249,11 +262,32 @@ describe("ArgumentsParser", () => {
   describe("tasks arguments", () => {
     it("should parse tasks arguments", () => {
       const rawCLAs: string[] = ["--param", "testing", "--bleep", "1337"];
-      const {
-        paramArguments,
-        rawPositionalArguments
-      } = argumentsParser._parseTaskParamArguments(taskDefinition, rawCLAs);
+      const { paramArguments, rawPositionalArguments } = argumentsParser[
+        "_parseTaskParamArguments"
+      ](taskDefinition, rawCLAs);
       assert.deepEqual(paramArguments, { param: "testing", bleep: 1337 });
+      assert.equal(rawPositionalArguments.length, 0);
+    });
+
+    it("should parse overridden tasks arguments", () => {
+      const rawCLAs: string[] = [
+        "--str-param",
+        "testing",
+        "--a-flag",
+        "--overridden-flag",
+        "--overridden-opt-param",
+        "optValue"
+      ];
+
+      const { paramArguments, rawPositionalArguments } = argumentsParser[
+        "_parseTaskParamArguments"
+      ](overridenTaskDefinition, rawCLAs);
+      assert.deepEqual(paramArguments, {
+        strParam: "testing",
+        aFlag: true,
+        overriddenFlag: true,
+        overriddenOptParam: "optValue"
+      });
       assert.equal(rawPositionalArguments.length, 0);
     });
 
@@ -266,7 +300,7 @@ describe("ArgumentsParser", () => {
       );
 
       const rawPositionalArguments = ["16", "02"];
-      const positionalArguments = argumentsParser._parsePositionalParamArgs(
+      const positionalArguments = argumentsParser["_parsePositionalParamArgs"](
         rawPositionalArguments,
         taskDefinition.positionalParamDefinitions
       );
@@ -282,7 +316,8 @@ describe("ArgumentsParser", () => {
       );
 
       const rawPositionalArguments: string[] = [];
-      const positionalArguments = argumentsParser._parsePositionalParamArgs(
+      // tslint:disable-next-line:no-string-literal
+      const positionalArguments = argumentsParser["_parsePositionalParamArgs"](
         rawPositionalArguments,
         taskDefinition.positionalParamDefinitions
       );
@@ -354,7 +389,7 @@ describe("ArgumentsParser", () => {
       });
     });
 
-    it("Shouldn't throw the right error if the last CLA is a non-flag --param", () => {
+    it("Should throw the right error if the last CLA is a non-flag --param", () => {
       const rawCLAs: string[] = ["--b"];
 
       taskDefinition = new SimpleTaskDefinition("t", false)

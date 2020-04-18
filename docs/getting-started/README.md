@@ -92,7 +92,7 @@ AVAILABLE TASKS:
   run           Runs a user-defined script after compiling the project
   test          Runs mocha tests
 
-To get help for a specific task run: buidler help [task]
+To get help for a specific task run: npx buidler help [task]
 ```
 
 This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 

@@ -21,6 +21,7 @@ import {
   RpcTransactionOutput,
   RpcTransactionReceiptOutput
 } from "../../../../../src/internal/buidler-evm/provider/output";
+import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils";
 import { EthereumProvider } from "../../../../../src/types";
 import {
   assertInvalidInputError,
@@ -31,7 +32,10 @@ import {
   assertTransaction,
   assertTransactionFailure
 } from "../../helpers/assertions";
-import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
+import {
+  EXAMPLE_CONTRACT,
+  EXAMPLE_READ_CONTRACT
+} from "../../helpers/contracts";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
@@ -264,7 +268,100 @@ describe("Eth module", function() {
             "0x000000000000000000000000000000000000000000000000000000000000000a"
           );
         });
+        it("Should be run in the context of the last block with 'latest' param", async function() {
+          const timestamp = getCurrentTimestamp() + 60;
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber
+            },
+            "latest"
+          ]);
+
+          assert.equal(
+            blockResult,
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+          );
+
+          const timestampResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp
+            },
+            "latest"
+          ]);
+
+          assert.equal(timestampResult, timestamp);
+        });
+        it("Should be run in the context of the last block with without block tag param", async function() {
+          const timestamp = getCurrentTimestamp() + 60;
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber
+            }
+          ]);
+
+          assert.equal(
+            blockResult,
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+          );
+
+          const timestampResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp
+            }
+          ]);
+
+          assert.equal(timestampResult, timestamp);
+        });
+        it("Should be run in the context of a new block with 'pending' blog tag param", async function() {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const timestamp = getCurrentTimestamp() + 60;
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber
+            },
+            "pending"
+          ]);
+
+          assert.equal(
+            blockResult,
+            "0x0000000000000000000000000000000000000000000000000000000000000002"
+          );
+
+          const timestampResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp
+            },
+            "pending"
+          ]);
+
+          assert.equal(timestampResult, timestamp);
+        });
         it("Should return an empty buffer if called an non-contract account", async function() {
           const result = await this.provider.send("eth_call", [
             {

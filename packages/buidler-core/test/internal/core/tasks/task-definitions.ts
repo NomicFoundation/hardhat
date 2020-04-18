@@ -891,53 +891,112 @@ describe("OverriddenTaskDefinition", () => {
     });
   });
 
-  describe("Param definitions are forbidden", () => {
-    it("should throw if addParam is called", () => {
+  describe("Param definitions can be added only in compatible cases", () => {
+    it("should add a flag param if addFlag is called", () => {
+      overriddenTask.addFlag("flagParam", "flag in overriden task");
+      assertParamDefinition(overriddenTask.paramDefinitions.flagParam, {
+        name: "flagParam",
+        description: "flag in overriden task",
+        defaultValue: false,
+        type: types.boolean,
+        isOptional: true,
+        isVariadic: false,
+        isFlag: true
+      });
+    });
+
+    it("should throw if adding a param of same name that was already defined in parent task", () => {
+      const definedParamName = "f";
+      // a param definition in an overridenTask is present in the parentTask ref as well
+      assert.isDefined(overriddenTask.paramDefinitions[definedParamName]);
+      assert.isDefined(parentTask.paramDefinitions[definedParamName]);
+
+      // expect PARAM_ALREADY_DEFINED for add flag param
+      expectBuidlerError(
+        () => overriddenTask.addFlag(definedParamName),
+        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
+      );
+
+      // expect PARAM_ALREADY_DEFINED for add optional param using addParam method
+      expectBuidlerError(
+        () =>
+          overriddenTask.addParam(
+            definedParamName,
+            undefined,
+            undefined,
+            undefined,
+            true
+          ),
+        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
+      );
+
+      // expect PARAM_ALREADY_DEFINED for add optional param using addParam method
+      expectBuidlerError(
+        () =>
+          overriddenTask.addOptionalParam(
+            definedParamName,
+            undefined,
+            undefined,
+            undefined
+          ),
+        ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
+      );
+    });
+
+    it("should throw if addParam is called with isOptional = false", () => {
       expectBuidlerError(
         () => overriddenTask.addParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_MANDATORY_PARAMS
       );
     });
 
-    it("should throw if addOptionalParam is called", () => {
-      expectBuidlerError(
-        () => overriddenTask.addOptionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+    it("should add an optional param if addParam is called with isOptional = true", () => {
+      const optParamName = "optParam";
+      assert.isUndefined(overriddenTask.paramDefinitions[optParamName], "");
+
+      overriddenTask.addParam(
+        optParamName,
+        undefined,
+        undefined,
+        undefined,
+        true
       );
+
+      assert.isDefined(overriddenTask.paramDefinitions[optParamName]);
     });
 
-    it("should throw if addFlag is called", () => {
-      expectBuidlerError(
-        () => overriddenTask.addFlag("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
-      );
+    it("should add an optional param if addOptionalParam is called", () => {
+      const optParamName = "optParam";
+      assert.isUndefined(overriddenTask.paramDefinitions[optParamName], "");
+      overriddenTask.addOptionalParam(optParamName);
+      assert.isDefined(overriddenTask.paramDefinitions[optParamName]);
     });
 
     it("should throw if addPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
       );
     });
 
     it("should throw if addOptionalPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addOptionalPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
       );
     });
 
     it("should throw if addVariadicPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addVariadicPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );
     });
 
     it("should throw if addOptionalVariadicPositionalParam is called", () => {
       expectBuidlerError(
         () => overriddenTask.addOptionalVariadicPositionalParam("p"),
-        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );
     });
   });

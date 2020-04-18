@@ -1,5 +1,6 @@
 import {
   TASK_COMPILE,
+  TASK_COMPILE_GET_COMPILER_INPUT,
   TASK_FLATTEN_GET_FLATTENED_SOURCE
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
@@ -46,30 +47,32 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      let source: string;
-      try {
-        source = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
-      } catch (_) {
-        throw new BuidlerPluginError(
-          `Your ${taskArgs.contractName} contract constains a cyclic dependency, Etherscan doesn't currently support contracts with such dependencies through its API, please use their GUI at https://etherscan.io/verifyContract to verify your contract.`
-        );
+      const index: number = taskArgs.contractName.indexOf(":");
+      let etherscanContractName: string;
+      let contractName: string;
+      if (index !== -1) {
+        etherscanContractName = taskArgs.contractName;
+        contractName = taskArgs.contractName.substring(index + 1);
+      } else {
+        etherscanContractName = `contracts/${taskArgs.contractName}:${taskArgs.contractName}`;
+        contractName = taskArgs.contractName;
       }
 
       await run(TASK_COMPILE);
-      const abi = (await readArtifact(
-        config.paths.artifacts,
-        taskArgs.contractName
-      )).abi;
+      const abi = (await readArtifact(config.paths.artifacts, contractName))
+        .abi;
       config.solc.fullVersion = await getLongVersion(config.solc.version);
+
+      const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
 
       const request = toRequest({
         apiKey: etherscan.apiKey,
         contractAddress: taskArgs.address,
         sourceCode: source,
-        contractName: taskArgs.contractName,
+        contractName: `${etherscanContractName}`,
         compilerVersion: config.solc.fullVersion,
-        optimizationsUsed: config.solc.optimizer.enabled,
-        runs: config.solc.optimizer.runs,
+        // optimizationsUsed: config.solc.optimizer.enabled,
+        // runs: config.solc.optimizer.runs,
         constructorArguments: AbiEncoder.encodeConstructor(
           abi,
           taskArgs.constructorArguments

@@ -300,8 +300,42 @@ Please double check your task definitions.`
       title: "Attempted to add params to an overridden task",
       description: `You can't change param definitions in an overridden task.
 
-Please double check your task definitions.`
+Please, double check your task definitions.`
     },
+    OVERRIDE_NO_MANDATORY_PARAMS: {
+      number: 210,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding mandatory (non optional) param definitions in an overridden task.",
+      title: "Attempted to add mandatory params to an overridden task",
+      description: `You can't add mandatory (non optional) param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`
+    },
+    OVERRIDE_NO_POSITIONAL_PARAMS: {
+      number: 211,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding positional param definitions in an overridden task.",
+      title: "Attempted to add positional params to an overridden task",
+      description: `You can't add positional param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`
+    },
+    OVERRIDE_NO_VARIADIC_PARAMS: {
+      number: 212,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding variadic param definitions in an overridden task.",
+      title: "Attempted to add variadic params to an overridden task",
+      description: `You can't add variadic param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`
+    },
+
     ACTION_NOT_SET: {
       number: 205,
       message: "No action set for task %taskName%.",
@@ -632,7 +666,7 @@ Please follow Buidler's instructions to resolve this.`
     MISSING_DEPENDENCY: {
       number: 801,
       message: `Plugin %plugin% requires %dependency% to be installed.
-%extraMessage%Please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%`,
+%extraMessage%Please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"`,
       title: "Plugin dependencies not installed",
       description: `You are trying to use a plugin with unmet dependencies. 
 
@@ -641,7 +675,7 @@ Please follow Buidler's instructions to resolve this.`
     DEPENDENCY_VERSION_MISMATCH: {
       number: 802,
       message: `Plugin %plugin% requires %dependency% version %versionSpec% but got %installedVersion%.
-%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% %dependency%@%versionSpec%
+%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"
 If you have installed %dependency% yourself, please reinstall it with a valid version.`,
       title: "Plugin dependencies's version mismatch",
       description: `You are trying to use a plugin that requires a different version of one of its dependencies. 

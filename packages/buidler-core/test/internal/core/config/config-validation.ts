@@ -471,6 +471,32 @@ describe("Config validation", function() {
               }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
+
+          // Non boolean allowUnlimitedContractSize
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    allowUnlimitedContractSize: "a"
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          // Non string initialDate
+          expectBuidlerError(
+            () =>
+              validateConfig({
+                networks: {
+                  [BUIDLEREVM_NETWORK_NAME]: {
+                    initialDate: 123
+                  }
+                }
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
         });
       });
 
@@ -493,6 +519,96 @@ describe("Config validation", function() {
               networks: { [BUIDLEREVM_NETWORK_NAME]: {} }
             });
             assert.isEmpty(errors);
+          });
+        });
+
+        describe("HttpHeaders", function() {
+          it("Should be optional", function() {
+            const errors = getValidationErrors({
+              networks: {
+                custom: {
+                  url: "http://localhost"
+                }
+              }
+            });
+            assert.isEmpty(errors);
+          });
+
+          it("Should accept a mapping of strings to strings", function() {
+            const errors = getValidationErrors({
+              networks: {
+                custom: {
+                  url: "http://localhost",
+                  httpHeaders: {
+                    a: "asd",
+                    b: "a"
+                  }
+                }
+              }
+            });
+            assert.isEmpty(errors);
+          });
+
+          it("Should reject other types", function() {
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      httpHeaders: 123
+                    }
+                  }
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      httpHeaders: "123"
+                    }
+                  }
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should reject non-string values", function() {
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      httpHeaders: {
+                        a: "a",
+                        b: 123
+                      }
+                    }
+                  }
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      httpHeaders: {
+                        a: "a",
+                        b: false
+                      }
+                    }
+                  }
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
           });
         });
 

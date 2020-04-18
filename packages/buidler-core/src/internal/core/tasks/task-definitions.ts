@@ -6,7 +6,7 @@ import {
   TaskDefinition
 } from "../../../types";
 import { BuidlerError } from "../errors";
-import { ERRORS } from "../errors-list";
+import { ErrorDescriptor, ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
 
@@ -391,7 +391,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    *
    * @param definition the param's definition
    */
-  public _addPositionalParamDefinition(definition: ParamDefinition<any>) {
+  private _addPositionalParamDefinition(definition: ParamDefinition<any>) {
     if (definition.isVariadic) {
       this._hasVariadicParam = true;
     }
@@ -409,7 +409,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * @param name the param's name.
    * @throws BDLR200
    */
-  public _validateNotAfterVariadicParam(name: string) {
+  private _validateNotAfterVariadicParam(name: string) {
     if (this._hasVariadicParam) {
       throw new BuidlerError(ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC, {
         paramName: name,
@@ -425,7 +425,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * @throws BDLR201 if `name` is already used as a param.
    * @throws BDLR202 if `name` is already used as a param by Buidler
    */
-  public _validateNameNotUsed(name: string) {
+  private _validateNameNotUsed(name: string) {
     if (this._hasParamDefined(name)) {
       throw new BuidlerError(ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED, {
         paramName: name,
@@ -448,7 +448,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Checks if the given name is already used.
    * @param name the param's name.
    */
-  public _hasParamDefined(name: string) {
+  private _hasParamDefined(name: string) {
     return (
       this.paramDefinitions[name] !== undefined ||
       this._positionalParamNames.has(name)
@@ -463,7 +463,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    *
    * @throws BDLR203 if validation fail
    */
-  public _validateNoMandatoryParamAfterOptionalOnes(
+  private _validateNoMandatoryParamAfterOptionalOnes(
     name: string,
     isOptional: boolean
   ) {
@@ -604,7 +604,12 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverrideError();
+    if (isOptional === undefined || !isOptional) {
+      return this._throwNoParamsOverrideError(
+        ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_MANDATORY_PARAMS
+      );
+    }
+    return this.addOptionalParam(name, description, defaultValue, type);
   }
 
   /**
@@ -616,7 +621,13 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     defaultValue?: T,
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverrideError();
+    this.parentTaskDefinition.addOptionalParam(
+      name,
+      description,
+      defaultValue,
+      type
+    );
+    return this;
   }
 
   /**
@@ -629,7 +640,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
+    );
   }
 
   /**
@@ -641,7 +654,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     defaultValue?: T,
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
+    );
   }
 
   /**
@@ -654,7 +669,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     type?: types.ArgumentType<T>,
     isOptional?: boolean
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
+    );
   }
 
   /**
@@ -666,18 +683,23 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     defaultValue?: T[],
     type?: types.ArgumentType<T>
   ): this {
-    return this._throwNoParamsOverrideError();
+    return this._throwNoParamsOverrideError(
+      ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
+    );
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Add a flag param to the overridden task.
+   * @throws BDLR201 if param name was already defined in any parent task.
+   * @throws BDLR209 if param name is not in camelCase.
    */
   public addFlag(name: string, description?: string): this {
-    return this._throwNoParamsOverrideError();
+    this.parentTaskDefinition.addFlag(name, description);
+    return this;
   }
 
-  public _throwNoParamsOverrideError(): never {
-    throw new BuidlerError(ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_PARAMS, {
+  private _throwNoParamsOverrideError(errorDescriptor: ErrorDescriptor): never {
+    throw new BuidlerError(errorDescriptor, {
       taskName: this.name
     });
   }

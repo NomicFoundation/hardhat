@@ -27,6 +27,8 @@ export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   throwOnTransactionFailures?: boolean;
   throwOnCallFailures?: boolean;
   loggingEnabled?: boolean;
+  allowUnlimitedContractSize?: boolean;
+  initialDate?: string;
 }
 
 export interface HDAccountsConfig {
@@ -49,6 +51,7 @@ export type NetworkConfigAccounts =
 export interface HttpNetworkConfig extends CommonNetworkConfig {
   url?: string;
   timeout?: number;
+  httpHeaders?: { [name: string]: string };
   accounts?: NetworkConfigAccounts;
 }
 
@@ -249,6 +252,20 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
   readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
 }
 
+/**
+ * @type TaskArguments {object-like} - the input arguments for a task.
+ *
+ * TaskArguments type is set to 'any' because it's interface is dynamic.
+ * It's impossible in TypeScript to statically specify a variadic
+ * number of fields and at the same time define specific types for\
+ * the argument values.
+ *
+ * For example, we could define:
+ * type TaskArguments = Record<string, any>;
+ *
+ * ...but then, we couldn't narrow the actual argument value's type in compile time,
+ * thus we have no other option than forcing it to be just 'any'.
+ */
 export type TaskArguments = any;
 
 export type RunTaskFunction = (

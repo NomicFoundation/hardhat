@@ -1,19 +1,57 @@
 import { assert } from "chai";
-import { zeroAddress } from "ethereumjs-util";
+import {
+  bufferToHex,
+  privateToAddress,
+  toBuffer,
+  zeroAddress
+} from "ethereumjs-util";
 
 import {
   bufferToRpcData,
   numberToRpcQuantity,
   RpcBlockOutput
 } from "../../../../../src/internal/buidler-evm/provider/output";
+import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils";
 import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
+import { EthereumProvider } from "../../../../../src/types";
+import { useEnvironment } from "../../../../helpers/environment";
+import { useFixtureProject } from "../../../../helpers/project";
 import {
   assertInvalidArgumentsError,
-  assertLatestBlockNumber
+  assertLatestBlockNumber,
+  assertQuantity
 } from "../../helpers/assertions";
+import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
-import { PROVIDERS } from "../../helpers/useProvider";
+import {
+  DEFAULT_ACCOUNTS,
+  DEFAULT_BLOCK_GAS_LIMIT,
+  PROVIDERS
+} from "../../helpers/useProvider";
+
+const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map(account =>
+  bufferToHex(privateToAddress(toBuffer(account.privateKey))).toLowerCase()
+);
+
+async function deployContract(
+  provider: EthereumProvider,
+  deploymentCode: string
+) {
+  const hash = await provider.send("eth_sendTransaction", [
+    {
+      from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+      data: deploymentCode,
+      gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT)
+    }
+  ]);
+
+  const { contractAddress } = await provider.send("eth_getTransactionReceipt", [
+    hash
+  ]);
+
+  return contractAddress;
+}
 
 describe("Evm module", function() {
   PROVIDERS.forEach(provider => {
@@ -80,6 +118,169 @@ describe("Evm module", function() {
         });
       });
 
+      describe("evm_setNextBlockTimestamp", async function() {
+        it("should set next block timestamp and the next EMPTY block will be mined with that timestamp", async function() {
+          const timestamp = getCurrentTimestamp() + 60;
+
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
+        });
+        it("should set next block timestamp and the next tx will be mined with that timestamp", async function() {
+          const timestamp = getCurrentTimestamp() + 70;
+
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
+        });
+        it("should be able to set and replace an existing 'next block timestamp'", async function() {
+          const timestamp = getCurrentTimestamp() + 60;
+
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await this.provider.send("evm_setNextBlockTimestamp", [
+            timestamp + 10
+          ]);
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assertQuantity(block.timestamp, timestamp + 10);
+        });
+        it("should be reset after the next block is mined", async function() {
+          const timestamp = getCurrentTimestamp() + 60;
+
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+        });
+        it("should be overriden if next EMPTY block is mined with timestamp", async function() {
+          const timestamp = getCurrentTimestamp() + 90;
+
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await this.provider.send("evm_mine", [timestamp + 100]);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assertQuantity(block.timestamp, timestamp + 100);
+        });
+        it("should also advance time offset for future blocks", async function() {
+          let timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await this.provider.send("evm_mine", []);
+
+          timestamp = getCurrentTimestamp() + 90;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          timestamp = getCurrentTimestamp() + 120;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+        });
+        it("shouldn't set if specified timestamp is less or equal to the previous block", async function() {
+          const timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          this.provider
+            .send("evm_setNextBlockTimestamp", [timestamp - 1])
+            .then(function() {
+              assert.fail("should have failed setting next block timestamp");
+            })
+            .catch(function(e) {});
+
+          this.provider
+            .send("evm_setNextBlockTimestamp", [timestamp])
+            .then(function() {
+              assert.fail("should have failed setting next block timestamp");
+            })
+            .catch(function(e) {});
+        });
+
+        it("should advance the time offset accordingly to the timestamp", async function() {
+          let timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_mine", [timestamp]);
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_setNextBlockTimestamp", [
+            timestamp + 100
+          ]);
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_increaseTime", [30]);
+          await this.provider.send("evm_mine");
+          timestamp = getCurrentTimestamp();
+          // 200 - 1 as we use ceil to round time to seconds
+          assert.isTrue(timestamp >= 199);
+        });
+
+        describe("When the initial date is in the past", function() {
+          // These test use a Buidler EVM instance with an initialDate in the
+          // past. We do this by using a fixture project and useEnvironment(),
+          // so instead of using this.provider they must use
+          // this.env.network.provider
+
+          useFixtureProject("buidler-evm-initial-date");
+          useEnvironment();
+
+          it("should still set the nextBlockTimestamp if it is less than the real time but larger than the previous block", async function() {
+            const timestamp = getCurrentTimestamp();
+
+            await this.env.network.provider.send("evm_mine", [
+              timestamp - 1000
+            ]);
+            const latestBlock = await this.env.network.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assertQuantity(latestBlock.timestamp, timestamp - 1000);
+
+            await this.env.network.provider.send("evm_setNextBlockTimestamp", [
+              timestamp - 500
+            ]);
+
+            await this.env.network.provider.send("evm_mine");
+            const latestBlock2 = await this.env.network.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            assertQuantity(latestBlock2.timestamp, timestamp - 500);
+          });
+        });
+      });
+
       describe("evm_mine", async function() {
         it("should mine an empty block", async function() {
           await this.provider.send("evm_mine");
@@ -99,6 +300,30 @@ describe("Evm module", function() {
           );
 
           assert.isEmpty(block2.transactions);
+        });
+        it("should mine an empty block with exact timestamp", async function() {
+          const timestamp = getCurrentTimestamp() + 60;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(1), false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
+        });
+        it("should mine an empty block with the timestamp and other later blocks have higher timestamp", async function() {
+          const timestamp = getCurrentTimestamp() + 60;
+          await this.provider.send("evm_mine", [timestamp]);
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_mine");
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(2), false]
+          );
+
+          assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
         });
       });
 

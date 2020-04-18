@@ -4,7 +4,7 @@ const log = debug("buidler:core:solidity:imports");
 
 export function getImports(fileContent: string): string[] {
   try {
-    const parser = require("solidity-parser-antlr");
+    const parser = require("@solidity-parser/parser");
     const ast = parser.parse(fileContent, { tolerant: true });
 
     const importedFiles: string[] = [];
