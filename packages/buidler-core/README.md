@@ -8,6 +8,8 @@ Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Found
 
 Join our [Buidler Telegram group](http://t.me/BuidlerSupport) to stay up to date on new releases, plugins and tutorials.
 
+🚧 **For the most recently published code, look at the [`master`](https://github.com/nomiclabs/buidler/tree/master) branch** 🚧
+
 ## Installation
 
 ### Local installation (recommended)
