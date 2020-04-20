@@ -37,19 +37,18 @@ module.exports = {
       '/tutorial/': [
         {
           title: "Tutorial",
-          url: "1-setup/",
           collapsable: false,
           depth: 1,
           children: [
             ["", "1. Overview", 1],
-            ["2-setup/", "2. Setting up the environment", 0],
-            ["3-config/", "3. Creating a new Buidler project", 0],
-            ["4-contracts/", "4. Writing and compiling contracts", 0],
-            ["5-test/", "5. Testing contracts", 0],
-            ["6-debug/", "6. Debugging with Buidler EVM", 0],
-            ["7-deploy/", "7. Deploying to a live network", 0],
-            ["boilerplate/", "8. Hackathon Boilerplate Project", 0],
-            ["9-final-thoughts/", "9. Final thoughts", 0],
+            ["setting-up-the-environment.md", "2. Setting up the environment", 0],
+            ["creating-a-new-buidler-project.md", "3. Creating a new Buidler project", 0],
+            ["writing-and-compiling-contracts.md", "4. Writing and compiling contracts", 0],
+            ["testing-contracts.md", "5. Testing contracts", 0],
+            ["debugging-with-buidler-evm.md", "6. Debugging with Buidler EVM", 0],
+            ["deploying-to-a-live-network.md", "7. Deploying to a live network", 0],
+            ["hackathon-boilerplate-project.md", "8. Hackathon Boilerplate Project", 0],
+            ["final-thoughts.md", "9. Final thoughts", 0],
           ]
         },
       ],
