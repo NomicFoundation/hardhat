@@ -141,8 +141,8 @@ module.exports = [
   },
   {
     name: "@aragon/buidler-aragon",
-    author: "Aragon",
-    authorUrl: "https://github.com/aragon",
+    author: "Aragon One",
+    authorUrl: "https://twitter.com/aragononeteam",
     version: "0.2.3",
     url: "https://github.com/aragon/buidler-aragon/tree/master",
     description: "Buidler plugin for Aragon App development",
