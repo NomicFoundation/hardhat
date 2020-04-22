@@ -45,7 +45,7 @@ Tasks in Buidler are asynchronous JavaScript functions that get access to the [
 
 For our example we will use Web3.js to interact with our contracts, so we will install the [Web3.js plugin](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), which injects a Web3.js instance into the Buidler environment:
 
-```bash
+```
 npm install --save-dev @nomiclabs/buidler-web3 web3
 ```
 

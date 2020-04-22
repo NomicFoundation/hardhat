@@ -9,7 +9,7 @@ Node allows by default and crash.
 
 If you are experiencing this problem, you can use Buidler's `--max-memory` argument:
 
-```sh
+```
 npx buidler --max-memory 4096 compile
 ```
 
