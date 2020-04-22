@@ -13,8 +13,8 @@ as global variables.
 
 These scripts must be run through Buidler: `npx buidler run script.js`. 
 
-This makes it easy to port scripts that were developed for other tools such as Waffle, which follows this approach,
-by using the [buidler-waffle](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle). 
+This makes it easy to port scripts that were developed for other tools such as Truffle, which follows this approach,
+by using the [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5). 
 
 ## Standalone scripts: using Buidler as a library
 
@@ -42,11 +42,13 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 
 Inside `scripts/` you will find `sample-script.js`. Add the highlighted lines to it:
 
-```js{1-2,5}
+```js{1-2,7}
 const bre = require("@nomiclabs/buidler");
 const ethers = bre.ethers;
 
 async function main() {
+  // You can run Buidler tasks from a script
+  // For example, we make sure everything is compiled by running "compile"
   await bre.run("compile");
 
   // We get the contract to deploy

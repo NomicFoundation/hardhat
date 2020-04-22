@@ -53,7 +53,7 @@ $ npx buidler
 
 Let’s create the sample project and go through the steps to try out the sample task and compile, test and deploy the sample contract. 
 
-The sample project will ask you to install `buidler-waffle` and `buidler-ethers`, which makes Buidler compatible with tests built for Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
+The sample project will ask you to install `buidler-waffle` and `buidler-ethers`, which makes Buidler compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
 
 ::: tip
 You can install those dependencies manually with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
@@ -172,6 +172,6 @@ All contracts have already been compiled, skipping compilation.
 Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugin, and deployed a contract.
+Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).

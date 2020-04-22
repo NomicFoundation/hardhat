@@ -72,7 +72,6 @@ module.exports = {
 
 Set your `buidler.config.js` to the following contents:
 ```js
-// assuming you're running Waffle tests.
 usePlugin("@nomiclabs/buidler-waffle");
 
 module.exports = {

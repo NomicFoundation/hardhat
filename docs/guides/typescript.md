@@ -44,7 +44,7 @@ mv buidler.config.js buidler.config.ts
 We also need to adapt it to explicitly import the Buidler config DSL, and use the [Buidler Runtime Environment] explicitly.
 
 For example, the sample project's config turns from this
-```js{1,5,13}
+```js{5,13}
 usePlugin("@nomiclabs/buidler-waffle");
 
 // This is a sample Buidler task. To learn how to create your own go to
@@ -135,7 +135,7 @@ Plugins that include type extensions should have documentation detailing their e
 
 ## Writing tests and scripts
 
-To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-waffle](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle) & [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers) or [buidler-truffle](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle) & [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment].
+To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers) or [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment].
 
 When using JavaScript, all the properties in the BRE are injected into the global scope, and are also available by getting the BRE explicitly. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly.
 
