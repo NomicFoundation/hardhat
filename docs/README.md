@@ -1,5 +1,6 @@
 ---
 home: true 
+pageClass: custom
 heroImage: ./mascots.svg
 actionText: Get Started
 search: false
