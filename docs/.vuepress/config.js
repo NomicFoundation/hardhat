@@ -216,9 +216,13 @@ module.exports = {
     }
   },
   plugins: [
-    [
-      '@vuepress/google-analytics',
-      { ga: "UA-117668706-2" }
-    ]
+    ['@vuepress/google-analytics', { ga: "UA-117668706-2" }],
+    ['vuepress-plugin-container', {
+      type: 'tip',
+      defaultTitle: {
+        '/': 'TIP',
+        '/zh/': '提示',
+      },
+    }]
   ]
 };
