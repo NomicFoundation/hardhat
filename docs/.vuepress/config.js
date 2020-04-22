@@ -1,4 +1,4 @@
-const defaultSlugify = require("vuepress/lib/markdown/slugify");
+const defaultSlugify = require("@vuepress/shared-utils/lib/slugify");
 const plugins = require("./plugins.js");
 const pluginsChildren = [];
 
@@ -13,8 +13,6 @@ module.exports = {
   title: "Buidler",
   description:
     "Buidler is a task runner for Ethereum smart contract developers.",
-  serviceWorker: false,
-  ga: "UA-117668706-2",
   themeConfig: {
     logo: "/logo.svg",
     nav: [
@@ -216,5 +214,11 @@ module.exports = {
 
       return defaultSlugify(title);
     }
-  }
+  },
+  plugins: [
+    [
+      '@vuepress/google-analytics',
+      { ga: "UA-117668706-2" }
+    ]
+  ]
 };

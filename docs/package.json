@@ -10,8 +10,11 @@
     "typedoc": "^0.14.2",
     "typedoc-plugin-markdown": "^1.1.27",
     "typedoc-plugin-no-inherit": "^1.1.6",
-    "vuepress": "^0.14.11",
+    "vuepress": "^1.4.1",
     "webpack": "^4.28.4"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@vuepress/plugin-google-analytics": "^1.4.1"
+  }
 }
