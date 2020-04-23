@@ -254,7 +254,7 @@ describe("Token contract", function () {
   });
 });
 ````
-This is what the output of `npx buidler test` should look like:
+This is what the output of `npx buidler test` should look like against the full test suite:
 ```
 $ npx buidler test
 All contracts have already been compiled, skipping compilation.
@@ -270,6 +270,6 @@ All contracts have already been compiled, skipping compilation.
 
 
   5 passing (1s)
-  ```
+```
 
-  Keep in mind that when you run `npx buidler test`, your contracts will be compiled if they've changed since the last time you ran your tests.
+Keep in mind that when you run `npx buidler test`, your contracts will be compiled if they've changed since the last time you ran your tests.
