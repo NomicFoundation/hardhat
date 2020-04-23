@@ -13,8 +13,7 @@ as global variables.
 
 These scripts must be run through Buidler: `npx buidler run script.js`. 
 
-This makes it easy to port scripts that were developed for other tools such as Truffle, which follows this approach,
-by using the [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5). 
+This makes it easy to port scripts that were developed for other tools that inject variables into the global state. 
 
 ## Standalone scripts: using Buidler as a library
 
@@ -69,7 +68,9 @@ main()
 
 ```
 
-And there you can see how the [Buidler Runtime Environment] is accessed at the top, which makes this script work in a standalone fashion:
+By accessing the [Buidler Runtime Environment] at the top, you are now allowed to run the script in a standalone fashion. We also added a line 7 which invokes the `compile` task manually. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled.
+
+Let's re-run the script with `node`:
 
 ```
 $ node scripts/sample-script.js

@@ -16,7 +16,7 @@ npm install --save-dev @nomiclabs/buidler
 
 Now run npx buidler inside your project folder and select `Create an empty buidler.config.js`.
 
-Let's now install `web3.js`, `Truffle` and their Buidler plugins, which will allow Truffle to use Buidler EVM and get stack traces and `console.log` functionality.
+Let's now install the `Truffle` and `Web3.js` plugins, as well as `web3.js` itself.
 
 ```
 npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
