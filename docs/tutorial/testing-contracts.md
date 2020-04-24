@@ -70,7 +70,7 @@ const buidlerToken = await Token.deploy();
 Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
 
 ```js
-const buidlerToken.deployed();
+await buidlerToken.deployed();
 ```
 
 When you call on `deploy()` the transaction is sent, but the contract isn't actually deployed until the transaction is mined. Calling `deployed()` will return a `Promise` that resolves once this happens, so this code is blocking until the deployment finishes.
