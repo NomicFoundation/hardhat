@@ -22,7 +22,7 @@ Paste the code below into the file and take a minute to read the code. It's simp
 To get syntax highlighting you should add Solidity support to your text editor. Just look for Solidity or Ethereum plugins. We recommend using Visual Studio Code or Sublime Text 3.
 ::: 
 
-```c
+```solidity
 // Solidity files have to start with this pragma.
 // It will be used by the Solidity compiler to validate its version.
 pragma solidity ^0.5.15;

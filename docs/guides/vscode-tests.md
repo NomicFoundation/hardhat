@@ -16,7 +16,7 @@ install it and create a file named `.mocharc.json` in your project's root direct
 
 Finally, make sure you have the latest version of Mocha by running:
 
-```sh
+```
 npm install --save-dev mocha
 ```
 

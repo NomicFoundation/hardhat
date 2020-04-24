@@ -9,13 +9,13 @@ and automatically enables TypeScript support.
 
 To install them, open your terminal, go to your Buidler project, and run:
 
-```sh
+```
 npm install --save-dev ts-node typescript
 ```
 
 You also need these packages:
 
-```sh
+```
 npm install --save-dev chai @types/node @types/mocha @types/chai
 ```
 
@@ -37,7 +37,7 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 
 Now we are going to rename the config file from `buidler.config.js` to `buidler.config.ts`, run:
 
-```sh
+```
 mv buidler.config.js buidler.config.ts
 ```
 

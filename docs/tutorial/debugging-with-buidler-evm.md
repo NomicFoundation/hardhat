@@ -6,7 +6,7 @@ When running your contracts and tests on **Buidler EVM** you can print logging m
 
 This is what it looks like:
 
-```c{3}
+```solidity{3}
 pragma solidity ^0.5.15;
 
 import "@nomiclabs/buidler/console.sol";
@@ -18,7 +18,7 @@ contract Token {
 
 Add some `console.log` to the `transfer()` function as if you were using it in JavaScript:
 
-```c{2,3}
+```solidity{2,3}
 function transfer(address to, uint256 amount) external {
     console.log("Sender balance is %s tokens", balances[msg.sender]);
     console.log("Trying to send %s tokens to %s", amount, to);

@@ -14,13 +14,17 @@ Tasks can call other tasks, allowing complex workflows to be defined. Users and 
 
 The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
 
-    npm install --save-dev @nomiclabs/buidler
+```
+npm install --save-dev @nomiclabs/buidler
+```
 
 ### Global installation
 
 Be careful about inconsistent behavior across different projects that use different Buidler versions.
 
-    npm install --global @nomiclabs/buidler
+```
+npm install --global @nomiclabs/buidler
+```
     
 If you choose to install Buidler globally, you have to do the same for its plugins and their dependencies.
 
@@ -57,7 +61,7 @@ The sample project uses the `buidler-truffle5`, which makes Buidler compatible w
 tests built for Truffle. You can learn more about it [in this guide](../guides/truffle-testing.md). 
 For now, all you need to know is that you may need to install some dependencies with
  
-```bash
+```
 npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
 ```
 
@@ -145,7 +149,7 @@ $ npx buidler accounts
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
 
-```js
+```solidity
 pragma solidity ^0.5.1;
 
 import "@nomiclabs/buidler/console.sol";
@@ -174,7 +178,7 @@ contract Greeter {
 
 To compile it, simply run:
 
-```bash
+```
 npx buidler compile
 ```
 
