@@ -2,15 +2,15 @@
 
 [Waffle](https://getwaffle.io/) is a simple smart contract testing library built on top of [Ethers.js](https://docs.ethers.io/ethers.js/html/). Tests in Waffle are written using [Mocha](https://mochajs.org/) alongside with [Chai](https://www.chaijs.com/). It's our recommended choice for testing.
 
-Let's see how to do use it going through the Buidler's sample project.
+Let's see how to use it going through Buidler's sample project.
 
 ::: tip
-Waffle supports TypeScript, you can learn how to set up Buidler with TypeScript [here](./typescript.html).
+Waffle supports TypeScript. Learn how to set up Buidler with TypeScript [here](/typescript.md).
 :::
 
 ## Setting up
 
-[Install Buidler](../getting-started/#local-installation-recommended) on an empty directory. When done, execute `npx buidler`.  
+[Install Buidler](/getting-started/#local-installation-recommended) on an empty directory. When done, run `npx buidler`.  
 
 ```
 $ npx buidler
@@ -47,7 +47,7 @@ There's no need for `usePlugin("@nomiclabs/buidler-ethers")`, as `buidler-waffle
 
 ## Testing
 
-Inside `test` folder you'll find  `sample-test.js`. Take a look into it, we'll explain it next:
+Inside `test` folder you'll find  `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
 <<< @/../packages/buidler-core/sample-project/test/sample-test.js
 
@@ -80,7 +80,7 @@ describe("Greeter", function() {
 });
 ```
 
-This wrapper just follows Mocha's proposed structure for tests, but you might have notice the use of `async` before the `it`'s callback function. Interacting with the Ethereum network and smart contracts are asynchronous operations, hence most APIs and libraries use JavaScript's Promise for returning values. This use of `async` will let us to `await` the calls to our contract and the Buidler EVM node.
+This wrapper just follows Mocha's proposed structure for tests, but you might have noticed the use of `async` in `it`'s callback function. Interacting with the Ethereum network and smart contracts are asynchronous operations, hence most APIs and libraries use JavaScript's `Promise` for returning values. This use of `async` will allow us to `await` the calls to our contract and the Buidler EVM node.
 
 ```js
 const Greeter = await ethers.getContractFactory("Greeter");
@@ -113,7 +113,7 @@ await greeter.setGreeting("Hola, mundo!");
 expect(await greeter.greet()).to.equal("Hola, mundo!");
 ```
 
-We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we execute another test to verify that the greeting effectively changed.
+We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we perform another assertion to verify that the greeting effectively changed.
 
 ### Testing from a different account
 
