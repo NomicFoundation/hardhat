@@ -71,7 +71,7 @@ const ROPSTEN_PRIVATE_KEY = "YOUR ROPSTEN PRIVATE KEY";
 
 module.exports = {
   networks: {
-    rinkeby: {
+    ropsten: {
       url: `https://ropsten.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${ROPSTEN_PRIVATE_KEY}`]
     }
