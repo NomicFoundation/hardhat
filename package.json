@@ -22,7 +22,7 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-consistent-codestyle": "^1.15.1",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.5.3"
+    "typescript": "~3.7.3"
   },
   "scripts": {
     "postinstall": "node scripts/install.js",

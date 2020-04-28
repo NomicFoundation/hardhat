@@ -51,7 +51,8 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
 // tslint:disable-next-line ban-types
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   return createLazyProxy(
-    functionCreator,
+    // FIXME: this needs to be revised since typescript 3.7.x was complaining about it
+    functionCreator as () => any,
     () => function() {},
     object => {
       if (!(object instanceof Function)) {

@@ -1,11 +1,10 @@
 import { BuidlerNetworkConfig, Network } from "@nomiclabs/buidler/types";
-import { Wallet } from "ethers";
-import { JsonRpcProvider } from "ethers/providers";
+import { providers, Wallet } from "ethers";
 
 // This class is an extension of buidler-ethers' wrapper.
 // TODO: Export buidler-ether's wrapper so this can be implemented like a normal
 //  subclass.
-export class WaffleMockProviderAdapter extends JsonRpcProvider {
+export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
   constructor(private _buidlerNetwork: Network) {
     super();
   }

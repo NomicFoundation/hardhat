@@ -1,6 +1,6 @@
 import { BuidlerRuntimeEnvironment } from "../types";
 
-import { BuidlerContext } from "./context";
+import * as context from "./context";
 import { ExtenderManager } from "./core/config/extenders";
 import { TasksDSL } from "./core/tasks/dsl";
 
@@ -11,5 +11,5 @@ export interface BuidlerContext {
 }
 
 export type GlobalWithBuidlerContext = NodeJS.Global & {
-  __buidlerContext: BuidlerContext;
+  __buidlerContext: context.BuidlerContext;
 };
