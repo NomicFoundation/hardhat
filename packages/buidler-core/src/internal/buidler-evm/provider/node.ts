@@ -2,11 +2,7 @@ import VM from "@nomiclabs/ethereumjs-vm";
 import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
-import {
-  RunBlockResult,
-  TxReceipt
-} from "@nomiclabs/ethereumjs-vm/dist/runBlock";
-import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
+import * as runBlock from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
@@ -110,7 +106,7 @@ export interface TxReceipt {
 }
 
 export interface TxBlockResult {
-  receipt: TxReceipt;
+  receipt: runBlock.TxReceipt;
   createAddresses: Buffer | undefined;
   bloomBitvector: Buffer;
 }
@@ -372,7 +368,7 @@ export class BuidlerNode extends EventEmitter {
   ): Promise<{
     trace: MessageTrace;
     block: Block;
-    blockResult: RunBlockResult;
+    blockResult: runBlock.RunBlockResult;
     error?: Error;
     consoleLogMessages: string[];
   }> {
@@ -469,7 +465,7 @@ export class BuidlerNode extends EventEmitter {
 
     const previousRoot = await this._stateManager.getStateRoot();
 
-    let result: RunBlockResult;
+    let result: runBlock.RunBlockResult;
     try {
       result = await this._vm.runBlock({
         block,
@@ -1192,7 +1188,7 @@ export class BuidlerNode extends EventEmitter {
 
   private async _saveBlockAsSuccessfullyRun(
     block: Block,
-    runBlockResult: RunBlockResult
+    runBlockResult: runBlock.RunBlockResult
   ) {
     await this._putBlock(block);
 

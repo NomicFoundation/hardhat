@@ -48,13 +48,18 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
   );
 }
 
-// tslint:disable-next-line ban-types
-export function lazyFunction<T extends Function>(functionCreator: () => T): T {
+// Typescript was complaining about functionCreator not being wrapped around a Function
+const SimpleFunction = () => {};
+type SimpleFunction = (args?: any) => any;
+
+export function lazyFunction<T extends SimpleFunction>(
+  functionCreator: () => T
+): T {
   return createLazyProxy(
     functionCreator,
     () => function() {},
     object => {
-      if (!(object instanceof Function)) {
+      if (!(object instanceof SimpleFunction)) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
           operation:
             "Using lazyFunction with anything other than functions or classes"
