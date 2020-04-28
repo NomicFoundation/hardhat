@@ -139,8 +139,7 @@ npx buidler compile
 
 ### Testing your contracts
 
-The sample project comes with these tests that use [`@ethereum-waffle`](https://www.npmjs.com/package/ethereum-waffle) and 
-[ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want, check the integrations described in our guides.
+The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want, check the integrations described in our guides.
 
 <<< @/../packages/buidler-core/sample-project/test/sample-test.js
 
@@ -160,12 +159,13 @@ Compiled 1 contract successfully
 
 ### Deploying your contracts
 
-Next, to deploy the contract we will use a Buidler script. 
-Create a file `deploy.js` in `scripts/` with the following code:
+Next, to deploy the contract we will use a Buidler script.
+Inside `scripts/` you will find `sample-script.js` with the following code:
 
 <<< @/../packages/buidler-core/sample-project/scripts/sample-script.js
 
-And run it with `npx buidler run scripts/deploy.js`:
+Run it with `npx buidler run scripts/sample-script.js`:
+
 ```
 $ npx buidler run scripts/deploy.js
 All contracts have already been compiled, skipping compilation.

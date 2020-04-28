@@ -39,57 +39,28 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 scripts
 drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 ```
 
-Inside `scripts/` you will find `sample-script.js`. Add the highlighted lines to it:
+Inside `scripts/` you will find `sample-script.js`. Read through its comments to have a better idea of what it does.
 
-```js{1-2,7}
-const bre = require("@nomiclabs/buidler");
-const ethers = bre.ethers;
+<<< @/../packages/buidler-core/sample-project/scripts/sample-script.js
 
-async function main() {
-  // You can run Buidler tasks from a script
-  // For example, we make sure everything is compiled by running "compile"
-  await bre.run("compile");
-
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Buidler!");
-
-  await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
-}
-
-main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+Done? Let's run the script with `node`:
 
 ```
+$ node scripts/sample-script.js
+Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
+```
 
-By accessing the [Buidler Runtime Environment] at the top, you are now allowed to run the script in a standalone fashion. We also added a line 7 which invokes the `compile` task manually. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled.
+By accessing the [Buidler Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `bre.run('compile')`. Comment the following line out and re-run the script with `node`:
 
-Let's re-run the script with `node`:
+```js
+await bre.run("compile");
+```
 
 ```
 $ node scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
 Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
-
-But the script can also run through Buidler:
-
-```
-$ npx buidler run scripts/sample-script.js 
-All contracts have already been compiled, skipping compilation.
-All contracts have already been compiled, skipping compilation.
-Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
-```
-
-::: tip
-Did you notice the double compile message? When running a script through `npx buidler run`, the `compile` task will be called before running the script, but you can skip this with the `--no-compile` parameter.
-:::
 
 ### Buidler arguments
 
