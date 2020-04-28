@@ -44,16 +44,16 @@ mv buidler.config.js buidler.config.ts
 We also need to adapt it to explicitly import the Buidler config DSL, and use the [Buidler Runtime Environment] explicitly.
 
 For example, the sample project's config turns from this
-```js{1,6,13}
-usePlugin("@nomiclabs/buidler-truffle5");
+```js{5,13}
+usePlugin("@nomiclabs/buidler-waffle");
 
 // This is a sample Buidler task. To learn how to create your own go to
 // https://buidler.dev/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await web3.eth.getAccounts();
+  const accounts = await ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(account);
+    console.log(await account.getAddress());
   }
 });
 
@@ -65,15 +65,15 @@ into this
 ```typescript{1,7,8,15}
 import { task, usePlugin } from "@nomiclabs/buidler/config";
 
-usePlugin("@nomiclabs/buidler-truffle5");
+usePlugin("@nomiclabs/buidler-waffle");
 
 // This is a sample Buidler task. To learn how to create your own go to
 // https://buidler.dev/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, bre) => {
-  const accounts = await bre.web3.eth.getAccounts();
+  const accounts = await bre.ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(account);
+    console.log(await account.getAddress());
   }
 });
 
@@ -119,15 +119,15 @@ export default config;
 
 ## Plugin type extensions
 
-Some Buidler plugins, like [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5) and [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), add new properties to the [Buidler Runtime Environment]. To keep everything type-safe and make using them with TypeScript possible, they provide type extension files.
+Some Buidler plugins, like [buidler-waffle](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle) and [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers), add new properties to the [Buidler Runtime Environment]. To keep everything type-safe and make using them with TypeScript possible, they provide type extension files.
 
 For these to be taken into account, you'll need to add the type extension files to the `files` field in your `tsconfig.json`, like this:
 
 ```json
 "files": [
   "./buidler.config.ts",
-  "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts",
-  "./node_modules/@nomiclabs/buidler-truffle5/src/type-extensions.d.ts"
+  "./node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts",
+  "./node_modules/@nomiclabs/buidler-waffle/src/type-extensions.d.ts"
 ]
 ```
 
@@ -135,20 +135,20 @@ Plugins that include type extensions should have documentation detailing their e
 
 ## Writing tests and scripts
 
-To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5), [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) or [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment].
+To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers) or [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment].
 
 When using JavaScript, all the properties in the BRE are injected into the global scope, and are also available by getting the BRE explicitly. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly.
 
 An example for tests:
 
 ```typescript
-import { web3 } from "@nomiclabs/buidler";
+import { ethers } from "@nomiclabs/buidler";
 
 describe("Token", function() {
   let accounts: string[];
 
   beforeEach(async function() {
-    accounts = await web3.eth.getAccounts();
+    accounts = await ethers.eth.getSigners();
   });
 
   it("should do something right", async function() {
@@ -161,12 +161,12 @@ describe("Token", function() {
 An example for scripts:
 
 ```typescript
-import { run, web3 } from "@nomiclabs/buidler";
+import { run, ethers } from "@nomiclabs/buidler";
 
 async function main() {
   await run("compile");
 
-  const accounts = await web3.eth.getAccounts();
+  const accounts = await ethers.eth.getSigners();
 
   console.log("Accounts:", accounts);
 }
