@@ -1,6 +1,5 @@
 import "@nomiclabs/buidler/types";
 import ethers from "ethers";
-import { JsonRpcProvider } from "ethers/providers";
 
 declare module "@nomiclabs/buidler/types" {
   function getContractFactory(
@@ -9,13 +8,13 @@ declare module "@nomiclabs/buidler/types" {
   ): Promise<ethers.ContractFactory>;
   function getContractFactory(
     abi: any[],
-    bytecode: ethers.utils.Arrayish | string,
+    bytecode: ethers.utils.BytesLike | string,
     signer?: ethers.Signer
   ): Promise<ethers.ContractFactory>;
 
   interface BuidlerRuntimeEnvironment {
     ethers: {
-      provider: JsonRpcProvider;
+      provider: ethers.providers.JsonRpcProvider;
 
       getContractFactory: typeof getContractFactory;
       getContractAt: (
@@ -40,7 +39,6 @@ declare module "@nomiclabs/buidler/types" {
       providers: typeof ethers.providers;
       utils: typeof ethers.utils;
       wordlists: typeof ethers.wordlists;
-      platform: typeof ethers.platform;
       version: typeof ethers.version;
       getDefaultProvider: typeof ethers.getDefaultProvider;
     };
