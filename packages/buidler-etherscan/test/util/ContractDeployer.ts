@@ -1,9 +1,8 @@
 // tslint:disable: no-implicit-dependencies
 import { ethers } from "ethers";
-import providers from "ethers/providers";
 
 class ContractDeployer {
-  private _provider: providers.BaseProvider;
+  private _provider: ethers.providers.BaseProvider;
 
   private _wallet: ethers.Wallet;
 

@@ -44,7 +44,7 @@ These helpers are added to the `ethers` object:
 ```typescript
 function getContractFactory(name: string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
-function getContractFactory(abi: any[], bytecode: ethers.utils.Arrayish | string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
+function getContractFactory(abi: any[], bytecode: ethers.utils.BytesLike | string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
 function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 
