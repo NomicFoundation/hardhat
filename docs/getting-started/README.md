@@ -14,13 +14,17 @@ Tasks can call other tasks, allowing complex workflows to be defined. Users and 
 
 The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
 
-    npm install --save-dev @nomiclabs/buidler
+```
+npm install --save-dev @nomiclabs/buidler
+```
 
 ### Global installation
 
 Be careful about inconsistent behavior across different projects that use different Buidler versions.
 
-    npm install --global @nomiclabs/buidler
+```
+npm install --global @nomiclabs/buidler
+```
     
 If you choose to install Buidler globally, you have to do the same for its plugins and their dependencies.
 
@@ -133,7 +137,7 @@ Next, if you take a look at `contracts/`, you should be able to find `Greeter.
 
 To compile it, simply run:
 
-```bash
+```
 npx buidler compile
 ```
 
@@ -148,7 +152,7 @@ You can run your tests with `npx buidler test`
 ```
 $ npx buidler test
 Compiling...
-Compiled 1 contract successfully
+Compiled 2 contracts successfully
 
 
   Contract: Greeter

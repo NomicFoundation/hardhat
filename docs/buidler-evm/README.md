@@ -24,7 +24,7 @@ Buidler comes built-in with Buidler EVM, a local Ethereum network designed for d
 
 Buidler EVM can be run as a server or testing node. To do this, you just need to run
 
-```sh
+```
 npx buidler node
 ```
 
@@ -125,7 +125,7 @@ you develop and debug smart contracts.
 
 For example, a successful transaction and a failed call would look like this:
 
-```sh
+```
 eth_sendTransaction
   Contract deployment: Greeter
   Contract address: 0x8858eeb3dfffa017d4bce9801d340d36cf895ccf
@@ -155,7 +155,7 @@ the in-process Buidler EVM provider. See [Buidler EVM's config](../config/README
 Buidler EVM is initialized by default in this state:
 
 - A brand new blockchain, just with the genesis block.
-- 20 accounts with 10.000 ETH each
+- 20 accounts with 10000 ETH each
   - `0xc783df8a850f42e7f7e57013759c285caa701eb6`
   - `0xead9c93b79ae7c1591b1fb5323bd777e86e150d4`
   - `0xe5904695748fe4a84b40b3fc79de2277660bd1d3`

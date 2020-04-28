@@ -54,8 +54,21 @@ We work on the branch [`development`](https://github.com/nomiclabs/buidler/tree/
 and keep `master` in sync with the latest release.
 
 Please, branch from `development` when implementing a new feature or fixing a 
-bug, and use it as the base branch in every pull request.
+bug, and use it as the base branch in pull requests.
 
+### Website and documentation branching
+
+If you are modifying the default config, adding a feature, or doing any kind of
+technical work that should be reflected in the documentation, the documentation
+change should be contained in the same branch and PR than the change.
+
+If you are working purely on the website or documentation, not as a result of
+a technical change, you should branch from [`website`](https://github.com/nomiclabs/buidler/tree/website)
+and use it as the base branch in your pull request. Anything merged into 
+`website` this way should also be merged into `development`.
+
+Note that the `website` branch is automatically deployed, so take care when 
+merging into it.
 
 ## Dependencies
 

@@ -47,7 +47,7 @@ export async function getVerificationStatus(
       })
     );
     if (response.isPending()) {
-      await delay(1000);
+      await delay(3000);
 
       return getVerificationStatus(url, guid);
     }

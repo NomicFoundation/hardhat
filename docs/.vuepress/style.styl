@@ -253,22 +253,23 @@ h3.how
   
   .plugin
     min-height 97px
-    padding 15px 0 15px
+    padding 45px 0 15px
     border-bottom 1px solid rgba(44, 62, 79, 0.15)
-
-    > div:nth-child(1)
-      position: relative
-      color #F7A843
       
-    span a, .version
-      font-weight 700
-      text-decoration none !important
-    .name
+    .name a
       font-size 1.2em
+      font-weight bold
+      text-decoration none !important
       
-    small 
-      display: block
-      color: #666
+    .separator
+      padding 0 8px
+      color $lightGrey
+      
+    .author a 
+      font-size 1em
+      color $lightGrey
+      &:hover 
+        color $darkYellow
 
     .version
       font-size 0.9em
@@ -284,8 +285,8 @@ h3.how
       background-color #F3F4F4
       border-radius 6px
       display inline-flex
-      padding 4px 8px
-      font-size 0.85em
+      padding 6px 16px
+      font-size 0.80em
       margin 0 8px 15px 0
 
 @media (max-width: $MQMobileNarrow)
