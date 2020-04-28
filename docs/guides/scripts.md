@@ -50,7 +50,7 @@ $ node scripts/sample-script.js
 Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-By accessing the [Buidler Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `bre.run('compile')`. Comment the following line out and re-run the script with `node`:
+By accessing the [Buidler Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `bre.run('compile')`. Uncomment the following line out and re-run the script with `node`:
 
 ```js
 await bre.run("compile");
