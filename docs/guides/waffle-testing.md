@@ -211,7 +211,13 @@ const provider = createMockProvider();
 const provider = new MockProvider();
 ```
 
-This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and you'll be set. Run your tests with `npx buidler test` and you should get stack traces when a transaction fails.
+This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and use the plugin's provider like this
+
+```js
+const provider = waffle.provider;
+```
+
+Run your tests with `npx buidler test` and you should get stack traces when a transaction fails.
 
 [buidler evm]: ../buidler-evm/README.md
 
