@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-waffle",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Buidler plugin to test smart contracts with Waffle",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
   "repository": "github:nomiclabs/buidler",
@@ -32,8 +32,8 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.3.0",
-    "@nomiclabs/buidler-ethers": "^1.3.0",
+    "@nomiclabs/buidler": "^1.3.1",
+    "@nomiclabs/buidler-ethers": "^1.3.1",
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
@@ -41,8 +41,8 @@
     "ethers": "^5.0.0-beta.183"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.3.0",
-    "@nomiclabs/buidler-ethers": "^1.3.0",
+    "@nomiclabs/buidler": "^1.3.1",
+    "@nomiclabs/buidler-ethers": "^1.3.1",
     "ethers": "^5.0.0-beta.183",
     "ethereum-waffle": "^2.3.0"
   },

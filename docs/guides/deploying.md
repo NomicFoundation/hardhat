@@ -7,16 +7,17 @@ with some ideas and we'd value your opinion on how to best design it.
 
 In the meantime, we recommend deploying your smart contracts using
 scripts. You can deploy the `Greeter` contract from the sample project
-by creating a file `scripts/deploy.js` with these contents
+with the deploy script `scripts/sample-script.js`:
 
 ```js
-// This script uses @nomiclabs/buidler-truffle5
-const Greeter = artifacts.require("Greeter");
-
 async function main() {
-  const greeter = await Greeter.new("Hello, world!");
+  // We get the contract to deploy
+  const Greeter = await ethers.getContractFactory("Greeter");
+  const greeter = await Greeter.deploy("Hello, Buidler!");
 
-  console.log("Greeter address:", greeter.address);
+  await greeter.deployed();
+
+  console.log("Greeter deployed to:", greeter.address);
 }
 
 main()
@@ -29,8 +30,8 @@ main()
 
 You can run it with
 
-```sh
-npx buidler run --network your-network scripts/deploy.js
+```
+npx buidler run --network <your-network> scripts/sample-script.js
 ```
 
 ### Truffle migrations support
