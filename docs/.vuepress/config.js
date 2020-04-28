@@ -1,4 +1,4 @@
-const defaultSlugify = require("vuepress/lib/markdown/slugify");
+const defaultSlugify = require("@vuepress/shared-utils/lib/slugify");
 const plugins = require("./plugins.js");
 const pluginsChildren = [];
 
@@ -13,8 +13,6 @@ module.exports = {
   title: "Buidler",
   description:
     "Buidler is a task runner for Ethereum smart contract developers.",
-  serviceWorker: false,
-  ga: "UA-117668706-2",
   themeConfig: {
     logo: "/logo.svg",
     nav: [
@@ -62,11 +60,11 @@ module.exports = {
           collapsable: false,
           depth: 1,
           children: [
-            ["/guides/truffle-migration.md", "Migrating from Truffle", 0],
             ["/guides/project-setup.md", "Setting up a project", 0],
             ["/guides/compile-contracts.md", "Compiling your contracts", 0],
-            ["/guides/truffle-testing.md", "Testing with Web3.js & Truffle", 0],
             ["/guides/waffle-testing.md", "Testing with ethers.js & Waffle", 0],
+            ["/guides/truffle-testing.md", "Testing with Web3.js & Truffle", 0],
+            ["/guides/truffle-migration.md", "Migrating from Truffle", 0],
             ["/guides/deploying.md", "Deploying your contracts", 0],
             ["/guides/scripts.md", "Writing scripts", 0],
             ["/guides/buidler-console.md", "Using the Buidler console", 0],
@@ -216,5 +214,15 @@ module.exports = {
 
       return defaultSlugify(title);
     }
-  }
+  },
+  plugins: [
+    ['@vuepress/google-analytics', { ga: "UA-117668706-2" }],
+    ['vuepress-plugin-container', {
+      type: 'tip',
+      defaultTitle: {
+        '/': 'TIP',
+        '/zh/': '提示',
+      },
+    }]
+  ]
 };

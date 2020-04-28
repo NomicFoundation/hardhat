@@ -32,7 +32,7 @@ If you select _Create a sample project_ a simple project creation wizard will as
 ```
 contracts/
 scripts/
-tests/
+test/
 buidler.config.js
 ```
 
@@ -59,17 +59,17 @@ You may have seen this notice when creating the sample project:
 
 ```
 You need to install these dependencies to run the sample project:
-  npm install --save-dev web3 @nomiclabs/buidler-web3 @nomiclabs/buidler-truffle5
+  npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers
 ```
 
 This stems from the fact that **most of Buidler's functionality comes from plugins**, so check out the [plugins section](../plugins/README.md) for the official list and see if there are any other ones that look interesting.
 
-The sample project uses the `@nomiclabs/buidler-truffle5` plugin, which depends on the `@nomiclabs/buidler-web3` plugin. These integrate the Web3.js and Truffle tools into your project. 
+The sample project uses the `@nomiclabs/buidler-waffle` plugin, which depends on the `@nomiclabs/buidler-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project. 
 
 To use a plugin, the first step is always to install it using `npm` or `yarn`, and then adding a call to `usePlugin(<npm package name>)` in your config file, like this:
 
 ```js
-usePlugin("@nomiclabs/buidler-truffle5");
+usePlugin("@nomiclabs/buidler-waffle");
 
 module.exports = {};
 ```
