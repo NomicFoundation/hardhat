@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/common",
-  "version": "1.3.0",
+  "version": "0.0.1",
   "description": "Common logic and utilities to use throughout the project",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle4",
   "repository": "github:nomiclabs/buidler",
