@@ -13,8 +13,7 @@ as global variables.
 
 These scripts must be run through Buidler: `npx buidler run script.js`. 
 
-This makes it easy to port scripts that were developed for Truffle, which follows this approach,
-by using the [buidler-truffle5](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5). 
+This makes it easy to port scripts that were developed for other tools that inject variables into the global state. 
 
 ## Standalone scripts: using Buidler as a library
 
@@ -40,44 +39,27 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 scripts
 drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 ```
 
-Inside `scripts/` you will find `sample-script.js`:
-```js
-const bre = require("@nomiclabs/buidler");
+Inside `scripts/` you will find `sample-script.js`. Read through its comments to have a better idea of what it does.
 
-async function main() {
-  // You can run Buidler tasks from a script.
-  // For example, we make sure everything is compiled by running "compile"
-  await bre.run("compile");
+<<< @/../packages/buidler-core/sample-project/scripts/sample-script.js
 
-  // We require the artifacts once our contracts are compiled
-  const Greeter = bre.artifacts.require("Greeter");
-  const greeter = await Greeter.new("Hello, world!");
+Done? Let's run the script with `node`:
 
-  console.log("Greeter address:", greeter.address);
-}
-
-main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+```
+$ node scripts/sample-script.js
+Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-And there you can see how the [Buidler Runtime Environment] is accessed at the top, which makes this script work in a standalone fashion:
+By accessing the [Buidler Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `bre.run('compile')`. Uncomment the following line out and re-run the script with `node`:
+
+```js
+await bre.run("compile");
+```
 
 ```
 $ node scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
-Greeter address: 0x494d39079b81c620c0ebea503b9295331bfc34c2
-```
-
-But the script can also run through Buidler:
-
-```
-$ npx buidler run scripts/sample-script.js
-All contracts have already been compiled, skipping compilation.
-Greeter address: 0x494d39079b81c620c0ebea503b9295331bfc34c2
+Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
 ### Buidler arguments

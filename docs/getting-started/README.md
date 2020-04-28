@@ -55,15 +55,13 @@ $ npx buidler
   Quit
 ```
 
-Let’s create the sample project and go through the steps to try out the sample task and compile, test and deploy the sample contract.
+Let’s create the sample project and go through the steps to try out the sample task and compile, test and deploy the sample contract. 
 
-The sample project uses the `buidler-truffle5`, which makes Buidler compatible with
-tests built for Truffle. You can learn more about it [in this guide](../guides/truffle-testing.md). 
-For now, all you need to know is that you may need to install some dependencies with
- 
-```
-npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
-```
+The sample project will ask you to install `buidler-waffle` and `buidler-ethers`, which makes Buidler compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
+
+::: tip
+Buidler will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
+:::
 
 ### Running tasks
 
@@ -103,21 +101,7 @@ This is the list of built-in tasks, and the sample `accounts` task. Further ahea
 
 If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
 
-```js{5-11}
-usePlugin("@nomiclabs/buidler-truffle5");
-
-// This is a sample Buidler task. To learn how to create your own go to
-// https://buidler.dev/guides/create-task.html
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await web3.eth.getAccounts();
-
-  for (const account of accounts) {
-    console.log(account);
-  }
-});
-
-module.exports = {};
-```
+<<< @/../packages/buidler-core/sample-project/buidler.config.js{5-11}
 
 To run it, try `npx buidler accounts`:
 
@@ -149,32 +133,7 @@ $ npx buidler accounts
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
 
-```solidity
-pragma solidity ^0.5.1;
-
-import "@nomiclabs/buidler/console.sol";
-
-contract Greeter {
-
-    string greeting;
-
-    constructor(string memory _greeting) public {
-        console.log("Deploying a Greeter with greeting:", _greeting);
-        greeting = _greeting;
-    }
-
-    function greet() public view returns (string memory) {
-        return greeting;
-    }
-
-    function setGreeting(string memory _greeting) public {
-        console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
-        greeting = _greeting;
-    }
-
-}
-
-```
+<<< @/../packages/buidler-core/sample-project/contracts/Greeter.sol
 
 To compile it, simply run:
 
@@ -184,24 +143,9 @@ npx buidler compile
 
 ### Testing your contracts
 
-The sample project comes with these tests that use [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) and 
-[Web3.js](https://github.com/ethereum/web3.js). You can use other libraries if you want, check the integrations described in our guides.
+The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want, check the integrations described in our guides.
 
-```js
-const Greeter = artifacts.require("Greeter");
-
-// Traditional Truffle test
-contract("Greeter", accounts => {
-  it("Should return the new greeting once it's changed", async function() {
-    const greeter = await Greeter.new("Hello, world!");
-    assert.equal(await greeter.greet(), "Hello, world!");
-
-    await greeter.setGreeting("Hola, mundo!");
-
-    assert.equal(await greeter.greet(), "Hola, mundo!");
-  });
-});
-```
+<<< @/../packages/buidler-core/sample-project/test/sample-test.js
 
 You can run your tests with `npx buidler test`
 
@@ -212,48 +156,26 @@ Compiled 2 contracts successfully
 
 
   Contract: Greeter
-Deploying a Greeter with greeting: Hello, world!
-Changing greeting from 'Hello, world!' to 'Hola, mundo!'
-    ✓ Should return the new greeting once it's changed (344ms)
+    ✓ Should return the new greeting once it's changed (762ms)
 
-  Greeter contract
-    Deployment
-Deploying a Greeter with greeting: Hello, world!
-Deploying a Greeter with greeting: Hola, mundo!
-      ✓ Should deploy with the right greeting (82ms)
-
-
-  2 passing (434ms)
-
+  1 passing (762ms)
 ```
 
 ### Deploying your contracts
 
-Next, to deploy the contract we will use a Buidler script. 
-Create a file `deploy.js` in `scripts/` with the following code:
+Next, to deploy the contract we will use a Buidler script.
+Inside `scripts/` you will find `sample-script.js` with the following code:
 
-```js
-async function main() {
-  const Greeter = artifacts.require("Greeter");
+<<< @/../packages/buidler-core/sample-project/scripts/sample-script.js
 
-  const greeter = await Greeter.new("Hello, Buidler!");
-  console.log("Greeter deployed to:", greeter.address);
-}
+Run it with `npx buidler run scripts/sample-script.js`:
 
-main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
-```
-And run it with `npx buidler run scripts/deploy.js`:
 ```
 $ npx buidler run scripts/deploy.js
 All contracts have already been compiled, skipping compilation.
-Greeter deployed to: 0x080f632fB4211CFc19d1E795F3f3109f221D44C9
+Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Truffle integration plugin, wrote and ran a test using the Truffle plugin, and deployed a contract.
+Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).

@@ -19,7 +19,7 @@ To force a compilation you can use the `--force` argument, or run `npx buidler c
 
 ## Artifacts
  
-Compiling with Buidler generates one JSON artifact per contract. These are based on Truffle's artifact format, and are compatible with most tools. 
+Compiling with Buidler generates one JSON artifact per contract. These are compatible with most tools, including Truffle's artifact format. 
 
 Each artifact consists of a json with the following properties:
 
@@ -72,10 +72,7 @@ module.exports = {
 
 Set your `buidler.config.js` to the following contents:
 ```js
-// assuming you're running Truffle 5 tests.
-// There's also buidler-truffle4 if your tests are written for the Truffle 4 API.
-// You can use either of them with both versions of Solidity.
-usePlugin("@nomiclabs/buidler-truffle5");
+usePlugin("@nomiclabs/buidler-waffle");
 
 module.exports = {
   paths: {

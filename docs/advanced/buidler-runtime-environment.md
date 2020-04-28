@@ -14,7 +14,7 @@ The BRE has a role of centralizing coordination across all Buidler components. T
 
 By default, the BRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider. You can find more information about [it in its API docs](/api/classes/environment.html).
 
-Plugins can extend the BRE. For example, [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) adds a Web3.js instance to it, making it available to tasks, tests and scripts.
+Plugins can extend the BRE. For example, [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers) adds a Ethers.js instance to it, making it available to tasks, tests and scripts.
 
 ### As global variables
 
@@ -27,28 +27,6 @@ Not everyone likes magic global variables, and Buidler doesn't force you to use 
 When writing tests or scripts, you can use `require("@nomiclabs/buidler")` to import the BRE. You can read more about this in [Accessing the BRE from outside a task](#accessing-the-bre-from-outside-a-task).
 
 You can import the config DSL explicitly when defining your tasks, and receive the BRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](#creating-your-own-tasks).
-
-## Extending the BRE
-
-The BRE only provides the core functionality that users and plugin developers need to start building on top of Buidler. Using it to interface directly with Ethereum in your project can be somewhat harder than expected.
-
-Everything gets easier when you use higher-level libraries, like [Web3.js](https://web3js.readthedocs.io/en/latest/) or [@truffle/contract](https://www.npmjs.com/package/@truffle/contract), but these libraries need some initialization to work, and that could get repetitive.
-
-Buidler lets you hook into the BRE construction, and extend it with new functionality. This way, you only have to initialize everything once, and your new features or libraries will be available everywhere the BRE is used.
-
-You can do this by adding a BRE extender into a queue. This extender is just a synchronous function that receives the BRE, and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
-
-For example, adding an instance of Web3.js to the BRE can be done in this way:
-
-```js
-extendEnvironment(bre => {
-  const Web3 = require("web3");
-  bre.Web3 = Web3;
-
-  // bre.network.provider is an EIP1193-compatible provider.
-  bre.web3 = new Web3(new Web3HTTPProviderAdapter(bre.network.provider));
-});
-```
 
 ## Accessing the BRE from outside a task
 
@@ -68,3 +46,25 @@ describe("Buidler Runtime Environment", function() {
 ```
 
 This way, tests written for Buidler are just normal Mocha tests. This enables you to run them from your favorite editor without the need of any Buidler-specific plugin. For example, you can [run them from Visual Studio Code using Mocha Test Explorer](../guides/vscode-tests.md).
+
+## Extending the BRE
+
+The BRE only provides the core functionality that users and plugin developers need to start building on top of Buidler. Using it to interface directly with Ethereum in your project can be somewhat harder than expected.
+
+Everything gets easier when you use higher-level libraries, like [Ethers.js](https://docs.ethers.io/ethers.js/html/) or [ethereum-waffle](https://www.npmjs.com/package/ethereum-waffle), but these libraries need some initialization to work, and that could get repetitive.
+
+Buidler lets you hook into the BRE construction, and extend it with new functionality. This way, you only have to initialize everything once, and your new features or libraries will be available everywhere the BRE is used.
+
+You can do this by adding a BRE extender into a queue. This extender is just a synchronous function that receives the BRE, and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
+
+For example, adding an instance of [Web3.js](https://web3js.readthedocs.io/en/latest/) to the BRE can be done in this way:
+
+```js
+extendEnvironment(bre => {
+  const Web3 = require("web3");
+  bre.Web3 = Web3;
+
+  // bre.network.provider is an EIP1193-compatible provider.
+  bre.web3 = new Web3(new Web3HTTPProviderAdapter(bre.network.provider));
+});
+```
