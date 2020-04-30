@@ -142,12 +142,17 @@ h3.how
     margin-bottom 2.5rem
 
 .users
-  margin: 0 auto
-  max-width: 500px
+  text-align center
 
-.users .logo
-  display: inline-block
-  margin-right: 40px
+  .logo
+    display inline-block
+    width 32%
+    margin-bottom 20px
+    padding 0
+    @media (max-width: $MQMobile)
+      display block
+      width 100%
+      margin-bottom 0
   
 .notFixed
   position relative !important
@@ -166,7 +171,8 @@ h3.how
 .navbar .icon.outbound
       display none !important
   
-@media (max-width: $MQNarrow) and (min-width: $MQMobile)
+  @media (max-width: $MQMobile)
+
   .copy img.mascots
     max-height 245px
     right 2em
@@ -236,16 +242,7 @@ h3.how
   .example-1, .example-2, .example-3, .example-4
     float: none;
     width: 100%
-
-  .users
-    text-align: center
-
-    .logo
-      display block !important
-      padding-bottom: 2rem
-      margin 0 !important
-      text-align center
-
+    
   .used-by
     margin-bottom: 100px
 

@@ -47,24 +47,48 @@
             to="/getting-started/"
           >Get Started</router-link>
       </div>
-
-
-<!--       <p
-        style="text-align: center;font-style: italic;margin-top: 100px;color: rgb(189, 189, 189);"
-      >
-        Some of the plugins shown above are currently under development.
-      </p> -->
-
       <div class="usedby">
-        <h3>Used By</h3>
+        <h3>Who's using Buidler?</h3>
         <div class="users">
           <div class="logo">
-            <a href="https://github.com/decentraland/gate"
-              ><img src="/decentraland.svg" alt="decentraland"
-            /></a>
+            <a href="https://kyber.network/" target="_blank">
+              <img src="/users/kyber-logo.png" alt="Kyber" />
+            </a>
           </div>
           <div class="logo">
-            <a href="https://spankchain.com/"><img src="/spankchain.svg" alt="spankchain"/></a>
+            <a href="https://www.synthetix.io/" target="_blank">
+              <img src="/users/synthetix-logo.png" alt="Synthetix" />
+            </a>
+          </div>
+          <div class="logo">
+            <a href="https://aave.com/" target="_blank">
+              <img src="/users/aave-logo.png" alt="AAVE" />
+            </a>
+          </div>
+          <div class="logo">
+            <a href="https://aragon.one/" target="_blank">
+              <img src="/users/aone-logo.png" alt="Aragon One" />
+            </a>
+          </div>
+          <div class="logo">
+            <a href="https://connext.network/" target="_blank">
+              <img src="/users/connext-logo.png" alt="Connext" />
+            </a>
+          </div>
+          <div class="logo">
+            <a href="https://www.celer.network/" target="_blank">
+              <img src="/users/celer-logo.png" alt="Celer" />
+            </a>
+          </div>
+          <div class="logo">
+            <a href="https://decentraland.org/" target="_blank">
+              <img src="/users/decentraland-logo.png" alt="Decentraland" />
+            </a>
+          </div>
+          <div class="logo">
+            <a href="https://skale.network/" target="_blank">
+              <img src="/users/skale-logo.png" alt="Skale" />
+            </a>
           </div>
         </div>
       </div>
