@@ -16,6 +16,7 @@
   },
   "private": true,
   "dependencies": {
-    "@vuepress/plugin-google-analytics": "^1.4.1"
+    "@vuepress/plugin-google-analytics": "^1.4.1",
+    "vue-concise-slider": "^3.4.4"
   }
 }

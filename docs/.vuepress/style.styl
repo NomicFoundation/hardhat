@@ -134,8 +134,7 @@ h3.how
   margin-top: 106px
 
 .usedby
-  margin: 100px 0
-
+  margin: 100px 0 0
   h3
     font-size: 1.5rem
     text-align: center
@@ -359,3 +358,158 @@ h3.how
     from { opacity: 0; }
     to   { opacity: 1; }
 }
+
+
+.slider-pagination-bullet.slider-pagination-bullet-active
+    background $darkYellow !important
+    
+.testimonial-slider
+  width 100%
+  height 420px
+  margin-top 60px
+
+.testimonial
+  clear both
+  overflow hidden
+  zoom 1
+  color black
+  font-size 19px
+  .testimonial-left
+    float left
+    width 30%
+    margin-left 5%
+    margin 0
+    padding 0
+    text-align center
+    padding-top 20px
+    height 400px
+    position relative
+    background transparent linear-gradient(-90deg, #F2F4F4 0%, #FFFFFF 100%) 0% 0% no-repeat padding-box;
+    &:after
+      left 100%
+      top 50%
+      border solid transparent
+      content " "
+      height 0
+      width 0
+      position absolute
+      pointer-events none
+      border-color rgba(242, 244, 244, 0)
+      border-left-color #F2F4F4
+      border-width 13px
+      margin-top -13px
+    .author-img 
+      width 100px
+      height 100px
+      border-radius 50%
+      border 1px solid $darkYellow
+      padding 5px
+      margin-bottom 20px
+    .author-name
+      font-weight bold
+      display block
+      margin-bottom 10px
+      font-size 0.8em
+    .author-role
+      display block
+      margin-bottom 20px
+      font-size 0.7em
+  .testimonial-right
+    float right
+    width 65%
+    margin 0
+    padding 0
+    p 
+      white-space normal
+      font-size 0.9em
+      text-align left
+      line-height 2em
+      color $grey
+      font Light 1em/1.8px Roboto 
+      img 
+        vertical-align top
+        width 15px
+        display inline-block
+        padding 0 6px
+
+@media (max-width: $MQMobile)
+  .testimonial-slider
+    width 100%
+    height auto
+  .testimonial
+    .testimonial-left
+      float none
+      width 100%
+      margin 0 0 30px
+      height 120px
+      padding-bottom 20px
+      clear both
+      zoom 1
+      background transparent linear-gradient(0deg, #F2F4F4 0%, #FFFFFF 100%) 0% 0% no-repeat padding-box;
+      &:after
+        top: 100%;
+        left: 50%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+        border-color: rgba(242, 244, 244, 0);
+        border-top-color: #F2F4F4;
+        border-width: 27px;
+        margin-left: -27px
+      .testimonial-img
+        float left
+        width 40%
+      .testimonial-data
+        width 55%
+        padding-top 10px
+        float right
+        text-align left
+        padding-left 5%
+    .testimonial-right
+      float none
+      width 100%
+      p 
+        font-size 0.8em
+
+.home     
+  .footer
+    border 2px solid #F2F4F4
+    position relative
+    margin-top 150px
+    padding-top 70px
+    padding-bottom 20px
+    .ef
+      width 900px
+      margin-left -450px
+      background #F2F4F4
+      position absolute
+      top -55px
+      left 50%
+      height 70px
+      padding 20px 0
+      z-index 3
+      span 
+        font-size 1.6em
+        display inline-block
+        line-height 3em
+        vertical-align top
+        padding-right 20px
+        
+@media (max-width: $MQMobile)
+  .home
+    .footer
+      .ef
+        width 300px
+        margin-left -150px
+        img 
+          width 150px        
+        span
+          display block
+          font-size 0.9em
+          line-height 1.8em
+          padding 0
+          
+    
