@@ -1,5 +1,5 @@
-@import "./theme/styles/colors.styl"
-@import "./theme/styles/config.styl"
+@import "colors.styl"
+@import "config.styl"
 
 .cta
   position: absolute;
@@ -360,8 +360,8 @@ h3.how
 }
 
 
-.slider-pagination-bullet.slider-pagination-bullet-active
-    background $darkYellow !important
+.VueCarousel-dot.VueCarousel-dot--active
+    background-color $darkYellow !important
     
 .testimonial-slider
   width 100%
@@ -384,7 +384,7 @@ h3.how
     padding-top 20px
     height 400px
     position relative
-    background transparent linear-gradient(-90deg, #F2F4F4 0%, #FFFFFF 100%) 0% 0% no-repeat padding-box;
+    background transparent linear-gradient(-90deg, #F2F4F4 0%, #FFFFFF 32px) 0% 0% no-repeat padding-box
     &:after
       left 100%
       top 50%
