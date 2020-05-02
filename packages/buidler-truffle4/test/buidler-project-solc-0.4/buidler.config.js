@@ -5,10 +5,10 @@ module.exports = {
   networks: {
     withoutAccounts: {
       url: "http://localhost:8545",
-      accounts: []
-    }
+      accounts: [],
+    },
   },
   solc: {
-    version: "0.4.25"
-  }
+    version: "0.4.25",
+  },
 };

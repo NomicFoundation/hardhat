@@ -45,7 +45,7 @@ export class Analytics {
       projectId: getProjectId(rootPath),
       clientId: await getClientId(),
       enabled,
-      userType: getUserType()
+      userType: getUserType(),
     });
 
     return analytics;
@@ -62,7 +62,7 @@ export class Analytics {
     projectId,
     clientId,
     enabled,
-    userType
+    userType,
   }: {
     projectId: string;
     clientId: string;
@@ -154,7 +154,7 @@ export class Analytics {
       cd2: this._userType,
       // Custom dimension 3: Buidler Version
       //   Example: "Buidler 1.0.0".
-      cd3: await getBuidlerVersion()
+      cd3: await getBuidlerVersion(),
     };
   }
 
@@ -176,7 +176,7 @@ export class Analytics {
     const hitPromise = fetch(googleAnalyticsUrl, {
       body: hitPayload,
       method: "POST",
-      signal: controller.signal
+      signal: controller.signal,
     })
       .then(() => {
         log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
@@ -230,8 +230,8 @@ async function getClientId() {
       globalBuidlerConfigFile,
       JSON.stringify({
         analytics: {
-          clientId
-        }
+          clientId,
+        },
       }),
       "utf-8"
     );

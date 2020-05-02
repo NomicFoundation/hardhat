@@ -5,14 +5,14 @@ import { GanacheService } from "../src/ganache-service";
 
 import { useEnvironment } from "./helpers";
 
-describe("Ganache plugin with empty configs", function() {
+describe("Ganache plugin with empty configs", function () {
   useEnvironment(path.join(__dirname, "buidler-project"));
 
-  it("Should add ganache network to the config", function() {
+  it("Should add ganache network to the config", function () {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it("Should expose ganache defaults configs in buidler's config", function() {
+  it("Should expose ganache defaults configs in buidler's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const defaultOptions = GanacheService.getDefaultOptions() as any;
     const options = this.env.config.networks.ganache as any;
@@ -23,37 +23,37 @@ describe("Ganache plugin with empty configs", function() {
     }
   });
 
-  it("Should run Buidler TEST task using Ganache", async function() {
+  it("Should run Buidler TEST task using Ganache", async function () {
     await this.env.run("test", { noCompile: true, testFiles: [] });
   });
 
-  it("Should run Buidler RUN task 'accounts-sample.js' using Ganache", async function() {
+  it("Should run Buidler RUN task 'accounts-sample.js' using Ganache", async function () {
     await this.env.run("run", {
       noCompile: true,
-      script: "scripts/accounts-sample.js"
+      script: "scripts/accounts-sample.js",
     });
 
     assert.equal(process.exitCode, 0);
   });
 
-  it("Should run Buidler RUN task 'delayed-sample.js' using Ganache", async function() {
+  it("Should run Buidler RUN task 'delayed-sample.js' using Ganache", async function () {
     await this.env.run("run", {
       noCompile: true,
-      script: "scripts/delayed-sample.js"
+      script: "scripts/delayed-sample.js",
     });
 
     assert.equal(process.exitCode, 0);
   });
 });
 
-describe("Ganache plugin with custom configs", function() {
+describe("Ganache plugin with custom configs", function () {
   useEnvironment(path.join(__dirname, "buidler-project-with-configs"));
 
-  it("Should add ganache network to buidler's config", function() {
+  it("Should add ganache network to buidler's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it("Should load custom configs in buidler's config'", function() {
+  it("Should load custom configs in buidler's config'", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs = require("./buidler-project-with-configs/buidler.config.js");
 
@@ -68,7 +68,7 @@ describe("Ganache plugin with custom configs", function() {
     }
   });
 
-  it("Should expose merged (custom + defaults) configs in buidler's config", function() {
+  it("Should expose merged (custom + defaults) configs in buidler's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs = require("./buidler-project-with-configs/buidler.config.js");
     const defaultOptions = GanacheService.getDefaultOptions() as any;
@@ -85,10 +85,10 @@ describe("Ganache plugin with custom configs", function() {
     }
   });
 
-  it("Should run Buidler RUN task using Ganache with custom configs", async function() {
+  it("Should run Buidler RUN task using Ganache with custom configs", async function () {
     await this.env.run("run", {
       noCompile: true,
-      script: "scripts/custom-accounts-sample.js"
+      script: "scripts/custom-accounts-sample.js",
     });
 
     assert.equal(process.exitCode, 0);

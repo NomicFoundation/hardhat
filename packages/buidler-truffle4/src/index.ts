@@ -1,18 +1,18 @@
 import {
   TASK_COMPILE_GET_SOURCE_PATHS,
-  TASK_TEST_SETUP_TEST_ENVIRONMENT
+  TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import {
   extendEnvironment,
   internalTask,
-  usePlugin
+  usePlugin,
 } from "@nomiclabs/buidler/config";
 import { glob } from "@nomiclabs/buidler/internal/util/glob";
 import {
   BUIDLEREVM_NETWORK_NAME,
   BuidlerPluginError,
   lazyFunction,
-  lazyObject
+  lazyObject,
 } from "@nomiclabs/buidler/plugins";
 import { BuidlerNetworkConfig } from "@nomiclabs/buidler/types";
 import { join } from "path";
@@ -21,17 +21,17 @@ import { TruffleEnvironmentArtifacts } from "./artifacts";
 import {
   getTruffleFixtureFunction,
   hasMigrations,
-  hasTruffleFixture
+  hasTruffleFixture,
 } from "./fixture";
 import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 
-export default function() {
+export default function () {
   usePlugin("@nomiclabs/buidler-web3-legacy");
 
   let accounts: string[] | undefined;
 
-  extendEnvironment(env => {
+  extendEnvironment((env) => {
     accounts = undefined;
 
     env.artifacts = lazyObject(() => {
@@ -61,7 +61,7 @@ export default function() {
             BuidlerNetworkConfig
           >;
 
-          accounts = netConfig.accounts.map(acc =>
+          accounts = netConfig.accounts.map((acc) =>
             bufferToHex(privateToAddress(acc.privateKey))
           );
         }
@@ -72,7 +72,7 @@ export default function() {
       }
 
       describe(`Contract: ${description}`, () => {
-        before("Running truffle fixture if available", async function() {
+        before("Running truffle fixture if available", async function () {
           await env.run(RUN_TRUFFLE_FIXTURE_TASK);
         });
 

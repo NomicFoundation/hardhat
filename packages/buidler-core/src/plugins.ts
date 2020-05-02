@@ -2,7 +2,7 @@ export { BuidlerPluginError } from "./internal/core/errors";
 export {
   saveArtifact,
   readArtifact,
-  readArtifactSync
+  readArtifactSync,
 } from "./internal/artifacts";
 export { lazyObject, lazyFunction } from "./internal/util/lazy";
 export { ensurePluginLoadedWithUsePlugin } from "./internal/core/plugins";

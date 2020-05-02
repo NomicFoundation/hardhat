@@ -36,7 +36,7 @@ export function encodeConstructorParams(
   contractAbi: any[],
   params: any[]
 ): Buffer {
-  const fAbi = contractAbi.find(a => a.type === "constructor");
+  const fAbi = contractAbi.find((a) => a.type === "constructor");
 
   if (fAbi === undefined || params.length === 0) {
     return Buffer.from([]);
@@ -53,7 +53,7 @@ export function encodeCall(
   params: any[]
 ): Buffer {
   const fAbi = contractAbi.find(
-    a => a.name === functionName && a.inputs.length === params.length
+    (a) => a.name === functionName && a.inputs.length === params.length
   );
 
   const types = fAbi.inputs.map((i: any) => i.type);
@@ -71,7 +71,7 @@ export async function traceTransaction(
     gasLimit: 4000000, // We assume that 4M is enough,
     gasPrice: 1,
     nonce: nonce++,
-    ...txData
+    ...txData,
   });
 
   tx.sign(senderPrivateKey);

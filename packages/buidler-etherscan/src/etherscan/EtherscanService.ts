@@ -4,7 +4,7 @@ import request from "request-promise";
 import { EtherscanRequestParameters } from "./EtherscanVerifyContractRequest";
 
 async function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function verifyContract(
@@ -42,8 +42,8 @@ export async function getVerificationStatus(
         qs: {
           module: "contract",
           action: "checkverifystatus",
-          guid
-        }
+          guid,
+        },
       })
     );
     if (response.isPending()) {

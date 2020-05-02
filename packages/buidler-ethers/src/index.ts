@@ -5,7 +5,7 @@ import EthersT from "ethers";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
 
-export default function() {
+export default function () {
   extendEnvironment((env: BuidlerRuntimeEnvironment) => {
     env.ethers = lazyObject(() => {
       const { EthersProviderWrapper } = require("./ethers-provider-wrapper");
@@ -24,7 +24,7 @@ export default function() {
 
         // Deprecated:
         getContract: (name: string) => getContractFactory(env, name),
-        signers: () => getSigners(env)
+        signers: () => getSigners(env),
       };
     });
   });

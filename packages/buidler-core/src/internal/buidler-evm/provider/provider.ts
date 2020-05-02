@@ -20,7 +20,7 @@ import { Mutex } from "../vendor/await-semaphore";
 import {
   BuidlerEVMProviderError,
   MethodNotFoundError,
-  MethodNotSupportedError
+  MethodNotSupportedError,
 } from "./errors";
 import { BuidlerModule } from "./modules/buidler";
 import { EthModule } from "./modules/eth";
@@ -230,7 +230,7 @@ export class BuidlerEVMProvider extends EventEmitter
 
         if (await fsExtra.pathExists(this._paths.artifacts)) {
           const artifactsDir = await fsExtra.readdir(this._paths.artifacts);
-          hasCompiledContracts = artifactsDir.some(f => f.endsWith(".json"));
+          hasCompiledContracts = artifactsDir.some((f) => f.endsWith(".json"));
         }
 
         if (hasCompiledContracts) {
@@ -245,10 +245,10 @@ export class BuidlerEVMProvider extends EventEmitter
             );
 
             compilerInput = await fsExtra.readJSON(solcInputPath, {
-              encoding: "utf8"
+              encoding: "utf8",
             });
             compilerOutput = await fsExtra.readJSON(solcOutputPath, {
-              encoding: "utf8"
+              encoding: "utf8",
             });
           } catch (error) {
             console.warn(
@@ -299,7 +299,7 @@ export class BuidlerEVMProvider extends EventEmitter
     const listener = (payload: { filterId: BN; result: any }) => {
       this.emit("notifications", {
         subscription: `0x${payload.filterId.toString(16)}`,
-        result: payload.result
+        result: payload.result,
       });
     };
 
@@ -328,7 +328,7 @@ export class BuidlerEVMProvider extends EventEmitter
     if (indent) {
       msg = msg
         .split("\n")
-        .map(line => `  ${line}`)
+        .map((line) => `  ${line}`)
         .join("\n");
     }
 

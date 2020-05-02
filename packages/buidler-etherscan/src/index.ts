@@ -1,7 +1,7 @@
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILER_INPUT,
-  TASK_FLATTEN_GET_FLATTENED_SOURCE
+  TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
 import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
@@ -10,7 +10,7 @@ import AbiEncoder from "./AbiEncoder";
 import { getDefaultEtherscanConfig } from "./config";
 import {
   getVerificationStatus,
-  verifyContract
+  verifyContract,
 } from "./etherscan/EtherscanService";
 import { toRequest } from "./etherscan/EtherscanVerifyContractRequest";
 import { getLongVersion } from "./solc/SolcVersions";
@@ -77,7 +77,7 @@ task("verify-contract", "Verifies contract on etherscan")
           abi,
           taskArgs.constructorArguments
         ),
-        libraries: taskArgs.libraries
+        libraries: taskArgs.libraries,
       });
 
       const response = await verifyContract(etherscan.url, request);

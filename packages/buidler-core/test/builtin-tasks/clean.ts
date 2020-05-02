@@ -6,7 +6,7 @@ import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
 function assertCleanBehavior() {
-  it("Should delete the folders if present", async function() {
+  it("Should delete the folders if present", async function () {
     await this.env.run(TASK_CLEAN);
 
     assert.isFalse(fs.existsSync("./cache"));
@@ -18,11 +18,11 @@ describe("Clean task", () => {
   useFixtureProject("default-config-project");
   useEnvironment();
 
-  describe("When cache and artifact dirs don't exist", function() {
+  describe("When cache and artifact dirs don't exist", function () {
     assertCleanBehavior();
   });
 
-  describe("When cache and artifact are empty dirs", function() {
+  describe("When cache and artifact are empty dirs", function () {
     beforeEach(() => {
       fs.mkdirSync("./cache");
       fs.mkdirSync("./artifacts");
@@ -31,7 +31,7 @@ describe("Clean task", () => {
     assertCleanBehavior();
   });
 
-  describe("When cache and artifact dirs aren't empty", function() {
+  describe("When cache and artifact dirs aren't empty", function () {
     beforeEach(() => {
       fs.mkdirSync("./cache");
       fs.mkdirSync("./artifacts");

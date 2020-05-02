@@ -6,14 +6,14 @@ import path from "path";
 
 import { useEnvironment } from "./helpers";
 
-describe("Waffle plugin plugin", function() {
-  describe("Buidler's Waffle provider adapter", function() {
-    describe("provider.getWallets", function() {
-      describe("With buidlerevm", function() {
-        describe("With the default buidlerevm accounts", function() {
+describe("Waffle plugin plugin", function () {
+  describe("Buidler's Waffle provider adapter", function () {
+    describe("provider.getWallets", function () {
+      describe("With buidlerevm", function () {
+        describe("With the default buidlerevm accounts", function () {
           useEnvironment(path.join(__dirname, "buidler-project"));
 
-          it("Should return a wallet for each of the default accounts", function() {
+          it("Should return a wallet for each of the default accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
             const accounts = (defaultConfig.networks!
               .buidlerevm! as BuidlerNetworkConfig).accounts!;
@@ -29,12 +29,12 @@ describe("Waffle plugin plugin", function() {
           });
         });
 
-        describe("With customized buidlerevm accounts", function() {
+        describe("With customized buidlerevm accounts", function () {
           useEnvironment(
             path.join(__dirname, "buidler-project-custom-accounts")
           );
 
-          it("Should return a wallet for each of the custom accounts", function() {
+          it("Should return a wallet for each of the custom accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
             const accounts = require(path.join(
               __dirname,
@@ -54,10 +54,10 @@ describe("Waffle plugin plugin", function() {
         });
       });
 
-      describe("Using other network", function() {
+      describe("Using other network", function () {
         useEnvironment(path.join(__dirname, "buidler-project"), "localhost");
 
-        it("Should throw an error", function() {
+        it("Should throw an error", function () {
           assert.throws(
             () => this.env.waffle.provider.getWallets(),
             "This method only works with Buidler EVM"
@@ -65,12 +65,12 @@ describe("Waffle plugin plugin", function() {
         });
       });
 
-      describe("Deprecated getWallets", function() {
-        describe("With buidlerevm", function() {
-          describe("With the default buidlerevm accounts", function() {
+      describe("Deprecated getWallets", function () {
+        describe("With buidlerevm", function () {
+          describe("With the default buidlerevm accounts", function () {
             useEnvironment(path.join(__dirname, "buidler-project"));
 
-            it("Should return a wallet for each of the default accounts", function() {
+            it("Should return a wallet for each of the default accounts", function () {
               const wallets = getWallets(this.env.waffle.provider);
               const accounts = (defaultConfig.networks!
                 .buidlerevm! as BuidlerNetworkConfig).accounts!;
@@ -90,10 +90,10 @@ describe("Waffle plugin plugin", function() {
     });
   });
 
-  describe("Test environment initialization", function() {
+  describe("Test environment initialization", function () {
     useEnvironment(path.join(__dirname, "buidler-project"));
 
-    it("Should load the Waffle chai matchers", async function() {
+    it("Should load the Waffle chai matchers", async function () {
       await this.env.run("test", { testFiles: [] });
       assert.equal(process.exitCode, 1);
       process.exitCode = 0;

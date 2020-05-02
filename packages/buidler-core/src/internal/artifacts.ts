@@ -48,7 +48,7 @@ export function getArtifactFromContractOutput(
     bytecode,
     deployedBytecode,
     linkReferences,
-    deployedLinkReferences
+    deployedLinkReferences,
   };
 }
 
@@ -68,7 +68,7 @@ export async function saveArtifact(artifactsPath: string, artifact: Artifact) {
     path.join(artifactsPath, `${artifact.contractName}.json`),
     artifact,
     {
-      spaces: 2
+      spaces: 2,
     }
   );
 }

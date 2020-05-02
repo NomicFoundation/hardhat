@@ -44,12 +44,12 @@ function uncompressSourcemaps(compressedSourcemap: string): SourceMap[] {
         file:
           parts[2] !== undefined && parts[2] !== ""
             ? +parts[2]
-            : mappings[i - 1].location.file
+            : mappings[i - 1].location.file,
       },
       jumpType:
         parts[3] !== undefined && parts[3] !== ""
           ? jumpLetterToJumpType(parts[3])
-          : mappings[i - 1].jumpType
+          : mappings[i - 1].jumpType,
     });
   }
 

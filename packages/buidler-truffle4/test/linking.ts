@@ -5,8 +5,8 @@ import path from "path";
 import { useEnvironment } from "./helpers";
 
 function linkingShouldWorkCorrectly() {
-  describe("Linking with an instance", function() {
-    it("Should link correctly", async function() {
+  describe("Linking with an instance", function () {
+    it("Should link correctly", async function () {
       const Lib = this.env.artifacts.require("Lib");
       const UsesLib = this.env.artifacts.require("UsesLib");
       const lib = await Lib.new();
@@ -21,8 +21,8 @@ function linkingShouldWorkCorrectly() {
     });
   });
 
-  describe("Linking with an instance created with .at", function() {
-    it("Should link correctly", async function() {
+  describe("Linking with an instance created with .at", function () {
+    it("Should link correctly", async function () {
       const Lib = this.env.artifacts.require("Lib");
       const UsesLib = this.env.artifacts.require("UsesLib");
       const lib = await Lib.new();
@@ -39,8 +39,8 @@ function linkingShouldWorkCorrectly() {
     });
   });
 
-  describe("Linking with an instance created with new", function() {
-    it("Should link correctly", async function() {
+  describe("Linking with an instance created with new", function () {
+    it("Should link correctly", async function () {
       const Lib = this.env.artifacts.require("Lib");
       const UsesLib = this.env.artifacts.require("UsesLib");
       const lib = await Lib.new();
@@ -57,8 +57,8 @@ function linkingShouldWorkCorrectly() {
     });
   });
 
-  describe("Linking with name and address", function() {
-    it("Should throw the right error", async function() {
+  describe("Linking with name and address", function () {
+    it("Should throw the right error", async function () {
       const UsesLib = this.env.artifacts.require("UsesLib");
 
       assert.throws(
@@ -68,8 +68,8 @@ function linkingShouldWorkCorrectly() {
     });
   });
 
-  describe("Linking with a map from name to address", function() {
-    it("Should throw the right error", async function() {
+  describe("Linking with a map from name to address", function () {
+    it("Should throw the right error", async function () {
       const UsesLib = this.env.artifacts.require("UsesLib");
 
       assert.throws(
@@ -80,8 +80,8 @@ function linkingShouldWorkCorrectly() {
     });
   });
 
-  describe("Linking a library more than once", function() {
-    it("Should throw the right error", async function() {
+  describe("Linking a library more than once", function () {
+    it("Should throw the right error", async function () {
       const Lib = this.env.artifacts.require("Lib");
       const UsesLib = this.env.artifacts.require("UsesLib");
       const lib = await Lib.new();
@@ -95,8 +95,8 @@ function linkingShouldWorkCorrectly() {
     });
   });
 
-  describe("Linking when not necessary", function() {
-    it("Should throw the right error", async function() {
+  describe("Linking when not necessary", function () {
+    it("Should throw the right error", async function () {
       const Lib = this.env.artifacts.require("Lib");
       const Greeter = this.env.artifacts.require("Greeter");
       const lib = await Lib.new();
@@ -108,8 +108,8 @@ function linkingShouldWorkCorrectly() {
     });
   });
 
-  describe("Linking an incorrect library", function() {
-    it("Should throw the right error", async function() {
+  describe("Linking an incorrect library", function () {
+    it("Should throw the right error", async function () {
       const UsesLib = this.env.artifacts.require("UsesLib");
       const Greeter = this.env.artifacts.require("Greeter");
 
@@ -123,8 +123,8 @@ function linkingShouldWorkCorrectly() {
   });
 }
 
-describe("Libraries linking", function() {
-  describe("When using solc 0.4.x", function() {
+describe("Libraries linking", function () {
+  describe("When using solc 0.4.x", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.4"),
       BUIDLEREVM_NETWORK_NAME
@@ -132,7 +132,7 @@ describe("Libraries linking", function() {
     linkingShouldWorkCorrectly();
   });
 
-  describe("When using solc 0.5.x", function() {
+  describe("When using solc 0.5.x", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.5"),
       BUIDLEREVM_NETWORK_NAME
@@ -140,7 +140,7 @@ describe("Libraries linking", function() {
     linkingShouldWorkCorrectly();
   });
 
-  describe("When using solc 0.6.x", function() {
+  describe("When using solc 0.6.x", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.6"),
       BUIDLEREVM_NETWORK_NAME

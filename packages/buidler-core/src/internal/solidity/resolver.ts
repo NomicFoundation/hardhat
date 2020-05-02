@@ -35,7 +35,7 @@ export class ResolvedFile {
     if (libraryName !== undefined && libraryVersion !== undefined) {
       this.library = {
         name: libraryName,
-        version: libraryVersion
+        version: libraryVersion,
       };
     }
   }
@@ -60,7 +60,7 @@ export class Resolver {
   ): Promise<ResolvedFile> {
     if (!(await fsExtra.pathExists(pathToResolve))) {
       throw new BuidlerError(ERRORS.RESOLVER.FILE_NOT_FOUND, {
-        file: pathToResolve
+        file: pathToResolve,
       });
     }
 
@@ -68,13 +68,13 @@ export class Resolver {
 
     if (!absolutePath.startsWith(this._projectRoot)) {
       throw new BuidlerError(ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT, {
-        file: pathToResolve
+        file: pathToResolve,
       });
     }
 
     if (absolutePath.includes("node_modules")) {
       throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL, {
-        file: pathToResolve
+        file: pathToResolve,
       });
     }
 
@@ -97,7 +97,7 @@ export class Resolver {
       throw new BuidlerError(
         ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
         {
-          library: libraryName
+          library: libraryName,
         },
         error
       );
@@ -110,7 +110,7 @@ export class Resolver {
       throw new BuidlerError(
         ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
         {
-          file: globalName
+          file: globalName,
         },
         error
       );
@@ -124,13 +124,13 @@ export class Resolver {
       // situations, so we only use the closes installation
       if (absolutePath.includes(path.join("node_modules", libraryName))) {
         throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND, {
-          file: globalName
+          file: globalName,
         });
       }
 
       throw new BuidlerError(ERRORS.RESOLVER.FILE_OUTSIDE_LIB, {
         file: globalName,
-        library: libraryName
+        library: libraryName,
       });
     }
 
@@ -166,7 +166,7 @@ export class Resolver {
         if (isIllegal) {
           throw new BuidlerError(ERRORS.RESOLVER.ILLEGAL_IMPORT, {
             imported,
-            from: from.globalName
+            from: from.globalName,
           });
         }
 
@@ -183,7 +183,7 @@ export class Resolver {
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
           {
             imported,
-            from: from.globalName
+            from: from.globalName,
           },
           error
         );
@@ -220,7 +220,7 @@ export class Resolver {
 
   private _resolveFromProjectRoot(fileName: string) {
     return require.resolve(fileName, {
-      paths: [this._projectRoot]
+      paths: [this._projectRoot],
     });
   }
 

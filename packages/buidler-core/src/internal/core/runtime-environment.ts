@@ -12,7 +12,7 @@ import {
   RunTaskFunction,
   TaskArguments,
   TaskDefinition,
-  TasksMap
+  TasksMap,
 } from "../../types";
 import { lazyObject } from "../util/lazy";
 
@@ -26,7 +26,7 @@ const log = debug("buidler:core:bre");
 export class Environment implements BuidlerRuntimeEnvironment {
   private static readonly _BLACKLISTED_PROPERTIES: string[] = [
     "injectToGlobal",
-    "_runTaskDefinition"
+    "_runTaskDefinition",
   ];
 
   /**
@@ -67,7 +67,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
 
     if (networkConfig === undefined) {
       throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, {
-        network: networkName
+        network: networkName,
       });
     }
 
@@ -84,13 +84,13 @@ export class Environment implements BuidlerRuntimeEnvironment {
     this.network = {
       name: networkName,
       config: config.networks[networkName],
-      provider
+      provider,
     };
 
     this.ethereum = provider;
     this._extenders = extenders;
 
-    extenders.forEach(extender => extender(this));
+    extenders.forEach((extender) => extender(this));
   }
 
   /**
@@ -109,7 +109,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
 
     if (taskDefinition === undefined) {
       throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-        task: name
+        task: name,
       });
     }
 
@@ -177,7 +177,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
     } else {
       runSuperFunction = async () => {
         throw new BuidlerError(ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE, {
-          taskName: taskDefinition.name
+          taskName: taskDefinition.name,
         });
       };
 
@@ -224,7 +224,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
     // gather all task param definitions
     const allTaskParamDefinitions = [
       ...nonPositionalParamDefinitions,
-      ...positionalParamDefinitions
+      ...positionalParamDefinitions,
     ];
 
     const initResolvedArguments: {
@@ -286,7 +286,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
 
       // undefined & mandatory argument -> error
       throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
-        param: name
+        param: name,
       });
     }
 

@@ -6,7 +6,7 @@ import {
   bufferToHex,
   toBuffer,
   toRpcSig,
-  zeroAddress
+  zeroAddress,
 } from "ethereumjs-util";
 import * as t from "io-ts";
 import util from "util";
@@ -15,19 +15,19 @@ import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
   isPrecompileTrace,
-  MessageTrace
+  MessageTrace,
 } from "../../stack-traces/message-trace";
 import { ContractFunctionType } from "../../stack-traces/model";
 import {
   FALLBACK_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
-  UNRECOGNIZED_FUNCTION_NAME
+  UNRECOGNIZED_FUNCTION_NAME,
 } from "../../stack-traces/solidity-stack-trace";
 import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotFoundError,
-  MethodNotSupportedError
+  MethodNotSupportedError,
 } from "../errors";
 import { LATEST_BLOCK } from "../filter";
 import {
@@ -50,14 +50,14 @@ import {
   rpcTransactionRequest,
   RpcTransactionRequest,
   rpcUnknown,
-  validateParams
+  validateParams,
 } from "../input";
 import {
   Block,
   BuidlerNode,
   CallParams,
   FilterParams,
-  TransactionParams
+  TransactionParams,
 } from "../node";
 import {
   bufferToRpcData,
@@ -68,7 +68,7 @@ import {
   RpcBlockOutput,
   RpcLogOutput,
   RpcTransactionOutput,
-  RpcTransactionReceiptOutput
+  RpcTransactionReceiptOutput,
 } from "../output";
 
 import { ModulesLogger } from "./logger";
@@ -312,7 +312,7 @@ export class EthModule {
       result: returnData,
       trace,
       error,
-      consoleLogMessages
+      consoleLogMessages,
     } = await this._node.runCall(
       callParams,
       this._shouldCallOnNewBlock(blockTag)
@@ -384,7 +384,7 @@ export class EthModule {
       estimation,
       error,
       trace,
-      consoleLogMessages
+      consoleLogMessages,
     } = await this._node.estimateGas(txParams);
 
     if (error !== undefined) {
@@ -594,7 +594,7 @@ export class EthModule {
       fromBlock: this._extractBlock(filter.fromBlock),
       toBlock: this._extractBlock(filter.toBlock),
       normalizedTopics: this._extractNormalizedLogTopics(filter.topics),
-      addresses: this._extractLogAddresses(filter.address)
+      addresses: this._extractLogAddresses(filter.address),
     };
   }
 
@@ -700,7 +700,7 @@ export class EthModule {
     let index: number | undefined;
     if (block !== undefined) {
       const transactions: Transaction[] = block.transactions;
-      const i = transactions.findIndex(bt => bt.hash().equals(hash));
+      const i = transactions.findIndex((bt) => bt.hash().equals(hash));
 
       if (i !== -1) {
         index = i;
@@ -764,7 +764,7 @@ export class EthModule {
     const block = (await this._node.getBlockByTransactionHash(hash))!;
 
     const transactions: Transaction[] = block.transactions;
-    const index = transactions.findIndex(bt => bt.hash().equals(hash));
+    const index = transactions.findIndex((bt) => bt.hash().equals(hash));
 
     const txBlockResults = await this._node.getTxBlockResults(block);
 
@@ -843,7 +843,7 @@ export class EthModule {
 
   private async _pendingTransactionsAction(): Promise<RpcTransactionOutput[]> {
     const txs = await this._node.getPendingTransactions();
-    return txs.map(tx => getRpcTransaction(tx));
+    return txs.map((tx) => getRpcTransaction(tx));
   }
 
   // eth_protocolVersion
@@ -1012,7 +1012,7 @@ export class EthModule {
         rpcCall.gasPrice !== undefined
           ? rpcCall.gasPrice
           : await this._node.getGasPrice(),
-      value: rpcCall.value !== undefined ? rpcCall.value : new BN(0)
+      value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
     };
   }
 
@@ -1035,7 +1035,7 @@ export class EthModule {
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountNonce(rpcTx.from)
+          : await this._node.getAccountNonce(rpcTx.from),
     };
   }
 
@@ -1300,7 +1300,7 @@ If this error persists, try resetting your wallet's accounts.`
       block,
       blockResult,
       consoleLogMessages,
-      error
+      error,
     } = await this._node.runTransactionInNewBlock(tx);
 
     await this._logTransactionTrace(tx, trace, block, blockResult);

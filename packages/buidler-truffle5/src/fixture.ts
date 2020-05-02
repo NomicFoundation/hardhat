@@ -1,7 +1,7 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import {
   BuidlerRuntimeEnvironment,
-  ProjectPaths
+  ProjectPaths,
 } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -25,7 +25,7 @@ export async function hasMigrations(paths: ProjectPaths) {
   }
 
   const files = await fsExtra.readdir(migrationsDir);
-  const jsFiles = files.filter(f => f.toLowerCase().endsWith(".js"));
+  const jsFiles = files.filter((f) => f.toLowerCase().endsWith(".js"));
 
   return jsFiles.length > 1;
 }

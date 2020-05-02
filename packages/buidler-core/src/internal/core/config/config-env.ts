@@ -3,7 +3,7 @@ import {
   ConfigExtender,
   ConfigurableTaskDefinition,
   EnvironmentExtender,
-  TaskArguments
+  TaskArguments,
 } from "../../../types";
 import { BuidlerContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";

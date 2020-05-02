@@ -56,7 +56,7 @@ export function zeroOutAddresses(
     code = Buffer.concat([
       code.slice(0, position),
       Buffer.alloc(20, 0),
-      code.slice(position + 20)
+      code.slice(position + 20),
     ]);
   }
 

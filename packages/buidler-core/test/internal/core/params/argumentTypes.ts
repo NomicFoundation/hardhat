@@ -236,7 +236,7 @@ describe("argumentTypes", () => {
       );
     });
 
-    it("Should throw if the file isn't readable", async function() {
+    it("Should throw if the file isn't readable", async function () {
       if (os.type() === "Windows_NT") {
         this.skip();
       }

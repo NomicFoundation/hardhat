@@ -10,7 +10,8 @@ export function getImports(fileContent: string): string[] {
     const importedFiles: string[] = [];
 
     parser.visit(ast, {
-      ImportDirective: (node: { path: string }) => importedFiles.push(node.path)
+      ImportDirective: (node: { path: string }) =>
+        importedFiles.push(node.path),
     });
 
     return importedFiles;
@@ -34,7 +35,7 @@ function findImportsWithRegexps(fileContent: string): string[] {
 
     imports = [
       ...imports,
-      ...result.slice(1).filter((m: any) => m !== undefined)
+      ...result.slice(1).filter((m: any) => m !== undefined),
     ];
   }
 }

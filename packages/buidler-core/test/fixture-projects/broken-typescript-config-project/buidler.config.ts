@@ -5,7 +5,7 @@ function implicitAny(a) {
 export default {
   networks: {
     network: {
-      url: ""
-    }
-  }
+      url: "",
+    },
+  },
 };

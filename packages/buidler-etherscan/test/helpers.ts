@@ -15,14 +15,14 @@ export function resetBuidler() {
 }
 
 export function useEnvironment(projectPath: string) {
-  beforeEach("Loading buidler environment", function() {
+  beforeEach("Loading buidler environment", function () {
     process.chdir(projectPath);
     process.env.BUIDLER_NETWORK = "localhost";
 
     this.env = require("@nomiclabs/buidler");
   });
 
-  afterEach("Resetting buidler", function() {
+  afterEach("Resetting buidler", function () {
     resetBuidler();
   });
 }

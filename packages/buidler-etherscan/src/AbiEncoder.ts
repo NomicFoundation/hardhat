@@ -7,7 +7,7 @@ export default class AbiEncoder {
     constructorArguments: string[]
   ): string {
     const constructorAbi: any | undefined = contractAbi.find(
-      value => value.type === "constructor"
+      (value) => value.type === "constructor"
     );
 
     if (constructorAbi === undefined) {

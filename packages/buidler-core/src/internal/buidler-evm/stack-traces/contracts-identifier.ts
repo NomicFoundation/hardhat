@@ -4,7 +4,7 @@ import { getUserConfigPath } from "../../core/project-structure";
 
 import {
   normalizeLibraryRuntimeBytecodeIfNecessary,
-  zeroOutAddresses
+  zeroOutAddresses,
 } from "./library-utils";
 import { EvmMessageTrace, isCreateTrace } from "./message-trace";
 import { Bytecode } from "./model";

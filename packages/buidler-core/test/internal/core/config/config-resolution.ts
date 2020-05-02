@@ -57,7 +57,7 @@ describe("Config resolution", () => {
           "http://127.0.0.1:8545"
         );
         assert.deepEqual(config.networks.localhost.accounts, [
-          "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
+          "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166",
         ]);
       });
 
@@ -76,7 +76,7 @@ describe("Config resolution", () => {
 
     it("Should return absolute paths", () => {
       const paths = resolveProjectPaths(__filename, { asd: "asd" });
-      Object.values(paths).forEach(p => assert.isTrue(path.isAbsolute(p)));
+      Object.values(paths).forEach((p) => assert.isTrue(path.isAbsolute(p)));
     });
 
     it("Should use absolute paths 'as is'", () => {
@@ -86,7 +86,7 @@ describe("Config resolution", () => {
         sources: "/c",
         artifacts: "/a",
         cache: "/ca",
-        tests: "/t"
+        tests: "/t",
       });
 
       assert.equal(paths.root, "/root");
@@ -99,7 +99,7 @@ describe("Config resolution", () => {
 
     it("Should resolve the root relative to the configFile", () => {
       const paths = resolveProjectPaths(__filename, {
-        root: "blah"
+        root: "blah",
       });
 
       assert.equal(paths.root, path.join(__dirname, "blah"));
@@ -112,7 +112,7 @@ describe("Config resolution", () => {
         sources: "c",
         artifacts: "a",
         cache: "ca",
-        tests: "t"
+        tests: "t",
       });
 
       const root = path.join(__dirname, "blah");

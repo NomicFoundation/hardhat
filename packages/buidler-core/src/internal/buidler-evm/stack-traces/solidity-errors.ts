@@ -13,7 +13,7 @@ import {
   StackTraceEntryType,
   UNKNOWN_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
-  UNRECOGNIZED_FUNCTION_NAME
+  UNRECOGNIZED_FUNCTION_NAME,
 } from "./solidity-stack-trace";
 
 export function getCurrentStack(): NodeJS.CallSite[] {
@@ -107,7 +107,7 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
       return sourceReferenceToSolidityCallsite({
         ...stackTraceEntry.sourceReference,
-        function: UNRECOGNIZED_FUNCTION_NAME
+        function: UNRECOGNIZED_FUNCTION_NAME,
       });
 
     case StackTraceEntryType.CALLSTACK_ENTRY:

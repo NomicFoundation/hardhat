@@ -5,7 +5,7 @@ import { join } from "path";
 
 function getDefaultConfig() {
   return {
-    extends: ["solhint:default"]
+    extends: ["solhint:default"],
   };
 }
 
@@ -33,7 +33,7 @@ async function hasConfigFile(rootDirectory: string) {
     ".solhintrc.yaml",
     ".solhintrc.yml",
     ".solhintrc.js",
-    "solhint.config.js"
+    "solhint.config.js",
   ];
 
   for (const file of files) {
@@ -79,7 +79,7 @@ function printReport(reports: any) {
   console.log(formatter(reports));
 }
 
-export default function() {
+export default function () {
   internalTask("buidler-solhint:run-solhint", async (_, { config }) => {
     const { processPath } = await import("solhint/lib/index");
     return processPath(

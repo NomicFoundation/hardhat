@@ -6,7 +6,7 @@ import {
   BuidlerConfig,
   ConfigExtender,
   ProjectPaths,
-  ResolvedBuidlerConfig
+  ResolvedBuidlerConfig,
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
 import { BuidlerError } from "../errors";
@@ -17,7 +17,7 @@ function mergeUserAndDefaultConfigs(
   userConfig: BuidlerConfig
 ): Partial<ResolvedBuidlerConfig> {
   return deepmerge(defaultConfig, userConfig, {
-    arrayMerge: (destination: any[], source: any[]) => source
+    arrayMerge: (destination: any[], source: any[]) => source,
   }) as any;
 }
 
@@ -50,7 +50,7 @@ export function resolveConfig(
     networks: config.networks!,
     solc: config.solc!,
     defaultNetwork: config.defaultNetwork!,
-    analytics: config.analytics!
+    analytics: config.analytics!,
   };
 
   for (const extender of configExtenders) {
@@ -105,7 +105,7 @@ export function resolveProjectPaths(
     sources: resolvePathFrom(root, "contracts", userPaths.sources),
     cache: resolvePathFrom(root, "cache", userPaths.cache),
     artifacts: resolvePathFrom(root, "artifacts", userPaths.artifacts),
-    tests: resolvePathFrom(root, "test", userPaths.tests)
+    tests: resolvePathFrom(root, "test", userPaths.tests),
   };
 }
 
@@ -121,7 +121,7 @@ function deepFreezeUserConfig(
     get(target: any, property: string | number | symbol, receiver: any): any {
       return deepFreezeUserConfig(Reflect.get(target, property, receiver), [
         ...propertyPath,
-        property
+        property,
       ]);
     },
 
@@ -133,9 +133,9 @@ function deepFreezeUserConfig(
     ): boolean {
       throw new BuidlerError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
         path: [...propertyPath, property]
-          .map(pathPart => pathPart.toString())
-          .join(".")
+          .map((pathPart) => pathPart.toString())
+          .join("."),
       });
-    }
+    },
   });
 }

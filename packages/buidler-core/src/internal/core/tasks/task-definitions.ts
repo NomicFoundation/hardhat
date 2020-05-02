@@ -3,7 +3,7 @@ import {
   ParamDefinition,
   ParamDefinitionsMap,
   TaskArguments,
-  TaskDefinition
+  TaskDefinition,
 } from "../../../types";
 import { BuidlerError } from "../errors";
 import { ErrorDescriptor, ERRORS } from "../errors-list";
@@ -48,7 +48,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     this._hasOptionalPositionalParam = false;
     this.action = () => {
       throw new BuidlerError(ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET, {
-        taskName: name
+        taskName: name,
       });
     };
   }
@@ -107,7 +107,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           {
             paramName: name,
-            taskName: this.name
+            taskName: this.name,
           }
         );
       }
@@ -136,7 +136,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
       description,
       isOptional,
       isFlag: false,
-      isVariadic: false
+      isVariadic: false,
     };
 
     return this;
@@ -182,7 +182,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
       description,
       isFlag: true,
       isOptional: true,
-      isVariadic: false
+      isVariadic: false,
     };
 
     return this;
@@ -226,7 +226,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           {
             paramName: name,
-            taskName: this.name
+            taskName: this.name,
           }
         );
       }
@@ -257,7 +257,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
       description,
       isVariadic: false,
       isOptional,
-      isFlag: false
+      isFlag: false,
     };
 
     this._addPositionalParamDefinition(definition);
@@ -321,7 +321,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE,
           {
             paramName: name,
-            taskName: this.name
+            taskName: this.name,
           }
         );
       }
@@ -352,7 +352,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
       description,
       isVariadic: true,
       isOptional,
-      isFlag: false
+      isFlag: false,
     };
 
     this._addPositionalParamDefinition(definition);
@@ -413,7 +413,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (this._hasVariadicParam) {
       throw new BuidlerError(ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC, {
         paramName: name,
-        taskName: this.name
+        taskName: this.name,
       });
     }
   }
@@ -429,7 +429,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
     if (this._hasParamDefined(name)) {
       throw new BuidlerError(ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED, {
         paramName: name,
-        taskName: this.name
+        taskName: this.name,
       });
     }
 
@@ -438,7 +438,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
         ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM,
         {
           paramName: name,
-          taskName: this.name
+          taskName: this.name,
         }
       );
     }
@@ -472,7 +472,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
         ERRORS.TASK_DEFINITIONS.MANDATORY_PARAM_AFTER_OPTIONAL,
         {
           paramName: name,
-          taskName: this.name
+          taskName: this.name,
         }
       );
     }
@@ -486,7 +486,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
         ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING,
         {
           paramName: name,
-          taskName: this.name
+          taskName: this.name,
         }
       );
     }
@@ -502,14 +502,14 @@ export class SimpleTaskDefinition implements TaskDefinition {
         ERRORS.TASK_DEFINITIONS.DEFAULT_IN_MANDATORY_PARAM,
         {
           paramName: name,
-          taskName: this.name
+          taskName: this.name,
         }
       );
     }
   }
 
   private _isStringArray(values: any): values is string[] {
-    return Array.isArray(values) && values.every(v => typeof v === "string");
+    return Array.isArray(values) && values.every((v) => typeof v === "string");
   }
 }
 
@@ -700,7 +700,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
 
   private _throwNoParamsOverrideError(errorDescriptor: ErrorDescriptor): never {
     throw new BuidlerError(errorDescriptor, {
-      taskName: this.name
+      taskName: this.name,
     });
   }
 }

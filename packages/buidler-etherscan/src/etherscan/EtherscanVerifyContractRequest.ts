@@ -45,7 +45,7 @@ export function toRequest(params: {
     // optimizationUsed: params.optimizationsUsed ? 1 : 0,
     // runs: params.runs,
     constructorArguements: params.constructorArguments,
-    ...parseLibraries(params.libraries)
+    ...parseLibraries(params.libraries),
   };
 }
 
