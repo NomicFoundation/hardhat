@@ -18,7 +18,6 @@ import { lazyObject } from "../util/lazy";
 
 import { BuidlerError } from "./errors";
 import { ERRORS } from "./errors-list";
-import { ArgumentType } from "./params/argumentTypes";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 

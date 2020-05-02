@@ -2,11 +2,7 @@ import VM from "@nomiclabs/ethereumjs-vm";
 import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
-import {
-  RunBlockResult,
-  TxReceipt
-} from "@nomiclabs/ethereumjs-vm/dist/runBlock";
-import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
+import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
