@@ -4,13 +4,13 @@ import { keccak256 } from "ethereumjs-util";
 import fs from "fs-extra";
 import fetch from "node-fetch";
 import os from "os";
-import path from "path";
 import qs from "qs";
 import uuid from "uuid/v4";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
+import globalBuidlerConfigFile from "../util/global-config-file";
 import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("buidler:core:analytics");
@@ -204,13 +204,6 @@ export class Analytics {
 }
 
 async function getClientId() {
-  // TODO: Check Windows support for this approach
-  const globalBuidlerConfigFile = path.join(
-    os.homedir(),
-    ".buidler",
-    "config.json"
-  );
-
   await fs.ensureFile(globalBuidlerConfigFile);
 
   let clientId;
