@@ -15,6 +15,12 @@
     "no-console": false,
     "only-arrow-functions": false,
     "prefer-template": true,
+    "strict-comparisons": [
+      true,
+      {
+        "allow-object-equal-comparison": true
+      }
+    ],
     "variable-name": [
       true,
       "check-format",
