@@ -957,7 +957,7 @@ export class BuidlerNode extends EventEmitter {
     const logs: RpcLogOutput[] = [];
     for (
       let i = filterParams.fromBlock;
-      i <= filterParams.toBlock;
+      i.lte(filterParams.toBlock);
       i = i.addn(1)
     ) {
       const block = await this._getBlock(new BN(i));
@@ -1237,7 +1237,7 @@ export class BuidlerNode extends EventEmitter {
     }
 
     this._filters.forEach((filter, key) => {
-      if (filter.deadline < new Date()) {
+      if (filter.deadline.valueOf() < new Date().valueOf()) {
         this._filters.delete(key);
       }
 
