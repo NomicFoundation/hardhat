@@ -1565,21 +1565,25 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     filterParams: FilterParams,
     isFilter: boolean
   ): Promise<FilterParams> {
-    if (
-      filterParams.fromBlock === LATEST_BLOCK ||
-      filterParams.toBlock === LATEST_BLOCK
-    ) {
-      const block = await this.getLatestBlock();
-      if (filterParams.fromBlock === LATEST_BLOCK) {
-        filterParams.fromBlock = new BN(block.header.number);
-      }
+    const latestBlockNumber = await this.getLatestBlockNumber();
+    const newFilterParams = { ...filterParams };
 
-      if (!isFilter && filterParams.toBlock === LATEST_BLOCK) {
-        filterParams.toBlock = new BN(block.header.number);
-      }
+    if (newFilterParams.fromBlock === LATEST_BLOCK) {
+      newFilterParams.fromBlock = latestBlockNumber;
     }
 
-    return filterParams;
+    if (!isFilter && newFilterParams.toBlock === LATEST_BLOCK) {
+      newFilterParams.toBlock = latestBlockNumber;
+    }
+
+    if (newFilterParams.toBlock.gt(latestBlockNumber)) {
+      newFilterParams.toBlock = latestBlockNumber;
+    }
+    if (newFilterParams.fromBlock.gt(latestBlockNumber)) {
+      newFilterParams.fromBlock = latestBlockNumber;
+    }
+
+    return newFilterParams;
   }
 
   private _newDeadline(): Date {

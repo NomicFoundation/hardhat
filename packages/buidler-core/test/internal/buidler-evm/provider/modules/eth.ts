@@ -1472,6 +1472,24 @@ describe("Eth module", function() {
             1
           );
         });
+
+        it("should accept out of bound block numbers", async function() {
+          const logs = await this.provider.send("eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              fromBlock: "0x1111"
+            }
+          ]);
+          assert.lengthOf(logs, 0);
+
+          const logs2 = await this.provider.send("eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              toBlock: "0x1111"
+            }
+          ]);
+          assert.lengthOf(logs2, 0);
+        });
       });
 
       describe("eth_getProof", async function() {
