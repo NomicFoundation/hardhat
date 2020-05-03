@@ -29,9 +29,11 @@ export async function getContractFactory(
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
-    return getContractFactoryByName(bre, nameOrAbi, bytecodeOrSigner as
-      | ethers.Signer
-      | undefined);
+    return getContractFactoryByName(
+      bre,
+      nameOrAbi,
+      bytecodeOrSigner as ethers.Signer | undefined
+    );
   }
 
   return getContractFactoryByAbiAndBytecode(

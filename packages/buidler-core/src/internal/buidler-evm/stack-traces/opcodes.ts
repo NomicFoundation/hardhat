@@ -301,7 +301,7 @@ export enum Opcode {
   // Other operations
   REVERT = 0xfd,
   INVALID = 0xfe,
-  SELFDESTRUCT = 0xff
+  SELFDESTRUCT = 0xff,
 }
 
 export function isPush(opcode: Opcode) {

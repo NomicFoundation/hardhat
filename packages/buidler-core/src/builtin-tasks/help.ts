@@ -6,7 +6,7 @@ import { getPackageJson } from "../internal/util/packageInfo";
 
 import { TASK_HELP } from "./task-names";
 
-export default function() {
+export default function () {
   task(TASK_HELP, "Prints this message")
     .addOptionalPositionalParam(
       "task",

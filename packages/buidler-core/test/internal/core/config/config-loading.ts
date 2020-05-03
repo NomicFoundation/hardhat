@@ -10,35 +10,35 @@ import { useEnvironment } from "../../../helpers/environment";
 import { expectBuidlerError } from "../../../helpers/errors";
 import {
   getFixtureProjectPath,
-  useFixtureProject
+  useFixtureProject,
 } from "../../../helpers/project";
 
-describe("config loading", function() {
-  describe("default config path", function() {
+describe("config loading", function () {
+  describe("default config path", function () {
     useFixtureProject("config-project");
     useEnvironment();
 
-    it("should load the default config if none is given", function() {
+    it("should load the default config if none is given", function () {
       assert.isDefined(this.env.config.networks.localhost);
       assert.deepEqual(this.env.config.networks.localhost.accounts, [
-        "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166"
+        "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166",
       ]);
     });
   });
 
-  describe("Config validation", function() {
-    describe("When the config is invalid", function() {
+  describe("Config validation", function () {
+    describe("When the config is invalid", function () {
       useFixtureProject("invalid-config");
 
-      beforeEach(function() {
+      beforeEach(function () {
         BuidlerContext.createBuidlerContext();
       });
 
-      afterEach(function() {
+      afterEach(function () {
         resetBuidlerContext();
       });
 
-      it("Should throw the right error", function() {
+      it("Should throw the right error", function () {
         expectBuidlerError(
           () => loadConfigAndTasks(),
           ERRORS.GENERAL.INVALID_CONFIG
@@ -47,18 +47,18 @@ describe("config loading", function() {
     });
   });
 
-  describe("custom config path", function() {
+  describe("custom config path", function () {
     useFixtureProject("custom-config-file");
 
-    beforeEach(function() {
+    beforeEach(function () {
       BuidlerContext.createBuidlerContext();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       resetBuidlerContext();
     });
 
-    it("should accept a relative path from the CWD", function() {
+    it("should accept a relative path from the CWD", function () {
       const config = loadConfigAndTasks({ config: "config.js" });
 
       assert.equal(
@@ -67,10 +67,10 @@ describe("config loading", function() {
       );
     });
 
-    it("should accept an absolute path", async function() {
+    it("should accept an absolute path", async function () {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
       const config = loadConfigAndTasks({
-        config: path.join(fixtureDir, "config.js")
+        config: path.join(fixtureDir, "config.js"),
       });
 
       assert.equal(
@@ -80,34 +80,34 @@ describe("config loading", function() {
     });
   });
 
-  describe("Tasks loading", function() {
+  describe("Tasks loading", function () {
     useFixtureProject("config-project");
     useEnvironment();
 
-    it("Should define the default tasks", function() {
+    it("Should define the default tasks", function () {
       assert.containsAllKeys(this.env.tasks, [
         TASK_CLEAN,
         "flatten",
         "compile",
         "help",
         "run",
-        "test"
+        "test",
       ]);
     });
 
-    it("Should load custom tasks", function() {
+    it("Should load custom tasks", function () {
       assert.containsAllKeys(this.env.tasks, ["example", "example2"]);
     });
   });
 
-  describe("Config env", function() {
+  describe("Config env", function () {
     useFixtureProject("config-project");
 
-    afterEach(function() {
+    afterEach(function () {
       resetBuidlerContext();
     });
 
-    it("should remove everything from global state after loading", function() {
+    it("should remove everything from global state after loading", function () {
       const globalAsAny: any = global;
 
       BuidlerContext.createBuidlerContext();
@@ -133,18 +133,18 @@ describe("config loading", function() {
     });
   });
 
-  describe("Config that imports the library", function() {
+  describe("Config that imports the library", function () {
     useFixtureProject("config-imports-lib-project");
 
-    beforeEach(function() {
+    beforeEach(function () {
       BuidlerContext.createBuidlerContext();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       resetBuidlerContext();
     });
 
-    it("should accept a relative path from the CWD", function() {
+    it("should accept a relative path from the CWD", function () {
       expectBuidlerError(
         () => loadConfigAndTasks(),
         ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG

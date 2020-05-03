@@ -3,13 +3,13 @@ import {
   bufferToHex,
   privateToAddress,
   toBuffer,
-  zeroAddress
+  zeroAddress,
 } from "ethereumjs-util";
 
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  RpcBlockOutput
+  RpcBlockOutput,
 } from "../../../../../src/internal/buidler-evm/provider/output";
 import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils";
 import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
@@ -19,7 +19,7 @@ import { useFixtureProject } from "../../../../helpers/project";
 import {
   assertInvalidArgumentsError,
   assertLatestBlockNumber,
-  assertQuantity
+  assertQuantity,
 } from "../../helpers/assertions";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
 import { quantityToNumber } from "../../helpers/conversions";
@@ -27,10 +27,10 @@ import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_BLOCK_GAS_LIMIT,
-  PROVIDERS
+  PROVIDERS,
 } from "../../helpers/useProvider";
 
-const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map(account =>
+const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map((account) =>
   bufferToHex(privateToAddress(toBuffer(account.privateKey))).toLowerCase()
 );
 
@@ -42,37 +42,37 @@ async function deployContract(
     {
       from: DEFAULT_ACCOUNTS_ADDRESSES[0],
       data: deploymentCode,
-      gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT)
-    }
+      gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
+    },
   ]);
 
   const { contractAddress } = await provider.send("eth_getTransactionReceipt", [
-    hash
+    hash,
   ]);
 
   return contractAddress;
 }
 
-describe("Evm module", function() {
-  PROVIDERS.forEach(provider => {
-    describe(`Provider ${provider.name}`, function() {
+describe("Evm module", function () {
+  PROVIDERS.forEach((provider) => {
+    describe(`Provider ${provider.name}`, function () {
       setCWD();
       provider.useProvider();
 
-      describe("evm_increaseTime", async function() {
-        it("should increase the offset of time used for block timestamps", async function() {
+      describe("evm_increaseTime", async function () {
+        it("should increase the offset of time used for block timestamps", async function () {
           const accounts = await this.provider.send("eth_accounts");
           const burnTxParams = {
             from: accounts[0],
             to: zeroAddress(),
             value: numberToRpcQuantity(1),
             gas: numberToRpcQuantity(21000),
-            gasPrice: numberToRpcQuantity(1)
+            gasPrice: numberToRpcQuantity(1),
           };
 
           const firstBlock = await this.provider.send("eth_getBlockByNumber", [
             numberToRpcQuantity(0),
-            false
+            false,
           ]);
 
           await this.provider.send("evm_increaseTime", [123]);
@@ -81,7 +81,7 @@ describe("Evm module", function() {
 
           const secondBlock = await this.provider.send("eth_getBlockByNumber", [
             numberToRpcQuantity(1),
-            false
+            false,
           ]);
 
           await this.provider.send("evm_increaseTime", [456]);
@@ -90,7 +90,7 @@ describe("Evm module", function() {
 
           const thirdBlock = await this.provider.send("eth_getBlockByNumber", [
             numberToRpcQuantity(2),
-            false
+            false,
           ]);
 
           const firstTimestamp = quantityToNumber(firstBlock.timestamp);
@@ -101,7 +101,7 @@ describe("Evm module", function() {
           assert.isAtLeast(thirdTimestamp - secondTimestamp, 456);
         });
 
-        it("should return the total offset as a decimal string, not a QUANTITY", async function() {
+        it("should return the total offset as a decimal string, not a QUANTITY", async function () {
           let totalOffset = await this.provider.send("evm_increaseTime", [123]);
           assert.isString(totalOffset);
           assert.strictEqual(parseInt(totalOffset, 10), 123);
@@ -111,15 +111,15 @@ describe("Evm module", function() {
           assert.strictEqual(parseInt(totalOffset, 10), 123 + 3456789);
         });
 
-        it("should expect an actual number as its first param, not a hex string", async function() {
+        it("should expect an actual number as its first param, not a hex string", async function () {
           await assertInvalidArgumentsError(this.provider, "evm_increaseTime", [
-            numberToRpcQuantity(123)
+            numberToRpcQuantity(123),
           ]);
         });
       });
 
-      describe("evm_setNextBlockTimestamp", async function() {
-        it("should set next block timestamp and the next EMPTY block will be mined with that timestamp", async function() {
+      describe("evm_setNextBlockTimestamp", async function () {
+        it("should set next block timestamp and the next EMPTY block will be mined with that timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 60;
 
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
@@ -132,7 +132,7 @@ describe("Evm module", function() {
 
           assertQuantity(block.timestamp, timestamp);
         });
-        it("should set next block timestamp and the next tx will be mined with that timestamp", async function() {
+        it("should set next block timestamp and the next tx will be mined with that timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 70;
 
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
@@ -148,12 +148,12 @@ describe("Evm module", function() {
 
           assertQuantity(block.timestamp, timestamp);
         });
-        it("should be able to set and replace an existing 'next block timestamp'", async function() {
+        it("should be able to set and replace an existing 'next block timestamp'", async function () {
           const timestamp = getCurrentTimestamp() + 60;
 
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
           await this.provider.send("evm_setNextBlockTimestamp", [
-            timestamp + 10
+            timestamp + 10,
           ]);
           await this.provider.send("evm_mine", []);
 
@@ -164,7 +164,7 @@ describe("Evm module", function() {
 
           assertQuantity(block.timestamp, timestamp + 10);
         });
-        it("should be reset after the next block is mined", async function() {
+        it("should be reset after the next block is mined", async function () {
           const timestamp = getCurrentTimestamp() + 60;
 
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
@@ -178,7 +178,7 @@ describe("Evm module", function() {
 
           assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
         });
-        it("should be overriden if next EMPTY block is mined with timestamp", async function() {
+        it("should be overriden if next EMPTY block is mined with timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 90;
 
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
@@ -191,7 +191,7 @@ describe("Evm module", function() {
 
           assertQuantity(block.timestamp, timestamp + 100);
         });
-        it("should also advance time offset for future blocks", async function() {
+        it("should also advance time offset for future blocks", async function () {
           let timestamp = getCurrentTimestamp() + 70;
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
           await this.provider.send("evm_mine", []);
@@ -211,31 +211,31 @@ describe("Evm module", function() {
 
           assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
         });
-        it("shouldn't set if specified timestamp is less or equal to the previous block", async function() {
+        it("shouldn't set if specified timestamp is less or equal to the previous block", async function () {
           const timestamp = getCurrentTimestamp() + 70;
           await this.provider.send("evm_mine", [timestamp]);
 
           this.provider
             .send("evm_setNextBlockTimestamp", [timestamp - 1])
-            .then(function() {
+            .then(function () {
               assert.fail("should have failed setting next block timestamp");
             })
-            .catch(function(e) {});
+            .catch(function (e) {});
 
           this.provider
             .send("evm_setNextBlockTimestamp", [timestamp])
-            .then(function() {
+            .then(function () {
               assert.fail("should have failed setting next block timestamp");
             })
-            .catch(function(e) {});
+            .catch(function (e) {});
         });
 
-        it("should advance the time offset accordingly to the timestamp", async function() {
+        it("should advance the time offset accordingly to the timestamp", async function () {
           let timestamp = getCurrentTimestamp() + 70;
           await this.provider.send("evm_mine", [timestamp]);
           await this.provider.send("evm_mine");
           await this.provider.send("evm_setNextBlockTimestamp", [
-            timestamp + 100
+            timestamp + 100,
           ]);
           await this.provider.send("evm_mine");
           await this.provider.send("evm_increaseTime", [30]);
@@ -245,7 +245,7 @@ describe("Evm module", function() {
           assert.isTrue(timestamp >= 199);
         });
 
-        describe("When the initial date is in the past", function() {
+        describe("When the initial date is in the past", function () {
           // These test use a Buidler EVM instance with an initialDate in the
           // past. We do this by using a fixture project and useEnvironment(),
           // so instead of using this.provider they must use
@@ -254,11 +254,11 @@ describe("Evm module", function() {
           useFixtureProject("buidler-evm-initial-date");
           useEnvironment();
 
-          it("should still set the nextBlockTimestamp if it is less than the real time but larger than the previous block", async function() {
+          it("should still set the nextBlockTimestamp if it is less than the real time but larger than the previous block", async function () {
             const timestamp = getCurrentTimestamp();
 
             await this.env.network.provider.send("evm_mine", [
-              timestamp - 1000
+              timestamp - 1000,
             ]);
             const latestBlock = await this.env.network.provider.send(
               "eth_getBlockByNumber",
@@ -268,7 +268,7 @@ describe("Evm module", function() {
             assertQuantity(latestBlock.timestamp, timestamp - 1000);
 
             await this.env.network.provider.send("evm_setNextBlockTimestamp", [
-              timestamp - 500
+              timestamp - 500,
             ]);
 
             await this.env.network.provider.send("evm_mine");
@@ -281,8 +281,8 @@ describe("Evm module", function() {
         });
       });
 
-      describe("evm_mine", async function() {
-        it("should mine an empty block", async function() {
+      describe("evm_mine", async function () {
+        it("should mine an empty block", async function () {
           await this.provider.send("evm_mine");
 
           const block: RpcBlockOutput = await this.provider.send(
@@ -301,7 +301,7 @@ describe("Evm module", function() {
 
           assert.isEmpty(block2.transactions);
         });
-        it("should mine an empty block with exact timestamp", async function() {
+        it("should mine an empty block with exact timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_mine", [timestamp]);
 
@@ -312,7 +312,7 @@ describe("Evm module", function() {
 
           assertQuantity(block.timestamp, timestamp);
         });
-        it("should mine an empty block with the timestamp and other later blocks have higher timestamp", async function() {
+        it("should mine an empty block with the timestamp and other later blocks have higher timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_mine", [timestamp]);
           await this.provider.send("evm_mine");
@@ -327,9 +327,9 @@ describe("Evm module", function() {
         });
       });
 
-      describe("Snapshot functionality", function() {
-        describe("evm_snapshot", async function() {
-          it("returns the snapshot id starting at 1", async function() {
+      describe("Snapshot functionality", function () {
+        describe("evm_snapshot", async function () {
+          it("returns the snapshot id starting at 1", async function () {
             const id1: string = await this.provider.send("evm_snapshot", []);
             const id2: string = await this.provider.send("evm_snapshot", []);
             const id3: string = await this.provider.send("evm_snapshot", []);
@@ -339,10 +339,10 @@ describe("Evm module", function() {
             assert.equal(id3, "0x3");
           });
 
-          it("Doesn't repeat snapshot ids after revert is called", async function() {
+          it("Doesn't repeat snapshot ids after revert is called", async function () {
             const id1: string = await this.provider.send("evm_snapshot", []);
             const reverted: boolean = await this.provider.send("evm_revert", [
-              id1
+              id1,
             ]);
             const id2: string = await this.provider.send("evm_snapshot", []);
 
@@ -352,16 +352,16 @@ describe("Evm module", function() {
           });
         });
 
-        describe("evm_revert", async function() {
-          it("Returns false for non-existing ids", async function() {
+        describe("evm_revert", async function () {
+          it("Returns false for non-existing ids", async function () {
             const reverted1: boolean = await this.provider.send("evm_revert", [
-              "0x1"
+              "0x1",
             ]);
             const reverted2: boolean = await this.provider.send("evm_revert", [
-              "0x2"
+              "0x2",
             ]);
             const reverted3: boolean = await this.provider.send("evm_revert", [
-              "0x0"
+              "0x0",
             ]);
 
             assert.isFalse(reverted1);
@@ -369,20 +369,20 @@ describe("Evm module", function() {
             assert.isFalse(reverted3);
           });
 
-          it("Returns false for already reverted ids", async function() {
+          it("Returns false for already reverted ids", async function () {
             const id1: string = await this.provider.send("evm_snapshot", []);
             const reverted: boolean = await this.provider.send("evm_revert", [
-              id1
+              id1,
             ]);
             const reverted2: boolean = await this.provider.send("evm_revert", [
-              id1
+              id1,
             ]);
 
             assert.isTrue(reverted);
             assert.isFalse(reverted2);
           });
 
-          it("Deletes previous blocks", async function() {
+          it("Deletes previous blocks", async function () {
             const snapshotId: string = await this.provider.send(
               "evm_snapshot",
               []
@@ -402,7 +402,7 @@ describe("Evm module", function() {
             );
 
             const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId
+              snapshotId,
             ]);
             assert.isTrue(reverted);
 
@@ -414,7 +414,7 @@ describe("Evm module", function() {
 
             const blockByHash = await this.provider.send("eth_getBlockByHash", [
               bufferToRpcData(latestBlockBeforeReverting.hash),
-              false
+              false,
             ]);
             assert.isNull(blockByHash);
 
@@ -425,7 +425,7 @@ describe("Evm module", function() {
             assert.isNull(blockByNumber);
           });
 
-          it("Deletes previous transactions", async function() {
+          it("Deletes previous transactions", async function () {
             const [from] = await this.provider.send("eth_accounts");
 
             const snapshotId: string = await this.provider.send(
@@ -440,12 +440,12 @@ describe("Evm module", function() {
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(100000),
                 gasPrice: numberToRpcQuantity(1),
-                nonce: numberToRpcQuantity(0)
-              }
+                nonce: numberToRpcQuantity(0),
+              },
             ]);
 
             const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId
+              snapshotId,
             ]);
             assert.isTrue(reverted);
 
@@ -456,7 +456,7 @@ describe("Evm module", function() {
             assert.isNull(txHashAfter);
           });
 
-          it("Allows resending the same tx after a revert", async function() {
+          it("Allows resending the same tx after a revert", async function () {
             const [from] = await this.provider.send("eth_accounts");
 
             const snapshotId: string = await this.provider.send(
@@ -470,26 +470,26 @@ describe("Evm module", function() {
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
               gasPrice: numberToRpcQuantity(1),
-              nonce: numberToRpcQuantity(0)
+              nonce: numberToRpcQuantity(0),
             };
 
             const txHash = await this.provider.send("eth_sendTransaction", [
-              txParams
+              txParams,
             ]);
 
             const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId
+              snapshotId,
             ]);
             assert.isTrue(reverted);
 
             const txHash2 = await this.provider.send("eth_sendTransaction", [
-              txParams
+              txParams,
             ]);
 
             assert.equal(txHash2, txHash);
           });
 
-          it("Deletes the used snapshot and the following ones", async function() {
+          it("Deletes the used snapshot and the following ones", async function () {
             const snapshotId1: string = await this.provider.send(
               "evm_snapshot",
               []
@@ -524,7 +524,7 @@ describe("Evm module", function() {
             assert.isTrue(revertedTo1);
           });
 
-          it("Resets the blockchain so that new blocks are added with the right numbers", async function() {
+          it("Resets the blockchain so that new blocks are added with the right numbers", async function () {
             await this.provider.send("evm_mine");
             await this.provider.send("evm_mine");
 
@@ -578,7 +578,7 @@ describe("Evm module", function() {
             await assertLatestBlockNumber(this.provider, 4);
           });
 
-          it("Resets the date to the right time", async function() {
+          it("Resets the date to the right time", async function () {
             // First, we increase the time by 100 sec
             await this.provider.send("evm_increaseTime", [100]);
             const startDate = new Date();
@@ -599,10 +599,10 @@ describe("Evm module", function() {
             );
 
             // TODO: Somehow test this without a sleep
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId
+              snapshotId,
             ]);
             assert.isTrue(reverted);
 
@@ -620,13 +620,13 @@ describe("Evm module", function() {
             );
           });
 
-          it("Restores the previous state", async function() {
+          it("Restores the previous state", async function () {
             // This is a very coarse test, as we know that the entire state is
             // managed by the vm, and is restored as a whole
             const [from] = await this.provider.send("eth_accounts");
 
             const balanceBeforeTx = await this.provider.send("eth_getBalance", [
-              from
+              from,
             ]);
 
             const snapshotId: string = await this.provider.send(
@@ -640,19 +640,19 @@ describe("Evm module", function() {
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
               gasPrice: numberToRpcQuantity(1),
-              nonce: numberToRpcQuantity(0)
+              nonce: numberToRpcQuantity(0),
             };
 
             await this.provider.send("eth_sendTransaction", [txParams]);
 
             const balanceAfterTx = await this.provider.send("eth_getBalance", [
-              from
+              from,
             ]);
 
             assert.notEqual(balanceAfterTx, balanceBeforeTx);
 
             const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId
+              snapshotId,
             ]);
             assert.isTrue(reverted);
 

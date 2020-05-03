@@ -8,7 +8,7 @@ import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 
 import { TASK_COMPILE, TASK_RUN } from "./task-names";
 
-export default function() {
+export default function () {
   const log = debug("buidler:core:tasks:run");
 
   task(TASK_RUN, "Runs a user-defined script after compiling the project")
@@ -24,7 +24,7 @@ export default function() {
       ) => {
         if (!(await fsExtra.pathExists(script))) {
           throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, {
-            script
+            script,
           });
         }
 
@@ -46,7 +46,7 @@ export default function() {
             ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
             {
               script,
-              error: error.message
+              error: error.message,
             },
             error
           );

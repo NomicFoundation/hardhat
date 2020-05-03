@@ -12,7 +12,7 @@ export class WritableBufferStream extends Writable {
       write: (chunk, encoding, next) => {
         this.buffer = Buffer.concat([this.buffer, chunk]);
         next();
-      }
+      },
     });
   }
 }

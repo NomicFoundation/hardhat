@@ -92,7 +92,7 @@ export class Web3HTTPProviderAdapter {
   ): Promise<JsonRpcResponse> {
     const response: JsonRpcResponse = {
       id: request.id,
-      jsonrpc: "2.0"
+      jsonrpc: "2.0",
     };
 
     try {
@@ -108,8 +108,8 @@ export class Web3HTTPProviderAdapter {
         message: error.message,
         data: {
           stack: error.stack,
-          name: error.name
-        }
+          name: error.name,
+        },
       };
     }
 

@@ -23,7 +23,7 @@ function stringify(v: any): string {
 function getContextPath(context: Context): string {
   const keysPath = context
     .slice(1)
-    .map(c => c.key)
+    .map((c) => c.key)
     .join(".");
 
   return `${context[0].type.name}.${keysPath}`;
@@ -56,7 +56,7 @@ export function success(): string[] {
 }
 
 export const DotPathReporter: Reporter<string[]> = {
-  report: validation => validation.fold(failure, success)
+  report: (validation) => validation.fold(failure, success),
 };
 
 function optional<TypeT, OutputT>(
@@ -67,7 +67,7 @@ function optional<TypeT, OutputT>(
     name,
     (u: unknown): u is TypeT | undefined => u === undefined || codec.is(u),
     (u, c) => (u === undefined ? t.success(u) : codec.validate(u, c)),
-    a => (a === undefined ? undefined : codec.encode(a))
+    (a) => (a === undefined ? undefined : codec.encode(a))
   );
 }
 
@@ -75,7 +75,7 @@ function optional<TypeT, OutputT>(
 
 const BuidlerNetworkAccount = t.type({
   privateKey: t.string,
-  balance: t.string
+  balance: t.string,
 });
 
 const BuidlerNetworkConfig = t.type({
@@ -91,25 +91,25 @@ const BuidlerNetworkConfig = t.type({
   throwOnCallFailures: optional(t.boolean),
   loggingEnabled: optional(t.boolean),
   allowUnlimitedContractSize: optional(t.boolean),
-  initialDate: optional(t.string)
+  initialDate: optional(t.string),
 });
 
 const HDAccountsConfig = t.type({
   mnemonic: t.string,
   initialIndex: optional(t.number),
   count: optional(t.number),
-  path: optional(t.string)
+  path: optional(t.string),
 });
 
 const OtherAccountsConfig = t.type({
-  type: t.string
+  type: t.string,
 });
 
 const NetworkConfigAccounts = t.union([
   t.literal("remote"),
   t.array(t.string),
   HDAccountsConfig,
-  OtherAccountsConfig
+  OtherAccountsConfig,
 ]);
 
 const HttpHeaders = t.record(t.string, t.string, "httpHeaders");
@@ -122,7 +122,7 @@ const HttpNetworkConfig = t.type({
   gasMultiplier: optional(t.number),
   url: optional(t.string),
   accounts: optional(NetworkConfigAccounts),
-  httpHeaders: optional(HttpHeaders)
+  httpHeaders: optional(HttpHeaders),
 });
 
 const NetworkConfig = t.union([BuidlerNetworkConfig, HttpNetworkConfig]);
@@ -134,24 +134,24 @@ const ProjectPaths = t.type({
   cache: optional(t.string),
   artifacts: optional(t.string),
   sources: optional(t.string),
-  tests: optional(t.string)
+  tests: optional(t.string),
 });
 
 const EVMVersion = t.string;
 
 const SolcOptimizerConfig = t.type({
   enabled: optional(t.boolean),
-  runs: optional(t.number)
+  runs: optional(t.number),
 });
 
 const SolcConfig = t.type({
   version: optional(t.string),
   optimizer: optional(SolcOptimizerConfig),
-  evmVersion: optional(EVMVersion)
+  evmVersion: optional(EVMVersion),
 });
 
 const AnalyticsConfig = t.type({
-  enabled: optional(t.boolean)
+  enabled: optional(t.boolean),
 });
 
 const BuidlerConfig = t.type(
@@ -160,7 +160,7 @@ const BuidlerConfig = t.type(
     networks: optional(Networks),
     paths: optional(ProjectPaths),
     solc: optional(SolcConfig),
-    analytics: optional(AnalyticsConfig)
+    analytics: optional(AnalyticsConfig),
   },
   "BuidlerConfig"
 );

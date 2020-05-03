@@ -8,7 +8,7 @@ import { getPackageJson } from "../internal/util/packageInfo";
 import {
   TASK_COMPILE_GET_DEPENDENCY_GRAPH,
   TASK_FLATTEN,
-  TASK_FLATTEN_GET_FLATTENED_SOURCE
+  TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names";
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
@@ -17,7 +17,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 
   const filesMap: ResolvedFilesMap = {};
   const resolvedFiles = dependenciesGraph.getResolvedFiles();
-  resolvedFiles.forEach(f => (filesMap[f.globalName] = f));
+  resolvedFiles.forEach((f) => (filesMap[f.globalName] = f));
 
   for (const [from, deps] of dependenciesGraph.dependenciesPerFile.entries()) {
     for (const to of deps) {
@@ -31,11 +31,11 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     // If an entry has no dependency it won't be included in the graph, so we
     // add them and then dedup the array
     const withEntries = topologicalSortedNames.concat(
-      resolvedFiles.map(f => f.globalName)
+      resolvedFiles.map((f) => f.globalName)
     );
 
     const sortedNames = [...new Set(withEntries)];
-    return sortedNames.map(n => filesMap[n]);
+    return sortedNames.map((n) => filesMap[n]);
   } catch (error) {
     if (error.toString().includes("Error: There is a cycle in the graph.")) {
       throw new BuidlerError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
@@ -52,7 +52,7 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
   return resolvedFile.content.replace(IMPORT_SOLIDITY_REGEX, "").trim();
 }
 
-export default function() {
+export default function () {
   internalTask(
     TASK_FLATTEN_GET_FLATTENED_SOURCE,
     "Returns all contracts and their dependencies flattened",

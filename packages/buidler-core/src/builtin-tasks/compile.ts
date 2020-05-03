@@ -4,11 +4,11 @@ import path from "path";
 
 import {
   getArtifactFromContractOutput,
-  saveArtifact
+  saveArtifact,
 } from "../internal/artifacts";
 import {
   SOLC_INPUT_FILENAME,
-  SOLC_OUTPUT_FILENAME
+  SOLC_OUTPUT_FILENAME,
 } from "../internal/constants";
 import { internalTask, task, types } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
@@ -30,7 +30,7 @@ import {
   TASK_COMPILE_GET_DEPENDENCY_GRAPH,
   TASK_COMPILE_GET_RESOLVED_SOURCES,
   TASK_COMPILE_GET_SOURCE_PATHS,
-  TASK_COMPILE_RUN_COMPILER
+  TASK_COMPILE_RUN_COMPILER,
 } from "./task-names";
 import { areArtifactsCached, cacheBuidlerConfig } from "./utils/cache";
 
@@ -46,7 +46,7 @@ async function cacheSolcJsonFiles(
     path.join(config.paths.cache, SOLC_INPUT_FILENAME),
     JSON.stringify(input, undefined, 2),
     {
-      encoding: "utf8"
+      encoding: "utf8",
     }
   );
 
@@ -54,7 +54,7 @@ async function cacheSolcJsonFiles(
     path.join(config.paths.cache, SOLC_OUTPUT_FILENAME),
     JSON.stringify(output, undefined, 2),
     {
-      encoding: "utf8"
+      encoding: "utf8",
     }
   );
 }
@@ -68,7 +68,7 @@ function isConsoleLogError(error: any): boolean {
   );
 }
 
-export default function() {
+export default function () {
   internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
     return glob(path.join(config.paths.sources, "**/*.sol"));
   });
@@ -179,7 +179,7 @@ export default function() {
 
     const sourceTimestamps = dependencyGraph
       .getResolvedFiles()
-      .map(file => file.lastModificationDate.getTime());
+      .map((file) => file.lastModificationDate.getTime());
 
     return areArtifactsCached(sourceTimestamps, config.solc, config.paths);
   });

@@ -15,7 +15,7 @@ export function disableReplWriterShowProxy() {
     Object.defineProperty(repl.writer.options, "showProxy", {
       value: false,
       writable: false,
-      configurable: false
+      configurable: false,
     });
   }
 }

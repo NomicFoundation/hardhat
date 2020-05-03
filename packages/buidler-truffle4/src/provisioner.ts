@@ -36,7 +36,7 @@ export class LazyTruffleContractProvisioner {
         }
 
         return Reflect.construct(target, argumentsList, newTarget);
-      }
+      },
     });
   }
 
@@ -140,7 +140,7 @@ export class LazyTruffleContractProvisioner {
     Contract: TruffleContract,
     contractInstance: TruffleContractInstance
   ) {
-    this._getContractInstanceMethodsToOverride(Contract).forEach(name =>
+    this._getContractInstanceMethodsToOverride(Contract).forEach((name) =>
       this._addDefaultParamsToInstanceMethod(contractInstance, name)
     );
   }
@@ -242,7 +242,7 @@ export class LazyTruffleContractProvisioner {
   ) {
     return {
       ...txParams,
-      from: await this._getDefaultAccount(txParams, isDefaultAccountRequired)
+      from: await this._getDefaultAccount(txParams, isDefaultAccountRequired),
     };
   }
 

@@ -64,7 +64,7 @@ export function usePlugin(
     throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, {
       plugin: pluginName,
       extraMessage: globalWarning,
-      extraFlags: installExtraFlags
+      extraFlags: installExtraFlags,
     });
   }
 
@@ -93,7 +93,7 @@ export function usePlugin(
           dependency: dependencyName,
           extraMessage: globalWarning,
           extraFlags: installExtraFlags,
-          versionSpec
+          versionSpec,
         });
       }
 
@@ -106,7 +106,7 @@ export function usePlugin(
           extraMessage: globalWarning,
           extraFlags: installExtraFlags,
           versionSpec,
-          installedVersion
+          installedVersion,
         });
       }
     }

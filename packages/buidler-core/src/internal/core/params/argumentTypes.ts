@@ -59,10 +59,10 @@ export const string: ArgumentType<string> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
-        type: string.name
+        type: string.name,
       });
     }
-  }
+  },
 };
 
 /**
@@ -84,7 +84,7 @@ export const boolean: ArgumentType<boolean> = {
     throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
       value: strValue,
       name: argName,
-      type: "boolean"
+      type: "boolean",
     });
   },
   /**
@@ -102,10 +102,10 @@ export const boolean: ArgumentType<boolean> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
-        type: boolean.name
+        type: boolean.name,
       });
     }
-  }
+  },
 };
 
 /**
@@ -126,7 +126,7 @@ export const int: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
-        type: int.name
+        type: int.name,
       });
     }
 
@@ -146,10 +146,10 @@ export const int: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
-        type: int.name
+        type: int.name,
       });
     }
-  }
+  },
 };
 
 /**
@@ -170,7 +170,7 @@ export const float: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
-        type: float.name
+        type: float.name,
       });
     }
 
@@ -192,10 +192,10 @@ export const float: ArgumentType<number> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
-        type: float.name
+        type: float.name,
       });
     }
-  }
+  },
 };
 
 /**
@@ -220,7 +220,7 @@ export const inputFile: ArgumentType<string> = {
         ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
         {
           name: argName,
-          value: strValue
+          value: strValue,
         },
         error
       );
@@ -247,12 +247,12 @@ export const inputFile: ArgumentType<string> = {
         {
           value,
           name: argName,
-          type: inputFile.name
+          type: inputFile.name,
         },
         error
       );
     }
-  }
+  },
 };
 
 export const json: ArgumentType<any> = {
@@ -265,7 +265,7 @@ export const json: ArgumentType<any> = {
         ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT,
         {
           param: argName,
-          error: error.message
+          error: error.message,
         },
         error
       );
@@ -291,8 +291,8 @@ export const json: ArgumentType<any> = {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
-        type: json.name
+        type: json.name,
       });
     }
-  }
+  },
 };

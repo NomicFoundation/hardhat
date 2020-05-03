@@ -8,11 +8,11 @@ declare module "mocha" {
 }
 
 export function useEnvironment() {
-  beforeEach("Load environment", function() {
+  beforeEach("Load environment", function () {
     this.env = require("../../src/internal/lib/buidler-lib");
   });
 
-  afterEach("reset buidler context", function() {
+  afterEach("reset buidler context", function () {
     resetBuidlerContext();
   });
 }

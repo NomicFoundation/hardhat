@@ -8,7 +8,7 @@ import { Environment } from "./internal/core/runtime-environment";
 import { loadTsNodeIfPresent } from "./internal/core/typescript-support";
 import {
   disableReplWriterShowProxy,
-  isNodeCalledWithoutAScript
+  isNodeCalledWithoutAScript,
 } from "./internal/util/console";
 
 if (!BuidlerContext.isCreated()) {

@@ -52,7 +52,7 @@ export function getEnvBuidlerArguments(
           ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE,
           {
             varName: envVarName,
-            value: rawValue
+            value: rawValue,
           },
           error
         );

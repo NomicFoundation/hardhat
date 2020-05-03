@@ -35,7 +35,7 @@ function ensureValidNodeVersion(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
     throw new BuidlerError(ERRORS.GENERAL.INVALID_NODE_VERSION, {
-      requirement
+      requirement,
     });
   }
 }
@@ -60,7 +60,7 @@ async function main() {
     const {
       buidlerArguments,
       taskName: parsedTaskName,
-      unparsedCLAs
+      unparsedCLAs,
     } = argumentsParser.parseBuidlerArguments(
       BUIDLER_PARAM_DEFINITIONS,
       envVariableArguments,
@@ -121,7 +121,7 @@ async function main() {
 
       if (taskDefinition === undefined) {
         throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-          task: taskName
+          task: taskName,
         });
       }
 
@@ -211,7 +211,7 @@ async function main() {
 
 main()
   .then(() => process.exit(process.exitCode))
-  .catch(error => {
+  .catch((error) => {
     console.error(error);
     process.exit(1);
   });

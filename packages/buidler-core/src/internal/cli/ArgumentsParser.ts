@@ -4,7 +4,7 @@ import {
   ParamDefinition,
   ParamDefinitionsMap,
   TaskArguments,
-  TaskDefinition
+  TaskDefinition,
 } from "../../types";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -17,7 +17,7 @@ export class ArgumentsParser {
       ArgumentsParser.PARAM_PREFIX +
       paramName
         .split(/(?=[A-Z])/g)
-        .map(s => s.toLowerCase())
+        .map((s) => s.toLowerCase())
         .join("-")
     );
   }
@@ -25,7 +25,7 @@ export class ArgumentsParser {
   public static cLAToParamName(cLA: string): string {
     if (cLA.toLowerCase() !== cLA) {
       throw new BuidlerError(ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING, {
-        param: cLA
+        param: cLA,
       });
     }
 
@@ -35,7 +35,7 @@ export class ArgumentsParser {
       parts[0] +
       parts
         .slice(1)
-        .map(s => s[0].toUpperCase() + s.slice(1))
+        .map((s) => s[0].toUpperCase() + s.slice(1))
         .join("")
     );
   }
@@ -97,7 +97,7 @@ export class ArgumentsParser {
         buidlerArguments
       ),
       taskName,
-      unparsedCLAs
+      unparsedCLAs,
     };
   }
 
@@ -107,7 +107,7 @@ export class ArgumentsParser {
   ): TaskArguments {
     const {
       paramArguments,
-      rawPositionalArguments
+      rawPositionalArguments,
     } = this._parseTaskParamArguments(taskDefinition, rawCLAs);
 
     const positionalArguments = this._parsePositionalParamArgs(
@@ -135,7 +135,7 @@ export class ArgumentsParser {
 
       if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
         throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME, {
-          param: arg
+          param: arg,
         });
       }
 
@@ -159,7 +159,7 @@ export class ArgumentsParser {
   ): BuidlerArguments {
     return {
       ...envVariableArguments,
-      ...buidlerArguments
+      ...buidlerArguments,
     };
   }
 
@@ -175,7 +175,7 @@ export class ArgumentsParser {
       }
       if (!definition.isOptional) {
         throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
-          param: ArgumentsParser.paramNameToCLA(paramName)
+          param: ArgumentsParser.paramNameToCLA(paramName),
         });
       }
 
@@ -208,7 +208,7 @@ export class ArgumentsParser {
 
     if (parsedArguments[paramName] !== undefined) {
       throw new BuidlerError(ERRORS.ARGUMENTS.REPEATED_PARAM, {
-        param: claArg
+        param: claArg,
       });
     }
 
@@ -220,7 +220,7 @@ export class ArgumentsParser {
 
       if (value === undefined) {
         throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
-          param: ArgumentsParser.paramNameToCLA(paramName)
+          param: ArgumentsParser.paramNameToCLA(paramName),
         });
       }
 
@@ -244,7 +244,7 @@ export class ArgumentsParser {
       if (rawArg === undefined) {
         if (!definition.isOptional) {
           throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG, {
-            param: definition.name
+            param: definition.name,
           });
         }
 
@@ -254,7 +254,7 @@ export class ArgumentsParser {
       } else {
         args[definition.name] = rawPositionalParamArgs
           .slice(i)
-          .map(raw => definition.type.parse(definition.name, raw));
+          .map((raw) => definition.type.parse(definition.name, raw));
       }
     }
 
@@ -269,7 +269,7 @@ export class ArgumentsParser {
       rawPositionalParamArgs.length > positionalParamDefinitions.length
     ) {
       throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
-        argument: rawPositionalParamArgs[positionalParamDefinitions.length]
+        argument: rawPositionalParamArgs[positionalParamDefinitions.length],
       });
     }
 

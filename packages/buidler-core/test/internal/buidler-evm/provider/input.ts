@@ -8,19 +8,19 @@ import {
   rpcAddress,
   rpcHash,
   rpcQuantity,
-  validateParams
+  validateParams,
 } from "../../../../src/internal/buidler-evm/provider/input";
 import { setCWD } from "../helpers/cwd";
 
-describe("validateParams", function() {
+describe("validateParams", function () {
   setCWD();
 
-  describe("0-arguments", function() {
-    it("Should return an empty array if no argument is given", function() {
+  describe("0-arguments", function () {
+    it("Should return an empty array if no argument is given", function () {
       assert.deepEqual(validateParams([]), []);
     });
 
-    it("Should throw if params are given", function() {
+    it("Should throw if params are given", function () {
       assert.throws(() => validateParams([1]), InvalidArgumentsError);
       assert.throws(() => validateParams([1, true]), InvalidArgumentsError);
       assert.throws(() => validateParams([{}]), InvalidArgumentsError);
@@ -31,8 +31,8 @@ describe("validateParams", function() {
     });
   });
 
-  describe("With multiple params", function() {
-    it("Should throw if the number of params and arguments doesn't match", function() {
+  describe("With multiple params", function () {
+    it("Should throw if the number of params and arguments doesn't match", function () {
       assert.throws(
         () => validateParams([1], rpcHash, rpcQuantity),
         InvalidArgumentsError
@@ -51,7 +51,7 @@ describe("validateParams", function() {
       );
     });
 
-    it("Should return the right values", function() {
+    it("Should return the right values", function () {
       assert.deepEqual(
         validateParams(
           ["0x0000000000000000000000000000000000000001"],
@@ -64,7 +64,7 @@ describe("validateParams", function() {
         validateParams(
           [
             "0x0000000000000000000000000000000000000000000000000000000000000001",
-            true
+            true,
           ],
           rpcHash,
           t.boolean
@@ -73,28 +73,28 @@ describe("validateParams", function() {
           toBuffer(
             "0x0000000000000000000000000000000000000000000000000000000000000001"
           ),
-          true
+          true,
         ]
       );
     });
   });
 
-  describe("Optional params", function() {
-    it("Should fail if less than the minimum number of params are received", function() {
+  describe("Optional params", function () {
+    it("Should fail if less than the minimum number of params are received", function () {
       assert.throws(
         () => validateParams([], rpcHash, optionalBlockTag),
         InvalidArgumentsError
       );
     });
 
-    it("Should fail if more than the maximum number of params are received", function() {
+    it("Should fail if more than the maximum number of params are received", function () {
       assert.throws(
         () =>
           validateParams(
             [
               "0x0000000000000000000000000000000000000000000000000000000000000001",
               "latest",
-              123
+              123,
             ],
             rpcHash,
             optionalBlockTag
@@ -103,11 +103,11 @@ describe("validateParams", function() {
       );
     });
 
-    it("Should return undefined if optional params are missing", function() {
+    it("Should return undefined if optional params are missing", function () {
       assert.deepEqual(
         validateParams(
           [
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
+            "0x0000000000000000000000000000000000000000000000000000000000000001",
           ],
           rpcHash,
           optionalBlockTag
@@ -116,7 +116,7 @@ describe("validateParams", function() {
           toBuffer(
             "0x0000000000000000000000000000000000000000000000000000000000000001"
           ),
-          undefined
+          undefined,
         ]
       );
 

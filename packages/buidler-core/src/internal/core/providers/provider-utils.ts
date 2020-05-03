@@ -5,7 +5,7 @@ import { ERRORS } from "../errors-list";
 export function rpcQuantityToNumber(quantity?: string) {
   if (quantity === undefined) {
     throw new BuidlerError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
-      value: quantity
+      value: quantity,
     });
   }
 
@@ -14,7 +14,7 @@ export function rpcQuantityToNumber(quantity?: string) {
     quantity.match(/^0x(?:0|(?:[1-9a-fA-F][0-9a-fA-F]*))$/) === null
   ) {
     throw new BuidlerError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
-      value: quantity
+      value: quantity,
     });
   }
 

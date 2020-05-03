@@ -12,7 +12,7 @@ module.exports = {
       defaultBalanceEther: 9,
       totalAccounts: 3,
       mnemonic:
-        "polar velvet stereo oval echo senior cause cruel tube hobby exact angry"
-    }
-  }
+        "polar velvet stereo oval echo senior cause cruel tube hobby exact angry",
+    },
+  },
 };

@@ -32,16 +32,16 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
   return createLazyProxy(
     objectCreator,
     () => ({}),
-    object => {
+    (object) => {
       if (object instanceof Function) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-          operation: "Creating lazy functions or classes with lazyObject"
+          operation: "Creating lazy functions or classes with lazyObject",
         });
       }
 
       if (typeof object !== "object" || object === null) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-          operation: "Using lazyObject with anything other than objects"
+          operation: "Using lazyObject with anything other than objects",
         });
       }
     }
@@ -51,13 +51,14 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
 // tslint:disable-next-line ban-types
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   return createLazyProxy(
-    functionCreator,
-    () => function() {},
-    object => {
+    // FIXME: this needs to be revised since TS >= 3.7.x fails without the cast
+    functionCreator as () => any,
+    () => function () {},
+    (object) => {
       if (!(object instanceof Function)) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
           operation:
-            "Using lazyFunction with anything other than functions or classes"
+            "Using lazyFunction with anything other than functions or classes",
         });
       }
     }
@@ -94,7 +95,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       if (Object.getPrototypeOf(target) === null) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
           operation:
-            "Using lazyFunction or lazyObject to construct objects/functions with prototype null"
+            "Using lazyFunction or lazyObject to construct objects/functions with prototype null",
         });
       }
 
@@ -187,7 +188,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
     setPrototypeOf(target, prototype) {
       Reflect.setPrototypeOf(dummyTarget, prototype);
       return Reflect.setPrototypeOf(getRealTarget(), prototype);
-    }
+    },
   };
 
   if (dummyTarget instanceof Function) {

@@ -73,7 +73,7 @@ export class Compiler {
     const Module = module.constructor as any;
     const previousHook = Module._extensions[".js"];
 
-    Module._extensions[".js"] = function(
+    Module._extensions[".js"] = function (
       module: NodeJS.Module,
       filename: string
     ) {

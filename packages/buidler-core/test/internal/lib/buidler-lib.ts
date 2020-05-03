@@ -12,16 +12,16 @@ describe("Buidler lib", () => {
     process.env.BUIDLER_NETWORK = "localhost";
   });
 
-  it("should load environment", function() {
+  it("should load environment", function () {
     assert.isDefined(this.env.config!.networks!.custom);
   });
 
-  it("should load task user defined task", async function() {
+  it("should load task user defined task", async function () {
     assert.isDefined(this.env.tasks.example2);
     assert.equal(await this.env.run("example2"), 28);
   });
 
-  it("should reuse global state", async function() {
+  it("should reuse global state", async function () {
     let environment = require("../../../src/internal/lib/buidler-lib");
     assert.isTrue(this.env === environment);
 

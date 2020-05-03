@@ -127,7 +127,7 @@ function createMultipliedGasEstimationGetter() {
     if (cachedGasLimit === undefined) {
       const latestBlock = await provider.send("eth_getBlockByNumber", [
         "latest",
-        false
+        false,
       ]);
 
       const fetchedGasLimit = rpcQuantityToNumber(latestBlock.gasLimit);

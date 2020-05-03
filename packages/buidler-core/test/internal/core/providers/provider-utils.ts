@@ -4,22 +4,22 @@ import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   createChainIdGetter,
   numberToRpcQuantity,
-  rpcQuantityToNumber
+  rpcQuantityToNumber,
 } from "../../../../src/internal/core/providers/provider-utils";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
 
-describe("Provider utils", function() {
-  describe("rpcQuantityToNumber", function() {
-    it("Should decode valid quantities", function() {
+describe("Provider utils", function () {
+  describe("rpcQuantityToNumber", function () {
+    it("Should decode valid quantities", function () {
       assert.equal(rpcQuantityToNumber("0x0"), 0);
       assert.equal(rpcQuantityToNumber("0x1"), 1);
       assert.equal(rpcQuantityToNumber("0x10"), 16);
       assert.equal(rpcQuantityToNumber("0x123"), 291);
     });
 
-    it("Should not accept invalid quantities", function() {
+    it("Should not accept invalid quantities", function () {
       expectBuidlerError(
         () => rpcQuantityToNumber("0x"),
         ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE
@@ -52,8 +52,8 @@ describe("Provider utils", function() {
     });
   });
 
-  describe("numberToRpcQuantity", function() {
-    it("Should encode numbers correctly", function() {
+  describe("numberToRpcQuantity", function () {
+    it("Should encode numbers correctly", function () {
       assert.equal(numberToRpcQuantity(0), "0x0");
       assert.equal(numberToRpcQuantity(1), "0x1");
       assert.equal(numberToRpcQuantity(16), "0x10");
@@ -61,8 +61,8 @@ describe("Provider utils", function() {
     });
   });
 
-  describe("createChainIdGetter", function() {
-    it("Should call the provider only once", async function() {
+  describe("createChainIdGetter", function () {
+    it("Should call the provider only once", async function () {
       const mockedProvider = new MockedProvider();
       mockedProvider.setReturnValue("eth_chainId", numberToRpcQuantity(1));
       mockedProvider.setReturnValue("net_version", "2");
@@ -92,7 +92,7 @@ describe("Provider utils", function() {
       assert.equal(mockedProvider2.getTotalNumberOfCalls(), 2);
     });
 
-    it("Should use eth_chainId if supported", async function() {
+    it("Should use eth_chainId if supported", async function () {
       const mockedProvider = new MockedProvider();
       mockedProvider.setReturnValue("eth_chainId", numberToRpcQuantity(1));
       mockedProvider.setReturnValue("net_version", "2");
@@ -102,7 +102,7 @@ describe("Provider utils", function() {
       assert.equal(await chainIdGetter(), 1);
     });
 
-    it("Should use net_version if eth_chainId is not supported", async function() {
+    it("Should use net_version if eth_chainId is not supported", async function () {
       const mockedProvider = new MockedProvider();
       mockedProvider.setReturnValue("net_version", "2");
       const netVersionGetter = createChainIdGetter(mockedProvider);
@@ -110,7 +110,7 @@ describe("Provider utils", function() {
       assert.equal(await netVersionGetter(), 2);
     });
 
-    it("Should throw if both eth_chainId and net_version fail", async function() {
+    it("Should throw if both eth_chainId and net_version fail", async function () {
       const mockedProvider = new MockedProvider();
       mockedProvider.setReturnValue("eth_chainId", () => {
         throw new Error("Unsupported method");

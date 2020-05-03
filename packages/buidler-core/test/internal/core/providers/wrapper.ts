@@ -49,8 +49,14 @@ describe("wrapSend", () => {
   it("Should return the wrapped object on subscription and unsubscription", () => {
     const wrapped = wrapSend(mockedProvider, async (name, params) => params);
 
-    assert.equal(wrapped.on("notification", () => {}), wrapped);
-    assert.equal(wrapped.removeListener("notification", () => {}), wrapped);
+    assert.equal(
+      wrapped.on("notification", () => {}),
+      wrapped
+    );
+    assert.equal(
+      wrapped.removeListener("notification", () => {}),
+      wrapped
+    );
     assert.equal(wrapped.removeAllListeners("notification"), wrapped);
   });
 

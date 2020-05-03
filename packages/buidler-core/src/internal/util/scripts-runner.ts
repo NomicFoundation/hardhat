@@ -21,16 +21,16 @@ export async function runScript(
     const nodeArgs = [
       ...processExecArgv,
       ...getTsNodeArgsIfNeeded(scriptPath),
-      ...extraNodeArgs
+      ...extraNodeArgs,
     ];
 
     const childProcess = fork(scriptPath, scriptArgs, {
       stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
       execArgv: nodeArgs,
-      env: { ...process.env, ...extraEnvVars }
+      env: { ...process.env, ...extraEnvVars },
     });
 
-    childProcess.once("close", status => {
+    childProcess.once("close", (status) => {
       log(`Script ${scriptPath} exited with status code ${status}`);
 
       resolve(status);
@@ -56,7 +56,7 @@ export async function runScriptWithBuidler(
     [...extraNodeArgs, "--require", buidlerRegisterPath],
     {
       ...getEnvVariablesMap(buidlerArguments),
-      ...extraEnvVars
+      ...extraEnvVars,
     }
   );
 }
@@ -95,7 +95,7 @@ export function resolveBuidlerRegisterPath() {
   const isCompiledInstallation = [
     ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION,
     ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION,
-    ExecutionMode.EXECUTION_MODE_LINKED
+    ExecutionMode.EXECUTION_MODE_LINKED,
   ].includes(executionMode);
 
   const buidlerCoreBaseDir = path.join(__dirname, "..", "..");

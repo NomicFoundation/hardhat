@@ -32,7 +32,7 @@ describe("lazy module", () => {
           a: 1,
           b() {
             return this.a;
-          }
+          },
         };
       });
 
@@ -61,9 +61,9 @@ describe("lazy module", () => {
         b: "asd",
         c: {
           d: [1, 2, 3],
-          e: 1.3
+          e: 1.3,
         },
-        f: [3, { g: 1 }]
+        f: [3, { g: 1 }],
       };
 
       const obj = lazyObject(() => ({ ...expected }));
@@ -120,7 +120,7 @@ describe("lazy module", () => {
         value: 1,
         writable: true,
         enumerable: true,
-        configurable: true
+        configurable: true,
       });
     });
 

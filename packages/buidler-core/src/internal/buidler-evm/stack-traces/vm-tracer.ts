@@ -14,7 +14,7 @@ import {
   isCreateTrace,
   isPrecompileTrace,
   MessageTrace,
-  PrecompileMessageTrace
+  PrecompileMessageTrace,
 } from "./message-trace";
 
 // tslint:disable only-buidler-error
@@ -107,7 +107,7 @@ export class VMTracer {
           returnData: DUMMY_RETURN_DATA,
           numberOfSubtraces: 0,
           depth: message.depth,
-          deployedContract: undefined
+          deployedContract: undefined,
         };
 
         trace = createTrace;
@@ -120,7 +120,7 @@ export class VMTracer {
             calldata: message.data,
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
-            depth: message.depth
+            depth: message.depth,
           };
 
           trace = precompileTrace;
@@ -140,7 +140,7 @@ export class VMTracer {
             returnData: DUMMY_RETURN_DATA,
             address: message.to,
             numberOfSubtraces: 0,
-            depth: message.depth
+            depth: message.depth,
           };
 
           trace = callTrace;

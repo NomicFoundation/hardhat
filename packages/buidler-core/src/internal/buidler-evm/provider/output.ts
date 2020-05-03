@@ -120,7 +120,7 @@ export function getRpcBlock(
     transactions: block.transactions.map((tx: any, index: number) =>
       getRpcTransaction(tx, block, index, !includeTransactions)
     ),
-    uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash()))
+    uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
   };
 }
 
@@ -164,7 +164,7 @@ export function getRpcTransaction(
     value: numberToRpcQuantity(new BN(tx.value)),
     v: numberToRpcQuantity(new BN(tx.v)),
     r: numberToRpcQuantity(new BN(tx.s)),
-    s: numberToRpcQuantity(new BN(tx.r))
+    s: numberToRpcQuantity(new BN(tx.r)),
   };
 }
 
@@ -175,7 +175,7 @@ export function getRpcTransactionReceipt(
   txBlockResults: TxBlockResult[]
 ): RpcTransactionReceiptOutput {
   const cumulativeGasUsed: BN = txBlockResults
-    .map(txbr => txbr.receipt)
+    .map((txbr) => txbr.receipt)
     .filter((r, i) => i <= index)
     .reduce((gas, r) => gas.add(new BN(r.gasUsed)), new BN(0));
 
@@ -195,7 +195,7 @@ export function getRpcTransactionReceipt(
       createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
     logs: receipt.logs,
     logsBloom: bufferToRpcData(txBlockResults[index].bloomBitvector),
-    status: numberToRpcQuantity(receipt.status)
+    status: numberToRpcQuantity(receipt.status),
   };
 }
 
@@ -221,6 +221,6 @@ export function getRpcLog(
         : null,
     address: bufferToRpcData(log[0]),
     data: bufferToRpcData(log[2]),
-    topics: log[1].map((topic: Buffer) => bufferToRpcData(topic))
+    topics: log[1].map((topic: Buffer) => bufferToRpcData(topic)),
   };
 }

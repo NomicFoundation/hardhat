@@ -17,7 +17,7 @@ function assertIsContract(contract: TruffleContract) {
     "defaults",
     "detectNetwork",
     "deployed",
-    "link"
+    "link",
   ]);
 }
 
@@ -28,18 +28,18 @@ function assertIsContractInstance(
   assert.containsAllKeys(contractInstance, [
     "address",
     "abi",
-    ...functionNames
+    ...functionNames,
   ]);
 }
 
 function testArtifactsFunctionality() {
-  it("Should load existing contracts successfully", function() {
+  it("Should load existing contracts successfully", function () {
     assertIsContract(this.env.artifacts.require("Greeter"));
     assertIsContract(this.env.artifacts.require("Lib"));
     assertIsContract(this.env.artifacts.require("UsesLib"));
   });
 
-  it("Should set a default sender to contract deployments", async function() {
+  it("Should set a default sender to contract deployments", async function () {
     const Greeter = this.env.artifacts.require("Greeter");
     const greeter = await Greeter.new();
 
@@ -50,7 +50,7 @@ function testArtifactsFunctionality() {
     assertIsContractInstance(lib, "addOne");
   });
 
-  it("Should set a default sender to the contract's functions", async function() {
+  it("Should set a default sender to the contract's functions", async function () {
     const Greeter = this.env.artifacts.require("Greeter");
     const greeter = await Greeter.new();
 
@@ -60,7 +60,7 @@ function testArtifactsFunctionality() {
     assert.equal(await greeter.greet(), "Hi!!!");
   });
 
-  it("Should work with Contract.at", async function() {
+  it("Should work with Contract.at", async function () {
     const Greeter = this.env.artifacts.require("Greeter");
     const greeter = await Greeter.new();
     const greeterWithAt = await Greeter.at(greeter.address);
@@ -73,7 +73,7 @@ function testArtifactsFunctionality() {
     assert.equal(await greeterWithAt.greet(), "Hi!!!");
   });
 
-  it("Should work with new Contract(addr)", async function() {
+  it("Should work with new Contract(addr)", async function () {
     const Greeter = this.env.artifacts.require("Greeter");
     const greeter = await Greeter.new();
 
@@ -87,7 +87,7 @@ function testArtifactsFunctionality() {
     assert.equal(await greeterWithNew.greet(), "Hi!!!");
   });
 
-  it("Should provison cloned contracts", async function() {
+  it("Should provison cloned contracts", async function () {
     const Greeter = this.env.artifacts.require("Greeter");
     const ClonedGreeter = Greeter.clone();
     const greeter = await ClonedGreeter.new();
@@ -100,7 +100,7 @@ function testArtifactsFunctionality() {
     assert.equal(await greeter.greet(), "Hi!!!");
   });
 
-  it("Should fail to deploy an unlinked contract", async function() {
+  it("Should fail to deploy an unlinked contract", async function () {
     const UsesLib = this.env.artifacts.require("UsesLib");
 
     try {
@@ -111,7 +111,7 @@ function testArtifactsFunctionality() {
     }
   });
 
-  it("Should deploy linked contracts succesfully", async function() {
+  it("Should deploy linked contracts succesfully", async function () {
     const Lib = this.env.artifacts.require("Lib");
     const lib = await Lib.new();
     assertIsContractInstance(lib, "addOne");
@@ -131,33 +131,33 @@ function testArtifactsFunctionality() {
   });
 }
 
-describe("BuidlerRuntimeEnvironment extension", function() {
+describe("BuidlerRuntimeEnvironment extension", function () {
   useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
 
-  it("It should add the artifacts object", function() {
+  it("It should add the artifacts object", function () {
     assert.instanceOf(this.env.artifacts, TruffleEnvironmentArtifacts);
   });
 });
 
-describe("TruffleContracts loading and provisioning", function() {
-  describe("When compiling with solc 0.5.x", function() {
+describe("TruffleContracts loading and provisioning", function () {
+  describe("When compiling with solc 0.5.x", function () {
     useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
     testArtifactsFunctionality();
   });
 
-  describe("When compiling with solc 0.4.x", function() {
+  describe("When compiling with solc 0.4.x", function () {
     useEnvironment(path.join(__dirname, "buidler-project-solc-0.4"));
     testArtifactsFunctionality();
   });
 
-  describe("When compiling with solc 0.6.x", function() {
+  describe("When compiling with solc 0.6.x", function () {
     useEnvironment(path.join(__dirname, "buidler-project-solc-0.6"));
     testArtifactsFunctionality();
   });
 
-  describe("Without accounts", function() {
+  describe("Without accounts", function () {
     function shouldWorkWithoutAccounts() {
-      it("Should be able to call constant functions", async function() {
+      it("Should be able to call constant functions", async function () {
         const Greeter = this.env.artifacts.require("Greeter");
 
         // We test it this way as actually deploying a contract here, without
@@ -171,7 +171,7 @@ describe("TruffleContracts loading and provisioning", function() {
       });
     }
 
-    describe("With solc 0.4.x", function() {
+    describe("With solc 0.4.x", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.4"),
         "withoutAccounts"
@@ -179,7 +179,7 @@ describe("TruffleContracts loading and provisioning", function() {
       shouldWorkWithoutAccounts();
     });
 
-    describe("With solc 0.5.x", function() {
+    describe("With solc 0.5.x", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.5"),
         "withoutAccounts"
@@ -187,7 +187,7 @@ describe("TruffleContracts loading and provisioning", function() {
       shouldWorkWithoutAccounts();
     });
 
-    describe("With solc 0.6.x", function() {
+    describe("With solc 0.6.x", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.6"),
         "withoutAccounts"
@@ -197,10 +197,10 @@ describe("TruffleContracts loading and provisioning", function() {
   });
 });
 
-describe("Test contracts compilation", function() {
+describe("Test contracts compilation", function () {
   useEnvironment(path.join(__dirname, "buidler-project-with-test-contracts"));
 
-  it("Should include sources from sources", async function() {
+  it("Should include sources from sources", async function () {
     const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
 
     assert.include(
@@ -216,7 +216,7 @@ describe("Test contracts compilation", function() {
     );
   });
 
-  it("Should include sources from test", async function() {
+  it("Should include sources from test", async function () {
     const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
 
     assert.include(
@@ -232,7 +232,7 @@ describe("Test contracts compilation", function() {
     );
   });
 
-  it("Should ignore non-source files from test", async function() {
+  it("Should ignore non-source files from test", async function () {
     const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
 
     assert.notInclude(
@@ -248,14 +248,14 @@ describe("Test contracts compilation", function() {
     );
   });
 
-  it("Should include all the files from contracts and test", async function() {
+  it("Should include all the files from contracts and test", async function () {
     const sources = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
 
     assert.lengthOf(sources, 2);
   });
 });
 
-describe("Gas multiplier", function() {
+describe("Gas multiplier", function () {
   async function assertItWorksForDeployments(
     env: BuidlerRuntimeEnvironment,
     multiplier: number
@@ -265,7 +265,7 @@ describe("Gas multiplier", function() {
     const accounts = await env.web3.eth.getAccounts();
     const web3Estimation = await env.web3.eth.estimateGas({
       from: accounts[0],
-      data: Greeter.bytecode
+      data: Greeter.bytecode,
     });
 
     const greeter = await Greeter.new();
@@ -291,9 +291,9 @@ describe("Gas multiplier", function() {
         inputs: [
           {
             type: "string",
-            name: "_greeting"
-          }
-        ]
+            name: "_greeting",
+          },
+        ],
       },
       [greeting]
     );
@@ -302,7 +302,7 @@ describe("Gas multiplier", function() {
     const web3Estimation = await env.web3.eth.estimateGas({
       to: greeter.address,
       from: accounts[0],
-      data: callData
+      data: callData,
     });
 
     const txResult = await greeter.setGreeting(greeting);
@@ -312,31 +312,31 @@ describe("Gas multiplier", function() {
     assert.equal(gasLimit, Math.floor(web3Estimation * multiplier));
   }
 
-  describe("When it's set in the network", function() {
+  describe("When it's set in the network", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.4"),
       "withGasMultiplier"
     );
 
-    it("Should use the set one for deployments", async function() {
+    it("Should use the set one for deployments", async function () {
       const multiplier = this.env.network.config.gasMultiplier!;
       await assertItWorksForDeployments(this.env, multiplier);
     });
 
-    it("Should use the set one for functions", async function() {
+    it("Should use the set one for functions", async function () {
       const multiplier = this.env.network.config.gasMultiplier!;
       await assertItWorksForFunctions(this.env, multiplier);
     });
   });
 
-  describe("When it's not set in the network", function() {
+  describe("When it's not set in the network", function () {
     useEnvironment(path.join(__dirname, "buidler-project-solc-0.4"));
 
-    it("Should use the set one for deployments", async function() {
+    it("Should use the set one for deployments", async function () {
       await assertItWorksForDeployments(this.env, DEFAULT_GAS_MULTIPLIER);
     });
 
-    it("Should use the set one for functions", async function() {
+    it("Should use the set one for functions", async function () {
       await assertItWorksForFunctions(this.env, DEFAULT_GAS_MULTIPLIER);
     });
   });

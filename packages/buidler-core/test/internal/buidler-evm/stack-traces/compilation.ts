@@ -3,7 +3,7 @@ import path from "path";
 
 import {
   CompilerInput,
-  CompilerOutput
+  CompilerOutput,
 } from "../../../../src/internal/buidler-evm/stack-traces/compiler-types";
 
 function getSolcInput(
@@ -14,14 +14,14 @@ function getSolcInput(
     language: "Solidity",
     sources: Object.assign(
       {},
-      ...sources.map(s => ({
-        [path.basename(s)]: { content: fs.readFileSync(s, "utf8") }
+      ...sources.map((s) => ({
+        [path.basename(s)]: { content: fs.readFileSync(s, "utf8") },
       }))
     ),
     settings: {
       optimizer: {
         enabled: withOptimizations,
-        runs: 200
+        runs: 200,
       },
       outputSelection: {
         "*": {
@@ -29,12 +29,12 @@ function getSolcInput(
             "abi",
             "evm.bytecode",
             "evm.deployedBytecode",
-            "evm.methodIdentifiers"
+            "evm.methodIdentifiers",
           ],
-          "": ["id", "ast"]
-        }
-      }
-    }
+          "": ["id", "ast"],
+        },
+      },
+    },
   };
 }
 

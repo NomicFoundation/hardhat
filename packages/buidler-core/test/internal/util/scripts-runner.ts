@@ -3,21 +3,21 @@ import { assert } from "chai";
 import {
   resolveBuidlerRegisterPath,
   runScript,
-  runScriptWithBuidler
+  runScriptWithBuidler,
 } from "../../../src/internal/util/scripts-runner";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
 
-describe("Scripts runner", function() {
+describe("Scripts runner", function () {
   useFixtureProject("project-with-scripts");
 
-  it("Should pass params to the script", async function() {
+  it("Should pass params to the script", async function () {
     const [
       statusCodeWithScriptParams,
-      statusCodeWithNoParams
+      statusCodeWithNoParams,
     ] = await Promise.all([
       runScript("./params-script.js", ["a", "b", "c"]),
-      runScript("./params-script.js")
+      runScript("./params-script.js"),
     ]);
 
     assert.equal(statusCodeWithScriptParams, 0);
@@ -26,7 +26,7 @@ describe("Scripts runner", function() {
     assert.notEqual(statusCodeWithNoParams, 0);
   });
 
-  it("Should run the script to completion", async function() {
+  it("Should run the script to completion", async function () {
     const before = new Date();
     await runScript("./async-script.js");
     const after = new Date();
@@ -34,7 +34,7 @@ describe("Scripts runner", function() {
     assert.isAtLeast(after.getTime() - before.getTime(), 100);
   });
 
-  it("Should resolve to the status code of the script run", async function() {
+  it("Should resolve to the status code of the script run", async function () {
     const buidlerRegisterPath = resolveBuidlerRegisterPath();
 
     const extraNodeArgs = ["--require", buidlerRegisterPath];
@@ -44,17 +44,17 @@ describe("Scripts runner", function() {
       {
         scriptPath: "./async-script.js",
         extraNodeArgs,
-        expectedStatusCode: 0
+        expectedStatusCode: 0,
       },
       {
         scriptPath: "./failing-script.js",
-        expectedStatusCode: 123
+        expectedStatusCode: 123,
       },
       {
         scriptPath: "./successful-script.js",
         extraNodeArgs,
-        expectedStatusCode: 0
-      }
+        expectedStatusCode: 0,
+      },
     ];
 
     const runScriptTestResults = await Promise.all(
@@ -72,19 +72,19 @@ describe("Scripts runner", function() {
     const expectedResults = runScriptCases.map(
       ({ expectedStatusCode, scriptPath }) => ({
         scriptPath,
-        statusCode: expectedStatusCode
+        statusCode: expectedStatusCode,
       })
     );
 
     assert.deepEqual(runScriptTestResults, expectedResults);
   });
 
-  it("Should pass env variables to the script", async function() {
+  it("Should pass env variables to the script", async function () {
     const [statusCodeWithEnvVars, statusCodeWithNoEnvArgs] = await Promise.all([
       runScript("./env-var-script.js", [], [], {
-        TEST_ENV_VAR: "test"
+        TEST_ENV_VAR: "test",
       }),
-      runScript("./env-var-script.js")
+      runScript("./env-var-script.js"),
     ]);
 
     assert.equal(
@@ -100,19 +100,19 @@ describe("Scripts runner", function() {
     );
   });
 
-  describe("runWithBuidler", function() {
+  describe("runWithBuidler", function () {
     useEnvironment();
 
-    it("Should load buidler/register successfully", async function() {
+    it("Should load buidler/register successfully", async function () {
       const [
         statusCodeWithBuidler,
-        statusCodeWithoutBuidler
+        statusCodeWithoutBuidler,
       ] = await Promise.all([
         runScriptWithBuidler(
           this.env.buidlerArguments,
           "./successful-script.js"
         ),
-        runScript("./successful-script.js")
+        runScript("./successful-script.js"),
       ]);
 
       assert.equal(statusCodeWithBuidler, 0);
@@ -121,7 +121,7 @@ describe("Scripts runner", function() {
       assert.notEqual(statusCodeWithoutBuidler, 0);
     });
 
-    it("Should forward all the buidler arguments", async function() {
+    it("Should forward all the buidler arguments", async function () {
       // This is only for testing purposes, as we can't set a buidler argument
       // as the CLA does, and env variables always get forwarded to child
       // processes

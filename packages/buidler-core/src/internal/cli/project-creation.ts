@@ -19,7 +19,7 @@ const SAMPLE_PROJECT_DEPENDENCIES = [
   "ethereum-waffle",
   "chai",
   "@nomiclabs/buidler-ethers",
-  "ethers"
+  "ethers",
 ];
 
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
@@ -150,16 +150,16 @@ async function getAction() {
           {
             name: CREATE_SAMPLE_PROJECT_ACTION,
             message: CREATE_SAMPLE_PROJECT_ACTION,
-            value: CREATE_SAMPLE_PROJECT_ACTION
+            value: CREATE_SAMPLE_PROJECT_ACTION,
           },
           {
             name: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
             message: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
-            value: CREATE_EMPTY_BUIDLER_CONFIG_ACTION
+            value: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
           },
-          { name: QUIT_ACTION, message: QUIT_ACTION, value: QUIT_ACTION }
-        ]
-      }
+          { name: QUIT_ACTION, message: QUIT_ACTION, value: QUIT_ACTION },
+        ],
+      },
     ]);
 
     return actionResponse.action;
@@ -205,7 +205,7 @@ export async function createProject() {
         name: "projectRoot",
         type: "input",
         initial: process.cwd(),
-        message: "Buidler project root:"
+        message: "Buidler project root:",
       },
       createConfirmationPrompt(
         "shouldAddGitIgnore",
@@ -214,7 +214,7 @@ export async function createProject() {
       createConfirmationPrompt(
         "shouldAddGitAttributes",
         "Do you want to add a .gitattributes to enable Soldity highlighting on GitHub?"
-      )
+      ),
     ]);
   } catch (e) {
     if (e === "") {
@@ -308,7 +308,7 @@ function createConfirmationPrompt(name: string, message: string) {
       }
 
       return value;
-    }
+    },
   };
 }
 
@@ -328,7 +328,7 @@ function isInstalled(dep: string) {
   const allDependencies = {
     ...packageJson.dependencies,
     ...packageJson.devDependencies,
-    ...packageJson.optionalDependencies
+    ...packageJson.optionalDependencies,
   };
 
   return dep in allDependencies;
@@ -360,7 +360,7 @@ async function confirmTrufflePluginInstallation(): Promise<boolean> {
         `Do you want to install the sample project's dependencies with ${packageManager} (${SAMPLE_PROJECT_DEPENDENCIES.join(
           " "
         )})?`
-      )
+      ),
     ]);
   } catch (e) {
     if (e === "") {
@@ -383,11 +383,11 @@ async function installDependencies(
   console.log(`${packageManager} ${args.join(" ")}`);
 
   const childProcess = spawn(packageManager, args, {
-    stdio: "inherit" as any // There's an error in the TS definition of ForkOptions
+    stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
   });
 
   return new Promise((resolve, reject) => {
-    childProcess.once("close", status => {
+    childProcess.once("close", (status) => {
       childProcess.removeAllListeners("error");
 
       if (status === 0) {
@@ -398,7 +398,7 @@ async function installDependencies(
       reject(false);
     });
 
-    childProcess.once("error", status => {
+    childProcess.once("error", (status) => {
       childProcess.removeAllListeners("close");
       reject(false);
     });

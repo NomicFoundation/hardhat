@@ -1,6 +1,6 @@
 import {
   BuidlerPluginError,
-  readArtifactSync
+  readArtifactSync,
 } from "@nomiclabs/buidler/plugins";
 import path from "path";
 
@@ -112,7 +112,7 @@ export class TruffleEnvironmentArtifacts {
     for (const file of Object.keys(linkReferences)) {
       for (const contractName of Object.keys(linkReferences[file])) {
         const library = libraries.find(
-          c => c.constructor.contractName === contractName
+          (c) => c.constructor.contractName === contractName
         );
 
         const linksData = linkReferences[file][contractName];
@@ -139,7 +139,7 @@ export class TruffleEnvironmentArtifacts {
 
     const arraysOfLibs = Object.values<{ [lib: string]: any }>(
       linkReferences
-    ).map(v => Object.keys(v));
+    ).map((v) => Object.keys(v));
     // This is just a flatten
     const libs: string[] = ([] as string[]).concat.apply([], arraysOfLibs);
 
