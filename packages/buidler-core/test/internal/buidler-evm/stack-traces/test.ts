@@ -632,12 +632,29 @@ const solidity05Compilers = [
   },
 ];
 
+const solidity06Compilers = [
+  {
+    version: "0.6.1",
+    compilerPath: "soljson-v0.6.1+commit.e6f7d5a4.js",
+  },
+];
+
 describe("Stack traces", function () {
   setCWD();
   for (const { version, compilerPath } of solidity05Compilers) {
     describe(`Use compiler ${compilerPath}`, function () {
       defineDirTests(
         path.join(__dirname, "test-files", "0_5"),
+        version,
+        compilerPath
+      );
+    });
+  }
+
+  for (const { version, compilerPath } of solidity06Compilers) {
+    describe(`Use compiler ${compilerPath}`, function () {
+      defineDirTests(
+        path.join(__dirname, "test-files", "0_6"),
         version,
         compilerPath
       );
