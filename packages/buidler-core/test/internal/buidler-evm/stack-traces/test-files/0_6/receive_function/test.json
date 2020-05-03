@@ -1,0 +1,19 @@
+{
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+			"imports": [
+				"/../../../../../../../console.sol"
+			]
+    },
+    {
+      "to": 0,
+      "value": 1,
+      "params": [],
+			"consoleLogs": [
+				["true"]
+      ]
+    }
+  ]
+}
