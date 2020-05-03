@@ -35,7 +35,7 @@ import { SolidityTracer } from "../../../../src/internal/buidler-evm/stack-trace
 import { VmTraceDecoder } from "../../../../src/internal/buidler-evm/stack-traces/vm-trace-decoder";
 import { setCWD } from "../helpers/cwd";
 
-import { compile, getSolidityVersion } from "./compilation";
+import { compile, CompilerOptions } from "./compilation";
 import {
   encodeCall,
   encodeConstructorParams,
@@ -101,7 +101,11 @@ interface DeployedContract {
   address: Buffer;
 }
 
-function defineDirTests(dirPath: string) {
+function defineDirTests(
+  dirPath: string,
+  solidityVersion: string,
+  compilerPath: string
+) {
   describe(path.basename(dirPath), function () {
     const files = fs.readdirSync(dirPath).map((f) => path.join(dirPath, f));
 
@@ -126,17 +130,36 @@ function defineDirTests(dirPath: string) {
           ? testDefinition.description
           : "Should give the right stack trace";
 
-      const func = async function () {
-        await runTest(dirPath, testDefinition, sources);
+      const compilerOptions = {
+        solidityVersion,
+        compilerPath,
+        withOptimizations: false,
+        runs: 200,
       };
 
-      const funcWithOptimizations = async function () {
-        await runTest(dirPath, testDefinition, sources, true);
+      const func = async function () {
+        await runTest(dirPath, testDefinition, sources, compilerOptions);
+      };
+
+      const funcWithFewRuns = async function () {
+        await runTest(dirPath, testDefinition, sources, {
+          ...compilerOptions,
+          withOptimizations: true,
+          runs: 200,
+        });
+      };
+
+      const funcWithManyRuns = async function () {
+        await runTest(dirPath, testDefinition, sources, {
+          ...compilerOptions,
+          withOptimizations: true,
+          runs: 10000,
+        });
       };
 
       const solcVersionDoesntMatch =
         testDefinition.solc !== undefined &&
-        !semver.satisfies(getSolidityVersion(), testDefinition.solc);
+        !semver.satisfies(compilerOptions.solidityVersion, testDefinition.solc);
 
       describe("Without optimizations", function () {
         if (
@@ -151,31 +174,45 @@ function defineDirTests(dirPath: string) {
         }
       });
 
-      describe("With optimizations", function () {
+      describe("With optimizations (200 runs)", function () {
         if (
           (testDefinition.skip !== undefined && testDefinition.skip) ||
           solcVersionDoesntMatch
         ) {
-          it.skip(desc, funcWithOptimizations);
+          it.skip(desc, funcWithFewRuns);
         } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, funcWithOptimizations);
+          it.only(desc, funcWithFewRuns);
         } else {
-          it(desc, funcWithOptimizations);
+          it(desc, funcWithFewRuns);
+        }
+      });
+
+      describe("With optimizations (10000 runs)", function () {
+        if (
+          (testDefinition.skip !== undefined && testDefinition.skip) ||
+          solcVersionDoesntMatch
+        ) {
+          it.skip(desc, funcWithManyRuns);
+        } else if (testDefinition.only !== undefined && testDefinition.only) {
+          it.only(desc, funcWithManyRuns);
+        } else {
+          it(desc, funcWithManyRuns);
         }
       });
     }
 
     for (const dir of dirs) {
-      defineDirTests(dir);
+      defineDirTests(dir, solidityVersion, compilerPath);
     }
   });
 }
 
-function compileIfNecessary(
+async function compileIfNecessary(
   testDir: string,
   sources: string[],
-  withOptimizations = false
-): [CompilerInput, CompilerOutput] {
+  compilerOptions: CompilerOptions
+): Promise<[CompilerInput, CompilerOutput]> {
+  const { solidityVersion, withOptimizations, runs } = compilerOptions;
   const maxSourceCtime = sources
     .map((s) => fs.statSync(s).ctimeMs)
     .reduce((t1, t2) => Math.max(t1, t2), 0);
@@ -190,12 +227,12 @@ function compileIfNecessary(
 
   const inputPath = path.join(
     artifacts,
-    `compiler-input-solc-${getSolidityVersion()}-${optimized}.json`
+    `compiler-input-solc-${solidityVersion}-${optimized}-${runs}.json`
   );
 
   const outputPath = path.join(
     artifacts,
-    `compiler-output-solc-${getSolidityVersion()}-${optimized}.json`
+    `compiler-output-solc-${solidityVersion}-${optimized}-${runs}.json`
   );
 
   const isCached =
@@ -211,7 +248,10 @@ function compileIfNecessary(
     return [JSON.parse(inputJson), JSON.parse(outputJson)];
   }
 
-  const [compilerInput, compilerOutput] = compile(sources, withOptimizations);
+  const [compilerInput, compilerOutput] = await compile(
+    sources,
+    compilerOptions
+  );
 
   fs.writeFileSync(inputPath, JSON.stringify(compilerInput, undefined, 2));
   fs.writeFileSync(outputPath, JSON.stringify(compilerOutput, undefined, 2));
@@ -337,16 +377,16 @@ async function runTest(
   testDir: string,
   testDefinition: TestDefinition,
   sources: string[],
-  withOptimizations = false
+  compilerOptions: CompilerOptions
 ) {
-  const [compilerInput, compilerOutput] = compileIfNecessary(
+  const [compilerInput, compilerOutput] = await compileIfNecessary(
     testDir,
     sources,
-    withOptimizations
+    compilerOptions
   );
 
   const bytecodes = createModelsAndDecodeBytecodes(
-    getSolidityVersion(),
+    compilerOptions.solidityVersion,
     compilerInput,
     compilerOutput
   );
@@ -441,7 +481,7 @@ async function runTest(
           txIndex,
           stackTrace,
           tx.stackTrace!,
-          withOptimizations
+          compilerOptions.withOptimizations
         );
         if (testDefinition.print !== undefined && testDefinition.print) {
           console.log(`Transaction ${txIndex} stack trace`);
@@ -585,7 +625,22 @@ async function runCallTransactionTest(
   return trace as CallMessageTrace;
 }
 
+const solidity05Compilers = [
+  {
+    version: "0.5.1",
+    compilerPath: "soljson-v0.5.1+commit.c8a2cb62.js",
+  },
+];
+
 describe("Stack traces", function () {
   setCWD();
-  defineDirTests(path.join(__dirname, "test-files"));
+  for (const { version, compilerPath } of solidity05Compilers) {
+    describe(`Use compiler ${compilerPath}`, function () {
+      defineDirTests(
+        path.join(__dirname, "test-files", "0_5"),
+        version,
+        compilerPath
+      );
+    });
+  }
 });

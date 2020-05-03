@@ -1,14 +1,23 @@
+import download from "download";
 import fs from "fs";
 import path from "path";
+import solcWrapper from "solc/wrapper";
 
 import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../src/internal/buidler-evm/stack-traces/compiler-types";
 
+export interface CompilerOptions {
+  solidityVersion: string;
+  compilerPath: string;
+  withOptimizations: boolean;
+  runs: number;
+}
+
 function getSolcInput(
   sources: string[],
-  withOptimizations = false
+  compilerOptions: CompilerOptions
 ): CompilerInput {
   return {
     language: "Solidity",
@@ -20,8 +29,8 @@ function getSolcInput(
     ),
     settings: {
       optimizer: {
-        enabled: withOptimizations,
-        runs: 200,
+        enabled: compilerOptions.withOptimizations,
+        runs: compilerOptions.runs,
       },
       outputSelection: {
         "*": {
@@ -38,14 +47,49 @@ function getSolcInput(
   };
 }
 
-export function compile(
-  sources: string[],
-  withOptimizations = false
-): [CompilerInput, CompilerOutput] {
-  const input = getSolcInput(sources, withOptimizations);
+function loadCompilerSources(compilerPath: string) {
+  const Module = module.constructor as any;
+  const previousHook = Module._extensions[".js"];
 
-  // tslint:disable-next-line no-implicit-dependencies
-  const solc = require("solc");
+  Module._extensions[".js"] = function (
+    module: NodeJS.Module,
+    filename: string
+  ) {
+    const content = fs.readFileSync(filename, "utf8");
+    Object.getPrototypeOf(module)._compile.call(module, content, filename);
+  };
+
+  const loadedSolc = require(compilerPath);
+
+  Module._extensions[".js"] = previousHook;
+
+  return loadedSolc;
+}
+
+async function getSolc(compilerVersion: string): Promise<any> {
+  const compilersDir = path.join(__dirname, "compilers");
+  const compilerPath = path.join(compilersDir, compilerVersion);
+
+  // download if necessary
+  if (!fs.existsSync(compilerPath)) {
+    const compilerUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${compilerVersion}`;
+    await download(compilerUrl, compilersDir, {
+      filename: path.basename(compilerVersion),
+    });
+  }
+
+  const solc = solcWrapper(loadCompilerSources(compilerPath));
+
+  return solc;
+}
+
+export async function compile(
+  sources: string[],
+  compilerOptions: CompilerOptions
+): Promise<[CompilerInput, CompilerOutput]> {
+  const input = getSolcInput(sources, compilerOptions);
+
+  const solc = await getSolc(compilerOptions.compilerPath);
 
   const output = JSON.parse(solc.compile(JSON.stringify(input)));
 
@@ -58,9 +102,4 @@ export function compile(
   }
 
   return [input, output];
-}
-
-export function getSolidityVersion(): string {
-  // tslint:disable-next-line no-implicit-dependencies
-  return require("solc/package.json").version;
 }
