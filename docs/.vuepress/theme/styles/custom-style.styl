@@ -361,7 +361,17 @@ h3.how
 
 
 .VueCarousel-dot.VueCarousel-dot--active
-    background-color $darkYellow !important
+  background-color $darkYellow !important
+
+.VueCarousel-navigation-button
+  width 9px
+  height 19px
+  &:focus
+    outline none !important
+  &.VueCarousel-navigation-next
+    background: transparent url('../../public/testimonial_arrow-next.svg') 0% 0% no-repeat padding-box;
+  &.VueCarousel-navigation-prev
+    background: transparent url('../../public/testimonial_arrow-prev.svg') 0% 0% no-repeat padding-box;
     
 .testimonial-slider
   width 100%
