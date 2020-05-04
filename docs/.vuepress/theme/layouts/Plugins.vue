@@ -30,12 +30,12 @@
 </template>
 
 <script>
-import Layout from "../theme/Layout.vue";
+import Layout from "./Layout.vue";
 
 export default {
   components: { Layout },
   data() {
-    return {"plugins": require("../plugins.js")};
+    return {"plugins": require("../../plugins.js")};
   }
 };
 </script>

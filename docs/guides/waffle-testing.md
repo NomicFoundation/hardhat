@@ -5,7 +5,7 @@
 Let's see how to use it going through Buidler's sample project.
 
 ::: tip
-Waffle supports TypeScript. Learn how to set up Buidler with TypeScript [here](/typescript.md).
+Waffle supports TypeScript. Learn how to set up Buidler with TypeScript [here](./typescript.md).
 :::
 
 ## Setting up
