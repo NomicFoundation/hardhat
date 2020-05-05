@@ -107,8 +107,7 @@ async function main() {
 
     let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
 
-    // tslint:disable-next-line: prefer-const
-    let [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
+    const [abortAnalytics, hitPromise] = analytics.sendTaskHit(taskName);
 
     let taskArguments: TaskArguments;
 

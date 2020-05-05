@@ -1,17 +1,17 @@
 import AbortController from "abort-controller";
-import ci from "ci-info";
 import debug from "debug";
-import { keccak256 } from "ethereumjs-util";
-import fs from "fs-extra";
 import fetch from "node-fetch";
-import os from "os";
-import path from "path";
 import qs from "qs";
-import uuid from "uuid/v4";
 
-import * as builtinTaskNames from "../../builtin-tasks/task-names";
-import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
-import { getPackageJson } from "../util/packageInfo";
+import {
+  getBuidlerVersion,
+  getClientId,
+  getProjectId,
+  getUserAgent,
+  getUserType,
+  isABuiltinTaskName,
+  isLocalDev,
+} from "../util/analytics";
 
 const log = debug("buidler:core:analytics");
 
@@ -41,11 +41,17 @@ const googleAnalyticsUrl = "https://www.google-analytics.com/collect";
 
 export class Analytics {
   public static async getInstance(rootPath: string, enabled: boolean) {
+    const [buidlerVersion, clientId] = await Promise.all([
+      getBuidlerVersion(),
+      getClientId(),
+    ]);
+
     const analytics: Analytics = new Analytics({
       projectId: getProjectId(rootPath),
-      clientId: await getClientId(),
+      clientId,
       enabled,
       userType: getUserType(),
+      buidlerVersion,
     });
 
     return analytics;
@@ -55,6 +61,8 @@ export class Analytics {
   private readonly _clientId: string;
   private readonly _enabled: boolean;
   private readonly _userType: string;
+  private readonly _buidlerVersion: string;
+
   // Buidler's tracking id. I guess there's no other choice than keeping it here.
   private readonly _trackingId: string = "UA-117668706-3";
 
@@ -63,16 +71,19 @@ export class Analytics {
     clientId,
     enabled,
     userType,
+    buidlerVersion,
   }: {
     projectId: string;
     clientId: string;
     enabled: boolean;
     userType: string;
+    buidlerVersion: string;
   }) {
     this._projectId = projectId;
     this._clientId = clientId;
-    this._enabled = enabled && !this._isLocalDev();
+    this._enabled = enabled && !isLocalDev();
     this._userType = userType;
+    this._buidlerVersion = buidlerVersion;
   }
 
   /**
@@ -87,27 +98,17 @@ export class Analytics {
    *
    * @returns The abort function
    */
-  public async sendTaskHit(
-    taskName: string
-  ): Promise<[AbortAnalytics, Promise<void>]> {
-    if (this._isABuiltinTaskName(taskName)) {
-      taskName = "builtin";
-    } else {
-      taskName = "custom";
-    }
+  public sendTaskHit(taskName: string): [AbortAnalytics, Promise<void>] {
+    const taskKind = isABuiltinTaskName(taskName) ? "builtin" : "custom";
 
     if (!this._enabled) {
       return [() => {}, Promise.resolve()];
     }
 
-    return this._sendHit(await this._taskHit(taskName));
+    return this._sendHit(this._taskHit(taskKind));
   }
 
-  private _isABuiltinTaskName(taskName: string) {
-    return Object.values<string>(builtinTaskNames).includes(taskName);
-  }
-
-  private async _taskHit(taskName: string): Promise<RawAnalytics> {
+  private _taskHit(taskName: string): RawAnalytics {
     return {
       // Measurement protocol version.
       v: "1",
@@ -154,7 +155,7 @@ export class Analytics {
       cd2: this._userType,
       // Custom dimension 3: Buidler Version
       //   Example: "Buidler 1.0.0".
-      cd3: await getBuidlerVersion(),
+      cd3: this._buidlerVersion,
     };
   }
 
@@ -188,102 +189,4 @@ export class Analytics {
 
     return [abortAnalytics, hitPromise];
   }
-
-  /**
-   * Checks whether we're using Buidler in development mode (that is, we're working _on_ Buidler).
-   * We don't want the tasks we run at these moments to be tracked, so we disable analytics if so.
-   */
-  private _isLocalDev(): boolean {
-    const executionMode = getExecutionMode();
-
-    return (
-      executionMode === ExecutionMode.EXECUTION_MODE_LINKED ||
-      executionMode === ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS
-    );
-  }
-}
-
-async function getClientId() {
-  // TODO: Check Windows support for this approach
-  const globalBuidlerConfigFile = path.join(
-    os.homedir(),
-    ".buidler",
-    "config.json"
-  );
-
-  await fs.ensureFile(globalBuidlerConfigFile);
-
-  let clientId;
-
-  log(`Looking up Client Id at ${globalBuidlerConfigFile}`);
-  try {
-    const data = JSON.parse(await fs.readFile(globalBuidlerConfigFile, "utf8"));
-
-    clientId = data.analytics.clientId;
-
-    log(`Client Id found: ${clientId}`);
-  } catch (e) {
-    log("Client Id not found, generating a new one");
-    clientId = uuid();
-
-    await fs.writeFile(
-      globalBuidlerConfigFile,
-      JSON.stringify({
-        analytics: {
-          clientId,
-        },
-      }),
-      "utf-8"
-    );
-
-    log(`Successfully generated clientId ${clientId}`);
-  }
-
-  return clientId;
-}
-
-function getProjectId(rootPath: string) {
-  log(`Computing Project Id for ${rootPath}`);
-
-  const projectId = keccak256(rootPath).toString("hex");
-
-  log(`Project Id set to ${projectId}`);
-  return projectId;
-}
-
-function getUserType(): string {
-  // ci-info hasn't released support for github actions yet, so we
-  // test it manually here. See: https://github.com/watson/ci-info/issues/48
-  return ci.isCI || process.env.GITHUB_ACTIONS !== undefined
-    ? "CI"
-    : "Developer";
-}
-
-/**
- * At the moment, we couldn't find a reliably way to report the OS () in Node,
- * as the versions reported by the various `os` APIs (`os.platform()`, `os.type()`, etc)
- * return values different to those expected by Google Analytics
- * We decided to take the compromise of just reporting the OS Platform (OSX/Linux/Windows) for now (version information is bogus for now).
- */
-function getOperatingSystem(): string {
-  switch (os.type()) {
-    case "Windows_NT":
-      return "(Windows NT 6.1; Win64; x64)";
-    case "Darwin":
-      return "(Macintosh; Intel Mac OS X 10_13_6)";
-    case "Linux":
-      return "(X11; Linux x86_64)";
-    default:
-      return "(Unknown)";
-  }
-}
-
-function getUserAgent(): string {
-  return `Node/${process.version} ${getOperatingSystem()}`;
-}
-
-async function getBuidlerVersion(): Promise<string> {
-  const { version } = await getPackageJson();
-
-  return `Buidler ${version}`;
 }
