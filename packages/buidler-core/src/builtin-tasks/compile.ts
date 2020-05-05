@@ -64,7 +64,7 @@ async function getSolcOutputFromCache(config: ResolvedBuidlerConfig) {
   await fsExtra.ensureDir(config.paths.cache);
 
   return fsExtra.readJSON(path.join(config.paths.cache, SOLC_OUTPUT_FILENAME), {
-    encoding: "utf8"
+    encoding: "utf8",
   });
 }
 

@@ -1,6 +1,6 @@
 import {
   TASK_COMPILE,
-  TASK_COMPILE_GET_COMPILER_INPUT
+  TASK_COMPILE_GET_COMPILER_INPUT,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
 import { getArtifactFromContractOutput } from "@nomiclabs/buidler/internal/artifacts";
@@ -13,7 +13,7 @@ import {
   EtherscanGetResponse,
   getCode,
   getVerificationStatus,
-  verifyContract
+  verifyContract,
 } from "./etherscan/EtherscanService";
 import { toRequest } from "./etherscan/EtherscanVerifyContractRequest";
 import { getLongVersion } from "./solc/SolcVersions";
@@ -119,7 +119,7 @@ task("verify-contract", "Verifies contract on etherscan")
           abi,
           taskArgs.constructorArguments
         ),
-        libraries: taskArgs.libraries
+        libraries: taskArgs.libraries,
       });
 
       console.log(

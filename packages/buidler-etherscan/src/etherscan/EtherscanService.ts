@@ -93,8 +93,8 @@ export async function getCode(
           action: "eth_getCode",
           address,
           tag: "latest",
-          apikey
-        }
+          apikey,
+        },
       })
     );
 
