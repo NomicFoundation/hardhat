@@ -47,6 +47,9 @@ function getSolcInput(
   };
 }
 
+/**
+ * Copied from `solidity/compiler/index.ts`.
+ */
 function loadCompilerSources(compilerPath: string) {
   const Module = module.constructor as any;
   const previousHook = Module._extensions[".js"];
