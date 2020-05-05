@@ -22,6 +22,7 @@ import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
+import { ErrorReporter } from "../error-reporter/error-reporter";
 
 const log = debug("buidler:core:cli");
 
@@ -44,7 +45,7 @@ async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--show-stack-traces");
-
+  let errorReporter: ErrorReporter | undefined;
   try {
     const packageJson = await getPackageJson();
 
@@ -101,6 +102,10 @@ async function main() {
       config.paths.root,
       config.analytics.enabled
     );
+    errorReporter = await ErrorReporter.getInstance(
+      config.paths.root,
+      config.analytics.enabled
+    );
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
@@ -108,6 +113,7 @@ async function main() {
     let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
 
     const [abortAnalytics, hitPromise] = analytics.sendTaskHit(taskName);
+    await errorReporter.sendMessage(`Task hit ${taskName}`, { taskName });
 
     let taskArguments: TaskArguments;
 
@@ -160,6 +166,9 @@ async function main() {
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
+    if (errorReporter !== undefined) {
+      await errorReporter.sendErrorReport(error);
+    }
     let isBuidlerError = false;
 
     if (BuidlerError.isBuidlerError(error)) {
@@ -204,7 +213,7 @@ async function main() {
       }
     }
 
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
