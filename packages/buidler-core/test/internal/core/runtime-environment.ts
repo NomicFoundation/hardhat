@@ -106,12 +106,6 @@ describe("Environment", () => {
         "some default",
         types.string
       )
-      .addOptionalParam(
-        "optJsonParam",
-        "an opt 'json' param",
-        JSON.stringify({ a: 1 }),
-        types.json
-      )
       .addOptionalVariadicPositionalParam(
         "variadicOptStrParam",
         "an opt variadic 'str' param",
@@ -223,7 +217,6 @@ describe("Environment", () => {
           optIntParam: { valid: 10, invalid: 1.2 },
           optFloatParam: { valid: 1.2, invalid: NaN },
           optStringParam: { valid: "a string", invalid: 123 },
-          optJsonParam: { valid: { a: 20 }, invalid: 1234 },
           optFileParam: { valid: __filename, invalid: __dirname },
           variadicOptStrParam: { valid: ["a", "b"], invalid: ["a", 1] },
         };
