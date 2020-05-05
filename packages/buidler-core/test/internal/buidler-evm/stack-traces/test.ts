@@ -101,10 +101,7 @@ interface DeployedContract {
   address: Buffer;
 }
 
-function defineDirTests(
-  dirPath: string,
-  compilerOptions: CompilerOptions
-) {
+function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
   describe(path.basename(dirPath), function () {
     const files = fs.readdirSync(dirPath).map((f) => path.join(dirPath, f));
 
