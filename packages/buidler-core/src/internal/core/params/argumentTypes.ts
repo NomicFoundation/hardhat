@@ -272,9 +272,8 @@ export const json: ArgumentType<any> = {
     }
   },
   /**
-   * Check if argument value is of type "json"
-   * "json" validation succeeds if it is of "object map"-like structure or of "array" structure
-   * ie. this excludes 'null', function, numbers, date, regexp, etc.
+   * Check if argument value is of type "json". We consider everything except
+   * undefined to be json.
    *
    * @param argName {string} argument's name - used for context in case of error.
    * @param value {any} argument's value to validate.
@@ -282,12 +281,7 @@ export const json: ArgumentType<any> = {
    * @throws BDLR301 if value is not of type "json"
    */
   validate: (argName: string, value: any): void => {
-    const valueTypeString = Object.prototype.toString.call(value);
-    const isJsonValue =
-      valueTypeString === "[object Object]" ||
-      valueTypeString === "[object Array]";
-
-    if (!isJsonValue) {
+    if (value === undefined) {
       throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
