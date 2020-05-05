@@ -1,0 +1,9 @@
+{
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+      "value": 1
+    }
+  ]
+}
