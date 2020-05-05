@@ -655,6 +655,8 @@ const solidity06Compilers: CompilerOptions[] = [
 
 describe("Stack traces", function () {
   setCWD();
+
+  // solidity v0.5
   for (const compilerOptions of solidity05Compilers) {
     describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
       defineDirTests(
@@ -664,6 +666,17 @@ describe("Stack traces", function () {
     });
   }
 
+  // solidity v0.5 with ABIEncoderV2
+  for (const compilerOptions of solidity05Compilers) {
+    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
+      defineDirTests(
+        path.join(__dirname, "test-files", "0_5-abi-v2"),
+        compilerOptions
+      );
+    });
+  }
+
+  // solidity v0.6
   for (const compilerOptions of solidity06Compilers) {
     describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
       defineDirTests(
