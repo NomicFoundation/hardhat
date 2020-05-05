@@ -129,31 +129,36 @@ function defineDirTests(
           ? testDefinition.description
           : "Should give the right stack trace";
 
-      const func = async function () {
-        await runTest(dirPath, testDefinition, sources, compilerOptions);
-      };
-
-      const funcWithFewRuns = async function () {
-        await runTest(dirPath, testDefinition, sources, {
-          ...compilerOptions,
-          withOptimizations: true,
-          runs: 200,
-        });
-      };
-
-      const funcWithManyRuns = async function () {
-        await runTest(dirPath, testDefinition, sources, {
-          ...compilerOptions,
-          withOptimizations: true,
-          runs: 10000,
-        });
-      };
-
       const solcVersionDoesntMatch =
         testDefinition.solc !== undefined &&
         !semver.satisfies(compilerOptions.solidityVersion, testDefinition.solc);
 
       describe("Without optimizations", function () {
+        const func = async function () {
+          await runTest(dirPath, testDefinition, sources, compilerOptions);
+        };
+
+        if (
+          (testDefinition.skip !== undefined && testDefinition.skip) ||
+          solcVersionDoesntMatch
+        ) {
+          it.skip(desc, func);
+        } else if (testDefinition.only !== undefined && testDefinition.only) {
+          it.only(desc, func);
+        } else {
+          it(desc, func);
+        }
+      });
+
+      describe("With optimizations (1 run)", function () {
+        const func = async function () {
+          await runTest(dirPath, testDefinition, sources, {
+            ...compilerOptions,
+            withOptimizations: true,
+            runs: 1,
+          });
+        };
+
         if (
           (testDefinition.skip !== undefined && testDefinition.skip) ||
           solcVersionDoesntMatch
@@ -167,28 +172,44 @@ function defineDirTests(
       });
 
       describe("With optimizations (200 runs)", function () {
+        const func = async function () {
+          await runTest(dirPath, testDefinition, sources, {
+            ...compilerOptions,
+            withOptimizations: true,
+            runs: 200,
+          });
+        };
+
         if (
           (testDefinition.skip !== undefined && testDefinition.skip) ||
           solcVersionDoesntMatch
         ) {
-          it.skip(desc, funcWithFewRuns);
+          it.skip(desc, func);
         } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, funcWithFewRuns);
+          it.only(desc, func);
         } else {
-          it(desc, funcWithFewRuns);
+          it(desc, func);
         }
       });
 
       describe("With optimizations (10000 runs)", function () {
+        const func = async function () {
+          await runTest(dirPath, testDefinition, sources, {
+            ...compilerOptions,
+            withOptimizations: true,
+            runs: 10000,
+          });
+        };
+
         if (
           (testDefinition.skip !== undefined && testDefinition.skip) ||
           solcVersionDoesntMatch
         ) {
-          it.skip(desc, funcWithManyRuns);
+          it.skip(desc, func);
         } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, funcWithManyRuns);
+          it.only(desc, func);
         } else {
-          it(desc, funcWithManyRuns);
+          it(desc, func);
         }
       });
     }
