@@ -13,7 +13,21 @@ export function getErrorCode(error: ErrorDescriptor): string {
   return `${ERROR_PREFIX}${error.number}`;
 }
 
-export const ERROR_RANGES = {
+type ErrorCategory =
+  | "GENERAL"
+  | "NETWORK"
+  | "TASK_DEFINITIONS"
+  | "ARGUMENTS"
+  | "RESOLVER"
+  | "SOLC"
+  | "BUILTIN_TASKS"
+  | "ARTIFACTS"
+  | "PLUGINS"
+  | "INTERNAL";
+
+export const ERROR_RANGES: {
+  [catName in ErrorCategory]: { min: number; max: number; title: string };
+} = {
   GENERAL: { min: 0, max: 99, title: "General errors" },
   NETWORK: { min: 100, max: 199, title: "Network related errors" },
   TASK_DEFINITIONS: {
@@ -721,3 +735,40 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     },
   },
 };
+
+interface ErrorFullDescriptor extends ErrorDescriptor {
+  category: {
+    name: ErrorCategory;
+    min: number;
+    max: number;
+    title: string;
+  };
+  name: string;
+}
+
+/**
+ * Utility method to build an object map of full flattened errors info,
+ * using the error number as the key.
+ */
+function buildReverseErrorsMap() {
+  const errorsMap: { [errorNumber: number]: ErrorFullDescriptor } = {};
+  for (const [category, categoryErrorsObj] of Object.entries(ERRORS)) {
+    for (const [name, errorDescriptor] of Object.entries(categoryErrorsObj)) {
+      errorsMap[errorDescriptor.number] = {
+        category: {
+          name: category as ErrorCategory,
+          ...ERROR_RANGES[category as ErrorCategory],
+        },
+        name,
+        ...errorDescriptor,
+      };
+    }
+  }
+  return errorsMap;
+}
+
+/**
+ * Store in-memory a map of errors by error number key.
+ * This is the reverse of the ERRORS and ERROR_RANGES maps, with all the unique error info flattened
+ */
+export const REVERSE_ERRORS_MAP = buildReverseErrorsMap();
