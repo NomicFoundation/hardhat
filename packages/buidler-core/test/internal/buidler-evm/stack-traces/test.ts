@@ -103,8 +103,7 @@ interface DeployedContract {
 
 function defineDirTests(
   dirPath: string,
-  solidityVersion: string,
-  compilerPath: string
+  compilerOptions: CompilerOptions
 ) {
   describe(path.basename(dirPath), function () {
     const files = fs.readdirSync(dirPath).map((f) => path.join(dirPath, f));
@@ -129,13 +128,6 @@ function defineDirTests(
         testDefinition.description !== undefined
           ? testDefinition.description
           : "Should give the right stack trace";
-
-      const compilerOptions = {
-        solidityVersion,
-        compilerPath,
-        withOptimizations: false,
-        runs: 200,
-      };
 
       const func = async function () {
         await runTest(dirPath, testDefinition, sources, compilerOptions);
@@ -202,7 +194,7 @@ function defineDirTests(
     }
 
     for (const dir of dirs) {
-      defineDirTests(dir, solidityVersion, compilerPath);
+      defineDirTests(dir, compilerOptions);
     }
   });
 }
@@ -625,38 +617,40 @@ async function runCallTransactionTest(
   return trace as CallMessageTrace;
 }
 
-const solidity05Compilers = [
+const solidity05Compilers: CompilerOptions[] = [
   {
-    version: "0.5.1",
+    solidityVersion: "0.5.1",
     compilerPath: "soljson-v0.5.1+commit.c8a2cb62.js",
+    withOptimizations: false,
+    runs: 200,
   },
 ];
 
-const solidity06Compilers = [
+const solidity06Compilers: CompilerOptions[] = [
   {
-    version: "0.6.1",
+    solidityVersion: "0.6.1",
     compilerPath: "soljson-v0.6.1+commit.e6f7d5a4.js",
+    withOptimizations: false,
+    runs: 200,
   },
 ];
 
 describe("Stack traces", function () {
   setCWD();
-  for (const { version, compilerPath } of solidity05Compilers) {
-    describe(`Use compiler ${compilerPath}`, function () {
+  for (const compilerOptions of solidity05Compilers) {
+    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
       defineDirTests(
         path.join(__dirname, "test-files", "0_5"),
-        version,
-        compilerPath
+        compilerOptions
       );
     });
   }
 
-  for (const { version, compilerPath } of solidity06Compilers) {
-    describe(`Use compiler ${compilerPath}`, function () {
+  for (const compilerOptions of solidity06Compilers) {
+    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
       defineDirTests(
         path.join(__dirname, "test-files", "0_6"),
-        version,
-        compilerPath
+        compilerOptions
       );
     });
   }
