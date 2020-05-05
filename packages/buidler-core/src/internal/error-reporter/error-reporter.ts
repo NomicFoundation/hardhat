@@ -57,8 +57,8 @@ interface ErrorReporterClient {
 class SentryClient implements ErrorReporterClient {
   public static SENTRY_FLUSH_TIMEOUT = 3000;
   private readonly _SENTRY_DSN =
-    "https://08e9ea013b3f45cd87f6047ac0693ca2@o385006.ingest.sentry.io/5221401";
-  private readonly _log = debug("buidler:core:analytics:sentry");
+    "https://38ba58bb85fa409e9bb7f50d2c419bc2@o385026.ingest.sentry.io/5224869";
+  private readonly _log = debug("buidler:core:error-reporter:sentry");
 
   constructor(
     projectId: string,
@@ -86,7 +86,7 @@ class SentryClient implements ErrorReporterClient {
   }
 
   public async sendMessage(message: string, context: any) {
-    this._log("Sending task hit...");
+    this._log("Sending message...", { message, context });
 
     Sentry.withScope(function (scope) {
       scope.setExtras(context);
@@ -94,8 +94,13 @@ class SentryClient implements ErrorReporterClient {
       Sentry.captureMessage(message);
     });
 
-    await Sentry.flush(SentryClient.SENTRY_FLUSH_TIMEOUT);
-    this._log("Task hit sent");
+    try {
+      await Sentry.flush(SentryClient.SENTRY_FLUSH_TIMEOUT);
+      this._log("Message sent");
+    } catch (error) {
+      // absorb the sentry error and log it
+      this._log(`Could not send message. Reason: `, error.message || error);
+    }
   }
 
   public async sendErrorReport(error: Error): Promise<void> {
@@ -142,8 +147,17 @@ class SentryClient implements ErrorReporterClient {
 
       Sentry.captureException(error);
     });
-    await Sentry.flush(SentryClient.SENTRY_FLUSH_TIMEOUT);
-    this._log(`Successfully sent report: '${message}'`);
+
+    try {
+      await Sentry.flush(SentryClient.SENTRY_FLUSH_TIMEOUT);
+      this._log(`Successfully sent report: '${message}'`);
+    } catch (error) {
+      // absorb the sentry error and log it
+      this._log(
+        `Could not sent report for error '${message}', Reason: `,
+        error.message || error
+      );
+    }
   }
 }
 
@@ -171,7 +185,7 @@ export class ErrorReporter implements ErrorReporterClient {
 
   private readonly _enabled: boolean;
 
-  private readonly _clients: ErrorReporterClient[];
+  private readonly _client: ErrorReporterClient;
 
   private constructor({
     projectId,
@@ -198,7 +212,7 @@ export class ErrorReporter implements ErrorReporterClient {
       buidlerVersion
     );
 
-    this._clients = [sentryClient];
+    this._client = sentryClient;
   }
 
   public async sendMessage(message: string, context: any) {
@@ -206,9 +220,7 @@ export class ErrorReporter implements ErrorReporterClient {
       // don't send anything if not enabled
       return;
     }
-    await Promise.all(
-      this._clients.map((client) => client.sendMessage(message, context))
-    );
+    await this._client.sendMessage(message, context);
   }
 
   public async sendErrorReport(error: Error) {
@@ -216,9 +228,7 @@ export class ErrorReporter implements ErrorReporterClient {
       // don't send anything if not enabled
       return;
     }
-    await Promise.all(
-      this._clients.map((client) => client.sendErrorReport(error))
-    );
+    await this._client.sendErrorReport(error);
   }
 }
 
