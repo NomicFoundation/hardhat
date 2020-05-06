@@ -56,5 +56,39 @@ describe("ErrorReporter", () => {
 
     // restore spies
     sentryFlush.restore();
+    sentryCaptureException.restore();
+  });
+
+  it("Submits an error report (sync) and can send it later (async)", async function () {
+    const errorReporter = ErrorReporter.getInstance();
+
+    const sentryCaptureException = sinon.spy(Sentry, "captureException");
+    const sentryFlush = sinon.spy(Sentry, "flush");
+
+    const error = new Error("some unexpected failure");
+
+    errorReporter.enqueueErrorReport(error);
+    errorReporter.enqueueErrorReport(error);
+
+    // verify errors not sent yet
+    const { pendingReports } = errorReporter as ErrorReporter;
+    expect(pendingReports).to.be.length(2);
+
+    // send all pending errors
+    await errorReporter.sendPendingReports();
+
+    // verify all errors have been sent
+    const {
+      pendingReports: pendingReportsAfter,
+    } = errorReporter as ErrorReporter;
+    expect(pendingReportsAfter).to.be.length(0);
+
+    expect(sentryCaptureException.calledWith(error)).to.be.true;
+    expect(sentryCaptureException.calledTwice).to.be.true;
+    expect(sentryFlush.calledTwice).to.be.true;
+
+    // restore spies
+    sentryCaptureException.restore();
+    sentryFlush.restore();
   });
 });

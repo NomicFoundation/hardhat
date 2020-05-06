@@ -54,6 +54,8 @@ export interface ErrorContextData {
 interface ErrorReporterInterface {
   sendMessage(message: string, context: any): Promise<void>;
   sendErrorReport(error: Error): Promise<void>;
+  enqueueErrorReport(error: Error): void;
+  sendPendingReports(): Promise<void>;
 }
 
 const log = debug(`buidler:core:error-reporter`);
@@ -112,6 +114,7 @@ export class ErrorReporter implements ErrorReporterInterface {
   private static _instance: ErrorReporter | DisabledErrorReporter;
 
   public readonly client: ErrorReporterClient;
+  public pendingReports: Array<Promise<void>> = [];
 
   private constructor(client: ErrorReporterClient) {
     this.client = client;
@@ -121,11 +124,34 @@ export class ErrorReporter implements ErrorReporterInterface {
     await this.client.sendMessage(message, context);
   }
 
+  /**
+   * Enqueue a new error report send, and wait for all pending
+   * errors (including this one) to be sent.
+   *
+   * @param error
+   */
   public async sendErrorReport(error: Error) {
-    const errorContext = contextualizeError(error);
-    await this.client.sendErrorReport(error, errorContext);
+    this.enqueueErrorReport(error);
+
+    await this.sendPendingReports();
   }
 
+  /**
+   * Enqueue error send promise, but don't await for it yet.
+   * @see sendPendingReports() - with await or .then() to make sure all pending reports are sent.
+   *
+   * @param error
+   */
+  public enqueueErrorReport(error: Error) {
+    const errorContext = contextualizeError(error);
+    const errorSendPromise = this.client.sendErrorReport(error, errorContext);
+    this.pendingReports.push(errorSendPromise);
+  }
+
+  public async sendPendingReports() {
+    await Promise.all(this.pendingReports);
+    this.pendingReports = [];
+  }
 }
 
 /**
@@ -147,6 +173,20 @@ class DisabledErrorReporter implements ErrorReporterInterface {
    * @see ErrorReporter#sendMessage for enabled version
    */
   public async sendMessage(message: string, context: any): Promise<void> {
+    // no op
+  }
+
+  /**
+   * @see ErrorReporter#enqueueErrorReport for enabled version
+   */
+  public enqueueErrorReport(error: Error): void {
+    // no op
+  }
+
+  /**
+   * @see ErrorReporter#sendPendingReports for enabled version
+   */
+  public async sendPendingReports(): Promise<void> {
     // no op
   }
 }
