@@ -7,6 +7,7 @@ import { BN } from "ethereumjs-util";
 import { promisify } from "util";
 
 import { getUserConfigPath } from "../../core/project-structure";
+import { ErrorReporter } from "../../error-reporter/error-reporter";
 
 import {
   CallMessageTrace,
@@ -163,6 +164,7 @@ export class VMTracer {
       this._messageTraces.push(trace);
       next();
     } catch (error) {
+      ErrorReporter.getInstance().enqueueErrorReport(error);
       if (this._dontThrowErrors) {
         this._lastError = error;
         next();
@@ -190,6 +192,7 @@ export class VMTracer {
       trace.steps.push({ pc: step.pc });
       next();
     } catch (error) {
+      ErrorReporter.getInstance().enqueueErrorReport(error);
       if (this._dontThrowErrors) {
         this._lastError = error;
         next();
@@ -221,6 +224,7 @@ export class VMTracer {
 
       next();
     } catch (error) {
+      ErrorReporter.getInstance().enqueueErrorReport(error);
       if (this._dontThrowErrors) {
         this._lastError = error;
         next();

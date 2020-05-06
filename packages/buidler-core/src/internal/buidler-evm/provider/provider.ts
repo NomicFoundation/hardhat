@@ -17,6 +17,7 @@ import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 
+import { ErrorReporter } from "../../error-reporter/error-reporter";
 import {
   BuidlerEVMProviderError,
   MethodNotFoundError,
@@ -257,10 +258,14 @@ export class BuidlerEVMProvider extends EventEmitter
               )
             );
 
+            const errMsg =
+              "Solidity stack traces disabled: Failed to read solc's input and output files";
             log(
-              "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
+              `${errMsg}. Please report this to help us improve Buidler.\n`,
               error
             );
+            error.message = `${errMsg}. Reason: ${error.message}`;
+            await ErrorReporter.getInstance().sendErrorReport(error);
           }
         }
       }

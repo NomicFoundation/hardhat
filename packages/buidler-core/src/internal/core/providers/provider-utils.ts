@@ -1,4 +1,5 @@
 import { IEthereumProvider } from "../../../types";
+import { ErrorReporter } from "../../error-reporter/error-reporter";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
 
@@ -42,6 +43,8 @@ export function createChainIdGetter(provider: IEthereumProvider) {
         cachedChainId = id.startsWith("0x")
           ? rpcQuantityToNumber(id)
           : parseInt(id, 10);
+        error.message = `Fail on provider.send(\"eth_chainId\"). Reason: ${error.message}`;
+        ErrorReporter.getInstance().enqueueErrorReport(error);
       }
     }
 

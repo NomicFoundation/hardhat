@@ -1,5 +1,7 @@
 import debug from "debug";
 
+import { ErrorReporter } from "../error-reporter/error-reporter";
+
 const log = debug("buidler:core:solidity:imports");
 
 export function getImports(fileContent: string): string[] {
@@ -16,7 +18,10 @@ export function getImports(fileContent: string): string[] {
 
     return importedFiles;
   } catch (error) {
-    log("Failed to parse Solidity file to extract its imports\n", error);
+    const logMsg = "Failed to parse Solidity file to extract its imports";
+    log(`${logMsg}\n`, error);
+    error.message = `${logMsg}. Reason: ${error.message || error}`;
+    ErrorReporter.getInstance().enqueueErrorReport(error);
     return findImportsWithRegexps(fileContent);
   }
 }

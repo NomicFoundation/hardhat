@@ -169,6 +169,7 @@ async function main() {
       abortAnalytics();
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
+    await ErrorReporter.getInstance().sendPendingReports();
   } catch (error) {
     await ErrorReporter.getInstance().sendErrorReport(error);
 

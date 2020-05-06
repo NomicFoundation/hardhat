@@ -26,6 +26,7 @@ import { promisify } from "util";
 
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
+import { ErrorReporter } from "../../error-reporter/error-reporter";
 import {
   dateToTimestampSeconds,
   getDifferenceInSeconds,
@@ -343,6 +344,8 @@ export class BuidlerNode extends EventEmitter {
         "Buidler EVM tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Buidler.\n",
         error
       );
+      error.message = `The Buidler EVM tracing engine could not be initialized. Reason: ${error.message}`;
+      ErrorReporter.getInstance().enqueueErrorReport(error);
     }
   }
 

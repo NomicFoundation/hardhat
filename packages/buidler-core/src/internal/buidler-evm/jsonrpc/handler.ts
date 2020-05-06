@@ -4,6 +4,7 @@ import getRawBody from "raw-body";
 import WebSocket from "ws";
 
 import { EthereumProvider } from "../../../types";
+import { ErrorReporter } from "../../error-reporter/error-reporter";
 import {
   isSuccessfulJsonResponse,
   isValidJsonRequest,
@@ -229,6 +230,9 @@ const _handleError = (error: any): JsonRpcResponse => {
   if (!BuidlerEVMProviderError.isBuidlerEVMProviderError(error)) {
     error = new InternalError(error.message);
   }
+
+  // register the error report, which will be submitted only if ran from buidler CLI.
+  ErrorReporter.getInstance().enqueueErrorReport(error);
 
   return {
     jsonrpc: "2.0",

@@ -1,4 +1,5 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
+import { ErrorReporter } from "@nomiclabs/buidler/internal/error-reporter/error-reporter";
 import debug from "debug";
 import { URL } from "url";
 
@@ -147,6 +148,7 @@ export class GanacheService {
         log("Failed to start GanacheService\n", error);
         GanacheService.error = error;
       }
+      ErrorReporter.getInstance().enqueueErrorReport(error);
     }
 
     // Verify service state after start (TODO Maybe extract this to a decorator)
@@ -180,6 +182,7 @@ export class GanacheService {
         log("Failed to stop GanacheService\n", error);
         GanacheService.error = error;
       }
+      ErrorReporter.getInstance().enqueueErrorReport(error);
     }
 
     this._checkForServiceErrors();
