@@ -111,19 +111,19 @@ export class ErrorReporter implements ErrorReporterInterface {
 
   private static _instance: ErrorReporter | DisabledErrorReporter;
 
-  private readonly _client: ErrorReporterClient;
+  public readonly client: ErrorReporterClient;
 
   private constructor(client: ErrorReporterClient) {
-    this._client = client;
+    this.client = client;
   }
 
   public async sendMessage(message: string, context: any) {
-    await this._client.sendMessage(message, context);
+    await this.client.sendMessage(message, context);
   }
 
   public async sendErrorReport(error: Error) {
     const errorContext = contextualizeError(error);
-    await this._client.sendErrorReport(error, errorContext);
+    await this.client.sendErrorReport(error, errorContext);
   }
 
 }
