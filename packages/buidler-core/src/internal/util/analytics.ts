@@ -35,7 +35,14 @@ export function isABuiltinTaskName(taskName: string) {
   return Object.values<string>(builtinTaskNames).includes(taskName);
 }
 
+let clientId: string;
+
 export async function getClientId() {
+  if (clientId !== undefined) {
+    log(`Using Client Id from cache: ${clientId}`);
+    return clientId;
+  }
+
   const globalBuidlerConfigFile = path.join(
     os.homedir(),
     ".buidler",
@@ -43,8 +50,6 @@ export async function getClientId() {
   );
 
   await fs.ensureFile(globalBuidlerConfigFile);
-
-  let clientId;
 
   log(`Looking up Client Id at ${globalBuidlerConfigFile}`);
   try {
