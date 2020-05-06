@@ -16,13 +16,13 @@ import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
+import { ErrorReporter } from "../error-reporter/error-reporter";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
-import { ErrorReporter } from "../error-reporter/error-reporter";
 
 const log = debug("buidler:core:cli");
 
@@ -45,7 +45,7 @@ async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--show-stack-traces");
-  let errorReporter: ErrorReporter | undefined;
+
   try {
     const packageJson = await getPackageJson();
 
@@ -102,18 +102,22 @@ async function main() {
       config.paths.root,
       config.analytics.enabled
     );
-    errorReporter = await ErrorReporter.getInstance(
-      config.paths.root,
-      config.analytics.enabled
-    );
+    await ErrorReporter.setup(config.paths.root, config.analytics.enabled);
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
     let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
 
-    const [abortAnalytics, hitPromise] = analytics.sendTaskHit(taskName);
-    await errorReporter.sendMessage(`Task hit ${taskName}`, { taskName });
+    const [abortAnalytics, analyticsHitPromise] = analytics.sendTaskHit(
+      taskName
+    );
+    const errorReporterTaskHit = ErrorReporter.getInstance().sendMessage(
+      `Task hit ${taskName}`,
+      {
+        taskName,
+      }
+    );
 
     let taskArguments: TaskArguments;
 
@@ -160,15 +164,14 @@ async function main() {
       timestampAfterRun - timestampBeforeRun >
       ANALYTICS_SLOW_TASK_THRESHOLD
     ) {
-      await hitPromise;
+      await Promise.all([analyticsHitPromise, errorReporterTaskHit]);
     } else {
       abortAnalytics();
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
-    if (errorReporter !== undefined) {
-      await errorReporter.sendErrorReport(error);
-    }
+    await ErrorReporter.getInstance().sendErrorReport(error);
+
     let isBuidlerError = false;
 
     if (BuidlerError.isBuidlerError(error)) {

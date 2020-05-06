@@ -49,7 +49,18 @@ interface ErrorContextData {
   description?: string;
 }
 
+/**
+ * The client that actually sends the error report
+ */
 interface ErrorReporterClient {
+  sendMessage(message: string, context: any): Promise<void>;
+  sendErrorReport(error: Error): Promise<void>;
+}
+
+/**
+ * The ErrorReporter interface that is exposed publicly.
+ */
+interface ErrorReporterInterface {
   sendMessage(message: string, context: any): Promise<void>;
   sendErrorReport(error: Error): Promise<void>;
 }
@@ -67,7 +78,7 @@ class SentryClient implements ErrorReporterClient {
     userAgent: string,
     buidlerVersion: string
   ) {
-    // init bugsnag client
+    // init Sentry client
     Sentry.init({ dsn: this._SENTRY_DSN });
 
     // setup metadata to be included in all reports by default
@@ -161,8 +172,25 @@ class SentryClient implements ErrorReporterClient {
   }
 }
 
-export class ErrorReporter implements ErrorReporterClient {
-  public static async getInstance(rootPath: string, enabled: boolean) {
+const log = debug(`buidler:core:error-reporter`);
+export class ErrorReporter implements ErrorReporterInterface {
+  /**
+   * Setup ErrorReporter instance.
+   *
+   * @param rootPath
+   * @param enabled
+   */
+  public static async setup(rootPath: string, enabled: boolean) {
+    // don't enable errorReporter if running as local-dev context
+    enabled = enabled && !isLocalDev();
+
+    log(`ErrorReporter instance init (enabled: ${enabled})`);
+
+    if (!enabled) {
+      this._instance = new DisabledErrorReporter();
+      return;
+    }
+
     const [buidlerVersion, clientId] = await Promise.all([
       getBuidlerVersion(),
       getClientId(),
@@ -170,65 +198,86 @@ export class ErrorReporter implements ErrorReporterClient {
 
     const projectId = getProjectId(rootPath);
     const userType = getUserType();
-
     const userAgent = getUserAgent();
 
-    return new ErrorReporter({
+    this._instance = new ErrorReporter({
       projectId,
       clientId,
-      enabled,
       userType,
       userAgent,
       buidlerVersion,
     });
   }
 
-  private readonly _enabled: boolean;
+  /**
+   * Get singleton instance of ErrorReporter, which is only available
+   * if ErrorReporter.setup() has been called before (currently, only from main CLI);
+   * otherwise a DisabledErrorReporter instance will be returned.
+   */
+  public static getInstance() {
+    if (this._instance === undefined) {
+      // if instance was not explicitly initialized, (ie. didn't call ErrorReporter.setup() first), just return a disabled instance
+      return new DisabledErrorReporter();
+    }
+    return this._instance;
+  }
+
+  private static _instance: ErrorReporter | DisabledErrorReporter;
 
   private readonly _client: ErrorReporterClient;
 
   private constructor({
     projectId,
     clientId,
-    enabled,
     userType,
     userAgent,
     buidlerVersion,
   }: {
     projectId: string;
     clientId: string;
-    enabled: boolean;
     userType: UserType;
     userAgent: string;
     buidlerVersion: string;
   }) {
-    this._enabled = enabled && !isLocalDev();
-
-    const sentryClient = new SentryClient(
+    this._client = new SentryClient(
       projectId,
       clientId,
       userType,
       userAgent,
       buidlerVersion
     );
-
-    this._client = sentryClient;
   }
 
   public async sendMessage(message: string, context: any) {
-    if (!this._enabled) {
-      // don't send anything if not enabled
-      return;
-    }
     await this._client.sendMessage(message, context);
   }
 
   public async sendErrorReport(error: Error) {
-    if (!this._enabled) {
-      // don't send anything if not enabled
-      return;
-    }
     await this._client.sendErrorReport(error);
+  }
+
+}
+
+/**
+ * Disabled version of ErrorReporter.
+ * Used to support ErrorReporter calls from anywhere even if it has not been properly set up (ie. outside CLI main process)
+ * In these cases, calls will just be no-op.
+ *
+ * For example, this is useful when executed using Buidler as a library instead of a standalone CLI.
+ */
+class DisabledErrorReporter implements ErrorReporterInterface {
+  /**
+   * @see ErrorReporter#sendErrorReport for enabled version
+   */
+  public async sendErrorReport(error: Error): Promise<void> {
+    // no op
+  }
+
+  /**
+   * @see ErrorReporter#sendMessage for enabled version
+   */
+  public async sendMessage(message: string, context: any): Promise<void> {
+    // no op
   }
 }
 
