@@ -70,7 +70,18 @@ describe("ErrorReporter", () => {
     errorReporter.enqueueErrorReport(error);
     errorReporter.enqueueErrorReport(error);
 
-    // verify errors not sent yet
+    // verify send promises have been called, but not resolved
+    expect(sentryCaptureException.calledWith(error)).to.be.true;
+    expect(sentryCaptureException.calledTwice).to.be.true;
+    expect(sentryFlush.calledTwice).to.be.true;
+
+    let resolvedCount = 0;
+    sentryFlush.returnValues.forEach((promise) =>
+      promise.then(() => resolvedCount++)
+    );
+    expect(resolvedCount).to.be.equal(0);
+
+    // verify errors still pending (not sent yet)
     const { pendingReports } = errorReporter as ErrorReporter;
     expect(pendingReports).to.be.length(2);
 
@@ -82,10 +93,7 @@ describe("ErrorReporter", () => {
       pendingReports: pendingReportsAfter,
     } = errorReporter as ErrorReporter;
     expect(pendingReportsAfter).to.be.length(0);
-
-    expect(sentryCaptureException.calledWith(error)).to.be.true;
-    expect(sentryCaptureException.calledTwice).to.be.true;
-    expect(sentryFlush.calledTwice).to.be.true;
+    expect(resolvedCount).to.be.equal(2);
 
     // restore spies
     sentryCaptureException.restore();
