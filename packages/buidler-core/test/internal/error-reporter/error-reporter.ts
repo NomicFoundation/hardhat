@@ -6,23 +6,72 @@ import { ErrorReporter } from "../../../src/internal/error-reporter/error-report
 import { ErrorReporterClient } from "../../../src/internal/error-reporter/sentry";
 import * as analyticsUtils from "../../../src/internal/util/analytics";
 
+function mockDependencies() {
+  // mock Sentry.init() call with empty dsn param, to prevent actual Sentry calls from tests
+  sinon.stub(Sentry, "init").callsFake(function () {
+    const dsn = "";
+    (Sentry.init as any).wrappedMethod({ dsn });
+  });
+
+  // mock isLocalDev() to return false, to ensure errorReporter instance gets enabled for tests
+  sinon.stub(analyticsUtils, "isLocalDev").returns(false);
+}
+
+async function emulateCLIsetup() {
+  await ErrorReporter.setup(__dirname, true);
+}
+
+function emulateCLIteardown() {
+  // tslint:disable-next-line:no-string-literal
+  delete ErrorReporter["_instance"]; // explicitly delete '_instance' private prop to emulate clean state
+}
+
 describe("ErrorReporter", () => {
+  mockDependencies();
+
   let errorReporterClient: ErrorReporterClient;
 
-  before(async () => {
-    // mock Sentry.init() call with empty dsn param, to prevent actual remote calls
-    sinon.stub(Sentry, "init").callsFake(function () {
-      (Sentry.init as any).wrappedMethod({ dsn: "" });
+  beforeEach(async () => {
+    await emulateCLIsetup();
+    const errorReporter = ErrorReporter.getInstance();
+    if (!(errorReporter instanceof ErrorReporter)) {
+      expect(errorReporter.constructor.name).to.be.equal(
+        ErrorReporter.name,
+        "should be instance of ErrorReporter"
+      );
+      return;
+    }
+    errorReporterClient = errorReporter.client;
+  });
+
+  afterEach(() => {
+    emulateCLIteardown();
+  });
+
+  context("ErrorReporter instance", function () {
+    it("is disabled by default", function () {
+      // emulate fresh state
+      emulateCLIteardown();
+
+      const errorReporter = ErrorReporter.getInstance();
+      expect(errorReporter).to.be.instanceOf(DisabledErrorReporter);
     });
 
-    // mock isLocalDev() to return false, to ensure errorReporter instance gets enabled
-    sinon.stub(analyticsUtils, "isLocalDev").returns(false);
+    it("is enabled after CLI setup", function () {
+      const errorReporter = ErrorReporter.getInstance();
+      expect(errorReporter).to.be.instanceOf(ErrorReporter);
+    });
 
-    await ErrorReporter.setup(__dirname, true);
-    const errorReporter = ErrorReporter.getInstance();
+    it("is disabled when setup 'enabled' value is false", async function () {
+      // emulate fresh state
+      emulateCLIteardown();
 
-    expect(errorReporter).to.be.instanceOf(ErrorReporter);
-    errorReporterClient = (errorReporter as ErrorReporter).client;
+      // setup error reporter with enabled=false
+      await ErrorReporter.setup(__dirname, false);
+
+      const errorReporter = ErrorReporter.getInstance();
+      expect(errorReporter).to.be.instanceOf(DisabledErrorReporter);
+    });
   });
 
   it("Sends a message async", async function () {

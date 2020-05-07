@@ -161,7 +161,7 @@ export class ErrorReporter implements ErrorReporterInterface {
  *
  * For example, this is useful when executed using Buidler as a library instead of a standalone CLI.
  */
-class DisabledErrorReporter implements ErrorReporterInterface {
+export class DisabledErrorReporter implements ErrorReporterInterface {
   /**
    * @see ErrorReporter#sendErrorReport for enabled version
    */
