@@ -58,6 +58,17 @@ interface ErrorReporterInterface {
   sendPendingReports(): Promise<void>;
 }
 
+/**
+ * Errors matching any of these filters criteria will be ignored by the ErrorReporter
+ */
+const errorFilters: Array<(
+  errorContext: ErrorContextData,
+  error: Error
+) => boolean> = [
+  // ignore "missing task argument" errors
+  ({ name }) => name === "MISSING_TASK_ARGUMENT",
+];
+
 const log = debug(`buidler:core:error-reporter`);
 
 export class ErrorReporter implements ErrorReporterInterface {
@@ -116,6 +127,11 @@ export class ErrorReporter implements ErrorReporterInterface {
   public readonly client: ErrorReporterClient;
   public pendingReports: Array<Promise<void>> = [];
 
+  /**
+   * errors matching any of these criteria are excluded from reports
+   */
+  public readonly errorFilters = errorFilters;
+
   private constructor(client: ErrorReporterClient) {
     this.client = client;
   }
@@ -144,6 +160,12 @@ export class ErrorReporter implements ErrorReporterInterface {
    */
   public enqueueErrorReport(error: Error) {
     const errorContext = contextualizeError(error);
+
+    if (this._isFiltered(errorContext, error)) {
+      log(`ignoring error report for '${error.message}'`);
+      return;
+    }
+
     const errorSendPromise = this.client.sendErrorReport(error, errorContext);
     this.pendingReports.push(errorSendPromise);
   }
@@ -151,6 +173,10 @@ export class ErrorReporter implements ErrorReporterInterface {
   public async sendPendingReports() {
     await Promise.all(this.pendingReports);
     this.pendingReports = [];
+  }
+
+  private _isFiltered(errorContext: ErrorContextData, error: Error) {
+    return this.errorFilters.some((filter) => filter(errorContext, error));
   }
 }
 
@@ -191,7 +217,7 @@ export class DisabledErrorReporter implements ErrorReporterInterface {
   }
 }
 
-function contextualizeError(error: Error): ErrorContextData {
+export function contextualizeError(error: Error): ErrorContextData {
   const _isBuidlerError = BuidlerError.isBuidlerError(error);
   const _isBuidlerPluginError = BuidlerPluginError.isBuidlerPluginError(error);
 

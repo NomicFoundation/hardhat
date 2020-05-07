@@ -2,7 +2,14 @@ import * as Sentry from "@sentry/node";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { ErrorReporter } from "../../../src/internal/error-reporter/error-reporter";
+import { BuidlerError } from "../../../src/internal/core/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
+import {
+  contextualizeError,
+  DisabledErrorReporter,
+  ErrorContextData,
+  ErrorReporter,
+} from "../../../src/internal/error-reporter/error-reporter";
 import { ErrorReporterClient } from "../../../src/internal/error-reporter/sentry";
 import * as analyticsUtils from "../../../src/internal/util/analytics";
 
@@ -147,5 +154,48 @@ describe("ErrorReporter", () => {
     // restore spies
     sentryCaptureException.restore();
     sentryFlush.restore();
+  });
+
+  it("Doesn't report an error that meets filters criteria", async function () {
+    const errorReporter = ErrorReporter.getInstance();
+    const sentryCaptureException = sinon.spy(Sentry, "captureException");
+
+    // build a test error instance
+    const testError = new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      contractName: "A.sol",
+    });
+
+    // add a filter for testError
+    const errorFilterArtifactsNotFound = ({
+      name,
+      category,
+    }: ErrorContextData) =>
+      category !== undefined &&
+      category.name === "ARTIFACTS" &&
+      name === "NOT_FOUND";
+
+    const { errorFilters } = errorReporter as ErrorReporter;
+    errorFilters.push(errorFilterArtifactsNotFound);
+
+    // verify that the testError would be filtered
+    const isErrorFiltered = errorFilters.some((filter) =>
+      filter(contextualizeError(testError), testError)
+    );
+    expect(isErrorFiltered).to.be.true;
+
+    // attempt to send error report async, and expect to be ignored
+    await errorReporter.sendErrorReport(testError);
+    expect(sentryCaptureException.notCalled).to.be.true;
+
+    // attempt to send error report sync, and expect to be ignored
+    errorReporter.enqueueErrorReport(testError);
+    expect((errorReporter as ErrorReporter).pendingReports).to.be.length(0);
+
+    // expect error report is not sent even after sendPendingReports() call
+    await errorReporter.sendPendingReports();
+    expect(sentryCaptureException.notCalled).to.be.true;
+
+    // restore spies
+    sentryCaptureException.restore();
   });
 });
