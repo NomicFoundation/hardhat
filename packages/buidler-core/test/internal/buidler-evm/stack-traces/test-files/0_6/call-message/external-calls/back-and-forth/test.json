@@ -14,7 +14,7 @@
             "contract": "C",
             "file": "c.sol",
             "function": "test1",
-            "line": 14
+            "line": 13
           }
         },
         {
@@ -32,7 +32,7 @@
             "contract": "C",
             "file": "c.sol",
             "function": "test3",
-            "line": 19
+            "line": 17
           }
         },
         {
