@@ -1,4 +1,5 @@
 {
+  "solc": "^0.6.2",
   "transactions": [
     {
       "file": "c.sol",
@@ -6,33 +7,15 @@
     },
     {
       "to": 0,
-      "function": "test1",
+      "function": "test",
       "stackTrace": [
         {
           "type": "CALLSTACK_ENTRY",
           "sourceReference": {
+            "function": "test",
             "contract": "C",
             "file": "c.sol",
-            "function": "test1",
             "line": 13
-          }
-        },
-        {
-          "type": "CALLSTACK_ENTRY",
-          "sourceReference": {
-            "contract": "D",
-            "file": "d.sol",
-            "function": "test2",
-            "line": 8
-          }
-        },
-        {
-          "type": "CALLSTACK_ENTRY",
-          "sourceReference": {
-            "contract": "C",
-            "file": "c.sol",
-            "function": "test3",
-            "line": 17
           }
         },
         {
@@ -42,7 +25,7 @@
             "contract": "D",
             "file": "d.sol",
             "function": "fail",
-            "line": 12
+            "line": 7
           }
         }
       ]
