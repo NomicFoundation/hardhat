@@ -646,8 +646,8 @@ const solidity05Compilers: CompilerOptions[] = [
 
 const solidity06Compilers: CompilerOptions[] = [
   {
-    solidityVersion: "0.6.1",
-    compilerPath: "soljson-v0.6.1+commit.e6f7d5a4.js",
+    solidityVersion: "0.6.2",
+    compilerPath: "soljson-v0.6.2+commit.bacdbe57.js",
     withOptimizations: false,
     runs: 200,
   },
