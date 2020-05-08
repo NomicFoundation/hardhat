@@ -122,6 +122,12 @@ export class ErrorReporter implements ErrorReporterInterface {
     return this._instance;
   }
 
+  public static isEnabled(
+    errorReporter: ErrorReporterInterface
+  ): errorReporter is ErrorReporter {
+    return errorReporter instanceof ErrorReporter;
+  }
+
   private static _instance: ErrorReporter | DisabledErrorReporter;
 
   public readonly client: ErrorReporterClient;

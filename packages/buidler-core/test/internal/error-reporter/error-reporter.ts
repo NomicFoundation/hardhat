@@ -41,11 +41,8 @@ describe("ErrorReporter", () => {
   beforeEach(async () => {
     await emulateCLIsetup();
     const errorReporter = ErrorReporter.getInstance();
-    if (!(errorReporter instanceof ErrorReporter)) {
-      expect(errorReporter.constructor.name).to.be.equal(
-        ErrorReporter.name,
-        "should be instance of ErrorReporter"
-      );
+    if (!ErrorReporter.isEnabled(errorReporter)) {
+      expect.fail(false, true, "errorReporter instance should be enabled");
       return;
     }
     errorReporterClient = errorReporter.client;
@@ -61,12 +58,15 @@ describe("ErrorReporter", () => {
       emulateCLIteardown();
 
       const errorReporter = ErrorReporter.getInstance();
-      expect(errorReporter).to.be.instanceOf(DisabledErrorReporter);
+
+      const isEnabled = ErrorReporter.isEnabled(errorReporter);
+      expect(isEnabled).to.be.false;
     });
 
     it("is enabled after CLI setup", function () {
       const errorReporter = ErrorReporter.getInstance();
-      expect(errorReporter).to.be.instanceOf(ErrorReporter);
+      const isEnabled = ErrorReporter.isEnabled(errorReporter);
+      expect(isEnabled).to.be.true;
     });
 
     it("is disabled when setup 'enabled' value is false", async function () {
@@ -77,7 +77,9 @@ describe("ErrorReporter", () => {
       await ErrorReporter.setup(__dirname, false);
 
       const errorReporter = ErrorReporter.getInstance();
-      expect(errorReporter).to.be.instanceOf(DisabledErrorReporter);
+
+      const isEnabled = ErrorReporter.isEnabled(errorReporter);
+      expect(isEnabled).to.be.false;
     });
   });
 
