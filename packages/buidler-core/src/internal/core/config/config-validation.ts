@@ -2,8 +2,10 @@ import * as t from "io-ts";
 import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
 
-import { SUPPORTED_HARDFORKS } from "../../buidler-evm/provider/node";
-import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
+import {
+  BUIDLEREVM_NETWORK_NAME,
+  BUIDLEREVM_SUPPORTED_HARDFORKS,
+} from "../../constants";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
 
@@ -191,10 +193,10 @@ export function getValidationErrors(config: any): string[] {
     if (buidlerNetwork !== undefined) {
       if (
         buidlerNetwork.hardfork !== undefined &&
-        !SUPPORTED_HARDFORKS.includes(buidlerNetwork.hardfork)
+        !BUIDLEREVM_SUPPORTED_HARDFORKS.includes(buidlerNetwork.hardfork)
       ) {
         errors.push(
-          `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.hardfork is not supported. Use one of ${SUPPORTED_HARDFORKS.join(
+          `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.hardfork is not supported. Use one of ${BUIDLEREVM_SUPPORTED_HARDFORKS.join(
             ", "
           )}`
         );
