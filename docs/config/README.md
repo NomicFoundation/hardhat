@@ -70,6 +70,8 @@ You can set the following fields on the `buidlerevm` config:
 
 - `intialDate`: An optional string setting the date of the blockchain. If no option is set, the current date is used. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format).
 
+- `allowUnlimitedContractSize`: An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
+
 ### JSON-RPC based networks
 
 These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely,
