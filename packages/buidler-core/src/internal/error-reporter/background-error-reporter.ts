@@ -1,20 +1,23 @@
 /**
  * Background worker to run a proxied singleton instance
  * independently of the parent process.
- * TODO right now is only for ErrorReporter but it could be generic...
  */
 import debug from "debug";
 
-import { ErrorReporter } from "./error-reporter";
 import Signals = NodeJS.Signals;
 
-const EXIT_TIMEOUT = 5000; // maximum timeout for exitHandler on exit signal or disconnect event
+/**
+ * The callable subject that will handle the background task
+ */
+type CallableSubject = any;
+
+const EXIT_TIMEOUT = 25000; // maximum timeout for exitHandler on exit signal or disconnect event
 
 // @ts-ignore
 debug.formatArgs = formatArgs;
 
 // log to file, excluding colors chars
-const log = debug(`buidler:core:background:fork:file`);
+const log = debug(`buidler:core:background-worker`);
 
 /**
  * Properly format logs for file (if colors are disabled)
@@ -62,11 +65,10 @@ function getArgvParam(argName: string): any | any[] {
     if (argvContainer.length === 0) {
       throw new Error(`not found arg with prefix: '${argvPrefix}'`);
     }
-    const argValueContainer = argvContainer[0].split(argvPrefix);
-    if (argValueContainer.length < 2) {
-      throw new Error("argv value is empty");
+    const argvValueStr = argvContainer[0].split(argvPrefix)[1];
+    if (argvValueStr.length === 0) {
+      return undefined;
     }
-    const argvValueStr = argValueContainer[1];
     // const argValueStr = argvContainer.map((val) => val.split("=")[1])[0];
     return JSON.parse(argvValueStr);
   } catch (error) {
@@ -106,19 +108,67 @@ async function processSend(message: any): Promise<void> {
   });
 }
 
-const bufferMessages: any[] = [];
+/**
+ * Shared messages counters to keep track of remaining messages on process disconnection.
+ * Also useful as a quick-glance of the state of the process at a given time.
+ */
+const messageCounters = {
+  total: 0,
+  handled: 0,
+  success: 0,
+  error: 0,
+};
+
+/**
+ * Util method to check if there is still pending work left to wait for.
+ */
+function isFinished() {
+  return messageCounters.handled === messageCounters.total;
+}
+
+const context = {
+  subjectClassName: "",
+};
+
+async function main() {
+  log(`started child [pid ${process.pid}]`);
+  // start buffering first inbound messages
+  process.on("message", preSetupMessagesListener);
+
+  // read subject instantiation params from node argv vars
+  const constructorProps = getArgvParam("props");
+  log("argv 'props' param value: ", constructorProps);
+  const pathToClass = getArgvParam("pathToClass");
+  log("argv 'pathToClass' param value: ", pathToClass);
+  const className = getArgvParam("className");
+  log("argv 'className' param value: ", className);
+  context.subjectClassName = className;
+
+  // add className as snake-case to log namespace
+  const classNameNamespace = className
+    .trim()
+    .split(/(?=[A-Z])/)
+    .join("-")
+    .toLowerCase();
+  log.namespace += `:${classNameNamespace}`;
+
+  // dynamic import specified module file, and get the subject constructor by className
+  const importedModule = await import(pathToClass);
+  const constructorClass = importedModule[className];
+
+  // instantiate the class with provided constructor props
+  const instance = new constructorClass(...(constructorProps || []));
+
+  log(`setup of ${className} instance in background successful`);
+
+  await runMessagesListener(instance);
+}
 
 function setupExitHandlers(
-  errorReporter: ErrorReporter,
   resolve: () => void,
   reject: (error: Error) => void
 ) {
-  const exitHandlerPartial = gracefulExitHandler.bind(
-    null,
-    errorReporter,
-    resolve,
-    reject
-  );
+  const exitHandlerPartial = gracefulExitHandler.bind(null, resolve, reject);
 
   // register exit gracefully when parent process is disconnected
   process.on("disconnect", () => exitHandlerPartial("disconnect"));
@@ -135,36 +185,13 @@ function setupExitHandlers(
   });
 }
 
-async function runMessagesListener(errorReporter: ErrorReporter) {
+async function runMessagesListener(subject: CallableSubject) {
   return new Promise(async (resolve, reject) => {
-    setupExitHandlers(errorReporter, resolve, reject);
+    setupExitHandlers(resolve, reject);
 
     // all ready -> all events setted up -> clear buffered messages and listen for new ones.
-    await runMessagesHandler(errorReporter);
+    await runMessagesHandler(subject);
   });
-}
-
-async function main() {
-  log(`started child [pid ${process.pid}]`);
-  // start buffering first inbound messages
-  process.on("message", preSetupMessagesListener);
-
-  // get subject setup props params
-  const setupProps = getArgvParam("props");
-  log("argv 'props' params: ", setupProps);
-
-  /// ** SECTION subject setup start **
-  const [rootPath, enabled, background = false] = setupProps;
-  await ErrorReporter.setup(rootPath, enabled, background);
-  const errorReporter = ErrorReporter.getInstance();
-
-  if (!ErrorReporter.isEnabled(errorReporter)) {
-    throw new Error("Setup failed, error reporter instance is disabled");
-  }
-  log("setup error reporter in background succesfully");
-  /// ** SECTION subject setup done **
-
-  await runMessagesListener(errorReporter);
 }
 
 /**
@@ -189,29 +216,30 @@ function pollUntilParentDisconnect(intervalMs: number = 1000): Promise<void> {
     }, intervalMs);
   });
 }
+const bufferMessages: any[] = [];
 
-function preSetupMessagesListener(message: any) {
-  log("got message before setup: ", message);
-  bufferMessages.push(message);
+function preSetupMessagesListener(payload: any) {
+  const index = bufferMessages.length;
+  log(`got message #${index} before setup: `, payload);
+
+  bufferMessages.push(payload);
 }
 
 async function clearBufferedMessages(
   messageHandler: (payload: { method: string; args: any[] }) => Promise<void>
 ) {
   for (const message of bufferMessages) {
-    Object.assign(message, { _comments: "buffered" });
     await messageHandler(message);
   }
 }
 
-async function runMessagesHandler(errorReporter: ErrorReporter) {
-  const messageHandler = handleMethodCallMessage.bind(null, errorReporter);
+async function runMessagesHandler(subject: CallableSubject) {
+  const messageHandler = handleMethodCallMessage.bind(null, subject);
 
   // clear buffered messages
   // start listening and handling new messages
   // remove buffered "message" listener
   await clearBufferedMessages(messageHandler);
-  const messageListeners = process.listeners("message");
   process.on("message", messageHandler);
   process.removeListener("message", preSetupMessagesListener);
 }
@@ -220,83 +248,121 @@ async function runMessagesHandler(errorReporter: ErrorReporter) {
 /// *** event handlers ***
 /////////////////////////////////
 async function gracefulExitHandler(
-  _errorReporter: ErrorReporter,
   _onSuccess: () => void,
   _onError: (error: Error) => void,
-  _reason: string
+  _exitReason: string
 ) {
-  log(`exit handler '${_reason}'. finalizing process...`);
+  log(`exit handler '${_exitReason}'. finalizing process...`);
   // cleanup
   try {
-    await closeHandler(_errorReporter);
+    await closeHandler();
     _onSuccess();
   } catch (error) {
-    error.message = `error on closeHandler errorReporter. Resaon: ${
-      error.message || error
-    }`;
+    error.message = `error on closeHandler. Reason: ${error.message || error}`;
     log(error);
     _onError(error);
   }
 }
 
 async function handleMethodCallMessage(
-  subject: ErrorReporter,
+  subject: CallableSubject,
   payload: { method: string; args: any[] }
 ) {
-  log("handling message! payload: ", payload);
+  const index = messageCounters.total++;
+  Object.assign(payload, { _id: index });
+  log(`handling message #${index}, payload: `, payload);
 
   const { method: methodName, args } = payload;
-  if (methodName === "isAlive") {
-    // log(`debug: got isAlive #${args[0]}`);
-    return;
-  }
+
   try {
     await runMethod(subject, methodName, args);
+    messageCounters.success++;
   } catch (error) {
-    log(`Error on runMethod '${methodName}': ${error.message || error}`);
+    log(`Error handling message #${index}: ${error.message || error}`);
+    messageCounters.error++;
   }
+  messageCounters.handled++;
 }
 
 /**
- * Cleanup action delegated to the subject
- * TODO actually delegate it instead of explicitly calling it...
- * TODO cont/ for example, by doing await subject.cleanup() ? Or even await SubjectProvider.cleanup() ?
+ * Poll interval to wait until all inbound messages have been handled (either successfully or with error).
  *
- * @param errorReporter - the subject
+ * @param intervalMs - optional (default 1000ms)
  */
-async function closeHandler(errorReporter: ErrorReporter) {
-  const { pendingReports } = errorReporter;
-  const isDone = pendingReports.length === 0;
-  if (isDone) {
-    log(`no pending reports to send`);
-    return;
-  }
-  log(`sending ${pendingReports.length} pending reports...`);
-  const cleanupPromise = errorReporter
-    .sendPendingReports()
-    .then(() => log(`all pending reports sent`));
-  const timeoutPromise = new Promise((r) =>
-    setTimeout(r, EXIT_TIMEOUT)
-  ).then(() => log(`exit timeout after ${EXIT_TIMEOUT}`));
-
-  return Promise.race([cleanupPromise, timeoutPromise]);
+function pollWaitForPendingMessages(intervalMs: number = 1000): Promise<void> {
+  return new Promise((resolve) => {
+    let previousHandled = messageCounters.handled;
+    const pollInterval = setInterval(() => {
+      if (!isFinished()) {
+        // not finished yet, continue interval
+        const hasChanged = previousHandled !== messageCounters.handled;
+        if (hasChanged) {
+          // log stats update if they have changed
+          log("stats update: ", messageCounters);
+          previousHandled = messageCounters.handled;
+        }
+        return;
+      }
+      // all completed
+      log("no pending messages left. Stats: ", messageCounters);
+      clearInterval(pollInterval);
+      resolve();
+    }, intervalMs);
+  });
 }
 
-async function runMethod(subject: any, methodName: string, args: any[]) {
+/**
+ * Cleanup: wait for pending messages to complete before exiting (limited by EXIT_TIMEOUT ms)
+ */
+async function closeHandler() {
+  if (isFinished()) {
+    log("No pending work left. Stats:", messageCounters);
+    return;
+  }
+  log(
+    `Waiting up to ${EXIT_TIMEOUT}ms for pending messages... Stats before closing: `,
+    messageCounters
+  );
+
+  const cleanupPromise = pollWaitForPendingMessages().then(() =>
+    log(`cleanup fully completed`)
+  );
+
+  const timeoutPromise = new Promise((r) =>
+    setTimeout(r, EXIT_TIMEOUT)
+  ).then(() => log(`cleanup timeout after ${EXIT_TIMEOUT}`));
+
+  return Promise.race([cleanupPromise, timeoutPromise]).then(() =>
+    log(`stats after closing: `, messageCounters)
+  );
+}
+
+async function runMethod(
+  subject: CallableSubject,
+  methodName: string,
+  args: any[]
+) {
+  const subjectMethodName = `${context.subjectClassName}#${methodName}`;
   if (!hasMethod(subject, methodName)) {
-    const errMsg = `No such method in subject: #${methodName}`;
+    const errMsg = `No such method ${subjectMethodName}`;
+    await new Promise((r) => setTimeout(r, 300 + Math.random() * 1500));
     throw new Error(errMsg);
   }
 
-  log(`Calling subject[${methodName}] with args: \n${JSON.stringify(args)}`);
-  await subject[methodName](...args);
+  log(`Calling ${subjectMethodName} with args: \n${JSON.stringify(args)}`);
+  try {
+    await subject[methodName](...args);
+  } catch (error) {
+    error.message = `Error on runMethod call ${subjectMethodName}: ${error.message}`;
+    throw error;
+  }
 }
 
 /**
  * Get all method names in an instance object
  * @param obj
  */
-function getAllMethodNames(obj: any) {
+function _getAllMethodNames(obj: any) {
   const methods = new Set();
   // tslint:disable-next-line:no-conditional-assignment
   while ((obj = Reflect.getPrototypeOf(obj))) {
@@ -315,12 +381,12 @@ function hasMethod(
   instance: any,
   methodName: string
 ): instance is { [methodName: string]: (...args: any[] | any) => any } {
-  return getAllMethodNames(instance).has(methodName);
+  return _getAllMethodNames(instance).has(methodName);
 }
 
 main()
   .then(() => {
-    log("~ finished.");
+    log("~ all done.");
     process.exit(0);
   })
   .catch((error) => {
