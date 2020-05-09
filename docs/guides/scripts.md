@@ -43,7 +43,18 @@ Inside `scripts/` you will find `sample-script.js`. Read through its comments to
 
 <<< @/../packages/buidler-core/sample-project/scripts/sample-script.js
 
-Done? Let's run the script with `node`:
+Done? Before running the script with `node` you need to declare `ethers`. This is needed because Buidler won't be injecting it on the global scope as it does when calling the `run` task.
+
+```js{2}
+const bre = require("@nomiclabs/buidler");
+const ethers = bre.ethers;
+
+async function main() {
+  //...
+}
+```
+
+Now you're ready to run the script:
 
 ```
 $ node scripts/sample-script.js
