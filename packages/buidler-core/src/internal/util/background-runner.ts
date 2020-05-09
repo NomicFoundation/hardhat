@@ -9,7 +9,7 @@ const log = (formatter: any, ...args: any[]) =>
   _log(`[${new Date().toJSON()}]`, ...[formatter, ...args]);
 
 // the worker script path, that will run as a child process fork
-const CHILD_WORKER_PATH = "../error-reporter/background-error-reporter";
+const CHILD_WORKER_PATH = "./background-worker";
 
 const childWorkerAbsolutePath = path.join(__dirname, CHILD_WORKER_PATH);
 
