@@ -54,7 +54,7 @@ task("verify-contract", "Verifies contract on etherscan")
         etherscanContractName = taskArgs.contractName;
         contractName = taskArgs.contractName.substring(index + 1);
       } else {
-        etherscanContractName = `contracts/${taskArgs.contractName}:${taskArgs.contractName}`;
+        etherscanContractName = `contracts/${taskArgs.contractName}.sol:${taskArgs.contractName}`;
         contractName = taskArgs.contractName;
       }
 
