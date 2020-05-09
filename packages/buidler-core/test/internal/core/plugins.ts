@@ -127,6 +127,11 @@ describe("plugin system", function () {
       assert.isTrue(globalAsAny.loaded);
     });
 
+    it("Should load a plugin if with a prerelease version of a dependency", function () {
+      usePlugin(ctx, "requires-prerelease", projectPath);
+      assert.isTrue(globalAsAny.loaded);
+    });
+
     it("Should fail if a peer dependency is missing", function () {
       expectBuidlerError(
         () => usePlugin(ctx, "requires-missing-pack", projectPath),
