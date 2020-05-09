@@ -93,6 +93,8 @@ This kind of networks are configured with objects with the following fields:
 
 - `httpHeaders`: You can use this field to set extra HTTP Headers to be used when making JSON-RPC requests. It accepts a JavaScript object which maps header names to their values. Default value: `undefined`.
 
+- `timeout`: Timeout in ms for requests sent to the JSON-RPC server. If the request takes longer than this, it will be cancelled. Default value: `20000`.
+
 ### HD Wallet config
 
 To use an HD Wallet with Buidler you should set your network's `accounts` field to an object with the following fields:
