@@ -411,6 +411,10 @@ function functionDefinitionKindToFunctionType(
     return ContractFunctionType.FALLBACK;
   }
 
+  if (kind === "receive") {
+    return ContractFunctionType.RECEIVE;
+  }
+
   return ContractFunctionType.FUNCTION;
 }
 

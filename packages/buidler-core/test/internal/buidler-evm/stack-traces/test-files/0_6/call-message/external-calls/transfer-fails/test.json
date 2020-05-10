@@ -24,7 +24,7 @@
           "sourceReference": {
             "contract": "D",
             "file": "d.sol",
-            "function": "<fallback>",
+            "function": "<receive>",
             "line": 6
           }
         }

@@ -20,6 +20,7 @@ import {
 import { ContractFunctionType } from "../../stack-traces/model";
 import {
   FALLBACK_FUNCTION_NAME,
+  RECEIVE_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
 } from "../../stack-traces/solidity-stack-trace";
@@ -1258,6 +1259,8 @@ If this error persists, try resetting your wallet's accounts.`
         ? UNRECOGNIZED_FUNCTION_NAME
         : func.type === ContractFunctionType.FALLBACK
         ? FALLBACK_FUNCTION_NAME
+        : func.type === ContractFunctionType.RECEIVE
+        ? RECEIVE_FUNCTION_NAME
         : func.name;
 
     this._logger.logWithTitle(
