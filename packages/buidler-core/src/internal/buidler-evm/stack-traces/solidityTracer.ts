@@ -751,7 +751,8 @@ export class SolidityTracer {
 
     return (
       calledFunction === undefined &&
-      trace.bytecode.contract.fallback === undefined
+      trace.bytecode.contract.fallback === undefined &&
+      trace.bytecode.contract.receive === undefined
     );
   }
 
