@@ -48,7 +48,7 @@
     "@types/request": "^2.48.1",
     "@types/request-promise": "^4.1.42",
     "chai": "^4.2.0",
-    "ethers": "^4.0.27",
+    "ethers": "^5.0.0-beta.183",
     "nock": "^10.0.6",
     "solc": "0.5.15"
   },
