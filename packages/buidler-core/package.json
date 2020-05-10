@@ -100,7 +100,7 @@
     "is-installed-globally": "^0.2.0",
     "lodash": "^4.17.11",
     "merkle-patricia-tree": "^3.0.0",
-    "mocha": "^5.2.0",
+    "mocha": "^7.1.2",
     "node-fetch": "^2.6.0",
     "qs": "^6.7.0",
     "raw-body": "^2.4.1",
