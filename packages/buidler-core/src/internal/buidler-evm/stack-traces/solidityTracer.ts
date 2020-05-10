@@ -34,6 +34,7 @@ import {
   CONSTRUCTOR_FUNCTION_NAME,
   FALLBACK_FUNCTION_NAME,
   OtherExecutionErrorStackTraceEntry,
+  RECEIVE_FUNCTION_NAME,
   RevertErrorStackTraceEntry,
   SolidityStackTrace,
   SolidityStackTraceEntry,
@@ -387,7 +388,10 @@ export class SolidityTracer {
     const lastInstruction = trace.bytecode.getInstruction(lastStep.pc);
 
     if (isDecodedCallTrace(trace) && !jumpedIntoFunction) {
-      if (this._hasFailedInsideTheFallbackFunction(trace)) {
+      if (
+        this._hasFailedInsideTheFallbackFunction(trace) ||
+        this._hasFailedInsideTheReceiveFunction(trace)
+      ) {
         return [
           this._instructionWithinFunctionToRevertStackTraceEntry(
             trace,
@@ -534,13 +538,32 @@ export class SolidityTracer {
       return false;
     }
 
+    return this._hasFailedInsideFunction(trace, contract.fallback);
+  }
+
+  private _hasFailedInsideTheReceiveFunction(
+    trace: DecodedCallMessageTrace
+  ): boolean {
+    const contract = trace.bytecode.contract;
+
+    if (contract.receive === undefined) {
+      return false;
+    }
+
+    return this._hasFailedInsideFunction(trace, contract.receive);
+  }
+
+  private _hasFailedInsideFunction(
+    trace: DecodedCallMessageTrace,
+    func: ContractFunction
+  ) {
     const lastStep = trace.steps[trace.steps.length - 1] as EvmStep;
     const lastInstruction = trace.bytecode.getInstruction(lastStep.pc);
 
     return (
       lastInstruction.location !== undefined &&
       lastInstruction.opcode === Opcode.REVERT &&
-      contract.fallback.location.contains(lastInstruction.location)
+      func.location.contains(lastInstruction.location)
     );
   }
 
@@ -1027,6 +1050,8 @@ export class SolidityTracer {
       funcName = CONSTRUCTOR_FUNCTION_NAME;
     } else if (func.type === ContractFunctionType.FALLBACK) {
       funcName = FALLBACK_FUNCTION_NAME;
+    } else if (func.type === ContractFunctionType.RECEIVE) {
+      funcName = RECEIVE_FUNCTION_NAME;
     }
 
     return {

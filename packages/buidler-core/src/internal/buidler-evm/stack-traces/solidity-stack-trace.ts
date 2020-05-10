@@ -22,6 +22,7 @@ export enum StackTraceEntryType {
 }
 
 export const FALLBACK_FUNCTION_NAME = "<fallback>";
+export const RECEIVE_FUNCTION_NAME = "<receive>";
 export const CONSTRUCTOR_FUNCTION_NAME = "constructor";
 export const UNRECOGNIZED_FUNCTION_NAME = "<unrecognized-selector>";
 export const UNKNOWN_FUNCTION_NAME = "<unknown>";
