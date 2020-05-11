@@ -4,13 +4,19 @@ import fs from "fs-extra";
 import path from "path";
 
 const _log = debug("buidler:core:background-runner");
-// append date to logs
-const log = (formatter: any, ...args: any[]) =>
-  _log(`[${new Date().toJSON()}]`, ...[formatter, ...args]);
+
+// higher order fn to append date to logs
+const preDateLogger = (logFn: debug.Debugger) => (
+  formatter: any,
+  ...args: any[]
+) => {
+  logFn(`[${new Date().toJSON()}]`, ...[formatter, ...args]);
+};
+
+const log = preDateLogger(_log);
 
 // the worker script path, that will run as a child process fork
 const CHILD_WORKER_PATH = "./background-worker";
-
 const childWorkerAbsolutePath = path.join(__dirname, CHILD_WORKER_PATH);
 
 /**
@@ -64,21 +70,27 @@ export function runInBackground(
   });
   child.unref(); // don't force parent process to wait for childProcess to exit
 
-  const childName = `[pid ${child.pid}] (${className})`;
-  log(`running child ${childName} ${CHILD_WORKER_PATH}`);
+  const childName = `${className} [pid ${child.pid}]`;
+  log(`running ${childName} as child process instance`);
+
+  const childLog = extendLog(toMiddleSnakeCase(className));
 
   // listen to child process events, and just log them
   child.on("message", function (message) {
-    log(`child process ${childName} message:`, message);
+    if (Object.keys(message).length === 0) {
+      // empty message, ignore
+      return;
+    }
+    childLog(`${childName} message:`, message);
   });
   child.once("error", function (error) {
-    log(`child process ${childName} error:`, error);
+    childLog(`${childName} error:`, error);
   });
   child.once("exit", function (code, signal) {
-    log(`child process ${childName} exit:`, { code, signal });
+    childLog(`${childName} exit:`, { code, signal });
   });
   child.once("disconnect", function () {
-    log(`child process ${childName} disconnected.`);
+    childLog(`${childName} disconnected.`);
   });
   return child;
 }
@@ -91,4 +103,19 @@ function _pathRelativeFromChildWorker(filename: string) {
     return win32Path.replace(/\\/g, "/");
   };
   return `./${toPosixPath(childWorkerPathToFile)}`;
+}
+
+function extendLog(extNamespace: string) {
+  const extLog = _log.extend(extNamespace);
+
+  return preDateLogger(extLog);
+}
+
+// utility function to convert a string to middle-snake-case
+export function toMiddleSnakeCase(aString: string) {
+  return aString
+    .trim()
+    .split(/(?=[A-Z])/)
+    .join("-")
+    .toLowerCase();
 }

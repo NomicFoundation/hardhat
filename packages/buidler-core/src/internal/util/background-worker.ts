@@ -5,6 +5,8 @@
 import debug from "debug";
 import { deserializeError, serializeError } from "serialize-error";
 
+import { toMiddleSnakeCase } from "./background-runner";
+
 import Signals = NodeJS.Signals;
 
 /**
@@ -146,11 +148,7 @@ async function main() {
   context.subjectClassName = className;
 
   // add className as snake-case to log namespace
-  const classNameNamespace = className
-    .trim()
-    .split(/(?=[A-Z])/)
-    .join("-")
-    .toLowerCase();
+  const classNameNamespace = toMiddleSnakeCase(className);
   log.namespace += `:${classNameNamespace}`;
 
   // dynamic import specified module file, and get the subject constructor by className
@@ -295,20 +293,43 @@ async function handleMethodCallMessage(
   if (Array.isArray(payload.args)) {
     payload.args = deserializeErrors(payload.args);
   }
+
+  const { method: methodName, args } = payload;
+  if (methodName === undefined) {
+    log("No 'method' name specified in payload, ignoring message", payload);
+    return;
+  }
+
   const index = messageCounters.total++;
   Object.assign(payload, { _id: index });
   log(`handling message #${index}, payload: `, payload);
 
-  const { method: methodName, args } = payload;
-
+  let result: any;
+  let error: any;
   try {
-    await runMethod(subject, methodName, args);
+    result = await runMethod(subject, methodName, args);
     messageCounters.success++;
-  } catch (error) {
-    log(`Error handling message #${index}: ${error.message || error}`);
+  } catch (_error) {
+    error = _error;
     messageCounters.error++;
+    log(`Error handling message #${index}:`, error);
   }
   messageCounters.handled++;
+
+  // send message with result info to parent process
+  const message = { _id: index, timestamp: new Date().toJSON() };
+  Object.assign(
+    message,
+    error !== undefined
+      ? { status: "error", error: serializeError(error) }
+      : { status: "success", result }
+  );
+
+  try {
+    await processSend(message);
+  } catch (_error) {
+    // parent disconnected, ignore error
+  }
 }
 
 /**
