@@ -1,5 +1,4 @@
 import AbortController from "abort-controller";
-import ci from "ci-info";
 import debug from "debug";
 import { keccak256 } from "ethereumjs-util";
 import fs from "fs-extra";
@@ -11,6 +10,7 @@ import uuid from "uuid/v4";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
+import { isRunningOnCiServer } from "../util/ci-detection";
 import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("buidler:core:analytics");
@@ -252,11 +252,7 @@ function getProjectId(rootPath: string) {
 }
 
 function getUserType(): string {
-  // ci-info hasn't released support for github actions yet, so we
-  // test it manually here. See: https://github.com/watson/ci-info/issues/48
-  return ci.isCI || process.env.GITHUB_ACTIONS !== undefined
-    ? "CI"
-    : "Developer";
+  return isRunningOnCiServer() ? "CI" : "Developer";
 }
 
 /**
