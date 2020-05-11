@@ -3,6 +3,7 @@
  * independently of the parent process.
  */
 import debug from "debug";
+import { deserializeError, serializeError } from "serialize-error";
 
 import Signals = NodeJS.Signals;
 
@@ -207,9 +208,12 @@ function pollUntilParentDisconnect(intervalMs: number = 1000): Promise<void> {
   return new Promise((resolve) => {
     const interval = setInterval(async function isAliveCheck() {
       try {
-        await processSend("isAlive?");
+        // send empty message just to check if still connected
+        await processSend("");
       } catch (error) {
-        log(`parent process disconnected? error on process.send(): ${error}`);
+        log(
+          `detected parent disconnect, due to error on process.send(): ${error}`
+        );
         clearInterval(interval);
         resolve();
       }
@@ -264,10 +268,33 @@ async function gracefulExitHandler(
   }
 }
 
+function deserializeErrors(serializedArgs: any[]) {
+  const _isError = (value: any) =>
+    (value.stack !== undefined && value.message !== undefined) ||
+    (value.name !== undefined && value.name.toLowerCase().includes("error"));
+
+  return serializedArgs.map((arg) => {
+    if (!_isError(arg)) {
+      // not an error, return original arg value
+      return arg;
+    }
+    const deserialized = deserializeError(arg);
+    if (deserialized.name === "NonError") {
+      // not an error, return original arg value
+      return arg;
+    }
+    // it was an error arg value, return it deserialized.
+    return deserialized;
+  });
+}
+
 async function handleMethodCallMessage(
   subject: CallableSubject,
-  payload: { method: string; args: any[] }
+  payload: { method: string; args?: any[] }
 ) {
+  if (Array.isArray(payload.args)) {
+    payload.args = deserializeErrors(payload.args);
+  }
   const index = messageCounters.total++;
   Object.assign(payload, { _id: index });
   log(`handling message #${index}, payload: `, payload);
@@ -340,20 +367,19 @@ async function closeHandler() {
 async function runMethod(
   subject: CallableSubject,
   methodName: string,
-  args: any[]
+  args: any[] = []
 ) {
   const subjectMethodName = `${context.subjectClassName}#${methodName}`;
   if (!hasMethod(subject, methodName)) {
     const errMsg = `No such method ${subjectMethodName}`;
-    await new Promise((r) => setTimeout(r, 300 + Math.random() * 1500));
     throw new Error(errMsg);
   }
 
-  log(`Calling ${subjectMethodName} with args: \n${JSON.stringify(args)}`);
+  log(`Calling ${subjectMethodName} with args: '${JSON.stringify(args)}'`);
   try {
     await subject[methodName](...args);
   } catch (error) {
-    error.message = `Error on runMethod call ${subjectMethodName}: ${error.message}`;
+    error.message = `Error on runMethod call '${subjectMethodName}': ${error.message}`;
     throw error;
   }
 }
