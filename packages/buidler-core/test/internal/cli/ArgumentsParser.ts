@@ -6,17 +6,17 @@ import { ERRORS } from "../../../src/internal/core/errors-list";
 import {
   boolean,
   int,
-  string
+  string,
 } from "../../../src/internal/core/params/argumentTypes";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/internal/core/params/buidler-params";
 import {
   OverriddenTaskDefinition,
-  SimpleTaskDefinition
+  SimpleTaskDefinition,
 } from "../../../src/internal/core/tasks/task-definitions";
 import {
   BuidlerArguments,
   TaskArguments,
-  TaskDefinition
+  TaskDefinition,
 } from "../../../src/types";
 import { expectBuidlerError } from "../../helpers/errors";
 
@@ -34,7 +34,7 @@ describe("ArgumentsParser", () => {
       version: false,
       help: false,
       emoji: false,
-      verbose: false
+      verbose: false,
     };
     taskDefinition = new SimpleTaskDefinition("compile", true)
       .addParam("param", "just a param", "a default value", string)
@@ -110,13 +110,13 @@ describe("ArgumentsParser", () => {
         "--network",
         "local",
         "compile",
-        "--task-param"
+        "--task-param",
       ];
 
       const {
         buidlerArguments,
         taskName,
-        unparsedCLAs
+        unparsedCLAs,
       } = argumentsParser.parseBuidlerArguments(
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
@@ -136,13 +136,13 @@ describe("ArgumentsParser", () => {
         "--task-param",
         "--show-stack-traces",
         "--network",
-        "local"
+        "local",
       ];
 
       const {
         buidlerArguments,
         taskName,
-        unparsedCLAs
+        unparsedCLAs,
       } = argumentsParser.parseBuidlerArguments(
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
@@ -162,7 +162,7 @@ describe("ArgumentsParser", () => {
         "compile",
         "--show-stack-traces",
         "--network",
-        "local"
+        "local",
       ];
 
       expectBuidlerError(
@@ -181,7 +181,7 @@ describe("ArgumentsParser", () => {
         "--show-stack-traces",
         "--network",
         "local",
-        "compile"
+        "compile",
       ];
 
       const buidlerArguments: TaskArguments = {};
@@ -212,7 +212,7 @@ describe("ArgumentsParser", () => {
         "--show-stack-traces",
         "--network",
         "local",
-        "--invalid-param"
+        "--invalid-param",
       ];
       expectBuidlerError(
         () =>
@@ -232,7 +232,7 @@ describe("ArgumentsParser", () => {
         "local",
         "--network",
         "local",
-        "compile"
+        "compile",
       ];
       expectBuidlerError(
         () =>
@@ -250,7 +250,7 @@ describe("ArgumentsParser", () => {
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
         {
-          showStackTraces: true
+          showStackTraces: true,
         }
       );
 
@@ -276,7 +276,7 @@ describe("ArgumentsParser", () => {
         "--a-flag",
         "--overridden-flag",
         "--overridden-opt-param",
-        "optValue"
+        "optValue",
       ];
 
       const { paramArguments, rawPositionalArguments } = argumentsParser[
@@ -286,7 +286,7 @@ describe("ArgumentsParser", () => {
         strParam: "testing",
         aFlag: true,
         overriddenFlag: true,
-        overriddenOptParam: "optValue"
+        overriddenOptParam: "optValue",
       });
       assert.equal(rawPositionalArguments.length, 0);
     });
@@ -377,7 +377,7 @@ describe("ArgumentsParser", () => {
         "testing",
         "--bleep",
         "1337",
-        "foobar"
+        "foobar",
       ];
       taskDefinition.addPositionalParam("positional", "a posititon param");
 
@@ -385,7 +385,7 @@ describe("ArgumentsParser", () => {
       assert.deepEqual(args, {
         param: "testing",
         bleep: 1337,
-        positional: "foobar"
+        positional: "foobar",
       });
     });
 

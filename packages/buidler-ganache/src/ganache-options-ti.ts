@@ -25,7 +25,7 @@ export const GanacheOptionsTi = t.iface([], {
   locked: t.opt("boolean"),
   logger: t.opt(
     t.iface([], {
-      log: t.func("void", t.param("msg", "string"))
+      log: t.func("void", t.param("msg", "string")),
     })
   ),
   mnemonic: t.opt("string"),
@@ -38,10 +38,10 @@ export const GanacheOptionsTi = t.iface([], {
   unlockedAccounts: t.opt(t.array("string")),
   verbose: t.opt("boolean"),
   vmErrorsOnRPCResponse: t.opt("boolean"),
-  ws: t.opt("boolean")
+  ws: t.opt("boolean"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
-  GanacheOptionsTi
+  GanacheOptionsTi,
 };
 export default exportedTypeSuite;

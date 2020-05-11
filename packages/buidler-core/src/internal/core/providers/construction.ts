@@ -6,7 +6,7 @@ import {
   IEthereumProvider,
   NetworkConfig,
   NetworkConfigAccounts,
-  ProjectPaths
+  ProjectPaths,
 } from "../../../types";
 import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
 import { parseDateString } from "../../util/date";
@@ -31,7 +31,7 @@ export function createProvider(
     const buidlerNetConfig = networkConfig as BuidlerNetworkConfig;
 
     const {
-      BuidlerEVMProvider
+      BuidlerEVMProvider,
     } = require("../../buidler-evm/provider/provider");
 
     provider = new BuidlerEVMProvider(
@@ -75,14 +75,14 @@ export function wrapEthereumProvider(
   const {
     createHDWalletProvider,
     createLocalAccountsProvider,
-    createSenderProvider
+    createSenderProvider,
   } = require("./accounts");
 
   const {
     createAutomaticGasPriceProvider,
     createAutomaticGasProvider,
     createFixedGasPriceProvider,
-    createFixedGasProvider
+    createFixedGasProvider,
   } = require("./gas-providers");
 
   const { createChainIdValidationProvider } = require("./chainId");

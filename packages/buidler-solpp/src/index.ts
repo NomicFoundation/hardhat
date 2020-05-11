@@ -16,7 +16,7 @@ function getDefaultConfig(config: ResolvedBuidlerConfig): SolppConfig {
     collapseEmptyLines: false,
     noPreprocessor: false,
     noFlatten: true,
-    tolerant: false
+    tolerant: false,
   };
 }
 
@@ -27,13 +27,13 @@ function getConfig(config: ResolvedBuidlerConfig): SolppConfig {
 
 async function readFiles(filePaths: string[]): Promise<string[][]> {
   return Promise.all(
-    filePaths.map(filePath =>
-      fsExtra.readFile(filePath, "utf-8").then(content => [filePath, content])
+    filePaths.map((filePath) =>
+      fsExtra.readFile(filePath, "utf-8").then((content) => [filePath, content])
     )
   );
 }
 
-export default function() {
+export default function () {
   internalTask(
     "buidler-solpp:run-solpp",
     async (

@@ -16,18 +16,18 @@ export async function expectErrorAsync(
   }
 }
 
-describe("Solhint plugin", function() {
+describe("Solhint plugin", function () {
   const SOLHINT_CONFIG_FILENAME = ".solhint.json";
 
-  describe("Project with solhint config", function() {
+  describe("Project with solhint config", function () {
     useEnvironment(path.join(__dirname, "buidler-project"));
 
-    it("should define solhint task", function() {
+    it("should define solhint task", function () {
       assert.isDefined(this.env.tasks["buidler-solhint:run-solhint"]);
       assert.isDefined(this.env.tasks.check);
     });
 
-    it("return a report", async function() {
+    it("return a report", async function () {
       const reports = await this.env.run("buidler-solhint:run-solhint");
       assert.equal(reports.length, 1);
       assert.isTrue(
@@ -38,22 +38,22 @@ describe("Solhint plugin", function() {
     });
   });
 
-  describe("Project with no solhint config", function() {
+  describe("Project with no solhint config", function () {
     useEnvironment(path.join(__dirname, "no-config-project"));
 
-    it("return a report", async function() {
+    it("return a report", async function () {
       const reports = await this.env.run("buidler-solhint:run-solhint");
       assert.equal(reports.length, 1);
       assert.equal(reports[0].reports[0].ruleId, "max-line-length");
     });
   });
 
-  describe("Project with invalid solhint configs", function() {
+  describe("Project with invalid solhint configs", function () {
     useEnvironment(path.join(__dirname, "invalid-config-project"));
 
-    it("should throw when using invalid extensions", async function() {
+    it("should throw when using invalid extensions", async function () {
       const invalidExtensionConfig = {
-        extends: "invalid"
+        extends: "invalid",
       };
       await writeJson(SOLHINT_CONFIG_FILENAME, invalidExtensionConfig);
 
@@ -63,11 +63,11 @@ describe("Solhint plugin", function() {
       );
     });
 
-    it("should throw when using invalid rules", async function() {
+    it("should throw when using invalid rules", async function () {
       const invalidRuleConfig = {
         rules: {
-          "invalid-rule": false
-        }
+          "invalid-rule": false,
+        },
       };
       await writeJson(SOLHINT_CONFIG_FILENAME, invalidRuleConfig);
 
@@ -77,7 +77,7 @@ describe("Solhint plugin", function() {
       );
     });
 
-    it("should throw when using a non parsable config", async function() {
+    it("should throw when using a non parsable config", async function () {
       const invalidConfig = "asd";
       await writeFile(SOLHINT_CONFIG_FILENAME, invalidConfig);
       await expectErrorAsync(

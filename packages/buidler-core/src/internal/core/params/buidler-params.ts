@@ -10,7 +10,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.string,
     isOptional: true,
     isFlag: false,
-    isVariadic: false
+    isVariadic: false,
   },
   showStackTraces: {
     name: "showStackTraces",
@@ -19,7 +19,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.boolean,
     isFlag: true,
     isOptional: true,
-    isVariadic: false
+    isVariadic: false,
   },
   version: {
     name: "version",
@@ -28,7 +28,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.boolean,
     isFlag: true,
     isOptional: true,
-    isVariadic: false
+    isVariadic: false,
   },
   help: {
     name: "help",
@@ -37,7 +37,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.boolean,
     isFlag: true,
     isOptional: true,
-    isVariadic: false
+    isVariadic: false,
   },
   emoji: {
     name: "emoji",
@@ -46,7 +46,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.boolean,
     isFlag: true,
     isOptional: true,
-    isVariadic: false
+    isVariadic: false,
   },
   config: {
     name: "config",
@@ -55,7 +55,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.inputFile,
     isFlag: false,
     isOptional: true,
-    isVariadic: false
+    isVariadic: false,
   },
   verbose: {
     name: "verbose",
@@ -64,7 +64,7 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.boolean,
     isFlag: true,
     isOptional: true,
-    isVariadic: false
+    isVariadic: false,
   },
   maxMemory: {
     name: "maxMemory",
@@ -73,6 +73,6 @@ export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
     type: types.int,
     isOptional: true,
     isFlag: false,
-    isVariadic: false
-  }
+    isVariadic: false,
+  },
 };

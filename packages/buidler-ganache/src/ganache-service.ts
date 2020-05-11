@@ -54,7 +54,7 @@ export class GanacheService {
       allowUnlimitedContractSize: false,
       locked: false,
       hdPath: "m/44'/60'/0'/0/",
-      keepAliveTimeout: 5000
+      keepAliveTimeout: 5000,
     };
   }
 
@@ -128,7 +128,7 @@ export class GanacheService {
           resolve();
         };
 
-        onError = err => {
+        onError = (err) => {
           this._server.removeListener("listening", onListening);
           reject(err);
         };
@@ -224,7 +224,7 @@ export class GanacheService {
       "dbPath",
       "defaultBalanceEther",
       "totalAccounts",
-      "unlockedAccounts"
+      "unlockedAccounts",
     ];
     for (const [key, value] of Object.entries(options)) {
       if (value !== undefined && optionsToInclude.includes(key)) {
@@ -240,7 +240,7 @@ export class GanacheService {
     const server = this._server;
 
     // Add listener for general server errors
-    server.on("error", function(err: any) {
+    server.on("error", function (err: any) {
       if (
         GanacheService.error === undefined &&
         err !== undefined &&
@@ -266,6 +266,6 @@ export class GanacheService {
   }
 
   private _snakeCase(str: string) {
-    return str.replace(/([A-Z]){1}/g, match => `_${match.toLowerCase()}`);
+    return str.replace(/([A-Z]){1}/g, (match) => `_${match.toLowerCase()}`);
   }
 }

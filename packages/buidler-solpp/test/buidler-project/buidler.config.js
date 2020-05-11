@@ -5,7 +5,7 @@ module.exports = {
   solpp: {
     defs: {
       foo: () => "foo",
-      bar: "bar"
-    }
-  }
+      bar: "bar",
+    },
+  },
 };

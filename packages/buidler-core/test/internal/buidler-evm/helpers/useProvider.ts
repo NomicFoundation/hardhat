@@ -19,7 +19,7 @@ export const PROVIDERS = [
     name: "BuidlerEVM",
     useProvider: () => {
       useProvider();
-    }
+    },
   },
   {
     name: "JSON-RPC",
@@ -33,8 +33,8 @@ export const PROVIDERS = [
         DEFAULT_ACCOUNTS,
         true
       );
-    }
-  }
+    },
+  },
 ];
 
 export const DEFAULT_HARDFORK = "istanbul";
@@ -46,13 +46,13 @@ export const DEFAULT_ACCOUNTS = [
   {
     privateKey:
       "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
-    balance: new BN(10).pow(new BN(18))
+    balance: new BN(10).pow(new BN(18)),
   },
   {
     privateKey:
       "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10a",
-    balance: new BN(10).pow(new BN(18))
-  }
+    balance: new BN(10).pow(new BN(18)),
+  },
 ];
 export const DEFAULT_USE_JSON_RPC = false;
 
@@ -66,7 +66,7 @@ export function useProvider(
   useJsonRpc = DEFAULT_USE_JSON_RPC,
   allowUnlimitedContractSize = false
 ) {
-  beforeEach("Initialize provider", async function() {
+  beforeEach("Initialize provider", async function () {
     // We create two Nodes here, and don't use this one.
     // We should probably change this. This is done to get the common.
     const [common, _] = await BuidlerNode.create(
@@ -100,7 +100,7 @@ export function useProvider(
       this.server = new JsonRpcServer({
         port: 0,
         hostname: "localhost",
-        provider: this.provider
+        provider: this.provider,
       });
 
       await this.server.listen();
@@ -109,7 +109,7 @@ export function useProvider(
     }
   });
 
-  afterEach("Remove provider", async function() {
+  afterEach("Remove provider", async function () {
     delete this.common;
     delete this.provider;
 

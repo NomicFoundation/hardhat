@@ -4,7 +4,7 @@ import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import {
   JsonRpcServer,
-  JsonRpcServerConfig
+  JsonRpcServerConfig,
 } from "../internal/buidler-evm/jsonrpc/server";
 import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
 import { task, types } from "../internal/core/config/config-env";
@@ -15,7 +15,7 @@ import { lazyObject } from "../internal/util/lazy";
 import {
   BuidlerNetworkConfig,
   EthereumProvider,
-  ResolvedBuidlerConfig
+  ResolvedBuidlerConfig,
 } from "../types";
 
 import { TASK_NODE } from "./task-names";
@@ -62,7 +62,7 @@ Private Key: ${privateKey}
   }
 }
 
-export default function() {
+export default function () {
   task(TASK_NODE, "Starts a JSON-RPC server on top of Buidler EVM")
     .addOptionalParam(
       "hostname",
@@ -96,7 +96,7 @@ export default function() {
           const serverConfig: JsonRpcServerConfig = {
             hostname,
             port,
-            provider: _createBuidlerEVMProvider(config)
+            provider: _createBuidlerEVMProvider(config),
           };
 
           const server = new JsonRpcServer(serverConfig);
@@ -125,7 +125,7 @@ export default function() {
           throw new BuidlerError(
             ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
             {
-              error: error.message
+              error: error.message,
             },
             error
           );

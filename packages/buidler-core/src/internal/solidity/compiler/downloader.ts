@@ -34,7 +34,7 @@ async function downloadFile(
   // would be MITM-able.
   const { default: download } = await import("download");
   await download(url, path.dirname(destinationFile), {
-    filename: path.basename(destinationFile)
+    filename: path.basename(destinationFile),
   });
 }
 
@@ -86,7 +86,7 @@ export class CompilerDownloader {
       compilerBuildPath = list.releases[version];
     }
 
-    const compilerBuild = list.builds.find(b => b.path === compilerBuildPath);
+    const compilerBuild = list.builds.find((b) => b.path === compilerBuildPath);
 
     if (compilerBuild === undefined) {
       throw new BuidlerError(ERRORS.SOLC.INVALID_VERSION, { version });
@@ -118,7 +118,7 @@ export class CompilerDownloader {
       throw new BuidlerError(
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
         {
-          localVersion: this._localSolcVersion
+          localVersion: this._localSolcVersion,
         },
         error
       );
@@ -140,7 +140,7 @@ export class CompilerDownloader {
         ERRORS.SOLC.DOWNLOAD_FAILED,
         {
           remoteVersion: compilerBuild.version,
-          localVersion: this._localSolcVersion
+          localVersion: this._localSolcVersion,
         },
         error
       );
@@ -165,7 +165,7 @@ export class CompilerDownloader {
 
       throw new BuidlerError(ERRORS.SOLC.INVALID_DOWNLOAD, {
         remoteVersion: compilerBuild.version,
-        localVersion: this._localSolcVersion
+        localVersion: this._localSolcVersion,
       });
     }
   }

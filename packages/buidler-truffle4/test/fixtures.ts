@@ -5,104 +5,104 @@ import path from "path";
 import {
   getTruffleFixtureFunction,
   hasMigrations,
-  hasTruffleFixture
+  hasTruffleFixture,
 } from "../src/fixture";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "../src/task-names";
 
 import { useEnvironment } from "./helpers";
 
-describe("Truffle fixtures support", function() {
-  describe("Migration detection", function() {
-    describe("In a project without migrations", function() {
+describe("Truffle fixtures support", function () {
+  describe("Migration detection", function () {
+    describe("In a project without migrations", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.4"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should not detect any", async function() {
+      it("Should not detect any", async function () {
         assert.isFalse(await hasMigrations(this.env.config.paths));
       });
     });
 
-    describe("In a project with migrations", function() {
+    describe("In a project with migrations", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-migrations"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should detect them", async function() {
+      it("Should detect them", async function () {
         assert.isTrue(await hasMigrations(this.env.config.paths));
       });
     });
   });
 
-  describe("Fixtures detection", function() {
-    describe("In a project without fixture", function() {
+  describe("Fixtures detection", function () {
+    describe("In a project without fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.4"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should not detect any", async function() {
+      it("Should not detect any", async function () {
         assert.isFalse(await hasTruffleFixture(this.env.config.paths));
       });
     });
 
-    describe("In a project with a js fixture", function() {
+    describe("In a project with a js fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-fixture"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should detect them", async function() {
+      it("Should detect them", async function () {
         assert.isTrue(await hasTruffleFixture(this.env.config.paths));
       });
     });
 
-    describe("In a project with a ts fixture", function() {
+    describe("In a project with a ts fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-ts-fixture"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should detect them", async function() {
+      it("Should detect them", async function () {
         assert.isTrue(await hasTruffleFixture(this.env.config.paths));
       });
     });
   });
 
-  describe("Fixtures function loading", function() {
-    describe("In a project with a js fixture", function() {
+  describe("Fixtures function loading", function () {
+    describe("In a project with a js fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-fixture"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should load it correctly", async function() {
+      it("Should load it correctly", async function () {
         const fixture = await getTruffleFixtureFunction(this.env.config.paths);
         assert.isFunction(fixture);
       });
     });
 
-    describe("In a project with a ts fixture", function() {
+    describe("In a project with a ts fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-ts-fixture"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should load it correctly", async function() {
+      it("Should load it correctly", async function () {
         const fixture = await getTruffleFixtureFunction(this.env.config.paths);
         assert.isFunction(fixture);
       });
     });
 
-    describe("In an invalid fixture", function() {
+    describe("In an invalid fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-invalid-fixture"),
         BUIDLEREVM_NETWORK_NAME
       );
 
-      it("Should load it correctly", async function() {
+      it("Should load it correctly", async function () {
         try {
           await getTruffleFixtureFunction(this.env.config.paths);
         } catch (error) {
@@ -116,13 +116,13 @@ describe("Truffle fixtures support", function() {
     });
   });
 
-  describe("Fixtures integration test", function() {
+  describe("Fixtures integration test", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.5"),
       BUIDLEREVM_NETWORK_NAME
     );
 
-    it("Should detect deployed contracts", async function() {
+    it("Should detect deployed contracts", async function () {
       await this.env.run(RUN_TRUFFLE_FIXTURE_TASK);
       const Greeter = this.env.artifacts.require("Greeter");
       const greeter = await Greeter.deployed();
@@ -130,7 +130,7 @@ describe("Truffle fixtures support", function() {
       assert.equal(await greeter.greet(), "Hi");
     });
 
-    it("Should give the right error on non-deployed contracts", async function() {
+    it("Should give the right error on non-deployed contracts", async function () {
       await this.env.run(RUN_TRUFFLE_FIXTURE_TASK);
       const Lib = this.env.artifacts.require("Lib");
 

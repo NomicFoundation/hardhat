@@ -8,12 +8,12 @@ export enum JumpType {
   NOT_JUMP,
   INTO_FUNCTION,
   OUTOF_FUNCTION,
-  INTERNAL_JUMP
+  INTERNAL_JUMP,
 }
 
 export enum ContractType {
   CONTRACT,
-  LIBRARY
+  LIBRARY,
 }
 
 export enum ContractFunctionType {
@@ -21,14 +21,14 @@ export enum ContractFunctionType {
   FUNCTION,
   FALLBACK,
   GETTER,
-  MODIFIER
+  MODIFIER,
 }
 
 export enum ContractFunctionVisibility {
   PRIVATE,
   INTERNAL,
   PUBLIC,
-  EXTERNAL
+  EXTERNAL,
 }
 
 export class SourceFile {
@@ -215,7 +215,7 @@ export class Contract {
    */
   public correctSelector(functionName: string, selector: Buffer): boolean {
     const functions = Array.from(this._selectorHexToFunction.values()).filter(
-      cf => cf.name === functionName
+      (cf) => cf.name === functionName
     );
 
     if (functions.length !== 1) {

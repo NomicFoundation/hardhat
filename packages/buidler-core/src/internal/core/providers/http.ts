@@ -4,7 +4,7 @@ import {
   FailedJsonRpcResponse,
   JsonRpcRequest,
   JsonRpcResponse,
-  parseJsonResponse
+  parseJsonResponse,
 } from "../../util/jsonrpc";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -62,8 +62,8 @@ export class HttpProvider extends EventEmitter {
         timeout: this._timeout,
         headers: {
           "Content-Type": "application/json",
-          ...this._extraHeaders
-        }
+          ...this._extraHeaders,
+        },
       });
 
       return parseJsonResponse(await response.text());
@@ -93,7 +93,7 @@ export class HttpProvider extends EventEmitter {
       jsonrpc: "2.0",
       method,
       params,
-      id: this._nextRequestId++
+      id: this._nextRequestId++,
     };
   }
 }

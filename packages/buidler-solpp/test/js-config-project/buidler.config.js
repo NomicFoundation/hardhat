@@ -4,7 +4,7 @@ loadPluginFile(__dirname + "/../../src/index");
 module.exports = {
   solpp: {
     defs: {
-      getLeet: () => 1337
-    }
-  }
+      getLeet: () => 1337,
+    },
+  },
 };

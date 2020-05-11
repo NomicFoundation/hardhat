@@ -4,15 +4,15 @@ import { getInputFromDependencyGraph } from "../../../../src/internal/solidity/c
 import { DependencyGraph } from "../../../../src/internal/solidity/dependencyGraph";
 import {
   ResolvedFile,
-  Resolver
+  Resolver,
 } from "../../../../src/internal/solidity/resolver";
 import { SolcInput } from "../../../../src/types";
 
-describe("compiler-input module", function() {
+describe("compiler-input module", function () {
   it("Should construct the right input for a dependency graph", async () => {
     const optimizerConfig = {
       runs: 200,
-      enabled: false
+      enabled: false,
     };
 
     const globalName1 = "the/global/name.sol";
@@ -27,11 +27,11 @@ describe("compiler-input module", function() {
       language: "Solidity",
       sources: {
         [globalName1]: { content: content1 },
-        [globalName2]: { content: content2 }
+        [globalName2]: { content: content2 },
       },
       settings: {
         metadata: {
-          useLiteralContent: true
+          useLiteralContent: true,
         },
         optimizer: optimizerConfig,
         outputSelection: {
@@ -40,19 +40,19 @@ describe("compiler-input module", function() {
               "abi",
               "evm.bytecode",
               "evm.deployedBytecode",
-              "evm.methodIdentifiers"
+              "evm.methodIdentifiers",
             ],
-            "": ["id", "ast"]
-          }
-        }
-      }
+            "": ["id", "ast"],
+          },
+        },
+      },
     };
 
     const graph = await DependencyGraph.createFromResolvedFiles(
       new Resolver("."),
       [
         new ResolvedFile(globalName1, path1, content1, new Date()),
-        new ResolvedFile(globalName2, path2, content2, new Date())
+        new ResolvedFile(globalName2, path2, content2, new Date()),
       ]
     );
 

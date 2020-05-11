@@ -5,14 +5,14 @@ module.exports = {
   networks: {
     withoutAccounts: {
       url: "http://localhost:8545",
-      accounts: []
+      accounts: [],
     },
     withGasMultiplier: {
       url: "http://localhost:8545",
-      gasMultiplier: 3
-    }
+      gasMultiplier: 3,
+    },
   },
   solc: {
-    version: "0.4.25"
-  }
+    version: "0.4.25",
+  },
 };

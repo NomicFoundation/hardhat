@@ -13,11 +13,11 @@ import {
   BuidlerRuntimeEnvironment,
   ParamDefinition,
   ResolvedBuidlerConfig,
-  TasksMap
+  TasksMap,
 } from "../../../src/types";
 import {
   expectBuidlerError,
-  expectBuidlerErrorAsync
+  expectBuidlerErrorAsync,
 } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
 
@@ -26,11 +26,11 @@ describe("Environment", () => {
     defaultNetwork: "default",
     networks: {
       local: {
-        url: "http://localhost:8545"
+        url: "http://localhost:8545",
       },
       default: {
-        url: "http://localhost:8545"
-      }
+        url: "http://localhost:8545",
+      },
     },
     paths: {
       root: "",
@@ -38,18 +38,18 @@ describe("Environment", () => {
       cache: "",
       artifacts: "",
       sources: "",
-      tests: ""
+      tests: "",
     },
     solc: {
       version: "0.5.0",
       optimizer: {
         enabled: false,
-        runs: 0
+        runs: 0,
       },
-      evmVersion: "byzantium"
+      evmVersion: "byzantium",
     },
     mocha: {},
-    analytics: { enabled: true }
+    analytics: { enabled: true },
   };
 
   const args: BuidlerArguments = {
@@ -58,7 +58,7 @@ describe("Environment", () => {
     version: false,
     help: false,
     emoji: false,
-    verbose: false
+    verbose: false,
   };
 
   let tasks: TasksMap;
@@ -68,7 +68,7 @@ describe("Environment", () => {
   beforeEach(() => {
     const ctx = BuidlerContext.createBuidlerContext();
     dsl = ctx.tasksDSL;
-    dsl.task("example", async ret => {
+    dsl.task("example", async (ret) => {
       return 27;
     });
 
@@ -105,12 +105,6 @@ describe("Environment", () => {
         "an opt string param",
         "some default",
         types.string
-      )
-      .addOptionalParam(
-        "optJsonParam",
-        "an opt 'json' param",
-        JSON.stringify({ a: 1 }),
-        types.json
       )
       .addOptionalVariadicPositionalParam(
         "variadicOptStrParam",
@@ -153,7 +147,7 @@ describe("Environment", () => {
 
         // task runs with required param present
         const taskResult = await env.run(taskName, {
-          [requiredParamName]: "some value"
+          [requiredParamName]: "some value",
         });
         assert.isDefined(taskResult);
 
@@ -179,12 +173,12 @@ describe("Environment", () => {
         assert.notEqual(defaultValue, paramValue);
 
         const taskMinimalArgs = {
-          positionalRequiredStringParam: "a string value"
+          positionalRequiredStringParam: "a string value",
         };
 
         const taskArgumentsSpecified = {
           ...taskMinimalArgs,
-          [optParamName]: paramValue
+          [optParamName]: paramValue,
         };
 
         // setup task action spy
@@ -199,7 +193,7 @@ describe("Environment", () => {
         // assertions
         const [
           taskWithSpecifiedArgsCall,
-          taskWithDefaultArgsCall
+          taskWithDefaultArgsCall,
         ] = taskActionSpy.getCalls();
 
         assert.equal(
@@ -223,9 +217,8 @@ describe("Environment", () => {
           optIntParam: { valid: 10, invalid: 1.2 },
           optFloatParam: { valid: 1.2, invalid: NaN },
           optStringParam: { valid: "a string", invalid: 123 },
-          optJsonParam: { valid: { a: 20 }, invalid: 1234 },
           optFileParam: { valid: __filename, invalid: __dirname },
-          variadicOptStrParam: { valid: ["a", "b"], invalid: ["a", 1] }
+          variadicOptStrParam: { valid: ["a", "b"], invalid: ["a", 1] },
         };
 
         const expectTaskRunsSuccesfully = async (
@@ -239,8 +232,9 @@ describe("Environment", () => {
             assert.fail(
               error,
               undefined,
-              `Should not throw error task ${taskNameToRun} with args ${argsString}. Error message: ${error.message ||
-                error}`
+              `Should not throw error task ${taskNameToRun} with args ${argsString}. Error message: ${
+                error.message || error
+              }`
             );
           }
         };
@@ -273,7 +267,7 @@ describe("Environment", () => {
     });
 
     it("should fail trying to run a non existent task", () => {
-      env.run("invalid").catch(err => {
+      env.run("invalid").catch((err) => {
         assert.equal(err.number, ERRORS.ARGUMENTS.UNRECOGNIZED_TASK.number);
       });
     });
@@ -286,7 +280,7 @@ describe("Environment", () => {
     });
 
     it("should run overridden task correctly", async () => {
-      dsl.task("example", "description", async ret => {
+      dsl.task("example", "description", async (ret) => {
         return 28;
       });
       tasks = dsl.getTaskDefinitions();

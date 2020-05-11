@@ -9,7 +9,7 @@ import path from "path";
 import { useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
-describe.skip("Plugin integration tests", function() {
+describe.skip("Plugin integration tests", function () {
   this.timeout(1000000);
 
   describe("Using a correct Buidler project", () => {
@@ -23,7 +23,7 @@ describe.skip("Plugin integration tests", function() {
 
     this.afterEach(() => restoreContract(placeholder));
 
-    it("Test verifying deployed contract on etherscan", async function() {
+    it("Test verifying deployed contract on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
       const { bytecode, abi } = await readArtifact(
@@ -33,7 +33,7 @@ describe.skip("Plugin integration tests", function() {
       const amount = "20";
 
       const deployedAddress = await deployContract(abi, `${bytecode}`, [
-        amount
+        amount,
       ]);
 
       try {
@@ -43,7 +43,7 @@ describe.skip("Plugin integration tests", function() {
           libraries: JSON.stringify({
             // SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
           }),
-          constructorArguments: [amount]
+          constructorArguments: [amount],
         });
 
         assert.isTrue(true);
@@ -54,7 +54,7 @@ describe.skip("Plugin integration tests", function() {
       return true;
     });
 
-    it("Should verify deployed contract on etherscan using full name", async function() {
+    it("Should verify deployed contract on etherscan using full name", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
       const { bytecode, abi } = await readArtifact(
@@ -64,7 +64,7 @@ describe.skip("Plugin integration tests", function() {
       const amount = "20";
 
       const deployedAddress = await deployContract(abi, `${bytecode}`, [
-        amount
+        amount,
       ]);
 
       try {
@@ -74,7 +74,7 @@ describe.skip("Plugin integration tests", function() {
           libraries: JSON.stringify({
             // SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
           }),
-          constructorArguments: [amount]
+          constructorArguments: [amount],
         });
 
         assert.isTrue(true);
@@ -85,7 +85,7 @@ describe.skip("Plugin integration tests", function() {
       return true;
     });
 
-    it("Should verify deployed inner contract on etherscan using full name", async function() {
+    it("Should verify deployed inner contract on etherscan using full name", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
       const { bytecode, abi } = await readArtifact(
@@ -100,7 +100,7 @@ describe.skip("Plugin integration tests", function() {
           address: deployedAddress,
           contractName: "contracts/TestContract1.sol:InnerContract",
           libraries: JSON.stringify({}),
-          constructorArguments: []
+          constructorArguments: [],
         });
 
         assert.isTrue(true);
@@ -111,7 +111,7 @@ describe.skip("Plugin integration tests", function() {
       return true;
     });
 
-    it("Should verify deployed contract with name clash on etherscan", async function() {
+    it("Should verify deployed contract with name clash on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
       const { bytecode, abi } = await readArtifact(
@@ -125,7 +125,7 @@ describe.skip("Plugin integration tests", function() {
           address: deployedAddress,
           contractName: "TestReentrancyGuardLocal",
           libraries: JSON.stringify({}),
-          constructorArguments: []
+          constructorArguments: [],
         });
 
         assert.isTrue(true);
@@ -137,12 +137,12 @@ describe.skip("Plugin integration tests", function() {
 
   describe("Using a Buidler project with circular dependencies", () => {
     useEnvironment(path.join(__dirname, "..", "buidler-project-circular-dep"));
-    it("Fails with an error message indicating to use Etherscan's GUI", async function() {
+    it("Fails with an error message indicating to use Etherscan's GUI", async function () {
       this.env
         .run("verify-contract", {
           address: "0x0",
           contractName: "TestContract",
-          constructorArguments: []
+          constructorArguments: [],
         })
         .catch((e: any) => assert.instanceOf(e, BuidlerPluginError));
     });

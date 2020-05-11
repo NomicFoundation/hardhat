@@ -7,13 +7,13 @@ import { useEnvironment } from "../helpers/environment";
 import { expectBuidlerError } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 
-describe("Buidler context", async function() {
+describe("Buidler context", async function () {
   describe("no context", () => {
-    it("context is not defined", async function() {
+    it("context is not defined", async function () {
       assert.isFalse(BuidlerContext.isCreated());
     });
 
-    it("should throw when context isn't created", async function() {
+    it("should throw when context isn't created", async function () {
       expectBuidlerError(
         () => BuidlerContext.getBuidlerContext(),
         ERRORS.GENERAL.CONTEXT_NOT_CREATED
@@ -21,24 +21,24 @@ describe("Buidler context", async function() {
     });
   });
 
-  describe("create context but no environment", async function() {
-    afterEach("reset context", function() {
+  describe("create context but no environment", async function () {
+    afterEach("reset context", function () {
       resetBuidlerContext();
     });
 
-    it("context is defined", async function() {
+    it("context is defined", async function () {
       BuidlerContext.createBuidlerContext();
       assert.isTrue(BuidlerContext.isCreated());
     });
 
-    it("context initialize properly", async function() {
+    it("context initialize properly", async function () {
       const ctx = BuidlerContext.createBuidlerContext();
       assert.isDefined(ctx.extendersManager);
       assert.isDefined(ctx.tasksDSL);
       assert.isUndefined(ctx.environment);
     });
 
-    it("should throw when recreating buidler context", async function() {
+    it("should throw when recreating buidler context", async function () {
       BuidlerContext.createBuidlerContext();
       expectBuidlerError(
         () => BuidlerContext.createBuidlerContext(),
@@ -46,7 +46,7 @@ describe("Buidler context", async function() {
       );
     });
 
-    it("should delete context", async function() {
+    it("should delete context", async function () {
       assert.isFalse(BuidlerContext.isCreated());
       BuidlerContext.createBuidlerContext();
       assert.isTrue(BuidlerContext.isCreated());
@@ -54,7 +54,7 @@ describe("Buidler context", async function() {
       assert.isFalse(BuidlerContext.isCreated());
     });
 
-    it("should throw when BRE is not defined", async function() {
+    it("should throw when BRE is not defined", async function () {
       const ctx = BuidlerContext.createBuidlerContext();
       expectBuidlerError(
         () => ctx.getBuidlerRuntimeEnvironment(),
@@ -63,16 +63,16 @@ describe("Buidler context", async function() {
     });
   });
 
-  describe("environment creates context", async function() {
+  describe("environment creates context", async function () {
     useFixtureProject("config-project");
     useEnvironment();
-    it("should create context and set BRE into context", async function() {
+    it("should create context and set BRE into context", async function () {
       assert.equal(
         BuidlerContext.getBuidlerContext().getBuidlerRuntimeEnvironment(),
         this.env
       );
     });
-    it("should throw when trying to set BRE", async function() {
+    it("should throw when trying to set BRE", async function () {
       expectBuidlerError(
         () =>
           BuidlerContext.getBuidlerContext().setBuidlerRuntimeEnvironment(

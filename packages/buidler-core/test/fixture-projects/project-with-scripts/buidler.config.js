@@ -1,7 +1,7 @@
 module.exports = {
   networks: {
     custom: {
-      url: "asd"
-    }
-  }
+      url: "asd",
+    },
+  },
 };

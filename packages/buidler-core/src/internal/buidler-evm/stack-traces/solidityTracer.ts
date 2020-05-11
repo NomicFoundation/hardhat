@@ -16,7 +16,7 @@ import {
   isEvmStep,
   isPrecompileTrace,
   MessageTrace,
-  PrecompileMessageTrace
+  PrecompileMessageTrace,
 } from "./message-trace";
 import {
   Bytecode,
@@ -25,7 +25,7 @@ import {
   ContractType,
   Instruction,
   JumpType,
-  SourceLocation
+  SourceLocation,
 } from "./model";
 import { isCall, isCreate, Opcode } from "./opcodes";
 import {
@@ -38,7 +38,7 @@ import {
   SolidityStackTrace,
   SolidityStackTraceEntry,
   SourceReference,
-  StackTraceEntryType
+  StackTraceEntryType,
 } from "./solidity-stack-trace";
 
 // tslint:disable only-buidler-error
@@ -88,8 +88,8 @@ export class SolidityTracer {
             trace,
             calledFunction!
           ),
-          value: trace.value
-        }
+          value: trace.value,
+        },
       ];
     }
 
@@ -100,8 +100,8 @@ export class SolidityTracer {
             StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR,
           sourceReference: this._getContractStartWithoutFunctionSourceReference(
             trace
-          )
-        }
+          ),
+        },
       ];
     }
 
@@ -110,8 +110,8 @@ export class SolidityTracer {
         {
           type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR,
           sourceReference: this._getFallbackStartSourceReference(trace),
-          value: trace.value
-        }
+          value: trace.value,
+        },
       ];
     }
 
@@ -134,12 +134,12 @@ export class SolidityTracer {
 
         if (isCreateTrace(trace)) {
           unrecognizedEntry = {
-            type: StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY
+            type: StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY,
           };
         } else {
           unrecognizedEntry = {
             type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY,
-            address: trace.address
+            address: trace.address,
           };
         }
 
@@ -151,8 +151,8 @@ export class SolidityTracer {
       return [
         {
           type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR,
-          message: trace.returnData
-        }
+          message: trace.returnData,
+        },
       ];
     }
 
@@ -160,8 +160,8 @@ export class SolidityTracer {
       {
         type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR,
         address: trace.address,
-        message: trace.returnData
-      }
+        message: trace.returnData,
+      },
     ];
   }
 
@@ -173,8 +173,8 @@ export class SolidityTracer {
         {
           type: StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR,
           sourceReference: this._getConstructorStartSourceReference(trace),
-          value: trace.value
-        }
+          value: trace.value,
+        },
       ];
     }
 
@@ -182,8 +182,8 @@ export class SolidityTracer {
       return [
         {
           type: StackTraceEntryType.INVALID_PARAMS_ERROR,
-          sourceReference: this._getConstructorStartSourceReference(trace)
-        }
+          sourceReference: this._getConstructorStartSourceReference(trace),
+        },
       ];
     }
 
@@ -196,8 +196,8 @@ export class SolidityTracer {
     return [
       {
         type: StackTraceEntryType.PRECOMPILE_ERROR,
-        precompile: trace.precompile
-      }
+        precompile: trace.precompile,
+      },
     ];
   }
 
@@ -307,14 +307,14 @@ export class SolidityTracer {
                   trace.calldata.slice(0, 4)
                 )!
               ),
-              message: trace.returnData
+              message: trace.returnData,
             });
           } else {
             // This is here because of the optimizations
             stacktrace.push({
               type: StackTraceEntryType.REVERT_ERROR,
               sourceReference: this._getConstructorStartSourceReference(trace),
-              message: trace.returnData
+              message: trace.returnData,
             });
           }
 
@@ -338,7 +338,7 @@ export class SolidityTracer {
           if (this._isReturnDataSizeError(trace, stepIndex)) {
             stacktrace.push({
               type: StackTraceEntryType.RETURNDATA_SIZE_ERROR,
-              sourceReference: callStackFrame.sourceReference
+              sourceReference: callStackFrame.sourceReference,
             });
 
             consumedAllInstructions = true;
@@ -392,7 +392,7 @@ export class SolidityTracer {
           this._instructionWithinFunctionToRevertStackTraceEntry(
             trace,
             lastInstruction
-          )
+          ),
         ];
       }
 
@@ -407,8 +407,8 @@ export class SolidityTracer {
                 trace,
                 failingFunction
               ),
-              message: trace.returnData
-            }
+              message: trace.returnData,
+            },
           ];
         }
       }
@@ -424,8 +424,8 @@ export class SolidityTracer {
             sourceReference: this._getFunctionStartSourceReference(
               trace,
               calledFunction
-            )
-          }
+            ),
+          },
         ];
       }
 
@@ -436,12 +436,12 @@ export class SolidityTracer {
       stacktrace.push({
         type: StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR,
         // We are sure this is not undefined because there was at least a call instruction
-        sourceReference: this._getLastSourceReference(trace)!
+        sourceReference: this._getLastSourceReference(trace)!,
       });
     } else {
       stacktrace.push({
         type: StackTraceEntryType.OTHER_EXECUTION_ERROR,
-        sourceReference: this._getLastSourceReference(trace)
+        sourceReference: this._getLastSourceReference(trace),
       });
     }
 
@@ -771,8 +771,8 @@ export class SolidityTracer {
       return [
         {
           type: StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR,
-          sourceReference: this._getFunctionStartSourceReference(trace, func)
-        }
+          sourceReference: this._getFunctionStartSourceReference(trace, func),
+        },
       ];
     }
 
@@ -781,8 +781,8 @@ export class SolidityTracer {
         type: StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR,
         sourceReference: this._getContractStartWithoutFunctionSourceReference(
           trace
-        )
-      }
+        ),
+      },
     ];
   }
 
@@ -793,7 +793,7 @@ export class SolidityTracer {
       type: StackTraceEntryType.OTHER_EXECUTION_ERROR,
       sourceReference: this._getContractStartWithoutFunctionSourceReference(
         trace
-      )
+      ),
     };
   }
 
@@ -810,7 +810,7 @@ export class SolidityTracer {
           bytecode,
           inst.location
         )!,
-        functionType: func.type
+        functionType: func.type,
       };
     }
 
@@ -820,9 +820,9 @@ export class SolidityTracer {
         function: undefined,
         contract: bytecode.contract.name,
         fileGlobalName: inst.location!.file.globalName,
-        line: inst.location!.getStartingLineNumber()
+        line: inst.location!.getStartingLineNumber(),
       },
-      functionType: ContractFunctionType.FUNCTION
+      functionType: ContractFunctionType.FUNCTION,
     };
   }
 
@@ -836,7 +836,7 @@ export class SolidityTracer {
       sourceReference: this._sourceLocationToSourceReference(
         bytecode,
         callInst.location
-      )!
+      )!,
     };
   }
 
@@ -850,7 +850,7 @@ export class SolidityTracer {
         trace.bytecode,
         inst.location
       )!,
-      message: trace.returnData
+      message: trace.returnData,
     };
   }
 
@@ -878,7 +878,7 @@ export class SolidityTracer {
     return {
       type: StackTraceEntryType.CALLSTACK_ENTRY,
       sourceReference: this._getConstructorStartSourceReference(trace),
-      functionType: ContractFunctionType.CONSTRUCTOR
+      functionType: ContractFunctionType.CONSTRUCTOR,
     };
   }
 
@@ -889,7 +889,7 @@ export class SolidityTracer {
       return {
         type: StackTraceEntryType.CALLSTACK_ENTRY,
         sourceReference: this._getConstructorStartSourceReference(trace),
-        functionType: ContractFunctionType.CONSTRUCTOR
+        functionType: ContractFunctionType.CONSTRUCTOR,
       };
     }
 
@@ -904,7 +904,7 @@ export class SolidityTracer {
           trace,
           calledFunction
         ),
-        functionType: ContractFunctionType.FUNCTION
+        functionType: ContractFunctionType.FUNCTION,
       };
     }
 
@@ -913,7 +913,7 @@ export class SolidityTracer {
     return {
       type: StackTraceEntryType.CALLSTACK_ENTRY,
       sourceReference: this._getFallbackStartSourceReference(trace),
-      functionType: ContractFunctionType.FALLBACK
+      functionType: ContractFunctionType.FALLBACK,
     };
   }
 
@@ -925,7 +925,7 @@ export class SolidityTracer {
     return {
       fileGlobalName: trace.bytecode.contract.location.file.globalName,
       contract: trace.bytecode.contract.name,
-      line: trace.bytecode.contract.location.getStartingLineNumber()
+      line: trace.bytecode.contract.location.getStartingLineNumber(),
     };
   }
 
@@ -948,7 +948,7 @@ export class SolidityTracer {
       fileGlobalName: contract.location.file.globalName,
       contract: contract.name,
       function: CONSTRUCTOR_FUNCTION_NAME,
-      line
+      line,
     };
   }
 
@@ -967,7 +967,7 @@ export class SolidityTracer {
       fileGlobalName: func.location.file.globalName,
       contract: trace.bytecode.contract.name,
       function: FALLBACK_FUNCTION_NAME,
-      line: func.location.getStartingLineNumber()
+      line: func.location.getStartingLineNumber(),
     };
   }
 
@@ -979,7 +979,7 @@ export class SolidityTracer {
       fileGlobalName: func.location.file.globalName,
       contract: trace.bytecode.contract.name,
       function: func.name,
-      line: func.location.getStartingLineNumber()
+      line: func.location.getStartingLineNumber(),
     };
   }
 
@@ -1033,7 +1033,7 @@ export class SolidityTracer {
       function: funcName,
       contract: bytecode.contract.name,
       fileGlobalName: func.location.file.globalName,
-      line: location.getStartingLineNumber()
+      line: location.getStartingLineNumber(),
     };
   }
 

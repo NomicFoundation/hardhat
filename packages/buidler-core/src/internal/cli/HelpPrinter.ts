@@ -2,7 +2,7 @@ import {
   BuidlerParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
-  TasksMap
+  TasksMap,
 } from "../../types";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -39,7 +39,7 @@ export class HelpPrinter {
     }
 
     const nameLength = Object.keys(tasksToShow)
-      .map(n => n.length)
+      .map((n) => n.length)
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(tasksToShow).sort()) {
@@ -60,7 +60,7 @@ export class HelpPrinter {
 
     if (taskDefinition === undefined) {
       throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-        task: taskName
+        task: taskName,
       });
     }
 
@@ -68,7 +68,7 @@ export class HelpPrinter {
       description = "",
       name,
       paramDefinitions,
-      positionalParamDefinitions
+      positionalParamDefinitions,
     } = taskDefinition;
 
     console.log(`${this._programName} version ${this._version}\n`);
@@ -164,7 +164,7 @@ export class HelpPrinter {
 
   private _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
     const paramsNameLength = Object.keys(paramDefinitions)
-      .map(n => ArgumentsParser.paramNameToCLA(n).length)
+      .map((n) => ArgumentsParser.paramNameToCLA(n).length)
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(paramDefinitions).sort()) {
@@ -172,7 +172,7 @@ export class HelpPrinter {
         description,
         defaultValue,
         isOptional,
-        isFlag
+        isFlag,
       } = paramDefinitions[name];
 
       let msg = `  ${ArgumentsParser.paramNameToCLA(name).padEnd(
@@ -195,7 +195,7 @@ export class HelpPrinter {
     positionalParamDefinitions: Array<ParamDefinition<any>>
   ) {
     const paramsNameLength = positionalParamDefinitions
-      .map(d => d.name.length)
+      .map((d) => d.name.length)
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const definition of positionalParamDefinitions) {

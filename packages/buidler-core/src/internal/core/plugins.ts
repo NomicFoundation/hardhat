@@ -64,7 +64,7 @@ export function usePlugin(
     throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, {
       plugin: pluginName,
       extraMessage: globalWarning,
-      extraFlags: installExtraFlags
+      extraFlags: installExtraFlags,
     });
   }
 
@@ -93,20 +93,24 @@ export function usePlugin(
           dependency: dependencyName,
           extraMessage: globalWarning,
           extraFlags: installExtraFlags,
-          versionSpec
+          versionSpec,
         });
       }
 
       const installedVersion = dependencyPackageJson.version;
 
-      if (!semver.satisfies(installedVersion, versionSpec)) {
+      if (
+        !semver.satisfies(installedVersion, versionSpec, {
+          includePrerelease: true,
+        })
+      ) {
         throw new BuidlerError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
           plugin: pluginName,
           dependency: dependencyName,
           extraMessage: globalWarning,
           extraFlags: installExtraFlags,
           versionSpec,
-          installedVersion
+          installedVersion,
         });
       }
     }

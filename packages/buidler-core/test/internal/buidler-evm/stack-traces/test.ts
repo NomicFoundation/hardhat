@@ -9,27 +9,27 @@ import { createModelsAndDecodeBytecodes } from "../../../../src/internal/buidler
 import {
   CompilerInput,
   CompilerOutput,
-  CompilerOutputBytecode
+  CompilerOutputBytecode,
 } from "../../../../src/internal/buidler-evm/stack-traces/compiler-types";
 import {
   ConsoleLogger,
-  ConsoleLogs
+  ConsoleLogs,
 } from "../../../../src/internal/buidler-evm/stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../../../../src/internal/buidler-evm/stack-traces/contracts-identifier";
 import {
   printMessageTrace,
-  printStackTrace
+  printStackTrace,
 } from "../../../../src/internal/buidler-evm/stack-traces/debug";
 import { linkHexStringBytecode } from "../../../../src/internal/buidler-evm/stack-traces/library-utils";
 import {
   CallMessageTrace,
   CreateMessageTrace,
-  MessageTrace
+  MessageTrace,
 } from "../../../../src/internal/buidler-evm/stack-traces/message-trace";
 import { decodeRevertReason } from "../../../../src/internal/buidler-evm/stack-traces/revert-reasons";
 import {
   SolidityStackTraceEntry,
-  StackTraceEntryType
+  StackTraceEntryType,
 } from "../../../../src/internal/buidler-evm/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/buidler-evm/stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../../../../src/internal/buidler-evm/stack-traces/vm-trace-decoder";
@@ -40,7 +40,7 @@ import {
   encodeCall,
   encodeConstructorParams,
   instantiateVm,
-  traceTransaction
+  traceTransaction,
 } from "./execution";
 
 interface StackFrameDescription {
@@ -102,11 +102,11 @@ interface DeployedContract {
 }
 
 function defineDirTests(dirPath: string) {
-  describe(path.basename(dirPath), function() {
-    const files = fs.readdirSync(dirPath).map(f => path.join(dirPath, f));
+  describe(path.basename(dirPath), function () {
+    const files = fs.readdirSync(dirPath).map((f) => path.join(dirPath, f));
 
-    const sources = files.filter(f => f.endsWith(".sol"));
-    const dirs = files.filter(f => fs.statSync(f).isDirectory());
+    const sources = files.filter((f) => f.endsWith(".sol"));
+    const dirs = files.filter((f) => fs.statSync(f).isDirectory());
     const testPath = path.join(dirPath, "test.json");
 
     if (fs.existsSync(testPath)) {
@@ -126,11 +126,11 @@ function defineDirTests(dirPath: string) {
           ? testDefinition.description
           : "Should give the right stack trace";
 
-      const func = async function() {
+      const func = async function () {
         await runTest(dirPath, testDefinition, sources);
       };
 
-      const funcWithOptimizations = async function() {
+      const funcWithOptimizations = async function () {
         await runTest(dirPath, testDefinition, sources, true);
       };
 
@@ -138,7 +138,7 @@ function defineDirTests(dirPath: string) {
         testDefinition.solc !== undefined &&
         !semver.satisfies(getSolidityVersion(), testDefinition.solc);
 
-      describe("Without optimizations", function() {
+      describe("Without optimizations", function () {
         if (
           (testDefinition.skip !== undefined && testDefinition.skip) ||
           solcVersionDoesntMatch
@@ -151,7 +151,7 @@ function defineDirTests(dirPath: string) {
         }
       });
 
-      describe("With optimizations", function() {
+      describe("With optimizations", function () {
         if (
           (testDefinition.skip !== undefined && testDefinition.skip) ||
           solcVersionDoesntMatch
@@ -177,7 +177,7 @@ function compileIfNecessary(
   withOptimizations = false
 ): [CompilerInput, CompilerOutput] {
   const maxSourceCtime = sources
-    .map(s => fs.statSync(s).ctimeMs)
+    .map((s) => fs.statSync(s).ctimeMs)
     .reduce((t1, t2) => Math.max(t1, t2), 0);
 
   const optimized = withOptimizations ? "optimized" : "non-optimized";
@@ -391,7 +391,7 @@ async function runTest(
         txIndexToContract.set(txIndex, {
           file: tx.file,
           name: tx.contract,
-          address: trace.deployedContract
+          address: trace.deployedContract,
         });
       }
     } else {
@@ -546,7 +546,7 @@ async function runDeploymentTransactionTest(
 
   const trace = await traceTransaction(vm, {
     value: tx.value,
-    data
+    data,
   });
 
   return trace as CreateMessageTrace;
@@ -579,13 +579,13 @@ async function runCallTransactionTest(
   const trace = await traceTransaction(vm, {
     to: contract.address,
     value: tx.value,
-    data
+    data,
   });
 
   return trace as CallMessageTrace;
 }
 
-describe("Stack traces", function() {
+describe("Stack traces", function () {
   setCWD();
   defineDirTests(path.join(__dirname, "test-files"));
 });

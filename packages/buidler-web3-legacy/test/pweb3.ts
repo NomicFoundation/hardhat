@@ -27,12 +27,12 @@ const ABI = [
     outputs: [
       {
         name: "",
-        type: "uint256"
-      }
+        type: "uint256",
+      },
     ],
     payable: false,
     stateMutability: "pure",
-    type: "function"
+    type: "function",
   },
   {
     constant: false,
@@ -41,8 +41,8 @@ const ABI = [
     outputs: [],
     payable: false,
     stateMutability: "nonpayable",
-    type: "function"
-  }
+    type: "function",
+  },
 ];
 
 describe("pweb3", () => {
@@ -69,7 +69,7 @@ describe("pweb3", () => {
     const test = await TestContract.new({
       data: `0x${CONTRACT_BYTECODE}`,
       from: accounts[0],
-      gas: 456789
+      gas: 456789,
     });
 
     await test.nonConstantFunction({ from: accounts[0] });
@@ -77,7 +77,7 @@ describe("pweb3", () => {
     assert.equal(await test.constantFunction(), 1);
   });
 
-  it("Should give the same result as calling web3 but promisified", done => {
+  it("Should give the same result as calling web3 but promisified", (done) => {
     web3.eth.getAccounts((error: Error | null, expectedAccounts?: string[]) => {
       const promise = pweb3.eth.getAccounts();
       assert.instanceOf(promise, Promise);

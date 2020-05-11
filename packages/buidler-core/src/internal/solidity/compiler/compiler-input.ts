@@ -9,7 +9,7 @@ export function getInputFromDependencyGraph(
   const sources: { [globalName: string]: { content: string } } = {};
   for (const file of graph.getResolvedFiles()) {
     sources[file.globalName] = {
-      content: file.content
+      content: file.content,
     };
   }
 
@@ -18,7 +18,7 @@ export function getInputFromDependencyGraph(
     sources,
     settings: {
       metadata: {
-        useLiteralContent: true
+        useLiteralContent: true,
       },
       optimizer: optimizerConfig,
       outputSelection: {
@@ -27,12 +27,12 @@ export function getInputFromDependencyGraph(
             "abi",
             "evm.bytecode",
             "evm.deployedBytecode",
-            "evm.methodIdentifiers"
+            "evm.methodIdentifiers",
           ],
-          "": ["id", "ast"]
-        }
-      }
-    }
+          "": ["id", "ast"],
+        },
+      },
+    },
   };
 
   if (evmVersion !== undefined) {

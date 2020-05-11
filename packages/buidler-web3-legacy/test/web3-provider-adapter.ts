@@ -4,7 +4,7 @@ import Web3 from "web3";
 import {
   JsonRpcRequest,
   JsonRpcResponse,
-  Web3HTTPProviderAdapter
+  Web3HTTPProviderAdapter,
 } from "../src/web3-provider-adapter";
 
 import { useEnvironment } from "./helpers";
@@ -19,24 +19,24 @@ function createJsonRpcRequest(
     id: nextId++,
     jsonrpc: "2.0",
     method,
-    params
+    params,
   };
 }
 
-describe("Web3 provider adapter", function() {
+describe("Web3 provider adapter", function () {
   let realWeb3Provider: any;
   let adaptedProvider: Web3HTTPProviderAdapter;
 
   useEnvironment(__dirname);
 
-  beforeEach(function() {
+  beforeEach(function () {
     realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
     adaptedProvider = new Web3HTTPProviderAdapter(this.env.network.provider);
 
     assert.isDefined(this.env.web3);
   });
 
-  it("Should throw if send is called", async function() {
+  it("Should throw if send is called", async function () {
     assert.throws(
       () => adaptedProvider.send(),
       "Synchronous requests are not supported, use pweb3 instead"
@@ -48,11 +48,11 @@ describe("Web3 provider adapter", function() {
     );
   });
 
-  it("Should always return true when isConnected is called", function() {
+  it("Should always return true when isConnected is called", function () {
     assert.isTrue(adaptedProvider.isConnected());
   });
 
-  it("Should return the same as the real provider for sigle requests", function(done) {
+  it("Should return the same as the real provider for sigle requests", function (done) {
     const request = createJsonRpcRequest("eth_accounts");
     realWeb3Provider.sendAsync(
       request,
@@ -66,11 +66,11 @@ describe("Web3 provider adapter", function() {
     );
   });
 
-  it("Should return the same as the real provider for batched requests", function(done) {
+  it("Should return the same as the real provider for batched requests", function (done) {
     const requests = [
       createJsonRpcRequest("eth_accounts"),
       createJsonRpcRequest("net_version"),
-      createJsonRpcRequest("eth_accounts")
+      createJsonRpcRequest("eth_accounts"),
     ];
 
     realWeb3Provider.sendAsync(
@@ -85,12 +85,12 @@ describe("Web3 provider adapter", function() {
     );
   });
 
-  it("Should return the same on error", function(done) {
+  it("Should return the same on error", function (done) {
     // We disable this test for RskJ
     // See: https://github.com/rsksmart/rskj/issues/876
     this.env.network.provider
       .send("web3_clientVersion")
-      .then(version => {
+      .then((version) => {
         if (version.includes("RskJ")) {
           done();
           return;
@@ -109,14 +109,17 @@ describe("Web3 provider adapter", function() {
           }
         );
       })
-      .then(() => {}, () => {});
+      .then(
+        () => {},
+        () => {}
+      );
   });
 
-  it("Should let all requests complete, even if one of them fails", function(done) {
+  it("Should let all requests complete, even if one of them fails", function (done) {
     const requests = [
       createJsonRpcRequest("eth_accounts"),
       createJsonRpcRequest("error_please"),
-      createJsonRpcRequest("eth_accounts")
+      createJsonRpcRequest("eth_accounts"),
     ];
 
     realWeb3Provider.sendAsync(
@@ -135,7 +138,7 @@ describe("Web3 provider adapter", function() {
           // See: https://github.com/rsksmart/rskj/issues/876
           this.env.network.provider
             .send("web3_clientVersion")
-            .then(version => {
+            .then((version) => {
               if (version.includes("RskJ")) {
                 assert.equal(
                   response2![1].error!.message,

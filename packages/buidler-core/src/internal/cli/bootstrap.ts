@@ -30,9 +30,9 @@ if (buidlerArguments.maxMemory !== undefined) {
 
 const childProcess = fork(`${__dirname}/cli`, process.argv.slice(2), {
   stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
-  execArgv: nodeArgs
+  execArgv: nodeArgs,
 });
 
-childProcess.once("close", status => {
+childProcess.once("close", (status) => {
   process.exit(status);
 });

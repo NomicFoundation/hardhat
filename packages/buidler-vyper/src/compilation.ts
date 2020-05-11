@@ -6,7 +6,7 @@ import {
   DockerServerError,
   Image,
   ImageDoesntExistError,
-  ProcessResult
+  ProcessResult,
 } from "@nomiclabs/buidler-docker";
 import { BuidlerPluginError, saveArtifact } from "@nomiclabs/buidler/plugins";
 import { ProjectPaths } from "@nomiclabs/buidler/types";
@@ -25,7 +25,7 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
 
   const dockerImage = {
     repository: VYPER_DOCKER_REPOSITORY,
-    tag: vyperVersion
+    tag: vyperVersion,
   };
 
   await validateDockerIsInstalled();
@@ -97,9 +97,9 @@ async function isAlreadyCompiled(
 
   const artifactCtime = (await fsExtra.stat(artifactPath)).ctimeMs;
 
-  const stats = await Promise.all(sources.map(f => fsExtra.stat(f)));
+  const stats = await Promise.all(sources.map((f) => fsExtra.stat(f)));
 
-  const lastSourcesCtime = Math.max(...stats.map(s => s.ctimeMs));
+  const lastSourcesCtime = Math.max(...stats.map((s) => s.ctimeMs));
 
   return lastSourcesCtime < artifactCtime;
 }
@@ -126,7 +126,7 @@ function getArtifactFromVyperOutput(sourceFile: string, output: any) {
     bytecode: add0xPrefixIfNecessary(output.bytecode),
     deployedBytecode: add0xPrefixIfNecessary(output.bytecode_runtime),
     linkReferences: {},
-    deployedLinkReferences: {}
+    deployedLinkReferences: {},
   };
 }
 
@@ -255,9 +255,9 @@ async function compileWithDocker(
     ["vyper", "-f", "combined_json", pathFromSources],
     {
       binds: {
-        [paths.sources]: "/code"
+        [paths.sources]: "/code",
       },
-      workingDirectory: "/code"
+      workingDirectory: "/code",
     }
   );
 }

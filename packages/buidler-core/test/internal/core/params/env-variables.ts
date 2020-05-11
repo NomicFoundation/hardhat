@@ -5,7 +5,7 @@ import { BUIDLER_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/
 import {
   getEnvBuidlerArguments,
   getEnvVariablesMap,
-  paramNameToEnvVariable
+  paramNameToEnvVariable,
 } from "../../../../src/internal/core/params/env-variables";
 import { expectBuidlerError } from "../../../helpers/errors";
 
@@ -31,7 +31,7 @@ describe("paramNameToEnvVariable", () => {
 describe("Env vars arguments parsing", () => {
   it("Should use the default values if arguments are not defined", () => {
     const args = getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
-      IRRELEVANT_ENV_VAR: "123"
+      IRRELEVANT_ENV_VAR: "123",
     });
     assert.equal(args.help, BUIDLER_PARAM_DEFINITIONS.help.defaultValue);
     assert.equal(args.network, BUIDLER_PARAM_DEFINITIONS.network.defaultValue);
@@ -50,7 +50,7 @@ describe("Env vars arguments parsing", () => {
       BUIDLER_SHOW_STACK_TRACES: "true",
       BUIDLER_EMOJI: "true",
       BUIDLER_VERSION: "true",
-      BUIDLER_HELP: "true"
+      BUIDLER_HELP: "true",
     });
 
     assert.equal(args.network, "asd");
@@ -66,7 +66,7 @@ describe("Env vars arguments parsing", () => {
     expectBuidlerError(
       () =>
         getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
-          BUIDLER_HELP: "123"
+          BUIDLER_HELP: "123",
         }),
       ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE
     );
@@ -83,7 +83,7 @@ describe("getEnvVariablesMap", () => {
         showStackTraces: true,
         version: false,
         verbose: true,
-        config: undefined // config is optional
+        config: undefined, // config is optional
       }),
       {
         BUIDLER_NETWORK: "asd",
@@ -91,7 +91,7 @@ describe("getEnvVariablesMap", () => {
         BUIDLER_HELP: "true",
         BUIDLER_SHOW_STACK_TRACES: "true",
         BUIDLER_VERSION: "false",
-        BUIDLER_VERBOSE: "true"
+        BUIDLER_VERBOSE: "true",
       }
     );
   });

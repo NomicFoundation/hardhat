@@ -8,14 +8,14 @@ declare module "mocha" {
 }
 
 export function useEnvironment(projectPath: string, networkName = "localhost") {
-  beforeEach("Loading buidler environment", function() {
+  beforeEach("Loading buidler environment", function () {
     process.chdir(projectPath);
     process.env.BUIDLER_NETWORK = networkName;
 
     this.env = require("@nomiclabs/buidler");
   });
 
-  afterEach("Resetting buidler", function() {
+  afterEach("Resetting buidler", function () {
     resetBuidlerContext();
     delete process.env.BUIDLER_NETWORK;
   });

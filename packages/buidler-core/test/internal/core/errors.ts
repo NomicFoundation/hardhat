@@ -3,12 +3,12 @@ import { assert } from "chai";
 import {
   applyErrorMessageTemplate,
   BuidlerError,
-  BuidlerPluginError
+  BuidlerPluginError,
 } from "../../../src/internal/core/errors";
 import {
   ERROR_RANGES,
   ErrorDescriptor,
-  ERRORS
+  ERRORS,
 } from "../../../src/internal/core/errors-list";
 import { unsafeObjectKeys } from "../../../src/internal/util/unsafe";
 import { expectBuidlerError } from "../../helpers/errors";
@@ -17,7 +17,7 @@ const mockErrorDescriptor: ErrorDescriptor = {
   number: 123,
   message: "error message",
   title: "Mock error",
-  description: "This is a mock error"
+  description: "This is a mock error",
 };
 
 describe("BuilderError", () => {
@@ -56,7 +56,7 @@ describe("BuilderError", () => {
           number: 1,
           message: "",
           title: "Title",
-          description: "Description"
+          description: "Description",
         }).message.substr(0, 7),
 
         "BDLR1: "
@@ -74,7 +74,7 @@ describe("BuilderError", () => {
           number: 12,
           message: "%a% %b% %c%",
           title: "Title",
-          description: "Description"
+          description: "Description",
         },
         { a: "a", b: "b", c: 123 }
       );
@@ -104,7 +104,7 @@ describe("BuilderError", () => {
           number: 12,
           message: "%a% %b% %c%",
           title: "Title",
-          description: "Description"
+          description: "Description",
         },
         { a: "a", b: "b", c: 123 },
         new Error()
@@ -338,7 +338,7 @@ describe("applyErrorMessageTemplate", () => {
       expectBuidlerError(
         () =>
           applyErrorMessageTemplate("%asd%", {
-            asd: { toString: () => "%asd%" }
+            asd: { toString: () => "%asd%" },
           }),
         ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
       );
@@ -363,7 +363,7 @@ describe("applyErrorMessageTemplate", () => {
         assert.equal(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: "r",
-            fgh: "b"
+            fgh: "b",
           }),
           "asdr r b 123"
         );
@@ -371,7 +371,7 @@ describe("applyErrorMessageTemplate", () => {
         assert.equal(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: "r",
-            fgh: ""
+            fgh: "",
           }),
           "asdr r  123"
         );
@@ -407,7 +407,7 @@ describe("applyErrorMessageTemplate", () => {
         assert.equal(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: toR,
-            fgh: toB
+            fgh: toB,
           }),
           "asdr r b 123"
         );
@@ -415,7 +415,7 @@ describe("applyErrorMessageTemplate", () => {
         assert.equal(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: toR,
-            fgh: toEmpty
+            fgh: toEmpty,
           }),
           "asdr r  123"
         );
@@ -423,7 +423,7 @@ describe("applyErrorMessageTemplate", () => {
         assert.equal(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: toR,
-            fgh: toUndefined
+            fgh: toUndefined,
           }),
           "asdr r undefined 123"
         );

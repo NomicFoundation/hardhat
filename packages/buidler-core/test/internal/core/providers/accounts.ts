@@ -6,14 +6,14 @@ import {
   createHDWalletProvider,
   createLocalAccountsProvider,
   createSenderProvider,
-  JsonRpcTransactionData
+  JsonRpcTransactionData,
 } from "../../../../src/internal/core/providers/accounts";
 import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { wrapSend } from "../../../../src/internal/core/providers/wrapper";
 import { IEthereumProvider } from "../../../../src/types";
 import {
   expectBuidlerError,
-  expectBuidlerErrorAsync
+  expectBuidlerErrorAsync,
 } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
@@ -29,7 +29,7 @@ describe("Local accounts provider", () => {
     "0xb2e31025a2474b37e4c2d2931929a00b5752b98a3af45e3fd9a62ddc3cdf370e",
     "0x6d7229c1db5892730b84b4bc10543733b72cabf4cd3130d910faa8e459bb8eca",
     "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
-    "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2"
+    "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2",
   ];
 
   beforeEach(() => {
@@ -61,8 +61,8 @@ describe("Local accounts provider", () => {
         to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
         gasPrice: 0x3b9aca00,
         nonce: 0x8,
-        chainId: 123
-      }
+        chainId: 123,
+      },
     ];
 
     await expectBuidlerErrorAsync(
@@ -79,8 +79,8 @@ describe("Local accounts provider", () => {
         to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
         nonce: 0x8,
         chainId: 123,
-        gas: 123
-      }
+        gas: 123,
+      },
     ];
 
     await expectBuidlerErrorAsync(
@@ -99,8 +99,8 @@ describe("Local accounts provider", () => {
         gasPrice: 678912,
         nonce: 0,
         chainId: 123,
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
@@ -127,8 +127,8 @@ describe("Local accounts provider", () => {
             gasPrice: 678912,
             nonce: 0,
             chainId: 123,
-            value: 1
-          }
+            value: 1,
+          },
         ]),
       ERRORS.NETWORK.NOT_LOCAL_ACCOUNT,
       "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
@@ -150,8 +150,8 @@ describe("Local accounts provider", () => {
         gas: 21000,
         gasPrice: 678912,
         chainId: 123,
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
@@ -163,12 +163,12 @@ describe("Local accounts provider", () => {
       // v2.2.5-beta-7fbcdfeed-20181213 and calling eth_sign
 
       const provider = createLocalAccountsProvider(mock, [
-        "0x6e59a6617c48d76d3b21d722eaba867e16ecf54ab3da7a93724f51812bc6d1aa"
+        "0x6e59a6617c48d76d3b21d722eaba867e16ecf54ab3da7a93724f51812bc6d1aa",
       ]);
 
       const result = await provider.send("eth_sign", [
         "0x24f1a362780503D762060C1683864C4066A74b05",
-        "0x41206d657373616765"
+        "0x41206d657373616765",
       ]);
 
       assert.equal(
@@ -181,12 +181,12 @@ describe("Local accounts provider", () => {
       // This test was created by using Ganache CLI v6.1.6 (ganache-core: 2.1.5)
 
       const provider = createLocalAccountsProvider(mock, [
-        "0xf159c85082f4dd4ee472583a37a1b5683c727ec99708f3d94ff05faa7a7a70ce"
+        "0xf159c85082f4dd4ee472583a37a1b5683c727ec99708f3d94ff05faa7a7a70ce",
       ]);
 
       const result = await provider.send("eth_sign", [
         "0x0a929c90dd22f0fb09ec38983780530ee30a29a3",
-        "0x41206d657373616765"
+        "0x41206d657373616765",
       ]);
 
       // This test is weird because ganache encodes the v param of the signature
@@ -204,12 +204,12 @@ describe("Local accounts provider", () => {
       // This test was created by using Geth 1.8.20-stable
 
       const provider = createLocalAccountsProvider(mock, [
-        "0xf2d19e944851ea0faa9440e24a22ddab850210cae46b306a3fde4c98b22a0dcb"
+        "0xf2d19e944851ea0faa9440e24a22ddab850210cae46b306a3fde4c98b22a0dcb",
       ]);
 
       const result = await provider.send("eth_sign", [
         "0x5Fd8509eABccFFec1d2530e48F55545B49Bd5B5e",
-        "0x41206d657373616765"
+        "0x41206d657373616765",
       ]);
 
       assert.equal(
@@ -230,7 +230,7 @@ describe("Local accounts provider", () => {
         () =>
           wrapper.send("eth_sign", [
             "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
-            "0x00"
+            "0x00",
           ]),
         ERRORS.NETWORK.NOT_LOCAL_ACCOUNT
       );
@@ -275,7 +275,7 @@ describe("hdwallet provider", () => {
     const response = await wrapper.send("eth_accounts");
     assert.deepEqual(response, [
       "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9",
-      "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
+      "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
     ]);
   });
 
@@ -331,7 +331,7 @@ describe("Account provider", () => {
       gas: 21000,
       gasPrice: 678912,
       nonce: 0,
-      value: 1
+      value: 1,
     };
 
     mock = new MockedProvider();

@@ -17,7 +17,7 @@ export function createChainIdValidationProvider(
     if (chainId !== undefined && realChainId !== chainId) {
       throw new BuidlerError(ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID, {
         configChainId: chainId,
-        connectionChainId: realChainId
+        connectionChainId: realChainId,
       });
     }
 

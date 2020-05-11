@@ -4,17 +4,17 @@ import { BN, bufferToHex } from "ethereumjs-util";
 import {
   InvalidArgumentsError,
   InvalidInputError,
-  MethodNotSupportedError
+  MethodNotSupportedError,
 } from "../../../../src/internal/buidler-evm/provider/errors";
 import {
   rpcQuantity,
-  RpcTransactionRequestInput
+  RpcTransactionRequestInput,
 } from "../../../../src/internal/buidler-evm/provider/input";
 import { TransactionParams } from "../../../../src/internal/buidler-evm/provider/node";
 import {
   numberToRpcQuantity,
   RpcTransactionOutput,
-  RpcTransactionReceiptOutput
+  RpcTransactionReceiptOutput,
 } from "../../../../src/internal/buidler-evm/provider/output";
 import { EthereumProvider } from "../../../../src/types";
 
@@ -103,7 +103,7 @@ export async function assertNodeBalances(
   const accounts: string[] = await provider.send("eth_accounts");
 
   const balances = await Promise.all(
-    accounts.map(acc => provider.send("eth_getBalance", [acc]))
+    accounts.map((acc) => provider.send("eth_getBalance", [acc]))
   );
 
   assert.deepEqual(balances, expectedBalances.map(numberToRpcQuantity));

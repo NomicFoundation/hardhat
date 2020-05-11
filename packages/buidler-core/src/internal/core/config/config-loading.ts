@@ -45,7 +45,7 @@ export function loadConfigAndTasks(
   validateConfig(userConfig);
 
   // To avoid bad practices we remove the previously exported stuff
-  Object.keys(configEnv).forEach(key => (globalAsAny[key] = undefined));
+  Object.keys(configEnv).forEach((key) => (globalAsAny[key] = undefined));
 
   const resolved = resolveConfig(
     configPath,

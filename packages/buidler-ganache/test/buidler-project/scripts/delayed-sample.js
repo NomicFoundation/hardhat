@@ -16,11 +16,11 @@ async function main() {
   }
 }
 
-const delay = seg => new Promise(res => setTimeout(res, seg * 1000));
+const delay = (seg) => new Promise((res) => setTimeout(res, seg * 1000));
 
 main()
   .then(() => process.exit(0))
-  .catch(error => {
+  .catch((error) => {
     console.error(error);
     process.exit(1);
   });

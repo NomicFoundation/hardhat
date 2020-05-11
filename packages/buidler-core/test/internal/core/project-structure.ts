@@ -6,7 +6,7 @@ import { ERRORS } from "../../../src/internal/core/errors-list";
 import {
   getRecommendedGitIgnore,
   getUserConfigPath,
-  isCwdInsideProject
+  isCwdInsideProject,
 } from "../../../src/internal/core/project-structure";
 import { expectBuidlerError } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";

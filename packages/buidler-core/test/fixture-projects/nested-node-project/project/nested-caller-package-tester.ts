@@ -1,7 +1,7 @@
 import { getClosestCallerPackage } from "../../../../src/internal/util/caller-package";
 import {
   call as callFromTop,
-  callFromNestedModule as topCallFromNestedModule
+  callFromNestedModule as topCallFromNestedModule,
 } from "../top-caller-package-tester";
 
 export function call() {

@@ -7,11 +7,11 @@ import {
   createFixedGasPriceProvider,
   createFixedGasProvider,
   createGanacheGasMultiplierProvider,
-  GANACHE_GAS_MULTIPLIER
+  GANACHE_GAS_MULTIPLIER,
 } from "../../../../src/internal/core/providers/gas-providers";
 import {
   numberToRpcQuantity,
-  rpcQuantityToNumber
+  rpcQuantityToNumber,
 } from "../../../../src/internal/core/providers/provider-utils";
 import { IEthereumProvider } from "../../../../src/types";
 
@@ -27,7 +27,7 @@ describe("createAutomaticGasProvider", () => {
   beforeEach(() => {
     mockedProvider = new MockedProvider();
     mockedProvider.setReturnValue("eth_getBlockByNumber", {
-      gasLimit: numberToRpcQuantity(FIXED_GAS_LIMIT * 1000)
+      gasLimit: numberToRpcQuantity(FIXED_GAS_LIMIT * 1000),
     });
     mockedProvider.setReturnValue(
       "eth_estimateGas",
@@ -42,8 +42,8 @@ describe("createAutomaticGasProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -59,8 +59,8 @@ describe("createAutomaticGasProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -75,8 +75,8 @@ describe("createAutomaticGasProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -93,8 +93,8 @@ describe("createAutomaticGasProvider", () => {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
         value: 1,
-        gas: 567
-      }
+        gas: 567,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -130,8 +130,8 @@ describe("createAutomaticGasPriceProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -144,8 +144,8 @@ describe("createAutomaticGasPriceProvider", () => {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
         value: 1,
-        gasPrice: 456
-      }
+        gasPrice: 456,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -182,8 +182,8 @@ describe("createFixedGasProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -196,8 +196,8 @@ describe("createFixedGasProvider", () => {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
         value: 1,
-        gas: 1456
-      }
+        gas: 1456,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -210,8 +210,8 @@ describe("createFixedGasProvider", () => {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
         value: 1,
-        gas: 1456123
-      }
+        gas: 1456123,
+      },
     ]);
 
     assert.equal(estimated, MOCKED_GAS_ESTIMATION_VALUE);
@@ -243,8 +243,8 @@ describe("createFixedGasPriceProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -257,8 +257,8 @@ describe("createFixedGasPriceProvider", () => {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
         value: 1,
-        gasPrice: 14567
-      }
+        gasPrice: 14567,
+      },
     ]);
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -289,7 +289,7 @@ describe("createGanacheGasMultiplierProvider", () => {
       "EthereumJS TestRPC/v2.5.5/ethereum-js"
     );
     mockedProvider.setReturnValue("eth_getBlockByNumber", {
-      gasLimit: numberToRpcQuantity(12300000)
+      gasLimit: numberToRpcQuantity(12300000),
     });
 
     const wrapped = createGanacheGasMultiplierProvider(mockedProvider);
@@ -298,8 +298,8 @@ describe("createGanacheGasMultiplierProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const gas = rpcQuantityToNumber(estimation);
@@ -314,7 +314,7 @@ describe("createGanacheGasMultiplierProvider", () => {
       "Parity-Ethereum//v2.5.1-beta-e0141f8-20190510/x86_64-linux-gnu/rustc1.34.1"
     );
     mockedProvider.setReturnValue("eth_getBlockByNumber", {
-      gasLimit: numberToRpcQuantity(12300000)
+      gasLimit: numberToRpcQuantity(12300000),
     });
     const wrapped = createGanacheGasMultiplierProvider(mockedProvider);
 
@@ -322,8 +322,8 @@ describe("createGanacheGasMultiplierProvider", () => {
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
-        value: 1
-      }
+        value: 1,
+      },
     ]);
 
     const gas = rpcQuantityToNumber(estimation);

@@ -8,7 +8,7 @@ export const LATEST_BLOCK = new BN(-1);
 export enum Type {
   LOGS_SUBSCRIPTION = 0,
   PENDING_TRANSACTION_SUBSCRIPTION = 1,
-  BLOCK_SUBSCRIPTION = 2
+  BLOCK_SUBSCRIPTION = 2,
 }
 
 export interface FilterCriteria {
