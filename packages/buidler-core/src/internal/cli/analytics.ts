@@ -71,7 +71,7 @@ export class Analytics {
   }) {
     this._projectId = projectId;
     this._clientId = clientId;
-    this._enabled = enabled && !this._isLocalDev();
+    this._enabled = enabled && !this._isLocalDev() && !isRunningOnCiServer();
     this._userType = userType;
   }
 
