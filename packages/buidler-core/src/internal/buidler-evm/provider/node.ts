@@ -345,7 +345,9 @@ export class BuidlerNode extends EventEmitter {
         error
       );
       error.message = `The Buidler EVM tracing engine could not be initialized. Reason: ${error.message}`;
-      ErrorReporter.getInstance().enqueueErrorReport(error);
+      ErrorReporter.getInstance()
+        .sendErrorReport(error)
+        .catch((error) => log(`failed error report send`, error));
     }
   }
 

@@ -1,4 +1,6 @@
+import { ChildProcess } from "child_process";
 import debug from "debug";
+import { serializeError as serialize } from "serialize-error";
 
 import { BuidlerError, BuidlerPluginError } from "../core/errors";
 import { REVERSE_ERRORS_MAP } from "../core/errors-list";
@@ -10,6 +12,7 @@ import {
   getUserType,
   isLocalDev,
 } from "../util/analytics";
+import { runInBackground } from "../util/background-runner";
 
 import { ErrorReporterClient, SentryClient } from "./sentry";
 
@@ -54,8 +57,14 @@ export interface ErrorContextData {
 interface ErrorReporterInterface {
   sendMessage(message: string, context: any): Promise<void>;
   sendErrorReport(error: Error): Promise<void>;
-  enqueueErrorReport(error: Error): void;
-  sendPendingReports(): Promise<void>;
+}
+
+interface ClientConfig {
+  clientId: string;
+  buidlerVersion: string;
+  userAgent: string;
+  userType: "CI" | "Developer";
+  projectId: string;
 }
 
 /**
@@ -71,18 +80,24 @@ const errorFilters: Array<(
 
 const log = debug(`buidler:core:error-reporter`);
 
+// this class instance will be used in the background.
 export class ErrorReporter implements ErrorReporterInterface {
   /**
    * Setup ErrorReporter instance.
    *
    * @param rootPath
    * @param enabled
+   * @param inBackground - if true, setup a proxy to the instance that will actually run in a background child process.
    */
-  public static async setup(rootPath: string, enabled: boolean) {
+  public static async setup(
+    rootPath: string,
+    enabled: boolean,
+    inBackground: boolean
+  ) {
     // don't enable errorReporter if running as local-dev context
     enabled = enabled && !isLocalDev();
 
-    log(`ErrorReporter instance init (enabled: ${enabled})`);
+    log(`ErrorReporter instance init... (enabled: ${enabled})`);
 
     if (!enabled) {
       this._instance = new DisabledErrorReporter();
@@ -98,15 +113,17 @@ export class ErrorReporter implements ErrorReporterInterface {
     const userType = getUserType();
     const userAgent = getUserAgent();
 
-    const client = new SentryClient(
+    const clientConfig: ClientConfig = {
       projectId,
       clientId,
       userType,
       userAgent,
-      buidlerVersion
-    );
+      buidlerVersion,
+    };
 
-    this._instance = new ErrorReporter(client);
+    this._instance = inBackground
+      ? new ProxiedErrorReporter(this._setupInBackground(clientConfig))
+      : new ErrorReporter(clientConfig);
   }
 
   /**
@@ -128,18 +145,32 @@ export class ErrorReporter implements ErrorReporterInterface {
     return errorReporter instanceof ErrorReporter;
   }
 
-  private static _instance: ErrorReporter | DisabledErrorReporter;
+  private static _instance: ErrorReporterInterface;
+
+  private static _setupInBackground(clientConfig: ClientConfig): ChildProcess {
+    // the real instance class name
+    const className = ErrorReporter.name;
+    // props used to instantiate the class
+    const props = [clientConfig];
+
+    return runInBackground(__filename, className, props);
+  }
 
   public readonly client: ErrorReporterClient;
-  public pendingReports: Array<Promise<void>> = [];
 
   /**
    * errors matching any of these criteria are excluded from reports
    */
   public readonly errorFilters = errorFilters;
 
-  private constructor(client: ErrorReporterClient) {
-    this.client = client;
+  private constructor(clientConfig: ClientConfig) {
+    this.client = new SentryClient(
+      clientConfig.projectId,
+      clientConfig.clientId,
+      clientConfig.userType,
+      clientConfig.userAgent,
+      clientConfig.buidlerVersion
+    );
   }
 
   public async sendMessage(message: string, context: any) {
@@ -153,18 +184,6 @@ export class ErrorReporter implements ErrorReporterInterface {
    * @param error
    */
   public async sendErrorReport(error: Error) {
-    this.enqueueErrorReport(error);
-
-    await this.sendPendingReports();
-  }
-
-  /**
-   * Enqueue error send promise, but don't await for it yet.
-   * @see sendPendingReports() - with await or .then() to make sure all pending reports are sent.
-   *
-   * @param error
-   */
-  public enqueueErrorReport(error: Error) {
     const errorContext = contextualizeError(error);
 
     if (this._isFiltered(errorContext, error)) {
@@ -172,13 +191,7 @@ export class ErrorReporter implements ErrorReporterInterface {
       return;
     }
 
-    const errorSendPromise = this.client.sendErrorReport(error, errorContext);
-    this.pendingReports.push(errorSendPromise);
-  }
-
-  public async sendPendingReports() {
-    await Promise.all(this.pendingReports);
-    this.pendingReports = [];
+    return this.client.sendErrorReport(error, errorContext);
   }
 
   private _isFiltered(errorContext: ErrorContextData, error: Error) {
@@ -208,18 +221,39 @@ export class DisabledErrorReporter implements ErrorReporterInterface {
     // no op
   }
 
-  /**
-   * @see ErrorReporter#enqueueErrorReport for enabled version
-   */
-  public enqueueErrorReport(error: Error): void {
-    // no op
+}
+
+export class ProxiedErrorReporter implements ErrorReporterInterface {
+  private _subject: ChildProcess;
+
+  constructor(subject: ChildProcess) {
+    this._subject = subject;
   }
 
-  /**
-   * @see ErrorReporter#sendPendingReports for enabled version
-   */
-  public async sendPendingReports(): Promise<void> {
-    // no op
+  public sendErrorReport(error: Error): Promise<void> {
+    const message = serialize({
+      method: "sendErrorReport",
+      args: [error],
+    });
+
+    return this._sendPromise(message);
+  }
+
+  public async sendMessage(messageStr: string, context: any): Promise<void> {
+    const message = serialize({
+      method: "sendMessage",
+      args: [messageStr, context],
+    });
+
+    return this._sendPromise(message);
+  }
+
+  private _sendPromise(message: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this._subject.send(message, (error) =>
+        error ? reject(error) : resolve()
+      );
+    });
   }
 }
 

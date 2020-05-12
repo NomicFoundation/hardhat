@@ -44,7 +44,9 @@ export function createChainIdGetter(provider: IEthereumProvider) {
           ? rpcQuantityToNumber(id)
           : parseInt(id, 10);
         error.message = `Fail on provider.send(\"eth_chainId\"). Reason: ${error.message}`;
-        ErrorReporter.getInstance().enqueueErrorReport(error);
+        ErrorReporter.getInstance()
+          .sendErrorReport(error)
+          .catch(() => {}); // errorReporter send message failed unexpectedly, ignore exception
       }
     }
 

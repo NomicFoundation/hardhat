@@ -102,7 +102,11 @@ async function main() {
       config.paths.root,
       config.analytics.enabled
     );
-    await ErrorReporter.setup(config.paths.root, config.analytics.enabled);
+    await ErrorReporter.setup(
+      config.paths.root,
+      config.analytics.enabled,
+      true
+    );
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
@@ -112,12 +116,9 @@ async function main() {
     const [abortAnalytics, analyticsHitPromise] = analytics.sendTaskHit(
       taskName
     );
-    const errorReporterTaskHit = ErrorReporter.getInstance().sendMessage(
-      `Task hit ${taskName}`,
-      {
-        taskName,
-      }
-    );
+    await ErrorReporter.getInstance().sendMessage(`Task hit '${taskName}'`, {
+      taskName,
+    });
 
     let taskArguments: TaskArguments;
 
@@ -164,12 +165,11 @@ async function main() {
       timestampAfterRun - timestampBeforeRun >
       ANALYTICS_SLOW_TASK_THRESHOLD
     ) {
-      await Promise.all([analyticsHitPromise, errorReporterTaskHit]);
+      await analyticsHitPromise;
     } else {
       abortAnalytics();
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
-    await ErrorReporter.getInstance().sendPendingReports();
   } catch (error) {
     await ErrorReporter.getInstance().sendErrorReport(error);
 

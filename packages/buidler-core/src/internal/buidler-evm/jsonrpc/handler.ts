@@ -232,7 +232,9 @@ const _handleError = (error: any): JsonRpcResponse => {
   }
 
   // register the error report, which will be submitted only if ran from buidler CLI.
-  ErrorReporter.getInstance().enqueueErrorReport(error);
+  ErrorReporter.getInstance()
+    .sendErrorReport(error)
+    .catch((reportError) => log(`failed error report send`, reportError));
 
   return {
     jsonrpc: "2.0",

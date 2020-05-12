@@ -2,6 +2,7 @@ import { ChildProcess, fork } from "child_process";
 import debug from "debug";
 import fs from "fs-extra";
 import path from "path";
+import { withFixedInspectArg } from "./scripts-runner";
 
 const _log = debug("buidler:core:background-runner");
 
@@ -33,8 +34,6 @@ export function runInBackground(
   className: string,
   props: any[] = []
 ): ChildProcess {
-  const nodeExecArgv = process.execArgv;
-
   const childSetupConfig = {
     pathToClass: _pathRelativeFromChildWorker(classFile),
     className,
@@ -45,8 +44,13 @@ export function runInBackground(
     ([key, value]) => `${key}=${JSON.stringify(value)}`
   );
 
-  const args = [...process.argv.slice(2), ...childNodeArgs];
-  log("[debug] forking child with args: ", { args, nodeExecArgv });
+  const nodeExecArgv = withFixedInspectArg(process.execArgv);
+  if (!nodeExecArgv.includes("ts-node/register")) {
+    nodeExecArgv.push("--require");
+    nodeExecArgv.push("ts-node/register");
+  }
+
+  log("[debug] forking child with args: ", { childNodeArgs, nodeExecArgv });
 
   const logFilePath = path.join(process.cwd(), "./debug.log");
   const logFile = debug.enabled("buidler*") ? logFilePath : undefined;
@@ -63,7 +67,7 @@ export function runInBackground(
   }
 
   // create childProcess instance, which will run independently from the this parent process
-  const child = fork(childWorkerAbsolutePath, args, {
+  const child = fork(childWorkerAbsolutePath, childNodeArgs, {
     stdio,
     execArgv: nodeExecArgv,
     detached: true,

@@ -164,7 +164,9 @@ export class VMTracer {
       this._messageTraces.push(trace);
       next();
     } catch (error) {
-      ErrorReporter.getInstance().enqueueErrorReport(error);
+      ErrorReporter.getInstance()
+        .sendErrorReport(error)
+        .catch(() => {}); // errorReporter send message failed unexpectedly, ignore exception
       if (this._dontThrowErrors) {
         this._lastError = error;
         next();
@@ -192,7 +194,9 @@ export class VMTracer {
       trace.steps.push({ pc: step.pc });
       next();
     } catch (error) {
-      ErrorReporter.getInstance().enqueueErrorReport(error);
+      ErrorReporter.getInstance()
+        .sendErrorReport(error)
+        .catch(() => {}); // errorReporter send message failed unexpectedly, ignore exception
       if (this._dontThrowErrors) {
         this._lastError = error;
         next();
@@ -224,7 +228,9 @@ export class VMTracer {
 
       next();
     } catch (error) {
-      ErrorReporter.getInstance().enqueueErrorReport(error);
+      ErrorReporter.getInstance()
+        .sendErrorReport(error)
+        .catch(() => {}); // errorReporter send message failed unexpectedly, ignore exception
       if (this._dontThrowErrors) {
         this._lastError = error;
         next();

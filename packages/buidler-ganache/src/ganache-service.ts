@@ -148,7 +148,9 @@ export class GanacheService {
         log("Failed to start GanacheService\n", error);
         GanacheService.error = error;
       }
-      ErrorReporter.getInstance().enqueueErrorReport(error);
+      ErrorReporter.getInstance()
+        .sendErrorReport(error)
+        .catch(() => log(`failed error report send`));
     }
 
     // Verify service state after start (TODO Maybe extract this to a decorator)
@@ -182,7 +184,9 @@ export class GanacheService {
         log("Failed to stop GanacheService\n", error);
         GanacheService.error = error;
       }
-      ErrorReporter.getInstance().enqueueErrorReport(error);
+      ErrorReporter.getInstance()
+        .sendErrorReport(error)
+        .catch(() => log(`failed error report send`));
     }
 
     this._checkForServiceErrors();

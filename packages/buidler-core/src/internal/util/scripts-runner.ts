@@ -76,7 +76,7 @@ export async function runScriptWithBuidler(
  * This way, we can properly use the debugger for this process AND for the executed
  * script itself - even if it's compiled using ts-node.
  */
-function withFixedInspectArg(argv: string[]) {
+export function withFixedInspectArg(argv: string[]) {
   const fixIfInspectArg = (arg: string) => {
     if (arg.toLowerCase().includes("--inspect-brk=")) {
       return "--inspect";

@@ -21,7 +21,9 @@ export function getImports(fileContent: string): string[] {
     const logMsg = "Failed to parse Solidity file to extract its imports";
     log(`${logMsg}\n`, error);
     error.message = `${logMsg}. Reason: ${error.message || error}`;
-    ErrorReporter.getInstance().enqueueErrorReport(error);
+    ErrorReporter.getInstance()
+      .sendErrorReport(error)
+      .catch((error) => log(`failed error report send`, error));
     return findImportsWithRegexps(fileContent);
   }
 }
