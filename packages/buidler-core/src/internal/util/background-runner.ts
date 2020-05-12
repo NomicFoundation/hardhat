@@ -2,7 +2,8 @@ import { ChildProcess, fork } from "child_process";
 import debug from "debug";
 import fs from "fs-extra";
 import path from "path";
-import { withFixedInspectArg } from "./scripts-runner";
+
+import { isCompiledInstallation, withFixedInspectArg } from "./scripts-runner";
 
 const _log = debug("buidler:core:background-runner");
 
@@ -18,6 +19,7 @@ const log = preDateLogger(_log);
 
 // the worker script path, that will run as a child process fork
 const CHILD_WORKER_PATH = "./background-worker";
+
 const childWorkerAbsolutePath = path.join(__dirname, CHILD_WORKER_PATH);
 
 /**
@@ -45,7 +47,8 @@ export function runInBackground(
   );
 
   const nodeExecArgv = withFixedInspectArg(process.execArgv);
-  if (!nodeExecArgv.includes("ts-node/register")) {
+  if (!isCompiledInstallation() && !nodeExecArgv.includes("ts-node/register")) {
+    // add ts node if running in ts (non-compiled), and it's not already included.
     nodeExecArgv.push("--require");
     nodeExecArgv.push("ts-node/register");
   }
@@ -71,6 +74,7 @@ export function runInBackground(
     stdio,
     execArgv: nodeExecArgv,
     detached: true,
+    env: process.env,
   });
   child.unref(); // don't force parent process to wait for childProcess to exit
 

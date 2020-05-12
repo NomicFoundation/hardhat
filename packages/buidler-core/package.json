@@ -106,7 +106,7 @@
     "qs": "^6.7.0",
     "raw-body": "^2.4.1",
     "semver": "^6.3.0",
-    "serialize-error": "^7.0.0",
+    "serialize-error": "^6.0.0",
     "slash": "^3.0.0",
     "solc": "0.5.15",
     "source-map-support": "^0.5.13",

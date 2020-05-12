@@ -17,7 +17,9 @@ export interface ErrorReporterClient {
 export class SentryClient implements ErrorReporterClient {
   public static SENTRY_FLUSH_TIMEOUT = 3000;
   private readonly _SENTRY_DSN =
-    "https://38ba58bb85fa409e9bb7f50d2c419bc2@o385026.ingest.sentry.io/5224869";
+    process.env.SENTRY_DSN !== undefined
+      ? process.env.SENTRY_DSN
+      : "https://38ba58bb85fa409e9bb7f50d2c419bc2@o385026.ingest.sentry.io/5224869";
   private readonly _log = debug("buidler:core:error-reporter:sentry");
 
   constructor(
@@ -41,8 +43,9 @@ export class SentryClient implements ErrorReporterClient {
       scope.setExtra("platform", os.platform());
       scope.setExtra("os release", os.release());
     });
-
-    this._log("Sentry client init");
+    // is enabled if Sentry DSN is not set as empty string
+    const enabled = this._SENTRY_DSN.length > 0;
+    this._log(`Sentry client init (enabled: ${enabled})`);
   }
 
   public async sendMessage(message: string, context: any) {

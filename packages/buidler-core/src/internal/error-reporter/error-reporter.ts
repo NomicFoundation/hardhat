@@ -220,7 +220,6 @@ export class DisabledErrorReporter implements ErrorReporterInterface {
   public async sendMessage(message: string, context: any): Promise<void> {
     // no op
   }
-
 }
 
 export class ProxiedErrorReporter implements ErrorReporterInterface {

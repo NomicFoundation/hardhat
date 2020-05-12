@@ -1,11 +1,12 @@
-/**
- * Background worker to run a proxied singleton instance
- * independently of the parent process.
- */
 import debug from "debug";
 import { deserializeError, serializeError } from "serialize-error";
 
 import { toMiddleSnakeCase } from "./background-runner";
+
+/**
+ * Background worker to run a proxied singleton instance
+ * independently of the parent process.
+ */
 
 import Signals = NodeJS.Signals;
 
@@ -272,12 +273,8 @@ function deserializeErrors(serializedArgs: any[]) {
     (value.name !== undefined && value.name.toLowerCase().includes("error"));
 
   return serializedArgs.map((arg) => {
-    if (!_isError(arg)) {
-      // not an error, return original arg value
-      return arg;
-    }
     const deserialized = deserializeError(arg);
-    if (deserialized.name === "NonError") {
+    if (!_isError(deserialized) || deserialized.name === "NonError") {
       // not an error, return original arg value
       return arg;
     }

@@ -86,21 +86,25 @@ export function withFixedInspectArg(argv: string[]) {
   return argv.map(fixIfInspectArg);
 }
 
+export function isCompiledInstallation() {
+  const executionMode = getExecutionMode();
+  return [
+    ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION,
+    ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION,
+    ExecutionMode.EXECUTION_MODE_LINKED,
+  ].includes(executionMode);
+}
+
 /**
  * Ensure buidler/register source file path is resolved to compiled JS file
  * instead of TS source file, so we don't need to run ts-node unnecessarily.
  */
 export function resolveBuidlerRegisterPath() {
-  const executionMode = getExecutionMode();
-  const isCompiledInstallation = [
-    ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION,
-    ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION,
-    ExecutionMode.EXECUTION_MODE_LINKED,
-  ].includes(executionMode);
+  const _isCompiledInstallation = isCompiledInstallation();
 
   const buidlerCoreBaseDir = path.join(__dirname, "..", "..");
 
-  const buidlerCoreCompiledDir = isCompiledInstallation
+  const buidlerCoreCompiledDir = _isCompiledInstallation
     ? buidlerCoreBaseDir
     : path.join(buidlerCoreBaseDir, "..");
 

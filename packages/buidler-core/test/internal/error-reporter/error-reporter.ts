@@ -14,6 +14,8 @@ import { ErrorReporterClient } from "../../../src/internal/error-reporter/sentry
 import * as analyticsUtils from "../../../src/internal/util/analytics";
 
 function mockDependencies() {
+  const originalSentryDsn = process.env.SENTRY_DSN;
+  process.env.SENTRY_DSN = "";
   // mock Sentry.init() call with empty dsn param, to prevent actual Sentry calls from tests
   const sentryStub = sinon.stub(Sentry, "init").callsFake(function () {
     const dsn = "";
@@ -26,6 +28,7 @@ function mockDependencies() {
   return () => {
     sentryStub.restore();
     isLocalDev.restore();
+    process.env.SENTRY_DSN = originalSentryDsn;
   };
 }
 
