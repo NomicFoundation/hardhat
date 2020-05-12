@@ -41,14 +41,16 @@ function formatArgs(args: any[]) {
     const c = self.color;
     const colorCode = `[3${c < 8 ? c : `8;5;${c}`}`;
     prefix = ` ${colorCode};1m${name} [0m`;
-    args[0] =
-      dateTime + pid + prefix + args[0].split("\n").join(`\n${space}${prefix}`);
+    args[0] = `${dateTime}${pid}${prefix}${args[0]
+      .split("\n")
+      .join(`\n${space}${prefix}`)}`;
     // @ts-ignore
     line = `${colorCode}m+${debug.humanize(self.diff)}[0m`;
   } else {
     prefix = ` ${name} `;
-    args[0] =
-      dateTime + pid + prefix + args[0].split("\n").join(`\n${space}${prefix}`);
+    args[0] = `${dateTime}${pid}${prefix}${args[0]
+      .split("\n")
+      .join(`\n${space}${prefix}`)}`;
     // @ts-ignore
     line = `+${debug.humanize(self.diff)}`;
   }
@@ -67,15 +69,16 @@ function getArgvParam(argName: string): any | any[] {
   try {
     const argvContainer = nodeArgv.filter((arg) => arg.includes(argvPrefix));
     if (argvContainer.length === 0) {
+      // tslint:disable-next-line only-buidler-error
       throw new Error(`not found arg with prefix: '${argvPrefix}'`);
     }
     const argvValueStr = argvContainer[0].split(argvPrefix)[1];
     if (argvValueStr.length === 0) {
       return undefined;
     }
-    // const argValueStr = argvContainer.map((val) => val.split("=")[1])[0];
     return JSON.parse(argvValueStr);
   } catch (error) {
+    // tslint:disable-next-line only-buidler-error
     throw new Error(
       `Failed at retrieving arg '${argName}' ` +
         `from process.argv: ${JSON.stringify(nodeArgv)}. Reason: ${
@@ -101,13 +104,14 @@ function isChildProcess() {
  */
 async function processSend(message: any): Promise<void> {
   if (!isChildProcess()) {
+    // tslint:disable-next-line only-buidler-error
     throw new Error(
       "attempt to call process.send() but not running as child process"
     );
   }
   await new Promise((resolve, reject) => {
     process.send!(message, (error: Error) =>
-      error ? reject(error) : resolve()
+      error !== undefined ? reject(error) : resolve()
     );
   });
 }
@@ -157,7 +161,9 @@ async function main() {
   const constructorClass = importedModule[className];
 
   // instantiate the class with provided constructor props
-  const instance = new constructorClass(...(constructorProps || []));
+  const costructorPropsArray =
+    constructorProps !== undefined ? constructorProps : [];
+  const instance = new constructorClass(...costructorPropsArray);
 
   log(`setup of ${className} instance in background successful`);
 
@@ -180,9 +186,14 @@ function setupExitHandlers(
   });
 
   // poll parent process, disconnect if none available
-  pollUntilParentDisconnect().then(() => {
-    process.emit("disconnect");
-  });
+  pollUntilParentDisconnect()
+    .then(() => {
+      process.emit("disconnect");
+    })
+    .catch((error) => {
+      // this shouldn't be able to happen, but eslint requires a catch() statement
+      log("unexpected error in pollUntilParentDisconnect()", error);
+    });
 }
 
 async function runMessagesListener(subject: CallableSubject) {
@@ -394,6 +405,7 @@ async function runMethod(
   const subjectMethodName = `${context.subjectClassName}#${methodName}`;
   if (!hasMethod(subject, methodName)) {
     const errMsg = `No such method ${subjectMethodName}`;
+    // tslint:disable-next-line only-buidler-error
     throw new Error(errMsg);
   }
 
@@ -402,6 +414,7 @@ async function runMethod(
     await subject[methodName](...args);
   } catch (error) {
     error.message = `Error on runMethod call '${subjectMethodName}': ${error.message}`;
+    // tslint:disable-next-line only-buidler-error
     throw error;
   }
 }
@@ -412,10 +425,11 @@ async function runMethod(
  */
 function _getAllMethodNames(obj: any) {
   const methods = new Set();
-  // tslint:disable-next-line:no-conditional-assignment
-  while ((obj = Reflect.getPrototypeOf(obj))) {
+  obj = Reflect.getPrototypeOf(obj);
+  while (obj !== undefined) {
     const keys = Reflect.ownKeys(obj);
     keys.forEach((k) => methods.add(k));
+    obj = Reflect.getPrototypeOf(obj);
   }
   return methods;
 }
@@ -439,5 +453,6 @@ main()
   })
   .catch((error) => {
     log("Unexpected error: ", error);
-    process.exit(process.exitCode || 1);
+    const exitCode = process.exitCode !== undefined ? process.exitCode : 1;
+    process.exit(exitCode);
   });

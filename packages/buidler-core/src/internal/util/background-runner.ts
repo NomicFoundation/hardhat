@@ -37,6 +37,7 @@ export function runInBackground(
   props: any[] = []
 ): ChildProcess {
   if (!Array.isArray(props)) {
+    // tslint:disable-next-line only-buidler-error
     throw new Error("Constructor arguments 'props' must be an array");
   }
   const childSetupConfig = {
@@ -60,19 +61,19 @@ export function runInBackground(
 
   const logFilePath = path.join(process.cwd(), "./debug.log");
   const logFile = debug.enabled("buidler*") ? logFilePath : undefined;
+  const childLog = extendLog(toMiddleSnakeCase(className));
 
   // if logging is enabled, redirect child output to logFile - otherwise, ignore it.
   let stdio = "ignore" as any; // don't share stdio with child process to allow it to run independently
-  if (logFile) {
+  if (logFile !== undefined) {
     const out = fs.openSync(logFile, "a");
     const err = fs.openSync(logFile, "a");
     stdio = ["ignore", out, err, "ipc"]; // redirect output to logFile
-  }
 
-  const childLog = extendLog(toMiddleSnakeCase(className));
-  childLog(
-    `logging ${logFile ? `enabled, at file: ${logFile}` : "is disabled."}`
-  );
+    childLog(`logging enabled , at file: ${logFile}`);
+  } else {
+    childLog("logging is disabled.");
+  }
 
   // create childProcess instance, which will run independently from the this parent process
   const child = fork(childWorkerAbsolutePath, childNodeArgs, {

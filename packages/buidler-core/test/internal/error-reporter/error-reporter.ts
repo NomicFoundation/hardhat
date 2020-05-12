@@ -1,3 +1,4 @@
+/* tslint:disable:no-unused-expression */ // this is to remove errors using 'expect(obj).to.be.something' assertions
 import * as Sentry from "@sentry/node";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -10,7 +11,6 @@ import {
   ErrorReporter,
   ProxiedErrorReporter,
 } from "../../../src/internal/error-reporter/error-reporter";
-import { ErrorReporterClient } from "../../../src/internal/error-reporter/sentry";
 import * as analyticsUtils from "../../../src/internal/util/analytics";
 
 function mockDependencies() {

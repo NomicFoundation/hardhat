@@ -221,7 +221,7 @@ class ProxiedAnalytics implements AnalyticsInterface {
   private _sendPromise(message: any): Promise<void> {
     return new Promise((resolve, reject) => {
       this._subject.send(message, (error) =>
-        error ? reject(error) : resolve()
+        error !== undefined ? reject(error) : resolve()
       );
     });
   }

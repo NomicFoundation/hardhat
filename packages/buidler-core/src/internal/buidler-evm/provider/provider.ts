@@ -12,12 +12,12 @@ import util from "util";
 import { EthereumProvider, ProjectPaths } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
 import { getUserConfigPath } from "../../core/project-structure";
+import { ErrorReporter } from "../../error-reporter/error-reporter";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 
-import { ErrorReporter } from "../../error-reporter/error-reporter";
 import {
   BuidlerEVMProviderError,
   MethodNotFoundError,
