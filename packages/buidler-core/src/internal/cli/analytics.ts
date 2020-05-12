@@ -1,4 +1,4 @@
-import AbortController from "abort-controller";
+import { ChildProcess } from "child_process";
 import debug from "debug";
 import fetch from "node-fetch";
 import qs from "qs";
@@ -12,6 +12,7 @@ import {
   isABuiltinTaskName,
   isLocalDev,
 } from "../util/analytics";
+import { runInBackground } from "../util/background-runner";
 
 const log = debug("buidler:core:analytics");
 
@@ -35,24 +36,48 @@ interface RawAnalytics {
   cd3: string;
 }
 
-type AbortAnalytics = () => void;
-
 const googleAnalyticsUrl = "https://www.google-analytics.com/collect";
 
-export class Analytics {
-  public static async getInstance(rootPath: string, enabled: boolean) {
+interface AnalyticsInterface {
+  sendTaskHit(taskName: string): Promise<void>;
+}
+
+interface AnalyticsConfig {
+  projectId: string;
+  clientId: string;
+  enabled: boolean;
+  userType: string;
+  buidlerVersion: string;
+}
+
+export class Analytics implements AnalyticsInterface {
+  public static async getInstance(
+    rootPath: string,
+    enabled: boolean,
+    inBackground: boolean
+  ): Promise<AnalyticsInterface> {
     const [buidlerVersion, clientId] = await Promise.all([
       getBuidlerVersion(),
       getClientId(),
     ]);
 
-    const analytics: Analytics = new Analytics({
-      projectId: getProjectId(rootPath),
+    const projectId = getProjectId(rootPath);
+    const userType = getUserType();
+    if (enabled && isLocalDev()) {
+      log("running as local dev - setting enabled to false");
+      enabled = false;
+    }
+
+    const config: AnalyticsConfig = {
+      projectId,
       clientId,
       enabled,
-      userType: getUserType(),
+      userType,
       buidlerVersion,
-    });
+    };
+    const analytics = inBackground
+      ? new ProxiedAnalytics(config)
+      : new Analytics(config);
 
     return analytics;
   }
@@ -72,16 +97,10 @@ export class Analytics {
     enabled,
     userType,
     buidlerVersion,
-  }: {
-    projectId: string;
-    clientId: string;
-    enabled: boolean;
-    userType: string;
-    buidlerVersion: string;
-  }) {
+  }: AnalyticsConfig) {
     this._projectId = projectId;
     this._clientId = clientId;
-    this._enabled = enabled && !isLocalDev();
+    this._enabled = enabled;
     this._userType = userType;
     this._buidlerVersion = buidlerVersion;
   }
@@ -98,11 +117,11 @@ export class Analytics {
    *
    * @returns The abort function
    */
-  public sendTaskHit(taskName: string): [AbortAnalytics, Promise<void>] {
+  public sendTaskHit(taskName: string): Promise<void> {
     const taskKind = isABuiltinTaskName(taskName) ? "builtin" : "custom";
 
     if (!this._enabled) {
-      return [() => {}, Promise.resolve()];
+      return Promise.resolve();
     }
 
     return this._sendHit(this._taskHit(taskKind));
@@ -159,34 +178,46 @@ export class Analytics {
     };
   }
 
-  private _sendHit(hit: RawAnalytics): [AbortAnalytics, Promise<void>] {
+  private async _sendHit(hit: RawAnalytics) {
     log(`Sending hit for ${hit.dp}`);
-
-    const controller = new AbortController();
-
-    const abortAnalytics = () => {
-      log(`Aborting hit for ${JSON.stringify(hit.dp)}`);
-
-      controller.abort();
-    };
 
     const hitPayload = qs.stringify(hit);
 
     log(`Hit payload: ${JSON.stringify(hit)}`);
 
-    const hitPromise = fetch(googleAnalyticsUrl, {
-      body: hitPayload,
-      method: "POST",
-      signal: controller.signal,
-    })
-      .then(() => {
-        log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
-      })
-      // We're not really interested in handling failed analytics requests
-      .catch(() => {
-        log("Hit request failed");
+    try {
+      await fetch(googleAnalyticsUrl, {
+        body: hitPayload,
+        method: "POST",
       });
+      log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
+    } catch (error) {
+      // We're not really interested in handling failed analytics requests
+      error.message = `Hit request failed. Reason: ${error.message}`;
+      log(error.message);
+    }
+  }
+}
 
-    return [abortAnalytics, hitPromise];
+class ProxiedAnalytics implements AnalyticsInterface {
+  private _subject: ChildProcess;
+  constructor(...props: any[]) {
+    this._subject = runInBackground(__filename, Analytics.name, props);
+  }
+
+  public async sendTaskHit(taskName: string) {
+    const message = {
+      method: "sendTaskHit",
+      args: [taskName],
+    };
+    return this._sendPromise(message);
+  }
+
+  private _sendPromise(message: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this._subject.send(message, (error) =>
+        error ? reject(error) : resolve()
+      );
+    });
   }
 }

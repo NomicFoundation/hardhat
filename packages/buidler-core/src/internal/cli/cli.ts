@@ -100,7 +100,8 @@ async function main() {
 
     const analytics = await Analytics.getInstance(
       config.paths.root,
-      config.analytics.enabled
+      config.analytics.enabled,
+      true
     );
     await ErrorReporter.setup(
       config.paths.root,
@@ -113,12 +114,13 @@ async function main() {
 
     let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
 
-    const [abortAnalytics, analyticsHitPromise] = analytics.sendTaskHit(
-      taskName
-    );
-    await ErrorReporter.getInstance().sendMessage(`Task hit '${taskName}'`, {
-      taskName,
-    });
+    // since analytics and errorReporter run in background, these promises are very quick.
+    await Promise.all([
+      analytics.sendTaskHit(taskName),
+      ErrorReporter.getInstance().sendMessage(`Task hit '${taskName}'`, {
+        taskName,
+      }),
+    ]);
 
     let taskArguments: TaskArguments;
 
@@ -161,14 +163,6 @@ async function main() {
     await env.run(taskName, taskArguments);
 
     const timestampAfterRun = new Date().getTime();
-    if (
-      timestampAfterRun - timestampBeforeRun >
-      ANALYTICS_SLOW_TASK_THRESHOLD
-    ) {
-      await analyticsHitPromise;
-    } else {
-      abortAnalytics();
-    }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
     await ErrorReporter.getInstance().sendErrorReport(error);
