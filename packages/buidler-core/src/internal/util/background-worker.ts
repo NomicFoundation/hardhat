@@ -273,9 +273,13 @@ function deserializeErrors(serializedArgs: any[]) {
     (value.name !== undefined && value.name.toLowerCase().includes("error"));
 
   return serializedArgs.map((arg) => {
+    if (!_isError(arg)) {
+      // arg value doesn't look like an Error, return it as is
+      return arg;
+    }
     const deserialized = deserializeError(arg);
     if (!_isError(deserialized) || deserialized.name === "NonError") {
-      // not an error, return original arg value
+      // deserialized value doesn't look like an error, return original arg value
       return arg;
     }
     // it was an error arg value, return it deserialized.

@@ -36,6 +36,9 @@ export function runInBackground(
   className: string,
   props: any[] = []
 ): ChildProcess {
+  if (!Array.isArray(props)) {
+    throw new Error("Constructor arguments 'props' must be an array");
+  }
   const childSetupConfig = {
     pathToClass: _pathRelativeFromChildWorker(classFile),
     className,
@@ -48,7 +51,7 @@ export function runInBackground(
 
   const nodeExecArgv = withFixedInspectArg(process.execArgv);
   if (!isCompiledInstallation() && !nodeExecArgv.includes("ts-node/register")) {
-    // add ts node if running in ts (non-compiled), and it's not already included.
+    // add ts node if running in ts (non-compiled context), and it was not already included.
     nodeExecArgv.push("--require");
     nodeExecArgv.push("ts-node/register");
   }
@@ -64,10 +67,12 @@ export function runInBackground(
     const out = fs.openSync(logFile, "a");
     const err = fs.openSync(logFile, "a");
     stdio = ["ignore", out, err, "ipc"]; // redirect output to logFile
-    log("child logs enabled, at file: ", logFile);
-  } else {
-    log("no child log enabled");
   }
+
+  const childLog = extendLog(toMiddleSnakeCase(className));
+  childLog(
+    `logging ${logFile ? `enabled, at file: ${logFile}` : "is disabled."}`
+  );
 
   // create childProcess instance, which will run independently from the this parent process
   const child = fork(childWorkerAbsolutePath, childNodeArgs, {
@@ -79,9 +84,8 @@ export function runInBackground(
   child.unref(); // don't force parent process to wait for childProcess to exit
 
   const childName = `${className} [pid ${child.pid}]`;
-  log(`running ${childName} as child process instance`);
 
-  const childLog = extendLog(toMiddleSnakeCase(className));
+  childLog(`running ${childName} as child process instance`);
 
   // listen to child process events, and just log them
   child.on("message", function (message) {
@@ -98,7 +102,9 @@ export function runInBackground(
     childLog(`${childName} exit:`, { code, signal });
   });
   child.once("disconnect", function () {
-    childLog(`${childName} disconnected.`);
+    childLog(
+      `${childName} disconnected unexpectedly. Check for possible errors in logs file: ${logFile}`
+    );
   });
   return child;
 }

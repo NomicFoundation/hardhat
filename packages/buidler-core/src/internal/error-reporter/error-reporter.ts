@@ -94,10 +94,13 @@ export class ErrorReporter implements ErrorReporterInterface {
     enabled: boolean,
     inBackground: boolean
   ) {
-    // don't enable errorReporter if running as local-dev context
-    enabled = enabled && !isLocalDev();
+    if (enabled && isLocalDev()) {
+      // don't enable errorReporter if running as local-dev context
+      log("running as local dev - setting enabled to false");
+      enabled = false;
+    }
 
-    log(`ErrorReporter instance init... (enabled: ${enabled})`);
+    log(`ErrorReporter instance setup... (enabled: ${enabled}})`);
 
     if (!enabled) {
       this._instance = new DisabledErrorReporter();
