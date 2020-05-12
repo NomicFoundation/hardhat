@@ -13,6 +13,7 @@ import {
   isLocalDev,
 } from "../util/analytics";
 import { runInBackground } from "../util/background-runner";
+import { isRunningOnCiServer } from "../util/ci-detection";
 
 import { ErrorReporterClient, SentryClient } from "./sentry";
 
@@ -97,6 +98,11 @@ export class ErrorReporter implements ErrorReporterInterface {
     if (enabled && isLocalDev()) {
       // don't enable errorReporter if running as local-dev context
       log("running as local dev - setting enabled to false");
+      enabled = false;
+    }
+
+    if (enabled && isRunningOnCiServer()) {
+      log("running on CI server - setting enabled to false");
       enabled = false;
     }
 

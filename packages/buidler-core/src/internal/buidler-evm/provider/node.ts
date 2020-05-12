@@ -120,13 +120,6 @@ export interface SolidityTracerOptions {
   compilerOutput: CompilerOutput;
 }
 
-export const SUPPORTED_HARDFORKS = [
-  "byzantium",
-  "constantinople",
-  "petersburg",
-  "istanbul",
-];
-
 interface Snapshot {
   id: number;
   date: Date;

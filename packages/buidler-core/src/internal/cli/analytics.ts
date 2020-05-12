@@ -13,6 +13,7 @@ import {
   isLocalDev,
 } from "../util/analytics";
 import { runInBackground } from "../util/background-runner";
+import { isRunningOnCiServer } from "../util/ci-detection";
 
 const log = debug("buidler:core:analytics");
 
@@ -65,6 +66,10 @@ export class Analytics implements AnalyticsInterface {
     const userType = getUserType();
     if (enabled && isLocalDev()) {
       log("running as local dev - setting enabled to false");
+      enabled = false;
+    }
+    if (enabled && isRunningOnCiServer()) {
+      log("running on CI server - setting enabled to false");
       enabled = false;
     }
 

@@ -99,7 +99,11 @@ export function usePlugin(
 
       const installedVersion = dependencyPackageJson.version;
 
-      if (!semver.satisfies(installedVersion, versionSpec)) {
+      if (
+        !semver.satisfies(installedVersion, versionSpec, {
+          includePrerelease: true,
+        })
+      ) {
         throw new BuidlerError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
           plugin: pluginName,
           dependency: dependencyName,

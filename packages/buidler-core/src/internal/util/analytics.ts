@@ -9,6 +9,7 @@ import uuid from "uuid/v4";
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 
+import { isRunningOnCiServer } from "./ci-detection";
 import { getPackageJson } from "./packageInfo";
 
 export type UserType = "CI" | "Developer";
@@ -88,11 +89,7 @@ export function getProjectId(rootPath: string) {
 }
 
 export function getUserType(): UserType {
-  // ci-info hasn't released support for github actions yet, so we
-  // test it manually here. See: https://github.com/watson/ci-info/issues/48
-  return ci.isCI || process.env.GITHUB_ACTIONS !== undefined
-    ? "CI"
-    : "Developer";
+  return isRunningOnCiServer() ? "CI" : "Developer";
 }
 
 /**
