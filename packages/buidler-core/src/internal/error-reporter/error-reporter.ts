@@ -285,6 +285,13 @@ export function contextualizeError(error: Error): ErrorContextData {
     ? "BuidlerPluginError"
     : "Error";
 
+  if (error === null) {
+    return {
+      errorType,
+      isBuidlerError,
+      message: "",
+    };
+  }
   const { message } = error;
 
   let errorInfo = {};

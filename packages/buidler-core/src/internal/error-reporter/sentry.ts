@@ -35,7 +35,7 @@ export class SentryClient implements ErrorReporterClient {
     projectRootPath: string
   ) {
     this._projectRootPath = projectRootPath;
-    const scrubRootPath = this._scrubBasePaths.bind(this);
+    const scrubRootPathBeforeSend = this._scrubRootPathBeforeSend.bind(this);
     const log = this._log;
 
     // init Sentry client
@@ -50,7 +50,7 @@ export class SentryClient implements ErrorReporterClient {
       },
       beforeSend(event, hint) {
         try {
-          scrubRootPath(event, hint);
+          scrubRootPathBeforeSend(event, hint);
         } catch (error) {
           log("scrub root path from event failed, sending as is", error);
         }
@@ -152,7 +152,10 @@ export class SentryClient implements ErrorReporterClient {
     }
   }
 
-  private _scrubBasePaths(event: Sentry.Event, hint?: Sentry.EventHint) {
+  private _scrubRootPathBeforeSend(
+    event: Sentry.Event,
+    hint?: Sentry.EventHint
+  ) {
     // scrub path from event.stacktrace frames
     if (
       event.stacktrace !== undefined &&
@@ -178,32 +181,62 @@ export class SentryClient implements ErrorReporterClient {
       this._scrubRootPathFromFrames(frames);
     }
 
-    // scrub root path from hint.originalException, if any
+    // scrub root path from hint originalException, & syntheticException, if any
     if (hint === undefined) {
       return;
     }
-    const originalException =
-      hint.originalException !== undefined &&
-      (hint.originalException instanceof Error ||
-        typeof hint.originalException === "string")
-        ? hint.originalException
-        : undefined;
+    const { originalException, syntheticException } = hint;
 
-    if (originalException === undefined) {
-      return;
-    }
     // scrupb root path from originalException object
-    if (typeof originalException === "string") {
-      hint.originalException = this._scrubRootPath(originalException);
-    } else {
-      originalException.stack = this._scrubRootPath(
-        originalException.stack as string
+    if (originalException !== undefined && originalException !== null) {
+      if (typeof originalException === "string") {
+        hint.originalException = this._scrubRootPath(originalException);
+      } else if (originalException.stack !== undefined) {
+        originalException.stack = this._scrubRootPath(
+          originalException.stack as string
+        );
+        this._log(
+          `scrubbed ${this._projectRootPath} originalException.stack`,
+          originalException.stack
+        );
+      }
+    }
+
+    // scrub root path from syntheticException Error object
+    if (
+      syntheticException !== undefined &&
+      syntheticException !== null &&
+      syntheticException.stack !== undefined
+    ) {
+      syntheticException.stack = this._scrubRootPath(syntheticException.stack);
+      this._log(
+        `scrubbed ${this._projectRootPath} syntheticException.stack`,
+        syntheticException.stack
       );
     }
   }
 
+  /**
+   * Remove all ocurrences of this._projectRootPath from a path, that would be included in
+   * any error report, before sending it to Sentry.
+   *
+   * @param path
+   * @private
+   */
   private _scrubRootPath(path: string) {
-    return path.replace(this._projectRootPath, "...");
+    // build a regex to match all occurrences of the specified string
+    // needs to be escaped first, to work with 'g' RegExp modifier
+    // https://stackoverflow.com/a/1144788/6279385
+    const escapeRegExp = (regexStr: string) => {
+      return regexStr.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+    };
+    const escapedGlobalMatcherRegex = (textToMatch: string) =>
+      new RegExp(escapeRegExp(textToMatch), "g");
+
+    return path.replace(
+      escapedGlobalMatcherRegex(this._projectRootPath),
+      "..."
+    );
   }
 
   private _scrubRootPathFromFrames(frames: Sentry.StackFrame[]) {
