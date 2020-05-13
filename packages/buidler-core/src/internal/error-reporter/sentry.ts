@@ -16,10 +16,14 @@ export interface ErrorReporterClient {
 
 export class SentryClient implements ErrorReporterClient {
   public static SENTRY_FLUSH_TIMEOUT = 3000;
+
   private readonly _SENTRY_DSN =
     process.env.SENTRY_DSN !== undefined
       ? process.env.SENTRY_DSN
       : "https://38ba58bb85fa409e9bb7f50d2c419bc2@o385026.ingest.sentry.io/5224869";
+
+  private readonly _projectRootPath: string;
+
   private readonly _log = debug("buidler:core:error-reporter:sentry");
 
   constructor(
@@ -27,10 +31,32 @@ export class SentryClient implements ErrorReporterClient {
     clientId: string,
     userType: UserType,
     userAgent: string,
-    buidlerVersion: string
+    buidlerVersion: string,
+    projectRootPath: string
   ) {
+    this._projectRootPath = projectRootPath;
+    const scrubRootPath = this._scrubBasePaths.bind(this);
+    const log = this._log;
+
     // init Sentry client
-    Sentry.init({ dsn: this._SENTRY_DSN });
+    Sentry.init({
+      dsn: this._SENTRY_DSN,
+      beforeBreadcrumb(breadcrumb, hint) {
+        if (breadcrumb.category === "console") {
+          // ignore user console logs breadcrumb from reports
+          return null;
+        }
+        return breadcrumb;
+      },
+      beforeSend(event, hint) {
+        try {
+          scrubRootPath(event, hint);
+        } catch (error) {
+          log("scrub root path from event failed, sending as is", error);
+        }
+        return event;
+      },
+    });
 
     // setup metadata to be included in all reports by default
     Sentry.configureScope((scope) => {
@@ -43,7 +69,8 @@ export class SentryClient implements ErrorReporterClient {
       scope.setExtra("platform", os.platform());
       scope.setExtra("os release", os.release());
     });
-    // is enabled if Sentry DSN is not set as empty string
+
+    // client is enabled if 'dsn' was not set as "" (empty string)
     const enabled = this._SENTRY_DSN.length > 0;
     this._log(`Sentry client init (enabled: ${enabled})`);
   }
@@ -123,5 +150,73 @@ export class SentryClient implements ErrorReporterClient {
         error.message || error
       );
     }
+  }
+
+  private _scrubBasePaths(event: Sentry.Event, hint?: Sentry.EventHint) {
+    // scrub path from event.stacktrace frames
+    if (
+      event.stacktrace !== undefined &&
+      event.stacktrace.frames !== undefined
+    ) {
+      this._scrubRootPathFromFrames(event.stacktrace.frames);
+    }
+
+    // scrub path from event.exception(s) frames
+    if (event.exception !== undefined && event.exception.values !== undefined) {
+      // gather all exceptions frames
+      const frames = [];
+      for (const exception of event.exception.values) {
+        if (
+          exception.stacktrace !== undefined &&
+          exception.stacktrace.frames !== undefined
+        ) {
+          for (const frame of exception.stacktrace.frames) {
+            frames.push(frame);
+          }
+        }
+      }
+      this._scrubRootPathFromFrames(frames);
+    }
+
+    // scrub root path from hint.originalException, if any
+    if (hint === undefined) {
+      return;
+    }
+    const originalException =
+      hint.originalException !== undefined &&
+      (hint.originalException instanceof Error ||
+        typeof hint.originalException === "string")
+        ? hint.originalException
+        : undefined;
+
+    if (originalException === undefined) {
+      return;
+    }
+    // scrupb root path from originalException object
+    if (typeof originalException === "string") {
+      hint.originalException = this._scrubRootPath(originalException);
+    } else {
+      originalException.stack = this._scrubRootPath(
+        originalException.stack as string
+      );
+    }
+  }
+
+  private _scrubRootPath(path: string) {
+    return path.replace(this._projectRootPath, "...");
+  }
+
+  private _scrubRootPathFromFrames(frames: Sentry.StackFrame[]) {
+    frames.forEach((frame: Sentry.StackFrame) => {
+      if (frame.abs_path !== undefined) {
+        frame.abs_path = this._scrubRootPath(frame.abs_path);
+      }
+      if (frame.module !== undefined) {
+        frame.module = this._scrubRootPath(frame.module);
+      }
+      if (frame.filename !== undefined) {
+        frame.filename = this._scrubRootPath(frame.filename);
+      }
+    });
   }
 }

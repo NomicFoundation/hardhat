@@ -66,6 +66,7 @@ interface ClientConfig {
   userAgent: string;
   userType: "CI" | "Developer";
   projectId: string;
+  projectRootPath: string;
 }
 
 /**
@@ -128,6 +129,7 @@ export class ErrorReporter implements ErrorReporterInterface {
       userType,
       userAgent,
       buidlerVersion,
+      projectRootPath: rootPath,
     };
 
     this._instance = inBackground
@@ -181,7 +183,8 @@ export class ErrorReporter implements ErrorReporterInterface {
       clientConfig.clientId,
       clientConfig.userType,
       clientConfig.userAgent,
-      clientConfig.buidlerVersion
+      clientConfig.buidlerVersion,
+      clientConfig.projectRootPath
     );
   }
 
