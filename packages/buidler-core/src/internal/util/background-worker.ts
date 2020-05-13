@@ -1,13 +1,11 @@
-import debug from "debug";
-import { deserializeError, serializeError } from "serialize-error";
-
-import { toMiddleSnakeCase } from "./background-runner";
-
 /**
  * Background worker to run a proxied singleton instance
  * independently of the parent process.
  */
+import debug from "debug";
+import { deserializeError, serializeError } from "serialize-error";
 
+import { toMiddleSnakeCase } from "./background-runner";
 import Signals = NodeJS.Signals;
 
 /**
@@ -110,9 +108,12 @@ async function processSend(message: any): Promise<void> {
     );
   }
   await new Promise((resolve, reject) => {
-    process.send!(message, (error: Error) =>
-      error !== undefined ? reject(error) : resolve()
-    );
+    process.send!(message, (error?: Error) => {
+      if (error !== undefined && error !== null) {
+        return reject(error);
+      }
+      return resolve();
+    });
   });
 }
 
@@ -426,7 +427,7 @@ async function runMethod(
 function _getAllMethodNames(obj: any) {
   const methods = new Set();
   obj = Reflect.getPrototypeOf(obj);
-  while (obj !== undefined) {
+  while (obj !== null) {
     const keys = Reflect.ownKeys(obj);
     keys.forEach((k) => methods.add(k));
     obj = Reflect.getPrototypeOf(obj);

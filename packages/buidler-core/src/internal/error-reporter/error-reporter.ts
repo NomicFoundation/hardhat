@@ -150,8 +150,11 @@ export class ErrorReporter implements ErrorReporterInterface {
 
   public static isEnabled(
     errorReporter: ErrorReporterInterface
-  ): errorReporter is ErrorReporter {
-    return errorReporter instanceof ErrorReporter;
+  ): errorReporter is ErrorReporter | ProxiedErrorReporter {
+    return (
+      errorReporter instanceof ErrorReporter ||
+      errorReporter instanceof ProxiedErrorReporter
+    );
   }
 
   private static _instance: ErrorReporterInterface;
@@ -258,9 +261,12 @@ export class ProxiedErrorReporter implements ErrorReporterInterface {
 
   private _sendPromise(message: any): Promise<void> {
     return new Promise((resolve, reject) => {
-      this._subject.send(message, (error) =>
-        error !== undefined ? reject(error) : resolve()
-      );
+      this._subject.send(message, (error?: Error) => {
+        if (error !== undefined && error !== null) {
+          return reject(error);
+        }
+        return resolve();
+      });
     });
   }
 }

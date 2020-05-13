@@ -12,6 +12,7 @@ import {
   ProxiedErrorReporter,
 } from "../../../src/internal/error-reporter/error-reporter";
 import * as analyticsUtils from "../../../src/internal/util/analytics";
+import * as ciDetection from "../../../src/internal/util/ci-detection";
 
 function mockDependencies() {
   const originalSentryDsn = process.env.SENTRY_DSN;
@@ -25,7 +26,14 @@ function mockDependencies() {
   // mock isLocalDev() to return false, to ensure errorReporter instance gets enabled for tests
   const isLocalDev = sinon.stub(analyticsUtils, "isLocalDev").returns(false);
 
+  // mock isRunningOnCiServer to false, for CI tests.
+  // Note that there should still not be side effects as SentryClient was also stubbed/disabled
+  const isRunningOnCiServerStub = sinon
+    .stub(ciDetection, "isRunningOnCiServer")
+    .returns(false);
+
   return () => {
+    isRunningOnCiServerStub.restore();
     sentryStub.restore();
     isLocalDev.restore();
     process.env.SENTRY_DSN = originalSentryDsn;
@@ -152,20 +160,46 @@ describe("ErrorReporter", () => {
     await ErrorReporter.setup(__dirname, true, true);
     const testError = new Error("test");
 
-    // retrieve child process instance
-    const childProcess = (ErrorReporter.getInstance() as ProxiedErrorReporter)[
-      // tslint:disable-next-line:no-string-literal
-      "_subject"
-    ];
+    // verify errorReporter instance has been setup in backgronud
+    const errorReporter = ErrorReporter.getInstance();
+    if (!(errorReporter instanceof ProxiedErrorReporter)) {
+      expect.fail(
+        errorReporter.constructor.name,
+        ProxiedErrorReporter.name,
+        "should be instance of ProxiedErrorReporter"
+      );
+      return;
+    }
 
-    const waitForSuccessResponse = new Promise((resolve: (obj: any) => void) =>
-      childProcess.on("message", (response: any) => {
-        if (response.status !== undefined && response.status === "success") {
-          resolve(response);
-        }
-      })
+    // retrieve child process instance
+    const childProcess =
+      errorReporter[
+        // tslint:disable-next-line:no-string-literal
+        "_subject"
+      ];
+
+    const waitForSuccessResponse = new Promise(
+      (resolve: (obj: any) => void, reject: (error?: Error) => void) => {
+        childProcess.on("message", (response: any) => {
+          if (response.status !== undefined && response.status === "success") {
+            resolve(response);
+          }
+        });
+
+        // set a timeout to reject promise in case something went wrong with the child process
+        const timeout = 5000;
+        setTimeout(
+          () =>
+            reject(
+              // tslint:disable-next-line only-buidler-error
+              new Error(`waitForSuccessResponse timeout after ${timeout}ms`)
+            ),
+          timeout
+        );
+      }
     );
-    await ErrorReporter.getInstance().sendErrorReport(testError);
+
+    await errorReporter.sendErrorReport(testError);
     const result = await waitForSuccessResponse;
 
     expect(result).to.exist;

@@ -26,8 +26,6 @@ import { createProject } from "./project-creation";
 
 const log = debug("buidler:core:cli");
 
-const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
-
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
@@ -158,11 +156,8 @@ async function main() {
 
     ctx.setBuidlerRuntimeEnvironment(env);
 
-    const timestampBeforeRun = new Date().getTime();
-
     await env.run(taskName, taskArguments);
 
-    const timestampAfterRun = new Date().getTime();
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
     await ErrorReporter.getInstance().sendErrorReport(error);
