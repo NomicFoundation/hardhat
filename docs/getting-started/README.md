@@ -181,7 +181,7 @@ Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
 ### Using Buidler EVM as a node
-Buidler EVM can be run as a server or testing node. To do this, you just need to run
+Buidler EVM can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Buidler EVM in this way, run:
 
 ```
 npx buidler node
