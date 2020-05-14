@@ -1,12 +1,12 @@
 ## Overview
 
-Buidler is a task runner that facilitates building Ethereum smart contracts. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
+Buidler is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task.
+Buidler comes built-in with **Buidler EVM**, a local Ethereum network designed for development. Buidler will always spin up an instance of **Buidler EVM** on startup by default allowing you to deploy your contracts, run your tests and debug your code.
 
-The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
+Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable. 
 
-Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
+Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overridden.
 
 ## Installation
 
@@ -180,25 +180,23 @@ Deploying a Greeter with greeting: Hello, Buidler!
 Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-### Using Buidler EVM as a node
-Buidler EVM can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Buidler EVM in this way, run:
+### Connecting Buidler EVM to `localhost`
+Buidler will always spin up an instance of **Buidler EVM** on startup by default, but it's also possible to run Buidler EVM in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
 
-```
-npx buidler node
-```
-
-It will start Buidler EVM, and expose it as a JSON-RPC and WebSocket server.
-
-Then, just connect your wallet or application to `http://localhost:8545`.
-
-If you want to connect Buidler to this node, you only need to run it using `--network localhost`. To try this, start a node with `npx buidler node`. 
+To run Buidler EVM in this way, run `npx buidler node`:
 
 ```
 $ npx buidler node
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 ```
 
-Open the project's root folder on a new terminal and re-run the sample script using the `network` option:
+It will start Buidler EVM, and expose it as a JSON-RPC and WebSocket server.
+
+Then, just connect your wallet or application to `http://localhost:8545`.
+
+If you want to connect Buidler to this node, you only need to run it using `--network localhost` or set `defaultNetwork` to `localhost` in your `buidler.config.js`. This will override the default network `buidlerevm`.
+
+To try this, start a node with `npx buidler node` and re-run the sample script using the `network` option:
 
 ```
 npx buidler run scripts/sample-script.js --network localhost
