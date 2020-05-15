@@ -4,7 +4,7 @@
       "file": "c.sol",
       "contract": "C",
 			"imports": [
-				"/../../../../../../../console.sol"
+				"/../../../../../../../../console.sol"
 			]
     },
     {
