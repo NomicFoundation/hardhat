@@ -9,11 +9,15 @@ contract C {
   }
 
   function log() public {
-    MyStruct memory ms = getStruct();
-    console.log(ms.a);
+    MyStruct[] memory ms = getStructs();
+    console.log(ms[0].a);
   }
 
-  function getStruct() public returns (MyStruct memory) {
-    return MyStruct(0x0000000000000000000000000000000000000001);
+  function getStructs() public returns (MyStruct[] memory) {
+    MyStruct[] memory structs = new MyStruct[](2);
+    structs[0] = MyStruct(0x0000000000000000000000000000000000000001);
+    structs[1] = MyStruct(0x0000000000000000000000000000000000000002);
+
+    return structs;
   }
 }
