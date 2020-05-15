@@ -147,68 +147,70 @@ function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
         }
       });
 
-      describe("With optimizations (1 run)", function () {
-        const func = async function () {
-          await runTest(dirPath, testDefinition, sources, {
-            ...compilerOptions,
-            withOptimizations: true,
-            runs: 1,
-          });
-        };
+      if (process.env.BUIDLER_EVM_TESTS_WITH_OPTIMIZATIONS !== undefined) {
+        describe("With optimizations (1 run)", function () {
+          const func = async function () {
+            await runTest(dirPath, testDefinition, sources, {
+              ...compilerOptions,
+              withOptimizations: true,
+              runs: 1,
+            });
+          };
 
-        if (
-          (testDefinition.skip !== undefined && testDefinition.skip) ||
-          solcVersionDoesntMatch
-        ) {
-          it.skip(desc, func);
-        } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, func);
-        } else {
-          it(desc, func);
-        }
-      });
+          if (
+            (testDefinition.skip !== undefined && testDefinition.skip) ||
+            solcVersionDoesntMatch
+          ) {
+            it.skip(desc, func);
+          } else if (testDefinition.only !== undefined && testDefinition.only) {
+            it.only(desc, func);
+          } else {
+            it(desc, func);
+          }
+        });
 
-      describe("With optimizations (200 runs)", function () {
-        const func = async function () {
-          await runTest(dirPath, testDefinition, sources, {
-            ...compilerOptions,
-            withOptimizations: true,
-            runs: 200,
-          });
-        };
+        describe("With optimizations (200 runs)", function () {
+          const func = async function () {
+            await runTest(dirPath, testDefinition, sources, {
+              ...compilerOptions,
+              withOptimizations: true,
+              runs: 200,
+            });
+          };
 
-        if (
-          (testDefinition.skip !== undefined && testDefinition.skip) ||
-          solcVersionDoesntMatch
-        ) {
-          it.skip(desc, func);
-        } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, func);
-        } else {
-          it(desc, func);
-        }
-      });
+          if (
+            (testDefinition.skip !== undefined && testDefinition.skip) ||
+            solcVersionDoesntMatch
+          ) {
+            it.skip(desc, func);
+          } else if (testDefinition.only !== undefined && testDefinition.only) {
+            it.only(desc, func);
+          } else {
+            it(desc, func);
+          }
+        });
 
-      describe("With optimizations (10000 runs)", function () {
-        const func = async function () {
-          await runTest(dirPath, testDefinition, sources, {
-            ...compilerOptions,
-            withOptimizations: true,
-            runs: 10000,
-          });
-        };
+        describe("With optimizations (10000 runs)", function () {
+          const func = async function () {
+            await runTest(dirPath, testDefinition, sources, {
+              ...compilerOptions,
+              withOptimizations: true,
+              runs: 10000,
+            });
+          };
 
-        if (
-          (testDefinition.skip !== undefined && testDefinition.skip) ||
-          solcVersionDoesntMatch
-        ) {
-          it.skip(desc, func);
-        } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, func);
-        } else {
-          it(desc, func);
-        }
-      });
+          if (
+            (testDefinition.skip !== undefined && testDefinition.skip) ||
+            solcVersionDoesntMatch
+          ) {
+            it.skip(desc, func);
+          } else if (testDefinition.only !== undefined && testDefinition.only) {
+            it.only(desc, func);
+          } else {
+            it(desc, func);
+          }
+        });
+      }
     }
 
     for (const dir of dirs) {
