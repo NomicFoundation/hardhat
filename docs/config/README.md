@@ -40,7 +40,7 @@ they fail. Learn more about it [here](../buidler-evm).
 
 You can set the following fields on the `buidlerevm` config:
 
-- `chainId`: The chan id number used by Buidler EVM's blockchain. Default value: `31337`.
+- `chainId`: The chan id number used by Buidler EVM's blockchain. Default value: A random number ending in `1337`.
 
 - `from`: The address to use as default sender. If not present the first account of the Buidler EVM is used.
 

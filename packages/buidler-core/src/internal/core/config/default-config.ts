@@ -8,7 +8,7 @@ const DEFAULT_BUIDLER_NETWORK_CONFIG: BuidlerNetworkConfig = {
   blockGasLimit: 9500000,
   gas: 9500000,
   gasPrice: BUIDLEREVM_DEFAULT_GAS_PRICE,
-  chainId: 31337,
+  chainId: Math.round(Math.random() * 1000000) * 10000 + 1337,
   throwOnTransactionFailures: true,
   throwOnCallFailures: true,
   allowUnlimitedContractSize: false,
