@@ -2,7 +2,7 @@ const defaultSlugify = require("@vuepress/shared-utils/lib/slugify");
 const plugins = require("./plugins.js");
 const pluginsChildren = [];
 
-plugins.forEach(plugin => {
+plugins.forEach((plugin) => {
   let readmePath =
     "/plugins/" + plugin.name.replace("/", "-").replace(/^@/, "") + ".md";
 
@@ -21,7 +21,7 @@ module.exports = {
       { text: "Plugins", link: "/plugins/" },
       { text: "Documentation", link: "/getting-started/" },
       { text: "Tutorial", link: "/tutorial/" },
-      { text: "API", link: "/api/" }
+      { text: "API", link: "/api/" },
     ],
     lastUpdated: true,
     repo: "nomiclabs/buidler",
@@ -32,25 +32,53 @@ module.exports = {
     sidebarDepth: 1,
     displayAllHeaders: true,
     sidebar: {
-      '/tutorial/': [
+      "/tutorial/": [
         {
           title: "Tutorial",
           collapsable: false,
           depth: 1,
           children: [
             ["", "1. Overview", 1],
-            ["setting-up-the-environment.md", "2. Setting up the environment", 0],
-            ["creating-a-new-buidler-project.md", "3. Creating a new Buidler project", 0],
-            ["writing-and-compiling-contracts.md", "4. Writing and compiling contracts", 0],
+            [
+              "setting-up-the-environment.md",
+              "2. Setting up the environment",
+              0,
+            ],
+            [
+              "creating-a-new-buidler-project.md",
+              "3. Creating a new Buidler project",
+              0,
+            ],
+            [
+              "writing-and-compiling-contracts.md",
+              "4. Writing and compiling contracts",
+              0,
+            ],
             ["testing-contracts.md", "5. Testing contracts", 0],
-            ["debugging-with-buidler-evm.md", "6. Debugging with Buidler EVM", 0],
-            ["deploying-to-a-live-network.md", "7. Deploying to a live network", 0],
-            ["hackathon-boilerplate-project.md", "8. Hackathon Boilerplate Project", 0],
-            ["final-thoughts.md", "9. Final thoughts", 0],
-          ]
+            [
+              "debugging-with-buidler-evm.md",
+              "6. Debugging with Buidler EVM",
+              0,
+            ],
+
+
+            ["7.md", "7. Connecting to the browser", 0],
+            ["8.md", "8. Setting up the front-end", 0],
+            ["9.md", "9. Deploying to localhost", 0],
+            ["10.md", "10. Writing the components", 0],
+            ["11.md", "11. Connecting the components", 0],
+            [
+              "12.md",
+              "12. Deploying to a live network",
+              0,
+            ],
+
+
+            ["final-thoughts.md", "13. Final thoughts", 0],
+          ],
         },
       ],
-      '/': [
+      "/": [
         ["/getting-started/", "Getting Started", 1],
         ["/config/", "Configuration", 0],
         ["/buidler-evm/", "Buidler EVM", 0],
@@ -71,8 +99,8 @@ module.exports = {
             ["/guides/create-task.md", "Creating a task", 0],
             ["/guides/ganache-tests.md", "Running tests with Ganache", 0],
             ["/guides/vscode-tests.md", "Running tests on VS Code", 0],
-            ["/guides/typescript.md", "TypeScript support", 0]
-          ]
+            ["/guides/typescript.md", "TypeScript support", 0],
+          ],
         },
         {
           title: "Advanced",
@@ -81,10 +109,10 @@ module.exports = {
             [
               "/advanced/buidler-runtime-environment.html",
               "Buidler Runtime Environment (BRE)",
-              0
+              0,
             ],
-            ["/advanced/building-plugins.html", "Building plugins", 0]
-          ]
+            ["/advanced/building-plugins.html", "Building plugins", 0],
+          ],
         },
         {
           title: "Troubleshooting",
@@ -92,21 +120,21 @@ module.exports = {
           children: [
             ["/troubleshooting/verbose-logging.html", "Verbose logging", 0],
             ["/troubleshooting/common-problems.html", "Common problems", 0],
-            ["/errors/", "Error codes", 0]
-          ]
+            ["/errors/", "Error codes", 0],
+          ],
         },
         {
           title: "Plugins",
           collapsable: false,
-          children: pluginsChildren
-        }
-      ]
-    }
+          children: pluginsChildren,
+        },
+      ],
+    },
   },
   head: [
     [
       "meta",
-      { name: "Cache-Control", content: "public, max-age=0, must-revalidate" }
+      { name: "Cache-Control", content: "public, max-age=0, must-revalidate" },
     ],
 
     ["link", { rel: "shortcut icon", href: "/favicon.ico" }],
@@ -117,8 +145,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "196x196",
-        href: "/favicon-192.png"
-      }
+        href: "/favicon-192.png",
+      },
     ],
     [
       "link",
@@ -126,8 +154,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "160x160",
-        href: "/favicon-160.png"
-      }
+        href: "/favicon-160.png",
+      },
     ],
     [
       "link",
@@ -135,8 +163,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "96x96",
-        href: "/favicon-96.png"
-      }
+        href: "/favicon-96.png",
+      },
     ],
     [
       "link",
@@ -144,8 +172,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "64x64",
-        href: "/favicon-64.png"
-      }
+        href: "/favicon-64.png",
+      },
     ],
     [
       "link",
@@ -153,8 +181,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "32x32",
-        href: "/favicon-32.png"
-      }
+        href: "/favicon-32.png",
+      },
     ],
     [
       "link",
@@ -162,48 +190,48 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "16x16",
-        href: "/favicon-16.png"
-      }
+        href: "/favicon-16.png",
+      },
     ],
     ["link", { rel: "apple-touch-icon", href: "/favicon-57.png" }],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "114x114", href: "/favicon-114.png" }
+      { rel: "apple-touch-icon", sizes: "114x114", href: "/favicon-114.png" },
     ],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "72x72", href: "/favicon-72.png" }
+      { rel: "apple-touch-icon", sizes: "72x72", href: "/favicon-72.png" },
     ],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "144x144", href: "/favicon-144.png" }
+      { rel: "apple-touch-icon", sizes: "144x144", href: "/favicon-144.png" },
     ],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "60x60", href: "/favicon-60.png" }
+      { rel: "apple-touch-icon", sizes: "60x60", href: "/favicon-60.png" },
     ],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "120x120", href: "/favicon-120.png" }
+      { rel: "apple-touch-icon", sizes: "120x120", href: "/favicon-120.png" },
     ],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "76x76", href: "/favicon-76.png" }
+      { rel: "apple-touch-icon", sizes: "76x76", href: "/favicon-76.png" },
     ],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "152x152", href: "/favicon-152.png" }
+      { rel: "apple-touch-icon", sizes: "152x152", href: "/favicon-152.png" },
     ],
     [
       "link",
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/favicon-180.png" }
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/favicon-180.png" },
     ],
     ["meta", { name: "msapplication-TileColor", content: "#FFFFFF" }],
     ["meta", { name: "msapplication-TileImage", content: "/favicon-144.png" }],
-    ["meta", { name: "msapplication-config", content: "/browserconfig.xml" }]
+    ["meta", { name: "msapplication-config", content: "/browserconfig.xml" }],
   ],
   markdown: {
-    slugify: title => {
+    slugify: (title) => {
       const errorTitle = /(^BDLR\d+):/;
 
       const match = errorTitle.exec(title);
@@ -213,16 +241,19 @@ module.exports = {
       }
 
       return defaultSlugify(title);
-    }
+    },
   },
   plugins: [
-    ['@vuepress/google-analytics', { ga: "UA-117668706-2" }],
-    ['vuepress-plugin-container', {
-      type: 'tip',
-      defaultTitle: {
-        '/': 'TIP',
-        '/zh/': '提示',
+    ["@vuepress/google-analytics", { ga: "UA-117668706-2" }],
+    [
+      "vuepress-plugin-container",
+      {
+        type: "tip",
+        defaultTitle: {
+          "/": "TIP",
+          "/zh/": "提示",
+        },
       },
-    }]
-  ]
+    ],
+  ],
 };

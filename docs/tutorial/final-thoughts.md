@@ -1,6 +1,6 @@
-# 9. Final thoughts
+# 13. Final thoughts
 
-Congratulations on finishing the tutorial!
+Congratulations on finishing the tutorial! 
 
 Here are some links you might find useful throughout your journey:
 
