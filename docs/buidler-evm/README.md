@@ -22,7 +22,7 @@ Buidler comes built-in with Buidler EVM, a local Ethereum network designed for d
 
 ## Connecting to Buidler EVM from wallets and other software
 
-Buidler EVM can be run as a server or testing node. To do this, you just need to run
+Buidler EVM can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Buidler EVM in this way, run:
 
 ```
 npx buidler node

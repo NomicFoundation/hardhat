@@ -1,12 +1,14 @@
 ## Overview
 
-Buidler is a task runner that facilitates building Ethereum smart contracts. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
+Buidler is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task.
+Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable. 
 
 The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
-Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
+Buidler comes built-in with Buidler EVM, a local Ethereum network designed for development.
+
+Overall the tool is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overridden.
 
 ## Installation
 
@@ -32,7 +34,7 @@ If you choose to install Buidler globally, you have to do the same for its plugi
 
 This guide will explore the basics of creating a Buidler project.
 
-A barebones installation with no plugins allows you to compile your Solidity code, install plugins and create your own tasks.
+A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run a local development network you can deploy your contracts to (Buidler EVM).
 
 To create your Buidler project run `npx buidler` in your project folder:
 
@@ -47,7 +49,7 @@ $ npx buidler
 888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888
 88888P"   "Y88888 888  "Y88888 888  "Y8888  888
 
-👷 Welcome to Buidler v1.0.0 👷‍‍
+👷 Welcome to Buidler v1.3.3 👷‍‍
 
 ? What do you want to do? …
 ❯ Create a sample project
@@ -69,30 +71,33 @@ To first get a quick sense of what's available and what's going on, run `npx bui
 
 ```
 $ npx buidler
-Buidler version 1.0.0
+Buidler version 1.3.3
 
 Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config              A Buidler config file.
-  --emoji               Use emoji in messages.
-  --help                Shows this message.
-  --network             The network to connect to. (default: "buidlerevm")
-  --show-stack-traces   Show stack traces.
-  --version             Shows buidler's version.
+  --config            A Buidler config file. 
+  --emoji             Use emoji in messages. 
+  --help              Shows this message, or a task's help if its name is provided 
+  --max-memory        The maximum amount of memory that Buidler can use. 
+  --network           The network to connect to. 
+  --show-stack-traces Show stack traces. 
+  --verbose           Enables Buidler verbose logging 
+  --version           Shows buidler's version. 
 
 
 AVAILABLE TASKS:
 
-  accounts      Prints a list of the available accounts
-  clean         Clears the cache and deletes all artifacts
-  compile       Compiles the entire project, building all artifacts
-  console       Opens a buidler console
-  flatten       Flattens and prints all contracts and their dependencies
-  help          Prints this message
-  run           Runs a user-defined script after compiling the project
-  test          Runs mocha tests
+  accounts  Prints the list of accounts
+  clean     Clears the cache and deletes all artifacts
+  compile   Compiles the entire project, building all artifacts
+  console   Opens a buidler console
+  flatten   Flattens and prints all contracts and their dependencies
+  help      Prints this message
+  node      Starts a JSON-RPC server on top of Buidler EVM
+  run       Runs a user-defined script after compiling the project
+  test      Runs mocha tests
 
 To get help for a specific task run: npx buidler help [task]
 ```
@@ -171,10 +176,35 @@ Inside `scripts/` you will find `sample-script.js` with the following code:
 Run it with `npx buidler run scripts/sample-script.js`:
 
 ```
-$ npx buidler run scripts/deploy.js
+$ npx buidler run scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
+Deploying a Greeter with greeting: Hello, Buidler!
 Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
+
+### Connecting a wallet or Dapp to Buidler EVM
+Buidler will always spin up an in-memory instance of Buidler EVM on startup by default, but it's also possible to run Buidler EVM in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
+
+To run Buidler EVM in this way, run `npx buidler node`:
+
+```
+$ npx buidler node
+Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
+```
+
+This will expose a JSON-RPC interface to Buidler EVM. To use it connect your wallet or application to `http://localhost:8545`.
+
+If you want to connect Buidler to this node to, for example, run a deployment script against it, you simply need to run it using `--network localhost`.
+
+To try this, start a node with `npx buidler node` and re-run the sample script using the `network` option:
+
+```
+npx buidler run scripts/sample-script.js --network localhost
+```
+
+
+---
+
 
 Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
