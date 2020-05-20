@@ -131,6 +131,31 @@ For these to be taken into account, you'll need to add the type extension files 
 ]
 ```
 
+Alternatively, if for whatever reason you can't import the type extension files from node_modules, you can use the [triple-slash directive](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html).
+
+Create a new file called `buidler-ethers.d.ts` and write this inside:
+
+```ts
+/// <reference types="@nomiclabs/buidler-ethers/src/type-extensions" />
+```
+
+Then, create another new file called `buidler-waffle.d.ts` and write this inside:
+
+```ts
+/// <reference types="@nomiclabs/buidler-waffle/src/type-extensions" />
+```
+
+You shouldn't need to modify your `tsconfig.json` this time, because these are `.d.ts` file and should be included by the compiler, but here's how you can do it, in case you have to:
+
+
+```json
+"files": [
+  "./buidler.config.ts",
+  "./buidler-ethers.d.ts",
+  "./buidler-waffle.d.ts",
+]
+```
+
 Plugins that include type extensions should have documentation detailing their existance and the path to the type extension file.
 
 ## Writing tests and scripts
