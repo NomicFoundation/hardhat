@@ -749,11 +749,20 @@ export class SolidityTracer {
       return false;
     }
 
-    return (
-      calledFunction === undefined &&
-      trace.bytecode.contract.fallback === undefined &&
-      trace.bytecode.contract.receive === undefined
-    );
+    // the called function exists in the contract
+    if (calledFunction !== undefined) {
+      return false;
+    }
+
+    // there's a receive function and no calldata
+    if (
+      trace.calldata.length === 0 &&
+      trace.bytecode.contract.receive !== undefined
+    ) {
+      return false;
+    }
+
+    return trace.bytecode.contract.fallback === undefined;
   }
 
   private _isFallbackNotPayableError(
