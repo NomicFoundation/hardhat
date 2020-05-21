@@ -24,7 +24,7 @@ contract C {
     }
   }
 
-  receive () external payable {
+  fallback () external payable {
     D d = new D();
     forward(address(d));
   }
