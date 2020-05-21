@@ -151,4 +151,22 @@ describe("config loading", function () {
       );
     });
   });
+
+  describe("Config loading results", function () {
+    describe("Complex types", function () {
+      useFixtureProject("project-with-complex-config-types");
+      useEnvironment();
+
+      it("Should support regexps", function () {
+        const config: any = this.env.config;
+        assert.instanceOf(config.regexp, RegExp);
+      });
+
+      it("Should support functions", function () {
+        const config: any = this.env.config;
+        assert.instanceOf(config.func, Function);
+        assert.equal(config.func(), 123);
+      });
+    });
+  });
 });
