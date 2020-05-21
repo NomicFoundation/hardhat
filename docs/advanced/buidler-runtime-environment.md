@@ -12,7 +12,7 @@ The BRE has a role of centralizing coordination across all Buidler components. T
 
 ## Using the BRE
 
-By default, the BRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider. You can find more information about [it in its API docs](/api/classes/environment.html).
+By default, the BRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider. You can find more information about it [in its API docs](/api/classes/environment.html).
 
 Plugins can extend the BRE. For example, [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers) adds a Ethers.js instance to it, making it available to tasks, tests and scripts.
 
@@ -26,7 +26,7 @@ Not everyone likes magic global variables, and Buidler doesn't force you to use 
 
 When writing tests or scripts, you can use `require("@nomiclabs/buidler")` to import the BRE. You can read more about this in [Accessing the BRE from outside a task](#accessing-the-bre-from-outside-a-task).
 
-You can import the config DSL explicitly when defining your tasks, and receive the BRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](#creating-your-own-tasks).
+You can import the config DSL explicitly when defining your tasks, and receive the BRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](https://buidler.dev/guides/create-task.html).
 
 ## Accessing the BRE from outside a task
 
