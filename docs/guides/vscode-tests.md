@@ -21,7 +21,7 @@ npm install --save-dev mocha
 ```
 
 Now, you can set a shortcut for this VS Code command `test-explorer.run-test-at-cursor`, and you
-will be to run the test you are currently editing with it.
+will be able to run the test you are currently editing with it.
 
 ## Running TypeScript test
 
