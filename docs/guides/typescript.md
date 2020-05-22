@@ -143,12 +143,13 @@ An example for tests:
 
 ```typescript
 import { ethers } from "@nomiclabs/buidler";
+import { Signer } from "ethers";
 
 describe("Token", function() {
-  let accounts: string[];
+  let accounts: Signer[];
 
   beforeEach(async function() {
-    accounts = await ethers.eth.getSigners();
+    accounts = await ethers.getSigners();
   });
 
   it("should do something right", async function() {
