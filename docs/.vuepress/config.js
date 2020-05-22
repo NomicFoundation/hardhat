@@ -61,18 +61,12 @@ module.exports = {
               0,
             ],
 
-
             ["7.md", "7. Connecting to the browser", 0],
             ["8.md", "8. Setting up the front-end", 0],
             ["9.md", "9. Deploying to localhost", 0],
             ["10.md", "10. Writing the components", 0],
             ["11.md", "11. Connecting the components", 0],
-            [
-              "12.md",
-              "12. Deploying to a live network",
-              0,
-            ],
-
+            ["12.md", "12. Deploying to a live network", 0],
 
             ["final-thoughts.md", "13. Final thoughts", 0],
           ],
@@ -245,15 +239,9 @@ module.exports = {
   },
   plugins: [
     ["@vuepress/google-analytics", { ga: "UA-117668706-2" }],
-    [
-      "vuepress-plugin-container",
-      {
-        type: "tip",
-        defaultTitle: {
-          "/": "TIP",
-          "/zh/": "提示",
-        },
-      },
-    ],
+    ["vuepress-plugin-container", { type: "tip" }],
+    ["vuepress-plugin-container", { type: "danger" }],
+    ["vuepress-plugin-container", { type: "warning" }],
+    ["vuepress-plugin-container", { type: "info" }],
   ],
 };
