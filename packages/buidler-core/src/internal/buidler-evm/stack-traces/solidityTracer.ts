@@ -263,8 +263,32 @@ export class SolidityTracer {
           inst.opcode === Opcode.REVERT ||
           inst.opcode === Opcode.INVALID
         ) {
+          // if the current instruction doesn't have a location, check if
+          // there's a instruction with a known location between the
+          // last jump and the current instruction
+          let lastInstructionWithLocation = inst;
+          if (
+            inst.location === undefined &&
+            stepIndex === trace.steps.length - 1
+          ) {
+            const lastLocationIndex = this._getLastInstructionWithValidLocationStepIndex(
+              trace,
+              true
+            );
+            if (lastLocationIndex !== undefined) {
+              const lastLocationStep = trace.steps[lastLocationIndex];
+              if (isEvmStep(lastLocationStep)) {
+                lastInstructionWithLocation = trace.bytecode.getInstruction(
+                  lastLocationStep.pc
+                );
+              }
+            }
+          }
+
+          const location = lastInstructionWithLocation.location;
+
           // Failures with invalid locations are handled later
-          if (inst.location === undefined) {
+          if (location === undefined) {
             continue;
           }
 
@@ -279,7 +303,7 @@ export class SolidityTracer {
           // calling this function.
           //
           // If it's a call trace, we already jumped into a function. But optimizations can happen.
-          const failingFunction = inst.location.getContainingFunction();
+          const failingFunction = location.getContainingFunction();
 
           // If the failure is in a modifier we add an entry with the function/constructor
           if (
@@ -295,7 +319,7 @@ export class SolidityTracer {
             stacktrace.push(
               this._instructionWithinFunctionToRevertStackTraceEntry(
                 trace,
-                inst
+                lastInstructionWithLocation
               )
             );
           } else if (isDecodedCallTrace(trace)) {
@@ -1089,7 +1113,8 @@ export class SolidityTracer {
   }
 
   private _getLastInstructionWithValidLocationStepIndex(
-    trace: DecodedEvmMessageTrace
+    trace: DecodedEvmMessageTrace,
+    stopOnLastJump = false
   ): number | undefined {
     for (let i = trace.steps.length - 1; i >= 0; i--) {
       const step = trace.steps[i];
@@ -1099,8 +1124,13 @@ export class SolidityTracer {
       }
 
       const inst = trace.bytecode.getInstruction(step.pc);
+
       if (inst.location !== undefined) {
         return i;
+      }
+
+      if (stopOnLastJump && inst.opcode === Opcode.JUMPI) {
+        return undefined;
       }
     }
 
