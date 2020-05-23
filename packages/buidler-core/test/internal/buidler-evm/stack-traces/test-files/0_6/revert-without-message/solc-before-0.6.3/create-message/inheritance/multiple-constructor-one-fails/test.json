@@ -1,0 +1,21 @@
+{
+  "solc": "<0.6.3",
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+      "params": [false],
+      "stackTrace": [
+        {
+          "type": "REVERT_ERROR",
+          "sourceReference": {
+            "contract": "C",
+            "file": "d.sol",
+            "function": "constructor",
+            "line": 10
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import "./../../../../../../../../console.sol";
 contract D {
   function f() public {
     console.log("D");
-    revert();
+    revert("");
   }
 }
 

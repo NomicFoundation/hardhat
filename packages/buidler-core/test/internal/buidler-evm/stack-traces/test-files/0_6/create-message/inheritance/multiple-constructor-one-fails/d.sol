@@ -7,6 +7,6 @@ contract D {
 
 contract E {
     constructor(bool b) public {
-        require(b);
+        require(b, "");
     }
 }

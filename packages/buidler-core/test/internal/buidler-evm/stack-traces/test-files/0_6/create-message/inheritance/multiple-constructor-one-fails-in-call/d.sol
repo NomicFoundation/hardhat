@@ -11,6 +11,6 @@ contract E {
     }
 
     function fail(bool b) public {
-        require(b);
+        require(b, "");
     }
 }

@@ -5,7 +5,7 @@ contract C {
   function test() public {
 
 
-    revert();
+    revert("");
   }
 
 }

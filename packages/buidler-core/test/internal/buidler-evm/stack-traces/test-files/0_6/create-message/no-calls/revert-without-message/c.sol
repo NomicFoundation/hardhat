@@ -5,7 +5,7 @@ contract C {
   constructor() public {
 
 
-    revert();
+    revert("");
   }
 
 }
