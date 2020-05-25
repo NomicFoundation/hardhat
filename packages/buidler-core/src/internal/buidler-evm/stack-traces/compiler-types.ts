@@ -49,4 +49,7 @@ export interface CompilerOutputBytecode {
       [libraryName: string]: Array<{ start: 0; length: 20 }>;
     };
   };
+  immutableReferences?: {
+    [key: string]: Array<{ start: number; length: number }>;
+  };
 }
