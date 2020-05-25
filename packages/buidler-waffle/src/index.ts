@@ -3,12 +3,6 @@ import { lazyObject } from "@nomiclabs/buidler/plugins";
 import path from "path";
 
 function initializeWaffleMatchers(projectRoot: string) {
-  const wafflePath = require.resolve("ethereum-waffle");
-  const waffleChaiPath = require.resolve("@ethereum-waffle/chai", {
-    paths: [wafflePath],
-  });
-  const { waffleChai } = require(waffleChaiPath);
-
   try {
     let chaiPath = require.resolve("chai");
 
@@ -21,6 +15,7 @@ function initializeWaffleMatchers(projectRoot: string) {
     }
 
     const chai = require(chaiPath);
+    const { waffleChai } = require("./waffle-chai");
 
     chai.use(waffleChai);
   } catch (error) {
