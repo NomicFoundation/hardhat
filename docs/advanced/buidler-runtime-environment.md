@@ -65,6 +65,6 @@ extendEnvironment(bre => {
   bre.Web3 = Web3;
 
   // bre.network.provider is an EIP1193-compatible provider.
-  bre.web3 = new Web3(new BackwardsCompatibilityProviderAdapter(bre.network.provider));
+  bre.web3 = new Web3(new Web3HTTPProviderAdapter(bre.network.provider));
 });
 ```
