@@ -9,10 +9,11 @@ import path from "path";
 import semver from "semver";
 import util from "util";
 
-import {
+import type {
   BoundExperimentalBuidlerEVMMessageTraceHook,
-  EthereumProvider,
+  EIP1193Provider,
   ProjectPaths,
+  RequestArguments,
 } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
@@ -41,7 +42,7 @@ const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);
 // tslint:disable only-buidler-error
 
 export class BuidlerEVMProvider extends EventEmitter
-  implements EthereumProvider {
+  implements EIP1193Provider {
   private _common?: Common;
   private _node?: BuidlerNode;
   private _ethModule?: EthModule;
@@ -74,15 +75,15 @@ export class BuidlerEVMProvider extends EventEmitter
     super();
   }
 
-  public async send(method: string, params: any[] = []): Promise<any> {
+  public async request(args: RequestArguments): Promise<unknown> {
     const release = await this._mutex.acquire();
 
     try {
-      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(method)) {
-        return await this._sendWithLogging(method, params);
+      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(args.method)) {
+        return await this._sendWithLogging(args.method, args.params as any[]);
       }
 
-      return await this._send(method, params);
+      return await this._send(args.method, args.params as any[]);
     } finally {
       release();
     }

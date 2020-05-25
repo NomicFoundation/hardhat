@@ -1,34 +1,19 @@
-import { IEthereumProvider } from "../../../types";
+import { EIP1193Provider, RequestArguments } from "../../../types";
+import { EventEmitterWrapper } from "../../util/event-emitter";
 
-export function wrapSend(
-  provider: IEthereumProvider,
-  sendWrapper: (method: string, params: any[]) => Promise<any>
-): IEthereumProvider {
-  const cloningSendWrapper = (method: string, params: any[] = []) => {
-    const cloneDeep = require("lodash/cloneDeep");
-    return sendWrapper(method, cloneDeep(params));
-  };
+export abstract class ProviderWrapper extends EventEmitterWrapper
+  implements EIP1193Provider {
+  constructor(protected readonly _wrappedProvider: EIP1193Provider) {
+    super(_wrappedProvider);
+  }
 
-  return new Proxy(provider, {
-    get(target: IEthereumProvider, p: PropertyKey, receiver: any): any {
-      if (p === "send") {
-        return cloningSendWrapper;
-      }
+  public abstract async request(args: RequestArguments): Promise<unknown>;
 
-      const originalValue = Reflect.get(target, p, receiver);
+  protected _getParams<ParamsT = any[]>(args: RequestArguments): ParamsT | [] {
+    if (args.params === undefined) {
+      return [];
+    }
 
-      if (originalValue instanceof Function) {
-        return (...args: any[]) => {
-          const returned = Reflect.apply(originalValue, target, args);
-          if (returned !== target) {
-            return returned;
-          }
-
-          return receiver;
-        };
-      }
-
-      return originalValue;
-    },
-  });
+    return args.params as ParamsT;
+  }
 }

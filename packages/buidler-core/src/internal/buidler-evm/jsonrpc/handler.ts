@@ -3,7 +3,7 @@ import { IncomingMessage, ServerResponse } from "http";
 import getRawBody from "raw-body";
 import WebSocket from "ws";
 
-import { EthereumProvider } from "../../../types";
+import { EIP1193Provider, EthereumProvider } from "../../../types";
 import {
   isSuccessfulJsonResponse,
   isValidJsonRequest,
@@ -23,11 +23,7 @@ import {
 const log = debug("buidler:core:buidler-evm:jsonrpc");
 
 export default class JsonRpcHandler {
-  private _provider: EthereumProvider;
-
-  constructor(provider: EthereumProvider) {
-    this._provider = provider;
-  }
+  constructor(private readonly _provider: EIP1193Provider) {}
 
   public handleHttp = async (req: IncomingMessage, res: ServerResponse) => {
     this._setCorsHeaders(res);
@@ -132,7 +128,10 @@ export default class JsonRpcHandler {
       // Clear any active subscriptions for the closed websocket connection.
       isClosed = true;
       subscriptions.forEach(async (subscriptionId) => {
-        await this._provider.send("eth_unsubscribe", [subscriptionId]);
+        await this._provider.request({
+          method: "eth_unsubscribe",
+          params: [subscriptionId],
+        });
       });
     });
   };
@@ -188,7 +187,10 @@ export default class JsonRpcHandler {
   private _handleRequest = async (
     req: JsonRpcRequest
   ): Promise<JsonRpcResponse> => {
-    const result = await this._provider.send(req.method, req.params);
+    const result = await this._provider.request({
+      method: req.method,
+      params: req.params,
+    });
 
     return {
       jsonrpc: "2.0",

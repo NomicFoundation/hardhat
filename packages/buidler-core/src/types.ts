@@ -314,8 +314,40 @@ export type ActionType<ArgsT extends TaskArguments> = (
 
 // Network types
 
-export interface EthereumProvider extends EventEmitter {
+export interface RequestArguments {
+  method: string;
+  params?: unknown;
+  [key: string]: unknown;
+}
+
+export interface EIP1193Provider extends EventEmitter {
+  request(args: RequestArguments): Promise<unknown>;
+}
+
+export interface JsonRpcRequest {
+  jsonrpc: string;
+  method: string;
+  params: any[];
+  id: number;
+}
+
+export interface JsonRpcResponse {
+  jsonrpc: string;
+  id: number;
+  result?: any;
+  error?: {
+    code: number;
+    message: string;
+    data?: any;
+  };
+}
+
+export interface EthereumProvider extends EIP1193Provider {
   send(method: string, params?: any[]): Promise<any>;
+  sendAsync(
+    payload: JsonRpcRequest,
+    callback: (error: any, response: JsonRpcResponse) => void
+  ): void;
 }
 
 // This alias is here for backwards compatibility
