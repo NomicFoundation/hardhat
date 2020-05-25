@@ -271,17 +271,12 @@ export class SolidityTracer {
             inst.location === undefined &&
             stepIndex === trace.steps.length - 1
           ) {
-            const lastLocationIndex = this._getLastInstructionWithValidLocationStepIndex(
+            const instruction = this._getLastInstructionWithValidLocation(
               trace,
-              true
+              { stopOnLastJump: true }
             );
-            if (lastLocationIndex !== undefined) {
-              const lastLocationStep = trace.steps[lastLocationIndex];
-              if (isEvmStep(lastLocationStep)) {
-                lastInstructionWithLocation = trace.bytecode.getInstruction(
-                  lastLocationStep.pc
-                );
-              }
+            if (instruction !== undefined) {
+              lastInstructionWithLocation = instruction;
             }
           }
 
@@ -712,6 +707,22 @@ export class SolidityTracer {
       return false;
     }
 
+    // if the last instruction doesn't have a location, but the trace entered the
+    // constructor in a previous step, return false
+    if (lastInst.location === undefined) {
+      const lastInstructionWithLocation = this._getLastInstructionWithValidLocation(
+        trace,
+        { stopOnLastJump: true }
+      );
+      if (
+        lastInstructionWithLocation !== undefined &&
+        lastInstructionWithLocation.location !== undefined &&
+        constructor.location.equals(lastInstructionWithLocation.location)
+      ) {
+        return false;
+      }
+    }
+
     // tslint:disable-next-line prefer-for-of
     for (let stepIndex = 0; stepIndex < trace.steps.length; stepIndex++) {
       const step = trace.steps[stepIndex];
@@ -1114,7 +1125,7 @@ export class SolidityTracer {
 
   private _getLastInstructionWithValidLocationStepIndex(
     trace: DecodedEvmMessageTrace,
-    stopOnLastJump = false
+    options = { stopOnLastJump: false }
   ): number | undefined {
     for (let i = trace.steps.length - 1; i >= 0; i--) {
       const step = trace.steps[i];
@@ -1129,9 +1140,33 @@ export class SolidityTracer {
         return i;
       }
 
-      if (stopOnLastJump && inst.opcode === Opcode.JUMPI) {
+      if (options.stopOnLastJump && inst.opcode === Opcode.JUMPI) {
         return undefined;
       }
+    }
+
+    return undefined;
+  }
+
+  private _getLastInstructionWithValidLocation(
+    trace: DecodedEvmMessageTrace,
+    options = { stopOnLastJump: false }
+  ): Instruction | undefined {
+    const lastLocationIndex = this._getLastInstructionWithValidLocationStepIndex(
+      trace,
+      options
+    );
+
+    if (lastLocationIndex === undefined) {
+      return undefined;
+    }
+
+    const lastLocationStep = trace.steps[lastLocationIndex];
+    if (isEvmStep(lastLocationStep)) {
+      const lastInstructionWithLocation = trace.bytecode.getInstruction(
+        lastLocationStep.pc
+      );
+      return lastInstructionWithLocation;
     }
 
     return undefined;
