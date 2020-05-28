@@ -1,3 +1,5 @@
+import util from "util";
+
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
@@ -31,7 +33,12 @@ import { ERRORS } from "../core/errors-list";
 export function lazyObject<T extends object>(objectCreator: () => T): T {
   return createLazyProxy(
     objectCreator,
-    () => ({}),
+    (getRealTarget) => ({
+      [util.inspect.custom]() {
+        const realTarget = getRealTarget();
+        return util.inspect(realTarget);
+      },
+    }),
     (object) => {
       if (object instanceof Function) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
@@ -51,9 +58,17 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
 // tslint:disable-next-line ban-types
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   return createLazyProxy(
-    // FIXME: this needs to be revised since TS >= 3.7.x fails without the cast
-    functionCreator as () => any,
-    () => function () {},
+    functionCreator,
+    (getRealTarget) => {
+      function dummyTarget() {}
+
+      (dummyTarget as any)[util.inspect.custom] = function () {
+        const realTarget = getRealTarget();
+        return util.inspect(realTarget);
+      };
+
+      return dummyTarget;
+    },
     (object) => {
       if (!(object instanceof Function)) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
@@ -67,13 +82,13 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
 
 function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
   targetCreator: () => ActualT,
-  dummyTargetCreator: () => GuardT,
+  dummyTargetCreator: (getRealTarget: () => ActualT) => GuardT,
   validator: (target: any) => void
 ): ActualT {
   let realTarget: ActualT | undefined;
 
   // tslint:disable-next-line
-  const dummyTarget: ActualT = dummyTargetCreator() as any;
+  const dummyTarget: ActualT = dummyTargetCreator(getRealTarget) as any;
 
   function getRealTarget(): ActualT {
     if (realTarget === undefined) {
