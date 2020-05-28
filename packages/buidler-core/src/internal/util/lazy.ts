@@ -1,3 +1,5 @@
+import util from "util";
+
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
@@ -31,7 +33,12 @@ import { ERRORS } from "../core/errors-list";
 export function lazyObject<T extends object>(objectCreator: () => T): T {
   return createLazyProxy(
     objectCreator,
-    () => ({}),
+    (getRealTarget) => ({
+      [util.inspect.custom]() {
+        const realTarget = getRealTarget();
+        return util.inspect(realTarget);
+      },
+    }),
     (object) => {
       if (object instanceof Function) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
@@ -51,9 +58,17 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
 // tslint:disable-next-line ban-types
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   return createLazyProxy(
-    // FIXME: this needs to be revised since TS >= 3.7.x fails without the cast
-    functionCreator as () => any,
-    () => function () {},
+    functionCreator,
+    (getRealTarget) => {
+      function dummyTarget() {}
+
+      (dummyTarget as any)[util.inspect.custom] = function () {
+        const realTarget = getRealTarget();
+        return util.inspect(realTarget);
+      };
+
+      return dummyTarget;
+    },
     (object) => {
       if (!(object instanceof Function)) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
@@ -67,13 +82,13 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
 
 function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
   targetCreator: () => ActualT,
-  dummyTargetCreator: () => GuardT,
+  dummyTargetCreator: (getRealTarget: () => ActualT) => GuardT,
   validator: (target: any) => void
 ): ActualT {
   let realTarget: ActualT | undefined;
 
   // tslint:disable-next-line
-  const dummyTarget: ActualT = dummyTargetCreator() as any;
+  const dummyTarget: ActualT = dummyTargetCreator(getRealTarget) as any;
 
   function getRealTarget(): ActualT {
     if (realTarget === undefined) {
@@ -134,6 +149,13 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       // before: https://github.com/ethereum/web3.js/blob/8574bd3bf11a2e9cf4bcf8850cab13e1db56653f/packages/web3-core-requestmanager/src/givenProvider.js#L41
       //
       // We just return `undefined` in that case, to not enter into the loop.
+      //
+      // **SUPER IMPORTANT NOTE:** Removing this is very tempting, I know. This
+      // is a horrible hack. The most obvious approach for doing so is to
+      // remove the `global` elements that trigger this crazy behavior right
+      // before doing our `require("web3")`, and restore them afterwards.
+      // **THIS IS NOT ENOUGH** Users, and libraries (!!!!), will have their own
+      // `require`s that we can't control and will trigger the same bug.
       const stack = new Error().stack;
       if (
         stack !== undefined &&
