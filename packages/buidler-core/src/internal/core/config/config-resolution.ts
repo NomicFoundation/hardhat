@@ -113,7 +113,11 @@ function deepFreezeUserConfig(
   config: any,
   propertyPath: Array<string | number | symbol> = []
 ) {
-  if (typeof config !== "object" || config === null) {
+  if (
+    typeof config !== "object" ||
+    config instanceof RegExp ||
+    config === null
+  ) {
     return config;
   }
 
