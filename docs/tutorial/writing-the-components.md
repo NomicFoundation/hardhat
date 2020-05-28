@@ -1,4 +1,4 @@
-# 10. Writing the components
+# 9. Writing the components
 
 - Done with the setup. Let's write a Dapp!
 
@@ -23,7 +23,6 @@
 
 - Take some time to read it, it's full of comments and should feel pretty straightforward if you are familiar with React. Don't worry about the imports yet. We'll go shortly through them. 
 
-
 ```jsx
 import React from "react";
 
@@ -38,7 +37,7 @@ import { TransactionErrorMessage } from "./TransactionErrorMessage";
 import { WaitingForTransactionMessage } from "./WaitingForTransactionMessage";
 import { NoTokensMessage } from "./NoTokensMessage";
 
-export class Dapp extends React.Component {
+export default class App extends React.Component {
   constructor(props) {
     super(props);
 
@@ -156,9 +155,25 @@ export class Dapp extends React.Component {
 }
 ```
 
+## `index.js`
+
+- Import bootstrap styles
+
+
+```js{7}
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import * as serviceWorker from './serviceWorker';
+
+import "bootstrap/dist/css/bootstrap.css";
+
+// ...
+```
 
 ## Other Components
-- The rest of the components will be secondary. Create a new file for each of them and be sure to match the imports of `Apps.js`. 
+- The rest of the components will be secondary. Create a new file for each of them and be sure to match the imports of `Apps.js`. Place them inside `frontend/src/components/`.
 
 ### `NoWalletDetected.js`
 
@@ -401,4 +416,6 @@ export function NoTokensMessage({ selectedAddress }) {
   );
 }
 ```
+
+
 

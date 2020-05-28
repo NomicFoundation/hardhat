@@ -1,8 +1,8 @@
-# 11. Connecting the components
+# 10. Connecting the components
 
 - Let's transform the App into a Dapp.
 
-## 11.1. Connecting the wallet
+## 10.1. Connecting the wallet
 - The first thing that a user needs to do in the Dapp, is connecting to their wallet.
 - We already have a button inside the `ConnectWallet` component that triggers the `_connectWallet` method, so we're going to write the needed logic inside it
 - To connect to Metamask, we have to use an object that Metamask injects into the browser: `window.ethereum`. Calling its method `window.ethereum.enable()` will return all the wallets account in an array format. 
@@ -92,7 +92,7 @@ import contractAddress from "../contracts/contract-address.json";
 [ insert image here ]
 
 
-## 11.2. Reading from the contract's state
+## 10.2. Reading from the contract's state
 - We already connected the user's wallet and the Token contract to an Ethereum provider. Let's grab some data from it.
 
 - We'll write some specific logic for this sample application, but they show you how to keep your Dapp and contract's state in sync, and how to send a transaction. You can reuse the same initialization pattern.
@@ -254,7 +254,7 @@ Note that we're applying the `toString()` method to the user's balance. This is 
 
 [ INSERT IMAGE ]
 
-## 11.3. Writing into the contract's state
+## 10.3. Writing into the contract's state
 
 - Let's see how we can write into the contract's state through a transfer module.
 
@@ -420,7 +420,7 @@ export class Dapp extends React.Component {
 [ INSERT IMAGE ]
 
 
-## 11.4. Listening to `window.ethereum`
+## 10.4. Listening to `window.ethereum`
 
 - When we started we assumed that you won't be changing between accounts or networks. Both things should be considered when creating a production Dapp.
 

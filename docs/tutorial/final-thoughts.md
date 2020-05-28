@@ -1,4 +1,4 @@
-# 13. Final thoughts
+# 12. Final thoughts
 
 Congratulations on finishing the tutorial! 
 
