@@ -149,6 +149,13 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       // before: https://github.com/ethereum/web3.js/blob/8574bd3bf11a2e9cf4bcf8850cab13e1db56653f/packages/web3-core-requestmanager/src/givenProvider.js#L41
       //
       // We just return `undefined` in that case, to not enter into the loop.
+      //
+      // **SUPER IMPORTANT NOTE:** Removing this is very tempting, I know. This
+      // is a horrible hack. The most obvious approach for doing so is to
+      // remove the `global` elements that trigger this crazy behavior right
+      // before doing our `require("web3")`, and restore them afterwards.
+      // **THIS IS NOT ENOUGH** Users, and libraries (!!!!), will have their own
+      // `require`s that we can't control and will trigger the same bug.
       const stack = new Error().stack;
       if (
         stack !== undefined &&
