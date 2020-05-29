@@ -97,6 +97,7 @@ export function printCallTrace(trace: CallMessageTrace, depth: number) {
     console.log(
       `${margin} unrecognized contract code: ${bufferToHex(trace.code)}`
     );
+    console.log(`${margin} contract: ${bufferToHex(trace.address)}`);
   }
 
   console.log(`${margin} value: ${trace.value.toString(10)}`);

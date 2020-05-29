@@ -8,7 +8,8 @@ library console {
 		uint256 payloadLength = payload.length;
 		address consoleAddress = CONSOLE_ADDRESS;
 		assembly {
-			let r := staticcall(gas(), consoleAddress, payload, payloadLength, 0, 0)
+			let payloadStart := add(payload, 32)
+			let r := staticcall(gas(), consoleAddress, payloadStart, payloadLength, 0, 0)
 		}
 	}
 

@@ -50,7 +50,8 @@ let consoleSolFIle =
   "\t\tuint256 payloadLength = payload.length;\n" +
   "\t\taddress consoleAddress = CONSOLE_ADDRESS;\n" +
   "\t\tassembly {\n" +
-  "\t\t\tlet r := staticcall(gas(), consoleAddress, payload, payloadLength, 0, 0)\n" +
+  "\t\t\tlet payloadStart := add(payload, 32)\n" +
+  "\t\t\tlet r := staticcall(gas(), consoleAddress, payloadStart, payloadLength, 0, 0)\n" +
   "\t\t}\n" +
   "\t}\n" +
   "\n" +
@@ -155,8 +156,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 }
 
 consoleSolFIle += "}\n";
-logger =
-  logger.slice(0, logger.length - 2) + logger.slice(logger.length - 1) + "};\n";
+logger = logger + "};\n";
 
 fs.writeFileSync(
   __dirname + "/../src/internal/buidler-evm/stack-traces/logger.ts",
