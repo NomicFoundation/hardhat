@@ -3,9 +3,8 @@ const eutil = require("ethereumjs-util");
 
 const functionPrefix = "\tfunction";
 const functionBody =
-  ") internal view {" +
-  '\n\t\t(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log(';
-const functionSuffix = "));" + "\n\t\tignored;" + "\n\t}" + "\n" + "\n";
+  ") internal view {" + '\n\t\t_sendLogPayload(abi.encodeWithSignature("log(';
+const functionSuffix = "));" + "\n\t}" + "\n" + "\n";
 
 let logger =
   "// ------------------------------------\n" +
@@ -38,7 +37,8 @@ for (let i = 1; i <= 32; i++) {
 const types = ["uint", "string memory", "bool", "address"];
 
 let consoleSolFIle =
-  "pragma solidity >= 0.5.0 <0.7.0;" +
+  "// SPDX-License-Identifier: MIT\n" +
+  "pragma solidity >= 0.4.22 <0.7.0;" +
   "\n" +
   "\n" +
   "library console {" +
@@ -46,10 +46,18 @@ let consoleSolFIle =
   "\taddress constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);" +
   "\n" +
   "\n" +
+  "\tfunction _sendLogPayload(bytes memory payload) private view {\n" +
+  "\t\tuint256 payloadLength = payload.length;\n" +
+  "\t\taddress consoleAddress = CONSOLE_ADDRESS;\n" +
+  "\t\tassembly {\n" +
+  "\t\t\tlet r := staticcall(gas(), consoleAddress, payload, payloadLength, 0, 0)\n" +
+  "\t\t}\n" +
+  "\t}\n" +
+  "\n" +
   "\tfunction log() internal view {\n" +
-  '\t\t(bool ignored, ) = CONSOLE_ADDRESS.staticcall(abi.encodeWithSignature("log()"));\n' +
-  "\t\tignored;\n" +
-  "\t}";
+  '\t\t_sendLogPayload(abi.encodeWithSignature("log()"));\n' +
+  "\t}\n" +
+  "\n";
 
 logger +=
   "\n// In order to optimize map lookup\n" +
