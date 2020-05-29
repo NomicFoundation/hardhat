@@ -69,7 +69,7 @@ function runTests() {
 
   try {
     shell.exec(
-      `npx lerna exec --concurrency 1 --no-bail ${ignoredPackagesFilter} -- npm test`
+      `npx lerna exec --concurrency 1 ${ignoredPackagesFilter} -- npm test`
     );
   } catch (error) {
     if (!error.message.includes("lerna ERR!")) {
