@@ -11,7 +11,9 @@ export enum StackTraceEntryType {
   FUNCTION_NOT_PAYABLE_ERROR,
   INVALID_PARAMS_ERROR,
   FALLBACK_NOT_PAYABLE_ERROR,
+  FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR,
   UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR, // TODO: Should trying to call a private/internal be a special case of this?
+  MISSING_FALLBACK_OR_RECEIVE_ERROR,
   RETURNDATA_SIZE_ERROR,
   NONCONTRACT_ACCOUNT_CALLED_ERROR,
   CALL_FAILED_ERROR,
@@ -82,8 +84,19 @@ export interface FallbackNotPayableErrorStackTraceEntry {
   sourceReference: SourceReference;
 }
 
+export interface FallbackNotPayableAndNoReceiveErrorStackTraceEntry {
+  type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR;
+  value: BN;
+  sourceReference: SourceReference;
+}
+
 export interface UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR;
+  sourceReference: SourceReference;
+}
+
+export interface MissingFallbackOrReceiveErrorStackTraceEntry {
+  type: StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR;
   sourceReference: SourceReference;
 }
 
@@ -134,7 +147,9 @@ export type SolidityStackTraceEntry =
   | FunctionNotPayableErrorStackTraceEntry
   | InvalidParamsErrorStackTraceEntry
   | FallbackNotPayableErrorStackTraceEntry
+  | FallbackNotPayableAndNoReceiveErrorStackTraceEntry
   | UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry
+  | MissingFallbackOrReceiveErrorStackTraceEntry
   | ReturndataSizeErrorStackTraceEntry
   | NonContractAccountCalledErrorStackTraceEntry
   | CallFailedErrorStackTraceEntry

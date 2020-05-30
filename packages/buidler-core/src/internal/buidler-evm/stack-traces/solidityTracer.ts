@@ -46,6 +46,7 @@ import {
 
 export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
 const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";
+const FIRST_SOLC_VERSION_RECEIVE_FUNCTION = "0.6.0";
 
 export class SolidityTracer {
   public getStackTrace(
@@ -95,6 +96,17 @@ export class SolidityTracer {
     }
 
     if (this._isMissingFunctionAndFallbackError(trace, calledFunction)) {
+      if (this._emptyCalldataAndNoReceive(trace)) {
+        return [
+          {
+            type: StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR,
+            sourceReference: this._getContractStartWithoutFunctionSourceReference(
+              trace
+            ),
+          },
+        ];
+      }
+
       return [
         {
           type:
@@ -107,6 +119,16 @@ export class SolidityTracer {
     }
 
     if (this._isFallbackNotPayableError(trace, calledFunction)) {
+      if (this._emptyCalldataAndNoReceive(trace)) {
+        return [
+          {
+            type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR,
+            sourceReference: this._getFallbackStartSourceReference(trace),
+            value: trace.value,
+          },
+        ];
+      }
+
       return [
         {
           type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR,
@@ -798,6 +820,23 @@ export class SolidityTracer {
     }
 
     return trace.bytecode.contract.fallback === undefined;
+  }
+
+  private _emptyCalldataAndNoReceive(trace: DecodedCallMessageTrace): boolean {
+    // this only makes sense when receive functions are available
+    if (
+      semver.lt(
+        trace.bytecode.compilerVersion,
+        FIRST_SOLC_VERSION_RECEIVE_FUNCTION
+      )
+    ) {
+      return false;
+    }
+
+    return (
+      trace.calldata.length === 0 &&
+      trace.bytecode.contract.receive === undefined
+    );
   }
 
   private _isFallbackNotPayableError(

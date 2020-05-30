@@ -8,7 +8,7 @@
       "to": 0,
       "stackTrace": [
         {
-          "type": "UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR",
+          "type": "MISSING_FALLBACK_OR_RECEIVE_ERROR",
           "sourceReference": {
             "contract": "C",
             "file": "c.sol",

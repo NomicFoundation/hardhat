@@ -9,7 +9,7 @@
       "value": 1,
       "stackTrace": [
         {
-          "type": "FALLBACK_NOT_PAYABLE_ERROR",
+          "type": "FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR",
           "value": 1,
           "sourceReference": {
             "contract": "C",

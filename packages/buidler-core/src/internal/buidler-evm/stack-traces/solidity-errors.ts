@@ -105,6 +105,7 @@ function encodeStackTraceEntry(
 ): SolidityCallSite {
   switch (stackTraceEntry.type) {
     case StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
+    case StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
       return sourceReferenceToSolidityCallsite({
         ...stackTraceEntry.sourceReference,
         function: UNRECOGNIZED_FUNCTION_NAME,
@@ -115,6 +116,7 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
     case StackTraceEntryType.INVALID_PARAMS_ERROR:
     case StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
     case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
     case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
     case StackTraceEntryType.CALL_FAILED_ERROR:
@@ -208,8 +210,16 @@ function getMessageFromLastStackTraceEntry(
         10
       )}`;
 
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
+      return `Transaction reverted: there's no receive function, fallback function is not payable and was called with value ${stackTraceEntry.value.toString(
+        10
+      )}`;
+
     case StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
       return `Transaction reverted: function selector was not recognized and there's no fallback function`;
+
+    case StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
+      return `Transaction reverted: function selector was not recognized and there's no fallback or receive function`;
 
     case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
       return `Transaction reverted: function returned an unexpected amount of data`;
