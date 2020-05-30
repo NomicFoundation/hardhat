@@ -21,6 +21,7 @@ import {
 
 const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
+const DUMMY_GAS_USED = new BN(0);
 
 export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
@@ -108,6 +109,7 @@ export class VMTracer {
           numberOfSubtraces: 0,
           depth: message.depth,
           deployedContract: undefined,
+          gasUsed: DUMMY_GAS_USED,
         };
 
         trace = createTrace;
@@ -121,6 +123,7 @@ export class VMTracer {
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
             depth: message.depth,
+            gasUsed: DUMMY_GAS_USED,
           };
 
           trace = precompileTrace;
@@ -141,6 +144,7 @@ export class VMTracer {
             address: message.to,
             numberOfSubtraces: 0,
             depth: message.depth,
+            gasUsed: DUMMY_GAS_USED,
           };
 
           trace = callTrace;
@@ -210,6 +214,7 @@ export class VMTracer {
 
       trace.error = result.execResult.exceptionError;
       trace.returnData = result.execResult.returnValue;
+      trace.gasUsed = result.gasUsed;
 
       if (isCreateTrace(trace)) {
         trace.deployedContract = result.createdAddress;

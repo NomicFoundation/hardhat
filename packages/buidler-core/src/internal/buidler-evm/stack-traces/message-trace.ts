@@ -18,6 +18,7 @@ export interface BaseMessageTrace {
   value: BN;
   returnData: Buffer;
   error?: VmError;
+  gasUsed: BN;
   depth: number;
 }
 
