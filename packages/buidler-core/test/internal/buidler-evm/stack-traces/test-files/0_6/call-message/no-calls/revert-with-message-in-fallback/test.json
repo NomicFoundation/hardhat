@@ -2,15 +2,18 @@
   "transactions": [
     {
       "file": "c.sol",
-      "contract": "C",
-      "params": [],
+      "contract": "C"
+    },
+    {
+      "to": 0,
       "stackTrace": [
         {
           "type": "REVERT_ERROR",
+          "message": "some error",
           "sourceReference": {
             "contract": "C",
             "file": "c.sol",
-            "function": "constructor",
+            "function": "<fallback>",
             "line": 6
           }
         }
