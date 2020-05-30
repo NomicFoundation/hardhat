@@ -141,7 +141,8 @@ async function main() {
       config,
       buidlerArguments,
       taskDefinitions,
-      envExtenders
+      envExtenders,
+      ctx.experimentalBuidlerEVMMessageTraceHooks
     );
 
     ctx.setBuidlerRuntimeEnvironment(env);

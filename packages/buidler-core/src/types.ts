@@ -1,6 +1,10 @@
 import { EventEmitter } from "events";
 import { DeepPartial, DeepReadonly, Omit } from "ts-essentials";
 
+import {
+  EvmMessageTrace,
+  MessageTrace,
+} from "./internal/buidler-evm/stack-traces/message-trace";
 import * as types from "./internal/core/params/argumentTypes";
 
 // Begin config types
@@ -136,6 +140,21 @@ export type ConfigExtender = (
   config: ResolvedBuidlerConfig,
   userConfig: DeepReadonly<BuidlerConfig>
 ) => void;
+
+// NOTE: This is experimental and will be removed. Please contact our team
+// if you are planning to use it.
+export type ExperimentalBuidlerEVMMessageTraceHook = (
+  bre: BuidlerRuntimeEnvironment,
+  trace: MessageTrace,
+  isCallMessageTrace: boolean
+) => Promise<void>;
+
+// NOTE: This is experimental and will be removed. Please contact our team
+// if you are planning to use it.
+export type BoundExperimentalBuidlerEVMMessageTraceHook = (
+  trace: MessageTrace,
+  isCallMessageTrace: boolean
+) => Promise<void>;
 
 export interface TasksMap {
   [name: string]: TaskDefinition;

@@ -1,6 +1,8 @@
 import {
+  BoundExperimentalBuidlerEVMMessageTraceHook,
   BuidlerNetworkConfig,
   EthereumProvider,
+  ExperimentalBuidlerEVMMessageTraceHook,
   HDAccountsConfig,
   HttpNetworkConfig,
   IEthereumProvider,
@@ -23,7 +25,8 @@ export function createProvider(
   networkName: string,
   networkConfig: NetworkConfig,
   solcVersion?: string,
-  paths?: ProjectPaths
+  paths?: ProjectPaths,
+  experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
 ): IEthereumProvider {
   let provider: EthereumProvider;
 
@@ -49,7 +52,8 @@ export function createProvider(
       buidlerNetConfig.allowUnlimitedContractSize,
       buidlerNetConfig.initialDate !== undefined
         ? parseDateString(buidlerNetConfig.initialDate)
-        : undefined
+        : undefined,
+      experimentalBuidlerEVMMessageTraceHooks
     );
   } else {
     const httpNetConfig = networkConfig as HttpNetworkConfig;

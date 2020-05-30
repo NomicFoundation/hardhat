@@ -9,7 +9,12 @@ import path from "path";
 import semver from "semver";
 import util from "util";
 
-import { EthereumProvider, ProjectPaths } from "../../../types";
+import {
+  BoundExperimentalBuidlerEVMMessageTraceHook,
+  EthereumProvider,
+  ExperimentalBuidlerEVMMessageTraceHook,
+  ProjectPaths,
+} from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
 import { getUserConfigPath } from "../../core/project-structure";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
@@ -65,7 +70,8 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _paths?: ProjectPaths,
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
-    private readonly _initialDate?: Date
+    private readonly _initialDate?: Date,
+    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
   ) {
     super();
     const config = getUserConfigPath();
@@ -288,7 +294,8 @@ export class BuidlerEVMProvider extends EventEmitter
       node,
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
-      this._loggingEnabled ? this._logger : undefined
+      this._loggingEnabled ? this._logger : undefined,
+      this._experimentalBuidlerEVMMessageTraceHooks
     );
 
     this._netModule = new NetModule(common);

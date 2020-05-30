@@ -1,9 +1,5 @@
 import semver from "semver";
 
-import { getUserConfigPath } from "../../core/project-structure";
-
-import { ContractsIdentifier } from "./contracts-identifier";
-import { printMessageTrace } from "./debug";
 import {
   DecodedCallMessageTrace,
   DecodedCreateMessageTrace,

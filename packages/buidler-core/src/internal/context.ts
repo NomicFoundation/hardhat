@@ -1,4 +1,8 @@
-import { BuidlerRuntimeEnvironment, ConfigExtender } from "../types";
+import {
+  BuidlerRuntimeEnvironment,
+  ConfigExtender,
+  ExperimentalBuidlerEVMMessageTraceHook,
+} from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";
 import { BuidlerError } from "./core/errors";
@@ -44,6 +48,10 @@ export class BuidlerContext {
   public environment?: BuidlerRuntimeEnvironment;
   public readonly loadedPlugins: string[] = [];
   public readonly configExtenders: ConfigExtender[] = [];
+
+  // NOTE: This is experimental and will be removed. Please contact our team if
+  // you are planning to use it.
+  public readonly experimentalBuidlerEVMMessageTraceHooks: ExperimentalBuidlerEVMMessageTraceHook[] = [];
 
   public setBuidlerRuntimeEnvironment(env: BuidlerRuntimeEnvironment) {
     if (this.environment !== undefined) {
