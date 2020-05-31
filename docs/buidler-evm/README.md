@@ -16,15 +16,15 @@ Buidler comes built-in with Buidler EVM, a local Ethereum network designed for d
 
 - Buidler will always spin up an instance on startup when `defaultNetwork` is empty or set to `buidlerevm`. It's the default behavior.
 - It can be used to run tests, in the console, scripts, and tasks
-- Plugins (web3.js, ethers.js, Truffle, etc) connect directly to the provider
+- Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to the provider
 - There's no need to make any changes to your tests or scripts.
 - It's simply another network and it can be used with `--network`
 
 ## Connecting to Buidler EVM from wallets and other software
 
-Buidler EVM can be run as a server or testing node. To do this, you just need to run
+Buidler EVM can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Buidler EVM in this way, run:
 
-```sh
+```
 npx buidler node
 ```
 
@@ -44,7 +44,7 @@ This exception will have a combined JavaScript and Solidity stack
 trace: stack traces that start in JavaScript/TypeScript up to your
 call to the contract, and continue with the full Solidity call stack.
 
-This is an example of a Buidler EVM exception:
+This is an example of a Buidler EVM exception using `TruffleContract`:
 
 ```
 Error: Transaction reverted: function selector was not recognized and there's no fallback function
@@ -114,8 +114,8 @@ Buidler EVM allows you to print logging messages and contract variables calling 
   - `console.logBytes32(bytes32 b)`
 - `console.log` implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args).
   - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
-- It works with any library: web3.js, ethers.js, truffle-contract, waffle, etc.
-- `console.log` is implemented in standard Solidity and then detected in Buidler EVM. This makes its compilation work with any other tools (like Remix or Truffle).
+- It works with any library: ethers.js, web3.js, waffle, truffle-contract, etc.
+- `console.log` is implemented in standard Solidity and then detected in Buidler EVM. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
 - `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but spend a minimal amount of gas.
 
 ## Logging
@@ -125,7 +125,7 @@ you develop and debug smart contracts.
 
 For example, a successful transaction and a failed call would look like this:
 
-```sh
+```
 eth_sendTransaction
   Contract deployment: Greeter
   Contract address: 0x8858eeb3dfffa017d4bce9801d340d36cf895ccf
@@ -155,7 +155,7 @@ the in-process Buidler EVM provider. See [Buidler EVM's config](../config/README
 Buidler EVM is initialized by default in this state:
 
 - A brand new blockchain, just with the genesis block.
-- 20 accounts with 10.000 ETH each
+- 20 accounts with 10000 ETH each
   - `0xc783df8a850f42e7f7e57013759c285caa701eb6`
   - `0xead9c93b79ae7c1591b1fb5323bd777e86e150d4`
   - `0xe5904695748fe4a84b40b3fc79de2277660bd1d3`

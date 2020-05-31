@@ -33,13 +33,13 @@ export class Semaphore {
   }
 
   public use<T>(f: () => Promise<T>) {
-    return this.acquire().then(release => {
+    return this.acquire().then((release) => {
       return f()
-        .then(res => {
+        .then((res) => {
           release();
           return res;
         })
-        .catch(err => {
+        .catch((err) => {
           release();
           throw err;
         });

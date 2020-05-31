@@ -9,7 +9,7 @@ function getConfig(config: ResolvedBuidlerConfig): VyperConfig {
   return { ...defaultConfig, ...config.vyper };
 }
 
-export default function() {
+export default function () {
   task(TASK_COMPILE, async (_, { config }) => {
     const { compile } = await import("./compilation");
 

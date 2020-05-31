@@ -13,41 +13,41 @@ import { useEnvironment } from "../../../helpers/environment";
 import { expectBuidlerError } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
 
-describe("Config extensions", function() {
-  describe("Valid extenders", function() {
+describe("Config extensions", function () {
+  describe("Valid extenders", function () {
     useFixtureProject("config-extensions");
     useEnvironment();
 
-    it("Should expose the new values", function() {
+    it("Should expose the new values", function () {
       const config: any = this.env.config;
       assert.isDefined(config.values);
     });
 
-    it("Should execute extenders in order", function() {
+    it("Should execute extenders in order", function () {
       const config: any = this.env.config;
       assert.deepEqual(config.values, [1, 2]);
     });
   });
 
-  describe("Invalid extensions", function() {
+  describe("Invalid extensions", function () {
     useFixtureProject("invalid-config-extension");
 
-    beforeEach(function() {
+    beforeEach(function () {
       BuidlerContext.createBuidlerContext();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       resetBuidlerContext();
     });
 
-    it("Should throw the right error when trying to modify the user config", function() {
+    it("Should throw the right error when trying to modify the user config", function () {
       expectBuidlerError(
         () => loadConfigAndTasks(),
         ERRORS.GENERAL.USER_CONFIG_MODIFIED
       );
     });
 
-    it("Should have the right property path", function() {
+    it("Should have the right property path", function () {
       assert.throws(() => loadConfigAndTasks(), "userConfig.networks.asd");
     });
   });

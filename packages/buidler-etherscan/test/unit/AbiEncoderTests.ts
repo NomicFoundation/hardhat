@@ -16,8 +16,8 @@ describe("AbiEncoder tests", () => {
           [
             {
               inputs: [],
-              type: "constructor"
-            }
+              type: "constructor",
+            },
           ],
           ["test"]
         ),
@@ -32,8 +32,8 @@ describe("AbiEncoder tests", () => {
       [
         {
           inputs: [{ type: "string" }, { type: "uint" }, { type: "address" }],
-          type: "constructor"
-        }
+          type: "constructor",
+        },
       ],
       ["test", "234", "0x022198a476afD450DafDa11551EA79Dc452b40eE"]
     );

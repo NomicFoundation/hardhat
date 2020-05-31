@@ -9,13 +9,13 @@ import {
   isValidJsonRequest,
   isValidJsonResponse,
   JsonRpcRequest,
-  JsonRpcResponse
+  JsonRpcResponse,
 } from "../../util/jsonrpc";
 import {
   BuidlerEVMProviderError,
   InternalError,
   InvalidJsonInputError,
-  InvalidRequestError
+  InvalidRequestError,
 } from "../provider/errors";
 
 // tslint:disable only-buidler-error
@@ -76,7 +76,7 @@ export default class JsonRpcHandler {
           JSON.stringify({
             jsonrpc: "2.0",
             method: "eth_subscribe",
-            params: payload
+            params: payload,
           })
         );
       } catch (error) {
@@ -87,7 +87,7 @@ export default class JsonRpcHandler {
     // Handle eth_subscribe notifications.
     this._provider.addListener("notification", listener);
 
-    ws.on("message", async msg => {
+    ws.on("message", async (msg) => {
       let rpcReq: JsonRpcRequest | undefined;
       let rpcResp: JsonRpcResponse | undefined;
 
@@ -131,7 +131,7 @@ export default class JsonRpcHandler {
 
       // Clear any active subscriptions for the closed websocket connection.
       isClosed = true;
-      subscriptions.forEach(async subscriptionId => {
+      subscriptions.forEach(async (subscriptionId) => {
         await this._provider.send("eth_unsubscribe", [subscriptionId]);
       });
     });
@@ -193,7 +193,7 @@ export default class JsonRpcHandler {
     return {
       jsonrpc: "2.0",
       id: req.id,
-      result
+      result,
     };
   };
 }
@@ -235,7 +235,7 @@ const _handleError = (error: any): JsonRpcResponse => {
     id: null,
     error: {
       code: error.code,
-      message: error.message
-    }
+      message: error.message,
+    },
   };
 };

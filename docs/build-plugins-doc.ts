@@ -16,6 +16,17 @@ plugins.forEach(plugin => {
 
   bashDownload += `wget ${readmeUrl} -O ${readmePath}
 `;
+
+  // Add custom block for external plugins
+  if (plugin.author !== 'Nomic Labs') {
+    bashDownload += `echo -e "\n::: tip External Plugin\nThis is a third-party plugin. Please report issues in its [Github Repository](${plugin.url})\n:::\n\n$(cat ${readmePath})" > ${readmePath}
+  `;
+  }
+
+  // Disable edit link for plugin pages
+  bashDownload += `echo -e "---\neditLink: false\n---\n$(cat ${readmePath})" > ${readmePath}
+`;
+
 });
 
 writeFileSync("wget-readmes.sh", bashDownload);

@@ -19,10 +19,10 @@ export class EthersProviderWrapper extends JsonRpcProvider {
         id: 42,
         jsonrpc: "2.0",
         method,
-        params
+        params,
       },
       response: result,
-      provider: this
+      provider: this,
     });
 
     return result;

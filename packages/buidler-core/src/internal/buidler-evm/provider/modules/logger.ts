@@ -31,7 +31,7 @@ export class ModulesLogger {
   }
 
   public getLogs(): string[] {
-    return this._logs.map(l => {
+    return this._logs.map((l) => {
       if (typeof l === "string") {
         return l;
       }

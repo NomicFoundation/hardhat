@@ -31,11 +31,11 @@ export function createLocalAccountsProvider(
   const {
     bufferToHex,
     toBuffer,
-    privateToAddress
+    privateToAddress,
   } = require("ethereumjs-util");
 
-  const privateKeys = hexPrivateKeys.map(h => toBuffer(h));
-  const addresses = privateKeys.map(pk => bufferToHex(privateToAddress(pk)));
+  const privateKeys = hexPrivateKeys.map((h) => toBuffer(h));
+  const addresses = privateKeys.map((pk) => bufferToHex(privateToAddress(pk)));
 
   const getChainId = createChainIdGetter(provider);
 
@@ -68,7 +68,7 @@ export function createLocalAccountsProvider(
 
         if (privateKey === undefined) {
           throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
-            account: address
+            account: address,
           });
         }
 
@@ -91,12 +91,12 @@ export function createLocalAccountsProvider(
 
         if (privateKey === undefined) {
           throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
-            account: address
+            account: address,
           });
         }
 
         return ethSigUtil.signTypedData_v4(privateKey, {
-          data
+          data,
         });
       }
     }
@@ -121,7 +121,7 @@ export function createLocalAccountsProvider(
       if (tx.nonce === undefined) {
         tx.nonce = await provider.send("eth_getTransactionCount", [
           tx.from,
-          "pending"
+          "pending",
         ]);
       }
 
@@ -129,7 +129,7 @@ export function createLocalAccountsProvider(
 
       if (privateKey === undefined) {
         throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
-          account: tx.from
+          account: tx.from,
         });
       }
 
@@ -142,7 +142,7 @@ export function createLocalAccountsProvider(
       );
 
       return provider.send("eth_sendRawTransaction", [
-        bufferToHex(rawTransaction)
+        bufferToHex(rawTransaction),
       ]);
     }
 
@@ -176,7 +176,7 @@ export function createHDWalletProvider(
     if (privateKey === undefined) {
       throw new BuidlerError(ERRORS.NETWORK.CANT_DERIVE_KEY, {
         mnemonic,
-        path: hdpath
+        path: hdpath,
       });
     }
 
@@ -187,7 +187,7 @@ export function createHDWalletProvider(
 
   return createLocalAccountsProvider(
     provider,
-    privateKeys.map(pk => bufferToHex(pk))
+    privateKeys.map((pk) => bufferToHex(pk))
   );
 }
 
@@ -248,7 +248,7 @@ async function getSignedTransaction(
       "mainnet",
       {
         chainId,
-        networkId: chainId
+        networkId: chainId,
       },
       "istanbul"
     );

@@ -2,11 +2,7 @@ import VM from "@nomiclabs/ethereumjs-vm";
 import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
-import {
-  RunBlockResult,
-  TxReceipt
-} from "@nomiclabs/ethereumjs-vm/dist/runBlock";
-import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
+import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
@@ -22,7 +18,7 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
-  toBuffer
+  toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
 import Trie from "merkle-patricia-tree/secure";
@@ -32,7 +28,7 @@ import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
 import {
   dateToTimestampSeconds,
-  getDifferenceInSeconds
+  getDifferenceInSeconds,
 } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
@@ -42,7 +38,7 @@ import { MessageTrace } from "../stack-traces/message-trace";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import {
   encodeSolidityStackTrace,
-  SolidityError
+  SolidityError,
 } from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
@@ -53,7 +49,7 @@ import { Blockchain } from "./blockchain";
 import {
   InternalError,
   InvalidInputError,
-  TransactionExecutionError
+  TransactionExecutionError,
 } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
@@ -122,13 +118,6 @@ export interface SolidityTracerOptions {
   compilerInput: CompilerInput;
   compilerOutput: CompilerOutput;
 }
-
-export const SUPPORTED_HARDFORKS = [
-  "byzantium",
-  "constantinople",
-  "petersburg",
-  "istanbul"
-];
 
 interface Snapshot {
   id: number;
@@ -204,15 +193,15 @@ export class BuidlerNode extends EventEmitter {
           difficulty: 1,
           nonce: "0x42",
           extraData: "0x1234",
-          stateRoot: bufferToHex(stateTrie.root)
-        }
+          stateRoot: bufferToHex(stateTrie.root),
+        },
       },
       hardfork
     );
 
     const stateManager = new StateManager({
       common: common as any, // TS error because of a version mismatch
-      trie: stateTrie
+      trie: stateTrie,
     });
 
     const blockchain = new Blockchain();
@@ -222,20 +211,20 @@ export class BuidlerNode extends EventEmitter {
       activatePrecompiles: true,
       stateManager,
       blockchain: blockchain as any,
-      allowUnlimitedContractSize
+      allowUnlimitedContractSize,
     });
 
     const genesisBlock = new Block(null, { common });
     genesisBlock.setGenesisParams();
 
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       blockchain.putBlock(genesisBlock, () => resolve());
     });
 
     const node = new BuidlerNode(
       vm,
       blockchain,
-      genesisAccounts.map(acc => toBuffer(acc.privateKey)),
+      genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
       solidityVersion,
@@ -382,7 +371,7 @@ export class BuidlerNode extends EventEmitter {
     const [
       blockTimestamp,
       offsetShouldChange,
-      newOffset
+      newOffset,
     ] = this._calculateTimestampAndOffset();
 
     const block = await this._getNextBlockTemplate(blockTimestamp);
@@ -400,7 +389,7 @@ export class BuidlerNode extends EventEmitter {
     const result = await this._vm.runBlock({
       block,
       generate: true,
-      skipBlockValidation: true
+      skipBlockValidation: true,
     });
 
     if (needsTimestampIncrease) {
@@ -440,7 +429,7 @@ export class BuidlerNode extends EventEmitter {
       block,
       blockResult: result,
       error,
-      consoleLogMessages
+      consoleLogMessages,
     };
   }
 
@@ -451,7 +440,7 @@ export class BuidlerNode extends EventEmitter {
     const [
       blockTimestamp,
       offsetShouldChange,
-      newOffset
+      newOffset,
     ] = this._calculateTimestampAndOffset(timestamp);
 
     const block = await this._getNextBlockTemplate(blockTimestamp);
@@ -474,7 +463,7 @@ export class BuidlerNode extends EventEmitter {
       result = await this._vm.runBlock({
         block,
         generate: true,
-        skipBlockValidation: true
+        skipBlockValidation: true,
       });
 
       if (needsTimestampIncrease) {
@@ -510,7 +499,7 @@ export class BuidlerNode extends EventEmitter {
   }> {
     const tx = await this._getFakeTransaction({
       ...call,
-      nonce: await this.getAccountNonce(call.from)
+      nonce: await this.getAccountNonce(call.from),
     });
 
     const result = await this._runTxAndRevertMutations(tx, runOnNewBlock);
@@ -538,7 +527,7 @@ export class BuidlerNode extends EventEmitter {
       result: result.execResult.returnValue,
       trace: vmTrace,
       error,
-      consoleLogMessages
+      consoleLogMessages,
     };
   }
 
@@ -589,7 +578,7 @@ export class BuidlerNode extends EventEmitter {
   }> {
     const tx = await this._getFakeTransaction({
       ...txParams,
-      gasLimit: await this.getBlockGasLimit()
+      gasLimit: await this.getBlockGasLimit(),
     });
 
     const result = await this._runTxAndRevertMutations(tx);
@@ -618,7 +607,7 @@ export class BuidlerNode extends EventEmitter {
           vmTrace,
           vmTracerError
         ),
-        consoleLogMessages
+        consoleLogMessages,
       };
     }
 
@@ -630,7 +619,7 @@ export class BuidlerNode extends EventEmitter {
         initialEstimation
       ),
       trace: vmTrace,
-      consoleLogMessages
+      consoleLogMessages,
     };
   }
 
@@ -756,7 +745,7 @@ export class BuidlerNode extends EventEmitter {
     const privateKey = await this._getLocalAccountPrivateKey(address);
 
     return ethSigUtil.signTypedData_v4(privateKey, {
-      data: typedData
+      data: typedData,
     });
   }
 
@@ -784,7 +773,7 @@ export class BuidlerNode extends EventEmitter {
       ),
       blockHashToTotalDifficulty: new Map(
         this._blockHashToTotalDifficulty.entries()
-      )
+      ),
     };
 
     this._snapshots.push(snapshot);
@@ -845,12 +834,12 @@ export class BuidlerNode extends EventEmitter {
         fromBlock: filterParams.fromBlock,
         toBlock: filterParams.toBlock,
         addresses: filterParams.addresses,
-        normalizedTopics: filterParams.normalizedTopics
+        normalizedTopics: filterParams.normalizedTopics,
       },
       deadline: this._newDeadline(),
       hashes: [],
       logs: await this.getLogs(filterParams),
-      subscription: isSubscription
+      subscription: isSubscription,
     });
 
     return filterId;
@@ -866,7 +855,7 @@ export class BuidlerNode extends EventEmitter {
       deadline: this._newDeadline(),
       hashes: [bufferToHex(block.header.hash())],
       logs: [],
-      subscription: isSubscription
+      subscription: isSubscription,
     });
 
     return filterId;
@@ -883,7 +872,7 @@ export class BuidlerNode extends EventEmitter {
       deadline: this._newDeadline(),
       hashes: [],
       logs: [],
-      subscription: isSubscription
+      subscription: isSubscription,
     });
 
     return filterId;
@@ -957,7 +946,7 @@ export class BuidlerNode extends EventEmitter {
     const logs: RpcLogOutput[] = [];
     for (
       let i = filterParams.fromBlock;
-      i <= filterParams.toBlock;
+      i.lte(filterParams.toBlock);
       i = i.addn(1)
     ) {
       const block = await this._getBlock(new BN(i));
@@ -984,7 +973,7 @@ export class BuidlerNode extends EventEmitter {
             fromBlock: filterParams.fromBlock,
             toBlock: filterParams.toBlock,
             addresses: filterParams.addresses,
-            normalizedTopics: filterParams.normalizedTopics
+            normalizedTopics: filterParams.normalizedTopics,
           })
         );
       }
@@ -1136,8 +1125,8 @@ export class BuidlerNode extends EventEmitter {
         header: {
           gasLimit: this._blockGasLimit,
           nonce: "0x42",
-          timestamp
-        }
+          timestamp,
+        },
       },
       { common: this._common }
     );
@@ -1160,7 +1149,7 @@ export class BuidlerNode extends EventEmitter {
 
   private async _saveTransactionAsReceived(tx: Transaction) {
     this._transactionByHash.set(bufferToHex(tx.hash(true)), tx);
-    this._filters.forEach(filter => {
+    this._filters.forEach((filter) => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
         const hash = bufferToHex(tx.hash(true));
         if (filter.subscription) {
@@ -1220,8 +1209,8 @@ export class BuidlerNode extends EventEmitter {
           status: receipt.status,
           gasUsed: receipt.gasUsed,
           bitvector: receipt.bitvector,
-          logs
-        }
+          logs,
+        },
       });
     }
 
@@ -1237,7 +1226,7 @@ export class BuidlerNode extends EventEmitter {
     }
 
     this._filters.forEach((filter, key) => {
-      if (filter.deadline < new Date()) {
+      if (filter.deadline.valueOf() < new Date().valueOf()) {
         this._filters.delete(key);
       }
 
@@ -1265,7 +1254,7 @@ export class BuidlerNode extends EventEmitter {
             }
 
             if (filter.subscription) {
-              logs.forEach(rpcLog => {
+              logs.forEach((rpcLog) => {
                 this._emitEthEvent(filter.id, rpcLog);
               });
               return;
@@ -1407,7 +1396,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
   ): Promise<BN> {
     let tx = await this._getFakeTransaction({
       ...txParams,
-      gasLimit: initialEstimation
+      gasLimit: initialEstimation,
     });
 
     if (tx.getBaseFee().gte(initialEstimation)) {
@@ -1415,7 +1404,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
 
       tx = await this._getFakeTransaction({
         ...txParams,
-        gasLimit: initialEstimation
+        gasLimit: initialEstimation,
       });
     }
 
@@ -1480,11 +1469,11 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
       : optimizedEstimation;
 
     // Let other things execute
-    await new Promise(resolve => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
 
     const tx = await this._getFakeTransaction({
       ...txParams,
-      gasLimit: newEstimation
+      gasLimit: newEstimation,
     });
 
     const result = await this._runTxAndRevertMutations(tx);
@@ -1527,7 +1516,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         const [
           blockTimestamp,
           offsetShouldChange,
-          newOffset
+          newOffset,
         ] = this._calculateTimestampAndOffset();
 
         blockContext = await this._getNextBlockTemplate(blockTimestamp);
@@ -1554,7 +1543,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         block: blockContext,
         tx,
         skipNonce: true,
-        skipBalance: true
+        skipBalance: true,
       });
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
@@ -1565,21 +1554,25 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     filterParams: FilterParams,
     isFilter: boolean
   ): Promise<FilterParams> {
-    if (
-      filterParams.fromBlock === LATEST_BLOCK ||
-      filterParams.toBlock === LATEST_BLOCK
-    ) {
-      const block = await this.getLatestBlock();
-      if (filterParams.fromBlock === LATEST_BLOCK) {
-        filterParams.fromBlock = new BN(block.header.number);
-      }
+    const latestBlockNumber = await this.getLatestBlockNumber();
+    const newFilterParams = { ...filterParams };
 
-      if (!isFilter && filterParams.toBlock === LATEST_BLOCK) {
-        filterParams.toBlock = new BN(block.header.number);
-      }
+    if (newFilterParams.fromBlock === LATEST_BLOCK) {
+      newFilterParams.fromBlock = latestBlockNumber;
     }
 
-    return filterParams;
+    if (!isFilter && newFilterParams.toBlock === LATEST_BLOCK) {
+      newFilterParams.toBlock = latestBlockNumber;
+    }
+
+    if (newFilterParams.toBlock.gt(latestBlockNumber)) {
+      newFilterParams.toBlock = latestBlockNumber;
+    }
+    if (newFilterParams.fromBlock.gt(latestBlockNumber)) {
+      newFilterParams.fromBlock = latestBlockNumber;
+    }
+
+    return newFilterParams;
   }
 
   private _newDeadline(): Date {
@@ -1601,7 +1594,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
   private _emitEthEvent(filterId: BN, result: any) {
     this.emit("ethEvent", {
       result,
-      filterId
+      filterId,
     });
   }
 }

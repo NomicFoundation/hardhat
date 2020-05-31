@@ -19,23 +19,23 @@ export const ERROR_RANGES = {
   TASK_DEFINITIONS: {
     min: 200,
     max: 299,
-    title: "Task definition errors"
+    title: "Task definition errors",
   },
   ARGUMENTS: { min: 300, max: 399, title: "Arguments related errors" },
   RESOLVER: {
     min: 400,
     max: 499,
-    title: "Dependencies resolution errors"
+    title: "Dependencies resolution errors",
   },
   SOLC: { min: 500, max: 599, title: "Solidity related errors" },
   BUILTIN_TASKS: { min: 600, max: 699, title: "Built-in tasks errors" },
   ARTIFACTS: { min: 700, max: 799, title: "Artifacts related errors" },
   PLUGINS: { min: 800, max: 899, title: "Plugin system errors" },
-  INTERNAL: { min: 900, max: 999, title: "Internal Buidler errors" }
+  INTERNAL: { min: 900, max: 999, title: "Internal Buidler errors" },
 };
 
 export const ERRORS: {
-  [category in keyof (typeof ERROR_RANGES)]: {
+  [category in keyof typeof ERROR_RANGES]: {
     [errorName: string]: ErrorDescriptor;
   };
 } = {
@@ -46,7 +46,7 @@ export const ERRORS: {
       title: "You are not inside a Buidler project",
       description: `You are trying to run Buidler outside of a Buidler project.
 
-You can learn hoy to use Buidler by reading the [Getting Started guide](./README.md).`
+You can learn hoy to use Buidler by reading the [Getting Started guide](./README.md).`,
     },
     INVALID_NODE_VERSION: {
       number: 2,
@@ -55,7 +55,7 @@ You can learn hoy to use Buidler by reading the [Getting Started guide](./README
       title: "Unsupported Node.js",
       description: `Buidler doesn't support your Node.js version. 
 
-Please upgrade your version of Node.js and try again.`
+Please upgrade your version of Node.js and try again.`,
     },
     UNSUPPORTED_OPERATION: {
       number: 3,
@@ -65,7 +65,7 @@ Please upgrade your version of Node.js and try again.`
 
 Unless you are creating a task or plugin, this is probably a bug. 
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     CONTEXT_ALREADY_CREATED: {
       number: 4,
@@ -73,7 +73,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Buidler was already initialized",
       description: `Buidler initialization was executed twice. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     CONTEXT_NOT_CREATED: {
       number: 5,
@@ -81,7 +81,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Buidler wasn't initialized",
       description: `Buidler initialization failed. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     CONTEXT_BRE_NOT_DEFINED: {
       number: 6,
@@ -90,7 +90,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Buidler Runtime Environment not created",
       description: `Buidler initialization failed. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     CONTEXT_BRE_ALREADY_DEFINED: {
       number: 7,
@@ -99,7 +99,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Tried to create the Buidler Runtime Environment twice",
       description: `The Buidler initialization process was executed twice. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     INVALID_CONFIG: {
       number: 8,
@@ -111,7 +111,7 @@ To learn more about Buidler's configuration, please go to https://buidler.dev/co
       title: "Invalid Buidler config",
       description: `You have one or more errors in your config file. 
       
-Check the error message for details, or go to [documentation](https://buidler.dev/config/) to learn more.`
+Check the error message for details, or go to [documentation](https://buidler.dev/config/) to learn more.`,
     },
     LIB_IMPORTED_FROM_THE_CONFIG: {
       number: 9,
@@ -122,7 +122,7 @@ You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`,
 
 The most common source of errors is trying to import \`@nomiclabs/buidler\` instead of \`@nomiclabs/buidler/config\`.
 
-Please make sure your config file is correct.`
+Please make sure your config file is correct.`,
     },
     USER_CONFIG_MODIFIED: {
       number: 10,
@@ -133,8 +133,8 @@ You or one of your plugins is trying to modify the userConfig.%path% value from 
 
 This is probably a bug in one of your plugins.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
-    }
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -143,7 +143,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Selected network doesn't exist",
       description: `You are trying to run Buidler with a non-existent network. 
 
-Read the [documentation](https://buidler.dev/config/#networks-configuration) to learn how to define custom networks.`
+Read the [documentation](https://buidler.dev/config/#networks-configuration) to learn how to define custom networks.`,
     },
     INVALID_GLOBAL_CHAIN_ID: {
       number: 101,
@@ -152,7 +152,7 @@ Read the [documentation](https://buidler.dev/config/#networks-configuration) to 
       title: "Connected to the wrong network",
       description: `Your config specifies a chain id for the network you are trying to used, but Buidler detected anotherone. 
 
-Please make sure you are setting your config correctly.`
+Please make sure you are setting your config correctly.`,
     },
     /* DEPRECATED: This error only happened because of a misconception in Buidler */
     DEPRECATED_INVALID_TX_CHAIN_ID: {
@@ -162,7 +162,7 @@ Please make sure you are setting your config correctly.`
       title: "Incorrectly send chainId in a transaction",
       description: `Buidler sent the \`chainId\` field in a transaction. 
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     ETHSIGN_MISSING_DATA_PARAM: {
       number: 103,
@@ -170,7 +170,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Missing `data` param when calling eth_sign.",
       description: `You called \`eth_sign\` with incorrect parameters.
 
-Please check that you are sending a \`data\` parameter.`
+Please check that you are sending a \`data\` parameter.`,
     },
     NOT_LOCAL_ACCOUNT: {
       number: 104,
@@ -180,7 +180,7 @@ Please check that you are sending a \`data\` parameter.`
       description: `You are trying to send a transaction or sign some data with an 
 account not managed by your Ethereum node nor Buidler.  
 
-Please double check your accounts and the \`from\` parameter in your RPC calls.`
+Please double check your accounts and the \`from\` parameter in your RPC calls.`,
     },
     MISSING_TX_PARAM_TO_SIGN_LOCALLY: {
       number: 105,
@@ -189,7 +189,7 @@ Please double check your accounts and the \`from\` parameter in your RPC calls.`
       description: `You are trying to send a transaction with a locally managed 
 account, and some parameters are missing. 
 
-Please double check your transactions' parameters.`
+Please double check your transactions' parameters.`,
     },
     NO_REMOTE_ACCOUNT_AVAILABLE: {
       number: 106,
@@ -198,7 +198,7 @@ Please double check your transactions' parameters.`
       title: "No remote accounts available",
       description: `No local account was set and there are accounts in the remote node. 
 
-Please make sure that your Ethereum node has unlocked accounts.`
+Please make sure that your Ethereum node has unlocked accounts.`,
     },
     INVALID_HD_PATH: {
       number: 107,
@@ -207,7 +207,7 @@ Please make sure that your Ethereum node has unlocked accounts.`
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Read the [documentation](https://buidler.dev/config/#hd-wallet-config) to learn how to define HD accounts correctly.`
+Read the [documentation](https://buidler.dev/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
     },
     INVALID_RPC_QUANTITY_VALUE: {
       number: 108,
@@ -216,7 +216,7 @@ Read the [documentation](https://buidler.dev/config/#hd-wallet-config) to learn 
       title: "Invalid JSON-RPC value",
       description: `One of your transactions sent or received an invalid JSON-RPC QUANTITY value. 
 
-Please double check your calls' parameters and keep your Ethereum node up to date.`
+Please double check your calls' parameters and keep your Ethereum node up to date.`,
     },
     NODE_IS_NOT_RUNNING: {
       number: 109,
@@ -225,7 +225,7 @@ Please make sure your node is running, and check your internet connection and ne
       title: "Cannot connect to the network",
       description: `Cannot connect to the network.
 
-Please make sure your node is running, and check your internet connection and networks config.`
+Please make sure your node is running, and check your internet connection and networks config.`,
     },
     NETWORK_TIMEOUT: {
       number: 110,
@@ -234,7 +234,7 @@ Please check your internet connection and networks config`,
       title: "Network timeout",
       description: `One of your JSON-RPC requests timed-out.
 
-Please make sure your node is running, and check your internet connection and networks config.`
+Please make sure your node is running, and check your internet connection and networks config.`,
     },
     INVALID_JSON_RESPONSE: {
       number: 111,
@@ -242,7 +242,7 @@ Please make sure your node is running, and check your internet connection and ne
       title: "Invalid JSON-RPC response",
       description: `One of your JSON-RPC requests received an invalid response. 
 
-Please make sure your node is running, and check your internet connection and networks config.`
+Please make sure your node is running, and check your internet connection and networks config.`,
     },
     CANT_DERIVE_KEY: {
       number: 112,
@@ -251,8 +251,8 @@ Please make sure your node is running, and check your internet connection and ne
       title: "Could not derive an HD key",
       description: `One of your HD keys could not be derived. 
 
-Try using another mnemonic or deriving less keys.`
-    }
+Try using another mnemonic or deriving less keys.`,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {
@@ -264,7 +264,7 @@ Try using another mnemonic or deriving less keys.`
 there is already a variadic positional param and it has to be the last 
 positional one.
 
-Please double check your task definitions.`
+Please double check your task definitions.`,
     },
     PARAM_ALREADY_DEFINED: {
       number: 201,
@@ -273,7 +273,7 @@ Please double check your task definitions.`
       title: "Repeated param name",
       description: `Could not add a param to your task because its name is already used.
       
-Please double check your task definitions.`
+Please double check your task definitions.`,
     },
     PARAM_CLASHES_WITH_BUIDLER_PARAM: {
       number: 202,
@@ -282,7 +282,7 @@ Please double check your task definitions.`
       title: "Buidler and task param names clash",
       description: `Could not add a param to your task because its name is used as a param for Buidler.
       
-Please double check your task definitions.`
+Please double check your task definitions.`,
     },
     MANDATORY_PARAM_AFTER_OPTIONAL: {
       number: 203,
@@ -291,7 +291,7 @@ Please double check your task definitions.`
       title: "Optional param followed by a required one",
       description: `Could not add param to your task because it is required and it was added after an optional positional param.
       
-Please double check your task definitions.`
+Please double check your task definitions.`,
     },
     OVERRIDE_NO_PARAMS: {
       number: 204,
@@ -300,7 +300,7 @@ Please double check your task definitions.`
       title: "Attempted to add params to an overridden task",
       description: `You can't change param definitions in an overridden task.
 
-Please, double check your task definitions.`
+Please, double check your task definitions.`,
     },
     OVERRIDE_NO_MANDATORY_PARAMS: {
       number: 210,
@@ -311,7 +311,7 @@ Please, double check your task definitions.`
 The only supported param additions for overridden tasks are flags,
 and optional params.
 
-Please, double check your task definitions.`
+Please, double check your task definitions.`,
     },
     OVERRIDE_NO_POSITIONAL_PARAMS: {
       number: 211,
@@ -322,7 +322,7 @@ Please, double check your task definitions.`
 The only supported param additions for overridden tasks are flags,
 and optional params.
 
-Please, double check your task definitions.`
+Please, double check your task definitions.`,
     },
     OVERRIDE_NO_VARIADIC_PARAMS: {
       number: 212,
@@ -333,7 +333,7 @@ Please, double check your task definitions.`
 The only supported param additions for overridden tasks are flags,
 and optional params.
 
-Please, double check your task definitions.`
+Please, double check your task definitions.`,
     },
 
     ACTION_NOT_SET: {
@@ -342,7 +342,7 @@ Please, double check your task definitions.`
       title: "Tried to run task without an action",
       description: `A task was run, but it has no action set.  
 
-Please double check your task definitions.`
+Please double check your task definitions.`,
     },
     RUNSUPER_NOT_AVAILABLE: {
       number: 206,
@@ -351,7 +351,7 @@ Please double check your task definitions.`
       title: "`runSuper` not available",
       description: `You tried to call \`runSuper\` from a non-overridden task. 
 
-Please use \`runSuper.isDefined\` to make sure that you can call it.`
+Please use \`runSuper.isDefined\` to make sure that you can call it.`,
     },
     DEFAULT_VALUE_WRONG_TYPE: {
       number: 207,
@@ -360,7 +360,7 @@ Please use \`runSuper.isDefined\` to make sure that you can call it.`
       title: "Default value has incorrect type",
       description: `One of your tasks has a parameter whose default value doesn't match the expected type. 
 
-Please double check your task definitions.`
+Please double check your task definitions.`,
     },
     DEFAULT_IN_MANDATORY_PARAM: {
       number: 208,
@@ -369,7 +369,7 @@ Please double check your task definitions.`
       title: "Required parameter has a default value",
       description: `One of your tasks has a required parameter with a default value. 
 
-Please double check your task definitions.`
+Please double check your task definitions.`,
     },
     INVALID_PARAM_NAME_CASING: {
       number: 209,
@@ -378,8 +378,8 @@ Please double check your task definitions.`
       title: "Invalid casing in parameter name",
       description: `Your parameter names must use camelCase.  
 
-Please double check your task definitions.`
-    }
+Please double check your task definitions.`,
+    },
   },
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {
@@ -388,7 +388,7 @@ Please double check your task definitions.`
       title: "Invalid environment variable value",
       description: `You are setting one of Buidler arguments using an environment variable, but it has an incorrect value. 
 
-Please double check your environment variables.`
+Please double check your environment variables.`,
     },
     INVALID_VALUE_FOR_TYPE: {
       number: 301,
@@ -396,7 +396,7 @@ Please double check your environment variables.`
       title: "Invalid argument type",
       description: `One of your Buidler or task's arguments has an invalid type. 
 
-Please double check your arguments.`
+Please double check your arguments.`,
     },
     INVALID_INPUT_FILE: {
       number: 302,
@@ -406,7 +406,7 @@ Please double check your arguments.`
       description: `One of your tasks expected a file as an argument, but you provided a 
 non-existent or non-readable file. 
 
-Please double check your arguments.`
+Please double check your arguments.`,
     },
     UNRECOGNIZED_TASK: {
       number: 303,
@@ -414,7 +414,7 @@ Please double check your arguments.`
       title: "Unrecognized task",
       description: `Tried to run a non-existent task. 
 
-Please double check the name of the task you are trying to run.`
+Please double check the name of the task you are trying to run.`,
     },
     UNRECOGNIZED_COMMAND_LINE_ARG: {
       number: 304,
@@ -425,7 +425,7 @@ Please double check the name of the task you are trying to run.`
        
 This may be because you are writing it before the task name. It should come after it.
 
-Please double check how you invoked Buidler.`
+Please double check how you invoked Buidler.`,
     },
     UNRECOGNIZED_PARAM_NAME: {
       number: 305,
@@ -433,7 +433,7 @@ Please double check how you invoked Buidler.`
       title: "Unrecognized param",
       description: `Buidler couldn't recognize one of your tasks' parameters.
        
-Please double check how you invoked Buidler or run your task.`
+Please double check how you invoked Buidler or run your task.`,
     },
     MISSING_TASK_ARGUMENT: {
       number: 306,
@@ -441,7 +441,7 @@ Please double check how you invoked Buidler or run your task.`
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
-Please double check how you invoked Buidler or run your task.`
+Please double check how you invoked Buidler or run your task.`,
     },
     MISSING_POSITIONAL_ARG: {
       number: 307,
@@ -449,7 +449,7 @@ Please double check how you invoked Buidler or run your task.`
       title: "Missing task positional argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
-Please double check how you invoked Buidler or run your task.`
+Please double check how you invoked Buidler or run your task.`,
     },
     UNRECOGNIZED_POSITIONAL_ARG: {
       number: 308,
@@ -457,7 +457,7 @@ Please double check how you invoked Buidler or run your task.`
       title: "Unrecognized task positional argument",
       description: `You tried to run a task with more positional arguments than needed. 
 
-Please double check how you invoked Buidler or run your task.`
+Please double check how you invoked Buidler or run your task.`,
     },
     REPEATED_PARAM: {
       number: 309,
@@ -465,7 +465,7 @@ Please double check how you invoked Buidler or run your task.`
       title: "Repeated task parameter",
       description: `You tried to run a task with a repeated parameter. 
 
-Please double check how you invoked Buidler or run your task.`
+Please double check how you invoked Buidler or run your task.`,
     },
     PARAM_NAME_INVALID_CASING: {
       number: 310,
@@ -473,7 +473,7 @@ Please double check how you invoked Buidler or run your task.`
       title: "Invalid casing in command line parameter",
       description: `You tried to run buidler with a parameter with invalid casing. They must be lowercase. 
 
-Please double check how you invoked Buidler.`
+Please double check how you invoked Buidler.`,
     },
     INVALID_JSON_ARGUMENT: {
       number: 311,
@@ -481,15 +481,15 @@ Please double check how you invoked Buidler.`
       title: "Invalid JSON parameter",
       description: `You tried to run a task with an invalid JSON parameter. 
 
-Please double check how you invoked Buidler or run your task.`
-    }
+Please double check how you invoked Buidler or run your task.`,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {
       number: 400,
       message: "File %file% doesn't exist.",
       title: "Solidity file not found",
-      description: `Tried to resolve a non-existing Solidity file as an entry-point.`
+      description: `Tried to resolve a non-existing Solidity file as an entry-point.`,
     },
     FILE_OUTSIDE_PROJECT: {
       number: 401,
@@ -497,7 +497,7 @@ Please double check how you invoked Buidler or run your task.`
       title: "Tried to import file outside your project",
       description: `One of your projects tried to import a file that it's outside your Buidler project. 
 
-This is disabled for security reasons.`
+This is disabled for security reasons.`,
     },
     LIBRARY_FILE_NOT_LOCAL: {
       number: 402,
@@ -506,7 +506,7 @@ This is disabled for security reasons.`
       title: "Resolved library file as a local one",
       description: `One of your libraries' files was treated as a local file. This is a bug. 
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     LIBRARY_NOT_INSTALLED: {
       number: 403,
@@ -514,7 +514,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Solidity library not installed",
       description: `One of your Solidity sources imports a library that is not installed.
 
-Please double check your imports or install the missing dependency.`
+Please double check your imports or install the missing dependency.`,
     },
     LIBRARY_FILE_NOT_FOUND: {
       number: 404,
@@ -522,7 +522,7 @@ Please double check your imports or install the missing dependency.`
       title: "Missing library file",
       description: `One of your libraries' files was imported but doesn't exist. 
 
-Please double check your imports or update your libraries.`
+Please double check your imports or update your libraries.`,
     },
     ILLEGAL_IMPORT: {
       number: 405,
@@ -530,7 +530,7 @@ Please double check your imports or update your libraries.`
       title: "Illegal Solidity import",
       description: `One of your libraries tried to use a relative import to import a file outside of its scope. 
 
-This is disabled for security reasons.`
+This is disabled for security reasons.`,
     },
     FILE_OUTSIDE_LIB: {
       number: 406,
@@ -539,7 +539,7 @@ This is disabled for security reasons.`
       title: "Illegal Solidity import",
       description: `One of your libraries tried to use a relative import to import a file outside of its scope. 
 
-This is disabled for security reasons.`
+This is disabled for security reasons.`,
     },
     IMPORTED_FILE_NOT_FOUND: {
       number: 407,
@@ -547,8 +547,8 @@ This is disabled for security reasons.`
       title: "Imported file not found",
       description: `One of your source files imported a non-existing one. 
 
-Please double check your imports.`
-    }
+Please double check your imports.`,
+    },
   },
   SOLC: {
     INVALID_VERSION: {
@@ -558,7 +558,7 @@ Please double check your imports.`
       title: "Invalid `solc` version",
       description: `The Solidity version in your config is invalid or hasn't been released yet. 
 
-Please double check your \`solc\` config.`
+Please double check your \`solc\` config.`,
     },
     DOWNLOAD_FAILED: {
       number: 501,
@@ -567,7 +567,7 @@ Please double check your \`solc\` config.`
       title: "`solc` download failed",
       description: `Couldn't download \`solc\`. 
       
-Please check your Internet connection.`
+Please check your Internet connection.`,
     },
     VERSION_LIST_DOWNLOAD_FAILED: {
       number: 502,
@@ -576,7 +576,7 @@ Please check your Internet connection.`
       title: "Couldn't obtain `solc` version list",
       description: `Couldn't download \`solc\`'s version list. 
       
-Please check your Internet connection.`
+Please check your Internet connection.`,
     },
     INVALID_DOWNLOAD: {
       number: 503,
@@ -585,8 +585,8 @@ Please check your Internet connection.`
       title: "Downloaded `solc` checksum verification failed",
       description: `Downloaded \`solc\` verification failed.. 
       
-Please check your Internet connection.`
-    }
+Please check your Internet connection.`,
+    },
   },
   BUILTIN_TASKS: {
     COMPILE_FAILURE: {
@@ -595,7 +595,7 @@ Please check your Internet connection.`
       title: "Compilation failed",
       description: `Your smart contracts failed to compile.
       
-Please check Buidler's output for more details.`
+Please check Buidler's output for more details.`,
     },
     RUN_FILE_NOT_FOUND: {
       number: 601,
@@ -603,7 +603,7 @@ Please check Buidler's output for more details.`
       title: "Script doesn't exist",
       description: `Tried to use \`buidler run\` to execut a non-existing script.
       
-Please double check your script's path`
+Please double check your script's path`,
     },
     RUN_SCRIPT_ERROR: {
       number: 602,
@@ -611,7 +611,7 @@ Please double check your script's path`
       title: "Error running script",
       description: `Running a script resulted in an error. 
 
-Please check Buidler's output for more details.`
+Please check Buidler's output for more details.`,
     },
     FLATTEN_CYCLE: {
       number: 603,
@@ -619,19 +619,19 @@ Please check Buidler's output for more details.`
       title: "Flatten detected cyclic dependencies",
       description: `Buidler flatten doesn't support cyclic dependencies. 
 
-We recommend not using this kind of dependencies.`
+We recommend not using this kind of dependencies.`,
     },
     JSONRPC_SERVER_ERROR: {
       number: 604,
       message: "Error running JSON-RPC server: %error%",
       title: "Error running JSON-RPC server",
-      description: `There was error while starting the JSON-RPC HTTP server.`
+      description: `There was error while starting the JSON-RPC HTTP server.`,
     },
     JSONRPC_HANDLER_ERROR: {
       number: 605,
       message: "Error handling JSON-RPC request: %error%",
       title: "Error handling JSON-RPC request",
-      description: `Handling an incoming JSON-RPC request resulted in an error.`
+      description: `Handling an incoming JSON-RPC request resulted in an error.`,
     },
     JSONRPC_UNSUPPORTED_NETWORK: {
       number: 606,
@@ -640,8 +640,8 @@ We recommend not using this kind of dependencies.`
       title: "Unsupported network for JSON-RPC server.",
       description: `JSON-RPC server can only be started when running the BuidlerEVM network.
       
-To start the JSON-RPC server, retry the command without the --network parameter.`
-    }
+To start the JSON-RPC server, retry the command without the --network parameter.`,
+    },
   },
   ARTIFACTS: {
     NOT_FOUND: {
@@ -650,8 +650,8 @@ To start the JSON-RPC server, retry the command without the --network parameter.
       title: "Artifact not found",
       description: `Tried to import a non-existing artifact. 
 
-Please double check that your contracts have been compiled and your artifact's name.`
-    }
+Please double check that your contracts have been compiled and your artifact's name.`,
+    },
   },
   PLUGINS: {
     NOT_INSTALLED: {
@@ -661,7 +661,7 @@ Please double check that your contracts have been compiled and your artifact's n
       title: "Plugin not installed",
       description: `You are trying to use a plugin that hasn't been installed. 
 
-Please follow Buidler's instructions to resolve this.`
+Please follow Buidler's instructions to resolve this.`,
     },
     MISSING_DEPENDENCY: {
       number: 801,
@@ -670,7 +670,7 @@ Please follow Buidler's instructions to resolve this.`
       title: "Plugin dependencies not installed",
       description: `You are trying to use a plugin with unmet dependencies. 
 
-Please follow Buidler's instructions to resolve this.`
+Please follow Buidler's instructions to resolve this.`,
     },
     DEPENDENCY_VERSION_MISMATCH: {
       number: 802,
@@ -680,7 +680,7 @@ If you have installed %dependency% yourself, please reinstall it with a valid ve
       title: "Plugin dependencies's version mismatch",
       description: `You are trying to use a plugin that requires a different version of one of its dependencies. 
 
-Please follow Buidler's instructions to resolve this.`
+Please follow Buidler's instructions to resolve this.`,
     },
     OLD_STYLE_IMPORT_DETECTED: {
       number: 803,
@@ -689,8 +689,8 @@ Please replace it with a call to usePlugin("%pluginNameCode%").`,
       title: "Importing a plugin with `require`",
       description: `You are trying to load a plugin with a call to \`require\`. 
 
-Please use \`usePlugin(npm-plugin-package)\` instead.`
-    }
+Please use \`usePlugin(npm-plugin-package)\` instead.`,
+    },
   },
   INTERNAL: {
     TEMPLATE_INVALID_VARIABLE_NAME: {
@@ -700,7 +700,7 @@ Please use \`usePlugin(npm-plugin-package)\` instead.`
       title: "Invalid error message template",
       description: `An error message template contains an invalid variable name. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG: {
       number: 901,
@@ -709,7 +709,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Invalid error message replacement",
       description: `Tried to replace an error message variable with a value that contains another variable name. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
     },
     TEMPLATE_VARIABLE_TAG_MISSING: {
       number: 902,
@@ -717,7 +717,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Missing replacement value from error message template",
       description: `An error message template is missing a replacement value. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`
-    }
-  }
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+    },
+  },
 };

@@ -12,7 +12,7 @@ You don't need to do anything especial to use Ganache if you don't want to.
 
 Just start Ganache and run Buidler with
 
-```cmd
+```
 npx buidler --network localhost test
 ```
 
@@ -26,7 +26,7 @@ starts and stops Ganache before and after running your tests and scripts.
 
 To use it, you have to install it with `npm`
 
-```cmd
+```
 npm install --save-dev @nomiclabs/buidler-ganache
 ```
 
@@ -38,6 +38,6 @@ usePlugin("@nomiclabs/buidler-ganache");
 
 Finally, you can run your tests with
  
-```cmd
+```
 npx buidler --network ganache test
 ```

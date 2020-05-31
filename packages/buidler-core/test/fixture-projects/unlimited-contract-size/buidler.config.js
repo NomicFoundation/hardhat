@@ -1,7 +1,7 @@
 module.exports = {
   networks: {
     buidlerevm: {
-      allowUnlimitedContractSize: true
-    }
-  }
+      allowUnlimitedContractSize: true,
+    },
+  },
 };

@@ -40,7 +40,7 @@ export function parseJsonResponse(text: string): JsonRpcResponse {
     return json;
   } catch (error) {
     throw new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
-      response: text
+      response: text,
     });
   }
 }

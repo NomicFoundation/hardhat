@@ -236,7 +236,7 @@ describe("argumentTypes", () => {
       );
     });
 
-    it("Should throw if the file isn't readable", async function() {
+    it("Should throw if the file isn't readable", async function () {
       if (os.type() === "Windows_NT") {
         this.skip();
       }
@@ -291,6 +291,16 @@ describe("argumentTypes", () => {
 
     it("Should parse a string", () => {
       assert.deepEqual(types.json.parse("j", '"a"'), "a");
+    });
+
+    it("Should accept anything except undefined as valid", () => {
+      assert.doesNotThrow(() => types.json.validate!("json", 1));
+      assert.doesNotThrow(() => types.json.validate!("json", "asd"));
+      assert.doesNotThrow(() => types.json.validate!("json", [1]));
+      assert.doesNotThrow(() => types.json.validate!("json", { a: 123 }));
+      assert.doesNotThrow(() => types.json.validate!("json", null));
+
+      assert.throws(() => types.json.validate!("json", undefined));
     });
   });
 });

@@ -6,7 +6,7 @@ const { GANACHE_CLI_ARGS } = process.env;
 
 const ganacheCliArgs = (GANACHE_CLI_ARGS !== undefined ? GANACHE_CLI_ARGS : "")
   .split(/[\s,]+/)
-  .filter(arg => arg.length > 0);
+  .filter((arg) => arg.length > 0);
 
 let ganacheInstance: ChildProcess | null;
 

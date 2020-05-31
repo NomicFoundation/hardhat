@@ -4,7 +4,7 @@ import path from "path";
 
 import {
   SOLC_INPUT_FILENAME,
-  SOLC_OUTPUT_FILENAME
+  SOLC_OUTPUT_FILENAME,
 } from "../../internal/constants";
 import { glob } from "../../internal/util/glob";
 import { getPackageJson } from "../../internal/util/packageInfo";
@@ -58,7 +58,7 @@ async function getModificationDatesInDir(dir: string): Promise<number[]> {
   const files = await glob(pattern);
 
   return Promise.all(
-    files.map(async file => (await fsExtra.stat(file)).ctimeMs)
+    files.map(async (file) => (await fsExtra.stat(file)).ctimeMs)
   );
 }
 
@@ -115,7 +115,7 @@ export async function cacheBuidlerConfig(
   const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths.cache);
   const newJson = {
     solc: config,
-    buidlerVersion: await getCurrentBuidlerVersion()
+    buidlerVersion: await getCurrentBuidlerVersion(),
   };
 
   await fsExtra.ensureDir(path.dirname(pathToLastConfigUsed));

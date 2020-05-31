@@ -1,3 +1,5 @@
+import util from "util";
+
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
@@ -31,17 +33,22 @@ import { ERRORS } from "../core/errors-list";
 export function lazyObject<T extends object>(objectCreator: () => T): T {
   return createLazyProxy(
     objectCreator,
-    () => ({}),
-    object => {
+    (getRealTarget) => ({
+      [util.inspect.custom]() {
+        const realTarget = getRealTarget();
+        return util.inspect(realTarget);
+      },
+    }),
+    (object) => {
       if (object instanceof Function) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-          operation: "Creating lazy functions or classes with lazyObject"
+          operation: "Creating lazy functions or classes with lazyObject",
         });
       }
 
       if (typeof object !== "object" || object === null) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-          operation: "Using lazyObject with anything other than objects"
+          operation: "Using lazyObject with anything other than objects",
         });
       }
     }
@@ -52,12 +59,21 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   return createLazyProxy(
     functionCreator,
-    () => function() {},
-    object => {
+    (getRealTarget) => {
+      function dummyTarget() {}
+
+      (dummyTarget as any)[util.inspect.custom] = function () {
+        const realTarget = getRealTarget();
+        return util.inspect(realTarget);
+      };
+
+      return dummyTarget;
+    },
+    (object) => {
       if (!(object instanceof Function)) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
           operation:
-            "Using lazyFunction with anything other than functions or classes"
+            "Using lazyFunction with anything other than functions or classes",
         });
       }
     }
@@ -66,13 +82,13 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
 
 function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
   targetCreator: () => ActualT,
-  dummyTargetCreator: () => GuardT,
+  dummyTargetCreator: (getRealTarget: () => ActualT) => GuardT,
   validator: (target: any) => void
 ): ActualT {
   let realTarget: ActualT | undefined;
 
   // tslint:disable-next-line
-  const dummyTarget: ActualT = dummyTargetCreator() as any;
+  const dummyTarget: ActualT = dummyTargetCreator(getRealTarget) as any;
 
   function getRealTarget(): ActualT {
     if (realTarget === undefined) {
@@ -94,7 +110,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       if (Object.getPrototypeOf(target) === null) {
         throw new BuidlerError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
           operation:
-            "Using lazyFunction or lazyObject to construct objects/functions with prototype null"
+            "Using lazyFunction or lazyObject to construct objects/functions with prototype null",
         });
       }
 
@@ -133,6 +149,13 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       // before: https://github.com/ethereum/web3.js/blob/8574bd3bf11a2e9cf4bcf8850cab13e1db56653f/packages/web3-core-requestmanager/src/givenProvider.js#L41
       //
       // We just return `undefined` in that case, to not enter into the loop.
+      //
+      // **SUPER IMPORTANT NOTE:** Removing this is very tempting, I know. This
+      // is a horrible hack. The most obvious approach for doing so is to
+      // remove the `global` elements that trigger this crazy behavior right
+      // before doing our `require("web3")`, and restore them afterwards.
+      // **THIS IS NOT ENOUGH** Users, and libraries (!!!!), will have their own
+      // `require`s that we can't control and will trigger the same bug.
       const stack = new Error().stack;
       if (
         stack !== undefined &&
@@ -187,7 +210,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
     setPrototypeOf(target, prototype) {
       Reflect.setPrototypeOf(dummyTarget, prototype);
       return Reflect.setPrototypeOf(getRealTarget(), prototype);
-    }
+    },
   };
 
   if (dummyTarget instanceof Function) {

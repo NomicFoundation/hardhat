@@ -6,7 +6,7 @@ import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   CompilerBuild,
   CompilerDownloader,
-  CompilersList
+  CompilersList,
 } from "../../../../src/internal/solidity/compiler/downloader";
 import { getLocalCompilerVersion } from "../../../helpers/compiler";
 import { expectBuidlerErrorAsync } from "../../../helpers/errors";
@@ -19,13 +19,13 @@ import { useTmpDir } from "../../../helpers/fs";
 // To make it easier to test, CompilerDownloader exposes helper methods with
 // internal logic and their are tested individually here.
 
-describe("Compiler downloader", function() {
+describe("Compiler downloader", function () {
   let localCompilerBuild: CompilerBuild;
   let mockCompilerList: CompilersList;
 
   useTmpDir("compiler-downloader");
 
-  before(function() {
+  before(function () {
     localCompilerBuild = {
       path: "soljson-v0.5.15+commit.6a57276f.js",
       version: "0.5.15",
@@ -34,8 +34,8 @@ describe("Compiler downloader", function() {
       keccak256:
         "0x09bad5cab9326f921c8f6a4d57fde317fb0cf5a66568defc48aeb682d37b0e68",
       urls: [
-        "bzzr://668f46bbfabb58cabac9bce5c5b9003206222130b1783d602ea8709581ddda87"
-      ]
+        "bzzr://668f46bbfabb58cabac9bce5c5b9003206222130b1783d602ea8709581ddda87",
+      ],
     };
 
     assert.equal(
@@ -47,14 +47,14 @@ describe("Compiler downloader", function() {
     mockCompilerList = {
       builds: [localCompilerBuild],
       releases: {
-        [localCompilerBuild.version]: localCompilerBuild.path
+        [localCompilerBuild.version]: localCompilerBuild.path,
       },
-      latestRelease: localCompilerBuild.version
+      latestRelease: localCompilerBuild.version,
     };
   });
 
-  describe("Downloaded compiler verification", function() {
-    it("Shouldn't do anything if the compiler is fine", async function() {
+  describe("Downloaded compiler verification", function () {
+    it("Shouldn't do anything if the compiler is fine", async function () {
       const downloader = new CompilerDownloader(
         this.tmpDir,
         getLocalCompilerVersion(),
@@ -66,7 +66,7 @@ describe("Compiler downloader", function() {
       await downloader.verifyCompiler(localCompilerBuild, compilerBin);
     });
 
-    it("Should throw if the download was unsuccessful, and delete it", async function() {
+    it("Should throw if the download was unsuccessful, and delete it", async function () {
       const compilersDir = this.tmpDir;
       const corruptCompilerBin = path.join(compilersDir, "asd");
       await fsExtra.createFile(corruptCompilerBin);
@@ -88,8 +88,8 @@ describe("Compiler downloader", function() {
     });
   });
 
-  describe("Compiler download", function() {
-    it("should call the download function with the right params", async function() {
+  describe("Compiler download", function () {
+    it("should call the download function with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompiler");
       const expectedUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${localCompilerBuild.path}`;
@@ -112,7 +112,7 @@ describe("Compiler downloader", function() {
       assert.equal(pathUsed, downloadPath);
     });
 
-    it("Should throw the right error if the download fails", async function() {
+    it("Should throw the right error if the download fails", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompiler");
 
@@ -131,8 +131,8 @@ describe("Compiler downloader", function() {
     });
   });
 
-  describe("Compilers list download", function() {
-    it("Should call download with the right params", async function() {
+  describe("Compilers list download", function () {
+    it("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const expectedUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json`;
 
@@ -154,7 +154,7 @@ describe("Compiler downloader", function() {
       assert.equal(pathUsed, path.join(compilersDir, "list.json"));
     });
 
-    it("Should throw the right error if the download fails", async function() {
+    it("Should throw the right error if the download fails", async function () {
       const downloader = new CompilerDownloader(
         this.tmpDir,
         getLocalCompilerVersion(),
@@ -170,8 +170,8 @@ describe("Compiler downloader", function() {
     });
   });
 
-  describe("Compilers list exists", function() {
-    it("Should return true if it does", async function() {
+  describe("Compilers list exists", function () {
+    it("Should return true if it does", async function () {
       const compilersDir = this.tmpDir;
       await fsExtra.createFile(path.join(compilersDir, "list.json"));
 
@@ -185,7 +185,7 @@ describe("Compiler downloader", function() {
       assert.isTrue(await downloader.compilersListExists());
     });
 
-    it("should return false if it doesn't", async function() {
+    it("should return false if it doesn't", async function () {
       const downloader = new CompilerDownloader(
         this.tmpDir,
         getLocalCompilerVersion(),
@@ -197,12 +197,12 @@ describe("Compiler downloader", function() {
     });
   });
 
-  describe("Get compilers lists and CompilerBuild", function() {
+  describe("Get compilers lists and CompilerBuild", function () {
     let compilersDir: string;
     let downloadCalled: boolean;
     let mockDownloader: CompilerDownloader;
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       compilersDir = this.tmpDir;
 
       downloadCalled = false;
@@ -224,31 +224,31 @@ describe("Compiler downloader", function() {
       );
     }
 
-    describe("When there's an already downloaded list", function() {
-      beforeEach(async function() {
+    describe("When there's an already downloaded list", function () {
+      beforeEach(async function () {
         await saveMockCompilersList();
       });
 
-      describe("getCompilersList", function() {
-        it("Doesn't download the list again", async function() {
+      describe("getCompilersList", function () {
+        it("Doesn't download the list again", async function () {
           await mockDownloader.getCompilersList();
           assert.isFalse(downloadCalled);
         });
 
-        it("Returns the right list", async function() {
+        it("Returns the right list", async function () {
           const list = await mockDownloader.getCompilersList();
           assert.deepEqual(list, mockCompilerList);
         });
       });
 
-      describe("getCompilerBuild", function() {
-        describe("When the build is in the list", function() {
-          it("Doesn't re-download the list", async function() {
+      describe("getCompilerBuild", function () {
+        describe("When the build is in the list", function () {
+          it("Doesn't re-download the list", async function () {
             await mockDownloader.getCompilerBuild(localCompilerBuild.version);
             assert.isFalse(downloadCalled);
           });
 
-          it("Returns the right build", async function() {
+          it("Returns the right build", async function () {
             const build = await mockDownloader.getCompilerBuild(
               localCompilerBuild.version
             );
@@ -256,8 +256,8 @@ describe("Compiler downloader", function() {
           });
         });
 
-        describe("When it isn't", function() {
-          it("Downloads the build", async function() {
+        describe("When it isn't", function () {
+          it("Downloads the build", async function () {
             try {
               await mockDownloader.getCompilerBuild("non-existent");
               assert.isTrue(downloadCalled);
@@ -266,7 +266,7 @@ describe("Compiler downloader", function() {
             }
           });
 
-          it("Throws the right error if the build is not included in the new list", async function() {
+          it("Throws the right error if the build is not included in the new list", async function () {
             await expectBuidlerErrorAsync(
               () => mockDownloader.getCompilerBuild("non-existent"),
               ERRORS.SOLC.INVALID_VERSION
@@ -276,16 +276,16 @@ describe("Compiler downloader", function() {
       });
     });
 
-    describe("When there isn't", function() {
-      describe("getCompilersList", function() {
-        it("Downloads the compilers list", async function() {
+    describe("When there isn't", function () {
+      describe("getCompilersList", function () {
+        it("Downloads the compilers list", async function () {
           await mockDownloader.getCompilersList();
           assert.isTrue(downloadCalled);
         });
       });
 
-      describe("getCompilerBuild", function() {
-        it("Downloads the compilers list", async function() {
+      describe("getCompilerBuild", function () {
+        it("Downloads the compilers list", async function () {
           await mockDownloader.getCompilerBuild(localCompilerBuild.version);
           assert.isTrue(downloadCalled);
         });
@@ -293,13 +293,13 @@ describe("Compiler downloader", function() {
     });
   });
 
-  describe("getDownloadedCompilerPath", function() {
+  describe("getDownloadedCompilerPath", function () {
     let compilersDir: string;
     let downloadedPath: string;
     let downloadCalled: boolean;
     let mockDownloader: CompilerDownloader;
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       compilersDir = this.tmpDir;
 
       downloadedPath = path.join(compilersDir, localCompilerBuild.path);
@@ -321,8 +321,8 @@ describe("Compiler downloader", function() {
       );
     });
 
-    describe("If the compiler already existed", function() {
-      it("Should return it if it's passes the verification", async function() {
+    describe("If the compiler already existed", function () {
+      it("Should return it if it's passes the verification", async function () {
         const compilerBin = require.resolve("solc/soljson.js");
         await fsExtra.copy(compilerBin, downloadedPath);
 
@@ -332,7 +332,7 @@ describe("Compiler downloader", function() {
         assert.equal(compilerPath, downloadedPath);
       });
 
-      it("Should throw and delete it if it doesn't", async function() {
+      it("Should throw and delete it if it doesn't", async function () {
         await fsExtra.createFile(downloadedPath);
 
         await expectBuidlerErrorAsync(
@@ -347,8 +347,8 @@ describe("Compiler downloader", function() {
       });
     });
 
-    describe("If the compiler didn't exist", function() {
-      it("should download and verify it", async function() {
+    describe("If the compiler didn't exist", function () {
+      it("should download and verify it", async function () {
         await expectBuidlerErrorAsync(
           () =>
             mockDownloader.getDownloadedCompilerPath(

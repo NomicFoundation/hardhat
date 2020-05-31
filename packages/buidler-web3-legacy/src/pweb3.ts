@@ -26,7 +26,7 @@ export function promisifyWeb3(web3: any) {
             throw new BuidlerPluginError(
               `pweb3.${module}.${prop} is not supported.`
             );
-          }
+          },
         });
       } else if (desc.get !== undefined) {
         Object.defineProperty(pweb3[module], prop, {
@@ -34,7 +34,7 @@ export function promisifyWeb3(web3: any) {
             throw new BuidlerPluginError(
               "pweb3 doesn't support synchronous calls."
             );
-          }
+          },
         });
       } else if (web3[module][prop] instanceof Function) {
         pweb3[module][prop] = async (...args: any[]) => {
@@ -83,7 +83,7 @@ export function promisifyWeb3(web3: any) {
 
                 promisifyContract(contract, abi);
                 resolve(contract);
-              }
+              },
             ]);
           });
         return pfied();

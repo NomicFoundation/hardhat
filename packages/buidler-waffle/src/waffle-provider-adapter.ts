@@ -17,7 +17,7 @@ You can use \`await bre.ethers.signers()\` in other networks.`);
     }
 
     return (this._buidlerNetwork.config as BuidlerNetworkConfig).accounts!.map(
-      acc => new Wallet(acc.privateKey, this)
+      (acc) => new Wallet(acc.privateKey, this)
     );
   }
 
@@ -36,10 +36,10 @@ You can use \`await bre.ethers.signers()\` in other networks.`);
         id: 42,
         jsonrpc: "2.0",
         method,
-        params
+        params,
       },
       response: result,
-      provider: this
+      provider: this,
     });
 
     return result;

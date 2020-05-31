@@ -54,7 +54,8 @@ body
   border-right 1px solid $borderColor
   overflow-y auto
 
-.content:not(.custom)
+.theme-container:not(.custom) .content,
+.theme-container:not(.custom) .content__default
   @extend $wrapper
   > *:first-child
     margin-top $navbarAndBannerHeight
@@ -105,7 +106,8 @@ strong
 h1, h2, h3, h4, h5, h6
   font-weight 600
   line-height 1.25
-  .content:not(.custom) > &
+  .theme-container:not(.custom) .content > &,
+  .theme-container:not(.custom) .content__default > &
     margin-top (0.5rem - $navbarAndBannerHeight)
     padding-top ($navbarAndBannerHeight + 1rem)
     margin-bottom 0
@@ -171,7 +173,8 @@ th, td
     .sidebar-mask
       display: block
   &.no-navbar
-    .content:not(.custom) > h1, h2, h3, h4, h5, h6
+    .theme-container:not(.custom) .content > h1, h2, h3, h4, h5, h6,
+    .theme-container:not(.custom) .content__default > h1, h2, h3, h4, h5, h6
       margin-top 1.5rem
       padding-top 0
     .sidebar
@@ -188,4 +191,4 @@ th, td
       padding-left 0
 
 @require './mobile.styl'
-@require '../../style.styl'
+@require './custom-style.styl'

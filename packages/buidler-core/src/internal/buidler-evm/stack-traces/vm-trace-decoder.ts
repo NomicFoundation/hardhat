@@ -18,9 +18,9 @@ export class VmTraceDecoder {
       bytecode: this._contractsIdentifier.getBytecodeFromMessageTrace(
         messageTrace
       ),
-      steps: messageTrace.steps.map(s =>
+      steps: messageTrace.steps.map((s) =>
         isEvmStep(s) ? s : this.tryToDecodeMessageTrace(s)
-      )
+      ),
     };
   }
 }

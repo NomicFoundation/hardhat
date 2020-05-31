@@ -2,12 +2,12 @@ import {
   ActionType,
   TaskArguments,
   TaskDefinition,
-  TasksMap
+  TasksMap,
 } from "../../../types";
 
 import {
   OverriddenTaskDefinition,
-  SimpleTaskDefinition
+  SimpleTaskDefinition,
 } from "./task-definitions";
 
 /**

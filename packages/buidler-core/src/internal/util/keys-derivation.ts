@@ -1,13 +1,14 @@
-import { fromSeed } from "bip32";
-import { mnemonicToSeedSync } from "bip39";
+import { mnemonicToSeedSync } from "ethereum-cryptography/bip39";
+import { HDKey } from "ethereum-cryptography/hdkey";
 
 export function deriveKeyFromMnemonicAndPath(
   mnemonic: string,
   hdPath: string
 ): Buffer | undefined {
   const seed = mnemonicToSeedSync(mnemonic);
-  const masterKey = fromSeed(seed);
-  const derived = masterKey.derivePath(hdPath);
 
-  return derived.privateKey;
+  const masterKey = HDKey.fromMasterSeed(seed);
+  const derived = masterKey.derive(hdPath);
+
+  return derived.privateKey === null ? undefined : derived.privateKey;
 }

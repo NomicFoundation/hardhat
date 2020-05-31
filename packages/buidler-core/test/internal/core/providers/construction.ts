@@ -6,14 +6,14 @@ import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   createProvider,
   isHDAccountsConfig,
-  wrapEthereumProvider
+  wrapEthereumProvider,
 } from "../../../../src/internal/core/providers/construction";
 import { GANACHE_GAS_MULTIPLIER } from "../../../../src/internal/core/providers/gas-providers";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import {
   createChainIdGetter,
   numberToRpcQuantity,
-  rpcQuantityToNumber
+  rpcQuantityToNumber,
 } from "../../../../src/internal/core/providers/provider-utils";
 import { expectBuidlerErrorAsync } from "../../../helpers/errors";
 
@@ -43,10 +43,10 @@ describe("Base providers wrapping", () => {
     mockedProvider.setReturnValue("web3_clientVersion", "Not ganache");
     mockedProvider.setReturnValue("net_version", "1337");
     mockedProvider.setReturnValue("eth_getBlockByNumber", {
-      gasLimit: numberToRpcQuantity(8000000)
+      gasLimit: numberToRpcQuantity(8000000),
     });
     mockedProvider.setReturnValue("eth_accounts", [
-      "0x04397ae3f38106cebdf03f963074ecfc23d509d9"
+      "0x04397ae3f38106cebdf03f963074ecfc23d509d9",
     ]);
   });
 
@@ -56,9 +56,9 @@ describe("Base providers wrapping", () => {
         accounts: [
           "0x5ca14ebaee5e4a48b5341d9225f856115be72df55c7621b73fb0b6a1fdefcf24",
           "0x4e24948ea2bbd95ccd2bac641aadf36acd7e7cc011b1186a83dfe8db6cc7b1ae",
-          "0x6dca0836dc90c159b9240aeff471441a134e1b215a7ffe9d69d335f325932665"
+          "0x6dca0836dc90c159b9240aeff471441a134e1b215a7ffe9d69d335f325932665",
         ],
-        url: ""
+        url: "",
       });
 
       const accounts = await provider.send("eth_accounts");
@@ -66,7 +66,7 @@ describe("Base providers wrapping", () => {
       assert.deepEqual(accounts, [
         "0x04397ae3f38106cebdf03f963074ecfc23d509d9",
         "0xa2b6816c50d49101901d93f5302a3a57e0a1281b",
-        "0x56b33dc9bd2d34aa087b982f4e307145156f5f9f"
+        "0x56b33dc9bd2d34aa087b982f4e307145156f5f9f",
       ]);
     });
 
@@ -76,22 +76,22 @@ describe("Base providers wrapping", () => {
           mnemonic:
             "hurdle method ceiling design federal record unfair cloud end midnight corn oval",
           initialIndex: 3,
-          count: 2
+          count: 2,
         },
-        url: ""
+        url: "",
       });
 
       const accounts = await provider.send("eth_accounts");
 
       assert.deepEqual(accounts, [
         "0xd26a6f43b0df5c539778e08feec29908ea83a1c1",
-        "0x70afc7acf880e0d233e8ebedadbdaf68984ff510"
+        "0x70afc7acf880e0d233e8ebedadbdaf68984ff510",
       ]);
     });
 
     it("Shouldn't wrap with an accounts-managing provider if not necessary", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
-        url: ""
+        url: "",
       });
 
       await provider.send("eth_accounts", ["param1", "param2"]);
@@ -115,7 +115,7 @@ describe("Base providers wrapping", () => {
         "mainnet",
         {
           chainId,
-          networkId: chainId
+          networkId: chainId,
         },
         "petersburg"
       );
@@ -124,7 +124,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with a fixed sender param", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
         url: "",
-        from: "0xa2b6816c50d49101901d93f5302a3a57e0a1281b"
+        from: "0xa2b6816c50d49101901d93f5302a3a57e0a1281b",
       });
 
       await provider.send("eth_sendTransaction", [{}]);
@@ -135,7 +135,7 @@ describe("Base providers wrapping", () => {
 
     it("Should wrap without a fixed sender param, using the default one", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
-        url: ""
+        url: "",
       });
 
       await provider.send("eth_sendTransaction", [{}]);
@@ -159,7 +159,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with an auto gas provider if 'auto' is used", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
         url: "",
-        gas: "auto"
+        gas: "auto",
       });
 
       await provider.send("eth_sendTransaction", [{ from: "0x0" }]);
@@ -169,7 +169,7 @@ describe("Base providers wrapping", () => {
 
     it("Should wrap with an auto gas provider if undefined is used", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
-        url: ""
+        url: "",
       });
 
       await provider.send("eth_sendTransaction", [{ from: "0x0" }]);
@@ -183,7 +183,7 @@ describe("Base providers wrapping", () => {
     it("Should use the gasMultiplier", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
         url: "",
-        gasMultiplier: OTHER_GAS_MULTIPLIER
+        gasMultiplier: OTHER_GAS_MULTIPLIER,
       });
 
       await provider.send("eth_sendTransaction", [{ from: "0x0" }]);
@@ -197,7 +197,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with a fixed gas provider if a number is used", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
         url: "",
-        gas: 678
+        gas: 678,
       });
 
       await provider.send("eth_sendTransaction", [{ from: "0x0" }]);
@@ -214,7 +214,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with an auto gas price provider if 'auto' is used", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
         url: "",
-        gasPrice: "auto"
+        gasPrice: "auto",
       });
 
       const gasPrice = await provider.send("eth_gasPrice");
@@ -223,7 +223,7 @@ describe("Base providers wrapping", () => {
 
     it("Should wrap with an auto gas price provider if undefined is used", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
-        url: ""
+        url: "",
       });
 
       const gasPrice = await provider.send("eth_gasPrice");
@@ -233,7 +233,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with a fixed gas price provider if a number is used", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
         url: "",
-        gasPrice: 789
+        gasPrice: 789,
       });
 
       await provider.send("eth_sendTransaction", [{}]);
@@ -249,7 +249,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with a chain id validation provider if a chainId is used", async () => {
       const provider = wrapEthereumProvider(mockedProvider, {
         url: "",
-        chainId: 2
+        chainId: 2,
       });
 
       await expectBuidlerErrorAsync(
@@ -271,11 +271,11 @@ describe("Base providers wrapping", () => {
       );
 
       const provider = wrapEthereumProvider(mockedProvider, {
-        url: ""
+        url: "",
       });
 
       const estimation = await provider.send("eth_estimateGas", [
-        { to: "0xa2b6816c50d49101901d93f5302a3a57e0a1281b", value: 1 }
+        { to: "0xa2b6816c50d49101901d93f5302a3a57e0a1281b", value: 1 },
       ]);
 
       const gas = rpcQuantityToNumber(estimation);

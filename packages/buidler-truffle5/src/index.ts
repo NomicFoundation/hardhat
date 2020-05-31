@@ -1,18 +1,18 @@
 import {
   TASK_COMPILE_GET_SOURCE_PATHS,
-  TASK_TEST_SETUP_TEST_ENVIRONMENT
+  TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import {
   extendEnvironment,
   internalTask,
-  usePlugin
+  usePlugin,
 } from "@nomiclabs/buidler/config";
 import { glob } from "@nomiclabs/buidler/internal/util/glob";
 import {
   BUIDLEREVM_NETWORK_NAME,
   BuidlerPluginError,
   lazyFunction,
-  lazyObject
+  lazyObject,
 } from "@nomiclabs/buidler/plugins";
 import { BuidlerNetworkConfig } from "@nomiclabs/buidler/types";
 import { join } from "path";
@@ -21,7 +21,7 @@ import { TruffleEnvironmentArtifacts } from "./artifacts";
 import {
   getTruffleFixtureFunction,
   hasMigrations,
-  hasTruffleFixture
+  hasTruffleFixture,
 } from "./fixture";
 import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
@@ -31,12 +31,12 @@ let originalFormatter: any;
 let originalGetGasEstimate: any;
 let originalPrepareCall: any;
 
-export default function() {
+export default function () {
   usePlugin("@nomiclabs/buidler-web3");
 
   let accounts: string[] | undefined;
 
-  extendEnvironment(env => {
+  extendEnvironment((env) => {
     env.artifacts = lazyObject(() => {
       const networkConfig = env.network.config;
 
@@ -80,7 +80,7 @@ export default function() {
       const formattersPath = require.resolve(
         "web3-core-helpers/src/formatters",
         {
-          paths: [web3Path]
+          paths: [web3Path],
         }
       );
 
@@ -90,7 +90,7 @@ export default function() {
         originalFormatter = formatters.inputTransactionFormatter;
       }
 
-      formatters.inputTransactionFormatter = function(options: any) {
+      formatters.inputTransactionFormatter = function (options: any) {
         if (options.from === undefined) {
           throw new BuidlerPluginError(
             "There's no account available in the selected network."
@@ -104,7 +104,7 @@ export default function() {
         originalGetGasEstimate = execute.getGasEstimate;
       }
 
-      execute.getGasEstimate = async function(params: any, ...others: any[]) {
+      execute.getGasEstimate = async function (params: any, ...others: any[]) {
         await addFromIfNeededAndAvailable(params);
         return originalGetGasEstimate.call(this, params, ...others);
       };
@@ -112,7 +112,7 @@ export default function() {
       if (originalPrepareCall === undefined) {
         originalPrepareCall = execute.prepareCall;
       }
-      execute.prepareCall = async function(...args: any[]) {
+      execute.prepareCall = async function (...args: any[]) {
         const ret = await originalPrepareCall.apply(this, args);
         await addFromIfNeededAndAvailable(ret.params);
 
@@ -133,14 +133,14 @@ export default function() {
           const {
             privateToAddress,
             toChecksumAddress,
-            bufferToHex
+            bufferToHex,
           } = require("ethereumjs-util");
 
           const netConfig = env.network.config as Required<
             BuidlerNetworkConfig
           >;
 
-          accounts = netConfig.accounts.map(acc =>
+          accounts = netConfig.accounts.map((acc) =>
             toChecksumAddress(bufferToHex(privateToAddress(acc.privateKey)))
           );
         }
@@ -151,7 +151,7 @@ export default function() {
       }
 
       describe(`Contract: ${description}`, () => {
-        before("Running truffle fixture if available", async function() {
+        before("Running truffle fixture if available", async function () {
           await env.run(RUN_TRUFFLE_FIXTURE_TASK);
         });
 

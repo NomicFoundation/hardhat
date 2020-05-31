@@ -1,7 +1,7 @@
 {
   "scripts": {
     "dev": "vuepress dev .",
-    "build": "vuepress build .",
+    "build": "NODE_ENV=production vuepress build .",
     "apidocs": "typedoc --tsconfig ../packages/buidler-core/src/tsconfig.json"
   },
   "devDependencies": {
@@ -10,8 +10,11 @@
     "typedoc": "^0.14.2",
     "typedoc-plugin-markdown": "^1.1.27",
     "typedoc-plugin-no-inherit": "^1.1.6",
-    "vuepress": "^0.14.11",
-    "webpack": "^4.28.4"
+    "vuepress": "^1.4.1",
+    "vuepress-plugin-container": "^2.1.3",
+    "webpack": "^4.28.4",
+    "@vuepress/plugin-google-analytics": "^1.4.1",
+    "vue-carousel": "^0.18.0"
   },
   "private": true
 }

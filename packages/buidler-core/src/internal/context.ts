@@ -4,7 +4,10 @@ import { ExtenderManager } from "./core/config/extenders";
 import { BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { TasksDSL } from "./core/tasks/dsl";
-import { GlobalWithBuidlerContext } from "./internalTypes";
+
+export type GlobalWithBuidlerContext = NodeJS.Global & {
+  __buidlerContext: BuidlerContext;
+};
 
 export class BuidlerContext {
   public static isCreated(): boolean {

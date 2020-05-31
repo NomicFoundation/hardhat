@@ -3,12 +3,6 @@ import { lazyObject } from "@nomiclabs/buidler/plugins";
 import path from "path";
 
 function initializeWaffleMatchers(projectRoot: string) {
-  const wafflePath = require.resolve("ethereum-waffle");
-  const waffleChaiPath = require.resolve("@ethereum-waffle/chai", {
-    paths: [wafflePath]
-  });
-  const { waffleChai } = require(waffleChaiPath);
-
   try {
     let chaiPath = require.resolve("chai");
 
@@ -16,11 +10,12 @@ function initializeWaffleMatchers(projectRoot: string) {
     // used to test it, not the project's version of chai, so we correct it.
     if (chaiPath.startsWith(path.join(__dirname, "..", "node_modules"))) {
       chaiPath = require.resolve("chai", {
-        paths: [projectRoot]
+        paths: [projectRoot],
       });
     }
 
     const chai = require(chaiPath);
+    const { waffleChai } = require("./waffle-chai");
 
     chai.use(waffleChai);
   } catch (error) {
@@ -28,17 +23,17 @@ function initializeWaffleMatchers(projectRoot: string) {
   }
 }
 
-export default function() {
-  extendEnvironment(bre => {
+export default function () {
+  extendEnvironment((bre) => {
     // We can't actually implement a MockProvider because of its private
     // properties, so we cast it here 😢
     bre.waffle = lazyObject(() => {
       const {
-        WaffleMockProviderAdapter
+        WaffleMockProviderAdapter,
       } = require("./waffle-provider-adapter");
 
       return {
-        provider: new WaffleMockProviderAdapter(bre.network) as any
+        provider: new WaffleMockProviderAdapter(bre.network) as any,
       };
     });
 

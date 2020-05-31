@@ -28,7 +28,7 @@ export class JsonRpcServer {
 
     this._httpServer = http.createServer();
     this._wsServer = new WSServer({
-      server: this._httpServer
+      server: this._httpServer,
     });
 
     this._httpServer.on("request", handler.handleHttp);
@@ -42,7 +42,7 @@ export class JsonRpcServer {
   };
 
   public listen = (): Promise<{ address: string; port: number }> => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       log(`Starting JSON-RPC server on port ${this._config.port}`);
       this._httpServer.listen(this._config.port, this._config.hostname, () => {
         // We get the address and port directly from the server in order to handle random port allocation with `0`.
@@ -52,11 +52,11 @@ export class JsonRpcServer {
   };
 
   public waitUntilClosed = async () => {
-    const httpServerClosed = new Promise(resolve => {
+    const httpServerClosed = new Promise((resolve) => {
       this._httpServer.once("close", resolve);
     });
 
-    const wsServerClosed = new Promise(resolve => {
+    const wsServerClosed = new Promise((resolve) => {
       this._wsServer.once("close", resolve);
     });
 
@@ -67,7 +67,7 @@ export class JsonRpcServer {
     return Promise.all([
       new Promise((resolve, reject) => {
         log("Closing JSON-RPC server");
-        this._httpServer.close(err => {
+        this._httpServer.close((err) => {
           if (err !== null && err !== undefined) {
             log("Failed to close JSON-RPC server");
             reject(err);
@@ -80,7 +80,7 @@ export class JsonRpcServer {
       }),
       new Promise((resolve, reject) => {
         log("Closing websocket server");
-        this._wsServer.close(err => {
+        this._wsServer.close((err) => {
           if (err !== null && err !== undefined) {
             log("Failed to close websocket server");
             reject(err);
@@ -90,7 +90,7 @@ export class JsonRpcServer {
           log("Websocket server closed");
           resolve();
         });
-      })
+      }),
     ]);
   };
 }

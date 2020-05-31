@@ -1,5 +1,4 @@
 import AbortController from "abort-controller";
-import ci from "ci-info";
 import debug from "debug";
 import { keccak256 } from "ethereumjs-util";
 import fs from "fs-extra";
@@ -11,6 +10,7 @@ import uuid from "uuid/v4";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
+import { isRunningOnCiServer } from "../util/ci-detection";
 import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("buidler:core:analytics");
@@ -45,7 +45,7 @@ export class Analytics {
       projectId: getProjectId(rootPath),
       clientId: await getClientId(),
       enabled,
-      userType: getUserType()
+      userType: getUserType(),
     });
 
     return analytics;
@@ -62,7 +62,7 @@ export class Analytics {
     projectId,
     clientId,
     enabled,
-    userType
+    userType,
   }: {
     projectId: string;
     clientId: string;
@@ -71,7 +71,7 @@ export class Analytics {
   }) {
     this._projectId = projectId;
     this._clientId = clientId;
-    this._enabled = enabled && !this._isLocalDev();
+    this._enabled = enabled && !this._isLocalDev() && !isRunningOnCiServer();
     this._userType = userType;
   }
 
@@ -154,7 +154,7 @@ export class Analytics {
       cd2: this._userType,
       // Custom dimension 3: Buidler Version
       //   Example: "Buidler 1.0.0".
-      cd3: await getBuidlerVersion()
+      cd3: await getBuidlerVersion(),
     };
   }
 
@@ -176,7 +176,7 @@ export class Analytics {
     const hitPromise = fetch(googleAnalyticsUrl, {
       body: hitPayload,
       method: "POST",
-      signal: controller.signal
+      signal: controller.signal,
     })
       .then(() => {
         log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
@@ -230,8 +230,8 @@ async function getClientId() {
       globalBuidlerConfigFile,
       JSON.stringify({
         analytics: {
-          clientId
-        }
+          clientId,
+        },
       }),
       "utf-8"
     );
@@ -252,11 +252,7 @@ function getProjectId(rootPath: string) {
 }
 
 function getUserType(): string {
-  // ci-info hasn't released support for github actions yet, so we
-  // test it manually here. See: https://github.com/watson/ci-info/issues/48
-  return ci.isCI || process.env.GITHUB_ACTIONS !== undefined
-    ? "CI"
-    : "Developer";
+  return isRunningOnCiServer() ? "CI" : "Developer";
 }
 
 /**

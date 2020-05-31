@@ -41,7 +41,7 @@ import {
   ConsoleLogs,
   IntTy,
   StringTy,
-  UintTy
+  UintTy,
 } from "./logger";
 import {
   CallMessageTrace,
@@ -49,7 +49,7 @@ import {
   isCallTrace,
   isEvmStep,
   isPrecompileTrace,
-  MessageTrace
+  MessageTrace,
 } from "./message-trace";
 
 const CONSOLE_ADDRESS = "0x000000000000000000636F6e736F6c652e6c6f67"; // toHex("console.log")
@@ -71,7 +71,7 @@ export class ConsoleLogger {
   }
 
   public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
-    return this.getExecutionLogs(maybeDecodedMessageTrace).map(log => {
+    return this.getExecutionLogs(maybeDecodedMessageTrace).map((log) => {
       if (log === undefined) {
         return "";
       }

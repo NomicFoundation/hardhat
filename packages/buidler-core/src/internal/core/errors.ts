@@ -132,7 +132,7 @@ function _applyErrorMessageTemplate(
     for (const variableName of Object.keys(values)) {
       if (variableName.match(/^[a-zA-Z][a-zA-Z0-9]*$/) === null) {
         throw new BuidlerError(ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME, {
-          variable: variableName
+          variable: variableName,
         });
       }
 
@@ -140,7 +140,7 @@ function _applyErrorMessageTemplate(
 
       if (!template.includes(variableTag)) {
         throw new BuidlerError(ERRORS.INTERNAL.TEMPLATE_VARIABLE_TAG_MISSING, {
-          variable: variableName
+          variable: variableName,
         });
       }
     }
@@ -149,7 +149,7 @@ function _applyErrorMessageTemplate(
   if (template.includes("%%")) {
     return template
       .split("%%")
-      .map(part => _applyErrorMessageTemplate(part, values, true))
+      .map((part) => _applyErrorMessageTemplate(part, values, true))
       .join("%");
   }
 

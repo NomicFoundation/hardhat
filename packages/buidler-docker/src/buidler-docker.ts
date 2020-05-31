@@ -10,7 +10,7 @@ import {
   DockerNotRunningError,
   DockerServerError,
   ExecutableNotFoundError,
-  ImageDoesntExistError
+  ImageDoesntExistError,
 } from "./errors";
 import { WritableBufferStream } from "./streams";
 import { BindsMap, ContainerConfig, Image, ProcessResult } from "./types";
@@ -36,7 +36,7 @@ export class BuidlerDocker {
   public static async isInstalled(): Promise<boolean> {
     // TODO: This doesn't support windows
     const { exec } = await import("child_process");
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       exec("which docker", (error?: any) => resolve(!error));
     });
   }
@@ -90,7 +90,7 @@ export class BuidlerDocker {
     );
 
     return images.some(
-      img =>
+      (img) =>
         img.RepoTags !== null &&
         img.RepoTags.some(
           (repoAndTag: string) =>
@@ -105,7 +105,7 @@ export class BuidlerDocker {
     );
 
     const imageInfo = images.find(
-      img =>
+      (img) =>
         img.RepoTags !== null &&
         img.RepoTags.some(
           (repoAndTag: string) =>
@@ -136,7 +136,7 @@ export class BuidlerDocker {
       im.on("error", reject);
 
       // Not having the data handler causes the process to exit
-      im.on("data", data => {});
+      im.on("data", (data) => {});
     });
   }
 
@@ -153,8 +153,8 @@ export class BuidlerDocker {
       Entrypoint: "",
       HostConfig: {
         AutoRemove: true,
-        Binds: this._bindsMapToArray(config.binds)
-      }
+        Binds: this._bindsMapToArray(config.binds),
+      },
     };
 
     const stdout = new WritableBufferStream();
@@ -172,7 +172,7 @@ export class BuidlerDocker {
     return {
       statusCode: container.output.StatusCode,
       stdout: stdout.buffer,
-      stderr: stderr.buffer
+      stderr: stderr.buffer,
     };
   }
 
@@ -238,8 +238,8 @@ export class BuidlerDocker {
       const res = await fetch(endpoint, {
         headers: {
           Accept: "application/vnd.docker.distribution.manifest.v2+json",
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!res.ok) {

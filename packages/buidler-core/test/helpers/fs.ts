@@ -20,7 +20,7 @@ async function getEmptyTmpDir(nameHint: string) {
 export function useTmpDir(nameHint: string) {
   nameHint = nameHint.replace(/\s+/, "-");
 
-  beforeEach("Creating tmp dir", async function() {
+  beforeEach("Creating tmp dir", async function () {
     this.tmpDir = await getEmptyTmpDir(nameHint);
   });
 }

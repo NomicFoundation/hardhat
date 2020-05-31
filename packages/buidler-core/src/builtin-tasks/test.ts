@@ -12,10 +12,10 @@ import {
   TASK_TEST,
   TASK_TEST_GET_TEST_FILES,
   TASK_TEST_RUN_MOCHA_TESTS,
-  TASK_TEST_SETUP_TEST_ENVIRONMENT
+  TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "./task-names";
 
-export default function() {
+export default function () {
   internalTask(TASK_TEST_GET_TEST_FILES)
     .addOptionalVariadicPositionalParam(
       "testFiles",
@@ -49,7 +49,7 @@ export default function() {
     .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
       const { default: Mocha } = await import("mocha");
       const mocha = new Mocha(config.mocha);
-      testFiles.forEach(file => mocha.addFile(file));
+      testFiles.forEach((file) => mocha.addFile(file));
 
       const runPromise = new Promise<number>((resolve, _) => {
         mocha.run(resolve);
@@ -69,7 +69,7 @@ export default function() {
       async (
         {
           testFiles,
-          noCompile
+          noCompile,
         }: {
           testFiles: string[];
           noCompile: boolean;

@@ -12,7 +12,7 @@ function optional<TypeT, OutputT>(
     name,
     (u: unknown): u is TypeT | undefined => u === undefined || codec.is(u),
     (u, c) => (u === undefined ? t.success(u) : codec.validate(u, c)),
-    a => (a === undefined ? undefined : codec.encode(a))
+    (a) => (a === undefined ? undefined : codec.encode(a))
   );
 }
 
@@ -63,14 +63,14 @@ export const rpcAddress = new t.Type<Buffer>(
 export const logAddress = t.union([
   rpcAddress,
   t.array(rpcAddress),
-  t.undefined
+  t.undefined,
 ]);
 
 export type LogAddress = t.TypeOf<typeof logAddress>;
 
 export const logTopics = t.union([
   t.array(t.union([t.null, rpcHash, t.array(t.union([t.null, rpcHash]))])),
-  t.undefined
+  t.undefined,
 ]);
 
 export type LogTopics = t.TypeOf<typeof logTopics>;
@@ -80,9 +80,9 @@ export const optionalBlockTag = t.union([
   t.keyof({
     earliest: null,
     latest: null,
-    pending: null
+    pending: null,
   }),
-  t.undefined
+  t.undefined,
 ]);
 
 export type OptionalBlockTag = t.TypeOf<typeof optionalBlockTag>;
@@ -95,7 +95,7 @@ export const rpcTransactionRequest = t.type(
     gasPrice: optional(rpcQuantity),
     value: optional(rpcQuantity),
     data: optional(rpcData),
-    nonce: optional(rpcQuantity)
+    nonce: optional(rpcQuantity),
   },
   "RpcTransactionRequest"
 );
@@ -119,7 +119,7 @@ export const rpcCallRequest = t.type(
     gas: optional(rpcQuantity),
     gasPrice: optional(rpcQuantity),
     value: optional(rpcQuantity),
-    data: optional(rpcData)
+    data: optional(rpcData),
   },
   "RpcCallRequest"
 );
@@ -141,7 +141,7 @@ export const rpcFilterRequest = t.type(
     toBlock: optionalBlockTag,
     address: logAddress,
     topics: logTopics,
-    blockHash: optional(rpcHash)
+    blockHash: optional(rpcHash),
   },
   "RpcFilterRequest"
 );
@@ -156,7 +156,7 @@ export type OptionalRpcFilterRequest = t.TypeOf<
 
 export const optionalRpcFilterRequest = t.union([
   rpcFilterRequest,
-  t.undefined
+  t.undefined,
 ]);
 
 export type RpcSubscribeRequest = t.TypeOf<typeof rpcSubscribeRequest>;
@@ -165,7 +165,7 @@ export const rpcSubscribeRequest = t.keyof(
   {
     newHeads: null,
     newPendingTransactions: null,
-    logs: null
+    logs: null,
   },
   "RpcSubscribe"
 );

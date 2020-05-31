@@ -1,5 +1,6 @@
 ---
 home: true 
+pageClass: custom
 heroImage: ./mascots.svg
 actionText: Get Started
 search: false
@@ -10,7 +11,7 @@ footer: Copyright © 2018-2019 Nomic Labs LLC
   <div class="example-1">
   <h3>1. Write your contract</h3>
 
-  ```js
+  ```solidity
 
   import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 

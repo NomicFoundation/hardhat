@@ -7,14 +7,14 @@ import {
   isEvmStep,
   isPrecompileTrace,
   MessageTrace,
-  PrecompileMessageTrace
+  PrecompileMessageTrace,
 } from "./message-trace";
 import { JumpType } from "./model";
 import { isJump, isPush, Opcode } from "./opcodes";
 import { decodeRevertReason } from "./revert-reasons";
 import {
   SolidityStackTrace,
-  StackTraceEntryType
+  StackTraceEntryType,
 } from "./solidity-stack-trace";
 
 const MARGIN_SPACE = 6;
@@ -97,6 +97,7 @@ export function printCallTrace(trace: CallMessageTrace, depth: number) {
     console.log(
       `${margin} unrecognized contract code: ${bufferToHex(trace.code)}`
     );
+    console.log(`${margin} contract: ${bufferToHex(trace.address)}`);
   }
 
   console.log(`${margin} value: ${trace.value.toString(10)}`);
@@ -122,10 +123,7 @@ function traceSteps(
 
   for (const step of trace.steps) {
     if (isEvmStep(step)) {
-      const pc = step.pc
-        .toString(10)
-        .padStart(3, "0")
-        .padStart(5);
+      const pc = step.pc.toString(10).padStart(3, "0").padStart(5);
 
       if (trace.bytecode !== undefined) {
         const inst = trace.bytecode.getInstruction(step.pc);
@@ -176,21 +174,21 @@ function traceSteps(
 }
 
 export function printStackTrace(trace: SolidityStackTrace) {
-  const withDecodedMessages = trace.map(entry =>
+  const withDecodedMessages = trace.map((entry) =>
     entry.type === StackTraceEntryType.REVERT_ERROR
       ? { ...entry, message: decodeRevertReason(entry.message) }
       : entry
   );
 
-  const withHexAddress = withDecodedMessages.map(entry =>
+  const withHexAddress = withDecodedMessages.map((entry) =>
     "address" in entry
       ? { ...entry, address: bufferToHex(entry.address) }
       : entry
   );
 
-  const withTextualType = withHexAddress.map(entry => ({
+  const withTextualType = withHexAddress.map((entry) => ({
     ...entry,
-    type: StackTraceEntryType[entry.type]
+    type: StackTraceEntryType[entry.type],
   }));
 
   console.log(JSON.stringify(withTextualType, undefined, 2));

@@ -28,7 +28,7 @@ describe("Compiler", () => {
     );
     optimizerConfig = {
       runs: 200,
-      enabled: false
+      enabled: false,
     };
   });
 
@@ -40,22 +40,22 @@ describe("Compiler", () => {
           content: `
 pragma solidity ^${getLocalCompilerVersion()};
 contract A {}
-`
-        }
+`,
+        },
       },
       settings: {
         evmVersion: "byzantium",
         metadata: {
-          useLiteralContent: true
+          useLiteralContent: true,
         },
         optimizer: optimizerConfig,
         outputSelection: {
           "*": {
             "*": ["evm.bytecode.object", "abi"],
-            "": ["ast"]
-          }
-        }
-      }
+            "": ["ast"],
+          },
+        },
+      },
     };
 
     const compiler = new Compiler(
@@ -66,7 +66,7 @@ contract A {}
 
     compiler
       .compile(input)
-      .then(output => {
+      .then((output) => {
         // We just check some properties
         assert.isDefined(output.contracts);
         assert.isDefined(output.contracts["A.sol"]);
@@ -77,7 +77,7 @@ contract A {}
         assert.isDefined(output.sources["A.sol"].ast);
         assert.equal(output.sources["A.sol"].id, 0);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
   });
@@ -87,22 +87,22 @@ contract A {}
       language: "Solidity",
       sources: {
         "A.sol": {
-          content: `pragma sol`
-        }
+          content: `pragma sol`,
+        },
       },
       settings: {
         evmVersion: "byzantium",
         metadata: {
-          useLiteralContent: true
+          useLiteralContent: true,
         },
         optimizer: optimizerConfig,
         outputSelection: {
           "*": {
             "*": ["evm.bytecode.object", "abi"],
-            "": ["ast"]
-          }
-        }
-      }
+            "": ["ast"],
+          },
+        },
+      },
     };
 
     const compiler = new Compiler(

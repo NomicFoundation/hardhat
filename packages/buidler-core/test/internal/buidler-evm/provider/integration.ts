@@ -4,19 +4,19 @@ import fsExtra from "fs-extra";
 import { useEnvironment } from "../../../helpers/environment";
 import { useFixtureProject } from "../../../helpers/project";
 
-describe("Provider integration tests", function() {
-  describe("Solidity stack traces", function() {
+describe("Provider integration tests", function () {
+  describe("Solidity stack traces", function () {
     useFixtureProject("solidity-stack-traces-integration");
     useEnvironment();
 
-    it("Should compile", async function() {
+    it("Should compile", async function () {
       const artifact = await fsExtra.readJSON("artifacts/Contract.json");
 
       try {
         await this.env.network.provider.send("eth_sendTransaction", [
           {
-            data: artifact.bytecode
-          }
+            data: artifact.bytecode,
+          },
         ]);
       } catch (error) {
         assert.include(error.stack, "Contract.sol:");

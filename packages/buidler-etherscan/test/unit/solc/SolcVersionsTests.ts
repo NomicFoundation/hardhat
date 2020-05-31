@@ -11,8 +11,8 @@ describe("SolcVersions tests", () => {
       .get("/ethereum/solc-bin/gh-pages/bin/list.json")
       .reply(200, {
         releases: {
-          "0.5.1": "soljson-v0.5.1-commitsomething.js"
-        }
+          "0.5.1": "soljson-v0.5.1-commitsomething.js",
+        },
       });
 
     const fullVersion = await getLongVersion("0.5.1");
@@ -24,7 +24,7 @@ describe("SolcVersions tests", () => {
       .get("/ethereum/solc-bin/gh-pages/bin/list.json")
       .reply(404);
 
-    getLongVersion("0.5.1").catch(e =>
+    getLongVersion("0.5.1").catch((e) =>
       assert.isTrue(e instanceof BuidlerPluginError)
     );
   });
@@ -34,15 +34,15 @@ describe("SolcVersions tests", () => {
       .get("/ethereum/solc-bin/gh-pages/bin/list.json")
       .reply(200, {
         releases: {
-          "0.5.2": "soljson-v0.5.2-commitsomething.js"
-        }
+          "0.5.2": "soljson-v0.5.2-commitsomething.js",
+        },
       });
 
     return getLongVersion("0.5.1")
       .then(() => {
         assert.fail();
       })
-      .catch(e => {
+      .catch((e) => {
         assert.isTrue(e instanceof BuidlerPluginError);
       });
   });

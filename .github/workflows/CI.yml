@@ -5,8 +5,6 @@ on:
     branches:
       - master
       - development
-      # We want to build "wip*" branches since they are not intended for PRs.
-      - "[Ww][Ii][Pp]*"
   pull_request:
     branches:
       - "*"
@@ -20,26 +18,18 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-10-
       - name: Install
         run: npm install
       - name: lint
@@ -55,26 +45,18 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-10-
       - name: Install
         run: npm install
       - name: Build tests
@@ -88,26 +70,14 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
-      #      - name: Install node-gyp-cache
-      #        run: |
-      #          npm install -g node-gyp-cache
-      #          npm config set node_gyp node-gyp-cache
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-10-
       - name: Install
         run: npm install
       - name: Run tests
@@ -121,26 +91,18 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-10-
       - name: Install
         run: npm install
       - name: Run tests
@@ -159,26 +121,18 @@ jobs:
       - name: install vyper
         run: docker pull ethereum/vyper:0.1.0b10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node }}-
       - name: Install
         run: npm install
       - name: Run tests

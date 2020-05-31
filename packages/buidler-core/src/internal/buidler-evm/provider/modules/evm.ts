@@ -4,7 +4,7 @@ import * as t from "io-ts";
 import {
   InvalidInputError,
   MethodNotFoundError,
-  MethodNotSupportedError
+  MethodNotSupportedError,
 } from "../errors";
 import { rpcQuantity, validateParams } from "../input";
 import { BuidlerNode } from "../node";

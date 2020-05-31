@@ -1,13 +1,13 @@
 import {
   TASK_RUN,
-  TASK_TEST
+  TASK_TEST,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { extendConfig, task } from "@nomiclabs/buidler/config";
 import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 import {
   BuidlerRuntimeEnvironment,
   RunSuperFunction,
-  TaskArguments
+  TaskArguments,
 } from "@nomiclabs/buidler/types";
 import debug from "debug";
 
@@ -17,7 +17,7 @@ import { GanacheService } from "./ganache-service";
 
 ensurePluginLoadedWithUsePlugin();
 
-export default function() {
+export default function () {
   task(TASK_TEST, async (args, env, runSuper) => {
     return handlePluginTask(args, env, runSuper);
   });

@@ -3,11 +3,11 @@ import abi from "ethereumjs-abi";
 import {
   CompilerInput,
   CompilerOutput,
-  CompilerOutputBytecode
+  CompilerOutputBytecode,
 } from "./compiler-types";
 import {
   getLibraryAddressPositions,
-  normalizeCompilerOutputBytecode
+  normalizeCompilerOutputBytecode,
 } from "./library-utils";
 import {
   Bytecode,
@@ -17,7 +17,7 @@ import {
   ContractFunctionVisibility,
   ContractType,
   SourceFile,
-  SourceLocation
+  SourceLocation,
 } from "./model";
 import { decodeInstructions } from "./source-maps";
 
@@ -358,7 +358,7 @@ function astSrcToSourceLocation(
   src: string,
   fileIdToSourceFile: Map<number, SourceFile>
 ): SourceLocation | undefined {
-  const [offset, length, fileId] = src.split(":").map(p => +p);
+  const [offset, length, fileId] = src.split(":").map((p) => +p);
   const file = fileIdToSourceFile.get(fileId);
 
   if (file === undefined) {

@@ -5,12 +5,12 @@ loadPluginFile(__dirname + "/../../src/index");
 module.exports = {
   etherscan: {
     url: "https://api-ropsten.etherscan.io/api",
-    apiKey: process.env.ETHERSCAN_API_KEY || "testtoken"
+    apiKey: process.env.ETHERSCAN_API_KEY || "testtoken",
   },
   solc: {
-    version: "0.5.15"
+    version: "0.5.15",
   },
   paths: {
-    artifacts: "artifacts-dir"
-  }
+    artifacts: "artifacts-dir",
+  },
 };
