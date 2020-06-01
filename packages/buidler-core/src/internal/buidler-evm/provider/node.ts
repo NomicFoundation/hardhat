@@ -324,7 +324,7 @@ export class BuidlerNode extends EventEmitter {
       }
 
       this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-      this._solidityTracer = new SolidityTracer();
+      this._solidityTracer = new SolidityTracer(bytecodes);
     } catch (error) {
       console.warn(
         chalk.yellow(

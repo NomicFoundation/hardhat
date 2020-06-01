@@ -21,6 +21,9 @@ export enum StackTraceEntryType {
   UNRECOGNIZED_CREATE_ERROR,
   UNRECOGNIZED_CONTRACT_ERROR,
   OTHER_EXECUTION_ERROR,
+  // This is a special case to handle a regression introduced in solc 0.6.3
+  // For more info: https://github.com/ethereum/solidity/issues/9006
+  UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
 }
 
 export const FALLBACK_FUNCTION_NAME = "<fallback>";
@@ -64,6 +67,11 @@ export interface PrecompileErrorStackTraceEntry {
 export interface RevertErrorStackTraceEntry {
   type: StackTraceEntryType.REVERT_ERROR;
   message: Buffer;
+  sourceReference: SourceReference;
+}
+
+export interface UnmappedSolc063RevertErrorStackTraceEntry {
+  type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR;
   sourceReference: SourceReference;
 }
 
@@ -156,6 +164,7 @@ export type SolidityStackTraceEntry =
   | DirectLibraryCallErrorStackTraceEntry
   | UnrecognizedCreateErrorStackTraceEntry
   | UnrecognizedContractErrorStackTraceEntry
-  | OtherExecutionErrorStackTraceEntry;
+  | OtherExecutionErrorStackTraceEntry
+  | UnmappedSolc063RevertErrorStackTraceEntry;
 
 export type SolidityStackTrace = SolidityStackTraceEntry[];

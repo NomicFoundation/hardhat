@@ -304,4 +304,8 @@ export class Bytecode {
 
     return inst;
   }
+
+  public hasInstruction(pc: number): boolean {
+    return this._pcToInstruction.has(pc);
+  }
 }
