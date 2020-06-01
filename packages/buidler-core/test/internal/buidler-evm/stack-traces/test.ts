@@ -375,7 +375,7 @@ async function runTest(
   }
 
   const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-  const tracer = new SolidityTracer();
+  const tracer = new SolidityTracer(bytecodes);
   const logger = new ConsoleLogger();
 
   const vm = await instantiateVm();
