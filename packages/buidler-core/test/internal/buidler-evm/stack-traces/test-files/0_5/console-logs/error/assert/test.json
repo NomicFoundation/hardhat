@@ -4,9 +4,7 @@
     {
       "file": "c.sol",
       "contract": "C",
-      "imports": [
-        "/../../../../../../../../../console.sol"
-      ]
+      "imports": ["/../../../../../../../../../console.sol"]
     },
     {
       "to": 0,
@@ -23,9 +21,7 @@
           }
         }
       ],
-      "consoleLogs": [
-        ["string1"]
-      ]
+      "consoleLogs": [["string1"]]
     }
   ]
 }

@@ -3,17 +3,13 @@
     {
       "file": "c.sol",
       "contract": "C",
-			"imports": [
-				"/../../../../../../../../console.sol"
-			]
+      "imports": ["/../../../../../../../../console.sol"]
     },
     {
-			"to": 0,
-			"function": "log",
-			"params": [],
-			"consoleLogs": [
-				["0x0000000000000000000000000000000000000001"]
-      ]
+      "to": 0,
+      "function": "log",
+      "params": [],
+      "consoleLogs": [["0x0000000000000000000000000000000000000001"]]
     }
   ]
 }

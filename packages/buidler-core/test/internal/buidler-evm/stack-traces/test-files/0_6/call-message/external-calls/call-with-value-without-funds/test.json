@@ -9,7 +9,8 @@
       "to": 0,
       "function": "test",
       "value": 1,
-      "stackTrace": [{
+      "stackTrace": [
+        {
           "type": "CALL_FAILED_ERROR",
           "sourceReference": {
             "contract": "C",
@@ -17,7 +18,8 @@
             "function": "test",
             "line": 10
           }
-      }]
+        }
+      ]
     }
   ]
 }
