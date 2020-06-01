@@ -335,7 +335,10 @@ function decodeEvmBytecode(
 
   const immutableReferences =
     compilerBytecode.immutableReferences !== undefined
-      ? Object.values(compilerBytecode.immutableReferences).flat()
+      ? Object.values(compilerBytecode.immutableReferences).reduce(
+          (previousValue, currentValue) => [...previousValue, ...currentValue],
+          []
+        )
       : [];
 
   const normalizedCode = normalizeCompilerOutputBytecode(
