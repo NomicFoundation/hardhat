@@ -285,27 +285,8 @@ export class SolidityTracer {
           inst.opcode === Opcode.REVERT ||
           inst.opcode === Opcode.INVALID
         ) {
-          // if the current instruction doesn't have a location, check if
-          // there's a instruction with a known location between the
-          // last jump and the current instruction
-          let lastInstructionWithLocation = inst;
-          if (
-            inst.location === undefined &&
-            stepIndex === trace.steps.length - 1
-          ) {
-            const instruction = this._getLastInstructionWithValidLocation(
-              trace,
-              { stopOnLastJump: true }
-            );
-            if (instruction !== undefined) {
-              lastInstructionWithLocation = instruction;
-            }
-          }
-
-          const location = lastInstructionWithLocation.location;
-
           // Failures with invalid locations are handled later
-          if (location === undefined) {
+          if (inst.location === undefined) {
             continue;
           }
 
@@ -320,7 +301,7 @@ export class SolidityTracer {
           // calling this function.
           //
           // If it's a call trace, we already jumped into a function. But optimizations can happen.
-          const failingFunction = location.getContainingFunction();
+          const failingFunction = inst.location.getContainingFunction();
 
           // If the failure is in a modifier we add an entry with the function/constructor
           if (
@@ -336,7 +317,7 @@ export class SolidityTracer {
             stacktrace.push(
               this._instructionWithinFunctionToRevertStackTraceEntry(
                 trace,
-                lastInstructionWithLocation
+                inst
               )
             );
           } else if (isDecodedCallTrace(trace)) {
@@ -729,21 +710,7 @@ export class SolidityTracer {
       return false;
     }
 
-    // if the last instruction doesn't have a location, but the trace entered the
-    // constructor in a previous step, return false
-    if (lastInst.location === undefined) {
-      const lastInstructionWithLocation = this._getLastInstructionWithValidLocation(
-        trace,
-        { stopOnLastJump: true }
-      );
-      if (
-        lastInstructionWithLocation !== undefined &&
-        lastInstructionWithLocation.location !== undefined &&
-        constructor.location.equals(lastInstructionWithLocation.location)
-      ) {
-        return false;
-      }
-    }
+    let hasReadDeploymentCodeSize = false;
 
     // tslint:disable-next-line prefer-for-of
     for (let stepIndex = 0; stepIndex < trace.steps.length; stepIndex++) {
@@ -1163,8 +1130,7 @@ export class SolidityTracer {
   }
 
   private _getLastInstructionWithValidLocationStepIndex(
-    trace: DecodedEvmMessageTrace,
-    options = { stopOnLastJump: false }
+    trace: DecodedEvmMessageTrace
   ): number | undefined {
     for (let i = trace.steps.length - 1; i >= 0; i--) {
       const step = trace.steps[i];
@@ -1178,22 +1144,16 @@ export class SolidityTracer {
       if (inst.location !== undefined) {
         return i;
       }
-
-      if (options.stopOnLastJump && inst.opcode === Opcode.JUMPI) {
-        return undefined;
-      }
     }
 
     return undefined;
   }
 
   private _getLastInstructionWithValidLocation(
-    trace: DecodedEvmMessageTrace,
-    options = { stopOnLastJump: false }
+    trace: DecodedEvmMessageTrace
   ): Instruction | undefined {
     const lastLocationIndex = this._getLastInstructionWithValidLocationStepIndex(
-      trace,
-      options
+      trace
     );
 
     if (lastLocationIndex === undefined) {
