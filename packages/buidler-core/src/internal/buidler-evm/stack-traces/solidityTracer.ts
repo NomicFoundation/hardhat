@@ -1252,7 +1252,7 @@ export class SolidityTracer {
         trace.bytecode.contract.receive === undefined ||
         trace.calldata.length > 0
       ) {
-        if (trace.bytecode.contract.fallback) {
+        if (trace.bytecode.contract.fallback !== undefined) {
           // Failed within the fallback
           revertFrame = {
             type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,

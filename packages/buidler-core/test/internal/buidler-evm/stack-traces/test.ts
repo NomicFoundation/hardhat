@@ -193,9 +193,8 @@ async function compileIfNecessary(
     fs.mkdirSync(artifacts);
   }
 
-  const optimizerModifier = runs
-    ? `optimized-with-runs-${runs}`
-    : "unoptimized";
+  const optimizerModifier =
+    runs !== undefined ? `optimized-with-runs-${runs}` : "unoptimized";
 
   const inputPath = path.join(
     artifacts,
