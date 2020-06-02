@@ -657,6 +657,11 @@ describe("Stack traces", function () {
         path.join(__dirname, "test-files", "0_5"),
         compilerOptions
       );
+
+      defineDirTests(
+        path.join(__dirname, "test-files", "version-independent"),
+        compilerOptions
+      );
     });
   }
 
@@ -665,6 +670,11 @@ describe("Stack traces", function () {
     describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
       defineDirTests(
         path.join(__dirname, "test-files", "0_6"),
+        compilerOptions
+      );
+
+      defineDirTests(
+        path.join(__dirname, "test-files", "version-independent"),
         compilerOptions
       );
     });

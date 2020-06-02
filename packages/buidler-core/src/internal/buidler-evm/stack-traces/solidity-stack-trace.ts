@@ -24,6 +24,7 @@ export enum StackTraceEntryType {
   // This is a special case to handle a regression introduced in solc 0.6.3
   // For more info: https://github.com/ethereum/solidity/issues/9006
   UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+  CONTRACT_TOO_LARGE_ERROR,
 }
 
 export const FALLBACK_FUNCTION_NAME = "<fallback>";
@@ -146,6 +147,11 @@ export interface OtherExecutionErrorStackTraceEntry {
   sourceReference?: SourceReference;
 }
 
+export interface ContractTooLargeErrorStackTraceEntry {
+  type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR;
+  sourceReference: SourceReference;
+}
+
 export type SolidityStackTraceEntry =
   | CallstackEntryStackTraceEntry
   | UnrecognizedCreateCallstackEntryStackTraceEntry
@@ -165,6 +171,7 @@ export type SolidityStackTraceEntry =
   | UnrecognizedCreateErrorStackTraceEntry
   | UnrecognizedContractErrorStackTraceEntry
   | OtherExecutionErrorStackTraceEntry
-  | UnmappedSolc063RevertErrorStackTraceEntry;
+  | UnmappedSolc063RevertErrorStackTraceEntry
+  | ContractTooLargeErrorStackTraceEntry;
 
 export type SolidityStackTrace = SolidityStackTraceEntry[];

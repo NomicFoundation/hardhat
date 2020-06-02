@@ -120,6 +120,7 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.CALL_FAILED_ERROR:
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
@@ -248,6 +249,9 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       return "Transaction reverted without a reason nor a valid sourcemap. Some line numbers may be off. We strongly recommend you upgrading solc and always using revert reasons.";
+
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
+      return "Transaction reverted: trying to deploy a contract whose code is too large";
   }
 }
 

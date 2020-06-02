@@ -40,7 +40,10 @@ import {
   encodeSolidityStackTrace,
   SolidityError,
 } from "../stack-traces/solidity-errors";
-import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
+import {
+  SolidityStackTrace,
+  StackTraceEntryType,
+} from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
@@ -1049,6 +1052,13 @@ export class BuidlerNode extends EventEmitter {
     const error = vmResult.exceptionError;
 
     if (error.error === ERROR.OUT_OF_GAS) {
+      if (this._isContractTooLargeStackTrace(stackTrace)) {
+        return encodeSolidityStackTrace(
+          "Transaction run out of gas",
+          stackTrace!
+        );
+      }
+
       return new TransactionExecutionError("Transaction run out of gas");
     }
 
@@ -1087,6 +1097,17 @@ export class BuidlerNode extends EventEmitter {
     }
 
     return new TransactionExecutionError("Transaction failed: revert");
+  }
+
+  private _isContractTooLargeStackTrace(
+    stackTrace: SolidityStackTrace | undefined
+  ) {
+    return (
+      stackTrace !== undefined &&
+      stackTrace.length > 0 &&
+      stackTrace[stackTrace.length - 1].type ===
+        StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR
+    );
   }
 
   private _calculateTimestampAndOffset(timestamp?: BN): [BN, boolean, BN] {
