@@ -1,8 +1,8 @@
-name: MIDNIGHT
+name: LATEST_DEPENDENCY_VERSIONS
 
 on:
   schedule:
-    - cron:  '0 0 * * *'
+    - cron:  '0 0/8 * * *'
 
 jobs:
   test-without-package-locks:
@@ -19,7 +19,7 @@ jobs:
           npm config set node_gyp node-gyp-cache
       - name: Delete package-locks
         run: |
-          rm package-lock.json 'packages/*/package-lock.json'
+          rm package-lock.json "packages/*/package-lock.json"
       - name: Install
         run: npx lerna bootstrap --no-ci
       - name: Run tests
