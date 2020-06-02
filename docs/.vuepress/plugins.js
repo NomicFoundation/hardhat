@@ -147,5 +147,14 @@ module.exports = [
     url: "https://github.com/aragon/buidler-aragon/tree/master",
     description: "Buidler plugin for Aragon App development",
     tags: ["Aragon", "Apps"]
+  },
+  {
+    name: "buidler-spdx-license-identifier",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    version: "1.0.1",
+    url: "https://github.com/ItsNickBarry/buidler-spdx-license-identifier/tree/master",
+    description: "Automatically prepend local Solidity source files with an SPDX License Identifier",
+    tags: ["License"]
   }
 ];
