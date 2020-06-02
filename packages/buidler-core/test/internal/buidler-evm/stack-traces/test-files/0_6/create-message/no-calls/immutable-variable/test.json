@@ -1,6 +1,6 @@
 {
   "skip": true,
-  "reason": "This code seems to trigger a bug in the compiler",
+  "reason": "This code seems to trigger a bug in the compiler: https://github.com/ethereum/solidity/issues/8727",
   "transactions": [
     {
       "file": "c.sol",
