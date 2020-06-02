@@ -219,7 +219,7 @@ function getMessageFromLastStackTraceEntry(
       return `Transaction reverted: function selector was not recognized and there's no fallback function`;
 
     case StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
-      return `Transaction reverted: function selector was not recognized and there's no fallback or receive function`;
+      return `Transaction reverted: function selector was not recognized and there's no fallback nor receive function`;
 
     case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
       return `Transaction reverted: function returned an unexpected amount of data`;
@@ -248,7 +248,7 @@ function getMessageFromLastStackTraceEntry(
       return `Transaction reverted for an unrecognized reason. Please report this to help us improve Buidler.`;
 
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
-      return "Transaction reverted without a reason nor a valid sourcemap. Some line numbers may be off. We strongly recommend you upgrading solc and always using revert reasons.";
+      return "Transaction reverted without a reason and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";
 
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return "Transaction reverted: trying to deploy a contract whose code is too large";
