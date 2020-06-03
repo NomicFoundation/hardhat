@@ -156,5 +156,14 @@ module.exports = [
     url: "https://github.com/ItsNickBarry/buidler-spdx-license-identifier/tree/master",
     description: "Automatically prepend local Solidity source files with an SPDX License Identifier",
     tags: ["License"]
+  },
+  {
+    name: "buidler-deploy",
+    author: "Ronan Sandford",
+    authorUrl: "https://github.com/wighawag",
+    version: "0.4.0",
+    url: "https://github.com/wighawag/buidler-deploy/tree/master",
+    description: "Buidler plugin for Deployments",
+    tags: ["Deployment", "Testing"]
   }
 ];
