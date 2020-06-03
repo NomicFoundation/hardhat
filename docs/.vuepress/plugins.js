@@ -165,5 +165,14 @@ module.exports = [
     url: "https://github.com/wighawag/buidler-deploy/tree/master",
     description: "Buidler plugin for Deployments",
     tags: ["Deployment", "Testing"]
+  },
+  {
+    name: "buidler-ethers-v5",
+    author: "Ronan Sandford",
+    authorUrl: "https://github.com/wighawag",
+    version: "0.2.1",
+    url: "https://github.com/wighawag/buidler-ethers-v5/tree/master",
+    description: "plugin integrationg ethers v5 into buidler and buidler-deploy ",
+    tags: ["Ethers.js", "Testing", "buidler-deploy"]
   }
 ];
