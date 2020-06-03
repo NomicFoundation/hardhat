@@ -2,7 +2,7 @@
 
 Buidler allows you to use Truffle to test your smart contracts. This mainly means compatibility with the [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) package to interact with your smart contracts. 
 
-Truffle 4 and Truffle 5 are supported using the `@nomiclabs/buidler-truffle4` and `@nomiclabs/buidler-truffle5` plugins respectively. Both work with either Solidity 4 or 5.
+Truffle 4 and Truffle 5 are supported using the `@nomiclabs/buidler-truffle4` and `@nomiclabs/buidler-truffle5` plugins respectively. Both work with either Solidity 4+.
 
 Let's see how to do this creating a new Buidler project.
 
@@ -33,7 +33,7 @@ module.exports = {};
 Create a folder named `contracts` inside your project. Add a file named `Greeter.sol`, copy and paste the code below:
 
 ```c
-pragma solidity ^0.5.1;
+pragma solidity ^0.6.0;
 
 contract Greeter {
 

@@ -14,7 +14,7 @@ two main things to consider: testing and deployment.
 
 When it comes to unit tests, there are two Buidler plugins 
 that support the Truffle testing APIs: `buidler-truffle4` and `buidler-truffle5`. 
-Both plugins support Solidity 4 and 5. Using these you can run your existing tests with Buidler.
+Both plugins support Solidity 4+. Using these you can run your existing tests with Buidler.
 
 Read [this guide](./truffle-testing.md) If you want to learn the details of writing Truffle tests to run in Buidler, but it's not necessary to migrate your existing test suite.
 
