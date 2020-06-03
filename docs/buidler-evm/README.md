@@ -96,7 +96,6 @@ Buidler EVM allows you to print logging messages and contract variables calling 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
 - To use it you need to import `@nomiclabs/buidler/console.sol`.
-- It works with Solidity 0.5.x and 0.6.x.
 - You can call `console.log` with up to 4 parameters in any order of following types:
   - `uint`
   - `string`

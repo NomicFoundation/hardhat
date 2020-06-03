@@ -15,7 +15,7 @@ footer: Copyright © 2018-2019 Nomic Labs LLC
 
   import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-  pragma solidity ^0.5.1;
+  pragma solidity ^0.6.0;
       
   contract DeathStar is ERC721 {
 
