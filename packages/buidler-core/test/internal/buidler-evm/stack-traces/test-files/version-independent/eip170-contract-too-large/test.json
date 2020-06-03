@@ -1,0 +1,19 @@
+{
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+      "stackTrace": [
+        {
+          "type": "CONTRACT_TOO_LARGE_ERROR",
+          "sourceReference": {
+            "file": "c.sol",
+            "contract": "C",
+            "function": "constructor",
+            "line": 5
+          }
+        }
+      ]
+    }
+  ]
+}

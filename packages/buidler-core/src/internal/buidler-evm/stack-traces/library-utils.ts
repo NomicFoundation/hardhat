@@ -52,11 +52,23 @@ export function zeroOutAddresses(
   code: Buffer,
   addressesPositions: number[]
 ): Buffer {
-  for (const position of addressesPositions) {
+  const addressesSlices = addressesPositions.map((start) => ({
+    start,
+    length: 20,
+  }));
+
+  return zeroOutSlices(code, addressesSlices);
+}
+
+export function zeroOutSlices(
+  code: Buffer,
+  slices: Array<{ start: number; length: number }>
+): Buffer {
+  for (const { start, length } of slices) {
     code = Buffer.concat([
-      code.slice(0, position),
-      Buffer.alloc(20, 0),
-      code.slice(position + 20),
+      code.slice(0, start),
+      Buffer.alloc(length, 0),
+      code.slice(start + length),
     ]);
   }
 

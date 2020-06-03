@@ -71,7 +71,7 @@ error message in the following cases:
 
 - Calling a non-payable function with ETH
 
-- Sending ETH to a contract without a payable fallback function
+- Sending ETH to a contract without a payable fallback or receive function 
 
 - Calling a non-existent function when there's no fallback function
 
@@ -86,6 +86,8 @@ error message in the following cases:
 - Calling a library without `DELEGATECALL`
 
 - Incorrectly calling a precompiled contract
+
+- Trying to deploy a contract that exceeds the bytecode size limit imposed by [EIP-170](https://eips.ethereum.org/EIPS/eip-170)
 
 ## `console.log`
 
