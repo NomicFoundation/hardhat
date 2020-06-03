@@ -1,4 +1,4 @@
-pragma solidity ^0.5.1;
+pragma solidity ^0.6.8;
 
 import "@nomiclabs/buidler/console.sol";
 
