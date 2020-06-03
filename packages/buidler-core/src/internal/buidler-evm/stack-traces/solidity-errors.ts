@@ -233,13 +233,25 @@ function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
       return `Transaction reverted: library was called directly`;
 
-    case StackTraceEntryType.REVERT_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       if (stackTraceEntry.message.length > 0) {
         return `VM Exception while processing transaction: revert ${decodeRevertReason(
           stackTraceEntry.message
         )}`;
+      }
+
+      return "Transaction reverted without a reason";
+
+    case StackTraceEntryType.REVERT_ERROR:
+      if (stackTraceEntry.message.length > 0) {
+        return `VM Exception while processing transaction: revert ${decodeRevertReason(
+          stackTraceEntry.message
+        )}`;
+      }
+
+      if (stackTraceEntry.isInvalidOpcodeError) {
+        return "VM Exception while processing transaction: invalid opcode";
       }
 
       return "Transaction reverted without a reason";

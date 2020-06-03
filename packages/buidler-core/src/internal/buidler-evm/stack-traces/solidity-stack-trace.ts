@@ -69,6 +69,7 @@ export interface RevertErrorStackTraceEntry {
   type: StackTraceEntryType.REVERT_ERROR;
   message: Buffer;
   sourceReference: SourceReference;
+  isInvalidOpcodeError: boolean;
 }
 
 export interface UnmappedSolc063RevertErrorStackTraceEntry {

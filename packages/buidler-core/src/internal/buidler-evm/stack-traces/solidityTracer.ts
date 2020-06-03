@@ -7,7 +7,6 @@ import {
   DecodedEvmMessageTrace,
   EvmMessageTrace,
   EvmStep,
-  isCallTrace,
   isCreateTrace,
   isDecodedCallTrace,
   isDecodedCreateTrace,
@@ -347,6 +346,7 @@ export class SolidityTracer {
                 )!
               ),
               message: trace.returnData,
+              isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
             });
           } else {
             // This is here because of the optimizations
@@ -354,6 +354,7 @@ export class SolidityTracer {
               type: StackTraceEntryType.REVERT_ERROR,
               sourceReference: this._getConstructorStartSourceReference(trace),
               message: trace.returnData,
+              isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
             });
           }
 
@@ -450,6 +451,7 @@ export class SolidityTracer {
                 failingFunction
               ),
               message: trace.returnData,
+              isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
             },
           ];
         }
@@ -1006,6 +1008,7 @@ export class SolidityTracer {
         inst.location
       )!,
       message: trace.returnData,
+      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
     };
   }
 
