@@ -4,9 +4,9 @@ import * as path from "path";
 import { BuidlerContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { resolveProjectPaths } from "../../../../src/internal/core/config/config-resolution";
+import { DEFAULT_SOLC_VERSION } from "../../../../src/internal/core/config/default-config";
 import { resetBuidlerContext } from "../../../../src/internal/reset";
 import { BuidlerNetworkConfig, HttpNetworkConfig } from "../../../../src/types";
-import { getLocalCompilerVersion } from "../../../helpers/compiler";
 import { useFixtureProject } from "../../../helpers/project";
 
 describe("Config resolution", () => {
@@ -24,7 +24,7 @@ describe("Config resolution", () => {
 
       it("should return the default config", () => {
         const config = loadConfigAndTasks();
-        assert.equal(config.solc.version, getLocalCompilerVersion());
+        assert.equal(config.solc.version, DEFAULT_SOLC_VERSION);
         assert.containsAllKeys(config.networks, ["localhost"]);
         assert.isUndefined(config.solc.evmVersion);
         assert.equal(config.defaultNetwork, "buidlerevm");
@@ -43,14 +43,14 @@ describe("Config resolution", () => {
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
 
-        assert.equal(config.solc.version, getLocalCompilerVersion());
+        assert.equal(config.solc.version, DEFAULT_SOLC_VERSION);
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(config.defaultNetwork, "custom");
       });
 
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
-        assert.equal(config.solc.version, getLocalCompilerVersion());
+        assert.equal(config.solc.version, DEFAULT_SOLC_VERSION);
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(
           (config.networks.localhost as HttpNetworkConfig).url,
