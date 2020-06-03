@@ -11,8 +11,7 @@ import {
 export interface CompilerOptions {
   solidityVersion: string;
   compilerPath: string;
-  withOptimizations: boolean;
-  runs: number;
+  runs?: number;
 }
 
 function getSolcInput(
@@ -29,8 +28,8 @@ function getSolcInput(
     ),
     settings: {
       optimizer: {
-        enabled: compilerOptions.withOptimizations,
-        runs: compilerOptions.runs,
+        enabled: compilerOptions.runs !== undefined,
+        runs: compilerOptions.runs ?? 200,
       },
       outputSelection: {
         "*": {

@@ -3,7 +3,8 @@
     {
       "file": "c.sol",
       "contract": "C"
-    }, {
+    },
+    {
       "to": 0,
       "function": "test",
       "stackTrace": [

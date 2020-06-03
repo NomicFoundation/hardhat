@@ -1,9 +1,6 @@
+import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import semver from "semver";
 
-import { getUserConfigPath } from "../../core/project-structure";
-
-import { ContractsIdentifier } from "./contracts-identifier";
-import { printMessageTrace } from "./debug";
 import {
   DecodedCallMessageTrace,
   DecodedCreateMessageTrace,
@@ -25,6 +22,7 @@ import {
   ContractType,
   Instruction,
   JumpType,
+  SourceFile,
   SourceLocation,
 } from "./model";
 import { isCall, isCreate, Opcode } from "./opcodes";
@@ -40,14 +38,32 @@ import {
   SolidityStackTraceEntry,
   SourceReference,
   StackTraceEntryType,
+  UnmappedSolc063RevertErrorStackTraceEntry,
 } from "./solidity-stack-trace";
 
 // tslint:disable only-buidler-error
 
 export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
 const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";
+const FIRST_SOLC_VERSION_RECEIVE_FUNCTION = "0.6.0";
+const FIRST_SOLC_VERSION_WITH_UNMAPPED_REVERTS = "0.6.3";
+
+const EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT = 0x6000;
 
 export class SolidityTracer {
+  private _files: Map<string, SourceFile> = new Map();
+
+  constructor(private readonly _bytecodes: Bytecode[]) {
+    // TODO: Change this when we get to support multiple compilations in a
+    //  single Buidler EVM run.
+    for (const bytecode of _bytecodes) {
+      this._files.set(
+        bytecode.contract.location.file.globalName,
+        bytecode.contract.location.file
+      );
+    }
+  }
+
   public getStackTrace(
     maybeDecodedMessageTrace: MessageTrace
   ): SolidityStackTrace {
@@ -95,6 +111,17 @@ export class SolidityTracer {
     }
 
     if (this._isMissingFunctionAndFallbackError(trace, calledFunction)) {
+      if (this._emptyCalldataAndNoReceive(trace)) {
+        return [
+          {
+            type: StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR,
+            sourceReference: this._getContractStartWithoutFunctionSourceReference(
+              trace
+            ),
+          },
+        ];
+      }
+
       return [
         {
           type:
@@ -107,6 +134,16 @@ export class SolidityTracer {
     }
 
     if (this._isFallbackNotPayableError(trace, calledFunction)) {
+      if (this._emptyCalldataAndNoReceive(trace)) {
+        return [
+          {
+            type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR,
+            sourceReference: this._getFallbackStartSourceReference(trace),
+            value: trace.value,
+          },
+        ];
+      }
+
       return [
         {
           type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR,
@@ -309,6 +346,7 @@ export class SolidityTracer {
                 )!
               ),
               message: trace.returnData,
+              isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
             });
           } else {
             // This is here because of the optimizations
@@ -316,6 +354,7 @@ export class SolidityTracer {
               type: StackTraceEntryType.REVERT_ERROR,
               sourceReference: this._getConstructorStartSourceReference(trace),
               message: trace.returnData,
+              isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
             });
           }
 
@@ -412,6 +451,7 @@ export class SolidityTracer {
                 failingFunction
               ),
               message: trace.returnData,
+              isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
             },
           ];
         }
@@ -433,6 +473,16 @@ export class SolidityTracer {
         ];
       }
 
+      if (this._solidity063MaybeUnmappedRevert(trace)) {
+        const revertFrame = this._solidity063GetFrameForUnmappedRevertBeforeFunction(
+          trace
+        );
+
+        if (revertFrame !== undefined) {
+          return [revertFrame];
+        }
+      }
+
       return [this._getOtherErrorBeforeCalledFunctionStackTraceEntry(trace)];
     }
 
@@ -443,6 +493,26 @@ export class SolidityTracer {
         sourceReference: this._getLastSourceReference(trace)!,
       });
     } else {
+      if (this._solidity063MaybeUnmappedRevert(trace)) {
+        const revertFrame = this._solidity063GetFrameForUnmappedRevertWithinFunction(
+          trace
+        );
+
+        if (revertFrame !== undefined) {
+          stacktrace.push(revertFrame);
+          return stacktrace;
+        }
+      }
+
+      if (isCreateTrace(trace) && this._isContractTooLargeError(trace)) {
+        return [
+          {
+            type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR,
+            sourceReference: this._getConstructorStartSourceReference(trace),
+          },
+        ];
+      }
+
       stacktrace.push({
         type: StackTraceEntryType.OTHER_EXECUTION_ERROR,
         sourceReference: this._getLastSourceReference(trace),
@@ -453,6 +523,37 @@ export class SolidityTracer {
   }
 
   // Heuristics
+
+  private _isContractTooLargeError(trace: DecodedCreateMessageTrace) {
+    if (trace.error === undefined || trace.error.error !== ERROR.OUT_OF_GAS) {
+      return false;
+    }
+
+    // This error doesn't come from solidity, but actually from the VM.
+    // The deployment code executes correctly, but it OOGs.
+    const lastStep = trace.steps[trace.steps.length - 1];
+    if (!isEvmStep(lastStep)) {
+      return false;
+    }
+
+    const lastInst = trace.bytecode.getInstruction(lastStep.pc);
+    if (lastInst.opcode !== Opcode.RETURN) {
+      return false;
+    }
+
+    // TODO: This is an over approximation, as we should be comparing the
+    //  runtime bytecode.
+    if (
+      trace.bytecode.normalizedCode.length <=
+      EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT
+    ) {
+      return false;
+    }
+
+    // TODO: What happens if it's an actual out of gas that OOGs at the return?
+    //   maybe traces should have gasLimit and gasUsed.
+    return true;
+  }
 
   private _isSubtraceErrorPropagated(
     trace: DecodedEvmMessageTrace,
@@ -688,6 +789,8 @@ export class SolidityTracer {
       return false;
     }
 
+    let hasReadDeploymentCodeSize = false;
+
     // tslint:disable-next-line prefer-for-of
     for (let stepIndex = 0; stepIndex < trace.steps.length; stepIndex++) {
       const step = trace.steps[stepIndex];
@@ -704,9 +807,13 @@ export class SolidityTracer {
       ) {
         return false;
       }
+
+      if (inst.opcode === Opcode.CODESIZE && isCreateTrace(trace)) {
+        hasReadDeploymentCodeSize = true;
+      }
     }
 
-    return true;
+    return hasReadDeploymentCodeSize;
   }
 
   private _isDirectLibraryCall(trace: DecodedCallMessageTrace): boolean {
@@ -763,6 +870,23 @@ export class SolidityTracer {
     }
 
     return trace.bytecode.contract.fallback === undefined;
+  }
+
+  private _emptyCalldataAndNoReceive(trace: DecodedCallMessageTrace): boolean {
+    // this only makes sense when receive functions are available
+    if (
+      semver.lt(
+        trace.bytecode.compilerVersion,
+        FIRST_SOLC_VERSION_RECEIVE_FUNCTION
+      )
+    ) {
+      return false;
+    }
+
+    return (
+      trace.calldata.length === 0 &&
+      trace.bytecode.contract.receive === undefined
+    );
   }
 
   private _isFallbackNotPayableError(
@@ -884,6 +1008,7 @@ export class SolidityTracer {
         inst.location
       )!,
       message: trace.returnData,
+      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
     };
   }
 
@@ -1099,9 +1224,32 @@ export class SolidityTracer {
       }
 
       const inst = trace.bytecode.getInstruction(step.pc);
+
       if (inst.location !== undefined) {
         return i;
       }
+    }
+
+    return undefined;
+  }
+
+  private _getLastInstructionWithValidLocation(
+    trace: DecodedEvmMessageTrace
+  ): Instruction | undefined {
+    const lastLocationIndex = this._getLastInstructionWithValidLocationStepIndex(
+      trace
+    );
+
+    if (lastLocationIndex === undefined) {
+      return undefined;
+    }
+
+    const lastLocationStep = trace.steps[lastLocationIndex];
+    if (isEvmStep(lastLocationStep)) {
+      const lastInstructionWithLocation = trace.bytecode.getInstruction(
+        lastLocationStep.pc
+      );
+      return lastInstructionWithLocation;
     }
 
     return undefined;
@@ -1131,5 +1279,219 @@ export class SolidityTracer {
     }
 
     return true;
+  }
+
+  // Solidity 0.6.3 unmapped reverts special handling
+  // For more info: https://github.com/ethereum/solidity/issues/9006
+
+  private _solidity063GetFrameForUnmappedRevertBeforeFunction(
+    trace: DecodedCallMessageTrace
+  ) {
+    let revertFrame = this._solidity063GetFrameForUnmappedRevertWithinFunction(
+      trace
+    );
+
+    if (
+      revertFrame === undefined ||
+      revertFrame.sourceReference === undefined
+    ) {
+      if (
+        trace.bytecode.contract.receive === undefined ||
+        trace.calldata.length > 0
+      ) {
+        if (trace.bytecode.contract.fallback !== undefined) {
+          // Failed within the fallback
+          revertFrame = {
+            type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+            sourceReference: {
+              contract: trace.bytecode.contract.name,
+              function: FALLBACK_FUNCTION_NAME,
+              fileGlobalName:
+                trace.bytecode.contract.fallback.location.file.globalName,
+              line: trace.bytecode.contract.fallback.location.getStartingLineNumber(),
+            },
+          };
+
+          this._solidity063CorrectLineNumber(revertFrame);
+        }
+      } else {
+        // Failed within the receive function
+        revertFrame = {
+          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+          sourceReference: {
+            contract: trace.bytecode.contract.name,
+            function: RECEIVE_FUNCTION_NAME,
+            fileGlobalName:
+              trace.bytecode.contract.receive.location.file.globalName,
+            line: trace.bytecode.contract.receive.location.getStartingLineNumber(),
+          },
+        };
+
+        this._solidity063CorrectLineNumber(revertFrame);
+      }
+    }
+    return revertFrame;
+  }
+
+  private _solidity063GetFrameForUnmappedRevertWithinFunction(
+    trace: DecodedEvmMessageTrace
+  ): UnmappedSolc063RevertErrorStackTraceEntry | undefined {
+    // If we are within a function there's a last valid location. It may
+    // be the entire contract.
+    const prevInst = this._getLastInstructionWithValidLocation(trace)!;
+    const lastStep = trace.steps[trace.steps.length - 1] as EvmStep;
+    const nextInstPc = lastStep.pc + 1;
+    const hasNextInst = trace.bytecode.hasInstruction(nextInstPc);
+
+    if (hasNextInst) {
+      const nextInst = trace.bytecode.getInstruction(nextInstPc);
+      const prevLoc = prevInst.location!;
+      const nextLoc = nextInst.location;
+      const prevFunc = prevLoc.getContainingFunction();
+      const nextFunc = nextLoc?.getContainingFunction();
+
+      // This is probably a require. This means that we have the exact
+      // line, but the stack trace may be degraded (e.g. missing our
+      // synthetic call frames when failing in a modifier) so we still
+      // add this frame as UNMAPPED_SOLC_0_6_3_REVERT_ERROR
+      if (
+        prevFunc !== undefined &&
+        nextLoc !== undefined &&
+        prevLoc.equals(nextLoc)
+      ) {
+        return {
+          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+            trace,
+            nextInst
+          ),
+          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+        };
+      }
+
+      let revertFrame: UnmappedSolc063RevertErrorStackTraceEntry | undefined;
+
+      // If the previous and next location don't match, we try to use the
+      // previous one if it's inside a function, otherwise we use the next one
+      if (prevFunc !== undefined) {
+        revertFrame = {
+          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+            trace,
+            prevInst
+          ),
+          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+        };
+      } else if (nextFunc !== undefined) {
+        revertFrame = {
+          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+            trace,
+            nextInst
+          ),
+          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+        };
+      }
+
+      if (revertFrame !== undefined) {
+        this._solidity063CorrectLineNumber(revertFrame);
+      }
+
+      return revertFrame;
+    }
+
+    if (isCreateTrace(trace)) {
+      // Solidity is smart enough to stop emitting extra instructions after
+      // an unconditional revert happens in a constructor. If this is the case
+      // we just return a special error.
+      const constructorRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry = {
+        ...this._instructionWithinFunctionToRevertStackTraceEntry(
+          trace,
+          prevInst
+        ),
+        type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+      };
+
+      // When the latest instruction is not within a function we need
+      // some default sourceReference to show to the user
+      if (constructorRevertFrame.sourceReference === undefined) {
+        const defaultSourceReference: SourceReference = {
+          function: CONSTRUCTOR_FUNCTION_NAME,
+          contract: trace.bytecode.contract.name,
+          fileGlobalName: trace.bytecode.contract.location.file.globalName,
+          line: trace.bytecode.contract.location.getStartingLineNumber(),
+        };
+
+        if (trace.bytecode.contract.constructorFunction !== undefined) {
+          defaultSourceReference.line = trace.bytecode.contract.constructorFunction.location.getStartingLineNumber();
+        }
+
+        constructorRevertFrame.sourceReference = defaultSourceReference;
+      } else {
+        this._solidity063CorrectLineNumber(constructorRevertFrame);
+      }
+
+      return constructorRevertFrame;
+    }
+
+    // We may as well just be in a function or modifier and just happen
+    // to be at the last instruction of the runtime bytecode.
+    // In this case we just return whatever the last mapped intruction
+    // points to.
+    const latestInstructionRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry = {
+      ...this._instructionWithinFunctionToRevertStackTraceEntry(
+        trace,
+        prevInst
+      ),
+      type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+    };
+
+    if (latestInstructionRevertFrame.sourceReference !== undefined) {
+      this._solidity063CorrectLineNumber(latestInstructionRevertFrame);
+    }
+
+    return latestInstructionRevertFrame;
+  }
+
+  private _solidity063MaybeUnmappedRevert(trace: DecodedEvmMessageTrace) {
+    const lastStep = trace.steps[trace.steps.length - 1];
+    if (!isEvmStep(lastStep)) {
+      return false;
+    }
+
+    const lastInst = trace.bytecode.getInstruction(lastStep.pc);
+
+    return (
+      semver.satisfies(
+        trace.bytecode.compilerVersion,
+        `^${FIRST_SOLC_VERSION_WITH_UNMAPPED_REVERTS}`
+      ) && lastInst.opcode === Opcode.REVERT
+    );
+  }
+
+  private _solidity063CorrectLineNumber(
+    revertFrame: UnmappedSolc063RevertErrorStackTraceEntry
+  ) {
+    // TODO: Change this when we add support for multiple compilations. This
+    //  info should be present in the source reference
+    const file = this._files.get(revertFrame.sourceReference.fileGlobalName)!;
+
+    const lines = file.content.split("\n");
+
+    const currentLine = lines[revertFrame.sourceReference.line - 1];
+
+    if (currentLine.includes("require") || currentLine.includes("revert")) {
+      return;
+    }
+
+    const nextLines = lines.slice(revertFrame.sourceReference.line);
+    const firstNonEmptyLine = nextLines.findIndex((l) => l.trim() !== "");
+
+    if (firstNonEmptyLine === -1) {
+      return;
+    }
+
+    const nextLine = nextLines[firstNonEmptyLine];
+
+    if (nextLine.includes("require") || nextLine.includes("revert")) {
+      revertFrame.sourceReference.line += 1 + firstNonEmptyLine;
+    }
   }
 }

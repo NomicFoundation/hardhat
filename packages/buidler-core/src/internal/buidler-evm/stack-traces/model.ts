@@ -273,6 +273,11 @@ export class Instruction {
   ) {}
 }
 
+interface ImmutableReference {
+  start: number;
+  length: number;
+}
+
 export class Bytecode {
   private readonly _pcToInstruction: Map<number, Instruction> = new Map();
 
@@ -282,6 +287,7 @@ export class Bytecode {
     public readonly normalizedCode: Buffer,
     public readonly instructions: Instruction[],
     public readonly libraryAddressPositions: number[],
+    public readonly immutableReferences: ImmutableReference[],
     public readonly compilerVersion: string
   ) {
     for (const inst of instructions) {
@@ -297,5 +303,9 @@ export class Bytecode {
     }
 
     return inst;
+  }
+
+  public hasInstruction(pc: number): boolean {
+    return this._pcToInstruction.has(pc);
   }
 }

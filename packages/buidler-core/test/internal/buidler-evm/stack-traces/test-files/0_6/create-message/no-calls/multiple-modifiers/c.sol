@@ -3,12 +3,12 @@ pragma solidity ^0.6.0;
 contract C {
 
   modifier m2()  {
-    revert();
+    revert("");
     _;
   }
 
   constructor(bool b) m1(b) m2 public {
-    revert();
+    revert("");
   }
 
   modifier m1(bool b)  {

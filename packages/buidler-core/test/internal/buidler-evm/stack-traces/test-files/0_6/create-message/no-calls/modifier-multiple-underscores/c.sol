@@ -8,7 +8,7 @@ contract C {
   modifier mm(bool b) {
     _;
     _;
-    require(b);
+    require(b, "");
     _;
   }
 

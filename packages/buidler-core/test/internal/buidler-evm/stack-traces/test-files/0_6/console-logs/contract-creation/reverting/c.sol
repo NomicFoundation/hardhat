@@ -6,6 +6,6 @@ contract C {
 
 	constructor() public {
 		console.log("C");
-    revert();
+    revert("");
 	}
 }

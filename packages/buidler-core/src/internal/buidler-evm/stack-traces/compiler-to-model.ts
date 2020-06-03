@@ -333,6 +333,14 @@ function decodeEvmBytecode(
 ): Bytecode {
   const libraryAddressPositions = getLibraryAddressPositions(compilerBytecode);
 
+  const immutableReferences =
+    compilerBytecode.immutableReferences !== undefined
+      ? Object.values(compilerBytecode.immutableReferences).reduce(
+          (previousValue, currentValue) => [...previousValue, ...currentValue],
+          []
+        )
+      : [];
+
   const normalizedCode = normalizeCompilerOutputBytecode(
     compilerBytecode.object,
     libraryAddressPositions
@@ -350,6 +358,7 @@ function decodeEvmBytecode(
     normalizedCode,
     instructions,
     libraryAddressPositions,
+    immutableReferences,
     solcVersion
   );
 }

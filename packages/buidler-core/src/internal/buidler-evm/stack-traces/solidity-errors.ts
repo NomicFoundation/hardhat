@@ -1,8 +1,6 @@
 import { bufferToHex } from "ethereumjs-util";
 import { inspect } from "util";
 
-import { TransactionExecutionError } from "../provider/errors";
-
 import { decodeRevertReason } from "./revert-reasons";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
@@ -105,6 +103,7 @@ function encodeStackTraceEntry(
 ): SolidityCallSite {
   switch (stackTraceEntry.type) {
     case StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
+    case StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
       return sourceReferenceToSolidityCallsite({
         ...stackTraceEntry.sourceReference,
         function: UNRECOGNIZED_FUNCTION_NAME,
@@ -115,10 +114,13 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
     case StackTraceEntryType.INVALID_PARAMS_ERROR:
     case StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
     case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
     case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
     case StackTraceEntryType.CALL_FAILED_ERROR:
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
+    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
@@ -208,8 +210,16 @@ function getMessageFromLastStackTraceEntry(
         10
       )}`;
 
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
+      return `Transaction reverted: there's no receive function, fallback function is not payable and was called with value ${stackTraceEntry.value.toString(
+        10
+      )}`;
+
     case StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
       return `Transaction reverted: function selector was not recognized and there's no fallback function`;
+
+    case StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
+      return `Transaction reverted: function selector was not recognized and there's no fallback nor receive function`;
 
     case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
       return `Transaction reverted: function returned an unexpected amount of data`;
@@ -223,7 +233,6 @@ function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
       return `Transaction reverted: library was called directly`;
 
-    case StackTraceEntryType.REVERT_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       if (stackTraceEntry.message.length > 0) {
@@ -234,8 +243,27 @@ function getMessageFromLastStackTraceEntry(
 
       return "Transaction reverted without a reason";
 
+    case StackTraceEntryType.REVERT_ERROR:
+      if (stackTraceEntry.message.length > 0) {
+        return `VM Exception while processing transaction: revert ${decodeRevertReason(
+          stackTraceEntry.message
+        )}`;
+      }
+
+      if (stackTraceEntry.isInvalidOpcodeError) {
+        return "VM Exception while processing transaction: invalid opcode";
+      }
+
+      return "Transaction reverted without a reason";
+
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       return `Transaction reverted for an unrecognized reason. Please report this to help us improve Buidler.`;
+
+    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
+      return "Transaction reverted without a reason and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";
+
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
+      return "Transaction reverted: trying to deploy a contract whose code is too large";
   }
 }
 
