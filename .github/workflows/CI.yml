@@ -28,12 +28,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-10-
       - name: Install node-gyp-cache
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
       - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
       - name: lint
         run: npm run lint
@@ -58,12 +56,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-10-
       - name: Install node-gyp-cache
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
       - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
       - name: Build tests
         run: npm run build-test
@@ -76,17 +72,7 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        id: cache
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-          key: ${{ runner.os }}-node-10-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-10-
       - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
       - name: Run tests
         run: npm run test
@@ -109,12 +95,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-10-
       - name: Install node-gyp-cache
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
       - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
       - name: Run tests
         run: npm run test
@@ -142,12 +126,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-${{ matrix.node }}-
       - name: Install node-gyp-cache
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
       - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
       - name: Run tests
         run: npm run test
