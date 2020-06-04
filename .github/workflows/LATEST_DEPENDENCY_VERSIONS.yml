@@ -18,8 +18,7 @@ jobs:
           npm install -g node-gyp-cache
           npm config set node_gyp node-gyp-cache
       - name: Delete package-locks
-        run: |
-          rm package-lock.json "packages/*/package-lock.json"
+        run: "rm package-lock.json packages/*/package-lock.json"
       - name: Install
         run: npx lerna bootstrap --no-ci
       - name: Run tests
