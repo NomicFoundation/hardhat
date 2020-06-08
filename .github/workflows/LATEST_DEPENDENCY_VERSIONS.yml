@@ -3,6 +3,9 @@ name: LATEST_DEPENDENCY_VERSIONS
 on:
   schedule:
     - cron:  '0 0/8 * * *'
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
   test-without-package-locks:
@@ -20,6 +23,6 @@ jobs:
       - name: Delete package-locks
         run: "rm package-lock.json packages/*/package-lock.json"
       - name: Install
-        run: npx lerna bootstrap --no-ci
+        run: LERNA_NO_CI=true npm install
       - name: Run tests
         run: npm test
