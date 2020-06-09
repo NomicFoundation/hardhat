@@ -71,6 +71,12 @@
           <div class="logo">
             <img src="/users/skale-logo.svg" alt="Skale" />
           </div>
+          <div class="logo">
+            <img src="/users/set-and-tokensets-logo.svg" alt="Set + TokenSets" />
+          </div>
+          <div class="logo">
+            <img src="/users/pool-together-logo.svg" alt="PoolTogether" />
+          </div>
         </div>
       </div>
 
