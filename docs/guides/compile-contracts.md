@@ -86,4 +86,6 @@ module.exports = {
 
 Then run at least once `npx buidler compile --config buidler.config.5.js`, and use `npx buidler test` as you normally would to run your tests.
 
+Note that this section isn't exclusively for Solidity `5` and `6`, but also works with Solidity `4`.
+
 For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
