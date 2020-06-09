@@ -3,9 +3,6 @@ name: LATEST_DEPENDENCY_VERSIONS
 on:
   schedule:
     - cron:  '0 0/8 * * *'
-  pull_request:
-    branches:
-      - "*"
 
 jobs:
   test-without-package-locks:
