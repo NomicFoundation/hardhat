@@ -165,5 +165,14 @@ module.exports = [
     url: "https://github.com/wighawag/buidler-deploy/tree/master",
     description: "Buidler plugin for Deployments",
     tags: ["Deployment", "Testing"]
+  },
+  {
+    name: "buidler-source-descriptor",
+    author: "Kendrick Tan",
+    authorUrl: "https://github.com/kendricktan",
+    version: "",
+    url: "https://github.com/kendricktan/buidler-source-descriptor/tree/master",
+    description: "A Buidler plugin to generate a descriptor of your Solidity source code",
+    tags: ["Compiling", "Documentation"]
   }
 ];
