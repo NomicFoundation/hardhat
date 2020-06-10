@@ -171,7 +171,7 @@ module.exports = [
     author: "Kendrick Tan",
     authorUrl: "https://github.com/kendricktan",
     version: "",
-    url: "https://github.com/kendricktan/buidler-source-descriptor",
+    url: "https://github.com/kendricktan/buidler-source-descriptor/tree/master",
     description: "A Buidler plugin to generate a descriptor of your Solidity source code",
     tags: ["Compiling", "Documentation"]
   }
