@@ -1,5 +1,11 @@
 import { Instruction, JumpType, SourceFile, SourceLocation } from "./model";
-import { getOpcodeLength, getPushLength, isJump, isPush } from "./opcodes";
+import {
+  getOpcodeLength,
+  getPushLength,
+  isJump,
+  isPush,
+  Opcode,
+} from "./opcodes";
 
 export interface SourceMapLocation {
   offset: number;
@@ -56,10 +62,40 @@ function uncompressSourcemaps(compressedSourcemap: string): SourceMap[] {
   return mappings;
 }
 
+function addUnmappedInstructions(
+  instructions: Instruction[],
+  bytecode: Buffer,
+  bytesIndex: number
+) {
+  const lastInstrPc = instructions[instructions.length - 1].pc;
+  let nextPc = lastInstrPc + 1;
+
+  while (bytecode[nextPc] !== Opcode.INVALID) {
+    const opcode = bytecode[nextPc];
+    let pushData: Buffer | undefined;
+
+    let pushDataLenth = 0;
+    if (isPush(opcode)) {
+      pushDataLenth = getPushLength(opcode);
+      pushData = bytecode.slice(bytesIndex + 1, bytesIndex + 1 + pushDataLenth);
+    }
+
+    const jumpType = isJump(opcode)
+      ? JumpType.INTERNAL_JUMP
+      : JumpType.NOT_JUMP;
+
+    const instruction = new Instruction(nextPc, opcode, jumpType, pushData);
+    instructions.push(instruction);
+
+    nextPc += 1 + pushDataLenth;
+  }
+}
+
 export function decodeInstructions(
   bytecode: Buffer,
   compressedSourcemaps: string,
-  fileIdToSourceFile: Map<number, SourceFile>
+  fileIdToSourceFile: Map<number, SourceFile>,
+  isDeployment: boolean
 ): Instruction[] {
   const sourceMaps = uncompressSourcemaps(compressedSourcemaps);
 
@@ -108,6 +144,11 @@ export function decodeInstructions(
     instructions.push(instruction);
 
     bytesIndex += getOpcodeLength(opcode);
+  }
+
+  // See: https://github.com/ethereum/solidity/issues/9133
+  if (isDeployment) {
+    addUnmappedInstructions(instructions, bytecode, bytesIndex);
   }
 
   return instructions;
