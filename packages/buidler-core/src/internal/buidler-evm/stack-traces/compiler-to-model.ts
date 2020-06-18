@@ -349,7 +349,8 @@ function decodeEvmBytecode(
   const instructions = decodeInstructions(
     normalizedCode,
     compilerBytecode.sourceMap,
-    fileIdToSourceFile
+    fileIdToSourceFile,
+    isDeployment
   );
 
   return new Bytecode(
