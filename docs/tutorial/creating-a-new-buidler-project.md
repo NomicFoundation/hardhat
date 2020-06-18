@@ -62,7 +62,7 @@ You can create your own tasks. Check out the [Creating a task](/guides/create-ta
 For this tutorial we are going to use the Ethers.js and Waffle plugins. They'll allow you to interact with Ethereum and to test your contracts. We'll explain how they're used later on. To install them, in your project directory run:
 
 ```
-npm install --save-dev @nomiclabs/buidler-ethers ethers @nomiclabs/buidler-waffle ethereum-waffle chai
+npm install --save-dev @nomiclabs/buidler-ethers 'ethers@^4.0.23' @nomiclabs/buidler-waffle 'ethereum-waffle^2.5.1' chai
 ```
 
 Add the highlighted line to your `buidler.config.js` so that it looks like this:
