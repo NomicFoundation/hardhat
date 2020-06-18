@@ -14,13 +14,13 @@ const CREATE_SAMPLE_PROJECT_ACTION = "Create a sample project";
 const CREATE_EMPTY_BUIDLER_CONFIG_ACTION = "Create an empty buidler.config.js";
 const QUIT_ACTION = "Quit";
 
-const SAMPLE_PROJECT_DEPENDENCIES = [
-  "@nomiclabs/buidler-waffle",
-  "ethereum-waffle",
-  "chai",
-  "@nomiclabs/buidler-ethers",
-  "ethers",
-];
+const SAMPLE_PROJECT_DEPENDENCIES = {
+  "@nomiclabs/buidler-waffle": "^1.3.4",
+  "ethereum-waffle": "^2.5.1",
+  chai: "^4.2.0",
+  "@nomiclabs/buidler-ethers": "^1.3.3",
+  ethers: "^4.0.47",
+};
 
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
   const dirPath = path.join(projectRoot, dirName);
@@ -119,7 +119,7 @@ function printSuggestedCommands() {
   console.log(`  ${npx}buidler help`);
 }
 
-async function printTrufflePluginInstallationInstructions() {
+async function printRecommendedDepsInstallationInstructions() {
   console.log(
     `You need to install these dependencies to run the sample project:`
   );
@@ -239,17 +239,14 @@ export async function createProject() {
 
   let shouldShowInstallationInstructions = true;
 
-  if (await canInstallTrufflePlugin()) {
-    const installedRecommendedDeps = SAMPLE_PROJECT_DEPENDENCIES.filter(
-      isInstalled
-    );
+  if (await canInstallRecommendedDeps()) {
+    const recommendedDeps = Object.keys(SAMPLE_PROJECT_DEPENDENCIES);
+    const installedRecommendedDeps = recommendedDeps.filter(isInstalled);
 
-    if (
-      installedRecommendedDeps.length === SAMPLE_PROJECT_DEPENDENCIES.length
-    ) {
+    if (installedRecommendedDeps.length === recommendedDeps.length) {
       shouldShowInstallationInstructions = false;
     } else if (installedRecommendedDeps.length === 0) {
-      const shouldInstall = await confirmTrufflePluginInstallation();
+      const shouldInstall = await confirmRecommendedDepsInstallation();
       if (shouldInstall) {
         const installed = await installRecommendedDependencies();
 
@@ -266,7 +263,7 @@ export async function createProject() {
 
   if (shouldShowInstallationInstructions) {
     console.log(``);
-    await printTrufflePluginInstallationInstructions();
+    await printRecommendedDepsInstallationInstructions();
   }
 
   console.log(
@@ -312,7 +309,7 @@ function createConfirmationPrompt(name: string, message: string) {
   };
 }
 
-async function canInstallTrufflePlugin() {
+async function canInstallRecommendedDeps() {
   return (
     (await fsExtra.pathExists("package.json")) &&
     (getExecutionMode() === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION ||
@@ -344,7 +341,7 @@ async function installRecommendedDependencies() {
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
 
-async function confirmTrufflePluginInstallation(): Promise<boolean> {
+async function confirmRecommendedDepsInstallation(): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
   let responses: {
@@ -357,9 +354,9 @@ async function confirmTrufflePluginInstallation(): Promise<boolean> {
     responses = await enquirer.prompt<typeof responses>([
       createConfirmationPrompt(
         "shouldInstallPlugin",
-        `Do you want to install the sample project's dependencies with ${packageManager} (${SAMPLE_PROJECT_DEPENDENCIES.join(
-          " "
-        )})?`
+        `Do you want to install the sample project's dependencies with ${packageManager} (${Object.keys(
+          SAMPLE_PROJECT_DEPENDENCIES
+        ).join(" ")})?`
       ),
     ]);
   } catch (e) {
@@ -411,8 +408,12 @@ async function getRecommendedDependenciesInstallationCommand(): Promise<
   const isGlobal =
     getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION;
 
+  const deps = Object.entries(SAMPLE_PROJECT_DEPENDENCIES).map(
+    ([name, version]) => `${name}@${version}`
+  );
+
   if (!isGlobal && (await isYarnProject())) {
-    return ["yarn", "add", "--dev", ...SAMPLE_PROJECT_DEPENDENCIES];
+    return ["yarn", "add", "--dev", ...deps];
   }
 
   const npmInstall = ["npm", "install"];
@@ -421,5 +422,5 @@ async function getRecommendedDependenciesInstallationCommand(): Promise<
     npmInstall.push("--global");
   }
 
-  return [...npmInstall, "--save-dev", ...SAMPLE_PROJECT_DEPENDENCIES];
+  return [...npmInstall, "--save-dev", ...deps];
 }
