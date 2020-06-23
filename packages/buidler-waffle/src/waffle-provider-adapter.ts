@@ -1,6 +1,5 @@
 import { BuidlerNetworkConfig, Network } from "@nomiclabs/buidler/types";
-import { Wallet } from "ethers";
-import { providers } from "ethers";
+import { providers, Wallet } from "ethers";
 
 // This class is an extension of buidler-ethers' wrapper.
 // TODO: Export buidler-ether's wrapper so this can be implemented like a normal

@@ -21,7 +21,7 @@ function createFixtureLoader(
 
   return async function load<T>(fixture: Fixture<T>): Promise<T> {
     const snapshot = snapshots.find((p) => p.fixture === fixture);
-    if (snapshot) {
+    if (snapshot !== undefined) {
       await snapshot.provider.send("evm_revert", [snapshot.id]);
       snapshot.id = await snapshot.provider.send("evm_snapshot", []);
       return snapshot.data;
