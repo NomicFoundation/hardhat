@@ -4,7 +4,6 @@ import {
   NetworkConfig,
 } from "@nomiclabs/buidler/types";
 import { ethers } from "ethers";
-import { bigNumberify } from "ethers/utils";
 
 export async function getSigners(bre: BuidlerRuntimeEnvironment) {
   const accounts = await bre.ethers.provider.listAccounts();
@@ -22,14 +21,14 @@ export function getContractFactory(
 export function getContractFactory(
   bre: BuidlerRuntimeEnvironment,
   abi: any[],
-  bytecode: ethers.utils.Arrayish | string,
+  bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
 export async function getContractFactory(
   bre: BuidlerRuntimeEnvironment,
   nameOrAbi: string | any[],
-  bytecodeOrSigner?: ethers.Signer | ethers.utils.Arrayish | string,
+  bytecodeOrSigner?: ethers.Signer | ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
@@ -43,7 +42,7 @@ export async function getContractFactory(
   return getContractFactoryByAbiAndBytecode(
     bre,
     nameOrAbi,
-    bytecodeOrSigner as ethers.utils.Arrayish | string,
+    bytecodeOrSigner as ethers.utils.BytesLike | string,
     signer
   );
 }
@@ -65,11 +64,11 @@ export async function getContractFactoryByName(
 export async function getContractFactoryByAbiAndBytecode(
   bre: BuidlerRuntimeEnvironment,
   abi: any[],
-  bytecode: ethers.utils.Arrayish | string,
+  bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ) {
   if (signer === undefined) {
-    const signers = await bre.ethers.signers();
+    const signers = await bre.ethers.getSigners();
     signer = signers[0];
   }
 
@@ -93,7 +92,7 @@ export async function getContractAt(
   }
 
   if (signer === undefined) {
-    const signers = await bre.ethers.signers();
+    const signers = await bre.ethers.getSigners();
     signer = signers[0];
   }
 
@@ -109,8 +108,6 @@ export async function getContractAt(
 // is set up to use a fixed amount of gas.
 // This is done so that ethers doesn't automatically estimate gas limits on
 // every call.
-// NOTE: This is very dependant on ethers v4 implementation. It will probably
-// change on v5.
 function addGasToAbiMethodsIfNecessary(
   networkConfig: NetworkConfig,
   abi: any[]
@@ -123,7 +120,9 @@ function addGasToAbiMethodsIfNecessary(
   // OOG errors, as people may set the default gas to the same value as the
   // block gas limit, especially on Buidler EVM.
   // To avoid this, we substract 21000.
-  const gasLimit = bigNumberify(networkConfig.gas).sub(21000).toHexString();
+  const gasLimit = ethers.BigNumber.from(networkConfig.gas)
+    .sub(21000)
+    .toHexString();
 
   const modifiedAbi: any[] = [];
 

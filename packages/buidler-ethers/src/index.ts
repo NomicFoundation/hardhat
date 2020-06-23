@@ -14,6 +14,9 @@ export default function () {
 
       return {
         ...ethers,
+
+        // The provider wrapper should be removed once this is released
+        // https://github.com/nomiclabs/buidler/pull/608
         provider: new EthersProviderWrapper(env.network.provider),
 
         getSigners: async () => getSigners(env),
@@ -21,10 +24,6 @@ export default function () {
         // overloads. See: https://github.com/microsoft/TypeScript/issues/28582
         getContractFactory: getContractFactory.bind(null, env) as any,
         getContractAt: getContractAt.bind(null, env),
-
-        // Deprecated:
-        getContract: (name: string) => getContractFactory(env, name),
-        signers: () => getSigners(env),
       };
     });
   });
