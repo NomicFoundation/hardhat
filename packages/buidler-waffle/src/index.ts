@@ -1,27 +1,9 @@
 import { extendEnvironment, usePlugin } from "@nomiclabs/buidler/config";
 import { lazyObject } from "@nomiclabs/buidler/plugins";
-import path from "path";
 
-function initializeWaffleMatchers(projectRoot: string) {
-  try {
-    let chaiPath = require.resolve("chai");
-
-    // When using this plugin linked from sources, we'd end up with the chai
-    // used to test it, not the project's version of chai, so we correct it.
-    if (chaiPath.startsWith(path.join(__dirname, "..", "node_modules"))) {
-      chaiPath = require.resolve("chai", {
-        paths: [projectRoot],
-      });
-    }
-
-    const chai = require(chaiPath);
-    const { waffleChai } = require("./waffle-chai");
-
-    chai.use(waffleChai);
-  } catch (error) {
-    // If chai isn't installed we just don't initialize the matchers
-  }
-}
+import { buidlerDeployContract, getDeployMockContract } from "./deploy";
+import { getLinkFunction } from "./link";
+import { initializeWaffleMatchers } from "./matchers";
 
 export default function () {
   extendEnvironment((bre) => {
@@ -32,8 +14,22 @@ export default function () {
         WaffleMockProviderAdapter,
       } = require("./waffle-provider-adapter");
 
+      const { buidlerCreateFixtureLoader } = require("./fixtures");
+
+      const buidlerWaffleProvider = new WaffleMockProviderAdapter(
+        bre.network
+      ) as any;
+
       return {
-        provider: new WaffleMockProviderAdapter(bre.network) as any,
+        provider: buidlerWaffleProvider,
+        deployContract: buidlerDeployContract.bind(undefined, bre),
+        deployMockContract: getDeployMockContract(),
+        solidity: require("./waffle-chai"),
+        createFixtureLoader: buidlerCreateFixtureLoader.bind(
+          buidlerWaffleProvider
+        ),
+        loadFixture: buidlerCreateFixtureLoader(buidlerWaffleProvider),
+        link: getLinkFunction(),
       };
     });
 
