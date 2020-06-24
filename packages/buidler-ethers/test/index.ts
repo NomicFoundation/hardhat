@@ -14,8 +14,6 @@ describe("Ethers plugin", function () {
       assert.isDefined(this.env.ethers);
       assert.containsAllKeys(this.env.ethers, [
         "provider",
-        "getContract",
-        "signers",
         "getSigners",
         "getContractFactory",
         "getContractAt",
@@ -308,36 +306,6 @@ describe("Ethers plugin", function () {
               await signers[1].getAddress()
             );
           });
-        });
-      });
-    });
-
-    describe("Deprecated functions", function () {
-      describe("signers", function () {
-        it("should return the signers", async function () {
-          const sigs = await this.env.ethers.signers();
-          assert.equal(
-            await sigs[0].getAddress(),
-            "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
-          );
-        });
-      });
-
-      describe("getContract", function () {
-        it("should return a contract factory", async function () {
-          // It's already compiled in artifacts/
-          const contract = await this.env.ethers.getContract("Greeter");
-
-          assert.containsAllKeys(contract.interface.functions, [
-            "setGreeting(string)",
-            "greet()",
-          ]);
-        });
-
-        it("should return a contract factory for an interface", async function () {
-          const contract = await this.env.ethers.getContract("IGreeter");
-          assert.equal(contract.bytecode, "0x");
-          assert.containsAllKeys(contract.interface.functions, ["greet()"]);
         });
       });
     });

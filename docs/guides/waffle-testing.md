@@ -201,17 +201,22 @@ module.exports = {
 
 ### Adapting the tests
 
-Now, when testing using a standalone Waffle setup, this is how the provider is initialized for testing:
+Now, when testing using a standalone Waffle setup, you should use the different parts of Waffle from Buidler.
 
-```js
-// legacy Waffle API
-const provider = createMockProvider();
+For example, instead of doing
 
-// new Waffle API
-const provider = new MockProvider();
+```typescript
+import { deployContract } from "ethereum-waffle";
 ```
 
-This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and use the plugin's provider like this
+you should do
+
+```typescript
+import { waffle } from "ethereum-waffle";
+const { deployContract } = waffle;
+```
+
+Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and use the plugin's provider like this
 
 ```js
 const provider = waffle.provider;

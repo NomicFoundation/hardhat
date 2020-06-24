@@ -10,13 +10,13 @@
 You can use this plugin to build smart contract tests using Waffle in Buidler,
 taking advantage of both.
 
-This plugin adds a Waffle-compatible provider to the Buidler Runtime Environment,
+This plugin adds a Buidler-ready version of Waffle to the Buidler Runtime Environment,
 and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-waffle 'ethereum-waffle^2.5.1' @nomiclabs/buidler-ethers 'ethers@^4.0.23'
+npm install --save-dev @nomiclabs/buidler-waffle 'ethereum-waffle^3.0.0' @nomiclabs/buidler-ethers 'ethers@^5.0.0'
 ```
 
 And add the following statement to your `buidler.config.js`:
@@ -31,22 +31,41 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugin adds a `waffle` object to the Buidler Runtime Environment. This object has a single property, the Waffle
-mock provider.
+This plugin adds a `waffle` object to the Buidler Runtime Environment. This object has all the Waffle functionality, already adapted to work with Buidler.
 
-```ts
-waffle: {
-  provider: JsonRpcProvider;
-}
-```
+The `waffle` object has these properties:
+
+- `provider`
+- `deployContract`
+- `solidity`
+- `link`
+- `deployMockContract`
+- `createFixtureLoader`
+- `loadFixture`
 
 This plugin depends on [`@nomiclabs/buidler-ethers`](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers),
 so it also injects an `ethers` object into the BRE, which is documented [here](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers#environment-extensions).
 
 ## Usage
 
-Once installed, you can build your tests just like in Waffle. The only difference is that you must use `waffle.provider`
-instead of `createMockProvider()`.
+Once installed, you can build your tests almost like in Waffle.
+
+Instead of importing things from `ethereum-waffle`, you access them from the `waffle` property of the Buidler Runtime Environment.
+
+For example, instead of doing
+
+```typescript
+import { deployContract } from "ethereum-waffle";
+```
+
+you should do
+
+```typescript
+import { waffle } from "ethereum-waffle";
+const { deployContract } = waffle;
+```
+
+Also, you don't need to call `chai.use`.
 
 Note that by default, Buidler save its compilation output into `artifacts/` instead of `build/`. You can either use
 that directory in your tests, or [customize your Buidler config](https://buidler.dev/config/#path-configuration).

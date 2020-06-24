@@ -1,7 +1,7 @@
 import { IEthereumProvider } from "@nomiclabs/buidler/types";
-import { JsonRpcProvider } from "ethers/providers";
+import { ethers } from "ethers";
 
-export class EthersProviderWrapper extends JsonRpcProvider {
+export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
   private readonly _buidlerProvider: IEthereumProvider;
 
   constructor(buidlerProvider: IEthereumProvider) {
