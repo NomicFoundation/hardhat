@@ -2,6 +2,7 @@ import { getUserConfigPath } from "../../core/project-structure";
 
 import { ContractsIdentifier } from "./contracts-identifier";
 import { isEvmStep, isPrecompileTrace, MessageTrace } from "./message-trace";
+import { Bytecode } from "./model";
 
 export class VmTraceDecoder {
   constructor(private readonly _contractsIdentifier: ContractsIdentifier) {
@@ -22,5 +23,9 @@ export class VmTraceDecoder {
         isEvmStep(s) ? s : this.tryToDecodeMessageTrace(s)
       ),
     };
+  }
+
+  public addBytecode(bytecode: Bytecode) {
+    this._contractsIdentifier.addBytecode(bytecode);
   }
 }

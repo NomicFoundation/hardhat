@@ -258,8 +258,8 @@ export class BuidlerNode extends EventEmitter {
   private readonly _snapshots: Snapshot[] = [];
 
   private readonly _vmTracer: VMTracer;
-  private readonly _vmTraceDecoder?: VmTraceDecoder;
-  private readonly _solidityTracer?: SolidityTracer;
+  private _vmTraceDecoder?: VmTraceDecoder;
+  private _solidityTracer?: SolidityTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
@@ -983,6 +983,38 @@ export class BuidlerNode extends EventEmitter {
     }
 
     return logs;
+  }
+
+  public async addCompilationResult(
+    compilerVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
+  ): Promise<boolean> {
+    let bytecodes;
+    try {
+      bytecodes = createModelsAndDecodeBytecodes(
+        compilerVersion,
+        compilerInput,
+        compilerOutput
+      );
+    } catch (e) {
+      return false;
+    }
+
+    if (this._vmTraceDecoder === undefined) {
+      const contractsIdentifier = new ContractsIdentifier();
+      this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+    }
+    if (this._solidityTracer === undefined) {
+      this._solidityTracer = new SolidityTracer([]);
+    }
+
+    for (const bytecode of bytecodes) {
+      this._vmTraceDecoder.addBytecode(bytecode);
+      this._solidityTracer.addBytecode(bytecode);
+    }
+
+    return true;
   }
 
   private _getSnapshotIndex(id: number): number | undefined {

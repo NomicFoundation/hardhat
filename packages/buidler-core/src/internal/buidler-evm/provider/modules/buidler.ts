@@ -1,5 +1,11 @@
+import * as t from "io-ts";
+
+import {
+  CompilerInput,
+  CompilerOutput,
+} from "../../stack-traces/compiler-types";
 import { MethodNotFoundError } from "../errors";
-import { validateParams } from "../input";
+import { rpcCompilerInput, rpcCompilerOutput, validateParams } from "../input";
 import { BuidlerNode } from "../node";
 
 // tslint:disable only-buidler-error
@@ -16,6 +22,10 @@ export class BuidlerModule {
         return this._getStackTraceFailuresCountAction(
           ...this._getStackTraceFailuresCountParams(params)
         );
+      case "buidler_addCompilationResult":
+        return this._addCompilationResultAction(
+          ...this._addCompilationResultParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -29,5 +39,30 @@ export class BuidlerModule {
 
   private async _getStackTraceFailuresCountAction(): Promise<number> {
     return this._node.getStackTraceFailuresCount();
+  }
+
+  // buidler_addCompilationResult
+
+  private _addCompilationResultParams(
+    params: any[]
+  ): [string, CompilerInput, CompilerOutput] {
+    return validateParams(
+      params,
+      t.string,
+      rpcCompilerInput,
+      rpcCompilerOutput
+    );
+  }
+
+  private async _addCompilationResultAction(
+    compilerVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
+  ): Promise<boolean> {
+    return this._node.addCompilationResult(
+      compilerVersion,
+      compilerInput,
+      compilerOutput
+    );
   }
 }

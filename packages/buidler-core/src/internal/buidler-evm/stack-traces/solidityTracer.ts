@@ -53,7 +53,7 @@ const EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT = 0x6000;
 export class SolidityTracer {
   private _files: Map<string, SourceFile> = new Map();
 
-  constructor(private readonly _bytecodes: Bytecode[]) {
+  constructor(_bytecodes: Bytecode[]) {
     // TODO: Change this when we get to support multiple compilations in a
     //  single Buidler EVM run.
     for (const bytecode of _bytecodes) {
@@ -62,6 +62,13 @@ export class SolidityTracer {
         bytecode.contract.location.file
       );
     }
+  }
+
+  public addBytecode(bytecode: Bytecode) {
+    this._files.set(
+      bytecode.contract.location.file.globalName,
+      bytecode.contract.location.file
+    );
   }
 
   public getStackTrace(
