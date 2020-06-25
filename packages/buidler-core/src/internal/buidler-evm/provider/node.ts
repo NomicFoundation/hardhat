@@ -327,7 +327,7 @@ export class BuidlerNode extends EventEmitter {
       }
 
       this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-      this._solidityTracer = new SolidityTracer(bytecodes);
+      this._solidityTracer = new SolidityTracer();
     } catch (error) {
       console.warn(
         chalk.yellow(
@@ -1006,12 +1006,11 @@ export class BuidlerNode extends EventEmitter {
       this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     }
     if (this._solidityTracer === undefined) {
-      this._solidityTracer = new SolidityTracer([]);
+      this._solidityTracer = new SolidityTracer();
     }
 
     for (const bytecode of bytecodes) {
       this._vmTraceDecoder.addBytecode(bytecode);
-      this._solidityTracer.addBytecode(bytecode);
     }
 
     return true;

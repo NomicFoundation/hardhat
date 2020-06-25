@@ -22,7 +22,6 @@ import {
   ContractType,
   Instruction,
   JumpType,
-  SourceFile,
   SourceLocation,
 } from "./model";
 import { isCall, isCreate, Opcode } from "./opcodes";
@@ -51,26 +50,6 @@ const FIRST_SOLC_VERSION_WITH_UNMAPPED_REVERTS = "0.6.3";
 const EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT = 0x6000;
 
 export class SolidityTracer {
-  private _files: Map<string, SourceFile> = new Map();
-
-  constructor(_bytecodes: Bytecode[]) {
-    // TODO: Change this when we get to support multiple compilations in a
-    //  single Buidler EVM run.
-    for (const bytecode of _bytecodes) {
-      this._files.set(
-        bytecode.contract.location.file.globalName,
-        bytecode.contract.location.file
-      );
-    }
-  }
-
-  public addBytecode(bytecode: Bytecode) {
-    this._files.set(
-      bytecode.contract.location.file.globalName,
-      bytecode.contract.location.file
-    );
-  }
-
   public getStackTrace(
     maybeDecodedMessageTrace: MessageTrace
   ): SolidityStackTrace {
@@ -983,7 +962,7 @@ export class SolidityTracer {
       sourceReference: {
         function: undefined,
         contract: bytecode.contract.name,
-        fileGlobalName: inst.location!.file.globalName,
+        file: inst.location!.file,
         line: inst.location!.getStartingLineNumber(),
       },
       functionType: ContractFunctionType.FUNCTION,
@@ -1088,7 +1067,7 @@ export class SolidityTracer {
     trace: DecodedEvmMessageTrace
   ) {
     return {
-      fileGlobalName: trace.bytecode.contract.location.file.globalName,
+      file: trace.bytecode.contract.location.file,
       contract: trace.bytecode.contract.name,
       line: trace.bytecode.contract.location.getStartingLineNumber(),
     };
@@ -1110,7 +1089,7 @@ export class SolidityTracer {
         : contract.location.getStartingLineNumber();
 
     return {
-      fileGlobalName: contract.location.file.globalName,
+      file: contract.location.file,
       contract: contract.name,
       function: CONSTRUCTOR_FUNCTION_NAME,
       line,
@@ -1129,7 +1108,7 @@ export class SolidityTracer {
     }
 
     return {
-      fileGlobalName: func.location.file.globalName,
+      file: func.location.file,
       contract: trace.bytecode.contract.name,
       function: FALLBACK_FUNCTION_NAME,
       line: func.location.getStartingLineNumber(),
@@ -1141,7 +1120,7 @@ export class SolidityTracer {
     func: ContractFunction
   ): SourceReference {
     return {
-      fileGlobalName: func.location.file.globalName,
+      file: func.location.file,
       contract: trace.bytecode.contract.name,
       function: func.name,
       line: func.location.getStartingLineNumber(),
@@ -1199,7 +1178,7 @@ export class SolidityTracer {
     return {
       function: funcName,
       contract: bytecode.contract.name,
-      fileGlobalName: func.location.file.globalName,
+      file: func.location.file,
       line: location.getStartingLineNumber(),
     };
   }
@@ -1313,8 +1292,7 @@ export class SolidityTracer {
             sourceReference: {
               contract: trace.bytecode.contract.name,
               function: FALLBACK_FUNCTION_NAME,
-              fileGlobalName:
-                trace.bytecode.contract.fallback.location.file.globalName,
+              file: trace.bytecode.contract.fallback.location.file,
               line: trace.bytecode.contract.fallback.location.getStartingLineNumber(),
             },
           };
@@ -1328,8 +1306,7 @@ export class SolidityTracer {
           sourceReference: {
             contract: trace.bytecode.contract.name,
             function: RECEIVE_FUNCTION_NAME,
-            fileGlobalName:
-              trace.bytecode.contract.receive.location.file.globalName,
+            file: trace.bytecode.contract.receive.location.file,
             line: trace.bytecode.contract.receive.location.getStartingLineNumber(),
           },
         };
@@ -1422,7 +1399,7 @@ export class SolidityTracer {
         const defaultSourceReference: SourceReference = {
           function: CONSTRUCTOR_FUNCTION_NAME,
           contract: trace.bytecode.contract.name,
-          fileGlobalName: trace.bytecode.contract.location.file.globalName,
+          file: trace.bytecode.contract.location.file,
           line: trace.bytecode.contract.location.getStartingLineNumber(),
         };
 
@@ -1478,7 +1455,7 @@ export class SolidityTracer {
   ) {
     // TODO: Change this when we add support for multiple compilations. This
     //  info should be present in the source reference
-    const file = this._files.get(revertFrame.sourceReference.fileGlobalName)!;
+    const file = revertFrame.sourceReference.file;
 
     const lines = file.content.split("\n");
 
