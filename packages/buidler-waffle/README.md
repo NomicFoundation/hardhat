@@ -61,7 +61,7 @@ import { deployContract } from "ethereum-waffle";
 you should do
 
 ```typescript
-import { waffle } from "ethereum-waffle";
+import { waffle } from "@nomiclabs/buidler";
 const { deployContract } = waffle;
 ```
 
