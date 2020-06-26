@@ -258,8 +258,8 @@ export class BuidlerNode extends EventEmitter {
   private readonly _snapshots: Snapshot[] = [];
 
   private readonly _vmTracer: VMTracer;
-  private _vmTraceDecoder?: VmTraceDecoder;
-  private _solidityTracer?: SolidityTracer;
+  private readonly _vmTraceDecoder: VmTraceDecoder;
+  private readonly _solidityTracer: SolidityTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
@@ -305,6 +305,10 @@ export class BuidlerNode extends EventEmitter {
       );
     }
 
+    const contractsIdentifier = new ContractsIdentifier();
+    this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+    this._solidityTracer = new SolidityTracer();
+
     if (
       solidityVersion === undefined ||
       compilerInput === undefined ||
@@ -320,14 +324,9 @@ export class BuidlerNode extends EventEmitter {
         compilerOutput
       );
 
-      const contractsIdentifier = new ContractsIdentifier();
-
       for (const bytecode of bytecodes) {
-        contractsIdentifier.addBytecode(bytecode);
+        this._vmTraceDecoder.addBytecode(bytecode);
       }
-
-      this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-      this._solidityTracer = new SolidityTracer();
     } catch (error) {
       console.warn(
         chalk.yellow(
@@ -997,16 +996,9 @@ export class BuidlerNode extends EventEmitter {
         compilerInput,
         compilerOutput
       );
-    } catch (e) {
+    } catch (error) {
+      log("Compilation result could not be added.\n", error);
       return false;
-    }
-
-    if (this._vmTraceDecoder === undefined) {
-      const contractsIdentifier = new ContractsIdentifier();
-      this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-    }
-    if (this._solidityTracer === undefined) {
-      this._solidityTracer = new SolidityTracer();
     }
 
     for (const bytecode of bytecodes) {
