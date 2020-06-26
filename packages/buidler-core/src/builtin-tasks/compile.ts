@@ -24,6 +24,7 @@ import { ResolvedBuidlerConfig, SolcInput } from "../types";
 import {
   TASK_BUILD_ARTIFACTS,
   TASK_COMPILE,
+  TASK_COMPILE_ADD_COMPILATION_RESULT,
   TASK_COMPILE_CHECK_CACHE,
   TASK_COMPILE_COMPILE,
   TASK_COMPILE_GET_COMPILER_INPUT,
@@ -222,6 +223,8 @@ export default function () {
       }
     }
 
+    await run(TASK_COMPILE_ADD_COMPILATION_RESULT);
+
     console.log(
       "Compiled",
       numberOfContracts,
@@ -235,4 +238,34 @@ export default function () {
     .setAction(async ({ force: force }: { force: boolean }, { run }) =>
       run(TASK_BUILD_ARTIFACTS, { force })
     );
+
+  task(TASK_COMPILE_ADD_COMPILATION_RESULT, async (_, { config }) => {
+    const { default: fetch } = await import("node-fetch");
+
+    try {
+      const compilerVersion = config.solc.version;
+      const solcInputPath = path.join(config.paths.cache, SOLC_INPUT_FILENAME);
+      const solcOutputPath = path.join(
+        config.paths.cache,
+        SOLC_OUTPUT_FILENAME
+      );
+
+      const compilerInput = await fsExtra.readJSON(solcInputPath, {
+        encoding: "utf8",
+      });
+      const compilerOutput = await fsExtra.readJSON(solcOutputPath, {
+        encoding: "utf8",
+      });
+
+      await fetch("http://localhost:8545", {
+        method: "POST",
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "buidler_addCompilationResult",
+          params: [compilerVersion, compilerInput, compilerOutput],
+          id: 1,
+        }),
+      });
+    } catch (error) {}
+  });
 }

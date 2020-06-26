@@ -10,6 +10,7 @@ export const TASK_COMPILE_GET_COMPILER_INPUT = "compile:get-compiler-input";
 export const TASK_COMPILE_RUN_COMPILER = "compile:run-compiler";
 export const TASK_COMPILE_COMPILE = "compile:compile";
 export const TASK_COMPILE_CHECK_CACHE = "compile:cache";
+export const TASK_COMPILE_ADD_COMPILATION_RESULT = "compile:add-compilation-result";
 
 export const TASK_BUILD_ARTIFACTS = "compile:build-artifacts";
 
