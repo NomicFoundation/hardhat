@@ -405,9 +405,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -510,9 +508,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -589,9 +585,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -1056,20 +1050,18 @@ export class BuidlerNode extends EventEmitter {
 
     let stackTrace: SolidityStackTrace | undefined;
 
-    if (this._solidityTracer !== undefined) {
-      try {
-        if (vmTracerError !== undefined) {
-          throw vmTracerError;
-        }
-
-        stackTrace = this._solidityTracer.getStackTrace(vmTrace);
-      } catch (error) {
-        this._failedStackTraces += 1;
-        log(
-          "Could not generate stack trace. Please report this to help us improve Buidler.\n",
-          error
-        );
+    try {
+      if (vmTracerError !== undefined) {
+        throw vmTracerError;
       }
+
+      stackTrace = this._solidityTracer.getStackTrace(vmTrace);
+    } catch (error) {
+      this._failedStackTraces += 1;
+      log(
+        "Could not generate stack trace. Please report this to help us improve Buidler.\n",
+        error
+      );
     }
 
     const error = vmResult.exceptionError;
