@@ -49,6 +49,7 @@ export function getArtifactFromContractOutput(
     deployedBytecode,
     linkReferences,
     deployedLinkReferences,
+    metadata: contractOutput.metadata,
   };
 }
 

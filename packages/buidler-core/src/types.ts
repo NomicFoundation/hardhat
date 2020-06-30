@@ -313,6 +313,7 @@ export interface Artifact {
   deployedBytecode: string; // "0x"-prefixed hex string
   linkReferences: LinkReferences;
   deployedLinkReferences: LinkReferences;
+  metadata?: string;
 }
 
 export interface LinkReferences {
