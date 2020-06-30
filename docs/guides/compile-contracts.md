@@ -45,27 +45,27 @@ If you need to customize the `solc` compiler options, then you can do so through
 
 - `evmVersion`: a string controlling the target evm version. One of `homestead`, `tangerineWhistle`, `spuriousDragon`, `byzantium`, `constantinople`, `petersburg`, and `instanbul`. Default value: managed by `solc`. 
 
-## Solidity 4 and Solidity 5 contracts in the same project
+## Solidity 5 and Solidity 6 contracts in the same project
 
-Buidler can handle scenarios where you need to compile Solidity 4 and Solidity 5 contracts in the same project. An example of this is when there are deployed contracts that have been written in Solidity 4 but your new contracts that depend on the old ones are written in Solidity 5, or different contract dependencies use different Solidity versions and you need both of these to play along to run your tests.
+Buidler can handle scenarios where you need to compile Solidity 5 and Solidity 6 contracts in the same project. An example of this is when there are deployed contracts that have been written in Solidity 5 but your new contracts that depend on the old ones are written in Solidity 6, or different contract dependencies use different Solidity versions and you need both of these to play along to run your tests.
 
-We have a plugin to make this easier on our roadmap, but until that's released you will need to create an extra config file to compile the Solidity 4 contracts, and two separate directories for the code. 
+We have a plugin to make this easier on our roadmap, but until that's released you will need to create an extra config file to compile the Solidity 5 contracts, and two separate directories for the code. 
 
-Create the directories `4` and `5` inside `contracts/` so that it looks like this:
+Create the directories `5` and `6` inside `contracts/` so that it looks like this:
 ```
 contracts/
-  4/
   5/
+  6/
 ```
 
-Create a `buidler.config.4.js` with the following contents:
+Create a `buidler.config.5.js` with the following contents:
 ```js
 module.exports = {
   solc: {
-    version: "0.4.25"
+    version: "0.5.3"
   },
   paths: {
-    sources: "./contracts/4",
+    sources: "./contracts/5",
   }
 };
 ```
@@ -75,12 +75,17 @@ Set your `buidler.config.js` to the following contents:
 usePlugin("@nomiclabs/buidler-waffle");
 
 module.exports = {
+  solc: {
+    version: "0.6.8"
+  },
   paths: {
-    sources: "./contracts/5",
+    sources: "./contracts/6",
   }
 };
 ```
 
-Then run at least once `npx buidler compile --config buidler.config.4.js`, and use `npx buidler test` as you normally would to run your tests.
+Then run at least once `npx buidler compile --config buidler.config.5.js`, and use `npx buidler test` as you normally would to run your tests.
+
+Note that this section isn't exclusively for Solidity `5` and `6`, but also works with Solidity `4`.
 
 For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).

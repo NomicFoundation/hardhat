@@ -18,18 +18,19 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-      - name: Install node-gyp-cache
-        run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
       - uses: actions/cache@v2
+        id: cache
         with:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-10-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-10-
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
       - name: lint
@@ -45,18 +46,19 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-      - name: Install node-gyp-cache
-        run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
       - uses: actions/cache@v2
+        id: cache
         with:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-10-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-10-
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
       - name: Build tests
@@ -70,14 +72,6 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-10-
       - name: Install
         run: npm install
       - name: Run tests
@@ -91,18 +85,19 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-      - name: Install node-gyp-cache
-        run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
       - uses: actions/cache@v2
+        id: cache
         with:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-node-10-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-10-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-10-
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
       - name: Run tests
@@ -121,18 +116,19 @@ jobs:
       - name: install vyper
         run: docker pull ethereum/vyper:0.1.0b10
       - uses: actions/checkout@v2
-      - name: Install node-gyp-cache
-        run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
       - uses: actions/cache@v2
+        id: cache
         with:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-${{ matrix.node }}-
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
       - name: Install
         run: npm install
       - name: Run tests

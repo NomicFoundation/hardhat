@@ -20,6 +20,7 @@ export enum ContractFunctionType {
   CONSTRUCTOR,
   FUNCTION,
   FALLBACK,
+  RECEIVE,
   GETTER,
   MODIFIER,
 }
@@ -124,6 +125,7 @@ export class Contract {
 
   private _constructor: ContractFunction | undefined;
   private _fallback: ContractFunction | undefined;
+  private _receive: ContractFunction | undefined;
   private readonly _selectorHexToFunction: Map<
     string,
     ContractFunction
@@ -141,6 +143,10 @@ export class Contract {
 
   get fallback(): ContractFunction | undefined {
     return this._fallback;
+  }
+
+  get receive(): ContractFunction | undefined {
+    return this._receive;
   }
 
   public addLocalFunction(func: ContractFunction) {
@@ -161,6 +167,8 @@ export class Contract {
         this._constructor = func;
       } else if (func.type === ContractFunctionType.FALLBACK) {
         this._fallback = func;
+      } else if (func.type === ContractFunctionType.RECEIVE) {
+        this._receive = func;
       }
     }
 
@@ -170,6 +178,9 @@ export class Contract {
   public addNextLinearizedBaseContract(baseContract: Contract) {
     if (this._fallback === undefined && baseContract._fallback !== undefined) {
       this._fallback = baseContract._fallback;
+    }
+    if (this._receive === undefined && baseContract._receive !== undefined) {
+      this._receive = baseContract._receive;
     }
 
     for (const baseContractFunction of baseContract.localFunctions) {
@@ -262,6 +273,11 @@ export class Instruction {
   ) {}
 }
 
+interface ImmutableReference {
+  start: number;
+  length: number;
+}
+
 export class Bytecode {
   private readonly _pcToInstruction: Map<number, Instruction> = new Map();
 
@@ -271,6 +287,7 @@ export class Bytecode {
     public readonly normalizedCode: Buffer,
     public readonly instructions: Instruction[],
     public readonly libraryAddressPositions: number[],
+    public readonly immutableReferences: ImmutableReference[],
     public readonly compilerVersion: string
   ) {
     for (const inst of instructions) {
@@ -286,5 +303,9 @@ export class Bytecode {
     }
 
     return inst;
+  }
+
+  public hasInstruction(pc: number): boolean {
+    return this._pcToInstruction.has(pc);
   }
 }

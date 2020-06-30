@@ -333,6 +333,14 @@ function decodeEvmBytecode(
 ): Bytecode {
   const libraryAddressPositions = getLibraryAddressPositions(compilerBytecode);
 
+  const immutableReferences =
+    compilerBytecode.immutableReferences !== undefined
+      ? Object.values(compilerBytecode.immutableReferences).reduce(
+          (previousValue, currentValue) => [...previousValue, ...currentValue],
+          []
+        )
+      : [];
+
   const normalizedCode = normalizeCompilerOutputBytecode(
     compilerBytecode.object,
     libraryAddressPositions
@@ -341,7 +349,8 @@ function decodeEvmBytecode(
   const instructions = decodeInstructions(
     normalizedCode,
     compilerBytecode.sourceMap,
-    fileIdToSourceFile
+    fileIdToSourceFile,
+    isDeployment
   );
 
   return new Bytecode(
@@ -350,6 +359,7 @@ function decodeEvmBytecode(
     normalizedCode,
     instructions,
     libraryAddressPositions,
+    immutableReferences,
     solcVersion
   );
 }
@@ -409,6 +419,10 @@ function functionDefinitionKindToFunctionType(
 
   if (kind === "fallback") {
     return ContractFunctionType.FALLBACK;
+  }
+
+  if (kind === "receive") {
+    return ContractFunctionType.RECEIVE;
   }
 
   return ContractFunctionType.FUNCTION;

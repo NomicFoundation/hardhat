@@ -35,7 +35,7 @@ import { SolidityTracer } from "../../../../src/internal/buidler-evm/stack-trace
 import { VmTraceDecoder } from "../../../../src/internal/buidler-evm/stack-traces/vm-trace-decoder";
 import { setCWD } from "../helpers/cwd";
 
-import { compile, getSolidityVersion } from "./compilation";
+import { compile, CompilerOptions } from "./compilation";
 import {
   encodeCall,
   encodeConstructorParams,
@@ -101,7 +101,42 @@ interface DeployedContract {
   address: Buffer;
 }
 
-function defineDirTests(dirPath: string) {
+function defineTest(
+  dirPath: string,
+  testDefinition: TestDefinition,
+  sources: string[],
+  compilerOptions: CompilerOptions,
+  runs?: number
+) {
+  const desc: string =
+    testDefinition.description !== undefined
+      ? testDefinition.description
+      : path.relative(__dirname, dirPath);
+
+  const solcVersionDoesntMatch: boolean =
+    testDefinition.solc !== undefined &&
+    !semver.satisfies(compilerOptions.solidityVersion, testDefinition.solc);
+
+  const func = async function () {
+    await runTest(dirPath, testDefinition, sources, {
+      ...compilerOptions,
+      runs,
+    });
+  };
+
+  if (
+    (testDefinition.skip !== undefined && testDefinition.skip) ||
+    solcVersionDoesntMatch
+  ) {
+    it.skip(desc, func);
+  } else if (testDefinition.only !== undefined && testDefinition.only) {
+    it.only(desc, func);
+  } else {
+    it(desc, func);
+  }
+}
+
+function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
   describe(path.basename(dirPath), function () {
     const files = fs.readdirSync(dirPath).map((f) => path.join(dirPath, f));
 
@@ -121,66 +156,36 @@ function defineDirTests(dirPath: string) {
         }
       }
 
-      const desc =
-        testDefinition.description !== undefined
-          ? testDefinition.description
-          : "Should give the right stack trace";
-
-      const func = async function () {
-        await runTest(dirPath, testDefinition, sources);
-      };
-
-      const funcWithOptimizations = async function () {
-        await runTest(dirPath, testDefinition, sources, true);
-      };
-
-      const solcVersionDoesntMatch =
-        testDefinition.solc !== undefined &&
-        !semver.satisfies(getSolidityVersion(), testDefinition.solc);
-
       describe("Without optimizations", function () {
-        if (
-          (testDefinition.skip !== undefined && testDefinition.skip) ||
-          solcVersionDoesntMatch
-        ) {
-          it.skip(desc, func);
-        } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, func);
-        } else {
-          it(desc, func);
-        }
+        defineTest(dirPath, testDefinition, sources, compilerOptions);
       });
 
-      describe("With optimizations", function () {
-        if (
-          (testDefinition.skip !== undefined && testDefinition.skip) ||
-          solcVersionDoesntMatch
-        ) {
-          it.skip(desc, funcWithOptimizations);
-        } else if (testDefinition.only !== undefined && testDefinition.only) {
-          it.only(desc, funcWithOptimizations);
-        } else {
-          it(desc, funcWithOptimizations);
+      if (process.env.BUIDLER_EVM_TESTS_WITH_OPTIMIZATIONS !== undefined) {
+        const runsNumbers = [1, 200, 10000];
+
+        for (const runs of runsNumbers) {
+          describe(`With optimizations (${runs} run)`, function () {
+            defineTest(dirPath, testDefinition, sources, compilerOptions, runs);
+          });
         }
-      });
+      }
     }
 
     for (const dir of dirs) {
-      defineDirTests(dir);
+      defineDirTests(dir, compilerOptions);
     }
   });
 }
 
-function compileIfNecessary(
+async function compileIfNecessary(
   testDir: string,
   sources: string[],
-  withOptimizations = false
-): [CompilerInput, CompilerOutput] {
+  compilerOptions: CompilerOptions
+): Promise<[CompilerInput, CompilerOutput]> {
+  const { solidityVersion, runs } = compilerOptions;
   const maxSourceCtime = sources
     .map((s) => fs.statSync(s).ctimeMs)
     .reduce((t1, t2) => Math.max(t1, t2), 0);
-
-  const optimized = withOptimizations ? "optimized" : "non-optimized";
 
   const artifacts = path.join(testDir, "artifacts");
 
@@ -188,14 +193,17 @@ function compileIfNecessary(
     fs.mkdirSync(artifacts);
   }
 
+  const optimizerModifier =
+    runs !== undefined ? `optimized-with-runs-${runs}` : "unoptimized";
+
   const inputPath = path.join(
     artifacts,
-    `compiler-input-solc-${getSolidityVersion()}-${optimized}.json`
+    `compiler-input-solc-${solidityVersion}-${optimizerModifier}.json`
   );
 
   const outputPath = path.join(
     artifacts,
-    `compiler-output-solc-${getSolidityVersion()}-${optimized}.json`
+    `compiler-output-solc-${solidityVersion}-${optimizerModifier}.json`
   );
 
   const isCached =
@@ -211,7 +219,10 @@ function compileIfNecessary(
     return [JSON.parse(inputJson), JSON.parse(outputJson)];
   }
 
-  const [compilerInput, compilerOutput] = compile(sources, withOptimizations);
+  const [compilerInput, compilerOutput] = await compile(
+    sources,
+    compilerOptions
+  );
 
   fs.writeFileSync(inputPath, JSON.stringify(compilerInput, undefined, 2));
   fs.writeFileSync(outputPath, JSON.stringify(compilerOutput, undefined, 2));
@@ -223,10 +234,8 @@ function compareStackTraces(
   txIndex: number,
   trace: SolidityStackTraceEntry[],
   description: StackFrameDescription[],
-  withOptimizations: boolean
+  runs: number | undefined
 ) {
-  assert.lengthOf(trace, description.length);
-
   for (let i = 0; i < trace.length; i++) {
     const actual = trace[i];
     const expected = description[i];
@@ -303,7 +312,7 @@ function compareStackTraces(
         `Stack trace of tx ${txIndex} entry ${i} have different function names`
       );
 
-      if (!withOptimizations) {
+      if (runs === undefined) {
         assert.equal(
           actual.sourceReference!.line,
           expected.sourceReference.line,
@@ -312,6 +321,9 @@ function compareStackTraces(
       }
     }
   }
+
+  // We do it here so that the first few do get compared
+  assert.lengthOf(trace, description.length);
 }
 
 function compareConsoleLogs(logs: ConsoleLogs[], expectedLogs?: ConsoleLogs[]) {
@@ -337,16 +349,16 @@ async function runTest(
   testDir: string,
   testDefinition: TestDefinition,
   sources: string[],
-  withOptimizations = false
+  compilerOptions: CompilerOptions
 ) {
-  const [compilerInput, compilerOutput] = compileIfNecessary(
+  const [compilerInput, compilerOutput] = await compileIfNecessary(
     testDir,
     sources,
-    withOptimizations
+    compilerOptions
   );
 
   const bytecodes = createModelsAndDecodeBytecodes(
-    getSolidityVersion(),
+    compilerOptions.solidityVersion,
     compilerInput,
     compilerOutput
   );
@@ -362,7 +374,7 @@ async function runTest(
   }
 
   const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-  const tracer = new SolidityTracer();
+  const tracer = new SolidityTracer(bytecodes);
   const logger = new ConsoleLogger();
 
   const vm = await instantiateVm();
@@ -441,7 +453,7 @@ async function runTest(
           txIndex,
           stackTrace,
           tx.stackTrace!,
-          withOptimizations
+          compilerOptions.runs
         );
         if (testDefinition.print !== undefined && testDefinition.print) {
           console.log(`Transaction ${txIndex} stack trace`);
@@ -585,7 +597,86 @@ async function runCallTransactionTest(
   return trace as CallMessageTrace;
 }
 
+const solidity05Compilers: CompilerOptions[] = [
+  {
+    solidityVersion: "0.5.1",
+    compilerPath: "soljson-v0.5.1+commit.c8a2cb62.js",
+  },
+  {
+    solidityVersion: "0.5.17",
+    compilerPath: "soljson-v0.5.17+commit.d19bba13.js",
+  },
+];
+
+const solidity06Compilers: CompilerOptions[] = [
+  {
+    solidityVersion: "0.6.0",
+    compilerPath: "soljson-v0.6.0+commit.26b70077.js",
+  },
+  // {
+  //   solidityVersion: "0.6.1",
+  //   compilerPath: "soljson-v0.6.1+commit.e6f7d5a4.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.2",
+  //   compilerPath: "soljson-v0.6.2+commit.bacdbe57.js",
+  // },
+  {
+    solidityVersion: "0.6.3",
+    compilerPath: "soljson-v0.6.3+commit.8dda9521.js",
+  },
+  // {
+  //   solidityVersion: "0.6.4",
+  //   compilerPath: "soljson-v0.6.4+commit.1dca32f3.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.5",
+  //   compilerPath: "soljson-v0.6.5+commit.f956cc89.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.6",
+  //   compilerPath: "soljson-v0.6.6+commit.6c089d02.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.7",
+  //   compilerPath: "soljson-v0.6.7+commit.b8d736ae.js",
+  // },
+  {
+    solidityVersion: "0.6.8",
+    compilerPath: "soljson-v0.6.8+commit.0bbfe453.js",
+  },
+];
+
 describe("Stack traces", function () {
   setCWD();
-  defineDirTests(path.join(__dirname, "test-files"));
+
+  // solidity v0.5
+  for (const compilerOptions of solidity05Compilers) {
+    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
+      defineDirTests(
+        path.join(__dirname, "test-files", "0_5"),
+        compilerOptions
+      );
+
+      defineDirTests(
+        path.join(__dirname, "test-files", "version-independent"),
+        compilerOptions
+      );
+    });
+  }
+
+  // solidity v0.6
+  for (const compilerOptions of solidity06Compilers) {
+    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
+      defineDirTests(
+        path.join(__dirname, "test-files", "0_6"),
+        compilerOptions
+      );
+
+      defineDirTests(
+        path.join(__dirname, "test-files", "version-independent"),
+        compilerOptions
+      );
+    });
+  }
 });

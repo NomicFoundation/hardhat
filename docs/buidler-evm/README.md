@@ -71,7 +71,7 @@ error message in the following cases:
 
 - Calling a non-payable function with ETH
 
-- Sending ETH to a contract without a payable fallback function
+- Sending ETH to a contract without a payable fallback or receive function 
 
 - Calling a non-existent function when there's no fallback function
 
@@ -87,6 +87,8 @@ error message in the following cases:
 
 - Incorrectly calling a precompiled contract
 
+- Trying to deploy a contract that exceeds the bytecode size limit imposed by [EIP-170](https://eips.ethereum.org/EIPS/eip-170)
+
 ## `console.log`
 
 Buidler EVM allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/#quick-start) to try it out.
@@ -94,7 +96,6 @@ Buidler EVM allows you to print logging messages and contract variables calling 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
 - To use it you need to import `@nomiclabs/buidler/console.sol`.
-- It works with Solidity 0.5.x and 0.6.x.
 - You can call `console.log` with up to 4 parameters in any order of following types:
   - `uint`
   - `string`

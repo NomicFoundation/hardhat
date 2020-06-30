@@ -5,7 +5,10 @@
     "rootDirs": ["."],
     "composite": true
   },
-  "include": ["./**/*.ts"],
+  "include": [
+    "./**/*.ts",
+    "../node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts"
+  ],
   "exclude": [],
   "references": [
     {

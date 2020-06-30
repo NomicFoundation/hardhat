@@ -11,7 +11,9 @@ export enum StackTraceEntryType {
   FUNCTION_NOT_PAYABLE_ERROR,
   INVALID_PARAMS_ERROR,
   FALLBACK_NOT_PAYABLE_ERROR,
+  FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR,
   UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR, // TODO: Should trying to call a private/internal be a special case of this?
+  MISSING_FALLBACK_OR_RECEIVE_ERROR,
   RETURNDATA_SIZE_ERROR,
   NONCONTRACT_ACCOUNT_CALLED_ERROR,
   CALL_FAILED_ERROR,
@@ -19,9 +21,14 @@ export enum StackTraceEntryType {
   UNRECOGNIZED_CREATE_ERROR,
   UNRECOGNIZED_CONTRACT_ERROR,
   OTHER_EXECUTION_ERROR,
+  // This is a special case to handle a regression introduced in solc 0.6.3
+  // For more info: https://github.com/ethereum/solidity/issues/9006
+  UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+  CONTRACT_TOO_LARGE_ERROR,
 }
 
 export const FALLBACK_FUNCTION_NAME = "<fallback>";
+export const RECEIVE_FUNCTION_NAME = "<receive>";
 export const CONSTRUCTOR_FUNCTION_NAME = "constructor";
 export const UNRECOGNIZED_FUNCTION_NAME = "<unrecognized-selector>";
 export const UNKNOWN_FUNCTION_NAME = "<unknown>";
@@ -62,6 +69,12 @@ export interface RevertErrorStackTraceEntry {
   type: StackTraceEntryType.REVERT_ERROR;
   message: Buffer;
   sourceReference: SourceReference;
+  isInvalidOpcodeError: boolean;
+}
+
+export interface UnmappedSolc063RevertErrorStackTraceEntry {
+  type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR;
+  sourceReference: SourceReference;
 }
 
 export interface FunctionNotPayableErrorStackTraceEntry {
@@ -81,8 +94,19 @@ export interface FallbackNotPayableErrorStackTraceEntry {
   sourceReference: SourceReference;
 }
 
+export interface FallbackNotPayableAndNoReceiveErrorStackTraceEntry {
+  type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR;
+  value: BN;
+  sourceReference: SourceReference;
+}
+
 export interface UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR;
+  sourceReference: SourceReference;
+}
+
+export interface MissingFallbackOrReceiveErrorStackTraceEntry {
+  type: StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR;
   sourceReference: SourceReference;
 }
 
@@ -124,6 +148,11 @@ export interface OtherExecutionErrorStackTraceEntry {
   sourceReference?: SourceReference;
 }
 
+export interface ContractTooLargeErrorStackTraceEntry {
+  type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR;
+  sourceReference: SourceReference;
+}
+
 export type SolidityStackTraceEntry =
   | CallstackEntryStackTraceEntry
   | UnrecognizedCreateCallstackEntryStackTraceEntry
@@ -133,13 +162,17 @@ export type SolidityStackTraceEntry =
   | FunctionNotPayableErrorStackTraceEntry
   | InvalidParamsErrorStackTraceEntry
   | FallbackNotPayableErrorStackTraceEntry
+  | FallbackNotPayableAndNoReceiveErrorStackTraceEntry
   | UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry
+  | MissingFallbackOrReceiveErrorStackTraceEntry
   | ReturndataSizeErrorStackTraceEntry
   | NonContractAccountCalledErrorStackTraceEntry
   | CallFailedErrorStackTraceEntry
   | DirectLibraryCallErrorStackTraceEntry
   | UnrecognizedCreateErrorStackTraceEntry
   | UnrecognizedContractErrorStackTraceEntry
-  | OtherExecutionErrorStackTraceEntry;
+  | OtherExecutionErrorStackTraceEntry
+  | UnmappedSolc063RevertErrorStackTraceEntry
+  | ContractTooLargeErrorStackTraceEntry;
 
 export type SolidityStackTrace = SolidityStackTraceEntry[];

@@ -1,5 +1,11 @@
 import { Instruction, JumpType, SourceFile, SourceLocation } from "./model";
-import { getOpcodeLength, getPushLength, isJump, isPush } from "./opcodes";
+import {
+  getOpcodeLength,
+  getPushLength,
+  isJump,
+  isPush,
+  Opcode,
+} from "./opcodes";
 
 export interface SourceMapLocation {
   offset: number;
@@ -31,35 +37,76 @@ function uncompressSourcemaps(compressedSourcemap: string): SourceMap[] {
   for (let i = 0; i < compressedMappings.length; i++) {
     const parts = compressedMappings[i].split(":");
 
+    const hasParts0 = parts[0] !== undefined && parts[0] !== "";
+    const hasParts1 = parts[1] !== undefined && parts[1] !== "";
+    const hasParts2 = parts[2] !== undefined && parts[2] !== "";
+    const hasParts3 = parts[2] !== undefined && parts[3] !== "";
+
+    const hasEveryPart = hasParts0 && hasParts1 && hasParts2 && hasParts3;
+
+    // See: https://github.com/nomiclabs/buidler/issues/593
+    if (i === 0 && !hasEveryPart) {
+      mappings.push({
+        jumpType: JumpType.NOT_JUMP,
+        location: {
+          file: -1,
+          offset: 0,
+          length: 0,
+        },
+      });
+
+      continue;
+    }
+
     mappings.push({
       location: {
-        offset:
-          parts[0] !== undefined && parts[0] !== ""
-            ? +parts[0]
-            : mappings[i - 1].location.offset,
-        length:
-          parts[1] !== undefined && parts[1] !== ""
-            ? +parts[1]
-            : mappings[i - 1].location.length,
-        file:
-          parts[2] !== undefined && parts[2] !== ""
-            ? +parts[2]
-            : mappings[i - 1].location.file,
+        offset: hasParts0 ? +parts[0] : mappings[i - 1].location.offset,
+        length: hasParts1 ? +parts[1] : mappings[i - 1].location.length,
+        file: hasParts2 ? +parts[2] : mappings[i - 1].location.file,
       },
-      jumpType:
-        parts[3] !== undefined && parts[3] !== ""
-          ? jumpLetterToJumpType(parts[3])
-          : mappings[i - 1].jumpType,
+      jumpType: hasParts3
+        ? jumpLetterToJumpType(parts[3])
+        : mappings[i - 1].jumpType,
     });
   }
 
   return mappings;
 }
 
+function addUnmappedInstructions(
+  instructions: Instruction[],
+  bytecode: Buffer,
+  bytesIndex: number
+) {
+  const lastInstrPc = instructions[instructions.length - 1].pc;
+  let nextPc = lastInstrPc + 1;
+
+  while (bytecode[nextPc] !== Opcode.INVALID) {
+    const opcode = bytecode[nextPc];
+    let pushData: Buffer | undefined;
+
+    let pushDataLenth = 0;
+    if (isPush(opcode)) {
+      pushDataLenth = getPushLength(opcode);
+      pushData = bytecode.slice(bytesIndex + 1, bytesIndex + 1 + pushDataLenth);
+    }
+
+    const jumpType = isJump(opcode)
+      ? JumpType.INTERNAL_JUMP
+      : JumpType.NOT_JUMP;
+
+    const instruction = new Instruction(nextPc, opcode, jumpType, pushData);
+    instructions.push(instruction);
+
+    nextPc += 1 + pushDataLenth;
+  }
+}
+
 export function decodeInstructions(
   bytecode: Buffer,
   compressedSourcemaps: string,
-  fileIdToSourceFile: Map<number, SourceFile>
+  fileIdToSourceFile: Map<number, SourceFile>,
+  isDeployment: boolean
 ): Instruction[] {
   const sourceMaps = uncompressSourcemaps(compressedSourcemaps);
 
@@ -108,6 +155,11 @@ export function decodeInstructions(
     instructions.push(instruction);
 
     bytesIndex += getOpcodeLength(opcode);
+  }
+
+  // See: https://github.com/ethereum/solidity/issues/9133
+  if (isDeployment) {
+    addUnmappedInstructions(instructions, bytecode, bytesIndex);
   }
 
   return instructions;

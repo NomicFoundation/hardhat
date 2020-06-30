@@ -31,7 +31,7 @@ You can customize which network is used by default when running Buidler by setti
 
 ### Buidler EVM network
 
-Buidler comes built-in with a especial network called `buidlerevm`. When using this network,
+Buidler comes built-in with a special network called `buidlerevm`. When using this network,
 an instance of [Buidler EVM](../buidler-evm) will be automatically created when your run a task, script or test your smart contracts
 
 Buidler EVM has first-class support of Solidity. It always knows which

@@ -1,6 +1,5 @@
 import "@nomiclabs/buidler/types";
-import ethers from "ethers";
-import { JsonRpcProvider } from "ethers/providers";
+import * as ethers from "ethers";
 
 declare module "@nomiclabs/buidler/types" {
   function getContractFactory(
@@ -9,13 +8,13 @@ declare module "@nomiclabs/buidler/types" {
   ): Promise<ethers.ContractFactory>;
   function getContractFactory(
     abi: any[],
-    bytecode: ethers.utils.Arrayish | string,
+    bytecode: ethers.utils.BytesLike | string,
     signer?: ethers.Signer
   ): Promise<ethers.ContractFactory>;
 
   interface BuidlerRuntimeEnvironment {
     ethers: {
-      provider: JsonRpcProvider;
+      provider: ethers.providers.JsonRpcProvider;
 
       getContractFactory: typeof getContractFactory;
       getContractAt: (
@@ -25,24 +24,23 @@ declare module "@nomiclabs/buidler/types" {
       ) => Promise<ethers.Contract>;
       getSigners: () => Promise<ethers.Signer[]>;
 
-      // Deprecated
-      getContract: (name: string) => Promise<ethers.ContractFactory>;
-      signers: () => Promise<ethers.Signer[]>;
-
       // Standard ethers properties
-      Contract: typeof ethers.Contract;
-      ContractFactory: typeof ethers.ContractFactory;
-      VoidSigner: typeof ethers.VoidSigner;
       Signer: typeof ethers.Signer;
       Wallet: typeof ethers.Wallet;
+      VoidSigner: typeof ethers.VoidSigner;
+      getDefaultProvider: typeof ethers.getDefaultProvider;
+      providers: typeof ethers.providers;
+      Contract: typeof ethers.Contract;
+      ContractFactory: typeof ethers.ContractFactory;
+      BigNumber: typeof ethers.BigNumber;
+      FixedNumber: typeof ethers.FixedNumber;
       constants: typeof ethers.constants;
       errors: typeof ethers.errors;
-      providers: typeof ethers.providers;
+      logger: typeof ethers.logger;
       utils: typeof ethers.utils;
       wordlists: typeof ethers.wordlists;
-      platform: typeof ethers.platform;
       version: typeof ethers.version;
-      getDefaultProvider: typeof ethers.getDefaultProvider;
+      Wordlist: typeof ethers.Wordlist;
     };
   }
 }
