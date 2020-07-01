@@ -991,7 +991,17 @@ export class BuidlerNode extends EventEmitter {
         compilerOutput
       );
     } catch (error) {
-      log("Compilation result could not be added.\n", error);
+      console.warn(
+        chalk.yellow(
+          "The Buidler EVM tracing engine could not be updated. Run Buidler with --verbose to learn more."
+        )
+      );
+
+      log(
+        "ContractsIdentifier failed to be updated. Please report this to help us improve Buidler.\n",
+        error
+      );
+
       return false;
     }
 
