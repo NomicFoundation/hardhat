@@ -28,9 +28,6 @@ import { TASK_NODE, TASK_NODE_WATCH_COMPILER_OUTPUT } from "./task-names";
 
 const log = debug("buidler:core:tasks:node");
 
-const sleep = (timeout: number) =>
-  new Promise((resolve) => setTimeout(resolve, timeout));
-
 function _createBuidlerEVMProvider(
   config: ResolvedBuidlerConfig
 ): EthereumProvider {
