@@ -22,6 +22,7 @@ import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
+import { Reporter } from "./sentry/reporter";
 
 const log = debug("buidler:core:cli");
 
@@ -44,6 +45,7 @@ async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--show-stack-traces");
+  let verbose = false;
 
   try {
     const packageJson = await getPackageJson();
@@ -68,6 +70,7 @@ async function main() {
     );
 
     if (buidlerArguments.verbose) {
+      verbose = true;
       debug.enable("buidler*");
     }
 
@@ -161,6 +164,7 @@ async function main() {
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
+    const reporter = new Reporter(verbose);
     let isBuidlerError = false;
 
     if (BuidlerError.isBuidlerError(error)) {
@@ -180,6 +184,8 @@ async function main() {
     }
 
     console.log("");
+
+    reporter.reportError(error);
 
     if (showStackTraces) {
       console.error(error.stack);
@@ -205,6 +211,7 @@ async function main() {
       }
     }
 
+    await reporter.close(1000);
     process.exit(1);
   }
 }
