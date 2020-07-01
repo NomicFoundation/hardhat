@@ -8,8 +8,9 @@ export const SENTRY_DSN =
 
 export class Reporter {
   private _enabled: boolean;
+  private _initialized = false;
 
-  constructor(private _verbose: boolean) {
+  constructor(private _verbose: boolean, private _configPath: string | undefined) {
     this._enabled = true;
     if (isRunningOnCiServer()) {
       this._enabled = false;
@@ -21,30 +22,46 @@ export class Reporter {
     }
   }
 
-  public reportError(error: Error) {
+  public async reportError(error: Error) {
     if (!this._enabled) {
       return;
     }
 
-    const Sentry = require("@sentry/node");
+    await this._init();
 
-    Sentry.init({
-      dsn: SENTRY_DSN,
-      transport: getSubprocessTransport(this._verbose),
-    });
-
+    const Sentry = await import("@sentry/node");
     Sentry.captureException(error);
 
     return true;
   }
 
-  public async close(timeout: number): Promise<void> {
-    if (!this._enabled) {
+  public async close(timeout: number): Promise<boolean> {
+    if (!this._enabled || !this._initialized) {
+      return true;
+    }
+
+    const Sentry = await import("@sentry/node");
+    return Sentry.close(timeout);
+  }
+
+  private async _init() {
+    if (this._initialized) {
       return;
     }
 
-    const Sentry = require("@sentry/node");
-    return Sentry.close(timeout);
+    const Sentry = await import("@sentry/node");
+
+    const linkedErrorsIntegration = new Sentry.Integrations.LinkedErrors({
+      key: "parent",
+    });
+
+    Sentry.init({
+      dsn: SENTRY_DSN,
+      transport: getSubprocessTransport(this._verbose, this._configPath),
+      integrations: () => [linkedErrorsIntegration],
+    });
+
+    this._initialized = true;
   }
 }
 

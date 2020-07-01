@@ -46,6 +46,7 @@ async function main() {
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--show-stack-traces");
   let verbose = false;
+  let configPath: string | undefined;
 
   try {
     const packageJson = await getPackageJson();
@@ -99,6 +100,8 @@ async function main() {
 
     const ctx = BuidlerContext.createBuidlerContext();
     const config = loadConfigAndTasks(buidlerArguments);
+
+    configPath = config.paths.configFile;
 
     const analytics = await Analytics.getInstance(
       config.paths.root,
@@ -164,7 +167,7 @@ async function main() {
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
-    const reporter = new Reporter(verbose);
+    const reporter = new Reporter(verbose, configPath);
     let isBuidlerError = false;
 
     if (BuidlerError.isBuidlerError(error)) {
@@ -185,7 +188,7 @@ async function main() {
 
     console.log("");
 
-    reporter.reportError(error);
+    await reporter.reportError(error);
 
     if (showStackTraces) {
       console.error(error.stack);
