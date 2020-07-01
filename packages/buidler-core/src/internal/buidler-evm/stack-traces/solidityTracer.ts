@@ -1453,8 +1453,6 @@ export class SolidityTracer {
   private _solidity063CorrectLineNumber(
     revertFrame: UnmappedSolc063RevertErrorStackTraceEntry
   ) {
-    // TODO: Change this when we add support for multiple compilations. This
-    //  info should be present in the source reference
     const file = revertFrame.sourceReference.file;
 
     const lines = file.content.split("\n");
