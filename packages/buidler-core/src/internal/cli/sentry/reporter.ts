@@ -1,4 +1,4 @@
-import { ExecutionMode, getExecutionMode } from "../../core/execution-mode";
+import { isLocalDev } from "../../core/execution-mode";
 import { isRunningOnCiServer } from "../../util/ci-detection";
 
 import { getSubprocessTransport } from "./transport";
@@ -10,7 +10,10 @@ export class Reporter {
   private _enabled: boolean;
   private _initialized = false;
 
-  constructor(private _verbose: boolean, private _configPath: string | undefined) {
+  constructor(
+    private _verbose: boolean,
+    private _configPath: string | undefined
+  ) {
     this._enabled = true;
     if (isRunningOnCiServer()) {
       this._enabled = false;
@@ -63,13 +66,4 @@ export class Reporter {
 
     this._initialized = true;
   }
-}
-
-function isLocalDev(): boolean {
-  const executionMode = getExecutionMode();
-
-  return (
-    executionMode === ExecutionMode.EXECUTION_MODE_LINKED ||
-    executionMode === ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS
-  );
 }
