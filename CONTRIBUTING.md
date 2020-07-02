@@ -123,7 +123,7 @@ Now any change you make in the code will be reflected in that project.
 
 ### Yalc
 
-If for any reason linking doesn't work for you, you can use [`yalk`](https://github.com/whitecolor/yalc).
+If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc).
 
 1. Go to `packages/buidler-core` and run `yalc publish`
 2. Go to some buidler project and run `yalc add @nomiclabs/buidler`
