@@ -105,6 +105,46 @@ This is a list of the modules that always get loaded during startup:
 - `deepmerge`
 - `source-map-support/register`
 
+## Developing locally
+
+All these tips assume you are running `npm run watch` from the root directory.
+
+### Linking
+
+You can [link](https://docs.npmjs.com/cli/link) any package to test it locally. For example, if you are working on
+`buidler-core`, you can follow these steps:
+
+1. Go to `packages/buidler-core` and run `npm link`
+2. Go to some buidler project and run `npm link @nomiclabs/buidler`
+
+Alternatively, you can go to your buidler project and run `npm link /path/to/buidler/packages/buidler-core`.
+
+Now any change you make in the code will be reflected in that project.
+
+### Yalc
+
+If for any reason linking doesn't work for you, you can use [`yalk`](https://github.com/whitecolor/yalc).
+
+1. Go to `packages/buidler-core` and run `yalc publish`
+2. Go to some buidler project and run `yalc add @nomiclabs/buidler`
+
+Unlike linking, if you make a change in the code, you'll need to repeat the process.
+
+### npm pack
+
+An even more realistic way of using your local changes in a project is to use [`npm pack`](https://docs.npmjs.com/cli-commands/pack.html):
+
+1. Go to `packages/buidler-core` and run `npm pack`. This will create a `nomiclabs-buidler-x.y.z.tgz` file in that directory.
+2. Go to some buidler project and run `npm install /path/to/buidler/packages/buidler-core/nomiclabs-buidler-x.y.z.tgz`.
+
+Unlike linking, if you make a change in the code, you'll need to repeat the process.
+
+### ndb
+
+If you want to debug something, you can use [`ndb`](https://github.com/GoogleChromeLabs/ndb). First add a `debugger`
+statement wherever you want. Then link your project. Finally, run buidler as normally but prepend the command with
+`ndb`. For example, you can do `ndb npx buidler compile` to debug some part of the compile task.
+
 ## Common errors
 
 ### Monkey-patching dependencies multiple times
