@@ -24,7 +24,6 @@ export const TASK_HELP = "help";
 export const TASK_RUN = "run";
 
 export const TASK_NODE = "node";
-export const TASK_NODE_WATCH_COMPILER_OUTPUT = "node:watch-compiler-output";
 
 export const TASK_TEST = "test";
 

@@ -1,19 +1,13 @@
 import chalk from "chalk";
 import debug from "debug";
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
-import fsExtra from "fs-extra";
-import * as path from "path";
 
 import {
   JsonRpcServer,
   JsonRpcServerConfig,
 } from "../internal/buidler-evm/jsonrpc/server";
-import {
-  BUIDLEREVM_NETWORK_NAME,
-  SOLC_INPUT_FILENAME,
-  SOLC_OUTPUT_FILENAME,
-} from "../internal/constants";
-import { internalTask, task, types } from "../internal/core/config/config-env";
+import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
+import { task, types } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
@@ -24,7 +18,8 @@ import {
   ResolvedBuidlerConfig,
 } from "../types";
 
-import { TASK_NODE, TASK_NODE_WATCH_COMPILER_OUTPUT } from "./task-names";
+import { TASK_NODE } from "./task-names";
+import { watchCompilerOutput } from "./utils/watch";
 
 const log = debug("buidler:core:tasks:node");
 
@@ -69,66 +64,6 @@ Private Key: ${privateKey}
 }
 
 export default function () {
-  internalTask(TASK_NODE_WATCH_COMPILER_OUTPUT)
-    .addParam("url", "The URL of the node", undefined, types.string)
-    .setAction(async ({ url }: { url: string }, { config }) => {
-      const { default: fetch } = await import("node-fetch");
-      const chokidar = await import("chokidar");
-
-      const compilerVersion = config.solc.version;
-      const solcInputPath = path.join(config.paths.cache, SOLC_INPUT_FILENAME);
-      const solcOutputPath = path.join(
-        config.paths.cache,
-        SOLC_OUTPUT_FILENAME
-      );
-
-      const addCompilationResult = async () => {
-        if (
-          !(await fsExtra.pathExists(
-            path.join(config.paths.cache, SOLC_INPUT_FILENAME)
-          ))
-        ) {
-          return false;
-        }
-
-        if (
-          !(await fsExtra.pathExists(
-            path.join(config.paths.cache, SOLC_OUTPUT_FILENAME)
-          ))
-        ) {
-          return false;
-        }
-
-        const compilerInput = await fsExtra.readJSON(solcInputPath, {
-          encoding: "utf8",
-        });
-        const compilerOutput = await fsExtra.readJSON(solcOutputPath, {
-          encoding: "utf8",
-        });
-
-        await fetch(url, {
-          method: "POST",
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            method: "buidler_addCompilationResult",
-            params: [compilerVersion, compilerInput, compilerOutput],
-            id: 1,
-          }),
-        });
-      };
-
-      chokidar
-        .watch(solcOutputPath, {
-          ignoreInitial: true,
-          awaitWriteFinish: {
-            stabilityThreshold: 250,
-            pollInterval: 50,
-          },
-        })
-        .on("add", addCompilationResult)
-        .on("change", addCompilationResult);
-    });
-
   task(TASK_NODE, "Starts a JSON-RPC server on top of Buidler EVM")
     .addOptionalParam(
       "hostname",
@@ -143,10 +78,7 @@ export default function () {
       types.int
     )
     .setAction(
-      async (
-        { hostname, port },
-        { network, buidlerArguments, config, run }
-      ) => {
+      async ({ hostname, port }, { network, buidlerArguments, config }) => {
         if (
           network.name !== BUIDLEREVM_NETWORK_NAME &&
           // We normally set the default network as buidlerArguments.network,
@@ -181,9 +113,11 @@ export default function () {
           console.log();
 
           try {
-            await run(TASK_NODE_WATCH_COMPILER_OUTPUT, {
-              url: `http://${address}:${actualPort}/`,
-            });
+            await watchCompilerOutput(
+              server.getProvider(),
+              config.solc,
+              config.paths
+            );
           } catch (error) {
             console.warn(
               chalk.yellow(
