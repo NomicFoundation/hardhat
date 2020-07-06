@@ -182,7 +182,7 @@ async function main() {
     console.log("");
 
     if (showStackTraces) {
-      console.error(error.stack);
+      console.error(error);
     } else {
       if (!isBuidlerError) {
         console.error(
