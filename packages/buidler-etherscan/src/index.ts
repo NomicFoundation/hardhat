@@ -15,36 +15,41 @@ import {
 import { toRequest } from "./etherscan/EtherscanVerifyContractRequest";
 import { getLongVersion } from "./solc/SolcVersions";
 import { EtherscanConfig } from "./types";
+import { Deployments } from "./types";
+
 
 task("verify-contract", "Verifies contract on etherscan")
   .addParam("contractName", "Name of the deployed contract")
-  .addParam("address", "Deployed address of smart contract")
+  .addOptionalParam("deployments", "File path for smart contracts deployments")
   .addOptionalParam(
     "libraries",
     'Stringified JSON object in format of {library1: "0x2956356cd2a2bf3202f771f50d3d14a367b48071"}'
-  )
-  .addOptionalVariadicPositionalParam(
-    "constructorArguments",
-    "arguments for contract constructor",
-    []
   )
   .setAction(
     async (
       taskArgs: {
         contractName: string;
-        address: string;
+        deployments: string;
         libraries: string;
         source: string;
-        constructorArguments: string[];
       },
       { config, run }
     ) => {
       const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
-
+      let deployments: Deployments = {
+        address: "",
+        args: []
+      };
       if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
         throw new BuidlerPluginError(
           "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
         );
+      }
+
+      if (taskArgs.deployments) {
+        deployments = JSON.parse(taskArgs.deployments);
+      } else {
+        throw new Error("Please provide deployments location")
       }
 
       const index: number = taskArgs.contractName.indexOf(":");
@@ -67,7 +72,7 @@ task("verify-contract", "Verifies contract on etherscan")
 
       const request = toRequest({
         apiKey: etherscan.apiKey,
-        contractAddress: taskArgs.address,
+        contractAddress: deployments.address,
         sourceCode: source,
         contractName: `${etherscanContractName}`,
         compilerVersion: config.solc.fullVersion,
@@ -75,7 +80,7 @@ task("verify-contract", "Verifies contract on etherscan")
         // runs: config.solc.optimizer.runs,
         constructorArguments: AbiEncoder.encodeConstructor(
           abi,
-          taskArgs.constructorArguments
+          deployments.args
         ),
         libraries: taskArgs.libraries,
       });
@@ -83,7 +88,7 @@ task("verify-contract", "Verifies contract on etherscan")
       const response = await verifyContract(etherscan.url, request);
 
       console.log(
-        `Successfully submitted contract at ${taskArgs.address} for verification on etherscan. Waiting for verification result...`
+        `Successfully submitted contract at ${deployments.address} for verification on etherscan. Waiting for verification result...`
       );
 
       await getVerificationStatus(etherscan.url, response.message);
