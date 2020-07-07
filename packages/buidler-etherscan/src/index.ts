@@ -15,13 +15,13 @@ import {
 import {toRequest} from "./etherscan/EtherscanVerifyContractRequest";
 import {getLongVersion} from "./solc/SolcVersions";
 import {EtherscanConfig} from "./types";
-import {DeploymentsDir} from "./types";
+import {ContractDeploymentManifest} from "./types";
 import path from "path";
 
 
 task("verify-contract", "Verifies contract on etherscan")
   .addParam("contractName", "Name of the deployed contract")
-  .addParam("address", "Deployed address of smart contract")
+  .addOptionalParam("address", "Deployed address of smart contract")
   .addOptionalParam("deploymentsDir", "Path to directory with deployment files")
   .addOptionalParam(
     "libraries",
