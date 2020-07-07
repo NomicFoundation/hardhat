@@ -35,9 +35,9 @@ export function getSubprocessTransport(): any {
 
       subprocess.unref();
 
-      return Promise.resolve({
+      return {
         status: Status.Success,
-      });
+      };
     }
   }
 
