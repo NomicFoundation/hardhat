@@ -3,7 +3,7 @@ export interface EtherscanConfig {
   apiKey: string;
 }
 
-export interface DeploymentsDir {
+export interface ContractDeploymentManifest {
   address: string;
   args: string[];
 }
