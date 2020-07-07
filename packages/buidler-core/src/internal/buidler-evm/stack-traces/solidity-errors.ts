@@ -181,7 +181,7 @@ function sourceReferenceToSolidityCallsite(
   sourceReference: SourceReference
 ): SolidityCallSite {
   return new SolidityCallSite(
-    sourceReference.fileGlobalName,
+    sourceReference.file.globalName,
     sourceReference.contract,
     sourceReference.function !== undefined
       ? sourceReference.function

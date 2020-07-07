@@ -258,8 +258,8 @@ export class BuidlerNode extends EventEmitter {
   private readonly _snapshots: Snapshot[] = [];
 
   private readonly _vmTracer: VMTracer;
-  private readonly _vmTraceDecoder?: VmTraceDecoder;
-  private readonly _solidityTracer?: SolidityTracer;
+  private readonly _vmTraceDecoder: VmTraceDecoder;
+  private readonly _solidityTracer: SolidityTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
@@ -305,6 +305,10 @@ export class BuidlerNode extends EventEmitter {
       );
     }
 
+    const contractsIdentifier = new ContractsIdentifier();
+    this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+    this._solidityTracer = new SolidityTracer();
+
     if (
       solidityVersion === undefined ||
       compilerInput === undefined ||
@@ -320,14 +324,9 @@ export class BuidlerNode extends EventEmitter {
         compilerOutput
       );
 
-      const contractsIdentifier = new ContractsIdentifier();
-
       for (const bytecode of bytecodes) {
-        contractsIdentifier.addBytecode(bytecode);
+        this._vmTraceDecoder.addBytecode(bytecode);
       }
-
-      this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-      this._solidityTracer = new SolidityTracer(bytecodes);
     } catch (error) {
       console.warn(
         chalk.yellow(
@@ -406,9 +405,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -511,9 +508,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -590,9 +585,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -985,6 +978,40 @@ export class BuidlerNode extends EventEmitter {
     return logs;
   }
 
+  public async addCompilationResult(
+    compilerVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
+  ): Promise<boolean> {
+    let bytecodes;
+    try {
+      bytecodes = createModelsAndDecodeBytecodes(
+        compilerVersion,
+        compilerInput,
+        compilerOutput
+      );
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "The Buidler EVM tracing engine could not be updated. Run Buidler with --verbose to learn more."
+        )
+      );
+
+      log(
+        "ContractsIdentifier failed to be updated. Please report this to help us improve Buidler.\n",
+        error
+      );
+
+      return false;
+    }
+
+    for (const bytecode of bytecodes) {
+      this._vmTraceDecoder.addBytecode(bytecode);
+    }
+
+    return true;
+  }
+
   private _getSnapshotIndex(id: number): number | undefined {
     for (const [i, snapshot] of this._snapshots.entries()) {
       if (snapshot.id === id) {
@@ -1033,20 +1060,18 @@ export class BuidlerNode extends EventEmitter {
 
     let stackTrace: SolidityStackTrace | undefined;
 
-    if (this._solidityTracer !== undefined) {
-      try {
-        if (vmTracerError !== undefined) {
-          throw vmTracerError;
-        }
-
-        stackTrace = this._solidityTracer.getStackTrace(vmTrace);
-      } catch (error) {
-        this._failedStackTraces += 1;
-        log(
-          "Could not generate stack trace. Please report this to help us improve Buidler.\n",
-          error
-        );
+    try {
+      if (vmTracerError !== undefined) {
+        throw vmTracerError;
       }
+
+      stackTrace = this._solidityTracer.getStackTrace(vmTrace);
+    } catch (error) {
+      this._failedStackTraces += 1;
+      log(
+        "Could not generate stack trace. Please report this to help us improve Buidler.\n",
+        error
+      );
     }
 
     const error = vmResult.exceptionError;

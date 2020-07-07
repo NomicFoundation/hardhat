@@ -195,7 +195,7 @@ async function main() {
     }
 
     if (showStackTraces) {
-      console.error(error.stack);
+      console.error(error);
     } else {
       if (!isBuidlerError) {
         console.error(
