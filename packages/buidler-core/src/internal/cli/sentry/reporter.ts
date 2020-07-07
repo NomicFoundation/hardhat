@@ -1,3 +1,4 @@
+import { BuidlerError } from "../../core/errors";
 import { isLocalDev } from "../../core/execution-mode";
 import { isRunningOnCiServer } from "../../util/ci-detection";
 
@@ -33,6 +34,13 @@ export class Reporter {
 
   public async reportError(error: Error, verbose = false, configPath?: string) {
     if (!this._enabled) {
+      return;
+    }
+
+    if (
+      BuidlerError.isBuidlerError(error) &&
+      !error.errorDescriptor.shouldBeReported
+    ) {
       return;
     }
 

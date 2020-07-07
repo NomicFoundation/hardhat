@@ -18,6 +18,7 @@ const mockErrorDescriptor: ErrorDescriptor = {
   message: "error message",
   title: "Mock error",
   description: "This is a mock error",
+  shouldBeReported: false,
 };
 
 describe("BuilderError", () => {
@@ -57,6 +58,7 @@ describe("BuilderError", () => {
           message: "",
           title: "Title",
           description: "Description",
+          shouldBeReported: false,
         }).message.substr(0, 7),
 
         "BDLR1: "
@@ -75,6 +77,7 @@ describe("BuilderError", () => {
           message: "%a% %b% %c%",
           title: "Title",
           description: "Description",
+          shouldBeReported: false,
         },
         { a: "a", b: "b", c: 123 }
       );
@@ -105,6 +108,7 @@ describe("BuilderError", () => {
           message: "%a% %b% %c%",
           title: "Title",
           description: "Description",
+          shouldBeReported: false,
         },
         { a: "a", b: "b", c: 123 },
         new Error()
