@@ -3,7 +3,7 @@ export interface EtherscanConfig {
   apiKey: string;
 }
 
-export interface Deployments {
+export interface DeploymentsDir {
   address: string;
   args: string[];
 }
