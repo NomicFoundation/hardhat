@@ -67,11 +67,17 @@ async function main() {
   }
 
   log("starting subprocess");
-  Sentry.init({
-    dsn: SENTRY_DSN,
-  });
-  const serializedEvent = process.env.BUIDLER_SENTRY_EVENT;
 
+  try {
+    Sentry.init({
+      dsn: SENTRY_DSN,
+    });
+  } catch (error) {
+    log("Couldn't initialize Sentry: %O", error);
+    process.exit(1);
+  }
+
+  const serializedEvent = process.env.BUIDLER_SENTRY_EVENT;
   if (serializedEvent === undefined) {
     log("BUIDLER_SENTRY_EVENT env variable is not set, exiting");
     process.exit(1);
@@ -81,15 +87,22 @@ async function main() {
   try {
     event = JSON.parse(serializedEvent);
   } catch (error) {
-    log("BUIDLER_SENTRY_EVENT env variable doesn't have a valid JSON, exiting");
+    log(
+      "BUIDLER_SENTRY_EVENT env variable doesn't have a valid JSON, exiting: %o",
+      serializedEvent
+    );
     process.exit(1);
   }
 
-  const configPath = process.env.BUIDLER_SENTRY_CONFIG_PATH;
+  try {
+    const configPath = process.env.BUIDLER_SENTRY_CONFIG_PATH;
+    anonymizePaths(event, configPath);
+    Sentry.captureEvent(event);
+  } catch (error) {
+    log("Couldn't capture event %o, got error %O", event, error);
+    process.exit(1);
+  }
 
-  anonymizePaths(event, configPath);
-
-  Sentry.captureEvent(event);
   log("sentry event was sent");
 }
 
