@@ -1,6 +1,6 @@
 import { BN } from "ethereumjs-util";
 
-import { ContractFunctionType } from "./model";
+import { ContractFunctionType, SourceFile } from "./model";
 
 export enum StackTraceEntryType {
   CALLSTACK_ENTRY,
@@ -36,7 +36,7 @@ export const PRECOMPILE_FUNCTION_NAME = "<precompile>";
 export const UNRECOGNIZED_CONTRACT_NAME = "<UnrecognizedContract>";
 
 export interface SourceReference {
-  fileGlobalName: string;
+  file: SourceFile;
   contract: string;
   function?: string;
   line: number;
