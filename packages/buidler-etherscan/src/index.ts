@@ -45,10 +45,6 @@ task("verify-contract", "Verifies contract on etherscan")
       {config, run}
     ) => {
       const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
-      let deploymentsDir: DeploymentsDir = {
-        address: "",
-        args: []
-      };
       if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
         throw new BuidlerPluginError(
           "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
@@ -56,11 +52,15 @@ task("verify-contract", "Verifies contract on etherscan")
       }
 
       if (taskArgs.deploymentsDir) {
-        deploymentsDir = JSON.parse(path.join(taskArgs.deploymentsDir, taskArgs.contractName + ".json"));
-        taskArgs.address = deploymentsDir.address;
-        taskArgs.constructorArguments = deploymentsDir.args;
+        const contractDeploymentManifest: ContractDeploymentManifest = JSON.parse(path.join(taskArgs.deploymentsDir, taskArgs.contractName + ".json"));
+        taskArgs.address = contractDeploymentManifest.address;
+        taskArgs.constructorArguments = contractDeploymentManifest.args;
       } else {
         throw new Error(`Failed to obtain contract ${taskArgs.contractName} deployments file ${taskArgs.deploymentsDir}`);
+      }
+
+      if (!taskArgs.address) {
+        throw new Error(`Failed to obtain contract ${taskArgs.contractName} address`);
       }
 
       const index: number = taskArgs.contractName.indexOf(":");
