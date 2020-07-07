@@ -41,6 +41,8 @@ function anonymizeFilename(
   return parts.slice(nodeModulesIndex).join(path.sep);
 }
 
+const propertiesToAnonymize = ["filename", "module"];
+
 function anonymizePaths(o: any, configPath: string | undefined) {
   if (o === null || o === undefined || typeof o !== "object") {
     return;
@@ -51,7 +53,7 @@ function anonymizePaths(o: any, configPath: string | undefined) {
       continue;
     }
 
-    if (key === "filename" && o[key].replace !== undefined) {
+    if (propertiesToAnonymize.includes(key) && o[key].replace !== undefined) {
       const filename = o[key];
       o[key] = anonymizeFilename(filename, configPath);
     }
