@@ -4,14 +4,16 @@ import * as path from "path";
 
 // This class is wrapped in a function to avoid having to
 // import @sentry/node just for the BaseTransport base class
-export function getSubprocessTransport(
-  verbose: boolean,
-  configPath: string | undefined
-): any {
+export function getSubprocessTransport(): any {
   const { Status, Transports } = require("@sentry/node");
 
   class SubprocessTransport extends Transports.BaseTransport {
     public async sendEvent(event: Event): Promise<Response> {
+      const { verbose = false, configPath } = event.extra ?? {};
+
+      // don't send user's full config path for privacy reasons
+      delete event.extra;
+
       const serializedEvent = JSON.stringify(event);
 
       const env: Record<string, string> = {

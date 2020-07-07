@@ -7,13 +7,19 @@ export const SENTRY_DSN =
   "https://38ba58bb85fa409e9bb7f50d2c419bc2@o385026.ingest.sentry.io/5224869";
 
 export class Reporter {
+  public static getInstance(): Reporter {
+    if (this._instance === undefined) {
+      this._instance = new Reporter();
+    }
+
+    return this._instance;
+  }
+
+  private static _instance: Reporter;
   private _enabled: boolean;
   private _initialized = false;
 
-  constructor(
-    private _verbose: boolean,
-    private _configPath: string | undefined
-  ) {
+  private constructor() {
     this._enabled = true;
     if (isRunningOnCiServer()) {
       this._enabled = false;
@@ -25,7 +31,7 @@ export class Reporter {
     }
   }
 
-  public async reportError(error: Error) {
+  public async reportError(error: Error, verbose = false, configPath?: string) {
     if (!this._enabled) {
       return;
     }
@@ -33,6 +39,8 @@ export class Reporter {
     await this._init();
 
     const Sentry = await import("@sentry/node");
+    Sentry.setExtra("verbose", verbose);
+    Sentry.setExtra("configPath", configPath);
     Sentry.captureException(error);
 
     return true;
@@ -60,7 +68,7 @@ export class Reporter {
 
     Sentry.init({
       dsn: SENTRY_DSN,
-      transport: getSubprocessTransport(this._verbose, this._configPath),
+      transport: getSubprocessTransport(),
       integrations: () => [linkedErrorsIntegration],
     });
 

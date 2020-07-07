@@ -167,7 +167,6 @@ async function main() {
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
-    const reporter = new Reporter(verbose, configPath);
     let isBuidlerError = false;
 
     if (BuidlerError.isBuidlerError(error)) {
@@ -188,7 +187,12 @@ async function main() {
 
     console.log("");
 
-    await reporter.reportError(error);
+    const reporter = Reporter.getInstance();
+    try {
+      await reporter.reportError(error, verbose, configPath);
+    } catch (error) {
+      log("Couldn't report error to sentry: %O", error);
+    }
 
     if (showStackTraces) {
       console.error(error.stack);
