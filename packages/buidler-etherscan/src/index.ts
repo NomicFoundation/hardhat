@@ -3,21 +3,19 @@ import {
   TASK_COMPILE_GET_COMPILER_INPUT,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import {task} from "@nomiclabs/buidler/config";
-import {BuidlerPluginError, readArtifact} from "@nomiclabs/buidler/plugins";
+import { task } from "@nomiclabs/buidler/config";
+import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
+import fs from "fs";
 
 import AbiEncoder from "./AbiEncoder";
-import {getDefaultEtherscanConfig} from "./config";
+import { getDefaultEtherscanConfig } from "./config";
 import {
   getVerificationStatus,
   verifyContract,
 } from "./etherscan/EtherscanService";
-import {toRequest} from "./etherscan/EtherscanVerifyContractRequest";
-import {getLongVersion} from "./solc/SolcVersions";
-import {EtherscanConfig} from "./types";
-import {ContractDeploymentManifest} from "./types";
-import fs from "fs";
-
+import { toRequest } from "./etherscan/EtherscanVerifyContractRequest";
+import { getLongVersion } from "./solc/SolcVersions";
+import { ContractDeploymentManifest, EtherscanConfig } from "./types";
 
 task("verify-contract", "Verifies contract on etherscan")
   .addParam("contractName", "Name of the deployed contract")
@@ -42,7 +40,7 @@ task("verify-contract", "Verifies contract on etherscan")
         source: string;
         constructorArguments: string[];
       },
-      {config, run}
+      { config, run }
     ) => {
       const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
       if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
@@ -51,18 +49,27 @@ task("verify-contract", "Verifies contract on etherscan")
         );
       }
 
-      if (taskArgs.deploymentsDir) {
-        const deploymentsJsonFilePath = fs.readFileSync(taskArgs.deploymentsDir + taskArgs.contractName + ".json", 'utf-8');
-        const contractDeploymentManifest: ContractDeploymentManifest = JSON.parse(deploymentsJsonFilePath);
+      if (taskArgs.deploymentsDir != null) {
+        const deploymentsJsonFilePath = fs.readFileSync(
+          `${taskArgs.deploymentsDir}${taskArgs.contractName}.json`,
+          "utf-8"
+        );
+        const contractDeploymentManifest: ContractDeploymentManifest = JSON.parse(
+          deploymentsJsonFilePath
+        );
 
         taskArgs.address = contractDeploymentManifest.address;
         taskArgs.constructorArguments = contractDeploymentManifest.args;
-      } else if (!taskArgs.deploymentsDir && !taskArgs.address) {
-        throw new Error(`Failed to obtain contract ${taskArgs.contractName} deployments file ${taskArgs.deploymentsDir}`);
+      } else if (taskArgs.deploymentsDir == null && taskArgs.address == null) {
+        throw new Error(
+          `Failed to obtain contract ${taskArgs.contractName} deployments file ${taskArgs.deploymentsDir}`
+        );
       }
 
-      if (!taskArgs.address) {
-        throw new Error(`Failed to obtain contract ${taskArgs.contractName} address`);
+      if (taskArgs.address == null) {
+        throw new Error(
+          `Failed to obtain contract ${taskArgs.contractName} address`
+        );
       }
 
       const index: number = taskArgs.contractName.indexOf(":");
