@@ -16,7 +16,7 @@ import {toRequest} from "./etherscan/EtherscanVerifyContractRequest";
 import {getLongVersion} from "./solc/SolcVersions";
 import {EtherscanConfig} from "./types";
 import {ContractDeploymentManifest} from "./types";
-import path from "path";
+import fs from "fs";
 
 
 task("verify-contract", "Verifies contract on etherscan")
@@ -52,10 +52,12 @@ task("verify-contract", "Verifies contract on etherscan")
       }
 
       if (taskArgs.deploymentsDir) {
-        const contractDeploymentManifest: ContractDeploymentManifest = JSON.parse(path.join(taskArgs.deploymentsDir, taskArgs.contractName + ".json"));
+        const deploymentsJsonFilePath = fs.readFileSync(taskArgs.deploymentsDir + taskArgs.contractName + ".json", 'utf-8');
+        const contractDeploymentManifest: ContractDeploymentManifest = JSON.parse(deploymentsJsonFilePath);
+
         taskArgs.address = contractDeploymentManifest.address;
         taskArgs.constructorArguments = contractDeploymentManifest.args;
-      } else {
+      } else if (!taskArgs.deploymentsDir && !taskArgs.address) {
         throw new Error(`Failed to obtain contract ${taskArgs.contractName} deployments file ${taskArgs.deploymentsDir}`);
       }
 
