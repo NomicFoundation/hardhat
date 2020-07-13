@@ -5,7 +5,7 @@ import semver from "semver";
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
-import { TaskArguments } from "../../types";
+import { ResolvedBuidlerConfig, TaskArguments } from "../../types";
 import { BUIDLER_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
@@ -46,7 +46,7 @@ async function main() {
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--show-stack-traces");
   let verbose = false;
-  let configPath: string | undefined;
+  let config: ResolvedBuidlerConfig | undefined;
 
   try {
     const packageJson = await getPackageJson();
@@ -99,9 +99,7 @@ async function main() {
     loadTsNodeIfPresent();
 
     const ctx = BuidlerContext.createBuidlerContext();
-    const config = loadConfigAndTasks(buidlerArguments);
-
-    configPath = config.paths.configFile;
+    config = loadConfigAndTasks(buidlerArguments);
 
     const analytics = await Analytics.getInstance(
       config.paths.root,
@@ -189,7 +187,9 @@ async function main() {
 
     const reporter = Reporter.getInstance();
     try {
-      await reporter.reportError(error, verbose, configPath);
+      if (config === undefined || config.analytics.enabled) {
+        await reporter.reportError(error, verbose, config?.paths.configFile);
+      }
     } catch (error) {
       log("Couldn't report error to sentry: %O", error);
     }
