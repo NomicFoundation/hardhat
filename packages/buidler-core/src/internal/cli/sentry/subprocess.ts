@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/node";
 import debug from "debug";
-import { either } from "fp-ts";
 
 import { Anonymizer } from "./anonymizer";
 import { SENTRY_DSN } from "./reporter";

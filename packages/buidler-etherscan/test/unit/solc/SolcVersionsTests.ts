@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 // tslint:disable: no-implicit-dependencies
 import nock from "nock";
@@ -25,7 +25,7 @@ describe("SolcVersions tests", () => {
       .reply(404);
 
     getLongVersion("0.5.1").catch((e) =>
-      assert.isTrue(e instanceof BuidlerPluginError)
+      assert.isTrue(e instanceof NomicLabsBuidlerPluginError)
     );
   });
 
@@ -43,7 +43,7 @@ describe("SolcVersions tests", () => {
         assert.fail();
       })
       .catch((e) => {
-        assert.isTrue(e instanceof BuidlerPluginError);
+        assert.isTrue(e instanceof NomicLabsBuidlerPluginError);
       });
   });
 });

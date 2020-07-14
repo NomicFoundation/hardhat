@@ -4,6 +4,7 @@ import {
   applyErrorMessageTemplate,
   BuidlerError,
   BuidlerPluginError,
+  NomicLabsBuidlerPluginError,
 } from "../../../src/internal/core/errors";
 import {
   ERROR_RANGES,
@@ -32,7 +33,9 @@ describe("BuilderError", () => {
     it("Should return false for everything else", () => {
       assert.isFalse(BuidlerError.isBuidlerError(new Error()));
       assert.isFalse(
-        BuidlerError.isBuidlerError(new BuidlerPluginError("asd", "asd"))
+        BuidlerError.isBuidlerError(
+          new NomicLabsBuidlerPluginError("asd", "asd")
+        )
       );
       assert.isFalse(BuidlerError.isBuidlerError(undefined));
       assert.isFalse(BuidlerError.isBuidlerError(null));
@@ -303,6 +306,57 @@ describe("BuidlerPluginError", () => {
 
         assert.instanceOf(error, BuidlerPluginError);
       });
+    });
+  });
+});
+
+describe("NomicLabsBuidlerPluginError", () => {
+  describe("Type guard", () => {
+    it("Should return true for NomicLabsBuidlerPluginError", () => {
+      assert.isTrue(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(
+          new NomicLabsBuidlerPluginError("asd", "asd")
+        )
+      );
+    });
+
+    it("Should also be a BuidlerPluginError", () => {
+      assert.isTrue(
+        BuidlerPluginError.isBuidlerPluginError(
+          new NomicLabsBuidlerPluginError("asd", "asd")
+        )
+      );
+    });
+
+    it("Should return false for everything else", () => {
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(new Error())
+      );
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(
+          new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
+        )
+      );
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(
+          new BuidlerPluginError("asd", "asd")
+        )
+      );
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(undefined)
+      );
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(null)
+      );
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(123)
+      );
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError("123")
+      );
+      assert.isFalse(
+        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError({ asd: 123 })
+      );
     });
   });
 });
