@@ -24,6 +24,7 @@ import EventEmitter from "events";
 import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
+import { ForkConfig } from "../../../types";
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { Reporter } from "../../sentry/reporter";
 import {
@@ -147,7 +148,8 @@ export class BuidlerNode extends EventEmitter {
     allowUnlimitedContractSize?: boolean,
     initialDate?: Date,
     compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput
+    compilerOutput?: CompilerOutput,
+    forkConfig?: ForkConfig
   ): Promise<[Common, BuidlerNode]> {
     const stateTrie = new Trie();
     const putIntoStateTrie = promisify(stateTrie.put.bind(stateTrie));
@@ -233,7 +235,8 @@ export class BuidlerNode extends EventEmitter {
       solidityVersion,
       initialDate,
       compilerInput,
-      compilerOutput
+      compilerOutput,
+      forkConfig
     );
 
     return [common, node];
@@ -275,7 +278,8 @@ export class BuidlerNode extends EventEmitter {
     solidityVersion?: string,
     initialDate?: Date,
     compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput
+    compilerOutput?: CompilerOutput,
+    forkConfig?: ForkConfig
   ) {
     super();
     this._stateManager = new PStateManager(this._vm.stateManager);

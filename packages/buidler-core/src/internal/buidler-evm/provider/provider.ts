@@ -12,6 +12,7 @@ import util from "util";
 import {
   BoundExperimentalBuidlerEVMMessageTraceHook,
   EthereumProvider,
+  ForkConfig,
   ProjectPaths,
 } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
@@ -69,7 +70,8 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
-    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
+    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = [],
+    private readonly _forkConfig?: ForkConfig
   ) {
     super();
   }
@@ -280,7 +282,8 @@ export class BuidlerEVMProvider extends EventEmitter
       this._allowUnlimitedContractSize,
       this._initialDate,
       compilerInput,
-      compilerOutput
+      compilerOutput,
+      this._forkConfig
     );
 
     this._common = common;

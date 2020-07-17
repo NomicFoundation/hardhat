@@ -4,7 +4,7 @@ import { BN } from "ethereumjs-util";
 import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
 import { BuidlerNode } from "../../../../src/internal/buidler-evm/provider/node";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
-import { EthereumProvider } from "../../../../src/types";
+import { EthereumProvider, ForkConfig } from "../../../../src/types";
 
 declare module "mocha" {
   interface Context {
@@ -55,6 +55,7 @@ export const DEFAULT_ACCOUNTS = [
   },
 ];
 export const DEFAULT_USE_JSON_RPC = false;
+export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;
 
 export function useProvider(
   hardfork = DEFAULT_HARDFORK,
@@ -64,7 +65,8 @@ export function useProvider(
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   useJsonRpc = DEFAULT_USE_JSON_RPC,
-  allowUnlimitedContractSize = false
+  allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  forkConfig?: ForkConfig
 ) {
   beforeEach("Initialize provider", async function () {
     // We create two Nodes here, and don't use this one.
@@ -77,7 +79,11 @@ export function useProvider(
       blockGasLimit,
       accounts,
       undefined,
-      allowUnlimitedContractSize
+      allowUnlimitedContractSize,
+      undefined,
+      undefined,
+      undefined,
+      forkConfig
     );
 
     this.common = common;
@@ -93,7 +99,9 @@ export function useProvider(
       undefined,
       undefined,
       undefined,
-      allowUnlimitedContractSize
+      allowUnlimitedContractSize,
+      undefined,
+      forkConfig
     );
 
     if (useJsonRpc) {
