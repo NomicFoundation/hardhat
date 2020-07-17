@@ -71,13 +71,9 @@ function runTests() {
     shell.exec(
       `npx lerna exec --concurrency 1 ${ignoredPackagesFilter} -- npm test`
     );
-  } catch (error) {
-    if (!error.message.includes("lerna ERR!")) {
-      console.error(error);
-    }
+  } finally {
+    console.timeEnd("Total test time");
   }
-
-  console.timeEnd("Total test time");
 }
 
 async function main() {
