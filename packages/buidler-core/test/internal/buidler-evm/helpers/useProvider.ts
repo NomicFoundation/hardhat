@@ -128,3 +128,17 @@ export function useProvider(
     }
   });
 }
+
+export function useForkedProvider(forkConfig: ForkConfig) {
+  useProvider(
+    DEFAULT_HARDFORK,
+    DEFAULT_NETWORK_NAME,
+    DEFAULT_CHAIN_ID,
+    DEFAULT_NETWORK_ID,
+    DEFAULT_BLOCK_GAS_LIMIT,
+    DEFAULT_ACCOUNTS,
+    DEFAULT_USE_JSON_RPC,
+    DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+    forkConfig
+  );
+}
