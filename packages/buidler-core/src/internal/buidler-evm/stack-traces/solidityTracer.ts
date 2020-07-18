@@ -233,6 +233,18 @@ export class SolidityTracer {
   private _traceEvmExecution(
     trace: DecodedEvmMessageTrace
   ): SolidityStackTrace {
+    const stackTrace = this._rawTraceEvmExecution(trace);
+
+    if (stackTraceMayRequireAdjustments(stackTrace, trace)) {
+      return adjustStackTrace(stackTrace, trace);
+    }
+
+    return stackTrace;
+  }
+
+  private _rawTraceEvmExecution(
+    trace: DecodedEvmMessageTrace
+  ): SolidityStackTrace {
     const stacktrace: SolidityStackTrace = [];
 
     let subtracesSeen = 0;
@@ -404,10 +416,6 @@ export class SolidityTracer {
         );
       }
 
-      if (stackTraceMayRequireAdjustments(stacktrace, trace)) {
-        return adjustStackTrace(stacktrace, trace);
-      }
-
       return stacktrace;
     }
 
@@ -438,7 +446,7 @@ export class SolidityTracer {
       if (lastInstruction.location !== undefined) {
         const failingFunction = lastInstruction.location.getContainingFunction();
         if (failingFunction !== undefined) {
-          const stackTraceWithJustARevert: SolidityStackTrace = [
+          return [
             {
               type: StackTraceEntryType.REVERT_ERROR,
               sourceReference: this._getFunctionStartSourceReference(
@@ -449,14 +457,6 @@ export class SolidityTracer {
               isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
             },
           ];
-
-          if (
-            stackTraceMayRequireAdjustments(stackTraceWithJustARevert, trace)
-          ) {
-            return adjustStackTrace(stackTraceWithJustARevert, trace);
-          }
-
-          return stackTraceWithJustARevert;
         }
       }
 
