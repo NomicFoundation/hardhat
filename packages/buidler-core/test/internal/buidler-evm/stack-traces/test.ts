@@ -645,6 +645,10 @@ const solidity06Compilers: CompilerOptions[] = [
     solidityVersion: "0.6.8",
     compilerPath: "soljson-v0.6.8+commit.0bbfe453.js",
   },
+  {
+    solidityVersion: "0.6.9",
+    compilerPath: "soljson-v0.6.9+commit.3e3065ac.js",
+  },
 ];
 
 describe("Stack traces", function () {

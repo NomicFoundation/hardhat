@@ -1,5 +1,9 @@
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import semver from "semver";
+import {
+  adjustStackTrace,
+  stackTraceMayRequireAdjustments,
+} from "./mapped-inlined-internal-functions-heuristics";
 
 import {
   DecodedCallMessageTrace,
@@ -399,6 +403,10 @@ export class SolidityTracer {
         );
       }
 
+      if (stackTraceMayRequireAdjustments(stacktrace, trace)) {
+        return adjustStackTrace(stacktrace, trace);
+      }
+
       return stacktrace;
     }
 
@@ -425,11 +433,11 @@ export class SolidityTracer {
         ];
       }
 
-      // This is here because of the optimizations
+      // Sometimes we do fail inside of a function but there's no jump into
       if (lastInstruction.location !== undefined) {
         const failingFunction = lastInstruction.location.getContainingFunction();
         if (failingFunction !== undefined) {
-          return [
+          const stackTraceWithJustARevert: SolidityStackTrace = [
             {
               type: StackTraceEntryType.REVERT_ERROR,
               sourceReference: this._getFunctionStartSourceReference(
@@ -440,6 +448,14 @@ export class SolidityTracer {
               isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
             },
           ];
+
+          if (
+            stackTraceMayRequireAdjustments(stackTraceWithJustARevert, trace)
+          ) {
+            return adjustStackTrace(stackTraceWithJustARevert, trace);
+          }
+
+          return stackTraceWithJustARevert;
         }
       }
 
