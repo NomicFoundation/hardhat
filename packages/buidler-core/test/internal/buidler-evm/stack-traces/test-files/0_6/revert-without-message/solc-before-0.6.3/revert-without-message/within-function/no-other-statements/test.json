@@ -1,5 +1,5 @@
 {
-  "solc": "<0.6.3",
+  "solc": "<0.6.3 || >= 0.6.9",
   "transactions": [
     {
       "file": "c.sol",
