@@ -1,10 +1,10 @@
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import semver from "semver";
+
 import {
   adjustStackTrace,
   stackTraceMayRequireAdjustments,
 } from "./mapped-inlined-internal-functions-heuristics";
-
 import {
   DecodedCallMessageTrace,
   DecodedCreateMessageTrace,
@@ -34,6 +34,7 @@ import {
   CallstackEntryStackTraceEntry,
   CONSTRUCTOR_FUNCTION_NAME,
   FALLBACK_FUNCTION_NAME,
+  InternalFunctionCallStackEntry,
   OtherExecutionErrorStackTraceEntry,
   RECEIVE_FUNCTION_NAME,
   RevertErrorStackTraceEntry,
@@ -959,7 +960,23 @@ export class SolidityTracer {
   private _instructionToCallstackStackTraceEntry(
     bytecode: Bytecode,
     inst: Instruction
-  ): CallstackEntryStackTraceEntry {
+  ): CallstackEntryStackTraceEntry | InternalFunctionCallStackEntry {
+    // This means that a jump is made from within an internal solc function.
+    // These are normally made from yul code, so they don't map to any Solidity
+    // function
+    if (inst.location === undefined) {
+      return {
+        type: StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY,
+        pc: inst.pc,
+        sourceReference: {
+          file: bytecode.contract.location.file,
+          contract: bytecode.contract.name,
+          function: undefined,
+          line: bytecode.contract.location.getStartingLineNumber(),
+        },
+      };
+    }
+
     const func = inst.location!.getContainingFunction();
 
     if (func !== undefined) {
@@ -1017,7 +1034,7 @@ export class SolidityTracer {
   private _getEntryBeforeFailureInModifier(
     trace: DecodedEvmMessageTrace,
     functionJumpdests: Instruction[]
-  ): CallstackEntryStackTraceEntry {
+  ): CallstackEntryStackTraceEntry | InternalFunctionCallStackEntry {
     // If there's a jumpdest, this modifier belongs to the last function that it represents
     if (functionJumpdests.length > 0) {
       return this._instructionToCallstackStackTraceEntry(
