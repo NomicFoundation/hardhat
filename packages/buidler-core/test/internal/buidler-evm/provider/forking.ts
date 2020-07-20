@@ -7,7 +7,7 @@ import { useForkedProvider } from "../helpers/useProvider";
 const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
 const FORK_CONFIG = { jsonRpcUrl: INFURA_URL, blockNumberOrHash: undefined };
 
-describe.only("Forked provider", () => {
+describe("Forked provider", () => {
   useForkedProvider(FORK_CONFIG);
   setCWD();
 

@@ -1,4 +1,5 @@
 import { BN } from "ethereumjs-util";
+import * as t from "io-ts";
 
 import { HttpProvider } from "../../core/providers/http";
 import { rpcQuantity } from "../provider/input";
@@ -12,18 +13,14 @@ export class JsonRpcClient {
 
   public async getLatestBlockNumber(): Promise<BN> {
     const result = await this._httpProvider.send("eth_blockNumber", []);
-    return checkQuantity(result);
+    return decode(result, rpcQuantity);
   }
 }
 
-function checkQuantity(value: unknown) {
-  return rpcQuantity.decode(value).fold(
-    () => doThrow("Invalid QUANTITY"),
-    (x) => x
-  );
-}
-
-function doThrow(message: string): never {
-  // tslint:disable-next-line
-  throw new Error(message); // TODO: What error to throw?
+function decode<T>(value: unknown, codec: t.Type<T>) {
+  return codec.decode(value).fold(() => {
+    // TODO: What error to throw?
+    // tslint:disable-next-line
+    throw new Error(`Invalid ${codec.name}`);
+  }, t.identity);
 }
