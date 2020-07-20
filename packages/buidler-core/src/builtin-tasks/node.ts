@@ -11,6 +11,7 @@ import { task, types } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
+import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
 import {
   BuidlerNetworkConfig,
@@ -129,6 +130,8 @@ export default function () {
               "Compilation output can't be watched. Please report this to help us improve Buidler.\n",
               error
             );
+
+            Reporter.reportError(error);
           }
 
           const networkConfig = config.networks[

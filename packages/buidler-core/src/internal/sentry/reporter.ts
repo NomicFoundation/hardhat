@@ -11,7 +11,7 @@ export const SENTRY_DSN =
  * This class acts as a global singleton for reporting errors through Sentry.
  */
 export class Reporter {
-  public static async reportError(error: Error) {
+  public static reportError(error: Error) {
     const instance = Reporter._getInstance();
 
     if (!instance.enabled) {
@@ -25,9 +25,9 @@ export class Reporter {
       return;
     }
 
-    await instance.init();
+    instance.init();
 
-    const Sentry = await import("@sentry/node");
+    const Sentry = require("@sentry/node");
     Sentry.setExtra("verbose", instance.verbose);
     Sentry.setExtra("configPath", instance.configPath);
     Sentry.captureException(error);
@@ -107,12 +107,12 @@ export class Reporter {
     }
   }
 
-  public async init() {
+  public init() {
     if (this.initialized) {
       return;
     }
 
-    const Sentry = await import("@sentry/node");
+    const Sentry = require("@sentry/node");
 
     const linkedErrorsIntegration = new Sentry.Integrations.LinkedErrors({
       key: "parent",
