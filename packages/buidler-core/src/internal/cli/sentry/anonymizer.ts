@@ -3,6 +3,8 @@ import findup from "find-up";
 import { either } from "fp-ts";
 import * as path from "path";
 
+const ANONYMIZED_FILE = "<user-file>";
+
 export class Anonymizer {
   constructor(private _configPath?: string) {}
 
@@ -80,6 +82,13 @@ export class Anonymizer {
       result.filename = this._anonymizeFilename(frame.filename);
     }
 
+    if (result.filename !== ANONYMIZED_FILE) {
+      result.context_line = frame.context_line;
+      result.pre_context = frame.pre_context;
+      result.post_context = frame.post_context;
+      result.vars = frame.vars;
+    }
+
     return result;
   }
 
@@ -108,7 +117,7 @@ export class Anonymizer {
       }
 
       // if the file isn't inside node_modules and it's a user file, we hide it completely
-      return "<user-file>";
+      return ANONYMIZED_FILE;
     }
 
     return parts.slice(nodeModulesIndex).join(path.sep);
