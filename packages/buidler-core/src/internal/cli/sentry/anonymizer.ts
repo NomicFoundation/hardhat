@@ -78,11 +78,14 @@ export class Anonymizer {
       function: frame.function,
     };
 
+    let anonymizeContent = true;
     if (frame.filename !== undefined) {
-      result.filename = this._anonymizeFilename(frame.filename);
+      const anonymizationResult = this._anonymizeFilename(frame.filename);
+      result.filename = anonymizationResult.anonymizedFilename;
+      anonymizeContent = anonymizationResult.anonymizeContent;
     }
 
-    if (result.filename !== ANONYMIZED_FILE) {
+    if (!anonymizeContent) {
       result.context_line = frame.context_line;
       result.pre_context = frame.pre_context;
       result.post_context = frame.post_context;
@@ -92,9 +95,14 @@ export class Anonymizer {
     return result;
   }
 
-  private _anonymizeFilename(filename: string): string {
-    const parts = filename.split(path.sep);
-
+  /**
+   * Return the anonymized filename and a boolean indicating if the content of
+   * the file should be anonymized
+   *
+   */
+  private _anonymizeFilename(
+    filename: string
+  ): { anonymizedFilename: string; anonymizeContent: boolean } {
     if (filename === this._configPath) {
       const packageJsonPath = findup.sync("package.json", {
         cwd: path.dirname(filename),
@@ -102,24 +110,43 @@ export class Anonymizer {
 
       if (packageJsonPath === null) {
         // if we can't find a package.json, we just return the basename
-        return path.basename(filename);
+        return {
+          anonymizedFilename: path.basename(filename),
+          anonymizeContent: true,
+        };
       }
 
-      return path.relative(path.dirname(packageJsonPath), filename);
+      return {
+        anonymizedFilename: path.relative(
+          path.dirname(packageJsonPath),
+          filename
+        ),
+        anonymizeContent: true,
+      };
     }
 
+    const parts = filename.split(path.sep);
     const nodeModulesIndex = parts.indexOf("node_modules");
 
     if (nodeModulesIndex === -1) {
       if (filename.startsWith("internal")) {
         // show internal parts of the stack trace
-        return filename;
+        return {
+          anonymizedFilename: filename,
+          anonymizeContent: false,
+        };
       }
 
       // if the file isn't inside node_modules and it's a user file, we hide it completely
-      return ANONYMIZED_FILE;
+      return {
+        anonymizedFilename: ANONYMIZED_FILE,
+        anonymizeContent: true,
+      };
     }
 
-    return parts.slice(nodeModulesIndex).join(path.sep);
+    return {
+      anonymizedFilename: parts.slice(nodeModulesIndex).join(path.sep),
+      anonymizeContent: false,
+    };
   }
 }

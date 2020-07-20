@@ -45,8 +45,6 @@ async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
   let showStackTraces = process.argv.includes("--show-stack-traces");
-  let verbose = false;
-  let config: ResolvedBuidlerConfig | undefined;
 
   try {
     const packageJson = await getPackageJson();
@@ -71,7 +69,7 @@ async function main() {
     );
 
     if (buidlerArguments.verbose) {
-      verbose = true;
+      Reporter.setVerbose(true);
       debug.enable("buidler*");
     }
 
@@ -99,12 +97,15 @@ async function main() {
     loadTsNodeIfPresent();
 
     const ctx = BuidlerContext.createBuidlerContext();
-    config = loadConfigAndTasks(buidlerArguments);
+    const config = loadConfigAndTasks(buidlerArguments);
 
     const analytics = await Analytics.getInstance(
       config.paths.root,
       config.analytics.enabled
     );
+
+    Reporter.setConfigPath(config.paths.configFile);
+    Reporter.setEnabled(config.analytics.enabled);
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
@@ -185,12 +186,8 @@ async function main() {
 
     console.log("");
 
-    const reporter = Reporter.getInstance();
     try {
-      // if an error was thrown before the config was read, we report the error
-      if (config === undefined || config.analytics.enabled) {
-        await reporter.reportError(error, verbose, config?.paths.configFile);
-      }
+      await Reporter.reportError(error);
     } catch (error) {
       log("Couldn't report error to sentry: %O", error);
     }
@@ -219,7 +216,7 @@ async function main() {
       }
     }
 
-    await reporter.close(1000);
+    await Reporter.close(1000);
     process.exit(1);
   }
 }
