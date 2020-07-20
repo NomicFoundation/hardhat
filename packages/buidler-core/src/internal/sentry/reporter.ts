@@ -1,6 +1,6 @@
-import { BuidlerError } from "../../core/errors";
-import { isLocalDev } from "../../core/execution-mode";
-import { isRunningOnCiServer } from "../../util/ci-detection";
+import { BuidlerError } from "../core/errors";
+import { isLocalDev } from "../core/execution-mode";
+import { isRunningOnCiServer } from "../util/ci-detection";
 
 import { getSubprocessTransport } from "./transport";
 

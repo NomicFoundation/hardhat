@@ -16,13 +16,13 @@ import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
+import { Reporter } from "../sentry/reporter";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
-import { Reporter } from "./sentry/reporter";
 
 const log = debug("buidler:core:cli");
 
