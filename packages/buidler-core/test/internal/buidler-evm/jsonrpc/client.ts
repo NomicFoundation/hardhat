@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 
+import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
 import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 
@@ -38,6 +39,33 @@ describe("JsonRpcClient", () => {
       response = "foo";
       const result = await client.getLatestBlockNumber().catch((e) => e);
       assert.instanceOf(result, Error);
+    });
+  });
+
+  describe("eth_getBlockByNumber", () => {
+    it("can fetch the data with transaction hashes", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
+      const block = await client.getBlockByNumber(new BN(10496585));
+      assert.equal(
+        block.hash?.toString("hex"),
+        "71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812"
+      );
+      assert.equal(block.transactions.length, 192);
+      assert.isTrue(
+        block.transactions.every(
+          (tx: Buffer | RpcTransaction) => tx instanceof Buffer
+        )
+      );
+    });
+
+    it("can fetch the data with transactions", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
+      const block = await client.getBlockByNumber(new BN(10496585), true);
+      assert.isTrue(
+        block.transactions.every(
+          (tx: Buffer | RpcTransaction) => !(tx instanceof Buffer)
+        )
+      );
     });
   });
 });

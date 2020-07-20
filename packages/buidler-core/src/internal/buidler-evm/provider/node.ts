@@ -227,13 +227,14 @@ export class BuidlerNode extends EventEmitter {
       blockchain.putBlock(genesisBlock, () => resolve());
     });
 
-    let forkClient
-    let forkBlockNumber
+    let forkClient;
+    let forkBlockNumber;
     if (forkConfig !== undefined) {
       forkClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl);
-      forkBlockNumber = forkConfig.blockNumber !== undefined
-      ? new BN(forkConfig.blockNumber)
-      : await forkClient.getLatestBlockNumber()
+      forkBlockNumber =
+        forkConfig.blockNumber !== undefined
+          ? new BN(forkConfig.blockNumber)
+          : await forkClient.getLatestBlockNumber();
     }
 
     const node = new BuidlerNode(
@@ -291,7 +292,7 @@ export class BuidlerNode extends EventEmitter {
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput,
     private readonly _forkClient?: JsonRpcClient,
-    private readonly _forkBlockNumber: BN = new BN(0),
+    private readonly _forkBlockNumber: BN = new BN(0)
   ) {
     super();
 
