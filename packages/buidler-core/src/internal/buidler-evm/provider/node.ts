@@ -31,6 +31,7 @@ import {
   dateToTimestampSeconds,
   getDifferenceInSeconds,
 } from "../../util/date";
+import { JsonRpcClient } from "../jsonrpc/client";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
@@ -269,6 +270,8 @@ export class BuidlerNode extends EventEmitter {
   private readonly _getLatestBlock: () => Promise<Block>;
   private readonly _getBlock: (hashOrNumber: Buffer | BN) => Promise<Block>;
 
+  private readonly _jsonRpcClient?: JsonRpcClient;
+
   private constructor(
     private readonly _vm: VM,
     private readonly _blockchain: Blockchain,
@@ -282,6 +285,11 @@ export class BuidlerNode extends EventEmitter {
     forkConfig?: ForkConfig
   ) {
     super();
+
+    if (forkConfig !== undefined) {
+      this._jsonRpcClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl);
+    }
+
     this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
     this._initLocalAccounts(localAccounts);
@@ -574,6 +582,9 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getLatestBlockNumber(): Promise<BN> {
+    if (this._jsonRpcClient !== undefined) {
+      return this._jsonRpcClient.getLatestBlockNumber();
+    }
     return new BN((await this._getLatestBlock()).header.number);
   }
 
