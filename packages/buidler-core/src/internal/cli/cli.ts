@@ -187,6 +187,7 @@ async function main() {
 
     const reporter = Reporter.getInstance();
     try {
+      // if an error was thrown before the config was read, we report the error
       if (config === undefined || config.analytics.enabled) {
         await reporter.reportError(error, verbose, config?.paths.configFile);
       }
