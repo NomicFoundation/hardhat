@@ -227,6 +227,15 @@ export class BuidlerNode extends EventEmitter {
       blockchain.putBlock(genesisBlock, () => resolve());
     });
 
+    let forkClient
+    let forkBlockNumber
+    if (forkConfig !== undefined) {
+      forkClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl);
+      forkBlockNumber = forkConfig.blockNumber !== undefined
+      ? new BN(forkConfig.blockNumber)
+      : await forkClient.getLatestBlockNumber()
+    }
+
     const node = new BuidlerNode(
       vm,
       blockchain,
@@ -237,7 +246,8 @@ export class BuidlerNode extends EventEmitter {
       initialDate,
       compilerInput,
       compilerOutput,
-      forkConfig
+      forkClient,
+      forkBlockNumber
     );
 
     return [common, node];
@@ -270,8 +280,6 @@ export class BuidlerNode extends EventEmitter {
   private readonly _getLatestBlock: () => Promise<Block>;
   private readonly _getBlock: (hashOrNumber: Buffer | BN) => Promise<Block>;
 
-  private readonly _jsonRpcClient?: JsonRpcClient;
-
   private constructor(
     private readonly _vm: VM,
     private readonly _blockchain: Blockchain,
@@ -282,13 +290,10 @@ export class BuidlerNode extends EventEmitter {
     initialDate?: Date,
     compilerInput?: CompilerInput,
     compilerOutput?: CompilerOutput,
-    forkConfig?: ForkConfig
+    private readonly _forkClient?: JsonRpcClient,
+    private readonly _forkBlockNumber: BN = new BN(0),
   ) {
     super();
-
-    if (forkConfig !== undefined) {
-      this._jsonRpcClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl);
-    }
 
     this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
@@ -582,8 +587,8 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getLatestBlockNumber(): Promise<BN> {
-    if (this._jsonRpcClient !== undefined) {
-      return this._jsonRpcClient.getLatestBlockNumber();
+    if (this._forkClient !== undefined) {
+      return this._forkClient.getLatestBlockNumber();
     }
     return new BN((await this._getLatestBlock()).header.number);
   }
