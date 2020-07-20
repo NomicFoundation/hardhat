@@ -231,18 +231,7 @@ export class Resolver {
       path.relative(libraryName, globalName)
     );
 
-    let packageInfo;
-    try {
-      packageInfo = await fsExtra.readJson(packagePath);
-    } catch (error) {
-      throw new BuidlerError(
-        ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
-        {
-          library: libraryName,
-        },
-        error
-      );
-    }
+    const packageInfo = await fsExtra.readJson(packagePath);
     const libraryVersion = packageInfo.version;
 
     return this._resolveFile(
