@@ -39,74 +39,15 @@ export class Anonymizer {
     return either.right(result);
   }
 
-  private _anonymizeExceptions(exceptions: Exception[]): Exception[] {
-    return exceptions.map((exception) => this._anonymizeException(exception));
-  }
-
-  private _anonymizeException(value: Exception): Exception {
-    const result: Exception = {
-      type: value.type,
-      value: value.value,
-    };
-
-    if (value.stacktrace !== undefined) {
-      result.stacktrace = this._anonymizeStacktrace(value.stacktrace);
-    }
-
-    return result;
-  }
-
-  private _anonymizeStacktrace(stacktrace: Stacktrace): Stacktrace {
-    if (stacktrace.frames !== undefined) {
-      const anonymizededFrames = this._anonymizeFrames(stacktrace.frames);
-      return {
-        frames: anonymizededFrames,
-      };
-    }
-
-    return {};
-  }
-
-  private _anonymizeFrames(frames: StackFrame[]): StackFrame[] {
-    return frames.map((frame) => this._anonymizeFrame(frame));
-  }
-
-  private _anonymizeFrame(frame: StackFrame): StackFrame {
-    const result: StackFrame = {
-      lineno: frame.lineno,
-      colno: frame.colno,
-      function: frame.function,
-    };
-
-    let anonymizeContent = true;
-    if (frame.filename !== undefined) {
-      const anonymizationResult = this._anonymizeFilename(frame.filename);
-      result.filename = anonymizationResult.anonymizedFilename;
-      anonymizeContent = anonymizationResult.anonymizeContent;
-    }
-
-    if (!anonymizeContent) {
-      result.context_line = frame.context_line;
-      result.pre_context = frame.pre_context;
-      result.post_context = frame.post_context;
-      result.vars = frame.vars;
-    }
-
-    return result;
-  }
-
   /**
    * Return the anonymized filename and a boolean indicating if the content of
    * the file should be anonymized
-   *
    */
-  private _anonymizeFilename(
+  public anonymizeFilename(
     filename: string
   ): { anonymizedFilename: string; anonymizeContent: boolean } {
     if (filename === this._configPath) {
-      const packageJsonPath = findup.sync("package.json", {
-        cwd: path.dirname(filename),
-      });
+      const packageJsonPath = this._getFilePackageJsonPath(filename);
 
       if (packageJsonPath === null) {
         // if we can't find a package.json, we just return the basename
@@ -148,5 +89,67 @@ export class Anonymizer {
       anonymizedFilename: parts.slice(nodeModulesIndex).join(path.sep),
       anonymizeContent: false,
     };
+  }
+
+  protected _getFilePackageJsonPath(filename: string): string | null {
+    return findup.sync("package.json", {
+      cwd: path.dirname(filename),
+    });
+  }
+
+  private _anonymizeExceptions(exceptions: Exception[]): Exception[] {
+    return exceptions.map((exception) => this._anonymizeException(exception));
+  }
+
+  private _anonymizeException(value: Exception): Exception {
+    const result: Exception = {
+      type: value.type,
+      value: value.value,
+    };
+
+    if (value.stacktrace !== undefined) {
+      result.stacktrace = this._anonymizeStacktrace(value.stacktrace);
+    }
+
+    return result;
+  }
+
+  private _anonymizeStacktrace(stacktrace: Stacktrace): Stacktrace {
+    if (stacktrace.frames !== undefined) {
+      const anonymizededFrames = this._anonymizeFrames(stacktrace.frames);
+      return {
+        frames: anonymizededFrames,
+      };
+    }
+
+    return {};
+  }
+
+  private _anonymizeFrames(frames: StackFrame[]): StackFrame[] {
+    return frames.map((frame) => this._anonymizeFrame(frame));
+  }
+
+  private _anonymizeFrame(frame: StackFrame): StackFrame {
+    const result: StackFrame = {
+      lineno: frame.lineno,
+      colno: frame.colno,
+      function: frame.function,
+    };
+
+    let anonymizeContent = true;
+    if (frame.filename !== undefined) {
+      const anonymizationResult = this.anonymizeFilename(frame.filename);
+      result.filename = anonymizationResult.anonymizedFilename;
+      anonymizeContent = anonymizationResult.anonymizeContent;
+    }
+
+    if (!anonymizeContent) {
+      result.context_line = frame.context_line;
+      result.pre_context = frame.pre_context;
+      result.post_context = frame.post_context;
+      result.vars = frame.vars;
+    }
+
+    return result;
   }
 }
