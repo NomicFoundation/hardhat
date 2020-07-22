@@ -10,6 +10,8 @@ import { StateManager } from "./StateManager";
 /* tslint:disable only-buidler-error */
 
 export class ForkStateManager {
+  private _contractCode = new Map<string, Buffer>();
+
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: BN
@@ -31,11 +33,15 @@ export class ForkStateManager {
     throw new Error("Not implemented.");
   }
 
-  public putContractCode(address: Buffer, value: Buffer): Promise<void> {
-    throw new Error("Not implemented.");
+  public async putContractCode(address: Buffer, value: Buffer): Promise<void> {
+    this._contractCode.set(address.toString("hex"), value);
   }
 
-  public getContractCode(address: Buffer): Promise<Buffer> {
+  public async getContractCode(address: Buffer): Promise<Buffer> {
+    const localCode = this._contractCode.get(address.toString("hex"));
+    if (localCode !== undefined) {
+      return localCode;
+    }
     return this._jsonRpcClient.getCode(address, this._forkBlockNumber);
   }
 

@@ -29,4 +29,21 @@ describe("ForkStateManager", () => {
 
     assert.equal(fsmCode.toString("hex"), remoteCode.toString("hex"));
   });
+
+  it("can override contract code", async () => {
+    const client = JsonRpcClient.forUrl(INFURA_URL);
+    const blockNumber = await client.getLatestBlockNumber();
+    const fsm = new ForkStateManager(client, blockNumber);
+
+    const daiAddress = Buffer.from(
+      "6b175474e89094c44da98b954eedeac495271d0f",
+      "hex"
+    );
+    const code = Buffer.from("deadbeef", "hex");
+
+    await fsm.putContractCode(daiAddress, code);
+    const fsmCode = await fsm.getContractCode(daiAddress);
+
+    assert.equal(fsmCode.toString("hex"), code.toString("hex"));
+  });
 });
