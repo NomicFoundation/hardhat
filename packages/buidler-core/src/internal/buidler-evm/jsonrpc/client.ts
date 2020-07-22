@@ -1,7 +1,7 @@
 import { BN } from "ethereumjs-util";
 
 import { HttpProvider } from "../../core/providers/http";
-import { rpcQuantity } from "../provider/input";
+import { rpcData, rpcQuantity } from "../provider/input";
 
 import {
   decode,
@@ -39,6 +39,18 @@ export class JsonRpcClient {
     }
     return decode(result, rpcBlock);
   }
+
+  public async getCode(address: Buffer, blockTag: BlockTag): Promise<Buffer> {
+    const result = await this._httpProvider.send("eth_getCode", [
+      addressToString(address),
+      blockTagToString(blockTag),
+    ]);
+    return decode(result, rpcData);
+  }
+}
+
+function addressToString(address: Buffer) {
+  return `0x${address.toString("hex")}`;
 }
 
 function blockTagToString(blockTag: BlockTag) {

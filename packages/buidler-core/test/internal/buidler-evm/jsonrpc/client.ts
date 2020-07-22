@@ -68,4 +68,30 @@ describe("JsonRpcClient", () => {
       );
     });
   });
+
+  describe("eth_getCode", () => {
+    it("can fetch code of an existing contract", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
+
+      const daiAddress = Buffer.from(
+        "6b175474e89094c44da98b954eedeac495271d0f",
+        "hex"
+      );
+
+      const code = await client.getCode(daiAddress, "latest");
+      assert.notEqual(code.toString("hex"), "");
+    });
+
+    it("can fetch empty code of a non existing contract", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
+
+      const address = Buffer.from(
+        "1234567890abcdef1234567890abcdef12345678",
+        "hex"
+      );
+
+      const code = await client.getCode(address, "latest");
+      assert.equal(code.toString("hex"), "");
+    });
+  });
 });

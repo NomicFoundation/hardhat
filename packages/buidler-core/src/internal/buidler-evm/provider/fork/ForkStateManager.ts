@@ -1,4 +1,5 @@
 import Account from "ethereumjs-account";
+import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -11,7 +12,7 @@ import { StateManager } from "./StateManager";
 export class ForkStateManager {
   constructor(
     private _jsonRpcClient: JsonRpcClient,
-    private _forkBlockNumber: number
+    private _forkBlockNumber: BN
   ) {}
 
   public copy(): ForkStateManager {
@@ -35,7 +36,7 @@ export class ForkStateManager {
   }
 
   public getContractCode(address: Buffer): Promise<Buffer> {
-    throw new Error("Not implemented.");
+    return this._jsonRpcClient.getCode(address, this._forkBlockNumber);
   }
 
   public getContractStorage(address: Buffer, key: Buffer): Promise<Buffer> {
