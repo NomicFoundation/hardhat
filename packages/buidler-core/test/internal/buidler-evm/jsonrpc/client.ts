@@ -8,6 +8,11 @@ import { HttpProvider } from "../../../../src/internal/core/providers/http";
 // reused from ethers.js
 const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
 
+const DAI_ADDRESS = Buffer.from(
+  "6b175474e89094c44da98b954eedeac495271d0f",
+  "hex"
+);
+
 describe("JsonRpcClient", () => {
   let response: any;
   const fakeProvider: HttpProvider = {
@@ -73,12 +78,7 @@ describe("JsonRpcClient", () => {
     it("can fetch code of an existing contract", async () => {
       const client = JsonRpcClient.forUrl(INFURA_URL);
 
-      const daiAddress = Buffer.from(
-        "6b175474e89094c44da98b954eedeac495271d0f",
-        "hex"
-      );
-
-      const code = await client.getCode(daiAddress, "latest");
+      const code = await client.getCode(DAI_ADDRESS, "latest");
       assert.notEqual(code.toString("hex"), "");
     });
 
@@ -93,5 +93,31 @@ describe("JsonRpcClient", () => {
       const code = await client.getCode(address, "latest");
       assert.equal(code.toString("hex"), "");
     });
+  });
+
+  describe("eth_getStorageAt", () => {
+    it("can fetch value from storage of an existing contract", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
+
+      const totalSupply = await client.getStorageAt(
+        DAI_ADDRESS,
+        Buffer.from([1]),
+        "latest"
+      );
+      const totalSupplyBN = new BN(totalSupply);
+      assert.isTrue(totalSupplyBN.gt(new BN(0)));
+    });
+  });
+
+  it("can fetch empty value from storage of an existing contract", async () => {
+    const client = JsonRpcClient.forUrl(INFURA_URL);
+
+    const value = await client.getStorageAt(
+      DAI_ADDRESS,
+      Buffer.from("baddcafe", "hex"),
+      "latest"
+    );
+    const valueBN = new BN(value);
+    assert.isTrue(valueBN.eq(new BN(0)));
   });
 });

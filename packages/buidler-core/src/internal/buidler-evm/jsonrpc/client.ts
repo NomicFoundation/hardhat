@@ -42,15 +42,28 @@ export class JsonRpcClient {
 
   public async getCode(address: Buffer, blockTag: BlockTag): Promise<Buffer> {
     const result = await this._httpProvider.send("eth_getCode", [
-      addressToString(address),
+      bufferToString(address),
+      blockTagToString(blockTag),
+    ]);
+    return decode(result, rpcData);
+  }
+
+  public async getStorageAt(
+    address: Buffer,
+    position: Buffer,
+    blockTag: BlockTag
+  ): Promise<Buffer> {
+    const result = await this._httpProvider.send("eth_getStorageAt", [
+      bufferToString(address),
+      bufferToString(position),
       blockTagToString(blockTag),
     ]);
     return decode(result, rpcData);
   }
 }
 
-function addressToString(address: Buffer) {
-  return `0x${address.toString("hex")}`;
+function bufferToString(buffer: Buffer) {
+  return `0x${buffer.toString("hex")}`;
 }
 
 function blockTagToString(blockTag: BlockTag) {
