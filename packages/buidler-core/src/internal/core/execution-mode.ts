@@ -51,6 +51,18 @@ export function getExecutionMode(): ExecutionMode {
 }
 
 /**
+ * Checks whether we're using Buidler in development mode (that is, we're working _on_ Buidler).
+ */
+export function isLocalDev(): boolean {
+  const executionMode = getExecutionMode();
+
+  return (
+    executionMode === ExecutionMode.EXECUTION_MODE_LINKED ||
+    executionMode === ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS
+  );
+}
+
+/**
  * This is a somewhat more limited detection, but we use it if
  * is-installed-globally fails.
  *

@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import { NetworkConfig } from "@nomiclabs/buidler/types";
 
 import { DEFAULT_GAS_MULTIPLIER } from "./constants";
@@ -30,7 +30,7 @@ export class LazyTruffleContractProvisioner {
         const libName = args[0].constructor.contractName;
 
         if (alreadyLinkedLibs[libName]) {
-          throw new BuidlerPluginError(
+          throw new NomicLabsBuidlerPluginError(
             "@nomiclabs/buidler-truffle5",
             `Contract ${Contract.contractName} has already been linked to ${libName}.`
           );
@@ -46,13 +46,13 @@ export class LazyTruffleContractProvisioner {
 
       if (!linkingByInstance) {
         if (typeof args[0] === "string") {
-          throw new BuidlerPluginError(
+          throw new NomicLabsBuidlerPluginError(
             "@nomiclabs/buidler-truffle5",
             `Linking contracts by name is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
           );
         }
 
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
           "@nomiclabs/buidler-truffle5",
           `Linking contracts with a map of addresses is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
         );
@@ -65,7 +65,7 @@ export class LazyTruffleContractProvisioner {
       const address = this._deploymentAddresses[Contract.contractName];
 
       if (address === undefined) {
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
           "@nomiclabs/buidler-truffle5",
           `Trying to get deployed instance of ${Contract.contractName}, but none was set.`
         );

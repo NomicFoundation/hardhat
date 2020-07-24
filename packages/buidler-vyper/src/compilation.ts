@@ -8,7 +8,10 @@ import {
   ImageDoesntExistError,
   ProcessResult,
 } from "@nomiclabs/buidler-docker";
-import { BuidlerPluginError, saveArtifact } from "@nomiclabs/buidler/plugins";
+import {
+  NomicLabsBuidlerPluginError,
+  saveArtifact,
+} from "@nomiclabs/buidler/plugins";
 import { ProjectPaths } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -72,7 +75,10 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
   }
 
   if (someContractFailed) {
-    throw new BuidlerPluginError("Compilation failed");
+    throw new NomicLabsBuidlerPluginError(
+      "@nomiclabs/buidler-vyper",
+      "Compilation failed"
+    );
   }
 
   await saveLastVyperVersionUsed(vyperVersion, paths);
@@ -157,7 +163,8 @@ async function saveLastVyperVersionUsed(version: string, paths: ProjectPaths) {
 
 async function validateDockerIsInstalled() {
   if (!(await BuidlerDocker.isInstalled())) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
+      "@nomiclabs/buidler-vyper",
       `Docker Desktop is not installed.
 Please install it by following the instructions on https://www.docker.com/get-started`
     );
@@ -270,14 +277,16 @@ async function handleCommonErrors<T>(promise: Promise<T>): Promise<T> {
       error instanceof DockerNotRunningError ||
       error instanceof DockerBadGatewayError
     ) {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-vyper",
         "Docker Desktop is not running.\nPlease open it and wait until it finishes booting.",
         error
       );
     }
 
     if (error instanceof DockerHubConnectionError) {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-vyper",
         `Error connecting to Docker Hub.
 Please check your internet connection.`,
         error
@@ -285,11 +294,16 @@ Please check your internet connection.`,
     }
 
     if (error instanceof DockerServerError) {
-      throw new BuidlerPluginError("Docker error", error);
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-vyper",
+        "Docker error",
+        error
+      );
     }
 
     if (error instanceof ImageDoesntExistError) {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-vyper",
         `Docker image ${BuidlerDocker.imageToRepoTag(
           error.image
         )} doesn't exist.

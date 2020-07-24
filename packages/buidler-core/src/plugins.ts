@@ -1,4 +1,7 @@
-export { BuidlerPluginError } from "./internal/core/errors";
+export {
+  BuidlerPluginError,
+  NomicLabsBuidlerPluginError,
+} from "./internal/core/errors";
 export {
   saveArtifact,
   readArtifact,

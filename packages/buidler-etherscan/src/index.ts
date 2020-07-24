@@ -4,7 +4,10 @@ import {
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
+import {
+  NomicLabsBuidlerPluginError,
+  readArtifact,
+} from "@nomiclabs/buidler/plugins";
 
 import AbiEncoder from "./AbiEncoder";
 import { getDefaultEtherscanConfig } from "./config";
@@ -42,7 +45,8 @@ task("verify-contract", "Verifies contract on etherscan")
       const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
 
       if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
+          "@nomiclabs/buidler-etherscan",
           "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
         );
       }

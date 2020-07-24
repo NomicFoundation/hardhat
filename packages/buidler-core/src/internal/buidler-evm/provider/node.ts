@@ -26,6 +26,7 @@ import { promisify } from "util";
 
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { getUserConfigPath } from "../../core/project-structure";
+import { Reporter } from "../../sentry/reporter";
 import {
   dateToTimestampSeconds,
   getDifferenceInSeconds,
@@ -338,6 +339,8 @@ export class BuidlerNode extends EventEmitter {
         "Buidler EVM tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Buidler.\n",
         error
       );
+
+      Reporter.reportError(error);
     }
   }
 
