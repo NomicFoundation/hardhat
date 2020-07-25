@@ -118,4 +118,83 @@ describe("Anonymizer", () => {
       assert.isTrue(anonymizationResult.anonymizeContent);
     });
   });
+
+  describe("error message", () => {
+    it("should return the same message if there are no paths", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = "Something happened";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(anonymizedErrorMessage, errorMessage);
+    });
+
+    it("should anonymize a single path", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = `Something happened at file ${__filename}`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "Something happened at file <user-file>"
+      );
+    });
+
+    it("should anonymize a path between parentheses", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = `Something happened (${__filename})`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(anonymizedErrorMessage, "Something happened <user-file>");
+    });
+
+    it("should anonymize multiple paths", () => {
+      const anonymizer = new Anonymizer();
+      const file1 = __filename;
+      const file2 = path.resolve(__filename, "..", "some-other-file.js");
+      const errorMessage = `Something happened at file ${file1} and at file ${file2}`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "Something happened at file <user-file> and at file <user-file>"
+      );
+    });
+
+    it("should anonymize multiline errors", () => {
+      const anonymizer = new Anonymizer();
+      const file1 = __filename;
+      const file2 = path.resolve(__filename, "..", "some-other-file.js");
+      const errorMessage = `Something happened at file ${file1} and\nsomething else happened at file ${file2}`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        `Something happened at file <user-file> and\nsomething else happened at file <user-file>`
+      );
+    });
+
+    it("should anonymize files that end with ellipsis", () => {
+      const anonymizer = new Anonymizer();
+      const file = `${__filename.slice(0, __filename.length - 5)}...`;
+      const errorMessage = `Something happened at file ${file}: something`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "Something happened at file <user-file> something"
+      );
+    });
+  });
 });

@@ -91,6 +91,12 @@ export class Anonymizer {
     };
   }
 
+  public anonymizeErrorMessage(errorMessage: string): string {
+    // the \\ before path.sep is necessary for this to work on windows
+    const pathRegex = new RegExp(`\\S+\\${path.sep}\\S+`, "g");
+    return errorMessage.replace(pathRegex, "<user-file>");
+  }
+
   protected _getFilePackageJsonPath(filename: string): string | null {
     return findup.sync("package.json", {
       cwd: path.dirname(filename),
@@ -104,8 +110,11 @@ export class Anonymizer {
   private _anonymizeException(value: Exception): Exception {
     const result: Exception = {
       type: value.type,
-      value: value.value,
     };
+
+    if (value.value !== undefined) {
+      result.value = this.anonymizeErrorMessage(value.value);
+    }
 
     if (value.stacktrace !== undefined) {
       result.stacktrace = this._anonymizeStacktrace(value.stacktrace);
