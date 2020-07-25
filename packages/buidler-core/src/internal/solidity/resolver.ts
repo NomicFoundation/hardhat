@@ -94,6 +94,12 @@ export class Resolver {
         path.join(libraryName, "package.json")
       );
     } catch (error) {
+      // if the project is using a dependency from buidler itself but it can't be found, this means that a global
+      // installation is being used, so we resolve the dependency relative to this file
+      if (libraryName === "@nomiclabs/buidler") {
+        return this._resolveBuidlerDependency(globalName, libraryName);
+      }
+
       throw new BuidlerError(
         ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
         {
@@ -209,6 +215,28 @@ export class Resolver {
       absolutePath,
       content,
       lastModificationDate,
+      libraryName,
+      libraryVersion
+    );
+  }
+
+  private async _resolveBuidlerDependency(
+    globalName: string,
+    libraryName: string
+  ) {
+    const buidlerCoreDir = path.join(__dirname, "..", "..");
+    const packagePath = path.join(buidlerCoreDir, "package.json");
+    const absolutePath = path.join(
+      buidlerCoreDir,
+      path.relative(libraryName, globalName)
+    );
+
+    const packageInfo = await fsExtra.readJson(packagePath);
+    const libraryVersion = packageInfo.version;
+
+    return this._resolveFile(
+      globalName,
+      absolutePath,
       libraryName,
       libraryVersion
     );

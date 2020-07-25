@@ -301,7 +301,7 @@ function compareStackTraces(
       );
 
       assert.equal(
-        actual.sourceReference!.fileGlobalName,
+        actual.sourceReference!.file.globalName,
         expected.sourceReference.file,
         `Stack trace of tx ${txIndex} entry ${i} have different file names`
       );
@@ -374,7 +374,7 @@ async function runTest(
   }
 
   const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-  const tracer = new SolidityTracer(bytecodes);
+  const tracer = new SolidityTracer();
   const logger = new ConsoleLogger();
 
   const vm = await instantiateVm();
@@ -641,9 +641,21 @@ const solidity06Compilers: CompilerOptions[] = [
   //   solidityVersion: "0.6.7",
   //   compilerPath: "soljson-v0.6.7+commit.b8d736ae.js",
   // },
+  // {
+  //   solidityVersion: "0.6.8",
+  //   compilerPath: "soljson-v0.6.8+commit.0bbfe453.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.9",
+  //   compilerPath: "soljson-v0.6.9+commit.3e3065ac.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.10",
+  //   compilerPath: "soljson-v0.6.10+commit.00c0fcaf.js",
+  // },
   {
-    solidityVersion: "0.6.8",
-    compilerPath: "soljson-v0.6.8+commit.0bbfe453.js",
+    solidityVersion: "0.6.11",
+    compilerPath: "soljson-v0.6.11+commit.5ef660b1.js",
   },
 ];
 

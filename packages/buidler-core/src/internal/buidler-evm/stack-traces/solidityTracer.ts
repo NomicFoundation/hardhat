@@ -2,6 +2,10 @@ import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import semver from "semver";
 
 import {
+  adjustStackTrace,
+  stackTraceMayRequireAdjustments,
+} from "./mapped-inlined-internal-functions-heuristics";
+import {
   DecodedCallMessageTrace,
   DecodedCreateMessageTrace,
   DecodedEvmMessageTrace,
@@ -22,7 +26,6 @@ import {
   ContractType,
   Instruction,
   JumpType,
-  SourceFile,
   SourceLocation,
 } from "./model";
 import { isCall, isCreate, Opcode } from "./opcodes";
@@ -31,6 +34,7 @@ import {
   CallstackEntryStackTraceEntry,
   CONSTRUCTOR_FUNCTION_NAME,
   FALLBACK_FUNCTION_NAME,
+  InternalFunctionCallStackEntry,
   OtherExecutionErrorStackTraceEntry,
   RECEIVE_FUNCTION_NAME,
   RevertErrorStackTraceEntry,
@@ -51,19 +55,6 @@ const FIRST_SOLC_VERSION_WITH_UNMAPPED_REVERTS = "0.6.3";
 const EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT = 0x6000;
 
 export class SolidityTracer {
-  private _files: Map<string, SourceFile> = new Map();
-
-  constructor(private readonly _bytecodes: Bytecode[]) {
-    // TODO: Change this when we get to support multiple compilations in a
-    //  single Buidler EVM run.
-    for (const bytecode of _bytecodes) {
-      this._files.set(
-        bytecode.contract.location.file.globalName,
-        bytecode.contract.location.file
-      );
-    }
-  }
-
   public getStackTrace(
     maybeDecodedMessageTrace: MessageTrace
   ): SolidityStackTrace {
@@ -240,6 +231,18 @@ export class SolidityTracer {
   }
 
   private _traceEvmExecution(
+    trace: DecodedEvmMessageTrace
+  ): SolidityStackTrace {
+    const stackTrace = this._rawTraceEvmExecution(trace);
+
+    if (stackTraceMayRequireAdjustments(stackTrace, trace)) {
+      return adjustStackTrace(stackTrace, trace);
+    }
+
+    return stackTrace;
+  }
+
+  private _rawTraceEvmExecution(
     trace: DecodedEvmMessageTrace
   ): SolidityStackTrace {
     const stacktrace: SolidityStackTrace = [];
@@ -439,7 +442,7 @@ export class SolidityTracer {
         ];
       }
 
-      // This is here because of the optimizations
+      // Sometimes we do fail inside of a function but there's no jump into
       if (lastInstruction.location !== undefined) {
         const failingFunction = lastInstruction.location.getContainingFunction();
         if (failingFunction !== undefined) {
@@ -957,7 +960,23 @@ export class SolidityTracer {
   private _instructionToCallstackStackTraceEntry(
     bytecode: Bytecode,
     inst: Instruction
-  ): CallstackEntryStackTraceEntry {
+  ): CallstackEntryStackTraceEntry | InternalFunctionCallStackEntry {
+    // This means that a jump is made from within an internal solc function.
+    // These are normally made from yul code, so they don't map to any Solidity
+    // function
+    if (inst.location === undefined) {
+      return {
+        type: StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY,
+        pc: inst.pc,
+        sourceReference: {
+          file: bytecode.contract.location.file,
+          contract: bytecode.contract.name,
+          function: undefined,
+          line: bytecode.contract.location.getStartingLineNumber(),
+        },
+      };
+    }
+
     const func = inst.location!.getContainingFunction();
 
     if (func !== undefined) {
@@ -976,7 +995,7 @@ export class SolidityTracer {
       sourceReference: {
         function: undefined,
         contract: bytecode.contract.name,
-        fileGlobalName: inst.location!.file.globalName,
+        file: inst.location!.file,
         line: inst.location!.getStartingLineNumber(),
       },
       functionType: ContractFunctionType.FUNCTION,
@@ -1015,7 +1034,7 @@ export class SolidityTracer {
   private _getEntryBeforeFailureInModifier(
     trace: DecodedEvmMessageTrace,
     functionJumpdests: Instruction[]
-  ): CallstackEntryStackTraceEntry {
+  ): CallstackEntryStackTraceEntry | InternalFunctionCallStackEntry {
     // If there's a jumpdest, this modifier belongs to the last function that it represents
     if (functionJumpdests.length > 0) {
       return this._instructionToCallstackStackTraceEntry(
@@ -1081,7 +1100,7 @@ export class SolidityTracer {
     trace: DecodedEvmMessageTrace
   ) {
     return {
-      fileGlobalName: trace.bytecode.contract.location.file.globalName,
+      file: trace.bytecode.contract.location.file,
       contract: trace.bytecode.contract.name,
       line: trace.bytecode.contract.location.getStartingLineNumber(),
     };
@@ -1103,7 +1122,7 @@ export class SolidityTracer {
         : contract.location.getStartingLineNumber();
 
     return {
-      fileGlobalName: contract.location.file.globalName,
+      file: contract.location.file,
       contract: contract.name,
       function: CONSTRUCTOR_FUNCTION_NAME,
       line,
@@ -1122,7 +1141,7 @@ export class SolidityTracer {
     }
 
     return {
-      fileGlobalName: func.location.file.globalName,
+      file: func.location.file,
       contract: trace.bytecode.contract.name,
       function: FALLBACK_FUNCTION_NAME,
       line: func.location.getStartingLineNumber(),
@@ -1134,7 +1153,7 @@ export class SolidityTracer {
     func: ContractFunction
   ): SourceReference {
     return {
-      fileGlobalName: func.location.file.globalName,
+      file: func.location.file,
       contract: trace.bytecode.contract.name,
       function: func.name,
       line: func.location.getStartingLineNumber(),
@@ -1192,7 +1211,7 @@ export class SolidityTracer {
     return {
       function: funcName,
       contract: bytecode.contract.name,
-      fileGlobalName: func.location.file.globalName,
+      file: func.location.file,
       line: location.getStartingLineNumber(),
     };
   }
@@ -1306,8 +1325,7 @@ export class SolidityTracer {
             sourceReference: {
               contract: trace.bytecode.contract.name,
               function: FALLBACK_FUNCTION_NAME,
-              fileGlobalName:
-                trace.bytecode.contract.fallback.location.file.globalName,
+              file: trace.bytecode.contract.fallback.location.file,
               line: trace.bytecode.contract.fallback.location.getStartingLineNumber(),
             },
           };
@@ -1321,8 +1339,7 @@ export class SolidityTracer {
           sourceReference: {
             contract: trace.bytecode.contract.name,
             function: RECEIVE_FUNCTION_NAME,
-            fileGlobalName:
-              trace.bytecode.contract.receive.location.file.globalName,
+            file: trace.bytecode.contract.receive.location.file,
             line: trace.bytecode.contract.receive.location.getStartingLineNumber(),
           },
         };
@@ -1415,7 +1432,7 @@ export class SolidityTracer {
         const defaultSourceReference: SourceReference = {
           function: CONSTRUCTOR_FUNCTION_NAME,
           contract: trace.bytecode.contract.name,
-          fileGlobalName: trace.bytecode.contract.location.file.globalName,
+          file: trace.bytecode.contract.location.file,
           line: trace.bytecode.contract.location.getStartingLineNumber(),
         };
 
@@ -1469,9 +1486,7 @@ export class SolidityTracer {
   private _solidity063CorrectLineNumber(
     revertFrame: UnmappedSolc063RevertErrorStackTraceEntry
   ) {
-    // TODO: Change this when we add support for multiple compilations. This
-    //  info should be present in the source reference
-    const file = this._files.get(revertFrame.sourceReference.fileGlobalName)!;
+    const file = revertFrame.sourceReference.file;
 
     const lines = file.content.split("\n");
 

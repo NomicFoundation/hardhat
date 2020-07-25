@@ -163,6 +163,14 @@ function encodeStackTraceEntry(
         undefined
       );
 
+    case StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY:
+      return new SolidityCallSite(
+        stackTraceEntry.sourceReference.file.globalName,
+        stackTraceEntry.sourceReference.contract,
+        `internal@${stackTraceEntry.pc}`,
+        undefined
+      );
+
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
         return new SolidityCallSite(
@@ -181,7 +189,7 @@ function sourceReferenceToSolidityCallsite(
   sourceReference: SourceReference
 ): SolidityCallSite {
   return new SolidityCallSite(
-    sourceReference.fileGlobalName,
+    sourceReference.file.globalName,
     sourceReference.contract,
     sourceReference.function !== undefined
       ? sourceReference.function

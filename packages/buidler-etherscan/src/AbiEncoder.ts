@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import abi from "ethereumjs-abi";
 
 export default class AbiEncoder {
@@ -15,7 +15,8 @@ export default class AbiEncoder {
     }
 
     if (constructorAbi.inputs.length !== constructorArguments.length) {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-etherscan",
         `Invalid number of constructor arguments:
           Expected: ${constructorAbi.inputs.length}
           Received: ${constructorArguments.length}`

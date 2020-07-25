@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import request from "request-promise";
 
 import { EtherscanRequestParameters } from "./EtherscanVerifyContractRequest";
@@ -18,12 +18,16 @@ export async function verifyContract(
     );
 
     if (!response.isOk()) {
-      throw new BuidlerPluginError(response.message);
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-etherscan",
+        response.message
+      );
     }
 
     return response;
   } catch (error) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
+      "@nomiclabs/buidler-etherscan",
       `Failed to send contract verification request. Reason: ${error.message}`,
       error
     );
@@ -52,12 +56,16 @@ export async function getVerificationStatus(
       return getVerificationStatus(url, guid);
     }
     if (!response.isOk()) {
-      throw new BuidlerPluginError(response.message);
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-etherscan",
+        response.message
+      );
     }
 
     return response;
   } catch (error) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
+      "@nomiclabs/buidler-etherscan",
       `Failed to verify contract. Reason: ${error.message}`
     );
   }
