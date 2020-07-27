@@ -1,5 +1,5 @@
 import Account from "ethereumjs-account";
-import { BN } from "ethereumjs-util";
+import { BN, stripZeros } from "ethereumjs-util";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -9,8 +9,13 @@ import { StateManager } from "./StateManager";
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
+const encodeStorageKey = (address: Buffer, position: Buffer): string => {
+  return address.toString("hex") + stripZeros(position).toString("hex");
+};
+
 export class ForkStateManager {
   private _contractCode = new Map<string, Buffer>();
+  private _contractStorage = new Map<string, Buffer>();
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
@@ -45,8 +50,21 @@ export class ForkStateManager {
     return this._jsonRpcClient.getCode(address, this._forkBlockNumber);
   }
 
-  public getContractStorage(address: Buffer, key: Buffer): Promise<Buffer> {
-    throw new Error("Not implemented.");
+  public async getContractStorage(
+    address: Buffer,
+    key: Buffer
+  ): Promise<Buffer> {
+    const localValue = this._contractStorage.get(
+      encodeStorageKey(address, key)
+    );
+    if (localValue !== undefined) {
+      return localValue;
+    }
+    return this._jsonRpcClient.getStorageAt(
+      address,
+      key,
+      this._forkBlockNumber
+    );
   }
 
   public getOriginalContractStorage(
@@ -56,12 +74,12 @@ export class ForkStateManager {
     throw new Error("Not implemented.");
   }
 
-  public putContractStorage(
+  public async putContractStorage(
     address: Buffer,
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    throw new Error("Not implemented.");
+    this._contractStorage.set(encodeStorageKey(address, key), value);
   }
 
   public clearContractStorage(address: Buffer): Promise<void> {

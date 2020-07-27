@@ -42,4 +42,29 @@ describe("ForkStateManager", () => {
 
     assert.equal(fsmCode.toString("hex"), code.toString("hex"));
   });
+
+  it("can get contract storage value", async () => {
+    const totalSupplyPosition = Buffer.from([1]);
+    const remoteValue = await client.getStorageAt(
+      DAI_ADDRESS,
+      totalSupplyPosition,
+      blockNumber
+    );
+    const fsmValue = await fsm.getContractStorage(
+      DAI_ADDRESS,
+      totalSupplyPosition
+    );
+
+    assert.equal(fsmValue.toString("hex"), remoteValue.toString("hex"));
+  });
+
+  it("can override storage value", async () => {
+    const position = Buffer.from([1]);
+    const value = Buffer.from("feedface", "hex");
+
+    await fsm.putContractStorage(DAI_ADDRESS, position, value);
+    const fsmValue = await fsm.getContractStorage(DAI_ADDRESS, position);
+
+    assert.equal(fsmValue.toString("hex"), value.toString("hex"));
+  });
 });
