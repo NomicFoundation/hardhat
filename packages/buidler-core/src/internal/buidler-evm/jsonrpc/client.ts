@@ -1,4 +1,5 @@
 import { BN } from "ethereumjs-util";
+import * as t from "io-ts";
 
 import { HttpProvider } from "../../core/providers/http";
 import { rpcData, rpcQuantity } from "../provider/input";
@@ -19,33 +20,38 @@ export class JsonRpcClient {
     return new JsonRpcClient(new HttpProvider(url, "external network"));
   }
 
+  private _cache: Map<string, any> = new Map();
+
   constructor(private _httpProvider: HttpProvider) {}
 
   public async getLatestBlockNumber(): Promise<BN> {
-    const result = await this._httpProvider.send("eth_blockNumber", []);
-    return decode(result, rpcQuantity);
+    return this._perform("eth_blockNumber", [], rpcQuantity);
   }
 
   public async getBlockByNumber(
     blockTag: BlockTag,
     includeTransactions = false
   ): Promise<RpcBlock | RpcBlockWithTransactions> {
-    const result = await this._httpProvider.send("eth_getBlockByNumber", [
-      blockTagToString(blockTag),
-      includeTransactions,
-    ]);
     if (includeTransactions) {
-      return decode(result, rpcBlockWithTransactions);
+      return this._perform(
+        "eth_getBlockByNumber",
+        [blockTagToString(blockTag), includeTransactions],
+        rpcBlockWithTransactions
+      );
     }
-    return decode(result, rpcBlock);
+    return this._perform(
+      "eth_getBlockByNumber",
+      [blockTagToString(blockTag), includeTransactions],
+      rpcBlock
+    );
   }
 
   public async getCode(address: Buffer, blockTag: BlockTag): Promise<Buffer> {
-    const result = await this._httpProvider.send("eth_getCode", [
-      bufferToString(address),
-      blockTagToString(blockTag),
-    ]);
-    return decode(result, rpcData);
+    return this._perform(
+      "eth_getCode",
+      [bufferToString(address), blockTagToString(blockTag)],
+      rpcData
+    );
   }
 
   public async getStorageAt(
@@ -53,12 +59,30 @@ export class JsonRpcClient {
     position: Buffer,
     blockTag: BlockTag
   ): Promise<Buffer> {
-    const result = await this._httpProvider.send("eth_getStorageAt", [
-      bufferToString(address),
-      bufferToString(position),
-      blockTagToString(blockTag),
-    ]);
-    return decode(result, rpcData);
+    return this._perform(
+      "eth_getStorageAt",
+      [
+        bufferToString(address),
+        bufferToString(position),
+        blockTagToString(blockTag),
+      ],
+      rpcData
+    );
+  }
+
+  private async _perform<T>(
+    method: string,
+    params: Array<string | number | boolean>,
+    tType: t.Type<T, T>
+  ): Promise<T> {
+    const key = `${method} ${params.join(" ")}`;
+    if (this._cache.has(key)) {
+      return this._cache.get(key);
+    }
+    const result = await this._httpProvider.send(method, params);
+    const decoded = decode(result, tType);
+    this._cache.set(key, decoded);
+    return decoded;
   }
 }
 
