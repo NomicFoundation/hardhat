@@ -243,5 +243,61 @@ describe("Anonymizer", () => {
 
       assert.equal(anonymizedErrorMessage, errorMessage);
     });
+
+    it("should hide a private key that starts with 0x", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "My PK is 0x3ecf4eda095143894fef9fc0c2480d44c4c7e40bf340448e3039da92888b3096";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "My PK is xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      );
+    });
+
+    it("should hide a private key that doesn't start with 0x", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "My PK is 3ecf4eda095143894fef9fc0c2480d44c4c7e40bf340448e3039da92888b3096";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "My PK is xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      );
+    });
+
+    it("should hide multiple private keys", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "My PKs are 0x3ecf4eda095143894fef9fc0c2480d44c4c7e40bf340448e3039da92888b3096\nand 0x7b63fe0cc949ac8fd4161a943b7ab26156c06315c2a9030e064980e7bcc7a056";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "My PKs are xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nand xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      );
+    });
+
+    it("should hide addresses", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "My addresses are 0xf658b4176b77f6d6439D249D04f166eF315d69FC and 30444113Ad783A6bd92E057a21572a70890e7768";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "My addresses are xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx and xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      );
+    });
   });
 });

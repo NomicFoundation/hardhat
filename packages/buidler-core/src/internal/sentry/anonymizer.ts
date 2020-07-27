@@ -98,9 +98,13 @@ export class Anonymizer {
     // for files that don't have a path separator
     const fileRegex = new RegExp("\\S+\\.(js|ts)\\S*", "g");
 
+    // hide hex strings of 20 chars or more
+    const hexRegex = /(0x)?[0-9A-Fa-f]{20,}/g;
+
     return errorMessage
       .replace(pathRegex, ANONYMIZED_FILE)
-      .replace(fileRegex, ANONYMIZED_FILE);
+      .replace(fileRegex, ANONYMIZED_FILE)
+      .replace(hexRegex, (match) => match.replace(/./g, "x"));
   }
 
   public raisedByBuidler(event: Event): boolean {
