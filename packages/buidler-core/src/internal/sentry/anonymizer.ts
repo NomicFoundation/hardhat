@@ -103,6 +103,50 @@ export class Anonymizer {
       .replace(fileRegex, ANONYMIZED_FILE);
   }
 
+  public raisedByBuidler(event: Event): boolean {
+    const exceptions = event?.exception?.values;
+
+    if (exceptions === undefined) {
+      // if we can't prove that the exception doesn't come from buidler,
+      // we err on the side of reporting the error
+      return true;
+    }
+
+    const originalException = exceptions[exceptions.length - 1];
+
+    const frames = originalException?.stacktrace?.frames;
+
+    if (frames === undefined) {
+      return true;
+    }
+
+    for (const frame of frames) {
+      if (frame.filename === undefined) {
+        continue;
+      }
+
+      // we stop after finding either a buidler file or a file from the user's
+      // project
+      if (frame.filename.startsWith("node_modules/@nomiclabs")) {
+        return true;
+      }
+
+      if (frame.filename === ANONYMIZED_FILE) {
+        return false;
+      }
+
+      if (
+        this._configPath !== undefined &&
+        this._configPath.includes(frame.filename)
+      ) {
+        return false;
+      }
+    }
+
+    // if we didn't find any buidler frame, we don't report the error
+    return false;
+  }
+
   protected _getFilePackageJsonPath(filename: string): string | null {
     return findup.sync("package.json", {
       cwd: path.dirname(filename),
