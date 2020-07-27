@@ -107,17 +107,34 @@ describe("JsonRpcClient", () => {
       const totalSupplyBN = new BN(totalSupply);
       assert.isTrue(totalSupplyBN.gt(new BN(0)));
     });
-  });
 
-  it("can fetch empty value from storage of an existing contract", async () => {
-    const client = JsonRpcClient.forUrl(INFURA_URL);
+    it("can fetch empty value from storage of an existing contract", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
 
-    const value = await client.getStorageAt(
-      DAI_ADDRESS,
-      Buffer.from("baddcafe", "hex"),
-      "latest"
-    );
-    const valueBN = new BN(value);
-    assert.isTrue(valueBN.eq(new BN(0)));
+      const value = await client.getStorageAt(
+        DAI_ADDRESS,
+        Buffer.from("baddcafe", "hex"),
+        "latest"
+      );
+      const valueBN = new BN(value);
+      assert.isTrue(valueBN.eq(new BN(0)));
+    });
+
+    it("can fetch empty value from storage of a non existing contract", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
+
+      const address = Buffer.from(
+        "1234567890abcdef1234567890abcdef12345678",
+        "hex"
+      );
+
+      const value = await client.getStorageAt(
+        address,
+        Buffer.from([1]),
+        "latest"
+      );
+      const valueBN = new BN(value);
+      assert.isTrue(valueBN.eq(new BN(0)));
+    });
   });
 });
