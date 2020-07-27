@@ -196,5 +196,52 @@ describe("Anonymizer", () => {
         "Something happened at file <user-file> something"
       );
     });
+
+    it("should anonymize a file that doesn't have a path separator", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = "Something happened at file foo.json";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "Something happened at file <user-file>"
+      );
+    });
+
+    it("should anonymize multiple files that don't have a path separator", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "Something happened at file foo.json and at file bar.ts";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "Something happened at file <user-file> and at file <user-file>"
+      );
+    });
+
+    it("shouldn't anonymize stand-alone extensions", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = "The .json extension is not supported";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(anonymizedErrorMessage, errorMessage);
+    });
+
+    it("shouldn't interpret periods as files with extensions", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = "This is a sentence. This is another sentence.";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(anonymizedErrorMessage, errorMessage);
+    });
   });
 });

@@ -94,7 +94,13 @@ export class Anonymizer {
   public anonymizeErrorMessage(errorMessage: string): string {
     // the \\ before path.sep is necessary for this to work on windows
     const pathRegex = new RegExp(`\\S+\\${path.sep}\\S+`, "g");
-    return errorMessage.replace(pathRegex, "<user-file>");
+
+    // for files that don't have a path separator
+    const fileRegex = new RegExp("\\S+\\.(js|ts)\\S*", "g");
+
+    return errorMessage
+      .replace(pathRegex, ANONYMIZED_FILE)
+      .replace(fileRegex, ANONYMIZED_FILE);
   }
 
   protected _getFilePackageJsonPath(filename: string): string | null {
