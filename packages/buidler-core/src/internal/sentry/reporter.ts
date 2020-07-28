@@ -1,6 +1,11 @@
-import { BuidlerError } from "../core/errors";
+import {
+  BuidlerError,
+  BuidlerPluginError,
+  NomicLabsBuidlerPluginError,
+} from "../core/errors";
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
+import { getBuidlerVersion } from "../util/packageInfo";
 
 import { getSubprocessTransport } from "./transport";
 
@@ -18,10 +23,7 @@ export class Reporter {
       return;
     }
 
-    if (
-      BuidlerError.isBuidlerError(error) &&
-      !error.errorDescriptor.shouldBeReported
-    ) {
+    if (!Reporter.shouldReport(error)) {
       return;
     }
 
@@ -30,6 +32,11 @@ export class Reporter {
     const Sentry = require("@sentry/node");
     Sentry.setExtra("verbose", instance.verbose);
     Sentry.setExtra("configPath", instance.configPath);
+    Sentry.setExtra("nodeVersion", process.version);
+
+    const buidlerVersion = getBuidlerVersion();
+    Sentry.setExtra("buidlerVersion", buidlerVersion);
+
     Sentry.captureException(error);
 
     return true;
@@ -78,6 +85,26 @@ export class Reporter {
 
     const Sentry = await import("@sentry/node");
     return Sentry.close(timeout);
+  }
+
+  public static shouldReport(error: Error): boolean {
+    if (
+      BuidlerError.isBuidlerError(error) &&
+      !error.errorDescriptor.shouldBeReported
+    ) {
+      return false;
+    }
+
+    if (BuidlerPluginError.isBuidlerPluginError(error)) {
+      if (NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(error)) {
+        return error.shouldBeReported;
+      }
+
+      // don't log errors from third-party plugins
+      return false;
+    }
+
+    return true;
   }
 
   private static _instance: Reporter;

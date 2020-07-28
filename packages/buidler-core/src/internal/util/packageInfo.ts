@@ -28,3 +28,18 @@ export async function getPackageJson(): Promise<PackageJson> {
   const root = await getPackageRoot();
   return fsExtra.readJSON(path.join(root, "package.json"));
 }
+
+export function getBuidlerVersion(): string | null {
+  const packageJsonPath = findClosestPackageJson(__filename);
+
+  if (packageJsonPath === null) {
+    return null;
+  }
+
+  try {
+    const packageJson = fsExtra.readJsonSync(packageJsonPath);
+    return packageJson.version;
+  } catch (e) {
+    return null;
+  }
+}

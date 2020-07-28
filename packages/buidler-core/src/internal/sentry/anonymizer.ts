@@ -25,6 +25,7 @@ export class Anonymizer {
       event_id: event.event_id,
       platform: event.platform,
       timestamp: event.timestamp,
+      extra: event.extra,
     };
 
     if (event.exception !== undefined && event.exception.values !== undefined) {
@@ -94,13 +95,77 @@ export class Anonymizer {
   public anonymizeErrorMessage(errorMessage: string): string {
     // the \\ before path.sep is necessary for this to work on windows
     const pathRegex = new RegExp(`\\S+\\${path.sep}\\S+`, "g");
-    return errorMessage.replace(pathRegex, "<user-file>");
+
+    // for files that don't have a path separator
+    const fileRegex = new RegExp("\\S+\\.(js|ts)\\S*", "g");
+
+    // hide hex strings of 20 chars or more
+    const hexRegex = /(0x)?[0-9A-Fa-f]{20,}/g;
+
+    return errorMessage
+      .replace(pathRegex, ANONYMIZED_FILE)
+      .replace(fileRegex, ANONYMIZED_FILE)
+      .replace(hexRegex, (match) => match.replace(/./g, "x"));
+  }
+
+  public raisedByBuidler(event: Event): boolean {
+    const exceptions = event?.exception?.values;
+
+    if (exceptions === undefined) {
+      // if we can't prove that the exception doesn't come from buidler,
+      // we err on the side of reporting the error
+      return true;
+    }
+
+    const originalException = exceptions[exceptions.length - 1];
+
+    const frames = originalException?.stacktrace?.frames;
+
+    if (frames === undefined) {
+      return true;
+    }
+
+    for (const frame of frames) {
+      if (frame.filename === undefined) {
+        continue;
+      }
+
+      // we stop after finding either a buidler file or a file from the user's
+      // project
+      if (this._isBuidlerFile(frame.filename)) {
+        return true;
+      }
+
+      if (frame.filename === ANONYMIZED_FILE) {
+        return false;
+      }
+
+      if (
+        this._configPath !== undefined &&
+        this._configPath.includes(frame.filename)
+      ) {
+        return false;
+      }
+    }
+
+    // if we didn't find any buidler frame, we don't report the error
+    return false;
   }
 
   protected _getFilePackageJsonPath(filename: string): string | null {
     return findup.sync("package.json", {
       cwd: path.dirname(filename),
     });
+  }
+
+  private _isBuidlerFile(filename: string): boolean {
+    const nomiclabsPath = path.join("node_modules", "@nomiclabs");
+    const truffleContractPath = path.join(nomiclabsPath, "truffle-contract");
+    const isBuidlerFile =
+      filename.startsWith(nomiclabsPath) &&
+      !filename.startsWith(truffleContractPath);
+
+    return isBuidlerFile;
   }
 
   private _anonymizeExceptions(exceptions: Exception[]): Exception[] {
