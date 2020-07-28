@@ -5,6 +5,7 @@ import {
 } from "../core/errors";
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
+import { getBuidlerVersion } from "../util/packageInfo";
 
 import { getSubprocessTransport } from "./transport";
 
@@ -31,6 +32,11 @@ export class Reporter {
     const Sentry = require("@sentry/node");
     Sentry.setExtra("verbose", instance.verbose);
     Sentry.setExtra("configPath", instance.configPath);
+    Sentry.setExtra("nodeVersion", process.version);
+
+    const buidlerVersion = getBuidlerVersion();
+    Sentry.setExtra("buidlerVersion", buidlerVersion);
+
     Sentry.captureException(error);
 
     return true;

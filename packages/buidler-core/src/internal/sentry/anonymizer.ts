@@ -25,6 +25,7 @@ export class Anonymizer {
       event_id: event.event_id,
       platform: event.platform,
       timestamp: event.timestamp,
+      extra: event.extra,
     };
 
     if (event.exception !== undefined && event.exception.values !== undefined) {
