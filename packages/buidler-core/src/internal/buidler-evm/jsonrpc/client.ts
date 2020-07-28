@@ -28,6 +28,14 @@ export class JsonRpcClient {
     return this._perform("eth_blockNumber", [], rpcQuantity);
   }
 
+  public async getBalance(address: Buffer, blockTag: BlockTag): Promise<BN> {
+    return this._perform(
+      "eth_getBalance",
+      [bufferToString(address), blockTagToString(blockTag)],
+      rpcQuantity
+    );
+  }
+
   public async getBlockByNumber(
     blockTag: BlockTag,
     includeTransactions = false

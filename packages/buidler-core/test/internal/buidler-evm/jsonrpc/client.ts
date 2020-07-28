@@ -13,6 +13,10 @@ const DAI_ADDRESS = Buffer.from(
   "6b175474e89094c44da98b954eedeac495271d0f",
   "hex"
 );
+const WETH_ADDRESS = Buffer.from(
+  "C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  "hex"
+);
 const EMPTY_ACCOUNT_ADDRESS = Buffer.from(
   "1234567890abcdef1234567890abcdef12345678",
   "hex"
@@ -94,6 +98,24 @@ describe("JsonRpcClient", () => {
       response = "foo";
       const result = await client.getLatestBlockNumber().catch((e) => e);
       assert.instanceOf(result, Error);
+    });
+  });
+
+  describe("eth_getBalance", () => {
+    let client: JsonRpcClient;
+
+    beforeEach(() => {
+      client = JsonRpcClient.forUrl(INFURA_URL);
+    });
+
+    it("can fetch balance of an existing account", async () => {
+      const balance = await client.getBalance(WETH_ADDRESS, "latest");
+      assert.isTrue(balance.gtn(0));
+    });
+
+    it("can fetch balance of a non-existent account", async () => {
+      const balance = await client.getBalance(EMPTY_ACCOUNT_ADDRESS, "latest");
+      assert.isTrue(balance.eqn(0));
     });
   });
 
