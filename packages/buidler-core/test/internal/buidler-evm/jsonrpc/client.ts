@@ -1,5 +1,6 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
+import { BN, toBuffer } from "ethereumjs-util";
+import sinon from "sinon";
 
 import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
 import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
@@ -29,6 +30,51 @@ describe("JsonRpcClient", () => {
     const result = await client.getLatestBlockNumber();
     const minBlockNumber = 10494745; // mainnet block number at 20.07.20
     assert.isAtLeast(result.toNumber(), minBlockNumber);
+  });
+
+  describe("caching", () => {
+    const response1 =
+      "0x00000000000000000000000000000000000000000067bafa8fb7228f04ffa792";
+    const response2 =
+      "0x00000000000000000000000000000000000000000067bafa8fb7228f04ffa793";
+
+    it("caches fetched data", async () => {
+      const fakeProvider = {
+        send: sinon.fake.returns(response1),
+      };
+      const client = new JsonRpcClient(fakeProvider as any);
+
+      function getStorageAt() {
+        return client.getStorageAt(DAI_ADDRESS, Buffer.from([1]), "latest");
+      }
+
+      await getStorageAt();
+      const value = await getStorageAt();
+
+      assert.isTrue(fakeProvider.send.calledOnce);
+      assert.isTrue(value.equals(toBuffer(response1)));
+    });
+
+    it("is parameter aware", async () => {
+      const fakeProvider = {
+        send: sinon
+          .stub()
+          .onFirstCall()
+          .returns(response1)
+          .onSecondCall()
+          .returns(response2),
+      };
+      const client = new JsonRpcClient(fakeProvider as any);
+
+      await client.getStorageAt(DAI_ADDRESS, Buffer.from([1]), "latest");
+      const value = await client.getStorageAt(
+        DAI_ADDRESS,
+        Buffer.from([2]),
+        "latest"
+      );
+      assert.isTrue(fakeProvider.send.calledTwice);
+      assert.isTrue(value.equals(toBuffer(response2)));
+    });
   });
 
   describe("eth_blockNumber", () => {
