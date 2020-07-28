@@ -40,7 +40,7 @@ describe("Environment", () => {
       sources: "",
       tests: "",
     },
-    solc: {
+    solidity: {
       version: "0.5.0",
       optimizer: {
         enabled: false,

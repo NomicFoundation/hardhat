@@ -53,56 +53,76 @@ describe("Dependency Graph", function () {
     fileWithoutDependencies = new ResolvedFile(
       "contracts/WD.sol",
       path.join(projectRoot, "contracts", "WD.sol"),
-      "no dependecy",
+      { rawContent: "no dependecy", imports: [], versionPragmas: [] },
       new Date()
     );
 
     fileWithoutDependencies2 = new ResolvedFile(
       "contracts/WD2.sol",
       path.join(projectRoot, "contracts", "WD2.sol"),
-      "no dependecy",
+      { rawContent: "no dependecy", imports: [], versionPragmas: [] },
       new Date()
     );
 
     fileWithoutDependencies3 = new ResolvedFile(
       "contracts/WD3.sol",
       path.join(projectRoot, "contracts", "WD3.sol"),
-      "no dependecy",
+      { rawContent: "no dependecy", imports: [], versionPragmas: [] },
       new Date()
     );
 
     dependsOnWDAndW2 = new ResolvedFile(
       "contracts/dependsOnWDAndW2.sol",
       path.join(projectRoot, "contracts", "dependsOnWDAndW2.sol"),
-      'import "./WD.sol"; import "./WD2.sol";',
+      {
+        rawContent: 'import "./WD.sol"; import "./WD2.sol";',
+        imports: ["./WD.sol", "./WD2.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     dependsOnWD = new ResolvedFile(
       "contracts/dependsOnWD.sol",
       path.join(projectRoot, "contracts", "dependsOnWD.sol"),
-      'import "./WD.sol";',
+      {
+        rawContent: 'import "./WD.sol";',
+        imports: ["./WD.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     loop1 = new ResolvedFile(
       "contracts/loop1.sol",
       path.join(projectRoot, "contracts", "loop1.sol"),
-      'import "./loop2.sol";',
+      {
+        rawContent: 'import "./loop2.sol";',
+        imports: ["./loop2.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     loop2 = new ResolvedFile(
       "contracts/loop2.sol",
       path.join(projectRoot, "contracts", "loop2.sol"),
-      'import "./loop1.sol";',
+      {
+        rawContent: 'import "./loop1.sol";',
+        imports: ["./loop1.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     dependsOnLoop2 = new ResolvedFile(
       "contracts/dependsOnLoop2.sol",
       path.join(projectRoot, "contracts", "dependsOnLoop2.sol"),
-      'import "./loop2.sol";',
+      {
+        rawContent: 'import "./loop2.sol";',
+        imports: ["./loop2.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 

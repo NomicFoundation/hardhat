@@ -8,6 +8,10 @@ export default function () {
   );
 
   loadPluginFile(
+    path.join(__dirname, "..", "..", "..", "builtin-tasks", "compile-legacy")
+  );
+
+  loadPluginFile(
     path.join(__dirname, "..", "..", "..", "builtin-tasks", "compile")
   );
 

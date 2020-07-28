@@ -14,12 +14,11 @@ const log = debug("buidler:core:compilation-watcher");
 
 export async function watchCompilerOutput(
   provider: EthereumProvider,
-  solcConfig: SolcConfig,
+  compilerVersion: string,
   paths: ProjectPaths
 ) {
   const chokidar = await import("chokidar");
 
-  const compilerVersion = solcConfig.version;
   const solcInputPath = path.join(paths.cache, SOLC_INPUT_FILENAME);
   const solcOutputPath = path.join(paths.cache, SOLC_OUTPUT_FILENAME);
 

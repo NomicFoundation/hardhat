@@ -87,6 +87,13 @@ export interface SolcConfig {
   evmVersion?: EVMVersion;
 }
 
+export interface MultiSolcConfig {
+  compilers: SolcConfig[];
+  overides?: Record<string, SolcConfig>;
+}
+
+export type SolidityConfig = string | SolcConfig | MultiSolcConfig;
+
 export interface SolcOptimizerConfig {
   enabled: boolean;
   runs: number;
@@ -100,7 +107,7 @@ export interface BuidlerConfig {
   defaultNetwork?: string;
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
-  solc?: DeepPartial<SolcConfig>;
+  solidity?: SolidityConfig;
   mocha?: Mocha.MochaOptions;
   analytics?: Partial<AnalyticsConfig>;
 }
@@ -109,8 +116,8 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   defaultNetwork: string;
   paths: ProjectPaths;
   networks: Networks;
-  solc: SolcConfig;
   analytics: AnalyticsConfig;
+  solidity: SolidityConfig;
 }
 
 // End config types

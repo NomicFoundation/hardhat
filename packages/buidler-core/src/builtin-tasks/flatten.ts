@@ -49,7 +49,9 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 function getFileWithoutImports(resolvedFile: ResolvedFile) {
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+).*$/gm;
 
-  return resolvedFile.content.replace(IMPORT_SOLIDITY_REGEX, "").trim();
+  return resolvedFile.content.rawContent
+    .replace(IMPORT_SOLIDITY_REGEX, "")
+    .trim();
 }
 
 export default function () {

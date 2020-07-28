@@ -5,6 +5,8 @@ import slash from "slash";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
+import { parse } from "./parse";
+
 export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
 }
@@ -14,13 +16,19 @@ export interface LibraryInfo {
   version: string;
 }
 
+interface FileContent {
+  rawContent: string;
+  imports: string[];
+  versionPragmas: string[];
+}
+
 export class ResolvedFile {
   public readonly library?: LibraryInfo;
 
   constructor(
     public readonly globalName: string,
     public readonly absolutePath: string,
-    public readonly content: string,
+    public readonly content: FileContent,
     // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
     // properties (e.g. its name) are changed, only when it's content changes.
     public readonly lastModificationDate: Date,
@@ -206,9 +214,16 @@ export class Resolver {
     libraryName?: string,
     libraryVersion?: string
   ): Promise<ResolvedFile> {
-    const content = await fsExtra.readFile(absolutePath, { encoding: "utf8" });
+    const rawContent = await fsExtra.readFile(absolutePath, {
+      encoding: "utf8",
+    });
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
+
+    const content = {
+      rawContent,
+      ...parse(rawContent),
+    };
 
     return new ResolvedFile(
       globalName,

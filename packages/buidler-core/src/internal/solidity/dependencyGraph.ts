@@ -1,4 +1,3 @@
-import { getImports } from "./imports";
 import { ResolvedFile, Resolver } from "./resolver";
 
 export class DependencyGraph {
@@ -28,6 +27,39 @@ export class DependencyGraph {
     return Array.from(this.dependenciesPerFile.keys());
   }
 
+  public getTransitiveDependencies(file: ResolvedFile): ResolvedFile[] {
+    const visited = new Set<ResolvedFile>();
+
+    const transitiveDependencies = this._getTransitiveDependencies(
+      file,
+      visited
+    );
+
+    return [...transitiveDependencies];
+  }
+
+  private _getTransitiveDependencies(
+    file: ResolvedFile,
+    visited: Set<ResolvedFile>
+  ): Set<ResolvedFile> {
+    if (visited.has(file)) {
+      return new Set();
+    }
+    visited.add(file);
+
+    const transitiveDependencies =
+      this.dependenciesPerFile.get(file) ?? new Set();
+
+    for (const transitiveDependency of transitiveDependencies) {
+      this._getTransitiveDependencies(
+        transitiveDependency,
+        visited
+      ).forEach((x) => transitiveDependencies.add(x));
+    }
+
+    return transitiveDependencies;
+  }
+
   private async _addDependenciesFrom(
     resolver: Resolver,
     file: ResolvedFile
@@ -41,9 +73,7 @@ export class DependencyGraph {
     const dependencies = new Set<ResolvedFile>();
     this.dependenciesPerFile.set(file, dependencies);
 
-    const imports = getImports(file.content);
-
-    for (const imp of imports) {
+    for (const imp of file.content.imports) {
       const dependency = await resolver.resolveImport(file, imp);
       dependencies.add(dependency);
 

@@ -24,9 +24,10 @@ describe("Config resolution", () => {
 
       it("should return the default config", () => {
         const config = loadConfigAndTasks();
-        assert.equal(config.solc.version, DEFAULT_SOLC_VERSION);
+        const solidityConfig: any = config.solidity;
+        assert.equal(solidityConfig.version, DEFAULT_SOLC_VERSION);
         assert.containsAllKeys(config.networks, ["localhost"]);
-        assert.isUndefined(config.solc.evmVersion);
+        assert.isUndefined(solidityConfig.evmVersion);
         assert.equal(config.defaultNetwork, "buidlerevm");
 
         const buidlerEvmConfig: BuidlerNetworkConfig = config.networks
@@ -42,15 +43,17 @@ describe("Config resolution", () => {
 
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
+        const solidityConfig: any = config.solidity;
 
-        assert.equal(config.solc.version, DEFAULT_SOLC_VERSION);
+        assert.equal(solidityConfig.version, DEFAULT_SOLC_VERSION);
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(config.defaultNetwork, "custom");
       });
 
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
-        assert.equal(config.solc.version, DEFAULT_SOLC_VERSION);
+        const solidityConfig: any = config.solidity;
+        assert.equal(solidityConfig.version, DEFAULT_SOLC_VERSION);
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(
           (config.networks.localhost as HttpNetworkConfig).url,
@@ -64,6 +67,22 @@ describe("Config resolution", () => {
       it("should keep any unknown field", () => {
         const config = loadConfigAndTasks() as any;
         assert.deepEqual(config.unknown, { asd: 123 });
+      });
+    });
+
+    describe("With custom solidity", () => {
+      useFixtureProject("custom-solidity-config");
+
+      it("should return the user's solidity config", () => {
+        const config = loadConfigAndTasks();
+        const solidityConfig: any = config.solidity;
+
+        assert.deepEqual(solidityConfig, {
+          compilers: [
+            { version: "0.5.5", optimizer: { enabled: false, runs: 200 } },
+            { version: "0.6.7", optimizer: { enabled: false, runs: 200 } },
+          ],
+        });
       });
     });
   });

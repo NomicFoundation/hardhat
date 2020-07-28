@@ -51,8 +51,18 @@ describe("compiler-input module", function () {
     const graph = await DependencyGraph.createFromResolvedFiles(
       new Resolver("."),
       [
-        new ResolvedFile(globalName1, path1, content1, new Date()),
-        new ResolvedFile(globalName2, path2, content2, new Date()),
+        new ResolvedFile(
+          globalName1,
+          path1,
+          { rawContent: content1, imports: [], versionPragmas: [] },
+          new Date()
+        ),
+        new ResolvedFile(
+          globalName2,
+          path2,
+          { rawContent: content2, imports: [], versionPragmas: [] },
+          new Date()
+        ),
       ]
     );
 
