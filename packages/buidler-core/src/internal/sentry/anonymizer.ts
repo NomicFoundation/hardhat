@@ -132,7 +132,7 @@ export class Anonymizer {
 
       // we stop after finding either a buidler file or a file from the user's
       // project
-      if (frame.filename.startsWith("node_modules/@nomiclabs")) {
+      if (this._isBuidlerFile(frame.filename)) {
         return true;
       }
 
@@ -156,6 +156,16 @@ export class Anonymizer {
     return findup.sync("package.json", {
       cwd: path.dirname(filename),
     });
+  }
+
+  private _isBuidlerFile(filename: string): boolean {
+    const nomiclabsPath = path.join("node_modules", "@nomiclabs");
+    const truffleContractPath = path.join(nomiclabsPath, "truffle-contract");
+    const isBuidlerFile =
+      filename.startsWith(nomiclabsPath) &&
+      !filename.startsWith(truffleContractPath);
+
+    return isBuidlerFile;
   }
 
   private _anonymizeExceptions(exceptions: Exception[]): Exception[] {
