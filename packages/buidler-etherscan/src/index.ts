@@ -1,93 +1,206 @@
-import {
-  TASK_COMPILE,
-  TASK_COMPILE_GET_COMPILER_INPUT,
-  TASK_FLATTEN_GET_FLATTENED_SOURCE,
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
-import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
+import { ActionType, Artifact } from "@nomiclabs/buidler/types";
+import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { pluginName } from "./pluginContext";
 
-import AbiEncoder from "./AbiEncoder";
-import { getDefaultEtherscanConfig } from "./config";
-import {
-  getVerificationStatus,
-  verifyContract,
-} from "./etherscan/EtherscanService";
-import { toRequest } from "./etherscan/EtherscanVerifyContractRequest";
-import { getLongVersion } from "./solc/SolcVersions";
-import { EtherscanConfig } from "./types";
 
-task("verify-contract", "Verifies contract on etherscan")
-  .addParam("contractName", "Name of the deployed contract")
-  .addParam("address", "Deployed address of smart contract")
-  .addOptionalParam(
-    "libraries",
-    'Stringified JSON object in format of {library1: "0x2956356cd2a2bf3202f771f50d3d14a367b48071"}'
-  )
-  .addOptionalVariadicPositionalParam(
-    "constructorArguments",
-    "arguments for contract constructor",
-    []
-  )
-  .setAction(
-    async (
-      taskArgs: {
-        contractName: string;
-        address: string;
-        libraries: string;
-        source: string;
-        constructorArguments: string[];
-      },
-      { config, run }
-    ) => {
-      const etherscan: EtherscanConfig = getDefaultEtherscanConfig(config);
 
-      if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
+interface VerificationArgs {
+  address: string;
+  constructorArguments: string[];
+  // Filename of constructor arguments module.
+  constructorArgs: string;
+};
+
+const verify: ActionType<VerificationArgs> = async (
+  { address, constructorArguments: constructorArgsList, constructorArgs: constructorArgsModule },
+  { config, network, run }
+) => {
+  const { getDefaultEtherscanConfig } = await import("./config");
+  const etherscan = getDefaultEtherscanConfig(config);
+
+  if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
+    // TODO: add URL to etherscan documentation?
+    throw new BuidlerPluginError(
+      pluginName,
+      "Please provide an Etherscan API token via buidler config. " +
+      "E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }"
+    );
+  }
+
+  if (network.name == "buidlerevm") {
+    throw new BuidlerPluginError(pluginName, `Please select a network supported by Etherscan.`);
+  }
+
+  const { isAddress } = await import("@ethersproject/address");
+  if (!isAddress(address)) {
+    throw new BuidlerPluginError(pluginName, `${address} is an invalid address.`);
+  }
+
+  const { getVersionNumber, inferSolcVersion, InferralType } = await import("./solc/SolcVersions");
+  const solcVersionConfig = getVersionNumber(config.solc.version);
+
+  // Etherscan only supports solidity versions higher than or equal to v0.4.11.
+  // See https://etherscan.io/solcversions
+  // TODO: perhaps querying and scraping this list would be a better approach?
+  // This list should be validated - it links to https://github.com/ethereum/solc-bin/blob/gh-pages/bin/list.txt
+  // which has many old compilers included in the list too.
+  if (
+    (solcVersionConfig.major == 0 && solcVersionConfig.minor == 4 && solcVersionConfig.patch < 11) ||
+    (solcVersionConfig.major == 0 && solcVersionConfig.minor < 4)
+  ) {
+    throw new BuidlerPluginError(
+      pluginName,
+      "Etherscan only supports compiler versions 0.4.11 and higher.\n" +
+      "See https://etherscan.io/solcversions for more information."
+    );
+  }
+
+  let constructorArguments;
+  if (constructorArgsModule) {
+    try {
+      constructorArguments = await import(constructorArgsModule);
+      if (!Array.isArray(constructorArguments)) {
         throw new BuidlerPluginError(
-          "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
+          pluginName,
+          "The module doesn't export a list. The module should look like this:\n" +
+            "module.exports = [ arg1, arg2, ... ];"
         );
       }
-
-      const index: number = taskArgs.contractName.indexOf(":");
-      let etherscanContractName: string;
-      let contractName: string;
-      if (index !== -1) {
-        etherscanContractName = taskArgs.contractName;
-        contractName = taskArgs.contractName.substring(index + 1);
-      } else {
-        etherscanContractName = `contracts/${taskArgs.contractName}.sol:${taskArgs.contractName}`;
-        contractName = taskArgs.contractName;
-      }
-
-      await run(TASK_COMPILE);
-      const abi = (await readArtifact(config.paths.artifacts, contractName))
-        .abi;
-      config.solc.fullVersion = await getLongVersion(config.solc.version);
-
-      const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
-
-      const request = toRequest({
-        apiKey: etherscan.apiKey,
-        contractAddress: taskArgs.address,
-        sourceCode: source,
-        contractName: `${etherscanContractName}`,
-        compilerVersion: config.solc.fullVersion,
-        // optimizationsUsed: config.solc.optimizer.enabled,
-        // runs: config.solc.optimizer.runs,
-        constructorArguments: AbiEncoder.encodeConstructor(
-          abi,
-          taskArgs.constructorArguments
-        ),
-        libraries: taskArgs.libraries,
-      });
-
-      const response = await verifyContract(etherscan.url, request);
-
-      console.log(
-        `Successfully submitted contract at ${taskArgs.address} for verification on etherscan. Waiting for verification result...`
-      );
-
-      await getVerificationStatus(etherscan.url, response.message);
-
-      console.log("Successfully verified contract on etherscan");
+    } catch (error) {
+      throw new BuidlerPluginError(pluginName, "Importing the module for the constructor arguments list failed.", error);
     }
+  } else {
+    constructorArguments = constructorArgsList;
+  }
+
+  let etherscanAPIEndpoint: URL;
+  const {
+    getEtherscanEndpoint,
+    retrieveContractBytecode,
+    NetworkProberError,
+  } = await import("./network/prober");
+  try {
+    etherscanAPIEndpoint = await getEtherscanEndpoint(network.provider);
+  } catch (error) {
+    if (error instanceof NetworkProberError) {
+      throw new BuidlerPluginError(pluginName, `${error.message} The selected network is ${network.name}.`, error);
+    } else {
+      // Shouldn't be reachable.
+      throw error;
+    }
+  }
+
+  const deployedContractBytecode = await retrieveContractBytecode(address, network.provider);
+  if (deployedContractBytecode === null) {
+    throw new BuidlerPluginError(
+      pluginName,
+      `The address ${address} has no bytecode. Is the contract deployed to this network?\n` +
+        `The selected network is ${network.name}.`
+    );
+  }
+
+  const solcVersionRange = await inferSolcVersion(deployedContractBytecode);
+
+  if (!solcVersionRange.isIncluded(solcVersionConfig)) {
+    let detailedContext;
+    if (solcVersionRange.inferralType == InferralType.Exact) {
+      detailedContext = `The expected version is ${solcVersionRange}.\n`;
+    } else {
+      detailedContext = `The expected version range is ${solcVersionRange}.\n`;
+    }
+    const message =
+      "The bytecode retrieved could not have been generated by the selected compiler.\n" +
+      `The selected compiler version is v${config.solc.version}.\n` + detailedContext +
+      `The selected network is ${network.name}.\n` +
+      "Possible causes:\n" +
+      "  - Wrong compiler version in buidler config\n" +
+      "  - Wrong address for contract\n" +
+      "  - Wrong network selected or faulty buidler network config";
+    throw new BuidlerPluginError(pluginName, message);
+  }
+
+  const { lookupMatchingBytecode, compile } = await import("./solc/bytecode");
+  // TODO: this gives us the input for all contracts.
+  // This could be restricted to relevant contracts in a future iteration of the compiler tasks.
+  const { compilerInput, compilerOutput } = await compile(run);
+
+  const contractInformation = await lookupMatchingBytecode(compilerOutput.contracts, deployedContractBytecode, solcVersionRange.inferralType);
+  if (contractInformation === null) {
+    const message =
+      `The contract was not found among the ones present in this project.\n` +
+      `The selected network is ${network.name}.\n` +
+      "Possible causes:\n" +
+      "  - Wrong address for contract\n" +
+      "  - Wrong network selected or faulty buidler network config";
+    throw new BuidlerPluginError(pluginName, message);
+  }
+
+  const { Interface } = await import("@ethersproject/abi");
+  const { isABIArgumentLengthError, isABIArgumentTypeError } = await import("./ABITypes");
+  const contractInterface = new Interface(contractInformation.contract.abi);
+  let deployArgumentsEncoded;
+  try {
+    deployArgumentsEncoded = contractInterface.encodeDeploy(constructorArguments);
+  } catch (error) {
+    if (isABIArgumentLengthError(error)) {
+      const { contractName, contractFilename } = contractInformation;
+      // TODO: add a list of types and constructor arguments to the error message?
+      const message =
+        `The constructor for ${contractFilename}:${contractName} has ${error.count.types} parameters but ` +
+        `${error.count.values} arguments were provided instead.\n`;
+      throw new BuidlerPluginError(pluginName, message);
+    } else if (isABIArgumentTypeError(error)) {
+      const message = `Value ${error.value} cannot be encoded for the parameter ${error.argument}.\n` +
+        `Encoder error reason: ${error.reason}\n`;
+      throw new BuidlerPluginError(pluginName, message);
+    } else {
+      // Should be unreachable.
+      throw error;
+    }
+  }
+
+  // Ensure the linking information is present in the compiler input;
+  compilerInput.settings.libraries = contractInformation.libraryLinks;
+  const compilerInputJSON = JSON.stringify(compilerInput);
+
+  const solcFullVersion = await solcVersionConfig.getLongVersion();
+
+  const { toRequest } = await import("./etherscan/EtherscanVerifyContractRequest");
+  const request = toRequest({
+    apiKey: etherscan.apiKey,
+    contractAddress: address,
+    sourceCode: compilerInputJSON,
+    contractName: contractInformation.contractName,
+    compilerVersion: solcFullVersion,
+    constructorArguments: deployArgumentsEncoded,
+  });
+
+
+  const {
+    getVerificationStatus,
+    verifyContract,
+  } = await import("./etherscan/EtherscanService");
+  const response = await verifyContract(etherscanAPIEndpoint, request);
+
+  // TODO: Display contract name?
+  console.log(
+    `Successfully submitted contract at ${address} for verification on etherscan. Waiting for verification result...`
   );
+
+  await getVerificationStatus(etherscanAPIEndpoint, response.message);
+
+  console.log("Successfully verified contract on etherscan");
+}
+
+
+
+task("verify", "Verifies contract on etherscan")
+  .addPositionalParam("address", "Address of the smart contract that will be verified")
+  .addOptionalParam("constructorArgs", "File path to a javascript module that exports the list of arguments.")
+  .addOptionalVariadicPositionalParam(
+    "constructorArguments",
+    "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
+    []
+  )
+  .setAction(verify);
