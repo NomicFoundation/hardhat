@@ -199,4 +199,25 @@ describe("JsonRpcClient", () => {
       assert.isTrue(valueBN.eqn(0));
     });
   });
+
+  describe("eth_getTransactionCount", () => {
+    let client: JsonRpcClient;
+
+    beforeEach(() => {
+      client = JsonRpcClient.forUrl(INFURA_URL);
+    });
+
+    it("can fetch nonce of an existing account", async () => {
+      const balance = await client.getTransactionCount(WETH_ADDRESS, "latest");
+      assert.isTrue(balance.gtn(0));
+    });
+
+    it("can fetch nonce of a non-existent account", async () => {
+      const balance = await client.getTransactionCount(
+        EMPTY_ACCOUNT_ADDRESS,
+        "latest"
+      );
+      assert.isTrue(balance.eqn(0));
+    });
+  });
 });

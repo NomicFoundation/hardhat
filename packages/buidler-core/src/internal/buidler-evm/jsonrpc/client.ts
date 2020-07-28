@@ -78,6 +78,14 @@ export class JsonRpcClient {
     );
   }
 
+  public async getTransactionCount(address: Buffer, blockTag: BlockTag) {
+    return this._perform(
+      "eth_getTransactionCount",
+      [bufferToString(address), blockTagToString(blockTag)],
+      rpcQuantity
+    );
+  }
+
   private async _perform<T>(
     method: string,
     params: Array<string | number | boolean>,
