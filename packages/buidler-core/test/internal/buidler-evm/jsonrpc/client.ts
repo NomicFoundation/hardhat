@@ -13,13 +13,12 @@ const DAI_ADDRESS = Buffer.from(
   "6b175474e89094c44da98b954eedeac495271d0f",
   "hex"
 );
+const EMPTY_ACCOUNT_ADDRESS = Buffer.from(
+  "1234567890abcdef1234567890abcdef12345678",
+  "hex"
+);
 
 describe("JsonRpcClient", () => {
-  let response: any;
-  const fakeProvider: HttpProvider = {
-    send: () => Promise.resolve(response),
-  } as any;
-
   it("can be constructed", () => {
     const client = JsonRpcClient.forUrl("");
     assert.instanceOf(client, JsonRpcClient);
@@ -78,11 +77,16 @@ describe("JsonRpcClient", () => {
   });
 
   describe("eth_blockNumber", () => {
+    let response: any;
+    const fakeProvider: HttpProvider = {
+      send: () => Promise.resolve(response),
+    } as any;
+
     it("returns correct values", async () => {
       const client = new JsonRpcClient(fakeProvider);
       response = "0x1";
       const result = await client.getLatestBlockNumber();
-      assert.isTrue(result.eq(new BN(1)));
+      assert.isTrue(result.eqn(1));
     });
 
     it("validates the response", async () => {
@@ -128,59 +132,49 @@ describe("JsonRpcClient", () => {
       assert.notEqual(code.toString("hex"), "");
     });
 
-    it("can fetch empty code of a non existing contract", async () => {
+    it("can fetch empty code of a non-existent contract", async () => {
       const client = JsonRpcClient.forUrl(INFURA_URL);
 
-      const address = Buffer.from(
-        "1234567890abcdef1234567890abcdef12345678",
-        "hex"
-      );
-
-      const code = await client.getCode(address, "latest");
+      const code = await client.getCode(EMPTY_ACCOUNT_ADDRESS, "latest");
       assert.equal(code.toString("hex"), "");
     });
   });
 
   describe("eth_getStorageAt", () => {
-    it("can fetch value from storage of an existing contract", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
+    let client: JsonRpcClient;
 
+    beforeEach(() => {
+      client = JsonRpcClient.forUrl(INFURA_URL);
+    });
+
+    it("can fetch value from storage of an existing contract", async () => {
       const totalSupply = await client.getStorageAt(
         DAI_ADDRESS,
         Buffer.from([1]),
         "latest"
       );
       const totalSupplyBN = new BN(totalSupply);
-      assert.isTrue(totalSupplyBN.gt(new BN(0)));
+      assert.isTrue(totalSupplyBN.gtn(0));
     });
 
     it("can fetch empty value from storage of an existing contract", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
-
       const value = await client.getStorageAt(
         DAI_ADDRESS,
         Buffer.from("baddcafe", "hex"),
         "latest"
       );
       const valueBN = new BN(value);
-      assert.isTrue(valueBN.eq(new BN(0)));
+      assert.isTrue(valueBN.eqn(0));
     });
 
-    it("can fetch empty value from storage of a non existing contract", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
-
-      const address = Buffer.from(
-        "1234567890abcdef1234567890abcdef12345678",
-        "hex"
-      );
-
+    it("can fetch empty value from storage of a non-existent contract", async () => {
       const value = await client.getStorageAt(
-        address,
+        EMPTY_ACCOUNT_ADDRESS,
         Buffer.from([1]),
         "latest"
       );
       const valueBN = new BN(value);
-      assert.isTrue(valueBN.eq(new BN(0)));
+      assert.isTrue(valueBN.eqn(0));
     });
   });
 });
