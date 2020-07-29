@@ -16,7 +16,7 @@ and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-waffle 'ethereum-waffle^3.0.0' @nomiclabs/buidler-ethers 'ethers@^5.0.0'
+npm install --save-dev @nomiclabs/buidler-waffle 'ethereum-waffle@^3.0.0' @nomiclabs/buidler-ethers 'ethers@^5.0.0'
 ```
 
 And add the following statement to your `buidler.config.js`:
