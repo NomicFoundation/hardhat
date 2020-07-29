@@ -125,7 +125,7 @@ export class Anonymizer {
       return true;
     }
 
-    for (const frame of frames) {
+    for (const frame of frames.slice().reverse()) {
       if (frame.filename === undefined) {
         continue;
       }
