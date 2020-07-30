@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
+import { BN, keccak256, KECCAK256_NULL_S } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
@@ -8,15 +8,12 @@ import {
   randomAddressBuffer,
   randomHashBuffer,
 } from "../../../../../src/internal/buidler-evm/provider/fork/random";
-
-// reused from ethers.js
-const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
-
-const DAI_ADDRESS = Buffer.from(
-  "6b175474e89094c44da98b954eedeac495271d0f",
-  "hex"
-);
-const DAI_TOTAL_SUPPLY_STORAGE_POSITION = Buffer.from([1]);
+import {
+  DAI_ADDRESS,
+  DAI_TOTAL_SUPPLY_STORAGE_POSITION, EMPTY_ACCOUNT_ADDRESS,
+  INFURA_URL,
+  WETH_ADDRESS,
+} from "../../helpers/constants";
 
 describe("ForkStateManager", () => {
   let client: JsonRpcClient;
@@ -31,6 +28,30 @@ describe("ForkStateManager", () => {
 
   it("can be constructed", () => {
     assert.instanceOf(fsm, ForkStateManager);
+  });
+
+  describe("getAccount", () => {
+    it("can get account object", async () => {
+      const code = await client.getCode(WETH_ADDRESS, "latest");
+      const codeHash = keccak256(code);
+      const account = await fsm.getAccount(WETH_ADDRESS);
+
+      assert.isTrue(new BN(account.balance).gtn(0));
+      assert.isTrue(new BN(account.nonce).gtn(0));
+      assert.equal(account.codeHash.toString("hex"), codeHash.toString("hex"));
+      assert.notEqual(account.stateRoot.toString("hex"), "");
+    });
+
+    it("can get non-existent account", async () => {
+      const account = await fsm.getAccount(EMPTY_ACCOUNT_ADDRESS);
+
+      assert.isTrue(new BN(account.balance).eqn(0));
+      assert.isTrue(new BN(account.nonce).eqn(0));
+      assert.equal(account.codeHash.toString("hex"), KECCAK256_NULL_S);
+      assert.notEqual(account.stateRoot.toString("hex"), "");
+    });
+
+    xit("works with accounts modified locally", async () => {});
   });
 
   describe("getContractCode", () => {

@@ -5,22 +5,13 @@ import sinon from "sinon";
 import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
 import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
-
-// reused from ethers.js
-const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
-
-const DAI_ADDRESS = Buffer.from(
-  "6b175474e89094c44da98b954eedeac495271d0f",
-  "hex"
-);
-const WETH_ADDRESS = Buffer.from(
-  "C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-  "hex"
-);
-const EMPTY_ACCOUNT_ADDRESS = Buffer.from(
-  "1234567890abcdef1234567890abcdef12345678",
-  "hex"
-);
+import {
+  DAI_ADDRESS,
+  DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+  EMPTY_ACCOUNT_ADDRESS,
+  INFURA_URL,
+  WETH_ADDRESS,
+} from "../helpers/constants";
 
 describe("JsonRpcClient", () => {
   it("can be constructed", () => {
@@ -48,7 +39,11 @@ describe("JsonRpcClient", () => {
       const client = new JsonRpcClient(fakeProvider as any);
 
       function getStorageAt() {
-        return client.getStorageAt(DAI_ADDRESS, Buffer.from([1]), "latest");
+        return client.getStorageAt(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          "latest"
+        );
       }
 
       await getStorageAt();
@@ -69,7 +64,11 @@ describe("JsonRpcClient", () => {
       };
       const client = new JsonRpcClient(fakeProvider as any);
 
-      await client.getStorageAt(DAI_ADDRESS, Buffer.from([1]), "latest");
+      await client.getStorageAt(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        "latest"
+      );
       const value = await client.getStorageAt(
         DAI_ADDRESS,
         Buffer.from([2]),
@@ -172,7 +171,7 @@ describe("JsonRpcClient", () => {
     it("can fetch value from storage of an existing contract", async () => {
       const totalSupply = await client.getStorageAt(
         DAI_ADDRESS,
-        Buffer.from([1]),
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
         "latest"
       );
       const totalSupplyBN = new BN(totalSupply);

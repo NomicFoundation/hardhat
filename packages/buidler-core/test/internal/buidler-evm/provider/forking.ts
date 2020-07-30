@@ -1,10 +1,9 @@
 import { assert } from "chai";
 
+import { INFURA_URL } from "../helpers/constants";
 import { setCWD } from "../helpers/cwd";
 import { useForkedProvider } from "../helpers/useProvider";
 
-// reused from ethers.js
-const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
 const FORK_CONFIG = { jsonRpcUrl: INFURA_URL, blockNumberOrHash: undefined };
 
 describe("Forked provider", () => {

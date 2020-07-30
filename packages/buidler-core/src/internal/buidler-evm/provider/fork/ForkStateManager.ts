@@ -1,5 +1,5 @@
 import Account from "ethereumjs-account";
-import { BN, stripZeros } from "ethereumjs-util";
+import { BN, keccak256, stripZeros } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
@@ -36,8 +36,22 @@ export class ForkStateManager {
     throw new Error("Not implemented.");
   }
 
-  public getAccount(address: Buffer): Promise<Account> {
-    throw new Error("Not implemented.");
+  public async getAccount(address: Buffer): Promise<Account> {
+    const nonce = await this._jsonRpcClient.getTransactionCount(
+      address,
+      this._forkBlockNumber
+    );
+    const balance = await this._jsonRpcClient.getBalance(
+      address,
+      this._forkBlockNumber
+    );
+    const code = await this._jsonRpcClient.getCode(
+      address,
+      this._forkBlockNumber
+    );
+    const codeHash = keccak256(code);
+    // We ignore stateRoot since we found that it is not used anywhere
+    return new Account({ nonce, balance, codeHash });
   }
 
   public putAccount(address: Buffer, account: Account): Promise<void> {
