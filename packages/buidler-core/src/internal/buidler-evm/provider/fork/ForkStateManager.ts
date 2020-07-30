@@ -5,9 +5,9 @@ import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 
-import { StateManager } from "./StateManager";
 import { AccountState, makeAccount } from "./Account";
 import { randomHash } from "./random";
+import { StateManager } from "./StateManager";
 
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
@@ -114,8 +114,12 @@ export class ForkStateManager {
     throw new Error("Not implemented.");
   }
 
-  public getStateRoot(): Promise<Buffer> {
-    throw new Error("Not implemented.");
+  public async getStateRoot(): Promise<Buffer> {
+    if (this._stateRootToState.get(this._stateRoot) !== this._state) {
+      this._stateRoot = randomHash();
+      this._stateRootToState.set(this._stateRoot, this._state);
+    }
+    return Buffer.from(this._stateRoot, "hex");
   }
 
   public setStateRoot(stateRoot: Buffer): Promise<void> {

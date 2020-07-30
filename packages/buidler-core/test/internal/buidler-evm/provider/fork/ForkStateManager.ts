@@ -3,6 +3,7 @@ import { BN } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { ForkStateManager } from "../../../../../src/internal/buidler-evm/provider/fork/ForkStateManager";
+import { randomAddressBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 
 // reused from ethers.js
 const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
@@ -66,5 +67,28 @@ describe("ForkStateManager", () => {
     const fsmValue = await fsm.getContractStorage(DAI_ADDRESS, position);
 
     assert.equal(fsmValue.toString("hex"), value.toString("hex"));
+  });
+
+  describe("getStateRoot", () => {
+    it("returns current state root", async () => {
+      const root = await fsm.getStateRoot();
+      assert.notEqual(root.toString("hex"), "");
+    });
+
+    it("returns the same state root if no storage was modified", async () => {
+      const root1 = await fsm.getStateRoot();
+      const root2 = await fsm.getStateRoot();
+      assert.equal(root1.toString("hex"), root2.toString("hex"));
+    });
+
+    it("returns a different state root after storage modification", async () => {
+      const root1 = await fsm.getStateRoot();
+      await fsm.putContractCode(
+        randomAddressBuffer(),
+        Buffer.from("deadbeef", "hex")
+      );
+      const root2 = await fsm.getStateRoot();
+      assert.notEqual(root1.toString("hex"), root2.toString("hex"));
+    });
   });
 });
