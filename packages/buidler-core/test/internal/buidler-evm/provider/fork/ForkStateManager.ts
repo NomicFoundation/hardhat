@@ -3,7 +3,10 @@ import { BN } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { ForkStateManager } from "../../../../../src/internal/buidler-evm/provider/fork/ForkStateManager";
-import { randomAddressBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
+import {
+  randomAddressBuffer,
+  randomHashBuffer,
+} from "../../../../../src/internal/buidler-evm/provider/fork/random";
 
 // reused from ethers.js
 const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
@@ -89,6 +92,37 @@ describe("ForkStateManager", () => {
       );
       const root2 = await fsm.getStateRoot();
       assert.notEqual(root1.toString("hex"), root2.toString("hex"));
+    });
+  });
+
+  describe("setStateRoot", () => {
+    it("throws error when an unknown state root is passed", async () => {
+      const error = await fsm.setStateRoot(randomHashBuffer()).catch((e) => e);
+      assert.instanceOf(error, Error);
+    });
+
+    it("allows to change current state root", async () => {
+      const beforeRoot = await fsm.getStateRoot();
+      const address = randomAddressBuffer();
+      await fsm.putContractCode(address, Buffer.from("deadbeef", "hex"));
+      const afterRoot = await fsm.getStateRoot();
+      await fsm.setStateRoot(beforeRoot);
+      const restoredRoot = await fsm.getStateRoot();
+      assert.equal(restoredRoot.toString("hex"), beforeRoot.toString("hex"));
+      assert.notEqual(afterRoot.toString("hex"), beforeRoot.toString("hex"));
+    });
+
+    it("allows to change the state", async () => {
+      const beforeRoot = await fsm.getStateRoot();
+      const address = randomAddressBuffer();
+      assert.equal((await fsm.getContractCode(address)).toString("hex"), "");
+      await fsm.putContractCode(address, Buffer.from("deadbeef", "hex"));
+      assert.equal(
+        (await fsm.getContractCode(address)).toString("hex"),
+        "deadbeef"
+      );
+      await fsm.setStateRoot(beforeRoot);
+      assert.equal((await fsm.getContractCode(address)).toString("hex"), "");
     });
   });
 });

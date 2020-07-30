@@ -1,4 +1,5 @@
 export const randomHash = () => randomHexString(64);
+export const randomHashBuffer = () => Buffer.from(randomHash(), "hex");
 export const randomAddress = () => randomHexString(40);
 export const randomAddressBuffer = () => Buffer.from(randomAddress(), "hex");
 

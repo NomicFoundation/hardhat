@@ -122,8 +122,14 @@ export class ForkStateManager {
     return Buffer.from(this._stateRoot, "hex");
   }
 
-  public setStateRoot(stateRoot: Buffer): Promise<void> {
-    throw new Error("Not implemented.");
+  public async setStateRoot(stateRoot: Buffer): Promise<void> {
+    const newRoot = stateRoot.toString("hex");
+    const state = this._stateRootToState.get(newRoot);
+    if (state === undefined) {
+      throw new Error("Unknown state root");
+    }
+    this._stateRoot = newRoot;
+    this._state = state;
   }
 
   public dumpStorage(address: Buffer): Promise<Record<string, string>> {
