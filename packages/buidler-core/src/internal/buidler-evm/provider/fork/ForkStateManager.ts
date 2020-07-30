@@ -60,7 +60,7 @@ export class ForkStateManager {
         : await this._jsonRpcClient.getCode(address, this._forkBlockNumber);
 
     const codeHash = keccak256(code);
-    // We ignore stateRoot since we found that it is not used anywhere
+    // We ignore stateRoot since we found that it is not used anywhere of interest to us
     return new Account({ nonce, balance, codeHash });
   }
 
