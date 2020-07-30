@@ -5,6 +5,7 @@ export interface AccountState {
   balance: string;
   storage: ImmutableMap<string, string>;
   code: string;
+  storageCleared: boolean;
 }
 
 export const makeAccount = ImmutableRecord<AccountState>({
@@ -12,4 +13,5 @@ export const makeAccount = ImmutableRecord<AccountState>({
   balance: "0",
   storage: ImmutableMap(),
   code: "",
+  storageCleared: false,
 });

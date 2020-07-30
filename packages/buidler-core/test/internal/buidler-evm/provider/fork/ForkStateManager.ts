@@ -15,6 +15,7 @@ const DAI_ADDRESS = Buffer.from(
   "6b175474e89094c44da98b954eedeac495271d0f",
   "hex"
 );
+const DAI_TOTAL_SUPPLY_STORAGE_POSITION = Buffer.from([1]);
 
 describe("ForkStateManager", () => {
   let client: JsonRpcClient;
@@ -31,45 +32,93 @@ describe("ForkStateManager", () => {
     assert.instanceOf(fsm, ForkStateManager);
   });
 
-  it("can get contract code", async () => {
-    const remoteCode = await client.getCode(DAI_ADDRESS, blockNumber);
-    const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
+  describe("getContractCode", () => {
+    it("can get contract code", async () => {
+      const remoteCode = await client.getCode(DAI_ADDRESS, blockNumber);
+      const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
-    assert.equal(fsmCode.toString("hex"), remoteCode.toString("hex"));
+      assert.equal(fsmCode.toString("hex"), remoteCode.toString("hex"));
+    });
   });
 
-  it("can override contract code", async () => {
-    const code = Buffer.from("deadbeef", "hex");
+  describe("putContractCode", () => {
+    it("can override contract code", async () => {
+      const code = Buffer.from("deadbeef", "hex");
 
-    await fsm.putContractCode(DAI_ADDRESS, code);
-    const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
+      await fsm.putContractCode(DAI_ADDRESS, code);
+      const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
-    assert.equal(fsmCode.toString("hex"), code.toString("hex"));
+      assert.equal(fsmCode.toString("hex"), code.toString("hex"));
+    });
   });
 
-  it("can get contract storage value", async () => {
-    const totalSupplyPosition = Buffer.from([1]);
-    const remoteValue = await client.getStorageAt(
-      DAI_ADDRESS,
-      totalSupplyPosition,
-      blockNumber
-    );
-    const fsmValue = await fsm.getContractStorage(
-      DAI_ADDRESS,
-      totalSupplyPosition
-    );
+  describe("getContractStorage", () => {
+    it("can get contract storage value", async () => {
+      const remoteValue = await client.getStorageAt(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        blockNumber
+      );
+      const fsmValue = await fsm.getContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
 
-    assert.equal(fsmValue.toString("hex"), remoteValue.toString("hex"));
+      assert.equal(fsmValue.toString("hex"), remoteValue.toString("hex"));
+    });
   });
 
-  it("can override storage value", async () => {
-    const position = Buffer.from([1]);
-    const value = Buffer.from("feedface", "hex");
+  describe("putContractStorage", () => {
+    it("can override storage value", async () => {
+      const value = Buffer.from("feedface", "hex");
 
-    await fsm.putContractStorage(DAI_ADDRESS, position, value);
-    const fsmValue = await fsm.getContractStorage(DAI_ADDRESS, position);
+      await fsm.putContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        value
+      );
+      const fsmValue = await fsm.getContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
 
-    assert.equal(fsmValue.toString("hex"), value.toString("hex"));
+      assert.equal(fsmValue.toString("hex"), value.toString("hex"));
+    });
+  });
+
+  describe("clearContractStorage", () => {
+    it("can clear all locally set values", async () => {
+      const value = Buffer.from("feedface", "hex");
+      const address = randomAddressBuffer();
+      const position = Buffer.from([2]);
+      await fsm.putContractStorage(address, position, value);
+      await fsm.clearContractStorage(address);
+      const clearedValue = await fsm.getContractStorage(address, position);
+      assert.equal(clearedValue.toString("hex"), "0".repeat(64));
+    });
+
+    it("can clear all remote values", async () => {
+      const value = await fsm.getContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.notEqual(value.toString("hex"), "0".repeat(64));
+      await fsm.clearContractStorage(DAI_ADDRESS);
+      const clearedValue = await fsm.getContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.equal(clearedValue.toString("hex"), "0".repeat(64));
+    });
+
+    it("can clear remote values not previously read", async () => {
+      await fsm.clearContractStorage(DAI_ADDRESS);
+      const clearedValue = await fsm.getContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.equal(clearedValue.toString("hex"), "0".repeat(64));
+    });
   });
 
   describe("getStateRoot", () => {

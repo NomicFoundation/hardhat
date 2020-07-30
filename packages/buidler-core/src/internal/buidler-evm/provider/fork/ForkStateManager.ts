@@ -63,12 +63,14 @@ export class ForkStateManager {
     address: Buffer,
     key: Buffer
   ): Promise<Buffer> {
-    const localValue = this._state
-      .get(address.toString("hex"))
-      ?.get("storage")
-      .get(key.toString("hex"));
+    const account = this._state.get(address.toString("hex"));
+    const cleared = account?.get("storageCleared");
+    const localValue = account?.get("storage").get(key.toString("hex"));
     if (localValue !== undefined) {
       return Buffer.from(localValue, "hex");
+    }
+    if (cleared) {
+      return Buffer.from("0".repeat(64), "hex");
     }
     return this._jsonRpcClient.getStorageAt(
       address,
@@ -98,8 +100,11 @@ export class ForkStateManager {
     this._state = this._state.set(hexAddress, account);
   }
 
-  public clearContractStorage(address: Buffer): Promise<void> {
-    throw new Error("Not implemented.");
+  public async clearContractStorage(address: Buffer): Promise<void> {
+    const hexAddress = address.toString("hex");
+    let account = this._state.get(hexAddress) ?? makeAccount();
+    account = account.set("storageCleared", true).set("storage", ImmutableMap());
+    this._state = this._state.set(hexAddress, account);
   }
 
   public checkpoint(): Promise<void> {
