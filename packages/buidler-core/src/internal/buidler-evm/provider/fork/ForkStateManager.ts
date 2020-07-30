@@ -6,28 +6,13 @@ import { callbackify } from "util";
 import { JsonRpcClient } from "../../jsonrpc/client";
 
 import { StateManager } from "./StateManager";
+import { AccountState, makeAccount } from "./Account";
+import { randomHash } from "./random";
 
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
-interface AccountState {
-  nonce: string;
-  balance: string;
-  storage: ImmutableMap<string, string>;
-  code: string;
-}
-
-const makeAccount = ImmutableRecord<AccountState>({
-  nonce: "0",
-  balance: "0",
-  storage: ImmutableMap(),
-  code: "",
-});
-
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
-
-const randomHash = () => new Array(64).fill(0).map(randomHexDigit).join("");
-const randomHexDigit = () => Math.floor(Math.random() * 16).toString(16);
 
 export class ForkStateManager {
   private _state: State = ImmutableMap();
