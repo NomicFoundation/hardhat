@@ -16,7 +16,7 @@ import { StateManager } from "./StateManager";
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
 
 const encodeStorageKey = (address: Buffer, position: Buffer): string => {
-  return address.toString("hex") + stripZeros(position).toString("hex");
+  return `${address.toString("hex")}${stripZeros(position).toString("hex")}`;
 };
 
 export class ForkStateManager {
@@ -70,7 +70,7 @@ export class ForkStateManager {
     key: Buffer
   ): Promise<Buffer> {
     const account = this._state.get(address.toString("hex"));
-    const cleared = account?.get("storageCleared");
+    const cleared = account?.get("storageCleared") ?? false;
     const localValue = account?.get("storage").get(key.toString("hex"));
     if (localValue !== undefined) {
       return Buffer.from(localValue, "hex");
@@ -91,7 +91,7 @@ export class ForkStateManager {
   ): Promise<Buffer> {
     const storageKey = encodeStorageKey(address, key);
     const cachedValue = this._originalStorageCache.get(storageKey);
-    if (cachedValue) {
+    if (cachedValue !== undefined) {
       return cachedValue;
     }
     const value = await this.getContractStorage(address, key);
