@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - development
+      - fork-mainnet
   pull_request:
     branches:
       - "*"
