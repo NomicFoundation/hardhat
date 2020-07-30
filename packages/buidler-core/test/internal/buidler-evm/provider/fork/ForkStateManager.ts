@@ -104,6 +104,31 @@ describe("ForkStateManager", () => {
       );
       assert.equal(cachedValue.toString("hex"), originalValue.toString("hex"));
     });
+
+    it("retains original storage value after setStateRoot call", async () => {
+      const newValue = Buffer.from("deadbeef", "hex");
+      const stateRoot = await fsm.getStateRoot();
+      const originalValue = await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      await fsm.putContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        newValue
+      );
+      await fsm.setStateRoot(stateRoot);
+      await fsm.putContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        newValue
+      );
+      const cachedValue = await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.equal(cachedValue.toString("hex"), originalValue.toString("hex"));
+    });
   });
 
   describe("putContractStorage", () => {
