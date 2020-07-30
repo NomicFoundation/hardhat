@@ -1,5 +1,6 @@
 import Account from "ethereumjs-account";
-import { BN, stripZeros } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
+import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -9,18 +10,36 @@ import { StateManager } from "./StateManager";
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
-const encodeStorageKey = (address: Buffer, position: Buffer): string => {
-  return address.toString("hex") + stripZeros(position).toString("hex");
-};
+interface AccountState {
+  nonce: string;
+  balance: string;
+  storage: ImmutableMap<string, string>;
+  code: string;
+}
+
+const makeAccount = ImmutableRecord<AccountState>({
+  nonce: "0",
+  balance: "0",
+  storage: ImmutableMap(),
+  code: "",
+});
+
+type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
+
+const randomHash = () => new Array(64).fill(0).map(randomHexDigit).join("");
+const randomHexDigit = () => Math.floor(Math.random() * 16).toString(16);
 
 export class ForkStateManager {
-  private _contractCode = new Map<string, Buffer>();
-  private _contractStorage = new Map<string, Buffer>();
+  private _state: State = ImmutableMap();
+  private _stateRoot: string = randomHash();
+  private _stateRootToState: Map<string, State> = new Map();
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: BN
-  ) {}
+  ) {
+    this._state = ImmutableMap();
+  }
 
   public copy(): ForkStateManager {
     throw new Error("Not implemented.");
@@ -39,13 +58,18 @@ export class ForkStateManager {
   }
 
   public async putContractCode(address: Buffer, value: Buffer): Promise<void> {
-    this._contractCode.set(address.toString("hex"), value);
+    const hexAddress = address.toString("hex");
+    const account = (this._state.get(hexAddress) ?? makeAccount()).set(
+      "code",
+      value.toString("hex")
+    );
+    this._state = this._state.set(hexAddress, account);
   }
 
   public async getContractCode(address: Buffer): Promise<Buffer> {
-    const localCode = this._contractCode.get(address.toString("hex"));
+    const localCode = this._state.get(address.toString("hex"))?.get("code");
     if (localCode !== undefined) {
-      return localCode;
+      return Buffer.from(localCode, "hex");
     }
     return this._jsonRpcClient.getCode(address, this._forkBlockNumber);
   }
@@ -54,11 +78,12 @@ export class ForkStateManager {
     address: Buffer,
     key: Buffer
   ): Promise<Buffer> {
-    const localValue = this._contractStorage.get(
-      encodeStorageKey(address, key)
-    );
+    const localValue = this._state
+      .get(address.toString("hex"))
+      ?.get("storage")
+      .get(key.toString("hex"));
     if (localValue !== undefined) {
-      return localValue;
+      return Buffer.from(localValue, "hex");
     }
     return this._jsonRpcClient.getStorageAt(
       address,
@@ -79,7 +104,13 @@ export class ForkStateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    this._contractStorage.set(encodeStorageKey(address, key), value);
+    const hexAddress = address.toString("hex");
+    let account = this._state.get(hexAddress) ?? makeAccount();
+    account = account.set(
+      "storage",
+      account.get("storage").set(key.toString("hex"), value.toString("hex"))
+    );
+    this._state = this._state.set(hexAddress, account);
   }
 
   public clearContractStorage(address: Buffer): Promise<void> {
