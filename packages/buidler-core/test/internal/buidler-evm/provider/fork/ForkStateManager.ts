@@ -10,7 +10,8 @@ import {
 } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 import {
   DAI_ADDRESS,
-  DAI_TOTAL_SUPPLY_STORAGE_POSITION, EMPTY_ACCOUNT_ADDRESS,
+  DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+  EMPTY_ACCOUNT_ADDRESS,
   INFURA_URL,
   WETH_ADDRESS,
 } from "../../helpers/constants";
@@ -37,7 +38,7 @@ describe("ForkStateManager", () => {
       const account = await fsm.getAccount(WETH_ADDRESS);
 
       assert.isTrue(new BN(account.balance).gtn(0));
-      assert.isTrue(new BN(account.nonce).gtn(0));
+      assert.isTrue(new BN(account.nonce).eqn(1));
       assert.equal(account.codeHash.toString("hex"), codeHash.toString("hex"));
       assert.notEqual(account.stateRoot.toString("hex"), "");
     });
@@ -51,11 +52,49 @@ describe("ForkStateManager", () => {
       assert.notEqual(account.stateRoot.toString("hex"), "");
     });
 
-    xit("works with accounts modified locally", async () => {});
+    it("works with accounts created locally", async () => {
+      const address = randomAddressBuffer();
+      const code = Buffer.from("b16b00b1e5", "hex");
+      await fsm.putContractCode(address, code);
+      // TODO: change balance
+      // TODO: change nonce
+
+      const account = await fsm.getAccount(address);
+      assert.equal(
+        account.codeHash.toString("hex"),
+        keccak256(code).toString("hex")
+      );
+    });
+
+    it("works with accounts modified locally", async () => {
+      const code = Buffer.from("b16b00b1e5", "hex");
+      await fsm.putContractCode(WETH_ADDRESS, code);
+      const account = await fsm.getAccount(WETH_ADDRESS);
+
+      assert.isTrue(new BN(account.balance).gtn(0));
+      assert.isTrue(new BN(account.nonce).eqn(1));
+      assert.equal(
+        account.codeHash.toString("hex"),
+        keccak256(code).toString("hex")
+      );
+      assert.notEqual(account.stateRoot.toString("hex"), "");
+    });
   });
 
   describe("getContractCode", () => {
     it("can get contract code", async () => {
+      const remoteCode = await client.getCode(DAI_ADDRESS, blockNumber);
+      const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
+
+      assert.equal(fsmCode.toString("hex"), remoteCode.toString("hex"));
+    });
+
+    it("can get code of an account modified locally", async () => {
+      await fsm.putContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        Buffer.from([69, 4, 20])
+      );
       const remoteCode = await client.getCode(DAI_ADDRESS, blockNumber);
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 

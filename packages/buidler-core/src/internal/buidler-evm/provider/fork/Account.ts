@@ -1,17 +1,17 @@
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
 export interface AccountState {
-  nonce: string;
-  balance: string;
+  nonce: string | undefined;
+  balance: string | undefined;
   storage: ImmutableMap<string, string>;
-  code: string;
+  code: string | undefined;
   storageCleared: boolean;
 }
 
 export const makeAccount = ImmutableRecord<AccountState>({
-  nonce: "0",
-  balance: "0",
+  nonce: undefined,
+  balance: undefined,
   storage: ImmutableMap(),
-  code: "",
+  code: undefined,
   storageCleared: false,
 });

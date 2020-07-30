@@ -37,18 +37,28 @@ export class ForkStateManager {
   }
 
   public async getAccount(address: Buffer): Promise<Account> {
-    const nonce = await this._jsonRpcClient.getTransactionCount(
-      address,
-      this._forkBlockNumber
-    );
-    const balance = await this._jsonRpcClient.getBalance(
-      address,
-      this._forkBlockNumber
-    );
-    const code = await this._jsonRpcClient.getCode(
-      address,
-      this._forkBlockNumber
-    );
+    const localAccount = this._state.get(address.toString("hex"));
+
+    const localNonce = localAccount?.get("nonce");
+    const localBalance = localAccount?.get("balance");
+    const localCode = localAccount?.get("code");
+
+    const nonce =
+      localNonce !== undefined
+        ? Buffer.from(localNonce, "hex")
+        : await this._jsonRpcClient.getTransactionCount(
+            address,
+            this._forkBlockNumber
+          );
+    const balance =
+      localBalance !== undefined
+        ? Buffer.from(localBalance, "hex")
+        : await this._jsonRpcClient.getBalance(address, this._forkBlockNumber);
+    const code =
+      localCode !== undefined
+        ? Buffer.from(localCode, "hex")
+        : await this._jsonRpcClient.getCode(address, this._forkBlockNumber);
+
     const codeHash = keccak256(code);
     // We ignore stateRoot since we found that it is not used anywhere
     return new Account({ nonce, balance, codeHash });

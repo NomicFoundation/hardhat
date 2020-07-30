@@ -207,16 +207,16 @@ describe("JsonRpcClient", () => {
     });
 
     it("can fetch nonce of an existing account", async () => {
-      const balance = await client.getTransactionCount(WETH_ADDRESS, "latest");
-      assert.isTrue(balance.gtn(0));
+      const nonce = await client.getTransactionCount(WETH_ADDRESS, "latest");
+      assert.isTrue(nonce.eqn(1));
     });
 
     it("can fetch nonce of a non-existent account", async () => {
-      const balance = await client.getTransactionCount(
+      const nonce = await client.getTransactionCount(
         EMPTY_ACCOUNT_ADDRESS,
         "latest"
       );
-      assert.isTrue(balance.eqn(0));
+      assert.isTrue(nonce.eqn(0));
     });
   });
 });
