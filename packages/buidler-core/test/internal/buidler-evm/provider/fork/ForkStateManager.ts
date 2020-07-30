@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import Account from "ethereumjs-account";
 import { BN, keccak256, KECCAK256_NULL_S } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
@@ -78,6 +79,18 @@ describe("ForkStateManager", () => {
         keccak256(code).toString("hex")
       );
       assert.notEqual(account.stateRoot.toString("hex"), "");
+    });
+  });
+
+  describe("putAccount", () => {
+    it("can change balance and nonce", async () => {
+      const address = randomAddressBuffer();
+      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      await fsm.putAccount(address, toPut);
+      const account = await fsm.getAccount(address);
+
+      assert.isTrue(new BN(account.nonce).eqn(69));
+      assert.isTrue(new BN(account.balance).eqn(420));
     });
   });
 

@@ -64,8 +64,15 @@ export class ForkStateManager {
     return new Account({ nonce, balance, codeHash });
   }
 
-  public putAccount(address: Buffer, account: Account): Promise<void> {
-    throw new Error("Not implemented.");
+  public async putAccount(address: Buffer, account: Account): Promise<void> {
+    // Because the vm only ever modifies the nonce and the balance using this
+    // method we ignore the other properties
+    const hexAddress = address.toString("hex");
+    let localAccount = this._state.get(hexAddress) ?? makeAccount();
+    localAccount = localAccount
+      .set("nonce", account.nonce.toString("hex"))
+      .set("balance", account.balance.toString("hex"));
+    this._state = this._state.set(hexAddress, localAccount);
   }
 
   public touchAccount(address: Buffer): void {
