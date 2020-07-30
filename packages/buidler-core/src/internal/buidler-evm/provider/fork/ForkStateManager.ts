@@ -1,5 +1,5 @@
 import Account from "ethereumjs-account";
-import { BN } from "ethereumjs-util";
+import { BN, stripZeros } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
@@ -15,10 +15,15 @@ import { StateManager } from "./StateManager";
 
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
 
+const encodeStorageKey = (address: Buffer, position: Buffer): string => {
+  return address.toString("hex") + stripZeros(position).toString("hex");
+};
+
 export class ForkStateManager {
   private _state: State = ImmutableMap();
   private _stateRoot: string = randomHash();
   private _stateRootToState: Map<string, State> = new Map();
+  private _originalStorageCache: Map<string, Buffer> = new Map();
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
@@ -80,11 +85,18 @@ export class ForkStateManager {
     );
   }
 
-  public getOriginalContractStorage(
+  public async getOriginalContractStorage(
     address: Buffer,
     key: Buffer
   ): Promise<Buffer> {
-    throw new Error("Not implemented.");
+    const storageKey = encodeStorageKey(address, key);
+    const cachedValue = this._originalStorageCache.get(storageKey);
+    if (cachedValue) {
+      return cachedValue;
+    }
+    const value = await this.getContractStorage(address, key);
+    this._originalStorageCache.set(storageKey, value);
+    return value;
   }
 
   public async putContractStorage(

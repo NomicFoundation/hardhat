@@ -69,6 +69,43 @@ describe("ForkStateManager", () => {
     });
   });
 
+  describe("getOriginalContractStorage", () => {
+    it("can get contract storage value", async () => {
+      const remoteValue = await client.getStorageAt(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        blockNumber
+      );
+      const fsmValue = await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+
+      assert.equal(fsmValue.toString("hex"), remoteValue.toString("hex"));
+    });
+
+    it("caches original storage value on first call and returns it for subsequent calls", async () => {
+      const newValue = Buffer.from("deadbeef", "hex");
+      const originalValue = await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.notEqual(originalValue.toString("hex"), newValue.toString("hex"));
+
+      await fsm.putContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        newValue
+      );
+
+      const cachedValue = await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.equal(cachedValue.toString("hex"), originalValue.toString("hex"));
+    });
+  });
+
   describe("putContractStorage", () => {
     it("can override storage value", async () => {
       const value = Buffer.from("feedface", "hex");
