@@ -122,16 +122,16 @@ export class ForkStateManager {
     this._state = this._state.set(hexAddress, account);
   }
 
-  public checkpoint(): Promise<void> {
-    throw new Error("Not implemented.");
+  public async checkpoint(): Promise<void> {
+    throw new NotSupportedError("checkpoint");
   }
 
-  public commit(): Promise<void> {
-    throw new Error("Not implemented.");
+  public async commit(): Promise<void> {
+    throw new NotSupportedError("commit");
   }
 
-  public revert(): Promise<void> {
-    throw new Error("Not implemented.");
+  public async revert(): Promise<void> {
+    throw new NotSupportedError("revert");
   }
 
   public async getStateRoot(): Promise<Buffer> {

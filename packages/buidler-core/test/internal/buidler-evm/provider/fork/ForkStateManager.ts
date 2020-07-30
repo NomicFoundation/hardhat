@@ -124,6 +124,27 @@ describe("ForkStateManager", () => {
     });
   });
 
+  describe("checkpoint", () => {
+    it("throws not supported error", async () => {
+      const error = await fsm.checkpoint().catch((e) => e);
+      assert.instanceOf(error, NotSupportedError);
+    });
+  });
+
+  describe("commit", () => {
+    it("throws not supported error", async () => {
+      const error = await fsm.commit().catch((e) => e);
+      assert.instanceOf(error, NotSupportedError);
+    });
+  });
+
+  describe("revert", () => {
+    it("throws not supported error", async () => {
+      const error = await fsm.revert().catch((e) => e);
+      assert.instanceOf(error, NotSupportedError);
+    });
+  });
+
   describe("clearContractStorage", () => {
     it("can clear all locally set values", async () => {
       const value = Buffer.from("feedface", "hex");
