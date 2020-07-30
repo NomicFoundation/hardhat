@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
+import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
 import { ForkStateManager } from "../../../../../src/internal/buidler-evm/provider/fork/ForkStateManager";
 import {
   randomAddressBuffer,
@@ -172,6 +173,15 @@ describe("ForkStateManager", () => {
       );
       await fsm.setStateRoot(beforeRoot);
       assert.equal((await fsm.getContractCode(address)).toString("hex"), "");
+    });
+  });
+
+  describe("dumpStorage", () => {
+    it("throws not supported error", async () => {
+      const error = await fsm
+        .dumpStorage(randomAddressBuffer())
+        .catch((e) => e);
+      assert.instanceOf(error, NotSupportedError);
     });
   });
 });

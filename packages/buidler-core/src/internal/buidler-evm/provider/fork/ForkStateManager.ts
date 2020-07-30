@@ -6,6 +6,7 @@ import { callbackify } from "util";
 import { JsonRpcClient } from "../../jsonrpc/client";
 
 import { AccountState, makeAccount } from "./Account";
+import { NotSupportedError } from "./errors";
 import { randomHash } from "./random";
 import { StateManager } from "./StateManager";
 
@@ -103,7 +104,9 @@ export class ForkStateManager {
   public async clearContractStorage(address: Buffer): Promise<void> {
     const hexAddress = address.toString("hex");
     let account = this._state.get(hexAddress) ?? makeAccount();
-    account = account.set("storageCleared", true).set("storage", ImmutableMap());
+    account = account
+      .set("storageCleared", true)
+      .set("storage", ImmutableMap());
     this._state = this._state.set(hexAddress, account);
   }
 
@@ -137,8 +140,8 @@ export class ForkStateManager {
     this._state = state;
   }
 
-  public dumpStorage(address: Buffer): Promise<Record<string, string>> {
-    throw new Error("Not implemented.");
+  public async dumpStorage(address: Buffer): Promise<Record<string, string>> {
+    throw new NotSupportedError("dumpStorage");
   }
 
   public hasGenesisState(): Promise<boolean> {
