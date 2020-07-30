@@ -221,4 +221,28 @@ describe("ForkStateManager", () => {
       assert.instanceOf(error, NotSupportedError);
     });
   });
+
+  describe("_clearOriginalStorageCache", () => {
+    it("makes the subsequent call to getOriginalContractStorage return a fresh value", async () => {
+      const newValue = Buffer.from("deadbeef", "hex");
+      const originalValue = await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.notEqual(originalValue.toString("hex"), newValue.toString("hex"));
+
+      await fsm.putContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        newValue
+      );
+      fsm._clearOriginalStorageCache();
+
+      const freshValue = await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.equal(freshValue.toString("hex"), newValue.toString("hex"));
+    });
+  });
 });

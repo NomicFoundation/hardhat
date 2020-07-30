@@ -178,7 +178,7 @@ export class ForkStateManager {
 
   // NOTE: this method is PUBLIC despite the naming convention of buidler
   public _clearOriginalStorageCache(): void {
-    throw new Error("Not implemented.");
+    this._originalStorageCache = new Map();
   }
 
   public asStateManager(): StateManager {
