@@ -187,16 +187,16 @@ export class ForkStateManager {
     throw new NotSupportedError("dumpStorage");
   }
 
-  public hasGenesisState(): Promise<boolean> {
-    throw new Error("Not implemented.");
+  public async hasGenesisState(): Promise<boolean> {
+    throw new NotSupportedError("hasGenesisState");
   }
 
-  public generateCanonicalGenesis(): Promise<void> {
-    throw new Error("Not implemented.");
+  public async generateCanonicalGenesis(): Promise<void> {
+    throw new NotSupportedError("generateCanonicalGenesis");
   }
 
-  public generateGenesis(initState: any): Promise<void> {
-    throw new Error("Not implemented.");
+  public async generateGenesis(initState: any): Promise<void> {
+    throw new NotSupportedError("generateGenesis");
   }
 
   public async accountIsEmpty(address: Buffer): Promise<boolean> {

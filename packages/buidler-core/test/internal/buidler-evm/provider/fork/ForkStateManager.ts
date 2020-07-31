@@ -375,6 +375,27 @@ describe("ForkStateManager", () => {
     });
   });
 
+  describe("hasGenesisState", () => {
+    it("throws not supported error", async () => {
+      const error = await fsm.hasGenesisState().catch((e) => e);
+      assert.instanceOf(error, NotSupportedError);
+    });
+  });
+
+  describe("generateCanonicalGenesis", () => {
+    it("throws not supported error", async () => {
+      const error = await fsm.generateCanonicalGenesis().catch((e) => e);
+      assert.instanceOf(error, NotSupportedError);
+    });
+  });
+
+  describe("generateGenesis", () => {
+    it("throws not supported error", async () => {
+      const error = await fsm.generateGenesis(null).catch((e) => e);
+      assert.instanceOf(error, NotSupportedError);
+    });
+  });
+
   describe("_clearOriginalStorageCache", () => {
     it("makes the subsequent call to getOriginalContractStorage return a fresh value", async () => {
       const newValue = Buffer.from("deadbeef", "hex");
