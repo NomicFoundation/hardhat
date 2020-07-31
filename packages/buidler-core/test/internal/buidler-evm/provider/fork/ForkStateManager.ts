@@ -57,14 +57,19 @@ describe("ForkStateManager", () => {
       const address = randomAddressBuffer();
       const code = Buffer.from("b16b00b1e5", "hex");
       await fsm.putContractCode(address, code);
-      // TODO: change balance
-      // TODO: change nonce
+      await fsm.putAccount(
+        address,
+        new Account({ nonce: new BN(1), balance: new BN(2) })
+      );
 
       const account = await fsm.getAccount(address);
+      assert.isTrue(new BN(account.nonce).eqn(1));
+      assert.isTrue(new BN(account.balance).eqn(2));
       assert.equal(
         account.codeHash.toString("hex"),
         keccak256(code).toString("hex")
       );
+      assert.notEqual(account.stateRoot.toString("hex"), "");
     });
 
     it("works with accounts modified locally", async () => {
@@ -91,6 +96,35 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(new BN(account.nonce).eqn(69));
       assert.isTrue(new BN(account.balance).eqn(420));
+    });
+  });
+
+  describe("accountIsEmpty", () => {
+    it("returns true for empty accounts", async () => {
+      const address = randomAddressBuffer();
+      const result = await fsm.accountIsEmpty(address);
+      assert.isTrue(result);
+    });
+
+    it("returns false for accounts with non-zero nonce", async () => {
+      const address = randomAddressBuffer();
+      await fsm.putAccount(address, new Account({ nonce: new BN(123) }));
+      const result = await fsm.accountIsEmpty(address);
+      assert.isFalse(result);
+    });
+
+    it("returns false for accounts with non-zero balance", async () => {
+      const address = randomAddressBuffer();
+      await fsm.putAccount(address, new Account({ balance: new BN(123) }));
+      const result = await fsm.accountIsEmpty(address);
+      assert.isFalse(result);
+    });
+
+    it("returns false for accounts with non-empty code", async () => {
+      const address = randomAddressBuffer();
+      await fsm.putContractCode(address, Buffer.from("fafadada", "hex"));
+      const result = await fsm.accountIsEmpty(address);
+      assert.isFalse(result);
     });
   });
 

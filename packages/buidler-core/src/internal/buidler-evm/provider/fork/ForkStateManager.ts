@@ -1,5 +1,5 @@
 import Account from "ethereumjs-account";
-import { BN, keccak256, stripZeros } from "ethereumjs-util";
+import { BN, keccak256, KECCAK256_NULL_S, stripZeros } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
@@ -199,8 +199,15 @@ export class ForkStateManager {
     throw new Error("Not implemented.");
   }
 
-  public accountIsEmpty(address: Buffer): Promise<boolean> {
-    throw new Error("Not implemented.");
+  public async accountIsEmpty(address: Buffer): Promise<boolean> {
+    const account = await this.getAccount(address);
+    // From https://eips.ethereum.org/EIPS/eip-161
+    // An account is considered empty when it has no code and zero nonce and zero balance.
+    return (
+      new BN(account.nonce).eqn(0) &&
+      new BN(account.balance).eqn(0) &&
+      account.codeHash.toString("hex") === KECCAK256_NULL_S
+    );
   }
 
   public cleanupTouchedAccounts(): Promise<void> {
