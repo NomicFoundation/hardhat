@@ -33,7 +33,16 @@ export class ForkStateManager {
   }
 
   public copy(): ForkStateManager {
-    throw new Error("Not implemented.");
+    const fsm = new ForkStateManager(
+      this._jsonRpcClient,
+      this._forkBlockNumber
+    );
+    fsm._state = this._state;
+    fsm._stateRoot = this._stateRoot;
+
+    // because this map is append-only we don't need to copy it
+    fsm._stateRootToState = this._stateRootToState;
+    return fsm;
   }
 
   public async getAccount(address: Buffer): Promise<Account> {

@@ -32,6 +32,20 @@ describe("ForkStateManager", () => {
     assert.instanceOf(fsm, ForkStateManager);
   });
 
+  describe("copy", () => {
+    /* tslint:disable no-string-literal */
+    it("creates a new object with the same state", async () => {
+      const fsmCopy = fsm.copy();
+
+      assert.equal(fsmCopy["_jsonRpcClient"], fsm["_jsonRpcClient"]);
+      assert.isTrue(fsmCopy["_forkBlockNumber"].eq(fsm["_forkBlockNumber"]));
+      assert.equal(fsmCopy["_state"], fsm["_state"]);
+      assert.equal(fsmCopy["_stateRoot"], fsm["_stateRoot"]);
+      assert.equal(fsmCopy["_stateRootToState"], fsm["_stateRootToState"]);
+    });
+    /* tslint:enable no-string-literal */
+  });
+
   describe("getAccount", () => {
     it("can get account object", async () => {
       const code = await client.getCode(WETH_ADDRESS, "latest");
