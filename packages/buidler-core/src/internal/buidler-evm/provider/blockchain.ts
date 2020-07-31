@@ -1,9 +1,8 @@
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 
+import { Block } from "./Block";
 import { BlockchainInterface } from "./BlockchainInterface";
 import { Callback } from "./Callback";
-
-export type Block = any;
 
 export class Blockchain implements BlockchainInterface {
   private readonly _blocks: Block[] = [];

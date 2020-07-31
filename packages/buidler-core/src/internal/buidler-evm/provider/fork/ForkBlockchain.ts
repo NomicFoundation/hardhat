@@ -2,9 +2,8 @@ import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
+import { Block } from "../Block";
 import { BlockchainInterface } from "../BlockchainInterface";
-
-type Block = any;
 
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */

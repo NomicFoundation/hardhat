@@ -1,7 +1,8 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
-import { Block, TxBlockResult } from "./node";
+import { Block } from "./Block";
+import { TxBlockResult } from "./node";
 
 export interface RpcBlockOutput {
   difficulty: string;

@@ -1,8 +1,7 @@
 import { BN } from "ethereumjs-util";
 
+import { Block } from "./Block";
 import { Callback } from "./Callback";
-
-type Block = any;
 
 export interface BlockchainInterface {
   /**

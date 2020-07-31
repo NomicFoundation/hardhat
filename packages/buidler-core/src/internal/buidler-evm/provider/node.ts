@@ -8,7 +8,6 @@ import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
 import debug from "debug";
 import Account from "ethereumjs-account";
-import Block from "ethereumjs-block";
 import Common from "ethereumjs-common";
 import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
@@ -50,6 +49,7 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
+import { Block } from "./Block";
 import { Blockchain } from "./blockchain";
 import {
   InternalError,
@@ -65,8 +65,6 @@ const log = debug("buidler:core:buidler-evm:node");
 // This library's types are wrong, they don't type check
 // tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
-
-export type Block = any;
 
 export interface GenesisAccount {
   privateKey: string;
