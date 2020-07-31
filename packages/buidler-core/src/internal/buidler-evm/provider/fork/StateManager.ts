@@ -1,8 +1,6 @@
 import Account from "ethereumjs-account";
 
-export type Callback<T = void> = T extends void
-  ? (error: any) => void
-  : (error: any, value: T) => void;
+import { Callback } from "../Callback";
 
 /**
  * This is similar to the definition from the vm, but is an interface, not a

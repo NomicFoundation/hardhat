@@ -1,8 +1,11 @@
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 
+import { BlockchainInterface } from "./BlockchainInterface";
+import { Callback } from "./Callback";
+
 export type Block = any;
 
-export class Blockchain {
+export class Blockchain implements BlockchainInterface {
   private readonly _blocks: Block[] = [];
   private readonly _blockNumberByHash: Map<string, number> = new Map();
 
@@ -14,11 +17,11 @@ export class Blockchain {
     cb(null, this._blocks[this._blocks.length - 1]);
   }
 
-  public putBlock(block: any, cb: any): void {
+  public putBlock(block: any, cb: Callback<Block>): void {
     const blockNumber = bufferToInt(block.header.number);
 
     if (this._blocks.length !== blockNumber) {
-      cb(new Error("Invalid block number"));
+      cb(new Error("Invalid block number"), undefined);
       return;
     }
 
@@ -28,7 +31,7 @@ export class Blockchain {
     cb(null, block);
   }
 
-  public delBlock(blockHash: Buffer, cb: any): void {
+  public delBlock(blockHash: Buffer, cb: Callback): void {
     const blockNumber = this._blockNumberByHash.get(bufferToHex(blockHash));
 
     if (blockNumber === undefined) {
@@ -48,7 +51,7 @@ export class Blockchain {
 
   public getBlock(
     hashOrBlockNumber: Buffer | BN,
-    cb: (err: Error | null, block?: Block) => void
+    cb: Callback<Block | undefined>
   ): void {
     let blockNumber: number;
 
@@ -58,7 +61,7 @@ export class Blockchain {
       const hash = bufferToHex(hashOrBlockNumber);
 
       if (!this._blockNumberByHash.has(hash)) {
-        cb(new Error("Block not found"));
+        cb(new Error("Block not found"), undefined);
         return;
       }
 
@@ -68,7 +71,7 @@ export class Blockchain {
     cb(null, this._blocks[blockNumber]);
   }
 
-  public iterator(name: string, onBlock: any, cb: any): void {
+  public iterator(name: string, onBlock: any, cb: Callback): void {
     let n = 0;
 
     const iterate = (err?: Error | undefined | null) => {
@@ -91,7 +94,7 @@ export class Blockchain {
     iterate(null);
   }
 
-  public getDetails(_: string, cb: any): void {
+  public getDetails(_: string, cb: Callback): void {
     cb(null);
   }
 
