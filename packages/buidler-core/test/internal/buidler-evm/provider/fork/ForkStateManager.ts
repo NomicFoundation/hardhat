@@ -22,9 +22,12 @@ describe("ForkStateManager", () => {
   let blockNumber: BN;
   let fsm: ForkStateManager;
 
-  beforeEach(async () => {
+  before(async () => {
     client = JsonRpcClient.forUrl(INFURA_URL);
     blockNumber = await client.getLatestBlockNumber();
+  });
+
+  beforeEach(async () => {
     fsm = new ForkStateManager(client, blockNumber);
   });
 

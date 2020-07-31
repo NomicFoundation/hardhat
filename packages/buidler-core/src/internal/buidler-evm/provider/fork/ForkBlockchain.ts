@@ -1,12 +1,23 @@
 import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
+import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainInterface } from "../BlockchainInterface";
 
 type Block = any;
 
+// TODO: figure out what errors we wanna throw
+/* tslint:disable only-buidler-error */
+
 export class ForkBlockchain {
-  public async getBlock(blockTag: Buffer | number | BN): Promise<Block | undefined> {
+  constructor(
+    private _jsonRpcClient: JsonRpcClient,
+    private _forkBlockNumber: BN
+  ) {}
+
+  public async getBlock(
+    blockTag: Buffer | number | BN
+  ): Promise<Block | undefined> {
     throw new Error("not implemented");
   }
 
@@ -42,7 +53,7 @@ export class ForkBlockchain {
       delBlock: callbackify(this.delBlock.bind(this)),
       getDetails: callbackify(this.getDetails.bind(this)),
       iterator: callbackify(this.iterator.bind(this)),
-      deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this)
+      deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this),
     };
   }
 }
