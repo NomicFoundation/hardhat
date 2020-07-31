@@ -398,4 +398,16 @@ describe("ForkStateManager", () => {
       assert.equal(freshValue.toString("hex"), newValue.toString("hex"));
     });
   });
+
+  describe("touchAccount", () => {
+    it("does not throw an error", () => {
+      fsm.touchAccount(randomAddressBuffer());
+    });
+  });
+
+  describe("cleanupTouchedAccounts", () => {
+    it("does not throw an error", async () => {
+      await fsm.cleanupTouchedAccounts();
+    });
+  });
 });

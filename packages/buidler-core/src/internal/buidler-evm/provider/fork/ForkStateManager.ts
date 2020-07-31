@@ -76,7 +76,7 @@ export class ForkStateManager {
   }
 
   public touchAccount(address: Buffer): void {
-    throw new Error("Not implemented.");
+    // We don't do anything here. See cleanupTouchedAccounts for explanation
   }
 
   public async putContractCode(address: Buffer, value: Buffer): Promise<void> {
@@ -210,8 +210,10 @@ export class ForkStateManager {
     );
   }
 
-  public cleanupTouchedAccounts(): Promise<void> {
-    throw new Error("Not implemented.");
+  public async cleanupTouchedAccounts(): Promise<void> {
+    // We do not do anything here, because cleaning accounts only affects the
+    // stateRoot. Since the stateRoot is fake anyway there is no need to
+    // perform this operation.
   }
 
   // NOTE: this method is PUBLIC despite the naming convention of buidler
