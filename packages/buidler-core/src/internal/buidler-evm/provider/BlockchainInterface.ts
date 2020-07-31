@@ -10,9 +10,8 @@ export interface BlockchainInterface {
    *
    * @param block - The block to be added to the blockchain.
    * @param cb - The callback. It is given two parameters `err` and the saved `block`
-   * @param isGenesis - True if block is the genesis block.
    */
-  putBlock(block: Block, cb: Callback<Block>, isGenesis?: boolean): void;
+  putBlock(block: Block, cb: Callback<Block>): void;
   /**
    * Deletes a block from the blockchain. All child blocks in the chain are deleted and any
    * encountered heads are set to the parent block.
@@ -45,4 +44,10 @@ export interface BlockchainInterface {
    * The method should just call `cb` with `null` as first argument.
    */
   getDetails(_: string, cb: Callback): void;
+
+  // The methods below are buidler specific
+
+  deleteAllFollowingBlocks(block: Block): void;
+
+  getLatestBlock(cb: Callback<Block>): void;
 }

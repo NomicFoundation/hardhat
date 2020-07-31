@@ -9,9 +9,9 @@ export class Blockchain implements BlockchainInterface {
   private readonly _blocks: Block[] = [];
   private readonly _blockNumberByHash: Map<string, number> = new Map();
 
-  public getLatestBlock(cb: any): void {
+  public getLatestBlock(cb: Callback<Block>): void {
     if (this._blocks.length === 0) {
-      cb(new Error("No block available"));
+      cb(new Error("No block available"), undefined);
     }
 
     cb(null, this._blocks[this._blocks.length - 1]);
