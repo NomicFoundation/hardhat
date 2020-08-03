@@ -1,3 +1,4 @@
+import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
@@ -11,7 +12,8 @@ import { BlockchainInterface } from "../BlockchainInterface";
 export class ForkBlockchain {
   constructor(
     private _jsonRpcClient: JsonRpcClient,
-    private _forkBlockNumber: BN
+    private _forkBlockNumber: BN,
+    private _common: Common
   ) {}
 
   public async getBlock(

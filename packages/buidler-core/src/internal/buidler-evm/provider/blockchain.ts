@@ -16,7 +16,7 @@ export class Blockchain implements BlockchainInterface {
     cb(null, this._blocks[this._blocks.length - 1]);
   }
 
-  public putBlock(block: any, cb: Callback<Block>): void {
+  public putBlock(block: Block, cb: Callback<Block>): void {
     const blockNumber = bufferToInt(block.header.number);
 
     if (this._blocks.length !== blockNumber) {
