@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 
 import AbiEncoder from "../../src/AbiEncoder";
@@ -21,7 +21,7 @@ describe("AbiEncoder tests", () => {
           ],
           ["test"]
         ),
-      BuidlerPluginError
+      NomicLabsBuidlerPluginError
     );
   });
 

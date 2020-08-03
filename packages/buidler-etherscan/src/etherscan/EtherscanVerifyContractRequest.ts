@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 
 export interface EtherscanRequestParameters {
   apikey: string;
@@ -56,7 +56,8 @@ function parseLibraries(libraries?: string): { [key: string]: string } {
       parsedLibraries = JSON.parse(libraries);
     }
   } catch (e) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
+      "@nomiclabs/buidler-etherscan",
       `Failed to parse libraries. Reason: ${e.message}`
     );
   }

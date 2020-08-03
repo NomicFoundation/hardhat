@@ -1,5 +1,5 @@
 import { internalTask, task } from "@nomiclabs/buidler/config";
-import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import * as fs from "fs";
 import { join } from "path";
 
@@ -18,7 +18,8 @@ function getFormatter(formatterName = "stylish") {
     );
     return require(formatterPath);
   } catch (ex) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
+      "@nomiclabs/buidler-solhint",
       `An error occurred loading the solhint formatter ${formatterName}`,
       ex
     );
@@ -53,7 +54,8 @@ async function getSolhintConfig(rootDirectory: string) {
     try {
       solhintConfig = await loadConfig();
     } catch (err) {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
+        "@nomiclabs/buidler-solhint",
         "An error occurred when loading your solhint config.",
         err
       );
@@ -65,7 +67,8 @@ async function getSolhintConfig(rootDirectory: string) {
   try {
     solhintConfig = applyExtends(solhintConfig);
   } catch (err) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
+      "@nomiclabs/buidler-solhint",
       "An error occurred when processing your solhint config.",
       err
     );

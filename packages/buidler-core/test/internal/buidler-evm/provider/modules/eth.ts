@@ -2440,7 +2440,7 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               data: "0xAA",
             },
-            "Transaction failed: revert"
+            "Transaction reverted without a reason"
           );
 
           // Out of gas. This a deployment transaction that pushes 0x00 multiple times

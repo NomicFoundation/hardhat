@@ -3,10 +3,48 @@ import { replaceAll } from "../util/strings";
 
 import { ErrorDescriptor, ERRORS, getErrorCode } from "./errors-list";
 
-// For an explanation about these classes constructors go to:
-// https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+const inspect = Symbol.for("nodejs.util.inspect.custom");
 
-export class BuidlerError extends Error {
+class CustomError extends Error {
+  constructor(message: string, public readonly parent?: Error) {
+    // WARNING: Using super when extending a builtin class doesn't work well
+    // with TS if you are compiling to a version of JavaScript that doesn't have
+    // native classes. We don't do that in Buidler.
+    //
+    // For more info about this, take a look at: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    super(message);
+
+    this.name = this.constructor.name;
+
+    // We do this to avoid including the constructor in the stack trace
+    if ((Error as any).captureStackTrace !== undefined) {
+      (Error as any).captureStackTrace(this, this.constructor);
+    }
+  }
+
+  public [inspect]() {
+    let str = this.stack;
+    if (this.parent !== undefined) {
+      const parentAsAny = this.parent as any;
+      const causeString =
+        parentAsAny[inspect]?.() ??
+        parentAsAny.inspect?.() ??
+        parentAsAny.stack ??
+        parentAsAny.toString();
+      const nestedCauseStr = causeString
+        .split("\n")
+        .map((line: string) => `    ${line}`)
+        .join("\n")
+        .trim();
+      str += `
+
+    Caused by: ${nestedCauseStr}`;
+    }
+    return str;
+  }
+}
+
+export class BuidlerError extends CustomError {
   public static isBuidlerError(other: any): other is BuidlerError {
     return (
       other !== undefined && other !== null && other._isBuidlerError === true
@@ -15,7 +53,6 @@ export class BuidlerError extends Error {
 
   public readonly errorDescriptor: ErrorDescriptor;
   public readonly number: number;
-  public readonly parent?: Error;
 
   private readonly _isBuidlerError: boolean;
 
@@ -31,13 +68,10 @@ export class BuidlerError extends Error {
       messageArguments
     );
 
-    super(prefix + formattedMessage);
+    super(prefix + formattedMessage, parentError);
+
     this.errorDescriptor = errorDescriptor;
     this.number = errorDescriptor.number;
-
-    if (parentError instanceof Error) {
-      this.parent = parentError;
-    }
 
     this._isBuidlerError = true;
     Object.setPrototypeOf(this, BuidlerError.prototype);
@@ -45,9 +79,9 @@ export class BuidlerError extends Error {
 }
 
 /**
- * This class is used to throw errors from buidler plugins.
+ * This class is used to throw errors from buidler plugins made by third parties.
  */
-export class BuidlerPluginError extends Error {
+export class BuidlerPluginError extends CustomError {
   public static isBuidlerPluginError(other: any): other is BuidlerPluginError {
     return (
       other !== undefined &&
@@ -56,7 +90,6 @@ export class BuidlerPluginError extends Error {
     );
   }
 
-  public readonly parent?: Error;
   public readonly pluginName: string;
 
   private readonly _isBuidlerPluginError: boolean;
@@ -87,17 +120,45 @@ export class BuidlerPluginError extends Error {
     parent?: Error
   ) {
     if (typeof messageOrParent === "string") {
-      super(messageOrParent);
+      super(messageOrParent, parent);
       this.pluginName = pluginNameOrMessage;
-      this.parent = parent;
     } else {
-      super(pluginNameOrMessage);
+      super(pluginNameOrMessage, messageOrParent);
       this.pluginName = getClosestCallerPackage()!;
-      this.parent = messageOrParent;
     }
 
     this._isBuidlerPluginError = true;
     Object.setPrototypeOf(this, BuidlerPluginError.prototype);
+  }
+}
+
+export class NomicLabsBuidlerPluginError extends BuidlerPluginError {
+  public static isNomicLabsBuidlerPluginError(
+    other: any
+  ): other is NomicLabsBuidlerPluginError {
+    return (
+      other !== undefined &&
+      other !== null &&
+      other._isNomicLabsBuidlerPluginError === true
+    );
+  }
+
+  private readonly _isNomicLabsBuidlerPluginError: boolean;
+
+  /**
+   * This class is used to throw errors from *core* buidler plugins. If you are
+   * developing a third-party plugin, use BuidlerPluginError instead.
+   */
+  public constructor(
+    pluginName: string,
+    message: string,
+    parent?: Error,
+    public shouldBeReported = false
+  ) {
+    super(pluginName, message, parent);
+
+    this._isNomicLabsBuidlerPluginError = true;
+    Object.setPrototypeOf(this, NomicLabsBuidlerPluginError.prototype);
   }
 }
 

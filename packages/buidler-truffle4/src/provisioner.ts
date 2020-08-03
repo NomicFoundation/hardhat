@@ -1,5 +1,5 @@
 import { wrapWithSolidityErrorsCorrection } from "@nomiclabs/buidler/internal/buidler-evm/stack-traces/solidity-errors";
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { NetworkConfig } from "@nomiclabs/buidler/types";
 import util from "util";
 
@@ -104,7 +104,7 @@ export class LazyTruffleContractProvisioner {
         const libName = args[0].constructor.contractName;
 
         if (alreadyLinkedLibs[libName]) {
-          throw new BuidlerPluginError(
+          throw new NomicLabsBuidlerPluginError(
             "@nomiclabs/buidler-truffle4",
             `Contract ${Contract.contractName} has already been linked to ${libName}.`
           );
@@ -120,13 +120,13 @@ export class LazyTruffleContractProvisioner {
 
       if (!linkingByInstance) {
         if (typeof args[0] === "string") {
-          throw new BuidlerPluginError(
+          throw new NomicLabsBuidlerPluginError(
             "@nomiclabs/buidler-truffle4",
             `Linking contracts by name is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
           );
         }
 
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
           "@nomiclabs/buidler-truffle4",
           `Linking contracts with a map of addresses is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
         );
@@ -260,7 +260,8 @@ export class LazyTruffleContractProvisioner {
 
       if (accounts.length === 0) {
         if (isDefaultAccountRequired) {
-          throw new BuidlerPluginError(
+          throw new NomicLabsBuidlerPluginError(
+            "@nomiclabs/buidler-truffle4",
             "There's no account available in the selected network."
           );
         }
@@ -289,7 +290,7 @@ export class LazyTruffleContractProvisioner {
       const address = this._deploymentAddresses[Contract.contractName];
 
       if (address === undefined) {
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
           "@nomiclabs/buidler-truffle5",
           `Trying to get deployed instance of ${Contract.contractName}, but none was set.`
         );

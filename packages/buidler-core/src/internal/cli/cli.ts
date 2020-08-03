@@ -5,7 +5,7 @@ import semver from "semver";
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
-import { TaskArguments } from "../../types";
+import { ResolvedBuidlerConfig, TaskArguments } from "../../types";
 import { BUIDLER_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
@@ -16,6 +16,7 @@ import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
+import { Reporter } from "../sentry/reporter";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { Analytics } from "./analytics";
@@ -68,6 +69,7 @@ async function main() {
     );
 
     if (buidlerArguments.verbose) {
+      Reporter.setVerbose(true);
       debug.enable("buidler*");
     }
 
@@ -101,6 +103,9 @@ async function main() {
       config.paths.root,
       config.analytics.enabled
     );
+
+    Reporter.setConfigPath(config.paths.configFile);
+    Reporter.setEnabled(config.analytics.enabled);
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
@@ -181,8 +186,14 @@ async function main() {
 
     console.log("");
 
+    try {
+      Reporter.reportError(error);
+    } catch (error) {
+      log("Couldn't report error to sentry: %O", error);
+    }
+
     if (showStackTraces) {
-      console.error(error.stack);
+      console.error(error);
     } else {
       if (!isBuidlerError) {
         console.error(
@@ -205,6 +216,7 @@ async function main() {
       }
     }
 
+    await Reporter.close(1000);
     process.exit(1);
   }
 }

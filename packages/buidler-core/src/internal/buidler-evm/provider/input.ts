@@ -2,6 +2,8 @@ import { BN, isValidAddress, toBuffer } from "ethereumjs-util";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 
+import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+
 import { InvalidArgumentsError } from "./errors";
 
 function optional<TypeT, OutputT>(
@@ -172,6 +174,27 @@ export const rpcSubscribeRequest = t.keyof(
 
 export type RpcFilterRequest = t.TypeOf<typeof rpcFilterRequest>;
 
+export const rpcCompilerInput = t.type(
+  {
+    language: t.string,
+    sources: t.any,
+    settings: t.any,
+  },
+  "RpcCompilerInput"
+);
+
+export type RpcCompilerInput = t.TypeOf<typeof rpcCompilerInput>;
+
+export const rpcCompilerOutput = t.type(
+  {
+    sources: t.any,
+    contracts: t.any,
+  },
+  "RpcCompilerOutput"
+);
+
+export type RpcCompilerOutput = t.TypeOf<typeof rpcCompilerOutput>;
+
 export function validateParams(params: any[]): [];
 
 export function validateParams(
@@ -264,6 +287,13 @@ export function validateParams(
 ): [RpcSubscribeRequest, OptionalRpcFilterRequest];
 
 export function validateParams(params: any[], number: typeof rpcQuantity): [BN];
+
+export function validateParams(
+  params: any[],
+  compilerVersion: typeof t.string,
+  compilerInput: typeof rpcCompilerInput,
+  compilerOutput: typeof rpcCompilerOutput
+): [string, CompilerInput, CompilerOutput];
 
 // tslint:disable only-buidler-error
 

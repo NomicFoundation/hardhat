@@ -1,6 +1,6 @@
 import { BN } from "ethereumjs-util";
 
-import { ContractFunctionType } from "./model";
+import { ContractFunctionType, SourceFile } from "./model";
 
 export enum StackTraceEntryType {
   CALLSTACK_ENTRY,
@@ -25,6 +25,7 @@ export enum StackTraceEntryType {
   // For more info: https://github.com/ethereum/solidity/issues/9006
   UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
   CONTRACT_TOO_LARGE_ERROR,
+  INTERNAL_FUNCTION_CALLSTACK_ENTRY,
 }
 
 export const FALLBACK_FUNCTION_NAME = "<fallback>";
@@ -36,7 +37,7 @@ export const PRECOMPILE_FUNCTION_NAME = "<precompile>";
 export const UNRECOGNIZED_CONTRACT_NAME = "<UnrecognizedContract>";
 
 export interface SourceReference {
-  fileGlobalName: string;
+  file: SourceFile;
   contract: string;
   function?: string;
   line: number;
@@ -153,6 +154,12 @@ export interface ContractTooLargeErrorStackTraceEntry {
   sourceReference: SourceReference;
 }
 
+export interface InternalFunctionCallStackEntry {
+  type: StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY;
+  pc: number;
+  sourceReference: SourceReference;
+}
+
 export type SolidityStackTraceEntry =
   | CallstackEntryStackTraceEntry
   | UnrecognizedCreateCallstackEntryStackTraceEntry
@@ -173,6 +180,7 @@ export type SolidityStackTraceEntry =
   | UnrecognizedContractErrorStackTraceEntry
   | OtherExecutionErrorStackTraceEntry
   | UnmappedSolc063RevertErrorStackTraceEntry
-  | ContractTooLargeErrorStackTraceEntry;
+  | ContractTooLargeErrorStackTraceEntry
+  | InternalFunctionCallStackEntry;
 
 export type SolidityStackTrace = SolidityStackTraceEntry[];
