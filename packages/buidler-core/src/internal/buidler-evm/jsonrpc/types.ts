@@ -53,6 +53,7 @@ const baseBlockResponse = {
   gasUsed: rpcQuantity,
   timestamp: rpcQuantity,
   uncles: t.array(rpcHash, "HASH Array"),
+  mixHash: rpcHash,
 };
 
 export type RpcBlock = t.TypeOf<typeof rpcBlock>;
