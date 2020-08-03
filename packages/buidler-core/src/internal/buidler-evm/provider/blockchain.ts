@@ -74,7 +74,7 @@ export class Blockchain implements BlockchainInterface {
     let n = 0;
 
     const iterate = (err?: Error | undefined | null) => {
-      if (err !== null || err !== undefined) {
+      if (err !== null && err !== undefined) {
         cb(err);
         return;
       }
