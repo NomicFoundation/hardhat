@@ -470,7 +470,7 @@ export class BuidlerNode extends EventEmitter {
       await this._increaseBlockTimestamp(block);
     }
 
-    await promisify(block.genTxTrie.bind(block))();
+    await new Promise((resolve) => block.genTxTrie(resolve));
     block.header.transactionsTrie = block.txTrie.root;
 
     const previousRoot = await this._stateManager.getStateRoot();
@@ -1232,7 +1232,9 @@ export class BuidlerNode extends EventEmitter {
 
     block.header.number = toBuffer(new BN(latestBlock.header.number).addn(1));
     block.header.parentHash = latestBlock.hash();
-    block.header.difficulty = block.header.canonicalDifficulty(latestBlock);
+    block.header.difficulty = block.header
+      .canonicalDifficulty(latestBlock)
+      .toBuffer();
     block.header.coinbase = await this.getCoinbaseAddress();
 
     return block;
@@ -1269,7 +1271,7 @@ export class BuidlerNode extends EventEmitter {
   private async _addTransactionToBlock(block: Block, tx: Transaction) {
     block.transactions.push(tx);
 
-    await promisify(block.genTxTrie.bind(block))();
+    await new Promise((resolve) => block.genTxTrie(resolve));
 
     block.header.transactionsTrie = block.txTrie.root;
   }
@@ -1381,6 +1383,9 @@ export class BuidlerNode extends EventEmitter {
     }
 
     const block = await this.getBlockByNumber(new BN(0));
+    if (block === undefined) {
+      return false;
+    }
     return block.hash().equals(blockHash);
   }
 
@@ -1410,11 +1415,11 @@ export class BuidlerNode extends EventEmitter {
   }
 
   private async _increaseBlockTimestamp(block: Block) {
-    block.header.timestamp = new BN(block.header.timestamp).addn(1);
+    block.header.timestamp = new BN(block.header.timestamp).addn(1).toBuffer();
   }
 
   private async _setBlockTimestamp(block: Block, timestamp: BN) {
-    block.header.timestamp = new BN(timestamp);
+    block.header.timestamp = new BN(timestamp).toBuffer();
   }
 
   private async _validateTransaction(tx: Transaction) {

@@ -457,7 +457,7 @@ export class EthModule {
     tag: OptionalBlockTag,
     includeTransactions: boolean
   ): Promise<RpcBlockOutput | null> {
-    let block: Block;
+    let block: Block | undefined;
 
     if (typeof tag === "string") {
       if (tag === "earliest") {

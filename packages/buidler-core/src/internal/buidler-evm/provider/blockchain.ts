@@ -10,7 +10,7 @@ export class Blockchain implements BlockchainInterface {
 
   public getLatestBlock(cb: Callback<Block>): void {
     if (this._blocks.length === 0) {
-      cb(new Error("No block available"), undefined);
+      cb(new Error("No block available"));
     }
 
     cb(null, this._blocks[this._blocks.length - 1]);
@@ -20,7 +20,7 @@ export class Blockchain implements BlockchainInterface {
     const blockNumber = bufferToInt(block.header.number);
 
     if (this._blocks.length !== blockNumber) {
-      cb(new Error("Invalid block number"), undefined);
+      cb(new Error("Invalid block number"));
       return;
     }
 
@@ -60,7 +60,7 @@ export class Blockchain implements BlockchainInterface {
       const hash = bufferToHex(hashOrBlockNumber);
 
       if (!this._blockNumberByHash.has(hash)) {
-        cb(new Error("Block not found"), undefined);
+        cb(new Error("Block not found"));
         return;
       }
 

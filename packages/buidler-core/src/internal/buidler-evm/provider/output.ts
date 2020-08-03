@@ -120,7 +120,7 @@ export function getRpcBlock(
     timestamp: numberToRpcQuantity(new BN(block.header.timestamp)),
     transactions: block.transactions.map((tx: any, index: number) =>
       getRpcTransaction(tx, block, index, !includeTransactions)
-    ),
+    ) as string[] | RpcTransactionOutput[],
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
   };
 }
