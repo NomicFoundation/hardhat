@@ -1,5 +1,7 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+
 import { pluginName } from "../pluginContext";
+
 import { EtherscanRequestParameters } from "./EtherscanVerifyContractRequest";
 
 async function delay(ms: number): Promise<void> {
@@ -15,9 +17,9 @@ export async function verifyContract(
 ): Promise<EtherscanResponse> {
   const { default: fetch } = await import("node-fetch");
   const requestDetails = {
-    method: 'post',
+    method: "post",
     body: JSON.stringify(req),
-    headers: {'Content-Type': 'application/json'}
+    headers: { "Content-Type": "application/json" },
   };
   try {
     const response = await fetch(url, requestDetails);
@@ -25,7 +27,10 @@ export async function verifyContract(
     if (!response.ok) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
       const responseText = await response.text();
-      throw new BuidlerPluginError(pluginName, `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`);
+      throw new BuidlerPluginError(
+        pluginName,
+        `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`
+      );
     }
 
     const etherscanResponse = new EtherscanResponse(await response.json());
@@ -38,9 +43,9 @@ export async function verifyContract(
   } catch (error) {
     throw new BuidlerPluginError(
       pluginName,
-      `Failed to send contract verification request.\n` +
-        `Endpoint URL: ${url}\n` +
-        `Reason: ${error.message}\n`,
+      `Failed to send contract verification request.
+Endpoint URL: ${url}
+Reason: ${error.message}\n`,
       error
     );
   }
@@ -64,7 +69,10 @@ export async function getVerificationStatus(
     if (!response.ok) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
       const responseText = await response.text();
-      throw new BuidlerPluginError(pluginName, `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`);
+      throw new BuidlerPluginError(
+        pluginName,
+        `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`
+      );
     }
 
     const etherscanResponse = new EtherscanResponse(await response.json());
@@ -83,9 +91,9 @@ export async function getVerificationStatus(
   } catch (error) {
     throw new BuidlerPluginError(
       pluginName,
-      `Failed to verify contract.\n` +
-        `Endpoint URL: ${urlWithQuery}\n` +
-        `Reason: ${error.message}\n`,
+      `Failed to verify contract.
+Endpoint URL: ${urlWithQuery}
+Reason: ${error.message}\n`,
       error
     );
   }

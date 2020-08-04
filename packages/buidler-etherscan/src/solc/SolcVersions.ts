@@ -1,48 +1,64 @@
 import { CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/downloader";
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+
 import { pluginName } from "../pluginContext";
 
 const COMPILERS_LIST_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json";
 
 export class SolcVersionNumber {
-    constructor(readonly major: number, readonly minor: number, readonly patch: number) {};
-    async getLongVersion(): Promise<string> {
-      const shortVersion = `${this.major}.${this.minor}.${this.patch}`;
-      const versions = await getVersions();
-      const fullVersion = versions.releases[shortVersion];
+  constructor(
+    readonly major: number,
+    readonly minor: number,
+    readonly patch: number
+  ) {}
+  public async getLongVersion(): Promise<string> {
+    const shortVersion = `${this.major}.${this.minor}.${this.patch}`;
+    const versions = await getVersions();
+    const fullVersion = versions.releases[shortVersion];
 
-      if (fullVersion === undefined || fullVersion === "") {
-        throw new BuidlerPluginError(pluginName, "Given solc version doesn't exist");
-      }
-
-      return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
+    if (fullVersion === undefined || fullVersion === "") {
+      throw new BuidlerPluginError(
+        pluginName,
+        "Given solc version doesn't exist"
+      );
     }
+
+    return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
+  }
 }
 
 export enum InferralType {
-  Exact,
-  MetadataPresentVersionAbsent,
-  MetadataAbsent,
+  EXACT,
+  METADATA_PRESENT_VERSION_ABSENT,
+  METADATA_ABSENT,
 }
 
 // Perhaps an enumeration of the versions included in this range could be a better solution for error messages.
 interface SolcVersionRange {
-  /**
-  * @returns true if the version is included in the range.
-  */
-  isIncluded(version: SolcVersionNumber): boolean;
   inferralType: InferralType;
+  /**
+   * @returns true if the version is included in the range.
+   */
+  isIncluded(version: SolcVersionNumber): boolean;
   toString(): string;
 }
 
 export function getVersionNumber(shortVersion: string): SolcVersionNumber {
-  const [ major, minor, patch ] = shortVersion.split(".", 2).map((value) => parseInt(value));
+  const [major, minor, patch] = shortVersion
+    .split(".", 2)
+    .map((value) => parseInt(value, 10));
   return new SolcVersionNumber(major, minor, patch);
 }
 
-export async function inferSolcVersion(bytecode: Buffer): Promise<SolcVersionRange> {
-  const { readSolcVersion, VersionNotFoundError, MetadataAbsentError } = await import("./metadata");
+export async function inferSolcVersion(
+  bytecode: Buffer
+): Promise<SolcVersionRange> {
+  const {
+    readSolcVersion,
+    VersionNotFoundError,
+    MetadataAbsentError,
+  } = await import("./metadata");
 
   let solcVersionMetadata: SolcVersionNumber;
   try {
@@ -62,49 +78,50 @@ export async function inferSolcVersion(bytecode: Buffer): Promise<SolcVersionRan
       // The embedded metadata was successfully decoded but there was no solc version in it.
       return {
         isIncluded: (version: SolcVersionNumber): boolean => {
-          return version.major == 0 &&
-            ((version.minor == 4 && version.patch >= 7) ||
-              (version.minor == 5 && version.patch < 9));
+          return (
+            version.major === 0 &&
+            ((version.minor === 4 && version.patch >= 7) ||
+              (version.minor === 5 && version.patch < 9))
+          );
         },
-        inferralType: InferralType.MetadataPresentVersionAbsent,
+        inferralType: InferralType.METADATA_PRESENT_VERSION_ABSENT,
         toString: () => {
           return `v0.4.7 or v0.4 with a higher patch number; v0.5.8 or v0.5 with a lower patch number`;
         },
       };
-    } else if (error instanceof MetadataAbsentError) {
+    }
+    if (error instanceof MetadataAbsentError) {
       // The decoding failed. Unfortunately, our only option is to assume that this bytecode was emitted by an old version.
       return {
         isIncluded: (version: SolcVersionNumber): boolean => {
-          return version.major == 0 &&
-            version.minor == 4 &&
-            version.patch < 7;
+          return (
+            version.major === 0 && version.minor === 4 && version.patch < 7
+          );
         },
-        inferralType: InferralType.MetadataAbsent,
+        inferralType: InferralType.METADATA_ABSENT,
         toString: () => {
           return `v0.4.6 or v0.4 with a lower patch number`;
         },
       };
-    } else {
-      // Should be unreachable.
-      throw error;
     }
+    // Should be unreachable.
+    throw error;
   }
 
   return {
     isIncluded: (version: SolcVersionNumber): boolean => {
-      return version.major == solcVersionMetadata.major &&
-        version.minor == solcVersionMetadata.minor &&
-        version.patch == solcVersionMetadata.patch;
+      return (
+        version.major === solcVersionMetadata.major &&
+        version.minor === solcVersionMetadata.minor &&
+        version.patch === solcVersionMetadata.patch
+      );
     },
-    inferralType: InferralType.Exact,
+    inferralType: InferralType.EXACT,
     toString: () => {
       return `v{solcVersionMetadata.major}.{solcVersionMetadata.minor}.{solcVersionMetadata.patch}`;
     },
   };
-
 }
-
-
 
 export async function getVersions(): Promise<CompilersList> {
   try {
@@ -114,7 +131,10 @@ export async function getVersions(): Promise<CompilersList> {
     const response = await fetch(compilersURL);
 
     if (!response.ok) {
-      throw new BuidlerPluginError(pluginName, `Response is not ok. Status code: ${response.status}`);
+      throw new BuidlerPluginError(
+        pluginName,
+        `Response is not ok. Status code: ${response.status}`
+      );
     }
 
     return response.json();
@@ -126,4 +146,3 @@ export async function getVersions(): Promise<CompilersList> {
     );
   }
 }
-

@@ -1,4 +1,3 @@
-
 export interface EtherscanRequestParameters {
   apikey: string;
   module: "contract";

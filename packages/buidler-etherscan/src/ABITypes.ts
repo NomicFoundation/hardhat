@@ -5,19 +5,27 @@ export interface ABIArgumentLengthError {
     values: number;
   };
   value: {
-    types: {
+    types: Array<{
       name: string;
       type: string;
-    }[];
+    }>;
     values: any[];
   };
   reason: string;
 }
 
-export function isABIArgumentLengthError(error: any): error is ABIArgumentLengthError {
-  return error.code == "INVALID_ARGUMENT" &&
-    error.count && typeof error.count.types === "number" && typeof error.count.values === "number" &&
-    error.value && typeof error.value.types === "object" && typeof error.value.values === "object";
+export function isABIArgumentLengthError(
+  error: any
+): error is ABIArgumentLengthError {
+  return (
+    error.code === "INVALID_ARGUMENT" &&
+    error.count &&
+    typeof error.count.types === "number" &&
+    typeof error.count.values === "number" &&
+    error.value &&
+    typeof error.value.types === "object" &&
+    typeof error.value.values === "object"
+  );
 }
 
 export interface ABIArgumentTypeError {
@@ -27,8 +35,12 @@ export interface ABIArgumentTypeError {
   reason: string;
 }
 
-export function isABIArgumentTypeError(error: any): error is ABIArgumentTypeError {
-  return error.code == "INVALID_ARGUMENT" &&
+export function isABIArgumentTypeError(
+  error: any
+): error is ABIArgumentTypeError {
+  return (
+    error.code === "INVALID_ARGUMENT" &&
     typeof error.argument === "string" &&
-    "value" in error;
+    "value" in error
+  );
 }
