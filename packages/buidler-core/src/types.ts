@@ -89,7 +89,7 @@ export interface SolcConfig {
 
 export interface MultiSolcConfig {
   compilers: SolcConfig[];
-  overides?: Record<string, SolcConfig>;
+  overrides?: Record<string, SolcConfig>;
 }
 
 export type SolidityConfig = string | SolcConfig | MultiSolcConfig;

@@ -176,11 +176,8 @@ export default function () {
         await fsExtra.ensureDir(config.paths.artifacts);
         let numberOfContracts = 0;
 
-        for (const [
-          file,
-          emitsArtifacts,
-        ] of compilationGroup.filesToCompile.entries()) {
-          if (!emitsArtifacts) {
+        for (const file of compilationGroup.getResolvedFiles()) {
+          if (!compilationGroup.emitsArtifacts(file)) {
             continue;
           }
 

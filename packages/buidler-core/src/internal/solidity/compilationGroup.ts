@@ -1,3 +1,4 @@
+import { flatten, isEqual } from "lodash";
 import semver from "semver";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
@@ -7,24 +8,23 @@ import { DependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
 export class CompilationGroup {
-  constructor(
-    public solidityConfig: SolcConfig,
-    public filesToCompile: Map<ResolvedFile, boolean>
-  ) {}
+  private _filesToCompile: Map<ResolvedFile, boolean> = new Map();
+
+  constructor(public solidityConfig: SolcConfig) {}
 
   public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
-    const alreadyEmitsArtifacts = this.filesToCompile.get(file);
+    const alreadyEmitsArtifacts = this._filesToCompile.get(file);
     if (alreadyEmitsArtifacts === undefined) {
-      this.filesToCompile.set(file, emitsArtifacts);
+      this._filesToCompile.set(file, emitsArtifacts);
     } else {
       if (!alreadyEmitsArtifacts && emitsArtifacts) {
-        this.filesToCompile.set(file, emitsArtifacts);
+        this._filesToCompile.set(file, emitsArtifacts);
       }
     }
   }
 
   public isEmpty() {
-    return this.filesToCompile.size === 0;
+    return this._filesToCompile.size === 0;
   }
 
   public getVersion() {
@@ -32,11 +32,11 @@ export class CompilationGroup {
   }
 
   public getResolvedFiles(): ResolvedFile[] {
-    return [...this.filesToCompile.keys()];
+    return [...this._filesToCompile.keys()];
   }
 
   public emitsArtifacts(file: ResolvedFile): boolean {
-    const emitsArtifacts = this.filesToCompile.get(file);
+    const emitsArtifacts = this._filesToCompile.get(file);
 
     if (emitsArtifacts === undefined) {
       // tslint:disable-next-line only-buidler-error
@@ -59,42 +59,91 @@ function hasChangedSinceLastCompilation(
   return result;
 }
 
+/**
+ * Map solc configurations to compilation groups. Keys are deeply compared for
+ * equality. Implementation is quadratic, but the number of compilers +
+ * overrides shouldn't be huge.
+ */
+class CompilationGroupMap {
+  private _compilationGroups: Map<SolcConfig, CompilationGroup> = new Map();
+
+  public addGroup(config: SolcConfig) {
+    this._getOrCreateGroup(config);
+  }
+
+  public addFileToGroup(
+    config: SolcConfig,
+    file: ResolvedFile,
+    emitsArtifacts: boolean
+  ) {
+    const group = this._getOrCreateGroup(config);
+
+    group.addFileToCompile(file, emitsArtifacts);
+  }
+
+  public getGroups(): CompilationGroup[] {
+    return [...this._compilationGroups.values()];
+  }
+
+  private _getOrCreateGroup(config: SolcConfig): CompilationGroup {
+    for (const [configKey, group] of this._compilationGroups.entries()) {
+      if (isEqual(config, configKey)) {
+        return group;
+      }
+    }
+
+    const newGroup = new CompilationGroup(config);
+    this._compilationGroups.set(config, newGroup);
+
+    return newGroup;
+  }
+}
+
 export function createCompilationGroups(
   dependencyGraph: DependencyGraph,
   solidityConfig: MultiSolcConfig,
   solidityFilesCache: SolidityFilesCache
 ): CompilationGroup[] {
-  const solidityConfigToCompilationGroup: Map<
-    SolcConfig,
-    CompilationGroup
-  > = new Map();
+  const overrides = solidityConfig.overrides ?? {};
+  const compilationGroupMap = new CompilationGroupMap();
 
-  for (const config of solidityConfig.compilers) {
-    solidityConfigToCompilationGroup.set(
-      config,
-      new CompilationGroup(config, new Map())
-    );
+  const allCompilers = [
+    ...solidityConfig.compilers,
+    ...Object.values(overrides),
+  ];
+
+  for (const config of allCompilers) {
+    compilationGroupMap.addGroup(config);
   }
 
   const versions = solidityConfig.compilers.map((c) => c.version);
 
   for (const file of dependencyGraph.getResolvedFiles()) {
-    const version = semver.maxSatisfying(
-      versions,
-      file.content.versionPragmas.join(" || ")
+    const overriddenCompiler = overrides[file.globalName];
+
+    const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
+      file
     );
+
+    const allVersionPragmas = flatten(
+      transitiveDependencies.map((x) => x.content.versionPragmas)
+    ).concat(file.content.versionPragmas);
+
+    const version =
+      overriddenCompiler !== undefined
+        ? overriddenCompiler.version
+        : semver.maxSatisfying(versions, allVersionPragmas.join(" "));
+
     if (version === null) {
       // tslint:disable-next-line only-buidler-error
       throw new Error(`File cannot be compiled: ${file.absolutePath}`); // TODO return error with non-compilable files instead of throwing
     }
 
-    const config = solidityConfig.compilers.find(
-      (solcConfig) => solcConfig.version === version
-    )!;
-
-    const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
-      file
-    );
+    const config =
+      overriddenCompiler ??
+      solidityConfig.compilers.find(
+        (solcConfig) => solcConfig.version === version
+      )!;
 
     const changedSinceLastCompilation =
       hasChangedSinceLastCompilation(file, solidityFilesCache) ||
@@ -103,17 +152,13 @@ export function createCompilationGroups(
       );
 
     if (changedSinceLastCompilation) {
-      solidityConfigToCompilationGroup
-        .get(config)!
-        .addFileToCompile(file, true);
+      compilationGroupMap.addFileToGroup(config, file, true);
 
       for (const dependency of transitiveDependencies) {
-        solidityConfigToCompilationGroup
-          .get(config)!
-          .addFileToCompile(dependency, false);
+        compilationGroupMap.addFileToGroup(config, dependency, false);
       }
     }
   }
 
-  return [...solidityConfigToCompilationGroup.values()];
+  return [...compilationGroupMap.getGroups()];
 }
