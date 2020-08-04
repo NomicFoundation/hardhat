@@ -33,7 +33,7 @@ export class ForkBlockchain {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    throw new Error("not implemented");
+    return this.getBlock(this._latestBlockNumber);
   }
 
   public async putBlock(block: Block): Promise<Block> {

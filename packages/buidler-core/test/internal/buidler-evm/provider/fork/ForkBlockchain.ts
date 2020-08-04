@@ -19,6 +19,10 @@ describe("ForkBlockchain", () => {
   let common: Common;
   let fb: ForkBlockchain;
 
+  function createBlock(number: BN) {
+    return new Block({ header: { number } }, { common });
+  }
+
   before(async () => {
     client = JsonRpcClient.forUrl(INFURA_URL);
     forkBlockNumber = await client.getLatestBlockNumber();
@@ -114,17 +118,42 @@ describe("ForkBlockchain", () => {
 
     it("can retrieve inserted block by hash", async () => {
       const blockNumber = forkBlockNumber.addn(1);
-      const block = new Block({ header: { number: blockNumber } }, { common });
+      const block = createBlock(blockNumber);
       await fb.putBlock(block);
       const savedBlock = await fb.getBlock(block.hash());
       assert.equal(savedBlock, block);
     });
   });
 
+  describe("getLatestBlock", () => {
+    it("returns the block at which we fork if no blocks were added", async () => {
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
+      const block = await fb.getLatestBlock();
+
+      assert.equal(block?.hash().toString("hex"), BLOCK_HASH_OF_10496585);
+      assert.equal(block?.transactions.length, 192);
+      assert.equal(
+        block?.transactions[0].hash().toString("hex"),
+        "ed0b0b132bd693ef34a72084f090df07c5c3a2ec019d76316da040d4222cdfb8"
+      );
+      assert.equal(
+        block?.transactions[191].hash().toString("hex"),
+        "d809fb6f7060abc8de068c7a38e9b2b04530baf0cc4ce9a2420d59388be10ee7"
+      );
+    });
+
+    it("returns the latest added block", async () => {
+      const block = createBlock(forkBlockNumber.addn(1));
+      await fb.putBlock(block);
+      const latestBlock = await fb.getLatestBlock();
+      assert.equal(latestBlock, block);
+    });
+  });
+
   describe("putBlock", () => {
     it("saves the block in the blockchain", async () => {
       const blockNumber = forkBlockNumber.addn(1);
-      const block = new Block({ header: { number: blockNumber } }, { common });
+      const block = createBlock(blockNumber);
       const returnedBlock = await fb.putBlock(block);
       const savedBlock = await fb.getBlock(blockNumber);
       assert.equal(returnedBlock, block);
@@ -132,17 +161,12 @@ describe("ForkBlockchain", () => {
     });
 
     it("rejects blocks with invalid block number", async () => {
-      const blockNumber = forkBlockNumber.addn(2);
-      const block = new Block({ header: { number: blockNumber } }, { common });
+      const block = createBlock(forkBlockNumber.addn(2));
       const error = await fb.putBlock(block).catch((e) => e);
       assert.instanceOf(error, Error);
     });
 
     it("can save more than one block", async () => {
-      function createBlock(number: BN) {
-        return new Block({ header: { number } }, { common });
-      }
-
       const blockOne = createBlock(forkBlockNumber.addn(1));
       const blockTwo = createBlock(forkBlockNumber.addn(2));
       const blockThree = createBlock(forkBlockNumber.addn(3));
