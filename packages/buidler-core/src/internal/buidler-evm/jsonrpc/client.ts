@@ -6,6 +6,7 @@ import { rpcData, rpcQuantity } from "../provider/input";
 
 import {
   decode,
+  nullable,
   RpcBlock,
   rpcBlock,
   rpcBlockWithTransactions,
@@ -49,18 +50,18 @@ export class JsonRpcClient {
   public async getBlockByNumber(
     blockTag: BlockTag,
     includeTransactions = false
-  ): Promise<RpcBlock | RpcBlockWithTransactions> {
+  ): Promise<RpcBlock | RpcBlockWithTransactions | null> {
     if (includeTransactions) {
       return this._perform(
         "eth_getBlockByNumber",
         [blockTagToString(blockTag), includeTransactions],
-        rpcBlockWithTransactions
+        nullable(rpcBlockWithTransactions)
       );
     }
     return this._perform(
       "eth_getBlockByNumber",
       [blockTagToString(blockTag), includeTransactions],
-      rpcBlock
+      nullable(rpcBlock)
     );
   }
 

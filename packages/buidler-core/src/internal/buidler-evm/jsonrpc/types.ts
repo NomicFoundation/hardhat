@@ -10,7 +10,7 @@ export function decode<T>(value: unknown, codec: t.Type<T>) {
   }, t.identity);
 }
 
-const nullable = <T extends t.Type<any>>(codec: T) =>
+export const nullable = <T extends t.Type<any>>(codec: T) =>
   t.union([codec, t.null], `${codec.name} or null`);
 
 export type RpcTransaction = t.TypeOf<typeof rpcTransaction>;

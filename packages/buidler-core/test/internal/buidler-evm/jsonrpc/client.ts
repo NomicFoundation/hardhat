@@ -143,6 +143,13 @@ describe("JsonRpcClient", () => {
         )
       );
     });
+
+    it("returns null for non-existent block", async () => {
+      const client = JsonRpcClient.forUrl(INFURA_URL);
+      const blockNumber = await client.getLatestBlockNumber();
+      const block = await client.getBlockByNumber(blockNumber.addn(1000), true);
+      assert.isNull(block);
+    });
   });
 
   describe("eth_getCode", () => {
