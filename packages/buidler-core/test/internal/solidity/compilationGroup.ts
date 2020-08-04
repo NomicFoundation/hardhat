@@ -14,6 +14,7 @@ import {
   ResolvedFile,
   Resolver,
 } from "../../../src/internal/solidity/resolver";
+import { SolcConfig } from "../../../src/types";
 
 const defaultOptimizer = {
   enabled: false,
@@ -49,35 +50,55 @@ class MockFile {
   public readonly globalName: string;
   public readonly absolutePath: string;
 
-  constructor(
-    public name: string,
-    public versionPragmas: string[],
-    public readonly modified: "new" | "modified" | "not-modified"
-  ) {
+  constructor(public name: string, public versionPragmas: string[]) {
     this.globalName = `contracts/${name}.sol`;
     this.absolutePath = path.join(projectRoot, "contracts", `${name}.sol`);
   }
 }
 
 async function createMockData(
-  filesAndDependencies: Array<[MockFile, MockFile[]]>
+  files: Array<{
+    file: MockFile;
+    dependencies?: MockFile[];
+    modified?: "new" | "not-modified" | "modified";
+    lastSolcConfig?: SolcConfig;
+  }>
 ): Promise<[DependencyGraph, SolidityFilesCache, ResolvedFile[]]> {
-  const dependencies = new Map<MockFile, MockFile[]>(filesAndDependencies);
+  const filesMap = new Map<
+    MockFile,
+    {
+      dependencies: MockFile[];
+      lastSolcConfig?: SolcConfig;
+      modified: "new" | "not-modified" | "modified";
+    }
+  >();
+
+  for (const { file, dependencies, modified, lastSolcConfig } of files) {
+    const isModified = modified ?? "new";
+    if (isModified !== "new" && lastSolcConfig === undefined) {
+      throw new Error("lastSolcConfig has to be specified");
+    }
+    filesMap.set(file, {
+      dependencies: dependencies ?? [],
+      modified: isModified,
+      lastSolcConfig,
+    });
+  }
 
   const solidityFilesCache: SolidityFilesCache = {};
   const mockFileToResolvedFile: Map<MockFile, ResolvedFile> = new Map();
 
   const importsMap = new Map<string, ResolvedFile>();
 
-  const resolvedFiles = [...dependencies.keys()].map((mockFile) => {
+  const resolvedFiles = [...filesMap.keys()].map((mockFile) => {
     const resolvedFile = new ResolvedFile(
       mockFile.globalName,
       mockFile.absolutePath,
       {
         rawContent: "mock file",
-        imports: (dependencies.get(mockFile) ?? []).map(
-          (dependency) => `./${dependency.name}.sol`
-        ),
+        imports: filesMap
+          .get(mockFile)!
+          .dependencies.map((dependency) => `./${dependency.name}.sol`),
         versionPragmas: mockFile.versionPragmas,
       },
       new Date()
@@ -86,14 +107,16 @@ async function createMockData(
     mockFileToResolvedFile.set(mockFile, resolvedFile);
     importsMap.set(`./${mockFile.name}.sol`, resolvedFile);
 
-    if (mockFile.modified === "not-modified") {
+    if (filesMap.get(mockFile)!.modified === "not-modified") {
       solidityFilesCache[mockFile.absolutePath] = {
         lastModificationDate: resolvedFile.lastModificationDate.valueOf(),
+        solcConfig: filesMap.get(mockFile)!.lastSolcConfig!,
       };
-    } else if (mockFile.modified === "modified") {
+    } else if (filesMap.get(mockFile)!.modified === "modified") {
       solidityFilesCache[mockFile.absolutePath] = {
         lastModificationDate:
           resolvedFile.lastModificationDate.valueOf() - 1000,
+        solcConfig: filesMap.get(mockFile)!.lastSolcConfig!,
       };
     }
 
@@ -147,12 +170,12 @@ function assertIsLeft<LeftT, RightT>(
 describe("Compilation groups", function () {
   describe("single file", function () {
     it("new file", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      ] = await createMockData([{ file: FooMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -172,12 +195,17 @@ describe("Compilation groups", function () {
     });
 
     it("modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const [
-        dependencyGraph,
-        solidityFilesCache,
-        [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
+        [
+          {
+            file: FooMock,
+            dependencies: [],
+            modified: "modified",
+            lastSolcConfig: solc055,
+          },
+        ]
+      );
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -197,9 +225,9 @@ describe("Compilation groups", function () {
     });
 
     it("not modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, []],
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -221,12 +249,12 @@ describe("Compilation groups", function () {
 
   describe("single file with overrides", function () {
     it("different version", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      ] = await createMockData([{ file: FooMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -256,12 +284,12 @@ describe("Compilation groups", function () {
     });
 
     it("same version, different options", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      ] = await createMockData([{ file: FooMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -293,12 +321,12 @@ describe("Compilation groups", function () {
     });
 
     it("same config in override", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      ] = await createMockData([{ file: FooMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -327,12 +355,12 @@ describe("Compilation groups", function () {
 
   describe("single file, not compilable", function () {
     it("single compiler doesn't match", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      ] = await createMockData([{ file: FooMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -346,12 +374,12 @@ describe("Compilation groups", function () {
     });
 
     it("no compilers match", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      ] = await createMockData([{ file: FooMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -365,12 +393,12 @@ describe("Compilation groups", function () {
     });
 
     it("compiler matches but override doesn't", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo],
-      ] = await createMockData([[FooMock, []]]);
+      ] = await createMockData([{ file: FooMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -391,16 +419,13 @@ describe("Compilation groups", function () {
 
   describe("two files without dependencies, same versions", function () {
     it("both new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
-      ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
-      ]);
+      ] = await createMockData([{ file: FooMock }, { file: BarMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -423,12 +448,12 @@ describe("Compilation groups", function () {
     });
 
     it("first one modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
         [
-          [FooMock, []],
-          [BarMock, []],
+          { file: FooMock, modified: "modified", lastSolcConfig: solc055 },
+          { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
         ]
       );
 
@@ -452,15 +477,15 @@ describe("Compilation groups", function () {
     });
 
     it("second one modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [, Bar],
       ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
+        { file: BarMock, modified: "modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -483,11 +508,11 @@ describe("Compilation groups", function () {
     });
 
     it("none modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -509,16 +534,13 @@ describe("Compilation groups", function () {
     });
 
     it("with overrides", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
-      ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
-      ]);
+      ] = await createMockData([{ file: FooMock }, { file: BarMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -551,16 +573,13 @@ describe("Compilation groups", function () {
 
   describe("two files without dependencies, different versions", function () {
     it("both new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
-      ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
-      ]);
+      ] = await createMockData([{ file: FooMock }, { file: BarMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -586,12 +605,12 @@ describe("Compilation groups", function () {
     });
 
     it("first one modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
       const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
         [
-          [FooMock, []],
-          [BarMock, []],
+          { file: FooMock, modified: "modified", lastSolcConfig: solc055 },
+          { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
         ]
       );
 
@@ -618,15 +637,15 @@ describe("Compilation groups", function () {
     });
 
     it("second one modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [, Bar],
       ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
+        { file: BarMock, modified: "modified", lastSolcConfig: solc066 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -652,11 +671,11 @@ describe("Compilation groups", function () {
     });
 
     it("none modified", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -681,16 +700,13 @@ describe("Compilation groups", function () {
     });
 
     it("with overrides", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
-      ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
-      ]);
+      ] = await createMockData([{ file: FooMock }, { file: BarMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -730,15 +746,15 @@ describe("Compilation groups", function () {
 
   describe("two files, one imports the other", function () {
     it("both new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -762,15 +778,20 @@ describe("Compilation groups", function () {
     });
 
     it("the importer changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -794,15 +815,20 @@ describe("Compilation groups", function () {
     });
 
     it("the imported changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -826,11 +852,16 @@ describe("Compilation groups", function () {
     });
 
     it("none changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -852,15 +883,15 @@ describe("Compilation groups", function () {
     });
 
     it("the importer has an override", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -893,15 +924,15 @@ describe("Compilation groups", function () {
     });
 
     it("the imported has an override", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -934,15 +965,15 @@ describe("Compilation groups", function () {
     });
 
     it("both are overridden", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -977,15 +1008,15 @@ describe("Compilation groups", function () {
 
   describe("two files, one imports the other, different versions", function () {
     it("both new", async function () {
-      const FooMock = new MockFile("Foo", [">=0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", [">=0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1012,15 +1043,20 @@ describe("Compilation groups", function () {
     });
 
     it("importer changed", async function () {
-      const FooMock = new MockFile("Foo", [">=0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", [">=0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1047,15 +1083,20 @@ describe("Compilation groups", function () {
     });
 
     it("imported changed", async function () {
-      const FooMock = new MockFile("Foo", [">=0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", [">=0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1082,11 +1123,16 @@ describe("Compilation groups", function () {
     });
 
     it("none changed", async function () {
-      const FooMock = new MockFile("Foo", [">=0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", [">=0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1113,15 +1159,15 @@ describe("Compilation groups", function () {
 
   describe("two files, import loop", function () {
     it("both new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [FooMock]],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [FooMock] },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1145,15 +1191,25 @@ describe("Compilation groups", function () {
     });
 
     it("the first one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [FooMock]],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [FooMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1177,15 +1233,25 @@ describe("Compilation groups", function () {
     });
 
     it("the second one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [FooMock]],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [FooMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1209,11 +1275,21 @@ describe("Compilation groups", function () {
     });
 
     it("none changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [FooMock]],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [FooMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1235,15 +1311,15 @@ describe("Compilation groups", function () {
     });
 
     it("one is overriden", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [FooMock]],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [FooMock] },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1279,14 +1355,13 @@ describe("Compilation groups", function () {
 
   describe("two files, not compilable", function () {
     it("first one doesn't compile", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
-      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
-        [
-          [FooMock, []],
-          [BarMock, []],
-        ]
-      );
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([{ file: FooMock }, { file: BarMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -1300,16 +1375,13 @@ describe("Compilation groups", function () {
     });
 
     it("second one doesn't compile", async function () {
-      const FooMock = new MockFile("Foo", ["^0.6.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.6.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [, Bar],
-      ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
-      ]);
+      ] = await createMockData([{ file: FooMock }, { file: BarMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -1323,16 +1395,13 @@ describe("Compilation groups", function () {
     });
 
     it("both don't compile", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar],
-      ] = await createMockData([
-        [FooMock, []],
-        [BarMock, []],
-      ]);
+      ] = await createMockData([{ file: FooMock }, { file: BarMock }]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -1346,14 +1415,16 @@ describe("Compilation groups", function () {
     });
 
     it("one file imports an incompatible dependency", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
-      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
-        [
-          [FooMock, [BarMock]],
-          [BarMock, []],
-        ]
-      );
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
+      ]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -1369,17 +1440,17 @@ describe("Compilation groups", function () {
 
   describe("three files, sequential import", function () {
     it("all new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1404,17 +1475,27 @@ describe("Compilation groups", function () {
     });
 
     it("first one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1439,17 +1520,27 @@ describe("Compilation groups", function () {
     });
 
     it("second one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1474,17 +1565,27 @@ describe("Compilation groups", function () {
     });
 
     it("third one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: QuxMock, modified: "modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1509,13 +1610,23 @@ describe("Compilation groups", function () {
     });
 
     it("none changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1539,17 +1650,17 @@ describe("Compilation groups", function () {
 
   describe("three files, loop import", function () {
     it("all new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, [FooMock]],
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock, dependencies: [FooMock] },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1574,17 +1685,32 @@ describe("Compilation groups", function () {
     });
 
     it("first one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, [FooMock]],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: QuxMock,
+          dependencies: [FooMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1609,17 +1735,32 @@ describe("Compilation groups", function () {
     });
 
     it("second one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, [FooMock]],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: QuxMock,
+          dependencies: [FooMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1644,17 +1785,32 @@ describe("Compilation groups", function () {
     });
 
     it("third one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, [FooMock]],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: QuxMock,
+          dependencies: [FooMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1679,13 +1835,28 @@ describe("Compilation groups", function () {
     });
 
     it("none changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, [BarMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, [FooMock]],
+        {
+          file: FooMock,
+          dependencies: [BarMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: QuxMock,
+          dependencies: [FooMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1709,17 +1880,17 @@ describe("Compilation groups", function () {
 
   describe("three files, one imports the other two", function () {
     it("all new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock, QuxMock]],
-        [BarMock, []],
-        [QuxMock, []],
+        { file: FooMock, dependencies: [BarMock, QuxMock] },
+        { file: BarMock },
+        { file: QuxMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1744,17 +1915,22 @@ describe("Compilation groups", function () {
     });
 
     it("the importer changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock, QuxMock]],
-        [BarMock, []],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock, QuxMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1779,17 +1955,22 @@ describe("Compilation groups", function () {
     });
 
     it("the first imported one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock, QuxMock]],
-        [BarMock, []],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock, QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "modified", lastSolcConfig: solc055 },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1814,17 +1995,22 @@ describe("Compilation groups", function () {
     });
 
     it("the second imported one changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [BarMock, QuxMock]],
-        [BarMock, []],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock, QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
+        { file: QuxMock, modified: "modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1849,13 +2035,18 @@ describe("Compilation groups", function () {
     });
 
     it("none changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.5.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", ["^0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, [BarMock, QuxMock]],
-        [BarMock, []],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [BarMock, QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1879,17 +2070,17 @@ describe("Compilation groups", function () {
 
   describe("two files with different versions depend on the same one", function () {
     it("all new", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
-      const QuxMock = new MockFile("Qux", [">=0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const QuxMock = new MockFile("Qux", [">=0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [QuxMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        { file: FooMock, dependencies: [QuxMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1918,17 +2109,27 @@ describe("Compilation groups", function () {
     });
 
     it("first importer changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "modified");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", [">=0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const QuxMock = new MockFile("Qux", [">=0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, , Qux],
       ] = await createMockData([
-        [FooMock, [QuxMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [QuxMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc066,
+        },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc066 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1955,17 +2156,27 @@ describe("Compilation groups", function () {
     });
 
     it("second importer changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "modified");
-      const QuxMock = new MockFile("Qux", [">=0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const QuxMock = new MockFile("Qux", [">=0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [QuxMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "modified",
+          lastSolcConfig: solc066,
+        },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc066 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -1992,17 +2203,27 @@ describe("Compilation groups", function () {
     });
 
     it("imported changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", [">=0.5.0"], "modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const QuxMock = new MockFile("Qux", [">=0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [QuxMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc066,
+        },
+        { file: QuxMock, modified: "modified", lastSolcConfig: solc066 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -2031,13 +2252,23 @@ describe("Compilation groups", function () {
     });
 
     it("none changed", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "not-modified");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "not-modified");
-      const QuxMock = new MockFile("Qux", [">=0.5.0"], "not-modified");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const QuxMock = new MockFile("Qux", [">=0.5.0"]);
       const [dependencyGraph, solidityFilesCache] = await createMockData([
-        [FooMock, [QuxMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        {
+          file: FooMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: BarMock,
+          dependencies: [QuxMock],
+          modified: "not-modified",
+          lastSolcConfig: solc066,
+        },
+        { file: QuxMock, modified: "not-modified", lastSolcConfig: solc066 },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -2062,17 +2293,17 @@ describe("Compilation groups", function () {
     });
 
     it("the imported is overriden", async function () {
-      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
-      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
-      const QuxMock = new MockFile("Qux", [">=0.5.0"], "new");
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const QuxMock = new MockFile("Qux", [">=0.5.0"]);
       const [
         dependencyGraph,
         solidityFilesCache,
         [Foo, Bar, Qux],
       ] = await createMockData([
-        [FooMock, [QuxMock]],
-        [BarMock, [QuxMock]],
-        [QuxMock, []],
+        { file: FooMock, dependencies: [QuxMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock },
       ]);
 
       const compilationGroupsResult = createCompilationGroups(
@@ -2103,6 +2334,94 @@ describe("Compilation groups", function () {
       assert.sameMembers(group06.getResolvedFiles(), [Bar, Qux]);
       assert.isTrue(group06.emitsArtifacts(Bar));
       assert.isFalse(group06.emitsArtifacts(Qux));
+    });
+  });
+
+  describe("config changes", function () {
+    it("file didn't change but config version", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc054 },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult);
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.sameMembers(group05.getResolvedFiles(), [Foo]);
+      assert.isTrue(group05.emitsArtifacts(Foo));
+    });
+
+    it("same file version but optimizer was enabled", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        { compilers: [{ ...solc055, optimizer: optimizerEnabled }] },
+        solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult);
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.sameMembers(group05.getResolvedFiles(), [Foo]);
+      assert.isTrue(group05.emitsArtifacts(Foo));
+    });
+
+    it("only one compiler changes", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.6.0"]);
+      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
+        [
+          { file: FooMock, modified: "not-modified", lastSolcConfig: solc054 },
+          { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
+        ]
+      );
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055and066,
+        solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 2);
+
+      const [group05, group06] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.sameMembers(group05.getResolvedFiles(), [Foo]);
+      assert.isTrue(group05.emitsArtifacts(Foo));
+
+      assert.equal(group06.getVersion(), "0.6.6");
+      assert.isTrue(group06.isEmpty());
     });
   });
 });

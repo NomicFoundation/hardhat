@@ -3,10 +3,11 @@ import * as t from "io-ts";
 import * as path from "path";
 
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
-import { ProjectPaths } from "../../types";
+import { ProjectPaths, SolcConfig } from "../../types";
 
 const SolidityFilesCacheEntry = t.type({
   lastModificationDate: t.number,
+  solcConfig: t.any,
 });
 
 const SolidityFilesCacheCodec = t.record(t.string, SolidityFilesCacheEntry);
@@ -15,6 +16,7 @@ export type SolidityFilesCache = Record<
   string,
   {
     lastModificationDate: number;
+    solcConfig: SolcConfig;
   }
 >;
 

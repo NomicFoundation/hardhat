@@ -50,14 +50,25 @@ export class CompilationGroup {
 
 function hasChangedSinceLastCompilation(
   file: ResolvedFile,
-  solidityFilesCache: SolidityFilesCache
+  solidityFilesCache: SolidityFilesCache,
+  config?: SolcConfig
 ): boolean {
-  const result =
-    solidityFilesCache[file.absolutePath] === undefined ||
-    solidityFilesCache[file.absolutePath].lastModificationDate <
-      file.lastModificationDate.valueOf();
+  const fileCache = solidityFilesCache[file.absolutePath];
 
-  return result;
+  if (fileCache === undefined) {
+    // new file or no cache available, assume it's new
+    return true;
+  }
+
+  if (fileCache.lastModificationDate < file.lastModificationDate.valueOf()) {
+    return true;
+  }
+
+  if (config !== undefined && !isEqual(config, fileCache.solcConfig)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -160,7 +171,7 @@ export function createCompilationGroups(
       )!;
 
     const changedSinceLastCompilation =
-      hasChangedSinceLastCompilation(file, solidityFilesCache) ||
+      hasChangedSinceLastCompilation(file, solidityFilesCache, config) ||
       transitiveDependencies.some((dependency) =>
         hasChangedSinceLastCompilation(dependency, solidityFilesCache)
       );

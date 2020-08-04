@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
+import { cloneDeep } from "lodash";
 import path from "path";
 
 import {
@@ -123,6 +124,7 @@ export default function () {
       }
 
       const compilationGroups = compilationGroupsResult.value;
+      const newSolidityFilesCache = cloneDeep(solidityFilesCache);
 
       for (const compilationGroup of compilationGroups) {
         if (compilationGroup.isEmpty()) {
@@ -203,6 +205,11 @@ export default function () {
 
             await saveArtifact(config.paths.artifacts, artifact);
           }
+
+          newSolidityFilesCache[file.absolutePath] = {
+            lastModificationDate: file.lastModificationDate.valueOf(),
+            solcConfig: compilationGroup.solidityConfig,
+          };
         }
 
         console.log(
@@ -212,18 +219,6 @@ export default function () {
           "successfully"
         );
       }
-
-      const allResolvedFiles = dependencyGraph.getResolvedFiles();
-      const newSolidityFilesCache = allResolvedFiles.reduce<SolidityFilesCache>(
-        (acc, file) => {
-          acc[file.absolutePath] = {
-            lastModificationDate: file.lastModificationDate.valueOf(),
-          };
-
-          return acc;
-        },
-        {}
-      );
 
       writeSolidityFilesCache(config.paths, newSolidityFilesCache);
     });
