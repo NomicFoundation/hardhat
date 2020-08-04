@@ -4,7 +4,7 @@ import { pluginName } from "../pluginContext";
 
 import { EtherscanRequestParameters } from "./EtherscanVerifyContractRequest";
 
-async function delay(ms: number): Promise<void> {
+export async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

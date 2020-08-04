@@ -35,6 +35,7 @@ export enum InferralType {
 }
 
 // Perhaps an enumeration of the versions included in this range could be a better solution for error messages.
+// TODO: take a look at node-semver and use its version range abstraction instead.
 interface SolcVersionRange {
   inferralType: InferralType;
   /**
@@ -131,9 +132,10 @@ export async function getVersions(): Promise<CompilersList> {
     const response = await fetch(compilersURL);
 
     if (!response.ok) {
+      const responseText = await response.text();
       throw new BuidlerPluginError(
         pluginName,
-        `Response is not ok. Status code: ${response.status}`
+        `HTTP response is not ok. Status code: ${response.status} Response text: ${responseText}`
       );
     }
 

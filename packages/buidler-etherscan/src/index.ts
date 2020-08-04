@@ -22,7 +22,11 @@ const verify: ActionType<VerificationArgs> = async (
   const { getDefaultEtherscanConfig } = await import("./config");
   const etherscan = getDefaultEtherscanConfig(config);
 
-  if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
+  if (
+    etherscan.apiKey === undefined ||
+    etherscan.apiKey === null ||
+    etherscan.apiKey.trim() === ""
+  ) {
     // TODO: add URL to etherscan documentation?
     throw new BuidlerPluginError(
       pluginName,
@@ -34,7 +38,7 @@ const verify: ActionType<VerificationArgs> = async (
   if (network.name === "buidlerevm") {
     throw new BuidlerPluginError(
       pluginName,
-      `Please select a network supported by Etherscan.`
+      `The selected network is ${network.name}. Please select a network supported by Etherscan.`
     );
   }
 
@@ -103,7 +107,10 @@ module.exports = [ arg1, arg2, ... ];`
     if (error instanceof NetworkProberError) {
       throw new BuidlerPluginError(
         pluginName,
-        `${error.message} The selected network is ${network.name}.`,
+        `${error.message} The selected network is ${network.name}.
+Common causes:
+  - Wrong network selected
+  - Faulty buidler network config`,
         error
       );
     }
@@ -136,7 +143,7 @@ The selected network is ${network.name}.`
 The selected compiler version is v${config.solc.version}.
 ${detailedContext}
 The selected network is ${network.name}.
-Possible causes:
+Common causes:
   - Wrong compiler version in buidler config
   - Wrong address for contract
   - Wrong network selected or faulty buidler network config`;
@@ -156,7 +163,7 @@ Possible causes:
   if (contractInformation === null) {
     const message = `The contract was not found among the ones present in this project.
 The selected network is ${network.name}.
-Possible causes:
+Common causes:
   - Wrong address for contract
   - Wrong network selected or faulty buidler network config`;
     throw new BuidlerPluginError(pluginName, message);
@@ -178,12 +185,12 @@ Possible causes:
       // TODO: add a list of types and constructor arguments to the error message?
       const message = `The constructor for ${contractFilename}:${contractName} has ${error.count.types} parameters
  but ${error.count.values} arguments were provided instead.\n`;
-      throw new BuidlerPluginError(pluginName, message);
+      throw new BuidlerPluginError(pluginName, message, error);
     }
     if (isABIArgumentTypeError(error)) {
       const message = `Value ${error.value} cannot be encoded for the parameter ${error.argument}.
 Encoder error reason: ${error.reason}\n`;
-      throw new BuidlerPluginError(pluginName, message);
+      throw new BuidlerPluginError(pluginName, message, error);
     }
     // Should be unreachable.
     throw error;
@@ -207,17 +214,20 @@ Encoder error reason: ${error.reason}\n`;
     constructorArguments: deployArgumentsEncoded,
   });
 
-  const { getVerificationStatus, verifyContract } = await import(
+  const { getVerificationStatus, verifyContract, delay } = await import(
     "./etherscan/EtherscanService"
   );
-  // const response = await verifyContract(etherscanAPIEndpoint, request);
+  const response = await verifyContract(etherscanAPIEndpoint, request);
 
   // TODO: Display contract name?
   console.log(
     `Successfully submitted contract at ${address} for verification on etherscan. Waiting for verification result...`
   );
 
-  // await getVerificationStatus(etherscanAPIEndpoint, response.message);
+  // Compilation is bound to take some time so there's no sense in requesting status immediately.
+  // TODO: make this configurable? The polling interval should be configurable too, within some safety bounds.
+  await delay(700);
+  await getVerificationStatus(etherscanAPIEndpoint, response.message);
 
   console.log("Successfully verified contract on etherscan");
 };

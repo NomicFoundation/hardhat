@@ -1,4 +1,4 @@
-export interface ABIArgumentLengthError {
+export interface ABIArgumentLengthError extends Error {
   code: string;
   count: {
     types: number;
@@ -24,11 +24,12 @@ export function isABIArgumentLengthError(
     typeof error.count.values === "number" &&
     error.value &&
     typeof error.value.types === "object" &&
-    typeof error.value.values === "object"
+    typeof error.value.values === "object" &&
+    error instanceof Error
   );
 }
 
-export interface ABIArgumentTypeError {
+export interface ABIArgumentTypeError extends Error {
   code: string;
   argument: string;
   value: any;
@@ -41,6 +42,7 @@ export function isABIArgumentTypeError(
   return (
     error.code === "INVALID_ARGUMENT" &&
     typeof error.argument === "string" &&
-    "value" in error
+    "value" in error &&
+    error instanceof Error
   );
 }
