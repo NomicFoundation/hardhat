@@ -46,5 +46,19 @@ describe("ForkBlockchain", () => {
         "d809fb6f7060abc8de068c7a38e9b2b04530baf0cc4ce9a2420d59388be10ee7"
       );
     });
+
+    it("can get block object with create transaction", async () => {
+      const daiCreationBlock = new BN(4719568);
+      const daiCreateTxPosition = 85;
+      const block = await fb.getBlock(daiCreationBlock);
+      assert.equal(
+        block?.transactions[daiCreateTxPosition].to.toString("hex"),
+        ""
+      );
+      assert.equal(
+        block?.transactions[daiCreateTxPosition].hash().toString("hex"),
+        "b95343413e459a0f97461812111254163ae53467855c0d73e0f1e7c5b8442fa3"
+      );
+    });
   });
 });
