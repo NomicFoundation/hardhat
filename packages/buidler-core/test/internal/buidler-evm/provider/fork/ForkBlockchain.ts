@@ -68,7 +68,7 @@ describe("ForkBlockchain", () => {
       );
     });
 
-    it("returns the same block object for subsequent calls", async () => {
+    it("caches the block object and returns the same one for subsequent calls", async () => {
       const blockOne = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
       const blockTwo = await fb.getBlock(
         Buffer.from(BLOCK_HASH_OF_10496585, "hex")

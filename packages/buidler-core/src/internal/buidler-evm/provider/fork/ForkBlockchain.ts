@@ -1,5 +1,5 @@
 import Common from "ethereumjs-common";
-import { BN } from "ethereumjs-util";
+import { BN, bufferToInt } from "ethereumjs-util";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -41,7 +41,7 @@ export class ForkBlockchain {
       throw new Error("Invalid block number");
     }
     this._latestBlockNumber = this._latestBlockNumber.addn(1);
-    this._blocksByNumber.set(new BN(block.header.number).toNumber(), block);
+    this._blocksByNumber.set(bufferToInt(block.header.number), block);
     this._blocksByHash.set(block.hash().toString("hex"), block);
     return block;
   }
@@ -76,7 +76,7 @@ export class ForkBlockchain {
 
   private async _getBlockByHash(blockHash: Buffer) {
     const block = this._blocksByHash.get(blockHash.toString("hex"));
-    if (block) {
+    if (block !== undefined) {
       return block;
     }
     const rpcBlock = await this._jsonRpcClient.getBlockByHash(blockHash, true);
@@ -88,7 +88,7 @@ export class ForkBlockchain {
       throw new Error("Block not found");
     }
     const block = this._blocksByNumber.get(blockNumber.toNumber());
-    if (block) {
+    if (block !== undefined) {
       return block;
     }
     const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
@@ -101,9 +101,9 @@ export class ForkBlockchain {
   private async _processRemoteBlock(rpcBlock: RpcBlockWithTransactions | null) {
     if (
       rpcBlock === null ||
-      rpcBlock.number?.gt(this._forkBlockNumber) ||
+      rpcBlock.hash === null ||
       rpcBlock.number === null ||
-      rpcBlock.hash === null
+      rpcBlock.number.gt(this._forkBlockNumber)
     ) {
       throw new Error("Block not found");
     }
