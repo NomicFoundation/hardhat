@@ -107,11 +107,22 @@ export default function () {
 
       const normalizedSolidityConfig = normalizeSolidityConfig(config.solidity);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         normalizedSolidityConfig,
         solidityFilesCache
       );
+
+      if (compilationGroupsResult.isLeft()) {
+        const nonCompilableFiles = compilationGroupsResult.value
+          .map((x) => x.absolutePath)
+          .join(", ");
+        throw new Error(
+          `Some files didn't match any compiler: ${nonCompilableFiles}`
+        );
+      }
+
+      const compilationGroups = compilationGroupsResult.value;
 
       for (const compilationGroup of compilationGroups) {
         if (compilationGroup.isEmpty()) {

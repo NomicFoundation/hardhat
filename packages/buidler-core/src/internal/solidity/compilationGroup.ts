@@ -1,3 +1,4 @@
+import { either } from "fp-ts";
 import { flatten, isEqual } from "lodash";
 import semver from "semver";
 
@@ -99,11 +100,15 @@ class CompilationGroupMap {
   }
 }
 
+/**
+ * Creates a list of compilation groups. Returns an either that has the list of
+ * compilation groups on success, and a list of non-compilable files on failure.
+ */
 export function createCompilationGroups(
   dependencyGraph: DependencyGraph,
   solidityConfig: MultiSolcConfig,
   solidityFilesCache: SolidityFilesCache
-): CompilationGroup[] {
+): either.Either<ResolvedFile[], CompilationGroup[]> {
   const overrides = solidityConfig.overrides ?? {};
   const compilationGroupMap = new CompilationGroupMap();
 
@@ -116,7 +121,9 @@ export function createCompilationGroups(
     compilationGroupMap.addGroup(config);
   }
 
-  const versions = solidityConfig.compilers.map((c) => c.version);
+  const compilerVersions = solidityConfig.compilers.map((c) => c.version);
+
+  const nonCompilableFiles: ResolvedFile[] = [];
 
   for (const file of dependencyGraph.getResolvedFiles()) {
     const overriddenCompiler = overrides[file.globalName];
@@ -129,14 +136,21 @@ export function createCompilationGroups(
       transitiveDependencies.map((x) => x.content.versionPragmas)
     ).concat(file.content.versionPragmas);
 
-    const version =
+    const availableCompilerVersions =
       overriddenCompiler !== undefined
-        ? overriddenCompiler.version
-        : semver.maxSatisfying(versions, allVersionPragmas.join(" "));
+        ? [overriddenCompiler.version]
+        : compilerVersions;
 
+    const version = semver.maxSatisfying(
+      availableCompilerVersions,
+      allVersionPragmas.join(" ")
+    );
+
+    // if the file cannot be compiled, we add it to the list and continue in
+    // case there are more non-compilable files
     if (version === null) {
-      // tslint:disable-next-line only-buidler-error
-      throw new Error(`File cannot be compiled: ${file.absolutePath}`); // TODO return error with non-compilable files instead of throwing
+      nonCompilableFiles.push(file);
+      continue;
     }
 
     const config =
@@ -160,5 +174,9 @@ export function createCompilationGroups(
     }
   }
 
-  return [...compilationGroupMap.getGroups()];
+  if (nonCompilableFiles.length > 0) {
+    return either.left(nonCompilableFiles);
+  }
+
+  return either.right([...compilationGroupMap.getGroups()]);
 }

@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { either } from "fp-ts";
 import * as fs from "fs";
 import path from "path";
 import semver from "semver";
@@ -34,6 +35,12 @@ const solcConfig055 = {
 };
 const solcConfig055and066 = {
   compilers: [solc055, solc066],
+};
+const solcConfig065and066 = {
+  compilers: [solc065, solc066],
+};
+const solcConfig066 = {
+  compilers: [solc066],
 };
 
 const projectRoot = fs.realpathSync(".");
@@ -119,6 +126,24 @@ const sortByVersion = (a: CompilationGroup, b: CompilationGroup) => {
     : 0;
 };
 
+function assertIsRight<LeftT, RightT>(
+  eitherValue: either.Either<LeftT, RightT>
+): RightT {
+  if (eitherValue.isLeft()) {
+    assert.fail("The given either is not Right");
+  }
+  return eitherValue.value;
+}
+
+function assertIsLeft<LeftT, RightT>(
+  eitherValue: either.Either<LeftT, RightT>
+): LeftT {
+  if (eitherValue.isRight()) {
+    assert.fail("The given either is not Left");
+  }
+  return eitherValue.value;
+}
+
 describe("Compilation groups", function () {
   describe("single file", function () {
     it("new file", async function () {
@@ -129,11 +154,13 @@ describe("Compilation groups", function () {
         [Foo],
       ] = await createMockData([[FooMock, []]]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
       );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -152,11 +179,13 @@ describe("Compilation groups", function () {
         [Foo],
       ] = await createMockData([[FooMock, []]]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
       );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -173,11 +202,13 @@ describe("Compilation groups", function () {
         [FooMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
       );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -197,7 +228,7 @@ describe("Compilation groups", function () {
         [Foo],
       ] = await createMockData([[FooMock, []]]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -206,7 +237,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -228,7 +263,7 @@ describe("Compilation groups", function () {
         [Foo],
       ] = await createMockData([[FooMock, []]]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -237,7 +272,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -261,7 +300,7 @@ describe("Compilation groups", function () {
         [Foo],
       ] = await createMockData([[FooMock, []]]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -272,6 +311,10 @@ describe("Compilation groups", function () {
         solidityFilesCache
       );
 
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
       assert.lengthOf(compilationGroups, 1);
 
       const [group05] = compilationGroups;
@@ -279,6 +322,70 @@ describe("Compilation groups", function () {
       assert.equal(group05.getVersion(), "0.5.5");
       assert.sameMembers(group05.getResolvedFiles(), [Foo]);
       assert.isTrue(group05.emitsArtifacts(Foo));
+    });
+  });
+
+  describe("single file, not compilable", function () {
+    it("single compiler doesn't match", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([[FooMock, []]]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig066,
+        solidityFilesCache
+      );
+
+      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+
+      assert.sameMembers(nonCompilableFiles, [Foo]);
+    });
+
+    it("no compilers match", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([[FooMock, []]]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig065and066,
+        solidityFilesCache
+      );
+
+      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+
+      assert.sameMembers(nonCompilableFiles, [Foo]);
+    });
+
+    it("compiler matches but override doesn't", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([[FooMock, []]]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        {
+          ...solcConfig055,
+          overrides: {
+            [Foo.globalName]: solc066,
+          },
+        },
+        solidityFilesCache
+      );
+
+      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+
+      assert.sameMembers(nonCompilableFiles, [Foo]);
     });
   });
 
@@ -295,10 +402,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -321,10 +432,14 @@ describe("Compilation groups", function () {
         ]
       );
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -348,10 +463,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -371,10 +490,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -397,7 +520,7 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -406,7 +529,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -435,10 +562,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -464,10 +595,14 @@ describe("Compilation groups", function () {
         ]
       );
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -494,10 +629,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -520,10 +659,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -549,7 +692,7 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055and066,
@@ -559,7 +702,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 4);
 
@@ -594,10 +741,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -622,10 +773,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -650,10 +805,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -674,10 +833,14 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -700,7 +863,7 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -709,7 +872,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -737,7 +904,7 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -746,7 +913,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -774,7 +945,7 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -784,7 +955,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -813,11 +988,15 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -844,11 +1023,15 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -875,11 +1058,15 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -902,11 +1089,15 @@ describe("Compilation groups", function () {
         [BarMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -933,10 +1124,14 @@ describe("Compilation groups", function () {
         [BarMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -961,10 +1156,14 @@ describe("Compilation groups", function () {
         [BarMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -989,10 +1188,14 @@ describe("Compilation groups", function () {
         [BarMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1013,10 +1216,14 @@ describe("Compilation groups", function () {
         [BarMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1039,7 +1246,7 @@ describe("Compilation groups", function () {
         [BarMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055,
@@ -1048,7 +1255,11 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
-      ).sort(sortByVersion);
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
 
       assert.lengthOf(compilationGroups, 2);
 
@@ -1063,6 +1274,96 @@ describe("Compilation groups", function () {
       assert.sameMembers(group055.getResolvedFiles(), [Foo, Bar]);
       assert.isFalse(group055.emitsArtifacts(Foo));
       assert.isTrue(group055.emitsArtifacts(Bar));
+    });
+  });
+
+  describe("two files, not compilable", function () {
+    it("first one doesn't compile", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
+      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
+        [
+          [FooMock, []],
+          [BarMock, []],
+        ]
+      );
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig066,
+        solidityFilesCache
+      );
+
+      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+
+      assert.sameMembers(nonCompilableFiles, [Foo]);
+    });
+
+    it("second one doesn't compile", async function () {
+      const FooMock = new MockFile("Foo", ["^0.6.0"], "new");
+      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [, Bar],
+      ] = await createMockData([
+        [FooMock, []],
+        [BarMock, []],
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig066,
+        solidityFilesCache
+      );
+
+      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+
+      assert.sameMembers(nonCompilableFiles, [Bar]);
+    });
+
+    it("both don't compile", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const BarMock = new MockFile("Bar", ["^0.5.0"], "new");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
+        [FooMock, []],
+        [BarMock, []],
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig066,
+        solidityFilesCache
+      );
+
+      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+
+      assert.sameMembers(nonCompilableFiles, [Foo, Bar]);
+    });
+
+    it("one file imports an incompatible dependency", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"], "new");
+      const BarMock = new MockFile("Bar", ["^0.6.0"], "new");
+      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
+        [
+          [FooMock, [BarMock]],
+          [BarMock, []],
+        ]
+      );
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055and066,
+        solidityFilesCache
+      );
+
+      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+
+      assert.sameMembers(nonCompilableFiles, [Foo]);
     });
   });
 
@@ -1081,10 +1382,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1112,10 +1417,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1143,10 +1452,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1174,10 +1487,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1201,10 +1518,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1231,10 +1552,14 @@ describe("Compilation groups", function () {
         [QuxMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1262,10 +1587,14 @@ describe("Compilation groups", function () {
         [QuxMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1293,10 +1622,14 @@ describe("Compilation groups", function () {
         [QuxMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1324,10 +1657,14 @@ describe("Compilation groups", function () {
         [QuxMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1351,10 +1688,14 @@ describe("Compilation groups", function () {
         [QuxMock, [FooMock]],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1381,10 +1722,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1412,10 +1757,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1443,10 +1792,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1474,10 +1827,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1501,10 +1858,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 1);
@@ -1531,10 +1892,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -1566,10 +1931,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -1599,10 +1968,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -1632,10 +2005,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -1663,10 +2040,14 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         solcConfig055and066,
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
@@ -1694,7 +2075,7 @@ describe("Compilation groups", function () {
         [QuxMock, []],
       ]);
 
-      const compilationGroups = createCompilationGroups(
+      const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         {
           ...solcConfig055and066,
@@ -1703,6 +2084,10 @@ describe("Compilation groups", function () {
           },
         },
         solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
       );
 
       assert.lengthOf(compilationGroups, 2);
