@@ -14,13 +14,17 @@ import {
 } from "../helpers/constants";
 
 describe("JsonRpcClient", () => {
+  let client: JsonRpcClient;
+
+  beforeEach(() => {
+    client = JsonRpcClient.forUrl(INFURA_URL);
+  });
+
   it("can be constructed", () => {
-    const client = JsonRpcClient.forUrl("");
     assert.instanceOf(client, JsonRpcClient);
   });
 
   it("can actually fetch real json-rpc", async () => {
-    const client = JsonRpcClient.forUrl(INFURA_URL);
     const result = await client.getLatestBlockNumber();
     const minBlockNumber = 10494745; // mainnet block number at 20.07.20
     assert.isAtLeast(result.toNumber(), minBlockNumber);
@@ -36,10 +40,10 @@ describe("JsonRpcClient", () => {
       const fakeProvider = {
         send: sinon.fake.returns(response1),
       };
-      const client = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
 
       function getStorageAt() {
-        return client.getStorageAt(
+        return clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
           DAI_TOTAL_SUPPLY_STORAGE_POSITION,
           "latest"
@@ -62,14 +66,14 @@ describe("JsonRpcClient", () => {
           .onSecondCall()
           .returns(response2),
       };
-      const client = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
 
-      await client.getStorageAt(
+      await clientWithFakeProvider.getStorageAt(
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
         "latest"
       );
-      const value = await client.getStorageAt(
+      const value = await clientWithFakeProvider.getStorageAt(
         DAI_ADDRESS,
         Buffer.from([2]),
         "latest"
@@ -86,27 +90,23 @@ describe("JsonRpcClient", () => {
     } as any;
 
     it("returns correct values", async () => {
-      const client = new JsonRpcClient(fakeProvider);
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
       response = "0x1";
-      const result = await client.getLatestBlockNumber();
+      const result = await clientWithFakeProvider.getLatestBlockNumber();
       assert.isTrue(result.eqn(1));
     });
 
     it("validates the response", async () => {
-      const client = new JsonRpcClient(fakeProvider);
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
       response = "foo";
-      const result = await client.getLatestBlockNumber().catch((e) => e);
+      const result = await clientWithFakeProvider
+        .getLatestBlockNumber()
+        .catch((e) => e);
       assert.instanceOf(result, Error);
     });
   });
 
   describe("eth_getBalance", () => {
-    let client: JsonRpcClient;
-
-    beforeEach(() => {
-      client = JsonRpcClient.forUrl(INFURA_URL);
-    });
-
     it("can fetch balance of an existing account", async () => {
       const balance = await client.getBalance(WETH_ADDRESS, "latest");
       assert.isTrue(balance.gtn(0));
@@ -120,7 +120,6 @@ describe("JsonRpcClient", () => {
 
   describe("eth_getBlockByNumber", () => {
     it("can fetch the data with transaction hashes", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
       const block = await client.getBlockByNumber(new BN(10496585));
       assert.equal(
         block.hash?.toString("hex"),
@@ -135,7 +134,6 @@ describe("JsonRpcClient", () => {
     });
 
     it("can fetch the data with transactions", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
       const block = await client.getBlockByNumber(new BN(10496585), true);
       assert.isTrue(
         block.transactions.every(
@@ -145,7 +143,6 @@ describe("JsonRpcClient", () => {
     });
 
     it("returns null for non-existent block", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
       const blockNumber = await client.getLatestBlockNumber();
       const block = await client.getBlockByNumber(blockNumber.addn(1000), true);
       assert.isNull(block);
@@ -154,27 +151,17 @@ describe("JsonRpcClient", () => {
 
   describe("eth_getCode", () => {
     it("can fetch code of an existing contract", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
-
       const code = await client.getCode(DAI_ADDRESS, "latest");
       assert.notEqual(code.toString("hex"), "");
     });
 
     it("can fetch empty code of a non-existent contract", async () => {
-      const client = JsonRpcClient.forUrl(INFURA_URL);
-
       const code = await client.getCode(EMPTY_ACCOUNT_ADDRESS, "latest");
       assert.equal(code.toString("hex"), "");
     });
   });
 
   describe("eth_getStorageAt", () => {
-    let client: JsonRpcClient;
-
-    beforeEach(() => {
-      client = JsonRpcClient.forUrl(INFURA_URL);
-    });
-
     it("can fetch value from storage of an existing contract", async () => {
       const totalSupply = await client.getStorageAt(
         DAI_ADDRESS,
@@ -207,12 +194,6 @@ describe("JsonRpcClient", () => {
   });
 
   describe("eth_getTransactionCount", () => {
-    let client: JsonRpcClient;
-
-    beforeEach(() => {
-      client = JsonRpcClient.forUrl(INFURA_URL);
-    });
-
     it("can fetch nonce of an existing account", async () => {
       const nonce = await client.getTransactionCount(WETH_ADDRESS, "latest");
       assert.isTrue(nonce.eqn(1));
