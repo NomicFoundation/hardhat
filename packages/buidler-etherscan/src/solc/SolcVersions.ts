@@ -1,5 +1,6 @@
 import { CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/downloader";
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import SemverRange from "semver/classes/range";
 
 import { pluginName } from "../pluginContext";
 
@@ -12,6 +13,7 @@ export class SolcVersionNumber {
     readonly minor: number,
     readonly patch: number
   ) {}
+
   public async getLongVersion(): Promise<string> {
     const shortVersion = `${this.major}.${this.minor}.${this.patch}`;
     const versions = await getVersions();
@@ -26,6 +28,10 @@ export class SolcVersionNumber {
 
     return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
   }
+
+  public toString(): string {
+    return `${this.major}.${this.minor}.${this.patch}`;
+  }
 }
 
 export enum InferralType {
@@ -34,8 +40,6 @@ export enum InferralType {
   METADATA_ABSENT,
 }
 
-// Perhaps an enumeration of the versions included in this range could be a better solution for error messages.
-// TODO: take a look at node-semver and use its version range abstraction instead.
 interface SolcVersionRange {
   inferralType: InferralType;
   /**
@@ -77,33 +81,31 @@ export async function inferSolcVersion(
     // See https://solidity.readthedocs.io/en/v0.6.0/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
     if (error instanceof VersionNotFoundError) {
       // The embedded metadata was successfully decoded but there was no solc version in it.
-      return {
-        isIncluded: (version: SolcVersionNumber): boolean => {
-          return (
-            version.major === 0 &&
-            ((version.minor === 4 && version.patch >= 7) ||
-              (version.minor === 5 && version.patch < 9))
-          );
+      const range = {
+        isIncluded(version: SolcVersionNumber): boolean {
+          return this.range.test(version.toString());
         },
+        range: new SemverRange("0.4.7 - 0.5.8"),
         inferralType: InferralType.METADATA_PRESENT_VERSION_ABSENT,
-        toString: () => {
-          return `v0.4.7 or v0.4 with a higher patch number; v0.5.8 or v0.5 with a lower patch number`;
+        toString() {
+          return this.range.toString();
         },
       };
+      return range as SolcVersionRange;
     }
     if (error instanceof MetadataAbsentError) {
       // The decoding failed. Unfortunately, our only option is to assume that this bytecode was emitted by an old version.
-      return {
-        isIncluded: (version: SolcVersionNumber): boolean => {
-          return (
-            version.major === 0 && version.minor === 4 && version.patch < 7
-          );
+      const range = {
+        isIncluded(version: SolcVersionNumber): boolean {
+          return this.range.test(version.toString());
         },
+        range: new SemverRange("<0.4.7"),
         inferralType: InferralType.METADATA_ABSENT,
-        toString: () => {
-          return `v0.4.6 or v0.4 with a lower patch number`;
+        toString() {
+          return this.range.toString();
         },
       };
+      return range as SolcVersionRange;
     }
     // Should be unreachable.
     throw error;
@@ -119,7 +121,7 @@ export async function inferSolcVersion(
     },
     inferralType: InferralType.EXACT,
     toString: () => {
-      return `v{solcVersionMetadata.major}.{solcVersionMetadata.minor}.{solcVersionMetadata.patch}`;
+      return `{solcVersionMetadata.major}.{solcVersionMetadata.minor}.{solcVersionMetadata.patch}`;
     },
   };
 }
