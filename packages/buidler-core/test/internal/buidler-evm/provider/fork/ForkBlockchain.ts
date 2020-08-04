@@ -3,6 +3,7 @@ import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
+import { Block } from "../../../../../src/internal/buidler-evm/provider/Block";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 import {
@@ -14,18 +15,18 @@ import { DEFAULT_HARDFORK } from "../../helpers/useProvider";
 
 describe("ForkBlockchain", () => {
   let client: JsonRpcClient;
-  let blockNumber: BN;
+  let forkBlockNumber: BN;
   let common: Common;
   let fb: ForkBlockchain;
 
   before(async () => {
     client = JsonRpcClient.forUrl(INFURA_URL);
-    blockNumber = await client.getLatestBlockNumber();
+    forkBlockNumber = await client.getLatestBlockNumber();
     common = new Common("mainnet", DEFAULT_HARDFORK);
   });
 
   beforeEach(async () => {
-    fb = new ForkBlockchain(client, blockNumber, common);
+    fb = new ForkBlockchain(client, forkBlockNumber, common);
   });
 
   it("can be constructed", () => {
@@ -33,7 +34,7 @@ describe("ForkBlockchain", () => {
   });
 
   describe("getBlock", () => {
-    it("can get block object by block number", async () => {
+    it("can get remote block object by block number", async () => {
       const block = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
 
       assert.equal(block?.hash().toString("hex"), BLOCK_HASH_OF_10496585);
@@ -49,7 +50,7 @@ describe("ForkBlockchain", () => {
       );
     });
 
-    it("can get block object by hash", async () => {
+    it("can get remote block object by hash", async () => {
       const block = await fb.getBlock(
         Buffer.from(BLOCK_HASH_OF_10496585, "hex")
       );
@@ -67,12 +68,26 @@ describe("ForkBlockchain", () => {
       );
     });
 
-    it("throw for non-existent block", async () => {
+    it("returns the same block object for subsequent calls", async () => {
+      const blockOne = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
+      const blockTwo = await fb.getBlock(
+        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
+      );
+      const blockThree = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
+      const blockFour = await fb.getBlock(
+        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
+      );
+      assert.equal(blockOne, blockTwo);
+      assert.equal(blockTwo, blockThree);
+      assert.equal(blockThree, blockFour);
+    });
+
+    it("throws for non-existent block", async () => {
       const error = await fb.getBlock(randomHashBuffer()).catch((e) => e);
       assert.instanceOf(error, Error);
     });
 
-    it("can get block object with create transaction", async () => {
+    it("can get remote block object with create transaction", async () => {
       const daiCreationBlock = new BN(4719568);
       const daiCreateTxPosition = 85;
       const block = await fb.getBlock(daiCreationBlock);
@@ -84,6 +99,61 @@ describe("ForkBlockchain", () => {
         block?.transactions[daiCreateTxPosition].hash().toString("hex"),
         "b95343413e459a0f97461812111254163ae53467855c0d73e0f1e7c5b8442fa3"
       );
+    });
+
+    it("cannot get remote blocks that are newer than forkBlockNumber", async () => {
+      fb = new ForkBlockchain(client, forkBlockNumber.subn(10), common);
+      const newerBlock = await client.getBlockByNumber(forkBlockNumber.subn(5));
+
+      const errorOne = await fb.getBlock(newerBlock!.hash!).catch((e) => e);
+      const errorTwo = await fb.getBlock(newerBlock!.number!).catch((e) => e);
+
+      assert.instanceOf(errorOne, Error);
+      assert.instanceOf(errorTwo, Error);
+    });
+
+    it("can retrieve inserted block by hash", async () => {
+      const blockNumber = forkBlockNumber.addn(1);
+      const block = new Block({ header: { number: blockNumber } }, { common });
+      await fb.putBlock(block);
+      const savedBlock = await fb.getBlock(block.hash());
+      assert.equal(savedBlock, block);
+    });
+  });
+
+  describe("putBlock", () => {
+    it("saves the block in the blockchain", async () => {
+      const blockNumber = forkBlockNumber.addn(1);
+      const block = new Block({ header: { number: blockNumber } }, { common });
+      const returnedBlock = await fb.putBlock(block);
+      const savedBlock = await fb.getBlock(blockNumber);
+      assert.equal(returnedBlock, block);
+      assert.equal(savedBlock, block);
+    });
+
+    it("rejects blocks with invalid block number", async () => {
+      const blockNumber = forkBlockNumber.addn(2);
+      const block = new Block({ header: { number: blockNumber } }, { common });
+      const error = await fb.putBlock(block).catch((e) => e);
+      assert.instanceOf(error, Error);
+    });
+
+    it("can save more than one block", async () => {
+      function createBlock(number: BN) {
+        return new Block({ header: { number } }, { common });
+      }
+
+      const blockOne = createBlock(forkBlockNumber.addn(1));
+      const blockTwo = createBlock(forkBlockNumber.addn(2));
+      const blockThree = createBlock(forkBlockNumber.addn(3));
+
+      await fb.putBlock(blockOne);
+      await fb.putBlock(blockTwo);
+      await fb.putBlock(blockThree);
+
+      assert.equal(await fb.getBlock(forkBlockNumber.addn(1)), blockOne);
+      assert.equal(await fb.getBlock(forkBlockNumber.addn(2)), blockTwo);
+      assert.equal(await fb.getBlock(forkBlockNumber.addn(3)), blockThree);
     });
   });
 });

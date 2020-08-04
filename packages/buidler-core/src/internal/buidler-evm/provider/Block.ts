@@ -41,21 +41,21 @@ export interface Block {
 interface BlockHeader {
   _common: Common;
 
-  parentHash: Buffer; // parentHash
-  uncleHash: Buffer; // sha3Uncles
-  coinbase: Buffer; // miner
-  stateRoot: Buffer; // stateRoot
-  transactionsTrie: Buffer; // transactionsRoot
-  receiptTrie: Buffer; // receiptsRoot
-  bloom: Buffer; // logsBloom
-  difficulty: Buffer; // difficulty
-  number: Buffer; // number
-  gasLimit: Buffer; // gasLimit
-  gasUsed: Buffer; // gasUsed
-  timestamp: Buffer; // timestamp
-  extraData: Buffer; // extraData
-  mixHash: Buffer; // mixHash
-  nonce: Buffer; // nonce
+  parentHash: Buffer;
+  uncleHash: Buffer;
+  coinbase: Buffer;
+  stateRoot: Buffer;
+  transactionsTrie: Buffer;
+  receiptTrie: Buffer;
+  bloom: Buffer;
+  difficulty: Buffer;
+  number: Buffer;
+  gasLimit: Buffer;
+  gasUsed: Buffer;
+  timestamp: Buffer;
+  extraData: Buffer;
+  mixHash: Buffer;
+  nonce: Buffer;
 
   canonicalDifficulty(parentBlock: Block): BN;
   validateDifficulty(parentBlock: Block): boolean;
