@@ -184,6 +184,8 @@ export class BuidlerNode extends EventEmitter {
         ? dateToTimestampSeconds(initialDate)
         : getCurrentTimestamp();
 
+    // TODO when forking, get chain ID from JSON RPC and create common based on that
+    // maybe use createChainIdGetter()
     const common = Common.forCustomChain(
       "mainnet",
       {

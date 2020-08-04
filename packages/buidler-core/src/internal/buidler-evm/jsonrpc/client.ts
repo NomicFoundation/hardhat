@@ -38,6 +38,16 @@ export class JsonRpcClient {
 
   public async getBlockByNumber(
     blockTag: BlockTag,
+    includeTransactions?: false
+  ): Promise<RpcBlock>;
+
+  public async getBlockByNumber(
+    blockTag: BlockTag,
+    includeTransactions: true
+  ): Promise<RpcBlockWithTransactions>;
+
+  public async getBlockByNumber(
+    blockTag: BlockTag,
     includeTransactions = false
   ): Promise<RpcBlock | RpcBlockWithTransactions> {
     if (includeTransactions) {
