@@ -40,12 +40,12 @@ export class JsonRpcClient {
   public async getBlockByNumber(
     blockTag: BlockTag,
     includeTransactions?: false
-  ): Promise<RpcBlock>;
+  ): Promise<RpcBlock | null>;
 
   public async getBlockByNumber(
     blockTag: BlockTag,
     includeTransactions: true
-  ): Promise<RpcBlockWithTransactions>;
+  ): Promise<RpcBlockWithTransactions | null>;
 
   public async getBlockByNumber(
     blockTag: BlockTag,
@@ -61,6 +61,34 @@ export class JsonRpcClient {
     return this._perform(
       "eth_getBlockByNumber",
       [blockTagToString(blockTag), includeTransactions],
+      nullable(rpcBlock)
+    );
+  }
+
+  public async getBlockByHash(
+    blockHash: Buffer,
+    includeTransactions?: false
+  ): Promise<RpcBlock | null>;
+
+  public async getBlockByHash(
+    blockHash: Buffer,
+    includeTransactions: true
+  ): Promise<RpcBlockWithTransactions | null>;
+
+  public async getBlockByHash(
+    blockHash: Buffer,
+    includeTransactions = false
+  ): Promise<RpcBlock | RpcBlockWithTransactions | null> {
+    if (includeTransactions) {
+      return this._perform(
+        "eth_getBlockByHash",
+        [bufferToString(blockHash), includeTransactions],
+        nullable(rpcBlockWithTransactions)
+      );
+    }
+    return this._perform(
+      "eth_getBlockByHash",
+      [bufferToString(blockHash), includeTransactions],
       nullable(rpcBlock)
     );
   }

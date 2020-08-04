@@ -4,6 +4,7 @@ import sinon from "sinon";
 
 import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
 import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
+import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import {
   DAI_ADDRESS,
@@ -12,6 +13,9 @@ import {
   INFURA_URL,
   WETH_ADDRESS,
 } from "../helpers/constants";
+
+const BLOCK_HASH_OF_10496585 =
+  "71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812";
 
 describe("JsonRpcClient", () => {
   let client: JsonRpcClient;
@@ -121,13 +125,10 @@ describe("JsonRpcClient", () => {
   describe("eth_getBlockByNumber", () => {
     it("can fetch the data with transaction hashes", async () => {
       const block = await client.getBlockByNumber(new BN(10496585));
-      assert.equal(
-        block.hash?.toString("hex"),
-        "71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812"
-      );
-      assert.equal(block.transactions.length, 192);
+      assert.equal(block?.hash?.toString("hex"), BLOCK_HASH_OF_10496585);
+      assert.equal(block?.transactions.length, 192);
       assert.isTrue(
-        block.transactions.every(
+        block?.transactions.every(
           (tx: Buffer | RpcTransaction) => tx instanceof Buffer
         )
       );
@@ -136,7 +137,7 @@ describe("JsonRpcClient", () => {
     it("can fetch the data with transactions", async () => {
       const block = await client.getBlockByNumber(new BN(10496585), true);
       assert.isTrue(
-        block.transactions.every(
+        block?.transactions.every(
           (tx: Buffer | RpcTransaction) => !(tx instanceof Buffer)
         )
       );
@@ -145,6 +146,38 @@ describe("JsonRpcClient", () => {
     it("returns null for non-existent block", async () => {
       const blockNumber = await client.getLatestBlockNumber();
       const block = await client.getBlockByNumber(blockNumber.addn(1000), true);
+      assert.isNull(block);
+    });
+  });
+
+  describe("eth_getBlockByHash", () => {
+    it("can fetch the data with transaction hashes", async () => {
+      const block = await client.getBlockByHash(
+        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
+      );
+      assert.equal(block?.hash?.toString("hex"), BLOCK_HASH_OF_10496585);
+      assert.equal(block?.transactions.length, 192);
+      assert.isTrue(
+        block?.transactions.every(
+          (tx: Buffer | RpcTransaction) => tx instanceof Buffer
+        )
+      );
+    });
+
+    it("can fetch the data with transactions", async () => {
+      const block = await client.getBlockByHash(
+        Buffer.from(BLOCK_HASH_OF_10496585, "hex"),
+        true
+      );
+      assert.isTrue(
+        block?.transactions.every(
+          (tx: Buffer | RpcTransaction) => !(tx instanceof Buffer)
+        )
+      );
+    });
+
+    it("returns null for non-existent block", async () => {
+      const block = await client.getBlockByHash(randomHashBuffer(), true);
       assert.isNull(block);
     });
   });
