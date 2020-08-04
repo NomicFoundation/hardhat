@@ -49,15 +49,15 @@ export class Blockchain implements BlockchainInterface {
   }
 
   public getBlock(
-    hashOrBlockNumber: Buffer | BN,
+    blockHashOrNumber: Buffer | BN,
     cb: Callback<Block | undefined>
   ): void {
     let blockNumber: number;
 
-    if (BN.isBN(hashOrBlockNumber)) {
-      blockNumber = hashOrBlockNumber.toNumber();
+    if (BN.isBN(blockHashOrNumber)) {
+      blockNumber = blockHashOrNumber.toNumber();
     } else {
-      const hash = bufferToHex(hashOrBlockNumber);
+      const hash = bufferToHex(blockHashOrNumber);
 
       if (!this._blockNumberByHash.has(hash)) {
         cb(new Error("Block not found"));
