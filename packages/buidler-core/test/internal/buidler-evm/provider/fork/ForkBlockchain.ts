@@ -180,4 +180,16 @@ describe("ForkBlockchain", () => {
       assert.equal(await fb.getBlock(forkBlockNumber.addn(3)), blockThree);
     });
   });
+
+  describe("getDetails", () => {
+    it("resolves", async () => {
+      const error = await fb.getDetails("").catch(e => e);
+      assert.isUndefined(error);
+    });
+
+    it("calls callback with null", async () => {
+      const result = await new Promise(resolve => fb.asBlockchain().getDetails("", resolve));
+      assert.isNull(result);
+    });
+  });
 });

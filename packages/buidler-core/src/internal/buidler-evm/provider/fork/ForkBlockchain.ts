@@ -50,9 +50,7 @@ export class ForkBlockchain {
     throw new Error("not implemented");
   }
 
-  public async getDetails(_: string): Promise<void> {
-    throw new Error("not implemented");
-  }
+  public async getDetails(_: string): Promise<void> {}
 
   public async iterator(name: string, onBlock: any): Promise<void> {
     throw new Error("not implemented");
