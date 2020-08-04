@@ -4,7 +4,11 @@ import { BN } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
-import { INFURA_URL } from "../../helpers/constants";
+import {
+  BLOCK_HASH_OF_10496585,
+  BLOCK_NUMBER_OF_10496585,
+  INFURA_URL,
+} from "../../helpers/constants";
 import { DEFAULT_HARDFORK } from "../../helpers/useProvider";
 
 describe("ForkBlockchain", () => {
@@ -28,13 +32,10 @@ describe("ForkBlockchain", () => {
   });
 
   describe("getBlock", () => {
-    it("can get block object", async () => {
-      const block = await fb.getBlock(new BN(10496585));
+    it("can get block object by block number", async () => {
+      const block = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
 
-      assert.equal(
-        block?.hash().toString("hex"),
-        "71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812"
-      );
+      assert.equal(block?.hash().toString("hex"), BLOCK_HASH_OF_10496585);
 
       assert.equal(block?.transactions.length, 192);
       assert.equal(

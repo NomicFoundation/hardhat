@@ -1,4 +1,6 @@
 // reused from ethers.js
+import { BN } from "ethereumjs-util";
+
 export const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
 
 export const DAI_ADDRESS = Buffer.from(
@@ -15,3 +17,8 @@ export const EMPTY_ACCOUNT_ADDRESS = Buffer.from(
 );
 
 export const DAI_TOTAL_SUPPLY_STORAGE_POSITION = Buffer.from([1]);
+
+// 10496585 block number was chosen for no particular reason
+export const BLOCK_NUMBER_OF_10496585 = new BN(10496585);
+export const BLOCK_HASH_OF_10496585 =
+  "71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812";

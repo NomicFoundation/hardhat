@@ -7,15 +7,14 @@ import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/clie
 import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import {
+  BLOCK_HASH_OF_10496585,
+  BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
   DAI_TOTAL_SUPPLY_STORAGE_POSITION,
   EMPTY_ACCOUNT_ADDRESS,
   INFURA_URL,
   WETH_ADDRESS,
 } from "../helpers/constants";
-
-const BLOCK_HASH_OF_10496585 =
-  "71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812";
 
 describe("JsonRpcClient", () => {
   let client: JsonRpcClient;
@@ -124,7 +123,7 @@ describe("JsonRpcClient", () => {
 
   describe("eth_getBlockByNumber", () => {
     it("can fetch the data with transaction hashes", async () => {
-      const block = await client.getBlockByNumber(new BN(10496585));
+      const block = await client.getBlockByNumber(BLOCK_NUMBER_OF_10496585);
       assert.equal(block?.hash?.toString("hex"), BLOCK_HASH_OF_10496585);
       assert.equal(block?.transactions.length, 192);
       assert.isTrue(
@@ -135,7 +134,10 @@ describe("JsonRpcClient", () => {
     });
 
     it("can fetch the data with transactions", async () => {
-      const block = await client.getBlockByNumber(new BN(10496585), true);
+      const block = await client.getBlockByNumber(
+        BLOCK_NUMBER_OF_10496585,
+        true
+      );
       assert.isTrue(
         block?.transactions.every(
           (tx: Buffer | RpcTransaction) => !(tx instanceof Buffer)
