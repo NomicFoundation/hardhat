@@ -22,10 +22,7 @@ export interface BlockchainInterface {
   /**
    * Returns a block by its hash or number.
    */
-  getBlock(
-    blockTag: Buffer | number | BN,
-    cb: Callback<Block | undefined>
-  ): void;
+  getBlock(blockTag: Buffer | number | BN, cb: Callback<Block>): void;
   /**
    * Iterates through blocks starting at the specified iterator head and calls the onBlock function
    * on each block.

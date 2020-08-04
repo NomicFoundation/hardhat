@@ -7,6 +7,7 @@ import { Block } from "../Block";
 import { BlockchainInterface } from "../BlockchainInterface";
 
 import { rpcToBlockData } from "./rpcToBlockData";
+import { RpcBlockWithTransactions } from "../../jsonrpc/types";
 
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
@@ -20,14 +21,19 @@ export class ForkBlockchain {
 
   public async getBlock(
     blockHashOrNumber: Buffer | number | BN
-  ): Promise<Block | undefined> {
-    if (!BN.isBN(blockHashOrNumber)) {
-      throw new Error("not implemented");
+  ): Promise<Block> {
+    let rpcBlock: RpcBlockWithTransactions | null;
+    if (Buffer.isBuffer(blockHashOrNumber)) {
+      rpcBlock = await this._jsonRpcClient.getBlockByHash(blockHashOrNumber, true);
+    } else {
+      rpcBlock = await this._jsonRpcClient.getBlockByNumber(
+        new BN(blockHashOrNumber),
+        true
+      );
     }
-    const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
-      blockHashOrNumber,
-      true
-    );
+    if (rpcBlock === null) {
+      throw new Error("Block not found")
+    }
     return new Block(rpcToBlockData(rpcBlock), { common: this._common });
   }
 

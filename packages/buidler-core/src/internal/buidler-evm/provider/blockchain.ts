@@ -48,10 +48,7 @@ export class Blockchain implements BlockchainInterface {
     cb(null);
   }
 
-  public getBlock(
-    blockHashOrNumber: Buffer | BN,
-    cb: Callback<Block | undefined>
-  ): void {
+  public getBlock(blockHashOrNumber: Buffer | BN, cb: Callback<Block>): void {
     let blockNumber: number;
 
     if (BN.isBN(blockHashOrNumber)) {
