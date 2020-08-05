@@ -72,6 +72,41 @@ function hasChangedSinceLastCompilation(
 }
 
 /**
+ * Return the compiler config that matches the given version ranges,
+ * or null if none match
+ */
+function getMatchingCompilerConfig(
+  file: ResolvedFile,
+  versionPragmas: string[],
+  solidityConfig: MultiSolcConfig
+): SolcConfig | null {
+  const versionRange = [...new Set(versionPragmas)].join(" ");
+
+  const overrides = solidityConfig.overrides ?? {};
+
+  const overriddenCompiler = overrides[file.globalName];
+
+  // if there's an override, we only check that
+  if (overriddenCompiler !== undefined) {
+    if (!semver.satisfies(overriddenCompiler.version, versionRange)) {
+      return null;
+    }
+
+    return overriddenCompiler;
+  }
+
+  // if there's no override, we find a compiler that matches the version range
+  const compilerVersions = solidityConfig.compilers.map((x) => x.version);
+  const matchingVersion = semver.maxSatisfying(compilerVersions, versionRange);
+
+  if (matchingVersion === null) {
+    return null;
+  }
+
+  return solidityConfig.compilers.find((x) => x.version === matchingVersion)!;
+}
+
+/**
  * Map solc configurations to compilation groups. Keys are deeply compared for
  * equality. Implementation is quadratic, but the number of compilers +
  * overrides shouldn't be huge.
@@ -79,7 +114,7 @@ function hasChangedSinceLastCompilation(
 class CompilationGroupMap {
   private _compilationGroups: Map<SolcConfig, CompilationGroup> = new Map();
 
-  public addGroup(config: SolcConfig) {
+  public createGroup(config: SolcConfig) {
     this._getOrCreateGroup(config);
   }
 
@@ -123,22 +158,18 @@ export function createCompilationGroups(
   const overrides = solidityConfig.overrides ?? {};
   const compilationGroupMap = new CompilationGroupMap();
 
-  const allCompilers = [
+  const allCompilerConfigs = [
     ...solidityConfig.compilers,
     ...Object.values(overrides),
   ];
 
-  for (const config of allCompilers) {
-    compilationGroupMap.addGroup(config);
+  for (const config of allCompilerConfigs) {
+    compilationGroupMap.createGroup(config);
   }
-
-  const compilerVersions = solidityConfig.compilers.map((c) => c.version);
 
   const nonCompilableFiles: ResolvedFile[] = [];
 
   for (const file of dependencyGraph.getResolvedFiles()) {
-    const overriddenCompiler = overrides[file.globalName];
-
     const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
       file
     );
@@ -147,40 +178,34 @@ export function createCompilationGroups(
       transitiveDependencies.map((x) => x.content.versionPragmas)
     ).concat(file.content.versionPragmas);
 
-    const availableCompilerVersions =
-      overriddenCompiler !== undefined
-        ? [overriddenCompiler.version]
-        : compilerVersions;
-
-    const version = semver.maxSatisfying(
-      availableCompilerVersions,
-      allVersionPragmas.join(" ")
+    const compilerConfig = getMatchingCompilerConfig(
+      file,
+      allVersionPragmas,
+      solidityConfig
     );
 
     // if the file cannot be compiled, we add it to the list and continue in
     // case there are more non-compilable files
-    if (version === null) {
+    if (compilerConfig === null) {
       nonCompilableFiles.push(file);
       continue;
     }
 
-    const config =
-      overriddenCompiler ??
-      solidityConfig.compilers.find(
-        (solcConfig) => solcConfig.version === version
-      )!;
-
     const changedSinceLastCompilation =
-      hasChangedSinceLastCompilation(file, solidityFilesCache, config) ||
+      hasChangedSinceLastCompilation(
+        file,
+        solidityFilesCache,
+        compilerConfig
+      ) ||
       transitiveDependencies.some((dependency) =>
         hasChangedSinceLastCompilation(dependency, solidityFilesCache)
       );
 
     if (changedSinceLastCompilation) {
-      compilationGroupMap.addFileToGroup(config, file, true);
+      compilationGroupMap.addFileToGroup(compilerConfig, file, true);
 
       for (const dependency of transitiveDependencies) {
-        compilationGroupMap.addFileToGroup(config, dependency, false);
+        compilationGroupMap.addFileToGroup(compilerConfig, dependency, false);
       }
     }
   }
