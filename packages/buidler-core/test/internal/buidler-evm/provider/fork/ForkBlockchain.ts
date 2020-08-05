@@ -4,6 +4,7 @@ import { BN, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { Block } from "../../../../../src/internal/buidler-evm/provider/Block";
+import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 import {
@@ -295,6 +296,16 @@ describe("ForkBlockchain", () => {
         fb.delBlock(forkBlock.hash()),
         Error,
         "Cannot delete remote block"
+      );
+    });
+  });
+
+  describe("iterator", () => {
+    it("throws not supported error", async () => {
+      await assert.isRejected(
+        fb.iterator("", () => {}),
+        NotSupportedError,
+        "iterator"
       );
     });
   });

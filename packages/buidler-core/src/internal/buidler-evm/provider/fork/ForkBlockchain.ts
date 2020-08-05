@@ -7,6 +7,7 @@ import { RpcBlockWithTransactions } from "../../jsonrpc/types";
 import { Block } from "../Block";
 import { BlockchainInterface } from "../BlockchainInterface";
 
+import { NotSupportedError } from "./errors";
 import { rpcToBlockData } from "./rpcToBlockData";
 
 // TODO: figure out what errors we wanna throw
@@ -53,7 +54,8 @@ export class ForkBlockchain {
   public async getDetails(_: string): Promise<void> {}
 
   public async iterator(name: string, onBlock: any): Promise<void> {
-    throw new Error("not implemented");
+    // this function is only ever used in runBlockchain which is not used in Buidler
+    throw new NotSupportedError("iterator");
   }
 
   public deleteAllFollowingBlocks(block: Block): void {
