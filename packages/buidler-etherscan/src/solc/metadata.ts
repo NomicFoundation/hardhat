@@ -2,7 +2,7 @@ import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 
 import { pluginName } from "../pluginContext";
 
-const twoBytes = 2;
+export const metadataLengthSize = 2;
 
 // Instances of these errors are not supposed to be seen by the task.
 export class VersionNotFoundError extends NomicLabsBuidlerPluginError {
@@ -37,12 +37,15 @@ export async function readSolcVersion(
 export async function decodeSolcMetadata(bytecode: Buffer) {
   const metadataLength = readSolcMetadataLength(bytecode);
   // The metadata length is in the last two bytes.
-  const metadataPayload = bytecode.slice(-metadataLength - twoBytes, -twoBytes);
+  const metadataPayload = bytecode.slice(
+    -metadataLength - metadataLengthSize,
+    -metadataLengthSize
+  );
 
   const { decodeFirst } = await import("cbor");
   return decodeFirst(metadataPayload);
 }
 
 export function readSolcMetadataLength(bytecode: Buffer) {
-  return bytecode.slice(-twoBytes).readUInt16BE(0);
+  return bytecode.slice(-metadataLengthSize).readUInt16BE(0);
 }

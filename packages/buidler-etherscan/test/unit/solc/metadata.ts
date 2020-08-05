@@ -1,7 +1,6 @@
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { encode } from "cbor";
 import { assert } from "chai";
-import { randomBytes } from "crypto";
 import { inspect } from "util";
 
 import {

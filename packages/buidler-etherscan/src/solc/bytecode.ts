@@ -5,7 +5,7 @@ import {
 } from "@nomiclabs/buidler/src/internal/buidler-evm/stack-traces/compiler-types";
 import { RunTaskFunction } from "@nomiclabs/buidler/types";
 
-import { readSolcMetadataLength } from "./metadata";
+import { metadataLengthSize, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./SolcVersions";
 
 export async function lookupMatchingBytecode(
@@ -29,16 +29,24 @@ export async function lookupMatchingBytecode(
         normalizedBytecode,
       } = await normalizeBytecode(deployedBytecode, runtimeBytecode);
 
+      // Library hash placeholders are embedded into the bytes where the library addresses are linked.
+      // We need to zero them out to compare them.
+      const { normalizedBytecode: referenceBytecode } = await normalizeBytecode(
+        runtimeBytecodeObject,
+        runtimeBytecode
+      );
+
       let bytecodeSize = deployedBytecode.length;
       if (inferralType !== InferralType.METADATA_ABSENT) {
         // We will ignore metadata information when comparing. Etherscan seems to do the same.
         const metadataLength = readSolcMetadataLength(deployedBytecode);
-        bytecodeSize -= metadataLength;
+        // The metadata length is stored at the end.
+        bytecodeSize -= metadataLength + metadataLengthSize;
       }
 
       if (
         normalizedBytecode.compare(
-          runtimeBytecodeObject,
+          referenceBytecode,
           0,
           bytecodeSize,
           0,
