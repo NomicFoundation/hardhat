@@ -52,20 +52,38 @@ export function getArtifactFromContractOutput(
   };
 }
 
-function getArtifactPath(artifactsPath: string, contractName: string): string {
-  return path.join(artifactsPath, `${contractName}.json`);
+function getArtifactPath(
+  artifactsPath: string,
+  globalName: string,
+  contractName: string
+): string {
+  const filenameWithoutSol = path.basename(globalName).replace(".sol", "");
+  return path.join(
+    artifactsPath,
+    path.dirname(globalName),
+    `${filenameWithoutSol}:${contractName}.json`
+  );
 }
 
 /**
  * Stores an artifact in the given path.
  *
  * @param artifactsPath the artifacts' directory.
+ * @param globalName the global name of the file that emitted the artifact.
  * @param artifact the artifact to be stored.
  */
-export async function saveArtifact(artifactsPath: string, artifact: Artifact) {
+export async function saveArtifact(
+  artifactsPath: string,
+  globalName: string,
+  artifact: Artifact
+) {
   await fsExtra.ensureDir(artifactsPath);
+  const filenameWithoutSol = path.basename(globalName).replace(/\.sol$/, "");
   await fsExtra.writeJSON(
-    path.join(artifactsPath, `${artifact.contractName}.json`),
+    path.join(
+      artifactsPath,
+      `${filenameWithoutSol}:${artifact.contractName}.json`
+    ),
     artifact,
     {
       spaces: 2,
@@ -81,9 +99,10 @@ export async function saveArtifact(artifactsPath: string, artifact: Artifact) {
  */
 export async function readArtifact(
   artifactsPath: string,
+  globalName: string,
   contractName: string
 ): Promise<Artifact> {
-  const artifactPath = getArtifactPath(artifactsPath, contractName);
+  const artifactPath = getArtifactPath(artifactsPath, globalName, contractName);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
     throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName });
@@ -100,9 +119,10 @@ export async function readArtifact(
  */
 export function readArtifactSync(
   artifactsPath: string,
+  globalName: string,
   contractName: string
 ): Artifact {
-  const artifactPath = getArtifactPath(artifactsPath, contractName);
+  const artifactPath = getArtifactPath(artifactsPath, globalName, contractName);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
     throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName });

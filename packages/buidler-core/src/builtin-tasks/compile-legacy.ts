@@ -221,7 +221,7 @@ export default function () {
         );
         numberOfContracts += 1;
 
-        await saveArtifact(config.paths.artifacts, artifact);
+        await saveArtifact(config.paths.artifacts, file.globalName, artifact);
       }
     }
 

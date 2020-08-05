@@ -186,13 +186,18 @@ export default function () {
           return;
         }
 
-        await fsExtra.ensureDir(config.paths.artifacts);
         let numberOfContracts = 0;
 
         for (const file of compilationGroup.getResolvedFiles()) {
           if (!compilationGroup.emitsArtifacts(file)) {
             continue;
           }
+
+          const artifactsDir = path.join(
+            config.paths.artifacts,
+            path.dirname(file.globalName)
+          );
+          await fsExtra.ensureDir(artifactsDir);
 
           for (const [contractName, contractOutput] of Object.entries(
             output.contracts[file.globalName]
@@ -203,7 +208,7 @@ export default function () {
             );
             numberOfContracts += 1;
 
-            await saveArtifact(config.paths.artifacts, artifact);
+            await saveArtifact(artifactsDir, file.globalName, artifact);
           }
 
           newSolidityFilesCache[file.absolutePath] = {

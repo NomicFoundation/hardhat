@@ -186,8 +186,16 @@ describe("Artifacts utils", function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(this.tmpDir, artifact);
-        const storedArtifact = await readArtifact(this.tmpDir, name);
+        await saveArtifact(
+          this.tmpDir,
+          `${artifact.contractName}.sol`,
+          artifact
+        );
+        const storedArtifact = await readArtifact(
+          this.tmpDir,
+          `${artifact.contractName}.sol`,
+          name
+        );
 
         assert.deepEqual(storedArtifact, artifact);
       }
@@ -200,8 +208,16 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(nonexistentPath, artifact);
-      const storedArtifact = await readArtifact(nonexistentPath, name);
+      await saveArtifact(
+        nonexistentPath,
+        `${artifact.contractName}.sol`,
+        artifact
+      );
+      const storedArtifact = await readArtifact(
+        nonexistentPath,
+        `${artifact.contractName}.sol`,
+        name
+      );
 
       assert.deepEqual(storedArtifact, artifact);
     });
@@ -210,8 +226,16 @@ describe("Artifacts utils", function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(this.tmpDir, artifact);
-        const storedArtifact = readArtifactSync(this.tmpDir, name);
+        await saveArtifact(
+          this.tmpDir,
+          `${artifact.contractName}.sol`,
+          artifact
+        );
+        const storedArtifact = readArtifactSync(
+          this.tmpDir,
+          `${artifact.contractName}.sol`,
+          name
+        );
 
         assert.deepEqual(storedArtifact, artifact);
       }
@@ -219,14 +243,15 @@ describe("Artifacts utils", function () {
 
     it("Should throw when reading a non-existent contract (async)", async function () {
       await expectBuidlerErrorAsync(
-        () => readArtifact(this.tmpDir, "NonExistent"),
+        () => readArtifact(this.tmpDir, "NonExistent.sol", "NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
       );
     });
 
     it("Should throw when reading a non-existent contract (sync)", async function () {
       expectBuidlerError(
-        () => readArtifactSync(this.tmpDir, "NonExistent"),
+        () =>
+          readArtifactSync(this.tmpDir, "NonExistent.sol", "NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
       );
     });
