@@ -136,16 +136,12 @@ export class ForkBlockchain {
     }
 
     const blockNumber = bufferToInt(block.header.number);
-    this._blocksByHash.delete(blockHash.toString("hex"));
-    this._blocksByNumber.delete(blockNumber);
-
-    for (let i = blockNumber + 1; this._latestBlockNumber.gten(i); i++) {
-      const followingBlock = this._blocksByNumber.get(i);
-      if (followingBlock === undefined) {
-        // this should never happen
-        break;
+    for (let i = blockNumber; this._latestBlockNumber.gten(i); i++) {
+      const currentBlock = this._blocksByNumber.get(i);
+      if (currentBlock === undefined) {
+        throw new Error("this should never happen");
       }
-      this._blocksByHash.delete(followingBlock.hash().toString("hex"));
+      this._blocksByHash.delete(currentBlock.hash().toString("hex"));
       this._blocksByNumber.delete(i);
     }
 

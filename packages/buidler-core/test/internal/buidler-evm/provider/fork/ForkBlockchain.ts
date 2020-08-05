@@ -274,6 +274,7 @@ describe("ForkBlockchain", () => {
     });
 
     it("throws when hash of not previously fetched remote block is given", async () => {
+      // This is here because we do not want to fetch remote blocks for this operation
       await assert.isRejected(
         fb.delBlock(Buffer.from(BLOCK_HASH_OF_10496585, "hex")),
         Error,
@@ -321,7 +322,7 @@ describe("ForkBlockchain", () => {
 
       fb.deleteAllFollowingBlocks(blockOne);
 
-      await assert.equal(await fb.getBlock(blockOne.hash()), blockOne);
+      assert.equal(await fb.getBlock(blockOne.hash()), blockOne);
       await assert.isRejected(
         fb.getBlock(blockTwo.hash()),
         Error,
