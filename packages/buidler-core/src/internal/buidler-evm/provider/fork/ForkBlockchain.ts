@@ -47,7 +47,29 @@ export class ForkBlockchain {
   }
 
   public async delBlock(blockHash: Buffer): Promise<void> {
-    throw new Error("not implemented");
+    const block = this._blocksByHash.get(blockHash.toString("hex"));
+    if (block === undefined) {
+      throw new Error("Block not found");
+    }
+    if (new BN(block.header.number).lte(this._forkBlockNumber)) {
+      throw new Error("Cannot delete remote block");
+    }
+
+    const blockNumber = bufferToInt(block.header.number);
+    this._blocksByHash.delete(blockHash.toString("hex"));
+    this._blocksByNumber.delete(blockNumber);
+
+    for (let i = blockNumber + 1; this._latestBlockNumber.gten(i); i++) {
+      const followingBlock = this._blocksByNumber.get(i);
+      if (followingBlock === undefined) {
+        // this should never happen
+        break;
+      }
+      this._blocksByHash.delete(followingBlock.hash().toString("hex"));
+      this._blocksByNumber.delete(i);
+    }
+
+    this._latestBlockNumber = new BN(blockNumber).subn(1);
   }
 
   public async getDetails(_: string): Promise<void> {}

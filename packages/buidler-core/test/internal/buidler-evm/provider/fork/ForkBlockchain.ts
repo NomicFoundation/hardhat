@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
-import { BN } from "ethereumjs-util";
+import { BN, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { Block } from "../../../../../src/internal/buidler-evm/provider/Block";
@@ -19,8 +19,8 @@ describe("ForkBlockchain", () => {
   let common: Common;
   let fb: ForkBlockchain;
 
-  function createBlock(number: BN) {
-    return new Block({ header: { number } }, { common });
+  function createBlock(number: BN, stateRoot: Buffer = zeros(32)) {
+    return new Block({ header: { number, stateRoot } }, { common });
   }
 
   before(async () => {
@@ -202,6 +202,100 @@ describe("ForkBlockchain", () => {
         fb.asBlockchain().getDetails("", resolve)
       );
       assert.isNull(result);
+    });
+  });
+
+  describe("delBlock", () => {
+    it("removes the block and all subsequent ones", async () => {
+      const blockOne = createBlock(forkBlockNumber.addn(1));
+      const blockTwo = createBlock(forkBlockNumber.addn(2));
+      const blockThree = createBlock(forkBlockNumber.addn(3));
+
+      await fb.putBlock(blockOne);
+      await fb.putBlock(blockTwo);
+      await fb.putBlock(blockThree);
+
+      await fb.delBlock(blockOne.hash());
+
+      await assert.isRejected(
+        fb.getBlock(blockOne.hash()),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(blockTwo.hash()),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(blockThree.hash()),
+        Error,
+        "Block not found"
+      );
+    });
+
+    it("updates the latest block number", async () => {
+      const blockOne = createBlock(forkBlockNumber.addn(1));
+      const blockTwo = createBlock(forkBlockNumber.addn(2));
+      const blockThree = createBlock(forkBlockNumber.addn(3));
+
+      await fb.putBlock(blockOne);
+      await fb.putBlock(blockTwo);
+      await fb.delBlock(blockTwo.hash());
+
+      assert.equal(await fb.getLatestBlock(), blockOne);
+      await assert.isRejected(
+        fb.putBlock(blockThree),
+        Error,
+        "Invalid block number"
+      );
+    });
+
+    it("is possible to add a block after delete", async () => {
+      const block = createBlock(forkBlockNumber.addn(1));
+      const otherBlock = createBlock(
+        forkBlockNumber.addn(1),
+        randomHashBuffer()
+      );
+      await fb.putBlock(block);
+      await fb.delBlock(block.hash());
+      await fb.putBlock(otherBlock);
+      assert.equal(await fb.getBlock(otherBlock.hash()), otherBlock);
+    });
+
+    it("throws when hash of non-existent block is given", async () => {
+      const block = createBlock(forkBlockNumber.addn(1));
+      await assert.isRejected(
+        fb.delBlock(block.hash()),
+        Error,
+        "Block not found"
+      );
+    });
+
+    it("throws when hash of not previously fetched remote block is given", async () => {
+      await assert.isRejected(
+        fb.delBlock(Buffer.from(BLOCK_HASH_OF_10496585, "hex")),
+        Error,
+        "Block not found"
+      );
+    });
+
+    it("throws on attempt to remove remote block", async () => {
+      const remoteBlock = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
+      await assert.isRejected(
+        fb.delBlock(remoteBlock.hash()),
+        Error,
+        "Cannot delete remote block"
+      );
+    });
+
+    it("throws on attempt to remove the block from which we fork", async () => {
+      const forkBlock = await fb.getLatestBlock();
+      await assert.isRejected(
+        fb.delBlock(forkBlock.hash()),
+        Error,
+        "Cannot delete remote block"
+      );
     });
   });
 });
