@@ -24,10 +24,7 @@ import { promisify } from "util";
 import { ForkConfig } from "../../../types";
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { Reporter } from "../../sentry/reporter";
-import {
-  dateToTimestampSeconds,
-  getDifferenceInSeconds,
-} from "../../util/date";
+import { getDifferenceInSeconds } from "../../util/date";
 import { JsonRpcClient } from "../jsonrpc/client";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
@@ -55,6 +52,8 @@ import {
   TransactionExecutionError,
 } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
+import { makeBlockchain } from "./makeBlockchain";
+import { makeCommon } from "./makeCommon";
 import { makeStateTrie } from "./makeStateTrie";
 import {
   CallParams,
@@ -96,29 +95,14 @@ export class BuidlerNode extends EventEmitter {
   ): Promise<[Common, BuidlerNode]> {
     const stateTrie = await makeStateTrie(genesisAccounts);
 
-    const initialBlockTimestamp =
-      initialDate !== undefined
-        ? dateToTimestampSeconds(initialDate)
-        : getCurrentTimestamp();
-
     // TODO when forking, get chain ID from JSON RPC and create common based on that
-    // maybe use createChainIdGetter()
-    const common = Common.forCustomChain(
-      "mainnet",
-      {
-        chainId,
-        networkId,
-        name: networkName,
-        genesis: {
-          timestamp: `0x${initialBlockTimestamp.toString(16)}`,
-          hash: "0x",
-          gasLimit: blockGasLimit,
-          difficulty: 1,
-          nonce: "0x42",
-          extraData: "0x1234",
-          stateRoot: bufferToHex(stateTrie.root),
-        },
-      },
+    const common = makeCommon(
+      initialDate,
+      chainId,
+      networkId,
+      networkName,
+      blockGasLimit,
+      stateTrie,
       hardfork
     );
 
@@ -127,7 +111,7 @@ export class BuidlerNode extends EventEmitter {
       trie: stateTrie,
     });
 
-    const blockchain = new Blockchain();
+    const { blockchain, genesisBlock } = await makeBlockchain(common);
 
     const vm = new VM({
       common: common as any, // TS error because of a version mismatch
@@ -135,13 +119,6 @@ export class BuidlerNode extends EventEmitter {
       stateManager,
       blockchain: blockchain as any,
       allowUnlimitedContractSize,
-    });
-
-    const genesisBlock = new Block(null, { common });
-    genesisBlock.setGenesisParams();
-
-    await new Promise((resolve) => {
-      blockchain.putBlock(genesisBlock, () => resolve());
     });
 
     let forkClient;
