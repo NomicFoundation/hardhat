@@ -7,7 +7,6 @@ import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
 import debug from "debug";
-import Account from "ethereumjs-account";
 import Common from "ethereumjs-common";
 import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
@@ -20,7 +19,6 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
-import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
 import { ForkConfig } from "../../../types";
@@ -57,6 +55,8 @@ import {
   TransactionExecutionError,
 } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
+import { GenesisAccount } from "./GenesisAccount";
+import { makeStateTrie } from "./makeStateTrie";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { getCurrentTimestamp } from "./utils";
 
@@ -65,11 +65,6 @@ const log = debug("buidler:core:buidler-evm:node");
 // This library's types are wrong, they don't type check
 // tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
-
-export interface GenesisAccount {
-  privateKey: string;
-  balance: string | number | BN;
-}
 
 export const COINBASE_ADDRESS = toBuffer(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
@@ -150,34 +145,7 @@ export class BuidlerNode extends EventEmitter {
     compilerOutput?: CompilerOutput,
     forkConfig?: ForkConfig
   ): Promise<[Common, BuidlerNode]> {
-    const stateTrie = new Trie();
-    const putIntoStateTrie = promisify(stateTrie.put.bind(stateTrie));
-    for (const acc of genesisAccounts) {
-      let balance: BN;
-
-      if (
-        typeof acc.balance === "string" &&
-        acc.balance.toLowerCase().startsWith("0x")
-      ) {
-        balance = new BN(toBuffer(acc.balance));
-      } else {
-        balance = new BN(acc.balance);
-      }
-
-      const account = new Account({ balance });
-      const pk = toBuffer(acc.privateKey);
-      const address = privateToAddress(pk);
-
-      await putIntoStateTrie(address, account.serialize());
-    }
-
-    // Mimic precompiles activation
-    for (let i = 1; i <= 8; i++) {
-      await putIntoStateTrie(
-        new BN(i).toArrayLike(Buffer, "be", 20),
-        new Account().serialize()
-      );
-    }
+    const stateTrie = await makeStateTrie(genesisAccounts);
 
     const initialBlockTimestamp =
       initialDate !== undefined
