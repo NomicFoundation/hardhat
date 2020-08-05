@@ -22,6 +22,7 @@ import { EtherscanConfig } from "./types";
 task("verify-contract", "Verifies contract on etherscan")
   .addParam("contractName", "Name of the deployed contract")
   .addParam("address", "Deployed address of smart contract")
+  .addOptionalParam("targetNetwork", "network to verify against")
   .addOptionalParam(
     "libraries",
     'Stringified JSON object in format of {library1: "0x2956356cd2a2bf3202f771f50d3d14a367b48071"}'
@@ -36,6 +37,7 @@ task("verify-contract", "Verifies contract on etherscan")
       taskArgs: {
         contractName: string;
         address: string;
+        targetNetwork: string;
         libraries: string;
         source: string;
         constructorArguments: string[];
@@ -49,6 +51,25 @@ task("verify-contract", "Verifies contract on etherscan")
           "@nomiclabs/buidler-etherscan",
           "Please provide etherscan api token via buidler.config.js (etherscan.apiKey)"
         );
+      }
+
+      switch (taskArgs.targetNetwork) {
+        case "mainnet" || "homestead" || "1":
+        default:
+          etherscan.url = "https://api.etherscan.io/api";
+          break;
+        case "ropsten" || "3":
+          etherscan.url = "https://api-ropsten.etherscan.io/api";
+          break;
+        case "rinkeby" || "4":
+          etherscan.url = "https://api-rinkeby.etherscan.io/api";
+          break;
+        case "goerli" || "5":
+          etherscan.url = "https://api-goerli.etherscan.io/api";
+          break;
+        case "kovan" || "42":
+          etherscan.url = "https://api-kovan.etherscan.io/api";
+          break;
       }
 
       const index: number = taskArgs.contractName.indexOf(":");
