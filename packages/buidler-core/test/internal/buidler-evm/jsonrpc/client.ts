@@ -102,10 +102,11 @@ describe("JsonRpcClient", () => {
     it("validates the response", async () => {
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
       response = "foo";
-      const result = await clientWithFakeProvider
-        .getLatestBlockNumber()
-        .catch((e) => e);
-      assert.instanceOf(result, Error);
+      await assert.isRejected(
+        clientWithFakeProvider.getLatestBlockNumber(),
+        Error,
+        "Invalid QUANTITY"
+      );
     });
   });
 

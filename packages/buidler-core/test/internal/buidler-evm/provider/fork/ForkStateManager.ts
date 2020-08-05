@@ -275,22 +275,23 @@ describe("ForkStateManager", () => {
 
   describe("checkpoint", () => {
     it("throws not supported error", async () => {
-      const error = await fsm.checkpoint().catch((e) => e);
-      assert.instanceOf(error, NotSupportedError);
+      await assert.isRejected(
+        fsm.checkpoint(),
+        NotSupportedError,
+        "checkpoint"
+      );
     });
   });
 
   describe("commit", () => {
     it("throws not supported error", async () => {
-      const error = await fsm.commit().catch((e) => e);
-      assert.instanceOf(error, NotSupportedError);
+      await assert.isRejected(fsm.commit(), NotSupportedError, "commit");
     });
   });
 
   describe("revert", () => {
     it("throws not supported error", async () => {
-      const error = await fsm.revert().catch((e) => e);
-      assert.instanceOf(error, NotSupportedError);
+      await assert.isRejected(fsm.revert(), NotSupportedError, "revert");
     });
   });
 
@@ -354,8 +355,11 @@ describe("ForkStateManager", () => {
 
   describe("setStateRoot", () => {
     it("throws error when an unknown state root is passed", async () => {
-      const error = await fsm.setStateRoot(randomHashBuffer()).catch((e) => e);
-      assert.instanceOf(error, Error);
+      await assert.isRejected(
+        fsm.setStateRoot(randomHashBuffer()),
+        Error,
+        "Unknown state root"
+      );
     });
 
     it("allows to change current state root", async () => {
@@ -385,31 +389,41 @@ describe("ForkStateManager", () => {
 
   describe("dumpStorage", () => {
     it("throws not supported error", async () => {
-      const error = await fsm
-        .dumpStorage(randomAddressBuffer())
-        .catch((e) => e);
-      assert.instanceOf(error, NotSupportedError);
+      await assert.isRejected(
+        fsm.dumpStorage(randomAddressBuffer()),
+        NotSupportedError,
+        "dumpStorage"
+      );
     });
   });
 
   describe("hasGenesisState", () => {
     it("throws not supported error", async () => {
-      const error = await fsm.hasGenesisState().catch((e) => e);
-      assert.instanceOf(error, NotSupportedError);
+      await assert.isRejected(
+        fsm.hasGenesisState(),
+        NotSupportedError,
+        "hasGenesisState"
+      );
     });
   });
 
   describe("generateCanonicalGenesis", () => {
     it("throws not supported error", async () => {
-      const error = await fsm.generateCanonicalGenesis().catch((e) => e);
-      assert.instanceOf(error, NotSupportedError);
+      await assert.isRejected(
+        fsm.generateCanonicalGenesis(),
+        NotSupportedError,
+        "generateCanonicalGenesis"
+      );
     });
   });
 
   describe("generateGenesis", () => {
     it("throws not supported error", async () => {
-      const error = await fsm.generateGenesis(null).catch((e) => e);
-      assert.instanceOf(error, NotSupportedError);
+      await assert.isRejected(
+        fsm.generateGenesis(null),
+        NotSupportedError,
+        "generateGenesis"
+      );
     });
   });
 

@@ -87,8 +87,11 @@ describe("ForkBlockchain", () => {
     });
 
     it("throws for non-existent block", async () => {
-      const error = await fb.getBlock(randomHashBuffer()).catch((e) => e);
-      assert.instanceOf(error, Error);
+      await assert.isRejected(
+        fb.getBlock(randomHashBuffer()),
+        Error,
+        "Block not found"
+      );
     });
 
     it("can get remote block object with create transaction", async () => {
@@ -109,11 +112,16 @@ describe("ForkBlockchain", () => {
       fb = new ForkBlockchain(client, forkBlockNumber.subn(10), common);
       const newerBlock = await client.getBlockByNumber(forkBlockNumber.subn(5));
 
-      const errorOne = await fb.getBlock(newerBlock!.hash!).catch((e) => e);
-      const errorTwo = await fb.getBlock(newerBlock!.number!).catch((e) => e);
-
-      assert.instanceOf(errorOne, Error);
-      assert.instanceOf(errorTwo, Error);
+      await assert.isRejected(
+        fb.getBlock(newerBlock!.hash!),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(newerBlock!.number!),
+        Error,
+        "Block not found"
+      );
     });
 
     it("can retrieve inserted block by hash", async () => {
@@ -162,8 +170,11 @@ describe("ForkBlockchain", () => {
 
     it("rejects blocks with invalid block number", async () => {
       const block = createBlock(forkBlockNumber.addn(2));
-      const error = await fb.putBlock(block).catch((e) => e);
-      assert.instanceOf(error, Error);
+      await assert.isRejected(
+        fb.putBlock(block),
+        Error,
+        "Invalid block number"
+      );
     });
 
     it("can save more than one block", async () => {
@@ -183,12 +194,13 @@ describe("ForkBlockchain", () => {
 
   describe("getDetails", () => {
     it("resolves", async () => {
-      const error = await fb.getDetails("").catch(e => e);
-      assert.isUndefined(error);
+      await assert.isFulfilled(fb.getDetails(""));
     });
 
     it("calls callback with null", async () => {
-      const result = await new Promise(resolve => fb.asBlockchain().getDetails("", resolve));
+      const result = await new Promise((resolve) =>
+        fb.asBlockchain().getDetails("", resolve)
+      );
       assert.isNull(result);
     });
   });
