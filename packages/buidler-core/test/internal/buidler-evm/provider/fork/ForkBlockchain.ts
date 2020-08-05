@@ -298,4 +298,66 @@ describe("ForkBlockchain", () => {
       );
     });
   });
+
+  describe("deleteAllFollowingBlocks", () => {
+    it("removes all blocks subsequent to the given block", async () => {
+      const blockOne = await fb.getLatestBlock();
+      const blockTwo = createBlock(forkBlockNumber.addn(1));
+      const blockThree = createBlock(forkBlockNumber.addn(2));
+
+      await fb.putBlock(blockTwo);
+      await fb.putBlock(blockThree);
+
+      fb.deleteAllFollowingBlocks(blockOne);
+
+      await assert.equal(await fb.getBlock(blockOne.hash()), blockOne);
+      await assert.isRejected(
+        fb.getBlock(blockTwo.hash()),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(blockThree.hash()),
+        Error,
+        "Block not found"
+      );
+    });
+
+    it("throws if given block is not present in blockchain", async () => {
+      const blockOne = createBlock(forkBlockNumber.addn(1));
+      const notAddedBlock = createBlock(forkBlockNumber.addn(2));
+      const fakeBlockOne = createBlock(
+        forkBlockNumber.addn(1),
+        randomHashBuffer()
+      );
+
+      await fb.putBlock(blockOne);
+
+      assert.throws(
+        () => fb.deleteAllFollowingBlocks(notAddedBlock),
+        Error,
+        "Invalid block"
+      );
+      assert.throws(
+        () => fb.deleteAllFollowingBlocks(fakeBlockOne),
+        Error,
+        "Invalid block"
+      );
+    });
+
+    it("does not throw if there are no following blocks", async () => {
+      const blockOne = createBlock(forkBlockNumber.addn(1));
+      await fb.putBlock(blockOne);
+      assert.doesNotThrow(() => fb.deleteAllFollowingBlocks(blockOne));
+    });
+
+    it("throws on attempt to remove remote blocks", async () => {
+      const block = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
+      assert.throws(
+        () => fb.deleteAllFollowingBlocks(block),
+        Error,
+        "Cannot delete remote block"
+      );
+    });
+  });
 });

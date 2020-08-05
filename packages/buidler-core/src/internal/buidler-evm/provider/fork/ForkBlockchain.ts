@@ -47,29 +47,7 @@ export class ForkBlockchain {
   }
 
   public async delBlock(blockHash: Buffer): Promise<void> {
-    const block = this._blocksByHash.get(blockHash.toString("hex"));
-    if (block === undefined) {
-      throw new Error("Block not found");
-    }
-    if (new BN(block.header.number).lte(this._forkBlockNumber)) {
-      throw new Error("Cannot delete remote block");
-    }
-
-    const blockNumber = bufferToInt(block.header.number);
-    this._blocksByHash.delete(blockHash.toString("hex"));
-    this._blocksByNumber.delete(blockNumber);
-
-    for (let i = blockNumber + 1; this._latestBlockNumber.gten(i); i++) {
-      const followingBlock = this._blocksByNumber.get(i);
-      if (followingBlock === undefined) {
-        // this should never happen
-        break;
-      }
-      this._blocksByHash.delete(followingBlock.hash().toString("hex"));
-      this._blocksByNumber.delete(i);
-    }
-
-    this._latestBlockNumber = new BN(blockNumber).subn(1);
+    this._delBlock(blockHash);
   }
 
   public async getDetails(_: string): Promise<void> {}
@@ -79,7 +57,20 @@ export class ForkBlockchain {
   }
 
   public deleteAllFollowingBlocks(block: Block): void {
-    throw new Error("not implemented");
+    const blockNumber = bufferToInt(block.header.number);
+    const savedBlock = this._blocksByNumber.get(blockNumber);
+    if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
+      throw new Error("Invalid block");
+    }
+
+    const nextBlockNumber = blockNumber + 1;
+    if (this._forkBlockNumber.gten(nextBlockNumber)) {
+      throw new Error("Cannot delete remote block");
+    }
+    const nextBlock = this._blocksByNumber.get(nextBlockNumber);
+    if (nextBlock !== undefined) {
+      return this._delBlock(nextBlock.hash());
+    }
   }
 
   public asBlockchain(): BlockchainInterface {
@@ -131,5 +122,31 @@ export class ForkBlockchain {
     this._blocksByNumber.set(rpcBlock.number.toNumber(), block);
     this._blocksByHash.set(rpcBlock.hash.toString("hex"), block);
     return block;
+  }
+
+  private _delBlock(blockHash: Buffer): void {
+    const block = this._blocksByHash.get(blockHash.toString("hex"));
+    if (block === undefined) {
+      throw new Error("Block not found");
+    }
+    if (new BN(block.header.number).lte(this._forkBlockNumber)) {
+      throw new Error("Cannot delete remote block");
+    }
+
+    const blockNumber = bufferToInt(block.header.number);
+    this._blocksByHash.delete(blockHash.toString("hex"));
+    this._blocksByNumber.delete(blockNumber);
+
+    for (let i = blockNumber + 1; this._latestBlockNumber.gten(i); i++) {
+      const followingBlock = this._blocksByNumber.get(i);
+      if (followingBlock === undefined) {
+        // this should never happen
+        break;
+      }
+      this._blocksByHash.delete(followingBlock.hash().toString("hex"));
+      this._blocksByNumber.delete(i);
+    }
+
+    this._latestBlockNumber = new BN(blockNumber).subn(1);
   }
 }
