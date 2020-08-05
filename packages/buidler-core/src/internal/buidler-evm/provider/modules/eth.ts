@@ -55,12 +55,8 @@ import {
   rpcUnknown,
   validateParams,
 } from "../input";
-import {
-  BuidlerNode,
-  CallParams,
-  FilterParams,
-  TransactionParams,
-} from "../node";
+import { BuidlerNode } from "../node";
+import { CallParams, FilterParams, TransactionParams } from "../node-types";
 import {
   bufferToRpcData,
   getRpcBlock,

@@ -55,8 +55,15 @@ import {
   TransactionExecutionError,
 } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
-import { GenesisAccount } from "./GenesisAccount";
 import { makeStateTrie } from "./makeStateTrie";
+import {
+  CallParams,
+  FilterParams,
+  GenesisAccount,
+  Snapshot,
+  TransactionParams,
+  TxBlockResult,
+} from "./node-types";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { getCurrentTimestamp } from "./utils";
 
@@ -70,65 +77,7 @@ export const COINBASE_ADDRESS = toBuffer(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
-export interface CallParams {
-  to: Buffer;
-  from: Buffer;
-  gasLimit: BN;
-  gasPrice: BN;
-  value: BN;
-  data: Buffer;
-}
-
-export interface TransactionParams {
-  to: Buffer;
-  from: Buffer;
-  gasLimit: BN;
-  gasPrice: BN;
-  value: BN;
-  data: Buffer;
-  nonce: BN;
-}
-
-export interface FilterParams {
-  fromBlock: BN;
-  toBlock: BN;
-  addresses: Buffer[];
-  normalizedTopics: Array<Array<Buffer | null> | null>;
-}
-
-export interface TxReceipt {
-  status: 0 | 1;
-  gasUsed: Buffer;
-  bitvector: Buffer;
-  logs: RpcLogOutput[];
-}
-
-export interface TxBlockResult {
-  receipt: TxReceipt;
-  createAddresses: Buffer | undefined;
-  bloomBitvector: Buffer;
-}
-
 // tslint:disable only-buidler-error
-
-export interface SolidityTracerOptions {
-  solidityVersion: string;
-  compilerInput: CompilerInput;
-  compilerOutput: CompilerOutput;
-}
-
-interface Snapshot {
-  id: number;
-  date: Date;
-  latestBlock: Block;
-  stateRoot: Buffer;
-  blockTimeOffsetSeconds: BN;
-  nextBlockTimestamp: BN;
-  transactionByHash: Map<string, Transaction>;
-  transactionHashToBlockHash: Map<string, string>;
-  blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
-  blockHashToTotalDifficulty: Map<string, BN>;
-}
 
 export class BuidlerNode extends EventEmitter {
   public static async create(

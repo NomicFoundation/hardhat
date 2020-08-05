@@ -10,10 +10,8 @@ import {
 } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../../src/internal/buidler-evm/provider/errors";
-import {
-  COINBASE_ADDRESS,
-  TransactionParams,
-} from "../../../../../src/internal/buidler-evm/provider/node";
+import { COINBASE_ADDRESS } from "../../../../../src/internal/buidler-evm/provider/node";
+import { TransactionParams } from "../../../../../src/internal/buidler-evm/provider/node-types";
 import {
   numberToRpcQuantity,
   RpcBlockOutput,

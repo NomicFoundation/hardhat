@@ -26,7 +26,6 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
-import { GenesisAccount } from "./GenesisAccount";
 import { BuidlerModule } from "./modules/buidler";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
@@ -34,6 +33,7 @@ import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
 import { BuidlerNode } from "./node";
+import { GenesisAccount } from "./node-types";
 
 const log = debug("buidler:core:buidler-evm:provider");
 

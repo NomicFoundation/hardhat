@@ -10,7 +10,7 @@ import {
   rpcQuantity,
   RpcTransactionRequestInput,
 } from "../../../../src/internal/buidler-evm/provider/input";
-import { TransactionParams } from "../../../../src/internal/buidler-evm/provider/node";
+import { TransactionParams } from "../../../../src/internal/buidler-evm/provider/node-types";
 import {
   numberToRpcQuantity,
   RpcTransactionOutput,
