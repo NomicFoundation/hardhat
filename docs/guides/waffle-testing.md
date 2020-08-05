@@ -126,7 +126,7 @@ const [owner, addr1] = await ethers.getSigners();
 A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Buidler EVM**, and only keeping the first and second ones.
 
 ::: tip
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/ethers.js/html/api-wallet.html).
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
 :::
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
