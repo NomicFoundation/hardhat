@@ -11,12 +11,6 @@ describe("BuidlerConfig extension", function () {
     assert.isDefined(this.env.config.etherscan);
   });
 
-  it("The etherscan url should have value from buidler.env.config.js", function () {
-    const etherscan = getDefaultEtherscanConfig(this.env.config);
-
-    assert.equal(etherscan.url, "https://api-ropsten.etherscan.io/api");
-  });
-
   it("The etherscan token should have value from buidler.env.config.js", function () {
     const etherscan = getDefaultEtherscanConfig(this.env.config);
     const apiKey =

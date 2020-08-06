@@ -37,12 +37,8 @@ describe.skip("Plugin integration tests", function () {
       ]);
 
       try {
-        await this.env.run("verify-contract", {
+        await this.env.run("verify", {
           address: deployedAddress,
-          contractName: "TestContract1",
-          libraries: JSON.stringify({
-            // SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
-          }),
           constructorArguments: [amount],
         });
 
@@ -68,12 +64,8 @@ describe.skip("Plugin integration tests", function () {
       ]);
 
       try {
-        await this.env.run("verify-contract", {
+        await this.env.run("verify", {
           address: deployedAddress,
-          contractName: "contracts/TestContract1.sol:TestContract1",
-          libraries: JSON.stringify({
-            // SafeMath: "0x292FFB096f7221c0C879c21535058860CcA67f58"
-          }),
           constructorArguments: [amount],
         });
 
@@ -96,10 +88,8 @@ describe.skip("Plugin integration tests", function () {
       const deployedAddress = await deployContract(abi, `${bytecode}`, []);
 
       try {
-        await this.env.run("verify-contract", {
+        await this.env.run("verify", {
           address: deployedAddress,
-          contractName: "contracts/TestContract1.sol:InnerContract",
-          libraries: JSON.stringify({}),
           constructorArguments: [],
         });
 
@@ -121,10 +111,8 @@ describe.skip("Plugin integration tests", function () {
       const deployedAddress = await deployContract(abi, `${bytecode}`, []);
 
       try {
-        await this.env.run("verify-contract", {
+        await this.env.run("verify", {
           address: deployedAddress,
-          contractName: "TestReentrancyGuardLocal",
-          libraries: JSON.stringify({}),
           constructorArguments: [],
         });
 
@@ -139,9 +127,8 @@ describe.skip("Plugin integration tests", function () {
     useEnvironment(path.join(__dirname, "..", "buidler-project-circular-dep"));
     it("Fails with an error message indicating to use Etherscan's GUI", async function () {
       this.env
-        .run("verify-contract", {
-          address: "0x0",
-          contractName: "TestContract",
+        .run("verify", {
+          address: "0x0000000000000000000000000000000000000000",
           constructorArguments: [],
         })
         .catch((e: any) => assert.instanceOf(e, BuidlerPluginError));
