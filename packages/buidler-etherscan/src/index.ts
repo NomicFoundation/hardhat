@@ -220,20 +220,31 @@ Encoder error reason: ${error.reason}`;
 
   // TODO: Display contract name?
   console.log(
-    `Successfully submitted contract at ${address} for verification on etherscan. Waiting for verification result...`
+    `Successfully submitted source code for contract
+${contractInformation.contractFilename}:${contractInformation.contractName} at ${address}
+for verification on etherscan. Waiting for verification result...`
   );
-
-  // Compilation is bound to take some time so there's no sense in requesting status immediately.
-  // TODO: make this configurable? The polling interval should be configurable too, within some safety bounds.
 
   const pollRequest = toCheckStatusRequest({
     apiKey: etherscan.apiKey,
     guid: response.message,
   });
-  await delay(700);
-  await getVerificationStatus(etherscanAPIEndpoint, pollRequest);
 
-  console.log("Successfully verified contract on etherscan");
+  // Compilation is bound to take some time so there's no sense in requesting status immediately.
+  // TODO: make this configurable? The polling interval should be configurable too, within some safety bounds.
+  await delay(700);
+  const verificationStatus = await getVerificationStatus(
+    etherscanAPIEndpoint,
+    pollRequest
+  );
+
+  if (verificationStatus.isVerificationSuccess()) {
+    console.log("Successfully verified contract on etherscan");
+  } else {
+    // TODO: throw an unexpected error here?
+    console.log(`The API responded with an unexpected message.
+Message: ${verificationStatus.message}`);
+  }
 };
 
 task("verify", "Verifies contract on etherscan")

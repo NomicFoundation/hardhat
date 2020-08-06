@@ -70,33 +70,9 @@ export async function getVerificationStatus(
     response = await fetch(urlWithQuery);
 
     if (!response.ok) {
-      // TODO: A special case for HTTP status code 429, too many requests, could be implemented here.
-      // The header Retry-After could be used to keep poll in a certain amount of time.
-      // Other than that, it could be a good idea to just inform the user of this time until next retry.
-
-      let message: string;
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
       const responseText = await response.text();
-
-      // TODO: inform about HTTP status code 429, too many requests, even when there's no Retry-After header?
-      // Perhaps a dictionary for all HTTP status codes would be more useful here.
-      // TODO: Actually parse the Retry-After header and see if it is sufficiently short to retry ourselves.
-      // A warning should be printed in any case.
-      if (response.status === 429 && response.headers.has("Retry-After")) {
-        const retryHeader = response.headers.get("Retry-After");
-        let retryHeaderMessage;
-        if (String.prototype.startsWith.call(retryHeader, "Date")) {
-          retryHeaderMessage = `the next request should be made on: ${retryHeader}`;
-        } else {
-          retryHeaderMessage = `the next request should be made in ${retryHeader} seconds`;
-        }
-        message = `The HTTP server responded that too many requests were sent, HTTP status 429.
-In addition, the "Retry-After" header was present and indicated that ${retryHeaderMessage}
-Response text: ${responseText}`;
-      } else {
-        // The response indicates some other error.
-        message = `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`;
-      }
+      const message = `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`;
 
       throw new BuidlerPluginError(pluginName, message);
     }
@@ -119,10 +95,19 @@ Reason: ${error.message}`,
     return getVerificationStatus(url, req);
   }
 
-  if (!etherscanResponse.isOk()) {
+  if (!etherscanResponse.isVerificationFailure()) {
     throw new BuidlerPluginError(
       pluginName,
       `The contract verification failed.
+Reason: ${etherscanResponse.message}`
+    );
+  }
+
+  if (!etherscanResponse.isOk()) {
+    throw new BuidlerPluginError(
+      pluginName,
+      `The Etherscan API responded with a failure status.
+The verification may still succeed but should be checked manually.
 Reason: ${etherscanResponse.message}`
     );
   }
@@ -142,6 +127,14 @@ export default class EtherscanResponse {
 
   public isPending() {
     return this.message === "Pending in queue";
+  }
+
+  public isVerificationFailure() {
+    return this.message === "Fail - Unable to verify";
+  }
+
+  public isVerificationSuccess() {
+    return this.message === "Pass - Verified";
   }
 
   public isOk() {
