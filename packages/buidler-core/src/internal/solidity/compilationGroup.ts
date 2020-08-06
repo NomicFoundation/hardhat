@@ -9,17 +9,23 @@ import { DependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
 export class CompilationGroup {
-  private _filesToCompile: Map<ResolvedFile, boolean> = new Map();
+  private _filesToCompile: Map<
+    string,
+    { file: ResolvedFile; emitsArtifacts: boolean }
+  > = new Map();
 
   constructor(public solidityConfig: SolcConfig) {}
 
   public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
-    const alreadyEmitsArtifacts = this._filesToCompile.get(file);
-    if (alreadyEmitsArtifacts === undefined) {
-      this._filesToCompile.set(file, emitsArtifacts);
+    const fileToCompile = this._filesToCompile.get(file.globalName);
+    if (fileToCompile === undefined) {
+      this._filesToCompile.set(file.globalName, { file, emitsArtifacts });
     } else {
-      if (!alreadyEmitsArtifacts && emitsArtifacts) {
-        this._filesToCompile.set(file, emitsArtifacts);
+      if (!fileToCompile.emitsArtifacts && emitsArtifacts) {
+        this._filesToCompile.set(file.globalName, {
+          file,
+          emitsArtifacts: true,
+        });
       }
     }
   }
@@ -33,18 +39,18 @@ export class CompilationGroup {
   }
 
   public getResolvedFiles(): ResolvedFile[] {
-    return [...this._filesToCompile.keys()];
+    return [...this._filesToCompile.values()].map((x) => x.file);
   }
 
   public emitsArtifacts(file: ResolvedFile): boolean {
-    const emitsArtifacts = this._filesToCompile.get(file);
+    const fileToCompile = this._filesToCompile.get(file.globalName);
 
-    if (emitsArtifacts === undefined) {
+    if (fileToCompile === undefined) {
       // tslint:disable-next-line only-buidler-error
       throw new Error("Unknown file"); // TODO use BuidlerError
     }
 
-    return emitsArtifacts;
+    return fileToCompile.emitsArtifacts;
   }
 }
 
