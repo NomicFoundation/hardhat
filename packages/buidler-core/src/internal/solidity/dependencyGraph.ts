@@ -47,8 +47,9 @@ export class DependencyGraph {
     }
     visited.add(file);
 
-    const transitiveDependencies =
-      this.dependenciesPerFile.get(file) ?? new Set();
+    const transitiveDependencies = new Set<ResolvedFile>(
+      this.dependenciesPerFile.get(file) ?? []
+    );
 
     for (const transitiveDependency of transitiveDependencies) {
       this._getTransitiveDependencies(
