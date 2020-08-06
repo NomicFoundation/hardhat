@@ -1,8 +1,3 @@
-import {
-  CompilerInput,
-  CompilerOutput,
-  CompilerOutputBytecode,
-} from "@nomiclabs/buidler/src/internal/buidler-evm/stack-traces/compiler-types";
 import { RunTaskFunction } from "@nomiclabs/buidler/types";
 
 import { metadataLengthSize, readSolcMetadataLength } from "./metadata";
@@ -87,14 +82,10 @@ interface BytecodeSlice {
 type LinkReferences = CompilerOutputBytecode["linkReferences"][string][string];
 type NestedSliceReferences = BytecodeSlice[][];
 
-async function normalizeBytecode(
+export async function normalizeBytecode(
   bytecode: Buffer,
   symbols: CompilerOutputBytecode
 ) {
-  const { zeroOutSlices } = await import(
-    "@nomiclabs/buidler/src/internal/buidler-evm/stack-traces/library-utils"
-  );
-
   const nestedSliceReferences: NestedSliceReferences = [];
   const libraryLinks: ResolvedLinks = {};
   for (const [filename, libraries] of Object.entries(symbols.linkReferences)) {
@@ -139,13 +130,62 @@ async function normalizeBytecode(
   return { libraryLinks, immutableValues, normalizedBytecode };
 }
 
-interface CompilerLinkInput {
+export function zeroOutSlices(
+  code: Buffer,
+  slices: Array<{ start: number; length: number }>
+): Buffer {
+  for (const { start, length } of slices) {
+    code = Buffer.concat([
+      code.slice(0, start),
+      Buffer.alloc(length, 0),
+      code.slice(start + length),
+    ]);
+  }
+
+  return code;
+}
+
+/* Taken from stack trace buidlerevm internals
+ *  This is not an exhaustive interface for compiler input nor output.
+ */
+
+export interface CompilerInput {
+  language: "Solidity";
+  sources: { [fileGlobalName: string]: { content: string } };
   settings: {
+    optimizer: { runs: number; enabled: boolean };
+    evmVersion?: string;
     libraries?: ResolvedLinks;
   };
 }
 
-type CompilerExtendedInput = CompilerInput & CompilerLinkInput;
+export interface CompilerOutput {
+  contracts: {
+    [globalName: string]: {
+      [contractName: string]: {
+        abi: any;
+        evm: {
+          bytecode: CompilerOutputBytecode;
+          deployedBytecode: CompilerOutputBytecode;
+        };
+      };
+    };
+  };
+}
+
+export interface CompilerOutputBytecode {
+  object: string;
+  linkReferences: {
+    [libraryFileGlobalName: string]: {
+      [libraryName: string]: Array<{ start: 0; length: 20 }>;
+    };
+  };
+  immutableReferences?: {
+    [key: string]: Array<{ start: number; length: number }>;
+  };
+}
+
+/**/
 
 // TODO: This is extremely ugly and should be replaced with better build primitives when possible.
 // Ideally, we would access the input and output through some sort of artifact.
@@ -157,7 +197,7 @@ export async function compile(taskRun: RunTaskFunction) {
 
   const compilerInput = (await taskRun(
     TASK_COMPILE_GET_COMPILER_INPUT
-  )) as CompilerExtendedInput;
+  )) as CompilerInput;
   const compilerOutput = (await taskRun(
     TASK_COMPILE_COMPILE
   )) as CompilerOutput;

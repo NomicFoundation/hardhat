@@ -1,4 +1,3 @@
-import { CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/downloader";
 import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import SemverRange from "semver/classes/range";
 
@@ -6,6 +5,14 @@ import { pluginName } from "../pluginContext";
 
 const COMPILERS_LIST_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json";
+
+// Non-exhaustive interface for the official compiler list.
+export interface CompilersList {
+  releases: {
+    [version: string]: string;
+  };
+  latestRelease: string;
+}
 
 export class SolcVersionNumber {
   constructor(
@@ -51,7 +58,7 @@ interface SolcVersionRange {
 
 export function getVersionNumber(shortVersion: string): SolcVersionNumber {
   const [major, minor, patch] = shortVersion
-    .split(".", 2)
+    .split(".", 3)
     .map((value) => parseInt(value, 10));
   return new SolcVersionNumber(major, minor, patch);
 }
@@ -121,7 +128,7 @@ export async function inferSolcVersion(
     },
     inferralType: InferralType.EXACT,
     toString: () => {
-      return `{solcVersionMetadata.major}.{solcVersionMetadata.minor}.{solcVersionMetadata.patch}`;
+      return `${solcVersionMetadata.major}.${solcVersionMetadata.minor}.${solcVersionMetadata.patch}`;
     },
   };
 }

@@ -16,13 +16,15 @@ export async function verifyContract(
   req: EtherscanRequestParameters
 ): Promise<EtherscanResponse> {
   const { default: fetch } = await import("node-fetch");
+  // The API expects the whole request in the search parameters.
+  const urlWithQuery = new URL("", url);
+  const parameters = new URLSearchParams({ ...req });
+  urlWithQuery.search = parameters.toString();
   const requestDetails = {
     method: "post",
-    body: JSON.stringify(req),
-    headers: { "Content-Type": "application/json" },
   };
   try {
-    const response = await fetch(url, requestDetails);
+    const response = await fetch(urlWithQuery, requestDetails);
 
     if (!response.ok) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.

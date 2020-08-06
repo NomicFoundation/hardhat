@@ -62,7 +62,7 @@ const verify: ActionType<VerificationArgs> = async (
   // TODO: perhaps querying and scraping this list would be a better approach?
   // This list should be validated - it links to https://github.com/ethereum/solc-bin/blob/gh-pages/bin/list.txt
   // which has many old compilers included in the list too.
-  if (supportedSolcVersionRange.test(solcVersionConfig.toString())) {
+  if (!supportedSolcVersionRange.test(solcVersionConfig.toString())) {
     throw new BuidlerPluginError(
       pluginName,
       `Etherscan only supports compiler versions 0.4.11 and higher.
@@ -173,9 +173,9 @@ Common causes:
   const contractInterface = new Interface(contractInformation.contract.abi);
   let deployArgumentsEncoded;
   try {
-    deployArgumentsEncoded = contractInterface.encodeDeploy(
-      constructorArguments
-    );
+    deployArgumentsEncoded = contractInterface
+      .encodeDeploy(constructorArguments)
+      .replace("0x", "");
   } catch (error) {
     if (isABIArgumentLengthError(error)) {
       const { contractName, contractFilename } = contractInformation;
@@ -206,6 +206,7 @@ Encoder error reason: ${error.reason}\n`;
     apiKey: etherscan.apiKey,
     contractAddress: address,
     sourceCode: compilerInputJSON,
+    contractFilename: contractInformation.contractFilename,
     contractName: contractInformation.contractName,
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,

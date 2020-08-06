@@ -26,6 +26,7 @@ export function toRequest(params: {
   apiKey: string;
   contractAddress: string;
   sourceCode: string;
+  contractFilename: string;
   contractName: string;
   compilerVersion: string;
   constructorArguments: string;
@@ -37,7 +38,7 @@ export function toRequest(params: {
     contractaddress: params.contractAddress,
     sourceCode: params.sourceCode,
     codeformat: "solidity-standard-json-input",
-    contractname: params.contractName,
+    contractname: `${params.contractFilename}:${params.contractName}`,
     compilerversion: params.compilerVersion,
     constructorArguements: params.constructorArguments,
   };
