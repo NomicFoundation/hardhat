@@ -31,8 +31,9 @@ const verify: ActionType<VerificationArgs> = async (
     // TODO: add URL to etherscan documentation?
     throw new BuidlerPluginError(
       pluginName,
-      "Please provide an Etherscan API token via buidler config. " +
-        "E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }"
+      `Please provide an Etherscan API token via buidler config.
+E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
+See https://etherscan.io/apis`
     );
   }
 
@@ -181,12 +182,12 @@ Common causes:
       const { contractName, contractFilename } = contractInformation;
       // TODO: add a list of types and constructor arguments to the error message?
       const message = `The constructor for ${contractFilename}:${contractName} has ${error.count.types} parameters
- but ${error.count.values} arguments were provided instead.\n`;
+ but ${error.count.values} arguments were provided instead.`;
       throw new BuidlerPluginError(pluginName, message, error);
     }
     if (isABIArgumentTypeError(error)) {
       const message = `Value ${error.value} cannot be encoded for the parameter ${error.argument}.
-Encoder error reason: ${error.reason}\n`;
+Encoder error reason: ${error.reason}`;
       throw new BuidlerPluginError(pluginName, message, error);
     }
     // Should be unreachable.
@@ -199,10 +200,10 @@ Encoder error reason: ${error.reason}\n`;
 
   const solcFullVersion = await solcVersionConfig.getLongVersion();
 
-  const { toRequest } = await import(
+  const { toVerifyRequest, toCheckStatusRequest } = await import(
     "./etherscan/EtherscanVerifyContractRequest"
   );
-  const request = toRequest({
+  const request = toVerifyRequest({
     apiKey: etherscan.apiKey,
     contractAddress: address,
     sourceCode: compilerInputJSON,
@@ -224,8 +225,13 @@ Encoder error reason: ${error.reason}\n`;
 
   // Compilation is bound to take some time so there's no sense in requesting status immediately.
   // TODO: make this configurable? The polling interval should be configurable too, within some safety bounds.
+
+  const pollRequest = toCheckStatusRequest({
+    apiKey: etherscan.apiKey,
+    guid: response.message,
+  });
   await delay(700);
-  await getVerificationStatus(etherscanAPIEndpoint, response.message);
+  await getVerificationStatus(etherscanAPIEndpoint, pollRequest);
 
   console.log("Successfully verified contract on etherscan");
 };

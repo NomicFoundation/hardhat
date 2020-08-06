@@ -1,6 +1,10 @@
-export interface EtherscanRequestParameters {
+export interface EtherscanRequest {
   apikey: string;
   module: "contract";
+  action: string;
+}
+
+export interface EtherscanVerifyRequest extends EtherscanRequest {
   action: "verifysourcecode";
   contractaddress: string;
   sourceCode: string;
@@ -22,7 +26,12 @@ export interface EtherscanRequestParameters {
   // runs: number;
 }
 
-export function toRequest(params: {
+export interface EtherscanCheckStatusRequest extends EtherscanRequest {
+  action: "checkverifystatus";
+  guid: string;
+}
+
+export function toVerifyRequest(params: {
   apiKey: string;
   contractAddress: string;
   sourceCode: string;
@@ -30,7 +39,7 @@ export function toRequest(params: {
   contractName: string;
   compilerVersion: string;
   constructorArguments: string;
-}): EtherscanRequestParameters {
+}): EtherscanVerifyRequest {
   return {
     apikey: params.apiKey,
     module: "contract",
@@ -41,5 +50,17 @@ export function toRequest(params: {
     contractname: `${params.contractFilename}:${params.contractName}`,
     compilerversion: params.compilerVersion,
     constructorArguements: params.constructorArguments,
+  };
+}
+
+export function toCheckStatusRequest(params: {
+  apiKey: string;
+  guid: string;
+}): EtherscanCheckStatusRequest {
+  return {
+    apikey: params.apiKey,
+    module: "contract",
+    action: "checkverifystatus",
+    guid: params.guid,
   };
 }

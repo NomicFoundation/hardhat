@@ -2,7 +2,10 @@ import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 
 import { pluginName } from "../pluginContext";
 
-import { EtherscanRequestParameters } from "./EtherscanVerifyContractRequest";
+import {
+  EtherscanCheckStatusRequest,
+  EtherscanVerifyRequest,
+} from "./EtherscanVerifyContractRequest";
 
 export async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,7 +16,7 @@ const verificationIntervalMs = 3000;
 
 export async function verifyContract(
   url: URL,
-  req: EtherscanRequestParameters
+  req: EtherscanVerifyRequest
 ): Promise<EtherscanResponse> {
   const { default: fetch } = await import("node-fetch");
   // The API expects the whole request in the search parameters.
@@ -47,7 +50,7 @@ export async function verifyContract(
       pluginName,
       `Failed to send contract verification request.
 Endpoint URL: ${url}
-Reason: ${error.message}\n`,
+Reason: ${error.message}`,
       error
     );
   }
@@ -55,16 +58,13 @@ Reason: ${error.message}\n`,
 
 export async function getVerificationStatus(
   url: URL,
-  guid: string
+  req: EtherscanCheckStatusRequest
 ): Promise<EtherscanResponse> {
-  const { default: fetch } = await import("node-fetch");
-  const parameters = new URLSearchParams({
-    module: "contract",
-    action: "checkverifystatus",
-    guid,
-  });
+  const parameters = new URLSearchParams({ ...req });
   const urlWithQuery = new URL("", url);
   urlWithQuery.search = parameters.toString();
+
+  const { default: fetch } = await import("node-fetch");
   let response;
   try {
     response = await fetch(urlWithQuery);
@@ -106,7 +106,7 @@ Response text: ${responseText}`;
       `Failure during etherscan status polling. The verification may still succeed but
 should be checked manually.
 Endpoint URL: ${urlWithQuery}
-Reason: ${error.message}\n`,
+Reason: ${error.message}`,
       error
     );
   }
@@ -116,14 +116,14 @@ Reason: ${error.message}\n`,
   if (etherscanResponse.isPending()) {
     await delay(verificationIntervalMs);
 
-    return getVerificationStatus(url, guid);
+    return getVerificationStatus(url, req);
   }
 
   if (!etherscanResponse.isOk()) {
     throw new BuidlerPluginError(
       pluginName,
       `The contract verification failed.
-Reason: ${etherscanResponse.message}\n`
+Reason: ${etherscanResponse.message}`
     );
   }
 
