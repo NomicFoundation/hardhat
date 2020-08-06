@@ -3,7 +3,10 @@ import Account from "ethereumjs-account";
 import { BN, keccak256, KECCAK256_NULL_S } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
-import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
+import {
+  CheckpointError,
+  NotSupportedError,
+} from "../../../../../src/internal/buidler-evm/provider/fork/errors";
 import { ForkStateManager } from "../../../../../src/internal/buidler-evm/provider/fork/ForkStateManager";
 import {
   randomAddressBuffer,
@@ -273,27 +276,103 @@ describe("ForkStateManager", () => {
     });
   });
 
+  /* tslint:disable no-string-literal */
   describe("checkpoint", () => {
-    it("throws not supported error", async () => {
-      await assert.isRejected(
-        fsm.checkpoint(),
-        NotSupportedError,
-        "checkpoint"
+    it("stores current state root on the stack", async () => {
+      const stateRoot = await fsm.getStateRoot();
+      await fsm.checkpoint();
+      assert.deepEqual(fsm["_stateCheckpoints"], [stateRoot.toString("hex")]);
+    });
+
+    it("allows to checkpoint the same state root twice", async () => {
+      const stateRoot = await fsm.getStateRoot();
+      await fsm.checkpoint();
+      await fsm.checkpoint();
+      assert.deepEqual(fsm["_stateCheckpoints"], [
+        stateRoot.toString("hex"),
+        stateRoot.toString("hex"),
+      ]);
+    });
+
+    it("allows to checkpoint different state roots", async () => {
+      const stateRootOne = await fsm.getStateRoot();
+      await fsm.checkpoint();
+      await fsm.putContractCode(
+        randomAddressBuffer(),
+        Buffer.from("deadbeef", "hex")
       );
+      const stateRootTwo = await fsm.getStateRoot();
+      await fsm.checkpoint();
+      assert.deepEqual(fsm["_stateCheckpoints"], [
+        stateRootOne.toString("hex"),
+        stateRootTwo.toString("hex"),
+      ]);
     });
   });
 
   describe("commit", () => {
-    it("throws not supported error", async () => {
-      await assert.isRejected(fsm.commit(), NotSupportedError, "commit");
+    it("rejects if no checkpoint was made", async () => {
+      await assert.isRejected(fsm.commit(), CheckpointError, "commit");
+    });
+
+    it("does not change current state root", async () => {
+      await fsm.checkpoint();
+      await fsm.putContractCode(
+        randomAddressBuffer(),
+        Buffer.from("deadbeef", "hex")
+      );
+      const beforeRoot = await fsm.getStateRoot();
+      await fsm.commit();
+      const afterRoot = await fsm.getStateRoot();
+      assert.equal(afterRoot.toString("hex"), beforeRoot.toString("hex"));
+    });
+
+    it("removes the latest state root from the stack", async () => {
+      const stateRoot = await fsm.getStateRoot();
+      await fsm.checkpoint();
+      await fsm.checkpoint();
+      await fsm.commit();
+      assert.deepEqual(fsm["_stateCheckpoints"], [stateRoot.toString("hex")]);
     });
   });
 
   describe("revert", () => {
-    it("throws not supported error", async () => {
-      await assert.isRejected(fsm.revert(), NotSupportedError, "revert");
+    it("rejects if no checkpoint was made", async () => {
+      await assert.isRejected(fsm.revert(), CheckpointError, "revert");
+    });
+
+    it("reverts the current state root back to the committed state", async () => {
+      const initialRoot = await fsm.getStateRoot();
+      await fsm.checkpoint();
+      await fsm.putContractCode(
+        randomAddressBuffer(),
+        Buffer.from("deadbeef", "hex")
+      );
+      await fsm.revert();
+      const stateRoot = await fsm.getStateRoot();
+      assert.equal(stateRoot.toString("hex"), initialRoot.toString("hex"));
+    });
+
+    it("does not revert more than one checkpoint back", async () => {
+      const address = randomAddressBuffer();
+      await fsm.checkpoint();
+      await fsm.putContractCode(address, Buffer.from("deadbeef", "hex"));
+      await fsm.checkpoint();
+      await fsm.putContractCode(address, Buffer.from("feedface", "hex"));
+      await fsm.revert();
+      const code = await fsm.getContractCode(address);
+      assert.equal(code.toString("hex"), "deadbeef");
+    });
+
+    it("removes the latest state root from the stack", async () => {
+      const stateRoot = await fsm.getStateRoot();
+      await fsm.checkpoint();
+      await fsm.checkpoint();
+      await fsm.revert();
+      assert.deepEqual(fsm["_stateCheckpoints"], [stateRoot.toString("hex")]);
     });
   });
+  /* tslint:enable no-string-literal */
 
   describe("clearContractStorage", () => {
     it("can clear all locally set values", async () => {
@@ -364,8 +443,10 @@ describe("ForkStateManager", () => {
 
     it("allows to change current state root", async () => {
       const beforeRoot = await fsm.getStateRoot();
-      const address = randomAddressBuffer();
-      await fsm.putContractCode(address, Buffer.from("deadbeef", "hex"));
+      await fsm.putContractCode(
+        randomAddressBuffer(),
+        Buffer.from("deadbeef", "hex")
+      );
       const afterRoot = await fsm.getStateRoot();
       await fsm.setStateRoot(beforeRoot);
       const restoredRoot = await fsm.getStateRoot();

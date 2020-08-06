@@ -6,7 +6,7 @@ import { callbackify } from "util";
 import { JsonRpcClient } from "../../jsonrpc/client";
 
 import { AccountState, makeAccount } from "./Account";
-import { NotSupportedError } from "./errors";
+import { CheckpointError, NotSupportedError } from "./errors";
 import { randomHash } from "./random";
 import { StateManager } from "./StateManager";
 
@@ -24,6 +24,7 @@ export class ForkStateManager {
   private _stateRoot: string = randomHash();
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
+  private _stateCheckpoints: string[] = [];
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
@@ -163,15 +164,23 @@ export class ForkStateManager {
   }
 
   public async checkpoint(): Promise<void> {
-    throw new NotSupportedError("checkpoint");
+    const stateRoot = await this.getStateRoot();
+    this._stateCheckpoints.push(stateRoot.toString("hex"));
   }
 
   public async commit(): Promise<void> {
-    throw new NotSupportedError("commit");
+    if (this._stateCheckpoints.length === 0) {
+      throw new CheckpointError("commit");
+    }
+    this._stateCheckpoints.pop();
   }
 
   public async revert(): Promise<void> {
-    throw new NotSupportedError("revert");
+    const checkpointedRoot = this._stateCheckpoints.pop();
+    if (checkpointedRoot === undefined) {
+      throw new CheckpointError("revert");
+    }
+    await this.setStateRoot(Buffer.from(checkpointedRoot, "hex"));
   }
 
   public async getStateRoot(): Promise<Buffer> {
