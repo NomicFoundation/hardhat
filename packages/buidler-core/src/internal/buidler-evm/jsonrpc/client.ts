@@ -29,6 +29,10 @@ export class JsonRpcClient {
     return this._perform("eth_blockNumber", [], rpcQuantity);
   }
 
+  public async getNetworkId(): Promise<string> {
+    return this._perform("net_version", [], t.string);
+  }
+
   public async getBalance(address: Buffer, blockTag: BlockTag): Promise<BN> {
     return this._perform(
       "eth_getBalance",

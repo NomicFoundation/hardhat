@@ -52,8 +52,12 @@ import {
   TransactionExecutionError,
 } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
+import { ForkBlockchain } from "./fork/ForkBlockchain";
+import { ForkStateManager } from "./fork/ForkStateManager";
 import { makeBlockchain } from "./makeBlockchain";
 import { makeCommon } from "./makeCommon";
+import { makeForkClient } from "./makeForkClient";
+import { makeForkCommon } from "./makeForkCommon";
 import { makeStateTrie } from "./makeStateTrie";
 import {
   CallParams,
@@ -93,47 +97,59 @@ export class BuidlerNode extends EventEmitter {
     compilerOutput?: CompilerOutput,
     forkConfig?: ForkConfig
   ): Promise<[Common, BuidlerNode]> {
-    const stateTrie = await makeStateTrie(genesisAccounts);
+    let forkClient;
+    let forkBlockNumber;
+    let common;
+    let stateManager;
+    let blockchain;
+    let genesisBlock;
 
-    // TODO when forking, get chain ID from JSON RPC and create common based on that
-    const common = makeCommon(
-      initialDate,
-      chainId,
-      networkId,
-      networkName,
-      blockGasLimit,
-      stateTrie,
-      hardfork
-    );
+    if (forkConfig !== undefined) {
+      ({ forkClient, forkBlockNumber } = await makeForkClient(forkConfig));
+      common = await makeForkCommon(forkClient);
+      stateManager = new ForkStateManager(
+        forkClient,
+        forkBlockNumber
+      ).asStateManager();
+      const forkBlockchain = new ForkBlockchain(
+        forkClient,
+        forkBlockNumber,
+        common
+      );
+      blockchain = forkBlockchain.asBlockchain();
+      genesisBlock = await forkBlockchain.getBlock(0);
+    } else {
+      const stateTrie = await makeStateTrie(genesisAccounts);
 
-    const stateManager = new StateManager({
-      common: common as any, // TS error because of a version mismatch
-      trie: stateTrie,
-    });
+      common = makeCommon(
+        initialDate,
+        chainId,
+        networkId,
+        networkName,
+        blockGasLimit,
+        stateTrie,
+        hardfork
+      );
 
-    const { blockchain, genesisBlock } = await makeBlockchain(common);
+      stateManager = new StateManager({
+        common: common as any, // TS error because of a version mismatch
+        trie: stateTrie,
+      });
+
+      ({ blockchain, genesisBlock } = await makeBlockchain(common));
+    }
 
     const vm = new VM({
       common: common as any, // TS error because of a version mismatch
       activatePrecompiles: true,
-      stateManager,
+      stateManager: stateManager as any,
       blockchain: blockchain as any,
       allowUnlimitedContractSize,
     });
 
-    let forkClient;
-    let forkBlockNumber;
-    if (forkConfig !== undefined) {
-      forkClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl);
-      forkBlockNumber =
-        forkConfig.blockNumber !== undefined
-          ? new BN(forkConfig.blockNumber)
-          : await forkClient.getLatestBlockNumber();
-    }
-
     const node = new BuidlerNode(
       vm,
-      blockchain,
+      blockchain as any,
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
