@@ -2337,6 +2337,250 @@ describe("Compilation groups", function () {
     });
   });
 
+  describe("five files, three layers, 2-1-2", function () {
+    it("all new", async function () {
+      const Layer1AMock = new MockFile("Layer1A", ["^0.5.0"]);
+      const Layer1BMock = new MockFile("Layer1B", ["^0.5.0"]);
+      const Layer2Mock = new MockFile("Layer2", ["^0.5.0"]);
+      const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
+      const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        resolvedFiles,
+      ] = await createMockData([
+        { file: Layer1AMock, dependencies: [Layer2Mock] },
+        { file: Layer1BMock, dependencies: [Layer2Mock] },
+        { file: Layer2Mock, dependencies: [Layer3AMock, Layer3BMock] },
+        { file: Layer3AMock, dependencies: [] },
+        { file: Layer3BMock, dependencies: [] },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.lengthOf(group05.getResolvedFiles(), 5);
+      assert.sameMembers(group05.getResolvedFiles(), resolvedFiles);
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[0]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[1]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[2]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[3]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[4]));
+    });
+
+    it("layer 2 changed", async function () {
+      const Layer1AMock = new MockFile("Layer1A", ["^0.5.0"]);
+      const Layer1BMock = new MockFile("Layer1B", ["^0.5.0"]);
+      const Layer2Mock = new MockFile("Layer2", ["^0.5.0"]);
+      const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
+      const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        resolvedFiles,
+      ] = await createMockData([
+        {
+          file: Layer1AMock,
+          dependencies: [Layer2Mock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer1BMock,
+          dependencies: [Layer2Mock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer2Mock,
+          dependencies: [Layer3AMock, Layer3BMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer3AMock,
+          dependencies: [],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer3BMock,
+          dependencies: [],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+      ]);
+
+      const [Layer1A, Layer1B, Layer2, Layer3A, Layer3B] = resolvedFiles;
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.lengthOf(group05.getResolvedFiles(), 5);
+      assert.sameMembers(group05.getResolvedFiles(), resolvedFiles);
+      assert.isTrue(group05.emitsArtifacts(Layer1A));
+      assert.isTrue(group05.emitsArtifacts(Layer1B));
+      assert.isTrue(group05.emitsArtifacts(Layer2));
+      assert.isFalse(group05.emitsArtifacts(Layer3A));
+      assert.isFalse(group05.emitsArtifacts(Layer3B));
+    });
+  });
+
+  describe("six files, three layers, 2-2-2", function () {
+    it("all new", async function () {
+      const Layer1AMock = new MockFile("Layer1A", ["^0.5.0"]);
+      const Layer1BMock = new MockFile("Layer1B", ["^0.5.0"]);
+      const Layer2AMock = new MockFile("Layer2A", ["^0.5.0"]);
+      const Layer2BMock = new MockFile("Layer2B", ["^0.5.0"]);
+      const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
+      const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        resolvedFiles,
+      ] = await createMockData([
+        { file: Layer1AMock, dependencies: [Layer2AMock, Layer2BMock] },
+        { file: Layer1BMock, dependencies: [Layer2AMock, Layer2BMock] },
+        { file: Layer2AMock, dependencies: [Layer3AMock, Layer3BMock] },
+        { file: Layer2BMock, dependencies: [Layer3AMock, Layer3BMock] },
+        { file: Layer3AMock, dependencies: [] },
+        { file: Layer3BMock, dependencies: [] },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.lengthOf(group05.getResolvedFiles(), 6);
+      assert.sameMembers(group05.getResolvedFiles(), resolvedFiles);
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[0]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[1]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[2]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[3]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[4]));
+      assert.isTrue(group05.emitsArtifacts(resolvedFiles[5]));
+    });
+
+    it("layer 2 changed", async function () {
+      const Layer1AMock = new MockFile("Layer1A", ["^0.5.0"]);
+      const Layer1BMock = new MockFile("Layer1B", ["^0.5.0"]);
+      const Layer2AMock = new MockFile("Layer2A", ["^0.5.0"]);
+      const Layer2BMock = new MockFile("Layer2B", ["^0.5.0"]);
+      const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
+      const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        resolvedFiles,
+      ] = await createMockData([
+        {
+          file: Layer1AMock,
+          dependencies: [Layer2AMock, Layer2BMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer1BMock,
+          dependencies: [Layer2AMock, Layer2BMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer2AMock,
+          dependencies: [Layer3AMock, Layer3BMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer2BMock,
+          dependencies: [Layer3AMock, Layer3BMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer3AMock,
+          dependencies: [],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        {
+          file: Layer3BMock,
+          dependencies: [],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+      ]);
+
+      const [
+        Layer1A,
+        Layer1B,
+        Layer2A,
+        Layer2B,
+        Layer3A,
+        Layer3B,
+      ] = resolvedFiles;
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.lengthOf(group05.getResolvedFiles(), 6);
+      assert.sameMembers(group05.getResolvedFiles(), resolvedFiles);
+      assert.isTrue(group05.emitsArtifacts(Layer1A));
+      assert.isTrue(group05.emitsArtifacts(Layer1B));
+      assert.isFalse(group05.emitsArtifacts(Layer2A));
+      assert.isTrue(group05.emitsArtifacts(Layer2B));
+      assert.isFalse(group05.emitsArtifacts(Layer3A));
+      assert.isFalse(group05.emitsArtifacts(Layer3B));
+    });
+  });
+
   describe("config changes", function () {
     it("file didn't change but config version", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);

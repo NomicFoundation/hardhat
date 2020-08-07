@@ -17,8 +17,8 @@ function assertDeps(
   file: ResolvedFile,
   ...deps: ResolvedFile[]
 ) {
-  assert.isTrue(graph.dependenciesPerFile.has(file));
-  const resolvedDeps = graph.dependenciesPerFile.get(file);
+  assert.isTrue(graph.has(file));
+  const resolvedDeps = graph.get(file);
 
   if (resolvedDeps === undefined) {
     throw Error("This should never happen. Just making TS happy.");
@@ -146,7 +146,7 @@ describe("Dependency Graph", function () {
 
   it("should give an empty graph if there's no entry point", async function () {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, []);
-    assert.isEmpty(graph.dependenciesPerFile);
+    assert.isTrue(graph.isEmpty());
   });
 
   it("should give a graph with a single node if the only entry point has no deps", async function () {
@@ -282,7 +282,7 @@ describe("Dependency Graph", function () {
         [fileA]
       );
 
-      const graphFiles = Array.from(graph.dependenciesPerFile.keys());
+      const graphFiles = Array.from(graph.getResolvedFiles());
       graphFiles.sort((a, b) => a.absolutePath.localeCompare(b.absolutePath));
 
       assert.equal(graphFiles.length, 2);
@@ -291,18 +291,14 @@ describe("Dependency Graph", function () {
       assert.deepEqual(graphsA, fileA);
       assert.deepEqual(graphsB, fileB);
 
-      assert.equal(graph.dependenciesPerFile.get(graphsA)!.size, 1);
+      assert.equal(graph.get(graphsA)!.size, 1);
 
-      const graphsADep = Array.from(
-        graph.dependenciesPerFile.get(graphsA)!.values()
-      )[0];
+      const graphsADep = Array.from(graph.get(graphsA)!.values())[0];
       assert.deepEqual(graphsADep, fileB);
 
-      assert.equal(graph.dependenciesPerFile.get(graphsB)!.size, 1);
+      assert.equal(graph.get(graphsB)!.size, 1);
 
-      const graphsBDep = Array.from(
-        graph.dependenciesPerFile.get(graphsB)!.values()
-      )[0];
+      const graphsBDep = Array.from(graph.get(graphsB)!.values())[0];
       assert.deepEqual(graphsBDep, fileA);
     });
   });

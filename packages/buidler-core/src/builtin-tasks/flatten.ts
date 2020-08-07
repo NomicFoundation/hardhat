@@ -19,7 +19,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const resolvedFiles = dependenciesGraph.getResolvedFiles();
   resolvedFiles.forEach((f) => (filesMap[f.globalName] = f));
 
-  for (const [from, deps] of dependenciesGraph.dependenciesPerFile.entries()) {
+  for (const [from, deps] of dependenciesGraph.entries()) {
     for (const to of deps) {
       graph.add(to.globalName, from.globalName);
     }

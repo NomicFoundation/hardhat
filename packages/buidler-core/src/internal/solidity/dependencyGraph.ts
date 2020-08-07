@@ -14,17 +14,33 @@ export class DependencyGraph {
     return graph;
   }
 
-  public readonly dependenciesPerFile = new Map<
-    ResolvedFile,
-    Set<ResolvedFile>
-  >();
+  private _resolvedFiles = new Map<string, ResolvedFile>();
+  private _dependenciesPerFile = new Map<string, Set<ResolvedFile>>();
 
   private readonly _visitedFiles = new Set<string>();
 
   private constructor() {}
 
   public getResolvedFiles(): ResolvedFile[] {
-    return Array.from(this.dependenciesPerFile.keys());
+    return Array.from(this._resolvedFiles.values());
+  }
+
+  public get(file: ResolvedFile) {
+    return this._dependenciesPerFile.get(file.globalName);
+  }
+
+  public has(file: ResolvedFile): boolean {
+    return this._resolvedFiles.has(file.globalName);
+  }
+
+  public isEmpty(): boolean {
+    return this._resolvedFiles.size === 0;
+  }
+
+  public entries(): Array<[ResolvedFile, Set<ResolvedFile>]> {
+    return Array.from(
+      this._dependenciesPerFile.entries()
+    ).map(([key, value]) => [this._resolvedFiles.get(key)!, value]);
   }
 
   public getTransitiveDependencies(file: ResolvedFile): ResolvedFile[] {
@@ -47,8 +63,9 @@ export class DependencyGraph {
     }
     visited.add(file);
 
+    const directDependencies = this._dependenciesPerFile.get(file.globalName);
     const transitiveDependencies = new Set<ResolvedFile>(
-      this.dependenciesPerFile.get(file) ?? []
+      directDependencies ?? []
     );
 
     for (const transitiveDependency of transitiveDependencies) {
@@ -72,7 +89,8 @@ export class DependencyGraph {
     this._visitedFiles.add(file.absolutePath);
 
     const dependencies = new Set<ResolvedFile>();
-    this.dependenciesPerFile.set(file, dependencies);
+    this._resolvedFiles.set(file.globalName, file);
+    this._dependenciesPerFile.set(file.globalName, dependencies);
 
     for (const imp of file.content.imports) {
       const dependency = await resolver.resolveImport(file, imp);
