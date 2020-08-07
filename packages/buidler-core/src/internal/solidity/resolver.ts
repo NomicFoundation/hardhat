@@ -5,7 +5,7 @@ import slash from "slash";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
-import { parse } from "./parse";
+import { Parser } from "./parse";
 
 export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
@@ -57,11 +57,10 @@ export class ResolvedFile {
 }
 
 export class Resolver {
-  private readonly _projectRoot: string;
-
-  constructor(projectRoot: string) {
-    this._projectRoot = projectRoot;
-  }
+  constructor(
+    private readonly _projectRoot: string,
+    private readonly _parser: Parser
+  ) {}
 
   public async resolveProjectSourceFile(
     pathToResolve: string
@@ -220,9 +219,11 @@ export class Resolver {
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
 
+    const parsedContent = this._parser.parse(rawContent, absolutePath);
+
     const content = {
       rawContent,
-      ...parse(rawContent),
+      ...parsedContent,
     };
 
     return new ResolvedFile(

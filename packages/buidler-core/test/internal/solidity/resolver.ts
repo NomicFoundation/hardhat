@@ -3,7 +3,7 @@ import * as fsExtra from "fs-extra";
 import path from "path";
 
 import { ERRORS } from "../../../src/internal/core/errors-list";
-import { parse } from "../../../src/internal/solidity/parse";
+import { Parser } from "../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
@@ -103,7 +103,10 @@ describe("Resolver", function () {
 
     let resolver: Resolver;
     before("Get project root", async function () {
-      resolver = new Resolver(await getFixtureProjectPath(projectName));
+      resolver = new Resolver(
+        await getFixtureProjectPath(projectName),
+        new Parser({})
+      );
     });
 
     it("should resolve from absolute paths", async function () {
@@ -224,7 +227,10 @@ describe("Resolver", function () {
 
       let resolver: Resolver;
       before("Get project root", async function () {
-        resolver = new Resolver(await getFixtureProjectPath(projectName));
+        resolver = new Resolver(
+          await getFixtureProjectPath(projectName),
+          new Parser({})
+        );
       });
 
       it("Should throw if the library isn't installed", async function () {
@@ -293,7 +299,10 @@ describe("Resolver", function () {
 
       let resolver: Resolver;
       before("Get project root", async function () {
-        resolver = new Resolver(await getFixtureProjectPath(projectName));
+        resolver = new Resolver(
+          await getFixtureProjectPath(projectName),
+          new Parser({})
+        );
       });
 
       it("should resolve a file of a library from the inner node_modules", async function () {
@@ -399,7 +408,10 @@ describe("Resolver", function () {
     let resolvedLocalFile: ResolvedFile;
     let resolvedLibFile: ResolvedFile;
     before("Get project root", async function () {
-      resolver = new Resolver(await getFixtureProjectPath(projectName));
+      resolver = new Resolver(
+        await getFixtureProjectPath(projectName),
+        new Parser({})
+      );
       resolvedLocalFile = await resolver.resolveProjectSourceFile(
         "contracts/A.sol"
       );
@@ -523,14 +535,21 @@ describe("Scoped dependencies project", () => {
   useFixtureProject(projectName);
 
   before("Get project root", async function () {
-    this.resolver = new Resolver(await getFixtureProjectPath(projectName));
+    this.resolver = new Resolver(
+      await getFixtureProjectPath(projectName),
+      new Parser({})
+    );
     this.resolvedLocalFile = await this.resolver.resolveProjectSourceFile(
       "contracts/A.sol"
     );
   });
 
   it("should resolve scoped libraries properly", async function () {
-    const { imports } = parse(this.resolvedLocalFile.content.rawContent);
+    const parser = new Parser({});
+    const { imports } = parser.parse(
+      this.resolvedLocalFile.content.rawContent,
+      this.resolvedLocalFile.absolutePath
+    );
     assert.isAbove(imports.length, 0);
     assert.equal(imports[0], "@scope/package/contracts/File.sol");
     const resolvedLibrary: ResolvedFile = await this.resolver.resolveImport(
@@ -557,7 +576,11 @@ describe("Scoped dependencies project", () => {
     const resolvedImporter = await this.resolver.resolveLibrarySourceFile(
       "@scope/package/contracts/nested/dir/Importer.sol"
     );
-    const { imports } = parse(resolvedImporter.content.rawContent);
+    const parser = new Parser({});
+    const { imports } = parser.parse(
+      resolvedImporter.content.rawContent,
+      resolvedImporter.content.absolutePath
+    );
     assert.equal(imports[0], "../A.sol");
 
     const resolvedImported = await this.resolver.resolveImport(

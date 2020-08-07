@@ -10,6 +10,7 @@ import {
   createCompilationGroups,
 } from "../../../src/internal/solidity/compilationGroup";
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
+import { Parser } from "../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
@@ -111,19 +112,15 @@ async function createMockData(
       solidityFilesCache[mockFile.absolutePath] = {
         lastModificationDate: resolvedFile.lastModificationDate.valueOf(),
         solcConfig: filesMap.get(mockFile)!.lastSolcConfig!,
-      };
-    } else if (filesMap.get(mockFile)!.modified === "modified") {
-      solidityFilesCache[mockFile.absolutePath] = {
-        lastModificationDate:
-          resolvedFile.lastModificationDate.valueOf() - 1000,
-        solcConfig: filesMap.get(mockFile)!.lastSolcConfig!,
+        imports: [],
+        versionPragmas: [],
       };
     }
 
     return resolvedFile;
   });
 
-  const resolver = new Resolver(projectRoot);
+  const resolver = new Resolver(projectRoot, new Parser({}));
   resolver.resolveImport = async (from: ResolvedFile, imported: string) => {
     const importedFile = importsMap.get(imported);
     if (importedFile === undefined) {

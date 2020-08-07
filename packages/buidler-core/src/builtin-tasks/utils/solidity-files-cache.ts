@@ -8,6 +8,8 @@ import { ProjectPaths, SolcConfig } from "../../types";
 const SolidityFilesCacheEntry = t.type({
   lastModificationDate: t.number,
   solcConfig: t.any,
+  imports: t.array(t.string),
+  versionPragmas: t.array(t.string),
 });
 
 const SolidityFilesCacheCodec = t.record(t.string, SolidityFilesCacheEntry);
@@ -17,12 +19,31 @@ export type SolidityFilesCache = Record<
   {
     lastModificationDate: number;
     solcConfig: SolcConfig;
+    imports: string[];
+    versionPragmas: string[];
   }
 >;
 
-export function readSolidityFilesCache(
+async function removeModifiedFiles(
+  cache: SolidityFilesCache
+): Promise<SolidityFilesCache> {
+  const cleanedCache: SolidityFilesCache = {};
+
+  for (const [absolutePath, cachedData] of Object.entries(cache)) {
+    const stats = await fsExtra.stat(absolutePath);
+    const lastModificationDate = new Date(stats.ctime);
+
+    if (lastModificationDate.valueOf() === cachedData.lastModificationDate) {
+      cleanedCache[absolutePath] = cachedData;
+    }
+  }
+
+  return cleanedCache;
+}
+
+export async function readSolidityFilesCache(
   paths: ProjectPaths
-): SolidityFilesCache {
+): Promise<SolidityFilesCache> {
   const solidityFilesCachePath = path.join(
     paths.cache,
     SOLIDITY_FILES_CACHE_FILENAME
@@ -30,13 +51,13 @@ export function readSolidityFilesCache(
 
   let solidityFilesCacheRaw: any = {};
   if (fsExtra.existsSync(solidityFilesCachePath)) {
-    solidityFilesCacheRaw = fsExtra.readJsonSync(solidityFilesCachePath);
+    solidityFilesCacheRaw = await fsExtra.readJson(solidityFilesCachePath);
   }
 
   const result = SolidityFilesCacheCodec.decode(solidityFilesCacheRaw);
 
   if (result.isRight()) {
-    return result.value;
+    return removeModifiedFiles(result.value);
   }
 
   // tslint:disable-next-line only-buidler-error

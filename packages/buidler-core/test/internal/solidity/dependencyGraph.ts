@@ -3,6 +3,7 @@ import * as fs from "fs";
 import path from "path";
 
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
+import { Parser } from "../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
@@ -126,7 +127,7 @@ describe("Dependency Graph", function () {
       new Date()
     );
 
-    resolver = new Resolver(projectRoot);
+    resolver = new Resolver(projectRoot, new Parser({}));
     resolver.resolveImport = async (from: ResolvedFile, imported: string) => {
       switch (imported) {
         case "./WD.sol":
@@ -266,7 +267,10 @@ describe("Dependency Graph", function () {
 
     let localResolver: Resolver;
     before("Get project root", async function () {
-      localResolver = new Resolver(await getFixtureProjectPath(PROJECT));
+      localResolver = new Resolver(
+        await getFixtureProjectPath(PROJECT),
+        new Parser({})
+      );
     });
 
     it("should work with cyclic dependencies", async () => {

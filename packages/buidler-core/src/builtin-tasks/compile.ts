@@ -18,6 +18,7 @@ import { createCompilationGroups } from "../internal/solidity/compilationGroup";
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
+import { Parser } from "../internal/solidity/parse";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
@@ -31,7 +32,6 @@ import { TASK_COMPILE } from "./task-names";
 import { cacheBuidlerConfig } from "./utils/cache";
 import {
   readSolidityFilesCache,
-  SolidityFilesCache,
   writeSolidityFilesCache,
 } from "./utils/solidity-files-cache";
 
@@ -94,7 +94,10 @@ export default function () {
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
     .setAction(async (_, { config }) => {
-      const resolver = new Resolver(config.paths.root);
+      const solidityFilesCache = await readSolidityFilesCache(config.paths);
+
+      const parser = new Parser(solidityFilesCache);
+      const resolver = new Resolver(config.paths.root, parser);
       const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
       const resolvedFiles = await Promise.all(
         paths.map((p: string) => resolver.resolveProjectSourceFile(p))
@@ -103,8 +106,6 @@ export default function () {
         resolver,
         resolvedFiles
       );
-
-      const solidityFilesCache = readSolidityFilesCache(config.paths);
 
       const normalizedSolidityConfig = normalizeSolidityConfig(config.solidity);
 
@@ -211,9 +212,14 @@ export default function () {
             await saveArtifact(artifactsDir, file.globalName, artifact);
           }
 
+          const ast = output?.sources?.[file.globalName] ?? {};
+          const { imports, versionPragmas } = Parser.getParsedDataFromAst(ast);
+
           newSolidityFilesCache[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
             solcConfig: compilationGroup.solidityConfig,
+            imports,
+            versionPragmas,
           };
         }
 
