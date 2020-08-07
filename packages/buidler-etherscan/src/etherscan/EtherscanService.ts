@@ -95,7 +95,7 @@ Reason: ${error.message}`,
     return getVerificationStatus(url, req);
   }
 
-  if (!etherscanResponse.isVerificationFailure()) {
+  if (etherscanResponse.isVerificationFailure()) {
     throw new BuidlerPluginError(
       pluginName,
       `The contract verification failed.
