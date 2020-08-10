@@ -67,8 +67,8 @@ import {
   TxBlockResult,
 } from "./node-types";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
-import { promisify } from "./promisify";
-import { asBlockchain, getCurrentTimestamp } from "./utils";
+import { PBlockchain } from "./PBlockchain";
+import { asBlockchain, asPBlockchain, getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
 
@@ -147,7 +147,7 @@ export class BuidlerNode extends EventEmitter {
 
     const node = new BuidlerNode(
       vm,
-      blockchain,
+      asPBlockchain(blockchain),
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
@@ -186,12 +186,9 @@ export class BuidlerNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  private readonly _getLatestBlock: () => Promise<Block>;
-  private readonly _getBlock: (hashOrNumber: Buffer | BN) => Promise<Block>;
-
   private constructor(
     private readonly _vm: VM,
-    private readonly _blockchain: BuidlerBlockchain | ForkBlockchain,
+    private readonly _blockchain: PBlockchain,
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
@@ -212,21 +209,6 @@ export class BuidlerNode extends EventEmitter {
       bufferToHex(genesisBlock.hash()),
       this._computeTotalDifficulty(genesisBlock)
     );
-
-    if (this._blockchain instanceof ForkBlockchain) {
-      this._getLatestBlock = this._blockchain.getLatestBlock.bind(
-        this._blockchain
-      );
-      this._getBlock = this._blockchain.getBlock.bind(this._blockchain);
-    } else {
-      this._getLatestBlock = promisify(
-        this._blockchain.getLatestBlock.bind(this._blockchain)
-      );
-
-      this._getBlock = promisify(
-        this._blockchain.getBlock.bind(this._blockchain)
-      );
-    }
 
     this._vmTracer = new VMTracer(this._vm, true);
     this._vmTracer.enableTracing();
@@ -490,7 +472,7 @@ export class BuidlerNode extends EventEmitter {
   public async getAccountNonceInPreviousBlock(address: Buffer): Promise<BN> {
     const account = await this._stateManager.getAccount(address);
 
-    const latestBlock = await this._getLatestBlock();
+    const latestBlock = await this.getLatestBlock();
     const latestBlockTxsFromAccount = latestBlock.transactions.filter(
       (tx: Transaction) => tx.getSenderAddress().equals(address)
     );
@@ -499,14 +481,14 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    return this._getLatestBlock();
+    return this._blockchain.getLatestBlock();
   }
 
   public async getLatestBlockNumber(): Promise<BN> {
     if (this._forkClient !== undefined) {
       return this._forkClient.getLatestBlockNumber();
     }
-    return new BN((await this._getLatestBlock()).header.number);
+    return new BN((await this.getLatestBlock()).header.number);
   }
 
   public async getLocalAccountAddresses(): Promise<string[]> {
@@ -614,7 +596,7 @@ export class BuidlerNode extends EventEmitter {
       return undefined;
     }
 
-    return this._getBlock(blockNumber);
+    return this._blockchain.getBlock(blockNumber);
   }
 
   public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
@@ -622,7 +604,7 @@ export class BuidlerNode extends EventEmitter {
       return undefined;
     }
 
-    return this._getBlock(hash);
+    return this._blockchain.getBlock(hash);
   }
 
   public async getBlockByTransactionHash(
@@ -911,7 +893,7 @@ export class BuidlerNode extends EventEmitter {
       i.lte(filterParams.toBlock);
       i = i.addn(1)
     ) {
-      const block = await this._getBlock(new BN(i));
+      const block = await this._blockchain.getBlock(new BN(i));
       const blockResults = this._blockHashToTxBlockResults.get(
         bufferToHex(block.hash())
       );

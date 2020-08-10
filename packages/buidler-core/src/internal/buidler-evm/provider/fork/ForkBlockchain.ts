@@ -6,6 +6,7 @@ import { JsonRpcClient } from "../../jsonrpc/client";
 import { RpcBlockWithTransactions } from "../../jsonrpc/types";
 import { Block } from "../Block";
 import { Blockchain } from "../Blockchain";
+import { PBlockchain } from "../PBlockchain";
 
 import { NotSupportedError } from "./errors";
 import { rpcToBlockData } from "./rpcToBlockData";
@@ -13,7 +14,7 @@ import { rpcToBlockData } from "./rpcToBlockData";
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
-export class ForkBlockchain {
+export class ForkBlockchain implements PBlockchain {
   private _blocksByNumber: Map<number, Block> = new Map();
   private _blocksByHash: Map<string, Block> = new Map();
   private _latestBlockNumber = this._forkBlockNumber;

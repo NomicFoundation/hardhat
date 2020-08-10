@@ -3,6 +3,8 @@ import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 import { Block } from "./Block";
 import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
+import { PBlockchain } from "./PBlockchain";
+import { promisify } from "./promisify";
 
 export class BuidlerBlockchain implements Blockchain {
   private readonly _blocks: Block[] = [];
@@ -109,5 +111,17 @@ export class BuidlerBlockchain implements Blockchain {
     }
 
     this._blocks.splice(blockNumber + 1);
+  }
+
+  public asPBlockchain(): PBlockchain {
+    return {
+      getBlock: promisify(this.getBlock.bind(this)),
+      getLatestBlock: promisify(this.getLatestBlock.bind(this)),
+      putBlock: promisify(this.putBlock.bind(this)),
+      delBlock: promisify(this.delBlock.bind(this)),
+      getDetails: promisify(this.getDetails.bind(this)),
+      iterator: promisify(this.iterator.bind(this)),
+      deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this),
+    };
   }
 }
