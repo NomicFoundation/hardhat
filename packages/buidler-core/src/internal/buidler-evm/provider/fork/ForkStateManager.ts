@@ -4,6 +4,7 @@ import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
+import { PStateManager } from "../PStateManager";
 
 import { AccountState, makeAccount } from "./Account";
 import { CheckpointError, NotSupportedError } from "./errors";
@@ -19,7 +20,7 @@ const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${stripZeros(position).toString("hex")}`;
 };
 
-export class ForkStateManager {
+export class ForkStateManager implements PStateManager {
   private _state: State = ImmutableMap();
   private _stateRoot: string = randomHash();
   private _stateRootToState: Map<string, State> = new Map();

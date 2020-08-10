@@ -4,7 +4,6 @@ import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
-import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
 import debug from "debug";
 import Common from "ethereumjs-common";
@@ -68,7 +67,14 @@ import {
 } from "./node-types";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { PBlockchain } from "./PBlockchain";
-import { asBlockchain, asPBlockchain, getCurrentTimestamp } from "./utils";
+import { PStateManager } from "./PStateManager";
+import {
+  asBlockchain,
+  asPBlockchain,
+  asPStateManager,
+  asStateManager,
+  getCurrentTimestamp,
+} from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
 
@@ -100,7 +106,7 @@ export class BuidlerNode extends EventEmitter {
     let forkClient;
     let forkBlockNumber;
     let common;
-    let stateManager;
+    let stateManager: StateManager | ForkStateManager;
     let blockchain: BuidlerBlockchain | ForkBlockchain;
     let genesisBlock;
 
@@ -108,16 +114,12 @@ export class BuidlerNode extends EventEmitter {
       ({ forkClient, forkBlockNumber } = await makeForkClient(forkConfig));
       common = await makeForkCommon(forkClient);
 
-      stateManager = new ForkStateManager(
-        forkClient,
-        forkBlockNumber
-      ).asStateManager();
+      stateManager = new ForkStateManager(forkClient, forkBlockNumber);
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
       genesisBlock = await blockchain.getBlock(0);
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
-
       common = makeCommon(
         initialDate,
         chainId,
@@ -140,13 +142,14 @@ export class BuidlerNode extends EventEmitter {
     const vm = new VM({
       common,
       activatePrecompiles: true,
-      stateManager: stateManager as any,
+      stateManager: asStateManager(stateManager) as any,
       blockchain: asBlockchain(blockchain) as any,
       allowUnlimitedContractSize,
     });
 
     const node = new BuidlerNode(
       vm,
+      asPStateManager(stateManager),
       asPBlockchain(blockchain),
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
@@ -163,7 +166,6 @@ export class BuidlerNode extends EventEmitter {
   }
 
   private readonly _common: Common;
-  private readonly _stateManager: PStateManager;
 
   private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
 
@@ -188,6 +190,7 @@ export class BuidlerNode extends EventEmitter {
 
   private constructor(
     private readonly _vm: VM,
+    private readonly _stateManager: PStateManager,
     private readonly _blockchain: PBlockchain,
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
@@ -201,7 +204,6 @@ export class BuidlerNode extends EventEmitter {
   ) {
     super();
 
-    this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common;
     this._initLocalAccounts(localAccounts);
 
