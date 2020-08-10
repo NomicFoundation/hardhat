@@ -42,7 +42,6 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
-import { Block } from "./Block";
 import { BuidlerBlockchain } from "./BuidlerBlockchain";
 import {
   InternalError,
@@ -66,8 +65,9 @@ import {
   TxBlockResult,
 } from "./node-types";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
-import { PBlockchain } from "./PBlockchain";
-import { PStateManager } from "./PStateManager";
+import { Block } from "./types/Block";
+import { PBlockchain } from "./types/PBlockchain";
+import { PStateManager } from "./types/PStateManager";
 import {
   asBlockchain,
   asPBlockchain,

@@ -1,10 +1,10 @@
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 
-import { Block } from "./Block";
-import { Blockchain } from "./Blockchain";
-import { Callback } from "./Callback";
-import { PBlockchain } from "./PBlockchain";
 import { promisify } from "./promisify";
+import { Block } from "./types/Block";
+import { Blockchain } from "./types/Blockchain";
+import { Callback } from "./types/Callback";
+import { PBlockchain } from "./types/PBlockchain";
 
 export class BuidlerBlockchain implements Blockchain {
   private readonly _blocks: Block[] = [];

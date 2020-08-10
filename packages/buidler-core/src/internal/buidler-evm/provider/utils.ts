@@ -1,13 +1,13 @@
 import { StateManager as VMStateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import VMPStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 
-import { Blockchain } from "./Blockchain";
 import { BuidlerBlockchain } from "./BuidlerBlockchain";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
-import { StateManager } from "./fork/StateManager";
-import { PBlockchain } from "./PBlockchain";
-import { PStateManager } from "./PStateManager";
+import { Blockchain } from "./types/Blockchain";
+import { PBlockchain } from "./types/PBlockchain";
+import { PStateManager } from "./types/PStateManager";
+import { StateManager } from "./types/StateManager";
 
 export function getCurrentTimestamp(): number {
   return Math.ceil(new Date().getTime() / 1000);

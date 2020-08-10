@@ -4,12 +4,12 @@ import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
-import { PStateManager } from "../PStateManager";
+import { PStateManager } from "../types/PStateManager";
+import { StateManager } from "../types/StateManager";
 
 import { AccountState, makeAccount } from "./Account";
 import { CheckpointError, NotSupportedError } from "./errors";
 import { randomHash } from "./random";
-import { StateManager } from "./StateManager";
 
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */

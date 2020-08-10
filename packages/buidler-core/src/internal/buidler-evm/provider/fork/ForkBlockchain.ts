@@ -4,9 +4,9 @@ import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { RpcBlockWithTransactions } from "../../jsonrpc/types";
-import { Block } from "../Block";
-import { Blockchain } from "../Blockchain";
-import { PBlockchain } from "../PBlockchain";
+import { Block } from "../types/Block";
+import { Blockchain } from "../types/Blockchain";
+import { PBlockchain } from "../types/PBlockchain";
 
 import { NotSupportedError } from "./errors";
 import { rpcToBlockData } from "./rpcToBlockData";

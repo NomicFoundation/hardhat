@@ -1,5 +1,5 @@
 import { RpcBlockWithTransactions, RpcTransaction } from "../../jsonrpc/types";
-import { BlockData } from "../Block";
+import { BlockData } from "../types/Block";
 
 export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
   return {

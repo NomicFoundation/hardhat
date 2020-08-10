@@ -3,8 +3,8 @@ import { BN } from "ethereumjs-util";
 
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 
-import { Block } from "./Block";
 import { RpcLogOutput } from "./output";
+import { Block } from "./types/Block";
 
 export interface GenesisAccount {
   privateKey: string;

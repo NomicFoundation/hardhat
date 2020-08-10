@@ -1,6 +1,6 @@
 import Account from "ethereumjs-account";
 
-import { Callback } from "../Callback";
+import { Callback } from "./Callback";
 
 /**
  * This is similar to the definition from the vm, but is an interface, not a

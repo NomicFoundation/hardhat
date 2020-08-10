@@ -3,10 +3,10 @@ import Common from "ethereumjs-common";
 import { BN, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
-import { Block } from "../../../../../src/internal/buidler-evm/provider/Block";
 import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
+import { Block } from "../../../../../src/internal/buidler-evm/provider/types/Block";
 import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,

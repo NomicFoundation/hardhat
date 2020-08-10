@@ -1,7 +1,7 @@
 import Common from "ethereumjs-common";
 
-import { Block } from "./Block";
 import { BuidlerBlockchain } from "./BuidlerBlockchain";
+import { Block } from "./types/Block";
 
 export async function makeGenesisBlock(
   blockchain: BuidlerBlockchain,
