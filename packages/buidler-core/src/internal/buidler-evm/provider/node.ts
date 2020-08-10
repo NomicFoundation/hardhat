@@ -132,7 +132,7 @@ export class BuidlerNode extends EventEmitter {
       );
 
       stateManager = new StateManager({
-        common: common as any, // TS error because of a version mismatch
+        common,
         trie: stateTrie,
       });
 
@@ -140,7 +140,7 @@ export class BuidlerNode extends EventEmitter {
     }
 
     const vm = new VM({
-      common: common as any, // TS error because of a version mismatch
+      common,
       activatePrecompiles: true,
       stateManager: stateManager as any,
       blockchain: blockchain as any,
@@ -207,7 +207,7 @@ export class BuidlerNode extends EventEmitter {
     super();
 
     this._stateManager = new PStateManager(this._vm.stateManager);
-    this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
+    this._common = this._vm._common;
     this._initLocalAccounts(localAccounts);
 
     this._blockHashToTotalDifficulty.set(
