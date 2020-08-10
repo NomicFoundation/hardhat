@@ -19,7 +19,6 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
-import { promisify } from "util";
 
 import { ForkConfig } from "../../../types";
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
@@ -68,6 +67,7 @@ import {
   TxBlockResult,
 } from "./node-types";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
+import { promisify } from "./promisify";
 import { getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
@@ -216,11 +216,11 @@ export class BuidlerNode extends EventEmitter {
     );
 
     this._getLatestBlock = promisify(
-      this._vm.blockchain.getLatestBlock.bind(this._vm.blockchain)
+      this._blockchain.getLatestBlock.bind(this._vm.blockchain)
     );
 
     this._getBlock = promisify(
-      this._vm.blockchain.getBlock.bind(this._vm.blockchain)
+      this._blockchain.getBlock.bind(this._vm.blockchain)
     );
 
     this._vmTracer = new VMTracer(this._vm, true);
