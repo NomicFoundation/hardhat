@@ -1,9 +1,9 @@
 import Common from "ethereumjs-common";
 import { bufferToHex } from "ethereumjs-util";
 
-import { dateToTimestampSeconds } from "../../util/date";
+import { dateToTimestampSeconds } from "../../../util/date";
 
-import { getCurrentTimestamp } from "./utils";
+import { getCurrentTimestamp } from "./getCurrentTimestamp";
 
 export function makeCommon(
   initialDate: Date | undefined,

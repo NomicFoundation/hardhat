@@ -19,7 +19,7 @@ import {
   RpcTransactionOutput,
   RpcTransactionReceiptOutput,
 } from "../../../../../src/internal/buidler-evm/provider/output";
-import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils";
+import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
 import { EthereumProvider } from "../../../../../src/types";
 import {
   assertInvalidInputError,

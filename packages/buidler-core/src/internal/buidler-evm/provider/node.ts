@@ -51,11 +51,6 @@ import {
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
-import { makeCommon } from "./makeCommon";
-import { makeForkClient } from "./makeForkClient";
-import { makeForkCommon } from "./makeForkCommon";
-import { makeGenesisBlock } from "./makeGenesisBlock";
-import { makeStateTrie } from "./makeStateTrie";
 import {
   CallParams,
   FilterParams,
@@ -68,13 +63,16 @@ import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { Block } from "./types/Block";
 import { PBlockchain } from "./types/PBlockchain";
 import { PStateManager } from "./types/PStateManager";
-import {
-  asBlockchain,
-  asPBlockchain,
-  asPStateManager,
-  asStateManager,
-  getCurrentTimestamp,
-} from "./utils";
+import { asBlockchain } from "./utils/asBlockchain";
+import { asPBlockchain } from "./utils/asPBlockchain";
+import { asPStateManager } from "./utils/asPStateManager";
+import { asStateManager } from "./utils/asStateManager";
+import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
+import { makeCommon } from "./utils/makeCommon";
+import { makeForkClient } from "./utils/makeForkClient";
+import { makeForkCommon } from "./utils/makeForkCommon";
+import { makeGenesisBlock } from "./utils/makeGenesisBlock";
+import { makeStateTrie } from "./utils/makeStateTrie";
 
 const log = debug("buidler:core:buidler-evm:node");
 

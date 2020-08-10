@@ -1,6 +1,6 @@
 import Common from "ethereumjs-common";
 
-import { JsonRpcClient } from "../jsonrpc/client";
+import { JsonRpcClient } from "../../jsonrpc/client";
 
 export async function makeForkCommon(forkClient: JsonRpcClient) {
   const networkId = await forkClient.getNetworkId();

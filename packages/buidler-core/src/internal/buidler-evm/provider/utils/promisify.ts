@@ -1,6 +1,6 @@
 import { promisify as nodePromisify } from "util";
 
-import { Callback } from "./types/Callback";
+import { Callback } from "../types/Callback";
 
 export const promisify: typeof myPromisify = nodePromisify;
 

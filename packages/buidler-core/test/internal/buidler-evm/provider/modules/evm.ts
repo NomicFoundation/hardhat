@@ -11,7 +11,7 @@ import {
   numberToRpcQuantity,
   RpcBlockOutput,
 } from "../../../../../src/internal/buidler-evm/provider/output";
-import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils";
+import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
 import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { EthereumProvider } from "../../../../../src/types";
 import { useEnvironment } from "../../../../helpers/environment";

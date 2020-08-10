@@ -3,7 +3,7 @@ import { BN, privateToAddress, toBuffer } from "ethereumjs-util";
 import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
-import { GenesisAccount } from "./node-types";
+import { GenesisAccount } from "../node-types";
 
 export async function makeStateTrie(genesisAccounts: GenesisAccount[]) {
   const stateTrie = new Trie();
