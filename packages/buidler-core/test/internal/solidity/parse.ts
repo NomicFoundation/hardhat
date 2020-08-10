@@ -83,4 +83,49 @@ import "./1.sol";
       assert.deepEqual(imports, ["a.sol"]);
     });
   });
+
+  describe("version pragmas", () => {
+    it("should work with a single fixed version", () => {
+      const parser = new Parser({});
+      const { versionPragmas } = parser.parse(`
+pragma solidity 0.5.0;
+
+import "./Bar.sol;";
+
+contract Foo {}
+  `, '');
+
+      assert.deepEqual(versionPragmas, ["0.5.0"]);
+    });
+
+    it("should work with a single version range", () => {
+      const parser = new Parser({});
+      const { versionPragmas } = parser.parse(`
+pragma solidity ^0.5.0;
+
+import "./Bar.sol;";
+
+contract Foo {}
+  `, '');
+
+      assert.deepEqual(versionPragmas, ["^0.5.0"]);
+    });
+
+    it("should work with two version ranges", () => {
+      const parser = new Parser({});
+      const { versionPragmas } = parser.parse(`
+pragma solidity ^0.5.0;
+
+import "./Bar.sol;";
+
+contract Foo {}
+
+pragma solidity ^0.5.1;
+
+contract Qux {}
+  `, '');
+
+      assert.deepEqual(versionPragmas, ["^0.5.0", "^0.5.1"]);
+    });
+  });
 });
