@@ -1,11 +1,12 @@
 import Common from "ethereumjs-common";
 
 import { Block } from "./Block";
-import { Blockchain } from "./blockchain";
+import { BuidlerBlockchain } from "./BuidlerBlockchain";
 
-export async function makeBlockchain(common: Common) {
-  const blockchain = new Blockchain();
-
+export async function makeGenesisBlock(
+  blockchain: BuidlerBlockchain,
+  common: Common
+) {
   const genesisBlock = new Block(null, { common });
   genesisBlock.setGenesisParams();
 
@@ -13,5 +14,5 @@ export async function makeBlockchain(common: Common) {
     blockchain.putBlock(genesisBlock, () => resolve());
   });
 
-  return { blockchain, genesisBlock };
+  return genesisBlock;
 }

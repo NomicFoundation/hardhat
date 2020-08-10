@@ -5,7 +5,7 @@ import { callbackify } from "util";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { RpcBlockWithTransactions } from "../../jsonrpc/types";
 import { Block } from "../Block";
-import { BlockchainInterface } from "../BlockchainInterface";
+import { Blockchain } from "../Blockchain";
 
 import { NotSupportedError } from "./errors";
 import { rpcToBlockData } from "./rpcToBlockData";
@@ -75,15 +75,13 @@ export class ForkBlockchain {
     }
   }
 
-  public asBlockchain(): BlockchainInterface {
+  public asBlockchain(): Blockchain {
     return {
       getBlock: callbackify(this.getBlock.bind(this)),
-      getLatestBlock: callbackify(this.getLatestBlock.bind(this)),
       putBlock: callbackify(this.putBlock.bind(this)),
       delBlock: callbackify(this.delBlock.bind(this)),
       getDetails: callbackify(this.getDetails.bind(this)),
       iterator: callbackify(this.iterator.bind(this)),
-      deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this),
     };
   }
 

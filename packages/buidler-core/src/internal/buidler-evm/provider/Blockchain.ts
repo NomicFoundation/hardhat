@@ -3,7 +3,7 @@ import { BN } from "ethereumjs-util";
 import { Block } from "./Block";
 import { Callback } from "./Callback";
 
-export interface BlockchainInterface {
+export interface Blockchain {
   /**
    * Adds a block to the blockchain.
    *
@@ -40,10 +40,4 @@ export interface BlockchainInterface {
    * The method should just call `cb` with `null` as first argument.
    */
   getDetails(_: string, cb: Callback): void;
-
-  // The methods below are buidler specific
-
-  deleteAllFollowingBlocks(block: Block): void;
-
-  getLatestBlock(cb: Callback<Block>): void;
 }

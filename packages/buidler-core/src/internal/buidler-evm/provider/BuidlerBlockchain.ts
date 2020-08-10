@@ -1,10 +1,10 @@
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 
 import { Block } from "./Block";
-import { BlockchainInterface } from "./BlockchainInterface";
+import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
 
-export class Blockchain implements BlockchainInterface {
+export class BuidlerBlockchain implements Blockchain {
   private readonly _blocks: Block[] = [];
   private readonly _blockNumberByHash: Map<string, number> = new Map();
 

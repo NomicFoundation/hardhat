@@ -3,7 +3,7 @@ import Common from "ethereumjs-common";
 import { BufferLike, Transaction, TxData } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 
-import { BlockchainInterface } from "./BlockchainInterface";
+import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
 
 export const Block: Block = EthBlock;
@@ -32,9 +32,9 @@ export interface Block {
   validateTransactions(stringError?: false): boolean;
   validateTransactions(stringError: true): string;
 
-  validate(blockchain: BlockchainInterface, cb: Callback): void;
+  validate(blockchain: Blockchain, cb: Callback): void;
   validateUnclesHash(): boolean;
-  validateUncles(blockchain: BlockchainInterface, cb: Callback): void;
+  validateUncles(blockchain: Blockchain, cb: Callback): void;
   toJSON(labeled?: boolean): any;
 }
 
@@ -61,8 +61,8 @@ interface BlockHeader {
   validateDifficulty(parentBlock: Block): boolean;
   validateGasLimit(parentBlock: Block): boolean;
 
-  validate(blockchain: BlockchainInterface, height: BN, cb: Callback): boolean;
-  validate(blockchain: BlockchainInterface, cb: Callback): boolean;
+  validate(blockchain: Blockchain, height: BN, cb: Callback): boolean;
+  validate(blockchain: Blockchain, cb: Callback): boolean;
 
   hash(): Buffer;
   isGenesis(): boolean;

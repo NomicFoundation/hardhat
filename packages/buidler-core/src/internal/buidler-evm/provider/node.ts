@@ -44,7 +44,7 @@ import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { Block } from "./Block";
-import { Blockchain } from "./blockchain";
+import { BuidlerBlockchain } from "./BuidlerBlockchain";
 import {
   InternalError,
   InvalidInputError,
@@ -53,10 +53,10 @@ import {
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
-import { makeBlockchain } from "./makeBlockchain";
 import { makeCommon } from "./makeCommon";
 import { makeForkClient } from "./makeForkClient";
 import { makeForkCommon } from "./makeForkCommon";
+import { makeGenesisBlock } from "./makeGenesisBlock";
 import { makeStateTrie } from "./makeStateTrie";
 import {
   CallParams,
@@ -68,7 +68,7 @@ import {
 } from "./node-types";
 import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { promisify } from "./promisify";
-import { getCurrentTimestamp } from "./utils";
+import { asBlockchain, getCurrentTimestamp } from "./utils";
 
 const log = debug("buidler:core:buidler-evm:node");
 
@@ -101,23 +101,20 @@ export class BuidlerNode extends EventEmitter {
     let forkBlockNumber;
     let common;
     let stateManager;
-    let blockchain;
+    let blockchain: BuidlerBlockchain | ForkBlockchain;
     let genesisBlock;
 
     if (forkConfig !== undefined) {
       ({ forkClient, forkBlockNumber } = await makeForkClient(forkConfig));
       common = await makeForkCommon(forkClient);
+
       stateManager = new ForkStateManager(
         forkClient,
         forkBlockNumber
       ).asStateManager();
-      const forkBlockchain = new ForkBlockchain(
-        forkClient,
-        forkBlockNumber,
-        common
-      );
-      blockchain = forkBlockchain.asBlockchain();
-      genesisBlock = await forkBlockchain.getBlock(0);
+
+      blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
+      genesisBlock = await blockchain.getBlock(0);
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
 
@@ -136,20 +133,21 @@ export class BuidlerNode extends EventEmitter {
         trie: stateTrie,
       });
 
-      ({ blockchain, genesisBlock } = await makeBlockchain(common));
+      blockchain = new BuidlerBlockchain();
+      genesisBlock = await makeGenesisBlock(blockchain, common);
     }
 
     const vm = new VM({
       common,
       activatePrecompiles: true,
       stateManager: stateManager as any,
-      blockchain: blockchain as any,
+      blockchain: asBlockchain(blockchain) as any,
       allowUnlimitedContractSize,
     });
 
     const node = new BuidlerNode(
       vm,
-      blockchain as any,
+      blockchain,
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
@@ -193,7 +191,7 @@ export class BuidlerNode extends EventEmitter {
 
   private constructor(
     private readonly _vm: VM,
-    private readonly _blockchain: Blockchain,
+    private readonly _blockchain: BuidlerBlockchain | ForkBlockchain,
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
@@ -215,13 +213,20 @@ export class BuidlerNode extends EventEmitter {
       this._computeTotalDifficulty(genesisBlock)
     );
 
-    this._getLatestBlock = promisify(
-      this._blockchain.getLatestBlock.bind(this._vm.blockchain)
-    );
+    if (this._blockchain instanceof ForkBlockchain) {
+      this._getLatestBlock = this._blockchain.getLatestBlock.bind(
+        this._blockchain
+      );
+      this._getBlock = this._blockchain.getBlock.bind(this._blockchain);
+    } else {
+      this._getLatestBlock = promisify(
+        this._blockchain.getLatestBlock.bind(this._blockchain)
+      );
 
-    this._getBlock = promisify(
-      this._blockchain.getBlock.bind(this._vm.blockchain)
-    );
+      this._getBlock = promisify(
+        this._blockchain.getBlock.bind(this._blockchain)
+      );
+    }
 
     this._vmTracer = new VMTracer(this._vm, true);
     this._vmTracer.enableTracing();
