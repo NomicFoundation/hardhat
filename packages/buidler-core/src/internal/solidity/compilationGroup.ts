@@ -159,7 +159,8 @@ class CompilationGroupMap {
 export function createCompilationGroups(
   dependencyGraph: DependencyGraph,
   solidityConfig: MultiSolcConfig,
-  solidityFilesCache: SolidityFilesCache
+  solidityFilesCache: SolidityFilesCache,
+  force: boolean
 ): either.Either<ResolvedFile[], CompilationGroup[]> {
   const overrides = solidityConfig.overrides ?? {};
   const compilationGroupMap = new CompilationGroupMap();
@@ -207,7 +208,7 @@ export function createCompilationGroups(
         hasChangedSinceLastCompilation(dependency, solidityFilesCache)
       );
 
-    if (changedSinceLastCompilation) {
+    if (force || changedSinceLastCompilation) {
       compilationGroupMap.addFileToGroup(compilerConfig, file, true);
 
       for (const dependency of transitiveDependencies) {

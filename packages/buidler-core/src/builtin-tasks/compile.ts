@@ -93,7 +93,7 @@ function normalizeSolidityConfig(
 export default function () {
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
-    .setAction(async (_, { config }) => {
+    .setAction(async ({ force: force }: { force: boolean }, { config }) => {
       const solidityFilesCache = await readSolidityFilesCache(config.paths);
 
       const parser = new Parser(solidityFilesCache);
@@ -112,7 +112,8 @@ export default function () {
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
         normalizedSolidityConfig,
-        solidityFilesCache
+        solidityFilesCache,
+        force
       );
 
       if (compilationGroupsResult.isLeft()) {
