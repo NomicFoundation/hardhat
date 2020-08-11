@@ -51,7 +51,11 @@ class MockFile {
   public readonly globalName: string;
   public readonly absolutePath: string;
 
-  constructor(public name: string, public versionPragmas: string[]) {
+  constructor(
+    public name: string,
+    public versionPragmas: string[],
+    public libraryName?: string
+  ) {
     this.globalName = `contracts/${name}.sol`;
     this.absolutePath = path.join(projectRoot, "contracts", `${name}.sol`);
   }
@@ -102,7 +106,9 @@ async function createMockData(
           .dependencies.map((dependency) => `./${dependency.name}.sol`),
         versionPragmas: mockFile.versionPragmas,
       },
-      new Date()
+      new Date(),
+      mockFile.libraryName,
+      mockFile.libraryName === undefined ? undefined : "1.2.3"
     );
 
     mockFileToResolvedFile.set(mockFile, resolvedFile);
@@ -1125,6 +1131,313 @@ describe("Compilation groups", function () {
       assert.sameMembers(group054.getResolvedFiles(), [Foo, Bar]);
       assert.isTrue(group054.emitsArtifacts(Foo));
       assert.isTrue(group054.emitsArtifacts(Bar));
+
+      assert.equal(group055.getVersion(), "0.5.5");
+      assert.isTrue(group055.isEmpty());
+    });
+  });
+
+  describe("two files, one is a library", function () {
+    it("both new", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
+        { file: FooMock, dependencies: [LibMock] },
+        { file: LibMock },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.emitsArtifacts(Lib));
+    });
+
+    it("the importer changed", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
+        {
+          file: FooMock,
+          dependencies: [LibMock],
+          modified: "modified",
+          lastSolcConfig: solc055,
+        },
+        { file: LibMock, modified: "not-modified", lastSolcConfig: solc055 },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group05.emitsArtifacts(Foo));
+      assert.isFalse(group05.emitsArtifacts(Lib));
+    });
+
+    it("the imported changed", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
+        {
+          file: FooMock,
+          dependencies: [LibMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: LibMock, modified: "modified", lastSolcConfig: solc055 },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.emitsArtifacts(Lib));
+    });
+
+    it("none changed", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [dependencyGraph, solidityFilesCache] = await createMockData([
+        {
+          file: FooMock,
+          dependencies: [LibMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: LibMock, modified: "not-modified", lastSolcConfig: solc055 },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.isTrue(group05.isEmpty());
+    });
+
+    it("none changed (force)", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
+        {
+          file: FooMock,
+          dependencies: [LibMock],
+          modified: "not-modified",
+          lastSolcConfig: solc055,
+        },
+        { file: LibMock, modified: "not-modified", lastSolcConfig: solc055 },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055,
+        solidityFilesCache,
+        true
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 1);
+
+      const [group05] = compilationGroups;
+
+      assert.equal(group05.getVersion(), "0.5.5");
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.emitsArtifacts(Lib));
+    });
+
+    it("the importer has an override", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
+        { file: FooMock, dependencies: [LibMock] },
+        { file: LibMock },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        {
+          ...solcConfig055,
+          overrides: {
+            [Foo.globalName]: solc054,
+          },
+        },
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 2);
+
+      const [group054, group055] = compilationGroups;
+
+      assert.equal(group054.getVersion(), "0.5.4");
+      assert.sameMembers(group054.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group054.emitsArtifacts(Foo));
+      assert.isFalse(group054.emitsArtifacts(Lib));
+
+      assert.equal(group055.getVersion(), "0.5.5");
+      assert.sameMembers(group055.getResolvedFiles(), [Lib]);
+      assert.isTrue(group055.emitsArtifacts(Lib));
+    });
+
+    it("the imported has an override", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
+        { file: FooMock, dependencies: [LibMock] },
+        { file: LibMock },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        {
+          ...solcConfig055,
+          overrides: {
+            [Lib.globalName]: solc054,
+          },
+        },
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 2);
+
+      const [group054, group055] = compilationGroups;
+
+      assert.equal(group054.getVersion(), "0.5.4");
+      assert.sameMembers(group054.getResolvedFiles(), [Lib]);
+      assert.isTrue(group054.emitsArtifacts(Lib));
+
+      assert.equal(group055.getVersion(), "0.5.5");
+      assert.sameMembers(group055.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group055.emitsArtifacts(Foo));
+      assert.isFalse(group055.emitsArtifacts(Lib));
+    });
+
+    it("both are overridden", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
+        { file: FooMock, dependencies: [LibMock] },
+        { file: LibMock },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        {
+          ...solcConfig055,
+          overrides: {
+            [Foo.globalName]: solc054,
+            [Lib.globalName]: solc054,
+          },
+        },
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+        sortByVersion
+      );
+
+      assert.lengthOf(compilationGroups, 2);
+
+      const [group054, group055] = compilationGroups;
+
+      assert.equal(group054.getVersion(), "0.5.4");
+      assert.sameMembers(group054.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group054.emitsArtifacts(Foo));
+      assert.isTrue(group054.emitsArtifacts(Lib));
 
       assert.equal(group055.getVersion(), "0.5.5");
       assert.isTrue(group055.isEmpty());
