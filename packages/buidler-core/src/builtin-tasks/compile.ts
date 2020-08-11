@@ -120,6 +120,9 @@ export default function () {
         const nonCompilableFiles = compilationGroupsResult.value
           .map((x) => x.absolutePath)
           .join(", ");
+
+        // TODO throw a BuidlerError and show a better error message
+        // tslint:disable only-buidler-error
         throw new Error(
           `Some files didn't match any compiler: ${nonCompilableFiles}`
         );

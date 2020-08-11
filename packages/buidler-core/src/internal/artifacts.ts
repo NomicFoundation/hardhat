@@ -57,7 +57,9 @@ function getArtifactFromFiles(name: string, files: string[]): string {
   const matchingFiles = files.filter((file) => {
     const colonIndex = file.indexOf(":");
     if (colonIndex === -1) {
-      throw new Error("should never happen"); // throw proper error
+      // TODO throw a proper BuidlerError
+      // tslint:disable only-buidler-error
+      throw new Error("should never happen");
     }
     const contractName = file.slice(colonIndex + 1);
     return contractName === `${name}.json`;
