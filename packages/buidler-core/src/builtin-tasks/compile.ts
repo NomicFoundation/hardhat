@@ -195,12 +195,6 @@ export default function () {
             continue;
           }
 
-          const artifactsDir = path.join(
-            config.paths.artifacts,
-            path.dirname(file.globalName)
-          );
-          await fsExtra.ensureDir(artifactsDir);
-
           for (const [contractName, contractOutput] of Object.entries(
             output.contracts[file.globalName]
           )) {
@@ -210,7 +204,11 @@ export default function () {
             );
             numberOfContracts += 1;
 
-            await saveArtifact(artifactsDir, file.globalName, artifact);
+            await saveArtifact(
+              config.paths.artifacts,
+              file.globalName,
+              artifact
+            );
           }
 
           const ast = output?.sources?.[file.globalName] ?? {};

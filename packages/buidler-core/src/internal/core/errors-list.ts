@@ -721,6 +721,15 @@ To start the JSON-RPC server, retry the command without the --network parameter.
 Please double check that your contracts have been compiled and your artifact's name.`,
       shouldBeReported: false,
     },
+    MULTIPLE_FOUND: {
+      number: 701,
+      message: 'There are multiple artifacts for contract "%contractName%", please use a fully qualified name.',
+      title: "Multiple artifacts found",
+      description: `There are multiple artifacts that match the given contract name. 
+
+Please use the fully qualified name of the contract to disambiguate it.`,
+      shouldBeReported: false,
+    },
   },
   PLUGINS: {
     NOT_INSTALLED: {
