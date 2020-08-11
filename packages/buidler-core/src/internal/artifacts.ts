@@ -53,7 +53,21 @@ export function getArtifactFromContractOutput(
   };
 }
 
-function getArtifactFromFiles(name: string, files: string[]): string {
+function getFullyQualifiedName(
+  artifactsPath: string,
+  absolutePath: string
+): string {
+  return path
+    .relative(artifactsPath, absolutePath)
+    .replace(".json", "")
+    .replace(":", ".sol:");
+}
+
+function getArtifactFromFiles(
+  artifactsPath: string,
+  name: string,
+  files: string[]
+): string {
   const matchingFiles = files.filter((file) => {
     const colonIndex = file.indexOf(":");
     if (colonIndex === -1) {
@@ -64,12 +78,19 @@ function getArtifactFromFiles(name: string, files: string[]): string {
     const contractName = file.slice(colonIndex + 1);
     return contractName === `${name}.json`;
   });
+
   if (matchingFiles.length === 0) {
     throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName: name });
   }
+
   if (matchingFiles.length > 1) {
+    const candidates = matchingFiles.map((file) =>
+      getFullyQualifiedName(artifactsPath, file)
+    );
+
     throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
       contractName: name,
+      candidates: candidates.join("\n"),
     });
   }
 
@@ -84,29 +105,29 @@ function getArtifactPathFromFullyQualifiedName(
   return path.join(artifactsPath, `${nameWithoutSol}.json`);
 }
 
+function isFullyQualified(name: string) {
+  return name.includes(":");
+}
+
 async function getArtifactPath(
   artifactsPath: string,
   name: string
 ): Promise<string> {
-  const isFullyQualified = name.includes(":");
-
-  if (isFullyQualified) {
+  if (isFullyQualified(name)) {
     return getArtifactPathFromFullyQualifiedName(artifactsPath, name);
   }
 
   const files = await glob(path.join(artifactsPath, "**/*.json"));
-  return getArtifactFromFiles(name, files);
+  return getArtifactFromFiles(artifactsPath, name, files);
 }
 
 function getArtifactPathSync(artifactsPath: string, name: string): string {
-  const isFullyQualified = name.includes(":");
-
-  if (isFullyQualified) {
+  if (isFullyQualified(name)) {
     return getArtifactPathFromFullyQualifiedName(artifactsPath, name);
   }
 
   const files = globSync(path.join(artifactsPath, "**/*.json"));
-  return getArtifactFromFiles(name, files);
+  return getArtifactFromFiles(artifactsPath, name, files);
 }
 
 /**

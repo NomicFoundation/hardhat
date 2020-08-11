@@ -723,8 +723,12 @@ Please double check that your contracts have been compiled and your artifact's n
     },
     MULTIPLE_FOUND: {
       number: 701,
-      message:
-        'There are multiple artifacts for contract "%contractName%", please use a fully qualified name.',
+      message: `There are multiple artifacts for contract "%contractName%", please use a fully qualified name.
+
+Candidates for this contract name are:
+
+%candidates%
+`,
       title: "Multiple artifacts found",
       description: `There are multiple artifacts that match the given contract name. 
 
