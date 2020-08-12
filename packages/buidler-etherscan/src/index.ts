@@ -65,7 +65,7 @@ task("verify-contract", "Verifies contract on etherscan")
       await run(TASK_COMPILE);
       const abi = (await readArtifact(config.paths.artifacts, contractName))
         .abi;
-      config.solc.fullVersion = await getLongVersion(config.solc.version);
+      const fullVersion = await getLongVersion(config.solidity);
 
       const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
 
@@ -74,7 +74,7 @@ task("verify-contract", "Verifies contract on etherscan")
         contractAddress: taskArgs.address,
         sourceCode: source,
         contractName: `${etherscanContractName}`,
-        compilerVersion: config.solc.fullVersion,
+        compilerVersion: fullVersion,
         // optimizationsUsed: config.solc.optimizer.enabled,
         // runs: config.solc.optimizer.runs,
         constructorArguments: AbiEncoder.encodeConstructor(

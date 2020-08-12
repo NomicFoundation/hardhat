@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
+import glob from "glob";
 
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { useEnvironment } from "../helpers/environment";
@@ -43,8 +44,8 @@ describe("run task", function () {
     assert.equal(process.exitCode, 0);
     (process as any).exitCode = undefined;
 
-    const files = await fsExtra.readdir("artifacts");
-    assert.deepEqual(files, ["A.json"]);
+    const files = glob.sync("artifacts/**/*.json");
+    assert.sameMembers(files, ["artifacts/contracts/a:A.json"]);
 
     await fsExtra.remove("artifacts");
   });

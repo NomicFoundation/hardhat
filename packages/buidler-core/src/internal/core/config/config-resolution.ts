@@ -17,7 +17,17 @@ function mergeUserAndDefaultConfigs(
   userConfig: BuidlerConfig
 ): Partial<ResolvedBuidlerConfig> {
   return deepmerge(defaultConfig, userConfig, {
-    arrayMerge: (destination: any[], source: any[]) => source,
+    arrayMerge: (destination: any[], source: any[]) => deepmerge([], source), // this "unproxies" the arrays
+    customMerge: (key) => {
+      if (key === "solidity") {
+        return (defaultValue, userValue) => {
+          return userValue === undefined
+            ? defaultValue
+            : deepmerge({}, userValue);
+        };
+      }
+      return deepmerge;
+    },
   }) as any;
 }
 
@@ -48,7 +58,7 @@ export function resolveConfig(
     ...config,
     paths,
     networks: config.networks!,
-    solc: config.solc!,
+    solidity: config.solidity!,
     defaultNetwork: config.defaultNetwork!,
     analytics: config.analytics!,
   };

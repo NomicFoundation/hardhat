@@ -66,7 +66,11 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
       const artifact = getArtifactFromVyperOutput(file, vyperOutput);
 
       await fsExtra.ensureDir(paths.artifacts);
-      await saveArtifact(paths.artifacts, artifact);
+
+      // TODO this might not work on windows, maybe we should use `slash` here
+      const globalName = path.relative(paths.sources, file);
+
+      await saveArtifact(paths.artifacts, globalName, artifact);
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");
 
@@ -111,7 +115,7 @@ async function isAlreadyCompiled(
 }
 
 async function getVyperSources(paths: ProjectPaths) {
-  const glob = require("glob");
+  const glob = await import("glob");
   const vyFiles = glob.sync(path.join(paths.sources, "**", "*.vy"));
   const vpyFiles = glob.sync(path.join(paths.sources, "**", "*.v.py"));
 

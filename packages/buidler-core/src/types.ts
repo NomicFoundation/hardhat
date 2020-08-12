@@ -81,11 +81,19 @@ export interface ProjectPaths {
 
 type EVMVersion = string;
 
+// TODO-HH: This must be changed to accept any solc setting 
 export interface SolcConfig {
   version: string;
   optimizer: SolcOptimizerConfig;
   evmVersion?: EVMVersion;
 }
+
+export interface MultiSolcConfig {
+  compilers: SolcConfig[];
+  overrides?: Record<string, SolcConfig>;
+}
+
+export type SolidityConfig = string | SolcConfig | MultiSolcConfig;
 
 export interface SolcOptimizerConfig {
   enabled: boolean;
@@ -100,7 +108,7 @@ export interface BuidlerConfig {
   defaultNetwork?: string;
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
-  solc?: DeepPartial<SolcConfig>;
+  solidity?: SolidityConfig;
   mocha?: Mocha.MochaOptions;
   analytics?: Partial<AnalyticsConfig>;
 }
@@ -109,8 +117,8 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   defaultNetwork: string;
   paths: ProjectPaths;
   networks: Networks;
-  solc: SolcConfig;
   analytics: AnalyticsConfig;
+  solidity: SolidityConfig;
 }
 
 // End config types

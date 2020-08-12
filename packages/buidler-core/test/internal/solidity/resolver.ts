@@ -3,7 +3,7 @@ import * as fsExtra from "fs-extra";
 import path from "path";
 
 import { ERRORS } from "../../../src/internal/core/errors-list";
-import { getImports } from "../../../src/internal/solidity/imports";
+import { Parser } from "../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
@@ -24,10 +24,16 @@ function assertResolvedFile(
   }
 }
 
+const buildContent = (rawContent: string) => ({
+  rawContent,
+  imports: [],
+  versionPragmas: [],
+});
+
 describe("Resolved file", function () {
   const globalName = "globalName.sol";
   const absolutePath = "/path/to/file/globalName.sol";
-  const content = "the file content";
+  const content = buildContent("the file content");
   const lastModificationDate = new Date();
   const libraryName = "lib";
   const libraryVersion = "0.1.0";
@@ -97,7 +103,10 @@ describe("Resolver", function () {
 
     let resolver: Resolver;
     before("Get project root", async function () {
-      resolver = new Resolver(await getFixtureProjectPath(projectName));
+      resolver = new Resolver(
+        await getFixtureProjectPath(projectName),
+        new Parser({})
+      );
     });
 
     it("should resolve from absolute paths", async function () {
@@ -108,7 +117,7 @@ describe("Resolver", function () {
       assertResolvedFile(resolved, {
         globalName: "contracts/A.sol",
         absolutePath,
-        content: "A",
+        content: buildContent("A"),
         lastModificationDate: ctime,
         library: undefined,
       });
@@ -120,7 +129,7 @@ describe("Resolver", function () {
       assertResolvedFile(resolved2, {
         globalName: "contracts/subdir/C.sol",
         absolutePath: absolutePath2,
-        content: "C",
+        content: buildContent("C"),
         lastModificationDate: ctime2,
         library: undefined,
       });
@@ -136,7 +145,7 @@ describe("Resolver", function () {
       assertResolvedFile(resolved, {
         globalName: "contracts/B.sol",
         absolutePath,
-        content: "B",
+        content: buildContent("B"),
         lastModificationDate: ctime,
         library: undefined,
       });
@@ -152,7 +161,7 @@ describe("Resolver", function () {
       assertResolvedFile(resolved, {
         globalName: "contracts/B.sol",
         absolutePath,
-        content: "B",
+        content: buildContent("B"),
         lastModificationDate: ctime,
         library: undefined,
       });
@@ -218,7 +227,10 @@ describe("Resolver", function () {
 
       let resolver: Resolver;
       before("Get project root", async function () {
-        resolver = new Resolver(await getFixtureProjectPath(projectName));
+        resolver = new Resolver(
+          await getFixtureProjectPath(projectName),
+          new Parser({})
+        );
       });
 
       it("Should throw if the library isn't installed", async function () {
@@ -252,7 +264,7 @@ describe("Resolver", function () {
         assertResolvedFile(resolved, {
           globalName: "lib/contracts/L.sol",
           absolutePath,
-          content: "L",
+          content: buildContent("L"),
           lastModificationDate: ctime,
           library: {
             name: "lib",
@@ -271,7 +283,7 @@ describe("Resolver", function () {
         assertResolvedFile(resolved2, {
           globalName: "lib/contracts/subdir/L3.sol",
           absolutePath: absolutePath2,
-          content: "L3",
+          content: buildContent("L3"),
           lastModificationDate: ctime2,
           library: {
             name: "lib",
@@ -287,7 +299,10 @@ describe("Resolver", function () {
 
       let resolver: Resolver;
       before("Get project root", async function () {
-        resolver = new Resolver(await getFixtureProjectPath(projectName));
+        resolver = new Resolver(
+          await getFixtureProjectPath(projectName),
+          new Parser({})
+        );
       });
 
       it("should resolve a file of a library from the inner node_modules", async function () {
@@ -302,7 +317,7 @@ describe("Resolver", function () {
         assertResolvedFile(resolved, {
           globalName: "inner/contracts/L.sol",
           absolutePath,
-          content: "L",
+          content: buildContent("L"),
           lastModificationDate: ctime,
           library: {
             name: "inner",
@@ -323,7 +338,7 @@ describe("Resolver", function () {
         assertResolvedFile(resolved, {
           globalName: "outer/contracts/L.sol",
           absolutePath,
-          content: "L",
+          content: buildContent("L"),
           lastModificationDate: ctime,
           library: {
             name: "outer",
@@ -345,7 +360,7 @@ describe("Resolver", function () {
           assertResolvedFile(resolved, {
             globalName: "clashed/contracts/I.sol",
             absolutePath,
-            content: "I",
+            content: buildContent("I"),
             lastModificationDate: ctime,
             library: {
               name: "clashed",
@@ -373,7 +388,7 @@ describe("Resolver", function () {
           assertResolvedFile(resolved, {
             globalName: "clashed/contracts/L.sol",
             absolutePath,
-            content: "INNER",
+            content: buildContent("INNER"),
             lastModificationDate: ctime,
             library: {
               name: "clashed",
@@ -393,7 +408,10 @@ describe("Resolver", function () {
     let resolvedLocalFile: ResolvedFile;
     let resolvedLibFile: ResolvedFile;
     before("Get project root", async function () {
-      resolver = new Resolver(await getFixtureProjectPath(projectName));
+      resolver = new Resolver(
+        await getFixtureProjectPath(projectName),
+        new Parser({})
+      );
       resolvedLocalFile = await resolver.resolveProjectSourceFile(
         "contracts/A.sol"
       );
@@ -420,7 +438,7 @@ describe("Resolver", function () {
       const expected = {
         globalName: "lib/contracts/L2.sol",
         absolutePath,
-        content: "L2",
+        content: buildContent("L2"),
         lastModificationDate: ctime,
         library: {
           name: "lib",
@@ -443,7 +461,7 @@ describe("Resolver", function () {
       assertResolvedFile(resolved, {
         globalName: "contracts/B.sol",
         absolutePath,
-        content: "B",
+        content: buildContent("B"),
         lastModificationDate: ctime,
         library: undefined,
       });
@@ -462,7 +480,7 @@ describe("Resolver", function () {
       assertResolvedFile(resolved, {
         globalName: "lib/contracts/subdir/L3.sol",
         absolutePath,
-        content: "L3",
+        content: buildContent("L3"),
         lastModificationDate: ctime,
         library: {
           name: "lib",
@@ -517,14 +535,21 @@ describe("Scoped dependencies project", () => {
   useFixtureProject(projectName);
 
   before("Get project root", async function () {
-    this.resolver = new Resolver(await getFixtureProjectPath(projectName));
+    this.resolver = new Resolver(
+      await getFixtureProjectPath(projectName),
+      new Parser({})
+    );
     this.resolvedLocalFile = await this.resolver.resolveProjectSourceFile(
       "contracts/A.sol"
     );
   });
 
   it("should resolve scoped libraries properly", async function () {
-    const imports = getImports(this.resolvedLocalFile.content);
+    const parser = new Parser({});
+    const { imports } = parser.parse(
+      this.resolvedLocalFile.content.rawContent,
+      this.resolvedLocalFile.absolutePath
+    );
     assert.isAbove(imports.length, 0);
     assert.equal(imports[0], "@scope/package/contracts/File.sol");
     const resolvedLibrary: ResolvedFile = await this.resolver.resolveImport(
@@ -551,7 +576,11 @@ describe("Scoped dependencies project", () => {
     const resolvedImporter = await this.resolver.resolveLibrarySourceFile(
       "@scope/package/contracts/nested/dir/Importer.sol"
     );
-    const imports = getImports(resolvedImporter.content);
+    const parser = new Parser({});
+    const { imports } = parser.parse(
+      resolvedImporter.content.rawContent,
+      resolvedImporter.content.absolutePath
+    );
     assert.equal(imports[0], "../A.sol");
 
     const resolvedImported = await this.resolver.resolveImport(

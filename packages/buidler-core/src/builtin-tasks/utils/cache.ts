@@ -5,6 +5,7 @@ import path from "path";
 import {
   SOLC_INPUT_FILENAME,
   SOLC_OUTPUT_FILENAME,
+  SOLIDITY_FILES_CACHE_FILENAME,
 } from "../../internal/constants";
 import { glob } from "../../internal/util/glob";
 import { getPackageJson } from "../../internal/util/packageInfo";

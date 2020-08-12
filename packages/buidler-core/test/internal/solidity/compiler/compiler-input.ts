@@ -2,6 +2,7 @@ import { assert } from "chai";
 
 import { getInputFromDependencyGraph } from "../../../../src/internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../../../../src/internal/solidity/dependencyGraph";
+import { Parser } from "../../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
@@ -49,10 +50,20 @@ describe("compiler-input module", function () {
     };
 
     const graph = await DependencyGraph.createFromResolvedFiles(
-      new Resolver("."),
+      new Resolver(".", new Parser({})),
       [
-        new ResolvedFile(globalName1, path1, content1, new Date()),
-        new ResolvedFile(globalName2, path2, content2, new Date()),
+        new ResolvedFile(
+          globalName1,
+          path1,
+          { rawContent: content1, imports: [], versionPragmas: [] },
+          new Date()
+        ),
+        new ResolvedFile(
+          globalName2,
+          path2,
+          { rawContent: content2, imports: [], versionPragmas: [] },
+          new Date()
+        ),
       ]
     );
 

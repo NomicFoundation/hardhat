@@ -186,8 +186,15 @@ describe("Artifacts utils", function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(this.tmpDir, artifact);
-        const storedArtifact = await readArtifact(this.tmpDir, name);
+        await saveArtifact(
+          this.tmpDir,
+          `${artifact.contractName}.sol`,
+          artifact
+        );
+        const storedArtifact = await readArtifact(
+          this.tmpDir,
+          artifact.contractName
+        );
 
         assert.deepEqual(storedArtifact, artifact);
       }
@@ -200,7 +207,11 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(nonexistentPath, artifact);
+      await saveArtifact(
+        nonexistentPath,
+        `${artifact.contractName}.sol`,
+        artifact
+      );
       const storedArtifact = await readArtifact(nonexistentPath, name);
 
       assert.deepEqual(storedArtifact, artifact);
@@ -210,11 +221,83 @@ describe("Artifacts utils", function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(this.tmpDir, artifact);
+        await saveArtifact(
+          this.tmpDir,
+          `${artifact.contractName}.sol`,
+          artifact
+        );
         const storedArtifact = readArtifactSync(this.tmpDir, name);
 
         assert.deepEqual(storedArtifact, artifact);
       }
+    });
+
+    it("Should find the right artifact even if the global name has slashes", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(this.tmpDir, "contracts/Lib.sol", artifact);
+
+      const storedArtifact = await readArtifact(this.tmpDir, name);
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact even if the global name is different", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(this.tmpDir, "MyLib.sol", artifact);
+
+      const storedArtifact = await readArtifact(this.tmpDir, name);
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact when using the fully qualified name", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(this.tmpDir, "MyLib.sol", artifact);
+
+      const storedArtifact = await readArtifact(this.tmpDir, "MyLib.sol:Lib");
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact when using the fully qualified name (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(this.tmpDir, "MyLib.sol", artifact);
+
+      const storedArtifact = readArtifactSync(this.tmpDir, "MyLib.sol:Lib");
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact when using the fully qualified with slashes", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(this.tmpDir, "contracts/MyLib.sol", artifact);
+
+      const storedArtifact = await readArtifact(
+        this.tmpDir,
+        "contracts/MyLib.sol:Lib"
+      );
+
+      assert.deepEqual(storedArtifact, artifact);
     });
 
     it("Should throw when reading a non-existent contract (async)", async function () {
@@ -228,6 +311,36 @@ describe("Artifacts utils", function () {
       expectBuidlerError(
         () => readArtifactSync(this.tmpDir, "NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
+      );
+    });
+
+    it("Should throw when multiple artifacts match a given name (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(this.tmpDir, "Lib.sol", artifact);
+      await saveArtifact(this.tmpDir, "Lib2.sol", artifact);
+
+      await expectBuidlerErrorAsync(
+        () => readArtifact(this.tmpDir, name),
+        ERRORS.ARTIFACTS.MULTIPLE_FOUND
+      );
+    });
+
+    it("Should throw when multiple artifacts match a given name (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      await saveArtifact(this.tmpDir, "Lib.sol", artifact);
+      await saveArtifact(this.tmpDir, "Lib2.sol", artifact);
+
+      expectBuidlerError(
+        () => readArtifactSync(this.tmpDir, name),
+        ERRORS.ARTIFACTS.MULTIPLE_FOUND
       );
     });
   });

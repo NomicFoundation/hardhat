@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
+import { cloneDeep } from "lodash";
 import path from "path";
 
 import {
@@ -10,29 +11,38 @@ import {
   SOLC_INPUT_FILENAME,
   SOLC_OUTPUT_FILENAME,
 } from "../internal/constants";
-import { internalTask, task, types } from "../internal/core/config/config-env";
+import { task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
+import { createCompilationGroups } from "../internal/solidity/compilationGroup";
 import { Compiler } from "../internal/solidity/compiler";
-import { getInputFromDependencyGraph } from "../internal/solidity/compiler/compiler-input";
+import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
+import { Parser } from "../internal/solidity/parse";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import { ResolvedBuidlerConfig, SolcInput } from "../types";
-
 import {
-  TASK_BUILD_ARTIFACTS,
-  TASK_COMPILE,
-  TASK_COMPILE_CHECK_CACHE,
-  TASK_COMPILE_COMPILE,
-  TASK_COMPILE_GET_COMPILER_INPUT,
-  TASK_COMPILE_GET_DEPENDENCY_GRAPH,
-  TASK_COMPILE_GET_RESOLVED_SOURCES,
-  TASK_COMPILE_GET_SOURCE_PATHS,
-  TASK_COMPILE_RUN_COMPILER,
-} from "./task-names";
-import { areArtifactsCached, cacheBuidlerConfig } from "./utils/cache";
+  MultiSolcConfig,
+  ResolvedBuidlerConfig,
+  SolidityConfig,
+} from "../types";
+
+import { TASK_COMPILE } from "./task-names";
+import { cacheBuidlerConfig } from "./utils/cache";
+import {
+  readSolidityFilesCache,
+  writeSolidityFilesCache,
+} from "./utils/solidity-files-cache";
+
+function isConsoleLogError(error: any): boolean {
+  return (
+    error.type === "TypeError" &&
+    typeof error.message === "string" &&
+    error.message.includes("log") &&
+    error.message.includes("type(library console)")
+  );
+}
 
 async function cacheSolcJsonFiles(
   config: ResolvedBuidlerConfig,
@@ -59,180 +69,167 @@ async function cacheSolcJsonFiles(
   );
 }
 
-function isConsoleLogError(error: any): boolean {
-  return (
-    error.type === "TypeError" &&
-    typeof error.message === "string" &&
-    error.message.includes("log") &&
-    error.message.includes("type(library console)")
-  );
+function normalizeSolidityConfig(
+  solidityConfig: SolidityConfig
+): MultiSolcConfig {
+  if (typeof solidityConfig === "string") {
+    return {
+      compilers: [
+        {
+          version: solidityConfig,
+          optimizer: { enabled: false, runs: 200 },
+        },
+      ],
+    };
+  }
+
+  if ("version" in solidityConfig) {
+    return { compilers: [solidityConfig] };
+  }
+
+  return solidityConfig;
 }
 
 export default function () {
-  internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
-    return glob(path.join(config.paths.sources, "**/*.sol"));
-  });
-
-  internalTask(
-    TASK_COMPILE_GET_RESOLVED_SOURCES,
-    async (_, { config, run }) => {
-      const resolver = new Resolver(config.paths.root);
-      const paths = await run(TASK_COMPILE_GET_SOURCE_PATHS);
-      return Promise.all(
-        paths.map((p: string) => resolver.resolveProjectSourceFile(p))
-      );
-    }
-  );
-
-  internalTask(
-    TASK_COMPILE_GET_DEPENDENCY_GRAPH,
-    async (_, { config, run }) => {
-      const resolver = new Resolver(config.paths.root);
-      const localFiles = await run(TASK_COMPILE_GET_RESOLVED_SOURCES);
-
-      return DependencyGraph.createFromResolvedFiles(resolver, localFiles);
-    }
-  );
-
-  internalTask(TASK_COMPILE_GET_COMPILER_INPUT, async (_, { config, run }) => {
-    const dependencyGraph: DependencyGraph = await run(
-      TASK_COMPILE_GET_DEPENDENCY_GRAPH
-    );
-
-    return getInputFromDependencyGraph(
-      dependencyGraph,
-      config.solc.optimizer,
-      config.solc.evmVersion
-    );
-  });
-
-  internalTask(TASK_COMPILE_RUN_COMPILER)
-    .addParam(
-      "input",
-      "The compiler standard JSON input",
-      undefined,
-      types.json
-    )
-    .setAction(async ({ input }: { input: SolcInput }, { config }) => {
-      const compiler = new Compiler(
-        config.solc.version,
-        path.join(config.paths.cache, "compilers")
-      );
-
-      return compiler.compile(input);
-    });
-
-  internalTask(TASK_COMPILE_COMPILE, async (_, { config, run }) => {
-    const input = await run(TASK_COMPILE_GET_COMPILER_INPUT);
-
-    console.log("Compiling...");
-    const output = await run(TASK_COMPILE_RUN_COMPILER, { input });
-
-    let hasErrors = false;
-    let hasConsoleLogErrors = false;
-    if (output.errors) {
-      for (const error of output.errors) {
-        hasErrors = hasErrors || error.severity === "error";
-        if (error.severity === "error") {
-          hasErrors = true;
-
-          if (isConsoleLogError(error)) {
-            hasConsoleLogErrors = true;
-          }
-
-          console.error(chalk.red(error.formattedMessage));
-        } else {
-          console.log("\n");
-          console.warn(chalk.yellow(error.formattedMessage));
-        }
-      }
-    }
-
-    if (hasConsoleLogErrors) {
-      console.error(
-        chalk.red(
-          `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
-        )
-      );
-      console.log();
-    }
-
-    if (hasErrors || !output.contracts) {
-      throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
-    }
-
-    await cacheSolcJsonFiles(config, input, output);
-
-    await cacheBuidlerConfig(config.paths, config.solc);
-
-    return output;
-  });
-
-  internalTask(TASK_COMPILE_CHECK_CACHE, async ({ force }, { config, run }) => {
-    if (force) {
-      return false;
-    }
-
-    const dependencyGraph: DependencyGraph = await run(
-      TASK_COMPILE_GET_DEPENDENCY_GRAPH
-    );
-
-    const sourceTimestamps = dependencyGraph
-      .getResolvedFiles()
-      .map((file) => file.lastModificationDate.getTime());
-
-    return areArtifactsCached(sourceTimestamps, config.solc, config.paths);
-  });
-
-  internalTask(TASK_BUILD_ARTIFACTS, async ({ force }, { config, run }) => {
-    const sources = await run(TASK_COMPILE_GET_SOURCE_PATHS);
-
-    if (sources.length === 0) {
-      console.log("No Solidity source file available.");
-      return;
-    }
-
-    const isCached: boolean = await run(TASK_COMPILE_CHECK_CACHE, { force });
-
-    if (isCached) {
-      console.log(
-        "All contracts have already been compiled, skipping compilation."
-      );
-      return;
-    }
-
-    const compilationOutput = await run(TASK_COMPILE_COMPILE);
-
-    if (compilationOutput === undefined) {
-      return;
-    }
-
-    await fsExtra.ensureDir(config.paths.artifacts);
-    let numberOfContracts = 0;
-
-    for (const file of Object.values<any>(compilationOutput.contracts)) {
-      for (const [contractName, contractOutput] of Object.entries(file)) {
-        const artifact = getArtifactFromContractOutput(
-          contractName,
-          contractOutput
-        );
-        numberOfContracts += 1;
-
-        await saveArtifact(config.paths.artifacts, artifact);
-      }
-    }
-
-    console.log(
-      "Compiled",
-      numberOfContracts,
-      pluralize(numberOfContracts, "contract"),
-      "successfully"
-    );
-  });
-
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
-    .setAction(async ({ force: force }: { force: boolean }, { run }) =>
-      run(TASK_BUILD_ARTIFACTS, { force })
-    );
+    .setAction(async ({ force: force }: { force: boolean }, { config }) => {
+      const solidityFilesCache = await readSolidityFilesCache(config.paths);
+
+      const parser = new Parser(solidityFilesCache);
+      const resolver = new Resolver(config.paths.root, parser);
+      const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
+      const resolvedFiles = await Promise.all(
+        paths.map((p: string) => resolver.resolveProjectSourceFile(p))
+      );
+      const dependencyGraph = await DependencyGraph.createFromResolvedFiles(
+        resolver,
+        resolvedFiles
+      );
+
+      const normalizedSolidityConfig = normalizeSolidityConfig(config.solidity);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        normalizedSolidityConfig,
+        solidityFilesCache,
+        force
+      );
+
+      if (compilationGroupsResult.isLeft()) {
+        const nonCompilableFiles = compilationGroupsResult.value
+          .map((x) => x.absolutePath)
+          .join(", ");
+        throw new Error(
+          `Some files didn't match any compiler: ${nonCompilableFiles}`
+        );
+      }
+
+      const compilationGroups = compilationGroupsResult.value;
+      const newSolidityFilesCache = cloneDeep(solidityFilesCache);
+
+      for (const compilationGroup of compilationGroups) {
+        if (compilationGroup.isEmpty()) {
+          console.log(
+            `Nothing to compile with version ${compilationGroup.solidityConfig.version}`
+          );
+          continue;
+        }
+
+        console.log(
+          `Compiling with ${compilationGroup.solidityConfig.version}`
+        );
+        const input = getInputFromCompilationGroup(compilationGroup);
+        const compiler = new Compiler(
+          compilationGroup.solidityConfig.version,
+          path.join(config.paths.cache, "compilers")
+        );
+
+        const output = await compiler.compile(input);
+
+        let hasErrors = false;
+        let hasConsoleLogErrors = false;
+        if (output.errors) {
+          for (const error of output.errors) {
+            hasErrors = hasErrors || error.severity === "error";
+            if (error.severity === "error") {
+              hasErrors = true;
+
+              if (isConsoleLogError(error)) {
+                hasConsoleLogErrors = true;
+              }
+
+              console.error(chalk.red(error.formattedMessage));
+            } else {
+              console.log("\n");
+              console.warn(chalk.yellow(error.formattedMessage));
+            }
+          }
+        }
+
+        if (hasConsoleLogErrors) {
+          console.error(
+            chalk.red(
+              `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
+            )
+          );
+          console.log();
+        }
+
+        if (hasErrors || !output.contracts) {
+          throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+        }
+
+        await cacheSolcJsonFiles(config, input, output);
+
+        await cacheBuidlerConfig(config.paths, compilationGroup.solidityConfig);
+
+        if (output === undefined) {
+          return;
+        }
+
+        let numberOfContracts = 0;
+
+        for (const file of compilationGroup.getResolvedFiles()) {
+          if (!compilationGroup.emitsArtifacts(file)) {
+            continue;
+          }
+
+          for (const [contractName, contractOutput] of Object.entries(
+            output.contracts[file.globalName]
+          )) {
+            const artifact = getArtifactFromContractOutput(
+              contractName,
+              contractOutput
+            );
+            numberOfContracts += 1;
+
+            await saveArtifact(
+              config.paths.artifacts,
+              file.globalName,
+              artifact
+            );
+          }
+
+          const ast = output?.sources?.[file.globalName] ?? {};
+          const { imports, versionPragmas } = Parser.getParsedDataFromAst(ast);
+
+          newSolidityFilesCache[file.absolutePath] = {
+            lastModificationDate: file.lastModificationDate.valueOf(),
+            solcConfig: compilationGroup.solidityConfig,
+            imports,
+            versionPragmas,
+          };
+        }
+
+        console.log(
+          "Compiled",
+          numberOfContracts,
+          pluralize(numberOfContracts, "contract"),
+          "successfully"
+        );
+      }
+
+      writeSolidityFilesCache(config.paths, newSolidityFilesCache);
+    });
 }

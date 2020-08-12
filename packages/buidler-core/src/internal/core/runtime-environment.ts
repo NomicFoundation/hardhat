@@ -16,6 +16,7 @@ import {
 } from "../../types";
 import { lazyObject } from "../util/lazy";
 
+import { getSolcVersion } from "./config/helpers";
 import { BuidlerError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
@@ -76,7 +77,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
       return createProvider(
         networkName,
         networkConfig,
-        config.solc.version,
+        getSolcVersion(config.solidity),
         config.paths
       );
     });

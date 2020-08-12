@@ -1,5 +1,6 @@
 import { CompilersList } from "@nomiclabs/buidler/internal/solidity/compiler/downloader";
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { SolidityConfig } from "@nomiclabs/buidler/types";
 import request from "request-promise";
 
 const COMPILERS_LIST_URL =
@@ -17,7 +18,21 @@ export async function getVersions(): Promise<CompilersList> {
   }
 }
 
-export async function getLongVersion(shortVersion: string): Promise<string> {
+function getSolcVersion(solidityConfig: SolidityConfig): string {
+  if (typeof solidityConfig === "string") {
+    return solidityConfig;
+  }
+  if ("version" in solidityConfig) {
+    return solidityConfig.version;
+  }
+
+  return solidityConfig.compilers[0].version;
+}
+
+export async function getLongVersion(
+  solidityConfig: SolidityConfig
+): Promise<string> {
+  const shortVersion = getSolcVersion(solidityConfig);
   const versions = await getVersions();
   const fullVersion = versions.releases[shortVersion];
 

@@ -5,6 +5,8 @@ import slash from "slash";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
+import { Parser } from "./parse";
+
 export interface ResolvedFilesMap {
   [globalName: string]: ResolvedFile;
 }
@@ -14,13 +16,20 @@ export interface LibraryInfo {
   version: string;
 }
 
+interface FileContent {
+  rawContent: string;
+  imports: string[];
+  versionPragmas: string[];
+}
+
 export class ResolvedFile {
   public readonly library?: LibraryInfo;
 
   constructor(
+    // TODO-HH: Rename this to sourceName. This is what the solidity team uses.
     public readonly globalName: string,
     public readonly absolutePath: string,
-    public readonly content: string,
+    public readonly content: FileContent,
     // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
     // properties (e.g. its name) are changed, only when it's content changes.
     public readonly lastModificationDate: Date,
@@ -49,11 +58,10 @@ export class ResolvedFile {
 }
 
 export class Resolver {
-  private readonly _projectRoot: string;
-
-  constructor(projectRoot: string) {
-    this._projectRoot = projectRoot;
-  }
+  constructor(
+    private readonly _projectRoot: string,
+    private readonly _parser: Parser
+  ) {}
 
   public async resolveProjectSourceFile(
     pathToResolve: string
@@ -72,6 +80,9 @@ export class Resolver {
       });
     }
 
+    // TODO-HH: This error is triggered when someone imports a library with
+    //   a relative path. We should support this, as it's a common source of
+    //   frustration and confusion
     if (absolutePath.includes("node_modules")) {
       throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL, {
         file: pathToResolve,
@@ -206,9 +217,18 @@ export class Resolver {
     libraryName?: string,
     libraryVersion?: string
   ): Promise<ResolvedFile> {
-    const content = await fsExtra.readFile(absolutePath, { encoding: "utf8" });
+    const rawContent = await fsExtra.readFile(absolutePath, {
+      encoding: "utf8",
+    });
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
+
+    const parsedContent = this._parser.parse(rawContent, absolutePath);
+
+    const content = {
+      rawContent,
+      ...parsedContent,
+    };
 
     return new ResolvedFile(
       globalName,

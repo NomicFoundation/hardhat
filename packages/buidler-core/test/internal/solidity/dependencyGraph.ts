@@ -3,6 +3,7 @@ import * as fs from "fs";
 import path from "path";
 
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
+import { Parser } from "../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
@@ -17,8 +18,8 @@ function assertDeps(
   file: ResolvedFile,
   ...deps: ResolvedFile[]
 ) {
-  assert.isTrue(graph.dependenciesPerFile.has(file));
-  const resolvedDeps = graph.dependenciesPerFile.get(file);
+  assert.isTrue(graph.has(file));
+  const resolvedDeps = graph.get(file);
 
   if (resolvedDeps === undefined) {
     throw Error("This should never happen. Just making TS happy.");
@@ -53,60 +54,80 @@ describe("Dependency Graph", function () {
     fileWithoutDependencies = new ResolvedFile(
       "contracts/WD.sol",
       path.join(projectRoot, "contracts", "WD.sol"),
-      "no dependecy",
+      { rawContent: "no dependecy", imports: [], versionPragmas: [] },
       new Date()
     );
 
     fileWithoutDependencies2 = new ResolvedFile(
       "contracts/WD2.sol",
       path.join(projectRoot, "contracts", "WD2.sol"),
-      "no dependecy",
+      { rawContent: "no dependecy", imports: [], versionPragmas: [] },
       new Date()
     );
 
     fileWithoutDependencies3 = new ResolvedFile(
       "contracts/WD3.sol",
       path.join(projectRoot, "contracts", "WD3.sol"),
-      "no dependecy",
+      { rawContent: "no dependecy", imports: [], versionPragmas: [] },
       new Date()
     );
 
     dependsOnWDAndW2 = new ResolvedFile(
       "contracts/dependsOnWDAndW2.sol",
       path.join(projectRoot, "contracts", "dependsOnWDAndW2.sol"),
-      'import "./WD.sol"; import "./WD2.sol";',
+      {
+        rawContent: 'import "./WD.sol"; import "./WD2.sol";',
+        imports: ["./WD.sol", "./WD2.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     dependsOnWD = new ResolvedFile(
       "contracts/dependsOnWD.sol",
       path.join(projectRoot, "contracts", "dependsOnWD.sol"),
-      'import "./WD.sol";',
+      {
+        rawContent: 'import "./WD.sol";',
+        imports: ["./WD.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     loop1 = new ResolvedFile(
       "contracts/loop1.sol",
       path.join(projectRoot, "contracts", "loop1.sol"),
-      'import "./loop2.sol";',
+      {
+        rawContent: 'import "./loop2.sol";',
+        imports: ["./loop2.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     loop2 = new ResolvedFile(
       "contracts/loop2.sol",
       path.join(projectRoot, "contracts", "loop2.sol"),
-      'import "./loop1.sol";',
+      {
+        rawContent: 'import "./loop1.sol";',
+        imports: ["./loop1.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
     dependsOnLoop2 = new ResolvedFile(
       "contracts/dependsOnLoop2.sol",
       path.join(projectRoot, "contracts", "dependsOnLoop2.sol"),
-      'import "./loop2.sol";',
+      {
+        rawContent: 'import "./loop2.sol";',
+        imports: ["./loop2.sol"],
+        versionPragmas: [],
+      },
       new Date()
     );
 
-    resolver = new Resolver(projectRoot);
+    resolver = new Resolver(projectRoot, new Parser({}));
     resolver.resolveImport = async (from: ResolvedFile, imported: string) => {
       switch (imported) {
         case "./WD.sol":
@@ -126,7 +147,7 @@ describe("Dependency Graph", function () {
 
   it("should give an empty graph if there's no entry point", async function () {
     const graph = await DependencyGraph.createFromResolvedFiles(resolver, []);
-    assert.isEmpty(graph.dependenciesPerFile);
+    assert.isTrue(graph.isEmpty());
   });
 
   it("should give a graph with a single node if the only entry point has no deps", async function () {
@@ -246,7 +267,10 @@ describe("Dependency Graph", function () {
 
     let localResolver: Resolver;
     before("Get project root", async function () {
-      localResolver = new Resolver(await getFixtureProjectPath(PROJECT));
+      localResolver = new Resolver(
+        await getFixtureProjectPath(PROJECT),
+        new Parser({})
+      );
     });
 
     it("should work with cyclic dependencies", async () => {
@@ -262,7 +286,7 @@ describe("Dependency Graph", function () {
         [fileA]
       );
 
-      const graphFiles = Array.from(graph.dependenciesPerFile.keys());
+      const graphFiles = Array.from(graph.getResolvedFiles());
       graphFiles.sort((a, b) => a.absolutePath.localeCompare(b.absolutePath));
 
       assert.equal(graphFiles.length, 2);
@@ -271,18 +295,14 @@ describe("Dependency Graph", function () {
       assert.deepEqual(graphsA, fileA);
       assert.deepEqual(graphsB, fileB);
 
-      assert.equal(graph.dependenciesPerFile.get(graphsA)!.size, 1);
+      assert.equal(graph.get(graphsA)!.size, 1);
 
-      const graphsADep = Array.from(
-        graph.dependenciesPerFile.get(graphsA)!.values()
-      )[0];
+      const graphsADep = Array.from(graph.get(graphsA)!.values())[0];
       assert.deepEqual(graphsADep, fileB);
 
-      assert.equal(graph.dependenciesPerFile.get(graphsB)!.size, 1);
+      assert.equal(graph.get(graphsB)!.size, 1);
 
-      const graphsBDep = Array.from(
-        graph.dependenciesPerFile.get(graphsB)!.values()
-      )[0];
+      const graphsBDep = Array.from(graph.get(graphsB)!.values())[0];
       assert.deepEqual(graphsBDep, fileA);
     });
   });

@@ -19,7 +19,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const resolvedFiles = dependenciesGraph.getResolvedFiles();
   resolvedFiles.forEach((f) => (filesMap[f.globalName] = f));
 
-  for (const [from, deps] of dependenciesGraph.dependenciesPerFile.entries()) {
+  for (const [from, deps] of dependenciesGraph.entries()) {
     for (const to of deps) {
       graph.add(to.globalName, from.globalName);
     }
@@ -49,7 +49,9 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 function getFileWithoutImports(resolvedFile: ResolvedFile) {
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+).*$/gm;
 
-  return resolvedFile.content.replace(IMPORT_SOLIDITY_REGEX, "").trim();
+  return resolvedFile.content.rawContent
+    .replace(IMPORT_SOLIDITY_REGEX, "")
+    .trim();
 }
 
 export default function () {
