@@ -26,6 +26,7 @@ export class ResolvedFile {
   public readonly library?: LibraryInfo;
 
   constructor(
+    // TODO-HH: Rename this to sourceName. This is what the solidity team uses.
     public readonly globalName: string,
     public readonly absolutePath: string,
     public readonly content: FileContent,
@@ -79,6 +80,9 @@ export class Resolver {
       });
     }
 
+    // TODO-HH: This error is triggered when someone imports a library with
+    //   a relative path. We should support this, as it's a common source of
+    //   frustration and confusion
     if (absolutePath.includes("node_modules")) {
       throw new BuidlerError(ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL, {
         file: pathToResolve,

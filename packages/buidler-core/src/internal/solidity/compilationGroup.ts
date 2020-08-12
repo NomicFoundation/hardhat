@@ -47,7 +47,7 @@ export class CompilationGroup {
 
     if (fileToCompile === undefined) {
       // tslint:disable-next-line only-buidler-error
-      throw new Error("Unknown file"); // TODO use BuidlerError
+      throw new Error("Unknown file"); // TODO-HH use BuidlerError
     }
 
     return fileToCompile.emitsArtifacts;
