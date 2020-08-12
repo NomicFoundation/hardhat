@@ -9,7 +9,7 @@ import {
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
-} from "./useProvider";
+} from "./constants";
 
 declare module "mocha" {
   interface Context {

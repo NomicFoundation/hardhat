@@ -22,3 +22,23 @@ export const DAI_TOTAL_SUPPLY_STORAGE_POSITION = Buffer.from([1]);
 export const BLOCK_NUMBER_OF_10496585 = new BN(10496585);
 export const BLOCK_HASH_OF_10496585 =
   "71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812";
+
+export const DEFAULT_HARDFORK = "istanbul";
+export const DEFAULT_NETWORK_NAME = "TestNet";
+export const DEFAULT_CHAIN_ID = 123;
+export const DEFAULT_NETWORK_ID = 234;
+export const DEFAULT_BLOCK_GAS_LIMIT = 6000000;
+export const DEFAULT_ACCOUNTS = [
+  {
+    privateKey:
+      "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
+    balance: new BN(10).pow(new BN(18)),
+  },
+  {
+    privateKey:
+      "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10a",
+    balance: new BN(10).pow(new BN(18)),
+  },
+];
+export const DEFAULT_USE_JSON_RPC = false;
+export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;

@@ -1,10 +1,20 @@
 import Common from "ethereumjs-common";
-import { BN } from "ethereumjs-util";
 
 import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
 import { BuidlerNode } from "../../../../src/internal/buidler-evm/provider/node";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
 import { EthereumProvider } from "../../../../src/types";
+
+import {
+  DEFAULT_ACCOUNTS,
+  DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  DEFAULT_BLOCK_GAS_LIMIT,
+  DEFAULT_CHAIN_ID,
+  DEFAULT_HARDFORK,
+  DEFAULT_NETWORK_ID,
+  DEFAULT_NETWORK_NAME,
+  DEFAULT_USE_JSON_RPC,
+} from "./constants";
 
 declare module "mocha" {
   interface Context {
@@ -36,26 +46,6 @@ export const PROVIDERS = [
     },
   },
 ];
-
-export const DEFAULT_HARDFORK = "istanbul";
-export const DEFAULT_NETWORK_NAME = "TestNet";
-export const DEFAULT_CHAIN_ID = 123;
-export const DEFAULT_NETWORK_ID = 234;
-export const DEFAULT_BLOCK_GAS_LIMIT = 6000000;
-export const DEFAULT_ACCOUNTS = [
-  {
-    privateKey:
-      "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
-    balance: new BN(10).pow(new BN(18)),
-  },
-  {
-    privateKey:
-      "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10a",
-    balance: new BN(10).pow(new BN(18)),
-  },
-];
-export const DEFAULT_USE_JSON_RPC = false;
-export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;
 
 export function useProvider(
   hardfork = DEFAULT_HARDFORK,

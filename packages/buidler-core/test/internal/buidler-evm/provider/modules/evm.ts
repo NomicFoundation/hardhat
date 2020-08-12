@@ -21,14 +21,14 @@ import {
   assertLatestBlockNumber,
   assertQuantity,
 } from "../../helpers/assertions";
-import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
-import { quantityToNumber } from "../../helpers/conversions";
-import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_BLOCK_GAS_LIMIT,
-  PROVIDERS,
-} from "../../helpers/useProvider";
+} from "../../helpers/constants";
+import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
+import { quantityToNumber } from "../../helpers/conversions";
+import { setCWD } from "../../helpers/cwd";
+import { PROVIDERS } from "../../helpers/useProvider";
 
 const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map((account) =>
   bufferToHex(privateToAddress(toBuffer(account.privateKey))).toLowerCase()
