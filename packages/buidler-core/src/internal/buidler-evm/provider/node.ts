@@ -1181,7 +1181,7 @@ export class BuidlerNode extends EventEmitter {
     block: Block,
     runBlockResult: RunBlockResult
   ) {
-    await this._putBlock(block);
+    await this._blockchain.putBlock(block);
 
     const txBlockResults: TxBlockResult[] = [];
 
@@ -1262,19 +1262,6 @@ export class BuidlerNode extends EventEmitter {
           }
           break;
       }
-    });
-  }
-
-  private async _putBlock(block: Block): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this._vm.blockchain.putBlock(block, (err?: any) => {
-        if (err !== undefined && err !== null) {
-          reject(err);
-          return;
-        }
-
-        resolve();
-      });
     });
   }
 
