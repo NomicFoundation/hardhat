@@ -110,7 +110,7 @@ export class BuidlerNode extends EventEmitter {
 
     if (forkConfig !== undefined) {
       ({ forkClient, forkBlockNumber } = await makeForkClient(forkConfig));
-      common = await makeForkCommon(forkClient);
+      common = await makeForkCommon(forkClient, forkBlockNumber);
 
       stateManager = new ForkStateManager(forkClient, forkBlockNumber);
 
