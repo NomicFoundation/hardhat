@@ -63,7 +63,7 @@ function getFullyQualifiedName(
     .replace(":", ".sol:");
 }
 
-function getArtifactFromFiles(
+function getArtifactPathFromFiles(
   artifactsPath: string,
   name: string,
   files: string[]
@@ -118,7 +118,7 @@ async function getArtifactPath(
   }
 
   const files = await glob(path.join(artifactsPath, "**/*.json"));
-  return getArtifactFromFiles(artifactsPath, name, files);
+  return getArtifactPathFromFiles(artifactsPath, name, files);
 }
 
 function getArtifactPathSync(artifactsPath: string, name: string): string {
@@ -127,7 +127,7 @@ function getArtifactPathSync(artifactsPath: string, name: string): string {
   }
 
   const files = globSync(path.join(artifactsPath, "**/*.json"));
-  return getArtifactFromFiles(artifactsPath, name, files);
+  return getArtifactPathFromFiles(artifactsPath, name, files);
 }
 
 /**
@@ -168,7 +168,10 @@ export async function readArtifact(
   const artifactPath = await getArtifactPath(artifactsPath, name);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName: name });
+    throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+      contractName: name,
+      artifactPath,
+    });
   }
 
   return fsExtra.readJson(artifactPath);
@@ -187,7 +190,10 @@ export function readArtifactSync(
   const artifactPath = getArtifactPathSync(artifactsPath, name);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName: name });
+    throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+      contractName: name,
+      artifactPath,
+    });
   }
 
   return fsExtra.readJsonSync(artifactPath);

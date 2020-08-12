@@ -809,5 +809,15 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
 Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
       shouldBeReported: true,
     },
+    WRONG_ARTIFACT_PATH: {
+      number: 903,
+      message:
+        "The inferred artifact path for contract %contractName% is %artifactPath%, but this file doesn't exist",
+      title: "Inferred artifact path doesn't exist",
+      description: `The inferred artifact path doesn't exist.
+
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+      shouldBeReported: true,
+    },
   },
 };
