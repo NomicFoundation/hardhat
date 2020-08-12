@@ -3,7 +3,7 @@ import { addHexPrefix, BN, toBuffer } from "ethereumjs-util";
 
 import { DAI_ADDRESS, INFURA_URL } from "../helpers/constants";
 import { setCWD } from "../helpers/cwd";
-import { useForkedProvider } from "../helpers/useProvider";
+import { useForkedProvider } from "../helpers/useForkedProvider";
 
 const FORK_CONFIG = { jsonRpcUrl: INFURA_URL, blockNumberOrHash: undefined };
 
