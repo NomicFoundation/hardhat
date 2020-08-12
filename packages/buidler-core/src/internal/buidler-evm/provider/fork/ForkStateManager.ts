@@ -7,7 +7,7 @@ import { JsonRpcClient } from "../../jsonrpc/client";
 import { PStateManager } from "../types/PStateManager";
 import { StateManager } from "../types/StateManager";
 
-import { AccountState, makeAccount } from "./Account";
+import { AccountState, makeAccountState } from "./Account";
 import { CheckpointError, NotSupportedError } from "./errors";
 import { randomHash } from "./random";
 
@@ -79,7 +79,7 @@ export class ForkStateManager implements PStateManager {
     // Because the vm only ever modifies the nonce and the balance using this
     // method we ignore the other properties
     const hexAddress = address.toString("hex");
-    let localAccount = this._state.get(hexAddress) ?? makeAccount();
+    let localAccount = this._state.get(hexAddress) ?? makeAccountState();
     localAccount = localAccount
       .set("nonce", account.nonce.toString("hex"))
       .set("balance", account.balance.toString("hex"));
@@ -92,7 +92,7 @@ export class ForkStateManager implements PStateManager {
 
   public async putContractCode(address: Buffer, value: Buffer): Promise<void> {
     const hexAddress = address.toString("hex");
-    const account = (this._state.get(hexAddress) ?? makeAccount()).set(
+    const account = (this._state.get(hexAddress) ?? makeAccountState()).set(
       "code",
       value.toString("hex")
     );
@@ -147,7 +147,7 @@ export class ForkStateManager implements PStateManager {
     value: Buffer
   ): Promise<void> {
     const hexAddress = address.toString("hex");
-    let account = this._state.get(hexAddress) ?? makeAccount();
+    let account = this._state.get(hexAddress) ?? makeAccountState();
     account = account.set(
       "storage",
       account.get("storage").set(key.toString("hex"), value.toString("hex"))
@@ -157,7 +157,7 @@ export class ForkStateManager implements PStateManager {
 
   public async clearContractStorage(address: Buffer): Promise<void> {
     const hexAddress = address.toString("hex");
-    let account = this._state.get(hexAddress) ?? makeAccount();
+    let account = this._state.get(hexAddress) ?? makeAccountState();
     account = account
       .set("storageCleared", true)
       .set("storage", ImmutableMap());

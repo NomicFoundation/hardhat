@@ -73,6 +73,7 @@ import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeGenesisBlock } from "./utils/makeGenesisBlock";
 import { makeStateTrie } from "./utils/makeStateTrie";
+import { putGenesisAccounts } from "./utils/putGenesisAccounts";
 
 const log = debug("buidler:core:buidler-evm:node");
 
@@ -113,6 +114,7 @@ export class BuidlerNode extends EventEmitter {
       common = await makeForkCommon(forkClient, forkBlockNumber);
 
       stateManager = new ForkStateManager(forkClient, forkBlockNumber);
+      await putGenesisAccounts(stateManager, genesisAccounts);
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
       genesisBlock = await makeGenesisBlock(blockchain, common);
