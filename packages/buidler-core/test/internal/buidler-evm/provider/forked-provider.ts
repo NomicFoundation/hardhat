@@ -33,7 +33,7 @@ describe("Forked provider", () => {
   });
 
   describe("eth_call", function () {
-    it("should be able to return DAI total supply", async function () {
+    it("is able to return DAI total supply", async function () {
       const daiTotalSupplySelector = "0x18160ddd";
       const daiAddress = addHexPrefix(DAI_ADDRESS.toString("hex"));
 
@@ -47,7 +47,7 @@ describe("Forked provider", () => {
   });
 
   describe("get_balance", function () {
-    it("should return 0 for empty accounts", async function () {
+    it("returns 0 for empty accounts", async function () {
       assertQuantity(
         await this.provider.send("eth_getBalance", [
           bufferToHex(EMPTY_ACCOUNT_ADDRESS),
@@ -56,18 +56,20 @@ describe("Forked provider", () => {
       );
     });
 
-    it("should return balance of WETH contract", async function () {
+    it("returns the balance of WETH contract", async function () {
       const result = await this.provider.send("eth_getBalance", [
         bufferToHex(WETH_ADDRESS),
       ]);
       assert.isTrue(quantityToBN(result).gtn(0));
     });
+
+    it("returns balances of genesis accounts", async function () {
+      await assertNodeBalances(this.provider, DEFAULT_ACCOUNTS_BALANCES);
+    });
   });
 
   describe("eth_sendTransaction", () => {
     xit("supports Ether transfers", async function () {
-      await assertNodeBalances(this.provider, DEFAULT_ACCOUNTS_BALANCES);
-
       await this.provider.send("eth_sendTransaction", [
         {
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
