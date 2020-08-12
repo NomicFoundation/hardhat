@@ -1,10 +1,5 @@
 import { assert } from "chai";
-import {
-  bufferToHex,
-  privateToAddress,
-  toBuffer,
-  zeroAddress,
-} from "ethereumjs-util";
+import { zeroAddress } from "ethereumjs-util";
 
 import {
   bufferToRpcData,
@@ -22,17 +17,13 @@ import {
   assertQuantity,
 } from "../../helpers/assertions";
 import {
-  DEFAULT_ACCOUNTS,
+  DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_BLOCK_GAS_LIMIT,
 } from "../../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/useProvider";
-
-const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map((account) =>
-  bufferToHex(privateToAddress(toBuffer(account.privateKey))).toLowerCase()
-);
 
 async function deployContract(
   provider: EthereumProvider,

@@ -1,13 +1,7 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
-import {
-  BN,
-  bufferToHex,
-  privateToAddress,
-  toBuffer,
-  zeroAddress,
-} from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../../src/internal/buidler-evm/provider/errors";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/buidler-evm/provider/node";
@@ -32,6 +26,8 @@ import {
 } from "../../helpers/assertions";
 import {
   DEFAULT_ACCOUNTS,
+  DEFAULT_ACCOUNTS_ADDRESSES,
+  DEFAULT_ACCOUNTS_BALANCES,
   DEFAULT_BLOCK_GAS_LIMIT,
   DEFAULT_CHAIN_ID,
 } from "../../helpers/constants";
@@ -42,14 +38,6 @@ import {
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/useProvider";
-
-const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map((account) =>
-  bufferToHex(privateToAddress(toBuffer(account.privateKey))).toLowerCase()
-);
-
-const DEFAULT_ACCOUNTS_BALANCES = DEFAULT_ACCOUNTS.map(
-  (account) => account.balance
-);
 
 const PRECOMPILES_COUNT = 8;
 
