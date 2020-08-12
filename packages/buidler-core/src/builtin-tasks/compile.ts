@@ -29,7 +29,6 @@ import {
 } from "../types";
 
 import { TASK_COMPILE } from "./task-names";
-import { cacheBuidlerConfig } from "./utils/cache";
 import {
   readSolidityFilesCache,
   writeSolidityFilesCache,
@@ -184,8 +183,6 @@ export default function () {
         }
 
         await cacheSolcJsonFiles(config, input, output);
-
-        await cacheBuidlerConfig(config.paths, compilationGroup.solidityConfig);
 
         if (output === undefined) {
           return;
