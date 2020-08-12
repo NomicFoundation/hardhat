@@ -184,14 +184,11 @@ export default function () {
             );
           }
 
-          const ast = output?.sources?.[file.globalName] ?? {};
-          const { imports, versionPragmas } = Parser.getParsedDataFromAst(ast);
-
           newSolidityFilesCache[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
             solcConfig: compilationGroup.solidityConfig,
-            imports,
-            versionPragmas,
+            imports: file.content.imports,
+            versionPragmas: file.content.versionPragmas,
           };
         }
 
