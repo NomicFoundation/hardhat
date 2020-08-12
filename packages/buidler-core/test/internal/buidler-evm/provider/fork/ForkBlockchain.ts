@@ -12,7 +12,6 @@ import {
   BLOCK_NUMBER_OF_10496585,
   INFURA_URL,
 } from "../../helpers/constants";
-import { DEFAULT_HARDFORK } from "../../helpers/useProvider";
 
 describe("ForkBlockchain", () => {
   let client: JsonRpcClient;
@@ -27,7 +26,8 @@ describe("ForkBlockchain", () => {
   before(async () => {
     client = JsonRpcClient.forUrl(INFURA_URL);
     forkBlockNumber = await client.getLatestBlockNumber();
-    common = new Common("mainnet", DEFAULT_HARDFORK);
+    common = new Common("mainnet");
+    common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
   });
 
   beforeEach(async () => {
