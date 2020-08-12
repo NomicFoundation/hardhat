@@ -5,8 +5,10 @@ import path from "path";
 import {
   BuidlerConfig,
   ConfigExtender,
+  MultiSolcConfig,
   ProjectPaths,
   ResolvedBuidlerConfig,
+  SolidityConfig,
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
 import { BuidlerError } from "../errors";
@@ -29,6 +31,27 @@ function mergeUserAndDefaultConfigs(
       return deepmerge;
     },
   }) as any;
+}
+
+function normalizeSolidityConfig(
+  solidityConfig: SolidityConfig
+): MultiSolcConfig {
+  if (typeof solidityConfig === "string") {
+    return {
+      compilers: [
+        {
+          version: solidityConfig,
+          optimizer: { enabled: false, runs: 200 },
+        },
+      ],
+    };
+  }
+
+  if ("version" in solidityConfig) {
+    return { compilers: [solidityConfig] };
+  }
+
+  return solidityConfig;
 }
 
 /**
@@ -58,7 +81,7 @@ export function resolveConfig(
     ...config,
     paths,
     networks: config.networks!,
-    solidity: config.solidity!,
+    solidity: normalizeSolidityConfig(config.solidity!),
     defaultNetwork: config.defaultNetwork!,
     analytics: config.analytics!,
   };

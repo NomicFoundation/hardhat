@@ -24,10 +24,13 @@ describe("Config resolution", () => {
 
       it("should return the default config", () => {
         const config = loadConfigAndTasks();
-        const solidityConfig: any = config.solidity;
-        assert.equal(solidityConfig.version, DEFAULT_SOLC_VERSION);
+        assert.lengthOf(config.solidity.compilers, 1);
+        assert.equal(
+          config.solidity.compilers[0].version,
+          DEFAULT_SOLC_VERSION
+        );
         assert.containsAllKeys(config.networks, ["localhost"]);
-        assert.isUndefined(solidityConfig.evmVersion);
+        assert.isUndefined(config.solidity.compilers[0].evmVersion);
         assert.equal(config.defaultNetwork, "buidlerevm");
 
         const buidlerEvmConfig: BuidlerNetworkConfig = config.networks
@@ -43,17 +46,23 @@ describe("Config resolution", () => {
 
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
-        const solidityConfig: any = config.solidity;
 
-        assert.equal(solidityConfig.version, DEFAULT_SOLC_VERSION);
+        assert.lengthOf(config.solidity.compilers, 1);
+        assert.equal(
+          config.solidity.compilers[0].version,
+          DEFAULT_SOLC_VERSION
+        );
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(config.defaultNetwork, "custom");
       });
 
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
-        const solidityConfig: any = config.solidity;
-        assert.equal(solidityConfig.version, DEFAULT_SOLC_VERSION);
+        assert.lengthOf(config.solidity.compilers, 1);
+        assert.equal(
+          config.solidity.compilers[0].version,
+          DEFAULT_SOLC_VERSION
+        );
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(
           (config.networks.localhost as HttpNetworkConfig).url,

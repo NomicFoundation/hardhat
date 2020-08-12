@@ -118,7 +118,7 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   paths: ProjectPaths;
   networks: Networks;
   analytics: AnalyticsConfig;
-  solidity: SolidityConfig;
+  solidity: MultiSolcConfig;
 }
 
 // End config types

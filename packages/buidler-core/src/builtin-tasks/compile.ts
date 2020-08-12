@@ -22,11 +22,7 @@ import { Parser } from "../internal/solidity/parse";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import {
-  MultiSolcConfig,
-  ResolvedBuidlerConfig,
-  SolidityConfig,
-} from "../types";
+import { ResolvedBuidlerConfig } from "../types";
 
 import { TASK_COMPILE } from "./task-names";
 import {
@@ -68,27 +64,6 @@ async function cacheSolcJsonFiles(
   );
 }
 
-function normalizeSolidityConfig(
-  solidityConfig: SolidityConfig
-): MultiSolcConfig {
-  if (typeof solidityConfig === "string") {
-    return {
-      compilers: [
-        {
-          version: solidityConfig,
-          optimizer: { enabled: false, runs: 200 },
-        },
-      ],
-    };
-  }
-
-  if ("version" in solidityConfig) {
-    return { compilers: [solidityConfig] };
-  }
-
-  return solidityConfig;
-}
-
 export default function () {
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
@@ -106,11 +81,9 @@ export default function () {
         resolvedFiles
       );
 
-      const normalizedSolidityConfig = normalizeSolidityConfig(config.solidity);
-
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
-        normalizedSolidityConfig,
+        config.solidity,
         solidityFilesCache,
         force
       );
