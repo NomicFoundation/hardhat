@@ -1,6 +1,7 @@
 import {
   BuidlerArguments,
   BuidlerParamDefinitions,
+  CLIArgumentType,
   ParamDefinition,
   ParamDefinitionsMap,
   TaskArguments,
@@ -224,7 +225,10 @@ export class ArgumentsParser {
         });
       }
 
-      parsedArguments[paramName] = definition.type.parse(paramName, value);
+      // We only parse the arguments of non-internal tasks, and those only
+      // accept CLIArgumentTypes.
+      const type = definition.type as CLIArgumentType<any>;
+      parsedArguments[paramName] = type.parse(paramName, value);
     }
 
     return index;
@@ -238,6 +242,9 @@ export class ArgumentsParser {
 
     for (let i = 0; i < positionalParamDefinitions.length; i++) {
       const definition = positionalParamDefinitions[i];
+      // We only parse the arguments of non-internal tasks, and those only
+      // accept CLIArgumentTypes.
+      const type = definition.type as CLIArgumentType<any>;
 
       const rawArg = rawPositionalParamArgs[i];
 
@@ -250,11 +257,11 @@ export class ArgumentsParser {
 
         args[definition.name] = definition.defaultValue;
       } else if (!definition.isVariadic) {
-        args[definition.name] = definition.type.parse(definition.name, rawArg);
+        args[definition.name] = type.parse(definition.name, rawArg);
       } else {
         args[definition.name] = rawPositionalParamArgs
           .slice(i)
-          .map((raw) => definition.type.parse(definition.name, raw));
+          .map((raw) => type.parse(definition.name, raw));
       }
     }
 

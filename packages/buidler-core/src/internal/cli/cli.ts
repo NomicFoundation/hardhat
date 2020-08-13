@@ -130,6 +130,13 @@ async function main() {
         });
       }
 
+      if (taskDefinition.isInternal) {
+        throw new BuidlerError(
+          ERRORS.ARGUMENTS.RUNNING_INTERNAL_TASK_FROM_CLI,
+          { name: taskDefinition.name }
+        );
+      }
+
       taskArguments = argumentsParser.parseTaskArguments(
         taskDefinition,
         unparsedCLAs

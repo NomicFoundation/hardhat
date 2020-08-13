@@ -774,6 +774,105 @@ describe("SimpleTaskDefinition", () => {
         );
       });
     });
+
+    describe("CLI argument types", () => {
+      describe("non-internal tasks", () => {
+        let task: SimpleTaskDefinition;
+        beforeEach(() => {
+          task = new SimpleTaskDefinition("t", false);
+        });
+
+        describe("When using non-cli argument types", () => {
+          it("Should throw on addParam", () => {
+            expectBuidlerError(
+              () => task.addParam("p", "p", undefined, types.any),
+              ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
+            );
+          });
+
+          it("Should  throw on addOptionalParam", () => {
+            expectBuidlerError(
+              () => task.addOptionalParam("p", "p", "asd", types.any),
+              ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
+            );
+          });
+
+          it("Should  throw on addPositionalParam", () => {
+            expectBuidlerError(
+              () => task.addPositionalParam("p", "p", undefined, types.any),
+              ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
+            );
+          });
+
+          it("Should  throw on addOptionalPositionalParam", () => {
+            expectBuidlerError(
+              () => task.addOptionalPositionalParam("p", "p", "asd", types.any),
+              ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
+            );
+          });
+
+          it("Should  throw on addVariadicPositionalParam", () => {
+            expectBuidlerError(
+              () =>
+                task.addVariadicPositionalParam("p", "p", undefined, types.any),
+              ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
+            );
+          });
+
+          it("Should  throw on addVariadicPositionalParam", () => {
+            expectBuidlerError(
+              () =>
+                task.addOptionalVariadicPositionalParam(
+                  "p",
+                  "p",
+                  "asd",
+                  types.any
+                ),
+              ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
+            );
+          });
+        });
+      });
+
+      describe("internal tasks", () => {
+        describe("When using non-cli argument types", () => {
+          let task: SimpleTaskDefinition;
+          beforeEach(() => {
+            task = new SimpleTaskDefinition("t", true);
+          });
+
+          it("Should not throw on addParam", () => {
+            task.addParam("p", "p", undefined, types.any);
+            assert.isDefined(task.paramDefinitions.p);
+          });
+
+          it("Should not throw on addOptionalParam", () => {
+            task.addOptionalParam("p", "p", "asd", types.any);
+            assert.isDefined(task.paramDefinitions.p);
+          });
+
+          it("Should not throw on addPositionalParam", () => {
+            task.addPositionalParam("p", "p", undefined, types.any);
+            assert.lengthOf(task.positionalParamDefinitions, 1);
+          });
+
+          it("Should not throw on addOptionalPositionalParam", () => {
+            task.addOptionalPositionalParam("p", "p", "asd", types.any);
+            assert.lengthOf(task.positionalParamDefinitions, 1);
+          });
+
+          it("Should not throw on addVariadicPositionalParam", () => {
+            task.addVariadicPositionalParam("p", "p", undefined, types.any);
+            assert.lengthOf(task.positionalParamDefinitions, 1);
+          });
+
+          it("Should not throw on addVariadicPositionalParam", () => {
+            task.addOptionalVariadicPositionalParam("p", "p", "asd", types.any);
+            assert.lengthOf(task.positionalParamDefinitions, 1);
+          });
+        });
+      });
+    });
   });
 });
 
