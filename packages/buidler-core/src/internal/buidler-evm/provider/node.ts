@@ -117,7 +117,6 @@ export class BuidlerNode extends EventEmitter {
       await putGenesisAccounts(stateManager, genesisAccounts);
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
-      genesisBlock = await makeGenesisBlock(blockchain, common);
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(
@@ -136,8 +135,8 @@ export class BuidlerNode extends EventEmitter {
       });
 
       blockchain = new BuidlerBlockchain();
-      genesisBlock = await makeGenesisBlock(blockchain, common);
     }
+    genesisBlock = await makeGenesisBlock(blockchain, common);
 
     const vm = new VM({
       common,
@@ -594,19 +593,15 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getBlockByNumber(blockNumber: BN): Promise<Block | undefined> {
-    if (blockNumber.gten(this._blockHashToTotalDifficulty.size)) {
-      return undefined;
-    }
-
-    return this._blockchain.getBlock(blockNumber);
+    return this._blockchain
+      .getBlock(blockNumber)
+      .catch((blockNotFound) => undefined);
   }
 
-  public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
-    if (!(await this._hasBlockWithHash(hash))) {
-      return undefined;
-    }
-
-    return this._blockchain.getBlock(hash);
+  public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
+    return this._blockchain
+      .getBlock(blockHash)
+      .catch((blockNotFound) => undefined);
   }
 
   public async getBlockByTransactionHash(

@@ -50,20 +50,24 @@ export class BuidlerBlockchain implements Blockchain {
     cb(null);
   }
 
-  public getBlock(blockHashOrNumber: Buffer | BN, cb: Callback<Block>): void {
-    let blockNumber: number;
+  public getBlock(
+    blockHashOrNumber: Buffer | BN | number,
+    cb: Callback<Block>
+  ): void {
+    let blockNumber;
 
-    if (BN.isBN(blockHashOrNumber)) {
+    if (typeof blockHashOrNumber === "number") {
+      blockNumber = blockHashOrNumber;
+    } else if (BN.isBN(blockHashOrNumber)) {
       blockNumber = blockHashOrNumber.toNumber();
     } else {
       const hash = bufferToHex(blockHashOrNumber);
+      blockNumber = this._blockNumberByHash.get(hash);
+    }
 
-      if (!this._blockNumberByHash.has(hash)) {
-        cb(new Error("Block not found"));
-        return;
-      }
-
-      blockNumber = this._blockNumberByHash.get(hash)!;
+    if (blockNumber === undefined || blockNumber >= this._blocks.length) {
+      cb(new Error("Block not found"));
+      return;
     }
 
     cb(null, this._blocks[blockNumber]);
