@@ -11,7 +11,7 @@ import { promisify } from "./utils/promisify";
 
 export class BuidlerBlockchain implements Blockchain {
   private readonly _blocks: Block[] = [];
-  private readonly _blockNumberByHash: Map<string, number> = new Map();
+  private readonly _blockHashToNumber: Map<string, number> = new Map();
   private readonly _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
   public getLatestBlock(cb: Callback<Block>): void {
@@ -36,14 +36,14 @@ export class BuidlerBlockchain implements Blockchain {
     }
 
     this._blocks.push(block);
-    this._blockNumberByHash.set(blockHash, blockNumber);
+    this._blockHashToNumber.set(blockHash, blockNumber);
     this._blockHashToTotalDifficulty.set(blockHash, totalDifficulty);
 
     cb(null, block);
   }
 
   public delBlock(blockHash: Buffer, cb: Callback): void {
-    const blockNumber = this._blockNumberByHash.get(bufferToHex(blockHash));
+    const blockNumber = this._blockHashToNumber.get(bufferToHex(blockHash));
 
     if (blockNumber === undefined) {
       cb(new Error("Block not found"));
@@ -53,7 +53,7 @@ export class BuidlerBlockchain implements Blockchain {
     for (let n = blockNumber; n < this._blocks.length; n++) {
       const block = this._blocks[n];
 
-      this._blockNumberByHash.delete(bufferToHex(block.hash()));
+      this._blockHashToNumber.delete(bufferToHex(block.hash()));
     }
 
     this._blocks.splice(blockNumber);
@@ -72,7 +72,7 @@ export class BuidlerBlockchain implements Blockchain {
       blockNumber = blockHashOrNumber.toNumber();
     } else {
       const hash = bufferToHex(blockHashOrNumber);
-      blockNumber = this._blockNumberByHash.get(hash);
+      blockNumber = this._blockHashToNumber.get(hash);
     }
 
     if (blockNumber === undefined || blockNumber >= this._blocks.length) {
@@ -121,7 +121,7 @@ export class BuidlerBlockchain implements Blockchain {
 
     for (let i = blockNumber + 1; i < this._blocks.length; i++) {
       const blockToDelete = this._blocks[i];
-      this._blockNumberByHash.delete(bufferToHex(blockToDelete.hash()));
+      this._blockHashToNumber.delete(bufferToHex(blockToDelete.hash()));
     }
 
     this._blocks.splice(blockNumber + 1);
