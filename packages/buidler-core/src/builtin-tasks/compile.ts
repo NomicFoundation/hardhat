@@ -5,6 +5,7 @@ import path from "path";
 
 import {
   getArtifactFromContractOutput,
+  getArtifactPathSync,
   saveArtifact,
 } from "../internal/artifacts";
 import {
@@ -19,7 +20,7 @@ import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
-import { Resolver } from "../internal/solidity/resolver";
+import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
 import { ResolvedBuidlerConfig } from "../types";
@@ -27,6 +28,7 @@ import { ResolvedBuidlerConfig } from "../types";
 import { TASK_COMPILE } from "./task-names";
 import {
   readSolidityFilesCache,
+  SolidityFilesCache,
   writeSolidityFilesCache,
 } from "./utils/solidity-files-cache";
 
@@ -68,7 +70,7 @@ export default function () {
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
     .setAction(async ({ force: force }: { force: boolean }, { config }) => {
-      const solidityFilesCache = await readSolidityFilesCache(config.paths);
+      let solidityFilesCache = await readSolidityFilesCache(config.paths);
 
       const parser = new Parser(solidityFilesCache);
       const resolver = new Resolver(config.paths.root, parser);
@@ -76,9 +78,16 @@ export default function () {
       const resolvedFiles = await Promise.all(
         paths.map((p: string) => resolver.resolveProjectSourceFile(p))
       );
+
       const dependencyGraph = await DependencyGraph.createFromResolvedFiles(
         resolver,
         resolvedFiles
+      );
+
+      solidityFilesCache = invalidateCacheMissingArtifacts(
+        solidityFilesCache,
+        config.paths.artifacts,
+        dependencyGraph.getResolvedFiles()
       );
 
       const compilationGroupsResult = createCompilationGroups(
@@ -168,6 +177,7 @@ export default function () {
             continue;
           }
 
+          const emittedArtifacts = [];
           for (const [contractName, contractOutput] of Object.entries(
             output.contracts[file.globalName]
           )) {
@@ -182,13 +192,17 @@ export default function () {
               file.globalName,
               artifact
             );
+
+            emittedArtifacts.push(artifact.contractName);
           }
 
           newSolidityFilesCache[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
+            globalName: file.globalName,
             solcConfig: compilationGroup.solidityConfig,
             imports: file.content.imports,
             versionPragmas: file.content.versionPragmas,
+            artifacts: emittedArtifacts,
           };
         }
 
@@ -200,6 +214,66 @@ export default function () {
         );
       }
 
+      await removeObsoleteArtifacts(
+        config.paths.artifacts,
+        newSolidityFilesCache
+      );
+
       writeSolidityFilesCache(config.paths, newSolidityFilesCache);
     });
+}
+
+/**
+ * Remove all artifacts that don't correspond to the current solidity files
+ */
+async function removeObsoleteArtifacts(
+  artifactsPath: string,
+  solidityFilesCache: SolidityFilesCache
+) {
+  const validArtifacts = new Set<string>();
+  for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
+    for (const artifact of artifacts) {
+      validArtifacts.add(
+        getArtifactPathSync(artifactsPath, globalName, artifact)
+      );
+    }
+  }
+
+  const existingArtifacts = await glob(path.join(artifactsPath, "**/*.json"));
+
+  for (const artifact of existingArtifacts) {
+    if (!validArtifacts.has(artifact)) {
+      fsExtra.unlinkSync(artifact);
+    }
+  }
+}
+
+/**
+ * Remove from the given `solidityFilesCache` all files that have missing artifacts
+ */
+function invalidateCacheMissingArtifacts(
+  solidityFilesCache: SolidityFilesCache,
+  artifactsPath: string,
+  resolvedFiles: ResolvedFile[]
+): SolidityFilesCache {
+  resolvedFiles.forEach((file) => {
+    if (solidityFilesCache[file.absolutePath] === undefined) {
+      return;
+    }
+
+    const { artifacts } = solidityFilesCache[file.absolutePath];
+
+    for (const artifact of artifacts) {
+      if (
+        !fsExtra.existsSync(
+          getArtifactPathSync(artifactsPath, file.globalName, artifact)
+        )
+      ) {
+        delete solidityFilesCache[file.absolutePath];
+        break;
+      }
+    }
+  });
+
+  return solidityFilesCache;
 }

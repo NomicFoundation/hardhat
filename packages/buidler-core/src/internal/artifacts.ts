@@ -121,13 +121,27 @@ async function getArtifactPath(
   return getArtifactPathFromFiles(artifactsPath, name, files);
 }
 
-function getArtifactPathSync(artifactsPath: string, name: string): string {
-  if (isFullyQualified(name)) {
-    return getArtifactPathFromFullyQualifiedName(artifactsPath, name);
+export function getArtifactPathSync(
+  artifactsPath: string,
+  globalName: string,
+  contractName?: string
+): string {
+  if (contractName === undefined) {
+    if (isFullyQualified(globalName)) {
+      return getArtifactPathFromFullyQualifiedName(artifactsPath, globalName);
+    }
+
+    const files = globSync(path.join(artifactsPath, "**/*.json"));
+    return getArtifactPathFromFiles(artifactsPath, globalName, files);
   }
 
-  const files = globSync(path.join(artifactsPath, "**/*.json"));
-  return getArtifactPathFromFiles(artifactsPath, name, files);
+  const fullyQualifiedName = `${globalName}:${contractName}`;
+  const artifactPath = getArtifactPathFromFullyQualifiedName(
+    artifactsPath,
+    fullyQualifiedName
+  );
+
+  return artifactPath;
 }
 
 /**
