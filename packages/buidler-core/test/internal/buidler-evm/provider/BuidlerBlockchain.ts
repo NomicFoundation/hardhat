@@ -9,13 +9,18 @@ import { PBlockchain } from "../../../../src/internal/buidler-evm/provider/types
 
 describe("BuidlerBlockchain", () => {
   let blockchain: PBlockchain;
+  let blocks: Block[];
 
-  function createBlock(number: BufferLike, stateRoot: Buffer = zeros(32)) {
-    return new Block({ header: { number, stateRoot } });
+  function createBlock(number: number, difficulty?: BufferLike) {
+    const parentHash = number === 0 ? zeros(32) : blocks[number - 1].hash();
+    const newBlock = new Block({ header: { number, difficulty, parentHash } });
+    blocks.push(newBlock);
+    return newBlock;
   }
 
   beforeEach(() => {
     blockchain = new BuidlerBlockchain().asPBlockchain();
+    blocks = [];
   });
 
   describe("getLatestBlock", () => {
@@ -31,8 +36,9 @@ describe("BuidlerBlockchain", () => {
 
   describe("getBlock", () => {
     it("can get existing block by hash", async () => {
-      await blockchain.putBlock(createBlock(0));
+      const genesis = createBlock(0);
       const one = createBlock(1);
+      await blockchain.putBlock(genesis);
       await blockchain.putBlock(one);
       assert.equal(await blockchain.getBlock(one.hash()), one);
     });
@@ -71,11 +77,33 @@ describe("BuidlerBlockchain", () => {
     });
 
     it("rejects blocks with invalid block number", async () => {
-      const block = createBlock(1);
+      const block = new Block({ header: { number: 1 } });
       await assert.isRejected(
         blockchain.putBlock(block),
         Error,
         "Invalid block number"
+      );
+    });
+
+    it("rejects genesis block with invalid parent hash", async () => {
+      const block = new Block({
+        header: { number: 0, parentHash: randomHashBuffer() },
+      });
+      await assert.isRejected(
+        blockchain.putBlock(block),
+        Error,
+        "Invalid parent hash"
+      );
+    });
+
+    it("rejects later block with invalid parent hash", async () => {
+      const genesis = createBlock(0);
+      await blockchain.putBlock(genesis);
+      const block = new Block({ header: { number: 1 } });
+      await assert.isRejected(
+        blockchain.putBlock(block),
+        Error,
+        "Invalid parent hash"
       );
     });
 
@@ -207,6 +235,37 @@ describe("BuidlerBlockchain", () => {
       const blockOne = createBlock(0);
       await blockchain.putBlock(blockOne);
       assert.doesNotThrow(() => blockchain.deleteAllFollowingBlocks(blockOne));
+    });
+  });
+
+  describe("getBlockTotalDifficulty", () => {
+    it("rejects when hash of non-existent block is given", async () => {
+      await assert.isRejected(
+        blockchain.getBlockTotalDifficulty(randomHashBuffer()),
+        Error,
+        "Block not found"
+      );
+    });
+
+    it("can get difficulty of the genesis block", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.putBlock(genesis);
+      const difficulty = await blockchain.getBlockTotalDifficulty(
+        genesis.hash()
+      );
+      assert.isTrue(difficulty.eqn(1000));
+    });
+
+    it("can get total difficulty of the second block", async () => {
+      const genesis = createBlock(0, 1000);
+      const second = createBlock(1, 2000);
+      await blockchain.putBlock(genesis);
+      await blockchain.putBlock(second);
+
+      const difficulty = await blockchain.getBlockTotalDifficulty(
+        second.hash()
+      );
+      assert.isTrue(difficulty.eqn(3000));
     });
   });
 });

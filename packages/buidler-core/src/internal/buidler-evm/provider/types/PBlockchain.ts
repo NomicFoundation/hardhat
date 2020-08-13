@@ -10,4 +10,5 @@ export interface PBlockchain {
   getDetails(_: string): Promise<void>;
   iterator(name: string, onBlock: any): Promise<void>;
   deleteAllFollowingBlocks(block: Block): void;
+  getBlockTotalDifficulty(blockHash: Buffer): Promise<BN>;
 }

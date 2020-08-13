@@ -76,6 +76,10 @@ export class ForkBlockchain implements PBlockchain {
     }
   }
 
+  public getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
+    throw new Error("not implemented");
+  }
+
   public asBlockchain(): Blockchain {
     return {
       getBlock: callbackify(this.getBlock.bind(this)),

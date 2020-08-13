@@ -1,4 +1,4 @@
-import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import { BN, bufferToHex, bufferToInt, zeros } from "ethereumjs-util";
 
 import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
@@ -6,9 +6,13 @@ import { Callback } from "./types/Callback";
 import { PBlockchain } from "./types/PBlockchain";
 import { promisify } from "./utils/promisify";
 
+// TODO: figure out what errors we wanna throw
+/* tslint:disable only-buidler-error */
+
 export class BuidlerBlockchain implements Blockchain {
   private readonly _blocks: Block[] = [];
   private readonly _blockNumberByHash: Map<string, number> = new Map();
+  private readonly _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
   public getLatestBlock(cb: Callback<Block>): void {
     if (this._blocks.length === 0) {
@@ -20,14 +24,20 @@ export class BuidlerBlockchain implements Blockchain {
 
   public putBlock(block: Block, cb: Callback<Block>): void {
     const blockNumber = bufferToInt(block.header.number);
+    const blockHash = bufferToHex(block.hash());
+    let totalDifficulty: BN;
 
-    if (this._blocks.length !== blockNumber) {
-      cb(new Error("Invalid block number"));
+    try {
+      this._validateBlock(block);
+      totalDifficulty = this._computeTotalDifficulty(block);
+    } catch (err) {
+      cb(err);
       return;
     }
 
     this._blocks.push(block);
-    this._blockNumberByHash.set(bufferToHex(block.hash()), blockNumber);
+    this._blockNumberByHash.set(blockHash, blockNumber);
+    this._blockHashToTotalDifficulty.set(blockHash, totalDifficulty);
 
     cb(null, block);
   }
@@ -117,6 +127,17 @@ export class BuidlerBlockchain implements Blockchain {
     this._blocks.splice(blockNumber + 1);
   }
 
+  public async getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
+    const totalDifficulty = this._blockHashToTotalDifficulty.get(
+      bufferToHex(blockHash)
+    );
+    if (totalDifficulty === undefined) {
+      throw new Error("Block not found");
+    }
+
+    return totalDifficulty;
+  }
+
   public asPBlockchain(): PBlockchain {
     return {
       getBlock: promisify(this.getBlock.bind(this)),
@@ -126,6 +147,37 @@ export class BuidlerBlockchain implements Blockchain {
       getDetails: promisify(this.getDetails.bind(this)),
       iterator: promisify(this.iterator.bind(this)),
       deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this),
+      getBlockTotalDifficulty: this.getBlockTotalDifficulty.bind(this),
     };
+  }
+
+  private _validateBlock(block: Block) {
+    const blockNumber = bufferToInt(block.header.number);
+    const parentHash = block.header.parentHash;
+
+    if (this._blocks.length !== blockNumber) {
+      throw new Error("Invalid block number");
+    }
+    if (
+      (blockNumber === 0 && !parentHash.equals(zeros(32))) ||
+      (blockNumber > 0 &&
+        !parentHash.equals(this._blocks[blockNumber - 1].hash()))
+    ) {
+      throw new Error("Invalid parent hash");
+    }
+  }
+
+  private _computeTotalDifficulty(block: Block): BN {
+    const difficulty = new BN(block.header.difficulty);
+    if (block.header.parentHash.equals(zeros(32))) {
+      return difficulty;
+    }
+
+    const parentHash = bufferToHex(block.header.parentHash);
+    const parentTD = this._blockHashToTotalDifficulty.get(parentHash);
+    if (parentTD === undefined) {
+      throw new Error("This should never happen");
+    }
+    return parentTD.add(difficulty);
   }
 }
