@@ -43,11 +43,7 @@ import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { BuidlerBlockchain } from "./BuidlerBlockchain";
-import {
-  InternalError,
-  InvalidInputError,
-  TransactionExecutionError,
-} from "./errors";
+import { InvalidInputError, TransactionExecutionError } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -63,6 +59,7 @@ import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
 import { Block } from "./types/Block";
 import { PBlockchain } from "./types/PBlockchain";
 import { PStateManager } from "./types/PStateManager";
+import { addGenesisBlock } from "./utils/addGenesisBlock";
 import { asBlockchain } from "./utils/asBlockchain";
 import { asPBlockchain } from "./utils/asPBlockchain";
 import { asPStateManager } from "./utils/asPStateManager";
@@ -71,7 +68,6 @@ import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
-import { makeGenesisBlock } from "./utils/makeGenesisBlock";
 import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisAccounts } from "./utils/putGenesisAccounts";
 
@@ -107,7 +103,6 @@ export class BuidlerNode extends EventEmitter {
     let common;
     let stateManager: StateManager | ForkStateManager;
     let blockchain: BuidlerBlockchain | ForkBlockchain;
-    let genesisBlock;
 
     if (forkConfig !== undefined) {
       ({ forkClient, forkBlockNumber } = await makeForkClient(forkConfig));
@@ -136,7 +131,7 @@ export class BuidlerNode extends EventEmitter {
 
       blockchain = new BuidlerBlockchain();
     }
-    genesisBlock = await makeGenesisBlock(blockchain, common);
+    await addGenesisBlock(blockchain, common);
 
     const vm = new VM({
       common,
@@ -152,7 +147,6 @@ export class BuidlerNode extends EventEmitter {
       asPBlockchain(blockchain),
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
-      genesisBlock,
       solidityVersion,
       initialDate,
       compilerInput,
@@ -173,7 +167,6 @@ export class BuidlerNode extends EventEmitter {
   private _transactionByHash: Map<string, Transaction> = new Map();
   private _transactionHashToBlockHash: Map<string, string> = new Map();
   private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
-  private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -193,7 +186,6 @@ export class BuidlerNode extends EventEmitter {
     private readonly _blockchain: PBlockchain,
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
-    genesisBlock: Block,
     solidityVersion?: string,
     initialDate?: Date,
     compilerInput?: CompilerInput,
@@ -205,11 +197,6 @@ export class BuidlerNode extends EventEmitter {
 
     this._common = this._vm._common;
     this._initLocalAccounts(localAccounts);
-
-    this._blockHashToTotalDifficulty.set(
-      bufferToHex(genesisBlock.hash()),
-      this._computeTotalDifficulty(genesisBlock)
-    );
 
     this._vmTracer = new VMTracer(this._vm, true);
     this._vmTracer.enableTracing();
@@ -616,14 +603,7 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getBlockTotalDifficulty(block: Block): Promise<BN> {
-    const blockHash = bufferToHex(block.hash());
-    const td = this._blockHashToTotalDifficulty.get(blockHash);
-
-    if (td !== undefined) {
-      return td;
-    }
-
-    return this._computeTotalDifficulty(block);
+    return this._blockchain.getBlockTotalDifficulty(block.hash());
   }
 
   public async getCode(
@@ -712,9 +692,6 @@ export class BuidlerNode extends EventEmitter {
       blockHashToTxBlockResults: new Map(
         this._blockHashToTxBlockResults.entries()
       ),
-      blockHashToTotalDifficulty: new Map(
-        this._blockHashToTotalDifficulty.entries()
-      ),
     };
 
     this._snapshots.push(snapshot);
@@ -752,7 +729,6 @@ export class BuidlerNode extends EventEmitter {
     this._transactionByHash = snapshot.transactionByHash;
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
-    this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1210,9 +1186,7 @@ export class BuidlerNode extends EventEmitter {
     const blockHash = bufferToHex(block.hash());
     this._blockHashToTxBlockResults.set(blockHash, txBlockResults);
 
-    const td = this._computeTotalDifficulty(block);
-    this._blockHashToTotalDifficulty.set(blockHash, td);
-
+    const td = await this.getBlockTotalDifficulty(block);
     const rpcLogs: RpcLogOutput[] = [];
     for (const receipt of runBlockResult.receipts) {
       rpcLogs.push(...receipt.logs);
@@ -1258,18 +1232,6 @@ export class BuidlerNode extends EventEmitter {
           break;
       }
     });
-  }
-
-  private async _hasBlockWithHash(blockHash: Buffer): Promise<boolean> {
-    if (this._blockHashToTotalDifficulty.has(bufferToHex(blockHash))) {
-      return true;
-    }
-
-    const block = await this.getBlockByNumber(new BN(0));
-    if (block === undefined) {
-      return false;
-    }
-    return block.hash().equals(blockHash);
   }
 
   private async _saveTransactionAsSuccessfullyRun(
@@ -1354,26 +1316,6 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${this._blockGasLimit}`
       );
     }
-  }
-
-  private _computeTotalDifficulty(block: Block): BN {
-    const difficulty = new BN(block.header.difficulty);
-
-    const parentHash = bufferToHex(block.header.parentHash);
-    if (
-      parentHash ===
-      "0x0000000000000000000000000000000000000000000000000000000000000000"
-    ) {
-      return difficulty;
-    }
-
-    const parentTd = this._blockHashToTotalDifficulty.get(parentHash);
-
-    if (parentTd === undefined) {
-      throw new InternalError(`Unrecognized parent block ${parentHash}`);
-    }
-
-    return parentTd.add(difficulty);
   }
 
   private async _runOnBlockContext<T>(

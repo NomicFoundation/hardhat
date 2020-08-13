@@ -66,5 +66,4 @@ export interface Snapshot {
   transactionByHash: Map<string, Transaction>;
   transactionHashToBlockHash: Map<string, string>;
   blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
-  blockHashToTotalDifficulty: Map<string, BN>;
 }

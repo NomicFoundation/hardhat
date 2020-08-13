@@ -4,7 +4,7 @@ import { BuidlerBlockchain } from "../BuidlerBlockchain";
 import { ForkBlockchain } from "../fork/ForkBlockchain";
 import { Block } from "../types/Block";
 
-export async function makeGenesisBlock(
+export async function addGenesisBlock(
   blockchain: BuidlerBlockchain | ForkBlockchain,
   common: Common
 ) {
@@ -13,7 +13,8 @@ export async function makeGenesisBlock(
 
   if (blockchain instanceof BuidlerBlockchain) {
     await blockchain.asPBlockchain().putBlock(genesisBlock);
+  } else {
+    // TODO: make ForkBlockchain support adding genesis block
+    // await blockchain.putBlock(genesisBlock);
   }
-
-  return genesisBlock;
 }
