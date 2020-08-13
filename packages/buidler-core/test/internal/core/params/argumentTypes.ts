@@ -304,4 +304,19 @@ describe("argumentTypes", () => {
       assert.throws(() => types.json.validate!("json", undefined));
     });
   });
+
+  describe("any type", () => {
+    it("Should not be a CLI argument type", () => {
+      assert.isUndefined((types.any as any).parse);
+    });
+
+    it("Should accept anything", () => {
+      assert.doesNotThrow(() => types.any.validate("a", "as"));
+      assert.doesNotThrow(() => types.any.validate("a", undefined));
+      assert.doesNotThrow(() => types.any.validate("a", null));
+      assert.doesNotThrow(() => types.any.validate("a", []));
+      assert.doesNotThrow(() => types.any.validate("a", {}));
+      assert.doesNotThrow(() => types.any.validate("a", function () {}));
+    });
+  });
 });
