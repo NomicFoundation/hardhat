@@ -1,6 +1,11 @@
 import { assert } from "chai";
 import Account from "ethereumjs-account";
-import { BN, keccak256, KECCAK256_NULL_S } from "ethereumjs-util";
+import {
+  BN,
+  keccak256,
+  KECCAK256_NULL,
+  KECCAK256_NULL_S,
+} from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import {
@@ -108,7 +113,7 @@ describe("ForkStateManager", () => {
   });
 
   describe("putAccount", () => {
-    it("can change balance and nonce", async () => {
+    it("can create a new account", async () => {
       const address = randomAddressBuffer();
       const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
       await fsm.putAccount(address, toPut);
@@ -116,6 +121,33 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(new BN(account.nonce).eqn(69));
       assert.isTrue(new BN(account.balance).eqn(420));
+      assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
+    });
+
+    it("can change balance and nonce", async () => {
+      const account = await fsm.getAccount(WETH_ADDRESS);
+      const increasedNonce = new BN(account.nonce).addn(1);
+      const increasedBalance = new BN(account.balance).addn(1);
+      await fsm.putAccount(
+        WETH_ADDRESS,
+        new Account({
+          nonce: increasedNonce,
+          balance: increasedBalance,
+          codeHash: account.codeHash,
+        })
+      );
+      const updatedAccount = await fsm.getAccount(WETH_ADDRESS);
+      assert.isTrue(new BN(updatedAccount.nonce).eq(increasedNonce));
+      assert.isTrue(new BN(updatedAccount.balance).eq(increasedBalance));
+      assert.isTrue(updatedAccount.codeHash.equals(account.codeHash));
+    });
+
+    it("can change the code stored if the codeHash is the hash of null", async () => {
+      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      await fsm.putAccount(WETH_ADDRESS, toPut);
+
+      const wethContract = await fsm.getAccount(WETH_ADDRESS);
+      assert.isTrue(wethContract.codeHash.equals(KECCAK256_NULL));
     });
   });
 

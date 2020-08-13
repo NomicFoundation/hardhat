@@ -1,5 +1,11 @@
 import Account from "ethereumjs-account";
-import { BN, keccak256, KECCAK256_NULL_S, stripZeros } from "ethereumjs-util";
+import {
+  BN,
+  keccak256,
+  KECCAK256_NULL,
+  KECCAK256_NULL_S,
+  stripZeros,
+} from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
@@ -76,13 +82,19 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async putAccount(address: Buffer, account: Account): Promise<void> {
-    // Because the vm only ever modifies the nonce and the balance using this
-    // method we ignore the other properties
+    // Because the vm only ever modifies the nonce, balance and codeHash using this
+    // method we ignore the stateRoot property
     const hexAddress = address.toString("hex");
     let localAccount = this._state.get(hexAddress) ?? makeAccountState();
     localAccount = localAccount
       .set("nonce", account.nonce.toString("hex"))
       .set("balance", account.balance.toString("hex"));
+
+    // Code is set to empty string here to prevent unnecessary
+    // JsonRpcClient.getCode calls in getAccount method
+    if (account.codeHash.equals(KECCAK256_NULL)) {
+      localAccount = localAccount.set("code", "");
+    }
     this._state = this._state.set(hexAddress, localAccount);
   }
 
