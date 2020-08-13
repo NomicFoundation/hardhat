@@ -81,19 +81,17 @@ describe("ForkStateManager", () => {
     it("works with accounts created locally", async () => {
       const address = randomAddressBuffer();
       const code = Buffer.from("b16b00b1e5", "hex");
+      const codeHash = keccak256(code);
       await fsm.putContractCode(address, code);
       await fsm.putAccount(
         address,
-        new Account({ nonce: new BN(1), balance: new BN(2) })
+        new Account({ nonce: new BN(1), balance: new BN(2), codeHash })
       );
 
       const account = await fsm.getAccount(address);
       assert.isTrue(new BN(account.nonce).eqn(1));
       assert.isTrue(new BN(account.balance).eqn(2));
-      assert.equal(
-        account.codeHash.toString("hex"),
-        keccak256(code).toString("hex")
-      );
+      assert.equal(account.codeHash.toString("hex"), codeHash.toString("hex"));
       assert.notEqual(account.stateRoot.toString("hex"), "");
     });
 
@@ -210,6 +208,17 @@ describe("ForkStateManager", () => {
 
       assert.equal(fsmCode.toString("hex"), code.toString("hex"));
     });
+
+    it("can set code of an existing account", async () => {
+      const address = randomAddressBuffer();
+      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      await fsm.putAccount(address, toPut);
+
+      const code = Buffer.from("feedface", "hex");
+      await fsm.putContractCode(address, code);
+      const fsmCode = await fsm.getContractCode(address);
+      assert.equal(fsmCode.toString("hex"), code.toString("hex"));
+    });
   });
 
   describe("getContractStorage", () => {
@@ -304,6 +313,17 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
+      assert.equal(fsmValue.toString("hex"), value.toString("hex"));
+    });
+
+    it("can set storage value of an existing account", async () => {
+      const address = randomAddressBuffer();
+      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      await fsm.putAccount(address, toPut);
+
+      const value = Buffer.from("feedface", "hex");
+      await fsm.putContractStorage(address, Buffer.from([1]), value);
+      const fsmValue = await fsm.getContractStorage(address, Buffer.from([1]));
       assert.equal(fsmValue.toString("hex"), value.toString("hex"));
     });
   });
