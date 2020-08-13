@@ -43,20 +43,12 @@ export class BuidlerBlockchain implements Blockchain {
   }
 
   public delBlock(blockHash: Buffer, cb: Callback): void {
-    const blockNumber = this._blockHashToNumber.get(bufferToHex(blockHash));
-
-    if (blockNumber === undefined) {
-      cb(new Error("Block not found"));
+    try {
+      this._delBlock(blockHash);
+    } catch (err) {
+      cb(err);
       return;
     }
-
-    for (let n = blockNumber; n < this._blocks.length; n++) {
-      const block = this._blocks[n];
-
-      this._blockHashToNumber.delete(bufferToHex(block.hash()));
-    }
-
-    this._blocks.splice(blockNumber);
     cb(null);
   }
 
@@ -115,16 +107,13 @@ export class BuidlerBlockchain implements Blockchain {
     const actualBlock = this._blocks[blockNumber];
 
     if (actualBlock === undefined || !block.hash().equals(actualBlock.hash())) {
-      // tslint:disable-next-line only-buidler-error
       throw new Error("Invalid block");
     }
 
-    for (let i = blockNumber + 1; i < this._blocks.length; i++) {
-      const blockToDelete = this._blocks[i];
-      this._blockHashToNumber.delete(bufferToHex(blockToDelete.hash()));
+    const nextBlock = this._blocks[blockNumber + 1];
+    if (nextBlock !== undefined) {
+      this._delBlock(nextBlock.hash());
     }
-
-    this._blocks.splice(blockNumber + 1);
   }
 
   public async getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
@@ -179,5 +168,18 @@ export class BuidlerBlockchain implements Blockchain {
       throw new Error("This should never happen");
     }
     return parentTD.add(difficulty);
+  }
+
+  private _delBlock(blockHash: Buffer): void {
+    const blockNumber = this._blockHashToNumber.get(bufferToHex(blockHash));
+    if (blockNumber === undefined) {
+      throw new Error("Block not found");
+    }
+
+    for (let i = blockNumber; i < this._blocks.length; i++) {
+      const block = this._blocks[i];
+      this._blockHashToNumber.delete(bufferToHex(block.hash()));
+    }
+    this._blocks.splice(blockNumber);
   }
 }
