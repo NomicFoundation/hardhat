@@ -177,7 +177,7 @@ describe("BuidlerBlockchain", () => {
       assert.equal(await blockchain.getBlock(otherBlock.hash()), otherBlock);
     });
 
-    it("throws when hash of non-existent block is given", async () => {
+    it("throws when hash if non-existent block is given", async () => {
       const block = createBlock(0);
       await assert.isRejected(
         blockchain.delBlock(block.hash()),
@@ -253,7 +253,7 @@ describe("BuidlerBlockchain", () => {
       const difficulty = await blockchain.getBlockTotalDifficulty(
         genesis.hash()
       );
-      assert.isTrue(difficulty.eqn(1000));
+      assert.equal(difficulty.toNumber(), 1000);
     });
 
     it("can get total difficulty of the second block", async () => {
@@ -265,7 +265,27 @@ describe("BuidlerBlockchain", () => {
       const difficulty = await blockchain.getBlockTotalDifficulty(
         second.hash()
       );
-      assert.isTrue(difficulty.eqn(3000));
+      assert.equal(difficulty.toNumber(), 3000);
+    });
+
+    it("does not return total difficulty of a deleted block", async () => {
+      const blockOne = createBlock(0, 1000);
+      const blockTwo = createBlock(1, 2000);
+
+      await blockchain.putBlock(blockOne);
+      await blockchain.putBlock(blockTwo);
+
+      blockchain.deleteAllFollowingBlocks(blockOne);
+
+      assert.equal(
+        (await blockchain.getBlockTotalDifficulty(blockOne.hash())).toNumber(),
+        1000
+      );
+      await assert.isRejected(
+        blockchain.getBlockTotalDifficulty(blockTwo.hash()),
+        Error,
+        "Block not found"
+      );
     });
   });
 });

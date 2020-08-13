@@ -179,6 +179,7 @@ export class BuidlerBlockchain implements Blockchain {
     for (let i = blockNumber; i < this._blocks.length; i++) {
       const block = this._blocks[i];
       this._blockHashToNumber.delete(bufferToHex(block.hash()));
+      this._blockHashToTotalDifficulty.delete(bufferToHex(block.hash()));
     }
     this._blocks.splice(blockNumber);
   }
