@@ -5,6 +5,7 @@ import * as path from "path";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import * as types from "../../../../src/internal/core/params/argumentTypes";
+import { ArgumentType } from "../../../../src/types";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 function a(f: () => any) {
@@ -15,7 +16,7 @@ describe("argumentTypes", () => {
   it("should set the right name to all the argument types", () => {
     for (const typeName of Object.keys(types)) {
       const argumentTypesMap: {
-        [name: string]: types.ArgumentType<any>;
+        [name: string]: ArgumentType<any>;
       } = types;
       assert.equal(argumentTypesMap[typeName].name, typeName);
     }

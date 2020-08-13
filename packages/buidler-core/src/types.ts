@@ -119,6 +119,8 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
 
 // End config types
 
+// TODO-HH: Maybe we shouldn't place this here, as it will be possible to modify
+//  the solc input with an override, and the type can easily get incompatible.
 export interface SolcInput {
   settings: {
     metadata: { useLiteralContent: boolean };
@@ -156,8 +158,41 @@ export type BoundExperimentalBuidlerEVMMessageTraceHook = (
   isMessageTraceFromACall: boolean
 ) => Promise<void>;
 
-export interface TasksMap {
-  [name: string]: TaskDefinition;
+/**
+ * This class is used to dynamically validate task's argument types.
+ */
+export interface ArgumentType<T> {
+  /**
+   * The type's name.
+   */
+  name: string;
+
+  /**
+   * Check if argument value is of type <T>.
+   *
+   * @param argName {string} argument's name - used for context in case of error.
+   * @param argumentValue - value to be validated
+   *
+   * @throws BDLR301 if value is not of type <t>
+   */
+  validate(argName: string, argumentValue: any): void;
+}
+
+/**
+ * This is a special case of ArgumentType.
+ *
+ * These types must have a human-friendly string representation, so that they
+ * can be used as command line arguments.
+ */
+export interface CLIArgumentType<T> extends ArgumentType<T> {
+  /**
+   * Parses strValue into T. This function MUST throw BDLR301 if it
+   * can parse the given value.
+   *
+   * @param argName argument's name - used for context in case of error.
+   * @param strValue argument's string value to be parsed.
+   */
+  parse(argName: string, strValue: string): T;
 }
 
 export interface ConfigurableTaskDefinition {
@@ -169,7 +204,7 @@ export interface ConfigurableTaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: types.ArgumentType<T>,
+    type?: ArgumentType<T>,
     isOptional?: boolean
   ): this;
 
@@ -177,14 +212,14 @@ export interface ConfigurableTaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: types.ArgumentType<T>
+    type?: ArgumentType<T>
   ): this;
 
   addPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: types.ArgumentType<T>,
+    type?: ArgumentType<T>,
     isOptional?: boolean
   ): this;
 
@@ -192,14 +227,14 @@ export interface ConfigurableTaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T,
-    type?: types.ArgumentType<T>
+    type?: ArgumentType<T>
   ): this;
 
   addVariadicPositionalParam<T>(
     name: string,
     description?: string,
     defaultValue?: T[],
-    type?: types.ArgumentType<T>,
+    type?: ArgumentType<T>,
     isOptional?: boolean
   ): this;
 
@@ -207,7 +242,7 @@ export interface ConfigurableTaskDefinition {
     name: string,
     description?: string,
     defaultValue?: T[],
-    type?: types.ArgumentType<T>
+    type?: ArgumentType<T>
   ): this;
 
   addFlag(name: string, description?: string): this;
@@ -216,7 +251,7 @@ export interface ConfigurableTaskDefinition {
 export interface ParamDefinition<T> {
   name: string;
   defaultValue?: T;
-  type: types.ArgumentType<T>;
+  type: ArgumentType<T>;
   description?: string;
   isOptional: boolean;
   isFlag: boolean;
@@ -228,35 +263,14 @@ export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
   isOptional: true;
 }
 
+export interface CLIOptionalParamDefinition<T>
+  extends OptionalParamDefinition<T> {
+  type: CLIArgumentType<T>;
+}
+
 export interface ParamDefinitionsMap {
   [paramName: string]: ParamDefinition<any>;
 }
-
-/**
- * Buidler arguments:
- * * network: the network to be used.
- * * showStackTraces: flag to show stack traces.
- * * version: flag to show buidler's version.
- * * help: flag to show buidler's help message.
- * * emoji:
- * * config: used to specify buidler's config file.
- */
-export interface BuidlerArguments {
-  network?: string;
-  showStackTraces: boolean;
-  version: boolean;
-  help: boolean;
-  emoji: boolean;
-  config?: string;
-  verbose: boolean;
-  maxMemory?: number;
-}
-
-export type BuidlerParamDefinitions = {
-  [param in keyof Required<BuidlerArguments>]: OptionalParamDefinition<
-    BuidlerArguments[param]
-  >;
-};
 
 export interface TaskDefinition extends ConfigurableTaskDefinition {
   readonly name: string;
@@ -287,11 +301,6 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
  */
 export type TaskArguments = any;
 
-export type RunTaskFunction = (
-  name: string,
-  taskArguments?: TaskArguments
-) => Promise<any>;
-
 export interface RunSuperFunction<ArgT extends TaskArguments> {
   (taskArguments?: ArgT): Promise<any>;
   isDefined: boolean;
@@ -302,6 +311,8 @@ export type ActionType<ArgsT extends TaskArguments> = (
   env: BuidlerRuntimeEnvironment,
   runSuper: RunSuperFunction<ArgsT>
 ) => Promise<any>;
+
+// Network types
 
 export interface EthereumProvider extends EventEmitter {
   send(method: string, params?: any[]): Promise<any>;
@@ -316,14 +327,7 @@ export interface Network {
   provider: EthereumProvider;
 }
 
-export interface BuidlerRuntimeEnvironment {
-  readonly config: ResolvedBuidlerConfig;
-  readonly buidlerArguments: BuidlerArguments;
-  readonly tasks: TasksMap;
-  readonly run: RunTaskFunction;
-  readonly network: Network;
-  readonly ethereum: EthereumProvider; // DEPRECATED: Use network.provider
-}
+// Artifact types
 
 export interface Artifact {
   contractName: string;
@@ -338,4 +342,50 @@ export interface LinkReferences {
   [libraryFileName: string]: {
     [libraryName: string]: Array<{ length: number; start: number }>;
   };
+}
+
+// Buidler Runtime Environment types
+
+/**
+ * Buidler arguments:
+ * * network: the network to be used.
+ * * showStackTraces: flag to show stack traces.
+ * * version: flag to show buidler's version.
+ * * help: flag to show buidler's help message.
+ * * emoji:
+ * * config: used to specify buidler's config file.
+ */
+export interface BuidlerArguments {
+  network?: string;
+  showStackTraces: boolean;
+  version: boolean;
+  help: boolean;
+  emoji: boolean;
+  config?: string;
+  verbose: boolean;
+  maxMemory?: number;
+}
+
+export type BuidlerParamDefinitions = {
+  [param in keyof Required<BuidlerArguments>]: CLIOptionalParamDefinition<
+    BuidlerArguments[param]
+  >;
+};
+
+export interface TasksMap {
+  [name: string]: TaskDefinition;
+}
+
+export type RunTaskFunction = (
+  name: string,
+  taskArguments?: TaskArguments
+) => Promise<any>;
+
+export interface BuidlerRuntimeEnvironment {
+  readonly config: ResolvedBuidlerConfig;
+  readonly buidlerArguments: BuidlerArguments;
+  readonly tasks: TasksMap;
+  readonly run: RunTaskFunction;
+  readonly network: Network;
+  readonly ethereum: EthereumProvider; // DEPRECATED: Use network.provider
 }

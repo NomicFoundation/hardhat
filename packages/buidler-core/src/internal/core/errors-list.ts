@@ -341,43 +341,6 @@ Please double check your task definitions.`,
 Please, double check your task definitions.`,
       shouldBeReported: false,
     },
-    OVERRIDE_NO_MANDATORY_PARAMS: {
-      number: 210,
-      message:
-        "Redefinition of task %taskName% failed. Unsupported operation adding mandatory (non optional) param definitions in an overridden task.",
-      title: "Attempted to add mandatory params to an overridden task",
-      description: `You can't add mandatory (non optional) param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
-and optional params.
-
-Please, double check your task definitions.`,
-      shouldBeReported: false,
-    },
-    OVERRIDE_NO_POSITIONAL_PARAMS: {
-      number: 211,
-      message:
-        "Redefinition of task %taskName% failed. Unsupported operation adding positional param definitions in an overridden task.",
-      title: "Attempted to add positional params to an overridden task",
-      description: `You can't add positional param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
-and optional params.
-
-Please, double check your task definitions.`,
-      shouldBeReported: false,
-    },
-    OVERRIDE_NO_VARIADIC_PARAMS: {
-      number: 212,
-      message:
-        "Redefinition of task %taskName% failed. Unsupported operation adding variadic param definitions in an overridden task.",
-      title: "Attempted to add variadic params to an overridden task",
-      description: `You can't add variadic param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
-and optional params.
-
-Please, double check your task definitions.`,
-      shouldBeReported: false,
-    },
-
     ACTION_NOT_SET: {
       number: 205,
       message: "No action set for task %taskName%.",
@@ -425,6 +388,52 @@ Please double check your task definitions.`,
       description: `Your parameter names must use camelCase.  
 
 Please double check your task definitions.`,
+      shouldBeReported: false,
+    },
+    OVERRIDE_NO_MANDATORY_PARAMS: {
+      number: 210,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding mandatory (non optional) param definitions in an overridden task.",
+      title: "Attempted to add mandatory params to an overridden task",
+      description: `You can't add mandatory (non optional) param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`,
+      shouldBeReported: false,
+    },
+    OVERRIDE_NO_POSITIONAL_PARAMS: {
+      number: 211,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding positional param definitions in an overridden task.",
+      title: "Attempted to add positional params to an overridden task",
+      description: `You can't add positional param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`,
+      shouldBeReported: false,
+    },
+    OVERRIDE_NO_VARIADIC_PARAMS: {
+      number: 212,
+      message:
+        "Redefinition of task %taskName% failed. Unsupported operation adding variadic param definitions in an overridden task.",
+      title: "Attempted to add variadic params to an overridden task",
+      description: `You can't add variadic param definitions in an overridden task.
+The only supported param additions for overridden tasks are flags,
+and optional params.
+
+Please, double check your task definitions.`,
+      shouldBeReported: false,
+    },
+    CLI_ARGUMENT_TYPE_REQUIRED: {
+      number: 213,
+      title: "Invalid argument type",
+      message:
+        "Task %task% is not internal but one of arguments use the type %type%, which is not parseable.",
+      description: `Tasks that can be invoked from the command line require CLIArgumentType types for their arguments.
+      
+What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
       shouldBeReported: false,
     },
   },
@@ -540,6 +549,15 @@ Please double check how you invoked Buidler.`,
       description: `You tried to run a task with an invalid JSON parameter. 
 
 Please double check how you invoked Buidler or run your task.`,
+      shouldBeReported: false,
+    },
+    RUNNING_INTERNAL_TASK_FROM_CLI: {
+      number: 312,
+      title: "Internal task run from the command line",
+      message: "Trying to run the %name% internal task from the CLI",
+      description: `You tried to run an internal task from the command line.
+      
+This is not supported. Please run the help task to see the available options.`,
       shouldBeReported: false,
     },
   },
