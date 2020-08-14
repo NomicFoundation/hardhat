@@ -420,7 +420,7 @@ Please, double check your task definitions.`,
       number: 213,
       title: "Invalid argument type",
       message:
-        "Task %task% is not internal but one of arguments use the type %type%, which is not parseable.",
+        "Task %task% is not internal but one of its arguments uses the type %type%, which is not parseable.",
       description: `Tasks that can be invoked from the command line require CLIArgumentType types for their arguments.
       
 What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
