@@ -366,5 +366,6 @@ export interface BuidlerRuntimeEnvironment {
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
   readonly network: Network;
+  // TODO-HH: Remove this deprectaed field
   readonly ethereum: EthereumProvider; // DEPRECATED: Use network.provider
 }
