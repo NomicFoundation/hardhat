@@ -15,7 +15,11 @@ import {
 import { task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
-import { createCompilationGroups } from "../internal/solidity/compilationGroup";
+import {
+  CompilationGroupsFailure,
+  createCompilationGroups,
+  isCompilationGroupsFailure,
+} from "../internal/solidity/compilationGroup";
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
@@ -97,19 +101,17 @@ export default function () {
         force
       );
 
-      if (compilationGroupsResult.isLeft()) {
-        const nonCompilableFiles = compilationGroupsResult.value
-          .map((x) => x.absolutePath)
-          .join(", ");
+      if (isCompilationGroupsFailure(compilationGroupsResult)) {
+        const errorMessage = buildCompilationGroupsFailureMessage(
+          compilationGroupsResult
+        );
 
         // TODO throw a BuidlerError and show a better error message
         // tslint:disable only-buidler-error
-        throw new Error(
-          `Some files didn't match any compiler: ${nonCompilableFiles}`
-        );
+        throw new Error(errorMessage);
       }
 
-      const compilationGroups = compilationGroupsResult.value;
+      const compilationGroups = compilationGroupsResult.groups;
       const newSolidityFilesCache = cloneDeep(solidityFilesCache);
 
       for (const compilationGroup of compilationGroups) {
@@ -276,4 +278,43 @@ function invalidateCacheMissingArtifacts(
   });
 
   return solidityFilesCache;
+}
+
+function buildCompilationGroupsFailureMessage(
+  compilationGroupsFailure: CompilationGroupsFailure
+): string {
+  let errorMessage = "The project couldn't be compiled, see reasons below.\n\n";
+  if (compilationGroupsFailure.nonCompilableOverriden.length > 0) {
+    errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
+
+${compilationGroupsFailure.nonCompilableOverriden
+  .map((x) => `* ${x}`)
+  .join("\n")}
+
+`;
+  }
+  if (compilationGroupsFailure.nonCompilable.length > 0) {
+    errorMessage += `These files don't match any compiler in your config:
+
+${compilationGroupsFailure.nonCompilable.map((x) => `* ${x}`).join("\n")}
+
+`;
+  }
+  if (compilationGroupsFailure.importsIncompatibleFile.length > 0) {
+    errorMessage += `These files have imports with incompatible pragmas:
+
+${compilationGroupsFailure.importsIncompatibleFile
+  .map((x) => `* ${x}`)
+  .join("\n")}
+
+`;
+  }
+  if (compilationGroupsFailure.other.length > 0) {
+    errorMessage += `These files and its dependencies cannot be compiled with your config:
+
+${compilationGroupsFailure.other.map((x) => `* ${x}`).join("\n")}
+
+`;
+  }
+  return errorMessage;
 }

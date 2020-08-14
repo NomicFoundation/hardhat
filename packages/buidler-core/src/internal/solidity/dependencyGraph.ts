@@ -43,6 +43,13 @@ export class DependencyGraph {
     ).map(([key, value]) => [this._resolvedFiles.get(key)!, value]);
   }
 
+  public getDependencies(file: ResolvedFile): ResolvedFile[] {
+    const dependencies =
+      this._dependenciesPerFile.get(file.globalName) ?? new Set();
+
+    return [...dependencies];
+  }
+
   public getTransitiveDependencies(file: ResolvedFile): ResolvedFile[] {
     const visited = new Set<ResolvedFile>();
 
@@ -63,10 +70,8 @@ export class DependencyGraph {
     }
     visited.add(file);
 
-    const directDependencies = this._dependenciesPerFile.get(file.globalName);
-    const transitiveDependencies = new Set<ResolvedFile>(
-      directDependencies ?? []
-    );
+    const directDependencies = this.getDependencies(file);
+    const transitiveDependencies = new Set<ResolvedFile>(directDependencies);
 
     for (const transitiveDependency of transitiveDependencies) {
       this._getTransitiveDependencies(

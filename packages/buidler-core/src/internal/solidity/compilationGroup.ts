@@ -1,10 +1,9 @@
-import { either } from "fp-ts";
-import { flatten, isEqual } from "lodash";
-import semver from "semver";
+import { isEqual } from "lodash";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 import { MultiSolcConfig, SolcConfig } from "../../types";
 
+import { getMatchingCompilerConfig } from "./compilerMatch";
 import { DependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
@@ -78,41 +77,6 @@ function hasChangedSinceLastCompilation(
 }
 
 /**
- * Return the compiler config that matches the given version ranges,
- * or null if none match
- */
-function getMatchingCompilerConfig(
-  file: ResolvedFile,
-  versionPragmas: string[],
-  solidityConfig: MultiSolcConfig
-): SolcConfig | null {
-  const versionRange = [...new Set(versionPragmas)].join(" ");
-
-  const overrides = solidityConfig.overrides ?? {};
-
-  const overriddenCompiler = overrides[file.globalName];
-
-  // if there's an override, we only check that
-  if (overriddenCompiler !== undefined) {
-    if (!semver.satisfies(overriddenCompiler.version, versionRange)) {
-      return null;
-    }
-
-    return overriddenCompiler;
-  }
-
-  // if there's no override, we find a compiler that matches the version range
-  const compilerVersions = solidityConfig.compilers.map((x) => x.version);
-  const matchingVersion = semver.maxSatisfying(compilerVersions, versionRange);
-
-  if (matchingVersion === null) {
-    return null;
-  }
-
-  return solidityConfig.compilers.find((x) => x.version === matchingVersion)!;
-}
-
-/**
  * Map solc configurations to compilation groups. Keys are deeply compared for
  * equality. Implementation is quadratic, but the number of compilers +
  * overrides shouldn't be huge.
@@ -152,16 +116,43 @@ class CompilationGroupMap {
   }
 }
 
+interface CompilationGroupsSuccess {
+  groups: CompilationGroup[];
+}
+
+export interface CompilationGroupsFailure {
+  nonCompilable: string[];
+  nonCompilableOverriden: string[];
+  importsIncompatibleFile: string[];
+  other: string[];
+}
+
+export function isCompilationGroupsSuccess(
+  result: CompilationGroupsResult
+): result is CompilationGroupsSuccess {
+  return "groups" in result;
+}
+
+export function isCompilationGroupsFailure(
+  result: CompilationGroupsResult
+): result is CompilationGroupsFailure {
+  return !isCompilationGroupsSuccess(result);
+}
+
+export type CompilationGroupsResult =
+  | CompilationGroupsSuccess
+  | CompilationGroupsFailure;
+
 /**
- * Creates a list of compilation groups. Returns an either that has the list of
- * compilation groups on success, and a list of non-compilable files on failure.
+ * Creates a list of compilation groups. Returns the list of compilation groups
+ * on success, and a list of non-compilable files on failure.
  */
 export function createCompilationGroups(
   dependencyGraph: DependencyGraph,
   solidityConfig: MultiSolcConfig,
   solidityFilesCache: SolidityFilesCache,
   force: boolean
-): either.Either<ResolvedFile[], CompilationGroup[]> {
+): CompilationGroupsResult {
   const overrides = solidityConfig.overrides ?? {};
   const compilationGroupMap = new CompilationGroupMap();
 
@@ -174,27 +165,42 @@ export function createCompilationGroups(
     compilationGroupMap.createGroup(config);
   }
 
-  const nonCompilableFiles: ResolvedFile[] = [];
+  let compilationFailed = false;
+  const compilationGroupsFailure: CompilationGroupsFailure = {
+    nonCompilable: [],
+    nonCompilableOverriden: [],
+    importsIncompatibleFile: [],
+    other: [],
+  };
 
   for (const file of dependencyGraph.getResolvedFiles()) {
+    const directDependencies = dependencyGraph.getDependencies(file);
     const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
       file
     );
 
-    const allVersionPragmas = flatten(
-      transitiveDependencies.map((x) => x.content.versionPragmas)
-    ).concat(file.content.versionPragmas);
-
     const compilerConfig = getMatchingCompilerConfig(
       file,
-      allVersionPragmas,
+      directDependencies,
+      transitiveDependencies,
       solidityConfig
     );
 
     // if the file cannot be compiled, we add it to the list and continue in
     // case there are more non-compilable files
-    if (compilerConfig === null) {
-      nonCompilableFiles.push(file);
+    if (typeof compilerConfig === "string") {
+      compilationFailed = true;
+
+      if (compilerConfig === "NonCompilable") {
+        compilationGroupsFailure.nonCompilable.push(file.globalName);
+      } else if (compilerConfig === "NonCompilableOverriden") {
+        compilationGroupsFailure.nonCompilableOverriden.push(file.globalName);
+      } else if (compilerConfig === "ImportsIncompatibleFile") {
+        compilationGroupsFailure.importsIncompatibleFile.push(file.globalName);
+      } else {
+        compilationGroupsFailure.other.push(file.globalName);
+      }
+
       continue;
     }
 
@@ -217,9 +223,9 @@ export function createCompilationGroups(
     }
   }
 
-  if (nonCompilableFiles.length > 0) {
-    return either.left(nonCompilableFiles);
+  if (compilationFailed) {
+    return compilationGroupsFailure;
   }
 
-  return either.right([...compilationGroupMap.getGroups()]);
+  return { groups: [...compilationGroupMap.getGroups()] };
 }

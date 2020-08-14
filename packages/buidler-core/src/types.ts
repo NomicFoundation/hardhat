@@ -81,7 +81,7 @@ export interface ProjectPaths {
 
 type EVMVersion = string;
 
-// TODO-HH: This must be changed to accept any solc setting 
+// TODO-HH: This must be changed to accept any solc setting
 export interface SolcConfig {
   version: string;
   optimizer: SolcOptimizerConfig;

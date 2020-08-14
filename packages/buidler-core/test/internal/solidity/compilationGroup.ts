@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { either } from "fp-ts";
 import * as fs from "fs";
 import path from "path";
 import semver from "semver";
@@ -7,7 +6,10 @@ import semver from "semver";
 import { SolidityFilesCache } from "../../../src/builtin-tasks/utils/solidity-files-cache";
 import {
   CompilationGroup,
+  CompilationGroupsFailure,
+  CompilationGroupsResult,
   createCompilationGroups,
+  isCompilationGroupsSuccess,
 } from "../../../src/internal/solidity/compilationGroup";
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
 import { Parser } from "../../../src/internal/solidity/parse";
@@ -117,9 +119,11 @@ async function createMockData(
     if (filesMap.get(mockFile)!.modified === "not-modified") {
       solidityFilesCache[mockFile.absolutePath] = {
         lastModificationDate: resolvedFile.lastModificationDate.valueOf(),
+        globalName: resolvedFile.globalName,
         solcConfig: filesMap.get(mockFile)!.lastSolcConfig!,
         imports: [],
         versionPragmas: [],
+        artifacts: [],
       };
     }
 
@@ -152,22 +156,20 @@ const sortByVersion = (a: CompilationGroup, b: CompilationGroup) => {
     : 0;
 };
 
-function assertIsRight<LeftT, RightT>(
-  eitherValue: either.Either<LeftT, RightT>
-): RightT {
-  if (eitherValue.isLeft()) {
-    assert.fail("The given either is not Right");
+function assertIsSuccess(result: CompilationGroupsResult): CompilationGroup[] {
+  if (!isCompilationGroupsSuccess(result)) {
+    assert.fail("The given compilation groups rersult is a failure");
   }
-  return eitherValue.value;
+  return result.groups;
 }
 
-function assertIsLeft<LeftT, RightT>(
-  eitherValue: either.Either<LeftT, RightT>
-): LeftT {
-  if (eitherValue.isRight()) {
-    assert.fail("The given either is not Left");
+function assertIsFailure(
+  result: CompilationGroupsResult
+): CompilationGroupsFailure {
+  if (isCompilationGroupsSuccess(result)) {
+    assert.fail("The given compilation groups rersult is a success");
   }
-  return eitherValue.value;
+  return result;
 }
 
 describe("Compilation groups", function () {
@@ -187,7 +189,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult);
+      const compilationGroups = assertIsSuccess(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -218,7 +220,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult);
+      const compilationGroups = assertIsSuccess(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -242,7 +244,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult);
+      const compilationGroups = assertIsSuccess(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -269,7 +271,7 @@ describe("Compilation groups", function () {
         true
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult);
+      const compilationGroups = assertIsSuccess(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -302,7 +304,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -338,7 +340,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -376,7 +378,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -406,9 +408,14 @@ describe("Compilation groups", function () {
         false
       );
 
-      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
 
-      assert.sameMembers(nonCompilableFiles, [Foo]);
+      assert.isEmpty(compilationGroupsFailure.nonCompilableOverriden);
+      assert.sameMembers(compilationGroupsFailure.nonCompilable, [
+        Foo.globalName,
+      ]);
+      assert.isEmpty(compilationGroupsFailure.importsIncompatibleFile);
+      assert.isEmpty(compilationGroupsFailure.other);
     });
 
     it("no compilers match", async function () {
@@ -426,9 +433,14 @@ describe("Compilation groups", function () {
         false
       );
 
-      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
 
-      assert.sameMembers(nonCompilableFiles, [Foo]);
+      assert.isEmpty(compilationGroupsFailure.nonCompilableOverriden);
+      assert.sameMembers(compilationGroupsFailure.nonCompilable, [
+        Foo.globalName,
+      ]);
+      assert.isEmpty(compilationGroupsFailure.importsIncompatibleFile);
+      assert.isEmpty(compilationGroupsFailure.other);
     });
 
     it("compiler matches but override doesn't", async function () {
@@ -451,9 +463,14 @@ describe("Compilation groups", function () {
         false
       );
 
-      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
 
-      assert.sameMembers(nonCompilableFiles, [Foo]);
+      assert.sameMembers(compilationGroupsFailure.nonCompilableOverriden, [
+        Foo.globalName,
+      ]);
+      assert.isEmpty(compilationGroupsFailure.nonCompilable);
+      assert.isEmpty(compilationGroupsFailure.importsIncompatibleFile);
+      assert.isEmpty(compilationGroupsFailure.other);
     });
   });
 
@@ -474,7 +491,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -505,7 +522,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -537,7 +554,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -565,7 +582,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -598,7 +615,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -633,7 +650,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -667,7 +684,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -702,7 +719,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -733,7 +750,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -767,7 +784,7 @@ describe("Compilation groups", function () {
         true
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -806,7 +823,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -850,7 +867,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -888,7 +905,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -926,7 +943,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -960,7 +977,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -996,7 +1013,7 @@ describe("Compilation groups", function () {
         true
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1034,7 +1051,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1076,7 +1093,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1119,7 +1136,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1157,7 +1174,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1195,7 +1212,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1233,7 +1250,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1267,7 +1284,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1303,7 +1320,7 @@ describe("Compilation groups", function () {
         true
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1341,7 +1358,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1383,7 +1400,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1426,7 +1443,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1464,7 +1481,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1505,7 +1522,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1546,7 +1563,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1583,7 +1600,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1619,7 +1636,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1662,7 +1679,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1705,7 +1722,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1744,7 +1761,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1780,7 +1797,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1817,9 +1834,14 @@ describe("Compilation groups", function () {
         false
       );
 
-      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
 
-      assert.sameMembers(nonCompilableFiles, [Foo]);
+      assert.isEmpty(compilationGroupsFailure.nonCompilableOverriden);
+      assert.sameMembers(compilationGroupsFailure.nonCompilable, [
+        Foo.globalName,
+      ]);
+      assert.isEmpty(compilationGroupsFailure.importsIncompatibleFile);
+      assert.isEmpty(compilationGroupsFailure.other);
     });
 
     it("second one doesn't compile", async function () {
@@ -1838,9 +1860,14 @@ describe("Compilation groups", function () {
         false
       );
 
-      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
 
-      assert.sameMembers(nonCompilableFiles, [Bar]);
+      assert.isEmpty(compilationGroupsFailure.nonCompilableOverriden);
+      assert.sameMembers(compilationGroupsFailure.nonCompilable, [
+        Bar.globalName,
+      ]);
+      assert.isEmpty(compilationGroupsFailure.importsIncompatibleFile);
+      assert.isEmpty(compilationGroupsFailure.other);
     });
 
     it("both don't compile", async function () {
@@ -1859,9 +1886,15 @@ describe("Compilation groups", function () {
         false
       );
 
-      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
 
-      assert.sameMembers(nonCompilableFiles, [Foo, Bar]);
+      assert.isEmpty(compilationGroupsFailure.nonCompilableOverriden);
+      assert.sameMembers(compilationGroupsFailure.nonCompilable, [
+        Foo.globalName,
+        Bar.globalName,
+      ]);
+      assert.isEmpty(compilationGroupsFailure.importsIncompatibleFile);
+      assert.isEmpty(compilationGroupsFailure.other);
     });
 
     it("one file imports an incompatible dependency", async function () {
@@ -1883,9 +1916,14 @@ describe("Compilation groups", function () {
         false
       );
 
-      const nonCompilableFiles = assertIsLeft(compilationGroupsResult);
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
 
-      assert.sameMembers(nonCompilableFiles, [Foo]);
+      assert.isEmpty(compilationGroupsFailure.nonCompilableOverriden);
+      assert.isEmpty(compilationGroupsFailure.nonCompilable);
+      assert.sameMembers(compilationGroupsFailure.importsIncompatibleFile, [
+        Foo.globalName,
+      ]);
+      assert.isEmpty(compilationGroupsFailure.other);
     });
   });
 
@@ -1911,7 +1949,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -1957,7 +1995,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2003,7 +2041,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2049,7 +2087,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2091,7 +2129,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2101,6 +2139,37 @@ describe("Compilation groups", function () {
 
       assert.equal(group05.getVersion(), "0.5.5");
       assert.isTrue(group05.isEmpty());
+    });
+
+    it("incompatible import", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.6.0"]);
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock },
+      ]);
+
+      const compilationGroupsResult = createCompilationGroups(
+        dependencyGraph,
+        solcConfig055and066,
+        solidityFilesCache,
+        false
+      );
+
+      const compilationGroupsFailure = assertIsFailure(compilationGroupsResult);
+
+      assert.isEmpty(compilationGroupsFailure.nonCompilableOverriden);
+      assert.isEmpty(compilationGroupsFailure.nonCompilable);
+      assert.sameMembers(compilationGroupsFailure.importsIncompatibleFile, [
+        Bar.globalName,
+      ]);
+      assert.sameMembers(compilationGroupsFailure.other, [Foo.globalName]);
     });
   });
 
@@ -2126,7 +2195,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2177,7 +2246,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2228,7 +2297,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2279,7 +2348,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2326,7 +2395,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2361,7 +2430,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2402,7 +2471,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2443,7 +2512,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2484,7 +2553,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2521,7 +2590,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2556,7 +2625,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2606,7 +2675,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2654,7 +2723,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2702,7 +2771,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2748,7 +2817,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2789,7 +2858,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2835,7 +2904,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2905,7 +2974,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -2952,7 +3021,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -3037,7 +3106,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
@@ -3075,7 +3144,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult);
+      const compilationGroups = assertIsSuccess(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -3103,7 +3172,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult);
+      const compilationGroups = assertIsSuccess(compilationGroupsResult);
 
       assert.lengthOf(compilationGroups, 1);
 
@@ -3131,7 +3200,7 @@ describe("Compilation groups", function () {
         false
       );
 
-      const compilationGroups = assertIsRight(compilationGroupsResult).sort(
+      const compilationGroups = assertIsSuccess(compilationGroupsResult).sort(
         sortByVersion
       );
 
