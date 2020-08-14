@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
+import { BufferLike } from "ethereumjs-tx";
 import { BN, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
@@ -19,8 +20,8 @@ describe("ForkBlockchain", () => {
   let common: Common;
   let fb: ForkBlockchain;
 
-  function createBlock(number: BN, stateRoot: Buffer = zeros(32)) {
-    return new Block({ header: { number, stateRoot } }, { common });
+  function createBlock(number: BufferLike, difficulty: BufferLike = zeros(32)) {
+    return new Block({ header: { number, difficulty } }, { common });
   }
 
   before(async () => {
@@ -160,7 +161,15 @@ describe("ForkBlockchain", () => {
   });
 
   describe("putBlock", () => {
-    it("saves the block in the blockchain", async () => {
+    it("can save genesis block", async () => {
+      const genesisBlock = createBlock(0);
+      const returnedBlock = await fb.putBlock(genesisBlock);
+      const savedBlock = await fb.getBlock(0);
+      assert.equal(returnedBlock, genesisBlock);
+      assert.equal(savedBlock, genesisBlock);
+    });
+
+    it("can save a new block in the blockchain", async () => {
       const blockNumber = forkBlockNumber.addn(1);
       const block = createBlock(blockNumber);
       const returnedBlock = await fb.putBlock(block);

@@ -39,11 +39,14 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   public async putBlock(block: Block): Promise<Block> {
-    if (!new BN(block.header.number).eq(this._latestBlockNumber.addn(1))) {
-      throw new Error("Invalid block number");
+    const blockNumber = new BN(block.header.number);
+    if (!blockNumber.eqn(0)) {
+      if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
+        throw new Error("Invalid block number");
+      }
+      this._latestBlockNumber = this._latestBlockNumber.addn(1);
     }
-    this._latestBlockNumber = this._latestBlockNumber.addn(1);
-    this._blocksByNumber.set(bufferToInt(block.header.number), block);
+    this._blocksByNumber.set(blockNumber.toNumber(), block);
     this._blocksByHash.set(block.hash().toString("hex"), block);
     return block;
   }

@@ -14,7 +14,6 @@ export async function addGenesisBlock(
   if (blockchain instanceof BuidlerBlockchain) {
     await blockchain.asPBlockchain().putBlock(genesisBlock);
   } else {
-    // TODO: make ForkBlockchain support adding genesis block
-    // await blockchain.putBlock(genesisBlock);
+    await blockchain.putBlock(genesisBlock);
   }
 }
