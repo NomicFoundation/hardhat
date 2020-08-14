@@ -17,6 +17,7 @@ import { rpcToBlockData } from "./rpcToBlockData";
 export class ForkBlockchain implements PBlockchain {
   private _blocksByNumber: Map<number, Block> = new Map();
   private _blocksByHash: Map<string, Block> = new Map();
+  private _totalDifficultyByBlockHash: Map<string, BN> = new Map();
   private _latestBlockNumber = this._forkBlockNumber;
 
   constructor(
@@ -46,8 +47,14 @@ export class ForkBlockchain implements PBlockchain {
       }
       this._latestBlockNumber = this._latestBlockNumber.addn(1);
     }
+
+    const blockHash = block.hash().toString("hex");
     this._blocksByNumber.set(blockNumber.toNumber(), block);
-    this._blocksByHash.set(block.hash().toString("hex"), block);
+    this._blocksByHash.set(blockHash, block);
+    this._totalDifficultyByBlockHash.set(
+      blockHash,
+      await this._computeTotalDifficulty(block)
+    );
     return block;
   }
 
@@ -79,8 +86,18 @@ export class ForkBlockchain implements PBlockchain {
     }
   }
 
-  public getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
-    throw new Error("not implemented");
+  public async getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
+    let td = this._totalDifficultyByBlockHash.get(blockHash.toString("hex"));
+    if (td !== undefined) {
+      return td;
+    }
+    await this.getBlock(blockHash);
+    td = this._totalDifficultyByBlockHash.get(blockHash.toString("hex"));
+    if (td === undefined) {
+      throw new Error("This should never happen");
+    }
+
+    return td;
   }
 
   public asBlockchain(): Blockchain {
@@ -129,7 +146,29 @@ export class ForkBlockchain implements PBlockchain {
     const block = new Block(rpcToBlockData(rpcBlock), { common: this._common });
     this._blocksByNumber.set(rpcBlock.number.toNumber(), block);
     this._blocksByHash.set(rpcBlock.hash.toString("hex"), block);
+    this._totalDifficultyByBlockHash.set(
+      rpcBlock.hash.toString("hex"),
+      rpcBlock.totalDifficulty
+    );
     return block;
+  }
+
+  private async _computeTotalDifficulty(block: Block): Promise<BN> {
+    const difficulty = new BN(block.header.difficulty);
+    const blockNumber = bufferToInt(block.header.number);
+    if (blockNumber === 0) {
+      return difficulty;
+    }
+
+    const parentBlock =
+      this._blocksByNumber.get(blockNumber - 1) ??
+      (await this.getBlock(blockNumber - 1));
+    const parentHash = parentBlock.hash().toString("hex");
+    const parentTD = this._totalDifficultyByBlockHash.get(parentHash);
+    if (parentTD === undefined) {
+      throw new Error("This should never happen");
+    }
+    return parentTD.add(difficulty);
   }
 
   private _delBlock(blockHash: Buffer): void {
@@ -147,8 +186,10 @@ export class ForkBlockchain implements PBlockchain {
       if (currentBlock === undefined) {
         throw new Error("this should never happen");
       }
-      this._blocksByHash.delete(currentBlock.hash().toString("hex"));
+      const currentBlockHash = currentBlock.hash().toString("hex");
+      this._blocksByHash.delete(currentBlockHash);
       this._blocksByNumber.delete(i);
+      this._totalDifficultyByBlockHash.delete(currentBlockHash);
     }
 
     this._latestBlockNumber = new BN(blockNumber).subn(1);

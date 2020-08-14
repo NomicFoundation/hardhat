@@ -12,6 +12,7 @@ import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
   INFURA_URL,
+  TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";
 
 describe("ForkBlockchain", () => {
@@ -378,6 +379,68 @@ describe("ForkBlockchain", () => {
         () => fb.deleteAllFollowingBlocks(block),
         Error,
         "Cannot delete remote block"
+      );
+    });
+  });
+
+  describe("getBlockTotalDifficulty", () => {
+    it("rejects when hash of non-existent block is given", async () => {
+      await assert.isRejected(
+        fb.getBlockTotalDifficulty(randomHashBuffer()),
+        Error,
+        "Block not found"
+      );
+    });
+
+    it("can get difficulty of the genesis block", async () => {
+      const genesis = createBlock(0, 1000);
+      await fb.putBlock(genesis);
+      const difficulty = await fb.getBlockTotalDifficulty(genesis.hash());
+      assert.equal(difficulty.toNumber(), 1000);
+    });
+
+    it("can get total difficulty of the second block", async () => {
+      fb = new ForkBlockchain(client, new BN(0), common);
+
+      const genesis = createBlock(0, 1000);
+      const second = createBlock(1, 2000);
+      await fb.putBlock(genesis);
+      await fb.putBlock(second);
+
+      const difficulty = await fb.getBlockTotalDifficulty(second.hash());
+      assert.equal(difficulty.toNumber(), 3000);
+    });
+
+    it("does not return total difficulty of a deleted block", async () => {
+      fb = new ForkBlockchain(client, new BN(0), common);
+
+      const blockOne = createBlock(0, 1000);
+      const blockTwo = createBlock(1, 2000);
+
+      await fb.putBlock(blockOne);
+      await fb.putBlock(blockTwo);
+
+      fb.deleteAllFollowingBlocks(blockOne);
+
+      assert.equal(
+        (await fb.getBlockTotalDifficulty(blockOne.hash())).toNumber(),
+        1000
+      );
+      await assert.isRejected(
+        fb.getBlockTotalDifficulty(blockTwo.hash()),
+        Error,
+        "Block not found"
+      );
+    });
+
+    it("can get total difficulty of a remote block", async () => {
+      const td = await fb.getBlockTotalDifficulty(
+        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
+      );
+
+      assert.equal(
+        td.toString(),
+        TOTAL_DIFFICULTY_OF_BLOCK_10496585.toString()
       );
     });
   });
