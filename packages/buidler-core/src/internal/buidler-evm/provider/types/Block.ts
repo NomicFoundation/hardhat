@@ -6,7 +6,13 @@ import { BN } from "ethereumjs-util";
 import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
 
-export const Block: Block = EthBlock;
+export const Block: BlockConstructor = EthBlock;
+
+// tslint:disable-next-line:no-misused-new
+type BlockConstructor = new (
+  data?: BlockData | null,
+  chainOptions?: { common: Common }
+) => Block;
 
 export interface Block {
   readonly header: BlockHeader;
@@ -15,9 +21,6 @@ export interface Block {
   readonly txTrie: any;
 
   readonly _common: Common;
-
-  // tslint:disable-next-line:no-misused-new
-  new (data?: BlockData | null, chainOptions?: { common: Common }): Block;
 
   hash(): Buffer;
   isGenesis(): boolean;
