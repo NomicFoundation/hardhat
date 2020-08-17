@@ -158,8 +158,6 @@ export class BuidlerNode extends EventEmitter {
     return [common, node];
   }
 
-  private readonly _common: Common;
-
   private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
@@ -195,7 +193,6 @@ export class BuidlerNode extends EventEmitter {
   ) {
     super();
 
-    this._common = this._vm._common;
     this._initLocalAccounts(localAccounts);
 
     this._vmTracer = new VMTracer(this._vm, true);
@@ -248,7 +245,7 @@ export class BuidlerNode extends EventEmitter {
   public async getSignedTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
-    const tx = new Transaction(txParams, { common: this._common });
+    const tx = new Transaction(txParams, { common: this._vm._common });
 
     const pk = await this._getLocalAccountPrivateKey(txParams.from);
     tx.sign(pk);
@@ -259,7 +256,7 @@ export class BuidlerNode extends EventEmitter {
   public async _getFakeTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
-    return new FakeTransaction(txParams, { common: this._common });
+    return new FakeTransaction(txParams, { common: this._vm._common });
   }
 
   public async runTransactionInNewBlock(
@@ -1095,7 +1092,7 @@ export class BuidlerNode extends EventEmitter {
           timestamp,
         },
       },
-      { common: this._common }
+      { common: this._vm._common }
     );
 
     block.validate = (blockchain: any, cb: any) => cb(null);
