@@ -10,7 +10,9 @@ describe("Provider integration tests", function () {
     useEnvironment();
 
     it("Should compile", async function () {
-      const artifact = await fsExtra.readJSON("artifacts/Contract.json");
+      const artifact = await fsExtra.readJSON(
+        "artifacts/contracts/Contract:Contract.json"
+      );
 
       try {
         await this.env.network.provider.send("eth_sendTransaction", [

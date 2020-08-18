@@ -4,14 +4,13 @@ import { cloneDeep } from "lodash";
 import path from "path";
 
 import {
+  getAllArtifacts,
   getArtifactFromContractOutput,
   getArtifactPathSync,
+  getBuildInfoFiles,
   saveArtifact,
+  saveBuildInfo,
 } from "../internal/artifacts";
-import {
-  SOLC_INPUT_FILENAME,
-  SOLC_OUTPUT_FILENAME,
-} from "../internal/constants";
 import { task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -27,7 +26,6 @@ import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import { ResolvedBuidlerConfig } from "../types";
 
 import { TASK_COMPILE } from "./task-names";
 import {
@@ -42,31 +40,6 @@ function isConsoleLogError(error: any): boolean {
     typeof error.message === "string" &&
     error.message.includes("log") &&
     error.message.includes("type(library console)")
-  );
-}
-
-async function cacheSolcJsonFiles(
-  config: ResolvedBuidlerConfig,
-  input: any,
-  output: any
-) {
-  await fsExtra.ensureDir(config.paths.cache);
-
-  // TODO: This could be much better. It feels somewhat hardcoded
-  await fsExtra.writeFile(
-    path.join(config.paths.cache, SOLC_INPUT_FILENAME),
-    JSON.stringify(input, undefined, 2),
-    {
-      encoding: "utf8",
-    }
-  );
-
-  await fsExtra.writeFile(
-    path.join(config.paths.cache, SOLC_OUTPUT_FILENAME),
-    JSON.stringify(output, undefined, 2),
-    {
-      encoding: "utf8",
-    }
   );
 }
 
@@ -166,7 +139,11 @@ export default function () {
           throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
         }
 
-        await cacheSolcJsonFiles(config, input, output);
+        const pathToBuildInfo = await saveBuildInfo(
+          config.paths.artifacts,
+          input,
+          output
+        );
 
         if (output === undefined) {
           return;
@@ -192,7 +169,8 @@ export default function () {
             await saveArtifact(
               config.paths.artifacts,
               file.globalName,
-              artifact
+              artifact,
+              pathToBuildInfo
             );
 
             emittedArtifacts.push(artifact.contractName);
@@ -221,6 +199,8 @@ export default function () {
         newSolidityFilesCache
       );
 
+      await removeObsoleteBuildInfos(config.paths.artifacts);
+
       writeSolidityFilesCache(config.paths, newSolidityFilesCache);
     });
 }
@@ -241,11 +221,29 @@ async function removeObsoleteArtifacts(
     }
   }
 
-  const existingArtifacts = await glob(path.join(artifactsPath, "**/*.json"));
+  const existingArtifacts = await getAllArtifacts(artifactsPath);
 
   for (const artifact of existingArtifacts) {
     if (!validArtifacts.has(artifact)) {
       fsExtra.unlinkSync(artifact);
+    }
+  }
+}
+
+async function removeObsoleteBuildInfos(artifactsPath: string) {
+  const dbgFiles = await glob(path.join(artifactsPath, "**/*.dbg"));
+
+  const validBuildInfos = new Set<string>();
+  for (const dbgFile of dbgFiles) {
+    const { buildInfo } = await fsExtra.readJson(dbgFile);
+    validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfo));
+  }
+
+  const buildInfoFiles = await getBuildInfoFiles(artifactsPath);
+
+  for (const buildInfoFile of buildInfoFiles) {
+    if (!validBuildInfos.has(buildInfoFile)) {
+      await fsExtra.unlink(buildInfoFile);
     }
   }
 }

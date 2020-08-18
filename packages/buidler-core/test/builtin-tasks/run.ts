@@ -1,7 +1,8 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
-import glob from "glob";
+import * as path from "path";
 
+import { getAllArtifacts } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { useEnvironment } from "../helpers/environment";
 import { expectBuidlerErrorAsync } from "../helpers/errors";
@@ -44,8 +45,11 @@ describe("run task", function () {
     assert.equal(process.exitCode, 0);
     (process as any).exitCode = undefined;
 
-    const files = glob.sync("artifacts/**/*.json");
-    assert.sameMembers(files, ["artifacts/contracts/a:A.json"]);
+    const files = await getAllArtifacts(path.join(process.cwd(), "artifacts"));
+    const expectedFiles = ["artifacts/contracts/a:A.json"].map((file) =>
+      path.join(process.cwd(), file)
+    );
+    assert.sameMembers(files, expectedFiles);
 
     await fsExtra.remove("artifacts");
   });
