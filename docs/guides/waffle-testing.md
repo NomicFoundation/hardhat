@@ -203,18 +203,22 @@ module.exports = {
 
 Now, when testing using a standalone Waffle setup, you should use the different parts of Waffle from Buidler.
 
-For example, instead of doing
+For example, instead of doing:
 
 ```typescript
 import { deployContract } from "ethereum-waffle";
 ```
 
-you should do
+You should do:
 
 ```typescript
 import { waffle } from "ethereum-waffle";
 const { deployContract } = waffle;
 ```
+
+::: warning
+Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions. If you're fighting a "Transaction run out of gas" error, double-check the size of your contract and bump the gas limit if needed.
+:::
 
 Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and use the plugin's provider like this
 
