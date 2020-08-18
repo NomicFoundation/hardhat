@@ -1,4 +1,5 @@
 import Common from "ethereumjs-common";
+import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToInt } from "ethereumjs-util";
 import { callbackify } from "util";
 
@@ -100,6 +101,10 @@ export class ForkBlockchain implements PBlockchain {
     }
 
     return td;
+  }
+
+  public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
+    throw new Error("Transaction not found");
   }
 
   public asBlockchain(): Blockchain {

@@ -1,3 +1,4 @@
+import { Transaction } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 
 import { Block } from "./Block";
@@ -11,4 +12,5 @@ export interface PBlockchain {
   iterator(name: string, onBlock: any): Promise<void>;
   deleteAllFollowingBlocks(block: Block): void;
   getBlockTotalDifficulty(blockHash: Buffer): Promise<BN>;
+  getTransaction(transactionHash: Buffer): Promise<Transaction>;
 }

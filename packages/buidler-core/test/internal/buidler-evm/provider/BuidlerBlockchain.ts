@@ -1,9 +1,12 @@
 import { assert } from "chai";
-import { BufferLike } from "ethereumjs-tx";
+import { BufferLike, Transaction } from "ethereumjs-tx";
 import { BN, zeros } from "ethereumjs-util";
 
 import { BuidlerBlockchain } from "../../../../src/internal/buidler-evm/provider/BuidlerBlockchain";
-import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
+import {
+  randomAddressBuffer,
+  randomHashBuffer,
+} from "../../../../src/internal/buidler-evm/provider/fork/random";
 import { Block } from "../../../../src/internal/buidler-evm/provider/types/Block";
 import { PBlockchain } from "../../../../src/internal/buidler-evm/provider/types/PBlockchain";
 
@@ -16,6 +19,10 @@ describe("BuidlerBlockchain", () => {
     const newBlock = new Block({ header: { number, difficulty, parentHash } });
     blocks.push(newBlock);
     return newBlock;
+  }
+
+  function createRandomTransaction() {
+    return new Transaction({ to: randomAddressBuffer() });
   }
 
   beforeEach(() => {
@@ -286,6 +293,29 @@ describe("BuidlerBlockchain", () => {
         Error,
         "Block not found"
       );
+    });
+  });
+
+  describe.only("getTransaction", () => {
+    it("throws for unknown transactions", async () => {
+      const transaction = createRandomTransaction();
+      await assert.isRejected(
+        blockchain.getTransaction(transaction.hash()),
+        Error,
+        "Transaction not found"
+      );
+    });
+
+    it("returns a known transaction", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.putBlock(genesis);
+      const block = createBlock(1, 1000);
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await blockchain.putBlock(block);
+
+      const result = await blockchain.getTransaction(transaction.hash());
+      assert.equal(result, transaction);
     });
   });
 });

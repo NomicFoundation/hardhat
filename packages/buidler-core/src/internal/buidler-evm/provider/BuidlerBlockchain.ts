@@ -1,3 +1,4 @@
+import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, bufferToInt, zeros } from "ethereumjs-util";
 
 import { Block } from "./types/Block";
@@ -13,6 +14,8 @@ export class BuidlerBlockchain implements Blockchain {
   private readonly _blocks: Block[] = [];
   private readonly _blockHashToNumber: Map<string, number> = new Map();
   private readonly _blockHashToTotalDifficulty: Map<string, BN> = new Map();
+  private readonly _transactions: Map<string, Transaction> = new Map();
+  private readonly _transactionHashToBlockHash: Map<string, string> = new Map();
 
   public getLatestBlock(cb: Callback<Block>): void {
     if (this._blocks.length === 0) {
@@ -38,6 +41,12 @@ export class BuidlerBlockchain implements Blockchain {
     this._blocks.push(block);
     this._blockHashToNumber.set(blockHash, blockNumber);
     this._blockHashToTotalDifficulty.set(blockHash, totalDifficulty);
+
+    for (const transaction of block.transactions) {
+      const hash = bufferToHex(transaction.hash());
+      this._transactions.set(hash, transaction);
+      this._transactionHashToBlockHash.set(hash, blockHash);
+    }
 
     cb(null, block);
   }
@@ -127,6 +136,14 @@ export class BuidlerBlockchain implements Blockchain {
     return totalDifficulty;
   }
 
+  public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
+    const tx = this._transactions.get(bufferToHex(transactionHash));
+    if (tx === undefined) {
+      throw new Error("Transaction not found");
+    }
+    return tx;
+  }
+
   public asPBlockchain(): PBlockchain {
     return {
       getBlock: promisify(this.getBlock.bind(this)),
@@ -137,6 +154,7 @@ export class BuidlerBlockchain implements Blockchain {
       iterator: promisify(this.iterator.bind(this)),
       deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this),
       getBlockTotalDifficulty: this.getBlockTotalDifficulty.bind(this),
+      getTransaction: this.getTransaction.bind(this),
     };
   }
 
