@@ -19,6 +19,8 @@ export class ForkBlockchain implements PBlockchain {
   private _blocksByNumber: Map<number, Block> = new Map();
   private _blocksByHash: Map<string, Block> = new Map();
   private _totalDifficultyByBlockHash: Map<string, BN> = new Map();
+  private _transactions: Map<string, Transaction> = new Map();
+  private _transactionToBlock: Map<string, Block> = new Map();
   private _latestBlockNumber = this._forkBlockNumber;
 
   constructor(
@@ -58,6 +60,13 @@ export class ForkBlockchain implements PBlockchain {
       blockHash,
       await this._computeTotalDifficulty(block)
     );
+
+    for (const transaction of block.transactions) {
+      const transactionHash = transaction.hash().toString("hex");
+      this._transactions.set(transactionHash, transaction);
+      this._transactionToBlock.set(transactionHash, block);
+    }
+
     return block;
   }
 
@@ -104,13 +113,21 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
-    throw new Error("Transaction not found");
+    const tx = this._transactions.get(transactionHash.toString("hex"));
+    if (tx === undefined) {
+      throw new Error("Transaction not found");
+    }
+    return tx;
   }
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block> {
-    throw new Error("Transaction not found");
+    const block = this._transactionToBlock.get(transactionHash.toString("hex"));
+    if (block === undefined) {
+      throw new Error("Transaction not found");
+    }
+    return block;
   }
 
   public asBlockchain(): Blockchain {
@@ -203,6 +220,12 @@ export class ForkBlockchain implements PBlockchain {
       this._blocksByHash.delete(currentBlockHash);
       this._blocksByNumber.delete(i);
       this._totalDifficultyByBlockHash.delete(currentBlockHash);
+
+      for (const transaction of currentBlock.transactions) {
+        const transactionHash = transaction.hash().toString("hex");
+        this._transactions.delete(transactionHash);
+        this._transactionToBlock.delete(transactionHash);
+      }
     }
 
     this._latestBlockNumber = new BN(blockNumber).subn(1);

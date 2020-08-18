@@ -1,12 +1,15 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
-import { BufferLike } from "ethereumjs-tx";
+import { BufferLike, Transaction } from "ethereumjs-tx";
 import { BN, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
-import { randomHashBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
+import {
+  randomAddressBuffer,
+  randomHashBuffer,
+} from "../../../../../src/internal/buidler-evm/provider/fork/random";
 import { Block } from "../../../../../src/internal/buidler-evm/provider/types/Block";
 import {
   BLOCK_HASH_OF_10496585,
@@ -32,6 +35,10 @@ describe("ForkBlockchain", () => {
       },
       { common }
     );
+  }
+
+  function createRandomTransaction() {
+    return new Transaction({ to: randomAddressBuffer() });
   }
 
   before(async () => {
@@ -439,6 +446,76 @@ describe("ForkBlockchain", () => {
       assert.equal(
         totalDifficulty.toString(),
         latestDifficulty.addn(1000).toString()
+      );
+    });
+  });
+
+  describe("getTransaction", () => {
+    it("throws for unknown transactions", async () => {
+      const transaction = createRandomTransaction();
+      await assert.isRejected(
+        fb.getTransaction(transaction.hash()),
+        Error,
+        "Transaction not found"
+      );
+    });
+
+    it("returns a known transaction", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await fb.putBlock(block);
+
+      const result = await fb.getTransaction(transaction.hash());
+      assert.equal(result, transaction);
+    });
+
+    it("forgets transactions after block is removed", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await fb.putBlock(block);
+      await fb.delBlock(block.hash());
+
+      await assert.isRejected(
+        fb.getTransaction(transaction.hash()),
+        Error,
+        "Transaction not found"
+      );
+    });
+  });
+
+  describe("getBlockByTransactionHash", () => {
+    it("throws for unknown transactions", async () => {
+      const transaction = createRandomTransaction();
+      await assert.isRejected(
+        fb.getBlockByTransactionHash(transaction.hash()),
+        Error,
+        "Transaction not found"
+      );
+    });
+
+    it("returns block for a known transaction", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await fb.putBlock(block);
+
+      const result = await fb.getBlockByTransactionHash(transaction.hash());
+      assert.equal(result, block);
+    });
+
+    it("forgets transactions after block is removed", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await fb.putBlock(block);
+      await fb.delBlock(block.hash());
+
+      await assert.isRejected(
+        fb.getBlockByTransactionHash(transaction.hash()),
+        Error,
+        "Transaction not found"
       );
     });
   });
