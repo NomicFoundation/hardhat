@@ -21,8 +21,17 @@ describe("ForkBlockchain", () => {
   let common: Common;
   let fb: ForkBlockchain;
 
-  function createBlock(number: BufferLike, difficulty: BufferLike = zeros(32)) {
-    return new Block({ header: { number, difficulty } }, { common });
+  function createBlock(parent: Block, difficulty: BufferLike = zeros(32)) {
+    return new Block(
+      {
+        header: {
+          number: new BN(parent.header.number).addn(1),
+          parentHash: parent.hash(),
+          difficulty,
+        },
+      },
+      { common }
+    );
   }
 
   before(async () => {
@@ -128,8 +137,7 @@ describe("ForkBlockchain", () => {
     });
 
     it("can retrieve inserted block by hash", async () => {
-      const blockNumber = forkBlockNumber.addn(1);
-      const block = createBlock(blockNumber);
+      const block = createBlock(await fb.getLatestBlock());
       await fb.putBlock(block);
       const savedBlock = await fb.getBlock(block.hash());
       assert.equal(savedBlock, block);
@@ -154,7 +162,7 @@ describe("ForkBlockchain", () => {
     });
 
     it("returns the latest added block", async () => {
-      const block = createBlock(forkBlockNumber.addn(1));
+      const block = createBlock(await fb.getLatestBlock());
       await fb.putBlock(block);
       const latestBlock = await fb.getLatestBlock();
       assert.equal(latestBlock, block);
@@ -162,36 +170,26 @@ describe("ForkBlockchain", () => {
   });
 
   describe("putBlock", () => {
-    it("can save genesis block", async () => {
-      const genesisBlock = createBlock(0);
-      const returnedBlock = await fb.putBlock(genesisBlock);
-      const savedBlock = await fb.getBlock(0);
-      assert.equal(returnedBlock, genesisBlock);
-      assert.equal(savedBlock, genesisBlock);
-    });
-
     it("can save a new block in the blockchain", async () => {
-      const blockNumber = forkBlockNumber.addn(1);
-      const block = createBlock(blockNumber);
+      const block = createBlock(await fb.getLatestBlock());
       const returnedBlock = await fb.putBlock(block);
-      const savedBlock = await fb.getBlock(blockNumber);
+      const savedBlock = await fb.getBlock(forkBlockNumber.addn(1));
       assert.equal(returnedBlock, block);
       assert.equal(savedBlock, block);
     });
 
     it("rejects blocks with invalid block number", async () => {
-      const block = createBlock(forkBlockNumber.addn(2));
       await assert.isRejected(
-        fb.putBlock(block),
+        fb.putBlock(new Block({ header: { number: forkBlockNumber.addn(2) } })),
         Error,
         "Invalid block number"
       );
     });
 
     it("can save more than one block", async () => {
-      const blockOne = createBlock(forkBlockNumber.addn(1));
-      const blockTwo = createBlock(forkBlockNumber.addn(2));
-      const blockThree = createBlock(forkBlockNumber.addn(3));
+      const blockOne = createBlock(await fb.getLatestBlock());
+      const blockTwo = createBlock(blockOne);
+      const blockThree = createBlock(blockTwo);
 
       await fb.putBlock(blockOne);
       await fb.putBlock(blockTwo);
@@ -218,9 +216,9 @@ describe("ForkBlockchain", () => {
 
   describe("delBlock", () => {
     it("removes the block and all subsequent ones", async () => {
-      const blockOne = createBlock(forkBlockNumber.addn(1));
-      const blockTwo = createBlock(forkBlockNumber.addn(2));
-      const blockThree = createBlock(forkBlockNumber.addn(3));
+      const blockOne = createBlock(await fb.getLatestBlock());
+      const blockTwo = createBlock(blockOne);
+      const blockThree = createBlock(blockTwo);
 
       await fb.putBlock(blockOne);
       await fb.putBlock(blockTwo);
@@ -246,9 +244,9 @@ describe("ForkBlockchain", () => {
     });
 
     it("updates the latest block number", async () => {
-      const blockOne = createBlock(forkBlockNumber.addn(1));
-      const blockTwo = createBlock(forkBlockNumber.addn(2));
-      const blockThree = createBlock(forkBlockNumber.addn(3));
+      const blockOne = createBlock(await fb.getLatestBlock());
+      const blockTwo = createBlock(blockOne);
+      const blockThree = createBlock(blockTwo);
 
       await fb.putBlock(blockOne);
       await fb.putBlock(blockTwo);
@@ -263,9 +261,9 @@ describe("ForkBlockchain", () => {
     });
 
     it("is possible to add a block after delete", async () => {
-      const block = createBlock(forkBlockNumber.addn(1));
+      const block = createBlock(await fb.getLatestBlock());
       const otherBlock = createBlock(
-        forkBlockNumber.addn(1),
+        await fb.getLatestBlock(),
         randomHashBuffer()
       );
       await fb.putBlock(block);
@@ -275,9 +273,8 @@ describe("ForkBlockchain", () => {
     });
 
     it("throws when hash of non-existent block is given", async () => {
-      const block = createBlock(forkBlockNumber.addn(1));
       await assert.isRejected(
-        fb.delBlock(block.hash()),
+        fb.delBlock(new Block().hash()),
         Error,
         "Block not found"
       );
@@ -324,8 +321,8 @@ describe("ForkBlockchain", () => {
   describe("deleteAllFollowingBlocks", () => {
     it("removes all blocks subsequent to the given block", async () => {
       const blockOne = await fb.getLatestBlock();
-      const blockTwo = createBlock(forkBlockNumber.addn(1));
-      const blockThree = createBlock(forkBlockNumber.addn(2));
+      const blockTwo = createBlock(blockOne);
+      const blockThree = createBlock(blockTwo);
 
       await fb.putBlock(blockTwo);
       await fb.putBlock(blockThree);
@@ -346,10 +343,10 @@ describe("ForkBlockchain", () => {
     });
 
     it("throws if given block is not present in blockchain", async () => {
-      const blockOne = createBlock(forkBlockNumber.addn(1));
-      const notAddedBlock = createBlock(forkBlockNumber.addn(2));
+      const blockOne = createBlock(await fb.getLatestBlock());
+      const notAddedBlock = createBlock(blockOne);
       const fakeBlockOne = createBlock(
-        forkBlockNumber.addn(1),
+        await fb.getLatestBlock(),
         randomHashBuffer()
       );
 
@@ -368,7 +365,7 @@ describe("ForkBlockchain", () => {
     });
 
     it("does not throw if there are no following blocks", async () => {
-      const blockOne = createBlock(forkBlockNumber.addn(1));
+      const blockOne = createBlock(await fb.getLatestBlock());
       await fb.putBlock(blockOne);
       assert.doesNotThrow(() => fb.deleteAllFollowingBlocks(blockOne));
     });
@@ -393,41 +390,18 @@ describe("ForkBlockchain", () => {
     });
 
     it("can get difficulty of the genesis block", async () => {
-      const genesis = createBlock(0, 1000);
-      await fb.putBlock(genesis);
-      const difficulty = await fb.getBlockTotalDifficulty(genesis.hash());
-      assert.equal(difficulty.toNumber(), 1000);
-    });
-
-    it("can get total difficulty of the second block", async () => {
-      fb = new ForkBlockchain(client, new BN(0), common);
-
-      const genesis = createBlock(0, 1000);
-      const second = createBlock(1, 2000);
-      await fb.putBlock(genesis);
-      await fb.putBlock(second);
-
-      const difficulty = await fb.getBlockTotalDifficulty(second.hash());
-      assert.equal(difficulty.toNumber(), 3000);
+      const genesis = await client.getBlockByNumber(new BN(0), false);
+      const difficulty = await fb.getBlockTotalDifficulty(genesis?.hash!);
+      assert.equal(difficulty.toNumber(), genesis?.difficulty.toNumber());
     });
 
     it("does not return total difficulty of a deleted block", async () => {
-      fb = new ForkBlockchain(client, new BN(0), common);
+      const block = createBlock(await fb.getLatestBlock());
+      await fb.putBlock(block);
+      await fb.delBlock(block.hash());
 
-      const blockOne = createBlock(0, 1000);
-      const blockTwo = createBlock(1, 2000);
-
-      await fb.putBlock(blockOne);
-      await fb.putBlock(blockTwo);
-
-      fb.deleteAllFollowingBlocks(blockOne);
-
-      assert.equal(
-        (await fb.getBlockTotalDifficulty(blockOne.hash())).toNumber(),
-        1000
-      );
       await assert.isRejected(
-        fb.getBlockTotalDifficulty(blockTwo.hash()),
+        fb.getBlockTotalDifficulty(block.hash()),
         Error,
         "Block not found"
       );
@@ -441,6 +415,22 @@ describe("ForkBlockchain", () => {
       assert.equal(
         td.toString(),
         TOTAL_DIFFICULTY_OF_BLOCK_10496585.toString()
+      );
+    });
+
+    it("can get total difficulty of a new block", async () => {
+      const latest = await fb.getLatestBlock();
+      const block = createBlock(latest, 1000);
+
+      const latestDifficulty = await fb.getBlockTotalDifficulty(latest.hash());
+
+      await fb.putBlock(block);
+
+      const totalDifficulty = await fb.getBlockTotalDifficulty(block.hash());
+
+      assert.equal(
+        totalDifficulty.toString(),
+        latestDifficulty.addn(1000).toString()
       );
     });
   });

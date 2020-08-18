@@ -130,8 +130,8 @@ export class BuidlerNode extends EventEmitter {
       });
 
       blockchain = new BuidlerBlockchain();
+      await addGenesisBlock(blockchain, common);
     }
-    await addGenesisBlock(blockchain, common);
 
     const vm = new VM({
       common,
