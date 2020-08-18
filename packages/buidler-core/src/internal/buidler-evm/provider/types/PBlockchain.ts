@@ -13,4 +13,5 @@ export interface PBlockchain {
   deleteAllFollowingBlocks(block: Block): void;
   getBlockTotalDifficulty(blockHash: Buffer): Promise<BN>;
   getTransaction(transactionHash: Buffer): Promise<Transaction>;
+  getBlockByTransactionHash(transactionHash: Buffer): Promise<Block>;
 }

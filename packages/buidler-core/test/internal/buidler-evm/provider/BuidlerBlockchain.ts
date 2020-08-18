@@ -334,4 +334,45 @@ describe("BuidlerBlockchain", () => {
       );
     });
   });
+
+  describe("getBlockByTransactionHash", () => {
+    it("throws for unknown transactions", async () => {
+      const transaction = createRandomTransaction();
+      await assert.isRejected(
+        blockchain.getBlockByTransactionHash(transaction.hash()),
+        Error,
+        "Transaction not found"
+      );
+    });
+
+    it("returns block for a known transaction", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.putBlock(genesis);
+      const block = createBlock(1, 1000);
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await blockchain.putBlock(block);
+
+      const result = await blockchain.getBlockByTransactionHash(
+        transaction.hash()
+      );
+      assert.equal(result, block);
+    });
+
+    it("forgets transactions after block is removed", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.putBlock(genesis);
+      const block = createBlock(1, 1000);
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await blockchain.putBlock(block);
+      await blockchain.delBlock(block.hash());
+
+      await assert.isRejected(
+        blockchain.getBlockByTransactionHash(transaction.hash()),
+        Error,
+        "Transaction not found"
+      );
+    });
+  });
 });

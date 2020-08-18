@@ -15,7 +15,7 @@ export class BuidlerBlockchain implements Blockchain {
   private readonly _blockHashToNumber: Map<string, number> = new Map();
   private readonly _blockHashToTotalDifficulty: Map<string, BN> = new Map();
   private readonly _transactions: Map<string, Transaction> = new Map();
-  private readonly _transactionHashToBlockHash: Map<string, string> = new Map();
+  private readonly _transactionToBlock: Map<string, Block> = new Map();
 
   public getLatestBlock(cb: Callback<Block>): void {
     if (this._blocks.length === 0) {
@@ -45,7 +45,7 @@ export class BuidlerBlockchain implements Blockchain {
     for (const transaction of block.transactions) {
       const hash = bufferToHex(transaction.hash());
       this._transactions.set(hash, transaction);
-      this._transactionHashToBlockHash.set(hash, blockHash);
+      this._transactionToBlock.set(hash, block);
     }
 
     cb(null, block);
@@ -144,6 +144,16 @@ export class BuidlerBlockchain implements Blockchain {
     return tx;
   }
 
+  public async getBlockByTransactionHash(
+    transactionHash: Buffer
+  ): Promise<Block> {
+    const block = this._transactionToBlock.get(bufferToHex(transactionHash));
+    if (block === undefined) {
+      throw new Error("Transaction not found");
+    }
+    return block;
+  }
+
   public asPBlockchain(): PBlockchain {
     return {
       getBlock: promisify(this.getBlock.bind(this)),
@@ -155,6 +165,7 @@ export class BuidlerBlockchain implements Blockchain {
       deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this),
       getBlockTotalDifficulty: this.getBlockTotalDifficulty.bind(this),
       getTransaction: this.getTransaction.bind(this),
+      getBlockByTransactionHash: this.getBlockByTransactionHash.bind(this),
     };
   }
 
@@ -202,7 +213,7 @@ export class BuidlerBlockchain implements Blockchain {
       for (const transaction of block.transactions) {
         const transactionHash = bufferToHex(transaction.hash());
         this._transactions.delete(transactionHash);
-        this._transactionHashToBlockHash.delete(transactionHash);
+        this._transactionToBlock.delete(transactionHash);
       }
     }
     this._blocks.splice(blockNumber);

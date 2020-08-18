@@ -107,6 +107,12 @@ export class ForkBlockchain implements PBlockchain {
     throw new Error("Transaction not found");
   }
 
+  public async getBlockByTransactionHash(
+    transactionHash: Buffer
+  ): Promise<Block> {
+    throw new Error("Transaction not found");
+  }
+
   public asBlockchain(): Blockchain {
     return {
       getBlock: callbackify(this.getBlock.bind(this)),
