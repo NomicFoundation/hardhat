@@ -44,6 +44,10 @@ export class ForkBlockchain implements PBlockchain {
     if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
       throw new Error("Invalid block number");
     }
+    const parent = await this.getLatestBlock();
+    if (!block.header.parentHash.equals(parent.hash())) {
+      throw new Error("Invalid parent hash");
+    }
     this._latestBlockNumber = this._latestBlockNumber.addn(1);
 
     const blockHash = block.hash().toString("hex");

@@ -186,6 +186,14 @@ describe("ForkBlockchain", () => {
       );
     });
 
+    it("rejects blocks with invalid parent hash", async () => {
+      await assert.isRejected(
+        fb.putBlock(new Block({ header: { number: forkBlockNumber.addn(1) } })),
+        Error,
+        "Invalid parent hash"
+      );
+    });
+
     it("can save more than one block", async () => {
       const blockOne = createBlock(await fb.getLatestBlock());
       const blockTwo = createBlock(blockOne);
