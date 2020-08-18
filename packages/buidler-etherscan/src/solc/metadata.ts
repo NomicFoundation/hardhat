@@ -2,18 +2,22 @@ import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 
 import { pluginName } from "../pluginContext";
 
+import { SolcVersionNumber } from "./version";
+
 export const metadataLengthSize = 2;
 
 // Instances of these errors are not supposed to be seen by the task.
 export class VersionNotFoundError extends NomicLabsBuidlerPluginError {
   constructor(message: string) {
     super(pluginName, message, undefined, true);
+    Object.setPrototypeOf(this, VersionNotFoundError.prototype);
   }
 }
 
 export class MetadataAbsentError extends NomicLabsBuidlerPluginError {
   constructor(message: string) {
     super(pluginName, message, undefined, true);
+    Object.setPrototypeOf(this, MetadataAbsentError.prototype);
   }
 }
 
@@ -28,7 +32,6 @@ export async function readSolcVersion(
   }
   if (solcMetadata instanceof Buffer) {
     const [major, minor, patch] = solcMetadata;
-    const { SolcVersionNumber } = await import("./version");
     return new SolcVersionNumber(major, minor, patch);
   }
   throw new VersionNotFoundError("Could not find solc version in metadata.");

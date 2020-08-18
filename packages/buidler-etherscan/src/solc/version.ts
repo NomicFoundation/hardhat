@@ -3,6 +3,12 @@ import SemverRange from "semver/classes/range";
 
 import { pluginName } from "../pluginContext";
 
+import {
+  MetadataAbsentError,
+  readSolcVersion,
+  VersionNotFoundError,
+} from "./metadata";
+
 const COMPILERS_LIST_URL =
   "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json";
 
@@ -66,12 +72,6 @@ export function getVersionNumber(shortVersion: string): SolcVersionNumber {
 export async function inferSolcVersion(
   bytecode: Buffer
 ): Promise<SolcVersionRange> {
-  const {
-    readSolcVersion,
-    VersionNotFoundError,
-    MetadataAbsentError,
-  } = await import("./metadata");
-
   let solcVersionMetadata: SolcVersionNumber;
   try {
     solcVersionMetadata = await readSolcVersion(bytecode);
