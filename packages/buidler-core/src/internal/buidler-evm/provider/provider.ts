@@ -5,14 +5,13 @@ import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
-import path from "path";
 import semver from "semver";
 import util from "util";
 
 import { EthereumProvider, ProjectPaths } from "../../../types";
-import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
+import { getBuildInfoFiles } from "../../artifacts";
 import { getUserConfigPath } from "../../core/project-structure";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import { BuildInfo } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -28,7 +27,7 @@ import { EvmModule } from "./modules/evm";
 import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
-import { BuidlerNode, GenesisAccount, SolidityTracerOptions } from "./node";
+import { BuidlerNode, GenesisAccount } from "./node";
 
 const log = debug("buidler:core:buidler-evm:provider");
 
@@ -215,8 +214,7 @@ export class BuidlerEVMProvider extends EventEmitter
       return;
     }
 
-    let compilerInput: CompilerInput | undefined;
-    let compilerOutput: CompilerOutput | undefined;
+    const buildInfos: BuildInfo[] = [];
 
     if (this._solcVersion !== undefined && this._paths !== undefined) {
       if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
@@ -226,42 +224,23 @@ export class BuidlerEVMProvider extends EventEmitter
           )
         );
       } else {
-        let hasCompiledContracts = false;
+        const buildInfoFiles = await getBuildInfoFiles(this._paths.artifacts);
 
-        if (await fsExtra.pathExists(this._paths.artifacts)) {
-          const artifactsDir = await fsExtra.readdir(this._paths.artifacts);
-          hasCompiledContracts = artifactsDir.some((f) => f.endsWith(".json"));
-        }
-
-        if (hasCompiledContracts) {
-          try {
-            const solcInputPath = path.join(
-              this._paths.cache,
-              SOLC_INPUT_FILENAME
-            );
-            const solcOutputPath = path.join(
-              this._paths.cache,
-              SOLC_OUTPUT_FILENAME
-            );
-
-            compilerInput = await fsExtra.readJSON(solcInputPath, {
-              encoding: "utf8",
-            });
-            compilerOutput = await fsExtra.readJSON(solcOutputPath, {
-              encoding: "utf8",
-            });
-          } catch (error) {
-            console.warn(
-              chalk.yellow(
-                "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
-              )
-            );
-
-            log(
-              "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
-              error
-            );
+        try {
+          for (const buildInfoFile of buildInfoFiles) {
+            buildInfos.push(await fsExtra.readJson(buildInfoFile));
           }
+        } catch (error) {
+          console.warn(
+            chalk.yellow(
+              "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
+            )
+          );
+
+          log(
+            "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
+            error
+          );
         }
       }
     }
@@ -276,8 +255,7 @@ export class BuidlerEVMProvider extends EventEmitter
       this._solcVersion,
       this._allowUnlimitedContractSize,
       this._initialDate,
-      compilerInput,
-      compilerOutput
+      buildInfos
     );
 
     this._common = common;
