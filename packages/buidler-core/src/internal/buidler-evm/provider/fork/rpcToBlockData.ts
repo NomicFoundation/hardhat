@@ -1,5 +1,7 @@
-import { RpcBlockWithTransactions, RpcTransaction } from "../../jsonrpc/types";
+import { RpcBlockWithTransactions } from "../../jsonrpc/types";
 import { BlockData } from "../types/Block";
+
+import { rpcToTxData } from "./rpcToTxData";
 
 export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
   return {
@@ -20,21 +22,7 @@ export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
       mixHash: rpcBlock.mixHash,
       nonce: rpcBlock.nonce,
     },
-    transactions: rpcBlock.transactions.map(rpcToTransaction),
+    transactions: rpcBlock.transactions.map(rpcToTxData),
     // TODO check whether we need to care about uncleHeaders
-  };
-}
-
-function rpcToTransaction(rpcTransaction: RpcTransaction) {
-  return {
-    gasLimit: rpcTransaction.gas,
-    gasPrice: rpcTransaction.gasPrice,
-    to: rpcTransaction.to ?? undefined,
-    nonce: rpcTransaction.nonce,
-    data: rpcTransaction.input,
-    v: rpcTransaction.v,
-    r: rpcTransaction.r,
-    s: rpcTransaction.s,
-    value: rpcTransaction.value,
   };
 }

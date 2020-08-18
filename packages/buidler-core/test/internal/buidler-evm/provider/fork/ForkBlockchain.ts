@@ -14,6 +14,7 @@ import { Block } from "../../../../../src/internal/buidler-evm/provider/types/Bl
 import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
+  FIRST_TX_HASH_OF_10496585,
   INFURA_URL,
   TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";
@@ -470,6 +471,23 @@ describe("ForkBlockchain", () => {
       assert.equal(result, transaction);
     });
 
+    it("returns a known remote transaction", async () => {
+      const result = await fb.getTransaction(FIRST_TX_HASH_OF_10496585);
+      assert.equal(
+        result.hash().toString("hex"),
+        FIRST_TX_HASH_OF_10496585.toString("hex")
+      );
+    });
+
+    it("throws for remote transactions from newer blocks", async () => {
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585.subn(1), common);
+      await assert.isRejected(
+        fb.getTransaction(FIRST_TX_HASH_OF_10496585),
+        Error,
+        "Transaction not found"
+      );
+    });
+
     it("forgets transactions after block is removed", async () => {
       const block = createBlock(await fb.getLatestBlock());
       const transaction = createRandomTransaction();
@@ -503,6 +521,25 @@ describe("ForkBlockchain", () => {
 
       const result = await fb.getBlockByTransactionHash(transaction.hash());
       assert.equal(result, block);
+    });
+
+    it("returns a block for known remote transaction", async () => {
+      const result = await fb.getBlockByTransactionHash(
+        FIRST_TX_HASH_OF_10496585
+      );
+      const block = await fb.getBlock(
+        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
+      );
+      assert.equal(result, block);
+    });
+
+    it("throws for remote transactions from newer blocks", async () => {
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585.subn(1), common);
+      await assert.isRejected(
+        fb.getBlockByTransactionHash(FIRST_TX_HASH_OF_10496585),
+        Error,
+        "Transaction not found"
+      );
     });
 
     it("forgets transactions after block is removed", async () => {

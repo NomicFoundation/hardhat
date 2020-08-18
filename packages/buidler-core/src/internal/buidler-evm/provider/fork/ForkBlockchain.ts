@@ -4,13 +4,14 @@ import { BN, bufferToInt } from "ethereumjs-util";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
-import { RpcBlockWithTransactions } from "../../jsonrpc/types";
+import { RpcBlockWithTransactions, RpcTransaction } from "../../jsonrpc/types";
 import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain } from "../types/PBlockchain";
 
 import { NotSupportedError } from "./errors";
 import { rpcToBlockData } from "./rpcToBlockData";
+import { rpcToTxData } from "./rpcToTxData";
 
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
@@ -60,12 +61,7 @@ export class ForkBlockchain implements PBlockchain {
       blockHash,
       await this._computeTotalDifficulty(block)
     );
-
-    for (const transaction of block.transactions) {
-      const transactionHash = transaction.hash().toString("hex");
-      this._transactions.set(transactionHash, transaction);
-      this._transactionToBlock.set(transactionHash, block);
-    }
+    this._processTransactions(block);
 
     return block;
   }
@@ -115,7 +111,10 @@ export class ForkBlockchain implements PBlockchain {
   public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
     const tx = this._transactions.get(transactionHash.toString("hex"));
     if (tx === undefined) {
-      throw new Error("Transaction not found");
+      const remote = await this._jsonRpcClient.getTransactionByHash(
+        transactionHash
+      );
+      return this._processRemoteTransaction(remote);
     }
     return tx;
   }
@@ -123,7 +122,17 @@ export class ForkBlockchain implements PBlockchain {
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block> {
-    const block = this._transactionToBlock.get(transactionHash.toString("hex"));
+    let block = this._transactionToBlock.get(transactionHash.toString("hex"));
+    if (block === undefined) {
+      const remote = await this._jsonRpcClient.getTransactionByHash(
+        transactionHash
+      );
+      await this._processRemoteTransaction(remote);
+      if (remote !== null && remote.blockHash !== null) {
+        await this.getBlock(remote.blockHash);
+        block = this._transactionToBlock.get(transactionHash.toString("hex"));
+      }
+    }
     if (block === undefined) {
       throw new Error("Transaction not found");
     }
@@ -138,6 +147,14 @@ export class ForkBlockchain implements PBlockchain {
       getDetails: callbackify(this.getDetails.bind(this)),
       iterator: callbackify(this.iterator.bind(this)),
     };
+  }
+
+  private _processTransactions(block: Block) {
+    for (const transaction of block.transactions) {
+      const transactionHash = transaction.hash().toString("hex");
+      this._transactions.set(transactionHash, transaction);
+      this._transactionToBlock.set(transactionHash, block);
+    }
   }
 
   private async _getBlockByHash(blockHash: Buffer) {
@@ -180,7 +197,26 @@ export class ForkBlockchain implements PBlockchain {
       rpcBlock.hash.toString("hex"),
       rpcBlock.totalDifficulty
     );
+    this._processTransactions(block);
+
     return block;
+  }
+
+  private async _processRemoteTransaction(
+    rpcTransaction: RpcTransaction | null
+  ) {
+    if (
+      rpcTransaction === null ||
+      rpcTransaction.blockNumber === null ||
+      rpcTransaction.blockNumber.gt(this._forkBlockNumber)
+    ) {
+      throw new Error("Transaction not found");
+    }
+    const transaction = new Transaction(rpcToTxData(rpcTransaction), {
+      common: this._common,
+    });
+    this._transactions.set(rpcTransaction.hash.toString("hex"), transaction);
+    return transaction;
   }
 
   private async _computeTotalDifficulty(block: Block): Promise<BN> {
