@@ -52,8 +52,9 @@ export async function retrieveContractBytecode(
     address,
     "latest",
   ])) as string;
-  const { hexlify, arrayify } = await import("@ethersproject/bytes");
-  const deployedBytecode = Buffer.from(arrayify(hexlify(bytecodeString)));
+  const deployedBytecode = bytecodeString.startsWith("0x")
+    ? bytecodeString.slice(2)
+    : bytecodeString;
   if (deployedBytecode.length === 0) {
     return null;
   }

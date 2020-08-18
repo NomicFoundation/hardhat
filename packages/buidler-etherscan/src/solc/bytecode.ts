@@ -1,53 +1,32 @@
 import { RunTaskFunction } from "@nomiclabs/buidler/types";
 
 import { metadataLengthSize, readSolcMetadataLength } from "./metadata";
-import { InferralType } from "./SolcVersions";
+import { InferralType } from "./version";
 
 export async function lookupMatchingBytecode(
   contractFiles: CompilerOutput["contracts"],
-  deployedBytecode: Buffer,
+  deployedBytecode: string,
   inferralType: InferralType
 ) {
   for (const [contractFilename, contracts] of Object.entries(contractFiles)) {
     for (const [contractName, contract] of Object.entries(contracts)) {
       // Normalize deployed bytecode according to this contract.
-      const { deployedBytecode: runtimeBytecode } = contract.evm;
+      const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
 
-      const runtimeBytecodeObject = Buffer.from(runtimeBytecode.object, "hex");
-      if (runtimeBytecodeObject.length !== deployedBytecode.length) {
-        continue;
-      }
-
-      const {
-        immutableValues,
-        libraryLinks,
-        normalizedBytecode,
-      } = await normalizeBytecode(deployedBytecode, runtimeBytecode);
-
-      // Library hash placeholders are embedded into the bytes where the library addresses are linked.
-      // We need to zero them out to compare them.
-      const { normalizedBytecode: referenceBytecode } = await normalizeBytecode(
-        runtimeBytecodeObject,
-        runtimeBytecode
+      const comparison = await compareBytecode(
+        deployedBytecode,
+        runtimeBytecodeSymbols,
+        inferralType
       );
 
-      let bytecodeSize = deployedBytecode.length;
-      if (inferralType !== InferralType.METADATA_ABSENT) {
-        // We will ignore metadata information when comparing. Etherscan seems to do the same.
-        const metadataLength = readSolcMetadataLength(deployedBytecode);
-        // The metadata length is stored at the end.
-        bytecodeSize -= metadataLength + metadataLengthSize;
-      }
-
-      if (
-        normalizedBytecode.compare(
-          referenceBytecode,
-          0,
-          bytecodeSize,
-          0,
-          bytecodeSize
-        ) === 0
-      ) {
+      if (comparison.match) {
+        const {
+          contractInformation: {
+            immutableValues,
+            libraryLinks,
+            normalizedBytecode,
+          },
+        } = comparison;
         // The bytecode matches
         return {
           immutableValues,
@@ -64,6 +43,81 @@ export async function lookupMatchingBytecode(
   return null;
 }
 
+type BytecodeComparison =
+  | { match: false }
+  | { match: true; contractInformation: BytecodeExtractedData };
+
+interface BytecodeExtractedData {
+  immutableValues: ImmutableValues;
+  libraryLinks: ResolvedLinks;
+  normalizedBytecode: string;
+}
+
+export async function compareBytecode(
+  deployedBytecode: string,
+  runtimeBytecodeSymbols: CompilerOutputBytecode,
+  inferralType: InferralType
+): Promise<BytecodeComparison> {
+  let bytecodeSize = deployedBytecode.length;
+  // We will ignore metadata information when comparing. Etherscan seems to do the same.
+  if (inferralType !== InferralType.METADATA_ABSENT) {
+    // The runtime object may contain nonhexadecimal characters due to link placeholders.
+    const runtimeMetadataLength = readSolcMetadataLength(
+      Buffer.from(
+        runtimeBytecodeSymbols.object.slice(-metadataLengthSize * 2),
+        "hex"
+      )
+    );
+    const deployedMetadataLength = readSolcMetadataLength(
+      Buffer.from(deployedBytecode, "hex")
+    );
+    if (
+      runtimeBytecodeSymbols.object.length - runtimeMetadataLength * 2 !==
+      deployedBytecode.length - deployedMetadataLength * 2
+    ) {
+      console.log(runtimeBytecodeSymbols.object.slice(0, 4));
+      console.log(runtimeMetadataLength);
+      console.log(deployedBytecode.slice(0, 4));
+      console.log(deployedMetadataLength);
+      return { match: false };
+    }
+
+    // The metadata length is stored at the end.
+    bytecodeSize -= (deployedMetadataLength + metadataLengthSize) * 2;
+  }
+
+  // Normalize deployed bytecode according to this contract.
+  const {
+    immutableValues,
+    libraryLinks,
+    normalizedBytecode,
+  } = await normalizeBytecode(deployedBytecode, runtimeBytecodeSymbols);
+
+  // Library hash placeholders are embedded into the bytes where the library addresses are linked.
+  // We need to zero them out to compare them.
+  const { normalizedBytecode: referenceBytecode } = await normalizeBytecode(
+    runtimeBytecodeSymbols.object,
+    runtimeBytecodeSymbols
+  );
+
+  if (
+    normalizedBytecode.slice(0, bytecodeSize - 1) ===
+    referenceBytecode.slice(0, bytecodeSize - 1)
+  ) {
+    // The bytecode matches
+    return {
+      contractInformation: {
+        immutableValues,
+        libraryLinks,
+        normalizedBytecode,
+      },
+      match: true,
+    };
+  }
+
+  return { match: false };
+}
+
 interface ResolvedLinks {
   [libraryFileGlobalName: string]: {
     [libraryName: string]: string;
@@ -71,7 +125,7 @@ interface ResolvedLinks {
 }
 
 interface ImmutableValues {
-  [key: string]: Buffer;
+  [key: string]: string;
 }
 
 interface BytecodeSlice {
@@ -83,7 +137,7 @@ type LinkReferences = CompilerOutputBytecode["linkReferences"][string][string];
 type NestedSliceReferences = BytecodeSlice[][];
 
 export async function normalizeBytecode(
-  bytecode: Buffer,
+  bytecode: string,
   symbols: CompilerOutputBytecode
 ) {
   const nestedSliceReferences: NestedSliceReferences = [];
@@ -96,9 +150,14 @@ export async function normalizeBytecode(
       }
 
       const { start, length } = linkReferences[0];
-      libraryLinks[filename][libraryName] = `0x${bytecode
-        .slice(start, length)
-        .toString("hex")}`;
+      if (libraryLinks[filename] === undefined) {
+        libraryLinks[filename] = {};
+      }
+      // We have the bytecode encoded as a hex string
+      libraryLinks[filename][libraryName] = `0x${bytecode.slice(
+        start * 2,
+        (start + length) * 2
+      )}`;
       nestedSliceReferences.push(linkReferences);
     }
   }
@@ -117,7 +176,7 @@ export async function normalizeBytecode(
       }
 
       const { start, length } = immutableReferences[0];
-      immutableValues[key] = bytecode.slice(start, length);
+      immutableValues[key] = bytecode.slice(start * 2, (start + length) * 2);
       nestedSliceReferences.push(immutableReferences);
     }
   }
@@ -131,15 +190,15 @@ export async function normalizeBytecode(
 }
 
 export function zeroOutSlices(
-  code: Buffer,
+  code: string,
   slices: Array<{ start: number; length: number }>
-): Buffer {
+): string {
   for (const { start, length } of slices) {
-    code = Buffer.concat([
-      code.slice(0, start),
-      Buffer.alloc(length, 0),
-      code.slice(start + length),
-    ]);
+    code = [
+      code.slice(0, start * 2),
+      "0".repeat(length * 2),
+      code.slice((start + length) * 2),
+    ].join();
   }
 
   return code;
@@ -177,7 +236,7 @@ export interface CompilerOutputBytecode {
   object: string;
   linkReferences: {
     [libraryFileGlobalName: string]: {
-      [libraryName: string]: Array<{ start: 0; length: 20 }>;
+      [libraryName: string]: Array<{ start: number; length: 20 }>;
     };
   };
   immutableReferences?: {

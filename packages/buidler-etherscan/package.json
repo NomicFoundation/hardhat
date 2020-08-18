@@ -38,7 +38,6 @@
   "dependencies": {
     "@ethersproject/abi": "^5.0.2",
     "@ethersproject/address": "^5.0.2",
-    "@ethersproject/bytes": "^5.0.3",
     "cbor": "^5.0.2",
     "ethereumjs-abi": "^0.6.8",
     "node-fetch": "^2.6.0",

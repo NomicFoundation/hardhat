@@ -53,7 +53,7 @@ See https://etherscan.io/apis`
   }
 
   const { getVersionNumber, inferSolcVersion, InferralType } = await import(
-    "./solc/SolcVersions"
+    "./solc/version"
   );
   const solcVersionConfig = getVersionNumber(config.solc.version);
 
@@ -128,7 +128,8 @@ The selected network is ${network.name}.`
     );
   }
 
-  const solcVersionRange = await inferSolcVersion(deployedContractBytecode);
+  const bytecodeBuffer = Buffer.from(deployedContractBytecode, "hex");
+  const solcVersionRange = await inferSolcVersion(bytecodeBuffer);
 
   if (!solcVersionRange.isIncluded(solcVersionConfig)) {
     let detailedContext;

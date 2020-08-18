@@ -28,7 +28,7 @@ export async function readSolcVersion(
   }
   if (solcMetadata instanceof Buffer) {
     const [major, minor, patch] = solcMetadata;
-    const { SolcVersionNumber } = await import("./SolcVersions");
+    const { SolcVersionNumber } = await import("./version");
     return new SolcVersionNumber(major, minor, patch);
   }
   throw new VersionNotFoundError("Could not find solc version in metadata.");
@@ -36,7 +36,7 @@ export async function readSolcVersion(
 
 export async function decodeSolcMetadata(bytecode: Buffer) {
   const metadataLength = readSolcMetadataLength(bytecode);
-  // The metadata length is in the last two bytes.
+  // The metadata and its length are in the last few bytes.
   const metadataPayload = bytecode.slice(
     -metadataLength - metadataLengthSize,
     -metadataLengthSize
