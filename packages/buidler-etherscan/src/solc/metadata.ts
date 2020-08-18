@@ -7,13 +7,13 @@ export const metadataLengthSize = 2;
 // Instances of these errors are not supposed to be seen by the task.
 export class VersionNotFoundError extends NomicLabsBuidlerPluginError {
   constructor(message: string) {
-    super(pluginName, message);
+    super(pluginName, message, undefined, true);
   }
 }
 
 export class MetadataAbsentError extends NomicLabsBuidlerPluginError {
   constructor(message: string) {
-    super(pluginName, message);
+    super(pluginName, message, undefined, true);
   }
 }
 

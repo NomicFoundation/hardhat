@@ -28,7 +28,6 @@ const verify: ActionType<VerificationArgs> = async (
     etherscan.apiKey === null ||
     etherscan.apiKey.trim() === ""
   ) {
-    // TODO: add URL to etherscan documentation?
     throw new NomicLabsBuidlerPluginError(
       pluginName,
       `Please provide an Etherscan API token via buidler config.
@@ -219,7 +218,6 @@ Encoder error reason: ${error.reason}`;
   );
   const response = await verifyContract(etherscanAPIEndpoint, request);
 
-  // TODO: Display contract name?
   console.log(
     `Successfully submitted source code for contract
 ${contractInformation.contractFilename}:${contractInformation.contractName} at ${address}
@@ -242,9 +240,14 @@ for verification on etherscan. Waiting for verification result...`
   if (verificationStatus.isVerificationSuccess()) {
     console.log("Successfully verified contract on etherscan");
   } else {
-    // TODO: throw an unexpected error here?
-    console.log(`The API responded with an unexpected message.
-Message: ${verificationStatus.message}`);
+    // Reaching this branch shouldn't be possible unless the API is behaving in a new way.
+    throw new NomicLabsBuidlerPluginError(
+      pluginName,
+      `The API responded with an unexpected message.
+Message: ${verificationStatus.message}`,
+      undefined,
+      true
+    );
   }
 };
 

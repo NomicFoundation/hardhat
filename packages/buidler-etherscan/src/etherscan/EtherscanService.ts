@@ -40,7 +40,10 @@ export async function verifyContract(
 
     const etherscanResponse = new EtherscanResponse(await response.json());
     if (!etherscanResponse.isOk()) {
-      throw new NomicLabsBuidlerPluginError(pluginName, etherscanResponse.message);
+      throw new NomicLabsBuidlerPluginError(
+        pluginName,
+        etherscanResponse.message
+      );
     }
 
     return etherscanResponse;
