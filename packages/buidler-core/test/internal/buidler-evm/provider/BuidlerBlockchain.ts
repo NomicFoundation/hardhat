@@ -296,7 +296,7 @@ describe("BuidlerBlockchain", () => {
     });
   });
 
-  describe.only("getTransaction", () => {
+  describe("getTransaction", () => {
     it("throws for unknown transactions", async () => {
       const transaction = createRandomTransaction();
       await assert.isRejected(
@@ -316,6 +316,22 @@ describe("BuidlerBlockchain", () => {
 
       const result = await blockchain.getTransaction(transaction.hash());
       assert.equal(result, transaction);
+    });
+
+    it("forgets transactions after block is removed", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.putBlock(genesis);
+      const block = createBlock(1, 1000);
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await blockchain.putBlock(block);
+      await blockchain.delBlock(block.hash());
+
+      await assert.isRejected(
+        blockchain.getTransaction(transaction.hash()),
+        Error,
+        "Transaction not found"
+      );
     });
   });
 });
