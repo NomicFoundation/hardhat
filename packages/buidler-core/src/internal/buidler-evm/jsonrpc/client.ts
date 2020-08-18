@@ -11,6 +11,7 @@ import {
   rpcBlock,
   rpcBlockWithTransactions,
   RpcBlockWithTransactions,
+  rpcTransaction,
 } from "./types";
 
 // TODO: is there really no existing definition?
@@ -126,6 +127,14 @@ export class JsonRpcClient {
       "eth_getTransactionCount",
       [bufferToString(address), blockTagToString(blockTag)],
       rpcQuantity
+    );
+  }
+
+  public async getTransactionByHash(transactionHash: Buffer) {
+    return this._perform(
+      "eth_getTransactionByHash",
+      [bufferToString(transactionHash)],
+      nullable(rpcTransaction)
     );
   }
 

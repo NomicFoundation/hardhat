@@ -12,6 +12,7 @@ import {
   DAI_ADDRESS,
   DAI_TOTAL_SUPPLY_STORAGE_POSITION,
   EMPTY_ACCOUNT_ADDRESS,
+  FIRST_TX_HASH_OF_10496585,
   INFURA_URL,
   WETH_ADDRESS,
 } from "../helpers/constants";
@@ -241,6 +242,27 @@ describe("JsonRpcClient", () => {
         "latest"
       );
       assert.isTrue(nonce.eqn(0));
+    });
+  });
+
+  describe("getTransactionByHash", () => {
+    it("can fetch existing transactions", async () => {
+      const transaction = await client.getTransactionByHash(
+        FIRST_TX_HASH_OF_10496585
+      );
+      assert.equal(
+        transaction?.hash.toString("hex"),
+        FIRST_TX_HASH_OF_10496585.toString("hex")
+      );
+      assert.equal(
+        transaction?.blockHash?.toString("hex"),
+        BLOCK_HASH_OF_10496585
+      );
+    });
+
+    it("returns null for non-existent transactions", async () => {
+      const transaction = await client.getTransactionByHash(randomHashBuffer());
+      assert.equal(transaction, null);
     });
   });
 });

@@ -25,6 +25,10 @@ export const BLOCK_HASH_OF_10496585 =
 export const TOTAL_DIFFICULTY_OF_BLOCK_10496585 = new BN(
   "16430631039734293348166"
 );
+export const FIRST_TX_HASH_OF_10496585 = Buffer.from(
+  "ed0b0b132bd693ef34a72084f090df07c5c3a2ec019d76316da040d4222cdfb8",
+  "hex"
+);
 
 export const DEFAULT_HARDFORK = "istanbul";
 export const DEFAULT_NETWORK_NAME = "TestNet";
