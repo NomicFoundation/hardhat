@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import SemverRange from "semver/classes/range";
 
 import { pluginName } from "../pluginContext";
@@ -27,7 +27,7 @@ export class SolcVersionNumber {
     const fullVersion = versions.releases[shortVersion];
 
     if (fullVersion === undefined || fullVersion === "") {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
         pluginName,
         "Given solc version doesn't exist"
       );
@@ -142,7 +142,7 @@ export async function getVersions(): Promise<CompilersList> {
 
     if (!response.ok) {
       const responseText = await response.text();
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
         pluginName,
         `HTTP response is not ok. Status code: ${response.status} Response text: ${responseText}`
       );
@@ -150,7 +150,7 @@ export async function getVersions(): Promise<CompilersList> {
 
     return response.json();
   } catch (error) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
       pluginName,
       `Failed to obtain list of solc versions. Reason: ${error.message}`,
       error

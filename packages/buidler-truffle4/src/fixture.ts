@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import {
   BuidlerRuntimeEnvironment,
   ProjectPaths,
@@ -43,7 +43,7 @@ export async function getTruffleFixtureFunction(
   }
 
   if (!(fixture instanceof Function)) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
       "@nomiclabs/buidler-truffle4",
       `Truffle fixture file ${fixturePath} must return a function`
     );

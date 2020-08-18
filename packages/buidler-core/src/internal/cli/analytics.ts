@@ -9,7 +9,7 @@ import qs from "qs";
 import uuid from "uuid/v4";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
-import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
+import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import { getPackageJson } from "../util/packageInfo";
 
@@ -71,7 +71,7 @@ export class Analytics {
   }) {
     this._projectId = projectId;
     this._clientId = clientId;
-    this._enabled = enabled && !this._isLocalDev() && !isRunningOnCiServer();
+    this._enabled = enabled && !isLocalDev() && !isRunningOnCiServer();
     this._userType = userType;
   }
 
@@ -187,19 +187,6 @@ export class Analytics {
       });
 
     return [abortAnalytics, hitPromise];
-  }
-
-  /**
-   * Checks whether we're using Buidler in development mode (that is, we're working _on_ Buidler).
-   * We don't want the tasks we run at these moments to be tracked, so we disable analytics if so.
-   */
-  private _isLocalDev(): boolean {
-    const executionMode = getExecutionMode();
-
-    return (
-      executionMode === ExecutionMode.EXECUTION_MODE_LINKED ||
-      executionMode === ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS
-    );
   }
 }
 

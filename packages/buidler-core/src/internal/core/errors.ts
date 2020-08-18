@@ -79,7 +79,7 @@ export class BuidlerError extends CustomError {
 }
 
 /**
- * This class is used to throw errors from buidler plugins.
+ * This class is used to throw errors from buidler plugins made by third parties.
  */
 export class BuidlerPluginError extends CustomError {
   public static isBuidlerPluginError(other: any): other is BuidlerPluginError {
@@ -129,6 +129,36 @@ export class BuidlerPluginError extends CustomError {
 
     this._isBuidlerPluginError = true;
     Object.setPrototypeOf(this, BuidlerPluginError.prototype);
+  }
+}
+
+export class NomicLabsBuidlerPluginError extends BuidlerPluginError {
+  public static isNomicLabsBuidlerPluginError(
+    other: any
+  ): other is NomicLabsBuidlerPluginError {
+    return (
+      other !== undefined &&
+      other !== null &&
+      other._isNomicLabsBuidlerPluginError === true
+    );
+  }
+
+  private readonly _isNomicLabsBuidlerPluginError: boolean;
+
+  /**
+   * This class is used to throw errors from *core* buidler plugins. If you are
+   * developing a third-party plugin, use BuidlerPluginError instead.
+   */
+  public constructor(
+    pluginName: string,
+    message: string,
+    parent?: Error,
+    public shouldBeReported = false
+  ) {
+    super(pluginName, message, parent);
+
+    this._isNomicLabsBuidlerPluginError = true;
+    Object.setPrototypeOf(this, NomicLabsBuidlerPluginError.prototype);
   }
 }
 

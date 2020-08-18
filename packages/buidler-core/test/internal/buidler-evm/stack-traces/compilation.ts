@@ -68,19 +68,23 @@ function loadCompilerSources(compilerPath: string) {
   return loadedSolc;
 }
 
-async function getSolc(compilerVersion: string): Promise<any> {
+async function getSolc(compilerPath: string): Promise<any> {
+  if (path.isAbsolute(compilerPath)) {
+    return solcWrapper(loadCompilerSources(compilerPath));
+  }
+
   const compilersDir = path.join(__dirname, "compilers");
-  const compilerPath = path.join(compilersDir, compilerVersion);
+  const absoluteCompilerPath = path.join(compilersDir, compilerPath);
 
   // download if necessary
-  if (!fs.existsSync(compilerPath)) {
-    const compilerUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${compilerVersion}`;
+  if (!fs.existsSync(absoluteCompilerPath)) {
+    const compilerUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${compilerPath}`;
     await download(compilerUrl, compilersDir, {
-      filename: path.basename(compilerVersion),
+      filename: path.basename(compilerPath),
     });
   }
 
-  const solc = solcWrapper(loadCompilerSources(compilerPath));
+  const solc = solcWrapper(loadCompilerSources(absoluteCompilerPath));
 
   return solc;
 }

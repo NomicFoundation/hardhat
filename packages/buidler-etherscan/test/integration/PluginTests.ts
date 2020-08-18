@@ -1,5 +1,8 @@
 import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { BuidlerPluginError, readArtifact } from "@nomiclabs/buidler/plugins";
+import {
+  NomicLabsBuidlerPluginError,
+  readArtifact,
+} from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 // tslint:disable: no-implicit-dependencies
 import { ethers } from "ethers";
@@ -131,7 +134,7 @@ describe.skip("Plugin integration tests", function () {
           address: "0x0000000000000000000000000000000000000000",
           constructorArguments: [],
         })
-        .catch((e: any) => assert.instanceOf(e, BuidlerPluginError));
+        .catch((e: any) => assert.instanceOf(e, NomicLabsBuidlerPluginError));
     });
   });
 });

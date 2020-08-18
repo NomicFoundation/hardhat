@@ -641,14 +641,62 @@ const solidity06Compilers: CompilerOptions[] = [
   //   solidityVersion: "0.6.7",
   //   compilerPath: "soljson-v0.6.7+commit.b8d736ae.js",
   // },
+  // {
+  //   solidityVersion: "0.6.8",
+  //   compilerPath: "soljson-v0.6.8+commit.0bbfe453.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.9",
+  //   compilerPath: "soljson-v0.6.9+commit.3e3065ac.js",
+  // },
+  // {
+  //   solidityVersion: "0.6.10",
+  //   compilerPath: "soljson-v0.6.10+commit.00c0fcaf.js",
+  // },
   {
-    solidityVersion: "0.6.8",
-    compilerPath: "soljson-v0.6.8+commit.0bbfe453.js",
+    solidityVersion: "0.6.11",
+    compilerPath: "soljson-v0.6.11+commit.5ef660b1.js",
   },
 ];
 
 describe("Stack traces", function () {
   setCWD();
+
+  // if a path to a solc file was specified, we only run these tests and use
+  // that compiler
+  const customSolcPath = process.env.BUIDLER_TESTS_SOLC_PATH;
+  if (customSolcPath !== undefined) {
+    const customSolcVersion = process.env.BUIDLER_TESTS_SOLC_VERSION;
+
+    if (customSolcVersion === undefined) {
+      console.error(
+        "BUIDLER_TESTS_SOLC_VERSION has to be set when using BUIDLER_TESTS_SOLC_PATH"
+      );
+      process.exit(1);
+    }
+
+    describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
+      const compilerOptions = {
+        solidityVersion: customSolcVersion,
+        compilerPath: customSolcPath,
+      };
+
+      const testsDir = semver.satisfies(customSolcVersion, "^0.5.0")
+        ? "0_5"
+        : "0_6";
+      defineDirTests(
+        path.join(__dirname, "test-files", testsDir),
+        compilerOptions
+      );
+
+      defineDirTests(
+        path.join(__dirname, "test-files", "version-independent"),
+        compilerOptions
+      );
+    });
+
+    return;
+  }
 
   // solidity v0.5
   for (const compilerOptions of solidity05Compilers) {

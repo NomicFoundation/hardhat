@@ -1,5 +1,5 @@
 import { task } from "@nomiclabs/buidler/config";
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { ActionType, Artifact } from "@nomiclabs/buidler/types";
 import SemverRange from "semver/classes/range";
 
@@ -29,7 +29,7 @@ const verify: ActionType<VerificationArgs> = async (
     etherscan.apiKey.trim() === ""
   ) {
     // TODO: add URL to etherscan documentation?
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
       pluginName,
       `Please provide an Etherscan API token via buidler config.
 E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
@@ -38,7 +38,7 @@ See https://etherscan.io/apis`
   }
 
   if (network.name === "buidlerevm") {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
       pluginName,
       `The selected network is ${network.name}. Please select a network supported by Etherscan.`
     );
@@ -46,7 +46,7 @@ See https://etherscan.io/apis`
 
   const { isAddress } = await import("@ethersproject/address");
   if (!isAddress(address)) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
       pluginName,
       `${address} is an invalid address.`
     );
@@ -64,7 +64,7 @@ See https://etherscan.io/apis`
   // This list should be validated - it links to https://github.com/ethereum/solc-bin/blob/gh-pages/bin/list.txt
   // which has many old compilers included in the list too.
   if (!supportedSolcVersionRange.test(solcVersionConfig.toString())) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
       pluginName,
       `Etherscan only supports compiler versions 0.4.11 and higher.
 See https://etherscan.io/solcversions for more information.`
@@ -76,14 +76,14 @@ See https://etherscan.io/solcversions for more information.`
     try {
       constructorArguments = await import(constructorArgsModule!);
       if (!Array.isArray(constructorArguments)) {
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
           pluginName,
           `The module doesn't export a list. The module should look like this:
 module.exports = [ arg1, arg2, ... ];`
         );
       }
     } catch (error) {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
         pluginName,
         "Importing the module for the constructor arguments list failed.",
         error
@@ -103,7 +103,7 @@ module.exports = [ arg1, arg2, ... ];`
     etherscanAPIEndpoint = await getEtherscanEndpoint(network.provider);
   } catch (error) {
     if (error instanceof NetworkProberError) {
-      throw new BuidlerPluginError(
+      throw new NomicLabsBuidlerPluginError(
         pluginName,
         `${error.message} The selected network is ${network.name}.
 Common causes:
@@ -121,7 +121,7 @@ Common causes:
     network.provider
   );
   if (deployedContractBytecode === null) {
-    throw new BuidlerPluginError(
+    throw new NomicLabsBuidlerPluginError(
       pluginName,
       `The address ${address} has no bytecode. Is the contract deployed to this network?
 The selected network is ${network.name}.`
@@ -146,7 +146,7 @@ Common causes:
   - Wrong compiler version in buidler config
   - Wrong address for contract
   - Wrong network selected or faulty buidler network config`;
-    throw new BuidlerPluginError(pluginName, message);
+    throw new NomicLabsBuidlerPluginError(pluginName, message);
   }
 
   const { lookupMatchingBytecode, compile } = await import("./solc/bytecode");
@@ -165,7 +165,7 @@ The selected network is ${network.name}.
 Common causes:
   - Wrong address for contract
   - Wrong network selected or faulty buidler network config`;
-    throw new BuidlerPluginError(pluginName, message);
+    throw new NomicLabsBuidlerPluginError(pluginName, message);
   }
 
   const { Interface } = await import("@ethersproject/abi");
@@ -184,12 +184,12 @@ Common causes:
       // TODO: add a list of types and constructor arguments to the error message?
       const message = `The constructor for ${contractFilename}:${contractName} has ${error.count.types} parameters
  but ${error.count.values} arguments were provided instead.`;
-      throw new BuidlerPluginError(pluginName, message, error);
+      throw new NomicLabsBuidlerPluginError(pluginName, message, error);
     }
     if (isABIArgumentTypeError(error)) {
       const message = `Value ${error.value} cannot be encoded for the parameter ${error.argument}.
 Encoder error reason: ${error.reason}`;
-      throw new BuidlerPluginError(pluginName, message, error);
+      throw new NomicLabsBuidlerPluginError(pluginName, message, error);
     }
     // Should be unreachable.
     throw error;

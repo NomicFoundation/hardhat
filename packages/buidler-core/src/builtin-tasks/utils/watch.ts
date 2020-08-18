@@ -7,6 +7,7 @@ import {
   SOLC_INPUT_FILENAME,
   SOLC_OUTPUT_FILENAME,
 } from "../../internal/constants";
+import { Reporter } from "../../internal/sentry/reporter";
 import { EthereumProvider, ProjectPaths, SolcConfig } from "../../types";
 
 const log = debug("buidler:core:compilation-watcher");
@@ -61,6 +62,8 @@ export async function watchCompilerOutput(
         "Last compilation result couldn't be added. Please report this to help us improve Buidler.\n",
         error
       );
+
+      Reporter.reportError(error);
     }
   };
 
