@@ -662,6 +662,42 @@ const solidity06Compilers: CompilerOptions[] = [
 describe("Stack traces", function () {
   setCWD();
 
+  // if a path to a solc file was specified, we only run these tests and use
+  // that compiler
+  const customSolcPath = process.env.BUIDLER_TESTS_SOLC_PATH;
+  if (customSolcPath !== undefined) {
+    const customSolcVersion = process.env.BUIDLER_TESTS_SOLC_VERSION;
+
+    if (customSolcVersion === undefined) {
+      console.error(
+        "BUIDLER_TESTS_SOLC_VERSION has to be set when using BUIDLER_TESTS_SOLC_PATH"
+      );
+      process.exit(1);
+    }
+
+    describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
+      const compilerOptions = {
+        solidityVersion: customSolcVersion,
+        compilerPath: customSolcPath,
+      };
+
+      const testsDir = semver.satisfies(customSolcVersion, "^0.5.0")
+        ? "0_5"
+        : "0_6";
+      defineDirTests(
+        path.join(__dirname, "test-files", testsDir),
+        compilerOptions
+      );
+
+      defineDirTests(
+        path.join(__dirname, "test-files", "version-independent"),
+        compilerOptions
+      );
+    });
+
+    return;
+  }
+
   // solidity v0.5
   for (const compilerOptions of solidity05Compilers) {
     describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
