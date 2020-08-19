@@ -162,7 +162,6 @@ export class BuidlerNode extends EventEmitter {
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
-  private _transactionHashToBlockHash: Map<string, string> = new Map();
   private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
 
   private _lastFilterId = new BN(0);
@@ -299,7 +298,6 @@ export class BuidlerNode extends EventEmitter {
     }
 
     await this._saveBlockAsSuccessfullyRun(block, result);
-    await this._saveTransactionAsSuccessfullyRun(tx, block);
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
@@ -590,12 +588,9 @@ export class BuidlerNode extends EventEmitter {
   public async getBlockByTransactionHash(
     hash: Buffer
   ): Promise<Block | undefined> {
-    const blockHash = this._transactionHashToBlockHash.get(bufferToHex(hash));
-    if (blockHash === undefined) {
-      return undefined;
-    }
-
-    return this.getBlockByHash(toBuffer(blockHash));
+    return this._blockchain
+      .getBlockByTransactionHash(hash)
+      .catch((transactionNotFound) => undefined);
   }
 
   public async getBlockTotalDifficulty(block: Block): Promise<BN> {
@@ -678,9 +673,6 @@ export class BuidlerNode extends EventEmitter {
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
       nextBlockTimestamp: new BN(this._nextBlockTimestamp),
-      transactionHashToBlockHash: new Map(
-        this._transactionHashToBlockHash.entries()
-      ),
       blockHashToTxBlockResults: new Map(
         this._blockHashToTxBlockResults.entries()
       ),
@@ -718,7 +710,6 @@ export class BuidlerNode extends EventEmitter {
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
     this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
-    this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
 
     // We delete this and the following snapshots, as they can only be used
@@ -1224,18 +1215,9 @@ export class BuidlerNode extends EventEmitter {
     });
   }
 
-  private async _saveTransactionAsSuccessfullyRun(
-    tx: Transaction,
-    block: Block
-  ) {
-    this._transactionHashToBlockHash.set(
-      bufferToHex(tx.hash(true)),
-      bufferToHex(block.hash())
-    );
-  }
-
   private async _transactionWasSuccessful(tx: Transaction): Promise<boolean> {
-    return this._transactionHashToBlockHash.has(bufferToHex(tx.hash(true)));
+    const block = await this.getBlockByTransactionHash(tx.hash());
+    return block !== undefined;
   }
 
   private async _timestampClashesWithPreviousBlockOne(
