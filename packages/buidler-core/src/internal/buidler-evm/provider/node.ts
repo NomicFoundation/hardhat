@@ -162,7 +162,6 @@ export class BuidlerNode extends EventEmitter {
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
-  private _transactionByHash: Map<string, Transaction> = new Map();
   private _transactionHashToBlockHash: Map<string, string> = new Map();
   private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
 
@@ -269,7 +268,7 @@ export class BuidlerNode extends EventEmitter {
     consoleLogMessages: string[];
   }> {
     await this._validateTransaction(tx);
-    await this._saveTransactionAsReceived(tx);
+    await this._notifyPendingTransaction(tx);
 
     const [
       blockTimestamp,
@@ -631,12 +630,9 @@ export class BuidlerNode extends EventEmitter {
   public async getSuccessfulTransactionByHash(
     hash: Buffer
   ): Promise<Transaction | undefined> {
-    const tx = this._transactionByHash.get(bufferToHex(hash));
-    if (tx !== undefined && (await this._transactionWasSuccessful(tx))) {
-      return tx;
-    }
-
-    return undefined;
+    return this._blockchain
+      .getTransaction(hash)
+      .catch((transactionNotFound) => undefined);
   }
 
   public async getTxBlockResults(
@@ -682,7 +678,6 @@ export class BuidlerNode extends EventEmitter {
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
       nextBlockTimestamp: new BN(this._nextBlockTimestamp),
-      transactionByHash: new Map(this._transactionByHash.entries()),
       transactionHashToBlockHash: new Map(
         this._transactionHashToBlockHash.entries()
       ),
@@ -723,7 +718,6 @@ export class BuidlerNode extends EventEmitter {
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
     this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
-    this._transactionByHash = snapshot.transactionByHash;
     this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
     this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
 
@@ -1113,8 +1107,7 @@ export class BuidlerNode extends EventEmitter {
     this._nextBlockTimestamp = new BN(0);
   }
 
-  private async _saveTransactionAsReceived(tx: Transaction) {
-    this._transactionByHash.set(bufferToHex(tx.hash(true)), tx);
+  private async _notifyPendingTransaction(tx: Transaction) {
     this._filters.forEach((filter) => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
         const hash = bufferToHex(tx.hash(true));

@@ -63,7 +63,6 @@ export interface Snapshot {
   stateRoot: Buffer;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
-  transactionByHash: Map<string, Transaction>;
   transactionHashToBlockHash: Map<string, string>;
   blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
 }
