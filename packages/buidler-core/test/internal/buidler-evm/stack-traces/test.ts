@@ -683,7 +683,15 @@ describe("Stack traces", function () {
 
       const testsDir = semver.satisfies(customSolcVersion, "^0.5.0")
         ? "0_5"
-        : "0_6";
+        : semver.satisfies(customSolcVersion, "^0.6.0")
+        ? "0_6"
+        : null;
+
+      if (testsDir === null) {
+        console.error(`There are no tests for version ${customSolcVersion}`);
+        process.exit(1);
+      }
+
       defineDirTests(
         path.join(__dirname, "test-files", testsDir),
         compilerOptions
