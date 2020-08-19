@@ -8,8 +8,6 @@ The bulk of Buidler's functionality comes from plugins, which as a developer you
 
 Buidler comes built-in with Buidler EVM, a local Ethereum network designed for development.
 
-Overall the tool is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overridden.
-
 ## Installation
 
 ### Local installation (recommended)
