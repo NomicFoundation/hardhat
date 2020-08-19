@@ -1,9 +1,8 @@
-import { Transaction } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 
-import { RpcLogOutput } from "./output";
+import { RpcLogOutput, RpcTransactionReceiptOutput } from "./output";
 import { Block } from "./types/Block";
 
 export interface GenesisAccount {
@@ -37,19 +36,6 @@ export interface FilterParams {
   normalizedTopics: Array<Array<Buffer | null> | null>;
 }
 
-export interface TxReceipt {
-  status: 0 | 1;
-  gasUsed: Buffer;
-  bitvector: Buffer;
-  logs: RpcLogOutput[];
-}
-
-export interface TxBlockResult {
-  receipt: TxReceipt;
-  createAddresses: Buffer | undefined;
-  bloomBitvector: Buffer;
-}
-
 export interface SolidityTracerOptions {
   solidityVersion: string;
   compilerInput: CompilerInput;
@@ -63,5 +49,5 @@ export interface Snapshot {
   stateRoot: Buffer;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
-  blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
+  blockHashToTxReceipts: Map<string, RpcTransactionReceiptOutput[]>;
 }

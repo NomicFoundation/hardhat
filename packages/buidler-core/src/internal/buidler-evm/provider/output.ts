@@ -1,7 +1,7 @@
+import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
-import { TxBlockResult } from "./node-types";
 import { Block } from "./types/Block";
 
 export interface RpcBlockOutput {
@@ -169,35 +169,43 @@ export function getRpcTransaction(
   };
 }
 
-export function getRpcTransactionReceipt(
-  tx: Transaction,
+export function getRpcTransactionReceipts(
   block: Block,
-  index: number,
-  txBlockResults: TxBlockResult[]
-): RpcTransactionReceiptOutput {
-  const cumulativeGasUsed: BN = txBlockResults
-    .map((txbr) => txbr.receipt)
-    .filter((r, i) => i <= index)
-    .reduce((gas, r) => gas.add(new BN(r.gasUsed)), new BN(0));
+  runBlockResult: RunBlockResult
+): RpcTransactionReceiptOutput[] {
+  const receipts: RpcTransactionReceiptOutput[] = [];
 
-  const receipt = txBlockResults[index].receipt;
-  const createdAddress = txBlockResults[index].createAddresses;
+  let cumulativeGasUsed = new BN(0);
 
-  return {
-    transactionHash: bufferToRpcData(tx.hash()),
-    transactionIndex: numberToRpcQuantity(index),
-    blockHash: bufferToRpcData(block.hash()),
-    blockNumber: numberToRpcQuantity(new BN(block.header.number)),
-    from: bufferToRpcData(tx.getSenderAddress()),
-    to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
-    cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
-    gasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
-    contractAddress:
-      createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
-    logs: receipt.logs,
-    logsBloom: bufferToRpcData(txBlockResults[index].bloomBitvector),
-    status: numberToRpcQuantity(receipt.status),
-  };
+  for (let i = 0; i < runBlockResult.results.length; i += 1) {
+    const tx = block.transactions[i];
+    const { createdAddress } = runBlockResult.results[i];
+    const receipt = runBlockResult.receipts[i];
+
+    cumulativeGasUsed = cumulativeGasUsed.add(new BN(receipt.gasUsed));
+
+    const logs = receipt.logs.map((log, logIndex) =>
+      getRpcLog(log, tx, block, i, logIndex)
+    );
+
+    receipts.push({
+      transactionHash: bufferToRpcData(tx.hash()),
+      transactionIndex: numberToRpcQuantity(i),
+      blockHash: bufferToRpcData(block.hash()),
+      blockNumber: numberToRpcQuantity(new BN(block.header.number)),
+      from: bufferToRpcData(tx.getSenderAddress()),
+      to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
+      cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
+      gasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
+      contractAddress:
+        createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
+      logs,
+      logsBloom: bufferToRpcData(receipt.bitvector),
+      status: numberToRpcQuantity(receipt.status),
+    });
+  }
+
+  return receipts;
 }
 
 export function getRpcLog(

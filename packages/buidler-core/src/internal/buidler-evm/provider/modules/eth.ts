@@ -60,7 +60,6 @@ import {
   bufferToRpcData,
   getRpcBlock,
   getRpcTransaction,
-  getRpcTransactionReceipt,
   numberToRpcQuantity,
   RpcBlockOutput,
   RpcLogOutput,
@@ -756,21 +755,11 @@ export class EthModule {
   private async _getTransactionReceiptAction(
     hash: Buffer
   ): Promise<RpcTransactionReceiptOutput | null> {
-    // We do not return receipts for failed transactions
-    const tx = await this._node.getSuccessfulTransactionByHash(hash);
-
-    if (tx === undefined) {
+    const receipt = await this._node.getTransactionReceipt(hash);
+    if (receipt === undefined) {
       return null;
     }
-
-    const block = (await this._node.getBlockByTransactionHash(hash))!;
-
-    const transactions: Transaction[] = block.transactions;
-    const index = transactions.findIndex((bt) => bt.hash().equals(hash));
-
-    const txBlockResults = await this._node.getTxBlockResults(block);
-
-    return getRpcTransactionReceipt(tx, block, index, txBlockResults!);
+    return receipt;
   }
 
   // eth_getUncleByBlockHashAndIndex

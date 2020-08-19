@@ -53,9 +53,13 @@ import {
   GenesisAccount,
   Snapshot,
   TransactionParams,
-  TxBlockResult,
 } from "./node-types";
-import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
+import {
+  getRpcBlock,
+  getRpcTransactionReceipts,
+  RpcLogOutput,
+  RpcTransactionReceiptOutput,
+} from "./output";
 import { Block } from "./types/Block";
 import { PBlockchain } from "./types/PBlockchain";
 import { PStateManager } from "./types/PStateManager";
@@ -158,7 +162,10 @@ export class BuidlerNode extends EventEmitter {
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
-  private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
+  private _blockHashToTxReceipts: Map<
+    string,
+    RpcTransactionReceiptOutput[]
+  > = new Map();
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -621,10 +628,16 @@ export class BuidlerNode extends EventEmitter {
       .catch((transactionNotFound) => undefined);
   }
 
-  public async getTxBlockResults(
-    block: Block
-  ): Promise<TxBlockResult[] | undefined> {
-    return this._blockHashToTxBlockResults.get(bufferToHex(block.hash()));
+  public async getTransactionReceipt(
+    hash: Buffer
+  ): Promise<RpcTransactionReceiptOutput | undefined> {
+    const block = await this.getBlockByTransactionHash(hash);
+    if (block === undefined) {
+      return undefined;
+    }
+    const index = block.transactions.findIndex((tx) => tx.hash().equals(hash));
+    const receipts = this._blockHashToTxReceipts.get(bufferToHex(block.hash()));
+    return receipts?.[index];
   }
 
   public async getPendingTransactions(): Promise<Transaction[]> {
@@ -664,9 +677,7 @@ export class BuidlerNode extends EventEmitter {
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
       nextBlockTimestamp: new BN(this._nextBlockTimestamp),
-      blockHashToTxBlockResults: new Map(
-        this._blockHashToTxBlockResults.entries()
-      ),
+      blockHashToTxReceipts: new Map(this._blockHashToTxReceipts.entries()),
     };
 
     this._snapshots.push(snapshot);
@@ -701,7 +712,7 @@ export class BuidlerNode extends EventEmitter {
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
     this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
-    this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
+    this._blockHashToTxReceipts = snapshot.blockHashToTxReceipts;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -840,10 +851,10 @@ export class BuidlerNode extends EventEmitter {
       i = i.addn(1)
     ) {
       const block = await this._blockchain.getBlock(new BN(i));
-      const blockResults = this._blockHashToTxBlockResults.get(
+      const receipts = this._blockHashToTxReceipts.get(
         bufferToHex(block.hash())
       );
-      if (blockResults === undefined) {
+      if (receipts === undefined) {
         continue;
       }
 
@@ -857,9 +868,9 @@ export class BuidlerNode extends EventEmitter {
         continue;
       }
 
-      for (const tx of blockResults) {
+      for (const receipt of receipts) {
         logs.push(
-          ...filterLogs(tx.receipt.logs, {
+          ...filterLogs(receipt.logs, {
             fromBlock: filterParams.fromBlock,
             toBlock: filterParams.toBlock,
             addresses: filterParams.addresses,
@@ -1125,42 +1136,14 @@ export class BuidlerNode extends EventEmitter {
     runBlockResult: RunBlockResult
   ) {
     await this._blockchain.putBlock(block);
-
-    const txBlockResults: TxBlockResult[] = [];
-
-    for (let i = 0; i < runBlockResult.results.length; i += 1) {
-      const result = runBlockResult.results[i];
-
-      const receipt = runBlockResult.receipts[i];
-      const logs = receipt.logs.map(
-        (rcpLog, logIndex) =>
-          (runBlockResult.receipts[i].logs[logIndex] = getRpcLog(
-            rcpLog,
-            block.transactions[i],
-            block,
-            i,
-            logIndex
-          ))
-      );
-
-      txBlockResults.push({
-        bloomBitvector: result.bloom.bitvector,
-        createAddresses: result.createdAddress,
-        receipt: {
-          status: receipt.status,
-          gasUsed: receipt.gasUsed,
-          bitvector: receipt.bitvector,
-          logs,
-        },
-      });
-    }
+    const receipts = getRpcTransactionReceipts(block, runBlockResult);
 
     const blockHash = bufferToHex(block.hash());
-    this._blockHashToTxBlockResults.set(blockHash, txBlockResults);
+    this._blockHashToTxReceipts.set(blockHash, receipts);
 
     const td = await this.getBlockTotalDifficulty(block);
     const rpcLogs: RpcLogOutput[] = [];
-    for (const receipt of runBlockResult.receipts) {
+    for (const receipt of receipts) {
       rpcLogs.push(...receipt.logs);
     }
 
