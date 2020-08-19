@@ -8,6 +8,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
   EMPTY_ACCOUNT_ADDRESS,
+  FIRST_TX_HASH_OF_10496585,
   INFURA_URL,
   WETH_ADDRESS,
 } from "../helpers/constants";
@@ -111,6 +112,59 @@ describe("Forked provider", () => {
         DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
         DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
       ]);
+    });
+
+    it("returns a valid transaction hash", async function () {
+      const transactionHash = await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          value: numberToRpcQuantity(1),
+          gas: numberToRpcQuantity(21000),
+          gasPrice: numberToRpcQuantity(1),
+        },
+      ]);
+
+      assert.match(transactionHash, /^0x[a-f\d]{64}$/);
+    });
+  });
+
+  describe("eth_getTransactionByHash", () => {
+    it("supports local transactions", async function () {
+      const transactionHash = await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          value: numberToRpcQuantity(1),
+          gas: numberToRpcQuantity(21000),
+          gasPrice: numberToRpcQuantity(1),
+        },
+      ]);
+
+      const transaction = await this.provider.send("eth_getTransactionByHash", [
+        transactionHash,
+      ]);
+
+      assert.equal(transaction.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+      assert.equal(transaction.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+      assert.equal(transaction.value, numberToRpcQuantity(1));
+      assert.equal(transaction.gas, numberToRpcQuantity(21000));
+      assert.equal(transaction.gasPrice, numberToRpcQuantity(1));
+    });
+
+    it("supports remote transactions", async function () {
+      const transaction = await this.provider.send("eth_getTransactionByHash", [
+        bufferToHex(FIRST_TX_HASH_OF_10496585),
+      ]);
+
+      assert.equal(
+        transaction.from,
+        "0x4e87582f5e48f3e505b7d3b544972399ad9f2e5f"
+      );
+      assert.equal(
+        transaction.to,
+        "0xdac17f958d2ee523a2206206994597c13d831ec7"
+      );
     });
   });
 });
