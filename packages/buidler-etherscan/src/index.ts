@@ -244,6 +244,7 @@ for verification on etherscan. Waiting for verification result...`
     throw new NomicLabsBuidlerPluginError(
       pluginName,
       `The API responded with an unexpected message.
+Contract verification may have succeeded and should be checked manually.
 Message: ${verificationStatus.message}`,
       undefined,
       true
