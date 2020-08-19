@@ -1,5 +1,10 @@
 import { assert } from "chai";
+import { encode } from "cbor";
 
+import {
+  readSolcMetadataLength,
+  metadataLengthSize,
+} from "../../../src/solc/metadata";
 import { compareBytecode } from "../../../src/solc/bytecode";
 import { InferralType } from "../../../src/solc/version";
 
@@ -48,6 +53,57 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
+      const contractInformation = await compareBytecode(
+        deployedBytecode,
+        contractSymbols,
+        InferralType.EXACT
+      );
+      assert.isTrue(contractInformation.match);
+    });
+
+    it("matches bytecode with different metadata", async () => {
+      const contract = {
+        contractName: "TestContract",
+        runtimeBytecode:
+          "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c806313bdfacd14610030575b600080fd5b6100386100b3565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561007857808201518184015260208101905061005d565b50505050905090810190601f1680156100a55780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b606060018054600181600116156101000203166002900480601f01602080910402602001604051908101604052809291908181526020018280546001816001161561010002031660029004801561014b5780601f106101205761010080835404028352916020019161014b565b820191906000526020600020905b81548152906001019060200180831161012e57829003601f168201915b505050505090509056fea2646970667358221220981f0e56fe0654616c8fd35f98d9ac6b2a7f0882184f93226486adfca553caef64736f6c63430007000033",
+        deployedBytecode:
+          "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c806313bdfacd14610030575b600080fd5b6100386100b3565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561007857808201518184015260208101905061005d565b50505050905090810190601f1680156100a55780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b606060018054600181600116156101000203166002900480601f01602080910402602001604051908101604052809291908181526020018280546001816001161561010002031660029004801561014b5780601f106101205761010080835404028352916020019161014b565b820191906000526020600020905b81548152906001019060200180831161012e57829003601f168201915b505050505090509056fea2646970667358221220981f0e56fe0654616c8fd35f98d9ac6b2a7f0882184f93226486adfca553caef64736f6c63430007000033",
+        solcVersion: "0.7.0",
+        linkReferences: {},
+        immutableReferences: {},
+      };
+      const deployedBytecode = contract.deployedBytecode.slice(2);
+
+      const mockSolcMetadataMapping = {
+        solc: Buffer.from([0, 7, 0]),
+        someData: "a hash",
+        moreData: 42,
+        mysteriousString: "mystery",
+      };
+      const mockMetadata = encode(mockSolcMetadataMapping);
+      const length = Buffer.alloc(2);
+      length.writeUInt16BE(mockMetadata.length, 0);
+
+      const deployedMetadataLength = await readSolcMetadataLength(
+        Buffer.from(deployedBytecode, "hex")
+      );
+      const deployedBytecodeTrimmed = deployedBytecode.slice(
+        0,
+        deployedBytecode.length -
+          (deployedMetadataLength + metadataLengthSize) * 2
+      );
+      const bytecodeWithNewMetadata = [
+        deployedBytecodeTrimmed,
+        mockMetadata.toString("hex"),
+        length.toString("hex"),
+      ].join("");
+
+      const contractSymbols = {
+        object: bytecodeWithNewMetadata,
+        linkReferences: contract.linkReferences,
+        immutableReferences: contract.immutableReferences,
+      };
+
       const contractInformation = await compareBytecode(
         deployedBytecode,
         contractSymbols,

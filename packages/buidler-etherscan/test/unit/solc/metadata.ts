@@ -24,7 +24,7 @@ describe("Metadata decoder tests", () => {
     const gibberishBuffer = Buffer.from("testbuffer");
     const longBuffer = Buffer.concat([gibberishBuffer, buffer]);
 
-    it(`reads length ${mockLength} from a long buffer `, () => {
+    it(`reads length ${mockLength} from a long buffer`, () => {
       const length = readSolcMetadataLength(longBuffer);
       assert.equal(length, mockLength, `should read length ${mockLength}`);
     });

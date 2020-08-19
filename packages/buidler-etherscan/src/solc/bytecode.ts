@@ -75,10 +75,6 @@ export async function compareBytecode(
       runtimeBytecodeSymbols.object.length - runtimeMetadataLength * 2 !==
       deployedBytecode.length - deployedMetadataLength * 2
     ) {
-      console.log(runtimeBytecodeSymbols.object.slice(0, 4));
-      console.log(runtimeMetadataLength);
-      console.log(deployedBytecode.slice(0, 4));
-      console.log(deployedMetadataLength);
       return { match: false };
     }
 
