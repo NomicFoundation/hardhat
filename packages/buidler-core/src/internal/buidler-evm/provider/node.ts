@@ -98,14 +98,12 @@ export class BuidlerNode extends EventEmitter {
     compilerOutput?: CompilerOutput,
     forkConfig?: ForkConfig
   ): Promise<[Common, BuidlerNode]> {
-    let forkClient;
-    let forkBlockNumber;
     let common;
     let stateManager: StateManager | ForkStateManager;
     let blockchain: BuidlerBlockchain | ForkBlockchain;
 
     if (forkConfig !== undefined) {
-      ({ forkClient, forkBlockNumber } = await makeForkClient(forkConfig));
+      const { forkClient, forkBlockNumber } = await makeForkClient(forkConfig);
       common = await makeForkCommon(forkClient, forkBlockNumber);
 
       stateManager = new ForkStateManager(forkClient, forkBlockNumber);
@@ -150,9 +148,7 @@ export class BuidlerNode extends EventEmitter {
       solidityVersion,
       initialDate,
       compilerInput,
-      compilerOutput,
-      forkClient,
-      forkBlockNumber
+      compilerOutput
     );
 
     return [common, node];
@@ -185,9 +181,7 @@ export class BuidlerNode extends EventEmitter {
     solidityVersion?: string,
     initialDate?: Date,
     compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput,
-    private readonly _forkClient?: JsonRpcClient,
-    private readonly _forkBlockNumber: BN = new BN(0)
+    compilerOutput?: CompilerOutput
   ) {
     super();
 
@@ -467,9 +461,6 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getLatestBlockNumber(): Promise<BN> {
-    if (this._forkClient !== undefined) {
-      return this._forkClient.getLatestBlockNumber();
-    }
     return new BN((await this.getLatestBlock()).header.number);
   }
 
