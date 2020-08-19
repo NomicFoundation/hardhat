@@ -199,5 +199,33 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       );
       assert.isTrue(contractInformation.match);
     });
+
+    it("matches bytecode with more than one immutable", async () => {
+      const contract = {
+        contractName: "TestContractTwoImmutables",
+        runtimeBytecode:
+          "0x6080604052348015600f57600080fd5b506004361060325760003560e01c80638271eeaf146037578063eca065de146053575b600080fd5b603d6085565b6040518082815260200191505060405180910390f35b605960ad565b604051808273ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b60007f0000000000000000000000000000000000000000000000000000000000000000905090565b60007f000000000000000000000000000000000000000000000000000000000000000090509056fea2646970667358221220f8f5189b769b89b88b4e8be9a55ff0ad542a56ba23c13194c270a5077624efe564736f6c63430007000033",
+        deployedBytecode:
+          "0x6080604052348015600f57600080fd5b506004361060325760003560e01c80638271eeaf146037578063eca065de146053575b600080fd5b603d6085565b6040518082815260200191505060405180910390f35b605960ad565b604051808273ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b60007f000000000000000000000000000000000000000000000000000000000000008c905090565b60007f000000000000000000000000a2d917811698d92d7ff80ed988775f274a51b43590509056fea2646970667358221220f8f5189b769b89b88b4e8be9a55ff0ad542a56ba23c13194c270a5077624efe564736f6c63430007000033",
+        solcVersion: "0.7.0",
+        linkReferences: {},
+        immutableReferences: {
+          "115": [{ length: 32, start: 137 }],
+          "117": [{ length: 32, start: 177 }],
+        },
+      };
+      const contractSymbols = {
+        object: contract.runtimeBytecode.slice(2),
+        linkReferences: contract.linkReferences,
+        immutableReferences: contract.immutableReferences,
+      };
+      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const contractInformation = await compareBytecode(
+        deployedBytecode,
+        contractSymbols,
+        InferralType.EXACT
+      );
+      assert.isTrue(contractInformation.match);
+    });
   });
 });

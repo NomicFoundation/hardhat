@@ -198,7 +198,7 @@ export function zeroOutSlices(
       code.slice(0, start * 2),
       "0".repeat(length * 2),
       code.slice((start + length) * 2),
-    ].join();
+    ].join("");
   }
 
   return code;
