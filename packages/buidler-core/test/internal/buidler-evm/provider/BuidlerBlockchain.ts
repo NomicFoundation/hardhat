@@ -26,7 +26,7 @@ describe("BuidlerBlockchain", () => {
   }
 
   beforeEach(() => {
-    blockchain = new BuidlerBlockchain().asPBlockchain();
+    blockchain = new BuidlerBlockchain();
     blocks = [];
   });
 

@@ -23,7 +23,6 @@ import { ForkConfig } from "../../../types";
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
-import { JsonRpcClient } from "../jsonrpc/client";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
@@ -63,9 +62,6 @@ import {
 import { Block } from "./types/Block";
 import { PBlockchain } from "./types/PBlockchain";
 import { PStateManager } from "./types/PStateManager";
-import { addGenesisBlock } from "./utils/addGenesisBlock";
-import { asBlockchain } from "./utils/asBlockchain";
-import { asPBlockchain } from "./utils/asPBlockchain";
 import { asPStateManager } from "./utils/asPStateManager";
 import { asStateManager } from "./utils/asStateManager";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
@@ -132,21 +128,23 @@ export class BuidlerNode extends EventEmitter {
       });
 
       blockchain = new BuidlerBlockchain();
-      await addGenesisBlock(blockchain, common);
+      const genesisBlock = new Block(null, { common });
+      genesisBlock.setGenesisParams();
+      await blockchain.putBlock(genesisBlock);
     }
 
     const vm = new VM({
       common,
       activatePrecompiles: true,
       stateManager: asStateManager(stateManager) as any,
-      blockchain: asBlockchain(blockchain) as any,
+      blockchain: blockchain.asBlockchain() as any,
       allowUnlimitedContractSize,
     });
 
     const node = new BuidlerNode(
       vm,
       asPStateManager(stateManager),
-      asPBlockchain(blockchain),
+      blockchain,
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       solidityVersion,

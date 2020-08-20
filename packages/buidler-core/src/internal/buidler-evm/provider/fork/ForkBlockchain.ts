@@ -1,14 +1,13 @@
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToInt } from "ethereumjs-util";
-import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { RpcBlockWithTransactions, RpcTransaction } from "../../jsonrpc/types";
 import { BlockchainData } from "../BlockchainData";
 import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
-import { PBlockchain } from "../types/PBlockchain";
+import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 
 import { NotSupportedError } from "./errors";
 import { rpcToBlockData } from "./rpcToBlockData";
@@ -132,13 +131,7 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   public asBlockchain(): Blockchain {
-    return {
-      getBlock: callbackify(this.getBlock.bind(this)),
-      putBlock: callbackify(this.putBlock.bind(this)),
-      delBlock: callbackify(this.delBlock.bind(this)),
-      getDetails: callbackify(this.getDetails.bind(this)),
-      iterator: callbackify(this.iterator.bind(this)),
-    };
+    return toBlockchain(this);
   }
 
   private async _getBlockByHash(blockHash: Buffer) {

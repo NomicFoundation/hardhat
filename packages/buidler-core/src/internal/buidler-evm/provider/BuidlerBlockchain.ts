@@ -4,54 +4,42 @@ import { BN, bufferToInt, zeros } from "ethereumjs-util";
 import { BlockchainData } from "./BlockchainData";
 import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
-import { Callback } from "./types/Callback";
-import { PBlockchain } from "./types/PBlockchain";
-import { promisify } from "./utils/promisify";
+import { PBlockchain, toBlockchain } from "./types/PBlockchain";
 
 // TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
-export class BuidlerBlockchain implements Blockchain {
+export class BuidlerBlockchain implements PBlockchain {
   private readonly _data = new BlockchainData();
   private _length = 0;
 
-  public getLatestBlock(cb: Callback<Block>): void {
+  public async getLatestBlock(): Promise<Block> {
     const block = this._data.getBlockByNumber(new BN(this._length - 1));
     if (block === undefined) {
-      cb(new Error("No block available"));
-    } else {
-      cb(null, block);
+      throw new Error("No block available");
     }
+    return block;
   }
 
-  public putBlock(block: Block, cb: Callback<Block>): void {
-    let totalDifficulty;
-    try {
-      this._validateBlock(block);
-      totalDifficulty = this._computeTotalDifficulty(block);
-    } catch (err) {
-      cb(err);
-      return;
-    }
+  public async putBlock(block: Block): Promise<Block> {
+    this._validateBlock(block);
+    const totalDifficulty = this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
     this._length += 1;
-    cb(null, block);
+    return block;
   }
 
-  public delBlock(blockHash: Buffer, cb: Callback): void {
+  public async delBlock(blockHash: Buffer): Promise<void> {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
-      cb(new Error("Block not found"));
-      return;
+      throw new Error("Block not found");
     }
     this._delBlock(block);
-    cb(null);
   }
 
-  public getBlock(
-    blockHashOrNumber: Buffer | BN | number,
-    cb: Callback<Block>
-  ): void {
+  public async getBlock(
+    blockHashOrNumber: Buffer | BN | number
+  ): Promise<Block> {
     let block: Block | undefined;
 
     if (typeof blockHashOrNumber === "number") {
@@ -63,42 +51,9 @@ export class BuidlerBlockchain implements Blockchain {
     }
 
     if (block === undefined) {
-      cb(new Error("Block not found"));
-      return;
+      throw new Error("Block not found");
     }
-
-    cb(null, block);
-  }
-
-  public iterator(name: string, onBlock: any, cb: Callback): void {
-    let n = 0;
-
-    const iterate = (err?: Error | undefined | null) => {
-      if (err !== null && err !== undefined) {
-        cb(err);
-        return;
-      }
-
-      if (n >= this._length) {
-        cb(null);
-        return;
-      }
-
-      onBlock(
-        this._data.getBlockByNumber(new BN(n)),
-        false,
-        (onBlockErr?: Error | null) => {
-          n += 1;
-          iterate(onBlockErr);
-        }
-      );
-    };
-
-    iterate(null);
-  }
-
-  public getDetails(_: string, cb: Callback): void {
-    cb(null);
+    return block;
   }
 
   public deleteAllFollowingBlocks(block: Block): void {
@@ -140,19 +95,8 @@ export class BuidlerBlockchain implements Blockchain {
     return block;
   }
 
-  public asPBlockchain(): PBlockchain {
-    return {
-      getBlock: promisify(this.getBlock.bind(this)),
-      getLatestBlock: promisify(this.getLatestBlock.bind(this)),
-      putBlock: promisify(this.putBlock.bind(this)),
-      delBlock: promisify(this.delBlock.bind(this)),
-      getDetails: promisify(this.getDetails.bind(this)),
-      iterator: promisify(this.iterator.bind(this)),
-      deleteAllFollowingBlocks: this.deleteAllFollowingBlocks.bind(this),
-      getBlockTotalDifficulty: this.getBlockTotalDifficulty.bind(this),
-      getTransaction: this.getTransaction.bind(this),
-      getBlockByTransactionHash: this.getBlockByTransactionHash.bind(this),
-    };
+  public asBlockchain(): Blockchain {
+    return toBlockchain(this);
   }
 
   private _validateBlock(block: Block) {
