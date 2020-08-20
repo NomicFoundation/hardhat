@@ -1,10 +1,11 @@
 import Account from "ethereumjs-account";
 import {
   BN,
+  bufferToHex,
   keccak256,
   KECCAK256_NULL,
-  KECCAK256_NULL_S,
   stripZeros,
+  toBuffer,
 } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
@@ -54,7 +55,7 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async getAccount(address: Buffer): Promise<Account> {
-    const localAccount = this._state.get(address.toString("hex"));
+    const localAccount = this._state.get(bufferToHex(address));
 
     const localNonce = localAccount?.get("nonce");
     const localBalance = localAccount?.get("balance");
@@ -62,18 +63,18 @@ export class ForkStateManager implements PStateManager {
 
     const nonce =
       localNonce !== undefined
-        ? Buffer.from(localNonce, "hex")
+        ? toBuffer(localNonce)
         : await this._jsonRpcClient.getTransactionCount(
             address,
             this._forkBlockNumber
           );
     const balance =
       localBalance !== undefined
-        ? Buffer.from(localBalance, "hex")
+        ? toBuffer(localBalance)
         : await this._jsonRpcClient.getBalance(address, this._forkBlockNumber);
     const code =
       localCode !== undefined
-        ? Buffer.from(localCode, "hex")
+        ? toBuffer(localCode)
         : await this._jsonRpcClient.getCode(address, this._forkBlockNumber);
 
     const codeHash = keccak256(code);
@@ -84,16 +85,16 @@ export class ForkStateManager implements PStateManager {
   public async putAccount(address: Buffer, account: Account): Promise<void> {
     // Because the vm only ever modifies the nonce, balance and codeHash using this
     // method we ignore the stateRoot property
-    const hexAddress = address.toString("hex");
+    const hexAddress = bufferToHex(address);
     let localAccount = this._state.get(hexAddress) ?? makeAccountState();
     localAccount = localAccount
-      .set("nonce", account.nonce.toString("hex"))
-      .set("balance", account.balance.toString("hex"));
+      .set("nonce", bufferToHex(account.nonce))
+      .set("balance", bufferToHex(account.balance));
 
     // Code is set to empty string here to prevent unnecessary
     // JsonRpcClient.getCode calls in getAccount method
     if (account.codeHash.equals(KECCAK256_NULL)) {
-      localAccount = localAccount.set("code", "");
+      localAccount = localAccount.set("code", "0x");
     }
     this._state = this._state.set(hexAddress, localAccount);
   }
@@ -103,18 +104,18 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async putContractCode(address: Buffer, value: Buffer): Promise<void> {
-    const hexAddress = address.toString("hex");
+    const hexAddress = bufferToHex(address);
     const account = (this._state.get(hexAddress) ?? makeAccountState()).set(
       "code",
-      value.toString("hex")
+      bufferToHex(value)
     );
     this._state = this._state.set(hexAddress, account);
   }
 
   public async getContractCode(address: Buffer): Promise<Buffer> {
-    const localCode = this._state.get(address.toString("hex"))?.get("code");
+    const localCode = this._state.get(bufferToHex(address))?.get("code");
     if (localCode !== undefined) {
-      return Buffer.from(localCode, "hex");
+      return toBuffer(localCode);
     }
     return this._jsonRpcClient.getCode(address, this._forkBlockNumber);
   }
@@ -123,14 +124,14 @@ export class ForkStateManager implements PStateManager {
     address: Buffer,
     key: Buffer
   ): Promise<Buffer> {
-    const account = this._state.get(address.toString("hex"));
+    const account = this._state.get(bufferToHex(address));
     const cleared = account?.get("storageCleared") ?? false;
-    const localValue = account?.get("storage").get(key.toString("hex"));
+    const localValue = account?.get("storage").get(bufferToHex(key));
     if (localValue !== undefined) {
-      return Buffer.from(localValue, "hex");
+      return toBuffer(localValue);
     }
     if (cleared) {
-      return Buffer.from("0".repeat(64), "hex");
+      return toBuffer(new Array(32).fill(0));
     }
     return this._jsonRpcClient.getStorageAt(
       address,
@@ -158,17 +159,17 @@ export class ForkStateManager implements PStateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    const hexAddress = address.toString("hex");
+    const hexAddress = bufferToHex(address);
     let account = this._state.get(hexAddress) ?? makeAccountState();
     account = account.set(
       "storage",
-      account.get("storage").set(key.toString("hex"), value.toString("hex"))
+      account.get("storage").set(bufferToHex(key), bufferToHex(value))
     );
     this._state = this._state.set(hexAddress, account);
   }
 
   public async clearContractStorage(address: Buffer): Promise<void> {
-    const hexAddress = address.toString("hex");
+    const hexAddress = bufferToHex(address);
     let account = this._state.get(hexAddress) ?? makeAccountState();
     account = account
       .set("storageCleared", true)
@@ -178,7 +179,7 @@ export class ForkStateManager implements PStateManager {
 
   public async checkpoint(): Promise<void> {
     const stateRoot = await this.getStateRoot();
-    this._stateCheckpoints.push(stateRoot.toString("hex"));
+    this._stateCheckpoints.push(bufferToHex(stateRoot));
   }
 
   public async commit(): Promise<void> {
@@ -193,7 +194,7 @@ export class ForkStateManager implements PStateManager {
     if (checkpointedRoot === undefined) {
       throw new CheckpointError("revert");
     }
-    await this.setStateRoot(Buffer.from(checkpointedRoot, "hex"));
+    await this.setStateRoot(toBuffer(checkpointedRoot));
   }
 
   public async getStateRoot(): Promise<Buffer> {
@@ -201,11 +202,11 @@ export class ForkStateManager implements PStateManager {
       this._stateRoot = randomHash();
       this._stateRootToState.set(this._stateRoot, this._state);
     }
-    return Buffer.from(this._stateRoot, "hex");
+    return toBuffer(this._stateRoot);
   }
 
   public async setStateRoot(stateRoot: Buffer): Promise<void> {
-    const newRoot = stateRoot.toString("hex");
+    const newRoot = bufferToHex(stateRoot);
     const state = this._stateRootToState.get(newRoot);
     if (state === undefined) {
       throw new Error("Unknown state root");
@@ -237,7 +238,7 @@ export class ForkStateManager implements PStateManager {
     return (
       new BN(account.nonce).eqn(0) &&
       new BN(account.balance).eqn(0) &&
-      account.codeHash.toString("hex") === KECCAK256_NULL_S
+      account.codeHash.equals(KECCAK256_NULL)
     );
   }
 

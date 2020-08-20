@@ -1,6 +1,6 @@
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToInt } from "ethereumjs-util";
+import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -54,7 +54,7 @@ export class ForkBlockchain implements PBlockchain {
     }
     this._latestBlockNumber = this._latestBlockNumber.addn(1);
 
-    const blockHash = block.hash().toString("hex");
+    const blockHash = bufferToHex(block.hash());
     this._blocksByNumber.set(blockNumber.toNumber(), block);
     this._blocksByHash.set(blockHash, block);
     this._totalDifficultyByBlockHash.set(
@@ -95,12 +95,12 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   public async getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
-    let td = this._totalDifficultyByBlockHash.get(blockHash.toString("hex"));
+    let td = this._totalDifficultyByBlockHash.get(bufferToHex(blockHash));
     if (td !== undefined) {
       return td;
     }
     await this.getBlock(blockHash);
-    td = this._totalDifficultyByBlockHash.get(blockHash.toString("hex"));
+    td = this._totalDifficultyByBlockHash.get(bufferToHex(blockHash));
     if (td === undefined) {
       throw new Error("This should never happen");
     }
@@ -109,7 +109,7 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
-    const tx = this._transactions.get(transactionHash.toString("hex"));
+    const tx = this._transactions.get(bufferToHex(transactionHash));
     if (tx === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
         transactionHash
@@ -122,7 +122,7 @@ export class ForkBlockchain implements PBlockchain {
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block> {
-    let block = this._transactionToBlock.get(transactionHash.toString("hex"));
+    let block = this._transactionToBlock.get(bufferToHex(transactionHash));
     if (block === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
         transactionHash
@@ -130,7 +130,7 @@ export class ForkBlockchain implements PBlockchain {
       await this._processRemoteTransaction(remote);
       if (remote !== null && remote.blockHash !== null) {
         await this.getBlock(remote.blockHash);
-        block = this._transactionToBlock.get(transactionHash.toString("hex"));
+        block = this._transactionToBlock.get(bufferToHex(transactionHash));
       }
     }
     if (block === undefined) {
@@ -151,14 +151,14 @@ export class ForkBlockchain implements PBlockchain {
 
   private _processTransactions(block: Block) {
     for (const transaction of block.transactions) {
-      const transactionHash = transaction.hash().toString("hex");
+      const transactionHash = bufferToHex(transaction.hash());
       this._transactions.set(transactionHash, transaction);
       this._transactionToBlock.set(transactionHash, block);
     }
   }
 
   private async _getBlockByHash(blockHash: Buffer) {
-    const block = this._blocksByHash.get(blockHash.toString("hex"));
+    const block = this._blocksByHash.get(bufferToHex(blockHash));
     if (block !== undefined) {
       return block;
     }
@@ -192,9 +192,9 @@ export class ForkBlockchain implements PBlockchain {
     }
     const block = new Block(rpcToBlockData(rpcBlock), { common: this._common });
     this._blocksByNumber.set(rpcBlock.number.toNumber(), block);
-    this._blocksByHash.set(rpcBlock.hash.toString("hex"), block);
+    this._blocksByHash.set(bufferToHex(rpcBlock.hash), block);
     this._totalDifficultyByBlockHash.set(
-      rpcBlock.hash.toString("hex"),
+      bufferToHex(rpcBlock.hash),
       rpcBlock.totalDifficulty
     );
     this._processTransactions(block);
@@ -215,7 +215,7 @@ export class ForkBlockchain implements PBlockchain {
     const transaction = new Transaction(rpcToTxData(rpcTransaction), {
       common: this._common,
     });
-    this._transactions.set(rpcTransaction.hash.toString("hex"), transaction);
+    this._transactions.set(bufferToHex(rpcTransaction.hash), transaction);
     return transaction;
   }
 
@@ -229,7 +229,7 @@ export class ForkBlockchain implements PBlockchain {
     const parentBlock =
       this._blocksByNumber.get(blockNumber - 1) ??
       (await this.getBlock(blockNumber - 1));
-    const parentHash = parentBlock.hash().toString("hex");
+    const parentHash = bufferToHex(parentBlock.hash());
     const parentTD = this._totalDifficultyByBlockHash.get(parentHash);
     if (parentTD === undefined) {
       throw new Error("This should never happen");
@@ -238,7 +238,7 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   private _delBlock(blockHash: Buffer): void {
-    const block = this._blocksByHash.get(blockHash.toString("hex"));
+    const block = this._blocksByHash.get(bufferToHex(blockHash));
     if (block === undefined) {
       throw new Error("Block not found");
     }
@@ -252,13 +252,13 @@ export class ForkBlockchain implements PBlockchain {
       if (currentBlock === undefined) {
         throw new Error("this should never happen");
       }
-      const currentBlockHash = currentBlock.hash().toString("hex");
+      const currentBlockHash = bufferToHex(currentBlock.hash());
       this._blocksByHash.delete(currentBlockHash);
       this._blocksByNumber.delete(i);
       this._totalDifficultyByBlockHash.delete(currentBlockHash);
 
       for (const transaction of currentBlock.transactions) {
-        const transactionHash = transaction.hash().toString("hex");
+        const transactionHash = bufferToHex(transaction.hash());
         this._transactions.delete(transactionHash);
         this._transactionToBlock.delete(transactionHash);
       }

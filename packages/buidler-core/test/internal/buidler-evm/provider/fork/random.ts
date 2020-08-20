@@ -5,8 +5,8 @@ import {
   randomHash,
 } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 
-const HASH_REGEX = /^[a-f\d]{64}$/;
-const ADDRESS_REGEX = /^[a-f\d]{40}$/;
+const HASH_REGEX = /^0x[a-f\d]{64}$/;
+const ADDRESS_REGEX = /^0x[a-f\d]{40}$/;
 
 describe("randomHash", () => {
   it("matches regex pattern", async () => {

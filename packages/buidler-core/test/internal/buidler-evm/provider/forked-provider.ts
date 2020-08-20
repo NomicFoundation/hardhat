@@ -36,7 +36,7 @@ describe("Forked provider", () => {
   describe("eth_call", function () {
     it("is able to return DAI total supply", async function () {
       const daiTotalSupplySelector = "0x18160ddd";
-      const daiAddress = addHexPrefix(DAI_ADDRESS.toString("hex"));
+      const daiAddress = bufferToHex(DAI_ADDRESS);
 
       const result = await this.provider.send("eth_call", [
         { to: daiAddress, data: daiTotalSupplySelector },

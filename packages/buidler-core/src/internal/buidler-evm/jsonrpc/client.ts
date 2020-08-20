@@ -1,4 +1,4 @@
-import { BN } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { HttpProvider } from "../../core/providers/http";
@@ -37,7 +37,7 @@ export class JsonRpcClient {
   public async getBalance(address: Buffer, blockTag: BlockTag): Promise<BN> {
     return this._perform(
       "eth_getBalance",
-      [bufferToString(address), blockTagToString(blockTag)],
+      [bufferToHex(address), blockTagToString(blockTag)],
       rpcQuantity
     );
   }
@@ -87,13 +87,13 @@ export class JsonRpcClient {
     if (includeTransactions) {
       return this._perform(
         "eth_getBlockByHash",
-        [bufferToString(blockHash), includeTransactions],
+        [bufferToHex(blockHash), includeTransactions],
         nullable(rpcBlockWithTransactions)
       );
     }
     return this._perform(
       "eth_getBlockByHash",
-      [bufferToString(blockHash), includeTransactions],
+      [bufferToHex(blockHash), includeTransactions],
       nullable(rpcBlock)
     );
   }
@@ -101,7 +101,7 @@ export class JsonRpcClient {
   public async getCode(address: Buffer, blockTag: BlockTag): Promise<Buffer> {
     return this._perform(
       "eth_getCode",
-      [bufferToString(address), blockTagToString(blockTag)],
+      [bufferToHex(address), blockTagToString(blockTag)],
       rpcData
     );
   }
@@ -113,11 +113,7 @@ export class JsonRpcClient {
   ): Promise<Buffer> {
     return this._perform(
       "eth_getStorageAt",
-      [
-        bufferToString(address),
-        bufferToString(position),
-        blockTagToString(blockTag),
-      ],
+      [bufferToHex(address), bufferToHex(position), blockTagToString(blockTag)],
       rpcData
     );
   }
@@ -125,7 +121,7 @@ export class JsonRpcClient {
   public async getTransactionCount(address: Buffer, blockTag: BlockTag) {
     return this._perform(
       "eth_getTransactionCount",
-      [bufferToString(address), blockTagToString(blockTag)],
+      [bufferToHex(address), blockTagToString(blockTag)],
       rpcQuantity
     );
   }
@@ -133,7 +129,7 @@ export class JsonRpcClient {
   public async getTransactionByHash(transactionHash: Buffer) {
     return this._perform(
       "eth_getTransactionByHash",
-      [bufferToString(transactionHash)],
+      [bufferToHex(transactionHash)],
       nullable(rpcTransaction)
     );
   }
@@ -152,10 +148,6 @@ export class JsonRpcClient {
     this._cache.set(key, decoded);
     return decoded;
   }
-}
-
-function bufferToString(buffer: Buffer) {
-  return `0x${buffer.toString("hex")}`;
 }
 
 function blockTagToString(blockTag: BlockTag) {

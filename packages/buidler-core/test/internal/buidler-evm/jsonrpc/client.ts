@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import sinon from "sinon";
 
 import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
@@ -79,7 +79,7 @@ describe("JsonRpcClient", () => {
       );
       const value = await clientWithFakeProvider.getStorageAt(
         DAI_ADDRESS,
-        Buffer.from([2]),
+        toBuffer([2]),
         "latest"
       );
       assert.isTrue(fakeProvider.send.calledTwice);
@@ -126,7 +126,7 @@ describe("JsonRpcClient", () => {
   describe("eth_getBlockByNumber", () => {
     it("can fetch the data with transaction hashes", async () => {
       const block = await client.getBlockByNumber(BLOCK_NUMBER_OF_10496585);
-      assert.equal(block?.hash?.toString("hex"), BLOCK_HASH_OF_10496585);
+      assert.isTrue(block?.hash?.equals(BLOCK_HASH_OF_10496585));
       assert.equal(block?.transactions.length, 192);
       assert.isTrue(
         block?.transactions.every(
@@ -156,10 +156,8 @@ describe("JsonRpcClient", () => {
 
   describe("eth_getBlockByHash", () => {
     it("can fetch the data with transaction hashes", async () => {
-      const block = await client.getBlockByHash(
-        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
-      );
-      assert.equal(block?.hash?.toString("hex"), BLOCK_HASH_OF_10496585);
+      const block = await client.getBlockByHash(BLOCK_HASH_OF_10496585);
+      assert.isTrue(block?.hash?.equals(BLOCK_HASH_OF_10496585));
       assert.equal(block?.transactions.length, 192);
       assert.isTrue(
         block?.transactions.every(
@@ -169,10 +167,7 @@ describe("JsonRpcClient", () => {
     });
 
     it("can fetch the data with transactions", async () => {
-      const block = await client.getBlockByHash(
-        Buffer.from(BLOCK_HASH_OF_10496585, "hex"),
-        true
-      );
+      const block = await client.getBlockByHash(BLOCK_HASH_OF_10496585, true);
       assert.isTrue(
         block?.transactions.every(
           (tx: Buffer | RpcTransaction) => !(tx instanceof Buffer)
@@ -189,12 +184,12 @@ describe("JsonRpcClient", () => {
   describe("eth_getCode", () => {
     it("can fetch code of an existing contract", async () => {
       const code = await client.getCode(DAI_ADDRESS, "latest");
-      assert.notEqual(code.toString("hex"), "");
+      assert.notEqual(bufferToHex(code), "0x");
     });
 
     it("can fetch empty code of a non-existent contract", async () => {
       const code = await client.getCode(EMPTY_ACCOUNT_ADDRESS, "latest");
-      assert.equal(code.toString("hex"), "");
+      assert.equal(bufferToHex(code), "0x");
     });
   });
 
@@ -212,7 +207,7 @@ describe("JsonRpcClient", () => {
     it("can fetch empty value from storage of an existing contract", async () => {
       const value = await client.getStorageAt(
         DAI_ADDRESS,
-        Buffer.from("baddcafe", "hex"),
+        toBuffer("0xbaddcafe"),
         "latest"
       );
       const valueBN = new BN(value);
@@ -222,7 +217,7 @@ describe("JsonRpcClient", () => {
     it("can fetch empty value from storage of a non-existent contract", async () => {
       const value = await client.getStorageAt(
         EMPTY_ACCOUNT_ADDRESS,
-        Buffer.from([1]),
+        toBuffer([1]),
         "latest"
       );
       const valueBN = new BN(value);
@@ -250,14 +245,8 @@ describe("JsonRpcClient", () => {
       const transaction = await client.getTransactionByHash(
         FIRST_TX_HASH_OF_10496585
       );
-      assert.equal(
-        transaction?.hash.toString("hex"),
-        FIRST_TX_HASH_OF_10496585.toString("hex")
-      );
-      assert.equal(
-        transaction?.blockHash?.toString("hex"),
-        BLOCK_HASH_OF_10496585
-      );
+      assert.isTrue(transaction?.hash.equals(FIRST_TX_HASH_OF_10496585));
+      assert.isTrue(transaction?.blockHash?.equals(BLOCK_HASH_OF_10496585));
     });
 
     it("returns null for non-existent transactions", async () => {

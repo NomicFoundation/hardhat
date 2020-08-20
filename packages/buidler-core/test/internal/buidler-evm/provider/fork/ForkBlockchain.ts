@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { BufferLike, Transaction } from "ethereumjs-tx";
-import { BN, zeros } from "ethereumjs-util";
+import { BN, toBuffer, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
@@ -16,6 +16,7 @@ import {
   BLOCK_NUMBER_OF_10496585,
   FIRST_TX_HASH_OF_10496585,
   INFURA_URL,
+  LAST_TX_HASH_OF_10496585,
   TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";
 
@@ -61,46 +62,34 @@ describe("ForkBlockchain", () => {
     it("can get remote block object by block number", async () => {
       const block = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
 
-      assert.equal(block?.hash().toString("hex"), BLOCK_HASH_OF_10496585);
-
+      assert.isTrue(block?.hash().equals(BLOCK_HASH_OF_10496585));
       assert.equal(block?.transactions.length, 192);
-      assert.equal(
-        block?.transactions[0].hash().toString("hex"),
-        "ed0b0b132bd693ef34a72084f090df07c5c3a2ec019d76316da040d4222cdfb8"
+      assert.isTrue(
+        block?.transactions[0].hash().equals(FIRST_TX_HASH_OF_10496585)
       );
-      assert.equal(
-        block?.transactions[191].hash().toString("hex"),
-        "d809fb6f7060abc8de068c7a38e9b2b04530baf0cc4ce9a2420d59388be10ee7"
+      assert.isTrue(
+        block?.transactions[191].hash().equals(LAST_TX_HASH_OF_10496585)
       );
     });
 
     it("can get remote block object by hash", async () => {
-      const block = await fb.getBlock(
-        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
-      );
+      const block = await fb.getBlock(BLOCK_HASH_OF_10496585);
 
-      assert.equal(block?.hash().toString("hex"), BLOCK_HASH_OF_10496585);
-
+      assert.isTrue(block?.hash().equals(BLOCK_HASH_OF_10496585));
       assert.equal(block?.transactions.length, 192);
-      assert.equal(
-        block?.transactions[0].hash().toString("hex"),
-        "ed0b0b132bd693ef34a72084f090df07c5c3a2ec019d76316da040d4222cdfb8"
+      assert.isTrue(
+        block?.transactions[0].hash().equals(FIRST_TX_HASH_OF_10496585)
       );
-      assert.equal(
-        block?.transactions[191].hash().toString("hex"),
-        "d809fb6f7060abc8de068c7a38e9b2b04530baf0cc4ce9a2420d59388be10ee7"
+      assert.isTrue(
+        block?.transactions[191].hash().equals(LAST_TX_HASH_OF_10496585)
       );
     });
 
     it("caches the block object and returns the same one for subsequent calls", async () => {
       const blockOne = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
-      const blockTwo = await fb.getBlock(
-        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
-      );
+      const blockTwo = await fb.getBlock(BLOCK_HASH_OF_10496585);
       const blockThree = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
-      const blockFour = await fb.getBlock(
-        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
-      );
+      const blockFour = await fb.getBlock(BLOCK_HASH_OF_10496585);
       assert.equal(blockOne, blockTwo);
       assert.equal(blockTwo, blockThree);
       assert.equal(blockThree, blockFour);
@@ -118,13 +107,17 @@ describe("ForkBlockchain", () => {
       const daiCreationBlock = new BN(4719568);
       const daiCreateTxPosition = 85;
       const block = await fb.getBlock(daiCreationBlock);
-      assert.equal(
-        block?.transactions[daiCreateTxPosition].to.toString("hex"),
-        ""
+      assert.isTrue(
+        block?.transactions[daiCreateTxPosition].to.equals(Buffer.from([]))
       );
-      assert.equal(
-        block?.transactions[daiCreateTxPosition].hash().toString("hex"),
-        "b95343413e459a0f97461812111254163ae53467855c0d73e0f1e7c5b8442fa3"
+      assert.isTrue(
+        block?.transactions[daiCreateTxPosition]
+          .hash()
+          .equals(
+            toBuffer(
+              "0xb95343413e459a0f97461812111254163ae53467855c0d73e0f1e7c5b8442fa3"
+            )
+          )
       );
     });
 
@@ -157,15 +150,13 @@ describe("ForkBlockchain", () => {
       fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
       const block = await fb.getLatestBlock();
 
-      assert.equal(block?.hash().toString("hex"), BLOCK_HASH_OF_10496585);
+      assert.isTrue(block?.hash().equals(BLOCK_HASH_OF_10496585));
       assert.equal(block?.transactions.length, 192);
-      assert.equal(
-        block?.transactions[0].hash().toString("hex"),
-        "ed0b0b132bd693ef34a72084f090df07c5c3a2ec019d76316da040d4222cdfb8"
+      assert.isTrue(
+        block?.transactions[0].hash().equals(FIRST_TX_HASH_OF_10496585)
       );
-      assert.equal(
-        block?.transactions[191].hash().toString("hex"),
-        "d809fb6f7060abc8de068c7a38e9b2b04530baf0cc4ce9a2420d59388be10ee7"
+      assert.isTrue(
+        block?.transactions[191].hash().equals(LAST_TX_HASH_OF_10496585)
       );
     });
 
@@ -299,7 +290,7 @@ describe("ForkBlockchain", () => {
     it("throws when hash of not previously fetched remote block is given", async () => {
       // This is here because we do not want to fetch remote blocks for this operation
       await assert.isRejected(
-        fb.delBlock(Buffer.from(BLOCK_HASH_OF_10496585, "hex")),
+        fb.delBlock(BLOCK_HASH_OF_10496585),
         Error,
         "Block not found"
       );
@@ -424,9 +415,7 @@ describe("ForkBlockchain", () => {
     });
 
     it("can get total difficulty of a remote block", async () => {
-      const td = await fb.getBlockTotalDifficulty(
-        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
-      );
+      const td = await fb.getBlockTotalDifficulty(BLOCK_HASH_OF_10496585);
 
       assert.equal(
         td.toString(),
@@ -473,10 +462,7 @@ describe("ForkBlockchain", () => {
 
     it("returns a known remote transaction", async () => {
       const result = await fb.getTransaction(FIRST_TX_HASH_OF_10496585);
-      assert.equal(
-        result.hash().toString("hex"),
-        FIRST_TX_HASH_OF_10496585.toString("hex")
-      );
+      assert.isTrue(result.hash().equals(FIRST_TX_HASH_OF_10496585));
     });
 
     it("throws for remote transactions from newer blocks", async () => {
@@ -527,9 +513,7 @@ describe("ForkBlockchain", () => {
       const result = await fb.getBlockByTransactionHash(
         FIRST_TX_HASH_OF_10496585
       );
-      const block = await fb.getBlock(
-        Buffer.from(BLOCK_HASH_OF_10496585, "hex")
-      );
+      const block = await fb.getBlock(BLOCK_HASH_OF_10496585);
       assert.equal(result, block);
     });
 
