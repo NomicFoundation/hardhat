@@ -28,7 +28,7 @@ export class ForkBlockchain implements PBlockchain {
 
   public async getBlock(
     blockHashOrNumber: Buffer | number | BN
-  ): Promise<Block> {
+  ): Promise<Block | undefined> {
     if (Buffer.isBuffer(blockHashOrNumber)) {
       return this._getBlockByHash(blockHashOrNumber);
     }
@@ -36,7 +36,11 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    return this.getBlock(this._latestBlockNumber);
+    const block = await this.getBlock(this._latestBlockNumber);
+    if (block === undefined) {
+      throw new Error("Block not found");
+    }
+    return block;
   }
 
   public async putBlock(block: Block): Promise<Block> {
@@ -91,7 +95,10 @@ export class ForkBlockchain implements PBlockchain {
     if (td !== undefined) {
       return td;
     }
-    await this.getBlock(blockHash);
+    const block = await this.getBlock(blockHash);
+    if (block === undefined) {
+      throw new Error("Block not found");
+    }
     td = this._data.getTotalDifficulty(blockHash);
     if (td === undefined) {
       throw new Error("This should never happen");
@@ -99,7 +106,9 @@ export class ForkBlockchain implements PBlockchain {
     return td;
   }
 
-  public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
+  public async getTransaction(
+    transactionHash: Buffer
+  ): Promise<Transaction | undefined> {
     const tx = this._data.getTransaction(transactionHash);
     if (tx === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
@@ -112,7 +121,7 @@ export class ForkBlockchain implements PBlockchain {
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
-  ): Promise<Block> {
+  ): Promise<Block | undefined> {
     let block = this._data.getBlockByTransactionHash(transactionHash);
     if (block === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
@@ -123,9 +132,6 @@ export class ForkBlockchain implements PBlockchain {
         await this.getBlock(remote.blockHash);
         block = this._data.getBlockByTransactionHash(transactionHash);
       }
-    }
-    if (block === undefined) {
-      throw new Error("Transaction not found");
     }
     return block;
   }
@@ -165,7 +171,7 @@ export class ForkBlockchain implements PBlockchain {
       rpcBlock.number === null ||
       rpcBlock.number.gt(this._forkBlockNumber)
     ) {
-      throw new Error("Block not found");
+      return undefined;
     }
     const block = new Block(rpcToBlockData(rpcBlock), { common: this._common });
     this._data.addBlock(block, rpcBlock.totalDifficulty);
@@ -180,7 +186,7 @@ export class ForkBlockchain implements PBlockchain {
       rpcTransaction.blockNumber === null ||
       rpcTransaction.blockNumber.gt(this._forkBlockNumber)
     ) {
-      throw new Error("Transaction not found");
+      return undefined;
     }
     const transaction = new Transaction(rpcToTxData(rpcTransaction), {
       common: this._common,
@@ -199,6 +205,9 @@ export class ForkBlockchain implements PBlockchain {
     const parentBlock =
       this._data.getBlockByNumber(blockNumber.subn(1)) ??
       (await this.getBlock(blockNumber.subn(1)));
+    if (parentBlock === undefined) {
+      throw new Error("Block not found");
+    }
     const parentHash = parentBlock.hash();
     const parentTD = this._data.getTotalDifficulty(parentHash);
     if (parentTD === undefined) {

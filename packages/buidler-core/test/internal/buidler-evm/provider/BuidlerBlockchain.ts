@@ -32,12 +32,18 @@ describe("BuidlerBlockchain", () => {
 
   describe("getLatestBlock", () => {
     it("returns the latest block", async () => {
-      it("can get existing block by hash", async () => {
-        await blockchain.putBlock(createBlock(0));
-        const one = createBlock(1);
-        await blockchain.putBlock(one);
-        assert.equal(await blockchain.getLatestBlock(), one);
-      });
+      await blockchain.putBlock(createBlock(0));
+      const one = createBlock(1);
+      await blockchain.putBlock(one);
+      assert.equal(await blockchain.getLatestBlock(), one);
+    });
+
+    it("throws when the blockchain is empty", async () => {
+      await assert.isRejected(
+        blockchain.getLatestBlock(),
+        Error,
+        "No block available"
+      );
     });
   });
 
@@ -64,13 +70,9 @@ describe("BuidlerBlockchain", () => {
       assert.equal(await blockchain.getBlock(new BN(1)), one);
     });
 
-    it("throws for non-existent block", async () => {
-      await assert.isRejected(blockchain.getBlock(0), Error, "Block not found");
-      await assert.isRejected(
-        blockchain.getBlock(randomHashBuffer()),
-        Error,
-        "Block not found"
-      );
+    it("returns undefined non-existent block", async () => {
+      assert.equal(await blockchain.getBlock(0), undefined);
+      assert.equal(await blockchain.getBlock(randomHashBuffer()), undefined);
     });
   });
 
@@ -141,21 +143,9 @@ describe("BuidlerBlockchain", () => {
 
       await blockchain.delBlock(blockOne.hash());
 
-      await assert.isRejected(
-        blockchain.getBlock(blockOne.hash()),
-        Error,
-        "Block not found"
-      );
-      await assert.isRejected(
-        blockchain.getBlock(blockTwo.hash()),
-        Error,
-        "Block not found"
-      );
-      await assert.isRejected(
-        blockchain.getBlock(blockThree.hash()),
-        Error,
-        "Block not found"
-      );
+      assert.equal(await blockchain.getBlock(blockOne.hash()), undefined);
+      assert.equal(await blockchain.getBlock(blockTwo.hash()), undefined);
+      assert.equal(await blockchain.getBlock(blockThree.hash()), undefined);
     });
 
     it("updates the latest block number", async () => {
@@ -207,16 +197,8 @@ describe("BuidlerBlockchain", () => {
       blockchain.deleteAllFollowingBlocks(blockOne);
 
       assert.equal(await blockchain.getBlock(blockOne.hash()), blockOne);
-      await assert.isRejected(
-        blockchain.getBlock(blockTwo.hash()),
-        Error,
-        "Block not found"
-      );
-      await assert.isRejected(
-        blockchain.getBlock(blockThree.hash()),
-        Error,
-        "Block not found"
-      );
+      assert.equal(await blockchain.getBlock(blockTwo.hash()), undefined);
+      assert.equal(await blockchain.getBlock(blockThree.hash()), undefined);
     });
 
     it("throws if given block is not present in blockchain", async () => {
@@ -297,12 +279,11 @@ describe("BuidlerBlockchain", () => {
   });
 
   describe("getTransaction", () => {
-    it("throws for unknown transactions", async () => {
+    it("returns undefined unknown transactions", async () => {
       const transaction = createRandomTransaction();
-      await assert.isRejected(
-        blockchain.getTransaction(transaction.hash()),
-        Error,
-        "Transaction not found"
+      assert.equal(
+        await blockchain.getTransaction(transaction.hash()),
+        undefined
       );
     });
 
@@ -327,21 +308,19 @@ describe("BuidlerBlockchain", () => {
       await blockchain.putBlock(block);
       await blockchain.delBlock(block.hash());
 
-      await assert.isRejected(
-        blockchain.getTransaction(transaction.hash()),
-        Error,
-        "Transaction not found"
+      assert.equal(
+        await blockchain.getTransaction(transaction.hash()),
+        undefined
       );
     });
   });
 
   describe("getBlockByTransactionHash", () => {
-    it("throws for unknown transactions", async () => {
+    it("returns undefined for unknown transactions", async () => {
       const transaction = createRandomTransaction();
-      await assert.isRejected(
-        blockchain.getBlockByTransactionHash(transaction.hash()),
-        Error,
-        "Transaction not found"
+      assert.equal(
+        await blockchain.getBlockByTransactionHash(transaction.hash()),
+        undefined
       );
     });
 
@@ -368,10 +347,9 @@ describe("BuidlerBlockchain", () => {
       await blockchain.putBlock(block);
       await blockchain.delBlock(block.hash());
 
-      await assert.isRejected(
-        blockchain.getBlockByTransactionHash(transaction.hash()),
-        Error,
-        "Transaction not found"
+      assert.equal(
+        await blockchain.getBlockByTransactionHash(transaction.hash()),
+        undefined
       );
     });
   });

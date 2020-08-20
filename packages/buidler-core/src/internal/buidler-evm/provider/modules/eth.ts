@@ -689,7 +689,7 @@ export class EthModule {
   private async _getTransactionByHashAction(
     hash: Buffer
   ): Promise<RpcTransactionOutput | null> {
-    const tx = await this._node.getSuccessfulTransactionByHash(hash);
+    const tx = await this._node.getTransaction(hash);
     if (tx === undefined) {
       return null;
     }

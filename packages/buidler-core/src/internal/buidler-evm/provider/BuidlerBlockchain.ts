@@ -39,21 +39,14 @@ export class BuidlerBlockchain implements PBlockchain {
 
   public async getBlock(
     blockHashOrNumber: Buffer | BN | number
-  ): Promise<Block> {
-    let block: Block | undefined;
-
+  ): Promise<Block | undefined> {
     if (typeof blockHashOrNumber === "number") {
-      block = this._data.getBlockByNumber(new BN(blockHashOrNumber));
-    } else if (BN.isBN(blockHashOrNumber)) {
-      block = this._data.getBlockByNumber(blockHashOrNumber);
-    } else {
-      block = this._data.getBlockByHash(blockHashOrNumber);
+      return this._data.getBlockByNumber(new BN(blockHashOrNumber));
     }
-
-    if (block === undefined) {
-      throw new Error("Block not found");
+    if (BN.isBN(blockHashOrNumber)) {
+      return this._data.getBlockByNumber(blockHashOrNumber);
     }
-    return block;
+    return this._data.getBlockByHash(blockHashOrNumber);
   }
 
   public deleteAllFollowingBlocks(block: Block): void {
@@ -77,22 +70,16 @@ export class BuidlerBlockchain implements PBlockchain {
     return totalDifficulty;
   }
 
-  public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
-    const tx = this._data.getTransaction(transactionHash);
-    if (tx === undefined) {
-      throw new Error("Transaction not found");
-    }
-    return tx;
+  public async getTransaction(
+    transactionHash: Buffer
+  ): Promise<Transaction | undefined> {
+    return this._data.getTransaction(transactionHash);
   }
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
-  ): Promise<Block> {
-    const block = this._data.getBlockByTransactionHash(transactionHash);
-    if (block === undefined) {
-      throw new Error("Transaction not found");
-    }
-    return block;
+  ): Promise<Block | undefined> {
+    return this._data.getBlockByTransactionHash(transactionHash);
   }
 
   public asBlockchain(): Blockchain {
