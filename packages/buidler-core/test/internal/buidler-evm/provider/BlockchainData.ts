@@ -1,7 +1,8 @@
 import { assert } from "chai";
 import { Transaction } from "ethereumjs-tx";
-import { BN } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 
+import { RpcReceiptOutput } from "../../../../internal/buidler-evm/provider/output";
 import { Block } from "../../../../internal/buidler-evm/provider/types/Block";
 import { BlockchainData } from "../../../../src/internal/buidler-evm/provider/BlockchainData";
 import { randomAddressBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
@@ -16,6 +17,14 @@ describe("BlockchainData", () => {
 
   function createRandomTransaction() {
     return new Transaction({ to: randomAddressBuffer() });
+  }
+
+  function createReceipt(transaction: Transaction): RpcReceiptOutput {
+    const receipt: any = {
+      transactionHash: bufferToHex(transaction.hash()),
+      // we ignore other properties for test purposes
+    };
+    return receipt;
   }
 
   beforeEach(() => {
@@ -79,6 +88,37 @@ describe("BlockchainData", () => {
       assert.equal(bd.getBlockByTransactionHash(tx3.hash()), block2);
       assert.equal(bd.getTransaction(tx3.hash()), tx3);
       assert.isTrue(bd.getTotalDifficulty(block2.hash())?.eqn(10000));
+    });
+
+    it("removes associated transaction receipts", () => {
+      const block = createBlock(1234);
+      const tx = createRandomTransaction();
+      const receipt = createReceipt(tx);
+      block.transactions.push(tx);
+
+      bd.addBlock(block, new BN(1));
+      bd.addTransactionReceipt(receipt);
+
+      bd.removeBlock(block);
+
+      assert.equal(bd.getTransactionReceipt(tx.hash()), undefined);
+    });
+  });
+
+  describe("addTransaction", () => {
+    it("can save a transaction", () => {
+      const tx = createRandomTransaction();
+      bd.addTransaction(tx);
+      assert.equal(bd.getTransaction(tx.hash()), tx);
+    });
+  });
+
+  describe("addTransactionReceipt", () => {
+    it("can save a transaction receipt", () => {
+      const tx = createRandomTransaction();
+      const receipt = createReceipt(tx);
+      bd.addTransactionReceipt(receipt);
+      assert.equal(bd.getTransactionReceipt(tx.hash()), receipt);
     });
   });
 });

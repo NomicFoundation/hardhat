@@ -1,6 +1,7 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
+import { RpcReceiptOutput } from "./output";
 import { Block } from "./types/Block";
 
 export class BlockchainData {
@@ -8,6 +9,7 @@ export class BlockchainData {
   private _blocksByHash: Map<string, Block> = new Map();
   private _blocksByTransactions: Map<string, Block> = new Map();
   private _transactions: Map<string, Transaction> = new Map();
+  private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
 
   public getBlockByNumber(blockNumber: BN) {
@@ -24,6 +26,10 @@ export class BlockchainData {
 
   public getTransaction(transactionHash: Buffer) {
     return this._transactions.get(bufferToHex(transactionHash));
+  }
+
+  public getTransactionReceipt(transactionHash: Buffer) {
+    return this._transactionReceipts.get(bufferToHex(transactionHash));
   }
 
   public getTotalDifficulty(blockHash: Buffer) {
@@ -54,11 +60,16 @@ export class BlockchainData {
     for (const transaction of block.transactions) {
       const transactionHash = bufferToHex(transaction.hash());
       this._transactions.delete(transactionHash);
+      this._transactionReceipts.delete(transactionHash);
       this._blocksByTransactions.delete(transactionHash);
     }
   }
 
   public addTransaction(transaction: Transaction) {
-    return this._transactions.set(bufferToHex(transaction.hash()), transaction);
+    this._transactions.set(bufferToHex(transaction.hash()), transaction);
+  }
+
+  public addTransactionReceipt(receipt: RpcReceiptOutput) {
+    this._transactionReceipts.set(receipt.transactionHash, receipt);
   }
 }
