@@ -1,6 +1,7 @@
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, bufferToInt, zeros } from "ethereumjs-util";
+import { BN, bufferToInt, zeros } from "ethereumjs-util";
 
+import { BlockchainData } from "./BlockchainData";
 import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
 import { Callback } from "./types/Callback";
@@ -11,25 +12,20 @@ import { promisify } from "./utils/promisify";
 /* tslint:disable only-buidler-error */
 
 export class BuidlerBlockchain implements Blockchain {
-  private readonly _blocks: Block[] = [];
-  private readonly _blockHashToNumber: Map<string, number> = new Map();
-  private readonly _blockHashToTotalDifficulty: Map<string, BN> = new Map();
-  private readonly _transactions: Map<string, Transaction> = new Map();
-  private readonly _transactionToBlock: Map<string, Block> = new Map();
+  private readonly _data = new BlockchainData();
+  private _length = 0;
 
   public getLatestBlock(cb: Callback<Block>): void {
-    if (this._blocks.length === 0) {
+    const block = this._data.getBlockByNumber(new BN(this._length - 1));
+    if (block === undefined) {
       cb(new Error("No block available"));
+    } else {
+      cb(null, block);
     }
-
-    cb(null, this._blocks[this._blocks.length - 1]);
   }
 
   public putBlock(block: Block, cb: Callback<Block>): void {
-    const blockNumber = bufferToInt(block.header.number);
-    const blockHash = bufferToHex(block.hash());
-    let totalDifficulty: BN;
-
+    let totalDifficulty;
     try {
       this._validateBlock(block);
       totalDifficulty = this._computeTotalDifficulty(block);
@@ -37,27 +33,18 @@ export class BuidlerBlockchain implements Blockchain {
       cb(err);
       return;
     }
-
-    this._blocks.push(block);
-    this._blockHashToNumber.set(blockHash, blockNumber);
-    this._blockHashToTotalDifficulty.set(blockHash, totalDifficulty);
-
-    for (const transaction of block.transactions) {
-      const hash = bufferToHex(transaction.hash());
-      this._transactions.set(hash, transaction);
-      this._transactionToBlock.set(hash, block);
-    }
-
+    this._data.addBlock(block, totalDifficulty);
+    this._length += 1;
     cb(null, block);
   }
 
   public delBlock(blockHash: Buffer, cb: Callback): void {
-    try {
-      this._delBlock(blockHash);
-    } catch (err) {
-      cb(err);
+    const block = this._data.getBlockByHash(blockHash);
+    if (block === undefined) {
+      cb(new Error("Block not found"));
       return;
     }
+    this._delBlock(block);
     cb(null);
   }
 
@@ -65,23 +52,22 @@ export class BuidlerBlockchain implements Blockchain {
     blockHashOrNumber: Buffer | BN | number,
     cb: Callback<Block>
   ): void {
-    let blockNumber;
+    let block: Block | undefined;
 
     if (typeof blockHashOrNumber === "number") {
-      blockNumber = blockHashOrNumber;
+      block = this._data.getBlockByNumber(new BN(blockHashOrNumber));
     } else if (BN.isBN(blockHashOrNumber)) {
-      blockNumber = blockHashOrNumber.toNumber();
+      block = this._data.getBlockByNumber(blockHashOrNumber);
     } else {
-      const hash = bufferToHex(blockHashOrNumber);
-      blockNumber = this._blockHashToNumber.get(hash);
+      block = this._data.getBlockByHash(blockHashOrNumber);
     }
 
-    if (blockNumber === undefined || blockNumber >= this._blocks.length) {
+    if (block === undefined) {
       cb(new Error("Block not found"));
       return;
     }
 
-    cb(null, this._blocks[blockNumber]);
+    cb(null, block);
   }
 
   public iterator(name: string, onBlock: any, cb: Callback): void {
@@ -93,15 +79,19 @@ export class BuidlerBlockchain implements Blockchain {
         return;
       }
 
-      if (n >= this._blocks.length) {
+      if (n >= this._length) {
         cb(null);
         return;
       }
 
-      onBlock(this._blocks[n], false, (onBlockErr?: Error | null) => {
-        n += 1;
-        iterate(onBlockErr);
-      });
+      onBlock(
+        this._data.getBlockByNumber(new BN(n)),
+        false,
+        (onBlockErr?: Error | null) => {
+          n += 1;
+          iterate(onBlockErr);
+        }
+      );
     };
 
     iterate(null);
@@ -112,32 +102,28 @@ export class BuidlerBlockchain implements Blockchain {
   }
 
   public deleteAllFollowingBlocks(block: Block): void {
-    const blockNumber = bufferToInt(block.header.number);
-    const actualBlock = this._blocks[blockNumber];
-
-    if (actualBlock === undefined || !block.hash().equals(actualBlock.hash())) {
+    const actual = this._data.getBlockByHash(block.hash());
+    if (actual === undefined) {
       throw new Error("Invalid block");
     }
-
-    const nextBlock = this._blocks[blockNumber + 1];
+    const nextBlock = this._data.getBlockByNumber(
+      new BN(actual.header.number).addn(1)
+    );
     if (nextBlock !== undefined) {
-      this._delBlock(nextBlock.hash());
+      this._delBlock(nextBlock);
     }
   }
 
   public async getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
-    const totalDifficulty = this._blockHashToTotalDifficulty.get(
-      bufferToHex(blockHash)
-    );
+    const totalDifficulty = this._data.getTotalDifficulty(blockHash);
     if (totalDifficulty === undefined) {
       throw new Error("Block not found");
     }
-
     return totalDifficulty;
   }
 
   public async getTransaction(transactionHash: Buffer): Promise<Transaction> {
-    const tx = this._transactions.get(bufferToHex(transactionHash));
+    const tx = this._data.getTransaction(transactionHash);
     if (tx === undefined) {
       throw new Error("Transaction not found");
     }
@@ -147,7 +133,7 @@ export class BuidlerBlockchain implements Blockchain {
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block> {
-    const block = this._transactionToBlock.get(bufferToHex(transactionHash));
+    const block = this._data.getBlockByTransactionHash(transactionHash);
     if (block === undefined) {
       throw new Error("Transaction not found");
     }
@@ -172,14 +158,16 @@ export class BuidlerBlockchain implements Blockchain {
   private _validateBlock(block: Block) {
     const blockNumber = bufferToInt(block.header.number);
     const parentHash = block.header.parentHash;
+    const parent = this._data.getBlockByNumber(new BN(blockNumber - 1));
 
-    if (this._blocks.length !== blockNumber) {
+    if (this._length !== blockNumber) {
       throw new Error("Invalid block number");
     }
     if (
       (blockNumber === 0 && !parentHash.equals(zeros(32))) ||
       (blockNumber > 0 &&
-        !parentHash.equals(this._blocks[blockNumber - 1].hash()))
+        parent !== undefined &&
+        !parentHash.equals(parent.hash()))
     ) {
       throw new Error("Invalid parent hash");
     }
@@ -190,32 +178,21 @@ export class BuidlerBlockchain implements Blockchain {
     if (block.header.parentHash.equals(zeros(32))) {
       return difficulty;
     }
-
-    const parentHash = bufferToHex(block.header.parentHash);
-    const parentTD = this._blockHashToTotalDifficulty.get(parentHash);
+    const parentTD = this._data.getTotalDifficulty(block.header.parentHash);
     if (parentTD === undefined) {
       throw new Error("This should never happen");
     }
     return parentTD.add(difficulty);
   }
 
-  private _delBlock(blockHash: Buffer): void {
-    const blockNumber = this._blockHashToNumber.get(bufferToHex(blockHash));
-    if (blockNumber === undefined) {
-      throw new Error("Block not found");
-    }
-
-    for (let i = blockNumber; i < this._blocks.length; i++) {
-      const block = this._blocks[i];
-      this._blockHashToNumber.delete(bufferToHex(block.hash()));
-      this._blockHashToTotalDifficulty.delete(bufferToHex(block.hash()));
-
-      for (const transaction of block.transactions) {
-        const transactionHash = bufferToHex(transaction.hash());
-        this._transactions.delete(transactionHash);
-        this._transactionToBlock.delete(transactionHash);
+  private _delBlock(block: Block): void {
+    const blockNumber = bufferToInt(block.header.number);
+    for (let i = blockNumber; i < this._length; i++) {
+      const current = this._data.getBlockByNumber(new BN(i));
+      if (current !== undefined) {
+        this._data.removeBlock(current);
       }
     }
-    this._blocks.splice(blockNumber);
+    this._length = blockNumber;
   }
 }
