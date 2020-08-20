@@ -4,7 +4,7 @@ import { pluginName } from "../pluginContext";
 
 import { SolcVersionNumber } from "./version";
 
-export const metadataLengthSize = 2;
+export const METADATA_LENGTH_SIZE = 2;
 
 // Instances of these errors are not supposed to be seen by the task.
 export class VersionNotFoundError extends NomicLabsBuidlerPluginError {
@@ -41,14 +41,16 @@ export async function decodeSolcMetadata(bytecode: Buffer) {
   const metadataLength = readSolcMetadataLength(bytecode);
   // The metadata and its length are in the last few bytes.
   const metadataPayload = bytecode.slice(
-    -metadataLength - metadataLengthSize,
-    -metadataLengthSize
+    -metadataLength - METADATA_LENGTH_SIZE,
+    -METADATA_LENGTH_SIZE
   );
 
   const { decodeFirst } = await import("cbor");
+  // TODO: throw an error for decoding errors that are returned without being thrown
+  // E.g. cbor.decodeFirst(Buffer.from([])) === cbor.Decoder.NOT_FOUND
   return decodeFirst(metadataPayload);
 }
 
 export function readSolcMetadataLength(bytecode: Buffer) {
-  return bytecode.slice(-metadataLengthSize).readUInt16BE(0);
+  return bytecode.slice(-METADATA_LENGTH_SIZE).readUInt16BE(0);
 }

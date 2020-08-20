@@ -1,14 +1,15 @@
-import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
+import { ConfigExtender } from "@nomiclabs/buidler/types";
 
-import { EtherscanConfig } from "./types";
-
-// TODO: This function doesn't guarantee an EtherscanConfig object.
-// Some of our users don't use TypeScript and instead use plain JavaScript.
-// This means that the config.etherscan field could actually be anything.
-export function getDefaultEtherscanConfig(
-  config: ResolvedBuidlerConfig
-): EtherscanConfig {
+export const defaultEtherscanConfig: ConfigExtender = (
+  resolvedConfig,
+  config
+) => {
   const defaultConfig = { apiKey: "" };
 
-  return { ...defaultConfig, ...config.etherscan };
-}
+  if (config.etherscan !== undefined) {
+    const customConfig = config.etherscan;
+    resolvedConfig.etherscan = { ...defaultConfig, ...customConfig };
+  } else {
+    resolvedConfig.etherscan = defaultConfig;
+  }
+};

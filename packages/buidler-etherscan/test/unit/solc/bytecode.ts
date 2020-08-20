@@ -1,11 +1,11 @@
-import { assert } from "chai";
 import { encode } from "cbor";
+import { assert } from "chai";
 
-import {
-  readSolcMetadataLength,
-  metadataLengthSize,
-} from "../../../src/solc/metadata";
 import { compareBytecode } from "../../../src/solc/bytecode";
+import {
+  METADATA_LENGTH_SIZE,
+  readSolcMetadataLength,
+} from "../../../src/solc/metadata";
 import { InferralType } from "../../../src/solc/version";
 
 describe("Compiler bytecode and deployed bytecode matching", () => {
@@ -84,13 +84,13 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const length = Buffer.alloc(2);
       length.writeUInt16BE(mockMetadata.length, 0);
 
-      const deployedMetadataLength = await readSolcMetadataLength(
+      const deployedMetadataLength = readSolcMetadataLength(
         Buffer.from(deployedBytecode, "hex")
       );
       const deployedBytecodeTrimmed = deployedBytecode.slice(
         0,
         deployedBytecode.length -
-          (deployedMetadataLength + metadataLengthSize) * 2
+          (deployedMetadataLength + METADATA_LENGTH_SIZE) * 2
       );
       const bytecodeWithNewMetadata = [
         deployedBytecodeTrimmed,

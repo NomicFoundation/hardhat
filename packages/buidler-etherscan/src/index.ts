@@ -1,8 +1,9 @@
-import { task } from "@nomiclabs/buidler/config";
+import { extendConfig, task } from "@nomiclabs/buidler/config";
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import { ActionType, Artifact } from "@nomiclabs/buidler/types";
+import { ActionType } from "@nomiclabs/buidler/types";
 import SemverRange from "semver/classes/range";
 
+import { defaultEtherscanConfig } from "./config";
 import { pluginName } from "./pluginContext";
 
 interface VerificationArgs {
@@ -12,6 +13,8 @@ interface VerificationArgs {
   constructorArgs?: string;
 }
 
+extendConfig(defaultEtherscanConfig);
+
 const verify: ActionType<VerificationArgs> = async (
   {
     address,
@@ -20,14 +23,9 @@ const verify: ActionType<VerificationArgs> = async (
   },
   { config, network, run }
 ) => {
-  const { getDefaultEtherscanConfig } = await import("./config");
-  const etherscan = getDefaultEtherscanConfig(config);
+  const { etherscan } = config;
 
-  if (
-    etherscan.apiKey === undefined ||
-    etherscan.apiKey === null ||
-    etherscan.apiKey.trim() === ""
-  ) {
+  if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
     throw new NomicLabsBuidlerPluginError(
       pluginName,
       `Please provide an Etherscan API token via buidler config.
@@ -73,7 +71,7 @@ See https://etherscan.io/solcversions for more information.`
   let constructorArguments;
   if (typeof constructorArgsModule === "string") {
     try {
-      constructorArguments = await import(constructorArgsModule!);
+      constructorArguments = await import(constructorArgsModule);
       if (!Array.isArray(constructorArguments)) {
         throw new NomicLabsBuidlerPluginError(
           pluginName,
@@ -230,7 +228,6 @@ for verification on etherscan. Waiting for verification result...`
   });
 
   // Compilation is bound to take some time so there's no sense in requesting status immediately.
-  // TODO: make this configurable? The polling interval should be configurable too, within some safety bounds.
   await delay(700);
   const verificationStatus = await getVerificationStatus(
     etherscanAPIEndpoint,

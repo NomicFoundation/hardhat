@@ -1,6 +1,6 @@
 import { RunTaskFunction } from "@nomiclabs/buidler/types";
 
-import { metadataLengthSize, readSolcMetadataLength } from "./metadata";
+import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./version";
 
 export async function lookupMatchingBytecode(
@@ -64,7 +64,7 @@ export async function compareBytecode(
     // The runtime object may contain nonhexadecimal characters due to link placeholders.
     const runtimeMetadataLength = readSolcMetadataLength(
       Buffer.from(
-        runtimeBytecodeSymbols.object.slice(-metadataLengthSize * 2),
+        runtimeBytecodeSymbols.object.slice(-METADATA_LENGTH_SIZE * 2),
         "hex"
       )
     );
@@ -79,7 +79,7 @@ export async function compareBytecode(
     }
 
     // The metadata length is stored at the end.
-    bytecodeSize -= (deployedMetadataLength + metadataLengthSize) * 2;
+    bytecodeSize -= (deployedMetadataLength + METADATA_LENGTH_SIZE) * 2;
   }
 
   // Normalize deployed bytecode according to this contract.
@@ -177,12 +177,14 @@ export async function normalizeBytecode(
     }
   }
 
-  const sliceReferences: BytecodeSlice[] = ([] as BytecodeSlice[]).concat(
-    ...nestedSliceReferences
-  );
+  const sliceReferences = flattenSlices(nestedSliceReferences);
   const normalizedBytecode = zeroOutSlices(bytecode, sliceReferences);
 
   return { libraryLinks, immutableValues, normalizedBytecode };
+}
+
+function flattenSlices(slices: NestedSliceReferences) {
+  return ([] as BytecodeSlice[]).concat(...slices);
 }
 
 export function zeroOutSlices(

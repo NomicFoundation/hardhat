@@ -98,7 +98,7 @@ export async function inferSolcVersion(
           return this.range.toString();
         },
       };
-      return range as SolcVersionRange;
+      return range;
     }
     if (error instanceof MetadataAbsentError) {
       // The decoding failed. Unfortunately, our only option is to assume that this bytecode was emitted by an old version.
@@ -112,7 +112,7 @@ export async function inferSolcVersion(
           return this.range.toString();
         },
       };
-      return range as SolcVersionRange;
+      return range;
     }
     // Should be unreachable.
     throw error;

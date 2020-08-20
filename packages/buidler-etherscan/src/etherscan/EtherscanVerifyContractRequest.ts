@@ -14,16 +14,6 @@ export interface EtherscanVerifyRequest extends EtherscanRequest {
   // This is misspelt in Etherscan's actual API parameters.
   // See: https://etherscan.io/apis#contracts
   constructorArguements: string;
-
-  // These fields are relevant for other codeformats, e.g. single file.
-  // For libraries, these should be pairs of the form
-  // libraryname1, libraryaddress1, ..., libraryname10, libraryaddress10
-  // Yes, up to 10 only.
-  // The documentation is contradictory, but below is correct at this point in time (checked by experimentation).
-  // 1 = Optimizations used
-  // 0 = No optimizations used
-  // optimizationUsed: number;
-  // runs: number;
 }
 
 export interface EtherscanCheckStatusRequest extends EtherscanRequest {
