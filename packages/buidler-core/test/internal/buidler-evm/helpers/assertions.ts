@@ -13,8 +13,8 @@ import {
 import { TransactionParams } from "../../../../src/internal/buidler-evm/provider/node-types";
 import {
   numberToRpcQuantity,
+  RpcReceiptOutput,
   RpcTransactionOutput,
-  RpcTransactionReceiptOutput,
 } from "../../../../src/internal/buidler-evm/provider/output";
 import { EthereumProvider } from "../../../../src/types";
 
@@ -134,7 +134,7 @@ export async function assertTransactionFailure(
 
 export function assertReceiptMatchesGethOne(
   actual: any,
-  gethReceipt: RpcTransactionReceiptOutput,
+  gethReceipt: RpcReceiptOutput,
   expectedBlockNumber: number | BN
 ) {
   assertQuantity(actual.blockNumber, expectedBlockNumber);

@@ -63,8 +63,8 @@ import {
   numberToRpcQuantity,
   RpcBlockOutput,
   RpcLogOutput,
+  RpcReceiptOutput,
   RpcTransactionOutput,
-  RpcTransactionReceiptOutput,
 } from "../output";
 import { Block } from "../types/Block";
 
@@ -754,7 +754,7 @@ export class EthModule {
 
   private async _getTransactionReceiptAction(
     hash: Buffer
-  ): Promise<RpcTransactionReceiptOutput | null> {
+  ): Promise<RpcReceiptOutput | null> {
     const receipt = await this._node.getTransactionReceipt(hash);
     if (receipt === undefined) {
       return null;

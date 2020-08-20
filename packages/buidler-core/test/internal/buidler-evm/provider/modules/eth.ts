@@ -10,8 +10,8 @@ import {
   numberToRpcQuantity,
   RpcBlockOutput,
   RpcLogOutput,
+  RpcReceiptOutput,
   RpcTransactionOutput,
-  RpcTransactionReceiptOutput,
 } from "../../../../../src/internal/buidler-evm/provider/output";
 import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
 import { EthereumProvider } from "../../../../../src/types";
@@ -2196,7 +2196,7 @@ describe("Eth module", function () {
             [numberToRpcQuantity(2), false]
           );
 
-          const receipt: RpcTransactionReceiptOutput = await this.provider.send(
+          const receipt: RpcReceiptOutput = await this.provider.send(
             "eth_getTransactionReceipt",
             [txHash]
           );

@@ -55,9 +55,9 @@ import {
 } from "./node-types";
 import {
   getRpcBlock,
-  getRpcTransactionReceipts,
+  getRpcReceipts,
   RpcLogOutput,
-  RpcTransactionReceiptOutput,
+  RpcReceiptOutput,
 } from "./output";
 import { Block } from "./types/Block";
 import { PBlockchain } from "./types/PBlockchain";
@@ -160,10 +160,7 @@ export class BuidlerNode extends EventEmitter {
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
-  private _blockHashToTxReceipts: Map<
-    string,
-    RpcTransactionReceiptOutput[]
-  > = new Map();
+  private _blockHashToReceipts: Map<string, RpcReceiptOutput[]> = new Map();
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -618,13 +615,13 @@ export class BuidlerNode extends EventEmitter {
 
   public async getTransactionReceipt(
     hash: Buffer
-  ): Promise<RpcTransactionReceiptOutput | undefined> {
+  ): Promise<RpcReceiptOutput | undefined> {
     const block = await this.getBlockByTransactionHash(hash);
     if (block === undefined) {
       return undefined;
     }
     const index = block.transactions.findIndex((tx) => tx.hash().equals(hash));
-    const receipts = this._blockHashToTxReceipts.get(bufferToHex(block.hash()));
+    const receipts = this._blockHashToReceipts.get(bufferToHex(block.hash()));
     return receipts?.[index];
   }
 
@@ -665,7 +662,7 @@ export class BuidlerNode extends EventEmitter {
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
       nextBlockTimestamp: new BN(this._nextBlockTimestamp),
-      blockHashToTxReceipts: new Map(this._blockHashToTxReceipts.entries()),
+      blockHashToTxReceipts: new Map(this._blockHashToReceipts.entries()),
     };
 
     this._snapshots.push(snapshot);
@@ -700,7 +697,7 @@ export class BuidlerNode extends EventEmitter {
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
     this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
-    this._blockHashToTxReceipts = snapshot.blockHashToTxReceipts;
+    this._blockHashToReceipts = snapshot.blockHashToTxReceipts;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -842,9 +839,7 @@ export class BuidlerNode extends EventEmitter {
       if (block === undefined) {
         continue;
       }
-      const receipts = this._blockHashToTxReceipts.get(
-        bufferToHex(block.hash())
-      );
+      const receipts = this._blockHashToReceipts.get(bufferToHex(block.hash()));
       if (receipts === undefined) {
         continue;
       }
@@ -1127,10 +1122,10 @@ export class BuidlerNode extends EventEmitter {
     runBlockResult: RunBlockResult
   ) {
     await this._blockchain.addBlock(block);
-    const receipts = getRpcTransactionReceipts(block, runBlockResult);
+    const receipts = getRpcReceipts(block, runBlockResult);
 
     const blockHash = bufferToHex(block.hash());
-    this._blockHashToTxReceipts.set(blockHash, receipts);
+    this._blockHashToReceipts.set(blockHash, receipts);
 
     const td = await this.getBlockTotalDifficulty(block);
     const rpcLogs: RpcLogOutput[] = [];

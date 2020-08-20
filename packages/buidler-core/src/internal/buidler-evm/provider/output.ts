@@ -43,7 +43,7 @@ export interface RpcTransactionOutput {
   value: string;
 }
 
-export interface RpcTransactionReceiptOutput {
+export interface RpcReceiptOutput {
   blockHash: string;
   blockNumber: string;
   contractAddress: string | null;
@@ -169,11 +169,11 @@ export function getRpcTransaction(
   };
 }
 
-export function getRpcTransactionReceipts(
+export function getRpcReceipts(
   block: Block,
   runBlockResult: RunBlockResult
-): RpcTransactionReceiptOutput[] {
-  const receipts: RpcTransactionReceiptOutput[] = [];
+): RpcReceiptOutput[] {
+  const receipts: RpcReceiptOutput[] = [];
 
   let cumulativeGasUsed = new BN(0);
 

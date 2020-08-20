@@ -2,7 +2,7 @@ import { BN } from "ethereumjs-util";
 
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 
-import { RpcLogOutput, RpcTransactionReceiptOutput } from "./output";
+import { RpcReceiptOutput } from "./output";
 import { Block } from "./types/Block";
 
 export interface GenesisAccount {
@@ -49,5 +49,5 @@ export interface Snapshot {
   stateRoot: Buffer;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
-  blockHashToTxReceipts: Map<string, RpcTransactionReceiptOutput[]>;
+  blockHashToTxReceipts: Map<string, RpcReceiptOutput[]>;
 }
