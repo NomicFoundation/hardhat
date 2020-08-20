@@ -2,10 +2,8 @@ import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { BufferLike, Transaction } from "ethereumjs-tx";
 import { BN, toBuffer, zeros } from "ethereumjs-util";
-import { unknown } from "io-ts";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
-import { NotSupportedError } from "../../../../../src/internal/buidler-evm/provider/fork/errors";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
 import {
   randomAddressBuffer,
@@ -197,19 +195,6 @@ describe("ForkBlockchain", () => {
     });
   });
 
-  describe("getDetails", () => {
-    it("resolves", async () => {
-      await assert.isFulfilled(fb.getDetails(""));
-    });
-
-    it("calls callback with null", async () => {
-      const result = await new Promise((resolve) =>
-        fb.asBlockchain().getDetails("", resolve)
-      );
-      assert.isNull(result);
-    });
-  });
-
   describe("delBlock", () => {
     it("removes the block and all subsequent ones", async () => {
       const blockOne = createBlock(await fb.getLatestBlock());
@@ -288,16 +273,6 @@ describe("ForkBlockchain", () => {
         () => fb.deleteBlock(forkBlock.hash()),
         Error,
         "Cannot delete remote block"
-      );
-    });
-  });
-
-  describe("iterator", () => {
-    it("throws not supported error", async () => {
-      await assert.isRejected(
-        fb.iterator("", () => {}),
-        NotSupportedError,
-        "iterator"
       );
     });
   });

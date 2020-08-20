@@ -9,7 +9,6 @@ import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 
-import { NotSupportedError } from "./errors";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
