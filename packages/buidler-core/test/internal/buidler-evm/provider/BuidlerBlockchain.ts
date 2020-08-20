@@ -32,9 +32,9 @@ describe("BuidlerBlockchain", () => {
 
   describe("getLatestBlock", () => {
     it("returns the latest block", async () => {
-      await blockchain.putBlock(createBlock(0));
+      await blockchain.addBlock(createBlock(0));
       const one = createBlock(1);
-      await blockchain.putBlock(one);
+      await blockchain.addBlock(one);
       assert.equal(await blockchain.getLatestBlock(), one);
     });
 
@@ -51,22 +51,22 @@ describe("BuidlerBlockchain", () => {
     it("can get existing block by hash", async () => {
       const genesis = createBlock(0);
       const one = createBlock(1);
-      await blockchain.putBlock(genesis);
-      await blockchain.putBlock(one);
+      await blockchain.addBlock(genesis);
+      await blockchain.addBlock(one);
       assert.equal(await blockchain.getBlock(one.hash()), one);
     });
 
     it("can get existing block by number", async () => {
-      await blockchain.putBlock(createBlock(0));
+      await blockchain.addBlock(createBlock(0));
       const one = createBlock(1);
-      await blockchain.putBlock(one);
+      await blockchain.addBlock(one);
       assert.equal(await blockchain.getBlock(1), one);
     });
 
     it("can get existing block by BN", async () => {
-      await blockchain.putBlock(createBlock(0));
+      await blockchain.addBlock(createBlock(0));
       const one = createBlock(1);
-      await blockchain.putBlock(one);
+      await blockchain.addBlock(one);
       assert.equal(await blockchain.getBlock(new BN(1)), one);
     });
 
@@ -79,7 +79,7 @@ describe("BuidlerBlockchain", () => {
   describe("putBlock", () => {
     it("can save genesis block", async () => {
       const genesis = createBlock(0);
-      const returnedBlock = await blockchain.putBlock(genesis);
+      const returnedBlock = await blockchain.addBlock(genesis);
       const savedBlock = await blockchain.getBlock(0);
       assert.equal(returnedBlock, genesis);
       assert.equal(savedBlock, genesis);
@@ -88,7 +88,7 @@ describe("BuidlerBlockchain", () => {
     it("rejects blocks with invalid block number", async () => {
       const block = new Block({ header: { number: 1 } });
       await assert.isRejected(
-        blockchain.putBlock(block),
+        blockchain.addBlock(block),
         Error,
         "Invalid block number"
       );
@@ -99,7 +99,7 @@ describe("BuidlerBlockchain", () => {
         header: { number: 0, parentHash: randomHashBuffer() },
       });
       await assert.isRejected(
-        blockchain.putBlock(block),
+        blockchain.addBlock(block),
         Error,
         "Invalid parent hash"
       );
@@ -107,10 +107,10 @@ describe("BuidlerBlockchain", () => {
 
     it("rejects later block with invalid parent hash", async () => {
       const genesis = createBlock(0);
-      await blockchain.putBlock(genesis);
+      await blockchain.addBlock(genesis);
       const block = new Block({ header: { number: 1 } });
       await assert.isRejected(
-        blockchain.putBlock(block),
+        blockchain.addBlock(block),
         Error,
         "Invalid parent hash"
       );
@@ -121,9 +121,9 @@ describe("BuidlerBlockchain", () => {
       const blockTwo = createBlock(1);
       const blockThree = createBlock(2);
 
-      await blockchain.putBlock(blockOne);
-      await blockchain.putBlock(blockTwo);
-      await blockchain.putBlock(blockThree);
+      await blockchain.addBlock(blockOne);
+      await blockchain.addBlock(blockTwo);
+      await blockchain.addBlock(blockThree);
 
       assert.equal(await blockchain.getBlock(0), blockOne);
       assert.equal(await blockchain.getBlock(1), blockTwo);
@@ -137,11 +137,11 @@ describe("BuidlerBlockchain", () => {
       const blockTwo = createBlock(1);
       const blockThree = createBlock(2);
 
-      await blockchain.putBlock(blockOne);
-      await blockchain.putBlock(blockTwo);
-      await blockchain.putBlock(blockThree);
+      await blockchain.addBlock(blockOne);
+      await blockchain.addBlock(blockTwo);
+      await blockchain.addBlock(blockThree);
 
-      await blockchain.delBlock(blockOne.hash());
+      blockchain.deleteBlock(blockOne.hash());
 
       assert.equal(await blockchain.getBlock(blockOne.hash()), undefined);
       assert.equal(await blockchain.getBlock(blockTwo.hash()), undefined);
@@ -153,13 +153,13 @@ describe("BuidlerBlockchain", () => {
       const blockTwo = createBlock(1);
       const blockThree = createBlock(2);
 
-      await blockchain.putBlock(blockOne);
-      await blockchain.putBlock(blockTwo);
-      await blockchain.delBlock(blockTwo.hash());
+      await blockchain.addBlock(blockOne);
+      await blockchain.addBlock(blockTwo);
+      blockchain.deleteBlock(blockTwo.hash());
 
       assert.equal(await blockchain.getLatestBlock(), blockOne);
       await assert.isRejected(
-        blockchain.putBlock(blockThree),
+        blockchain.addBlock(blockThree),
         Error,
         "Invalid block number"
       );
@@ -168,16 +168,16 @@ describe("BuidlerBlockchain", () => {
     it("is possible to add a block after delete", async () => {
       const block = createBlock(0);
       const otherBlock = createBlock(0, randomHashBuffer());
-      await blockchain.putBlock(block);
-      await blockchain.delBlock(block.hash());
-      await blockchain.putBlock(otherBlock);
+      await blockchain.addBlock(block);
+      blockchain.deleteBlock(block.hash());
+      await blockchain.addBlock(otherBlock);
       assert.equal(await blockchain.getBlock(otherBlock.hash()), otherBlock);
     });
 
     it("throws when hash if non-existent block is given", async () => {
       const block = createBlock(0);
-      await assert.isRejected(
-        blockchain.delBlock(block.hash()),
+      assert.throws(
+        () => blockchain.deleteBlock(block.hash()),
         Error,
         "Block not found"
       );
@@ -190,11 +190,11 @@ describe("BuidlerBlockchain", () => {
       const blockTwo = createBlock(1);
       const blockThree = createBlock(2);
 
-      await blockchain.putBlock(blockOne);
-      await blockchain.putBlock(blockTwo);
-      await blockchain.putBlock(blockThree);
+      await blockchain.addBlock(blockOne);
+      await blockchain.addBlock(blockTwo);
+      await blockchain.addBlock(blockThree);
 
-      blockchain.deleteAllFollowingBlocks(blockOne);
+      blockchain.deleteLaterBlocks(blockOne);
 
       assert.equal(await blockchain.getBlock(blockOne.hash()), blockOne);
       assert.equal(await blockchain.getBlock(blockTwo.hash()), undefined);
@@ -206,15 +206,15 @@ describe("BuidlerBlockchain", () => {
       const notAddedBlock = createBlock(1);
       const fakeBlockOne = createBlock(0, randomHashBuffer());
 
-      await blockchain.putBlock(blockOne);
+      await blockchain.addBlock(blockOne);
 
       assert.throws(
-        () => blockchain.deleteAllFollowingBlocks(notAddedBlock),
+        () => blockchain.deleteLaterBlocks(notAddedBlock),
         Error,
         "Invalid block"
       );
       assert.throws(
-        () => blockchain.deleteAllFollowingBlocks(fakeBlockOne),
+        () => blockchain.deleteLaterBlocks(fakeBlockOne),
         Error,
         "Invalid block"
       );
@@ -222,15 +222,15 @@ describe("BuidlerBlockchain", () => {
 
     it("does not throw if there are no following blocks", async () => {
       const blockOne = createBlock(0);
-      await blockchain.putBlock(blockOne);
-      assert.doesNotThrow(() => blockchain.deleteAllFollowingBlocks(blockOne));
+      await blockchain.addBlock(blockOne);
+      assert.doesNotThrow(() => blockchain.deleteLaterBlocks(blockOne));
     });
   });
 
   describe("getBlockTotalDifficulty", () => {
     it("rejects when hash of non-existent block is given", async () => {
       await assert.isRejected(
-        blockchain.getBlockTotalDifficulty(randomHashBuffer()),
+        blockchain.getTotalDifficulty(randomHashBuffer()),
         Error,
         "Block not found"
       );
@@ -238,22 +238,18 @@ describe("BuidlerBlockchain", () => {
 
     it("can get difficulty of the genesis block", async () => {
       const genesis = createBlock(0, 1000);
-      await blockchain.putBlock(genesis);
-      const difficulty = await blockchain.getBlockTotalDifficulty(
-        genesis.hash()
-      );
+      await blockchain.addBlock(genesis);
+      const difficulty = await blockchain.getTotalDifficulty(genesis.hash());
       assert.equal(difficulty.toNumber(), 1000);
     });
 
     it("can get total difficulty of the second block", async () => {
       const genesis = createBlock(0, 1000);
       const second = createBlock(1, 2000);
-      await blockchain.putBlock(genesis);
-      await blockchain.putBlock(second);
+      await blockchain.addBlock(genesis);
+      await blockchain.addBlock(second);
 
-      const difficulty = await blockchain.getBlockTotalDifficulty(
-        second.hash()
-      );
+      const difficulty = await blockchain.getTotalDifficulty(second.hash());
       assert.equal(difficulty.toNumber(), 3000);
     });
 
@@ -261,17 +257,17 @@ describe("BuidlerBlockchain", () => {
       const blockOne = createBlock(0, 1000);
       const blockTwo = createBlock(1, 2000);
 
-      await blockchain.putBlock(blockOne);
-      await blockchain.putBlock(blockTwo);
+      await blockchain.addBlock(blockOne);
+      await blockchain.addBlock(blockTwo);
 
-      blockchain.deleteAllFollowingBlocks(blockOne);
+      blockchain.deleteLaterBlocks(blockOne);
 
       assert.equal(
-        (await blockchain.getBlockTotalDifficulty(blockOne.hash())).toNumber(),
+        (await blockchain.getTotalDifficulty(blockOne.hash())).toNumber(),
         1000
       );
       await assert.isRejected(
-        blockchain.getBlockTotalDifficulty(blockTwo.hash()),
+        blockchain.getTotalDifficulty(blockTwo.hash()),
         Error,
         "Block not found"
       );
@@ -289,11 +285,11 @@ describe("BuidlerBlockchain", () => {
 
     it("returns a known transaction", async () => {
       const genesis = createBlock(0, 1000);
-      await blockchain.putBlock(genesis);
+      await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
       const transaction = createRandomTransaction();
       block.transactions.push(transaction);
-      await blockchain.putBlock(block);
+      await blockchain.addBlock(block);
 
       const result = await blockchain.getTransaction(transaction.hash());
       assert.equal(result, transaction);
@@ -301,12 +297,12 @@ describe("BuidlerBlockchain", () => {
 
     it("forgets transactions after block is removed", async () => {
       const genesis = createBlock(0, 1000);
-      await blockchain.putBlock(genesis);
+      await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
       const transaction = createRandomTransaction();
       block.transactions.push(transaction);
-      await blockchain.putBlock(block);
-      await blockchain.delBlock(block.hash());
+      await blockchain.addBlock(block);
+      blockchain.deleteBlock(block.hash());
 
       assert.equal(
         await blockchain.getTransaction(transaction.hash()),
@@ -326,11 +322,11 @@ describe("BuidlerBlockchain", () => {
 
     it("returns block for a known transaction", async () => {
       const genesis = createBlock(0, 1000);
-      await blockchain.putBlock(genesis);
+      await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
       const transaction = createRandomTransaction();
       block.transactions.push(transaction);
-      await blockchain.putBlock(block);
+      await blockchain.addBlock(block);
 
       const result = await blockchain.getBlockByTransactionHash(
         transaction.hash()
@@ -340,12 +336,12 @@ describe("BuidlerBlockchain", () => {
 
     it("forgets transactions after block is removed", async () => {
       const genesis = createBlock(0, 1000);
-      await blockchain.putBlock(genesis);
+      await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
       const transaction = createRandomTransaction();
       block.transactions.push(transaction);
-      await blockchain.putBlock(block);
-      await blockchain.delBlock(block.hash());
+      await blockchain.addBlock(block);
+      blockchain.deleteBlock(block.hash());
 
       assert.equal(
         await blockchain.getBlockByTransactionHash(transaction.hash()),

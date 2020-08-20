@@ -21,7 +21,7 @@ export class BuidlerBlockchain implements PBlockchain {
     return block;
   }
 
-  public async putBlock(block: Block): Promise<Block> {
+  public async addBlock(block: Block): Promise<Block> {
     this._validateBlock(block);
     const totalDifficulty = this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
@@ -29,7 +29,7 @@ export class BuidlerBlockchain implements PBlockchain {
     return block;
   }
 
-  public async delBlock(blockHash: Buffer): Promise<void> {
+  public deleteBlock(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
       throw new Error("Block not found");
@@ -49,7 +49,7 @@ export class BuidlerBlockchain implements PBlockchain {
     return this._data.getBlockByHash(blockHashOrNumber);
   }
 
-  public deleteAllFollowingBlocks(block: Block): void {
+  public deleteLaterBlocks(block: Block): void {
     const actual = this._data.getBlockByHash(block.hash());
     if (actual === undefined) {
       throw new Error("Invalid block");
@@ -62,7 +62,7 @@ export class BuidlerBlockchain implements PBlockchain {
     }
   }
 
-  public async getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
+  public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
     const totalDifficulty = this._data.getTotalDifficulty(blockHash);
     if (totalDifficulty === undefined) {
       throw new Error("Block not found");

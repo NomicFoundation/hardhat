@@ -43,7 +43,7 @@ export class ForkBlockchain implements PBlockchain {
     return block;
   }
 
-  public async putBlock(block: Block): Promise<Block> {
+  public async addBlock(block: Block): Promise<Block> {
     const blockNumber = new BN(block.header.number);
     if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
       throw new Error("Invalid block number");
@@ -58,7 +58,7 @@ export class ForkBlockchain implements PBlockchain {
     return block;
   }
 
-  public async delBlock(blockHash: Buffer): Promise<void> {
+  public deleteBlock(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
       throw new Error("Block not found");
@@ -73,7 +73,7 @@ export class ForkBlockchain implements PBlockchain {
     throw new NotSupportedError("iterator");
   }
 
-  public deleteAllFollowingBlocks(block: Block): void {
+  public deleteLaterBlocks(block: Block): void {
     const blockNumber = new BN(block.header.number);
     const savedBlock = this._data.getBlockByNumber(blockNumber);
     if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
@@ -90,7 +90,7 @@ export class ForkBlockchain implements PBlockchain {
     }
   }
 
-  public async getBlockTotalDifficulty(blockHash: Buffer): Promise<BN> {
+  public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
     let td = this._data.getTotalDifficulty(blockHash);
     if (td !== undefined) {
       return td;

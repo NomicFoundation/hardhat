@@ -7,16 +7,16 @@ import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
 
 export interface PBlockchain {
-  getBlock(blockHashOrNumber: Buffer | number | BN): Promise<Block | undefined>;
   getLatestBlock(): Promise<Block>;
+  getBlock(blockHashOrNumber: Buffer | number | BN): Promise<Block | undefined>;
+  addBlock(block: Block): Promise<Block>;
+  deleteBlock(blockHash: Buffer): void;
+  deleteLaterBlocks(block: Block): void;
+  getTotalDifficulty(blockHash: Buffer): Promise<BN>;
   getTransaction(transactionHash: Buffer): Promise<Transaction | undefined>;
   getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | undefined>;
-  putBlock(block: Block): Promise<Block>;
-  delBlock(blockHash: Buffer): Promise<void>;
-  deleteAllFollowingBlocks(block: Block): void;
-  getBlockTotalDifficulty(blockHash: Buffer): Promise<BN>;
 }
 
 export function toBlockchain(pb: PBlockchain): Blockchain {
@@ -27,10 +27,19 @@ export function toBlockchain(pb: PBlockchain): Blockchain {
       throw new Error("Block not found");
     }
   }
+  function delBlock(blockHash: Buffer, cb: Callback) {
+    try {
+      pb.deleteBlock(blockHash);
+    } catch (e) {
+      cb(e);
+      return;
+    }
+    cb(null);
+  }
   return {
     getBlock: callbackify(getBlock),
-    putBlock: callbackify(pb.putBlock.bind(pb)),
-    delBlock: callbackify(pb.delBlock.bind(pb)),
+    putBlock: callbackify(pb.addBlock.bind(pb)),
+    delBlock,
     getDetails,
     iterator,
   };
