@@ -12,19 +12,9 @@ Join our [Buidler Telegram group](http://t.me/BuidlerSupport) to stay up to date
 
 ## Installation
 
-### Local installation (recommended)
-
 The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
 
     npm install --save-dev @nomiclabs/buidler
-
-### Global installation
-
-Be careful about inconsistent behavior across different projects that use different Buidler versions.
-
-    npm install --global @nomiclabs/buidler
-    
-If you choose to install Buidler globally, you have to do the same for its plugins and their dependencies.
 
 ## Documentation
 

@@ -231,7 +231,7 @@ To customise it, take a look at [the configuration section](/config/#buidler-evm
 - `evm_mine` – same as Ganache
 - `evm_revert` – same as Ganache.
 - `evm_snapshot` – same as Ganache.
-- `evm_setNextBlockTimestamp` - set the timestamp to be used for the next block, if next block is mined with a timestamp, this set will be resetted, on the other hand, it is only effective for only 1 next block.
+- `evm_setNextBlockTimestamp` - this method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
 
 ### Unsupported methods
 
