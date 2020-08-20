@@ -26,6 +26,14 @@ export class ForkBlockchain implements PBlockchain {
     private _common: Common
   ) {}
 
+  public async getLatestBlock(): Promise<Block> {
+    const block = await this.getBlock(this._latestBlockNumber);
+    if (block === undefined) {
+      throw new Error("Block not found");
+    }
+    return block;
+  }
+
   public async getBlock(
     blockHashOrNumber: Buffer | number | BN
   ): Promise<Block | undefined> {
@@ -33,14 +41,6 @@ export class ForkBlockchain implements PBlockchain {
       return this._getBlockByHash(blockHashOrNumber);
     }
     return this._getBlockByNumber(new BN(blockHashOrNumber));
-  }
-
-  public async getLatestBlock(): Promise<Block> {
-    const block = await this.getBlock(this._latestBlockNumber);
-    if (block === undefined) {
-      throw new Error("Block not found");
-    }
-    return block;
   }
 
   public async addBlock(block: Block): Promise<Block> {
@@ -64,13 +64,6 @@ export class ForkBlockchain implements PBlockchain {
       throw new Error("Block not found");
     }
     this._delBlock(block);
-  }
-
-  public async getDetails(_: string): Promise<void> {}
-
-  public async iterator(name: string, onBlock: any): Promise<void> {
-    // this function is only ever used in runBlockchain which is not used in Buidler
-    throw new NotSupportedError("iterator");
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -178,23 +171,6 @@ export class ForkBlockchain implements PBlockchain {
     return block;
   }
 
-  private async _processRemoteTransaction(
-    rpcTransaction: RpcTransaction | null
-  ) {
-    if (
-      rpcTransaction === null ||
-      rpcTransaction.blockNumber === null ||
-      rpcTransaction.blockNumber.gt(this._forkBlockNumber)
-    ) {
-      return undefined;
-    }
-    const transaction = new Transaction(rpcToTxData(rpcTransaction), {
-      common: this._common,
-    });
-    this._data.addTransaction(transaction);
-    return transaction;
-  }
-
   private async _computeTotalDifficulty(block: Block): Promise<BN> {
     const difficulty = new BN(block.header.difficulty);
     const blockNumber = new BN(block.header.number);
@@ -230,5 +206,22 @@ export class ForkBlockchain implements PBlockchain {
     }
 
     this._latestBlockNumber = new BN(blockNumber).subn(1);
+  }
+
+  private async _processRemoteTransaction(
+    rpcTransaction: RpcTransaction | null
+  ) {
+    if (
+      rpcTransaction === null ||
+      rpcTransaction.blockNumber === null ||
+      rpcTransaction.blockNumber.gt(this._forkBlockNumber)
+    ) {
+      return undefined;
+    }
+    const transaction = new Transaction(rpcToTxData(rpcTransaction), {
+      common: this._common,
+    });
+    this._data.addTransaction(transaction);
+    return transaction;
   }
 }

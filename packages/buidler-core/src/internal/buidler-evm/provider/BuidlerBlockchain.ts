@@ -21,6 +21,18 @@ export class BuidlerBlockchain implements PBlockchain {
     return block;
   }
 
+  public async getBlock(
+    blockHashOrNumber: Buffer | BN | number
+  ): Promise<Block | undefined> {
+    if (typeof blockHashOrNumber === "number") {
+      return this._data.getBlockByNumber(new BN(blockHashOrNumber));
+    }
+    if (BN.isBN(blockHashOrNumber)) {
+      return this._data.getBlockByNumber(blockHashOrNumber);
+    }
+    return this._data.getBlockByHash(blockHashOrNumber);
+  }
+
   public async addBlock(block: Block): Promise<Block> {
     this._validateBlock(block);
     const totalDifficulty = this._computeTotalDifficulty(block);
@@ -35,18 +47,6 @@ export class BuidlerBlockchain implements PBlockchain {
       throw new Error("Block not found");
     }
     this._delBlock(block);
-  }
-
-  public async getBlock(
-    blockHashOrNumber: Buffer | BN | number
-  ): Promise<Block | undefined> {
-    if (typeof blockHashOrNumber === "number") {
-      return this._data.getBlockByNumber(new BN(blockHashOrNumber));
-    }
-    if (BN.isBN(blockHashOrNumber)) {
-      return this._data.getBlockByNumber(blockHashOrNumber);
-    }
-    return this._data.getBlockByHash(blockHashOrNumber);
   }
 
   public deleteLaterBlocks(block: Block): void {
