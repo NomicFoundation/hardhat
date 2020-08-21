@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { addHexPrefix, BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
 import { assertNodeBalances, assertQuantity } from "../helpers/assertions";
@@ -165,6 +165,37 @@ describe("Forked provider", () => {
         transaction.to,
         "0xdac17f958d2ee523a2206206994597c13d831ec7"
       );
+    });
+  });
+
+  describe(" eth_getTransactionReceipt", () => {
+    it("supports local transactions", async function () {
+      const transactionHash = await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          value: numberToRpcQuantity(1),
+          gas: numberToRpcQuantity(21000),
+          gasPrice: numberToRpcQuantity(1),
+        },
+      ]);
+
+      const receipt = await this.provider.send("eth_getTransactionReceipt", [
+        transactionHash,
+      ]);
+
+      assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+      assert.equal(receipt.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+      assert.equal(receipt.gasUsed, numberToRpcQuantity(21000));
+    });
+
+    it("supports remote transactions", async function () {
+      const receipt = await this.provider.send("eth_getTransactionReceipt", [
+        bufferToHex(FIRST_TX_HASH_OF_10496585),
+      ]);
+
+      assert.equal(receipt.from, "0x4e87582f5e48f3e505b7d3b544972399ad9f2e5f");
+      assert.equal(receipt.to, "0xdac17f958d2ee523a2206206994597c13d831ec7");
     });
   });
 });
