@@ -148,7 +148,7 @@ export class JsonRpcClient {
     fromBlock: BlockTag;
     toBlock: BlockTag;
     address?: Buffer | Buffer[];
-    topics?: Buffer[];
+    topics?: Array<Array<Buffer | null> | null>;
   }) {
     let address: string | string[] | undefined;
     if (options.address !== undefined) {
@@ -156,9 +156,13 @@ export class JsonRpcClient {
         ? options.address.map((x) => bufferToHex(x))
         : bufferToHex(options.address);
     }
-    let topics: string[] | undefined;
+    let topics: Array<Array<string | null> | null> | undefined;
     if (options.topics !== undefined) {
-      topics = options.topics.map((x) => bufferToHex(x));
+      topics = options.topics.map((items) =>
+        items !== null
+          ? items.map((x) => (x !== null ? bufferToHex(x) : x))
+          : null
+      );
     }
 
     return this._perform(

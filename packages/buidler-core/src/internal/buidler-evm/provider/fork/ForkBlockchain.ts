@@ -11,7 +11,12 @@ import {
 } from "../../jsonrpc/types";
 import { BlockchainData } from "../BlockchainData";
 import { FilterParams } from "../node-types";
-import { RpcLogOutput, RpcReceiptOutput, toRpcReceiptOutput } from "../output";
+import {
+  RpcLogOutput,
+  RpcReceiptOutput,
+  toRpcLogOutput,
+  toRpcReceiptOutput,
+} from "../output";
 import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
@@ -157,7 +162,27 @@ export class ForkBlockchain implements PBlockchain {
   }
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
-    // TODO: support remote blocks
+    if (filterParams.fromBlock.lte(this._forkBlockNumber)) {
+      let toBlock = filterParams.toBlock;
+      let localLogs: RpcLogOutput[] = [];
+      if (toBlock.gt(this._forkBlockNumber)) {
+        toBlock = this._forkBlockNumber;
+        localLogs = this._data.getLogs({
+          ...filterParams,
+          fromBlock: this._forkBlockNumber.addn(1),
+        });
+      }
+      const remoteLogs = await this._jsonRpcClient.getLogs({
+        fromBlock: filterParams.fromBlock,
+        toBlock,
+        address:
+          filterParams.addresses.length === 1
+            ? filterParams.addresses[0]
+            : filterParams.addresses,
+        topics: filterParams.normalizedTopics,
+      });
+      return remoteLogs.map((log) => toRpcLogOutput(log)).concat(localLogs);
+    }
     return this._data.getLogs(filterParams);
   }
 

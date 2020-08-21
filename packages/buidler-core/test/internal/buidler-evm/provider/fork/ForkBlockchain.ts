@@ -570,6 +570,47 @@ describe("ForkBlockchain", () => {
       assert.deepEqual(logs, [log1, log2, log3]);
     });
 
-    it.skip("supports remote blocks");
+    it("supports remote blocks", async () => {
+      const logs = await fb.getLogs({
+        fromBlock: BLOCK_NUMBER_OF_10496585,
+        toBlock: BLOCK_NUMBER_OF_10496585,
+        addresses: [toBuffer("0x5acc84a3e955bdd76467d3348077d003f00ffb97")],
+        normalizedTopics: [],
+      });
+      assert.equal(logs.length, 19);
+    });
+
+    it("can fetch both remote and local logs simultaneously", async () => {
+      const fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
+
+      const block1 = createBlock(await fb.getLatestBlock());
+      const number = new BN(block1.header.number);
+      const log1 = createTestLog(number);
+      const log2 = createTestLog(number);
+      const tx1 = createTestTransaction();
+      const receipt1 = createTestReceipt(tx1, [log1, log2]);
+      const tx2 = createTestTransaction();
+      const log3 = createTestLog(number);
+      const receipt2 = createTestReceipt(tx2, [log3]);
+      block1.transactions.push(tx1, tx2);
+
+      const block2 = createBlock(block1);
+      const tx3 = createTestTransaction();
+      const log4 = createTestLog(number.addn(1));
+      const receipt3 = createTestReceipt(tx3, [log4]);
+      block2.transactions.push(tx3);
+
+      await fb.addBlock(block1);
+      await fb.addBlock(block2);
+      fb.addTransactionReceipts([receipt1, receipt2, receipt3]);
+
+      const logs = await fb.getLogs({
+        fromBlock: BLOCK_NUMBER_OF_10496585,
+        toBlock: BLOCK_NUMBER_OF_10496585.addn(1),
+        addresses: [],
+        normalizedTopics: [],
+      });
+      assert.equal(logs.length, 208);
+    });
   });
 });

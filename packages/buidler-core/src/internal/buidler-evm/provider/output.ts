@@ -232,7 +232,7 @@ export function toRpcReceiptOutput(
   };
 }
 
-export function toRpcLogOutput(log: RpcLog, index: number): RpcLogOutput {
+export function toRpcLogOutput(log: RpcLog, index?: number): RpcLogOutput {
   return {
     removed: false,
     address: bufferToRpcData(log.address),
@@ -240,7 +240,7 @@ export function toRpcLogOutput(log: RpcLog, index: number): RpcLogOutput {
     blockNumber:
       log.blockNumber !== null ? numberToRpcQuantity(log.blockNumber) : null,
     data: bufferToRpcData(log.data),
-    logIndex: numberToRpcQuantity(index),
+    logIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     transactionIndex:
       log.transactionIndex !== null
         ? numberToRpcQuantity(log.transactionIndex)
