@@ -581,7 +581,7 @@ describe("ForkBlockchain", () => {
     });
 
     it("can fetch both remote and local logs simultaneously", async () => {
-      const fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
 
       const block1 = createBlock(await fb.getLatestBlock());
       const number = new BN(block1.header.number);

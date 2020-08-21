@@ -4,6 +4,7 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
 import { assertNodeBalances, assertQuantity } from "../helpers/assertions";
 import {
+  BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
@@ -168,7 +169,7 @@ describe("Forked provider", () => {
     });
   });
 
-  describe(" eth_getTransactionReceipt", () => {
+  describe("eth_getTransactionReceipt", () => {
     it("supports local transactions", async function () {
       const transactionHash = await this.provider.send("eth_sendTransaction", [
         {
@@ -196,6 +197,19 @@ describe("Forked provider", () => {
 
       assert.equal(receipt.from, "0x4e87582f5e48f3e505b7d3b544972399ad9f2e5f");
       assert.equal(receipt.to, "0xdac17f958d2ee523a2206206994597c13d831ec7");
+    });
+  });
+
+  describe("eth_getLogs", () => {
+    it("supports getting remote logs", async function () {
+      const logs = await this.provider.send("eth_getLogs", [
+        {
+          fromBlock: numberToRpcQuantity(BLOCK_NUMBER_OF_10496585),
+          toBlock: numberToRpcQuantity(BLOCK_NUMBER_OF_10496585),
+        },
+      ]);
+
+      assert.equal(logs.length, 205);
     });
   });
 });
