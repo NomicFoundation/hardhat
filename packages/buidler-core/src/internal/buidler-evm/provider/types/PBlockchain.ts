@@ -2,7 +2,8 @@ import { Transaction } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
-import { RpcReceiptOutput } from "../output";
+import { FilterParams } from "../node-types";
+import { RpcLogOutput, RpcReceiptOutput } from "../output";
 
 import { Block } from "./Block";
 import { Blockchain } from "./Blockchain";
@@ -23,6 +24,7 @@ export interface PBlockchain {
     transactionHash: Buffer
   ): Promise<RpcReceiptOutput | undefined>;
   addTransactionReceipts(receipts: RpcReceiptOutput[]): void;
+  getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]>;
 }
 
 export function toBlockchain(pb: PBlockchain): Blockchain {

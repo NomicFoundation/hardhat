@@ -49,5 +49,4 @@ export interface Snapshot {
   stateRoot: Buffer;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
-  blockHashToTxReceipts: Map<string, RpcReceiptOutput[]>;
 }

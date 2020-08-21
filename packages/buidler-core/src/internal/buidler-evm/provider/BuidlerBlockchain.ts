@@ -2,7 +2,8 @@ import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToInt, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
-import { RpcReceiptOutput } from "./output";
+import { FilterParams } from "./node-types";
+import { RpcLogOutput, RpcReceiptOutput } from "./output";
 import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
 import { PBlockchain, toBlockchain } from "./types/PBlockchain";
@@ -91,6 +92,10 @@ export class BuidlerBlockchain implements PBlockchain {
     for (const receipt of receipts) {
       this._data.addTransactionReceipt(receipt);
     }
+  }
+
+  public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
+    return this._data.getLogs(filterParams);
   }
 
   public asBlockchain(): Blockchain {

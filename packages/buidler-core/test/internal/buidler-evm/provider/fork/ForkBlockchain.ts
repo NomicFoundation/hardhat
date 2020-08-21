@@ -1,16 +1,17 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
-import { BufferLike, Transaction } from "ethereumjs-tx";
+import { BufferLike } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
 
-import { RpcReceiptOutput } from "../../../../../internal/buidler-evm/provider/output";
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
-import {
-  randomAddressBuffer,
-  randomHashBuffer,
-} from "../../../../../src/internal/buidler-evm/provider/fork/random";
+import { randomHashBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 import { Block } from "../../../../../src/internal/buidler-evm/provider/types/Block";
+import {
+  createTestLog,
+  createTestReceipt,
+  createTestTransaction,
+} from "../../helpers/blockchain";
 import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
@@ -37,18 +38,6 @@ describe("ForkBlockchain", () => {
       },
       { common }
     );
-  }
-
-  function createRandomTransaction() {
-    return new Transaction({ to: randomAddressBuffer() });
-  }
-
-  function createReceipt(transaction: Transaction): RpcReceiptOutput {
-    const receipt: any = {
-      transactionHash: bufferToHex(transaction.hash()),
-      // we ignore other properties for test purposes
-    };
-    return receipt;
   }
 
   before(async () => {
@@ -395,13 +384,13 @@ describe("ForkBlockchain", () => {
 
   describe("getTransaction", () => {
     it("returns undefined for unknown transactions", async () => {
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       assert.equal(await fb.getTransaction(transaction.hash()), undefined);
     });
 
     it("returns a known transaction", async () => {
       const block = createBlock(await fb.getLatestBlock());
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await fb.addBlock(block);
 
@@ -424,7 +413,7 @@ describe("ForkBlockchain", () => {
 
     it("forgets transactions after block is removed", async () => {
       const block = createBlock(await fb.getLatestBlock());
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await fb.addBlock(block);
       fb.deleteBlock(block.hash());
@@ -435,7 +424,7 @@ describe("ForkBlockchain", () => {
 
   describe("getBlockByTransactionHash", () => {
     it("returns undefined for unknown transactions", async () => {
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       assert.equal(
         await fb.getBlockByTransactionHash(transaction.hash()),
         undefined
@@ -444,7 +433,7 @@ describe("ForkBlockchain", () => {
 
     it("returns block for a known transaction", async () => {
       const block = createBlock(await fb.getLatestBlock());
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await fb.addBlock(block);
 
@@ -470,7 +459,7 @@ describe("ForkBlockchain", () => {
 
     it("forgets transactions after block is removed", async () => {
       const block = createBlock(await fb.getLatestBlock());
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await fb.addBlock(block);
       fb.deleteBlock(block.hash());
@@ -484,7 +473,7 @@ describe("ForkBlockchain", () => {
 
   describe("getTransactionReceipt", () => {
     it("returns undefined for unknown transactions", async () => {
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       assert.equal(
         await fb.getTransactionReceipt(transaction.hash()),
         undefined
@@ -493,7 +482,7 @@ describe("ForkBlockchain", () => {
 
     it("returns undefined for a known transaction without receipt", async () => {
       const block = createBlock(await fb.getLatestBlock());
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await fb.addBlock(block);
 
@@ -505,8 +494,8 @@ describe("ForkBlockchain", () => {
 
     it("returns the receipt when it was provided earlier", async () => {
       const block = createBlock(await fb.getLatestBlock());
-      const transaction = createRandomTransaction();
-      const receipt = createReceipt(transaction);
+      const transaction = createTestTransaction();
+      const receipt = createTestReceipt(transaction);
       block.transactions.push(transaction);
 
       await fb.addBlock(block);
@@ -534,8 +523,8 @@ describe("ForkBlockchain", () => {
 
     it("forgets receipts after block is removed", async () => {
       const block = createBlock(await fb.getLatestBlock());
-      const transaction = createRandomTransaction();
-      const receipt = createReceipt(transaction);
+      const transaction = createTestTransaction();
+      const receipt = createTestReceipt(transaction);
       block.transactions.push(transaction);
 
       await fb.addBlock(block);
@@ -547,5 +536,40 @@ describe("ForkBlockchain", () => {
         undefined
       );
     });
+  });
+
+  describe("getLogs", () => {
+    it("works like BlockchainData.getLogs for new blocks", async () => {
+      const block1 = createBlock(await fb.getLatestBlock());
+      const number = new BN(block1.header.number);
+      const log1 = createTestLog(number);
+      const log2 = createTestLog(number);
+      const tx1 = createTestTransaction();
+      const receipt1 = createTestReceipt(tx1, [log1, log2]);
+      const tx2 = createTestTransaction();
+      const log3 = createTestLog(number);
+      const receipt2 = createTestReceipt(tx2, [log3]);
+      block1.transactions.push(tx1, tx2);
+
+      const block2 = createBlock(block1);
+      const tx3 = createTestTransaction();
+      const log4 = createTestLog(number.addn(1));
+      const receipt3 = createTestReceipt(tx3, [log4]);
+      block2.transactions.push(tx3);
+
+      await fb.addBlock(block1);
+      await fb.addBlock(block2);
+      fb.addTransactionReceipts([receipt1, receipt2, receipt3]);
+
+      const logs = await fb.getLogs({
+        fromBlock: number,
+        toBlock: number,
+        addresses: [],
+        normalizedTopics: [],
+      });
+      assert.deepEqual(logs, [log1, log2, log3]);
+    });
+
+    it.skip("supports remote blocks");
   });
 });

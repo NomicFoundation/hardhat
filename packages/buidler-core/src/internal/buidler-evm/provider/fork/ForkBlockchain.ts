@@ -1,6 +1,7 @@
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToInt } from "ethereumjs-util";
+import { filter } from "lodash";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 import {
@@ -9,7 +10,8 @@ import {
   RpcTransactionReceipt,
 } from "../../jsonrpc/types";
 import { BlockchainData } from "../BlockchainData";
-import { RpcReceiptOutput, toRpcReceiptOutput } from "../output";
+import { FilterParams } from "../node-types";
+import { RpcLogOutput, RpcReceiptOutput, toRpcReceiptOutput } from "../output";
 import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
@@ -152,6 +154,11 @@ export class ForkBlockchain implements PBlockchain {
     for (const receipt of receipts) {
       this._data.addTransactionReceipt(receipt);
     }
+  }
+
+  public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
+    // TODO: support remote blocks
+    return this._data.getLogs(filterParams);
   }
 
   public asBlockchain(): Blockchain {

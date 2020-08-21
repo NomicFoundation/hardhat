@@ -1,15 +1,16 @@
 import { assert } from "chai";
-import { BufferLike, Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, zeros } from "ethereumjs-util";
+import { BufferLike } from "ethereumjs-tx";
+import { BN, zeros } from "ethereumjs-util";
 
-import { RpcReceiptOutput } from "../../../../internal/buidler-evm/provider/output";
 import { BuidlerBlockchain } from "../../../../src/internal/buidler-evm/provider/BuidlerBlockchain";
-import {
-  randomAddressBuffer,
-  randomHashBuffer,
-} from "../../../../src/internal/buidler-evm/provider/fork/random";
+import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
 import { Block } from "../../../../src/internal/buidler-evm/provider/types/Block";
 import { PBlockchain } from "../../../../src/internal/buidler-evm/provider/types/PBlockchain";
+import {
+  createTestLog,
+  createTestReceipt,
+  createTestTransaction,
+} from "../helpers/blockchain";
 
 describe("BuidlerBlockchain", () => {
   let blockchain: PBlockchain;
@@ -20,18 +21,6 @@ describe("BuidlerBlockchain", () => {
     const newBlock = new Block({ header: { number, difficulty, parentHash } });
     blocks.push(newBlock);
     return newBlock;
-  }
-
-  function createRandomTransaction() {
-    return new Transaction({ to: randomAddressBuffer() });
-  }
-
-  function createReceipt(transaction: Transaction): RpcReceiptOutput {
-    const receipt: any = {
-      transactionHash: bufferToHex(transaction.hash()),
-      // we ignore other properties for test purposes
-    };
-    return receipt;
   }
 
   beforeEach(() => {
@@ -285,7 +274,7 @@ describe("BuidlerBlockchain", () => {
 
   describe("getTransaction", () => {
     it("returns undefined unknown transactions", async () => {
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       assert.equal(
         await blockchain.getTransaction(transaction.hash()),
         undefined
@@ -296,7 +285,7 @@ describe("BuidlerBlockchain", () => {
       const genesis = createBlock(0, 1000);
       await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
 
@@ -308,7 +297,7 @@ describe("BuidlerBlockchain", () => {
       const genesis = createBlock(0, 1000);
       await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
       blockchain.deleteBlock(block.hash());
@@ -322,7 +311,7 @@ describe("BuidlerBlockchain", () => {
 
   describe("getBlockByTransactionHash", () => {
     it("returns undefined for unknown transactions", async () => {
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       assert.equal(
         await blockchain.getBlockByTransactionHash(transaction.hash()),
         undefined
@@ -333,7 +322,7 @@ describe("BuidlerBlockchain", () => {
       const genesis = createBlock(0, 1000);
       await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
 
@@ -347,7 +336,7 @@ describe("BuidlerBlockchain", () => {
       const genesis = createBlock(0, 1000);
       await blockchain.addBlock(genesis);
       const block = createBlock(1, 1000);
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
       blockchain.deleteBlock(block.hash());
@@ -361,7 +350,7 @@ describe("BuidlerBlockchain", () => {
 
   describe("getTransactionReceipt", () => {
     it("returns undefined for unknown transactions", async () => {
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       assert.equal(
         await blockchain.getTransactionReceipt(transaction.hash()),
         undefined
@@ -373,7 +362,7 @@ describe("BuidlerBlockchain", () => {
       await blockchain.addBlock(genesis);
 
       const block = createBlock(1, 1000);
-      const transaction = createRandomTransaction();
+      const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
 
@@ -388,8 +377,8 @@ describe("BuidlerBlockchain", () => {
       await blockchain.addBlock(genesis);
 
       const block = createBlock(1, 1000);
-      const transaction = createRandomTransaction();
-      const receipt = createReceipt(transaction);
+      const transaction = createTestTransaction();
+      const receipt = createTestReceipt(transaction);
       block.transactions.push(transaction);
 
       await blockchain.addBlock(block);
@@ -406,8 +395,8 @@ describe("BuidlerBlockchain", () => {
       await blockchain.addBlock(genesis);
 
       const block = createBlock(1, 1000);
-      const transaction = createRandomTransaction();
-      const receipt = createReceipt(transaction);
+      const transaction = createTestTransaction();
+      const receipt = createTestReceipt(transaction);
       block.transactions.push(transaction);
 
       await blockchain.addBlock(block);
@@ -418,6 +407,38 @@ describe("BuidlerBlockchain", () => {
         await blockchain.getTransactionReceipt(transaction.hash()),
         undefined
       );
+    });
+  });
+
+  describe("getLogs", () => {
+    it("works like BlockchainData.getLogs", async () => {
+      const block1 = createBlock(0);
+      const log1 = createTestLog(0);
+      const log2 = createTestLog(0);
+      const tx1 = createTestTransaction();
+      const receipt1 = createTestReceipt(tx1, [log1, log2]);
+      const tx2 = createTestTransaction();
+      const log3 = createTestLog(0);
+      const receipt2 = createTestReceipt(tx2, [log3]);
+      block1.transactions.push(tx1, tx2);
+
+      const block2 = createBlock(1);
+      const tx3 = createTestTransaction();
+      const log4 = createTestLog(1);
+      const receipt3 = createTestReceipt(tx3, [log4]);
+      block2.transactions.push(tx3);
+
+      await blockchain.addBlock(block1);
+      await blockchain.addBlock(block2);
+      blockchain.addTransactionReceipts([receipt1, receipt2, receipt3]);
+
+      const logs = await blockchain.getLogs({
+        fromBlock: new BN(0),
+        toBlock: new BN(0),
+        addresses: [],
+        normalizedTopics: [],
+      });
+      assert.deepEqual(logs, [log1, log2, log3]);
     });
   });
 });

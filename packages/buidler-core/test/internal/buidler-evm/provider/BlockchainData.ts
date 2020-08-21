@@ -1,11 +1,14 @@
 import { assert } from "chai";
-import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 
-import { RpcReceiptOutput } from "../../../../internal/buidler-evm/provider/output";
 import { Block } from "../../../../internal/buidler-evm/provider/types/Block";
 import { BlockchainData } from "../../../../src/internal/buidler-evm/provider/BlockchainData";
-import { randomAddressBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
+import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
+import {
+  createTestLog,
+  createTestReceipt,
+  createTestTransaction,
+} from "../helpers/blockchain";
 
 describe("BlockchainData", () => {
   let bd: BlockchainData;
@@ -15,18 +18,6 @@ describe("BlockchainData", () => {
     return newBlock;
   }
 
-  function createRandomTransaction() {
-    return new Transaction({ to: randomAddressBuffer() });
-  }
-
-  function createReceipt(transaction: Transaction): RpcReceiptOutput {
-    const receipt: any = {
-      transactionHash: bufferToHex(transaction.hash()),
-      // we ignore other properties for test purposes
-    };
-    return receipt;
-  }
-
   beforeEach(() => {
     bd = new BlockchainData();
   });
@@ -34,12 +25,12 @@ describe("BlockchainData", () => {
   describe("addBlock", () => {
     it("saves the block and allows for queries", () => {
       const block1 = createBlock(1234);
-      const tx1 = createRandomTransaction();
-      const tx2 = createRandomTransaction();
+      const tx1 = createTestTransaction();
+      const tx2 = createTestTransaction();
       block1.transactions.push(tx1, tx2);
 
       const block2 = createBlock(5678);
-      const tx3 = createRandomTransaction();
+      const tx3 = createTestTransaction();
       block2.transactions.push(tx3);
 
       bd.addBlock(block1, new BN(9000));
@@ -63,12 +54,12 @@ describe("BlockchainData", () => {
   describe("removeBlock", () => {
     it("removes the block and clears the associated queries", () => {
       const block1 = createBlock(1234);
-      const tx1 = createRandomTransaction();
-      const tx2 = createRandomTransaction();
+      const tx1 = createTestTransaction();
+      const tx2 = createTestTransaction();
       block1.transactions.push(tx1, tx2);
 
       const block2 = createBlock(5678);
-      const tx3 = createRandomTransaction();
+      const tx3 = createTestTransaction();
       block2.transactions.push(tx3);
 
       bd.addBlock(block1, new BN(9000));
@@ -92,8 +83,8 @@ describe("BlockchainData", () => {
 
     it("removes associated transaction receipts", () => {
       const block = createBlock(1234);
-      const tx = createRandomTransaction();
-      const receipt = createReceipt(tx);
+      const tx = createTestTransaction();
+      const receipt = createTestReceipt(tx);
       block.transactions.push(tx);
 
       bd.addBlock(block, new BN(1));
@@ -107,7 +98,7 @@ describe("BlockchainData", () => {
 
   describe("addTransaction", () => {
     it("can save a transaction", () => {
-      const tx = createRandomTransaction();
+      const tx = createTestTransaction();
       bd.addTransaction(tx);
       assert.equal(bd.getTransaction(tx.hash()), tx);
     });
@@ -115,10 +106,75 @@ describe("BlockchainData", () => {
 
   describe("addTransactionReceipt", () => {
     it("can save a transaction receipt", () => {
-      const tx = createRandomTransaction();
-      const receipt = createReceipt(tx);
+      const tx = createTestTransaction();
+      const receipt = createTestReceipt(tx);
       bd.addTransactionReceipt(receipt);
       assert.equal(bd.getTransactionReceipt(tx.hash()), receipt);
+    });
+  });
+
+  describe("getLogs", () => {
+    it("can retrieve logs for a block from receipts", () => {
+      const block1 = createBlock(100);
+      const log1 = createTestLog(100);
+      const log2 = createTestLog(100);
+      const tx1 = createTestTransaction();
+      const receipt1 = createTestReceipt(tx1, [log1, log2]);
+      const tx2 = createTestTransaction();
+      const log3 = createTestLog(100);
+      const receipt2 = createTestReceipt(tx2, [log3]);
+      block1.transactions.push(tx1, tx2);
+
+      const block2 = createBlock(101);
+      const tx3 = createTestTransaction();
+      const log4 = createTestLog(101);
+      const receipt3 = createTestReceipt(tx3, [log4]);
+      block2.transactions.push(tx3);
+
+      bd.addBlock(block1, new BN(5000));
+      bd.addBlock(block2, new BN(1000));
+      bd.addTransactionReceipt(receipt1);
+      bd.addTransactionReceipt(receipt2);
+      bd.addTransactionReceipt(receipt3);
+
+      const logs = bd.getLogs({
+        fromBlock: new BN(90),
+        toBlock: new BN(100),
+        addresses: [],
+        normalizedTopics: [],
+      });
+      assert.deepEqual(logs, [log1, log2, log3]);
+    });
+
+    it("returns [] for unknown blocks", () => {
+      assert.deepEqual(
+        bd.getLogs({
+          fromBlock: new BN(0),
+          toBlock: new BN(100),
+          addresses: [],
+          normalizedTopics: [],
+        }),
+        []
+      );
+    });
+
+    it("returns [] for blocks without receipts", () => {
+      const tx1 = createTestTransaction();
+      const tx2 = createTestTransaction();
+      const block = createBlock(1234);
+      block.transactions.push(tx1, tx2);
+
+      bd.addBlock(block, new BN(5000));
+
+      assert.deepEqual(
+        bd.getLogs({
+          fromBlock: new BN(0),
+          toBlock: new BN(10000),
+          addresses: [],
+          normalizedTopics: [],
+        }),
+        []
+      );
     });
   });
 });

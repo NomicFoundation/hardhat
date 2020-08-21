@@ -1,7 +1,10 @@
+import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
-import { RpcReceiptOutput } from "./output";
+import { bloomFilter, filterLogs } from "./filter";
+import { FilterParams } from "./node-types";
+import { RpcLogOutput, RpcReceiptOutput } from "./output";
 import { Block } from "./types/Block";
 
 export class BlockchainData {
@@ -34,6 +37,41 @@ export class BlockchainData {
 
   public getTotalDifficulty(blockHash: Buffer) {
     return this._totalDifficulty.get(bufferToHex(blockHash));
+  }
+
+  public getLogs(filterParams: FilterParams) {
+    const logs: RpcLogOutput[] = [];
+    for (
+      let i = filterParams.fromBlock;
+      i.lte(filterParams.toBlock);
+      i = i.addn(1)
+    ) {
+      const block = this.getBlockByNumber(i);
+      if (
+        block === undefined ||
+        !bloomFilter(
+          new Bloom(block.header.bloom),
+          filterParams.addresses,
+          filterParams.normalizedTopics
+        )
+      ) {
+        continue;
+      }
+      for (const transaction of block.transactions) {
+        const receipt = this.getTransactionReceipt(transaction.hash());
+        if (receipt !== undefined) {
+          logs.push(
+            ...filterLogs(receipt.logs, {
+              fromBlock: filterParams.fromBlock,
+              toBlock: filterParams.toBlock,
+              addresses: filterParams.addresses,
+              normalizedTopics: filterParams.normalizedTopics,
+            })
+          );
+        }
+      }
+    }
+    return logs;
   }
 
   public addBlock(block: Block, totalDifficulty: BN) {

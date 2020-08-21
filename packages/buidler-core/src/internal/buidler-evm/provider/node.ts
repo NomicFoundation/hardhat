@@ -160,7 +160,6 @@ export class BuidlerNode extends EventEmitter {
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
-  private _blockHashToReceipts: Map<string, RpcReceiptOutput[]> = new Map();
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -656,7 +655,6 @@ export class BuidlerNode extends EventEmitter {
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
       nextBlockTimestamp: new BN(this._nextBlockTimestamp),
-      blockHashToTxReceipts: new Map(this._blockHashToReceipts.entries()),
     };
 
     this._snapshots.push(snapshot);
@@ -691,7 +689,6 @@ export class BuidlerNode extends EventEmitter {
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
     this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
-    this._blockHashToReceipts = snapshot.blockHashToTxReceipts;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -822,45 +819,7 @@ export class BuidlerNode extends EventEmitter {
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     filterParams = await this._computeFilterParams(filterParams, false);
-
-    const logs: RpcLogOutput[] = [];
-    for (
-      let i = filterParams.fromBlock;
-      i.lte(filterParams.toBlock);
-      i = i.addn(1)
-    ) {
-      const block = await this.getBlockByNumber(new BN(i));
-      if (block === undefined) {
-        continue;
-      }
-      const receipts = this._blockHashToReceipts.get(bufferToHex(block.hash()));
-      if (receipts === undefined) {
-        continue;
-      }
-
-      if (
-        !bloomFilter(
-          new Bloom(block.header.bloom),
-          filterParams.addresses,
-          filterParams.normalizedTopics
-        )
-      ) {
-        continue;
-      }
-
-      for (const receipt of receipts) {
-        logs.push(
-          ...filterLogs(receipt.logs, {
-            fromBlock: filterParams.fromBlock,
-            toBlock: filterParams.toBlock,
-            addresses: filterParams.addresses,
-            normalizedTopics: filterParams.normalizedTopics,
-          })
-        );
-      }
-    }
-
-    return logs;
+    return this._blockchain.getLogs(filterParams);
   }
 
   public async addCompilationResult(
@@ -1115,12 +1074,10 @@ export class BuidlerNode extends EventEmitter {
     block: Block,
     runBlockResult: RunBlockResult
   ) {
-    await this._blockchain.addBlock(block);
     const receipts = getRpcReceipts(block, runBlockResult);
 
-    const blockHash = bufferToHex(block.hash());
+    await this._blockchain.addBlock(block);
     this._blockchain.addTransactionReceipts(receipts);
-    this._blockHashToReceipts.set(blockHash, receipts);
 
     const td = await this.getBlockTotalDifficulty(block);
     const rpcLogs: RpcLogOutput[] = [];
