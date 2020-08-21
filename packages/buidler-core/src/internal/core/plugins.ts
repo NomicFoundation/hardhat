@@ -32,20 +32,46 @@ export function usePlugin(
 ) {
   log("Loading plugin %s", pluginName);
 
-  // We have a special case for `ExecutionMode.EXECUTION_MODE_LINKED`
-  //
-  // If Buidler is linked, a require without `from` would be executed in the
-  // context of Buidler, and not find any plugin (linked or not). We workaround
-  // this by using the CWD here.
-  //
-  // This is not ideal, but the only reason to link Buidler is testing.
-  if (
-    from === undefined &&
-    getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED
-  ) {
-    from = process.cwd();
+  const executionMode = getExecutionMode();
 
-    log("Buidler is linked, searching for plugin starting from CWD", from);
+  if (from === undefined) {
+    // We have two different ways to search for plugins.
+    //
+    // If Buidler is installed globally, we want to force the plugins to also be
+    // installed globally, otherwise we can end up in a very chaotic situation.
+    // The way we enforce this is by setting `from` to something inside Buidler
+    // itself, as it will be placed in the global node_modules.
+    //
+    // If Buidler is not installed globally, we want the plugins to be
+    // accessible from the project's root, not from the Buidler installation.
+    // The reason for this is that yarn workspaces can easily hoist Buidler and
+    // not the plugins, leaving you with something like this:
+    //
+    //    root/
+    //      node_modules/
+    //        buidler
+    //      subpackage1/
+    //        node_modules/
+    //          plugin@v1/
+    //        buidler.config.js
+    //      subpackage2/
+    //        node_modules/
+    //          plugin@v2/
+    //        buidler.config.js
+    //
+    // If we were to load the plugins from the Buidler installation in this
+    // situation, they wouldn't be found. Instead, we should load them from the
+    // project's root.
+    //
+    // To make things slightly more complicated, we don't really know the
+    // project's root, as we are still loading the config. What we do know
+    // though, is the config file's path, which must be inside the project, so
+    // we use that instead.
+    if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
+      from = __dirname;
+    } else {
+      from = buidlerContext.getConfigPath();
+    }
   }
 
   let globalFlag = "";
