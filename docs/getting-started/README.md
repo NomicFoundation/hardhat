@@ -8,8 +8,6 @@ The bulk of Buidler's functionality comes from plugins, which as a developer you
 
 Buidler comes built-in with Buidler EVM, a local Ethereum network designed for development.
 
-Overall the tool is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overridden.
-
 ## Installation
 
 The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
