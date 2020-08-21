@@ -2,6 +2,8 @@ import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
+import { RpcLog, RpcTransactionReceipt } from "../jsonrpc/types";
+
 import { Block } from "./types/Block";
 
 export interface RpcBlockOutput {
@@ -185,7 +187,7 @@ export function getRpcReceipts(
     cumulativeGasUsed = cumulativeGasUsed.add(new BN(receipt.gasUsed));
 
     const logs = receipt.logs.map((log, logIndex) =>
-      getRpcLog(log, tx, block, i, logIndex)
+      getRpcLogOutput(log, tx, block, i, logIndex)
     );
 
     receipts.push({
@@ -208,7 +210,50 @@ export function getRpcReceipts(
   return receipts;
 }
 
-export function getRpcLog(
+export function toRpcReceiptOutput(
+  receipt: RpcTransactionReceipt
+): RpcReceiptOutput {
+  return {
+    blockHash: bufferToRpcData(receipt.blockHash),
+    blockNumber: numberToRpcQuantity(receipt.blockNumber),
+    contractAddress:
+      receipt.contractAddress !== null
+        ? bufferToRpcData(receipt.contractAddress)
+        : null,
+    cumulativeGasUsed: numberToRpcQuantity(receipt.cumulativeGasUsed),
+    from: bufferToRpcData(receipt.from),
+    gasUsed: numberToRpcQuantity(receipt.gasUsed),
+    logs: receipt.logs.map(toRpcLogOutput),
+    logsBloom: bufferToRpcData(receipt.logsBloom),
+    status: numberToRpcQuantity(receipt.status),
+    to: receipt.to !== null ? bufferToRpcData(receipt.to) : null,
+    transactionHash: bufferToRpcData(receipt.transactionHash),
+    transactionIndex: numberToRpcQuantity(receipt.transactionIndex),
+  };
+}
+
+export function toRpcLogOutput(log: RpcLog, index: number): RpcLogOutput {
+  return {
+    removed: false,
+    address: bufferToRpcData(log.address),
+    blockHash: log.blockHash !== null ? bufferToRpcData(log.blockHash) : null,
+    blockNumber:
+      log.blockNumber !== null ? numberToRpcQuantity(log.blockNumber) : null,
+    data: bufferToRpcData(log.data),
+    logIndex: numberToRpcQuantity(index),
+    transactionIndex:
+      log.transactionIndex !== null
+        ? numberToRpcQuantity(log.transactionIndex)
+        : null,
+    transactionHash:
+      log.transactionHash !== null
+        ? bufferToRpcData(log.transactionHash)
+        : null,
+    topics: log.topics.map((topic) => bufferToRpcData(topic)),
+  };
+}
+
+function getRpcLogOutput(
   log: any[],
   tx: Transaction,
   block?: Block,

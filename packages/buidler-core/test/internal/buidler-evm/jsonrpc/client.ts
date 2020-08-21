@@ -254,4 +254,23 @@ describe("JsonRpcClient", () => {
       assert.equal(transaction, null);
     });
   });
+
+  describe("getTransactionReceipt", () => {
+    it("can fetch existing receipts", async () => {
+      const receipt = await client.getTransactionReceipt(
+        FIRST_TX_HASH_OF_10496585
+      );
+      assert.isTrue(receipt?.transactionHash.equals(FIRST_TX_HASH_OF_10496585));
+      assert.isTrue(receipt?.transactionIndex?.eqn(0));
+      assert.isTrue(receipt?.blockHash?.equals(BLOCK_HASH_OF_10496585));
+      assert.isTrue(receipt?.blockNumber?.eq(BLOCK_NUMBER_OF_10496585));
+    });
+
+    it("returns null for non-existent transactions", async () => {
+      const transaction = await client.getTransactionReceipt(
+        randomHashBuffer()
+      );
+      assert.equal(transaction, null);
+    });
+  });
 });

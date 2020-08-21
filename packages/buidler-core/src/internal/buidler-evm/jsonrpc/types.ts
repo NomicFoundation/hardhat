@@ -1,6 +1,7 @@
 import * as t from "io-ts";
 
 import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../provider/input";
+import { RpcReceiptOutput } from "../provider/output";
 
 export function decode<T>(value: unknown, codec: t.Type<T>) {
   return codec.decode(value).fold(() => {
@@ -74,4 +75,37 @@ export const rpcBlockWithTransactions = t.type(
     transactions: t.array(rpcTransaction, "RpcTransaction Array"),
   },
   "RpcBlockWithTransactions"
+);
+
+export type RpcLog = t.TypeOf<typeof rpcLog>;
+export const rpcLog = t.type(
+  {
+    transactionIndex: nullable(rpcQuantity),
+    transactionHash: nullable(rpcHash),
+    blockHash: nullable(rpcHash),
+    blockNumber: nullable(rpcQuantity),
+    address: rpcAddress,
+    data: rpcData,
+    topics: t.array(rpcData, "RpcData Array"),
+  },
+  "RpcLog"
+);
+
+export type RpcTransactionReceipt = t.TypeOf<typeof rpcTransactionReceipt>;
+export const rpcTransactionReceipt = t.type(
+  {
+    transactionHash: rpcHash,
+    transactionIndex: rpcQuantity,
+    blockHash: rpcHash,
+    blockNumber: rpcQuantity,
+    from: rpcAddress,
+    to: nullable(rpcAddress),
+    cumulativeGasUsed: rpcQuantity,
+    gasUsed: rpcQuantity,
+    contractAddress: nullable(rpcAddress),
+    logs: t.array(rpcLog, "RpcLog Array"),
+    logsBloom: rpcData,
+    status: rpcQuantity,
+  },
+  "RpcTransactionReceipt"
 );

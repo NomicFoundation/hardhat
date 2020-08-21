@@ -1,8 +1,9 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { BufferLike, Transaction } from "ethereumjs-tx";
-import { BN, toBuffer, zeros } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
 
+import { RpcReceiptOutput } from "../../../../../internal/buidler-evm/provider/output";
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
 import {
@@ -40,6 +41,14 @@ describe("ForkBlockchain", () => {
 
   function createRandomTransaction() {
     return new Transaction({ to: randomAddressBuffer() });
+  }
+
+  function createReceipt(transaction: Transaction): RpcReceiptOutput {
+    const receipt: any = {
+      transactionHash: bufferToHex(transaction.hash()),
+      // we ignore other properties for test purposes
+    };
+    return receipt;
   }
 
   before(async () => {
@@ -468,6 +477,73 @@ describe("ForkBlockchain", () => {
 
       assert.equal(
         await fb.getBlockByTransactionHash(transaction.hash()),
+        undefined
+      );
+    });
+  });
+
+  describe("getTransactionReceipt", () => {
+    it("returns undefined for unknown transactions", async () => {
+      const transaction = createRandomTransaction();
+      assert.equal(
+        await fb.getTransactionReceipt(transaction.hash()),
+        undefined
+      );
+    });
+
+    it("returns undefined for a known transaction without receipt", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await fb.addBlock(block);
+
+      assert.equal(
+        await fb.getTransactionReceipt(transaction.hash()),
+        undefined
+      );
+    });
+
+    it("returns the receipt when it was provided earlier", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createRandomTransaction();
+      const receipt = createReceipt(transaction);
+      block.transactions.push(transaction);
+
+      await fb.addBlock(block);
+      fb.addTransactionReceipts([receipt]);
+
+      assert.equal(await fb.getTransactionReceipt(transaction.hash()), receipt);
+    });
+
+    it("returns remote receipts", async () => {
+      const receipt = await fb.getTransactionReceipt(FIRST_TX_HASH_OF_10496585);
+      assert.equal(
+        receipt?.transactionHash,
+        bufferToHex(FIRST_TX_HASH_OF_10496585)
+      );
+    });
+
+    it("returns undefined for newer remote receipts", async () => {
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585.subn(1), common);
+
+      assert.equal(
+        await fb.getTransactionReceipt(FIRST_TX_HASH_OF_10496585),
+        undefined
+      );
+    });
+
+    it("forgets receipts after block is removed", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createRandomTransaction();
+      const receipt = createReceipt(transaction);
+      block.transactions.push(transaction);
+
+      await fb.addBlock(block);
+      fb.addTransactionReceipts([receipt]);
+      fb.deleteBlock(block.hash());
+
+      assert.equal(
+        await fb.getTransactionReceipt(transaction.hash()),
         undefined
       );
     });

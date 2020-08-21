@@ -3,8 +3,13 @@ import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToInt } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
-import { RpcBlockWithTransactions, RpcTransaction } from "../../jsonrpc/types";
+import {
+  RpcBlockWithTransactions,
+  RpcTransaction,
+  RpcTransactionReceipt,
+} from "../../jsonrpc/types";
 import { BlockchainData } from "../BlockchainData";
+import { RpcReceiptOutput, toRpcReceiptOutput } from "../output";
 import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
@@ -119,13 +124,34 @@ export class ForkBlockchain implements PBlockchain {
       const remote = await this._jsonRpcClient.getTransactionByHash(
         transactionHash
       );
-      await this._processRemoteTransaction(remote);
+      this._processRemoteTransaction(remote);
       if (remote !== null && remote.blockHash !== null) {
         await this.getBlock(remote.blockHash);
         block = this._data.getBlockByTransactionHash(transactionHash);
       }
     }
     return block;
+  }
+
+  public async getTransactionReceipt(
+    transactionHash: Buffer
+  ): Promise<RpcReceiptOutput | undefined> {
+    const local = this._data.getTransactionReceipt(transactionHash);
+    if (local !== undefined) {
+      return local;
+    }
+    const remote = await this._jsonRpcClient.getTransactionReceipt(
+      transactionHash
+    );
+    if (remote !== null) {
+      return this._processRemoteReceipt(remote);
+    }
+  }
+
+  public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
+    for (const receipt of receipts) {
+      this._data.addTransactionReceipt(receipt);
+    }
   }
 
   public asBlockchain(): Blockchain {
@@ -207,9 +233,7 @@ export class ForkBlockchain implements PBlockchain {
     this._latestBlockNumber = new BN(blockNumber).subn(1);
   }
 
-  private async _processRemoteTransaction(
-    rpcTransaction: RpcTransaction | null
-  ) {
+  private _processRemoteTransaction(rpcTransaction: RpcTransaction | null) {
     if (
       rpcTransaction === null ||
       rpcTransaction.blockNumber === null ||
@@ -222,5 +246,16 @@ export class ForkBlockchain implements PBlockchain {
     });
     this._data.addTransaction(transaction);
     return transaction;
+  }
+
+  private _processRemoteReceipt(
+    txReceipt: RpcTransactionReceipt | null
+  ): RpcReceiptOutput | undefined {
+    if (txReceipt === null || txReceipt.blockNumber.gt(this._forkBlockNumber)) {
+      return undefined;
+    }
+    const receipt = toRpcReceiptOutput(txReceipt);
+    this._data.addTransactionReceipt(receipt);
+    return receipt;
   }
 }

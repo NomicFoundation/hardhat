@@ -2,6 +2,7 @@ import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToInt, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
+import { RpcReceiptOutput } from "./output";
 import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
 import { PBlockchain, toBlockchain } from "./types/PBlockchain";
@@ -80,6 +81,16 @@ export class BuidlerBlockchain implements PBlockchain {
     transactionHash: Buffer
   ): Promise<Block | undefined> {
     return this._data.getBlockByTransactionHash(transactionHash);
+  }
+
+  public async getTransactionReceipt(transactionHash: Buffer) {
+    return this._data.getTransactionReceipt(transactionHash);
+  }
+
+  public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
+    for (const receipt of receipts) {
+      this._data.addTransactionReceipt(receipt);
+    }
   }
 
   public asBlockchain(): Blockchain {

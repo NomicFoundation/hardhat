@@ -1,7 +1,8 @@
 import { assert } from "chai";
 import { BufferLike, Transaction } from "ethereumjs-tx";
-import { BN, zeros } from "ethereumjs-util";
+import { BN, bufferToHex, zeros } from "ethereumjs-util";
 
+import { RpcReceiptOutput } from "../../../../internal/buidler-evm/provider/output";
 import { BuidlerBlockchain } from "../../../../src/internal/buidler-evm/provider/BuidlerBlockchain";
 import {
   randomAddressBuffer,
@@ -23,6 +24,14 @@ describe("BuidlerBlockchain", () => {
 
   function createRandomTransaction() {
     return new Transaction({ to: randomAddressBuffer() });
+  }
+
+  function createReceipt(transaction: Transaction): RpcReceiptOutput {
+    const receipt: any = {
+      transactionHash: bufferToHex(transaction.hash()),
+      // we ignore other properties for test purposes
+    };
+    return receipt;
   }
 
   beforeEach(() => {
@@ -345,6 +354,68 @@ describe("BuidlerBlockchain", () => {
 
       assert.equal(
         await blockchain.getBlockByTransactionHash(transaction.hash()),
+        undefined
+      );
+    });
+  });
+
+  describe("getTransactionReceipt", () => {
+    it("returns undefined for unknown transactions", async () => {
+      const transaction = createRandomTransaction();
+      assert.equal(
+        await blockchain.getTransactionReceipt(transaction.hash()),
+        undefined
+      );
+    });
+
+    it("returns undefined for a known transaction without receipt", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.addBlock(genesis);
+
+      const block = createBlock(1, 1000);
+      const transaction = createRandomTransaction();
+      block.transactions.push(transaction);
+      await blockchain.addBlock(block);
+
+      assert.equal(
+        await blockchain.getTransactionReceipt(transaction.hash()),
+        undefined
+      );
+    });
+
+    it("returns the receipt when it was provided earlier", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.addBlock(genesis);
+
+      const block = createBlock(1, 1000);
+      const transaction = createRandomTransaction();
+      const receipt = createReceipt(transaction);
+      block.transactions.push(transaction);
+
+      await blockchain.addBlock(block);
+      blockchain.addTransactionReceipts([receipt]);
+
+      assert.equal(
+        await blockchain.getTransactionReceipt(transaction.hash()),
+        receipt
+      );
+    });
+
+    it("forgets receipts after block is removed", async () => {
+      const genesis = createBlock(0, 1000);
+      await blockchain.addBlock(genesis);
+
+      const block = createBlock(1, 1000);
+      const transaction = createRandomTransaction();
+      const receipt = createReceipt(transaction);
+      block.transactions.push(transaction);
+
+      await blockchain.addBlock(block);
+      blockchain.addTransactionReceipts([receipt]);
+      blockchain.deleteBlock(block.hash());
+
+      assert.equal(
+        await blockchain.getTransactionReceipt(transaction.hash()),
         undefined
       );
     });

@@ -2,6 +2,8 @@ import { Transaction } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
+import { RpcReceiptOutput } from "../output";
+
 import { Block } from "./Block";
 import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
@@ -17,6 +19,10 @@ export interface PBlockchain {
   getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | undefined>;
+  getTransactionReceipt(
+    transactionHash: Buffer
+  ): Promise<RpcReceiptOutput | undefined>;
+  addTransactionReceipts(receipts: RpcReceiptOutput[]): void;
 }
 
 export function toBlockchain(pb: PBlockchain): Blockchain {
