@@ -1,7 +1,6 @@
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToInt } from "ethereumjs-util";
-import { filter } from "lodash";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 import {
