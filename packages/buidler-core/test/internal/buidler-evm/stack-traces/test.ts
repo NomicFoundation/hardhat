@@ -655,10 +655,14 @@ const solidity06Compilers: CompilerOptions[] = [
   //   solidityVersion: "0.6.10",
   //   compilerPath: "soljson-v0.6.10+commit.00c0fcaf.js",
   // },
+  // {
+  //   solidityVersion: "0.6.11",
+  //   compilerPath: "soljson-v0.6.11+commit.5ef660b1.js",
+  // },
   {
-    solidityVersion: "0.6.11",
-    compilerPath: "soljson-v0.6.11+commit.5ef660b1.js",
-  },
+    solidityVersion: "0.6.12",
+    compilerPath: "soljson-v0.6.12+commit.27d51765.js",
+  }
 ];
 
 describe("Stack traces", function () {
