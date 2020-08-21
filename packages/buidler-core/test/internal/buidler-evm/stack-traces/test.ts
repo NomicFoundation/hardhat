@@ -662,7 +662,14 @@ const solidity06Compilers: CompilerOptions[] = [
   {
     solidityVersion: "0.6.12",
     compilerPath: "soljson-v0.6.12+commit.27d51765.js",
-  }
+  },
+];
+
+const solidity07Compilers: CompilerOptions[] = [
+  {
+    solidityVersion: "0.7.0",
+    compilerPath: "soljson-v0.7.0+commit.9e61f92b.js",
+  },
 ];
 
 describe("Stack traces", function () {
@@ -691,6 +698,8 @@ describe("Stack traces", function () {
         ? "0_5"
         : semver.satisfies(customSolcVersion, "^0.6.0")
         ? "0_6"
+        : semver.satisfies(customSolcVersion, "^0.7.0")
+        ? "0_7"
         : null;
 
       if (testsDir === null) {
@@ -712,33 +721,26 @@ describe("Stack traces", function () {
     return;
   }
 
-  // solidity v0.5
-  for (const compilerOptions of solidity05Compilers) {
-    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
-      defineDirTests(
-        path.join(__dirname, "test-files", "0_5"),
-        compilerOptions
-      );
-
-      defineDirTests(
-        path.join(__dirname, "test-files", "version-independent"),
-        compilerOptions
-      );
-    });
-  }
-
-  // solidity v0.6
-  for (const compilerOptions of solidity06Compilers) {
-    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
-      defineDirTests(
-        path.join(__dirname, "test-files", "0_6"),
-        compilerOptions
-      );
-
-      defineDirTests(
-        path.join(__dirname, "test-files", "version-independent"),
-        compilerOptions
-      );
-    });
-  }
+  defineTestForSolidityMajorVersion(solidity05Compilers, "0_5");
+  defineTestForSolidityMajorVersion(solidity06Compilers, "0_6");
+  defineTestForSolidityMajorVersion(solidity07Compilers, "0_7");
 });
+
+function defineTestForSolidityMajorVersion(
+  solcVersionsCompilerOptions: CompilerOptions[],
+  testsPath: string
+) {
+  for (const compilerOptions of solcVersionsCompilerOptions) {
+    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
+      defineDirTests(
+        path.join(__dirname, "test-files", testsPath),
+        compilerOptions
+      );
+
+      defineDirTests(
+        path.join(__dirname, "test-files", "version-independent"),
+        compilerOptions
+      );
+    });
+  }
+}
