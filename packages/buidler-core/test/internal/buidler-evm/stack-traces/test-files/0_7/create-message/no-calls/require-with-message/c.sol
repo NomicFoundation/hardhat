@@ -1,0 +1,15 @@
+pragma solidity ^0.7.0;
+
+contract C {
+
+  constructor() public {
+
+
+
+
+
+
+    require(false, "req");
+  }
+
+}
