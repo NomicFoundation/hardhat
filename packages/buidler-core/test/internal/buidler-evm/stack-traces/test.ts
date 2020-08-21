@@ -621,6 +621,8 @@ const solidity06Compilers: CompilerOptions[] = [
   //   solidityVersion: "0.6.2",
   //   compilerPath: "soljson-v0.6.2+commit.bacdbe57.js",
   // },
+  // This version is enabled because it contains of a huge change in how
+  // sourcemaps work
   {
     solidityVersion: "0.6.3",
     compilerPath: "soljson-v0.6.3+commit.8dda9521.js",
