@@ -11,6 +11,7 @@ import {
   rpcBlock,
   rpcBlockWithTransactions,
   RpcBlockWithTransactions,
+  rpcLog,
   rpcTransaction,
   rpcTransactionReceipt,
 } from "./types";
@@ -143,12 +144,43 @@ export class JsonRpcClient {
     );
   }
 
+  public async getLogs(options: {
+    fromBlock: BlockTag;
+    toBlock: BlockTag;
+    address?: Buffer | Buffer[];
+    topics?: Buffer[];
+  }) {
+    let address: string | string[] | undefined;
+    if (options.address !== undefined) {
+      address = Array.isArray(options.address)
+        ? options.address.map((x) => bufferToHex(x))
+        : bufferToHex(options.address);
+    }
+    let topics: string[] | undefined;
+    if (options.topics !== undefined) {
+      topics = options.topics.map((x) => bufferToHex(x));
+    }
+
+    return this._perform(
+      "eth_getLogs",
+      [
+        {
+          fromBlock: blockTagToString(options.fromBlock),
+          toBlock: blockTagToString(options.toBlock),
+          address,
+          topics,
+        },
+      ],
+      t.array(rpcLog, "RpcLog Array")
+    );
+  }
+
   private async _perform<T>(
     method: string,
-    params: Array<string | number | boolean>,
+    params: any[],
     tType: t.Type<T, T>
   ): Promise<T> {
-    const key = `${method} ${params.join(" ")}`;
+    const key = `${method} ${JSON.stringify(params)}`;
     if (this._cache.has(key)) {
       return this._cache.get(key);
     }

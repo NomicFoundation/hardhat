@@ -273,4 +273,15 @@ describe("JsonRpcClient", () => {
       assert.equal(transaction, null);
     });
   });
+
+  describe("getLogs", () => {
+    it("can fetch existing logs", async () => {
+      const logs = await client.getLogs({
+        fromBlock: BLOCK_NUMBER_OF_10496585,
+        toBlock: BLOCK_NUMBER_OF_10496585,
+        address: toBuffer("0x5acc84a3e955bdd76467d3348077d003f00ffb97"),
+      });
+      assert.equal(logs.length, 19);
+    });
+  });
 });
