@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
+import { TS_CONFIG_FILENAME } from "./project-structure";
 
 const NODE_MODULES_DIR = "node_modules";
 
@@ -16,7 +17,10 @@ function getBuidlerNodeModules() {
 let cachedIsTypescriptSupported: boolean | undefined;
 
 export function isTypescriptSupported() {
-  if (cachedIsTypescriptSupported === undefined) {
+  if (fs.existsSync(TS_CONFIG_FILENAME)) {
+    // assume that if buidler.config.ts exists, typescript is exepcted
+    cachedIsTypescriptSupported = true;
+  } else if (cachedIsTypescriptSupported === undefined) {
     const executionMode = getExecutionMode();
     if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
       cachedIsTypescriptSupported = false;
