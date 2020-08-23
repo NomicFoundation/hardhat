@@ -76,7 +76,7 @@ export function usePlugin(
 
   let globalFlag = "";
   let globalWarning = "";
-  if (getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
+  if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
     globalFlag = " --global";
     globalWarning =
       "You are using a global installation of Buidler. Plugins and their dependencies must also be global.\n";
