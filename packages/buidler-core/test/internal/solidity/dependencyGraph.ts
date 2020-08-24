@@ -13,6 +13,8 @@ import {
   useFixtureProject,
 } from "../../helpers/project";
 
+import { createMockData, MockFile } from "./helpers";
+
 function assertDeps(
   graph: DependencyGraph,
   file: ResolvedFile,
@@ -306,6 +308,245 @@ describe("Dependency Graph", function () {
         const graphsBDep = Array.from(graph.get(graphsB)!.values())[0];
         assert.deepEqual(graphsBDep, fileA);
       });
+    });
+  });
+
+  describe("getConnectedComponents", function () {
+    it("single file", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const [graph, , [Foo]] = await createMockData([{ file: FooMock }]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [Foo]);
+    });
+
+    it("two independent files", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const [graph, , [Foo, Bar]] = await createMockData([
+        { file: FooMock },
+        { file: BarMock },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 2);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [Foo]);
+      assert.sameMembers(connectedComponents[1].getResolvedFiles(), [Bar]);
+    });
+
+    it("one file imports another one", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const [graph, , [Foo, Bar]] = await createMockData([
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [Foo, Bar]);
+    });
+
+    it("one file imports a library", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
+      const [graph, , [Foo, Lib]] = await createMockData([
+        { file: FooMock, dependencies: [LibMock] },
+        { file: LibMock },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [Foo, Lib]);
+    });
+
+    it("two files loop", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const [graph, , [Foo, Bar]] = await createMockData([
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [FooMock] },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [Foo, Bar]);
+    });
+
+    it("three files sequential import", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
+      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [
+        Foo,
+        Bar,
+        Qux,
+      ]);
+    });
+
+    it("three files, Foo->Bar and Qux", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
+      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock },
+        { file: QuxMock },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 2);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [Foo, Bar]);
+      assert.sameMembers(connectedComponents[1].getResolvedFiles(), [Qux]);
+    });
+
+    it("three files loop", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
+      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+        { file: FooMock, dependencies: [BarMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock, dependencies: [FooMock] },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [
+        Foo,
+        Bar,
+        Qux,
+      ]);
+    });
+
+    it("three files, one imports the other two", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
+      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+        { file: FooMock, dependencies: [BarMock, QuxMock] },
+        { file: BarMock },
+        { file: QuxMock },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [
+        Foo,
+        Bar,
+        Qux,
+      ]);
+    });
+
+    it("three files, two files import the same one", async function () {
+      const FooMock = new MockFile("Foo", ["^0.5.0"]);
+      const BarMock = new MockFile("Bar", ["^0.5.0"]);
+      const QuxMock = new MockFile("Qux", ["^0.5.0"]);
+      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+        { file: FooMock, dependencies: [QuxMock] },
+        { file: BarMock, dependencies: [QuxMock] },
+        { file: QuxMock },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [
+        Foo,
+        Bar,
+        Qux,
+      ]);
+    });
+
+    it("four files, Foo1->Foo2 and Bar1<->Bar2", async function () {
+      const Foo1Mock = new MockFile("Foo1", ["^0.5.0"]);
+      const Foo2Mock = new MockFile("Foo2", ["^0.5.0"]);
+      const Bar1Mock = new MockFile("Bar1", ["^0.5.0"]);
+      const Bar2Mock = new MockFile("Bar2", ["^0.5.0"]);
+      const [graph, , [Foo1, Foo2, Bar1, Bar2]] = await createMockData([
+        { file: Foo1Mock, dependencies: [Foo2Mock] },
+        { file: Foo2Mock },
+        { file: Bar1Mock, dependencies: [Bar2Mock] },
+        { file: Bar2Mock, dependencies: [Bar1Mock] },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 2);
+      assert.sameMembers(connectedComponents[0].getResolvedFiles(), [
+        Foo1,
+        Foo2,
+      ]);
+      assert.sameMembers(connectedComponents[1].getResolvedFiles(), [
+        Bar1,
+        Bar2,
+      ]);
+    });
+
+    it("five files, three layers, 2-1-2", async function () {
+      const Layer1AMock = new MockFile("Layer1A", ["^0.5.0"]);
+      const Layer1BMock = new MockFile("Layer1B", ["^0.5.0"]);
+      const Layer2Mock = new MockFile("Layer2", ["^0.5.0"]);
+      const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
+      const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
+      const [graph, , resolvedFiles] = await createMockData([
+        { file: Layer1AMock, dependencies: [Layer2Mock] },
+        { file: Layer1BMock, dependencies: [Layer2Mock] },
+        { file: Layer2Mock, dependencies: [Layer3AMock, Layer3BMock] },
+        { file: Layer3AMock, dependencies: [] },
+        { file: Layer3BMock, dependencies: [] },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(
+        connectedComponents[0].getResolvedFiles(),
+        resolvedFiles
+      );
+    });
+
+    it("six files, three layers, 2-2-2", async function () {
+      const Layer1AMock = new MockFile("Layer1A", ["^0.5.0"]);
+      const Layer1BMock = new MockFile("Layer1B", ["^0.5.0"]);
+      const Layer2AMock = new MockFile("Layer2A", ["^0.5.0"]);
+      const Layer2BMock = new MockFile("Layer2B", ["^0.5.0"]);
+      const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
+      const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
+      const [graph, , resolvedFiles] = await createMockData([
+        { file: Layer1AMock, dependencies: [Layer2AMock, Layer2BMock] },
+        { file: Layer1BMock, dependencies: [Layer2AMock, Layer2BMock] },
+        { file: Layer2AMock, dependencies: [Layer3AMock, Layer3BMock] },
+        { file: Layer2BMock, dependencies: [Layer3AMock, Layer3BMock] },
+        { file: Layer3AMock, dependencies: [] },
+        { file: Layer3BMock, dependencies: [] },
+      ]);
+
+      const connectedComponents = graph.getConnectedComponents();
+
+      assert.lengthOf(connectedComponents, 1);
+      assert.sameMembers(
+        connectedComponents[0].getResolvedFiles(),
+        resolvedFiles
+      );
     });
   });
 });
