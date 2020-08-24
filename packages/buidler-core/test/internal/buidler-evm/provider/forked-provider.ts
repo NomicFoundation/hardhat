@@ -19,6 +19,7 @@ import { setCWD } from "../helpers/cwd";
 import { useForkedProvider } from "../helpers/useForkedProvider";
 
 const FORK_CONFIG = { jsonRpcUrl: INFURA_URL, blockNumberOrHash: undefined };
+const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", () => {
   useForkedProvider(FORK_CONFIG);
@@ -137,7 +138,6 @@ describe("Forked provider", () => {
     });
 
     it("supports wrapping of Ether", async function () {
-      const wethDepositSelector = "0xd0e30db0";
       const wethBalanceOfSelector = `0x70a08231${setLength(
         DEFAULT_ACCOUNTS_ADDRESSES[0],
         32
@@ -155,7 +155,7 @@ describe("Forked provider", () => {
         {
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: bufferToHex(WETH_ADDRESS),
-          data: wethDepositSelector,
+          data: WETH_DEPOSIT_SELECTOR,
           value: numberToRpcQuantity(100),
           gas: numberToRpcQuantity(50000),
           gasPrice: numberToRpcQuantity(1),
@@ -263,6 +263,31 @@ describe("Forked provider", () => {
       ]);
 
       assert.equal(logs.length, 205);
+    });
+  });
+
+  describe("evm_revert", () => {
+    it("reverts the state of the blockchain to a previous snapshot", async function () {
+      const getWethBalance = async () =>
+        this.provider.send("eth_getBalance", [bufferToHex(WETH_ADDRESS)]);
+
+      const initialBalance = await getWethBalance();
+      const snapshotId = await this.provider.send("evm_snapshot", []);
+      await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: bufferToHex(WETH_ADDRESS),
+          data: WETH_DEPOSIT_SELECTOR,
+          value: numberToRpcQuantity(100),
+          gas: numberToRpcQuantity(50000),
+          gasPrice: numberToRpcQuantity(1),
+        },
+      ]);
+      assert.notEqual(await getWethBalance(), initialBalance);
+
+      const reverted = await this.provider.send("evm_revert", [snapshotId]);
+      assert.isTrue(reverted);
+      assert.equal(await getWethBalance(), initialBalance);
     });
   });
 });
