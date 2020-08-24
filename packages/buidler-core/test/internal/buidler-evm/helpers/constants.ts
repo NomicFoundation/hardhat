@@ -13,6 +13,11 @@ export const EMPTY_ACCOUNT_ADDRESS = toBuffer(
   "0x1234567890abcdef1234567890abcdef12345678"
 );
 
+// top Ether holder as of 24.08.2020
+export const BITFINEX_WALLET_ADDRESS = toBuffer(
+  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+);
+
 export const DAI_TOTAL_SUPPLY_STORAGE_POSITION = toBuffer([1]);
 
 // 10496585 block number was chosen for no particular reason

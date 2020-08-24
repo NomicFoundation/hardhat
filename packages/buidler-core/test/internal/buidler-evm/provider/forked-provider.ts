@@ -1,9 +1,10 @@
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, setLength, toBuffer } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
 import { assertNodeBalances, assertQuantity } from "../helpers/assertions";
 import {
+  BITFINEX_WALLET_ADDRESS,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -13,7 +14,7 @@ import {
   INFURA_URL,
   WETH_ADDRESS,
 } from "../helpers/constants";
-import { quantityToBN } from "../helpers/conversions";
+import { dataToBN, quantityToBN } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { useForkedProvider } from "../helpers/useForkedProvider";
 
@@ -83,7 +84,7 @@ describe("Forked provider", () => {
   });
 
   describe("eth_sendTransaction", () => {
-    it("supports Ether transfers", async function () {
+    it("supports Ether transfers between local accounts", async function () {
       await this.provider.send("eth_sendTransaction", [
         {
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -113,6 +114,58 @@ describe("Forked provider", () => {
         DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
         DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
       ]);
+    });
+
+    it("supports Ether transfers to remote accounts", async function () {
+      const result = await this.provider.send("eth_getBalance", [
+        bufferToHex(BITFINEX_WALLET_ADDRESS),
+      ]);
+      const initialBalance = quantityToBN(result);
+      await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: bufferToHex(BITFINEX_WALLET_ADDRESS),
+          value: numberToRpcQuantity(100),
+          gas: numberToRpcQuantity(21000),
+          gasPrice: numberToRpcQuantity(1),
+        },
+      ]);
+      const balance = await this.provider.send("eth_getBalance", [
+        bufferToHex(BITFINEX_WALLET_ADDRESS),
+      ]);
+      assertQuantity(balance, initialBalance.addn(100));
+    });
+
+    it("supports wrapping of Ether", async function () {
+      const wethDepositSelector = "0xd0e30db0";
+      const wethBalanceOfSelector = `0x70a08231${setLength(
+        DEFAULT_ACCOUNTS_ADDRESSES[0],
+        32
+      ).toString("hex")}`;
+
+      const getWrappedBalance = async () =>
+        dataToBN(
+          await this.provider.send("eth_call", [
+            { to: bufferToHex(WETH_ADDRESS), data: wethBalanceOfSelector },
+          ])
+        );
+
+      const initialBalance = await getWrappedBalance();
+      await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: bufferToHex(WETH_ADDRESS),
+          data: wethDepositSelector,
+          value: numberToRpcQuantity(100),
+          gas: numberToRpcQuantity(50000),
+          gasPrice: numberToRpcQuantity(1),
+        },
+      ]);
+      const balance = await getWrappedBalance();
+      assert.equal(
+        balance.toString("hex"),
+        initialBalance.addn(100).toString("hex")
+      );
     });
 
     it("returns a valid transaction hash", async function () {

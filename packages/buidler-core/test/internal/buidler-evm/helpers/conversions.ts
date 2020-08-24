@@ -5,7 +5,10 @@
 import { BN } from "ethereumjs-util";
 
 import { decode } from "../../../../src/internal/buidler-evm/jsonrpc/types";
-import { rpcQuantity } from "../../../../src/internal/buidler-evm/provider/input";
+import {
+  rpcData,
+  rpcQuantity,
+} from "../../../../src/internal/buidler-evm/provider/input";
 
 export function quantityToNumber(quantity: string): number {
   return parseInt(quantity.substring(2), 16);
@@ -13,4 +16,9 @@ export function quantityToNumber(quantity: string): number {
 
 export function quantityToBN(quantity: string): BN {
   return decode(quantity, rpcQuantity);
+}
+
+export function dataToBN(data: string) {
+  const buffer = decode(data, rpcData);
+  return new BN(buffer);
 }
