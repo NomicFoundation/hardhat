@@ -38,6 +38,9 @@ export function loadConfigAndTasks(
     ([key, value]) => (globalAsAny[key] = value)
   );
 
+  const ctx = BuidlerContext.getBuidlerContext();
+  ctx.setConfigPath(configPath);
+
   loadPluginFile(path.join(__dirname, "..", "tasks", "builtin-tasks"));
 
   const defaultConfig = importCsjOrEsModule("./default-config");
