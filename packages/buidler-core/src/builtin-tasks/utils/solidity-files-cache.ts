@@ -7,9 +7,11 @@ import { ProjectPaths, SolcConfig } from "../../types";
 
 const SolidityFilesCacheEntry = t.type({
   lastModificationDate: t.number,
+  globalName: t.string,
   solcConfig: t.any,
   imports: t.array(t.string),
   versionPragmas: t.array(t.string),
+  artifacts: t.array(t.string),
 });
 
 const SolidityFilesCacheCodec = t.record(t.string, SolidityFilesCacheEntry);
@@ -18,9 +20,11 @@ export type SolidityFilesCache = Record<
   string,
   {
     lastModificationDate: number;
+    globalName: string;
     solcConfig: SolcConfig;
     imports: string[];
     versionPragmas: string[];
+    artifacts: string[];
   }
 >;
 
@@ -30,6 +34,9 @@ async function removeModifiedFiles(
   const cleanedCache: SolidityFilesCache = {};
 
   for (const [absolutePath, cachedData] of Object.entries(cache)) {
+    if (!fsExtra.existsSync(absolutePath)) {
+      continue;
+    }
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
 

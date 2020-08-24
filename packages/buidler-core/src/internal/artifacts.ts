@@ -53,21 +53,44 @@ export function getArtifactFromContractOutput(
   };
 }
 
-function getArtifactFromFiles(name: string, files: string[]): string {
+function getFullyQualifiedName(
+  artifactsPath: string,
+  absolutePath: string
+): string {
+  return path
+    .relative(artifactsPath, absolutePath)
+    .replace(".json", "")
+    .replace(":", ".sol:");
+}
+
+function getArtifactPathFromFiles(
+  artifactsPath: string,
+  name: string,
+  files: string[]
+): string {
   const matchingFiles = files.filter((file) => {
     const colonIndex = file.indexOf(":");
     if (colonIndex === -1) {
-      throw new Error("should never happen"); // throw proper error
+      // TODO throw a proper BuidlerError
+      // tslint:disable only-buidler-error
+      throw new Error("should never happen");
     }
     const contractName = file.slice(colonIndex + 1);
     return contractName === `${name}.json`;
   });
+
   if (matchingFiles.length === 0) {
     throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName: name });
   }
+
   if (matchingFiles.length > 1) {
+    const candidates = matchingFiles.map((file) =>
+      getFullyQualifiedName(artifactsPath, file)
+    );
+
     throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
       contractName: name,
+      candidates: candidates.join("\n"),
     });
   }
 
@@ -82,29 +105,43 @@ function getArtifactPathFromFullyQualifiedName(
   return path.join(artifactsPath, `${nameWithoutSol}.json`);
 }
 
+function isFullyQualified(name: string) {
+  return name.includes(":");
+}
+
 async function getArtifactPath(
   artifactsPath: string,
   name: string
 ): Promise<string> {
-  const isFullyQualified = name.includes(":");
-
-  if (isFullyQualified) {
+  if (isFullyQualified(name)) {
     return getArtifactPathFromFullyQualifiedName(artifactsPath, name);
   }
 
   const files = await glob(path.join(artifactsPath, "**/*.json"));
-  return getArtifactFromFiles(name, files);
+  return getArtifactPathFromFiles(artifactsPath, name, files);
 }
 
-function getArtifactPathSync(artifactsPath: string, name: string): string {
-  const isFullyQualified = name.includes(":");
+export function getArtifactPathSync(
+  artifactsPath: string,
+  globalName: string,
+  contractName?: string
+): string {
+  if (contractName === undefined) {
+    if (isFullyQualified(globalName)) {
+      return getArtifactPathFromFullyQualifiedName(artifactsPath, globalName);
+    }
 
-  if (isFullyQualified) {
-    return getArtifactPathFromFullyQualifiedName(artifactsPath, name);
+    const files = globSync(path.join(artifactsPath, "**/*.json"));
+    return getArtifactPathFromFiles(artifactsPath, globalName, files);
   }
 
-  const files = globSync(path.join(artifactsPath, "**/*.json"));
-  return getArtifactFromFiles(name, files);
+  const fullyQualifiedName = `${globalName}:${contractName}`;
+  const artifactPath = getArtifactPathFromFullyQualifiedName(
+    artifactsPath,
+    fullyQualifiedName
+  );
+
+  return artifactPath;
 }
 
 /**
@@ -145,7 +182,10 @@ export async function readArtifact(
   const artifactPath = await getArtifactPath(artifactsPath, name);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName: name });
+    throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+      contractName: name,
+      artifactPath,
+    });
   }
 
   return fsExtra.readJson(artifactPath);
@@ -164,7 +204,10 @@ export function readArtifactSync(
   const artifactPath = getArtifactPathSync(artifactsPath, name);
 
   if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName: name });
+    throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+      contractName: name,
+      artifactPath,
+    });
   }
 
   return fsExtra.readJsonSync(artifactPath);

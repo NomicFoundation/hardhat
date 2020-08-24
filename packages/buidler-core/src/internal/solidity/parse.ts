@@ -11,22 +11,6 @@ interface ParsedData {
 }
 
 export class Parser {
-  public static getParsedDataFromAst(ast: any): ParsedData {
-    const imports: string[] = [];
-    const versionPragmas: string[] = [];
-
-    traverse(ast).forEach((node) => {
-      if (isImport(node)) {
-        imports.push(node.file);
-      }
-      if (isVersionPragma(node)) {
-        versionPragmas.push(node.literals.slice(1).join(""));
-      }
-    });
-
-    return { imports, versionPragmas };
-  }
-
   private _cache = new Map<string, ParsedData>();
 
   constructor(private _solidityFilesCache: SolidityFilesCache) {}
@@ -118,14 +102,4 @@ function findVersionPragmasWithRegexps(fileContent: string): string[] {
       ...result.slice(1).filter((m: any) => m !== undefined),
     ];
   }
-}
-
-function isImport(node: any): boolean {
-  return node?.nodeType === "ImportDirective" && node?.file !== undefined;
-}
-
-function isVersionPragma(node: any): boolean {
-  return (
-    node?.nodeType === "PragmaDirective" && node?.literals?.[0] === "solidity"
-  );
 }

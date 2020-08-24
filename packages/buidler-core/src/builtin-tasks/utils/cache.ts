@@ -5,7 +5,6 @@ import path from "path";
 import {
   SOLC_INPUT_FILENAME,
   SOLC_OUTPUT_FILENAME,
-  SOLIDITY_FILES_CACHE_FILENAME,
 } from "../../internal/constants";
 import { glob } from "../../internal/util/glob";
 import { getPackageJson } from "../../internal/util/packageInfo";
@@ -107,25 +106,6 @@ async function getLastUsedConfigTimestamp(
   }
 
   return (await fsExtra.stat(pathToConfig)).ctimeMs;
-}
-
-export async function cacheBuidlerConfig(
-  paths: ProjectPaths,
-  config: SolcConfig
-) {
-  const pathToLastConfigUsed = getPathToCachedLastConfigPath(paths.cache);
-  const newJson = {
-    solc: config,
-    buidlerVersion: await getCurrentBuidlerVersion(),
-  };
-
-  await fsExtra.ensureDir(path.dirname(pathToLastConfigUsed));
-
-  return fsExtra.writeFile(
-    pathToLastConfigUsed,
-    JSON.stringify(newJson, undefined, 2),
-    "utf-8"
-  );
 }
 
 function compareSolcConfigs(

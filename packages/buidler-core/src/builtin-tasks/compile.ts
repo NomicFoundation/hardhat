@@ -5,6 +5,7 @@ import path from "path";
 
 import {
   getArtifactFromContractOutput,
+  getArtifactPathSync,
   saveArtifact,
 } from "../internal/artifacts";
 import {
@@ -14,24 +15,24 @@ import {
 import { task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
-import { createCompilationGroups } from "../internal/solidity/compilationGroup";
+import {
+  CompilationGroupsFailure,
+  createCompilationGroups,
+  isCompilationGroupsFailure,
+} from "../internal/solidity/compilationGroup";
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
-import { Resolver } from "../internal/solidity/resolver";
+import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import {
-  MultiSolcConfig,
-  ResolvedBuidlerConfig,
-  SolidityConfig,
-} from "../types";
+import { ResolvedBuidlerConfig } from "../types";
 
 import { TASK_COMPILE } from "./task-names";
-import { cacheBuidlerConfig } from "./utils/cache";
 import {
   readSolidityFilesCache,
+  SolidityFilesCache,
   writeSolidityFilesCache,
 } from "./utils/solidity-files-cache";
 
@@ -69,32 +70,11 @@ async function cacheSolcJsonFiles(
   );
 }
 
-function normalizeSolidityConfig(
-  solidityConfig: SolidityConfig
-): MultiSolcConfig {
-  if (typeof solidityConfig === "string") {
-    return {
-      compilers: [
-        {
-          version: solidityConfig,
-          optimizer: { enabled: false, runs: 200 },
-        },
-      ],
-    };
-  }
-
-  if ("version" in solidityConfig) {
-    return { compilers: [solidityConfig] };
-  }
-
-  return solidityConfig;
-}
-
 export default function () {
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
     .setAction(async ({ force: force }: { force: boolean }, { config }) => {
-      const solidityFilesCache = await readSolidityFilesCache(config.paths);
+      let solidityFilesCache = await readSolidityFilesCache(config.paths);
 
       const parser = new Parser(solidityFilesCache);
       const resolver = new Resolver(config.paths.root, parser);
@@ -102,30 +82,36 @@ export default function () {
       const resolvedFiles = await Promise.all(
         paths.map((p: string) => resolver.resolveProjectSourceFile(p))
       );
+
       const dependencyGraph = await DependencyGraph.createFromResolvedFiles(
         resolver,
         resolvedFiles
       );
 
-      const normalizedSolidityConfig = normalizeSolidityConfig(config.solidity);
+      solidityFilesCache = invalidateCacheMissingArtifacts(
+        solidityFilesCache,
+        config.paths.artifacts,
+        dependencyGraph.getResolvedFiles()
+      );
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
-        normalizedSolidityConfig,
+        config.solidity,
         solidityFilesCache,
         force
       );
 
-      if (compilationGroupsResult.isLeft()) {
-        const nonCompilableFiles = compilationGroupsResult.value
-          .map((x) => x.absolutePath)
-          .join(", ");
-        throw new Error(
-          `Some files didn't match any compiler: ${nonCompilableFiles}`
+      if (isCompilationGroupsFailure(compilationGroupsResult)) {
+        const errorMessage = buildCompilationGroupsFailureMessage(
+          compilationGroupsResult
         );
+
+        // TODO throw a BuidlerError and show a better error message
+        // tslint:disable only-buidler-error
+        throw new Error(errorMessage);
       }
 
-      const compilationGroups = compilationGroupsResult.value;
+      const compilationGroups = compilationGroupsResult.groups;
       const newSolidityFilesCache = cloneDeep(solidityFilesCache);
 
       for (const compilationGroup of compilationGroups) {
@@ -182,8 +168,6 @@ export default function () {
 
         await cacheSolcJsonFiles(config, input, output);
 
-        await cacheBuidlerConfig(config.paths, compilationGroup.solidityConfig);
-
         if (output === undefined) {
           return;
         }
@@ -195,6 +179,7 @@ export default function () {
             continue;
           }
 
+          const emittedArtifacts = [];
           for (const [contractName, contractOutput] of Object.entries(
             output.contracts[file.globalName]
           )) {
@@ -209,16 +194,17 @@ export default function () {
               file.globalName,
               artifact
             );
-          }
 
-          const ast = output?.sources?.[file.globalName] ?? {};
-          const { imports, versionPragmas } = Parser.getParsedDataFromAst(ast);
+            emittedArtifacts.push(artifact.contractName);
+          }
 
           newSolidityFilesCache[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
+            globalName: file.globalName,
             solcConfig: compilationGroup.solidityConfig,
-            imports,
-            versionPragmas,
+            imports: file.content.imports,
+            versionPragmas: file.content.versionPragmas,
+            artifacts: emittedArtifacts,
           };
         }
 
@@ -230,6 +216,105 @@ export default function () {
         );
       }
 
+      await removeObsoleteArtifacts(
+        config.paths.artifacts,
+        newSolidityFilesCache
+      );
+
       writeSolidityFilesCache(config.paths, newSolidityFilesCache);
     });
+}
+
+/**
+ * Remove all artifacts that don't correspond to the current solidity files
+ */
+async function removeObsoleteArtifacts(
+  artifactsPath: string,
+  solidityFilesCache: SolidityFilesCache
+) {
+  const validArtifacts = new Set<string>();
+  for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
+    for (const artifact of artifacts) {
+      validArtifacts.add(
+        getArtifactPathSync(artifactsPath, globalName, artifact)
+      );
+    }
+  }
+
+  const existingArtifacts = await glob(path.join(artifactsPath, "**/*.json"));
+
+  for (const artifact of existingArtifacts) {
+    if (!validArtifacts.has(artifact)) {
+      fsExtra.unlinkSync(artifact);
+    }
+  }
+}
+
+/**
+ * Remove from the given `solidityFilesCache` all files that have missing artifacts
+ */
+function invalidateCacheMissingArtifacts(
+  solidityFilesCache: SolidityFilesCache,
+  artifactsPath: string,
+  resolvedFiles: ResolvedFile[]
+): SolidityFilesCache {
+  resolvedFiles.forEach((file) => {
+    if (solidityFilesCache[file.absolutePath] === undefined) {
+      return;
+    }
+
+    const { artifacts } = solidityFilesCache[file.absolutePath];
+
+    for (const artifact of artifacts) {
+      if (
+        !fsExtra.existsSync(
+          getArtifactPathSync(artifactsPath, file.globalName, artifact)
+        )
+      ) {
+        delete solidityFilesCache[file.absolutePath];
+        break;
+      }
+    }
+  });
+
+  return solidityFilesCache;
+}
+
+function buildCompilationGroupsFailureMessage(
+  compilationGroupsFailure: CompilationGroupsFailure
+): string {
+  let errorMessage = "The project couldn't be compiled, see reasons below.\n\n";
+  if (compilationGroupsFailure.nonCompilableOverriden.length > 0) {
+    errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
+
+${compilationGroupsFailure.nonCompilableOverriden
+  .map((x) => `* ${x}`)
+  .join("\n")}
+
+`;
+  }
+  if (compilationGroupsFailure.nonCompilable.length > 0) {
+    errorMessage += `These files don't match any compiler in your config:
+
+${compilationGroupsFailure.nonCompilable.map((x) => `* ${x}`).join("\n")}
+
+`;
+  }
+  if (compilationGroupsFailure.importsIncompatibleFile.length > 0) {
+    errorMessage += `These files have imports with incompatible pragmas:
+
+${compilationGroupsFailure.importsIncompatibleFile
+  .map((x) => `* ${x}`)
+  .join("\n")}
+
+`;
+  }
+  if (compilationGroupsFailure.other.length > 0) {
+    errorMessage += `These files and its dependencies cannot be compiled with your config:
+
+${compilationGroupsFailure.other.map((x) => `* ${x}`).join("\n")}
+
+`;
+  }
+  return errorMessage;
 }

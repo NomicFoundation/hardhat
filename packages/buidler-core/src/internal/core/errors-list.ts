@@ -723,7 +723,12 @@ Please double check that your contracts have been compiled and your artifact's n
     },
     MULTIPLE_FOUND: {
       number: 701,
-      message: 'There are multiple artifacts for contract "%contractName%", please use a fully qualified name.',
+      message: `There are multiple artifacts for contract "%contractName%", please use a fully qualified name.
+
+Candidates for this contract name are:
+
+%candidates%
+`,
       title: "Multiple artifacts found",
       description: `There are multiple artifacts that match the given contract name. 
 
@@ -800,6 +805,16 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       message: "Variable %variable%'s tag not present in the template",
       title: "Missing replacement value from error message template",
       description: `An error message template is missing a replacement value. This is a bug.
+
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+      shouldBeReported: true,
+    },
+    WRONG_ARTIFACT_PATH: {
+      number: 903,
+      message:
+        "The inferred artifact path for contract %contractName% is %artifactPath%, but this file doesn't exist",
+      title: "Inferred artifact path doesn't exist",
+      description: `The inferred artifact path doesn't exist.
 
 Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
       shouldBeReported: true,
