@@ -47,7 +47,7 @@ export function getInputFromCompilationGroup(
   compilationGroup: CompilationGroup
 ): SolcInput {
   const sources: { [globalName: string]: { content: string } } = {};
-  for (const file of compilationGroup.getResolvedFiles()) {
+  for (const file of compilationGroup.getFilesToCompile()) {
     sources[file.globalName] = {
       content: file.content.rawContent,
     };

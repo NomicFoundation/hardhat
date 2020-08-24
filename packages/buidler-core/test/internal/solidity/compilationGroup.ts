@@ -233,7 +233,11 @@ describe("Compilation groups", function () {
 
     it("not modified", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo],
+      ] = await createMockData([
         { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
 
@@ -251,7 +255,9 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
     });
 
     it("not modified (force)", async function () {
@@ -508,12 +514,14 @@ describe("Compilation groups", function () {
     it("first one modified", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
-        [
-          { file: FooMock, modified: "modified", lastSolcConfig: solc055 },
-          { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
-        ]
-      );
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
+        { file: FooMock, modified: "modified", lastSolcConfig: solc055 },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
+      ]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -531,8 +539,10 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.sameMembers(group05.getResolvedFiles(), [Foo]);
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar]);
       assert.isTrue(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
     });
 
     it("second one modified", async function () {
@@ -541,7 +551,7 @@ describe("Compilation groups", function () {
       const [
         dependencyGraph,
         solidityFilesCache,
-        [, Bar],
+        [Foo, Bar],
       ] = await createMockData([
         { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
         { file: BarMock, modified: "modified", lastSolcConfig: solc055 },
@@ -563,14 +573,20 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.sameMembers(group05.getResolvedFiles(), [Bar]);
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
       assert.isTrue(group05.emitsArtifacts(Bar));
     });
 
     it("none modified", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
         { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
         { file: BarMock, modified: "not-modified", lastSolcConfig: solc055 },
       ]);
@@ -591,7 +607,11 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
     });
 
     it("with overrides", async function () {
@@ -670,12 +690,14 @@ describe("Compilation groups", function () {
     it("first one modified", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.6.0"]);
-      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
-        [
-          { file: FooMock, modified: "modified", lastSolcConfig: solc055 },
-          { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
-        ]
-      );
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
+        { file: FooMock, modified: "modified", lastSolcConfig: solc055 },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
+      ]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -697,7 +719,9 @@ describe("Compilation groups", function () {
       assert.isTrue(group05.emitsArtifacts(Foo));
 
       assert.equal(group06.getVersion(), "0.6.6");
-      assert.isTrue(group06.isEmpty());
+      assert.sameMembers(group06.getResolvedFiles(), [Bar]);
+      assert.isTrue(group06.needsCompile(Bar));
+      assert.isFalse(group06.emitsArtifacts(Bar));
     });
 
     it("second one modified", async function () {
@@ -706,7 +730,7 @@ describe("Compilation groups", function () {
       const [
         dependencyGraph,
         solidityFilesCache,
-        [, Bar],
+        [Foo, Bar],
       ] = await createMockData([
         { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
         { file: BarMock, modified: "modified", lastSolcConfig: solc066 },
@@ -728,7 +752,9 @@ describe("Compilation groups", function () {
       const [group05, group06] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
 
       assert.equal(group06.getVersion(), "0.6.6");
       assert.sameMembers(group06.getResolvedFiles(), [Bar]);
@@ -738,7 +764,11 @@ describe("Compilation groups", function () {
     it("none modified", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.6.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
         { file: FooMock, modified: "not-modified", lastSolcConfig: solc055 },
         { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
       ]);
@@ -759,10 +789,14 @@ describe("Compilation groups", function () {
       const [group05, group06] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
 
       assert.equal(group06.getVersion(), "0.6.6");
-      assert.isTrue(group06.isEmpty());
+      assert.sameMembers(group06.getResolvedFiles(), [Bar]);
+      assert.isTrue(group06.needsCompile(Bar));
+      assert.isFalse(group06.emitsArtifacts(Bar));
     });
 
     it("none modified (force)", async function () {
@@ -960,7 +994,11 @@ describe("Compilation groups", function () {
     it("none changed", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [BarMock],
@@ -986,7 +1024,11 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
     });
 
     it("none changed (force)", async function () {
@@ -1267,7 +1309,11 @@ describe("Compilation groups", function () {
     it("none changed", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Lib],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [LibMock],
@@ -1293,7 +1339,11 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Lib]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Lib));
+      assert.isFalse(group05.emitsArtifacts(Lib));
     });
 
     it("none changed (force)", async function () {
@@ -1583,7 +1633,11 @@ describe("Compilation groups", function () {
     it("none changed", async function () {
       const FooMock = new MockFile("Foo", [">=0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [BarMock],
@@ -1609,7 +1663,11 @@ describe("Compilation groups", function () {
       const [group05, group06] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
 
       assert.equal(group06.getVersion(), "0.6.6");
       assert.isTrue(group06.isEmpty());
@@ -1739,7 +1797,11 @@ describe("Compilation groups", function () {
     it("none changed", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [BarMock],
@@ -1770,7 +1832,11 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
     });
 
     it("one is overriden", async function () {
@@ -2106,7 +2172,11 @@ describe("Compilation groups", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar, Qux],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [BarMock],
@@ -2138,7 +2208,13 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar, Qux]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
+      assert.isTrue(group05.needsCompile(Qux));
+      assert.isFalse(group05.emitsArtifacts(Qux));
     });
 
     it("incompatible import", async function () {
@@ -2367,7 +2443,11 @@ describe("Compilation groups", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar, Qux],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [BarMock],
@@ -2404,7 +2484,13 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar, Qux]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
+      assert.isTrue(group05.needsCompile(Qux));
+      assert.isFalse(group05.emitsArtifacts(Qux));
     });
   });
 
@@ -2572,7 +2658,11 @@ describe("Compilation groups", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar, Qux],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [BarMock, QuxMock],
@@ -2599,7 +2689,13 @@ describe("Compilation groups", function () {
       const [group05] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Bar, Qux]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Bar));
+      assert.isFalse(group05.emitsArtifacts(Bar));
+      assert.isTrue(group05.needsCompile(Qux));
+      assert.isFalse(group05.emitsArtifacts(Qux));
     });
   });
 
@@ -2651,7 +2747,7 @@ describe("Compilation groups", function () {
       const [
         dependencyGraph,
         solidityFilesCache,
-        [Foo, , Qux],
+        [Foo, Bar, Qux],
       ] = await createMockData([
         {
           file: FooMock,
@@ -2689,7 +2785,11 @@ describe("Compilation groups", function () {
       assert.isFalse(group05.emitsArtifacts(Qux));
 
       assert.equal(group06.getVersion(), "0.6.6");
-      assert.isTrue(group06.isEmpty());
+      assert.sameMembers(group06.getResolvedFiles(), [Bar, Qux]);
+      assert.isTrue(group06.needsCompile(Bar));
+      assert.isFalse(group06.emitsArtifacts(Bar));
+      assert.isTrue(group06.needsCompile(Qux));
+      assert.isFalse(group06.emitsArtifacts(Qux));
     });
 
     it("second importer changed", async function () {
@@ -2699,7 +2799,7 @@ describe("Compilation groups", function () {
       const [
         dependencyGraph,
         solidityFilesCache,
-        [, Bar, Qux],
+        [Foo, Bar, Qux],
       ] = await createMockData([
         {
           file: FooMock,
@@ -2732,7 +2832,11 @@ describe("Compilation groups", function () {
       const [group05, group06] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Qux]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Qux));
+      assert.isFalse(group05.emitsArtifacts(Qux));
 
       assert.equal(group06.getVersion(), "0.6.6");
       assert.sameMembers(group06.getResolvedFiles(), [Bar, Qux]);
@@ -2794,7 +2898,11 @@ describe("Compilation groups", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.6.0"]);
       const QuxMock = new MockFile("Qux", [">=0.5.0"]);
-      const [dependencyGraph, solidityFilesCache] = await createMockData([
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar, Qux],
+      ] = await createMockData([
         {
           file: FooMock,
           dependencies: [QuxMock],
@@ -2826,10 +2934,18 @@ describe("Compilation groups", function () {
       const [group05, group06] = compilationGroups;
 
       assert.equal(group05.getVersion(), "0.5.5");
-      assert.isTrue(group05.isEmpty());
+      assert.sameMembers(group05.getResolvedFiles(), [Foo, Qux]);
+      assert.isTrue(group05.needsCompile(Foo));
+      assert.isFalse(group05.emitsArtifacts(Foo));
+      assert.isTrue(group05.needsCompile(Qux));
+      assert.isFalse(group05.emitsArtifacts(Qux));
 
       assert.equal(group06.getVersion(), "0.6.6");
-      assert.isTrue(group06.isEmpty());
+      assert.sameMembers(group06.getResolvedFiles(), [Bar, Qux]);
+      assert.isTrue(group06.needsCompile(Bar));
+      assert.isFalse(group06.emitsArtifacts(Bar));
+      assert.isTrue(group06.needsCompile(Qux));
+      assert.isFalse(group06.emitsArtifacts(Qux));
     });
 
     it("the imported is overriden", async function () {
@@ -3186,12 +3302,14 @@ describe("Compilation groups", function () {
     it("only one compiler changes", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.6.0"]);
-      const [dependencyGraph, solidityFilesCache, [Foo]] = await createMockData(
-        [
-          { file: FooMock, modified: "not-modified", lastSolcConfig: solc054 },
-          { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
-        ]
-      );
+      const [
+        dependencyGraph,
+        solidityFilesCache,
+        [Foo, Bar],
+      ] = await createMockData([
+        { file: FooMock, modified: "not-modified", lastSolcConfig: solc054 },
+        { file: BarMock, modified: "not-modified", lastSolcConfig: solc066 },
+      ]);
 
       const compilationGroupsResult = createCompilationGroups(
         dependencyGraph,
@@ -3213,7 +3331,9 @@ describe("Compilation groups", function () {
       assert.isTrue(group05.emitsArtifacts(Foo));
 
       assert.equal(group06.getVersion(), "0.6.6");
-      assert.isTrue(group06.isEmpty());
+      assert.sameMembers(group06.getResolvedFiles(), [Bar]);
+      assert.isTrue(group06.needsCompile(Bar));
+      assert.isFalse(group06.emitsArtifacts(Bar));
     });
   });
 });
