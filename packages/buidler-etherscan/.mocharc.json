@@ -1,5 +1,4 @@
 {
   "require": ["test/mocha.env", "ts-node/register", "source-map-support/register"],
-  "file": "../common/test/run-with-ganache",
   "timeout": 6000
 }

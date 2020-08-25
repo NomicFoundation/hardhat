@@ -3,145 +3,96 @@ import {
   NomicLabsBuidlerPluginError,
   readArtifact,
 } from "@nomiclabs/buidler/plugins";
+import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
-// tslint:disable: no-implicit-dependencies
-import { ethers } from "ethers";
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";
 
 import { useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
-describe.skip("Plugin integration tests", function () {
+describe("Plugin integration tests", function () {
   this.timeout(1000000);
+  this.beforeAll(function () {
+    if (process.env.RUN_ETHERSCAN_TESTS !== "yes") {
+      this.skip();
+    } else {
+      if (
+        process.env.WALLET_PRIVATE_KEY === undefined ||
+        process.env.WALLET_PRIVATE_KEY === ""
+      ) {
+        throw new Error("missing WALLET_PRIVATE_KEY env variable");
+      }
+    }
+  });
 
-  describe("Using a correct Buidler project", () => {
-    useEnvironment(path.join(__dirname, "..", "buidler-project"));
+  describe("Using a normal Buidler project", function () {
+    useEnvironment(path.join(__dirname, "..", "buidler-project"), "testnet");
 
     let placeholder: string;
-    this.beforeEach(() => {
-      placeholder = getRandomString();
+    this.beforeEach(function () {
+      placeholder = getRandomString(this.env);
       modifyContract(placeholder);
     });
 
     this.afterEach(() => restoreContract(placeholder));
 
-    it("Test verifying deployed contract on etherscan", async function () {
+    it("Should verify deployed inner contract on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
-        "TestContract1"
-      );
-      const amount = "20";
-
-      const deployedAddress = await deployContract(abi, `${bytecode}`, [
-        amount,
-      ]);
-
-      try {
-        await this.env.run("verify", {
-          address: deployedAddress,
-          constructorArguments: [amount],
-        });
-
-        assert.isTrue(true);
-      } catch (error) {
-        assert.fail(error.message);
-      }
-
-      return true;
-    });
-
-    it("Should verify deployed contract on etherscan using full name", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
-
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
-        "TestContract1"
-      );
-      const amount = "20";
-
-      const deployedAddress = await deployContract(abi, `${bytecode}`, [
-        amount,
-      ]);
-
-      try {
-        await this.env.run("verify", {
-          address: deployedAddress,
-          constructorArguments: [amount],
-        });
-
-        assert.isTrue(true);
-      } catch (error) {
-        assert.fail(error.message);
-      }
-
-      return true;
-    });
-
-    it("Should verify deployed inner contract on etherscan using full name", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
-
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
-        "InnerContract"
+      const deployedAddress = await deployContract(
+        "InnerContract",
+        [],
+        this.env
       );
 
-      const deployedAddress = await deployContract(abi, `${bytecode}`, []);
-
-      try {
-        await this.env.run("verify", {
-          address: deployedAddress,
-          constructorArguments: [],
-        });
-
-        assert.isTrue(true);
-      } catch (error) {
-        assert.fail(error.message);
-      }
-
-      return true;
+      return this.env.run("verify", {
+        address: deployedAddress,
+        constructorArguments: [],
+      });
     });
 
     it("Should verify deployed contract with name clash on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
-        "TestReentrancyGuardLocal"
+      const deployedAddress = await deployContract(
+        "TestReentrancyGuardLocal",
+        [],
+        this.env
       );
-      const deployedAddress = await deployContract(abi, `${bytecode}`, []);
 
-      try {
-        await this.env.run("verify", {
-          address: deployedAddress,
-          constructorArguments: [],
-        });
-
-        assert.isTrue(true);
-      } catch (error) {
-        assert.fail(error.message);
-      }
+      return this.env.run("verify", {
+        address: deployedAddress,
+        constructorArguments: [],
+      });
     });
-  });
 
-  describe("Using a Buidler project with circular dependencies", () => {
-    useEnvironment(path.join(__dirname, "..", "buidler-project-circular-dep"));
-    it("Fails with an error message indicating to use Etherscan's GUI", async function () {
-      this.env
-        .run("verify", {
-          address: "0x0000000000000000000000000000000000000000",
-          constructorArguments: [],
-        })
-        .catch((e: any) => assert.instanceOf(e, NomicLabsBuidlerPluginError));
+    // The plugin doesn't look at deployment bytecode while inferring the contract
+    it.skip("Verify contract that can only be singled out by its deploy bytecode", async function () {
+      await this.env.run(TASK_COMPILE, { force: false });
+
+      const amount = "20";
+
+      const deployedAddress = await deployContract(
+        "TestContract1",
+        [amount],
+        this.env
+      );
+
+      return this.env.run("verify", {
+        address: deployedAddress,
+        constructorArguments: [amount],
+      });
     });
   });
 });
 
 const testContractPath = path.join(
   __dirname,
-  "../buidler-project/contracts/TestContract1.sol"
+  "..",
+  "buidler-project",
+  "contracts",
+  "TestContract1.sol"
 );
 
 function modifyContract(placeholder: string) {
@@ -160,29 +111,22 @@ function restoreContract(placeholder: string) {
   writeFileSync(testContractPath, newData, "utf-8");
 }
 
-function getRandomString(): string {
+function getRandomString({ ethers }: any): string {
   return ethers.Wallet.createRandom().address;
 }
 
 async function deployContract(
-  abi: any[],
-  bytecode: string,
-  constructorArguments: string[]
+  contractName: string,
+  constructorArguments: string[],
+  { ethers }: any
 ) {
-  const provider = ethers.getDefaultProvider("ropsten");
+  const wallet = new ethers.Wallet(
+    process.env.WALLET_PRIVATE_KEY,
+    ethers.provider
+  );
 
-  if (
-    process.env.WALLET_PRIVATE_KEY === undefined ||
-    process.env.WALLET_PRIVATE_KEY === ""
-  ) {
-    throw new Error("missing WALLET_PRIVATE_KEY env variable");
-  }
-
-  const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
-
-  const factory = new ethers.ContractFactory(abi, bytecode, wallet);
+  const factory = await ethers.getContractFactory(contractName, wallet);
   const contract = await factory.deploy(...constructorArguments);
-  await contract.deployed();
   await contract.deployTransaction.wait(3);
   return contract.address;
 }
