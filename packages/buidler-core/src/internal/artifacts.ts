@@ -168,6 +168,7 @@ export function getArtifactPathSync(
  * @param artifactsPath the artifacts' directory.
  * @param globalName the global name of the file that emitted the artifact.
  * @param artifact the artifact to be stored.
+ * @param pathToBuildInfo the relative path to the buildInfo for this artifact
  */
 export async function saveArtifact(
   artifactsPath: string,
