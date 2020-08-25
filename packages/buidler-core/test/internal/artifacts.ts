@@ -329,7 +329,7 @@ describe("Artifacts utils", function () {
       await expectBuidlerErrorAsync(
         () => readArtifact(this.tmpDir, name),
         ERRORS.ARTIFACTS.MULTIPLE_FOUND,
-        "Lib.sol:Lib\nLib2.sol:Lib"
+        `Lib.sol:Lib${path.sep}Lib2.sol:Lib`
       );
     });
 
@@ -345,7 +345,7 @@ describe("Artifacts utils", function () {
       expectBuidlerError(
         () => readArtifactSync(this.tmpDir, name),
         ERRORS.ARTIFACTS.MULTIPLE_FOUND,
-        "Lib.sol:Lib\nLib2.sol:Lib"
+        `Lib.sol:Lib${path.sep}Lib2.sol:Lib`
       );
     });
   });

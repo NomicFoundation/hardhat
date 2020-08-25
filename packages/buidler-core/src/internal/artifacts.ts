@@ -86,13 +86,13 @@ function getArtifactPathFromFiles(
   }
 
   if (matchingFiles.length > 1) {
-    const candidates = matchingFiles.map((file) =>
-      getFullyQualifiedName(artifactsPath, file)
-    );
+    const candidates = matchingFiles
+      .map((file) => getFullyQualifiedName(artifactsPath, file))
+      .map(path.normalize);
 
     throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
       contractName: name,
-      candidates: candidates.join("\n"),
+      candidates: candidates.join(path.sep),
     });
   }
 
