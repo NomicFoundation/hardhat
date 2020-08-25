@@ -62,15 +62,25 @@ export async function compareBytecode(
   // We will ignore metadata information when comparing. Etherscan seems to do the same.
   if (inferralType !== InferralType.METADATA_ABSENT) {
     // The runtime object may contain nonhexadecimal characters due to link placeholders.
-    const runtimeMetadataLength = readSolcMetadataLength(
-      Buffer.from(
-        runtimeBytecodeSymbols.object.slice(-METADATA_LENGTH_SIZE * 2),
-        "hex"
-      )
+    // `Buffer.from` will return a buffer that contains bytes up until the last decodable byte.
+    // To work around this we'll just slice the relevant part of the bytecode.
+    const runtimeBytecodeSlice = Buffer.from(
+      runtimeBytecodeSymbols.object.slice(-METADATA_LENGTH_SIZE * 2),
+      "hex"
     );
+
+    // If, for whatever reason, the runtime bytecode object is so small that we can't even read two bytes off it,
+    // this is not a match.
+    if (runtimeBytecodeSlice.length !== METADATA_LENGTH_SIZE) {
+      return { match: false };
+    }
+
+    const runtimeMetadataLength = readSolcMetadataLength(runtimeBytecodeSlice);
     const deployedMetadataLength = readSolcMetadataLength(
       Buffer.from(deployedBytecode, "hex")
     );
+
+    // If the bytecode itself is of different length, this is not a match.
     if (
       runtimeBytecodeSymbols.object.length - runtimeMetadataLength * 2 !==
       deployedBytecode.length - deployedMetadataLength * 2
