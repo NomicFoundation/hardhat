@@ -25,7 +25,6 @@ import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
-import { getUserConfigPath } from "../../core/project-structure";
 import { Reporter } from "../../sentry/reporter";
 import {
   dateToTimestampSeconds,
@@ -279,7 +278,6 @@ export class BuidlerNode extends EventEmitter {
     compilerOutput?: CompilerOutput
   ) {
     super();
-    const config = getUserConfigPath();
     this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
     this._initLocalAccounts(localAccounts);
