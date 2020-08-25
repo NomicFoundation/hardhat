@@ -155,7 +155,8 @@ export default function () {
         const pathToBuildInfo = await saveBuildInfo(
           config.paths.artifacts,
           input,
-          output
+          output,
+          compilationGroup.getVersion()
         );
 
         if (output === undefined) {

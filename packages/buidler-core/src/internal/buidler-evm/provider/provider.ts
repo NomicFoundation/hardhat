@@ -60,7 +60,6 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _genesisAccounts: GenesisAccount[] = [],
-    private readonly _solcVersion?: string,
     private readonly _paths?: ProjectPaths,
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
@@ -216,32 +215,27 @@ export class BuidlerEVMProvider extends EventEmitter
 
     const buildInfos: BuildInfo[] = [];
 
-    if (this._solcVersion !== undefined && this._paths !== undefined) {
-      if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+    if (this._paths !== undefined) {
+      const buildInfoFiles = await getBuildInfoFiles(this._paths.artifacts);
+
+      try {
+        for (const buildInfoFile of buildInfoFiles) {
+          const buildInfo = await fsExtra.readJson(buildInfoFile);
+          if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+            buildInfos.push(buildInfo);
+          }
+        }
+      } catch (error) {
         console.warn(
           chalk.yellow(
-            `Solidity stack traces only work with Solidity version ${FIRST_SOLC_VERSION_SUPPORTED} or higher.`
+            "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
           )
         );
-      } else {
-        const buildInfoFiles = await getBuildInfoFiles(this._paths.artifacts);
 
-        try {
-          for (const buildInfoFile of buildInfoFiles) {
-            buildInfos.push(await fsExtra.readJson(buildInfoFile));
-          }
-        } catch (error) {
-          console.warn(
-            chalk.yellow(
-              "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
-            )
-          );
-
-          log(
-            "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
-            error
-          );
-        }
+        log(
+          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
+          error
+        );
       }
     }
 
@@ -252,7 +246,6 @@ export class BuidlerEVMProvider extends EventEmitter
       this._networkId,
       this._blockGasLimit,
       this._genesisAccounts,
-      this._solcVersion,
       this._allowUnlimitedContractSize,
       this._initialDate,
       buildInfos

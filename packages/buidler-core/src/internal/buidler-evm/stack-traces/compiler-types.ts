@@ -57,4 +57,5 @@ export interface CompilerOutputBytecode {
 export interface BuildInfo {
   input: CompilerInput;
   output: any;
+  solcVersion: string;
 }

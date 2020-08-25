@@ -205,14 +205,17 @@ export async function saveArtifact(
 export async function saveBuildInfo(
   artifactsPath: string,
   input: SolcInput,
-  output: any
+  output: any,
+  solcVersion: string
 ): Promise<string> {
   const buildInfoDir = path.join(artifactsPath, BUILD_INFO_DIR_NAME);
   await fsExtra.ensureDir(buildInfoDir);
 
-  const hash = sha256(Buffer.from(JSON.stringify(input))).toString("hex");
+  const hash = sha256(
+    Buffer.from(JSON.stringify({ input, solcVersion }))
+  ).toString("hex");
   const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
-  await fsExtra.writeJson(buildInfoPath, { input, output });
+  await fsExtra.writeJson(buildInfoPath, { input, output, solcVersion });
 
   return buildInfoPath;
 }

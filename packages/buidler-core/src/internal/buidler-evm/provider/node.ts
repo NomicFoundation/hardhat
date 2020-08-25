@@ -148,7 +148,6 @@ export class BuidlerNode extends EventEmitter {
     networkId: number,
     blockGasLimit: number,
     genesisAccounts: GenesisAccount[] = [],
-    solidityVersion?: string,
     allowUnlimitedContractSize?: boolean,
     initialDate?: Date,
     buildInfos?: BuildInfo[]
@@ -234,7 +233,6 @@ export class BuidlerNode extends EventEmitter {
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
-      solidityVersion,
       initialDate,
       buildInfos
     );
@@ -275,7 +273,6 @@ export class BuidlerNode extends EventEmitter {
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
-    solidityVersion?: string,
     initialDate?: Date,
     buildInfos?: BuildInfo[]
   ) {
@@ -311,18 +308,14 @@ export class BuidlerNode extends EventEmitter {
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
 
-    if (
-      solidityVersion === undefined ||
-      buildInfos === undefined ||
-      buildInfos.length === 0
-    ) {
+    if (buildInfos === undefined || buildInfos.length === 0) {
       return;
     }
 
     try {
       for (const buildInfo of buildInfos) {
         const bytecodes = createModelsAndDecodeBytecodes(
-          solidityVersion,
+          buildInfo.solcVersion,
           buildInfo.input,
           buildInfo.output
         );

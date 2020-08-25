@@ -257,7 +257,7 @@ export function createCompilationGroups(
     let compilationLevel;
     if (force || changedSinceLastCompilation) {
       compilationLevel = CompilationLevel.EMIT_ARTIFACTS;
-    } else if (compilerConfig.optimizer.enabled && SOLC_BUG_9573) {
+    } else if (compilerConfig?.optimizer?.enabled === true && SOLC_BUG_9573) {
       // if the optimizer is enabled and the solc bug is present, we need the
       // files in a group to be always the same between compilations, so we have
       // to add it

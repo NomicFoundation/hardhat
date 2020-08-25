@@ -11,7 +11,6 @@ const log = debug("buidler:core:compilation-watcher");
 
 export async function watchCompilerOutput(
   provider: EthereumProvider,
-  compilerVersion: string,
   paths: ProjectPaths
 ) {
   const chokidar = await import("chokidar");
@@ -22,12 +21,12 @@ export async function watchCompilerOutput(
     try {
       log("Adding new compilation result to the node");
 
-      const { input, output } = await fsExtra.readJSON(buildInfo, {
+      const { input, output, solcVersion } = await fsExtra.readJSON(buildInfo, {
         encoding: "utf8",
       });
 
       await provider.send("buidler_addCompilationResult", [
-        compilerVersion,
+        solcVersion,
         input,
         output,
       ]);

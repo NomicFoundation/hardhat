@@ -43,7 +43,6 @@ export function createProvider(
       buidlerNetConfig.throwOnTransactionFailures!,
       buidlerNetConfig.throwOnCallFailures!,
       buidlerNetConfig.accounts,
-      solcVersion,
       paths,
       buidlerNetConfig.loggingEnabled,
       buidlerNetConfig.allowUnlimitedContractSize,
