@@ -20,7 +20,8 @@ export async function expectErrorAsync(
   }
 }
 
-describe("Solpp plugin", async function () {
+// TODO-HH: Re-enable after having internal tasks for the compilation
+describe.skip("Solpp plugin", async function () {
   describe("js-config-project", async function () {
     useEnvironment(join(__dirname, "js-config-project"));
 
