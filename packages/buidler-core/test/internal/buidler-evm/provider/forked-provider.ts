@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { BN, bufferToHex, setLength, toBuffer } from "ethereumjs-util";
 
-import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
+import {
+  bufferToRpcData,
+  numberToRpcQuantity,
+} from "../../../../src/internal/buidler-evm/provider/output";
 import { assertNodeBalances, assertQuantity } from "../helpers/assertions";
 import {
   BITFINEX_WALLET_ADDRESS,
@@ -288,6 +291,99 @@ describe("Forked provider", () => {
       const reverted = await this.provider.send("evm_revert", [snapshotId]);
       assert.isTrue(reverted);
       assert.equal(await getWethBalance(), initialBalance);
+    });
+
+    it("deletes previous blocks", async function () {
+      const snapshotId: string = await this.provider.send("evm_snapshot", []);
+      const initialLatestBlock = await this.provider.send(
+        "eth_getBlockByNumber",
+        ["latest", false]
+      );
+
+      await this.provider.send("evm_mine");
+      await this.provider.send("evm_mine");
+      const latestBlockBeforeReverting = await this.provider.send(
+        "eth_getBlockByNumber",
+        ["latest", false]
+      );
+
+      const reverted = await this.provider.send("evm_revert", [snapshotId]);
+      assert.isTrue(reverted);
+
+      const newLatestBlock = await this.provider.send("eth_getBlockByNumber", [
+        "latest",
+        false,
+      ]);
+      assert.equal(newLatestBlock.hash, initialLatestBlock.hash);
+
+      const blockByHash = await this.provider.send("eth_getBlockByHash", [
+        bufferToRpcData(latestBlockBeforeReverting.hash),
+        false,
+      ]);
+      assert.isNull(blockByHash);
+
+      const blockByNumber = await this.provider.send("eth_getBlockByNumber", [
+        latestBlockBeforeReverting.number,
+        false,
+      ]);
+      assert.isNull(blockByNumber);
+    });
+
+    it("deletes previous transactions", async function () {
+      const [from] = await this.provider.send("eth_accounts");
+
+      const snapshotId: string = await this.provider.send("evm_snapshot", []);
+
+      const txHash = await this.provider.send("eth_sendTransaction", [
+        {
+          from,
+          to: "0x1111111111111111111111111111111111111111",
+          value: numberToRpcQuantity(1),
+          gas: numberToRpcQuantity(100000),
+          gasPrice: numberToRpcQuantity(1),
+          nonce: numberToRpcQuantity(0),
+        },
+      ]);
+
+      const reverted: boolean = await this.provider.send("evm_revert", [
+        snapshotId,
+      ]);
+      assert.isTrue(reverted);
+
+      const txHashAfter = await this.provider.send("eth_getTransactionByHash", [
+        txHash,
+      ]);
+      assert.isNull(txHashAfter);
+    });
+
+    it("allows resending the same tx after a revert", async function () {
+      const [from] = await this.provider.send("eth_accounts");
+
+      const snapshotId: string = await this.provider.send("evm_snapshot", []);
+
+      const txParams = {
+        from,
+        to: "0x1111111111111111111111111111111111111111",
+        value: numberToRpcQuantity(1),
+        gas: numberToRpcQuantity(100000),
+        gasPrice: numberToRpcQuantity(1),
+        nonce: numberToRpcQuantity(0),
+      };
+
+      const txHash = await this.provider.send("eth_sendTransaction", [
+        txParams,
+      ]);
+
+      const reverted: boolean = await this.provider.send("evm_revert", [
+        snapshotId,
+      ]);
+      assert.isTrue(reverted);
+
+      const txHash2 = await this.provider.send("eth_sendTransaction", [
+        txParams,
+      ]);
+
+      assert.equal(txHash2, txHash);
     });
   });
 });
