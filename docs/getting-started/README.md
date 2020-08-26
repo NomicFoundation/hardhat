@@ -71,7 +71,7 @@ To first get a quick sense of what's available and what's going on, run `npx bui
 
 ```
 $ npx buidler
-Buidler version 1.3.3
+Buidler version 1.4.4
 
 Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
@@ -208,6 +208,6 @@ npx buidler run scripts/sample-script.js --network localhost
 ---
 
 
-Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
+Congrats! You have created a project, run a Buidler task, compiled a smart contract, installed a Waffle integration plugin, written and ran a test using the Waffle and ethers.js plugins, and deployed your tested project to the Buidler EVM.
 
 For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
