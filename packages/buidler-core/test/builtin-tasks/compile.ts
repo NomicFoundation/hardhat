@@ -8,7 +8,10 @@ import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
 function assertFileExists(pathToFile: string) {
-  assert.isTrue(fsExtra.existsSync(pathToFile));
+  assert.isTrue(
+    fsExtra.existsSync(pathToFile),
+    `Expected ${pathToFile} to exist`
+  );
 }
 
 function assertBuildInfoExists(pathToDbg: string) {
