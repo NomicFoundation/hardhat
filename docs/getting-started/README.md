@@ -2,7 +2,7 @@
 
 Buidler is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable. 
+Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
 
 The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
@@ -27,7 +27,7 @@ Be careful about inconsistent behavior across different projects that use differ
 ```
 npm install --global @nomiclabs/buidler
 ```
-    
+
 If you choose to install Buidler globally, you have to do the same for its plugins and their dependencies.
 
 ## Quick Start
@@ -49,7 +49,7 @@ $ npx buidler
 888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888
 88888P"   "Y88888 888  "Y88888 888  "Y8888  888
 
-👷 Welcome to Buidler v1.3.3 👷‍‍
+👷 Welcome to Buidler v1.4.4 👷‍‍
 
 ? What do you want to do? …
 ❯ Create a sample project
@@ -57,12 +57,12 @@ $ npx buidler
   Quit
 ```
 
-Let’s create the sample project and go through the steps to try out the sample task and compile, test and deploy the sample contract. 
+Let’s create the sample project and go through the steps to try out the sample task and compile, test and deploy the sample contract.
 
-The sample project will ask you to install `buidler-waffle` and `buidler-ethers`, which makes Buidler compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
+The sample project will ask you to install `buidler-waffle` and `buidler-ethers`, which makes Buidler compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md).
 
 ::: tip
-Buidler will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
+You can install these packages manually with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
 :::
 
 ### Running tasks
@@ -77,14 +77,14 @@ Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config            A Buidler config file. 
-  --emoji             Use emoji in messages. 
-  --help              Shows this message, or a task's help if its name is provided 
-  --max-memory        The maximum amount of memory that Buidler can use. 
-  --network           The network to connect to. 
-  --show-stack-traces Show stack traces. 
-  --verbose           Enables Buidler verbose logging 
-  --version           Shows buidler's version. 
+  --config            A Buidler config file.
+  --emoji             Use emoji in messages.
+  --help              Shows this message, or a task's help if its name is provided
+  --max-memory        The maximum amount of memory that Buidler can use.
+  --network           The network to connect to.
+  --show-stack-traces Show stack traces.
+  --verbose           Enables Buidler verbose logging
+  --version           Shows buidler's version.
 
 
 AVAILABLE TASKS:
@@ -102,7 +102,9 @@ AVAILABLE TASKS:
 To get help for a specific task run: npx buidler help [task]
 ```
 
-This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 
+This is the list of tasks available to run. If you have any plugins, tasks defined by those will also show up here. For now, it's just the list of out-of-the-box tasks.
+
+Let's try running the **accounts** task.
 
 If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
 
@@ -183,7 +185,7 @@ Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
 ### Connecting a wallet or Dapp to Buidler EVM
-Buidler will always spin up an in-memory instance of Buidler EVM on startup by default, but it's also possible to run Buidler EVM in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
+Buidler will always spin up an in-memory instance of Buidler EVM on startup by default, but it's also possible to run Buidler EVM in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script.
 
 To run Buidler EVM in this way, run `npx buidler node`:
 
