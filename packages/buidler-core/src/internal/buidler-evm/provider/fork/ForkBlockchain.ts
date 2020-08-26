@@ -200,7 +200,7 @@ export class ForkBlockchain implements PBlockchain {
 
   private async _getBlockByNumber(blockNumber: BN) {
     if (blockNumber.gt(this._latestBlockNumber)) {
-      throw new Error("Block not found");
+      return undefined;
     }
     const block = this._data.getBlockByNumber(blockNumber);
     if (block !== undefined) {

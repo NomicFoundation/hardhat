@@ -94,6 +94,7 @@ describe("ForkBlockchain", () => {
 
     it("returns undefined for non-existent block", async () => {
       assert.equal(await fb.getBlock(randomHashBuffer()), undefined);
+      assert.equal(await fb.getBlock(forkBlockNumber.addn(100)), undefined);
     });
 
     it("can get remote block object with create transaction", async () => {
@@ -120,6 +121,8 @@ describe("ForkBlockchain", () => {
 
       assert.equal(await fb.getBlock(newerBlock!.hash!), undefined);
       assert.equal(await fb.getBlock(newerBlock!.hash!), undefined);
+      assert.equal(await fb.getBlock(forkBlockNumber.subn(5)), undefined);
+      assert.equal(await fb.getBlock(forkBlockNumber.subn(5)), undefined);
     });
 
     it("can retrieve inserted block by hash", async () => {

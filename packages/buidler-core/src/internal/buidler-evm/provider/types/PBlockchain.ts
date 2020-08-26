@@ -35,6 +35,7 @@ export function toBlockchain(pb: PBlockchain): Blockchain {
       throw new Error("Block not found");
     }
   }
+
   function delBlock(blockHash: Buffer, cb: Callback) {
     try {
       pb.deleteBlock(blockHash);
@@ -44,6 +45,7 @@ export function toBlockchain(pb: PBlockchain): Blockchain {
     }
     cb(null);
   }
+
   return {
     getBlock: callbackify(getBlock),
     putBlock: callbackify(pb.addBlock.bind(pb)),
