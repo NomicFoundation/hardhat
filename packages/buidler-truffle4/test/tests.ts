@@ -32,7 +32,6 @@ function assertIsContractInstance(
 
 function testArtifactsFunctionality() {
   beforeEach(async function () {
-    await this.env.run("compile");
     const version = await this.env.network.provider.send("web3_clientVersion");
     // We only run these test on Ganache, see this:
     // https://github.com/ethereum/web3.js/issues/935
