@@ -1,7 +1,5 @@
 import { bufferToHex } from "ethereumjs-util";
 
-import { getUserConfigPath } from "../../core/project-structure";
-
 import {
   normalizeLibraryRuntimeBytecodeIfNecessary,
   zeroOutAddresses,
@@ -93,9 +91,7 @@ export class ContractsIdentifier {
   private _trie = new BytecodeTrie(-1);
   private _cache: Map<string, Bytecode> = new Map();
 
-  constructor(private readonly _enableCache = true) {
-    const config = getUserConfigPath();
-  }
+  constructor(private readonly _enableCache = true) {}
 
   public addBytecode(bytecode: Bytecode) {
     this._trie.add(bytecode);
