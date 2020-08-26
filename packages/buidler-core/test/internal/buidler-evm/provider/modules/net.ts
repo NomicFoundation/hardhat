@@ -5,10 +5,10 @@ import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/useProvider";
 
 describe("Net module", function () {
-  PROVIDERS.forEach((provider) => {
-    describe(`Provider ${provider.name}`, function () {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+    describe(`Provider ${name}`, function () {
       setCWD();
-      provider.useProvider();
+      useProvider();
 
       describe("net_listening", async function () {
         it("Should return true", async function () {
@@ -27,6 +27,10 @@ describe("Net module", function () {
 
       describe("net_version", async function () {
         it("Should return the network id as a decimal string, not QUANTITY", async function () {
+          if (isFork) {
+            this.skip();
+            return;
+          }
           assert.strictEqual(
             await this.provider.send("net_version"),
             this.common.networkId().toString()

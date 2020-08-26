@@ -45,13 +45,18 @@ async function deployContract(
 }
 
 describe("Evm module", function () {
-  PROVIDERS.forEach((provider) => {
-    describe(`Provider ${provider.name}`, function () {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+    describe(`${name} provider`, function () {
       setCWD();
-      provider.useProvider();
+      useProvider();
 
       describe("evm_increaseTime", async function () {
         it("should increase the offset of time used for block timestamps", async function () {
+          if (isFork) {
+            this.skip();
+            return;
+          }
+
           const accounts = await this.provider.send("eth_accounts");
           const burnTxParams = {
             from: accounts[0],
@@ -292,7 +297,13 @@ describe("Evm module", function () {
 
           assert.isEmpty(block2.transactions);
         });
+
         it("should mine an empty block with exact timestamp", async function () {
+          if (isFork) {
+            this.skip();
+            return;
+          }
+
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_mine", [timestamp]);
 
@@ -303,7 +314,13 @@ describe("Evm module", function () {
 
           assertQuantity(block.timestamp, timestamp);
         });
+
         it("should mine an empty block with the timestamp and other later blocks have higher timestamp", async function () {
+          if (isFork) {
+            this.skip();
+            return;
+          }
+
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_mine", [timestamp]);
           await this.provider.send("evm_mine");
@@ -516,6 +533,11 @@ describe("Evm module", function () {
           });
 
           it("Resets the blockchain so that new blocks are added with the right numbers", async function () {
+            if (isFork) {
+              this.skip();
+              return;
+            }
+
             await this.provider.send("evm_mine");
             await this.provider.send("evm_mine");
 
@@ -570,6 +592,11 @@ describe("Evm module", function () {
           });
 
           it("Resets the date to the right time", async function () {
+            if (isFork) {
+              this.skip();
+              return;
+            }
+
             // First, we increase the time by 100 sec
             await this.provider.send("evm_increaseTime", [100]);
             const startDate = new Date();

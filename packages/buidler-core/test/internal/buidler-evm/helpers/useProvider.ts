@@ -14,7 +14,9 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
   DEFAULT_USE_JSON_RPC,
+  INFURA_URL,
 } from "./constants";
+import { useForkedProvider } from "./useForkedProvider";
 
 declare module "mocha" {
   interface Context {
@@ -24,15 +26,19 @@ declare module "mocha" {
   }
 }
 
+const FORK_CONFIG = { jsonRpcUrl: INFURA_URL, blockNumberOrHash: undefined };
+
 export const PROVIDERS = [
   {
     name: "BuidlerEVM",
+    isFork: false,
     useProvider: () => {
       useProvider();
     },
   },
   {
     name: "JSON-RPC",
+    isFork: false,
     useProvider: () => {
       useProvider(
         DEFAULT_HARDFORK,
@@ -43,6 +49,13 @@ export const PROVIDERS = [
         DEFAULT_ACCOUNTS,
         true
       );
+    },
+  },
+  {
+    name: "Forked",
+    isFork: true,
+    useProvider: () => {
+      useForkedProvider(FORK_CONFIG);
     },
   },
 ];
