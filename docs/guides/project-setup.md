@@ -1,6 +1,6 @@
 # Setting up a project
 
-A Buidler project is any directory with a valid `buidler.config.js` file in it. If you run `npx buidler` in a path without one you will be shown two options to facilitate project creation:
+A Buidler project is any directory with a valid `buidler.config.js` file in it. If you run `npx buidler` in a new project, you will be shown two options to facilitate project creation:
 ```
 $ npx buidler
 888               d8b      888 888
@@ -20,11 +20,14 @@ $ npx buidler
   Quit
 ```
 
-If you select _Create an empty buidler.config.js_, Buidler will create a `buidler.config.js` with the following content:
+### Empty `builder.config.js`
+If you select _Create an empty buidler.config.js_, Buidler will create an unpopulated `buidler.config.js`:
 ```js
 module.exports = {};
 ```
-And this is enough to run Buidler using a default project structure. 
+This will be enough for Buidler to run using a default project structure.
+
+You may want to have a look at the [configuration](../config/README.md) page to see what options are right for your project.
 
 ### Sample Buidler project
 
@@ -36,12 +39,12 @@ test/
 buidler.config.js
 ```
 
-These are the default paths for a Buidler project. Except for `scripts/`, which is just a normal directory unrelated to your config. 
+Buidler will look for your project files in these directories unless you choose to [customize them](../config/README.md#path-configuration):
 
-- `contracts/` is where the source files for your contracts should be.
-- `test/` is where your tests should go.
+- `contracts/` is the default path for your smart contract source files.
+- `test/` is the default path for your tests.
+- `scripts/` is a normal directory unrelated to your config.
 
-If you need to change these paths, take a look at the [paths configuration section](../config/README.md#path-configuration).
 
 ### Testing and Ethereum networks
 
@@ -62,9 +65,9 @@ You need to install these dependencies to run the sample project:
   npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers
 ```
 
-This stems from the fact that **most of Buidler's functionality comes from plugins**, so check out the [plugins section](../plugins/README.md) for the official list and see if there are any other ones that look interesting.
+`buidler-waffle` and `buidler-ethers` are **plugins**. Most of Buidler's functionality comes from plugins, so check out the [plugins section](../plugins/README.md) for the official list and see if there are any other ones that look interesting.
 
-The sample project uses the `@nomiclabs/buidler-waffle` plugin, which depends on the `@nomiclabs/buidler-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project. 
+The sample project uses the `@nomiclabs/buidler-waffle` plugin, which depends on the `@nomiclabs/buidler-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project.
 
 To use a plugin, the first step is always to install it using `npm` or `yarn`, and then adding a call to `usePlugin(<npm package name>)` in your config file, like this:
 
@@ -74,8 +77,6 @@ usePlugin("@nomiclabs/buidler-waffle");
 module.exports = {};
 ```
 
-Plugins are **essential** to Buidler projects, so make sure to check out all the available ones and also build your own ones!
+Plugins are _essential_ to Buidler projects, so make sure to check out all the available ones and build your own!
 
 For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
-
-
