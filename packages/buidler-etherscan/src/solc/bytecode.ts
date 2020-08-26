@@ -8,6 +8,7 @@ export async function lookupMatchingBytecode(
   deployedBytecode: string,
   inferralType: InferralType
 ) {
+  const contractMatches = [];
   for (const [contractFilename, contracts] of Object.entries(contractFiles)) {
     for (const [contractName, contract] of Object.entries(contracts)) {
       // Normalize deployed bytecode according to this contract.
@@ -28,19 +29,19 @@ export async function lookupMatchingBytecode(
           },
         } = comparison;
         // The bytecode matches
-        return {
+        contractMatches.push({
           immutableValues,
           libraryLinks,
           normalizedBytecode,
           contractFilename,
           contractName,
           contract,
-        };
+        });
       }
     }
   }
 
-  return null;
+  return contractMatches;
 }
 
 type BytecodeComparison =

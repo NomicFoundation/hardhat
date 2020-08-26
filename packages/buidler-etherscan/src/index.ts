@@ -151,12 +151,12 @@ Common causes:
   // This could be restricted to relevant contracts in a future iteration of the compiler tasks.
   const { compilerInput, compilerOutput } = await compile(run);
 
-  const contractInformation = await lookupMatchingBytecode(
+  const contractMatches = await lookupMatchingBytecode(
     compilerOutput.contracts,
     deployedContractBytecode,
     solcVersionRange.inferralType
   );
-  if (contractInformation === null) {
+  if (contractMatches.length === 0) {
     const message = `The contract was not found among the ones present in this project.
 The selected network is ${network.name}.
 Common causes:
@@ -164,6 +164,18 @@ Common causes:
   - Wrong network selected or faulty buidler network config`;
     throw new NomicLabsBuidlerPluginError(pluginName, message);
   }
+  if (contractMatches.length > 1) {
+    const nameList = contractMatches
+      .map((contract) => {
+        return `${contract.contractFilename}:${contract.contractName}`;
+      })
+      .join(", ");
+    const message = `More than one contract was found to match the deployed bytecode.
+The plugin does not yet support this case. Contracts found:
+${nameList}`;
+    throw new NomicLabsBuidlerPluginError(pluginName, message, undefined, true);
+  }
+  const [contractInformation] = contractMatches;
 
   const { encodeArguments } = await import("./ABIEncoder");
   const deployArgumentsEncoded = await encodeArguments(

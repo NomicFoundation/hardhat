@@ -68,7 +68,7 @@ describe("Plugin integration tests", function () {
     });
 
     // The plugin doesn't look at deployment bytecode while inferring the contract
-    it.skip("Verify contract that can only be singled out by its deploy bytecode", async function () {
+    it("fail when the contract can only be singled out by its deploy bytecode", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
       const amount = "20";
@@ -79,10 +79,19 @@ describe("Plugin integration tests", function () {
         this.env
       );
 
-      return this.env.run("verify", {
-        address: deployedAddress,
-        constructorArguments: [amount],
-      });
+      return this.env
+        .run("verify", {
+          address: deployedAddress,
+          constructorArguments: [amount],
+        })
+        .catch((reason) => {
+          console.log(reason);
+          assert.instanceOf(
+            reason,
+            NomicLabsBuidlerPluginError,
+            "Ambiguous inferences need to be reported since they are not handled well yet"
+          );
+        });
     });
   });
 });
