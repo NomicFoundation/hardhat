@@ -2,7 +2,7 @@ import { BN, bufferToHex } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { HttpProvider } from "../../core/providers/http";
-import { rpcData, rpcQuantity } from "../provider/input";
+import { BlockTag, rpcData, rpcQuantity } from "../provider/input";
 
 import {
   decode,
@@ -15,9 +15,6 @@ import {
   rpcTransaction,
   rpcTransactionReceipt,
 } from "./types";
-
-// TODO: is there really no existing definition?
-export type BlockTag = BN | "latest" | "pending" | "earliest";
 
 export class JsonRpcClient {
   public static forUrl(url: string) {

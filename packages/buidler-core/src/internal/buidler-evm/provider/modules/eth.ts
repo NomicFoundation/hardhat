@@ -33,6 +33,8 @@ import {
 } from "../errors";
 import { LATEST_BLOCK } from "../filter";
 import {
+  blockTag,
+  BlockTag,
   LogAddress,
   LogTopics,
   OptionalBlockTag,
@@ -444,12 +446,12 @@ export class EthModule {
 
   // eth_getBlockByNumber
 
-  private _getBlockByNumberParams(params: any[]): [OptionalBlockTag, boolean] {
-    return validateParams(params, optionalBlockTag, t.boolean);
+  private _getBlockByNumberParams(params: any[]): [BlockTag, boolean] {
+    return validateParams(params, blockTag, t.boolean);
   }
 
   private async _getBlockByNumberAction(
-    tag: OptionalBlockTag,
+    tag: BlockTag,
     includeTransactions: boolean
   ): Promise<RpcBlockOutput | null> {
     let block: Block | undefined;
@@ -465,10 +467,7 @@ export class EthModule {
         );
       }
     } else {
-      // The tag can't be undefined because the includeTransactions param is
-      // required.
-      // TODO: Make this more explicit
-      block = await this._node.getBlockByNumber(tag!);
+      block = await this._node.getBlockByNumber(tag);
     }
 
     if (block === undefined) {

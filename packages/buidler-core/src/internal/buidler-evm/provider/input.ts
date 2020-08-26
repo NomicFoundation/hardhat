@@ -77,15 +77,18 @@ export const logTopics = t.union([
 
 export type LogTopics = t.TypeOf<typeof logTopics>;
 
-export const optionalBlockTag = t.union([
+export const blockTag = t.union([
   rpcQuantity,
   t.keyof({
     earliest: null,
     latest: null,
     pending: null,
   }),
-  t.undefined,
 ]);
+
+export type BlockTag = t.TypeOf<typeof blockTag>;
+
+export const optionalBlockTag = optional(blockTag);
 
 export type OptionalBlockTag = t.TypeOf<typeof optionalBlockTag>;
 
@@ -242,6 +245,12 @@ export function validateParams(
   hash: typeof rpcHash,
   bool: typeof t.boolean
 ): [Buffer, boolean];
+
+export function validateParams(
+  params: any[],
+  tag: typeof blockTag,
+  bool: typeof t.boolean
+): [BlockTag, boolean];
 
 export function validateParams(
   params: any[],
