@@ -1,6 +1,7 @@
 import { extendConfig, task } from "@nomiclabs/buidler/config";
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { ActionType } from "@nomiclabs/buidler/types";
+import path from "path";
 import SemverRange from "semver/classes/range";
 
 import { defaultEtherscanConfig } from "./config";
@@ -70,8 +71,12 @@ See https://etherscan.io/solcversions for more information.`
 
   let constructorArguments;
   if (typeof constructorArgsModule === "string") {
+    if (!path.isAbsolute(constructorArgsModule)) {
+      // This ensures that the npm package namespace is ignored.
+      constructorArgsModule = path.join(".", constructorArgsModule);
+    }
     try {
-      constructorArguments = await import(constructorArgsModule);
+      constructorArguments = (await import(constructorArgsModule)).default;
       if (!Array.isArray(constructorArguments)) {
         throw new NomicLabsBuidlerPluginError(
           pluginName,

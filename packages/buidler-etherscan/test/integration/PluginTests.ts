@@ -93,6 +93,28 @@ describe("Plugin integration tests", function () {
           );
         });
     });
+
+    it("Should verify deployed contract with a complex parameter list on etherscan", async function () {
+      await this.env.run(TASK_COMPILE, { force: false });
+
+      const modulePath = path.join(
+        __dirname,
+        "..",
+        "buidler-project",
+        "paramList"
+      );
+      const args = require(modulePath);
+      const deployedAddress = await deployContract(
+        "TestParamList",
+        args,
+        this.env
+      );
+
+      return this.env.run("verify", {
+        address: deployedAddress,
+        constructorArgs: modulePath,
+      });
+    });
   });
 });
 
