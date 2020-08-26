@@ -15,6 +15,10 @@ export function useEnvironment(projectPath: string, networkName = "localhost") {
     this.env = require("@nomiclabs/buidler");
   });
 
+  beforeEach("Compile", async function () {
+    await this.env.run("compile");
+  });
+
   afterEach("Resetting buidler", function () {
     resetBuidlerContext();
     delete process.env.BUIDLER_NETWORK;
