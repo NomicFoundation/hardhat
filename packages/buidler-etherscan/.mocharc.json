@@ -1,0 +1,4 @@
+{
+  "require": ["test/mocha.env", "ts-node/register", "source-map-support/register"],
+  "timeout": 6000
+}

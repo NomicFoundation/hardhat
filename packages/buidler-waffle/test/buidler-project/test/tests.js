@@ -12,7 +12,7 @@ describe("Internal test suite of buidler-waffle's test project", function () {
     throw new Error("Failed on purpose");
   });
 
-  describe("Usupported methods", function () {
+  describe("Unsupported methods", function () {
     it("Should print the right error for calledOnContractWith", function () {
       try {
         expect("balanceOf").to.be.calledOnContractWith("asd", ["asd"]);

@@ -5,7 +5,7 @@ export function getLinkFunction() {
   const waffleCompilerPath = path.dirname(
     require.resolve("@ethereum-waffle/compiler", {
       paths: [wafflePath],
-    })
+    }),
   );
 
   const waffleCompiler = require(path.join(waffleCompilerPath, "link"));

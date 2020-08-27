@@ -11,7 +11,6 @@ import util from "util";
 
 import { EthereumProvider, ProjectPaths } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
-import { getUserConfigPath } from "../../core/project-structure";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
@@ -28,7 +27,7 @@ import { EvmModule } from "./modules/evm";
 import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
-import { BuidlerNode, GenesisAccount, SolidityTracerOptions } from "./node";
+import { BuidlerNode, GenesisAccount } from "./node";
 
 const log = debug("buidler:core:buidler-evm:provider");
 
@@ -68,7 +67,6 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _initialDate?: Date
   ) {
     super();
-    const config = getUserConfigPath();
   }
 
   public async send(method: string, params: any[] = []): Promise<any> {

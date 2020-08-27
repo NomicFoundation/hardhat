@@ -7,7 +7,7 @@ export function getDeployMockContract() {
   const waffleMockContractPath = path.dirname(
     require.resolve("@ethereum-waffle/mock-contract", {
       paths: [wafflePath],
-    })
+    }),
   );
   const waffleMockContract = require(waffleMockContractPath);
   return waffleMockContract.deployMockContract;
@@ -18,14 +18,11 @@ export async function buidlerDeployContract(
   signer: Signer,
   contractJSON: any,
   args: any[] = [],
-  overrideOptions: providers.TransactionRequest = {}
+  overrideOptions: providers.TransactionRequest = {},
 ): Promise<Contract> {
   const { deployContract } = require("ethereum-waffle/dist/cjs/deployContract");
 
-  if (
-    overrideOptions.gasLimit === undefined &&
-    typeof bre.network.config.gas === "number"
-  ) {
+  if (overrideOptions.gasLimit === undefined && typeof bre.network.config.gas === "number") {
     overrideOptions.gasLimit = bre.network.config.gas;
   }
 

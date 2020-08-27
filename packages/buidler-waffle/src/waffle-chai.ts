@@ -9,28 +9,18 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
   const waffleChaiPath = path.dirname(
     require.resolve("@ethereum-waffle/chai", {
       paths: [wafflePath],
-    })
+    }),
   );
 
   const { supportBigNumber } = require(`${waffleChaiPath}/matchers/bigNumber`);
-  const {
-    supportChangeBalance,
-  } = require(`${waffleChaiPath}/matchers/changeBalance`);
-  const {
-    supportChangeBalances,
-  } = require(`${waffleChaiPath}/matchers/changeBalances`);
+  const { supportChangeBalance } = require(`${waffleChaiPath}/matchers/changeBalance`);
+  const { supportChangeBalances } = require(`${waffleChaiPath}/matchers/changeBalances`);
   const { supportEmit } = require(`${waffleChaiPath}/matchers/emit`);
-  const {
-    supportProperAddress,
-  } = require(`${waffleChaiPath}/matchers/properAddress`);
+  const { supportProperAddress } = require(`${waffleChaiPath}/matchers/properAddress`);
   const { supportProperHex } = require(`${waffleChaiPath}/matchers/properHex`);
-  const {
-    supportProperPrivateKey,
-  } = require(`${waffleChaiPath}/matchers/properPrivateKey`);
+  const { supportProperPrivateKey } = require(`${waffleChaiPath}/matchers/properPrivateKey`);
   const { supportReverted } = require(`${waffleChaiPath}/matchers/reverted`);
-  const {
-    supportRevertedWith,
-  } = require(`${waffleChaiPath}/matchers/revertedWith`);
+  const { supportRevertedWith } = require(`${waffleChaiPath}/matchers/revertedWith`);
 
   supportBigNumber(chai.Assertion, utils);
   supportReverted(chai.Assertion);
@@ -48,17 +38,13 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
 function supportCalledOnContract(Assertion: Chai.AssertionStatic) {
   const Chai = require("chai");
   Assertion.addMethod("calledOnContract", function (contract: any) {
-    throw new Chai.AssertionError(
-      "Waffle's calledOnContract is not supported by Buidler"
-    );
+    throw new Chai.AssertionError("Waffle's calledOnContract is not supported by Buidler");
   });
 }
 
 function supportCalledOnContractWith(Assertion: Chai.AssertionStatic) {
   const Chai = require("chai");
   Assertion.addMethod("calledOnContractWith", function (contract: any) {
-    throw new Chai.AssertionError(
-      "Waffle's calledOnContractWith is not supported by Buidler"
-    );
+    throw new Chai.AssertionError("Waffle's calledOnContractWith is not supported by Buidler");
   });
 }
