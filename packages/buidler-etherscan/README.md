@@ -13,7 +13,7 @@ It's smart and it tries to do as much as possible to facilitate the process:
 - Just provide the deployment address and constructor arguments, and the plugin will detect locally which contract to verify.
 - If your contract uses Solidity libraries, the plugin will detect them and deal with them automatically. You don't need to do anything about them.
 - A simulation of the verification process will run locally, allowing the plugin to detect and communicate any mistakes during the process.
-- Once the simulation is successful the contract will be verified using the Etherscan API
+- Once the simulation is successful the contract will be verified using the Etherscan API.
 
 ## Installation
 
