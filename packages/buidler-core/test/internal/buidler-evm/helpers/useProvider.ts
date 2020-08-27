@@ -1,6 +1,6 @@
 import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
-import { EthereumProvider } from "../../../../src/types";
+import { EthereumProvider, ForkConfig } from "../../../../src/types";
 
 import {
   DEFAULT_ACCOUNTS,
@@ -11,11 +11,7 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
   DEFAULT_USE_JSON_RPC,
-  INFURA_CHAIN_ID,
-  INFURA_NETWORK_ID,
-  INFURA_URL,
-} from "./constants";
-import { useForkedProvider } from "./useForkedProvider";
+} from "./providers";
 
 declare module "mocha" {
   interface Context {
@@ -24,38 +20,9 @@ declare module "mocha" {
   }
 }
 
-export const PROVIDERS = [
-  {
-    name: "BuidlerEVM",
-    isFork: false,
-    networkId: DEFAULT_NETWORK_ID,
-    chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider();
-    },
-  },
-  {
-    name: "JSON-RPC",
-    isFork: false,
-    networkId: DEFAULT_NETWORK_ID,
-    chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider(true);
-    },
-  },
-  {
-    name: "Forked",
-    isFork: true,
-    networkId: INFURA_NETWORK_ID,
-    chainId: INFURA_CHAIN_ID,
-    useProvider: () => {
-      useForkedProvider({ jsonRpcUrl: INFURA_URL });
-    },
-  },
-];
-
 export function useProvider(
   useJsonRpc = DEFAULT_USE_JSON_RPC,
+  forkConfig?: ForkConfig,
   hardfork = DEFAULT_HARDFORK,
   networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
@@ -77,7 +44,9 @@ export function useProvider(
       undefined,
       undefined,
       undefined,
-      allowUnlimitedContractSize
+      allowUnlimitedContractSize,
+      undefined,
+      forkConfig
     );
 
     if (useJsonRpc) {
@@ -86,7 +55,6 @@ export function useProvider(
         hostname: "localhost",
         provider: this.provider,
       });
-
       await this.server.listen();
 
       this.provider = this.server.getProvider();

@@ -25,19 +25,19 @@ import {
   assertTransactionFailure,
 } from "../../helpers/assertions";
 import {
-  DEFAULT_ACCOUNTS,
-  DEFAULT_ACCOUNTS_ADDRESSES,
-  DEFAULT_ACCOUNTS_BALANCES,
-  DEFAULT_BLOCK_GAS_LIMIT,
-  DEFAULT_CHAIN_ID,
-} from "../../helpers/constants";
-import {
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
 } from "../../helpers/contracts";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
-import { PROVIDERS } from "../../helpers/useProvider";
+import {
+  DEFAULT_ACCOUNTS,
+  DEFAULT_ACCOUNTS_ADDRESSES,
+  DEFAULT_ACCOUNTS_BALANCES,
+  DEFAULT_BLOCK_GAS_LIMIT,
+  DEFAULT_CHAIN_ID,
+  PROVIDERS,
+} from "../../helpers/providers";
 
 const PRECOMPILES_COUNT = 8;
 

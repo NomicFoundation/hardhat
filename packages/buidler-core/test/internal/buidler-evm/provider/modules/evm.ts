@@ -16,14 +16,14 @@ import {
   assertLatestBlockNumber,
   assertQuantity,
 } from "../../helpers/assertions";
-import {
-  DEFAULT_ACCOUNTS_ADDRESSES,
-  DEFAULT_BLOCK_GAS_LIMIT,
-} from "../../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
-import { PROVIDERS } from "../../helpers/useProvider";
+import {
+  DEFAULT_ACCOUNTS_ADDRESSES,
+  DEFAULT_BLOCK_GAS_LIMIT,
+  PROVIDERS,
+} from "../../helpers/providers";
 
 async function deployContract(
   provider: EthereumProvider,

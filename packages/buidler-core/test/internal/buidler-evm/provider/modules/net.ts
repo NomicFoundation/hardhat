@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/buidler-evm/provider/output";
 import { setCWD } from "../../helpers/cwd";
-import { PROVIDERS } from "../../helpers/useProvider";
+import { PROVIDERS } from "../../helpers/providers";
 
 describe("Net module", function () {
   PROVIDERS.forEach(({ name, useProvider, networkId }) => {

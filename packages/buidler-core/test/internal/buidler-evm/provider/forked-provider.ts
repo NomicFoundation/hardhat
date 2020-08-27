@@ -11,8 +11,6 @@ import {
   BITFINEX_WALLET_ADDRESS,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
-  DEFAULT_ACCOUNTS_ADDRESSES,
-  DEFAULT_ACCOUNTS_BALANCES,
   EMPTY_ACCOUNT_ADDRESS,
   FIRST_TX_HASH_OF_10496585,
   INFURA_URL,
@@ -20,13 +18,17 @@ import {
 } from "../helpers/constants";
 import { dataToBN, quantityToBN } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
-import { useForkedProvider } from "../helpers/useForkedProvider";
+import {
+  DEFAULT_ACCOUNTS_ADDRESSES,
+  DEFAULT_ACCOUNTS_BALANCES,
+} from "../helpers/providers";
+import { useProvider } from "../helpers/useProvider";
 
 const FORK_CONFIG: ForkConfig = { jsonRpcUrl: INFURA_URL };
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", () => {
-  useForkedProvider(FORK_CONFIG);
+  useProvider(false, FORK_CONFIG);
   setCWD();
 
   it("knows the fork config", function () {
