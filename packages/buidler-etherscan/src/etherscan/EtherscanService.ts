@@ -1,74 +1,118 @@
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import request from "request-promise";
 
-import { EtherscanRequestParameters } from "./EtherscanVerifyContractRequest";
+import { pluginName } from "../pluginContext";
 
-async function delay(ms: number): Promise<void> {
+import {
+  EtherscanCheckStatusRequest,
+  EtherscanVerifyRequest,
+} from "./EtherscanVerifyContractRequest";
+
+export async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function verifyContract(
-  url: string,
-  req: EtherscanRequestParameters
-): Promise<EtherscanResponse> {
-  try {
-    const response = new EtherscanResponse(
-      // tslint:disable-next-line: await-promise
-      await request.post(url, { form: req, json: true })
-    );
+// Used for polling the result of the contract verification.
+const verificationIntervalMs = 3000;
 
-    if (!response.isOk()) {
+export async function verifyContract(
+  url: URL,
+  req: EtherscanVerifyRequest
+): Promise<EtherscanResponse> {
+  const { default: fetch } = await import("node-fetch");
+  const parameters = new URLSearchParams({ ...req });
+  const requestDetails = {
+    method: "post",
+    body: parameters,
+  };
+  try {
+    const response = await fetch(url, requestDetails);
+
+    if (!response.ok) {
+      // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
+      const responseText = await response.text();
       throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-etherscan",
-        response.message
+        pluginName,
+        `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`
       );
     }
 
-    return response;
+    const etherscanResponse = new EtherscanResponse(await response.json());
+    if (!etherscanResponse.isOk()) {
+      throw new NomicLabsBuidlerPluginError(
+        pluginName,
+        etherscanResponse.message
+      );
+    }
+
+    return etherscanResponse;
   } catch (error) {
     throw new NomicLabsBuidlerPluginError(
-      "@nomiclabs/buidler-etherscan",
-      `Failed to send contract verification request. Reason: ${error.message}`,
+      pluginName,
+      `Failed to send contract verification request.
+Endpoint URL: ${url}
+Reason: ${error.message}`,
       error
     );
   }
 }
 
 export async function getVerificationStatus(
-  url: string,
-  guid: string
+  url: URL,
+  req: EtherscanCheckStatusRequest
 ): Promise<EtherscanResponse> {
+  const parameters = new URLSearchParams({ ...req });
+  const urlWithQuery = new URL("", url);
+  urlWithQuery.search = parameters.toString();
+
+  const { default: fetch } = await import("node-fetch");
+  let response;
   try {
-    const response = new EtherscanResponse(
-      // tslint:disable-next-line: await-promise
-      await request.get(url, {
-        json: true,
-        qs: {
-          module: "contract",
-          action: "checkverifystatus",
-          guid,
-        },
-      })
-    );
-    if (response.isPending()) {
-      await delay(3000);
+    response = await fetch(urlWithQuery);
 
-      return getVerificationStatus(url, guid);
-    }
-    if (!response.isOk()) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-etherscan",
-        response.message
-      );
-    }
+    if (!response.ok) {
+      // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
+      const responseText = await response.text();
+      const message = `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`;
 
-    return response;
+      throw new NomicLabsBuidlerPluginError(pluginName, message);
+    }
   } catch (error) {
     throw new NomicLabsBuidlerPluginError(
-      "@nomiclabs/buidler-etherscan",
-      `Failed to verify contract. Reason: ${error.message}`
+      pluginName,
+      `Failure during etherscan status polling. The verification may still succeed but
+should be checked manually.
+Endpoint URL: ${urlWithQuery}
+Reason: ${error.message}`,
+      error
     );
   }
+
+  const etherscanResponse = new EtherscanResponse(await response.json());
+
+  if (etherscanResponse.isPending()) {
+    await delay(verificationIntervalMs);
+
+    return getVerificationStatus(url, req);
+  }
+
+  if (etherscanResponse.isVerificationFailure()) {
+    throw new NomicLabsBuidlerPluginError(
+      pluginName,
+      `The contract verification failed.
+Reason: ${etherscanResponse.message}`
+    );
+  }
+
+  if (!etherscanResponse.isOk()) {
+    throw new NomicLabsBuidlerPluginError(
+      pluginName,
+      `The Etherscan API responded with a failure status.
+The verification may still succeed but should be checked manually.
+Reason: ${etherscanResponse.message}`
+    );
+  }
+
+  return etherscanResponse;
 }
 
 export default class EtherscanResponse {
@@ -83,6 +127,14 @@ export default class EtherscanResponse {
 
   public isPending() {
     return this.message === "Pending in queue";
+  }
+
+  public isVerificationFailure() {
+    return this.message === "Fail - Unable to verify";
+  }
+
+  public isVerificationSuccess() {
+    return this.message === "Pass - Verified";
   }
 
   public isOk() {

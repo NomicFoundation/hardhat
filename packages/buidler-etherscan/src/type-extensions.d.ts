@@ -5,7 +5,7 @@ declare module "@nomiclabs/buidler/types" {
     etherscan?: EtherscanConfig;
   }
 
-  interface SolcConfig {
-    fullVersion: string;
+  interface ResolvedBuidlerConfig {
+    etherscan: EtherscanConfig;
   }
 }
