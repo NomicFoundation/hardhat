@@ -92,6 +92,11 @@ npx buidler verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
 
 The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
 
+## Known limitations
+
+- Contracts with linked libraries are supported, but libraries themselves can’t be verified on their own yet
+- Cases where more than one contract correspond to the same bytecode aren’t supported
+
 ## TypeScript support
 
 You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-etherscan/src/type-extensions.d.ts"`
