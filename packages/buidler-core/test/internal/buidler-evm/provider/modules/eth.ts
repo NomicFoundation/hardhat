@@ -2,6 +2,7 @@ import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
+import { Context } from "mocha";
 
 import { InvalidInputError } from "../../../../../src/internal/buidler-evm/provider/errors";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/buidler-evm/provider/node";
@@ -24,11 +25,16 @@ import {
   assertTransaction,
   assertTransactionFailure,
 } from "../../helpers/assertions";
+import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import {
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
 } from "../../helpers/contracts";
-import { quantityToNumber } from "../../helpers/conversions";
+import {
+  dataToNumber,
+  quantityToBN,
+  quantityToNumber,
+} from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS,
@@ -38,6 +44,7 @@ import {
   DEFAULT_CHAIN_ID,
   PROVIDERS,
 } from "../../helpers/providers";
+import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
 
 const PRECOMPILES_COUNT = 8;
 
@@ -116,6 +123,9 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
+      const getFirstBlock = async () =>
+        isFork ? retrieveForkBlockNumber(this.ctx.provider) : 0;
+
       describe("eth_accounts", async function () {
         it("should return the genesis accounts in lower case", async function () {
           const accounts = await this.provider.send("eth_accounts");
@@ -125,35 +135,35 @@ describe("Eth module", function () {
       });
 
       describe("eth_blockNumber", async function () {
-        before(function () {
-          if (isFork) {
-            this.skip();
-          }
+        let firstBlock: number;
+
+        beforeEach(async function () {
+          firstBlock = await getFirstBlock();
         });
 
         it("should return the current block number as QUANTITY", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+          assertQuantity(blockNumber, firstBlock);
 
           await sendTxToZeroAddress(this.provider);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 1);
+          assertQuantity(blockNumber, firstBlock + 1);
 
           await sendTxToZeroAddress(this.provider);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 2);
+          assertQuantity(blockNumber, firstBlock + 2);
 
           await sendTxToZeroAddress(this.provider);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 3);
+          assertQuantity(blockNumber, firstBlock + 3);
         });
 
         it("Shouldn't increase if a transaction gets to execute and fails", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+          assertQuantity(blockNumber, firstBlock);
 
           try {
             await this.provider.send("eth_sendTransaction", [
@@ -171,12 +181,12 @@ describe("Eth module", function () {
           }
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 1);
+          assertQuantity(blockNumber, firstBlock + 1);
         });
 
         it("Shouldn't increase if a call is made", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+          assertQuantity(blockNumber, firstBlock);
 
           await this.provider.send("eth_call", [
             {
@@ -188,7 +198,7 @@ describe("Eth module", function () {
           ]);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+          assertQuantity(blockNumber, firstBlock);
         });
       });
 
@@ -262,10 +272,7 @@ describe("Eth module", function () {
         });
 
         it("Should be run in the context of the last block with 'latest' param", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
@@ -282,10 +289,7 @@ describe("Eth module", function () {
             "latest",
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-          );
+          assert.equal(dataToNumber(blockResult), firstBlock + 1);
 
           const timestampResult = await this.provider.send("eth_call", [
             {
@@ -299,10 +303,7 @@ describe("Eth module", function () {
         });
 
         it("Should be run in the context of the last block with without block tag param", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
@@ -318,10 +319,7 @@ describe("Eth module", function () {
             },
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-          );
+          assert.equal(dataToNumber(blockResult), firstBlock + 1);
 
           const timestampResult = await this.provider.send("eth_call", [
             {
@@ -334,10 +332,7 @@ describe("Eth module", function () {
         });
 
         it("Should be run in the context of a new block with 'pending' block tag param", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
@@ -354,10 +349,7 @@ describe("Eth module", function () {
             "pending",
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000002"
-          );
+          assert.equal(dataToNumber(blockResult), firstBlock + 2);
 
           const timestampResult = await this.provider.send("eth_call", [
             {
@@ -514,26 +506,24 @@ describe("Eth module", function () {
       });
 
       describe("eth_getBalance", async function () {
-        it("Should return 0 for random accounts", async function () {
-          if (isFork) {
-            this.skip();
-            return;
+        it("Should return 0 for empty accounts", async function () {
+          if (!isFork) {
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [zeroAddress()]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                "0x0000000000000000000000000000000000000001",
+              ]),
+              0
+            );
           }
-          assertQuantity(
-            await this.provider.send("eth_getBalance", [zeroAddress()]),
-            0
-          );
 
           assertQuantity(
             await this.provider.send("eth_getBalance", [
-              "0x0000000000000000000000000000000000000001",
-            ]),
-            0
-          );
-
-          assertQuantity(
-            await this.provider.send("eth_getBalance", [
-              "0x0001231287316387168230000000000000000001",
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
             ]),
             0
           );
@@ -694,10 +684,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the block with transaction hashes if the second argument is false", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           const txHash = await sendTxToZeroAddress(this.provider);
           const txOutput: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
@@ -710,7 +697,7 @@ describe("Eth module", function () {
           );
 
           assert.equal(block.hash, txOutput.blockHash);
-          assertQuantity(block.number, 1);
+          assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
           assert.include(block.transactions as string[], txHash);
           assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
@@ -718,10 +705,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the block with the complete transactions if the second argument is true", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           const txHash = await sendTxToZeroAddress(this.provider);
           const txOutput: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
@@ -734,7 +718,7 @@ describe("Eth module", function () {
           );
 
           assert.equal(block.hash, txOutput.blockHash);
-          assertQuantity(block.number, 1);
+          assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
           assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
           assert.deepEqual(
@@ -762,19 +746,16 @@ describe("Eth module", function () {
         });
 
         it("Should return null for unknown blocks", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(2),
+            numberToRpcQuantity(firstBlock + 2),
             false,
           ]);
 
           assert.isNull(block);
 
           const block2 = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(1),
+            numberToRpcQuantity(firstBlock + 1),
             true,
           ]);
 
@@ -782,50 +763,44 @@ describe("Eth module", function () {
         });
 
         it("Should return the new blocks", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
-          const genesisBlock: RpcBlockOutput = await this.provider.send(
+          const firstBlockNumber = await getFirstBlock();
+          const firstBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(0), false]
+            [numberToRpcQuantity(firstBlockNumber), false]
           );
 
           const txHash = await sendTxToZeroAddress(this.provider);
 
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(1), false]
+            [numberToRpcQuantity(firstBlockNumber + 1), false]
           );
 
-          assertQuantity(block.number, 1);
+          assertQuantity(block.number, firstBlockNumber + 1);
           assert.equal(block.transactions.length, 1);
-          assert.equal(block.parentHash, genesisBlock.hash);
+          assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
           assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
           assert.isEmpty(block.uncles);
         });
 
         it("should return the complete transactions if the second argument is true", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
-          const genesisBlock: RpcBlockOutput = await this.provider.send(
+          const firstBlockNumber = await getFirstBlock();
+          const firstBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(0), false]
+            [numberToRpcQuantity(firstBlockNumber), false]
           );
 
           const txHash = await sendTxToZeroAddress(this.provider);
 
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(1), true]
+            [numberToRpcQuantity(firstBlockNumber + 1), true]
           );
 
-          assertQuantity(block.number, 1);
+          assertQuantity(block.number, firstBlockNumber + 1);
           assert.equal(block.transactions.length, 1);
-          assert.equal(block.parentHash, genesisBlock.hash);
+          assert.equal(block.parentHash, firstBlock.hash);
           assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
           assert.isEmpty(block.uncles);
 
@@ -841,11 +816,34 @@ describe("Eth module", function () {
           );
         });
 
-        it("should return the right block total difficulty", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+        it(
+          "should return the right block total difficulty",
+          isFork ? testTotalDifficultyFork : testTotalDifficulty
+        );
+
+        async function testTotalDifficultyFork(this: Context) {
+          const forkBlockNumber = await getFirstBlock();
+          const forkBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(forkBlockNumber), false]
+          );
+
+          await sendTxToZeroAddress(this.provider);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(forkBlockNumber + 1), false]
+          );
+
+          assertQuantity(
+            block.totalDifficulty,
+            quantityToBN(forkBlock.totalDifficulty).add(
+              quantityToBN(block.difficulty)
+            )
+          );
+        }
+
+        async function testTotalDifficulty(this: Context) {
           const genesisBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             [numberToRpcQuantity(0), false]
@@ -865,7 +863,7 @@ describe("Eth module", function () {
             block.totalDifficulty,
             quantityToNumber(block.difficulty) + 1
           );
-        });
+        }
       });
 
       describe("eth_getBlockTransactionCountByHash", async function () {
@@ -910,13 +908,10 @@ describe("Eth module", function () {
 
       describe("eth_getBlockTransactionCountByNumber", async function () {
         it("should return null for non-existing blocks", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           assert.isNull(
             await this.provider.send("eth_getBlockTransactionCountByNumber", [
-              numberToRpcQuantity(1),
+              numberToRpcQuantity(firstBlock + 1),
             ])
           );
         });
@@ -931,15 +926,12 @@ describe("Eth module", function () {
         });
 
         it("Should return 1 for others", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
+          const firstBlock = await getFirstBlock();
           await sendTxToZeroAddress(this.provider);
 
           assertQuantity(
             await this.provider.send("eth_getBlockTransactionCountByNumber", [
-              numberToRpcQuantity(1),
+              numberToRpcQuantity(firstBlock + 1),
             ]),
             1
           );
@@ -1694,10 +1686,6 @@ describe("Eth module", function () {
         describe("Imitating Ganache", function () {
           describe("When a slot has not been written into", function () {
             it("Should return `0x0`, despite it not making any sense at all", async function () {
-              if (isFork) {
-                this.skip();
-                return;
-              }
               const exampleContract = await deployContract(
                 this.provider,
                 `0x${EXAMPLE_CONTRACT.bytecode.object}`

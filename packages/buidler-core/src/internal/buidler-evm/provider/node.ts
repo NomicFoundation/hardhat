@@ -15,6 +15,7 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
+  stripZeros,
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
@@ -561,6 +562,11 @@ export class BuidlerNode extends EventEmitter {
     //     EXPECTED_DATA_SIZE
     //   );
     // }
+
+    // TODO: remove this line once the above problem is solved
+    //  This is here to make ForkStateManager return values compatible with
+    //  the VM's state manager unpadded format
+    data = stripZeros(data);
 
     return data;
   }

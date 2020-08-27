@@ -6,10 +6,10 @@ import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
 describe("Web3 module", function () {
-  PROVIDERS.forEach((provider) => {
-    describe(`Provider ${provider.name}`, function () {
+  PROVIDERS.forEach(({ name, useProvider }) => {
+    describe(`Provider ${name}`, function () {
       setCWD();
-      provider.useProvider();
+      useProvider();
 
       describe("web3_clientVersion", async function () {
         // TODO: We skip this test for now. See the note in this call's

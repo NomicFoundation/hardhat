@@ -11,7 +11,6 @@ import {
   BITFINEX_WALLET_ADDRESS,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
-  EMPTY_ACCOUNT_ADDRESS,
   FIRST_TX_HASH_OF_10496585,
   INFURA_URL,
   WETH_ADDRESS,
@@ -54,39 +53,14 @@ describe("Forked provider", () => {
       const bnResult = new BN(toBuffer(result));
       assert.isTrue(bnResult.gtn(0));
     });
-
-    it("does not change the balance of from and to accounts", async function () {
-      await this.provider.send("eth_call", [
-        {
-          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-          to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-          value: numberToRpcQuantity(1),
-        },
-      ]);
-
-      await assertNodeBalances(this.provider, DEFAULT_ACCOUNTS_BALANCES);
-    });
   });
 
   describe("get_balance", function () {
-    it("returns 0 for empty accounts", async function () {
-      assertQuantity(
-        await this.provider.send("eth_getBalance", [
-          bufferToHex(EMPTY_ACCOUNT_ADDRESS),
-        ]),
-        0
-      );
-    });
-
     it("returns the balance of the WETH contract", async function () {
       const result = await this.provider.send("eth_getBalance", [
         bufferToHex(WETH_ADDRESS),
       ]);
       assert.isTrue(quantityToBN(result).gtn(0));
-    });
-
-    it("returns initial balances of genesis accounts", async function () {
-      await assertNodeBalances(this.provider, DEFAULT_ACCOUNTS_BALANCES);
     });
   });
 

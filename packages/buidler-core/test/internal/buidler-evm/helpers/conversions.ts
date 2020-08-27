@@ -18,6 +18,8 @@ export function quantityToBN(quantity: string): BN {
   return decode(quantity, rpcQuantity);
 }
 
+export const dataToNumber = quantityToNumber;
+
 export function dataToBN(data: string) {
   const buffer = decode(data, rpcData);
   return new BN(buffer);
