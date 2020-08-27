@@ -41,7 +41,7 @@
     "cbor": "^5.0.2",
     "ethereumjs-abi": "^0.6.8",
     "node-fetch": "^2.6.0",
-    "semver": "^7.3.2"
+    "semver": "^6.3.0"
   },
   "devDependencies": {
     "@nomiclabs/buidler": "^1.3.3",
@@ -50,8 +50,8 @@
     "@types/chai": "^4.2.0",
     "@types/ethereumjs-abi": "^0.6.3",
     "@types/nock": "^9.3.1",
-    "@types/node-fetch": "^2.5.7",
-    "@types/semver": "^7.3.1",
+    "@types/node-fetch": "^2.3.7",
+    "@types/semver": "^6.0.2",
     "chai": "^4.2.0",
     "ethers": "^5.0.8",
     "nock": "^10.0.6",

@@ -2,7 +2,7 @@ import { extendConfig, task } from "@nomiclabs/buidler/config";
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { ActionType } from "@nomiclabs/buidler/types";
 import path from "path";
-import SemverRange from "semver/classes/range";
+import semver from "semver";
 
 import { defaultEtherscanConfig } from "./config";
 import { pluginName } from "./pluginContext";
@@ -55,13 +55,15 @@ See https://etherscan.io/apis`
   );
   const solcVersionConfig = getVersionNumber(config.solc.version);
 
-  const supportedSolcVersionRange = new SemverRange(">=0.4.11");
+  const supportedSolcVersionRange = ">=0.4.11";
   // Etherscan only supports solidity versions higher than or equal to v0.4.11.
   // See https://etherscan.io/solcversions
   // TODO: perhaps querying and scraping this list would be a better approach?
   // This list should be validated - it links to https://github.com/ethereum/solc-bin/blob/gh-pages/bin/list.txt
   // which has many old compilers included in the list too.
-  if (!supportedSolcVersionRange.test(solcVersionConfig.toString())) {
+  if (
+    !semver.satisfies(solcVersionConfig.toString(), supportedSolcVersionRange)
+  ) {
     throw new NomicLabsBuidlerPluginError(
       pluginName,
       `Etherscan only supports compiler versions 0.4.11 and higher.

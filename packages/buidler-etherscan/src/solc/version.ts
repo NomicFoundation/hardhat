@@ -1,5 +1,5 @@
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import SemverRange from "semver/classes/range";
+import semver from "semver";
 
 import { pluginName } from "../pluginContext";
 
@@ -90,9 +90,9 @@ export async function inferSolcVersion(
       // The embedded metadata was successfully decoded but there was no solc version in it.
       const range = {
         isIncluded(version: SolcVersionNumber): boolean {
-          return this.range.test(version.toString());
+          return semver.satisfies(version.toString(), this.range);
         },
-        range: new SemverRange("0.4.7 - 0.5.8"),
+        range: "0.4.7 - 0.5.8",
         inferralType: InferralType.METADATA_PRESENT_VERSION_ABSENT,
         toString() {
           return this.range.toString();
@@ -104,9 +104,9 @@ export async function inferSolcVersion(
       // The decoding failed. Unfortunately, our only option is to assume that this bytecode was emitted by an old version.
       const range = {
         isIncluded(version: SolcVersionNumber): boolean {
-          return this.range.test(version.toString());
+          return semver.satisfies(version.toString(), this.range);
         },
-        range: new SemverRange("<0.4.7"),
+        range: "<0.4.7",
         inferralType: InferralType.METADATA_ABSENT,
         toString() {
           return this.range.toString();
