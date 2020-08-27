@@ -3,7 +3,10 @@ import { providers, Signer } from "ethers";
 
 // This file only exists to workaround this: https://github.com/EthWorks/Waffle/issues/281
 
-type Fixture<T> = (signers: Signer[], provider: providers.JsonRpcProvider) => Promise<T>;
+type Fixture<T> = (
+  signers: Signer[],
+  provider: providers.JsonRpcProvider
+) => Promise<T>;
 interface Snapshot<T> {
   fixture: Fixture<T>;
   data: T;
@@ -12,11 +15,14 @@ interface Snapshot<T> {
   signers: Signer[];
 }
 
-function createFixtureLoader(signers: Signer[], provider: providers.JsonRpcProvider) {
+function createFixtureLoader(
+  signers: Signer[],
+  provider: providers.JsonRpcProvider
+) {
   const snapshots: Array<Snapshot<any>> = [];
 
   return async function load<T>(fixture: Fixture<T>): Promise<T> {
-    const snapshot = snapshots.find(p => p.fixture === fixture);
+    const snapshot = snapshots.find((p) => p.fixture === fixture);
     if (snapshot !== undefined) {
       await snapshot.provider.send("evm_revert", [snapshot.id]);
       snapshot.id = await snapshot.provider.send("evm_snapshot", []);
@@ -35,7 +41,10 @@ function createFixtureLoader(signers: Signer[], provider: providers.JsonRpcProvi
 export function buidlerCreateFixtureLoader(
   buidlerWaffleProvider: MockProvider,
   overrideSigners: Signer[],
-  overrideProvider?: providers.JsonRpcProvider,
+  overrideProvider?: providers.JsonRpcProvider
 ) {
-  return createFixtureLoader(overrideSigners, overrideProvider ?? buidlerWaffleProvider);
+  return createFixtureLoader(
+    overrideSigners,
+    overrideProvider ?? buidlerWaffleProvider
+  );
 }

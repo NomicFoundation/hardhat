@@ -14,7 +14,7 @@ module.exports = {
   networks: {
     testnet: {
       url: process.env.TESTNET_NETWORK_URL,
-    }
+    },
   },
   paths: {
     artifacts: "artifacts-dir",

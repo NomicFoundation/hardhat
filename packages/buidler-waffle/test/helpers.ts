@@ -7,7 +7,10 @@ declare module "mocha" {
   }
 }
 
-export function useEnvironment(projectPath: string, networkName = "buidlerevm") {
+export function useEnvironment(
+  projectPath: string,
+  networkName = "buidlerevm"
+) {
   beforeEach("Loading buidler environment", function () {
     process.chdir(projectPath);
     process.env.BUIDLER_NETWORK = networkName;

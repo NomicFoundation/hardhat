@@ -15,7 +15,9 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
 You can use \`await bre.ethers.signers()\` in other networks.`);
     }
 
-    return (this._buidlerNetwork.config as BuidlerNetworkConfig).accounts!.map(acc => new Wallet(acc.privateKey, this));
+    return (this._buidlerNetwork.config as BuidlerNetworkConfig).accounts!.map(
+      (acc) => new Wallet(acc.privateKey, this)
+    );
   }
 
   public createEmptyWallet() {

@@ -14,27 +14,39 @@ describe("Waffle plugin plugin", function () {
 
           it("Should return a wallet for each of the default accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
-            const accounts = (defaultConfig.networks!.buidlerevm! as BuidlerNetworkConfig).accounts!;
+            const accounts = (defaultConfig.networks!
+              .buidlerevm! as BuidlerNetworkConfig).accounts!;
             assert.lengthOf(wallets, accounts.length);
 
             for (let i = 0; i < wallets.length; i++) {
-              assert.equal(wallets[i].privateKey.toLowerCase(), accounts[i].privateKey.toLowerCase());
+              assert.equal(
+                wallets[i].privateKey.toLowerCase(),
+                accounts[i].privateKey.toLowerCase()
+              );
             }
           });
         });
 
         describe("With customized buidlerevm accounts", function () {
-          useEnvironment(path.join(__dirname, "buidler-project-custom-accounts"));
+          useEnvironment(
+            path.join(__dirname, "buidler-project-custom-accounts")
+          );
 
           it("Should return a wallet for each of the custom accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
-            const accounts = require(path.join(__dirname, "buidler-project-custom-accounts", "buidler.config.js"))
-              .networks.buidlerevm.accounts;
+            const accounts = require(path.join(
+              __dirname,
+              "buidler-project-custom-accounts",
+              "buidler.config.js"
+            )).networks.buidlerevm.accounts;
 
             assert.lengthOf(wallets, accounts.length);
 
             for (let i = 0; i < wallets.length; i++) {
-              assert.equal(wallets[i].privateKey.toLowerCase(), accounts[i].privateKey.toLowerCase());
+              assert.equal(
+                wallets[i].privateKey.toLowerCase(),
+                accounts[i].privateKey.toLowerCase()
+              );
             }
           });
         });
@@ -44,7 +56,10 @@ describe("Waffle plugin plugin", function () {
         useEnvironment(path.join(__dirname, "buidler-project"), "localhost");
 
         it("Should throw an error", function () {
-          assert.throws(() => this.env.waffle.provider.getWallets(), "This method only works with Buidler EVM");
+          assert.throws(
+            () => this.env.waffle.provider.getWallets(),
+            "This method only works with Buidler EVM"
+          );
         });
       });
 
@@ -55,12 +70,16 @@ describe("Waffle plugin plugin", function () {
 
             it("Should return a wallet for each of the default accounts", function () {
               const wallets = this.env.waffle.provider.getWallets();
-              const accounts = (defaultConfig.networks!.buidlerevm! as BuidlerNetworkConfig).accounts!;
+              const accounts = (defaultConfig.networks!
+                .buidlerevm! as BuidlerNetworkConfig).accounts!;
 
               assert.lengthOf(wallets, accounts.length);
 
               for (let i = 0; i < wallets.length; i++) {
-                assert.equal(wallets[i].privateKey.toLowerCase(), accounts[i].privateKey.toLowerCase());
+                assert.equal(
+                  wallets[i].privateKey.toLowerCase(),
+                  accounts[i].privateKey.toLowerCase()
+                );
               }
             });
           });
