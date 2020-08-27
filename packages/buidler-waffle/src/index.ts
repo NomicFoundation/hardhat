@@ -21,7 +21,7 @@ export default function () {
         deployContract: buidlerDeployContract.bind(undefined, bre),
         deployMockContract: getDeployMockContract(),
         solidity: require("./waffle-chai"),
-        createFixtureLoader: buidlerCreateFixtureLoader.bind(buidlerWaffleProvider),
+        createFixtureLoader: buidlerCreateFixtureLoader.bind(undefined, buidlerWaffleProvider),
         loadFixture: buidlerCreateFixtureLoader(buidlerWaffleProvider),
         link: getLinkFunction(),
       };
