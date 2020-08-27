@@ -16,6 +16,7 @@ import {
 declare module "mocha" {
   interface Context {
     provider: EthereumProvider;
+    buidlerEVMProvider: BuidlerEVMProvider;
     server?: JsonRpcServer;
   }
 }
@@ -32,7 +33,7 @@ export function useProvider(
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE
 ) {
   beforeEach("Initialize provider", async function () {
-    this.provider = new BuidlerEVMProvider(
+    this.buidlerEVMProvider = new BuidlerEVMProvider(
       hardfork,
       networkName,
       chainId,
@@ -48,6 +49,7 @@ export function useProvider(
       undefined,
       forkConfig
     );
+    this.provider = this.buidlerEVMProvider;
 
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
@@ -63,6 +65,7 @@ export function useProvider(
 
   afterEach("Remove provider", async function () {
     delete this.provider;
+    delete this.buidlerEVMProvider;
 
     if (this.server !== undefined) {
       await this.server.close();
