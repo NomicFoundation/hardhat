@@ -2654,6 +2654,20 @@ describe("Eth module", function () {
           });
         });
 
+        it("Should return a valid transaction hash", async function () {
+          const hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          assert.match(hash, /^0x[a-f\d]{64}$/);
+        });
+
         it("Should work with just from and data", async function () {
           const firstBlock = await getFirstBlock();
           const hash = await this.provider.send("eth_sendTransaction", [
