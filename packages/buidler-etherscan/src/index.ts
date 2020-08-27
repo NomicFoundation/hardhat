@@ -73,7 +73,7 @@ See https://etherscan.io/solcversions for more information.`
   if (typeof constructorArgsModule === "string") {
     if (!path.isAbsolute(constructorArgsModule)) {
       // This ensures that the npm package namespace is ignored.
-      constructorArgsModule = path.join(".", constructorArgsModule);
+      constructorArgsModule = path.join(process.cwd(), constructorArgsModule);
     }
     try {
       constructorArguments = (await import(constructorArgsModule)).default;
