@@ -111,7 +111,7 @@ function getSignedTxHash(
 }
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
@@ -425,17 +425,8 @@ describe("Eth module", function () {
       });
 
       describe("eth_chainId", async function () {
-        before(function () {
-          if (isFork) {
-            this.skip();
-          }
-        });
-
         it("should return the chain id as QUANTITY", async function () {
-          assertQuantity(
-            await this.provider.send("eth_chainId"),
-            this.common.chainId()
-          );
+          assertQuantity(await this.provider.send("eth_chainId"), chainId);
         });
       });
 

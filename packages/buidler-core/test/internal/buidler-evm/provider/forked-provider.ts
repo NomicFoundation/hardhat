@@ -5,6 +5,7 @@ import {
   bufferToRpcData,
   numberToRpcQuantity,
 } from "../../../../src/internal/buidler-evm/provider/output";
+import { ForkConfig } from "../../../../src/types";
 import { assertNodeBalances, assertQuantity } from "../helpers/assertions";
 import {
   BITFINEX_WALLET_ADDRESS,
@@ -21,7 +22,7 @@ import { dataToBN, quantityToBN } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { useForkedProvider } from "../helpers/useForkedProvider";
 
-const FORK_CONFIG = { jsonRpcUrl: INFURA_URL, blockNumberOrHash: undefined };
+const FORK_CONFIG: ForkConfig = { jsonRpcUrl: INFURA_URL };
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", () => {

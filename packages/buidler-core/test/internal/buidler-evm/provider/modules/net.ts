@@ -5,7 +5,7 @@ import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/useProvider";
 
 describe("Net module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider, networkId }) => {
     describe(`Provider ${name}`, function () {
       setCWD();
       useProvider();
@@ -27,13 +27,9 @@ describe("Net module", function () {
 
       describe("net_version", async function () {
         it("Should return the network id as a decimal string, not QUANTITY", async function () {
-          if (isFork) {
-            this.skip();
-            return;
-          }
           assert.strictEqual(
             await this.provider.send("net_version"),
-            this.common.networkId().toString()
+            networkId.toString()
           );
         });
       });

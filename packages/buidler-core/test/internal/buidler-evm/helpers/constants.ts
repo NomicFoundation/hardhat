@@ -2,6 +2,8 @@
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 export const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
+export const INFURA_NETWORK_ID = 1;
+export const INFURA_CHAIN_ID = 1;
 
 export const DAI_ADDRESS = toBuffer(
   "0x6b175474e89094c44da98b954eedeac495271d0f"
