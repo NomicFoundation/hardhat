@@ -35,6 +35,9 @@ You need to add the following Etherscan config to your `buidler.config.js` file:
 
 ```js
 module.exports = {
+  networks: {
+    mainnet: { ... }
+  },
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
@@ -43,10 +46,10 @@ module.exports = {
 };
 ```
 
-Lastly, run the `verify` task like so:
+Lastly, run the `verify` task, passing the address of the contract, the network where it's deployed, and the constructor arguments that were used to deploy it (if any):
 
 ```bash
-npx buidler verify DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
+npx buidler verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
 
 ### Complex arguments
