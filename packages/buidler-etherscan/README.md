@@ -51,7 +51,20 @@ npx buidler verify DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 
 ### Complex arguments
 
-When the constructor has a complex argument list, it might be easier to write a javascript module that exports the argument list. The expected format is the same as a constructor list for an [ethers contract](https://docs.ethers.io/v5/api/contract/). E.g. suppose these are the contents of `arguments.js`:
+When the constructor has a complex argument list, it might be easier to write a javascript module that exports the argument list. The expected format is the same as a constructor list for an [ethers contract](https://docs.ethers.io/v5/api/contract/). For example, if you have a contract like this:
+
+```solidity
+struct Point {
+  uint x;
+  uint y;
+}
+
+contract Foo {
+  constructor (uint x, string s, Point memory point) { ... }
+}
+```
+
+then you can use an `arguments.js` file like this:
 
 ```js
 module.exports = [
@@ -64,7 +77,7 @@ module.exports = [
 ];
 ```
 
-The third argument describes a named tuple with fields `x` and `y`.
+Where the third argument represents the value for the `point` parameter.
 
 The module can then be loaded by the `verify` task when invoked like this:
 
@@ -74,7 +87,7 @@ npx buidler verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
 
 ## How it works
 
-The plugin queries the ethereum node to determine both the network and the deployed contract bytecode. Then it proceeds to infer which contract among the available source files present in the project is the one that compiles to the deployed bytecode. If the inference is successful, the plugin builds a contract source verification request and sends it to the Etherscan API.
+The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
 
 ## TypeScript support
 
