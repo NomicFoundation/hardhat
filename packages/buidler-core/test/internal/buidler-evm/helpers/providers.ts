@@ -29,6 +29,8 @@ export const DEFAULT_ACCOUNTS_BALANCES = DEFAULT_ACCOUNTS.map(
   (account) => account.balance
 );
 
+export const TEST_FORK_CONFIG = { jsonRpcUrl: INFURA_URL };
+
 export const PROVIDERS = [
   {
     name: "BuidlerEVM",
@@ -54,7 +56,7 @@ export const PROVIDERS = [
     networkId: INFURA_NETWORK_ID,
     chainId: INFURA_CHAIN_ID,
     useProvider: () => {
-      useProvider(false, { jsonRpcUrl: INFURA_URL });
+      useProvider(false, TEST_FORK_CONFIG);
     },
   },
 ];

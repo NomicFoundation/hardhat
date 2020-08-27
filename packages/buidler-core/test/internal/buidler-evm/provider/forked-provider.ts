@@ -2,41 +2,43 @@ import { assert } from "chai";
 import { BN, bufferToHex, setLength, toBuffer } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
-import { ForkConfig } from "../../../../src/types";
 import { assertQuantity } from "../helpers/assertions";
 import {
   BITFINEX_WALLET_ADDRESS,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
   FIRST_TX_HASH_OF_10496585,
-  INFURA_URL,
   WETH_ADDRESS,
 } from "../helpers/constants";
 import { dataToBN, quantityToBN } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
-import { DEFAULT_ACCOUNTS_ADDRESSES } from "../helpers/providers";
+import {
+  DEFAULT_ACCOUNTS_ADDRESSES,
+  TEST_FORK_CONFIG,
+} from "../helpers/providers";
 import { useProvider } from "../helpers/useProvider";
 
-const FORK_CONFIG: ForkConfig = { jsonRpcUrl: INFURA_URL };
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", () => {
-  useProvider(false, FORK_CONFIG);
+  useProvider(false, TEST_FORK_CONFIG);
   setCWD();
 
   it("knows the fork config", function () {
     const config = (this.provider as any)._forkConfig;
-    assert.deepEqual(config, FORK_CONFIG);
+    assert.deepEqual(config, TEST_FORK_CONFIG);
   });
 
-  it("can get the current block number", async function () {
-    const blockNumber = await this.provider.send("eth_blockNumber");
-    const minBlockNumber = 10494745; // mainnet block number at 20.07.20
-    assert.isAtLeast(parseInt(blockNumber, 16), minBlockNumber);
+  describe("eth_blockNumber", () => {
+    it("returns the current block number", async function () {
+      const blockNumber = await this.provider.send("eth_blockNumber");
+      const minBlockNumber = 10494745; // mainnet block number at 20.07.2020
+      assert.isAtLeast(parseInt(blockNumber, 16), minBlockNumber);
+    });
   });
 
   describe("eth_call", function () {
-    it("is able to return DAI total supply", async function () {
+    it("can get DAI total supply", async function () {
       const daiTotalSupplySelector = "0x18160ddd";
       const daiAddress = bufferToHex(DAI_ADDRESS);
 
@@ -50,7 +52,7 @@ describe("Forked provider", () => {
   });
 
   describe("get_balance", function () {
-    it("returns the balance of the WETH contract", async function () {
+    it("can get the balance of the WETH contract", async function () {
       const result = await this.provider.send("eth_getBalance", [
         bufferToHex(WETH_ADDRESS),
       ]);
@@ -182,7 +184,7 @@ describe("Forked provider", () => {
   });
 
   describe("eth_getLogs", () => {
-    it("supports getting remote logs", async function () {
+    it("can get remote logs", async function () {
       const logs = await this.provider.send("eth_getLogs", [
         {
           fromBlock: numberToRpcQuantity(BLOCK_NUMBER_OF_10496585),
@@ -195,7 +197,7 @@ describe("Forked provider", () => {
   });
 
   describe("evm_revert", () => {
-    it("reverts the state of WETH contract to a previous snapshot", async function () {
+    it("can revert the state of WETH contract to a previous snapshot", async function () {
       const getWethBalance = async () =>
         this.provider.send("eth_getBalance", [bufferToHex(WETH_ADDRESS)]);
 
