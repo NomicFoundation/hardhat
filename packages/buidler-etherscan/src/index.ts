@@ -169,8 +169,7 @@ Possible causes are:
 
 Possible causes are:
   - Contract sources changed since the compilation that was deployed. This includes seemingly unrelated contracts.
-  - A solidity file was moved or renamed. This includes seemingly unrelated contracts.
-  - New Solidity files were added after the deployment was executed.
+  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes seemingly unrelated contracts.
   - Solidity compiler settings were modified since the deployment (like the optimizer, target EVM, etc.)
   - The given address is wrong.
   - The selected network (${network.name}) is wrong.`;

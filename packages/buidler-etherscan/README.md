@@ -102,7 +102,7 @@ The plugin works by fetching the bytecode in the given address and using it to c
 
 - Contracts with linked libraries are supported, but libraries themselves can’t be verified on their own yet.
 - Cases where more than one contract correspond to the same bytecode aren’t supported.
-- Adding new contracts to the buidler project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
+- Adding, removing, moving or renaming new contracts to the buidler project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
 
 ## TypeScript support
 
