@@ -26,7 +26,7 @@ const verify: ActionType<VerificationArgs> = async (
 ) => {
   const { etherscan } = config;
 
-  if (etherscan.apiKey.trim() === "") {
+  if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
     throw new NomicLabsBuidlerPluginError(
       pluginName,
       `Please provide an Etherscan API token via buidler config.
