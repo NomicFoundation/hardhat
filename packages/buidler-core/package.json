@@ -69,6 +69,7 @@
     "@types/ws": "^7.2.1",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
+    "ethers": "^5.0.0",
     "sinon": "^9.0.0",
     "time-require": "^0.1.2"
   },
