@@ -1,18 +1,26 @@
 import { assert } from "chai";
 import { BN, bufferToHex, setLength, toBuffer } from "ethereumjs-util";
+// tslint:disable-next-line:no-implicit-dependencies
+import { Contract, utils, Wallet } from "ethers";
 
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
+import ERC20Abi from "../abi/ERC20/ERC20.json";
+import UniswapExchangeAbi from "../abi/Uniswap/Exchange.json";
+import UniswapFactoryAbi from "../abi/Uniswap/Factory.json";
 import { assertQuantity } from "../helpers/assertions";
 import {
   BITFINEX_WALLET_ADDRESS,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
   FIRST_TX_HASH_OF_10496585,
+  UNISWAP_FACTORY_ADDRESS,
   WETH_ADDRESS,
 } from "../helpers/constants";
 import { dataToBN, quantityToBN } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
+import { EthersProviderWrapper } from "../helpers/ethers-provider-wrapper";
 import {
+  DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
   TEST_FORK_CONFIG,
 } from "../helpers/providers";
@@ -218,6 +226,68 @@ describe("Forked provider", () => {
       const reverted = await this.provider.send("evm_revert", [snapshotId]);
       assert.isTrue(reverted);
       assert.equal(await getWethBalance(), initialBalance);
+    });
+  });
+
+  describe("Tests on remote contracts", () => {
+    describe("Uniswap", () => {
+      let wallet: Wallet;
+      let factory: Contract;
+      let daiExchange: Contract;
+      let dai: Contract;
+
+      beforeEach(async function () {
+        const ethersProvider = new EthersProviderWrapper(this.provider);
+        wallet = new Wallet(DEFAULT_ACCOUNTS[0].privateKey, ethersProvider);
+
+        factory = new Contract(
+          UNISWAP_FACTORY_ADDRESS,
+          UniswapFactoryAbi,
+          ethersProvider
+        );
+
+        const daiExchangeAddress = await factory.getExchange(
+          bufferToHex(DAI_ADDRESS)
+        );
+
+        daiExchange = new Contract(
+          daiExchangeAddress,
+          UniswapExchangeAbi,
+          wallet
+        );
+
+        dai = new Contract(bufferToHex(DAI_ADDRESS), ERC20Abi, ethersProvider);
+      });
+
+      it("can buy DAI for Ether", async function () {
+        const ethBefore = await wallet.getBalance();
+        const daiBefore = await dai.balanceOf(wallet.address);
+        assert.equal(daiBefore.toNumber(), 0);
+
+        const expectedDai = await daiExchange.getEthToTokenInputPrice(
+          utils.parseEther("0.5")
+        );
+        assert.isTrue(expectedDai.gt(0));
+
+        await daiExchange.ethToTokenSwapInput(
+          1, // min amount of token retrieved
+          2525644800, // random timestamp in the future (year 2050)
+          {
+            gasLimit: 4000000,
+            value: utils.parseEther("0.5"),
+          }
+        );
+
+        const ethAfter = await wallet.getBalance();
+        const daiAfter = await dai.balanceOf(wallet.address);
+
+        const ethLost = parseFloat(
+          utils.formatUnits(ethBefore.sub(ethAfter), "ether")
+        );
+
+        assert.equal(daiAfter.toString(), expectedDai.toString());
+        assert.closeTo(ethLost, 0.5, 0.001);
+      });
     });
   });
 });
