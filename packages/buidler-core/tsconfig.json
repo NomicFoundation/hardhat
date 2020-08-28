@@ -2,6 +2,7 @@
   "extends": "../../config/typescript/tsconfig.json",
   "compilerOptions": {
     "outDir": "./build-test",
+    "resolveJsonModule": true,
     "rootDirs": ["./test"]
   },
   "include": ["./test/**/*.ts"],
