@@ -12,6 +12,9 @@ Overall the tool is unopinionated in terms of what tools you end up using, but i
 
 ## Installation
 
+### Pre-requisites
+You'll need to have node.js installed in order to use `npm`. Node versions `>=10` work, and we recommend using node version `12` for compatibility with other tools. See the [tutorial](../tutorial/README.md) for detailed node setup instructions. 
+
 ### Local installation (recommended)
 
 The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
