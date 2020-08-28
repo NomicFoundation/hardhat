@@ -102,7 +102,7 @@ AVAILABLE TASKS:
 To get help for a specific task run: npx buidler help [task]
 ```
 
-This is the list of tasks available to run. If you have any plugins, tasks defined by those will also show up here. For now, it's just the list of out-of-the-box tasks.
+This is the list of tasks available to run. If you have any plugins, tasks defined by those will also show up here. In this example, we've added the accounts task to our `buidler.config.js` file.
 
 Let's try running the **accounts** task.
 
