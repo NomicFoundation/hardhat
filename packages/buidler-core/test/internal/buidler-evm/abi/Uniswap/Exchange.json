@@ -142,8 +142,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 175875
+        "type": "function"
     },
     {
         "name": "addLiquidity",
@@ -169,8 +168,7 @@
         ],
         "constant": false,
         "payable": true,
-        "type": "function",
-        "gas": 82616
+        "type": "function"
     },
     {
         "name": "removeLiquidity",
@@ -204,8 +202,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 116814
+        "type": "function"
     },
     {
         "name": "__default__",
@@ -235,8 +232,7 @@
         ],
         "constant": false,
         "payable": true,
-        "type": "function",
-        "gas": 12757
+        "type": "function"
     },
     {
         "name": "ethToTokenTransferInput",
@@ -262,8 +258,7 @@
         ],
         "constant": false,
         "payable": true,
-        "type": "function",
-        "gas": 12965
+        "type": "function"
     },
     {
         "name": "ethToTokenSwapOutput",
@@ -285,8 +280,7 @@
         ],
         "constant": false,
         "payable": true,
-        "type": "function",
-        "gas": 50463
+        "type": "function"
     },
     {
         "name": "ethToTokenTransferOutput",
@@ -312,8 +306,7 @@
         ],
         "constant": false,
         "payable": true,
-        "type": "function",
-        "gas": 50671
+        "type": "function"
     },
     {
         "name": "tokenToEthSwapInput",
@@ -339,8 +332,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 47503
+        "type": "function"
     },
     {
         "name": "tokenToEthTransferInput",
@@ -370,8 +362,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 47712
+        "type": "function"
     },
     {
         "name": "tokenToEthSwapOutput",
@@ -397,8 +388,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 50175
+        "type": "function"
     },
     {
         "name": "tokenToEthTransferOutput",
@@ -428,8 +418,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 50384
+        "type": "function"
     },
     {
         "name": "tokenToTokenSwapInput",
@@ -463,8 +452,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 51007
+        "type": "function"
     },
     {
         "name": "tokenToTokenTransferInput",
@@ -502,8 +490,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 51098
+        "type": "function"
     },
     {
         "name": "tokenToTokenSwapOutput",
@@ -537,8 +524,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 54928
+        "type": "function"
     },
     {
         "name": "tokenToTokenTransferOutput",
@@ -576,8 +562,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 55019
+        "type": "function"
     },
     {
         "name": "tokenToExchangeSwapInput",
@@ -611,8 +596,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 49342
+        "type": "function"
     },
     {
         "name": "tokenToExchangeTransferInput",
@@ -650,8 +634,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 49532
+        "type": "function"
     },
     {
         "name": "tokenToExchangeSwapOutput",
@@ -685,8 +668,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 53233
+        "type": "function"
     },
     {
         "name": "tokenToExchangeTransferOutput",
@@ -724,8 +706,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 53423
+        "type": "function"
     },
     {
         "name": "getEthToTokenInputPrice",
@@ -743,8 +724,7 @@
         ],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 5542
+        "type": "function"
     },
     {
         "name": "getEthToTokenOutputPrice",
@@ -762,8 +742,7 @@
         ],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 6872
+        "type": "function"
     },
     {
         "name": "getTokenToEthInputPrice",
@@ -781,8 +760,7 @@
         ],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 5637
+        "type": "function"
     },
     {
         "name": "getTokenToEthOutputPrice",
@@ -800,8 +778,7 @@
         ],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 6897
+        "type": "function"
     },
     {
         "name": "tokenAddress",
@@ -814,8 +791,7 @@
         "inputs": [],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1413
+        "type": "function"
     },
     {
         "name": "factoryAddress",
@@ -828,8 +804,7 @@
         "inputs": [],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1443
+        "type": "function"
     },
     {
         "name": "balanceOf",
@@ -847,8 +822,7 @@
         ],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1645
+        "type": "function"
     },
     {
         "name": "transfer",
@@ -870,8 +844,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 75034
+        "type": "function"
     },
     {
         "name": "transferFrom",
@@ -897,8 +870,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 110907
+        "type": "function"
     },
     {
         "name": "approve",
@@ -920,8 +892,7 @@
         ],
         "constant": false,
         "payable": false,
-        "type": "function",
-        "gas": 38769
+        "type": "function"
     },
     {
         "name": "allowance",
@@ -943,8 +914,7 @@
         ],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1925
+        "type": "function"
     },
     {
         "name": "name",
@@ -957,8 +927,7 @@
         "inputs": [],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1623
+        "type": "function"
     },
     {
         "name": "symbol",
@@ -971,8 +940,7 @@
         "inputs": [],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1653
+        "type": "function"
     },
     {
         "name": "decimals",
@@ -985,8 +953,7 @@
         "inputs": [],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1683
+        "type": "function"
     },
     {
         "name": "totalSupply",
@@ -999,7 +966,6 @@
         "inputs": [],
         "constant": true,
         "payable": false,
-        "type": "function",
-        "gas": 1713
+        "type": "function"
     }
 ]
