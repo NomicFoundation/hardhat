@@ -39,6 +39,7 @@ export const ERROR_RANGES: {
   ARTIFACTS: { min: 700, max: 799, title: "Artifacts related errors" },
   PLUGINS: { min: 800, max: 899, title: "Plugin system errors" },
   INTERNAL: { min: 900, max: 999, title: "Internal Buidler errors" },
+  SOURCE_NAMES: { min: 1000, max: 1100, title: "Source name errors" },
 };
 
 export const ERRORS = {
@@ -819,6 +820,85 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       description: `The inferred artifact path doesn't exist.
 
 Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+      shouldBeReported: true,
+    },
+  },
+  SOURCE_NAMES: {
+    INVALID_SOURCE_NAME_ABSOLUTE_PATH: {
+      number: 1000,
+      message:
+        "Invalid source name %name%. Expected source name but found an absolute path.",
+      title: "Invalid source name: absolute path",
+      description: `A Solidity source name was expected, but an absolute path was given.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    INVALID_SOURCE_NAME_RELATIVE_PATH: {
+      number: 1001,
+      message:
+        "Invalid source name %name%. Expected source name but found an absolute path.",
+      title: "Invalid source name: relative path",
+      description: `A Solidity source name was expected, but a relative path was given.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    INVALID_SOURCE_NAME_BACKSLASHES: {
+      number: 1002,
+      message:
+        "Invalid source %name%. The source name uses backslashes (\\) instead of slashes (/).",
+      title: "Invalid source name: backslashes",
+      description: `A Solidity source name was invalid because it uses backslashes (\\) instead of slashes (/).
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    INVALID_SOURCE_NOT_NORMALIZED: {
+      number: 1003,
+      message: "Invalid source name %name%. Source names must be normalized",
+      title: "Invalid source name: not normalized",
+      description: `A Solidity source name was invalid because it wasn't normalized. It probably contains some "." or "..".
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    WRONG_CASING: {
+      number: 1004,
+      message:
+        "Invalid source map %incorrect%, its correct case-sensitive source name is %correct%",
+      title: "Incorrect source name casing",
+      description: `You tried to resolve a Solidity file with an incorrect casing.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: true,
+    },
+    FILE_NOT_FOUND: {
+      number: 1005,
+      message: "Solidity source file %name% not found",
+      title: "Solidity source file not found",
+      description: `A source name should correspond to an existing Solidity file but it doesn't.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: true,
+    },
+    NODE_MODULES_AS_LOCAL: {
+      number: 1006,
+      message:
+        "The file %path% is treated as local but is inside a node_modules directory",
+      title: "File from node_modules treated as local",
+      description: `A file was treated as local but is inside a node_modules directory.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    EXTERNAL_AS_LOCAL: {
+      number: 1007,
+      message: "The file %path% is treated as local but is outside the project",
+      title: "File from outside the project treated as local",
+      description: `A file was treated as local but is outside the project.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
       shouldBeReported: true,
     },
   },
