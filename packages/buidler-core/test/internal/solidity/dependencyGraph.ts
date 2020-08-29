@@ -274,12 +274,8 @@ describe("Dependency Graph", function () {
     });
 
     it("should work with cyclic dependencies", async () => {
-      const fileA = await localResolver.resolveProjectSourceFile(
-        "contracts/A.sol"
-      );
-      const fileB = await localResolver.resolveProjectSourceFile(
-        "contracts/B.sol"
-      );
+      const fileA = await localResolver.resolveSourceName("contracts/A.sol");
+      const fileB = await localResolver.resolveSourceName("contracts/B.sol");
 
       const graph = await DependencyGraph.createFromResolvedFiles(
         localResolver,
