@@ -243,10 +243,20 @@ describe("Resolver", function () {
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         );
 
-        await expectBuidlerErrorAsync(
-          () => resolver.resolveSourceName("liB/l.sol"),
-          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
-        );
+        // This error is platform dependant, as when resolving a library name
+        // we use node's resolution algorithm, and it's case-sensitive or not
+        // depending on the platform.
+        if (process.platform === "win32" || process.platform === "darwin") {
+          await expectBuidlerErrorAsync(
+            () => resolver.resolveSourceName("liB/l.sol"),
+            ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+          );
+        } else {
+          await expectBuidlerErrorAsync(
+            () => resolver.resolveSourceName("liB/l.sol"),
+            ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
+          );
+        }
       });
 
       it("Should fail if the library is not installed", async function () {
