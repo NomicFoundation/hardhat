@@ -51,6 +51,16 @@ export class BuidlerError extends CustomError {
     );
   }
 
+  public static isBuidlerErrorType(
+    other: any,
+    descriptor: ErrorDescriptor
+  ): other is BuidlerError {
+    return (
+      BuidlerError.isBuidlerError(other) &&
+      other.errorDescriptor.number === descriptor.number
+    );
+  }
+
   public readonly errorDescriptor: ErrorDescriptor;
   public readonly number: number;
 
