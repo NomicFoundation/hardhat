@@ -14,7 +14,13 @@ export function getErrorCode(error: ErrorDescriptor): string {
   return `${ERROR_PREFIX}${error.number}`;
 }
 
-export const ERROR_RANGES = {
+export const ERROR_RANGES: {
+  [category in keyof typeof ERRORS]: {
+    min: number;
+    max: number;
+    title: string;
+  };
+} = {
   GENERAL: { min: 0, max: 99, title: "General errors" },
   NETWORK: { min: 100, max: 199, title: "Network related errors" },
   TASK_DEFINITIONS: {
@@ -35,11 +41,7 @@ export const ERROR_RANGES = {
   INTERNAL: { min: 900, max: 999, title: "Internal Buidler errors" },
 };
 
-export const ERRORS: {
-  [category in keyof typeof ERROR_RANGES]: {
-    [errorName: string]: ErrorDescriptor;
-  };
-} = {
+export const ERRORS = {
   GENERAL: {
     NOT_INSIDE_PROJECT: {
       number: 1,
@@ -821,3 +823,15 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     },
   },
 };
+
+/**
+ * Setting the type of ERRORS to a map let us access undefined ones. Letting it
+ * be a literal doesn't enforce that its values are of type ErrorDescriptor.
+ *
+ * We let it be a literal, and use this variable to enforce the types
+ */
+const _PHONY_VARIABLE_TO_FORCE_ERRORS_TO_BE_OF_TYPE_ERROR_DESCRIPTOR: {
+  [category: string]: {
+    [name: string]: ErrorDescriptor;
+  };
+} = ERRORS;
