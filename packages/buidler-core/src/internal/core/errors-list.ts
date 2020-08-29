@@ -544,6 +544,7 @@ Please double check how you invoked Buidler or run your task.`,
       description: `Tried to resolve a non-existing Solidity file as an entry-point.`,
       shouldBeReported: false,
     },
+    // Deprecated: This error was replaced by one that includes more context
     FILE_OUTSIDE_PROJECT: {
       number: 401,
       message: "File %file% is outside the project.",
@@ -553,6 +554,7 @@ Please double check how you invoked Buidler or run your task.`,
 This is disabled for security reasons.`,
       shouldBeReported: false,
     },
+    // Deprecated: This error was replaced by one that includes more context
     LIBRARY_FILE_NOT_LOCAL: {
       number: 402,
       message:
@@ -590,6 +592,7 @@ Please double check your imports or update your libraries.`,
 This is disabled for security reasons.`,
       shouldBeReported: false,
     },
+    // Deprecated:  This error was replaced by one with more context
     FILE_OUTSIDE_LIB: {
       number: 406,
       message:
@@ -607,6 +610,76 @@ This is disabled for security reasons.`,
       description: `One of your source files imported a non-existing one. 
 
 Please double check your imports.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_BACKSLASH: {
+      number: 408,
+      message:
+        "Invalid import %imported% from %from%. Imports must use / instead of \\",
+      title: "Invalid import: use / instead of \\",
+      description: `A Solidity file is trying to import another one with its relative path and is using backslashes (\\) insteado of slashes (/).
+      
+You must always use slashes (/) in Solidity imports.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_PROTOCOL: {
+      number: 409,
+      message:
+        "Invalid import %imported% from %from%. Buidler doesn't support imports via %protocol%.",
+      title: "Invalid import: trying to use an unsupported protocol",
+      description: `A Solidity file is trying to import another one with using an unsupported protocol, like http.
+      
+You can only import files thar are available locally or installed through npm.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_ABSOLUTE_PATH: {
+      number: 410,
+      message:
+        "Invalid import %imported% from %from%. Buidler doesn't support imports with absolute paths.",
+      title: "Invalid import: absolute paths unsupported",
+      description: `A Solidity file is trying to import another one with using its absolute path.
+      
+This is not supported, as it would lead to hard to reproduce compilations.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_OUTSIDE_OF_PROJECT: {
+      number: 411,
+      message:
+        "Invalid import %imported% from %from%. The file being imported is outside of the project",
+      title: "Invalid import: file outside of the project",
+      description: `A Solidity file is trying to import another one that is outside of the project.
+      
+This is not supported by Buidler.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_WRONG_CASING: {
+      number: 412,
+      message:
+        "Trying to import %imported% from %from%, but it has an incorrect casing.",
+      title: "Invalid import: wrong file casing",
+      description: `A Solidity file is trying to import another one but its source name casing was wrong.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: false,
+    },
+    WRONG_SOURCE_NAME_CASING: {
+      number: 413,
+      message:
+        "Trying to resolve the file %incorrect% but its correct case-sensitive name is %correct%",
+      title: "Incorrect source name casing",
+      description: `You tried to resolve a Solidity file with an incorrect casing.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: false,
+    },
+    IMPORTED_LIBRARY_NOT_INSTALLED: {
+      number: 414,
+      message:
+        "The library %library%, imported from %from%, is not installed. Try installing it using npm.",
+      title: "Invalid import: library not installed",
+      description: `A Solidity file is trying to import another which belongs to a library that is not installed.
+      
+Try installing the library using npm.`,
       shouldBeReported: false,
     },
   },

@@ -1,10 +1,12 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
+import slash from "slash";
 
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Parser } from "../../../src/internal/solidity/parse";
 import {
+  LibraryInfo,
   ResolvedFile,
   Resolver,
 } from "../../../src/internal/solidity/resolver";
@@ -96,500 +98,370 @@ describe("Resolved file", function () {
   });
 });
 
+async function assertResolvedFile2(
+  resolverPromise: Promise<ResolvedFile>,
+  expectedSourceName: string,
+  filePath: string,
+  libraryInfo?: LibraryInfo
+) {
+  const resolved = await resolverPromise;
+  const absolutePath = await fsExtra.realpath(filePath);
+
+  assert.equal(resolved.globalName, expectedSourceName);
+  assert.equal(resolved.absolutePath, absolutePath);
+  assert.deepEqual(resolved.library, libraryInfo);
+
+  const { ctime } = await fsExtra.stat(absolutePath);
+  assert.equal(resolved.lastModificationDate.valueOf(), ctime.valueOf());
+}
+
 describe("Resolver", function () {
-  describe("Project's files resolution", function () {
-    const projectName = "top-level-node-project";
-    useFixtureProject(projectName);
+  const projectName = "resolver-tests-project";
+  useFixtureProject(projectName);
+  let resolver: Resolver;
+  let projectPath: string;
 
-    let resolver: Resolver;
-    before("Get project root", async function () {
-      resolver = new Resolver(
-        await getFixtureProjectPath(projectName),
-        new Parser({})
-      );
-    });
-
-    it("should resolve from absolute paths", async function () {
-      const absolutePath = await fsExtra.realpath("contracts/A.sol");
-      const { ctime } = await fsExtra.stat(absolutePath);
-      const resolved = await resolver.resolveProjectSourceFile(absolutePath);
-
-      assertResolvedFile(resolved, {
-        globalName: "contracts/A.sol",
-        absolutePath,
-        content: buildContent("A"),
-        lastModificationDate: ctime,
-        library: undefined,
-      });
-
-      const absolutePath2 = await fsExtra.realpath("contracts/subdir/C.sol");
-      const { ctime: ctime2 } = await fsExtra.stat(absolutePath2);
-      const resolved2 = await resolver.resolveProjectSourceFile(absolutePath2);
-
-      assertResolvedFile(resolved2, {
-        globalName: "contracts/subdir/C.sol",
-        absolutePath: absolutePath2,
-        content: buildContent("C"),
-        lastModificationDate: ctime2,
-        library: undefined,
-      });
-    });
-
-    it("should resolve from the global name", async function () {
-      const absolutePath = await fsExtra.realpath("contracts/B.sol");
-      const { ctime } = await fsExtra.stat(absolutePath);
-      const resolved = await resolver.resolveProjectSourceFile(
-        "contracts/B.sol"
-      );
-
-      assertResolvedFile(resolved, {
-        globalName: "contracts/B.sol",
-        absolutePath,
-        content: buildContent("B"),
-        lastModificationDate: ctime,
-        library: undefined,
-      });
-    });
-
-    it("should resolve from a path relative to the project root", async function () {
-      const absolutePath = await fsExtra.realpath("contracts/B.sol");
-      const { ctime } = await fsExtra.stat(absolutePath);
-      const resolved = await resolver.resolveProjectSourceFile(
-        "./contracts/subdir/../B.sol"
-      );
-
-      assertResolvedFile(resolved, {
-        globalName: "contracts/B.sol",
-        absolutePath,
-        content: buildContent("B"),
-        lastModificationDate: ctime,
-        library: undefined,
-      });
-    });
-
-    it("should throw if a library file is resolved as a source file", async function () {
-      const absolutePath = await fsExtra.realpath(
-        "./node_modules/lib/contracts/L.sol"
-      );
-
-      await expectBuidlerErrorAsync(
-        () =>
-          resolver.resolveProjectSourceFile(
-            "./node_modules/lib/contracts/L.sol"
-          ),
-        ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL
-      );
-
-      await expectBuidlerErrorAsync(
-        () => resolver.resolveProjectSourceFile(absolutePath),
-        ERRORS.RESOLVER.LIBRARY_FILE_NOT_LOCAL
-      );
-    });
-
-    it("should throw if the file doesn't exist", async function () {
-      await expectBuidlerErrorAsync(
-        () => resolver.resolveProjectSourceFile("./contracts/NOT-FOUND.sol"),
-        ERRORS.RESOLVER.FILE_NOT_FOUND
-      );
-
-      await expectBuidlerErrorAsync(
-        () =>
-          resolver.resolveProjectSourceFile(
-            "./node_modules/lib/contracts/NOT-FOUND.sol"
-          ),
-        ERRORS.RESOLVER.FILE_NOT_FOUND
-      );
-    });
-
-    it("should throw if the file is outside of the project root", async function () {
-      await expectBuidlerErrorAsync(
-        () =>
-          resolver.resolveProjectSourceFile(
-            path.join(
-              __dirname,
-              "..",
-              "..",
-              "..",
-              "sample-project",
-              "contracts",
-              "Greeter.sol"
-            )
-          ),
-        ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT
-      );
-    });
+  before("Get project path", async function () {
+    projectPath = await getFixtureProjectPath(projectName);
   });
 
-  describe("Library files resolution", function () {
-    describe("With node_modules in the project root", function () {
-      const projectName = "top-level-node-project";
-      useFixtureProject(projectName);
+  beforeEach("Init resolver", async function () {
+    resolver = new Resolver(projectPath, new Parser({}));
+  });
 
-      let resolver: Resolver;
-      before("Get project root", async function () {
-        resolver = new Resolver(
-          await getFixtureProjectPath(projectName),
-          new Parser({})
+  describe("resolveSourceName", function () {
+    it("Should validate the source name format", async function () {
+      await expectBuidlerErrorAsync(
+        () => resolver.resolveSourceName("asd\\asd"),
+        ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_BACKSLASHES
+      );
+
+      await expectBuidlerErrorAsync(
+        () => resolver.resolveSourceName(slash(__dirname)),
+        ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH
+      );
+    });
+
+    describe("Local vs library distinction", function () {
+      it("Should be local if it exists in the project", async function () {
+        await assertResolvedFile2(
+          resolver.resolveSourceName("contracts/c.sol"),
+          "contracts/c.sol",
+          path.join(projectPath, "contracts/c.sol")
         );
       });
 
-      it("Should throw if the library isn't installed", async function () {
+      it("Should be a library if it starts with node_modules", async function () {
         await expectBuidlerErrorAsync(
-          () => resolver.resolveLibrarySourceFile("uninstalled/A.sol"),
+          () => resolver.resolveSourceName("node_modules/lib/l.sol"),
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         );
       });
 
-      it("Should throw if the library is installed but the file is not found", async function () {
+      it("Should be local if its first directory exists in the project, even it it doesn't exist", async function () {
         await expectBuidlerErrorAsync(
-          () => resolver.resolveLibrarySourceFile("lib/NOT-FOUND.sol"),
+          () => resolver.resolveSourceName("contracts/non-existent.sol"),
+          ERRORS.RESOLVER.FILE_NOT_FOUND
+        );
+      });
+
+      it("Should be a library its first directory doesn't exist in the project", async function () {
+        await assertResolvedFile2(
+          resolver.resolveSourceName("lib/l.sol"),
+          "lib/l.sol",
+          path.join(projectPath, "node_modules/lib/l.sol"),
+          { name: "lib", version: "1.0.0" }
+        );
+      });
+    });
+
+    describe("Local files", function () {
+      it("Should resolve an existing file", async function () {
+        await assertResolvedFile2(
+          resolver.resolveSourceName("contracts/c.sol"),
+          "contracts/c.sol",
+          path.join(projectPath, "contracts/c.sol")
+        );
+
+        await assertResolvedFile2(
+          resolver.resolveSourceName("other/o.sol"),
+          "other/o.sol",
+          path.join(projectPath, "other/o.sol")
+        );
+      });
+
+      it("Should fail if the casing is incorrect", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("contracts/C.sol"),
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("contracts/c.Sol"),
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("contractS/c.sol"),
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+        );
+      });
+
+      it("Should fail with FILE_NOT_FOUND if the first directory exists but the file doesn't", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("contracts/non-existent.sol"),
+          ERRORS.RESOLVER.FILE_NOT_FOUND
+        );
+      });
+
+      it("Should fail with FILE_NOT_FOUND if the first directory exists but the file doesn't, even if the casing of the first dir is wrong", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("contractS/non-existent.sol"),
+          ERRORS.RESOLVER.FILE_NOT_FOUND
+        );
+      });
+    });
+
+    describe("Library files", function () {
+      it("Should resolve to the node_modules file", async function () {
+        await assertResolvedFile2(
+          resolver.resolveSourceName("lib/l.sol"),
+          "lib/l.sol",
+          path.join(projectPath, "node_modules/lib/l.sol"),
+          { name: "lib", version: "1.0.0" }
+        );
+      });
+
+      it("Should fail if the casing is incorrect", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("lib/L.sol"),
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("lib/l.Sol"),
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("liB/l.sol"),
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+        );
+      });
+
+      it("Should fail if the library is not installed", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("not-installed/l.sol"),
+          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
+        );
+      });
+
+      it("Should fail if the library is installed byt the file not found", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveSourceName("lib/l2.sol"),
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         );
+      });
+    });
+  });
+
+  describe("resolveImport", function () {
+    let localFrom: ResolvedFile;
+    let libraryFrom: ResolvedFile;
+
+    before(function () {
+      localFrom = new ResolvedFile(
+        "contracts/c.sol",
+        path.join(projectPath, "contracts/c.sol"),
+        {
+          rawContent: "asd",
+          imports: [],
+          versionPragmas: [],
+        },
+        new Date()
+      );
+
+      libraryFrom = new ResolvedFile(
+        "lib/l.sol",
+        path.join(projectPath, "node_modules/lib/l.sol"),
+        {
+          rawContent: "asd",
+          imports: [],
+          versionPragmas: [],
+        },
+        new Date(),
+        "lib",
+        "1.0.0"
+      );
+    });
+
+    describe("Invalid imports", function () {
+      it("shouldn't let you import something using http or other protocols", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "http://google.com"),
+          ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL
+        );
 
         await expectBuidlerErrorAsync(
-          () => resolver.resolveLibrarySourceFile("lib/../../contracts/A.sol"),
-          ERRORS.RESOLVER.FILE_OUTSIDE_LIB
+          () => resolver.resolveImport(libraryFrom, "https://google.com"),
+          ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL
         );
       });
 
-      it("Should resolve existing files", async function () {
-        const absolutePath = await fsExtra.realpath(
-          "node_modules/lib/contracts/L.sol"
-        );
-        const { ctime } = await fsExtra.stat(absolutePath);
-        const resolved = await resolver.resolveLibrarySourceFile(
-          "lib/contracts/L.sol"
+      it("shouldn't let you import something using backslashes", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "sub\\a.sol"),
+          ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH
         );
 
-        assertResolvedFile(resolved, {
-          globalName: "lib/contracts/L.sol",
-          absolutePath,
-          content: buildContent("L"),
-          lastModificationDate: ctime,
-          library: {
-            name: "lib",
-            version: "1.2.3",
-          },
-        });
-
-        const absolutePath2 = await fsExtra.realpath(
-          "node_modules/lib/contracts/subdir/L3.sol"
-        );
-        const { ctime: ctime2 } = await fsExtra.stat(absolutePath2);
-        const resolved2 = await resolver.resolveLibrarySourceFile(
-          "lib/contracts/subdir/L3.sol"
-        );
-
-        assertResolvedFile(resolved2, {
-          globalName: "lib/contracts/subdir/L3.sol",
-          absolutePath: absolutePath2,
-          content: buildContent("L3"),
-          lastModificationDate: ctime2,
-          library: {
-            name: "lib",
-            version: "1.2.3",
-          },
-        });
-      });
-    });
-
-    describe("Project nested inside another node project", function () {
-      const projectName = "nested-node-project/project";
-      useFixtureProject(projectName);
-
-      let resolver: Resolver;
-      before("Get project root", async function () {
-        resolver = new Resolver(
-          await getFixtureProjectPath(projectName),
-          new Parser({})
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(libraryFrom, "sub\\a.sol"),
+          ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH
         );
       });
 
-      it("should resolve a file of a library from the inner node_modules", async function () {
-        const absolutePath = await fsExtra.realpath(
-          "node_modules/inner/contracts/L.sol"
-        );
-        const { ctime } = await fsExtra.stat(absolutePath);
-        const resolved = await resolver.resolveLibrarySourceFile(
-          "inner/contracts/L.sol"
+      it("shouldn't let you import something using an absolute path", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, __dirname),
+          ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
         );
 
-        assertResolvedFile(resolved, {
-          globalName: "inner/contracts/L.sol",
-          absolutePath,
-          content: buildContent("L"),
-          lastModificationDate: ctime,
-          library: {
-            name: "inner",
-            version: "0.1.0",
-          },
-        });
-      });
-
-      it("should resolve a file of a library from the outer node_modules", async function () {
-        const absolutePath = await fsExtra.realpath(
-          "../node_modules/outer/contracts/L.sol"
-        );
-        const { ctime } = await fsExtra.stat(absolutePath);
-        const resolved = await resolver.resolveLibrarySourceFile(
-          "outer/contracts/L.sol"
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "/asd"),
+          ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
         );
 
-        assertResolvedFile(resolved, {
-          globalName: "outer/contracts/L.sol",
-          absolutePath,
-          content: buildContent("L"),
-          lastModificationDate: ctime,
-          library: {
-            name: "outer",
-            version: "0.0.1",
-          },
-        });
-      });
-
-      describe("when a library is in more than one node_modules", async function () {
-        it("should resolve a file that is only in the nearest node_modules", async function () {
-          const absolutePath = await fsExtra.realpath(
-            "node_modules/clashed/contracts/I.sol"
-          );
-          const { ctime } = await fsExtra.stat(absolutePath);
-          const resolved = await resolver.resolveLibrarySourceFile(
-            "clashed/contracts/I.sol"
-          );
-
-          assertResolvedFile(resolved, {
-            globalName: "clashed/contracts/I.sol",
-            absolutePath,
-            content: buildContent("I"),
-            lastModificationDate: ctime,
-            library: {
-              name: "clashed",
-              version: "2.0.0",
-            },
-          });
-        });
-
-        it("shouldn't resolve a file that is only in the outer node_modules", async function () {
-          await expectBuidlerErrorAsync(
-            () => resolver.resolveLibrarySourceFile("clashed/contracts/O.sol"),
-            ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
-          );
-        });
-
-        it("should resolve to the closest version in case of a file being included in both node_modules", async function () {
-          const absolutePath = await fsExtra.realpath(
-            "node_modules/clashed/contracts/L.sol"
-          );
-          const { ctime } = await fsExtra.stat(absolutePath);
-          const resolved = await resolver.resolveLibrarySourceFile(
-            "clashed/contracts/L.sol"
-          );
-
-          assertResolvedFile(resolved, {
-            globalName: "clashed/contracts/L.sol",
-            absolutePath,
-            content: buildContent("INNER"),
-            lastModificationDate: ctime,
-            library: {
-              name: "clashed",
-              version: "2.0.0",
-            },
-          });
-        });
-      });
-    });
-  });
-
-  describe("Imports resolution", function () {
-    const projectName = "top-level-node-project";
-    useFixtureProject(projectName);
-
-    let resolver: Resolver;
-    let resolvedLocalFile: ResolvedFile;
-    let resolvedLibFile: ResolvedFile;
-    before("Get project root", async function () {
-      resolver = new Resolver(
-        await getFixtureProjectPath(projectName),
-        new Parser({})
-      );
-      resolvedLocalFile = await resolver.resolveProjectSourceFile(
-        "contracts/A.sol"
-      );
-      resolvedLibFile = await resolver.resolveLibrarySourceFile(
-        "lib/contracts/L.sol"
-      );
-    });
-
-    it("Should resolve absolute imports as libraries", async function () {
-      const absolutePath = await fsExtra.realpath(
-        "node_modules/lib/contracts/L2.sol"
-      );
-      const { ctime } = await fsExtra.stat(absolutePath);
-      const resolvedFromLocalFile = await resolver.resolveImport(
-        resolvedLocalFile,
-        "lib/contracts/L2.sol"
-      );
-
-      const resolvedFromLibFile = await resolver.resolveImport(
-        resolvedLibFile,
-        "lib/contracts/L2.sol"
-      );
-
-      const expected = {
-        globalName: "lib/contracts/L2.sol",
-        absolutePath,
-        content: buildContent("L2"),
-        lastModificationDate: ctime,
-        library: {
-          name: "lib",
-          version: "1.2.3",
-        },
-      };
-
-      assertResolvedFile(resolvedFromLocalFile, expected);
-      assertResolvedFile(resolvedFromLibFile, expected);
-    });
-
-    it("Should resolve relative imports from local files", async function () {
-      const absolutePath = await fsExtra.realpath("contracts/B.sol");
-      const { ctime } = await fsExtra.stat(absolutePath);
-      const resolved = await resolver.resolveImport(
-        resolvedLocalFile,
-        "./subdir/../B.sol"
-      );
-
-      assertResolvedFile(resolved, {
-        globalName: "contracts/B.sol",
-        absolutePath,
-        content: buildContent("B"),
-        lastModificationDate: ctime,
-        library: undefined,
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(libraryFrom, __dirname),
+          ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
+        );
       });
     });
 
-    it("Should resolve relative imports from library files", async function () {
-      const absolutePath = await fsExtra.realpath(
-        "node_modules/lib/contracts/subdir/L3.sol"
-      );
-      const { ctime } = await fsExtra.stat(absolutePath);
-      const resolved = await resolver.resolveImport(
-        resolvedLibFile,
-        "./subdir/L3.sol"
-      );
+    describe("Absolute imports", function () {
+      it("Accept non-normalized imports", async function () {
+        await assertResolvedFile2(
+          resolver.resolveImport(localFrom, "other/asd/../o.sol"),
+          "other/o.sol",
+          path.join(projectPath, "other/o.sol")
+        );
+      });
 
-      assertResolvedFile(resolved, {
-        globalName: "lib/contracts/subdir/L3.sol",
-        absolutePath,
-        content: buildContent("L3"),
-        lastModificationDate: ctime,
-        library: {
-          name: "lib",
-          version: "1.2.3",
-        },
+      it("shouldn't let you import something from an uninstalled library", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "non-installed/asd.sol"),
+          ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED
+        );
+      });
+
+      it("should fail if importing a missing file", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "lib/asd.sol"),
+          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "contracts/asd.sol"),
+          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
+        );
+      });
+
+      it("should fail if importing a file with the incorrect casing", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "lib/L.sol"),
+          ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "contracts/C.sol"),
+          ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
+        );
+      });
+
+      it("Should accept local files from different directories", async function () {
+        await assertResolvedFile2(
+          resolver.resolveImport(localFrom, "other/o.sol"),
+          "other/o.sol",
+          path.join(projectPath, "other/o.sol")
+        );
+
+        await assertResolvedFile2(
+          resolver.resolveImport(localFrom, "contracts/c.sol"),
+          "contracts/c.sol",
+          path.join(projectPath, "contracts/c.sol")
+        );
+      });
+
+      it("Should accept imports from a library into another one", async function () {
+        await assertResolvedFile2(
+          resolver.resolveImport(libraryFrom, "lib2/l2.sol"),
+          "lib2/l2.sol",
+          path.join(projectPath, "node_modules/lib2/l2.sol"),
+          {
+            name: "lib2",
+            version: "1.0.0",
+          }
+        );
+      });
+
+      it("Should forbid local imports from libraries", async function () {
+        // TODO: Should we implement this?
       });
     });
 
-    it("Shouldn't allow relative imports from library files to escape the lib", async function () {
-      await expectBuidlerErrorAsync(
-        () =>
-          resolver.resolveImport(
-            resolvedLibFile,
-            "../../../../../sample-project/contracts/Greeter.sol"
-          ),
-        ERRORS.RESOLVER.ILLEGAL_IMPORT
-      );
+    describe("Relative imports", function () {
+      it("shouldn't let you import something outside of the project from a local file", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "../../asd.sol"),
+          ERRORS.RESOLVER.INVALID_IMPORT_OUTSIDE_OF_PROJECT
+        );
+      });
+
+      it("shouldn't let you import something from a library that is outside of it", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(libraryFrom, "../asd.sol"),
+          ERRORS.RESOLVER.ILLEGAL_IMPORT
+        );
+      });
+
+      it("Accept non-normalized imports", async function () {
+        await assertResolvedFile2(
+          resolver.resolveImport(localFrom, "../other/asd/../o.sol"),
+          "other/o.sol",
+          path.join(projectPath, "other/o.sol")
+        );
+      });
+
+      it("should fail if importing a missing file", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(libraryFrom, "./asd.sol"),
+          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "../other/asd.sol"),
+          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
+        );
+      });
+
+      it("should fail if importing a file with the incorrect casing", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(libraryFrom, "./sub/A.sol"),
+          ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
+        );
+
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "./sub/A.sol"),
+          ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
+        );
+      });
+
+      it("Should always treat relative imports from local files as local", async function () {
+        await expectBuidlerErrorAsync(
+          () => resolver.resolveImport(localFrom, "../not-a-library/A.sol"),
+          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
+        );
+      });
     });
-
-    it("Shouldn't allow relative imports from local files to escape the project", async function () {
-      await expectBuidlerErrorAsync(
-        () =>
-          resolver.resolveImport(
-            resolvedLocalFile,
-            "../../../../sample-project/contracts/Greeter.sol"
-          ),
-        ERRORS.RESOLVER.FILE_OUTSIDE_PROJECT
-      );
-    });
-
-    it("Should throw if imported file doesn't exist", async function () {
-      await expectBuidlerErrorAsync(
-        () => resolver.resolveImport(resolvedLocalFile, "./asd.sol"),
-        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
-      );
-
-      await expectBuidlerErrorAsync(
-        () => resolver.resolveImport(resolvedLocalFile, "lib/asd.sol"),
-        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
-      );
-
-      await expectBuidlerErrorAsync(
-        () => resolver.resolveImport(resolvedLibFile, "./asd.sol"),
-        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
-      );
-    });
-  });
-});
-
-describe("Scoped dependencies project", () => {
-  const projectName = "scoped-dependency-project";
-  useFixtureProject(projectName);
-
-  before("Get project root", async function () {
-    this.resolver = new Resolver(
-      await getFixtureProjectPath(projectName),
-      new Parser({})
-    );
-    this.resolvedLocalFile = await this.resolver.resolveProjectSourceFile(
-      "contracts/A.sol"
-    );
-  });
-
-  it("should resolve scoped libraries properly", async function () {
-    const parser = new Parser({});
-    const { imports } = parser.parse(
-      this.resolvedLocalFile.content.rawContent,
-      this.resolvedLocalFile.absolutePath
-    );
-    assert.isAbove(imports.length, 0);
-    assert.equal(imports[0], "@scope/package/contracts/File.sol");
-    const resolvedLibrary: ResolvedFile = await this.resolver.resolveImport(
-      this.resolvedLocalFile,
-      imports[0]
-    );
-    assert.isDefined(resolvedLibrary);
-    assert.equal(resolvedLibrary.globalName, imports[0]);
-    assert.equal(resolvedLibrary.library!.name, "@scope/package");
-  });
-
-  it("should retrieve the library name properly", function () {
-    assert.equal(
-      this.resolver._getLibraryName("@scoped/library/contracts/Contract.sol"),
-      "@scoped/library"
-    );
-    assert.equal(
-      this.resolver._getLibraryName("library/contracts/Contract.sol"),
-      "library"
-    );
-  });
-
-  it("should retrieve relative dependency inside library", async function () {
-    const resolvedImporter = await this.resolver.resolveLibrarySourceFile(
-      "@scope/package/contracts/nested/dir/Importer.sol"
-    );
-    const parser = new Parser({});
-    const { imports } = parser.parse(
-      resolvedImporter.content.rawContent,
-      resolvedImporter.content.absolutePath
-    );
-    assert.equal(imports[0], "../A.sol");
-
-    const resolvedImported = await this.resolver.resolveImport(
-      resolvedImporter,
-      imports[0]
-    );
-    assert.equal(
-      resolvedImported.globalName,
-      "@scope/package/contracts/nested/A.sol"
-    );
   });
 });
