@@ -332,17 +332,7 @@ describe("Resolver", function () {
 
       it("shouldn't let you import something using an absolute path", async function () {
         await expectBuidlerErrorAsync(
-          () => resolver.resolveImport(localFrom, __dirname),
-          ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
-        );
-
-        await expectBuidlerErrorAsync(
           () => resolver.resolveImport(localFrom, "/asd"),
-          ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
-        );
-
-        await expectBuidlerErrorAsync(
-          () => resolver.resolveImport(libraryFrom, __dirname),
           ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
         );
       });
