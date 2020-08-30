@@ -126,7 +126,7 @@ const [owner, addr1] = await ethers.getSigners();
 A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Buidler EVM**, and only keeping the first and second ones.
 
 ::: tip
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/ethers.js/html/api-wallet.html).
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
 :::
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
@@ -203,18 +203,22 @@ module.exports = {
 
 Now, when testing using a standalone Waffle setup, you should use the different parts of Waffle from Buidler.
 
-For example, instead of doing
+For example, instead of doing:
 
 ```typescript
 import { deployContract } from "ethereum-waffle";
 ```
 
-you should do
+You should do:
 
 ```typescript
 import { waffle } from "ethereum-waffle";
 const { deployContract } = waffle;
 ```
+
+::: warning
+Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions. If you're fighting a "Transaction run out of gas" error, double-check the size of your contract and bump the gas limit if needed.
+:::
 
 Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and use the plugin's provider like this
 

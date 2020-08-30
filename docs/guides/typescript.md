@@ -185,7 +185,7 @@ import { run, ethers } from "@nomiclabs/buidler";
 async function main() {
   await run("compile");
 
-  const accounts = await ethers.eth.getSigners();
+  const accounts = await ethers.getSigners();
 
   console.log("Accounts:", accounts);
 }
