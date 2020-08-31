@@ -12,7 +12,7 @@ const NODE_MODULES = "node_modules";
  * If it doesn't throw all you know is that the format is valid.
  */
 export function validateSourceNameFormat(sourceName: string) {
-  if (path.isAbsolute(sourceName) || sourceName.startsWith("/")) {
+  if (isAbsolutePathSourceName(sourceName)) {
     throw new BuidlerError(
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH,
       {
