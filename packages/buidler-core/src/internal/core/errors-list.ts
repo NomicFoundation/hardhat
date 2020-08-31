@@ -637,7 +637,7 @@ You can only import files thar are available locally or installed through npm.`,
       message:
         "Invalid import %imported% from %from%. Buidler doesn't support imports with absolute paths.",
       title: "Invalid import: absolute paths unsupported",
-      description: `A Solidity file is trying to import another one with using its absolute path.
+      description: `A Solidity file is trying to import another one using its absolute path.
       
 This is not supported, as it would lead to hard to reproduce compilations.`,
       shouldBeReported: false,
