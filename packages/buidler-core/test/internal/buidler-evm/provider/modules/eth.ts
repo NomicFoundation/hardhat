@@ -1656,6 +1656,42 @@ describe("Eth module", function () {
           ]);
           assert.lengthOf(logs2, 0);
         });
+
+        it("should return a new array every time", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const logs1 = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+            },
+          ]);
+
+          logs1[0].address = "changed";
+
+          const logs2 = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+            },
+          ]);
+
+          assert.notEqual(logs1, logs2);
+          assert.notEqual(logs1[0], logs2[0]);
+          assert.notEqual(logs2[0].address, "changed");
+        });
       });
 
       describe("eth_getProof", async function () {
@@ -2376,6 +2412,33 @@ describe("Eth module", function () {
           );
 
           assert.isNotNull(receipt);
+        });
+
+        it("should return a new object every time", async function () {
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const receipt1: RpcReceiptOutput = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          receipt1.blockHash = "changed";
+
+          const receipt2: RpcReceiptOutput = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          assert.notEqual(receipt1, receipt2);
+          assert.notEqual(receipt2.blockHash, "changed");
         });
       });
 
