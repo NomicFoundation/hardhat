@@ -627,7 +627,7 @@ You must always use slashes (/) in Solidity imports.`,
       message:
         "Invalid import %imported% from %from%. Buidler doesn't support imports via %protocol%.",
       title: "Invalid import: trying to use an unsupported protocol",
-      description: `A Solidity file is trying to import another one with using an unsupported protocol, like http.
+      description: `A Solidity file is trying to import another one using an unsupported protocol, like http.
       
 You can only import files thar are available locally or installed through npm.`,
       shouldBeReported: false,
