@@ -192,7 +192,10 @@ export async function normalizeBytecode(
   // See https://solidity.readthedocs.io/en/latest/contracts.html#call-protection-for-libraries
   const push20OpcodeHex = "73";
   const pushPlaceholder = push20OpcodeHex + "0".repeat(20 * 2);
-  if (symbols.object.startsWith(pushPlaceholder) && bytecode.startsWith(push20OpcodeHex)) {
+  if (
+    symbols.object.startsWith(pushPlaceholder) &&
+    bytecode.startsWith(push20OpcodeHex)
+  ) {
     nestedSliceReferences.push([{ start: 1, length: 20 }]);
   }
 
