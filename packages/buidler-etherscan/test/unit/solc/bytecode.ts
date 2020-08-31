@@ -113,7 +113,34 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
     });
   });
 
-  describe("with one library link", () => {
+  describe("with a library contract", () => {
+    it("matches bytecode with library call protection", async () => {
+      const contract: any = {
+        contractName: "TestLibrary",
+        runtimeBytecode:
+          "0x730000000000000000000000000000000000000000301460806040526004361060335760003560e01c806305b8c7c2146038575b600080fd5b818015604357600080fd5b50606d60048036036020811015605857600080fd5b81019080803590602001909291905050506083565b6040518082815260200191505060405180910390f35b600060028202905091905056fea2646970667358221220783581f95b347b5783979ebe803f2e6cccf03e34345f61ba312b69f4205cf8f864736f6c63430007000033",
+        deployedBytecode:
+          "0x737c2c195cd6d34b8f845992d380aadb2730bb9c6f301460806040526004361060335760003560e01c806305b8c7c2146038575b600080fd5b818015604357600080fd5b50606d60048036036020811015605857600080fd5b81019080803590602001909291905050506083565b6040518082815260200191505060405180910390f35b600060028202905091905056fea2646970667358221220783581f95b347b5783979ebe803f2e6cccf03e34345f61ba312b69f4205cf8f864736f6c63430007000033",
+        solcVersion: "0.7.0",
+        linkReferences: {},
+        immutableReferences: {},
+      };
+      const contractSymbols = {
+        object: contract.runtimeBytecode.slice(2),
+        linkReferences: contract.linkReferences,
+        immutableReferences: contract.immutableReferences,
+      };
+      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const contractInformation = await compareBytecode(
+        deployedBytecode,
+        contractSymbols,
+        InferralType.EXACT
+      );
+      assert.isTrue(contractInformation.match);
+    });
+  });
+
+  describe("with a contract that has one library link", () => {
     // v0.4.12 is the minimum solc version that can be run with buidler out of the box.
     it("matches bytecode emitted by solc v0.4.12", async () => {
       const contract: any = {
