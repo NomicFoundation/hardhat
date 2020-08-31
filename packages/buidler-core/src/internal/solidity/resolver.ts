@@ -233,7 +233,10 @@ export class Resolver {
       }
     }
 
-    const nodeModulesPath = path.dirname(path.dirname(packagePath));
+    let nodeModulesPath = path.dirname(path.dirname(packagePath));
+    if (this._isScopedPackage(sourceName)) {
+      nodeModulesPath = path.dirname(nodeModulesPath);
+    }
 
     await this._validateSourceNameExistenceAndCasing(
       nodeModulesPath,
@@ -334,14 +337,11 @@ export class Resolver {
   }
 
   private _getLibraryName(sourceName: string): string {
-    if (sourceName.startsWith("@")) {
-      return sourceName.slice(
-        0,
-        sourceName.indexOf("/", sourceName.indexOf("/") + 1)
-      );
-    }
+    const endIndex: number = this._isScopedPackage(sourceName)
+      ? sourceName.indexOf("/", sourceName.indexOf("/") + 1)
+      : sourceName.indexOf("/");
 
-    return sourceName.slice(0, sourceName.indexOf("/"));
+    return sourceName.slice(0, endIndex);
   }
 
   private _getUriScheme(s: string): string | undefined {
@@ -403,5 +403,9 @@ export class Resolver {
         : sourceNameInDir;
 
     return sourceNameToTest.startsWith(dir);
+  }
+
+  private _isScopedPackage(packageOrPackageFile: string): boolean {
+    return packageOrPackageFile.startsWith("@");
   }
 }

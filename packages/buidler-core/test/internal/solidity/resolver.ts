@@ -347,6 +347,30 @@ describe("Resolver", function () {
         );
       });
 
+      it("Should accept non-top-level files from libraries", async function () {
+        await assertResolvedFile2(
+          resolver.resolveImport(libraryFrom, "lib/sub/a.sol"),
+          "lib/sub/a.sol",
+          path.join(projectPath, "node_modules/lib/sub/a.sol"),
+          {
+            name: "lib",
+            version: "1.0.0",
+          }
+        );
+      });
+
+      it("should resolve @scoped/libraries", async function () {
+        await assertResolvedFile2(
+          resolver.resolveImport(libraryFrom, "@scoped/library/d/l.sol"),
+          "@scoped/library/d/l.sol",
+          path.join(projectPath, "node_modules/@scoped/library/d/l.sol"),
+          {
+            name: "@scoped/library",
+            version: "1.0.0",
+          }
+        );
+      });
+
       it("shouldn't let you import something from an uninstalled library", async function () {
         await expectBuidlerErrorAsync(
           () => resolver.resolveImport(localFrom, "non-installed/asd.sol"),
