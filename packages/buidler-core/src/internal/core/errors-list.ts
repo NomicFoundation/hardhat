@@ -615,7 +615,7 @@ Please double check your imports.`,
     INVALID_IMPORT_BACKSLASH: {
       number: 408,
       message:
-        "Invalid import %imported% from %from%. Imports must use / instead of \\",
+        "Invalid import %imported% from %from%. Imports must use / instead of \\, even in Windows",
       title: "Invalid import: use / instead of \\",
       description: `A Solidity file is trying to import another one with its relative path and is using backslashes (\\) insteado of slashes (/).
       
