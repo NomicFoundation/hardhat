@@ -70,11 +70,7 @@ describe("Plugin integration tests", function () {
     it("Should verify deployed library on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const deployedAddress = await deployContract(
-        "TestLibrary",
-        [],
-        this.env
-      );
+      const deployedAddress = await deployContract("TestLibrary", [], this.env);
 
       return this.env.run("verify", {
         address: deployedAddress,
