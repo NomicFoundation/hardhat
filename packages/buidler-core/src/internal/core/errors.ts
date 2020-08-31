@@ -51,14 +51,25 @@ export class BuidlerError extends CustomError {
     );
   }
 
+  public static isBuidlerErrorType(
+    other: any,
+    descriptor: ErrorDescriptor
+  ): other is BuidlerError {
+    return (
+      BuidlerError.isBuidlerError(other) &&
+      other.errorDescriptor.number === descriptor.number
+    );
+  }
+
   public readonly errorDescriptor: ErrorDescriptor;
   public readonly number: number;
+  public readonly messageArguments: Record<string, any>;
 
   private readonly _isBuidlerError: boolean;
 
   constructor(
     errorDescriptor: ErrorDescriptor,
-    messageArguments: { [p: string]: any } = {},
+    messageArguments: Record<string, any> = {},
     parentError?: Error
   ) {
     const prefix = `${getErrorCode(errorDescriptor)}: `;
@@ -72,6 +83,7 @@ export class BuidlerError extends CustomError {
 
     this.errorDescriptor = errorDescriptor;
     this.number = errorDescriptor.number;
+    this.messageArguments = messageArguments;
 
     this._isBuidlerError = true;
     Object.setPrototypeOf(this, BuidlerError.prototype);
