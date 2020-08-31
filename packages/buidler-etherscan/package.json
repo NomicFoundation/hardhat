@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-etherscan",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Buidler plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-etherscan",
