@@ -67,6 +67,21 @@ describe("Plugin integration tests", function () {
       });
     });
 
+    it("Should verify deployed library on etherscan", async function () {
+      await this.env.run(TASK_COMPILE, { force: false });
+
+      const deployedAddress = await deployContract(
+        "TestLibrary",
+        [],
+        this.env
+      );
+
+      return this.env.run("verify", {
+        address: deployedAddress,
+        constructorArguments: [],
+      });
+    });
+
     // The plugin doesn't look at deployment bytecode while inferring the contract
     it("fail when the contract can only be singled out by its deploy bytecode", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
