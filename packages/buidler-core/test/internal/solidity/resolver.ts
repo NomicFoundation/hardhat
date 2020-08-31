@@ -16,7 +16,7 @@ import {
   useFixtureProject,
 } from "../../helpers/project";
 
-function assertResolvedFile(
+function assertResolvedFilePartiallyEquals(
   actual: ResolvedFile,
   expected: Partial<ResolvedFile>
 ) {
@@ -62,7 +62,7 @@ describe("Resolved file", function () {
   });
 
   it("should be constructed correctly without a library", function () {
-    assertResolvedFile(resolvedFileWithoutLibrary, {
+    assertResolvedFilePartiallyEquals(resolvedFileWithoutLibrary, {
       globalName,
       absolutePath,
       content,
@@ -72,7 +72,7 @@ describe("Resolved file", function () {
   });
 
   it("Should be constructed correctly with a library", function () {
-    assertResolvedFile(resolvedFileWithLibrary, {
+    assertResolvedFilePartiallyEquals(resolvedFileWithLibrary, {
       globalName,
       absolutePath,
       content,
@@ -98,7 +98,7 @@ describe("Resolved file", function () {
   });
 });
 
-async function assertResolvedFile2(
+async function assertResolvedFileFromPath(
   resolverPromise: Promise<ResolvedFile>,
   expectedSourceName: string,
   filePath: string,
@@ -144,7 +144,7 @@ describe("Resolver", function () {
 
     describe("Local vs library distinction", function () {
       it("Should be local if it exists in the project", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveSourceName("contracts/c.sol"),
           "contracts/c.sol",
           path.join(projectPath, "contracts/c.sol")
@@ -166,7 +166,7 @@ describe("Resolver", function () {
       });
 
       it("Should be a library its first directory doesn't exist in the project", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveSourceName("lib/l.sol"),
           "lib/l.sol",
           path.join(projectPath, "node_modules/lib/l.sol"),
@@ -177,13 +177,13 @@ describe("Resolver", function () {
 
     describe("Local files", function () {
       it("Should resolve an existing file", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveSourceName("contracts/c.sol"),
           "contracts/c.sol",
           path.join(projectPath, "contracts/c.sol")
         );
 
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveSourceName("other/o.sol"),
           "other/o.sol",
           path.join(projectPath, "other/o.sol")
@@ -224,7 +224,7 @@ describe("Resolver", function () {
 
     describe("Library files", function () {
       it("Should resolve to the node_modules file", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveSourceName("lib/l.sol"),
           "lib/l.sol",
           path.join(projectPath, "node_modules/lib/l.sol"),
@@ -340,7 +340,7 @@ describe("Resolver", function () {
 
     describe("Absolute imports", function () {
       it("Accept non-normalized imports", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveImport(localFrom, "other/asd/../o.sol"),
           "other/o.sol",
           path.join(projectPath, "other/o.sol")
@@ -348,7 +348,7 @@ describe("Resolver", function () {
       });
 
       it("Should accept non-top-level files from libraries", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveImport(libraryFrom, "lib/sub/a.sol"),
           "lib/sub/a.sol",
           path.join(projectPath, "node_modules/lib/sub/a.sol"),
@@ -360,7 +360,7 @@ describe("Resolver", function () {
       });
 
       it("should resolve @scoped/libraries", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveImport(libraryFrom, "@scoped/library/d/l.sol"),
           "@scoped/library/d/l.sol",
           path.join(projectPath, "node_modules/@scoped/library/d/l.sol"),
@@ -403,13 +403,13 @@ describe("Resolver", function () {
       });
 
       it("Should accept local files from different directories", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveImport(localFrom, "other/o.sol"),
           "other/o.sol",
           path.join(projectPath, "other/o.sol")
         );
 
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveImport(localFrom, "contracts/c.sol"),
           "contracts/c.sol",
           path.join(projectPath, "contracts/c.sol")
@@ -417,7 +417,7 @@ describe("Resolver", function () {
       });
 
       it("Should accept imports from a library into another one", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveImport(libraryFrom, "lib2/l2.sol"),
           "lib2/l2.sol",
           path.join(projectPath, "node_modules/lib2/l2.sol"),
@@ -449,7 +449,7 @@ describe("Resolver", function () {
       });
 
       it("Accept non-normalized imports", async function () {
-        await assertResolvedFile2(
+        await assertResolvedFileFromPath(
           resolver.resolveImport(localFrom, "../other/asd/../o.sol"),
           "other/o.sol",
           path.join(projectPath, "other/o.sol")
