@@ -1,3 +1,3 @@
 export interface EtherscanConfig {
-  apiKey: string;
+  apiKey?: string;
 }
