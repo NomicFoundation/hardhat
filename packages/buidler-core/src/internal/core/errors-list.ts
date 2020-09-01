@@ -14,7 +14,13 @@ export function getErrorCode(error: ErrorDescriptor): string {
   return `${ERROR_PREFIX}${error.number}`;
 }
 
-export const ERROR_RANGES = {
+export const ERROR_RANGES: {
+  [category in keyof typeof ERRORS]: {
+    min: number;
+    max: number;
+    title: string;
+  };
+} = {
   GENERAL: { min: 0, max: 99, title: "General errors" },
   NETWORK: { min: 100, max: 199, title: "Network related errors" },
   TASK_DEFINITIONS: {
@@ -33,13 +39,10 @@ export const ERROR_RANGES = {
   ARTIFACTS: { min: 700, max: 799, title: "Artifacts related errors" },
   PLUGINS: { min: 800, max: 899, title: "Plugin system errors" },
   INTERNAL: { min: 900, max: 999, title: "Internal Buidler errors" },
+  SOURCE_NAMES: { min: 1000, max: 1100, title: "Source name errors" },
 };
 
-export const ERRORS: {
-  [category in keyof typeof ERROR_RANGES]: {
-    [errorName: string]: ErrorDescriptor;
-  };
-} = {
+export const ERRORS = {
   GENERAL: {
     NOT_INSIDE_PROJECT: {
       number: 1,
@@ -541,6 +544,7 @@ Please double check how you invoked Buidler or run your task.`,
       description: `Tried to resolve a non-existing Solidity file as an entry-point.`,
       shouldBeReported: false,
     },
+    // Deprecated: This error was replaced by one that includes more context
     FILE_OUTSIDE_PROJECT: {
       number: 401,
       message: "File %file% is outside the project.",
@@ -550,6 +554,7 @@ Please double check how you invoked Buidler or run your task.`,
 This is disabled for security reasons.`,
       shouldBeReported: false,
     },
+    // Deprecated: This error was replaced by one that includes more context
     LIBRARY_FILE_NOT_LOCAL: {
       number: 402,
       message:
@@ -587,6 +592,7 @@ Please double check your imports or update your libraries.`,
 This is disabled for security reasons.`,
       shouldBeReported: false,
     },
+    // Deprecated:  This error was replaced by one with more context
     FILE_OUTSIDE_LIB: {
       number: 406,
       message:
@@ -604,6 +610,76 @@ This is disabled for security reasons.`,
       description: `One of your source files imported a non-existing one. 
 
 Please double check your imports.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_BACKSLASH: {
+      number: 408,
+      message:
+        "Invalid import %imported% from %from%. Imports must use / instead of \\, even in Windows",
+      title: "Invalid import: use / instead of \\",
+      description: `A Solidity file is trying to import another one with its relative path and is using backslashes (\\) insteado of slashes (/).
+      
+You must always use slashes (/) in Solidity imports.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_PROTOCOL: {
+      number: 409,
+      message:
+        "Invalid import %imported% from %from%. Buidler doesn't support imports via %protocol%.",
+      title: "Invalid import: trying to use an unsupported protocol",
+      description: `A Solidity file is trying to import another one using an unsupported protocol, like http.
+      
+You can only import files thar are available locally or installed through npm.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_ABSOLUTE_PATH: {
+      number: 410,
+      message:
+        "Invalid import %imported% from %from%. Buidler doesn't support imports with absolute paths.",
+      title: "Invalid import: absolute paths unsupported",
+      description: `A Solidity file is trying to import another one using its absolute path.
+      
+This is not supported, as it would lead to hard to reproduce compilations.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_OUTSIDE_OF_PROJECT: {
+      number: 411,
+      message:
+        "Invalid import %imported% from %from%. The file being imported is outside of the project",
+      title: "Invalid import: file outside of the project",
+      description: `A Solidity file is trying to import another one that is outside of the project.
+      
+This is not supported by Buidler.`,
+      shouldBeReported: false,
+    },
+    INVALID_IMPORT_WRONG_CASING: {
+      number: 412,
+      message:
+        "Trying to import %imported% from %from%, but it has an incorrect casing.",
+      title: "Invalid import: wrong file casing",
+      description: `A Solidity file is trying to import another one but its source name casing was wrong.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: false,
+    },
+    WRONG_SOURCE_NAME_CASING: {
+      number: 413,
+      message:
+        "Trying to resolve the file %incorrect% but its correct case-sensitive name is %correct%",
+      title: "Incorrect source name casing",
+      description: `You tried to resolve a Solidity file with an incorrect casing.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: false,
+    },
+    IMPORTED_LIBRARY_NOT_INSTALLED: {
+      number: 414,
+      message:
+        "The library %library%, imported from %from%, is not installed. Try installing it using npm.",
+      title: "Invalid import: library not installed",
+      description: `A Solidity file is trying to import another which belongs to a library that is not installed.
+      
+Try installing the library using npm.`,
       shouldBeReported: false,
     },
   },
@@ -820,4 +896,95 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       shouldBeReported: true,
     },
   },
+  SOURCE_NAMES: {
+    INVALID_SOURCE_NAME_ABSOLUTE_PATH: {
+      number: 1000,
+      message:
+        "Invalid source name %name%. Expected source name but found an absolute path.",
+      title: "Invalid source name: absolute path",
+      description: `A Solidity source name was expected, but an absolute path was given.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    INVALID_SOURCE_NAME_RELATIVE_PATH: {
+      number: 1001,
+      message:
+        "Invalid source name %name%. Expected source name but found an absolute path.",
+      title: "Invalid source name: relative path",
+      description: `A Solidity source name was expected, but a relative path was given.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    INVALID_SOURCE_NAME_BACKSLASHES: {
+      number: 1002,
+      message:
+        "Invalid source %name%. The source name uses backslashes (\\) instead of slashes (/).",
+      title: "Invalid source name: backslashes",
+      description: `A Solidity source name was invalid because it uses backslashes (\\) instead of slashes (/).
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    INVALID_SOURCE_NOT_NORMALIZED: {
+      number: 1003,
+      message: "Invalid source name %name%. Source names must be normalized",
+      title: "Invalid source name: not normalized",
+      description: `A Solidity source name was invalid because it wasn't normalized. It probably contains some "." or "..".
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    WRONG_CASING: {
+      number: 1004,
+      message:
+        "Invalid source map %incorrect%, its correct case-sensitive source name is %correct%",
+      title: "Incorrect source name casing",
+      description: `You tried to resolve a Solidity file with an incorrect casing.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: true,
+    },
+    FILE_NOT_FOUND: {
+      number: 1005,
+      message: "Solidity source file %name% not found",
+      title: "Solidity source file not found",
+      description: `A source name should correspond to an existing Solidity file but it doesn't.
+      
+Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: true,
+    },
+    NODE_MODULES_AS_LOCAL: {
+      number: 1006,
+      message:
+        "The file %path% is treated as local but is inside a node_modules directory",
+      title: "File from node_modules treated as local",
+      description: `A file was treated as local but is inside a node_modules directory.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+    EXTERNAL_AS_LOCAL: {
+      number: 1007,
+      message: "The file %path% is treated as local but is outside the project",
+      title: "File from outside the project treated as local",
+      description: `A file was treated as local but is outside the project.
+      
+If you aren't overriding compilation-related tasks, please report this as a bug.`,
+      shouldBeReported: true,
+    },
+  },
 };
+
+/**
+ * Setting the type of ERRORS to a map let us access undefined ones. Letting it
+ * be a literal doesn't enforce that its values are of type ErrorDescriptor.
+ *
+ * We let it be a literal, and use this variable to enforce the types
+ */
+const _PHONY_VARIABLE_TO_FORCE_ERRORS_TO_BE_OF_TYPE_ERROR_DESCRIPTOR: {
+  [category: string]: {
+    [name: string]: ErrorDescriptor;
+  };
+} = ERRORS;

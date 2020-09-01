@@ -26,6 +26,7 @@ import { getInputFromCompilationGroup } from "../internal/solidity/compiler/comp
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
+import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
 
@@ -53,9 +54,14 @@ export default function () {
 
       const parser = new Parser(solidityFilesCache);
       const resolver = new Resolver(config.paths.root, parser);
-      const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
+      const paths: string[] = await glob(
+        path.join(config.paths.sources, "**/*.sol")
+      );
+      const sourceNames = await Promise.all(
+        paths.map((p) => localPathToSourceName(config.paths.root, p))
+      );
       const resolvedFiles = await Promise.all(
-        paths.map((p: string) => resolver.resolveProjectSourceFile(p))
+        sourceNames.map((sn) => resolver.resolveSourceName(sn))
       );
 
       const dependencyGraph = await DependencyGraph.createFromResolvedFiles(
@@ -173,11 +179,9 @@ export default function () {
         let numberOfContracts = 0;
 
         for (const file of compilationGroup.getResolvedFiles()) {
-          console.log(`${file.globalName}:`);
           if (!compilationGroup.emitsArtifacts(file)) {
             continue;
           }
-          console.log("    emits");
 
           const emittedArtifacts = [];
           for (const [contractName, contractOutput] of Object.entries(
