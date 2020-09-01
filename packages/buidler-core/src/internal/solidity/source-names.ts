@@ -187,9 +187,13 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
       typeof error.message === "string" &&
       error.message.includes("no matching file exists")
     ) {
-      throw new BuidlerError(ERRORS.SOURCE_NAMES.FILE_NOT_FOUND, {
-        name: p,
-      });
+      throw new BuidlerError(
+        ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
+        {
+          name: p,
+        },
+        error
+      );
     }
 
     // tslint:disable-next-line only-buidler-error
