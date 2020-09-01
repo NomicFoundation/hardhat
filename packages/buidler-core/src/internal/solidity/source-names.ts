@@ -70,8 +70,7 @@ export async function isLocalSourceName(
     await getPathTrueCase(projectRoot, firstDirOrFileName);
   } catch (error) {
     if (
-      BuidlerError.isBuidlerError(error) &&
-      error.errorDescriptor.number === ERRORS.SOURCE_NAMES.FILE_NOT_FOUND.number
+      BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
     ) {
       return false;
     }
