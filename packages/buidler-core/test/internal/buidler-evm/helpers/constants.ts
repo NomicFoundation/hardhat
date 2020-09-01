@@ -2,8 +2,9 @@
 import { BN, toBuffer } from "ethereumjs-util";
 
 export const INFURA_URL = `https://mainnet.infura.io/v3/84842078b09946638c03157f83405213`;
-export const INFURA_NETWORK_ID = 1;
-export const INFURA_CHAIN_ID = 1;
+export const ALCHEMY_URL = `https://eth-mainnet.alchemyapi.io/v2/oLgmx_YmLRCCGP5kCu4aTPT82gm1TRPz`;
+export const REMOTE_NETWORK_ID = 1;
+export const REMOTE_CHAIN_ID = 1;
 
 export const DAI_ADDRESS = toBuffer(
   "0x6b175474e89094c44da98b954eedeac495271d0f"

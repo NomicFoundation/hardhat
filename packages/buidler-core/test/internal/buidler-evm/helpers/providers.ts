@@ -1,6 +1,11 @@
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
-import { INFURA_CHAIN_ID, INFURA_NETWORK_ID, INFURA_URL } from "./constants";
+import {
+  ALCHEMY_URL,
+  INFURA_URL,
+  REMOTE_CHAIN_ID,
+  REMOTE_NETWORK_ID,
+} from "./constants";
 import { useProvider } from "./useProvider";
 
 export const DEFAULT_HARDFORK = "istanbul";
@@ -29,8 +34,6 @@ export const DEFAULT_ACCOUNTS_BALANCES = DEFAULT_ACCOUNTS.map(
   (account) => account.balance
 );
 
-export const TEST_FORK_CONFIG = { jsonRpcUrl: INFURA_URL };
-
 export const PROVIDERS = [
   {
     name: "BuidlerEVM",
@@ -53,10 +56,25 @@ export const PROVIDERS = [
   {
     name: "Forked",
     isFork: true,
-    networkId: INFURA_NETWORK_ID,
-    chainId: INFURA_CHAIN_ID,
+    networkId: REMOTE_NETWORK_ID,
+    chainId: REMOTE_CHAIN_ID,
     useProvider: () => {
-      useProvider(false, TEST_FORK_CONFIG);
+      useProvider(false, { jsonRpcUrl: INFURA_URL });
+    },
+  },
+];
+
+export const FORKED_PROVIDERS = [
+  {
+    rpcProvider: "Alchemy",
+    useProvider: () => {
+      useProvider(false, { jsonRpcUrl: ALCHEMY_URL });
+    },
+  },
+  {
+    rpcProvider: "Infura",
+    useProvider: () => {
+      useProvider(false, { jsonRpcUrl: INFURA_URL });
     },
   },
 ];
