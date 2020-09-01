@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { zeroAddress } from "ethereumjs-util";
+import sinon from "sinon";
 
 import {
   bufferToRpcData,
@@ -7,7 +8,6 @@ import {
   RpcBlockOutput,
 } from "../../../../../src/internal/buidler-evm/provider/output";
 import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
-import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { EthereumProvider } from "../../../../../src/types";
 import { useEnvironment } from "../../../../helpers/environment";
 import { useFixtureProject } from "../../../../helpers/project";
@@ -45,7 +45,7 @@ async function deployContract(
 }
 
 describe("Evm module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider }) => {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
@@ -173,7 +173,7 @@ describe("Evm module", function () {
 
           assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
         });
-        it("should be overriden if next EMPTY block is mined with timestamp", async function () {
+        it("should be overridden if next EMPTY block is mined with timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 90;
 
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
@@ -588,50 +588,37 @@ describe("Evm module", function () {
           });
 
           it("Resets the date to the right time", async function () {
-            if (isFork) {
-              this.skip();
-              return;
-            }
+            const mineEmptyBlock = async () => {
+              await this.provider.send("evm_mine");
+              return this.provider.send("eth_getBlockByNumber", [
+                "latest",
+                false,
+              ]);
+            };
+            const clock = sinon.useFakeTimers(Date.now());
 
-            // First, we increase the time by 100 sec
             await this.provider.send("evm_increaseTime", [100]);
-            const startDate = new Date();
-            await this.provider.send("evm_mine");
-            const snapshotId: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-
-            const snapshotedBlock = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
+            const snapshotBlock = await mineEmptyBlock();
+            const snapshotId = await this.provider.send("evm_snapshot");
 
             assert.equal(
-              snapshotedBlock.timestamp,
-              numberToRpcQuantity(Math.ceil(startDate.valueOf() / 1000) + 100)
+              quantityToNumber(snapshotBlock.timestamp),
+              getCurrentTimestamp() + 100
             );
 
-            // TODO: Somehow test this without a sleep
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            clock.tick(20 * 1000);
 
-            const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId,
-            ]);
-            assert.isTrue(reverted);
+            await this.provider.send("evm_revert", [snapshotId]);
+            const afterRevertBlock = await mineEmptyBlock();
 
-            await this.provider.send("evm_mine");
-            const afterRevertBlock = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
-
+            // Check that time was correctly reverted to the snapshot time and that the new
+            // block's timestamp has been incremented to avoid timestamp collision
             assert.equal(
-              afterRevertBlock.timestamp,
-              numberToRpcQuantity(
-                rpcQuantityToNumber(snapshotedBlock.timestamp) + 1
-              )
+              quantityToNumber(afterRevertBlock.timestamp),
+              quantityToNumber(snapshotBlock.timestamp) + 1
             );
+
+            clock.restore();
           });
 
           it("Restores the previous state", async function () {
