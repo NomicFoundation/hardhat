@@ -179,7 +179,7 @@ export class JsonRpcClient {
   private async _perform<T>(
     method: string,
     params: any[],
-    tType: t.Type<T, T>
+    tType: t.Type<T>
   ): Promise<T> {
     const key = `${method} ${JSON.stringify(params)}`;
     if (this._cache.has(key)) {

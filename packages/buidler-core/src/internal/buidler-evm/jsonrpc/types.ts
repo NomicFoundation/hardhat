@@ -1,7 +1,6 @@
 import * as t from "io-ts";
 
 import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../provider/input";
-import { RpcReceiptOutput } from "../provider/output";
 
 export function decode<T>(value: unknown, codec: t.Type<T>) {
   return codec.decode(value).fold(() => {
@@ -11,8 +10,19 @@ export function decode<T>(value: unknown, codec: t.Type<T>) {
   }, t.identity);
 }
 
-export const nullable = <T extends t.Type<any>>(codec: T) =>
-  t.union([codec, t.null], `${codec.name} or null`);
+export const nullable = <T>(codec: t.Type<T>) =>
+  new t.Type<T | null>(
+    `${codec.name} or null`,
+    (input): input is T | null =>
+      input === null || input === undefined || codec.is(input),
+    (input, context) => {
+      if (input === null || input === undefined) {
+        return t.success(null);
+      }
+      return codec.validate(input, context);
+    },
+    t.identity
+  );
 
 export type RpcTransaction = t.TypeOf<typeof rpcTransaction>;
 export const rpcTransaction = t.type(
