@@ -1153,10 +1153,6 @@ export class BuidlerNode extends EventEmitter {
     block.header.timestamp = new BN(block.header.timestamp).addn(1).toBuffer();
   }
 
-  private async _setBlockTimestamp(block: Block, timestamp: BN) {
-    block.header.timestamp = new BN(timestamp).toBuffer();
-  }
-
   private async _validateTransaction(tx: Transaction) {
     // Geth throws this error if a tx is sent twice
     if (await this._transactionWasSuccessful(tx)) {
@@ -1267,7 +1263,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     roundNumber = 0
   ): Promise<BN> {
     if (lowestSuccessfulEstimation.lte(highestFailingEstimation)) {
-      // This shouldn't happen, but we don't wan't to go into an infinite loop
+      // This shouldn't happen, but we don't want to go into an infinite loop
       // if it ever happens
       return lowestSuccessfulEstimation;
     }
@@ -1340,7 +1336,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
    *
    * If throwOnError is true, errors are managed locally and thrown on
    * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
-   * inspected/resetted.
+   * inspected/reset.
    */
   private async _runTxAndRevertMutations(
     tx: Transaction,
@@ -1352,11 +1348,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
       let blockContext;
       // if the context is to estimate gas or run calls in pending block
       if (runOnNewBlock) {
-        const [
-          blockTimestamp,
-          offsetShouldChange,
-          newOffset,
-        ] = this._calculateTimestampAndOffset();
+        const [blockTimestamp] = this._calculateTimestampAndOffset();
 
         blockContext = await this._getNextBlockTemplate(blockTimestamp);
         const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(

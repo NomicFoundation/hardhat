@@ -1,11 +1,7 @@
 import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
-import {
-  InvalidInputError,
-  MethodNotFoundError,
-  MethodNotSupportedError,
-} from "../errors";
+import { InvalidInputError, MethodNotFoundError } from "../errors";
 import { rpcQuantity, validateParams } from "../input";
 import { BuidlerNode } from "../node";
 import { numberToRpcQuantity } from "../output";

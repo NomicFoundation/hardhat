@@ -55,7 +55,7 @@ export function toBlockchain(pb: PBlockchain): Blockchain {
   };
 }
 
-function getDetails(_: string, cb: Callback<void>) {
+function getDetails(_: string, cb: Callback) {
   cb(null);
 }
 

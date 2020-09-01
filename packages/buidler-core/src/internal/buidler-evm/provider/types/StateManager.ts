@@ -88,6 +88,7 @@ export interface StateManager {
    * computing gas costs according to EIP-1283.
    * @param address - Address of the account to get the storage for
    * @param key - Key in the account's storage to get the value for. Must be 32 bytes long.
+   * @param cb - Callback function
    */
   getOriginalContractStorage(
     address: Buffer,
