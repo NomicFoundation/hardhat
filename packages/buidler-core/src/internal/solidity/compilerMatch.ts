@@ -5,11 +5,11 @@ import { MultiSolcConfig, SolcConfig } from "../../types";
 
 import { ResolvedFile } from "./resolver";
 
-type MatchingCompilerFailure =
-  | "NonCompilable"
-  | "NonCompilableOverriden"
-  | "ImportsIncompatibleFile"
-  | "Other";
+export type MatchingCompilerFailure =
+  | "nonCompilable"
+  | "nonCompilableOverriden"
+  | "importsIncompatibleFile"
+  | "other";
 
 /**
  * Return the compiler config that matches the given version ranges,
@@ -71,15 +71,15 @@ function getMatchingCompilerFailure(
 ): MatchingCompilerFailure {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
-    return overriden ? "NonCompilableOverriden" : "NonCompilable";
+    return overriden ? "nonCompilableOverriden" : "nonCompilable";
   }
 
   for (const dependency of directDependencies) {
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
     if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
-      return "ImportsIncompatibleFile";
+      return "importsIncompatibleFile";
     }
   }
 
-  return "Other";
+  return "other";
 }

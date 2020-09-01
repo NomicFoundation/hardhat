@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
-import { cloneDeep, flatMap } from "lodash";
+import { cloneDeep, flatMap, flatten, partition } from "lodash";
 import path from "path";
 
 import {
@@ -15,10 +15,11 @@ import { task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
-  CompilationGroup,
   CompilationGroupsFailure,
-  createCompilationGroups,
-  isCompilationGroupsFailure,
+  CompilationGroupsSuccess,
+  getCompilationGroupsFromDependencyGraph,
+  isCompilationGroupsSuccess,
+  mergeCompilationGroupsWithoutBug,
 } from "../internal/solidity/compilationGroup";
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
@@ -62,42 +63,48 @@ export default function () {
         resolvedFiles
       );
 
-      const connectedComponents = dependencyGraph.getConnectedComponents();
-
       solidityFilesCache = invalidateCacheMissingArtifacts(
         solidityFilesCache,
         config.paths.artifacts,
         dependencyGraph.getResolvedFiles()
       );
 
-      let compilationGroups: CompilationGroup[] = [];
-      const compilationFailures: CompilationGroupsFailure[] = [];
+      const connectedComponents = dependencyGraph.getConnectedComponents();
 
-      for (const connectedComponent of connectedComponents) {
-        const compilationGroupsResult = createCompilationGroups(
-          connectedComponent,
-          config.solidity,
-          solidityFilesCache,
-          force
-        );
+      const compilationGroupsResults = await Promise.all(
+        connectedComponents.map((graph) =>
+          getCompilationGroupsFromDependencyGraph(graph, config.solidity)
+        )
+      );
 
-        if (isCompilationGroupsFailure(compilationGroupsResult)) {
-          compilationFailures.push(compilationGroupsResult);
-        } else {
-          compilationGroups = compilationGroups.concat(
-            compilationGroupsResult.groups
-          );
-        }
-      }
+      const [compilationGroupsSuccesses, compilationGroupsFailures] = partition(
+        compilationGroupsResults,
+        isCompilationGroupsSuccess
+      );
 
-      if (compilationFailures.length > 0) {
+      if (compilationGroupsFailures.length > 0) {
         const errorMessage = buildCompilationGroupsFailureMessage(
-          compilationFailures
+          compilationGroupsFailures
         );
-        // TODO throw a BuidlerError and show a better error message
+
+        // TODO-HH throw a BuidlerError and show a better error message
         // tslint:disable only-buidler-error
         throw new Error(errorMessage);
       }
+
+      const groups = flatten(compilationGroupsSuccesses.map((x) => x.groups));
+
+      const modifiedCompilationGroups = force
+        ? groups
+        : groups.filter((group) => group.hasChanged(solidityFilesCache));
+
+      const unmergedCompilationGroups = modifiedCompilationGroups.filter(
+        (group) => group.emitsArtifacts()
+      );
+
+      const compilationGroups = mergeCompilationGroupsWithoutBug(
+        unmergedCompilationGroups
+      );
 
       const newSolidityFilesCache = cloneDeep(solidityFilesCache);
       for (const compilationGroup of compilationGroups) {
@@ -166,9 +173,11 @@ export default function () {
         let numberOfContracts = 0;
 
         for (const file of compilationGroup.getResolvedFiles()) {
+          console.log(`${file.globalName}:`);
           if (!compilationGroup.emitsArtifacts(file)) {
             continue;
           }
+          console.log("    emits");
 
           const emittedArtifacts = [];
           for (const [contractName, contractOutput] of Object.entries(
@@ -240,6 +249,9 @@ async function removeObsoleteArtifacts(
   for (const artifact of existingArtifacts) {
     if (!validArtifacts.has(artifact)) {
       fsExtra.unlinkSync(artifact);
+      const dbgFile = artifact.replace(/\.json$/, ".dbg");
+      // we use remove instead of unlink in case the dbg file doesn't exist
+      fsExtra.removeSync(dbgFile);
     }
   }
 }
@@ -263,7 +275,8 @@ async function removeObsoleteBuildInfos(artifactsPath: string) {
 }
 
 /**
- * Remove from the given `solidityFilesCache` all files that have missing artifacts
+ * If a file is present in the cache, but some of its artifacts is missing on
+ * disk, we remove it from the cache to force it to be recompiled.
  */
 function invalidateCacheMissingArtifacts(
   solidityFilesCache: SolidityFilesCache,

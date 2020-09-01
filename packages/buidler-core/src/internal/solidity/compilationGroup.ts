@@ -1,44 +1,62 @@
-import { isEqual } from "lodash";
+import { flatten, isEqual } from "lodash";
+import semver from "semver";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 import { MultiSolcConfig, SolcConfig } from "../../types";
 
-import { getMatchingCompilerConfig } from "./compilerMatch";
+import {
+  getMatchingCompilerConfig,
+  MatchingCompilerFailure,
+} from "./compilerMatch";
 import { DependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
-enum CompilationLevel {
-  NO_COMPILE,
-  COMPILE,
-  EMIT_ARTIFACTS,
-}
-
-// this will depend on the solidity version when this bug is fixed
-const SOLC_BUG_9573 = true;
+// this should have a proper version range when it's fixed
+const SOLC_BUG_9573_VERSIONS = "*";
 
 export class CompilationGroup {
   private _filesToCompile: Map<
     string,
-    { file: ResolvedFile; compilationLevel: CompilationLevel }
+    { file: ResolvedFile; emitsArtifacts: boolean }
   > = new Map();
 
   constructor(public solidityConfig: SolcConfig) {}
 
-  public addFileToCompile(
-    file: ResolvedFile,
-    compilationLevel: CompilationLevel
-  ) {
+  public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
     const fileToCompile = this._filesToCompile.get(file.globalName);
-    if (fileToCompile === undefined) {
-      this._filesToCompile.set(file.globalName, { file, compilationLevel });
-    } else {
-      if (compilationLevel > fileToCompile.compilationLevel) {
-        this._filesToCompile.set(file.globalName, {
-          file,
-          compilationLevel,
-        });
-      }
+
+    // if the file doesn't exist, we add it
+    // we also add it if emitsArtifacts is true, to override it in case it was
+    // previously added but with a false emitsArtifacts
+    if (fileToCompile === undefined || emitsArtifacts) {
+      this._filesToCompile.set(file.globalName, { file, emitsArtifacts });
     }
+  }
+
+  public merge(group: CompilationGroup): CompilationGroup {
+    if (!isEqual(this.solidityConfig, group.solidityConfig)) {
+      // TODO-HH throw a BuidlerError
+      // tslint:disable only-buidler-error
+      throw new Error("should not happen");
+    }
+    const mergedGroups = new CompilationGroup(group.solidityConfig);
+    for (const { file, emitsArtifacts } of this._filesToCompile.values()) {
+      mergedGroups.addFileToCompile(file, emitsArtifacts);
+    }
+    for (const { file, emitsArtifacts } of group._filesToCompile.values()) {
+      mergedGroups.addFileToCompile(file, emitsArtifacts);
+    }
+    return mergedGroups;
+  }
+
+  /**
+   * Check if some file in the group has changed, or if the config of the group
+   * is different from the last one that was used for that file
+   */
+  public hasChanged(cache: SolidityFilesCache): boolean {
+    return this.getResolvedFiles().some((file) =>
+      hasChangedSinceLastCompilation(file, cache, this.solidityConfig)
+    );
   }
 
   public isEmpty() {
@@ -47,12 +65,6 @@ export class CompilationGroup {
 
   public getVersion() {
     return this.solidityConfig.version;
-  }
-
-  public getFilesToCompile(): ResolvedFile[] {
-    return [...this._filesToCompile.values()]
-      .filter((x) => x.compilationLevel !== CompilationLevel.NO_COMPILE)
-      .map((x) => x.file);
   }
 
   public getResolvedFiles(): ResolvedFile[] {
@@ -66,30 +78,18 @@ export class CompilationGroup {
    */
   public emitsArtifacts(file?: ResolvedFile): boolean {
     if (file === undefined) {
-      return [...this._filesToCompile.values()].some(
-        (x) => x.compilationLevel === CompilationLevel.EMIT_ARTIFACTS
-      );
+      return [...this._filesToCompile.values()].some((x) => x.emitsArtifacts);
     }
 
     const fileToCompile = this._filesToCompile.get(file.globalName);
 
     if (fileToCompile === undefined) {
-      // tslint:disable-next-line only-buidler-error
-      throw new Error("Unknown file"); // TODO-HH use BuidlerError
+      // TODO-HH throw a BuidlerError
+      // tslint:disable only-buidler-error
+      throw new Error("Unknown file");
     }
 
-    return fileToCompile.compilationLevel === CompilationLevel.EMIT_ARTIFACTS;
-  }
-
-  public needsCompile(file: ResolvedFile): boolean {
-    const fileToCompile = this._filesToCompile.get(file.globalName);
-
-    if (fileToCompile === undefined) {
-      // tslint:disable-next-line only-buidler-error
-      throw new Error("Unknown file"); // TODO-HH use BuidlerError
-    }
-
-    return fileToCompile.compilationLevel > CompilationLevel.NO_COMPILE;
+    return fileToCompile.emitsArtifacts;
   }
 }
 
@@ -116,56 +116,14 @@ function hasChangedSinceLastCompilation(
   return false;
 }
 
-/**
- * Map solc configurations to compilation groups. Keys are deeply compared for
- * equality. Implementation is quadratic, but the number of compilers +
- * overrides shouldn't be huge.
- */
-class CompilationGroupMap {
-  private _compilationGroups: Map<SolcConfig, CompilationGroup> = new Map();
-
-  public createGroup(config: SolcConfig) {
-    this._getOrCreateGroup(config);
-  }
-
-  public addFileToGroup(
-    config: SolcConfig,
-    file: ResolvedFile,
-    compilationLevel: CompilationLevel
-  ) {
-    const group = this._getOrCreateGroup(config);
-
-    group.addFileToCompile(file, compilationLevel);
-  }
-
-  public getGroups(): CompilationGroup[] {
-    return [...this._compilationGroups.values()];
-  }
-
-  private _getOrCreateGroup(config: SolcConfig): CompilationGroup {
-    for (const [configKey, group] of this._compilationGroups.entries()) {
-      if (isEqual(config, configKey)) {
-        return group;
-      }
-    }
-
-    const newGroup = new CompilationGroup(config);
-    this._compilationGroups.set(config, newGroup);
-
-    return newGroup;
-  }
-}
-
-interface CompilationGroupsSuccess {
+export interface CompilationGroupsSuccess {
   groups: CompilationGroup[];
 }
 
-export interface CompilationGroupsFailure {
-  nonCompilable: string[];
-  nonCompilableOverriden: string[];
-  importsIncompatibleFile: string[];
-  other: string[];
-}
+export type CompilationGroupsFailure = Record<
+  MatchingCompilerFailure,
+  string[]
+>;
 
 export function isCompilationGroupsSuccess(
   result: CompilationGroupsResult
@@ -183,105 +141,148 @@ export type CompilationGroupsResult =
   | CompilationGroupsSuccess
   | CompilationGroupsFailure;
 
-/**
- * Creates a list of compilation groups. Returns the list of compilation groups
- * on success, and a list of non-compilable files on failure.
- */
-export function createCompilationGroups(
-  dependencyGraph: DependencyGraph,
-  solidityConfig: MultiSolcConfig,
-  solidityFilesCache: SolidityFilesCache,
-  force: boolean
-): CompilationGroupsResult {
-  const overrides = solidityConfig.overrides ?? {};
-  const compilationGroupMap = new CompilationGroupMap();
+type SolidityConfigPredicate = (config: SolcConfig) => boolean;
 
-  const allCompilerConfigs = [
-    ...solidityConfig.compilers,
-    ...Object.values(overrides),
-  ];
+class CompilationGroupMerger {
+  private _compilationGroups: Map<SolcConfig, CompilationGroup[]> = new Map();
 
-  for (const config of allCompilerConfigs) {
-    compilationGroupMap.createGroup(config);
+  constructor(private _isMergeable: SolidityConfigPredicate) {}
+
+  public getCompilationGroups(): CompilationGroup[] {
+    return flatten([...this._compilationGroups.values()]);
   }
 
-  let compilationFailed = false;
-  const compilationGroupsFailure: CompilationGroupsFailure = {
+  public addCompilationGroup(compilationGroup: CompilationGroup) {
+    const groups = this._compilationGroups.get(compilationGroup.solidityConfig);
+    if (this._isMergeable(compilationGroup.solidityConfig)) {
+      if (groups === undefined) {
+        this._compilationGroups.set(compilationGroup.solidityConfig, [
+          compilationGroup,
+        ]);
+      } else if (groups.length === 1) {
+        const mergedGroups = groups[0].merge(compilationGroup);
+        this._compilationGroups.set(compilationGroup.solidityConfig, [
+          mergedGroups,
+        ]);
+      } else {
+        // TODO-HH throw a BuidlerError
+        // tslint:disable only-buidler-error
+        throw new Error("should not happen");
+      }
+    } else {
+      if (groups === undefined) {
+        this._compilationGroups.set(compilationGroup.solidityConfig, [
+          compilationGroup,
+        ]);
+      } else {
+        this._compilationGroups.set(compilationGroup.solidityConfig, [
+          ...groups,
+          compilationGroup,
+        ]);
+      }
+    }
+  }
+}
+
+/**
+ * Creates a list of compilation groups from a dependency graph. Returns the
+ * list of compilation groups on success, and a list of non-compilable files on
+ * failure.
+ */
+export async function getCompilationGroupsFromDependencyGraph(
+  dependencyGraph: DependencyGraph,
+  solidityConfig: MultiSolcConfig
+): Promise<CompilationGroupsResult> {
+  const connectedComponents = dependencyGraph.getConnectedComponents();
+
+  const compilationGroups: CompilationGroup[] = [];
+  const failures: CompilationGroupsFailure = {
     nonCompilable: [],
     nonCompilableOverriden: [],
     importsIncompatibleFile: [],
     other: [],
   };
 
-  for (const file of dependencyGraph.getResolvedFiles()) {
-    const directDependencies = dependencyGraph.getDependencies(file);
-    const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
-      file
-    );
-
-    const compilerConfig = getMatchingCompilerConfig(
-      file,
-      directDependencies,
-      transitiveDependencies,
-      solidityConfig
-    );
-
-    // if the file cannot be compiled, we add it to the list and continue in
-    // case there are more non-compilable files
-    if (typeof compilerConfig === "string") {
-      compilationFailed = true;
-
-      if (compilerConfig === "NonCompilable") {
-        compilationGroupsFailure.nonCompilable.push(file.globalName);
-      } else if (compilerConfig === "NonCompilableOverriden") {
-        compilationGroupsFailure.nonCompilableOverriden.push(file.globalName);
-      } else if (compilerConfig === "ImportsIncompatibleFile") {
-        compilationGroupsFailure.importsIncompatibleFile.push(file.globalName);
-      } else {
-        compilationGroupsFailure.other.push(file.globalName);
-      }
-
-      continue;
-    }
-
-    const changedSinceLastCompilation =
-      hasChangedSinceLastCompilation(
-        file,
-        solidityFilesCache,
-        compilerConfig
-      ) ||
-      transitiveDependencies.some((dependency) =>
-        hasChangedSinceLastCompilation(dependency, solidityFilesCache)
+  let someFailure = false;
+  for (const connectedComponent of connectedComponents) {
+    for (const file of connectedComponent.getResolvedFiles()) {
+      const directDependencies = dependencyGraph.getDependencies(file);
+      const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
+        file
       );
 
-    let compilationLevel;
-    if (force || changedSinceLastCompilation) {
-      compilationLevel = CompilationLevel.EMIT_ARTIFACTS;
-    } else if (compilerConfig?.optimizer?.enabled === true && SOLC_BUG_9573) {
-      // if the optimizer is enabled and the solc bug is present, we need the
-      // files in a group to be always the same between compilations, so we have
-      // to add it
-      compilationLevel = CompilationLevel.COMPILE;
-    } else {
-      compilationLevel = CompilationLevel.NO_COMPILE;
-    }
+      const compilerConfig = getMatchingCompilerConfig(
+        file,
+        directDependencies,
+        transitiveDependencies,
+        solidityConfig
+      );
 
-    compilationGroupMap.addFileToGroup(compilerConfig, file, compilationLevel);
-
-    if (compilationLevel !== CompilationLevel.NO_COMPILE) {
-      for (const dependency of transitiveDependencies) {
-        compilationGroupMap.addFileToGroup(
-          compilerConfig,
-          dependency,
-          CompilationLevel.COMPILE
-        );
+      // if the file cannot be compiled, we add it to the list and continue in
+      // case there are more non-compilable files
+      if (typeof compilerConfig === "string") {
+        someFailure = true;
+        failures[compilerConfig].push(file.globalName);
+        continue;
       }
+      const compilationGroup = new CompilationGroup(compilerConfig);
+
+      compilationGroup.addFileToCompile(file, true);
+      for (const dependency of transitiveDependencies) {
+        compilationGroup.addFileToCompile(dependency, false);
+      }
+
+      compilationGroups.push(compilationGroup);
     }
   }
 
-  if (compilationFailed) {
-    return compilationGroupsFailure;
+  if (someFailure) {
+    return failures;
   }
 
-  return { groups: [...compilationGroupMap.getGroups()] };
+  const mergedCompilationGroups = mergeCompilationGroupsWithBug(
+    compilationGroups
+  );
+
+  return { groups: mergedCompilationGroups };
+}
+
+/**
+ * Merge compilation groups affected by the solc #9573 bug
+ */
+export function mergeCompilationGroupsWithBug(
+  compilationGroups: CompilationGroup[]
+): CompilationGroup[] {
+  const merger = new CompilationGroupMerger(
+    (solcConfig) =>
+      solcConfig.optimizer?.enabled === true &&
+      semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
+  );
+  for (const group of compilationGroups) {
+    merger.addCompilationGroup(group);
+  }
+
+  const mergedCompilationGroups = merger.getCompilationGroups();
+
+  return mergedCompilationGroups;
+}
+
+/**
+ * Merge compilation groups not affected by the solc #9573 bug
+ */
+export function mergeCompilationGroupsWithoutBug(
+  compilationGroups: CompilationGroup[]
+): CompilationGroup[] {
+  const merger = new CompilationGroupMerger(
+    (solcConfig) =>
+      solcConfig.optimizer?.enabled !== true ||
+      !semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
+  );
+  for (const group of compilationGroups) {
+    merger.addCompilationGroup(group);
+  }
+
+  const mergedCompilationGroups = merger.getCompilationGroups();
+
+  return mergedCompilationGroups;
 }
