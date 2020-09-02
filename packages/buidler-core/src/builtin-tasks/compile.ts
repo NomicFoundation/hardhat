@@ -11,10 +11,11 @@ import {
   saveArtifact,
   saveBuildInfo,
 } from "../internal/artifacts";
-import { task } from "../internal/core/config/config-env";
+import { internalTask, task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
+  CompilationGroup,
   CompilationGroupsFailure,
   CompilationGroupsSuccess,
   getCompilationGroupsFromDependencyGraph,
@@ -29,8 +30,27 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
+import { SolcInput } from "../types";
 
-import { TASK_COMPILE } from "./task-names";
+import {
+  TASK_COMPILE,
+  TASK_COMPILE_CHECK_ERRORS,
+  TASK_COMPILE_COMPILE,
+  TASK_COMPILE_COMPILE_GROUP,
+  TASK_COMPILE_COMPILE_GROUPS,
+  TASK_COMPILE_EMIT_ARTIFACTS,
+  TASK_COMPILE_FILTER_COMPILATION_GROUPS,
+  TASK_COMPILE_GET_COMPILATION_GROUPS,
+  TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
+  TASK_COMPILE_GET_COMPILATION_TASKS,
+  TASK_COMPILE_GET_COMPILER_INPUT,
+  TASK_COMPILE_GET_DEPENDENCY_GRAPH,
+  TASK_COMPILE_GET_SOURCE_NAMES,
+  TASK_COMPILE_GET_SOURCE_PATHS,
+  TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES,
+  TASK_COMPILE_MERGE_COMPILATION_GROUPS,
+  TASK_COMPILE_SOLIDITY,
+} from "./task-names";
 import {
   readSolidityFilesCache,
   SolidityFilesCache,
@@ -47,163 +67,242 @@ function isConsoleLogError(error: any): boolean {
 }
 
 export default function () {
-  task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
-    .addFlag("force", "Force compilation ignoring cache")
-    .setAction(async ({ force: force }: { force: boolean }, { config }) => {
-      let solidityFilesCache = await readSolidityFilesCache(config.paths);
+  internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
+    const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
 
-      const parser = new Parser(solidityFilesCache);
-      const resolver = new Resolver(config.paths.root, parser);
-      const paths: string[] = await glob(
-        path.join(config.paths.sources, "**/*.sol")
-      );
+    return paths;
+  });
+
+  internalTask(
+    TASK_COMPILE_GET_SOURCE_NAMES,
+    async ({ sourcePaths }: { sourcePaths: string[] }, { config }) => {
       const sourceNames = await Promise.all(
-        paths.map((p) => localPathToSourceName(config.paths.root, p))
+        sourcePaths.map((p) => localPathToSourceName(config.paths.root, p))
       );
+
+      return sourceNames;
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_GET_DEPENDENCY_GRAPH,
+    async (
+      {
+        sourceNames,
+        solidityFilesCache,
+      }: { sourceNames: string[]; solidityFilesCache: SolidityFilesCache },
+      { config }
+    ) => {
+      const parser = new Parser(solidityFilesCache ?? {});
+      const resolver = new Resolver(config.paths.root, parser);
+
       const resolvedFiles = await Promise.all(
         sourceNames.map((sn) => resolver.resolveSourceName(sn))
       );
-
       const dependencyGraph = await DependencyGraph.createFromResolvedFiles(
         resolver,
         resolvedFiles
       );
 
-      solidityFilesCache = invalidateCacheMissingArtifacts(
-        solidityFilesCache,
-        config.paths.artifacts,
-        dependencyGraph.getResolvedFiles()
-      );
+      return dependencyGraph;
+    }
+  );
 
+  internalTask(
+    TASK_COMPILE_GET_COMPILATION_GROUPS,
+    async (
+      { dependencyGraph }: { dependencyGraph: DependencyGraph },
+      { config }
+    ) => {
       const connectedComponents = dependencyGraph.getConnectedComponents();
 
+      // fvtodo file -> compilation group has to be overridable
       const compilationGroupsResults = await Promise.all(
         connectedComponents.map((graph) =>
           getCompilationGroupsFromDependencyGraph(graph, config.solidity)
         )
       );
 
-      const [compilationGroupsSuccesses, compilationGroupsFailures] = partition(
-        compilationGroupsResults,
-        isCompilationGroupsSuccess
-      );
+      return partition(compilationGroupsResults, isCompilationGroupsSuccess);
+    }
+  );
 
-      if (compilationGroupsFailures.length > 0) {
-        const errorMessage = buildCompilationGroupsFailureMessage(
-          compilationGroupsFailures
-        );
-
-        // TODO-HH throw a BuidlerError and show a better error message
-        // tslint:disable only-buidler-error
-        throw new Error(errorMessage);
-      }
-
-      const groups = flatten(compilationGroupsSuccesses.map((x) => x.groups));
-
+  internalTask(
+    TASK_COMPILE_FILTER_COMPILATION_GROUPS,
+    async ({
+      compilationGroups,
+      force,
+      solidityFilesCache,
+    }: {
+      compilationGroups: CompilationGroup[];
+      force: boolean;
+      solidityFilesCache: SolidityFilesCache;
+    }) => {
       const modifiedCompilationGroups = force
-        ? groups
-        : groups.filter((group) => group.hasChanged(solidityFilesCache));
+        ? compilationGroups
+        : compilationGroups.filter((group) =>
+            group.hasChanged(solidityFilesCache)
+          );
 
-      const unmergedCompilationGroups = modifiedCompilationGroups.filter(
+      const emittingCompilationGroups = modifiedCompilationGroups.filter(
         (group) => group.emitsArtifacts()
       );
 
-      const compilationGroups = mergeCompilationGroupsWithoutBug(
-        unmergedCompilationGroups
+      return emittingCompilationGroups;
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_MERGE_COMPILATION_GROUPS,
+    async ({
+      compilationGroups,
+    }: {
+      compilationGroups: CompilationGroup[];
+    }) => {
+      return mergeCompilationGroupsWithoutBug(compilationGroups);
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_COMPILE_GROUPS,
+    async (
+      {
+        compilationGroups,
+        solidityFilesCache,
+        force,
+      }: {
+        compilationGroups: CompilationGroup[];
+        solidityFilesCache: SolidityFilesCache;
+        force: boolean;
+      },
+      { run }
+    ) => {
+      for (const compilationGroup of compilationGroups) {
+        await run(TASK_COMPILE_COMPILE_GROUP, {
+          compilationGroup,
+          solidityFilesCache,
+          force,
+        });
+      }
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_GET_COMPILER_INPUT,
+    async ({ compilationGroup }: { compilationGroup: CompilationGroup }) => {
+      return getInputFromCompilationGroup(compilationGroup);
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_COMPILE,
+    async (
+      { input, solcVersion }: { input: SolcInput; solcVersion: string },
+      { config }
+    ) => {
+      const compiler = new Compiler(
+        solcVersion,
+        path.join(config.paths.cache, "compilers")
       );
 
-      const newSolidityFilesCache = cloneDeep(solidityFilesCache);
-      for (const compilationGroup of compilationGroups) {
-        if (!compilationGroup.emitsArtifacts()) {
-          console.log(
-            `Nothing to compile with version ${compilationGroup.solidityConfig.version}`
-          );
+      const output = await compiler.compile(input);
+
+      return output;
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_CHECK_ERRORS,
+    async ({ output }: { output: any }) => {
+      let hasErrors = false;
+      let hasConsoleLogErrors = false;
+      if (output.errors) {
+        for (const error of output.errors) {
+          hasErrors = hasErrors || error.severity === "error";
+          if (error.severity === "error") {
+            hasErrors = true;
+
+            if (isConsoleLogError(error)) {
+              hasConsoleLogErrors = true;
+            }
+
+            console.error(chalk.red(error.formattedMessage));
+          } else {
+            console.log("\n");
+            console.warn(chalk.yellow(error.formattedMessage));
+          }
+        }
+      }
+
+      if (hasConsoleLogErrors) {
+        console.error(
+          chalk.red(
+            `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
+          )
+        );
+        console.log();
+      }
+
+      if (hasErrors || !output.contracts) {
+        throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+      }
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_EMIT_ARTIFACTS,
+    async (
+      {
+        compilationGroup,
+        input,
+        output,
+        solidityFilesCache,
+        force,
+      }: {
+        compilationGroup: CompilationGroup;
+        input: SolcInput;
+        output: any;
+        solidityFilesCache?: SolidityFilesCache;
+        force: boolean;
+      },
+      { config }
+    ) => {
+      const pathToBuildInfo = await saveBuildInfo(
+        config.paths.artifacts,
+        input,
+        output,
+        compilationGroup.getVersion()
+      );
+      let numberOfContracts = 0;
+
+      for (const file of compilationGroup.getResolvedFiles()) {
+        if (!force && !compilationGroup.emitsArtifacts(file)) {
           continue;
         }
 
-        console.log(
-          `Compiling with ${compilationGroup.solidityConfig.version}`
-        );
-        const input = getInputFromCompilationGroup(compilationGroup);
-        const compiler = new Compiler(
-          compilationGroup.solidityConfig.version,
-          path.join(config.paths.cache, "compilers")
-        );
+        const emittedArtifacts = [];
+        for (const [contractName, contractOutput] of Object.entries(
+          output.contracts?.[file.globalName] ?? {}
+        )) {
+          numberOfContracts += 1;
 
-        const output = await compiler.compile(input);
-
-        let hasErrors = false;
-        let hasConsoleLogErrors = false;
-        if (output.errors) {
-          for (const error of output.errors) {
-            hasErrors = hasErrors || error.severity === "error";
-            if (error.severity === "error") {
-              hasErrors = true;
-
-              if (isConsoleLogError(error)) {
-                hasConsoleLogErrors = true;
-              }
-
-              console.error(chalk.red(error.formattedMessage));
-            } else {
-              console.log("\n");
-              console.warn(chalk.yellow(error.formattedMessage));
-            }
-          }
-        }
-
-        if (hasConsoleLogErrors) {
-          console.error(
-            chalk.red(
-              `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
-            )
+          const artifact = getArtifactFromContractOutput(
+            contractName,
+            contractOutput
           );
-          console.log();
+
+          await saveArtifact(
+            config.paths.artifacts,
+            file.globalName,
+            artifact,
+            pathToBuildInfo
+          );
+
+          emittedArtifacts.push(artifact.contractName);
         }
 
-        if (hasErrors || !output.contracts) {
-          throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
-        }
-
-        const pathToBuildInfo = await saveBuildInfo(
-          config.paths.artifacts,
-          input,
-          output,
-          compilationGroup.getVersion()
-        );
-
-        if (output === undefined) {
-          return;
-        }
-
-        let numberOfContracts = 0;
-
-        for (const file of compilationGroup.getResolvedFiles()) {
-          if (!compilationGroup.emitsArtifacts(file)) {
-            continue;
-          }
-
-          const emittedArtifacts = [];
-          for (const [contractName, contractOutput] of Object.entries(
-            output.contracts?.[file.globalName] ?? {}
-          )) {
-            const artifact = getArtifactFromContractOutput(
-              contractName,
-              contractOutput
-            );
-            numberOfContracts += 1;
-
-            await saveArtifact(
-              config.paths.artifacts,
-              file.globalName,
-              artifact,
-              pathToBuildInfo
-            );
-
-            emittedArtifacts.push(artifact.contractName);
-          }
-
-          newSolidityFilesCache[file.absolutePath] = {
+        if (solidityFilesCache !== undefined) {
+          solidityFilesCache[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
             globalName: file.globalName,
             solcConfig: compilationGroup.solidityConfig,
@@ -212,23 +311,212 @@ export default function () {
             artifacts: emittedArtifacts,
           };
         }
-
-        console.log(
-          "Compiled",
-          numberOfContracts,
-          pluralize(numberOfContracts, "contract"),
-          "successfully"
-        );
       }
 
-      await removeObsoleteArtifacts(
-        config.paths.artifacts,
-        newSolidityFilesCache
+      return { numberOfContracts };
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_COMPILE_GROUP,
+    async (
+      {
+        compilationGroup,
+        solidityFilesCache,
+        force,
+      }: {
+        compilationGroup: CompilationGroup;
+        solidityFilesCache?: SolidityFilesCache;
+        force: boolean;
+      },
+      { run }
+    ) => {
+      console.log(`Compiling with ${compilationGroup.solidityConfig.version}`);
+
+      const input: SolcInput = await run(TASK_COMPILE_GET_COMPILER_INPUT, {
+        compilationGroup,
+      });
+
+      const output = await run(TASK_COMPILE_COMPILE, {
+        solcVersion: compilationGroup.solidityConfig.version,
+        input,
+      });
+
+      await run(TASK_COMPILE_CHECK_ERRORS, { output });
+
+      if (output === undefined) {
+        return;
+      }
+
+      const { numberOfContracts } = await run(TASK_COMPILE_EMIT_ARTIFACTS, {
+        compilationGroup,
+        input,
+        output,
+        solidityFilesCache,
+        force,
+      });
+
+      console.log(
+        "Compiled",
+        numberOfContracts,
+        pluralize(numberOfContracts, "contract"),
+        "successfully"
       );
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES,
+    async (
+      {
+        compilationGroupsFailures,
+      }: {
+        compilationGroupsFailures: CompilationGroupsFailure[];
+      },
+      { run }
+    ) => {
+      if (compilationGroupsFailures.length > 0) {
+        const errorMessage: string = await run(
+          TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
+          { compilationGroupsFailures }
+        );
+
+        // TODO-HH throw a BuidlerError and show a better error message
+        // tslint:disable only-buidler-error
+        throw new Error(errorMessage);
+      }
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
+    async ({
+      compilationGroupsFailures,
+    }: {
+      compilationGroupsFailures: CompilationGroupsFailure[];
+    }) => {
+      const nonCompilableOverriden = flatMap(
+        compilationGroupsFailures,
+        (x) => x.nonCompilableOverriden
+      );
+      const nonCompilable = flatMap(
+        compilationGroupsFailures,
+        (x) => x.nonCompilable
+      );
+      const importsIncompatibleFile = flatMap(
+        compilationGroupsFailures,
+        (x) => x.importsIncompatibleFile
+      );
+      const other = flatMap(compilationGroupsFailures, (x) => x.other);
+
+      let errorMessage =
+        "The project couldn't be compiled, see reasons below.\n\n";
+      if (nonCompilableOverriden.length > 0) {
+        errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
+
+${nonCompilableOverriden.map((x) => `* ${x}`).join("\n")}
+
+`;
+      }
+      if (nonCompilable.length > 0) {
+        errorMessage += `These files don't match any compiler in your config:
+
+${nonCompilable.map((x) => `* ${x}`).join("\n")}
+
+`;
+      }
+      if (importsIncompatibleFile.length > 0) {
+        errorMessage += `These files have imports with incompatible pragmas:
+
+${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
+
+`;
+      }
+      if (other.length > 0) {
+        errorMessage += `These files and its dependencies cannot be compiled with your config:
+
+${other.map((x) => `* ${x}`).join("\n")}
+
+`;
+      }
+
+      return errorMessage;
+    }
+  );
+
+  task(
+    TASK_COMPILE_SOLIDITY,
+    async ({ force: force }: { force: boolean }, { config, run }) => {
+      const sourcePaths: string[] = await run(TASK_COMPILE_GET_SOURCE_PATHS);
+
+      const sourceNames: string[] = await run(TASK_COMPILE_GET_SOURCE_NAMES, {
+        sourcePaths,
+      });
+
+      let solidityFilesCache = await readSolidityFilesCache(config.paths);
+
+      const dependencyGraph: DependencyGraph = await run(
+        TASK_COMPILE_GET_DEPENDENCY_GRAPH,
+        { sourceNames, solidityFilesCache }
+      );
+
+      solidityFilesCache = invalidateCacheMissingArtifacts(
+        solidityFilesCache,
+        config.paths.artifacts,
+        dependencyGraph.getResolvedFiles()
+      );
+
+      const [compilationGroupsSuccesses, compilationGroupsFailures]: [
+        CompilationGroupsSuccess[],
+        CompilationGroupsFailure[]
+      ] = await run(TASK_COMPILE_GET_COMPILATION_GROUPS, { dependencyGraph });
+
+      await run(TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES, {
+        compilationGroupsFailures,
+      });
+
+      const compilationGroups = flatten(
+        compilationGroupsSuccesses.map((x) => x.groups)
+      );
+
+      const filteredCompilationGroups: CompilationGroup[] = await run(
+        TASK_COMPILE_FILTER_COMPILATION_GROUPS,
+        { compilationGroups, force, solidityFilesCache }
+      );
+
+      const mergedCompilationGroups: CompilationGroup[] = await run(
+        TASK_COMPILE_MERGE_COMPILATION_GROUPS,
+        { compilationGroups: filteredCompilationGroups }
+      );
+
+      await run(TASK_COMPILE_COMPILE_GROUPS, {
+        compilationGroups: mergedCompilationGroups,
+        solidityFilesCache,
+        force,
+      });
+
+      await removeObsoleteArtifacts(config.paths.artifacts, solidityFilesCache);
 
       await removeObsoleteBuildInfos(config.paths.artifacts);
 
-      writeSolidityFilesCache(config.paths, newSolidityFilesCache);
+      writeSolidityFilesCache(config.paths, solidityFilesCache);
+    }
+  );
+
+  task(TASK_COMPILE_GET_COMPILATION_TASKS, async () => {
+    return [TASK_COMPILE_SOLIDITY];
+  });
+
+  task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
+    .addFlag("force", "Force compilation ignoring cache")
+    .setAction(async (compilationArgs: any, { run }) => {
+      const compilationTasks: string[] = await run(
+        TASK_COMPILE_GET_COMPILATION_TASKS
+      );
+
+      for (const compilationTask of compilationTasks) {
+        await run(compilationTask, compilationArgs);
+      }
     });
 }
 
@@ -307,53 +595,4 @@ function invalidateCacheMissingArtifacts(
   });
 
   return solidityFilesCache;
-}
-
-function buildCompilationGroupsFailureMessage(
-  compilationGroupsFailures: CompilationGroupsFailure[]
-): string {
-  const nonCompilableOverriden = flatMap(
-    compilationGroupsFailures,
-    (x) => x.nonCompilableOverriden
-  );
-  const nonCompilable = flatMap(
-    compilationGroupsFailures,
-    (x) => x.nonCompilable
-  );
-  const importsIncompatibleFile = flatMap(
-    compilationGroupsFailures,
-    (x) => x.importsIncompatibleFile
-  );
-  const other = flatMap(compilationGroupsFailures, (x) => x.other);
-
-  let errorMessage = "The project couldn't be compiled, see reasons below.\n\n";
-  if (nonCompilableOverriden.length > 0) {
-    errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
-
-${nonCompilableOverriden.map((x) => `* ${x}`).join("\n")}
-
-`;
-  }
-  if (nonCompilable.length > 0) {
-    errorMessage += `These files don't match any compiler in your config:
-
-${nonCompilable.map((x) => `* ${x}`).join("\n")}
-
-`;
-  }
-  if (importsIncompatibleFile.length > 0) {
-    errorMessage += `These files have imports with incompatible pragmas:
-
-${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
-
-`;
-  }
-  if (other.length > 0) {
-    errorMessage += `These files and its dependencies cannot be compiled with your config:
-
-${other.map((x) => `* ${x}`).join("\n")}
-
-`;
-  }
-  return errorMessage;
 }
