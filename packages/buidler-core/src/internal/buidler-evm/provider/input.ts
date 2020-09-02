@@ -219,7 +219,10 @@ export function validateParams(
   block: typeof optionalBlockTag
 ): [Buffer, BN, OptionalBlockTag];
 
-export function validateParams(params: any[], data: typeof rpcData): [Buffer];
+export function validateParams(
+  params: any[],
+  data: typeof rpcData | typeof rpcData
+): [Buffer];
 
 export function validateParams(
   params: any[],

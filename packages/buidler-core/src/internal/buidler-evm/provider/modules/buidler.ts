@@ -4,8 +4,13 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../stack-traces/compiler-types";
-import { MethodNotFoundError } from "../errors";
-import { rpcCompilerInput, rpcCompilerOutput, validateParams } from "../input";
+import { MethodNotFoundError, MethodNotSupportedError } from "../errors";
+import {
+  rpcAddress,
+  rpcCompilerInput,
+  rpcCompilerOutput,
+  validateParams,
+} from "../input";
 import { BuidlerNode } from "../node";
 
 // tslint:disable only-buidler-error
@@ -26,6 +31,13 @@ export class BuidlerModule {
         return this._addCompilationResultAction(
           ...this._addCompilationResultParams(params)
         );
+      case "buidler_impersonate":
+        if (!this._node.isForked) {
+          throw new MethodNotSupportedError(
+            `Method ${method} is only supported in forked provider`
+          );
+        }
+        return this._impersonateAction(...this._impersonateParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -64,5 +76,15 @@ export class BuidlerModule {
       compilerInput,
       compilerOutput
     );
+  }
+
+  // buidler_impersonate
+
+  private _impersonateParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcAddress);
+  }
+
+  private async _impersonateAction(address: Buffer): Promise<true> {
+    return this._node.addImpersonatedAccount(address);
   }
 }

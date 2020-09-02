@@ -158,6 +158,7 @@ export class BuidlerNode extends EventEmitter {
   }
 
   private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
+  private readonly _impersonatedAccounts: Set<string> = new Set();
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
@@ -234,6 +235,10 @@ export class BuidlerNode extends EventEmitter {
 
       Reporter.reportError(error);
     }
+  }
+
+  get isForked(): boolean {
+    return this._blockchain instanceof ForkBlockchain;
   }
 
   public async getSignedTransaction(
@@ -859,6 +864,11 @@ export class BuidlerNode extends EventEmitter {
       this._vmTraceDecoder.addBytecode(bytecode);
     }
 
+    return true;
+  }
+
+  public async addImpersonatedAccount(address: Buffer): Promise<true> {
+    this._impersonatedAccounts.add(bufferToHex(address));
     return true;
   }
 
