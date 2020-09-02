@@ -4,7 +4,6 @@ import { BN, bufferToHex, setLength, toBuffer } from "ethereumjs-util";
 import { Contract, utils, Wallet } from "ethers";
 
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
-import { isRunningOnCiServer } from "../../../../src/internal/util/ci-detection";
 import ERC20Abi from "../abi/ERC20/ERC20.json";
 import UniswapExchangeAbi from "../abi/Uniswap/Exchange.json";
 import UniswapFactoryAbi from "../abi/Uniswap/Factory.json";
@@ -32,7 +31,7 @@ describe("Forked provider", () => {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     describe(`Using ${rpcProvider}`, () => {
       before(function () {
-        if (isRunningOnCiServer() && rpcProvider === "Alchemy") {
+        if (process.env.CI === "true" && rpcProvider === "Alchemy") {
           this.skip();
         }
       });
