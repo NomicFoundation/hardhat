@@ -7,6 +7,7 @@ import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/clie
 import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import {
+  ALCHEMY_URL,
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
@@ -42,7 +43,7 @@ describe("JsonRpcClient", () => {
 
     it("caches fetched data", async () => {
       const fakeProvider = {
-        send: sinon.fake.returns(response1),
+        send: sinon.fake.resolves(response1),
       };
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
 
@@ -66,9 +67,9 @@ describe("JsonRpcClient", () => {
         send: sinon
           .stub()
           .onFirstCall()
-          .returns(response1)
+          .resolves(response1)
           .onSecondCall()
-          .returns(response2),
+          .resolves(response2),
       };
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
 
@@ -84,6 +85,100 @@ describe("JsonRpcClient", () => {
       );
       assert.isTrue(fakeProvider.send.calledTwice);
       assert.isTrue(value.equals(toBuffer(response2)));
+    });
+  });
+
+  describe("retry on Infura's error", () => {
+    const response =
+      "0x00000000000000000000000000000000000000000067bafa8fb7228f04ffa792";
+
+    it("makes a retry on the 'header not found' error", async () => {
+      const fakeProvider = {
+        url: INFURA_URL,
+        send: sinon
+          .stub()
+          .onFirstCall()
+          .rejects(new Error("header not found"))
+          .onSecondCall()
+          .resolves(response),
+      };
+
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      const value = await clientWithFakeProvider.getStorageAt(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        "latest"
+      );
+      assert.isTrue(fakeProvider.send.calledTwice);
+      assert.isTrue(value.equals(toBuffer(response)));
+    });
+
+    it("does not retry more than once", async () => {
+      const fakeProvider = {
+        url: INFURA_URL,
+        send: sinon
+          .stub()
+          .onFirstCall()
+          .rejects(new Error("header not found"))
+          .onSecondCall()
+          .rejects(new Error("header not found"))
+          .onThirdCall()
+          .resolves(response),
+      };
+
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      await assert.isRejected(
+        clientWithFakeProvider.getStorageAt(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          "latest"
+        ),
+        "header not found"
+      );
+    });
+
+    it("does not retry on a different error", async () => {
+      const fakeProvider = {
+        url: INFURA_URL,
+        send: sinon
+          .stub()
+          .onFirstCall()
+          .rejects(new Error("different error"))
+          .onSecondCall()
+          .resolves(response),
+      };
+
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      await assert.isRejected(
+        clientWithFakeProvider.getStorageAt(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          "latest"
+        ),
+        "different error"
+      );
+    });
+
+    it("does not retry when other RPC provider is used", async () => {
+      const fakeProvider = {
+        url: ALCHEMY_URL,
+        send: sinon
+          .stub()
+          .onFirstCall()
+          .rejects(new Error("header not found"))
+          .onSecondCall()
+          .resolves(response),
+      };
+
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      await assert.isRejected(
+        clientWithFakeProvider.getStorageAt(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          "latest"
+        ),
+        "header not found"
+      );
     });
   });
 

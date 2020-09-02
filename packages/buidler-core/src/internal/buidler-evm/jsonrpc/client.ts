@@ -185,10 +185,31 @@ export class JsonRpcClient {
     if (this._cache.has(key)) {
       return this._cache.get(key);
     }
-    const result = await this._httpProvider.send(method, params);
+    const result = await this._send(method, params);
     const decoded = decode(result, tType);
     this._cache.set(key, decoded);
     return decoded;
+  }
+
+  private async _send(
+    method: string,
+    params: any[],
+    isRetryCall = false
+  ): Promise<any> {
+    try {
+      return await this._httpProvider.send(method, params);
+    } catch (err) {
+      if (
+        !isRetryCall &&
+        this._httpProvider.url.includes("infura") &&
+        err instanceof Error &&
+        err.message.includes("header not found")
+      ) {
+        return this._send(method, params, true);
+      }
+      // tslint:disable-next-line only-buidler-error
+      throw err;
+    }
   }
 }
 
