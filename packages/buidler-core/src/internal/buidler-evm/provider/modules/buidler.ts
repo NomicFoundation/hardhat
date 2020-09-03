@@ -38,6 +38,15 @@ export class BuidlerModule {
           );
         }
         return this._impersonateAction(...this._impersonateParams(params));
+      case "buidler_stopImpersonating":
+        if (!this._node.isForked) {
+          throw new MethodNotSupportedError(
+            `Method ${method} is only supported in forked provider`
+          );
+        }
+        return this._stopImpersonatingAction(
+          ...this._stopImpersonatingParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -84,7 +93,17 @@ export class BuidlerModule {
     return validateParams(params, rpcAddress);
   }
 
-  private async _impersonateAction(address: Buffer): Promise<true> {
+  private _impersonateAction(address: Buffer): true {
     return this._node.addImpersonatedAccount(address);
+  }
+
+  // buidler_stopImpersonating
+
+  private _stopImpersonatingParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcAddress);
+  }
+
+  private _stopImpersonatingAction(address: Buffer): boolean {
+    return this._node.removeImpersonatedAccount(address);
   }
 }

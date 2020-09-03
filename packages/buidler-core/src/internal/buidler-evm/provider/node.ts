@@ -867,9 +867,13 @@ export class BuidlerNode extends EventEmitter {
     return true;
   }
 
-  public async addImpersonatedAccount(address: Buffer): Promise<true> {
+  public addImpersonatedAccount(address: Buffer): true {
     this._impersonatedAccounts.add(bufferToHex(address));
     return true;
+  }
+
+  public removeImpersonatedAccount(address: Buffer): boolean {
+    return this._impersonatedAccounts.delete(bufferToHex(address));
   }
 
   private _getSnapshotIndex(id: number): number | undefined {

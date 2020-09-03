@@ -59,6 +59,56 @@ describe("Buidler module", function () {
           );
         });
       }
+
+      describe(
+        "buidler_stopImpersonating",
+        isFork ? testBuidlerStopImpersonatingFork : testBuidlerStopImpersonating
+      );
+
+      function testBuidlerStopImpersonatingFork() {
+        it("validates input parameter", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "buidler_stopImpersonating",
+            ["0x1234"]
+          );
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "buidler_stopImpersonating",
+            ["1234567890abcdef1234567890abcdef12345678"]
+          );
+        });
+
+        it("returns true if the account was impersonated before", async function () {
+          await this.provider.send("buidler_impersonate", [
+            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+          ]);
+          const result = await this.provider.send("buidler_stopImpersonating", [
+            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+          ]);
+          assert.isTrue(result);
+        });
+
+        it("returns false if the account wasn't impersonated before", async function () {
+          const result = await this.provider.send("buidler_stopImpersonating", [
+            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+          ]);
+          assert.isFalse(result);
+        });
+      }
+
+      function testBuidlerStopImpersonating() {
+        it("is not supported", async function () {
+          await assertBuidlerEVMProviderError(
+            this.provider,
+            "buidler_stopImpersonating",
+            [],
+            `Method buidler_stopImpersonating is only supported in forked provider`,
+            MethodNotSupportedError.CODE
+          );
+        });
+      }
     });
   });
 });
