@@ -42,10 +42,6 @@ describe("Buidler module", function () {
           ]);
           assert.isTrue(result);
         });
-
-        it.skip("allows to impersonate a remote account", async function () {
-          // TODO
-        });
       }
 
       function testBuidlerImpersonate() {

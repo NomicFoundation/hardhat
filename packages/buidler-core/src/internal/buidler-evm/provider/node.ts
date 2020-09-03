@@ -157,8 +157,8 @@ export class BuidlerNode extends EventEmitter {
     return [common, node];
   }
 
-  private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
-  private readonly _impersonatedAccounts: Set<string> = new Set();
+  private readonly _localAccounts: Map<string, Buffer> = new Map(); // address => private key
+  private readonly _impersonatedAccounts: Set<string> = new Set(); // address
 
   private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
@@ -179,7 +179,7 @@ export class BuidlerNode extends EventEmitter {
     private readonly _vm: VM,
     private readonly _stateManager: PStateManager,
     private readonly _blockchain: PBlockchain,
-    localAccounts: Buffer[],
+    localAccountPrivateKeys: Buffer[],
     private readonly _blockGasLimit: BN,
     solidityVersion?: string,
     initialDate?: Date,
@@ -188,7 +188,7 @@ export class BuidlerNode extends EventEmitter {
   ) {
     super();
 
-    this._initLocalAccounts(localAccounts);
+    this._initLocalAccounts(localAccountPrivateKeys);
 
     this._vmTracer = new VMTracer(this._vm, true);
     this._vmTracer.enableTracing();
@@ -244,12 +244,20 @@ export class BuidlerNode extends EventEmitter {
   public async getSignedTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
-    const tx = new Transaction(txParams, { common: this._vm._common });
+    const senderAddress = bufferToHex(txParams.from);
 
-    const pk = await this._getLocalAccountPrivateKey(txParams.from);
-    tx.sign(pk);
+    const pk = this._localAccounts.get(senderAddress);
+    if (pk !== undefined) {
+      const tx = new Transaction(txParams, { common: this._vm._common });
+      tx.sign(pk);
+      return tx;
+    }
 
-    return tx;
+    if (this._impersonatedAccounts.has(senderAddress)) {
+      return new FakeTransaction(txParams, { common: this._vm._common });
+    }
+
+    throw new InvalidInputError(`unknown account ${senderAddress}`);
   }
 
   public async _getFakeTransaction(
@@ -472,7 +480,7 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getLocalAccountAddresses(): Promise<string[]> {
-    return [...this._accountPrivateKeys.keys()];
+    return [...this._localAccounts.keys()];
   }
 
   public async getBlockGasLimit(): Promise<BN> {
@@ -638,13 +646,13 @@ export class BuidlerNode extends EventEmitter {
     data: Buffer
   ): Promise<ECDSASignature> {
     const messageHash = hashPersonalMessage(data);
-    const privateKey = await this._getLocalAccountPrivateKey(address);
+    const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ecsign(messageHash, privateKey);
   }
 
   public async signTypedData(address: Buffer, typedData: any): Promise<string> {
-    const privateKey = await this._getLocalAccountPrivateKey(address);
+    const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ethSigUtil.signTypedData_v4(privateKey, {
       data: typedData,
@@ -891,9 +899,9 @@ export class BuidlerNode extends EventEmitter {
     return undefined;
   }
 
-  private _initLocalAccounts(localAccounts: Buffer[]) {
-    for (const pk of localAccounts) {
-      this._accountPrivateKeys.set(bufferToHex(privateToAddress(pk)), pk);
+  private _initLocalAccounts(privateKeys: Buffer[]) {
+    for (const pk of privateKeys) {
+      this._localAccounts.set(bufferToHex(privateToAddress(pk)), pk);
     }
   }
 
@@ -1073,13 +1081,13 @@ export class BuidlerNode extends EventEmitter {
     });
   }
 
-  private async _getLocalAccountPrivateKey(sender: Buffer): Promise<Buffer> {
+  private _getLocalAccountPrivateKey(sender: Buffer): Buffer {
     const senderAddress = bufferToHex(sender);
-    if (!this._accountPrivateKeys.has(senderAddress)) {
+    if (!this._localAccounts.has(senderAddress)) {
       throw new InvalidInputError(`unknown account ${senderAddress}`);
     }
 
-    return this._accountPrivateKeys.get(senderAddress)!;
+    return this._localAccounts.get(senderAddress)!;
   }
 
   private async _addTransactionToBlock(block: Block, tx: Transaction) {

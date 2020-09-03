@@ -2668,7 +2668,7 @@ describe("Eth module", function () {
         // seems reasonable, and if it weren't we should address the issues there.
 
         describe("Params validation", function () {
-          it("Should fail if the account is not managed by the provider", async function () {
+          it("Should fail for tx sent from account that is neither local nor marked as impersonated", async function () {
             await assertTransactionFailure(
               this.provider,
               {

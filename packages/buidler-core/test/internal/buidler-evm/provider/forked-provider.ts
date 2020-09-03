@@ -1,17 +1,22 @@
 import { assert } from "chai";
-import { BN, bufferToHex, setLength, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 // tslint:disable-next-line:no-implicit-dependencies
 import { Contract, utils, Wallet } from "ethers";
 
+import { InvalidInputError } from "../../../../src/internal/buidler-evm/provider/errors";
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
 import ERC20Abi from "../abi/ERC20/ERC20.json";
 import UniswapExchangeAbi from "../abi/Uniswap/Exchange.json";
 import UniswapFactoryAbi from "../abi/Uniswap/Factory.json";
-import { assertQuantity } from "../helpers/assertions";
+import {
+  assertQuantity,
+  assertTransactionFailure,
+} from "../helpers/assertions";
 import {
   BITFINEX_WALLET_ADDRESS,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
+  EMPTY_ACCOUNT_ADDRESS,
   FIRST_TX_HASH_OF_10496585,
   UNISWAP_FACTORY_ADDRESS,
   WETH_ADDRESS,
@@ -19,6 +24,8 @@ import {
 import { dataToBN, quantityToBN } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { EthersProviderWrapper } from "../helpers/ethers-provider-wrapper";
+import { hexStripZeros } from "../helpers/hexStripZeros";
+import { leftPad32 } from "../helpers/leftPad32";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -50,10 +57,8 @@ describe("Forked provider", () => {
       describe("eth_call", function () {
         it("can get DAI total supply", async function () {
           const daiTotalSupplySelector = "0x18160ddd";
-          const daiAddress = bufferToHex(DAI_ADDRESS);
-
           const result = await this.provider.send("eth_call", [
-            { to: daiAddress, data: daiTotalSupplySelector },
+            { to: bufferToHex(DAI_ADDRESS), data: daiTotalSupplySelector },
           ]);
 
           const bnResult = new BN(toBuffer(result));
@@ -61,7 +66,7 @@ describe("Forked provider", () => {
         });
       });
 
-      describe("get_balance", function () {
+      describe("eth_getBalance", function () {
         it("can get the balance of the WETH contract", async function () {
           const result = await this.provider.send("eth_getBalance", [
             bufferToHex(WETH_ADDRESS),
@@ -92,10 +97,9 @@ describe("Forked provider", () => {
         });
 
         it("supports wrapping of Ether", async function () {
-          const wethBalanceOfSelector = `0x70a08231${setLength(
-            DEFAULT_ACCOUNTS_ADDRESSES[0],
-            32
-          ).toString("hex")}`;
+          const wethBalanceOfSelector = `0x70a08231${leftPad32(
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          )}`;
 
           const getWrappedBalance = async () =>
             dataToBN(
@@ -247,6 +251,97 @@ describe("Forked provider", () => {
         });
       });
 
+      describe("buidler_impersonate", () => {
+        const oneEtherQuantity = numberToRpcQuantity(
+          new BN(10).pow(new BN(18))
+        );
+
+        it("allows to impersonate a remote EOA", async function () {
+          await this.provider.send("buidler_impersonate", [
+            bufferToHex(BITFINEX_WALLET_ADDRESS),
+          ]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: bufferToHex(BITFINEX_WALLET_ADDRESS),
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              value: oneEtherQuantity,
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+          const balance = await this.provider.send("eth_getBalance", [
+            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+          ]);
+          assert.equal(balance, oneEtherQuantity);
+        });
+
+        it("allows to impersonate a remote contract account", async function () {
+          // Get Uniswap DAI exchange address
+          const getExchangeSelector = `0x06f2bf62${leftPad32(DAI_ADDRESS)}`;
+          const result = await this.provider.send("eth_call", [
+            {
+              to: bufferToHex(UNISWAP_FACTORY_ADDRESS),
+              data: getExchangeSelector,
+            },
+          ]);
+          const daiExchangeAddress = hexStripZeros(result);
+
+          // Impersonate the DAI exchange contract
+          await this.provider.send("buidler_impersonate", [daiExchangeAddress]);
+
+          // Transfer 10^18 DAI from the exchange contract to the EMPTY_ACCOUNT_ADDRESS
+          const transferRawData = `0xa9059cbb${leftPad32(
+            EMPTY_ACCOUNT_ADDRESS
+          )}${leftPad32(oneEtherQuantity)}`;
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: daiExchangeAddress,
+              to: bufferToHex(DAI_ADDRESS),
+              gas: numberToRpcQuantity(200_000),
+              gasPrice: numberToRpcQuantity(1),
+              data: transferRawData,
+            },
+          ]);
+
+          // Check DAI balance of EMPTY_ACCOUNT_ADDRESS
+          const balanceOfSelector = `0x70a08231${leftPad32(
+            EMPTY_ACCOUNT_ADDRESS
+          )}`;
+
+          const daiBalance = await this.provider.send("eth_call", [
+            { to: bufferToHex(DAI_ADDRESS), data: balanceOfSelector },
+          ]);
+
+          assert.equal(hexStripZeros(daiBalance), oneEtherQuantity);
+        });
+      });
+
+      describe("buidler_stopImpersonating", () => {
+        it("disables account impersonating", async function () {
+          await this.provider.send("buidler_impersonate", [
+            bufferToHex(BITFINEX_WALLET_ADDRESS),
+          ]);
+          await this.provider.send("buidler_stopImpersonating", [
+            bufferToHex(BITFINEX_WALLET_ADDRESS),
+          ]);
+
+          await assertTransactionFailure(
+            this.provider,
+            {
+              from: bufferToHex(BITFINEX_WALLET_ADDRESS),
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              value: numberToRpcQuantity(100),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+            "unknown account",
+            InvalidInputError.CODE
+          );
+        });
+      });
+
       describe("Tests on remote contracts", () => {
         describe("Uniswap", () => {
           let wallet: Wallet;
@@ -259,7 +354,7 @@ describe("Forked provider", () => {
             wallet = new Wallet(DEFAULT_ACCOUNTS[0].privateKey, ethersProvider);
 
             factory = new Contract(
-              UNISWAP_FACTORY_ADDRESS,
+              bufferToHex(UNISWAP_FACTORY_ADDRESS),
               UniswapFactoryAbi,
               ethersProvider
             );
