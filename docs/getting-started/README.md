@@ -1,43 +1,39 @@
 ## Overview
 
-Buidler is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
+Buidler is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, with compiling and testing at the very core.
 
-Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
+Buidler is designed around the concepts of **tasks** and **plugins**.
 
-The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
+Tasks are the simple operations that buidler runs when called from the CLI. For example, `npx buidler compile` runs the `compile` task. Tasks can call other tasks, which allows complex workflows to be defined. Tasks are customizable and extensible, so as a developer you can tweak them to suit your needs.
 
-Buidler comes built-in with Buidler EVM, a local Ethereum network designed for development.
+The bulk of Buidler's functionality comes from [plugins](https://buidler.dev/plugins/), which help you make use of other tools and services you might need for development. For example, you can use the etherscan plugin to automatically verify contracts using etherscan.
 
-Overall the tool is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overridden.
+Buidler is unopinionated in terms of what tasks and plugins you end up using, but it does come with some built-in defaults to make your development workflows quick and easy.
+
+Buidler also includes the [Buidler EVM](../buidler-evm/README.md), a lightweight local Ethereum development node.
 
 ## Installation
 
 ### Pre-requisites
-You'll need to have node.js installed in order to use `npm`. Node versions `>=10` work, and we recommend using node version `12` for compatibility with other tools. See the [tutorial](../tutorial/README.md) for detailed node setup instructions. 
+You'll need to have node.js installed in order to use `npm`. Node versions `>=10` work, and we recommend using node version `12` for compatibility with other tools. See the [tutorial](../tutorial/README.md) for detailed node setup instructions.
 
 ### Local installation (recommended)
 
-The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
+The recommended way of using Buidler is through a local installation in your project folder. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run any tasks (e.g. `npx buidler compile`).
+
+First, locally initialize your `npm` project by using `npm init` and follow the instructions.
+
+Once ready, install buildler with npm:
 
 ```
 npm install --save-dev @nomiclabs/buidler
 ```
 
-### Global installation
-
-Be careful about inconsistent behavior across different projects that use different Buidler versions.
-
-```
-npm install --global @nomiclabs/buidler
-```
-
-If you choose to install Buidler globally, you have to do the same for its plugins and their dependencies.
-
 ## Quick Start
 
 This guide will explore the basics of creating a Buidler project.
 
-A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run a local development network you can deploy your contracts to (Buidler EVM).
+A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and deploy your contracts to a local development network (Buidler EVM).
 
 To create your Buidler project run `npx buidler` in your project folder:
 
