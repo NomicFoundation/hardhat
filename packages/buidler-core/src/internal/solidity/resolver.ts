@@ -129,7 +129,10 @@ export class Resolver {
       // We have this special case here, because otherwise local relative
       // imports can be treated as library imports. For example if
       // `contracts/c.sol` imports `../non-existent/a.sol`
-      if (from.library === undefined) {
+      if (
+        from.library === undefined &&
+        !this._isRelativeImportToLibrary(from, imported)
+      ) {
         return await this._resolveLocalSourceName(sourceName);
       }
 
@@ -195,11 +198,38 @@ export class Resolver {
   private async _resolveLocalSourceName(
     sourceName: string
   ): Promise<ResolvedFile> {
-    await this._validateSourceNameExistenceAndCasing(
-      this._projectRoot,
-      sourceName,
-      false
-    );
+    try {
+      await validateSourceNameExistenceAndCasing(this._projectRoot, sourceName);
+    } catch (error) {
+      if (
+        BuidlerError.isBuidlerErrorType(
+          error,
+          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
+        )
+      ) {
+        throw new BuidlerError(
+          ERRORS.RESOLVER.FILE_NOT_FOUND,
+          { file: sourceName },
+          error
+        );
+      }
+
+      if (
+        BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
+      ) {
+        throw new BuidlerError(
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
+          {
+            incorrect: sourceName,
+            correct: error.messageArguments.correct,
+          },
+          error
+        );
+      }
+
+      // tslint:disable-next-line only-buidler-error
+      throw error;
+    }
 
     const absolutePath = path.join(this._projectRoot, sourceName);
     return this._resolveFile(sourceName, absolutePath);
@@ -210,9 +240,9 @@ export class Resolver {
   ): Promise<ResolvedFile> {
     const libraryName = this._getLibraryName(sourceName);
 
-    let packagePath;
+    let packageJsonPath;
     try {
-      packagePath = this._resolveNodeModulesFileFromProjectRoot(
+      packageJsonPath = this._resolveNodeModulesFileFromProjectRoot(
         path.join(libraryName, "package.json")
       );
     } catch (error) {
@@ -221,7 +251,7 @@ export class Resolver {
       // resolve the dependency relative to this file
       if (libraryName === "@nomiclabs/buidler") {
         const buidlerCoreDir = path.join(__dirname, "..", "..");
-        packagePath = path.join(buidlerCoreDir, "package.json");
+        packageJsonPath = path.join(buidlerCoreDir, "package.json");
       } else {
         throw new BuidlerError(
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
@@ -233,25 +263,74 @@ export class Resolver {
       }
     }
 
-    let nodeModulesPath = path.dirname(path.dirname(packagePath));
-    if (this._isScopedPackage(sourceName)) {
-      nodeModulesPath = path.dirname(nodeModulesPath);
+    let filePath: string;
+    try {
+      filePath = this._resolveNodeModulesFileFromProjectRoot(sourceName);
+    } catch (error) {
+      throw new BuidlerError(
+        ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
+        { file: sourceName },
+        error
+      );
     }
 
-    await this._validateSourceNameExistenceAndCasing(
-      nodeModulesPath,
-      sourceName,
-      true
+    const packageInfo: {
+      name: string;
+      version: string;
+    } = await fsExtra.readJson(packageJsonPath);
+    const sourceNameWithoutLibraryName = sourceName.substring(
+      packageInfo.name.length + 1
     );
 
-    const packageInfo = await fsExtra.readJson(packagePath);
-    const libraryVersion = packageInfo.version;
+    // We can't get the correct casing of the package name from the file system,
+    // as linked packages don't necessarily match path and package name, so
+    // we validate the package name's casing using the package.json.
+    // We assume that this condition can only be true if the casing is wrong.
+    if (libraryName !== packageInfo.name) {
+      // We throw an error that is not always correct, as it assumes that the
+      // rest of the source name has the right casing. If this were wrong, a new
+      // error will lead the user to correct it.
+      throw new BuidlerError(ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING, {
+        incorrect: sourceName,
+        correct: `${packageInfo.name}/${sourceNameWithoutLibraryName}`,
+      });
+    }
+
+    const packagePath = path.dirname(packageJsonPath);
+
+    try {
+      // We validate the file casing starting from the package's root and using
+      // the source map without library name, so that this also works for linked
+      // packages, whose library name and package path don't need to match.
+      await validateSourceNameExistenceAndCasing(
+        packagePath,
+        sourceNameWithoutLibraryName
+      );
+    } catch (error) {
+      if (
+        BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
+      ) {
+        throw new BuidlerError(
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
+          {
+            incorrect: sourceName,
+            correct: `${libraryName}/${error.messageArguments.correct}`,
+          },
+          error
+        );
+      }
+
+      // We know that the file exists, so we don't handle that here.
+
+      // tslint:disable-next-line only-buidler-error
+      throw error;
+    }
 
     return this._resolveFile(
       sourceName,
-      path.join(nodeModulesPath, sourceName),
+      filePath,
       libraryName,
-      libraryVersion
+      packageInfo.version
     );
   }
 
@@ -259,19 +338,16 @@ export class Resolver {
     from: ResolvedFile,
     imported: string
   ): Promise<string> {
-    const sourceName = normalizeSourceName(
-      path.join(path.dirname(from.globalName), imported)
-    );
-
     // This is a special case, were we turn relative imports from local files
     // into library imports if necessary. The reason for this is that many
     // users just do `import "../node_modules/lib/a.sol";`.
-    if (from.library === undefined) {
-      const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
-      if (nmIndex !== -1) {
-        return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
-      }
+    if (this._isRelativeImportToLibrary(from, imported)) {
+      return this._relativeImportToLibraryToSourceName(from, imported);
     }
+
+    const sourceName = normalizeSourceName(
+      path.join(path.dirname(from.globalName), imported)
+    );
 
     // If the file with the import is local, and the normalized version
     // starts with ../ means that it's trying to get outside of the project.
@@ -354,47 +430,6 @@ export class Resolver {
     return match[1];
   }
 
-  private async _validateSourceNameExistenceAndCasing(
-    fromDir: string,
-    sourceName: string,
-    isLibrary: boolean
-  ) {
-    try {
-      await validateSourceNameExistenceAndCasing(fromDir, sourceName);
-    } catch (error) {
-      if (
-        BuidlerError.isBuidlerErrorType(
-          error,
-          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
-        )
-      ) {
-        throw new BuidlerError(
-          isLibrary
-            ? ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
-            : ERRORS.RESOLVER.FILE_NOT_FOUND,
-          { file: sourceName },
-          error
-        );
-      }
-
-      if (
-        BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
-      ) {
-        throw new BuidlerError(
-          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
-          {
-            incorrect: sourceName,
-            correct: error.messageArguments.correct,
-          },
-          error
-        );
-      }
-
-      // tslint:disable-next-line only-buidler-error
-      throw error;
-    }
-  }
-
   private _isInsideSameDir(sourceNameInDir: string, sourceNameToTest: string) {
     const firstSlash = sourceNameInDir.indexOf("/");
     const dir =
@@ -407,5 +442,28 @@ export class Resolver {
 
   private _isScopedPackage(packageOrPackageFile: string): boolean {
     return packageOrPackageFile.startsWith("@");
+  }
+
+  private _isRelativeImportToLibrary(
+    from: ResolvedFile,
+    imported: string
+  ): boolean {
+    return (
+      this._isRelativeImport(imported) &&
+      from.library === undefined &&
+      imported.includes(`${NODE_MODULES}/`)
+    );
+  }
+
+  private _relativeImportToLibraryToSourceName(
+    from: ResolvedFile,
+    imported: string
+  ): string {
+    const sourceName = normalizeSourceName(
+      path.join(path.dirname(from.globalName), imported)
+    );
+
+    const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
+    return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
   }
 }
