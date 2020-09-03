@@ -129,7 +129,10 @@ export class Resolver {
       // We have this special case here, because otherwise local relative
       // imports can be treated as library imports. For example if
       // `contracts/c.sol` imports `../non-existent/a.sol`
-      if (from.library === undefined) {
+      if (
+        from.library === undefined &&
+        !this._isRelativeImportToLibrary(from, imported)
+      ) {
         return await this._resolveLocalSourceName(sourceName);
       }
 
@@ -271,7 +274,10 @@ export class Resolver {
       );
     }
 
-    const packageInfo = await fsExtra.readJson(packageJsonPath);
+    const packageInfo: {
+      name: string;
+      version: string;
+    } = await fsExtra.readJson(packageJsonPath);
     const sourceNameWithoutLibraryName = sourceName.substring(
       packageInfo.name.length + 1
     );
@@ -332,19 +338,16 @@ export class Resolver {
     from: ResolvedFile,
     imported: string
   ): Promise<string> {
-    const sourceName = normalizeSourceName(
-      path.join(path.dirname(from.globalName), imported)
-    );
-
     // This is a special case, were we turn relative imports from local files
     // into library imports if necessary. The reason for this is that many
     // users just do `import "../node_modules/lib/a.sol";`.
-    if (from.library === undefined) {
-      const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
-      if (nmIndex !== -1) {
-        return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
-      }
+    if (this._isRelativeImportToLibrary(from, imported)) {
+      return this._relativeImportToLibraryToSourceName(from, imported);
     }
+
+    const sourceName = normalizeSourceName(
+      path.join(path.dirname(from.globalName), imported)
+    );
 
     // If the file with the import is local, and the normalized version
     // starts with ../ means that it's trying to get outside of the project.
@@ -439,5 +442,28 @@ export class Resolver {
 
   private _isScopedPackage(packageOrPackageFile: string): boolean {
     return packageOrPackageFile.startsWith("@");
+  }
+
+  private _isRelativeImportToLibrary(
+    from: ResolvedFile,
+    imported: string
+  ): boolean {
+    return (
+      this._isRelativeImport(imported) &&
+      from.library === undefined &&
+      imported.includes(`${NODE_MODULES}/`)
+    );
+  }
+
+  private _relativeImportToLibraryToSourceName(
+    from: ResolvedFile,
+    imported: string
+  ): string {
+    const sourceName = normalizeSourceName(
+      path.join(path.dirname(from.globalName), imported)
+    );
+
+    const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
+    return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
   }
 }
