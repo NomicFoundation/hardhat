@@ -7,23 +7,35 @@ import { getMatchingCompilerConfig } from "./compilerMatch";
 import { DependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
+enum CompilationLevel {
+  NO_COMPILE,
+  COMPILE,
+  EMIT_ARTIFACTS,
+}
+
+// this will depend on the solidity version when this bug is fixed
+const SOLC_BUG_9573 = true;
+
 export class CompilationGroup {
   private _filesToCompile: Map<
     string,
-    { file: ResolvedFile; emitsArtifacts: boolean }
+    { file: ResolvedFile; compilationLevel: CompilationLevel }
   > = new Map();
 
   constructor(public solidityConfig: SolcConfig) {}
 
-  public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
+  public addFileToCompile(
+    file: ResolvedFile,
+    compilationLevel: CompilationLevel
+  ) {
     const fileToCompile = this._filesToCompile.get(file.globalName);
     if (fileToCompile === undefined) {
-      this._filesToCompile.set(file.globalName, { file, emitsArtifacts });
+      this._filesToCompile.set(file.globalName, { file, compilationLevel });
     } else {
-      if (!fileToCompile.emitsArtifacts && emitsArtifacts) {
+      if (compilationLevel > fileToCompile.compilationLevel) {
         this._filesToCompile.set(file.globalName, {
           file,
-          emitsArtifacts: true,
+          compilationLevel,
         });
       }
     }
@@ -37,11 +49,28 @@ export class CompilationGroup {
     return this.solidityConfig.version;
   }
 
+  public getFilesToCompile(): ResolvedFile[] {
+    return [...this._filesToCompile.values()]
+      .filter((x) => x.compilationLevel !== CompilationLevel.NO_COMPILE)
+      .map((x) => x.file);
+  }
+
   public getResolvedFiles(): ResolvedFile[] {
     return [...this._filesToCompile.values()].map((x) => x.file);
   }
 
-  public emitsArtifacts(file: ResolvedFile): boolean {
+  /**
+   * Check if the given file emits artifacts.
+   *
+   * If no file is given, check if *some* file in the group emits artifacts.
+   */
+  public emitsArtifacts(file?: ResolvedFile): boolean {
+    if (file === undefined) {
+      return [...this._filesToCompile.values()].some(
+        (x) => x.compilationLevel === CompilationLevel.EMIT_ARTIFACTS
+      );
+    }
+
     const fileToCompile = this._filesToCompile.get(file.globalName);
 
     if (fileToCompile === undefined) {
@@ -49,7 +78,18 @@ export class CompilationGroup {
       throw new Error("Unknown file"); // TODO-HH use BuidlerError
     }
 
-    return fileToCompile.emitsArtifacts;
+    return fileToCompile.compilationLevel === CompilationLevel.EMIT_ARTIFACTS;
+  }
+
+  public needsCompile(file: ResolvedFile): boolean {
+    const fileToCompile = this._filesToCompile.get(file.globalName);
+
+    if (fileToCompile === undefined) {
+      // tslint:disable-next-line only-buidler-error
+      throw new Error("Unknown file"); // TODO-HH use BuidlerError
+    }
+
+    return fileToCompile.compilationLevel > CompilationLevel.NO_COMPILE;
   }
 }
 
@@ -91,11 +131,11 @@ class CompilationGroupMap {
   public addFileToGroup(
     config: SolcConfig,
     file: ResolvedFile,
-    emitsArtifacts: boolean
+    compilationLevel: CompilationLevel
   ) {
     const group = this._getOrCreateGroup(config);
 
-    group.addFileToCompile(file, emitsArtifacts);
+    group.addFileToCompile(file, compilationLevel);
   }
 
   public getGroups(): CompilationGroup[] {
@@ -214,11 +254,27 @@ export function createCompilationGroups(
         hasChangedSinceLastCompilation(dependency, solidityFilesCache)
       );
 
+    let compilationLevel;
     if (force || changedSinceLastCompilation) {
-      compilationGroupMap.addFileToGroup(compilerConfig, file, true);
+      compilationLevel = CompilationLevel.EMIT_ARTIFACTS;
+    } else if (compilerConfig?.optimizer?.enabled === true && SOLC_BUG_9573) {
+      // if the optimizer is enabled and the solc bug is present, we need the
+      // files in a group to be always the same between compilations, so we have
+      // to add it
+      compilationLevel = CompilationLevel.COMPILE;
+    } else {
+      compilationLevel = CompilationLevel.NO_COMPILE;
+    }
 
+    compilationGroupMap.addFileToGroup(compilerConfig, file, compilationLevel);
+
+    if (compilationLevel !== CompilationLevel.NO_COMPILE) {
       for (const dependency of transitiveDependencies) {
-        compilationGroupMap.addFileToGroup(compilerConfig, dependency, false);
+        compilationGroupMap.addFileToGroup(
+          compilerConfig,
+          dependency,
+          CompilationLevel.COMPILE
+        );
       }
     }
   }

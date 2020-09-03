@@ -1,8 +1,10 @@
+import { sha256 } from "ethereum-cryptography/sha256";
 import fsExtra from "fs-extra";
 import * as path from "path";
 
-import { Artifact } from "../types";
+import { Artifact, SolcInput } from "../types";
 
+import { BUILD_INFO_DIR_NAME } from "./constants";
 import { BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
@@ -84,13 +86,13 @@ function getArtifactPathFromFiles(
   }
 
   if (matchingFiles.length > 1) {
-    const candidates = matchingFiles.map((file) =>
-      getFullyQualifiedName(artifactsPath, file)
-    );
+    const candidates = matchingFiles
+      .map((file) => getFullyQualifiedName(artifactsPath, file))
+      .map(path.normalize);
 
     throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
       contractName: name,
-      candidates: candidates.join("\n"),
+      candidates: candidates.join(path.sep),
     });
   }
 
@@ -109,6 +111,22 @@ function isFullyQualified(name: string) {
   return name.includes(":");
 }
 
+export async function getAllArtifacts(
+  artifactsPath: string
+): Promise<string[]> {
+  const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"));
+  const buildInfoFiles = new Set(await getBuildInfoFiles(artifactsPath));
+
+  return artifactFiles.filter((file) => !buildInfoFiles.has(file));
+}
+
+function getAllArtifactsSync(artifactsPath: string): string[] {
+  const artifactFiles = globSync(path.join(artifactsPath, "**/*.json"));
+  const buildInfoFiles = new Set(getBuildInfoFilesSync(artifactsPath));
+
+  return artifactFiles.filter((file) => !buildInfoFiles.has(file));
+}
+
 async function getArtifactPath(
   artifactsPath: string,
   name: string
@@ -117,7 +135,7 @@ async function getArtifactPath(
     return getArtifactPathFromFullyQualifiedName(artifactsPath, name);
   }
 
-  const files = await glob(path.join(artifactsPath, "**/*.json"));
+  const files = await getAllArtifacts(artifactsPath);
   return getArtifactPathFromFiles(artifactsPath, name, files);
 }
 
@@ -131,7 +149,7 @@ export function getArtifactPathSync(
       return getArtifactPathFromFullyQualifiedName(artifactsPath, globalName);
     }
 
-    const files = globSync(path.join(artifactsPath, "**/*.json"));
+    const files = getAllArtifactsSync(artifactsPath);
     return getArtifactPathFromFiles(artifactsPath, globalName, files);
   }
 
@@ -150,12 +168,15 @@ export function getArtifactPathSync(
  * @param artifactsPath the artifacts' directory.
  * @param globalName the global name of the file that emitted the artifact.
  * @param artifact the artifact to be stored.
+ * @param pathToBuildInfo the relative path to the buildInfo for this artifact
  */
 export async function saveArtifact(
   artifactsPath: string,
   globalName: string,
-  artifact: Artifact
+  artifact: Artifact,
+  pathToBuildInfo: string
 ) {
+  // write artifact
   const fullyQualifiedName = `${globalName}:${artifact.contractName}`;
   const artifactPath = getArtifactPathFromFullyQualifiedName(
     artifactsPath,
@@ -163,10 +184,41 @@ export async function saveArtifact(
   );
 
   await fsExtra.ensureDir(path.dirname(artifactPath));
-
   await fsExtra.writeJSON(artifactPath, artifact, {
     spaces: 2,
   });
+
+  // write dbg
+  const relativePathToBuildInfo = path.relative(
+    path.dirname(artifactPath),
+    pathToBuildInfo
+  );
+  const dbgPath = artifactPath.replace(/json$/, "dbg");
+  await fsExtra.writeJSON(
+    dbgPath,
+    { buildInfo: relativePathToBuildInfo },
+    {
+      spaces: 2,
+    }
+  );
+}
+
+export async function saveBuildInfo(
+  artifactsPath: string,
+  input: SolcInput,
+  output: any,
+  solcVersion: string
+): Promise<string> {
+  const buildInfoDir = path.join(artifactsPath, BUILD_INFO_DIR_NAME);
+  await fsExtra.ensureDir(buildInfoDir);
+
+  const hash = sha256(
+    Buffer.from(JSON.stringify({ input, solcVersion }))
+  ).toString("hex");
+  const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
+  await fsExtra.writeJson(buildInfoPath, { input, output, solcVersion });
+
+  return buildInfoPath;
 }
 
 /**
@@ -211,4 +263,14 @@ export function readArtifactSync(
   }
 
   return fsExtra.readJsonSync(artifactPath);
+}
+
+export async function getBuildInfoFiles(
+  artifactsPath: string
+): Promise<string[]> {
+  return glob(path.join(artifactsPath, BUILD_INFO_DIR_NAME, "**/*.json"));
+}
+
+export function getBuildInfoFilesSync(artifactsPath: string): string[] {
+  return globSync(path.join(artifactsPath, BUILD_INFO_DIR_NAME, "**/*.json"));
 }

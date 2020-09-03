@@ -1,21 +1,21 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
-import { cloneDeep } from "lodash";
+import { cloneDeep, flatMap } from "lodash";
 import path from "path";
 
 import {
+  getAllArtifacts,
   getArtifactFromContractOutput,
   getArtifactPathSync,
+  getBuildInfoFiles,
   saveArtifact,
+  saveBuildInfo,
 } from "../internal/artifacts";
-import {
-  SOLC_INPUT_FILENAME,
-  SOLC_OUTPUT_FILENAME,
-} from "../internal/constants";
 import { task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
+  CompilationGroup,
   CompilationGroupsFailure,
   createCompilationGroups,
   isCompilationGroupsFailure,
@@ -28,7 +28,6 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import { ResolvedBuidlerConfig } from "../types";
 
 import { TASK_COMPILE } from "./task-names";
 import {
@@ -43,31 +42,6 @@ function isConsoleLogError(error: any): boolean {
     typeof error.message === "string" &&
     error.message.includes("log") &&
     error.message.includes("type(library console)")
-  );
-}
-
-async function cacheSolcJsonFiles(
-  config: ResolvedBuidlerConfig,
-  input: any,
-  output: any
-) {
-  await fsExtra.ensureDir(config.paths.cache);
-
-  // TODO: This could be much better. It feels somewhat hardcoded
-  await fsExtra.writeFile(
-    path.join(config.paths.cache, SOLC_INPUT_FILENAME),
-    JSON.stringify(input, undefined, 2),
-    {
-      encoding: "utf8",
-    }
-  );
-
-  await fsExtra.writeFile(
-    path.join(config.paths.cache, SOLC_OUTPUT_FILENAME),
-    JSON.stringify(output, undefined, 2),
-    {
-      encoding: "utf8",
-    }
   );
 }
 
@@ -94,34 +68,46 @@ export default function () {
         resolvedFiles
       );
 
+      const connectedComponents = dependencyGraph.getConnectedComponents();
+
       solidityFilesCache = invalidateCacheMissingArtifacts(
         solidityFilesCache,
         config.paths.artifacts,
         dependencyGraph.getResolvedFiles()
       );
 
-      const compilationGroupsResult = createCompilationGroups(
-        dependencyGraph,
-        config.solidity,
-        solidityFilesCache,
-        force
-      );
+      let compilationGroups: CompilationGroup[] = [];
+      const compilationFailures: CompilationGroupsFailure[] = [];
 
-      if (isCompilationGroupsFailure(compilationGroupsResult)) {
-        const errorMessage = buildCompilationGroupsFailureMessage(
-          compilationGroupsResult
+      for (const connectedComponent of connectedComponents) {
+        const compilationGroupsResult = createCompilationGroups(
+          connectedComponent,
+          config.solidity,
+          solidityFilesCache,
+          force
         );
 
+        if (isCompilationGroupsFailure(compilationGroupsResult)) {
+          compilationFailures.push(compilationGroupsResult);
+        } else {
+          compilationGroups = compilationGroups.concat(
+            compilationGroupsResult.groups
+          );
+        }
+      }
+
+      if (compilationFailures.length > 0) {
+        const errorMessage = buildCompilationGroupsFailureMessage(
+          compilationFailures
+        );
         // TODO throw a BuidlerError and show a better error message
         // tslint:disable only-buidler-error
         throw new Error(errorMessage);
       }
 
-      const compilationGroups = compilationGroupsResult.groups;
       const newSolidityFilesCache = cloneDeep(solidityFilesCache);
-
       for (const compilationGroup of compilationGroups) {
-        if (compilationGroup.isEmpty()) {
+        if (!compilationGroup.emitsArtifacts()) {
           console.log(
             `Nothing to compile with version ${compilationGroup.solidityConfig.version}`
           );
@@ -172,7 +158,12 @@ export default function () {
           throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
         }
 
-        await cacheSolcJsonFiles(config, input, output);
+        const pathToBuildInfo = await saveBuildInfo(
+          config.paths.artifacts,
+          input,
+          output,
+          compilationGroup.getVersion()
+        );
 
         if (output === undefined) {
           return;
@@ -187,7 +178,7 @@ export default function () {
 
           const emittedArtifacts = [];
           for (const [contractName, contractOutput] of Object.entries(
-            output.contracts[file.globalName]
+            output.contracts?.[file.globalName] ?? {}
           )) {
             const artifact = getArtifactFromContractOutput(
               contractName,
@@ -198,7 +189,8 @@ export default function () {
             await saveArtifact(
               config.paths.artifacts,
               file.globalName,
-              artifact
+              artifact,
+              pathToBuildInfo
             );
 
             emittedArtifacts.push(artifact.contractName);
@@ -227,6 +219,8 @@ export default function () {
         newSolidityFilesCache
       );
 
+      await removeObsoleteBuildInfos(config.paths.artifacts);
+
       writeSolidityFilesCache(config.paths, newSolidityFilesCache);
     });
 }
@@ -247,11 +241,29 @@ async function removeObsoleteArtifacts(
     }
   }
 
-  const existingArtifacts = await glob(path.join(artifactsPath, "**/*.json"));
+  const existingArtifacts = await getAllArtifacts(artifactsPath);
 
   for (const artifact of existingArtifacts) {
     if (!validArtifacts.has(artifact)) {
       fsExtra.unlinkSync(artifact);
+    }
+  }
+}
+
+async function removeObsoleteBuildInfos(artifactsPath: string) {
+  const dbgFiles = await glob(path.join(artifactsPath, "**/*.dbg"));
+
+  const validBuildInfos = new Set<string>();
+  for (const dbgFile of dbgFiles) {
+    const { buildInfo } = await fsExtra.readJson(dbgFile);
+    validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfo));
+  }
+
+  const buildInfoFiles = await getBuildInfoFiles(artifactsPath);
+
+  for (const buildInfoFile of buildInfoFiles) {
+    if (!validBuildInfos.has(buildInfoFile)) {
+      await fsExtra.unlink(buildInfoFile);
     }
   }
 }
@@ -287,38 +299,48 @@ function invalidateCacheMissingArtifacts(
 }
 
 function buildCompilationGroupsFailureMessage(
-  compilationGroupsFailure: CompilationGroupsFailure
+  compilationGroupsFailures: CompilationGroupsFailure[]
 ): string {
+  const nonCompilableOverriden = flatMap(
+    compilationGroupsFailures,
+    (x) => x.nonCompilableOverriden
+  );
+  const nonCompilable = flatMap(
+    compilationGroupsFailures,
+    (x) => x.nonCompilable
+  );
+  const importsIncompatibleFile = flatMap(
+    compilationGroupsFailures,
+    (x) => x.importsIncompatibleFile
+  );
+  const other = flatMap(compilationGroupsFailures, (x) => x.other);
+
   let errorMessage = "The project couldn't be compiled, see reasons below.\n\n";
-  if (compilationGroupsFailure.nonCompilableOverriden.length > 0) {
+  if (nonCompilableOverriden.length > 0) {
     errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
 
-${compilationGroupsFailure.nonCompilableOverriden
-  .map((x) => `* ${x}`)
-  .join("\n")}
+${nonCompilableOverriden.map((x) => `* ${x}`).join("\n")}
 
 `;
   }
-  if (compilationGroupsFailure.nonCompilable.length > 0) {
+  if (nonCompilable.length > 0) {
     errorMessage += `These files don't match any compiler in your config:
 
-${compilationGroupsFailure.nonCompilable.map((x) => `* ${x}`).join("\n")}
+${nonCompilable.map((x) => `* ${x}`).join("\n")}
 
 `;
   }
-  if (compilationGroupsFailure.importsIncompatibleFile.length > 0) {
+  if (importsIncompatibleFile.length > 0) {
     errorMessage += `These files have imports with incompatible pragmas:
 
-${compilationGroupsFailure.importsIncompatibleFile
-  .map((x) => `* ${x}`)
-  .join("\n")}
+${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
 
 `;
   }
-  if (compilationGroupsFailure.other.length > 0) {
+  if (other.length > 0) {
     errorMessage += `These files and its dependencies cannot be compiled with your config:
 
-${compilationGroupsFailure.other.map((x) => `* ${x}`).join("\n")}
+${other.map((x) => `* ${x}`).join("\n")}
 
 `;
   }

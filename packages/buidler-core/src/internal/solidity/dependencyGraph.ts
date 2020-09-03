@@ -61,6 +61,66 @@ export class DependencyGraph {
     return [...transitiveDependencies];
   }
 
+  public getConnectedComponents(): DependencyGraph[] {
+    const undirectedGraph: Record<string, Set<string>> = {};
+
+    for (const [
+      globalName,
+      dependencies,
+    ] of this._dependenciesPerFile.entries()) {
+      undirectedGraph[globalName] = undirectedGraph[globalName] ?? new Set();
+      for (const dependency of dependencies) {
+        undirectedGraph[dependency.globalName] =
+          undirectedGraph[dependency.globalName] ?? new Set();
+        undirectedGraph[globalName].add(dependency.globalName);
+        undirectedGraph[dependency.globalName].add(globalName);
+      }
+    }
+
+    const components: Array<Set<string>> = [];
+    const visited = new Set<string>();
+
+    for (const node of Object.keys(undirectedGraph)) {
+      if (visited.has(node)) {
+        continue;
+      }
+      visited.add(node);
+      const component = new Set([node]);
+      const stack = [...undirectedGraph[node]];
+      while (stack.length > 0) {
+        const newNode = stack.pop()!;
+        if (visited.has(newNode)) {
+          continue;
+        }
+        visited.add(newNode);
+        component.add(newNode);
+        [...undirectedGraph[newNode]].forEach((adjacent) => {
+          if (!visited.has(adjacent)) {
+            stack.push(adjacent);
+          }
+        });
+      }
+
+      components.push(component);
+    }
+
+    const connectedComponents: DependencyGraph[] = [];
+    for (const component of components) {
+      const dependencyGraph = new DependencyGraph();
+
+      for (const globalName of component) {
+        const file = this._resolvedFiles.get(globalName)!;
+        const dependencies = this._dependenciesPerFile.get(globalName)!;
+
+        dependencyGraph._resolvedFiles.set(globalName, file);
+        dependencyGraph._dependenciesPerFile.set(globalName, dependencies);
+      }
+      connectedComponents.push(dependencyGraph);
+    }
+
+    return connectedComponents;
+  }
+
   private _getTransitiveDependencies(
     file: ResolvedFile,
     visited: Set<ResolvedFile>

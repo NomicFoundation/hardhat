@@ -32,7 +32,11 @@ import {
   getDifferenceInSeconds,
 } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import {
+  BuildInfo,
+  CompilerInput,
+  CompilerOutput,
+} from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import { MessageTrace } from "../stack-traces/message-trace";
@@ -144,11 +148,9 @@ export class BuidlerNode extends EventEmitter {
     networkId: number,
     blockGasLimit: number,
     genesisAccounts: GenesisAccount[] = [],
-    solidityVersion?: string,
     allowUnlimitedContractSize?: boolean,
     initialDate?: Date,
-    compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput
+    buildInfos?: BuildInfo[]
   ): Promise<[Common, BuidlerNode]> {
     const stateTrie = new Trie();
     const putIntoStateTrie = promisify(stateTrie.put.bind(stateTrie));
@@ -231,10 +233,8 @@ export class BuidlerNode extends EventEmitter {
       genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
       genesisBlock,
-      solidityVersion,
       initialDate,
-      compilerInput,
-      compilerOutput
+      buildInfos
     );
 
     return [common, node];
@@ -273,10 +273,8 @@ export class BuidlerNode extends EventEmitter {
     localAccounts: Buffer[],
     private readonly _blockGasLimit: BN,
     genesisBlock: Block,
-    solidityVersion?: string,
     initialDate?: Date,
-    compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput
+    buildInfos?: BuildInfo[]
   ) {
     super();
     const config = getUserConfigPath();
@@ -310,23 +308,21 @@ export class BuidlerNode extends EventEmitter {
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
 
-    if (
-      solidityVersion === undefined ||
-      compilerInput === undefined ||
-      compilerOutput === undefined
-    ) {
+    if (buildInfos === undefined || buildInfos.length === 0) {
       return;
     }
 
     try {
-      const bytecodes = createModelsAndDecodeBytecodes(
-        solidityVersion,
-        compilerInput,
-        compilerOutput
-      );
+      for (const buildInfo of buildInfos) {
+        const bytecodes = createModelsAndDecodeBytecodes(
+          buildInfo.solcVersion,
+          buildInfo.input,
+          buildInfo.output
+        );
 
-      for (const bytecode of bytecodes) {
-        this._vmTraceDecoder.addBytecode(bytecode);
+        for (const bytecode of bytecodes) {
+          this._vmTraceDecoder.addBytecode(bytecode);
+        }
       }
     } catch (error) {
       console.warn(

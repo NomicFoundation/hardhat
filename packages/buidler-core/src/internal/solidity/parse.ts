@@ -1,5 +1,4 @@
 import debug from "debug";
-import traverse from "traverse";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 

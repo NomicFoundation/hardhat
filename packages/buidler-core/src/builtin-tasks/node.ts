@@ -115,11 +115,7 @@ export default function () {
           console.log();
 
           try {
-            await watchCompilerOutput(
-              server.getProvider(),
-              getSolcVersion(config.solidity),
-              config.paths
-            );
+            await watchCompilerOutput(server.getProvider(), config.paths);
           } catch (error) {
             console.warn(
               chalk.yellow(

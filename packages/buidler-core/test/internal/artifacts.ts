@@ -189,7 +189,8 @@ describe("Artifacts utils", function () {
         await saveArtifact(
           this.tmpDir,
           `${artifact.contractName}.sol`,
-          artifact
+          artifact,
+          ""
         );
         const storedArtifact = await readArtifact(
           this.tmpDir,
@@ -210,7 +211,8 @@ describe("Artifacts utils", function () {
       await saveArtifact(
         nonexistentPath,
         `${artifact.contractName}.sol`,
-        artifact
+        artifact,
+        ""
       );
       const storedArtifact = await readArtifact(nonexistentPath, name);
 
@@ -224,7 +226,8 @@ describe("Artifacts utils", function () {
         await saveArtifact(
           this.tmpDir,
           `${artifact.contractName}.sol`,
-          artifact
+          artifact,
+          ""
         );
         const storedArtifact = readArtifactSync(this.tmpDir, name);
 
@@ -238,7 +241,7 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(this.tmpDir, "contracts/Lib.sol", artifact);
+      await saveArtifact(this.tmpDir, "contracts/Lib.sol", artifact, "");
 
       const storedArtifact = await readArtifact(this.tmpDir, name);
 
@@ -251,7 +254,7 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(this.tmpDir, "MyLib.sol", artifact);
+      await saveArtifact(this.tmpDir, "MyLib.sol", artifact, "");
 
       const storedArtifact = await readArtifact(this.tmpDir, name);
 
@@ -264,7 +267,7 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(this.tmpDir, "MyLib.sol", artifact);
+      await saveArtifact(this.tmpDir, "MyLib.sol", artifact, "");
 
       const storedArtifact = await readArtifact(this.tmpDir, "MyLib.sol:Lib");
 
@@ -277,7 +280,7 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(this.tmpDir, "MyLib.sol", artifact);
+      await saveArtifact(this.tmpDir, "MyLib.sol", artifact, "");
 
       const storedArtifact = readArtifactSync(this.tmpDir, "MyLib.sol:Lib");
 
@@ -290,7 +293,7 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(this.tmpDir, "contracts/MyLib.sol", artifact);
+      await saveArtifact(this.tmpDir, "contracts/MyLib.sol", artifact, "");
 
       const storedArtifact = await readArtifact(
         this.tmpDir,
@@ -320,13 +323,13 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(this.tmpDir, "Lib.sol", artifact);
-      await saveArtifact(this.tmpDir, "Lib2.sol", artifact);
+      await saveArtifact(this.tmpDir, "Lib.sol", artifact, "");
+      await saveArtifact(this.tmpDir, "Lib2.sol", artifact, "");
 
       await expectBuidlerErrorAsync(
         () => readArtifact(this.tmpDir, name),
         ERRORS.ARTIFACTS.MULTIPLE_FOUND,
-        "Lib.sol:Lib\nLib2.sol:Lib"
+        `Lib.sol:Lib${path.sep}Lib2.sol:Lib`
       );
     });
 
@@ -336,13 +339,13 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(this.tmpDir, "Lib.sol", artifact);
-      await saveArtifact(this.tmpDir, "Lib2.sol", artifact);
+      await saveArtifact(this.tmpDir, "Lib.sol", artifact, "");
+      await saveArtifact(this.tmpDir, "Lib2.sol", artifact, "");
 
       expectBuidlerError(
         () => readArtifactSync(this.tmpDir, name),
         ERRORS.ARTIFACTS.MULTIPLE_FOUND,
-        "Lib.sol:Lib\nLib2.sol:Lib"
+        `Lib.sol:Lib${path.sep}Lib2.sol:Lib`
       );
     });
   });
