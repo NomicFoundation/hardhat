@@ -114,6 +114,7 @@ function isFullyQualified(name: string) {
 export async function getAllArtifacts(
   artifactsPath: string
 ): Promise<string[]> {
+  // TODO-HH: there has to be a better way of doing this
   const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"));
   const buildInfoFiles = new Set(await getBuildInfoFiles(artifactsPath));
 
@@ -176,6 +177,7 @@ export async function saveArtifact(
   artifact: Artifact,
   pathToBuildInfo: string
 ) {
+  // TODO-HH: we should write these files in a more atomically way
   // write artifact
   const fullyQualifiedName = `${globalName}:${artifact.contractName}`;
   const artifactPath = getArtifactPathFromFullyQualifiedName(
@@ -194,6 +196,7 @@ export async function saveArtifact(
     pathToBuildInfo
   );
   const dbgPath = artifactPath.replace(/json$/, "dbg");
+  // TODO-HH: add versioning to dbgs
   await fsExtra.writeJSON(
     dbgPath,
     { buildInfo: relativePathToBuildInfo },
@@ -216,6 +219,7 @@ export async function saveBuildInfo(
     Buffer.from(JSON.stringify({ input, solcVersion }))
   ).toString("hex");
   const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
+  // TODO-HH: add versioning to buildInfos
   await fsExtra.writeJson(buildInfoPath, { input, output, solcVersion });
 
   return buildInfoPath;

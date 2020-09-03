@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
-import { cloneDeep, flatMap, flatten, partition } from "lodash";
+// TODO-HH: import lodash and other libraries dynamically
+import { flatMap, flatten, partition } from "lodash";
 import path from "path";
 
 import {
@@ -67,6 +68,7 @@ function isConsoleLogError(error: any): boolean {
 }
 
 export default function () {
+  // TODO-HH: this is lacking in debug logs
   internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
     const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
 
@@ -540,6 +542,8 @@ async function removeObsoleteArtifacts(
 
   for (const artifact of existingArtifacts) {
     if (!validArtifacts.has(artifact)) {
+      // TODO-HH: consider moving all unlinks to a helper library that checks
+      // that removed files are inside the project
       fsExtra.unlinkSync(artifact);
       const dbgFile = artifact.replace(/\.json$/, ".dbg");
       // we use remove instead of unlink in case the dbg file doesn't exist
@@ -548,6 +552,9 @@ async function removeObsoleteArtifacts(
   }
 }
 
+/**
+ * Remove all build infos that aren't used by any dbg file
+ */
 async function removeObsoleteBuildInfos(artifactsPath: string) {
   const dbgFiles = await glob(path.join(artifactsPath, "**/*.dbg"));
 
