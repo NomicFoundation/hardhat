@@ -211,7 +211,9 @@ function getPublicVariableSelectorFromDeclarationAstNode(
 ) {
   const paramTypes: string[] = [];
 
-  let nextType = variableDeclaration.typeName;
+  // VariableDeclaration nodes for function parameters or state variables will always
+  // have their typeName fields defined.
+  let nextType = variableDeclaration.typeName!;
   while (true) {
     if (nextType.nodeType === "Mapping") {
       paramTypes.push(toCanonicalAbiType(nextType.keyType.name));
@@ -411,7 +413,7 @@ function astVisibilityToVisibility(
 }
 
 function functionDefinitionKindToFunctionType(
-  kind: string
+  kind: string | undefined
 ): ContractFunctionType {
   if (kind === "constructor") {
     return ContractFunctionType.CONSTRUCTOR;
@@ -430,6 +432,11 @@ function functionDefinitionKindToFunctionType(
 
 function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
   const paramTypes: string[] = [];
+
+  // The function selector is available in solc versions >=0.6.0
+  if (functionDefinition.functionSelector !== undefined) {
+    return Buffer.from(functionDefinition.functionSelector, 'hex')
+  }
 
   for (const param of functionDefinition.parameters.parameters) {
     if (isContractType(param)) {
@@ -458,14 +465,16 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
 
 function isContractType(param: any) {
   return (
-    param.typeName.nodeType === "UserDefinedTypeName" &&
+    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("contract ")
   );
 }
 
 function isEnumType(param: any) {
   return (
-    param.typeName.nodeType === "UserDefinedTypeName" &&
+    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("enum ")
   );
 }
