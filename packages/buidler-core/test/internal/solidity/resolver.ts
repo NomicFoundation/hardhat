@@ -488,12 +488,6 @@ describe("Resolver", function () {
       });
 
       it("Should let you import a library file with its relative path from a local file", async function () {
-        try {
-          await resolver.resolveImport(localFrom, "../node_modules/lib/l.sol");
-        } catch (e) {
-          console.log(e);
-        }
-
         await assertResolvedFileFromPath(
           resolver.resolveImport(localFrom, "../node_modules/lib/l.sol"),
           "lib/l.sol",
