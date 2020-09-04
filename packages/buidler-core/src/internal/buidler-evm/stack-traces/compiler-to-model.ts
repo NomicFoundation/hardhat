@@ -452,12 +452,9 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
       continue;
     }
 
-    if (param.typeName.nodeType === "ArrayTypeName") {
-      paramTypes.push(`${toCanonicalAbiType(param.typeName.baseType.name)}[]`);
-      continue;
-    }
-
-    if (typename.nodeType === "FunctionTypeName") {
+    // The rest of the function parameters always have their typeName node defined
+    const typename = param.typeName!;
+    if (typename.nodeType === "ArrayTypeName" || typename.nodeType === "FunctionTypeName") {
       paramTypes.push(typename.typeDescriptions.typeString);
       continue;
     }
