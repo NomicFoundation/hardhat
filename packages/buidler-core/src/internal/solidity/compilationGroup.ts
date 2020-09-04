@@ -191,7 +191,9 @@ class CompilationGroupMerger {
  */
 export async function getCompilationGroupsFromDependencyGraph(
   dependencyGraph: DependencyGraph,
-  solidityConfig: MultiSolcConfig
+  getFromFile: (
+    file: ResolvedFile
+  ) => Promise<CompilationGroup | MatchingCompilerFailure>
 ): Promise<CompilationGroupsResult> {
   const connectedComponents = dependencyGraph.getConnectedComponents();
 
@@ -206,11 +208,7 @@ export async function getCompilationGroupsFromDependencyGraph(
   let someFailure = false;
   for (const connectedComponent of connectedComponents) {
     for (const file of connectedComponent.getResolvedFiles()) {
-      const compilationGroupOrFailure = await getCompilationGroupFromFile(
-        dependencyGraph,
-        file,
-        solidityConfig
-      );
+      const compilationGroupOrFailure = await getFromFile(file);
 
       // if the file cannot be compiled, we add it to the list and continue in
       // case there are more non-compilable files
@@ -235,7 +233,7 @@ export async function getCompilationGroupsFromDependencyGraph(
   return { groups: mergedCompilationGroups };
 }
 
-async function getCompilationGroupFromFile(
+export async function getCompilationGroupFromFile(
   dependencyGraph: DependencyGraph,
   file: ResolvedFile,
   solidityConfig: MultiSolcConfig

@@ -19,6 +19,7 @@ import {
   CompilationGroup,
   CompilationGroupsFailure,
   CompilationGroupsSuccess,
+  getCompilationGroupFromFile,
   getCompilationGroupsFromDependencyGraph,
   isCompilationGroupsSuccess,
   mergeCompilationGroupsWithoutBug,
@@ -41,6 +42,7 @@ import {
   TASK_COMPILE_COMPILE_GROUPS,
   TASK_COMPILE_EMIT_ARTIFACTS,
   TASK_COMPILE_FILTER_COMPILATION_GROUPS,
+  TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE,
   TASK_COMPILE_GET_COMPILATION_GROUPS,
   TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
   TASK_COMPILE_GET_COMPILATION_TASKS,
@@ -111,17 +113,38 @@ export default function () {
   );
 
   internalTask(
+    TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE,
+    async (
+      {
+        dependencyGraph,
+        file,
+      }: { dependencyGraph: DependencyGraph; file: ResolvedFile },
+      { config }
+    ) => {
+      return getCompilationGroupFromFile(
+        dependencyGraph,
+        file,
+        config.solidity
+      );
+    }
+  );
+
+  internalTask(
     TASK_COMPILE_GET_COMPILATION_GROUPS,
     async (
       { dependencyGraph }: { dependencyGraph: DependencyGraph },
-      { config }
+      { run }
     ) => {
       const connectedComponents = dependencyGraph.getConnectedComponents();
 
-      // fvtodo file -> compilation group has to be overridable
       const compilationGroupsResults = await Promise.all(
         connectedComponents.map((graph) =>
-          getCompilationGroupsFromDependencyGraph(graph, config.solidity)
+          getCompilationGroupsFromDependencyGraph(graph, (file: ResolvedFile) =>
+            run(TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE, {
+              file,
+              dependencyGraph,
+            })
+          )
         )
       );
 

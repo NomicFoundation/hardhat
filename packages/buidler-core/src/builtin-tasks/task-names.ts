@@ -14,6 +14,8 @@ export const TASK_COMPILE_GET_RESOLVED_SOURCES = "compile:get-resolved-sources";
 export const TASK_COMPILE_GET_DEPENDENCY_GRAPH = "compile:get-dependency-graph";
 export const TASK_COMPILE_GET_COMPILATION_GROUPS =
   "compile:get-compilation-groups";
+export const TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE =
+  "compile:get-compilation-group-for-file";
 export const TASK_COMPILE_FILTER_COMPILATION_GROUPS =
   "compile:filter-compilation-groups";
 export const TASK_COMPILE_MERGE_COMPILATION_GROUPS =
