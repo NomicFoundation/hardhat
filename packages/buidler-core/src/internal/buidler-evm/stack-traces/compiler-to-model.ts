@@ -435,7 +435,7 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
 
   // The function selector is available in solc versions >=0.6.0
   if (functionDefinition.functionSelector !== undefined) {
-    return Buffer.from(functionDefinition.functionSelector, 'hex')
+    return Buffer.from(functionDefinition.functionSelector, "hex");
   }
 
   for (const param of functionDefinition.parameters.parameters) {
@@ -454,7 +454,10 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
 
     // The rest of the function parameters always have their typeName node defined
     const typename = param.typeName;
-    if (typename.nodeType === "ArrayTypeName" || typename.nodeType === "FunctionTypeName") {
+    if (
+      typename.nodeType === "ArrayTypeName" ||
+      typename.nodeType === "FunctionTypeName"
+    ) {
       paramTypes.push(typename.typeDescriptions.typeString);
       continue;
     }
