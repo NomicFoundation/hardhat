@@ -4,8 +4,8 @@ import "./../../../../../../../../console.sol";
 
 contract C {
 
-  function printSomething() public returns (string memory) {
-    return "something";
+  function printSomething() public {
+    console.log("something");
   }
 
   function proxyMessageCall(function (uint256) external returns (uint256) aFunction, uint256 aParameter) public returns (uint256) {

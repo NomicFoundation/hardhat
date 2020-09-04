@@ -6,8 +6,8 @@ import "./../../../../../../../../console.sol";
 
 contract C {
 
-  function printSomething() public returns (string memory) {
-    return "something";
+  function printSomething() public {
+    console.log("something");
   }
 
   function doSomething(uint256[][] memory numbers) public returns (uint256) {
