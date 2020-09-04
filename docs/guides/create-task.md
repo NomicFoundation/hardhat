@@ -306,4 +306,4 @@ internalTask("print", "Prints a message")
   });
 ``` 
 
-For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+If you need help, find us in the [Buidler Support Discord server](https://discord.gg/ADQjyW8).
