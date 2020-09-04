@@ -213,7 +213,7 @@ function getPublicVariableSelectorFromDeclarationAstNode(
 
   // VariableDeclaration nodes for function parameters or state variables will always
   // have their typeName fields defined.
-  let nextType = variableDeclaration.typeName!;
+  let nextType = variableDeclaration.typeName;
   while (true) {
     if (nextType.nodeType === "Mapping") {
       paramTypes.push(toCanonicalAbiType(nextType.keyType.name));
@@ -453,7 +453,7 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
     }
 
     // The rest of the function parameters always have their typeName node defined
-    const typename = param.typeName!;
+    const typename = param.typeName;
     if (typename.nodeType === "ArrayTypeName" || typename.nodeType === "FunctionTypeName") {
       paramTypes.push(typename.typeDescriptions.typeString);
       continue;
