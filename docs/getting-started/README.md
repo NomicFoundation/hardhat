@@ -194,4 +194,4 @@ npx buidler run scripts/sample-script.js --network localhost
 
 Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
-For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+If you need help, find us in the [Buidler Support Discord server](https://discord.gg/ADQjyW8).

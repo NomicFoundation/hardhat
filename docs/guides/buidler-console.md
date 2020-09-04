@@ -65,6 +65,6 @@ use JavaScript's `Promise` for returning values.
 
 To make things easier, Buidler's console supports `await` top-level await (i.e. `console.log(await web3.eth.getBalance()`). To use this feature, you need to be using Node 10 or higher.
 
-For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+If you need help, find us in the [Buidler Support Discord server](https://discord.gg/ADQjyW8).
 
 [Buidler Runtime Environment]: ../advanced/buidler-runtime-environment.md
