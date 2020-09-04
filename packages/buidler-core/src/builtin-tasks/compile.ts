@@ -20,7 +20,7 @@ import {
   CompilationGroupsFailure,
   CompilationGroupsSuccess,
   getCompilationGroupFromFile,
-  getCompilationGroupsFromDependencyGraph,
+  getCompilationGroupsFromConnectedComponent,
   isCompilationGroupsSuccess,
   mergeCompilationGroupsWithoutBug,
 } from "../internal/solidity/compilationGroup";
@@ -139,11 +139,13 @@ export default function () {
 
       const compilationGroupsResults = await Promise.all(
         connectedComponents.map((graph) =>
-          getCompilationGroupsFromDependencyGraph(graph, (file: ResolvedFile) =>
-            run(TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE, {
-              file,
-              dependencyGraph,
-            })
+          getCompilationGroupsFromConnectedComponent(
+            graph,
+            (file: ResolvedFile) =>
+              run(TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE, {
+                file,
+                dependencyGraph,
+              })
           )
         )
       );

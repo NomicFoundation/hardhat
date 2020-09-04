@@ -185,18 +185,17 @@ class CompilationGroupMerger {
 }
 
 /**
- * Creates a list of compilation groups from a dependency graph. Returns the
- * list of compilation groups on success, and a list of non-compilable files on
- * failure.
+ * Creates a list of compilation groups from a dependency graph. *This function
+ * assumes that the given graph is a connected component*.
+ * Returns the list of compilation groups on success, and a list of
+ * non-compilable files on failure.
  */
-export async function getCompilationGroupsFromDependencyGraph(
-  dependencyGraph: DependencyGraph,
+export async function getCompilationGroupsFromConnectedComponent(
+  connectedComponent: DependencyGraph,
   getFromFile: (
     file: ResolvedFile
   ) => Promise<CompilationGroup | MatchingCompilerFailure>
 ): Promise<CompilationGroupsResult> {
-  const connectedComponents = dependencyGraph.getConnectedComponents();
-
   const compilationGroups: CompilationGroup[] = [];
   const failures: CompilationGroupsFailure = {
     nonCompilable: [],
@@ -206,20 +205,18 @@ export async function getCompilationGroupsFromDependencyGraph(
   };
 
   let someFailure = false;
-  for (const connectedComponent of connectedComponents) {
-    for (const file of connectedComponent.getResolvedFiles()) {
-      const compilationGroupOrFailure = await getFromFile(file);
+  for (const file of connectedComponent.getResolvedFiles()) {
+    const compilationGroupOrFailure = await getFromFile(file);
 
-      // if the file cannot be compiled, we add it to the list and continue in
-      // case there are more non-compilable files
-      if ("reason" in compilationGroupOrFailure) {
-        someFailure = true;
-        failures[compilationGroupOrFailure.reason].push(file.globalName);
-        continue;
-      }
-
-      compilationGroups.push(compilationGroupOrFailure);
+    // if the file cannot be compiled, we add it to the list and continue in
+    // case there are more non-compilable files
+    if ("reason" in compilationGroupOrFailure) {
+      someFailure = true;
+      failures[compilationGroupOrFailure.reason].push(file.globalName);
+      continue;
     }
+
+    compilationGroups.push(compilationGroupOrFailure);
   }
 
   if (someFailure) {
