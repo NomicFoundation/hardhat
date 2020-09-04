@@ -457,7 +457,12 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
       continue;
     }
 
-    paramTypes.push(toCanonicalAbiType(param.typeName.name));
+    if (typename.nodeType === "FunctionTypeName") {
+      paramTypes.push(typename.typeDescriptions.typeString);
+      continue;
+    }
+
+    paramTypes.push(toCanonicalAbiType(typename.name));
   }
 
   return abi.methodID(functionDefinition.name, paramTypes);
