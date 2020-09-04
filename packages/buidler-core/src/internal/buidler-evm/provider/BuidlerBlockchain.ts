@@ -8,7 +8,6 @@ import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
 import { PBlockchain, toBlockchain } from "./types/PBlockchain";
 
-// TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
 export class BuidlerBlockchain implements PBlockchain {

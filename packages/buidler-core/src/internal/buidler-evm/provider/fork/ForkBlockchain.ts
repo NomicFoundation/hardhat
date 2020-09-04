@@ -23,7 +23,6 @@ import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
-// TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
 export class ForkBlockchain implements PBlockchain {

@@ -15,10 +15,8 @@ import { PStateManager } from "../types/PStateManager";
 import { StateManager } from "../types/StateManager";
 
 import { AccountState, makeAccountState } from "./Account";
-import { CheckpointError, NotSupportedError } from "./errors";
 import { randomHash } from "./random";
 
-// TODO: figure out what errors we wanna throw
 /* tslint:disable only-buidler-error */
 
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
@@ -26,6 +24,12 @@ type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
 const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${stripZeros(position).toString("hex")}`;
 };
+
+const checkpointError = (method: string) =>
+  new Error(`${method} called when not checkpointed`);
+
+const notSupportedError = (method: string) =>
+  new Error(`${method} is not supported when forking from remote network`);
 
 export class ForkStateManager implements PStateManager {
   private _state: State = ImmutableMap();
@@ -184,7 +188,7 @@ export class ForkStateManager implements PStateManager {
 
   public async commit(): Promise<void> {
     if (this._stateCheckpoints.length === 0) {
-      throw new CheckpointError("commit");
+      throw checkpointError("commit");
     }
     this._stateCheckpoints.pop();
   }
@@ -192,7 +196,7 @@ export class ForkStateManager implements PStateManager {
   public async revert(): Promise<void> {
     const checkpointedRoot = this._stateCheckpoints.pop();
     if (checkpointedRoot === undefined) {
-      throw new CheckpointError("revert");
+      throw checkpointError("revert");
     }
     await this.setStateRoot(toBuffer(checkpointedRoot));
   }
@@ -216,19 +220,19 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async dumpStorage(address: Buffer): Promise<Record<string, string>> {
-    throw new NotSupportedError("dumpStorage");
+    throw notSupportedError("dumpStorage");
   }
 
   public async hasGenesisState(): Promise<boolean> {
-    throw new NotSupportedError("hasGenesisState");
+    throw notSupportedError("hasGenesisState");
   }
 
   public async generateCanonicalGenesis(): Promise<void> {
-    throw new NotSupportedError("generateCanonicalGenesis");
+    throw notSupportedError("generateCanonicalGenesis");
   }
 
   public async generateGenesis(initState: any): Promise<void> {
-    throw new NotSupportedError("generateGenesis");
+    throw notSupportedError("generateGenesis");
   }
 
   public async accountIsEmpty(address: Buffer): Promise<boolean> {

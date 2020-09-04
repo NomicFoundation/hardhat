@@ -5,15 +5,10 @@ import {
   bufferToHex,
   keccak256,
   KECCAK256_NULL,
-  KECCAK256_NULL_S,
   toBuffer,
 } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
-import {
-  CheckpointError,
-  NotSupportedError,
-} from "../../../../../src/internal/buidler-evm/provider/fork/errors";
 import { ForkStateManager } from "../../../../../src/internal/buidler-evm/provider/fork/ForkStateManager";
 import {
   randomAddressBuffer,
@@ -361,7 +356,11 @@ describe("ForkStateManager", () => {
 
   describe("commit", () => {
     it("rejects if no checkpoint was made", async () => {
-      await assert.isRejected(fsm.commit(), CheckpointError, "commit");
+      await assert.isRejected(
+        fsm.commit(),
+        Error,
+        "commit called when not checkpointed"
+      );
     });
 
     it("does not change current state root", async () => {
@@ -384,7 +383,11 @@ describe("ForkStateManager", () => {
 
   describe("revert", () => {
     it("rejects if no checkpoint was made", async () => {
-      await assert.isRejected(fsm.revert(), CheckpointError, "revert");
+      await assert.isRejected(
+        fsm.revert(),
+        Error,
+        "revert called when not checkpointed"
+      );
     });
 
     it("reverts the current state root back to the committed state", async () => {
@@ -508,8 +511,8 @@ describe("ForkStateManager", () => {
     it("throws not supported error", async () => {
       await assert.isRejected(
         fsm.dumpStorage(randomAddressBuffer()),
-        NotSupportedError,
-        "dumpStorage"
+        Error,
+        "dumpStorage is not supported when forking from remote network"
       );
     });
   });
@@ -518,8 +521,8 @@ describe("ForkStateManager", () => {
     it("throws not supported error", async () => {
       await assert.isRejected(
         fsm.hasGenesisState(),
-        NotSupportedError,
-        "hasGenesisState"
+        Error,
+        "hasGenesisState is not supported when forking from remote network"
       );
     });
   });
@@ -528,8 +531,8 @@ describe("ForkStateManager", () => {
     it("throws not supported error", async () => {
       await assert.isRejected(
         fsm.generateCanonicalGenesis(),
-        NotSupportedError,
-        "generateCanonicalGenesis"
+        Error,
+        "generateCanonicalGenesis is not supported when forking from remote network"
       );
     });
   });
@@ -538,8 +541,8 @@ describe("ForkStateManager", () => {
     it("throws not supported error", async () => {
       await assert.isRejected(
         fsm.generateGenesis(null),
-        NotSupportedError,
-        "generateGenesis"
+        Error,
+        "generateGenesis is not supported when forking from remote network"
       );
     });
   });

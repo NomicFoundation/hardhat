@@ -23,6 +23,6 @@ export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
       nonce: rpcBlock.nonce,
     },
     transactions: rpcBlock.transactions.map(rpcToTxData),
-    // TODO check whether we need to care about uncleHeaders
+    // uncleHeaders are not fetched and set here as provider methods for getting them are not supported
   };
 }

@@ -4,7 +4,6 @@ import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../provider/input";
 
 export function decode<T>(value: unknown, codec: t.Type<T>) {
   return codec.decode(value).fold(() => {
-    // TODO: What error to throw?
     // tslint:disable-next-line
     throw new Error(`Invalid ${codec.name}`);
   }, t.identity);
