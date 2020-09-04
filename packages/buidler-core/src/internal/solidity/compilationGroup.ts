@@ -121,7 +121,7 @@ export interface CompilationGroupsSuccess {
 }
 
 export type CompilationGroupsFailure = Record<
-  MatchingCompilerFailure,
+  MatchingCompilerFailure["reason"],
   string[]
 >;
 
@@ -206,33 +206,21 @@ export async function getCompilationGroupsFromDependencyGraph(
   let someFailure = false;
   for (const connectedComponent of connectedComponents) {
     for (const file of connectedComponent.getResolvedFiles()) {
-      const directDependencies = dependencyGraph.getDependencies(file);
-      const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
-        file
-      );
-
-      const compilerConfig = getMatchingCompilerConfig(
+      const compilationGroupOrFailure = await getCompilationGroupFromFile(
+        dependencyGraph,
         file,
-        directDependencies,
-        transitiveDependencies,
         solidityConfig
       );
 
       // if the file cannot be compiled, we add it to the list and continue in
       // case there are more non-compilable files
-      if (typeof compilerConfig === "string") {
+      if ("reason" in compilationGroupOrFailure) {
         someFailure = true;
-        failures[compilerConfig].push(file.globalName);
+        failures[compilationGroupOrFailure.reason].push(file.globalName);
         continue;
       }
-      const compilationGroup = new CompilationGroup(compilerConfig);
 
-      compilationGroup.addFileToCompile(file, true);
-      for (const dependency of transitiveDependencies) {
-        compilationGroup.addFileToCompile(dependency, false);
-      }
-
-      compilationGroups.push(compilationGroup);
+      compilationGroups.push(compilationGroupOrFailure);
     }
   }
 
@@ -245,6 +233,37 @@ export async function getCompilationGroupsFromDependencyGraph(
   );
 
   return { groups: mergedCompilationGroups };
+}
+
+async function getCompilationGroupFromFile(
+  dependencyGraph: DependencyGraph,
+  file: ResolvedFile,
+  solidityConfig: MultiSolcConfig
+): Promise<CompilationGroup | MatchingCompilerFailure> {
+  const directDependencies = dependencyGraph.getDependencies(file);
+  const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
+    file
+  );
+
+  const compilerConfig = getMatchingCompilerConfig(
+    file,
+    directDependencies,
+    transitiveDependencies,
+    solidityConfig
+  );
+
+  // if the config cannot be obtained, we just return the failure
+  if ("reason" in compilerConfig) {
+    return compilerConfig;
+  }
+  const compilationGroup = new CompilationGroup(compilerConfig.config);
+
+  compilationGroup.addFileToCompile(file, true);
+  for (const dependency of transitiveDependencies) {
+    compilationGroup.addFileToCompile(dependency, false);
+  }
+
+  return compilationGroup;
 }
 
 /**
