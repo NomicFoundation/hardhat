@@ -538,7 +538,7 @@ async function runDeploymentTransactionTest(
   const contract = file[tx.contract];
 
   assert.isDefined(
-    file,
+    contract,
     `Contract ${tx.contract} from transaction ${txIndex} doesn't exist`
   );
 
