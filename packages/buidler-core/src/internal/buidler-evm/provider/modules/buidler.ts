@@ -1,5 +1,6 @@
 import * as t from "io-ts";
 
+import { ForkConfig } from "../../../../types";
 import {
   CompilerInput,
   CompilerOutput,
@@ -9,6 +10,7 @@ import {
   rpcAddress,
   rpcCompilerInput,
   rpcCompilerOutput,
+  rpcForkConfig,
   validateParams,
 } from "../input";
 import { BuidlerNode } from "../node";
@@ -33,20 +35,21 @@ export class BuidlerModule {
         );
       case "buidler_impersonate":
         if (!this._node.isForked) {
-          throw new MethodNotSupportedError(
-            `Method ${method} is only supported in forked provider`
-          );
+          throw new MethodNotSupportedError(method, true);
         }
         return this._impersonateAction(...this._impersonateParams(params));
       case "buidler_stopImpersonating":
         if (!this._node.isForked) {
-          throw new MethodNotSupportedError(
-            `Method ${method} is only supported in forked provider`
-          );
+          throw new MethodNotSupportedError(method, true);
         }
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
         );
+      case "buidler_reset":
+        if (!this._node.isForked) {
+          throw new MethodNotSupportedError(method, true);
+        }
+        return this._resetAction(...this._resetParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -105,5 +108,15 @@ export class BuidlerModule {
 
   private _stopImpersonatingAction(address: Buffer): boolean {
     return this._node.removeImpersonatedAccount(address);
+  }
+
+  // buidler_reset
+
+  private _resetParams(params: any[]): [ForkConfig] {
+    return validateParams(params, rpcForkConfig);
+  }
+
+  private _resetAction(forkConfig: ForkConfig) {
+    return true;
   }
 }

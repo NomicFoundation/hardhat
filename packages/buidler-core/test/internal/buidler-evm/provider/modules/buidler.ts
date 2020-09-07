@@ -6,7 +6,7 @@ import {
   assertBuidlerEVMProviderError,
   assertInvalidArgumentsError,
 } from "../../helpers/assertions";
-import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
+import { EMPTY_ACCOUNT_ADDRESS, INFURA_URL } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
@@ -101,6 +101,52 @@ describe("Buidler module", function () {
             "buidler_stopImpersonating",
             [],
             `Method buidler_stopImpersonating is only supported in forked provider`,
+            MethodNotSupportedError.CODE
+          );
+        });
+      }
+
+      describe("buidler_reset", isFork ? buidlerResetFork : buidlerReset);
+
+      function buidlerResetFork() {
+        it("validates input parameters", async function () {
+          await assertInvalidArgumentsError(this.provider, "buidler_reset", []);
+          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+            {
+              jsonRpcUrl: 123,
+            },
+          ]);
+          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+            {
+              blockNumber: 0,
+            },
+          ]);
+          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+            {
+              jsonRpcUrl: INFURA_URL,
+              blockNumber: "0",
+            },
+          ]);
+        });
+
+        it("returns true", async function () {
+          const result = await this.provider.send("buidler_reset", [
+            {
+              jsonRpcUrl: INFURA_URL,
+              blockNumber: 123,
+            },
+          ]);
+          assert.isTrue(result);
+        });
+      }
+
+      function buidlerReset() {
+        it("is not supported", async function () {
+          await assertBuidlerEVMProviderError(
+            this.provider,
+            "buidler_reset",
+            [],
+            `Method buidler_reset is only supported in forked provider`,
             MethodNotSupportedError.CODE
           );
         });

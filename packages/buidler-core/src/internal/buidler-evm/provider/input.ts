@@ -198,6 +198,16 @@ export const rpcCompilerOutput = t.type(
 
 export type RpcCompilerOutput = t.TypeOf<typeof rpcCompilerOutput>;
 
+export const rpcForkConfig = t.type(
+  {
+    jsonRpcUrl: t.string, // TODO consider adding url-regex dependency and checking for actual URL here
+    blockNumber: optional(t.number),
+  },
+  "RpcForkConfig"
+);
+
+export type RpcForkConfig = t.TypeOf<typeof rpcForkConfig>;
+
 export function validateParams(params: any[]): [];
 
 export function validateParams(
@@ -306,6 +316,11 @@ export function validateParams(
   compilerInput: typeof rpcCompilerInput,
   compilerOutput: typeof rpcCompilerOutput
 ): [string, CompilerInput, CompilerOutput];
+
+export function validateParams(
+  params: any[],
+  forkConfig: typeof rpcForkConfig,
+): [RpcForkConfig];
 
 // tslint:disable only-buidler-error
 
