@@ -72,7 +72,7 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
     private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = [],
-    private readonly _forkConfig?: ForkConfig
+    private _forkConfig?: ForkConfig
   ) {
     super();
   }
@@ -302,7 +302,7 @@ export class BuidlerEVMProvider extends EventEmitter
     this._netModule = new NetModule(common);
     this._web3Module = new Web3Module();
     this._evmModule = new EvmModule(node);
-    this._buidlerModule = new BuidlerModule(node);
+    this._buidlerModule = new BuidlerModule(node, this._reset.bind(this));
 
     const listener = (payload: { filterId: BN; result: any }) => {
       this.emit("notifications", {
@@ -313,6 +313,12 @@ export class BuidlerEVMProvider extends EventEmitter
 
     // Handle eth_subscribe events and proxy them to handler
     this._node.addListener("ethEvent", listener);
+  }
+
+  private async _reset(forkConfig: ForkConfig) {
+    this._forkConfig = forkConfig;
+    this._node = undefined;
+    await this._init();
   }
 
   private _logModuleMessages(): boolean {

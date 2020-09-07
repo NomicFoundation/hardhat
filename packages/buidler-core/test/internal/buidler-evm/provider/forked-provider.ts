@@ -21,7 +21,11 @@ import {
   UNISWAP_FACTORY_ADDRESS,
   WETH_ADDRESS,
 } from "../helpers/constants";
-import { dataToBN, quantityToBN } from "../helpers/conversions";
+import {
+  dataToBN,
+  quantityToBN,
+  quantityToNumber,
+} from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { EthersProviderWrapper } from "../helpers/ethers-provider-wrapper";
 import { hexStripZeros } from "../helpers/hexStripZeros";
@@ -35,7 +39,7 @@ import {
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", () => {
-  FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
+  FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider, jsonRpcUrl }) => {
     describe(`Using ${rpcProvider}`, () => {
       before(function () {
         if (process.env.CI === "true" && rpcProvider === "Alchemy") {
@@ -50,7 +54,7 @@ describe("Forked provider", () => {
         it("returns the current block number", async function () {
           const blockNumber = await this.provider.send("eth_blockNumber");
           const minBlockNumber = 10494745; // mainnet block number at 20.07.2020
-          assert.isAtLeast(parseInt(blockNumber, 16), minBlockNumber);
+          assert.isAtLeast(quantityToNumber(blockNumber), minBlockNumber);
         });
       });
 
@@ -339,6 +343,35 @@ describe("Forked provider", () => {
             "unknown account",
             InvalidInputError.CODE
           );
+        });
+      });
+
+      describe("buidler_reset", () => {
+        it("can reset the forked provider to a given forkBlockNumber", async function () {
+          const initialBlockNumber = quantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+          await this.provider.send("buidler_reset", [
+            { jsonRpcUrl, blockNumber: initialBlockNumber - 5 },
+          ]);
+          const newBlockNumber = quantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+          assert.equal(newBlockNumber, initialBlockNumber - 5);
+        });
+
+        it("can reset the forked provider to the latest block number", async function () {
+          const initialBlockNumber = quantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+          await this.provider.send("buidler_reset", [
+            { jsonRpcUrl, blockNumber: initialBlockNumber - 5 },
+          ]);
+          await this.provider.send("buidler_reset", [{ jsonRpcUrl }]);
+          const newBlockNumber = quantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+          assert.isAtLeast(newBlockNumber, initialBlockNumber);
         });
       });
 

@@ -67,12 +67,14 @@ export const PROVIDERS = [
 export const FORKED_PROVIDERS = [
   {
     rpcProvider: "Alchemy",
+    jsonRpcUrl: ALCHEMY_URL,
     useProvider: () => {
       useProvider(false, { jsonRpcUrl: ALCHEMY_URL });
     },
   },
   {
     rpcProvider: "Infura",
+    jsonRpcUrl: INFURA_URL,
     useProvider: () => {
       useProvider(false, { jsonRpcUrl: INFURA_URL });
     },

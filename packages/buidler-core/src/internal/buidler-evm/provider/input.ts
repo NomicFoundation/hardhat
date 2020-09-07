@@ -319,7 +319,7 @@ export function validateParams(
 
 export function validateParams(
   params: any[],
-  forkConfig: typeof rpcForkConfig,
+  forkConfig: typeof rpcForkConfig
 ): [RpcForkConfig];
 
 // tslint:disable only-buidler-error

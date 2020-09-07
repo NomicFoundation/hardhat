@@ -18,7 +18,10 @@ import { BuidlerNode } from "../node";
 // tslint:disable only-buidler-error
 
 export class BuidlerModule {
-  constructor(private readonly _node: BuidlerNode) {}
+  constructor(
+    private readonly _node: BuidlerNode,
+    private readonly _resetCallback: (forkConfig: ForkConfig) => Promise<void>
+  ) {}
 
   public async processRequest(
     method: string,
@@ -116,7 +119,8 @@ export class BuidlerModule {
     return validateParams(params, rpcForkConfig);
   }
 
-  private _resetAction(forkConfig: ForkConfig) {
+  private async _resetAction(forkConfig: ForkConfig): Promise<true> {
+    await this._resetCallback(forkConfig);
     return true;
   }
 }
