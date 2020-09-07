@@ -8,12 +8,12 @@ import {
   SOLC_OUTPUT_FILENAME,
 } from "../../internal/constants";
 import { Reporter } from "../../internal/sentry/reporter";
-import { EthereumProvider, ProjectPaths, SolcConfig } from "../../types";
+import { EIP1193Provider, ProjectPaths, SolcConfig } from "../../types";
 
 const log = debug("buidler:core:compilation-watcher");
 
 export async function watchCompilerOutput(
-  provider: EthereumProvider,
+  provider: EIP1193Provider,
   solcConfig: SolcConfig,
   paths: ProjectPaths
 ) {
@@ -46,11 +46,10 @@ export async function watchCompilerOutput(
         encoding: "utf8",
       });
 
-      await provider.send("buidler_addCompilationResult", [
-        compilerVersion,
-        compilerInput,
-        compilerOutput,
-      ]);
+      await provider.request({
+        method: "buidler_addCompilationResult",
+        params: [compilerVersion, compilerInput, compilerOutput],
+      });
     } catch (error) {
       console.warn(
         chalk.yellow(
