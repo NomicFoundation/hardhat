@@ -372,6 +372,48 @@ describe("Eth module", function () {
 
           assert.equal(result, "0x");
         });
+
+        it("Should leverage block number parameter", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              numberToRpcQuantity(1),
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              "latest",
+            ]),
+            `0x${newState}`
+          );
+        });
       });
 
       describe("eth_chainId", async function () {
@@ -420,6 +462,43 @@ describe("Eth module", function () {
           ]);
 
           assert.isTrue(new BN(toBuffer(estimation)).lten(23000));
+        });
+
+        it("should leverage block number parameter", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const result = await this.provider.send("eth_estimateGas", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+            numberToRpcQuantity(0),
+          ]);
+
+          const result2 = await this.provider.send("eth_estimateGas", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          assert.isTrue(new BN(toBuffer(result)).lt(new BN(toBuffer(result2))));
         });
       });
 
@@ -546,6 +625,45 @@ describe("Eth module", function () {
           );
 
           assert.isTrue(balance2.gt(balance));
+        });
+
+        it("should leverage block number parameter", async function () {
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: zeroAddress(),
+              value: numberToRpcQuantity(1),
+            },
+          ]);
+
+          assert.strictEqual(
+            await this.provider.send("eth_getBalance", [
+              zeroAddress(),
+              "earliest",
+            ]),
+            "0x0"
+          );
+
+          assert.strictEqual(
+            await this.provider.send("eth_getBalance", [
+              zeroAddress(),
+              numberToRpcQuantity(0),
+            ]),
+            "0x0"
+          );
+
+          assert.strictEqual(
+            await this.provider.send("eth_getBalance", [
+              zeroAddress(),
+              numberToRpcQuantity(1),
+            ]),
+            "0x1"
+          );
+
+          assert.strictEqual(
+            await this.provider.send("eth_getBalance", [zeroAddress()]),
+            "0x1"
+          );
         });
       });
 
@@ -824,6 +942,21 @@ describe("Eth module", function () {
           assert.equal(
             await this.provider.send("eth_getCode", [contractAddress]),
             "0x41"
+          );
+        });
+
+        it("Should leverage block number parameter", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          assert.strictEqual(
+            await this.provider.send("eth_getCode", [
+              exampleContract,
+              numberToRpcQuantity(0),
+            ]),
+            "0x"
           );
         });
       });
@@ -1545,6 +1678,15 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(2),
+                    numberToRpcQuantity(0),
+                  ]),
+                  "0x0"
+                );
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    exampleContract,
+                    numberToRpcQuantity(2),
                   ]),
                   "0x1234567890123456789012345678901234567890123456789012345678901234"
                 );
@@ -1576,6 +1718,15 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(0),
+                    numberToRpcQuantity(1),
+                  ]),
+                  "0x0"
+                );
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    exampleContract,
+                    numberToRpcQuantity(0),
                   ]),
                   "0x7b"
                 );
@@ -1590,6 +1741,15 @@ describe("Eth module", function () {
                     data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
                   },
                 ]);
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    exampleContract,
+                    numberToRpcQuantity(0),
+                    numberToRpcQuantity(2),
+                  ]),
+                  "0x7b"
+                );
 
                 assert.strictEqual(
                   await this.provider.send("eth_getStorageAt", [
@@ -1989,6 +2149,32 @@ describe("Eth module", function () {
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ]),
             0
+          );
+        });
+
+        it("Should leverage block number parameter", async function () {
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+            },
+          ]);
+
+          assertQuantity(
+            await this.provider.send("eth_getTransactionCount", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              "earliest",
+            ]),
+            0
+          );
+
+          assertQuantity(
+            await this.provider.send("eth_getTransactionCount", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              "latest",
+            ]),
+            1
           );
         });
       });

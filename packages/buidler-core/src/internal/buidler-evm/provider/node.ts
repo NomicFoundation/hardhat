@@ -491,52 +491,88 @@ export class BuidlerNode extends EventEmitter {
 
   public async runCall(
     call: CallParams,
-    runOnNewBlock: boolean
+    runOnNewBlock: boolean,
+    stateRoot: Buffer
   ): Promise<{
     result: Buffer;
     trace: MessageTrace;
     error?: Error;
     consoleLogMessages: string[];
   }> {
-    const tx = await this._getFakeTransaction({
-      ...call,
-      nonce: await this.getAccountNonce(call.from),
-    });
+    const currentStateRoot = await this._stateManager.getStateRoot();
+    await this._stateManager.setStateRoot(stateRoot);
 
-    const result = await this._runTxAndRevertMutations(tx, runOnNewBlock);
+    try {
+      const tx = await this._getFakeTransaction({
+        ...call,
+        nonce: await this.getAccountNonce(call.from, null),
+      });
 
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
+      const result = await this._runTxAndRevertMutations(tx, runOnNewBlock);
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+      let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+      const vmTracerError = this._vmTracer.getLastError();
+      this._vmTracer.clearLastError();
 
-    const consoleLogMessages = await this._getConsoleLogMessages(
-      vmTrace,
-      vmTracerError
-    );
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
-    const error = await this._manageErrors(
-      result.execResult,
-      vmTrace,
-      vmTracerError
-    );
+      const consoleLogMessages = await this._getConsoleLogMessages(
+        vmTrace,
+        vmTracerError
+      );
 
-    return {
-      result: result.execResult.returnValue,
-      trace: vmTrace,
-      error,
-      consoleLogMessages,
-    };
+      const error = await this._manageErrors(
+        result.execResult,
+        vmTrace,
+        vmTracerError
+      );
+
+      return {
+        result: result.execResult.returnValue,
+        trace: vmTrace,
+        error,
+        consoleLogMessages,
+      };
+    } finally {
+      await this._stateManager.setStateRoot(currentStateRoot);
+    }
   }
 
-  public async getAccountBalance(address: Buffer): Promise<BN> {
-    const account = await this._stateManager.getAccount(address);
+  public async getAccountBalance(
+    address: Buffer,
+    stateRoot: Buffer
+  ): Promise<BN> {
+    const currentStateRoot = await this._stateManager.getStateRoot();
+    await this._stateManager.setStateRoot(stateRoot);
+
+    let account: Account;
+    try {
+      account = await this._stateManager.getAccount(address);
+    } finally {
+      await this._stateManager.setStateRoot(currentStateRoot);
+    }
+
     return new BN(account.balance);
   }
 
-  public async getAccountNonce(address: Buffer): Promise<BN> {
-    const account = await this._stateManager.getAccount(address);
+  public async getAccountNonce(
+    address: Buffer,
+    stateRoot: Buffer | null
+  ): Promise<BN> {
+    const currentStateRoot = await this._stateManager.getStateRoot();
+    if (stateRoot === null) {
+      stateRoot = currentStateRoot;
+    }
+
+    await this._stateManager.setStateRoot(stateRoot);
+
+    let account: Account;
+    try {
+      account = await this._stateManager.getAccount(address);
+    } finally {
+      await this._stateManager.setStateRoot(currentStateRoot);
+    }
+
     return new BN(account.nonce);
   }
 
@@ -568,56 +604,67 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async estimateGas(
-    txParams: TransactionParams
+    txParams: TransactionParams,
+    stateRoot: Buffer | null
   ): Promise<{
     estimation: BN;
     trace: MessageTrace;
     error?: Error;
     consoleLogMessages: string[];
   }> {
-    const tx = await this._getFakeTransaction({
-      ...txParams,
-      gasLimit: await this.getBlockGasLimit(),
-    });
+    const currentStateRoot = await this._stateManager.getStateRoot();
+    if (stateRoot === null) {
+      stateRoot = currentStateRoot;
+    }
+    await this._stateManager.setStateRoot(stateRoot);
 
-    const result = await this._runTxAndRevertMutations(tx);
+    try {
+      const tx = await this._getFakeTransaction({
+        ...txParams,
+        gasLimit: await this.getBlockGasLimit(),
+      });
 
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
+      const result = await this._runTxAndRevertMutations(tx);
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+      let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+      const vmTracerError = this._vmTracer.getLastError();
+      this._vmTracer.clearLastError();
 
-    const consoleLogMessages = await this._getConsoleLogMessages(
-      vmTrace,
-      vmTracerError
-    );
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
-    // This is only considered if the call to _runTxAndRevertMutations doesn't
-    // manage errors
-    if (result.execResult.exceptionError !== undefined) {
+      const consoleLogMessages = await this._getConsoleLogMessages(
+        vmTrace,
+        vmTracerError
+      );
+
+      // This is only considered if the call to _runTxAndRevertMutations doesn't
+      // manage errors
+      if (result.execResult.exceptionError !== undefined) {
+        return {
+          estimation: await this.getBlockGasLimit(),
+          trace: vmTrace,
+          error: await this._manageErrors(
+            result.execResult,
+            vmTrace,
+            vmTracerError
+          ),
+          consoleLogMessages,
+        };
+      }
+
+      const initialEstimation = result.gasUsed;
+
       return {
-        estimation: await this.getBlockGasLimit(),
-        trace: vmTrace,
-        error: await this._manageErrors(
-          result.execResult,
-          vmTrace,
-          vmTracerError
+        estimation: await this._correctInitialEstimation(
+          txParams,
+          initialEstimation
         ),
+        trace: vmTrace,
         consoleLogMessages,
       };
+    } finally {
+      await this._stateManager.setStateRoot(currentStateRoot);
     }
-
-    const initialEstimation = result.gasUsed;
-
-    return {
-      estimation: await this._correctInitialEstimation(
-        txParams,
-        initialEstimation
-      ),
-      trace: vmTrace,
-      consoleLogMessages,
-    };
   }
 
   public async getGasPrice(): Promise<BN> {
@@ -628,9 +675,22 @@ export class BuidlerNode extends EventEmitter {
     return COINBASE_ADDRESS;
   }
 
-  public async getStorageAt(address: Buffer, slot: BN): Promise<Buffer> {
+  public async getStorageAt(
+    address: Buffer,
+    slot: BN,
+    stateRoot: Buffer
+  ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
-    const data = await this._stateManager.getContractStorage(address, key);
+
+    const currentStateRoot = await this._stateManager.getStateRoot();
+    await this._stateManager.setStateRoot(stateRoot);
+
+    let data: Promise<Buffer>;
+    try {
+      data = await this._stateManager.getContractStorage(address, key);
+    } finally {
+      await this._stateManager.setStateRoot(currentStateRoot);
+    }
 
     // TODO: The state manager returns the data as it was saved, it doesn't
     //  pad it. Technically, the storage consists of 32-byte slots, so we should
@@ -687,8 +747,25 @@ export class BuidlerNode extends EventEmitter {
     return this._computeTotalDifficulty(block);
   }
 
-  public async getCode(address: Buffer): Promise<Buffer> {
-    return this._stateManager.getContractCode(address);
+  public async getCode(
+    address: Buffer,
+    stateRoot: Buffer | null
+  ): Promise<Buffer> {
+    const currentStateRoot = await this._stateManager.getStateRoot();
+    if (stateRoot === null) {
+      stateRoot = currentStateRoot;
+    }
+
+    await this._stateManager.setStateRoot(stateRoot);
+
+    let code: Promise<Buffer>;
+    try {
+      code = this._stateManager.getContractCode(address);
+    } finally {
+      await this._stateManager.setStateRoot(currentStateRoot);
+    }
+
+    return code;
   }
 
   public async setNextBlockTimestamp(timestamp: BN) {
@@ -1388,7 +1465,10 @@ export class BuidlerNode extends EventEmitter {
       );
     }
 
-    const expectedNonce = await this.getAccountNonce(tx.getSenderAddress());
+    const expectedNonce = await this.getAccountNonce(
+      tx.getSenderAddress(),
+      null
+    );
     const actualNonce = new BN(tx.nonce);
     if (!expectedNonce.eq(actualNonce)) {
       throw new InvalidInputError(
