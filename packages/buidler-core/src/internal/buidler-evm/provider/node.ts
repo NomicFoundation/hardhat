@@ -111,6 +111,7 @@ export class BuidlerNode extends EventEmitter {
       await putGenesisAccounts(stateManager, genesisAccounts);
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
+      initialDate = undefined;
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(
