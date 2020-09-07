@@ -1,9 +1,8 @@
-import debug from "debug";
 import { IncomingMessage, ServerResponse } from "http";
 import getRawBody from "raw-body";
 import WebSocket from "ws";
 
-import { EIP1193Provider, EthereumProvider } from "../../../types";
+import { EIP1193Provider } from "../../../types";
 import {
   isSuccessfulJsonResponse,
   isValidJsonRequest,
@@ -19,8 +18,6 @@ import {
 } from "../provider/errors";
 
 // tslint:disable only-buidler-error
-
-const log = debug("buidler:core:buidler-evm:jsonrpc");
 
 export default class JsonRpcHandler {
   constructor(private readonly _provider: EIP1193Provider) {}
