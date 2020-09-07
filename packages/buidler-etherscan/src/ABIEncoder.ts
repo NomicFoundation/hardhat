@@ -17,18 +17,26 @@ export async function encodeArguments(
       .encodeDeploy(constructorArguments)
       .replace("0x", "");
   } catch (error) {
-    const { isABIArgumentLengthError, isABIArgumentTypeError } = await import(
-      "./ABITypes"
-    );
+    const {
+      isABIArgumentLengthError,
+      isABIArgumentTypeError,
+      isABIArgumentOverflowError,
+    } = await import("./ABITypes");
     if (isABIArgumentLengthError(error)) {
       // TODO: add a list of types and constructor arguments to the error message?
       const message = `The constructor for ${contractFilename}:${contractName} has ${error.count.types} parameters
-  but ${error.count.values} arguments were provided instead.`;
+but ${error.count.values} arguments were provided instead.`;
       throw new NomicLabsBuidlerPluginError(pluginName, message, error);
     }
     if (isABIArgumentTypeError(error)) {
       const message = `Value ${error.value} cannot be encoded for the parameter ${error.argument}.
-  Encoder error reason: ${error.reason}`;
+Encoder error reason: ${error.reason}`;
+      throw new NomicLabsBuidlerPluginError(pluginName, message, error);
+    }
+    if (isABIArgumentOverflowError(error)) {
+      const message = `Value ${error.value} is not a safe integer and cannot be encoded.
+Use a string instead of a plain number.
+Encoder error reason: ${error.fault} fault in ${error.operation}`;
       throw new NomicLabsBuidlerPluginError(pluginName, message, error);
     }
     // Should be unreachable.

@@ -51,6 +51,34 @@ describe("constructor argument validation tests", () => {
     );
   });
 
+  it("should fail gracefully with an unsafe integer", async () => {
+    const abi = [
+      {
+        inputs: [
+          {
+            name: "amount",
+            type: "uint256",
+          },
+        ],
+        stateMutability: "nonpayable",
+        type: "constructor",
+      },
+    ];
+
+    const amount = 1000000000000000000;
+    assert.isFalse(Number.isSafeInteger(amount));
+    const constructorArguments: any[] = [amount];
+
+    const encodedArguments = await encodeArguments(
+      abi,
+      contractFilename,
+      contractName,
+      constructorArguments
+    ).catch((reason) => {
+      assert.instanceOf(reason, NomicLabsBuidlerPluginError);
+    });
+  });
+
   it("should throw when the argument list is too small", async () => {
     const abi = [
       {
