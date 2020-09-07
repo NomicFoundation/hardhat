@@ -69,7 +69,7 @@ struct Point {
 }
 
 contract Foo {
-  constructor (uint x, string s, Point memory point) { ... }
+  constructor (uint x, string s, Point memory point, bytes b) { ... }
 }
 ```
 
@@ -82,7 +82,9 @@ module.exports = [
   {
     x: 10,
     y: 5,
-  }
+  },
+  // bytes have to be 0x-prefixed
+  "0xabcdef",
 ];
 ```
 
