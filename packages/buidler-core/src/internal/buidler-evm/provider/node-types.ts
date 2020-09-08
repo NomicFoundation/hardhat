@@ -1,8 +1,38 @@
 import { BN } from "ethereumjs-util";
 
+import { ForkConfig } from "../../../types";
 import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 
 import { Block } from "./types/Block";
+
+export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
+
+interface CommonConfig {
+  blockGasLimit: number;
+  genesisAccounts: GenesisAccount[];
+  allowUnlimitedContractSize?: boolean;
+  tracingConfig?: TracingConfig;
+}
+
+export interface LocalNodeConfig extends CommonConfig {
+  type: "local";
+  hardfork: string;
+  networkName: string;
+  chainId: number;
+  networkId: number;
+  initialDate?: Date;
+}
+
+export interface ForkedNodeConfig extends CommonConfig {
+  type: "forked";
+  forkConfig: ForkConfig;
+}
+
+export interface TracingConfig {
+  solcVersion: string;
+  compilerInput: CompilerInput;
+  compilerOutput: CompilerOutput;
+}
 
 export interface GenesisAccount {
   privateKey: string;
@@ -33,12 +63,6 @@ export interface FilterParams {
   toBlock: BN;
   addresses: Buffer[];
   normalizedTopics: Array<Array<Buffer | null> | null>;
-}
-
-export interface SolidityTracerOptions {
-  solidityVersion: string;
-  compilerInput: CompilerInput;
-  compilerOutput: CompilerOutput;
 }
 
 export interface Snapshot {

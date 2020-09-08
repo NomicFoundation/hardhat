@@ -82,15 +82,15 @@ export class BuidlerModule {
   }
 
   private async _addCompilationResultAction(
-    compilerVersion: string,
+    solcVersion: string,
     compilerInput: CompilerInput,
     compilerOutput: CompilerOutput
   ): Promise<boolean> {
-    return this._node.addCompilationResult(
-      compilerVersion,
+    return this._node.addCompilationResult({
+      solcVersion,
       compilerInput,
-      compilerOutput
-    );
+      compilerOutput,
+    });
   }
 
   // buidler_impersonate

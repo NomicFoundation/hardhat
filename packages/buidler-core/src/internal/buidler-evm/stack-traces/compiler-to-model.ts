@@ -1,5 +1,7 @@
 import abi from "ethereumjs-abi";
 
+import { TracingConfig } from "../provider/node-types";
+
 import {
   CompilerInput,
   CompilerOutput,
@@ -21,11 +23,11 @@ import {
 } from "./model";
 import { decodeInstructions } from "./source-maps";
 
-export function createModelsAndDecodeBytecodes(
-  solcVersion: string,
-  compilerInput: CompilerInput,
-  compilerOutput: CompilerOutput
-): Bytecode[] {
+export function createModelsAndDecodeBytecodes({
+  solcVersion,
+  compilerInput,
+  compilerOutput,
+}: TracingConfig): Bytecode[] {
   const fileIdToSourceFile = new Map<number, SourceFile>();
   const contractIdToContract = new Map<number, Contract>();
 

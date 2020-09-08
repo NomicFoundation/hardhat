@@ -16,7 +16,6 @@ import {
   ProjectPaths,
 } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -33,7 +32,7 @@ import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
 import { BuidlerNode } from "./node";
-import { GenesisAccount } from "./node-types";
+import { GenesisAccount, NodeConfig, TracingConfig } from "./node-types";
 
 const log = debug("buidler:core:buidler-evm:provider");
 
@@ -221,71 +220,34 @@ export class BuidlerEVMProvider extends EventEmitter
       return;
     }
 
-    let compilerInput: CompilerInput | undefined;
-    let compilerOutput: CompilerOutput | undefined;
+    let config: NodeConfig;
 
-    if (this._solcVersion !== undefined && this._paths !== undefined) {
-      if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
-        console.warn(
-          chalk.yellow(
-            `Solidity stack traces only work with Solidity version ${FIRST_SOLC_VERSION_SUPPORTED} or higher.`
-          )
-        );
-      } else {
-        let hasCompiledContracts = false;
+    const commonConfig = {
+      blockGasLimit: this._blockGasLimit,
+      genesisAccounts: this._genesisAccounts,
+      allowUnlimitedContractSize: this._allowUnlimitedContractSize,
+      tracingConfig: await this._makeTracingConfig(),
+    };
 
-        if (await fsExtra.pathExists(this._paths.artifacts)) {
-          const artifactsDir = await fsExtra.readdir(this._paths.artifacts);
-          hasCompiledContracts = artifactsDir.some((f) => f.endsWith(".json"));
-        }
-
-        if (hasCompiledContracts) {
-          try {
-            const solcInputPath = path.join(
-              this._paths.cache,
-              SOLC_INPUT_FILENAME
-            );
-            const solcOutputPath = path.join(
-              this._paths.cache,
-              SOLC_OUTPUT_FILENAME
-            );
-
-            compilerInput = await fsExtra.readJSON(solcInputPath, {
-              encoding: "utf8",
-            });
-            compilerOutput = await fsExtra.readJSON(solcOutputPath, {
-              encoding: "utf8",
-            });
-          } catch (error) {
-            console.warn(
-              chalk.yellow(
-                "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
-              )
-            );
-
-            log(
-              "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
-              error
-            );
-          }
-        }
-      }
+    if (this._forkConfig === undefined) {
+      config = {
+        type: "local",
+        hardfork: this._hardfork,
+        networkName: this._networkName,
+        chainId: this._chainId,
+        networkId: this._networkId,
+        initialDate: this._initialDate,
+        ...commonConfig,
+      };
+    } else {
+      config = {
+        type: "forked",
+        forkConfig: this._forkConfig,
+        ...commonConfig,
+      };
     }
 
-    const [common, node] = await BuidlerNode.create(
-      this._hardfork,
-      this._networkName,
-      this._chainId,
-      this._networkId,
-      this._blockGasLimit,
-      this._genesisAccounts,
-      this._solcVersion,
-      this._allowUnlimitedContractSize,
-      this._initialDate,
-      compilerInput,
-      compilerOutput,
-      this._forkConfig
-    );
+    const [common, node] = await BuidlerNode.create(config);
 
     this._common = common;
     this._node = node;
@@ -313,6 +275,63 @@ export class BuidlerEVMProvider extends EventEmitter
 
     // Handle eth_subscribe events and proxy them to handler
     this._node.addListener("ethEvent", listener);
+  }
+
+  private async _makeTracingConfig(): Promise<TracingConfig | undefined> {
+    if (this._solcVersion !== undefined && this._paths !== undefined) {
+      if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+        console.warn(
+          chalk.yellow(
+            `Solidity stack traces only work with Solidity version ${FIRST_SOLC_VERSION_SUPPORTED} or higher.`
+          )
+        );
+      } else {
+        let hasCompiledContracts = false;
+
+        if (await fsExtra.pathExists(this._paths.artifacts)) {
+          const artifactsDir = await fsExtra.readdir(this._paths.artifacts);
+          hasCompiledContracts = artifactsDir.some((f) => f.endsWith(".json"));
+        }
+
+        if (hasCompiledContracts) {
+          try {
+            const solcInputPath = path.join(
+              this._paths.cache,
+              SOLC_INPUT_FILENAME
+            );
+            const solcOutputPath = path.join(
+              this._paths.cache,
+              SOLC_OUTPUT_FILENAME
+            );
+
+            const compilerInput = await fsExtra.readJSON(solcInputPath, {
+              encoding: "utf8",
+            });
+
+            const compilerOutput = await fsExtra.readJSON(solcOutputPath, {
+              encoding: "utf8",
+            });
+
+            return {
+              solcVersion: this._solcVersion,
+              compilerInput,
+              compilerOutput,
+            };
+          } catch (error) {
+            console.warn(
+              chalk.yellow(
+                "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
+              )
+            );
+
+            log(
+              "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
+              error
+            );
+          }
+        }
+      }
+    }
   }
 
   private async _reset(forkConfig: ForkConfig) {

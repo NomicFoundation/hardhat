@@ -20,12 +20,10 @@ import {
 } from "ethereumjs-util";
 import EventEmitter from "events";
 
-import { ForkConfig } from "../../../types";
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import { MessageTrace } from "../stack-traces/message-trace";
@@ -51,7 +49,9 @@ import {
   CallParams,
   FilterParams,
   GenesisAccount,
+  NodeConfig,
   Snapshot,
+  TracingConfig,
   TransactionParams,
 } from "./node-types";
 import {
@@ -71,6 +71,7 @@ import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisAccounts } from "./utils/putGenesisAccounts";
+import { putGenesisBlock } from "./utils/putGenesisBlock";
 
 const log = debug("buidler:core:buidler-evm:node");
 
@@ -86,43 +87,33 @@ export const COINBASE_ADDRESS = toBuffer(
 
 export class BuidlerNode extends EventEmitter {
   public static async create(
-    hardfork: string,
-    networkName: string,
-    chainId: number,
-    networkId: number,
-    blockGasLimit: number,
-    genesisAccounts: GenesisAccount[] = [],
-    solidityVersion?: string,
-    allowUnlimitedContractSize?: boolean,
-    initialDate?: Date,
-    compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput,
-    forkConfig?: ForkConfig
+    config: NodeConfig
   ): Promise<[Common, BuidlerNode]> {
-    let common;
+    const {
+      genesisAccounts,
+      blockGasLimit,
+      allowUnlimitedContractSize,
+      tracingConfig,
+    } = config;
+
+    let common: Common;
     let stateManager: StateManager | ForkStateManager;
     let blockchain: BuidlerBlockchain | ForkBlockchain;
+    let initialBlockTimeOffset: BN | undefined;
 
-    if (forkConfig !== undefined) {
-      const { forkClient, forkBlockNumber } = await makeForkClient(forkConfig);
+    if (config.type === "forked") {
+      const { forkClient, forkBlockNumber } = await makeForkClient(
+        config.forkConfig
+      );
       common = await makeForkCommon(forkClient, forkBlockNumber);
 
       stateManager = new ForkStateManager(forkClient, forkBlockNumber);
       await putGenesisAccounts(stateManager, genesisAccounts);
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
-      initialDate = undefined;
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
-      common = makeCommon(
-        initialDate,
-        chainId,
-        networkId,
-        networkName,
-        blockGasLimit,
-        stateTrie,
-        hardfork
-      );
+      common = makeCommon(config, stateTrie);
 
       stateManager = new StateManager({
         common,
@@ -130,9 +121,13 @@ export class BuidlerNode extends EventEmitter {
       });
 
       blockchain = new BuidlerBlockchain();
-      const genesisBlock = new Block(null, { common });
-      genesisBlock.setGenesisParams();
-      await blockchain.addBlock(genesisBlock);
+      await putGenesisBlock(blockchain, common);
+
+      if (config.initialDate !== undefined) {
+        initialBlockTimeOffset = new BN(
+          getDifferenceInSeconds(config.initialDate, new Date())
+        );
+      }
     }
 
     const vm = new VM({
@@ -147,12 +142,10 @@ export class BuidlerNode extends EventEmitter {
       vm,
       asPStateManager(stateManager),
       blockchain,
-      genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
-      solidityVersion,
-      initialDate,
-      compilerInput,
-      compilerOutput
+      initialBlockTimeOffset,
+      genesisAccounts,
+      tracingConfig
     );
 
     return [common, node];
@@ -161,7 +154,6 @@ export class BuidlerNode extends EventEmitter {
   private readonly _localAccounts: Map<string, Buffer> = new Map(); // address => private key
   private readonly _impersonatedAccounts: Set<string> = new Set(); // address
 
-  private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
 
   private _lastFilterId = new BN(0);
@@ -180,16 +172,14 @@ export class BuidlerNode extends EventEmitter {
     private readonly _vm: VM,
     private readonly _stateManager: PStateManager,
     private readonly _blockchain: PBlockchain,
-    localAccountPrivateKeys: Buffer[],
     private readonly _blockGasLimit: BN,
-    solidityVersion?: string,
-    initialDate?: Date,
-    compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput
+    private _blockTimeOffsetSeconds: BN = new BN(0),
+    genesisAccounts: GenesisAccount[],
+    tracingConfig?: TracingConfig
   ) {
     super();
 
-    this._initLocalAccounts(localAccountPrivateKeys);
+    this._initLocalAccounts(genesisAccounts);
 
     this._vmTracer = new VMTracer(
       this._vm,
@@ -198,31 +188,16 @@ export class BuidlerNode extends EventEmitter {
     );
     this._vmTracer.enableTracing();
 
-    if (initialDate !== undefined) {
-      this._blockTimeOffsetSeconds = new BN(
-        getDifferenceInSeconds(initialDate, new Date())
-      );
-    }
-
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
 
-    if (
-      solidityVersion === undefined ||
-      compilerInput === undefined ||
-      compilerOutput === undefined
-    ) {
+    if (tracingConfig === undefined) {
       return;
     }
 
     try {
-      const bytecodes = createModelsAndDecodeBytecodes(
-        solidityVersion,
-        compilerInput,
-        compilerOutput
-      );
-
+      const bytecodes = createModelsAndDecodeBytecodes(tracingConfig);
       for (const bytecode of bytecodes) {
         this._vmTraceDecoder.addBytecode(bytecode);
       }
@@ -847,17 +822,11 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async addCompilationResult(
-    compilerVersion: string,
-    compilerInput: CompilerInput,
-    compilerOutput: CompilerOutput
+    tracingConfig: TracingConfig
   ): Promise<boolean> {
     let bytecodes;
     try {
-      bytecodes = createModelsAndDecodeBytecodes(
-        compilerVersion,
-        compilerInput,
-        compilerOutput
-      );
+      bytecodes = createModelsAndDecodeBytecodes(tracingConfig);
     } catch (error) {
       console.warn(
         chalk.yellow(
@@ -904,7 +873,8 @@ export class BuidlerNode extends EventEmitter {
     return undefined;
   }
 
-  private _initLocalAccounts(privateKeys: Buffer[]) {
+  private _initLocalAccounts(genesisAccounts: GenesisAccount[]) {
+    const privateKeys = genesisAccounts.map((acc) => toBuffer(acc.privateKey));
     for (const pk of privateKeys) {
       this._localAccounts.set(bufferToHex(privateToAddress(pk)), pk);
     }

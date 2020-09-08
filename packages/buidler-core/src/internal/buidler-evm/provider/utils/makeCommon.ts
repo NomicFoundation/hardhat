@@ -2,17 +2,20 @@ import Common from "ethereumjs-common";
 import { bufferToHex } from "ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
+import { LocalNodeConfig } from "../node-types";
 
 import { getCurrentTimestamp } from "./getCurrentTimestamp";
 
 export function makeCommon(
-  initialDate: Date | undefined,
-  chainId: number,
-  networkId: number,
-  networkName: string,
-  blockGasLimit: number,
-  stateTrie: any,
-  hardfork: string
+  {
+    initialDate,
+    chainId,
+    networkId,
+    networkName,
+    blockGasLimit,
+    hardfork,
+  }: LocalNodeConfig,
+  stateTrie: any
 ) {
   const initialBlockTimestamp =
     initialDate !== undefined
