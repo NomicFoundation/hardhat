@@ -81,4 +81,16 @@ describe("Metadata decoder tests", () => {
       assert.equal(decodedPayload, `${major}.${minor}.${patch}`);
     });
   }
+
+  it("fails when given metadata of zero length", async () => {
+    const length = Buffer.from([0, 0]);
+    return decodeSolcMetadata(length).then(
+      () => {
+        assert.fail("should have thrown");
+      },
+      (error) => {
+        assert.instanceOf(error, Error);
+      }
+    );
+  });
 });

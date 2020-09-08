@@ -1,4 +1,5 @@
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { DecoderOptions } from "cbor";
 
 import { pluginName } from "../pluginContext";
 
@@ -42,9 +43,11 @@ export async function decodeSolcMetadata(bytecode: Buffer) {
   );
 
   const { decodeFirst } = await import("cbor");
-  // TODO: throw an error for decoding errors that are returned without being thrown
-  // E.g. cbor.decodeFirst(Buffer.from([])) === cbor.Decoder.NOT_FOUND
-  return decodeFirst(metadataPayload);
+  // The documentation for decodeFirst mentions the `required` option even though
+  // the type information is missing it.
+  // See http://hildjj.github.io/node-cbor/Decoder.html#.decodeFirst
+  const options: DecoderOptions = { required: true } as any;
+  return decodeFirst(metadataPayload, options);
 }
 
 export function readSolcMetadataLength(bytecode: Buffer) {
