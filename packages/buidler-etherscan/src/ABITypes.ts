@@ -1,5 +1,5 @@
 export interface ABIArgumentLengthError extends Error {
-  code: string;
+  code: "INVALID_ARGUMENT";
   count: {
     types: number;
     values: number;
@@ -30,7 +30,7 @@ export function isABIArgumentLengthError(
 }
 
 export interface ABIArgumentTypeError extends Error {
-  code: string;
+  code: "INVALID_ARGUMENT";
   argument: string;
   value: any;
   reason: string;
@@ -42,6 +42,26 @@ export function isABIArgumentTypeError(
   return (
     error.code === "INVALID_ARGUMENT" &&
     typeof error.argument === "string" &&
+    "value" in error &&
+    error instanceof Error
+  );
+}
+
+export interface ABIArgumentOverflowError extends Error {
+  code: "NUMERIC_FAULT";
+  fault: "overflow";
+  value: any;
+  reason: string;
+  operation: string;
+}
+
+export function isABIArgumentOverflowError(
+  error: any
+): error is ABIArgumentOverflowError {
+  return (
+    error.code === "NUMERIC_FAULT" &&
+    error.fault === "overflow" &&
+    typeof error.operation === "string" &&
     "value" in error &&
     error instanceof Error
   );

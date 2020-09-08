@@ -89,7 +89,8 @@ module.exports = [ arg1, arg2, ... ];`
     } catch (error) {
       throw new NomicLabsBuidlerPluginError(
         pluginName,
-        "Importing the module for the constructor arguments list failed.",
+        `Importing the module for the constructor arguments list failed.
+Reason: ${error.message}`,
         error
       );
     }
