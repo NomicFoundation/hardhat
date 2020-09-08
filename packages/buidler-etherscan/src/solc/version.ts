@@ -1,5 +1,4 @@
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import semver from "semver";
 
 import { pluginName } from "../pluginContext";
 
@@ -20,33 +19,6 @@ export interface CompilersList {
   latestRelease: string;
 }
 
-export class SolcVersionNumber {
-  constructor(
-    readonly major: number,
-    readonly minor: number,
-    readonly patch: number
-  ) {}
-
-  public async getLongVersion(): Promise<string> {
-    const shortVersion = `${this.major}.${this.minor}.${this.patch}`;
-    const versions = await getVersions();
-    const fullVersion = versions.releases[shortVersion];
-
-    if (fullVersion === undefined || fullVersion === "") {
-      throw new NomicLabsBuidlerPluginError(
-        pluginName,
-        "Given solc version doesn't exist"
-      );
-    }
-
-    return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
-  }
-
-  public toString(): string {
-    return `${this.major}.${this.minor}.${this.patch}`;
-  }
-}
-
 export enum InferralType {
   EXACT,
   METADATA_PRESENT_VERSION_ABSENT,
@@ -55,24 +27,13 @@ export enum InferralType {
 
 interface SolcVersionRange {
   inferralType: InferralType;
-  /**
-   * @returns true if the version is included in the range.
-   */
-  isIncluded(version: SolcVersionNumber): boolean;
-  toString(): string;
-}
-
-export function getVersionNumber(shortVersion: string): SolcVersionNumber {
-  const [major, minor, patch] = shortVersion
-    .split(".", 3)
-    .map((value) => parseInt(value, 10));
-  return new SolcVersionNumber(major, minor, patch);
+  range: string;
 }
 
 export async function inferSolcVersion(
   bytecode: Buffer
 ): Promise<SolcVersionRange> {
-  let solcVersionMetadata: SolcVersionNumber;
+  let solcVersionMetadata;
   try {
     solcVersionMetadata = await readSolcVersion(bytecode);
   } catch (error) {
@@ -88,57 +49,49 @@ export async function inferSolcVersion(
     // See https://solidity.readthedocs.io/en/v0.6.0/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
     if (error instanceof VersionNotFoundError) {
       // The embedded metadata was successfully decoded but there was no solc version in it.
-      const range = {
-        isIncluded(version: SolcVersionNumber): boolean {
-          return semver.satisfies(version.toString(), this.range);
-        },
+      return {
         range: "0.4.7 - 0.5.8",
         inferralType: InferralType.METADATA_PRESENT_VERSION_ABSENT,
-        toString() {
-          return this.range.toString();
-        },
       };
-      return range;
     }
     if (error instanceof MetadataAbsentError) {
       // The decoding failed. Unfortunately, our only option is to assume that this bytecode was emitted by an old version.
-      const range = {
-        isIncluded(version: SolcVersionNumber): boolean {
-          return semver.satisfies(version.toString(), this.range);
-        },
+      return {
         range: "<0.4.7",
         inferralType: InferralType.METADATA_ABSENT,
-        toString() {
-          return this.range.toString();
-        },
       };
-      return range;
     }
     // Should be unreachable.
     throw error;
   }
 
-  return {
-    isIncluded: (version: SolcVersionNumber): boolean => {
-      return (
-        version.major === solcVersionMetadata.major &&
-        version.minor === solcVersionMetadata.minor &&
-        version.patch === solcVersionMetadata.patch
-      );
-    },
+  const range = {
     inferralType: InferralType.EXACT,
-    toString: () => {
-      return `${solcVersionMetadata.major}.${solcVersionMetadata.minor}.${solcVersionMetadata.patch}`;
-    },
+    range: solcVersionMetadata,
   };
+  return range;
+}
+
+// TODO: this could be retrieved from the buidler config instead.
+export async function getLongVersion(shortVersion: string): Promise<string> {
+  const versions = await getVersions();
+  const fullVersion = versions.releases[shortVersion];
+
+  if (fullVersion === undefined || fullVersion === "") {
+    throw new NomicLabsBuidlerPluginError(
+      pluginName,
+      "Given solc version doesn't exist"
+    );
+  }
+
+  return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
 }
 
 export async function getVersions(): Promise<CompilersList> {
   try {
     const { default: fetch } = await import("node-fetch");
     // It would be better to query an etherscan API to get this list but there's no such API yet.
-    const compilersURL = new URL(COMPILERS_LIST_URL);
-    const response = await fetch(compilersURL);
+    const response = await fetch(COMPILERS_LIST_URL);
 
     if (!response.ok) {
       const responseText = await response.text();

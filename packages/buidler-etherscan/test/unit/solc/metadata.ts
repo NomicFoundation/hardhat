@@ -1,4 +1,3 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { encode } from "cbor";
 import { assert } from "chai";
 import { inspect } from "util";
@@ -78,9 +77,19 @@ describe("Metadata decoder tests", () => {
     )} ${typeof mockSolcMetadataMapping}`, async () => {
       const decodedPayload = await readSolcVersion(metadataBuffer);
       const [major, minor, patch] = mockSolcMetadataMapping.solc;
-      assert.equal(decodedPayload.major, major);
-      assert.equal(decodedPayload.minor, minor);
-      assert.equal(decodedPayload.patch, patch);
+      assert.equal(decodedPayload, `${major}.${minor}.${patch}`);
     });
   }
+
+  it("fails when given metadata of zero length", async () => {
+    const length = Buffer.from([0, 0]);
+    return decodeSolcMetadata(length).then(
+      () => {
+        assert.fail("should have thrown");
+      },
+      (error) => {
+        assert.instanceOf(error, Error);
+      }
+    );
+  });
 });

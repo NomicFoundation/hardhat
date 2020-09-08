@@ -1,8 +1,7 @@
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { DecoderOptions } from "cbor";
 
 import { pluginName } from "../pluginContext";
-
-import { SolcVersionNumber } from "./version";
 
 export const METADATA_LENGTH_SIZE = 2;
 
@@ -21,9 +20,7 @@ export class MetadataAbsentError extends NomicLabsBuidlerPluginError {
   }
 }
 
-export async function readSolcVersion(
-  bytecode: Buffer
-) /*: Promise<SolcVersionNumber>*/ {
+export async function readSolcVersion(bytecode: Buffer): Promise<string> {
   let solcMetadata;
   try {
     solcMetadata = (await decodeSolcMetadata(bytecode)).solc;
@@ -32,7 +29,7 @@ export async function readSolcVersion(
   }
   if (solcMetadata instanceof Buffer) {
     const [major, minor, patch] = solcMetadata;
-    return new SolcVersionNumber(major, minor, patch);
+    return `${major}.${minor}.${patch}`;
   }
   throw new VersionNotFoundError("Could not find solc version in metadata.");
 }
@@ -46,9 +43,11 @@ export async function decodeSolcMetadata(bytecode: Buffer) {
   );
 
   const { decodeFirst } = await import("cbor");
-  // TODO: throw an error for decoding errors that are returned without being thrown
-  // E.g. cbor.decodeFirst(Buffer.from([])) === cbor.Decoder.NOT_FOUND
-  return decodeFirst(metadataPayload);
+  // The documentation for decodeFirst mentions the `required` option even though
+  // the type information is missing it.
+  // See http://hildjj.github.io/node-cbor/Decoder.html#.decodeFirst
+  const options: DecoderOptions = { required: true } as any;
+  return decodeFirst(metadataPayload, options);
 }
 
 export function readSolcMetadataLength(bytecode: Buffer) {
