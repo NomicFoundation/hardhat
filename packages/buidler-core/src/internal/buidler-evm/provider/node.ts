@@ -191,7 +191,11 @@ export class BuidlerNode extends EventEmitter {
 
     this._initLocalAccounts(localAccountPrivateKeys);
 
-    this._vmTracer = new VMTracer(this._vm, true);
+    this._vmTracer = new VMTracer(
+      this._vm,
+      this._stateManager.getContractCode.bind(this._stateManager),
+      true
+    );
     this._vmTracer.enableTracing();
 
     if (initialDate !== undefined) {

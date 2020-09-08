@@ -4,7 +4,6 @@ import { InterpreterStep } from "@nomiclabs/ethereumjs-vm/dist/evm/interpreter";
 import Message from "@nomiclabs/ethereumjs-vm/dist/evm/message";
 import { precompiles } from "@nomiclabs/ethereumjs-vm/dist/evm/precompiles";
 import { BN } from "ethereumjs-util";
-import { promisify } from "util";
 
 import {
   CallMessageTrace,
@@ -24,20 +23,16 @@ const DUMMY_GAS_USED = new BN(0);
 export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
   private _enabled = false;
-  private readonly _getContractCode: (address: Buffer) => Promise<Buffer>;
   private _lastError: Error | undefined;
 
   constructor(
     private readonly _vm: VM,
+    private readonly _getContractCode: (address: Buffer) => Promise<Buffer>,
     private readonly _dontThrowErrors = false
   ) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
     this._stepHandler = this._stepHandler.bind(this);
     this._afterMessageHandler = this._afterMessageHandler.bind(this);
-
-    this._getContractCode = promisify(
-      this._vm.stateManager.getContractCode.bind(this._vm.stateManager)
-    );
   }
 
   public enableTracing() {
