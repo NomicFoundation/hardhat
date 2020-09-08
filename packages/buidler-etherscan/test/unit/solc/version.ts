@@ -2,12 +2,13 @@ import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 // tslint:disable: no-implicit-dependencies
 import nock from "nock";
+import semver from "semver";
 
 import { decodeSolcMetadata } from "../../../src/solc/metadata";
 import {
+  getLongVersion,
   InferralType,
   inferSolcVersion,
-  SolcVersionNumber,
 } from "../../../src/solc/version";
 
 describe("solc version retrieval tests", () => {
@@ -20,8 +21,7 @@ describe("solc version retrieval tests", () => {
         },
       });
 
-    const version = new SolcVersionNumber(0, 5, 1);
-    const fullVersion = await version.getLongVersion();
+    const fullVersion = await getLongVersion("0.5.1");
     assert.equal(fullVersion, "v0.5.1-commitsomething");
   });
 
@@ -30,10 +30,9 @@ describe("solc version retrieval tests", () => {
       .get("/ethereum/solc-bin/gh-pages/bin/list.json")
       .reply(404);
 
-    const version = new SolcVersionNumber(0, 5, 1);
-    return version
-      .getLongVersion()
-      .catch((e) => assert.isTrue(e instanceof BuidlerPluginError));
+    return getLongVersion("0.5.1").catch((e) =>
+      assert.isTrue(e instanceof BuidlerPluginError)
+    );
   });
 
   it("an exception is thrown if the specified version doesn't exist", async () => {
@@ -45,9 +44,7 @@ describe("solc version retrieval tests", () => {
         },
       });
 
-    const version = new SolcVersionNumber(0, 5, 1);
-    return version
-      .getLongVersion()
+    return getLongVersion("0.5.1")
       .then(() => {
         assert.fail();
       })
@@ -75,20 +72,20 @@ describe("solc version inferral tests", () => {
         "False positive in metadata detection"
       );
 
-      const veryOldVersion = new SolcVersionNumber(0, 4, 6);
+      const veryOldVersion = "0.4.6";
       assert.isTrue(
-        versionRange.isIncluded(veryOldVersion),
+        semver.satisfies(veryOldVersion, versionRange.range),
         `${veryOldVersion} should be included in ${versionRange}`
       );
-      const anotherVeryOldVersion = new SolcVersionNumber(0, 4, 0);
+      const anotherVeryOldVersion = "0.4.0";
       assert.isTrue(
-        versionRange.isIncluded(anotherVeryOldVersion),
+        semver.satisfies(anotherVeryOldVersion, versionRange.range),
         `${anotherVeryOldVersion} should be included in ${versionRange}`
       );
 
-      const oldVersion = new SolcVersionNumber(0, 4, 7);
+      const oldVersion = "0.4.7";
       assert.isFalse(
-        versionRange.isIncluded(oldVersion),
+        semver.satisfies(oldVersion, versionRange.range),
         `${oldVersion} shouldn't be included in ${versionRange}`
       );
     });
@@ -110,11 +107,7 @@ describe("solc version inferral tests", () => {
       };
       const bytecode = Buffer.from(contract.deployedBytecode.slice(2), "hex");
       const versionRange = await inferSolcVersion(bytecode);
-      const [major, minor, patch] = contract.solcVersion
-        .split(".")
-        .map((number) => parseInt(number, 10));
-      const version = new SolcVersionNumber(major, minor, patch);
-      assert.isTrue(versionRange.isIncluded(version));
+      assert.isTrue(semver.satisfies(contract.solcVersion, versionRange.range));
       assert.equal(
         versionRange.inferralType,
         InferralType.METADATA_PRESENT_VERSION_ABSENT
@@ -133,11 +126,7 @@ describe("solc version inferral tests", () => {
       };
       const bytecode = Buffer.from(contract.deployedBytecode.slice(2), "hex");
       const versionRange = await inferSolcVersion(bytecode);
-      const [major, minor, patch] = contract.solcVersion
-        .split(".")
-        .map((number) => parseInt(number, 10));
-      const version = new SolcVersionNumber(major, minor, patch);
-      assert.isTrue(versionRange.isIncluded(version));
+      assert.isTrue(semver.satisfies(contract.solcVersion, versionRange.range));
       assert.equal(
         versionRange.inferralType,
         InferralType.METADATA_PRESENT_VERSION_ABSENT
@@ -156,11 +145,7 @@ describe("solc version inferral tests", () => {
       };
       const bytecode = Buffer.from(contract.deployedBytecode.slice(2), "hex");
       const versionRange = await inferSolcVersion(bytecode);
-      const [major, minor, patch] = contract.solcVersion
-        .split(".")
-        .map((number) => parseInt(number, 10));
-      const version = new SolcVersionNumber(major, minor, patch);
-      assert.isTrue(versionRange.isIncluded(version));
+      assert.isTrue(semver.satisfies(contract.solcVersion, versionRange.range));
       assert.equal(
         versionRange.inferralType,
         InferralType.METADATA_PRESENT_VERSION_ABSENT
@@ -181,11 +166,7 @@ describe("solc version inferral tests", () => {
       };
       const bytecode = Buffer.from(contract.deployedBytecode.slice(2), "hex");
       const versionRange = await inferSolcVersion(bytecode);
-      const [major, minor, patch] = contract.solcVersion
-        .split(".")
-        .map((number) => parseInt(number, 10));
-      const version = new SolcVersionNumber(major, minor, patch);
-      assert.isTrue(versionRange.isIncluded(version));
+      assert.isTrue(semver.satisfies(contract.solcVersion, versionRange.range));
       assert.equal(versionRange.inferralType, InferralType.EXACT);
     });
 
@@ -207,11 +188,7 @@ describe("solc version inferral tests", () => {
         "Metadata has additional unexpected information"
       );
       const versionRange = await inferSolcVersion(bytecode);
-      const [major, minor, patch] = contract.solcVersion
-        .split(".")
-        .map((number) => parseInt(number, 10));
-      const version = new SolcVersionNumber(major, minor, patch);
-      assert.isTrue(versionRange.isIncluded(version));
+      assert.isTrue(semver.satisfies(contract.solcVersion, versionRange.range));
       assert.equal(versionRange.inferralType, InferralType.EXACT);
     });
 
@@ -228,15 +205,14 @@ describe("solc version inferral tests", () => {
       };
       const bytecode = Buffer.from(contract.deployedBytecode.slice(2), "hex");
       const versionRange = await inferSolcVersion(bytecode);
+      assert.isTrue(semver.satisfies(contract.solcVersion, versionRange.range));
+      assert.equal(versionRange.inferralType, InferralType.EXACT);
       const [major, minor, patch] = contract.solcVersion
         .split(".")
         .map((number) => parseInt(number, 10));
-      const version = new SolcVersionNumber(major, minor, patch);
-      assert.isTrue(versionRange.isIncluded(version));
-      assert.equal(versionRange.inferralType, InferralType.EXACT);
-      const oldVersion = new SolcVersionNumber(major, minor, patch + 1);
+      const newerVersion = `${major}.${minor}.${patch + 1}`;
       assert.isFalse(
-        versionRange.isIncluded(oldVersion),
+        semver.satisfies(newerVersion, versionRange.range),
         "Inference for this version range should allow only one version."
       );
     });

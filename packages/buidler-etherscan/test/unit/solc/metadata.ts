@@ -78,9 +78,7 @@ describe("Metadata decoder tests", () => {
     )} ${typeof mockSolcMetadataMapping}`, async () => {
       const decodedPayload = await readSolcVersion(metadataBuffer);
       const [major, minor, patch] = mockSolcMetadataMapping.solc;
-      assert.equal(decodedPayload.major, major);
-      assert.equal(decodedPayload.minor, minor);
-      assert.equal(decodedPayload.patch, patch);
+      assert.equal(decodedPayload, `${major}.${minor}.${patch}`);
     });
   }
 });
