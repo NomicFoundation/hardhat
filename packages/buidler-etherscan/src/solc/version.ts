@@ -1,5 +1,4 @@
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import semver from "semver";
 
 import { pluginName } from "../pluginContext";
 

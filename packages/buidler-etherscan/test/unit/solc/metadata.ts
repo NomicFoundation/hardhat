@@ -1,4 +1,3 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { encode } from "cbor";
 import { assert } from "chai";
 import { inspect } from "util";
