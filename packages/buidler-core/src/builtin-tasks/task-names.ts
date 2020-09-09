@@ -24,7 +24,13 @@ export const TASK_COMPILE_FILTER_COMPILATION_GROUPS =
   "compile:solidity:filter-compilation-groups";
 export const TASK_COMPILE_MERGE_COMPILATION_GROUPS =
   "compile:solidity:merge-compilation-groups";
+export const TASK_COMPILE_LOG_NOTHING_TO_COMPILE =
+  "compile:solidity:log:nothing-to-compile";
 export const TASK_COMPILE_COMPILE_GROUP = "compile:solidity:compile-group";
+export const TASK_COMPILE_LOG_COMPILE_GROUP_START =
+  "compile:solidity:log:compile-group-start";
+export const TASK_COMPILE_LOG_COMPILE_GROUP_END =
+  "compile:solidity:log:compile-group-end";
 export const TASK_COMPILE_COMPILE_GROUPS = "compile:solidity:compile-groups";
 export const TASK_COMPILE_GET_COMPILER_INPUT =
   "compile:solidity:get-compiler-input";
@@ -33,6 +39,8 @@ export const TASK_COMPILE_COMPILE = "compile:solidity:compile";
 export const TASK_COMPILE_COMPILE_SOLCJS = "compile:solidity:solcjs:compile";
 export const TASK_COMPILE_CHECK_CACHE = "compile:solidity:cache";
 export const TASK_COMPILE_CHECK_ERRORS = "compile:solidity:check-errors";
+export const TASK_COMPILE_LOG_COMPILATION_ERRORS =
+  "compile:solidity:log:compilation-errors";
 export const TASK_COMPILE_EMIT_ARTIFACTS = "compile:solidity:emit-artifacts";
 export const TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES =
   "compile:solidity:handle-compilation-groups-failures";

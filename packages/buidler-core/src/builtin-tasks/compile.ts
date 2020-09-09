@@ -52,6 +52,10 @@ import {
   TASK_COMPILE_GET_SOURCE_NAMES,
   TASK_COMPILE_GET_SOURCE_PATHS,
   TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES,
+  TASK_COMPILE_LOG_COMPILATION_ERRORS,
+  TASK_COMPILE_LOG_COMPILE_GROUP_END,
+  TASK_COMPILE_LOG_COMPILE_GROUP_START,
+  TASK_COMPILE_LOG_NOTHING_TO_COMPILE,
   TASK_COMPILE_MERGE_COMPILATION_GROUPS,
   TASK_COMPILE_SOLIDITY,
 } from "./task-names";
@@ -60,6 +64,12 @@ import {
   SolidityFilesCache,
   writeSolidityFilesCache,
 } from "./utils/solidity-files-cache";
+
+interface CompilationError {
+  error: any;
+  severity: "warning" | "error";
+  isConsole: boolean;
+}
 
 function isConsoleLogError(error: any): boolean {
   return (
@@ -191,6 +201,10 @@ export default function () {
     }
   );
 
+  internalTask(TASK_COMPILE_LOG_NOTHING_TO_COMPILE, async () => {
+    console.log("Nothing to compile");
+  });
+
   internalTask(
     TASK_COMPILE_COMPILE_GROUPS,
     async (
@@ -205,6 +219,11 @@ export default function () {
       },
       { run }
     ) => {
+      if (compilationGroups.length === 0) {
+        await run(TASK_COMPILE_LOG_NOTHING_TO_COMPILE);
+        return;
+      }
+
       for (const compilationGroup of compilationGroups) {
         await run(TASK_COMPILE_COMPILE_GROUP, {
           compilationGroup,
@@ -239,34 +258,27 @@ export default function () {
     }
   );
 
-  internalTask(TASK_COMPILE_COMPILE, async (_, { run }) => {
-    return run(TASK_COMPILE_COMPILE_SOLCJS);
+  internalTask(TASK_COMPILE_COMPILE, async (taskArgs: any, { run }) => {
+    return run(TASK_COMPILE_COMPILE_SOLCJS, taskArgs);
   });
 
   internalTask(
-    TASK_COMPILE_CHECK_ERRORS,
-    async ({ output }: { output: any }) => {
-      let hasErrors = false;
-      let hasConsoleLogErrors = false;
-      if (output.errors) {
-        for (const error of output.errors) {
-          hasErrors = hasErrors || error.severity === "error";
-          if (error.severity === "error") {
-            hasErrors = true;
-
-            if (isConsoleLogError(error)) {
-              hasConsoleLogErrors = true;
-            }
-
-            console.error(chalk.red(error.formattedMessage));
-          } else {
-            console.log("\n");
-            console.warn(chalk.yellow(error.formattedMessage));
-          }
+    TASK_COMPILE_LOG_COMPILATION_ERRORS,
+    async ({
+      compilationErrors,
+    }: {
+      compilationErrors: CompilationError[];
+    }) => {
+      for (const { error, severity } of compilationErrors) {
+        if (severity === "error") {
+          console.error(chalk.red(error.formattedMessage));
+        } else {
+          console.warn(chalk.yellow(error.formattedMessage));
         }
       }
 
-      if (hasConsoleLogErrors) {
+      const hasConsoleErrors = compilationErrors.some((x) => x.isConsole);
+      if (hasConsoleErrors) {
         console.error(
           chalk.red(
             `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
@@ -274,6 +286,44 @@ export default function () {
         );
         console.log();
       }
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_CHECK_ERRORS,
+    async ({ output }: { output: any }, { run }) => {
+      const compilationErrors: CompilationError[] = [];
+      if (output.errors) {
+        for (const error of output.errors) {
+          if (error.severity === "error") {
+            if (isConsoleLogError(error)) {
+              compilationErrors.push({
+                error,
+                severity: "error",
+                isConsole: true,
+              });
+            } else {
+              compilationErrors.push({
+                error,
+                severity: "error",
+                isConsole: false,
+              });
+            }
+          } else {
+            compilationErrors.push({
+              error,
+              severity: "warning",
+              isConsole: false,
+            });
+          }
+        }
+      }
+
+      await run(TASK_COMPILE_LOG_COMPILATION_ERRORS, {
+        compilationErrors,
+      });
+
+      const hasErrors = compilationErrors.some((x) => x.severity === "error");
 
       if (hasErrors || !output.contracts) {
         throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
@@ -350,6 +400,30 @@ export default function () {
   );
 
   internalTask(
+    TASK_COMPILE_LOG_COMPILE_GROUP_START,
+    async ({ compilationGroup }: { compilationGroup: CompilationGroup }) => {
+      console.log(`Compiling with ${compilationGroup.solidityConfig.version}`);
+    }
+  );
+
+  internalTask(
+    TASK_COMPILE_LOG_COMPILE_GROUP_END,
+    async ({
+      numberOfContracts,
+    }: {
+      compilationGroup: CompilationGroup;
+      numberOfContracts: number;
+    }) => {
+      console.log(
+        "Compiled",
+        numberOfContracts,
+        pluralize(numberOfContracts, "contract"),
+        "successfully"
+      );
+    }
+  );
+
+  internalTask(
     TASK_COMPILE_COMPILE_GROUP,
     async (
       {
@@ -363,7 +437,7 @@ export default function () {
       },
       { run }
     ) => {
-      console.log(`Compiling with ${compilationGroup.solidityConfig.version}`);
+      await run(TASK_COMPILE_LOG_COMPILE_GROUP_START, { compilationGroup });
 
       const input: SolcInput = await run(TASK_COMPILE_GET_COMPILER_INPUT, {
         compilationGroup,
@@ -388,12 +462,10 @@ export default function () {
         force,
       });
 
-      console.log(
-        "Compiled",
+      await run(TASK_COMPILE_LOG_COMPILE_GROUP_END, {
+        compilationGroup,
         numberOfContracts,
-        pluralize(numberOfContracts, "contract"),
-        "successfully"
-      );
+      });
     }
   );
 
@@ -476,7 +548,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
     }
   );
 
-  task(
+  internalTask(
     TASK_COMPILE_SOLIDITY,
     async ({ force: force }: { force: boolean }, { config, run }) => {
       const sourcePaths: string[] = await run(TASK_COMPILE_GET_SOURCE_PATHS);
@@ -535,7 +607,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
     }
   );
 
-  task(TASK_COMPILE_GET_COMPILATION_TASKS, async () => {
+  internalTask(TASK_COMPILE_GET_COMPILATION_TASKS, async () => {
     return [TASK_COMPILE_SOLIDITY];
   });
 
