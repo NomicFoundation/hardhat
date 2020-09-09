@@ -39,7 +39,7 @@ import {
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", () => {
-  FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider, jsonRpcUrl }) => {
+  FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     describe(`Using ${rpcProvider}`, () => {
       before(function () {
         if (process.env.CI === "true" && rpcProvider === "Alchemy") {
@@ -343,35 +343,6 @@ describe("Forked provider", () => {
             "unknown account",
             InvalidInputError.CODE
           );
-        });
-      });
-
-      describe("buidler_reset", () => {
-        it("can reset the forked provider to a given forkBlockNumber", async function () {
-          const initialBlockNumber = quantityToNumber(
-            await this.provider.send("eth_blockNumber")
-          );
-          await this.provider.send("buidler_reset", [
-            { jsonRpcUrl, blockNumber: initialBlockNumber - 5 },
-          ]);
-          const newBlockNumber = quantityToNumber(
-            await this.provider.send("eth_blockNumber")
-          );
-          assert.equal(newBlockNumber, initialBlockNumber - 5);
-        });
-
-        it("can reset the forked provider to the latest block number", async function () {
-          const initialBlockNumber = quantityToNumber(
-            await this.provider.send("eth_blockNumber")
-          );
-          await this.provider.send("buidler_reset", [
-            { jsonRpcUrl, blockNumber: initialBlockNumber - 5 },
-          ]);
-          await this.provider.send("buidler_reset", [{ jsonRpcUrl }]);
-          const newBlockNumber = quantityToNumber(
-            await this.provider.send("eth_blockNumber")
-          );
-          assert.isAtLeast(newBlockNumber, initialBlockNumber);
         });
       });
 

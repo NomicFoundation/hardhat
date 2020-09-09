@@ -334,7 +334,7 @@ export class BuidlerEVMProvider extends EventEmitter
     }
   }
 
-  private async _reset(forkConfig: ForkConfig) {
+  private async _reset(forkConfig?: ForkConfig) {
     this._forkConfig = forkConfig;
     this._node = undefined;
     await this._init();

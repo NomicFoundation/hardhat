@@ -20,7 +20,7 @@ import { BuidlerNode } from "../node";
 export class BuidlerModule {
   constructor(
     private readonly _node: BuidlerNode,
-    private readonly _resetCallback: (forkConfig: ForkConfig) => Promise<void>
+    private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>
   ) {}
 
   public async processRequest(
@@ -49,9 +49,6 @@ export class BuidlerModule {
           ...this._stopImpersonatingParams(params)
         );
       case "buidler_reset":
-        if (!this._node.isForked) {
-          throw new MethodNotSupportedError(method, true);
-        }
         return this._resetAction(...this._resetParams(params));
     }
 
@@ -115,11 +112,11 @@ export class BuidlerModule {
 
   // buidler_reset
 
-  private _resetParams(params: any[]): [ForkConfig] {
+  private _resetParams(params: any[]): [ForkConfig | undefined] {
     return validateParams(params, rpcForkConfig);
   }
 
-  private async _resetAction(forkConfig: ForkConfig): Promise<true> {
+  private async _resetAction(forkConfig?: ForkConfig): Promise<true> {
     await this._resetCallback(forkConfig);
     return true;
   }

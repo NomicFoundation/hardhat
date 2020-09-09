@@ -7,6 +7,7 @@ import {
   assertInvalidArgumentsError,
 } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS, INFURA_URL } from "../../helpers/constants";
+import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
@@ -106,11 +107,11 @@ describe("Buidler module", function () {
         });
       }
 
-      describe("buidler_reset", isFork ? buidlerResetFork : buidlerReset);
-
-      function buidlerResetFork() {
+      describe("buidler_reset", function () {
         it("validates input parameters", async function () {
-          await assertInvalidArgumentsError(this.provider, "buidler_reset", []);
+          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+            {},
+          ]);
           await assertInvalidArgumentsError(this.provider, "buidler_reset", [
             {
               jsonRpcUrl: 123,
@@ -131,26 +132,72 @@ describe("Buidler module", function () {
 
         it("returns true", async function () {
           const result = await this.provider.send("buidler_reset", [
-            {
-              jsonRpcUrl: INFURA_URL,
-              blockNumber: 123,
-            },
+            { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
           ]);
           assert.isTrue(result);
         });
-      }
 
-      function buidlerReset() {
-        it("is not supported", async function () {
-          await assertBuidlerEVMProviderError(
-            this.provider,
-            "buidler_reset",
-            [],
-            `Method buidler_reset is only supported in forked provider`,
-            MethodNotSupportedError.CODE
+        if (isFork) {
+          testForkedProviderBehaviour();
+        } else {
+          testNormalProviderBehaviour();
+        }
+
+        const getLatestBlockNumber = async () => {
+          return quantityToNumber(
+            await this.ctx.provider.send("eth_blockNumber")
           );
-        });
-      }
+        };
+
+        function testForkedProviderBehaviour() {
+          it("can reset the forked provider to a given forkBlockNumber", async function () {
+            await this.provider.send("buidler_reset", [
+              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+            ]);
+            assert.equal(await getLatestBlockNumber(), 123);
+          });
+
+          it("can reset the forked provider to the latest block number", async function () {
+            const initialBlock = await getLatestBlockNumber();
+            await this.provider.send("buidler_reset", [
+              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+            ]);
+            await this.provider.send("buidler_reset", [
+              { jsonRpcUrl: INFURA_URL },
+            ]);
+            assert.isAtLeast(await getLatestBlockNumber(), initialBlock);
+          });
+
+          it("can reset the forked provider to a normal provider", async function () {
+            await this.provider.send("buidler_reset", []);
+            assert.equal(await getLatestBlockNumber(), 0);
+          });
+        }
+
+        function testNormalProviderBehaviour() {
+          it("can reset the provider to initial state", async function () {
+            await this.provider.send("evm_mine");
+            assert.equal(await getLatestBlockNumber(), 1);
+            await this.provider.send("buidler_reset", []);
+            assert.equal(await getLatestBlockNumber(), 0);
+          });
+
+          it("can reset the provider with a fork config", async function () {
+            await this.provider.send("buidler_reset", [
+              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+            ]);
+            assert.equal(await getLatestBlockNumber(), 123);
+          });
+
+          it("can reset the provider with fork config back to normal config", async function () {
+            await this.provider.send("buidler_reset", [
+              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+            ]);
+            await this.provider.send("buidler_reset", []);
+            assert.equal(await getLatestBlockNumber(), 0);
+          });
+        }
+      });
     });
   });
 });

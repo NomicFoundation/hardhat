@@ -198,12 +198,14 @@ export const rpcCompilerOutput = t.type(
 
 export type RpcCompilerOutput = t.TypeOf<typeof rpcCompilerOutput>;
 
-export const rpcForkConfig = t.type(
-  {
-    jsonRpcUrl: t.string, // TODO consider adding url-regex dependency and checking for actual URL here
-    blockNumber: optional(t.number),
-  },
-  "RpcForkConfig"
+export const rpcForkConfig = optional(
+  t.type(
+    {
+      jsonRpcUrl: t.string,
+      blockNumber: optional(t.number),
+    },
+    "RpcForkConfig"
+  )
 );
 
 export type RpcForkConfig = t.TypeOf<typeof rpcForkConfig>;
