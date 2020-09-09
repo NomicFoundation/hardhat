@@ -191,41 +191,46 @@ export class Analytics {
 }
 
 async function getClientId() {
-  // TODO: Check Windows support for this approach
-  const globalBuidlerConfigFile = path.join(
-    os.homedir(),
-    ".buidler",
-    "config.json"
-  );
-
-  await fs.ensureFile(globalBuidlerConfigFile);
+  const { getDataDir } = await import("../util/global-dir");
+  const globalDataDir = await getDataDir();
+  const idFile = path.join(globalDataDir, "analytics.json");
 
   let clientId;
 
-  log(`Looking up Client Id at ${globalBuidlerConfigFile}`);
   try {
-    const data = JSON.parse(await fs.readFile(globalBuidlerConfigFile, "utf8"));
-
-    clientId = data.analytics.clientId;
-
-    log(`Client Id found: ${clientId}`);
+    clientId = await readId(idFile);
   } catch (e) {
-    log("Client Id not found, generating a new one");
-    clientId = uuid();
+    // We need to migrate the old ID if it exists
+    const oldIdFile = path.join(os.homedir(), ".buidler", "config.json");
+    try {
+      clientId = await readId(oldIdFile);
+    } catch (e) {
+      log("Client Id not found, generating a new one");
+      clientId = uuid();
+    }
 
-    await fs.writeFile(
-      globalBuidlerConfigFile,
-      JSON.stringify({
+    await fs.writeJSON(
+      idFile,
+      {
         analytics: {
           clientId,
         },
-      }),
-      "utf-8"
+      },
+      { encoding: "utf-8" }
     );
-
-    log(`Successfully generated clientId ${clientId}`);
+    log(`Stored clientId ${clientId}`);
   }
 
+  return clientId;
+}
+
+async function readId(idFile: string): Promise<string> {
+  log(`Looking up Client Id at ${idFile}`);
+  const data = await fs.readJSON(idFile, { encoding: "utf8" });
+
+  const clientId = data.analytics.clientId;
+
+  log(`Client Id found: ${clientId}`);
   return clientId;
 }
 
