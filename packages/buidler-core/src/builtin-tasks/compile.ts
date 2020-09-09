@@ -40,6 +40,7 @@ import {
   TASK_COMPILE_COMPILE,
   TASK_COMPILE_COMPILE_GROUP,
   TASK_COMPILE_COMPILE_GROUPS,
+  TASK_COMPILE_COMPILE_SOLCJS,
   TASK_COMPILE_EMIT_ARTIFACTS,
   TASK_COMPILE_FILTER_COMPILATION_GROUPS,
   TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE,
@@ -222,7 +223,7 @@ export default function () {
   );
 
   internalTask(
-    TASK_COMPILE_COMPILE,
+    TASK_COMPILE_COMPILE_SOLCJS,
     async (
       { input, solcVersion }: { input: SolcInput; solcVersion: string },
       { config }
@@ -237,6 +238,10 @@ export default function () {
       return output;
     }
   );
+
+  internalTask(TASK_COMPILE_COMPILE, async (_, { run }) => {
+    return run(TASK_COMPILE_COMPILE_SOLCJS);
+  });
 
   internalTask(
     TASK_COMPILE_CHECK_ERRORS,

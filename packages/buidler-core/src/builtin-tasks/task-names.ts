@@ -30,6 +30,7 @@ export const TASK_COMPILE_GET_COMPILER_INPUT =
   "compile:solidity:get-compiler-input";
 export const TASK_COMPILE_RUN_COMPILER = "compile:solidity:run-compiler";
 export const TASK_COMPILE_COMPILE = "compile:solidity:compile";
+export const TASK_COMPILE_COMPILE_SOLCJS = "compile:solidity:solcjs:compile";
 export const TASK_COMPILE_CHECK_CACHE = "compile:solidity:cache";
 export const TASK_COMPILE_CHECK_ERRORS = "compile:solidity:check-errors";
 export const TASK_COMPILE_EMIT_ARTIFACTS = "compile:solidity:emit-artifacts";
