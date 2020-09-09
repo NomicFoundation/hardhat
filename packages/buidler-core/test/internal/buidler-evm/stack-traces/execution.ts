@@ -86,7 +86,12 @@ export async function traceTransaction(
   try {
     await vm.runTx({ tx });
 
-    return vmTracer.getLastTopLevelMessageTrace();
+    const messageTrace = vmTracer.getLastTopLevelMessageTrace();
+    if (messageTrace === undefined) {
+      const lastError = vmTracer.getLastError();
+      throw lastError ?? new Error("Cannot get last top level message trace");
+    }
+    return messageTrace;
   } finally {
     vmTracer.disableTracing();
   }

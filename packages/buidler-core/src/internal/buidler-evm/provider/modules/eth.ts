@@ -316,7 +316,9 @@ export class EthModule {
       consoleLogMessages,
     } = await this._node.runCall(callParams, blockNumber);
 
-    await this._logCallTrace(callParams, trace);
+    if (trace !== undefined) {
+      await this._logCallTrace(callParams, trace);
+    }
 
     this._logConsoleLogMessages(consoleLogMessages);
 
@@ -388,7 +390,9 @@ export class EthModule {
     } = await this._node.estimateGas(txParams, blockNumber);
 
     if (error !== undefined) {
-      await this._logEstimateGasTrace(txParams, trace);
+      if (trace !== undefined) {
+        await this._logEstimateGasTrace(txParams, trace);
+      }
 
       this._logConsoleLogMessages(consoleLogMessages);
 
@@ -1291,7 +1295,9 @@ export class EthModule {
       error,
     } = await this._node.runTransactionInNewBlock(tx);
 
-    await this._logTransactionTrace(tx, trace, block, blockResult);
+    if (trace !== undefined) {
+      await this._logTransactionTrace(tx, trace, block, blockResult);
+    }
 
     await this._runBuidlerEVMMessageTraceHooks(trace, false);
 

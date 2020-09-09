@@ -53,15 +53,9 @@ export class VMTracer {
     return this._enabled;
   }
 
-  public getLastTopLevelMessageTrace(): MessageTrace {
+  public getLastTopLevelMessageTrace(): MessageTrace | undefined {
     if (!this._enabled) {
       throw new Error("You can't get a vm trace if the VMTracer is disabled");
-    }
-
-    if (this._messageTraces.length === 0) {
-      throw new Error(
-        "You can't get a vm trace if no message was executed yet"
-      );
     }
 
     return this._messageTraces[0];

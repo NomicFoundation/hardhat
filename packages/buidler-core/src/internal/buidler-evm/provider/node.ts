@@ -249,7 +249,7 @@ export class BuidlerNode extends EventEmitter {
   public async runTransactionInNewBlock(
     tx: Transaction
   ): Promise<{
-    trace: MessageTrace;
+    trace: MessageTrace | undefined;
     block: Block;
     blockResult: RunBlockResult;
     error?: Error;
@@ -292,7 +292,9 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -380,7 +382,7 @@ export class BuidlerNode extends EventEmitter {
     blockNumber: BN | null
   ): Promise<{
     result: Buffer;
-    trace: MessageTrace;
+    trace: MessageTrace | undefined;
     error?: Error;
     consoleLogMessages: string[];
   }> {
@@ -397,7 +399,9 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -472,7 +476,7 @@ export class BuidlerNode extends EventEmitter {
     blockNumber: BN | null
   ): Promise<{
     estimation: BN;
-    trace: MessageTrace;
+    trace: MessageTrace | undefined;
     error?: Error;
     consoleLogMessages: string[];
   }> {
@@ -489,7 +493,9 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -881,10 +887,10 @@ export class BuidlerNode extends EventEmitter {
   }
 
   private async _getConsoleLogMessages(
-    vmTrace: MessageTrace,
+    vmTrace: MessageTrace | undefined,
     vmTracerError: Error | undefined
   ): Promise<string[]> {
-    if (vmTracerError !== undefined) {
+    if (vmTrace === undefined || vmTracerError !== undefined) {
       log(
         "Could not print console log. Please report this to help us improve Buidler.\n",
         vmTracerError
@@ -898,8 +904,8 @@ export class BuidlerNode extends EventEmitter {
 
   private async _manageErrors(
     vmResult: ExecResult,
-    vmTrace: MessageTrace,
-    vmTracerError?: Error
+    vmTrace: MessageTrace | undefined,
+    vmTracerError: Error | undefined
   ): Promise<SolidityError | TransactionExecutionError | undefined> {
     if (vmResult.exceptionError === undefined) {
       return undefined;
@@ -908,7 +914,7 @@ export class BuidlerNode extends EventEmitter {
     let stackTrace: SolidityStackTrace | undefined;
 
     try {
-      if (vmTracerError !== undefined) {
+      if (vmTrace === undefined || vmTracerError !== undefined) {
         throw vmTracerError;
       }
 
