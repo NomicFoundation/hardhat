@@ -17,6 +17,7 @@ export interface PBlockchain {
   deleteLaterBlocks(block: Block): void;
   getTotalDifficulty(blockHash: Buffer): Promise<BN>;
   getTransaction(transactionHash: Buffer): Promise<Transaction | undefined>;
+  getLocalTransaction(transactionHash: Buffer): Transaction | undefined;
   getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | undefined>;

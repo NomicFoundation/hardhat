@@ -1136,9 +1136,9 @@ export class BuidlerNode extends EventEmitter {
     });
   }
 
-  private async _transactionWasSuccessful(tx: Transaction): Promise<boolean> {
-    const block = await this.getBlockByTransactionHash(tx.hash());
-    return block !== undefined;
+  private _transactionWasSuccessful(tx: Transaction): boolean {
+    const localTransaction = this._blockchain.getLocalTransaction(tx.hash());
+    return localTransaction !== undefined;
   }
 
   private async _timestampClashesWithPreviousBlockOne(
@@ -1158,7 +1158,7 @@ export class BuidlerNode extends EventEmitter {
 
   private async _validateTransaction(tx: Transaction) {
     // Geth throws this error if a tx is sent twice
-    if (await this._transactionWasSuccessful(tx)) {
+    if (this._transactionWasSuccessful(tx)) {
       throw new InvalidInputError(
         `known transaction: ${bufferToHex(tx.hash(true)).toString()}`
       );

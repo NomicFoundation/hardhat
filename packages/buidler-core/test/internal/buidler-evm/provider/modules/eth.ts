@@ -2866,21 +2866,19 @@ describe("Eth module", function () {
         });
 
         it("Should fail if a successful tx is sent more than once", async function () {
+          const txParams = {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            nonce: numberToRpcQuantity(0),
+          };
+
           const hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              nonce: numberToRpcQuantity(0),
-            },
+            txParams,
           ]);
 
           await assertTransactionFailure(
             this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              nonce: numberToRpcQuantity(0),
-            },
+            txParams,
             `known transaction: ${bufferToHex(hash)}`
           );
         });

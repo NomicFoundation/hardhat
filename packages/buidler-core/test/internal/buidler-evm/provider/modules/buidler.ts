@@ -165,7 +165,10 @@ describe("Buidler module", function () {
             await this.provider.send("buidler_reset", [
               { jsonRpcUrl: INFURA_URL },
             ]);
-            assert.isAtLeast(await getLatestBlockNumber(), initialBlock);
+
+            // This condition is rather loose as Infura can sometimes return
+            // a smaller block number on subsequent eth_blockNumber call
+            assert.closeTo(await getLatestBlockNumber(), initialBlock, 2);
           });
 
           it("can reset the forked provider to a normal provider", async function () {

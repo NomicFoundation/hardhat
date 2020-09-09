@@ -272,13 +272,14 @@ describe("BuidlerBlockchain", () => {
     });
   });
 
-  describe("getTransaction", () => {
+  function hasGetTransactionBehaviour(
+    getTransaction:
+      | typeof blockchain.getTransaction
+      | typeof blockchain.getLocalTransaction
+  ) {
     it("returns undefined unknown transactions", async () => {
       const transaction = createTestTransaction();
-      assert.equal(
-        await blockchain.getTransaction(transaction.hash()),
-        undefined
-      );
+      assert.isUndefined(await getTransaction(transaction.hash()));
     });
 
     it("returns a known transaction", async () => {
@@ -289,7 +290,7 @@ describe("BuidlerBlockchain", () => {
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
 
-      const result = await blockchain.getTransaction(transaction.hash());
+      const result = await getTransaction(transaction.hash());
       assert.equal(result, transaction);
     });
 
@@ -302,11 +303,16 @@ describe("BuidlerBlockchain", () => {
       await blockchain.addBlock(block);
       blockchain.deleteBlock(block.hash());
 
-      assert.equal(
-        await blockchain.getTransaction(transaction.hash()),
-        undefined
-      );
+      assert.isUndefined(await getTransaction(transaction.hash()));
     });
+  }
+
+  describe("getTransaction", function () {
+    hasGetTransactionBehaviour((hash) => blockchain.getTransaction(hash));
+  });
+
+  describe("getLocalTransaction", function () {
+    hasGetTransactionBehaviour((hash) => blockchain.getLocalTransaction(hash));
   });
 
   describe("getBlockByTransactionHash", () => {

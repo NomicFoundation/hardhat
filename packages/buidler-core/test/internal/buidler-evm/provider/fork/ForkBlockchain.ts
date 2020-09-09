@@ -385,10 +385,12 @@ describe("ForkBlockchain", () => {
     });
   });
 
-  describe("getTransaction", () => {
+  function hasCommonGetTransactionBehaviour(
+    getTransaction: typeof fb.getTransaction | typeof fb.getLocalTransaction
+  ) {
     it("returns undefined for unknown transactions", async () => {
       const transaction = createTestTransaction();
-      assert.equal(await fb.getTransaction(transaction.hash()), undefined);
+      assert.isUndefined(await getTransaction(transaction.hash()));
     });
 
     it("returns a known transaction", async () => {
@@ -397,9 +399,23 @@ describe("ForkBlockchain", () => {
       block.transactions.push(transaction);
       await fb.addBlock(block);
 
-      const result = await fb.getTransaction(transaction.hash());
+      const result = await getTransaction(transaction.hash());
       assert.equal(result, transaction);
     });
+
+    it("forgets transactions after block is removed", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      const transaction = createTestTransaction();
+      block.transactions.push(transaction);
+      await fb.addBlock(block);
+      fb.deleteBlock(block.hash());
+
+      assert.isUndefined(await getTransaction(transaction.hash()));
+    });
+  }
+
+  describe("getTransaction", () => {
+    hasCommonGetTransactionBehaviour((hash) => fb.getTransaction(hash));
 
     it("returns a known remote transaction", async () => {
       const result = await fb.getTransaction(FIRST_TX_HASH_OF_10496585);
@@ -413,15 +429,14 @@ describe("ForkBlockchain", () => {
         undefined
       );
     });
+  });
 
-    it("forgets transactions after block is removed", async () => {
-      const block = createBlock(await fb.getLatestBlock());
-      const transaction = createTestTransaction();
-      block.transactions.push(transaction);
-      await fb.addBlock(block);
-      fb.deleteBlock(block.hash());
+  describe("getLocalTransaction", () => {
+    hasCommonGetTransactionBehaviour((hash) => fb.getLocalTransaction(hash));
 
-      assert.equal(await fb.getTransaction(transaction.hash()), undefined);
+    it("returns undefined for a remote transaction", async () => {
+      const result = fb.getLocalTransaction(FIRST_TX_HASH_OF_10496585);
+      assert.isUndefined(result);
     });
   });
 

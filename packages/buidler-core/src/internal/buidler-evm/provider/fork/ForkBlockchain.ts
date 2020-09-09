@@ -111,7 +111,7 @@ export class ForkBlockchain implements PBlockchain {
   public async getTransaction(
     transactionHash: Buffer
   ): Promise<Transaction | undefined> {
-    const tx = this._data.getTransaction(transactionHash);
+    const tx = this.getLocalTransaction(transactionHash);
     if (tx === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
         transactionHash
@@ -119,6 +119,10 @@ export class ForkBlockchain implements PBlockchain {
       return this._processRemoteTransaction(remote);
     }
     return tx;
+  }
+
+  public getLocalTransaction(transactionHash: Buffer): Transaction | undefined {
+    return this._data.getTransaction(transactionHash);
   }
 
   public async getBlockByTransactionHash(

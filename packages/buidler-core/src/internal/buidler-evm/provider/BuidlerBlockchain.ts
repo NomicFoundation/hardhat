@@ -74,6 +74,10 @@ export class BuidlerBlockchain implements PBlockchain {
   public async getTransaction(
     transactionHash: Buffer
   ): Promise<Transaction | undefined> {
+    return this.getLocalTransaction(transactionHash);
+  }
+
+  public getLocalTransaction(transactionHash: Buffer): Transaction | undefined {
     return this._data.getTransaction(transactionHash);
   }
 
