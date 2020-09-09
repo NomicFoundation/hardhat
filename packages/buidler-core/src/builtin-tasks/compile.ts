@@ -26,6 +26,7 @@ import {
 } from "../internal/solidity/compilationGroup";
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
+import { MatchingCompilerFailure } from "../internal/solidity/compilerMatch";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
@@ -80,17 +81,38 @@ function isConsoleLogError(error: any): boolean {
   );
 }
 
+// TODO-HH: this is lacking in debug logs
 export default function () {
-  // TODO-HH: this is lacking in debug logs
-  internalTask(TASK_COMPILE_GET_SOURCE_PATHS, async (_, { config }) => {
-    const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
+  /**
+   * Returns a list of absolute paths to all the solidity files in the project.
+   * This list doesn't include dependencies, for example solidity files inside
+   * node_modules.
+   *
+   * This is the right task to override to change how the solidity files of the
+   * project are obtained.
+   */
+  internalTask(
+    TASK_COMPILE_GET_SOURCE_PATHS,
+    async (_, { config }): Promise<string[]> => {
+      const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
 
-    return paths;
-  });
+      return paths;
+    }
+  );
 
+  /**
+   * Receives a list of absolute paths and returns a list of source names
+   * corresponding to each path. For example, receives
+   * ["/home/user/project/contracts/Foo.sol"] and returns
+   * ["contracts/Foo.sol"]. These source names will be used when the solc input
+   * is generated.
+   */
   internalTask(
     TASK_COMPILE_GET_SOURCE_NAMES,
-    async ({ sourcePaths }: { sourcePaths: string[] }, { config }) => {
+    async (
+      { sourcePaths }: { sourcePaths: string[] },
+      { config }
+    ): Promise<string[]> => {
       const sourceNames = await Promise.all(
         sourcePaths.map((p) => localPathToSourceName(config.paths.root, p))
       );
@@ -99,6 +121,11 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a list of source names and returns a dependency graph. This task
+   * is responsible for both resolving dependencies (like getting files from
+   * node_modules) and generating the graph.
+   */
   internalTask(
     TASK_COMPILE_GET_DEPENDENCY_GRAPH,
     async (
@@ -107,7 +134,7 @@ export default function () {
         solidityFilesCache,
       }: { sourceNames: string[]; solidityFilesCache: SolidityFilesCache },
       { config }
-    ) => {
+    ): Promise<DependencyGraph> => {
       const parser = new Parser(solidityFilesCache ?? {});
       const resolver = new Resolver(config.paths.root, parser);
 
@@ -123,6 +150,26 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a dependency graph and a file in it, and returns the compilation
+   * group for that file. The compilation group should have everything that is
+   * necessary to compile that file: a compiler config to be used and a list of
+   * files to use as input of the compilation.
+   *
+   * If the file cannot be compiled, a MatchingCompilerFailure should be
+   * returned instead.
+   *
+   * This is the right task to override to change the compiler configuration.
+   * For example, if you want to change the compiler settings when targetting
+   * rinkeby, you could do something like this:
+   *
+   *   const compilationGroup = await runSuper();
+   *   if (config.network.name === 'rinkeby') {
+   *     compilationGroup.solidityConfig.settings = newSettings;
+   *   }
+   *   return compilationGroup;
+   *
+   */
   internalTask(
     TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE,
     async (
@@ -131,7 +178,7 @@ export default function () {
         file,
       }: { dependencyGraph: DependencyGraph; file: ResolvedFile },
       { config }
-    ) => {
+    ): Promise<CompilationGroup | MatchingCompilerFailure> => {
       return getCompilationGroupFromFile(
         dependencyGraph,
         file,
@@ -140,12 +187,19 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a dependency graph and returns a tuple with two arrays. The first
+   * array is a list of CompilationGroupsSuccess, where each item has a list of
+   * compilation groups. The second array is a list of CompilationGroupsFailure,
+   * where each item has a list of files that couldn't be compiled, grouped by
+   * the reason for the failure.
+   */
   internalTask(
     TASK_COMPILE_GET_COMPILATION_GROUPS,
     async (
       { dependencyGraph }: { dependencyGraph: DependencyGraph },
       { run }
-    ) => {
+    ): Promise<[CompilationGroupsSuccess[], CompilationGroupsFailure[]]> => {
       const connectedComponents = dependencyGraph.getConnectedComponents();
 
       const compilationGroupsResults = await Promise.all(
@@ -165,6 +219,13 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a list of compilation groups and returns a new list where some of
+   * the compilation groups might've been removed.
+   *
+   * This task can be overriden to change the way the cache is used, or to use
+   * a different approach to filtering out compilation groups.
+   */
   internalTask(
     TASK_COMPILE_FILTER_COMPILATION_GROUPS,
     async ({
@@ -175,7 +236,7 @@ export default function () {
       compilationGroups: CompilationGroup[];
       force: boolean;
       solidityFilesCache: SolidityFilesCache;
-    }) => {
+    }): Promise<CompilationGroup[]> => {
       const modifiedCompilationGroups = force
         ? compilationGroups
         : compilationGroups.filter((group) =>
@@ -190,21 +251,31 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a list of compilation groups and returns a new list where some of
+   * the groups might've been merged.
+   */
   internalTask(
     TASK_COMPILE_MERGE_COMPILATION_GROUPS,
     async ({
       compilationGroups,
     }: {
       compilationGroups: CompilationGroup[];
-    }) => {
+    }): Promise<CompilationGroup[]> => {
       return mergeCompilationGroupsWithoutBug(compilationGroups);
     }
   );
 
+  /**
+   * Prints a message when there's nothing to compile.
+   */
   internalTask(TASK_COMPILE_LOG_NOTHING_TO_COMPILE, async () => {
     console.log("Nothing to compile");
   });
 
+  /**
+   * Receives a list of compilation groups and sends each one to be compiled.
+   */
   internalTask(
     TASK_COMPILE_COMPILE_GROUPS,
     async (
@@ -234,13 +305,30 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a compilation group and returns a SolcInput.
+   *
+   * It's not recommended to override this task to modify the solc
+   * configuration, override TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE
+   * instead.
+   */
   internalTask(
     TASK_COMPILE_GET_COMPILER_INPUT,
-    async ({ compilationGroup }: { compilationGroup: CompilationGroup }) => {
+    async ({
+      compilationGroup,
+    }: {
+      compilationGroup: CompilationGroup;
+    }): Promise<SolcInput> => {
       return getInputFromCompilationGroup(compilationGroup);
     }
   );
 
+  /**
+   * Receives a SolcInput and a solc version, compiles the input using solcjs,
+   * and returns the generated output.
+   *
+   * This task can be overriden to change how solcjs is obtained or used.
+   */
   internalTask(
     TASK_COMPILE_COMPILE_SOLCJS,
     async (
@@ -258,10 +346,19 @@ export default function () {
     }
   );
 
+  /**
+   * This task is just a proxy to the task that compiles solcjs.
+   *
+   * Override this to use a different task to compile a group.
+   */
   internalTask(TASK_COMPILE_COMPILE, async (taskArgs: any, { run }) => {
     return run(TASK_COMPILE_COMPILE_SOLCJS, taskArgs);
   });
 
+  /**
+   * Receives a list of compilation errors and prints them and any other
+   * information useful to the user.
+   */
   internalTask(
     TASK_COMPILE_LOG_COMPILATION_ERRORS,
     async ({
@@ -289,6 +386,13 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a solc output and checks if there are errors. Throws if there are
+   * errors.
+   *
+   * Override this task to avoid interrupting the compilation process if some
+   * group has compilation errors.
+   */
   internalTask(
     TASK_COMPILE_CHECK_ERRORS,
     async ({ output }: { output: any }, { run }) => {
@@ -331,6 +435,10 @@ export default function () {
     }
   );
 
+  /**
+   * Saves to disk the artifacts for a compilation group. These artifacts
+   * include the main artifacts, the dbg files, and the build info.
+   */
   internalTask(
     TASK_COMPILE_EMIT_ARTIFACTS,
     async (
@@ -348,7 +456,7 @@ export default function () {
         force: boolean;
       },
       { config }
-    ) => {
+    ): Promise<{ numberOfContracts: number }> => {
       const pathToBuildInfo = await saveBuildInfo(
         config.paths.artifacts,
         input,
@@ -399,6 +507,9 @@ export default function () {
     }
   );
 
+  /**
+   * Prints a message before starting the compilation of a group.
+   */
   internalTask(
     TASK_COMPILE_LOG_COMPILE_GROUP_START,
     async ({ compilationGroup }: { compilationGroup: CompilationGroup }) => {
@@ -406,6 +517,9 @@ export default function () {
     }
   );
 
+  /**
+   * Prints a message after compiling a group.
+   */
   internalTask(
     TASK_COMPILE_LOG_COMPILE_GROUP_END,
     async ({
@@ -423,6 +537,10 @@ export default function () {
     }
   );
 
+  /**
+   * This is an orchestrator task that uses other internal tasks to compile a
+   * compilation group.
+   */
   internalTask(
     TASK_COMPILE_COMPILE_GROUP,
     async (
@@ -469,6 +587,13 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a list of CompilationGroupsFailure and throws an error if it's not
+   * empty.
+   *
+   * This task could be overriden to avoid interrupting the compilation if
+   * there's some part of the project that can't be compiled.
+   */
   internalTask(
     TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES,
     async (
@@ -492,13 +617,17 @@ export default function () {
     }
   );
 
+  /**
+   * Receives a list of CompilationGroupsFailure and returns an error message
+   * that describes the failure.
+   */
   internalTask(
     TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
     async ({
       compilationGroupsFailures,
     }: {
       compilationGroupsFailures: CompilationGroupsFailure[];
-    }) => {
+    }): Promise<string> => {
       const nonCompilableOverriden = flatMap(
         compilationGroupsFailures,
         (x) => x.nonCompilableOverriden
@@ -548,6 +677,12 @@ ${other.map((x) => `* ${x}`).join("\n")}
     }
   );
 
+  /**
+   * Main task for compiling the solidity files in the project.
+   *
+   * The main responsibility of this task is to orchestrate and connect most of
+   * the internal tasks related to compiling solidity.
+   */
   internalTask(
     TASK_COMPILE_SOLIDITY,
     async ({ force: force }: { force: boolean }, { config, run }) => {
@@ -607,10 +742,24 @@ ${other.map((x) => `* ${x}`).join("\n")}
     }
   );
 
-  internalTask(TASK_COMPILE_GET_COMPILATION_TASKS, async () => {
-    return [TASK_COMPILE_SOLIDITY];
-  });
+  /**
+   * Returns a list of compilation tasks.
+   *
+   * This is the task to override to add support for other languages.
+   */
+  internalTask(
+    TASK_COMPILE_GET_COMPILATION_TASKS,
+    async (): Promise<string[]> => {
+      return [TASK_COMPILE_SOLIDITY];
+    }
+  );
 
+  /**
+   * Main compile task.
+   *
+   * This is a meta-task that just gets all the compilation tasks and runs them.
+   * Right now there's only a "compile solidity" task.
+   */
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
     .setAction(async (compilationArgs: any, { run }) => {

@@ -2,8 +2,6 @@ export const TASK_CHECK = "check";
 
 export const TASK_CLEAN = "clean";
 
-// fvtodo add meta-compile task
-// fvtodo check what can be deleted here
 export const TASK_COMPILE = "compile";
 export const TASK_COMPILE_GET_COMPILATION_TASKS =
   "compile:get-compilation-tasks";
