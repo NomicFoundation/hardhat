@@ -269,7 +269,7 @@ export function mergeCompilationGroupsWithBug(
 ): CompilationGroup[] {
   const merger = new CompilationGroupMerger(
     (solcConfig) =>
-      solcConfig.optimizer?.enabled === true &&
+      solcConfig?.settings?.optimizer?.enabled === true &&
       semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
   );
   for (const group of compilationGroups) {
@@ -289,7 +289,7 @@ export function mergeCompilationGroupsWithoutBug(
 ): CompilationGroup[] {
   const merger = new CompilationGroupMerger(
     (solcConfig) =>
-      solcConfig.optimizer?.enabled !== true ||
+      solcConfig?.settings?.optimizer?.enabled !== true ||
       !semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
   );
   for (const group of compilationGroups) {

@@ -41,7 +41,6 @@ function normalizeSolidityConfig(
       compilers: [
         {
           version: solidityConfig,
-          optimizer: { enabled: false, runs: 200 },
         },
       ],
     };

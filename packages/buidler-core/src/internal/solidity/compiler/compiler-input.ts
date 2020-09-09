@@ -53,7 +53,7 @@ export function getInputFromCompilationGroup(
     };
   }
 
-  const { optimizer, evmVersion } = compilationGroup.solidityConfig;
+  const { settings } = compilationGroup.solidityConfig;
 
   const input: SolcInput = {
     language: "Solidity",
@@ -62,7 +62,6 @@ export function getInputFromCompilationGroup(
       metadata: {
         useLiteralContent: true,
       },
-      optimizer,
       outputSelection: {
         "*": {
           "*": [
@@ -74,12 +73,9 @@ export function getInputFromCompilationGroup(
           "": ["id", "ast"],
         },
       },
+      ...settings,
     },
   };
-
-  if (evmVersion !== undefined) {
-    input.settings.evmVersion = evmVersion;
-  }
 
   return input;
 }
