@@ -85,6 +85,7 @@
     "deepmerge": "^2.1.0",
     "download": "^7.1.0",
     "enquirer": "^2.3.0",
+    "env-paths": "^2.2.0",
     "eth-sig-util": "^2.5.2",
     "ethereum-cryptography": "^0.1.2",
     "ethereumjs-abi": "^0.6.8",
