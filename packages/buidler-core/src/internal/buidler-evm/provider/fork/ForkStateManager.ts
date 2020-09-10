@@ -65,21 +65,32 @@ export class ForkStateManager implements PStateManager {
     const localBalance = localAccount?.get("balance");
     const localCode = localAccount?.get("code");
 
-    const nonce =
-      localNonce !== undefined
+    const getNonce = async () => {
+      return localNonce !== undefined
         ? toBuffer(localNonce)
-        : await this._jsonRpcClient.getTransactionCount(
+        : this._jsonRpcClient.getTransactionCount(
             address,
             this._forkBlockNumber
           );
-    const balance =
-      localBalance !== undefined
+    };
+
+    const getBalance = async () => {
+      return localBalance !== undefined
         ? toBuffer(localBalance)
-        : await this._jsonRpcClient.getBalance(address, this._forkBlockNumber);
-    const code =
-      localCode !== undefined
+        : this._jsonRpcClient.getBalance(address, this._forkBlockNumber);
+    };
+
+    const getCode = async () => {
+      return localCode !== undefined
         ? toBuffer(localCode)
-        : await this._jsonRpcClient.getCode(address, this._forkBlockNumber);
+        : this._jsonRpcClient.getCode(address, this._forkBlockNumber);
+    };
+
+    const [nonce, balance, code] = await Promise.all([
+      getNonce(),
+      getBalance(),
+      getCode(),
+    ]);
 
     const codeHash = keccak256(code);
     // We ignore stateRoot since we found that it is not used anywhere of interest to us
