@@ -1,3 +1,4 @@
+import debug from "debug";
 import { flatten, isEqual } from "lodash";
 import semver from "semver";
 
@@ -10,6 +11,8 @@ import {
 } from "./compilerMatch";
 import { DependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
+
+const log = debug("buidler:core:compilation-group");
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "*";
@@ -211,6 +214,9 @@ export async function getCompilationGroupsFromConnectedComponent(
     // if the file cannot be compiled, we add it to the list and continue in
     // case there are more non-compilable files
     if ("reason" in compilationGroupOrFailure) {
+      log(
+        `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationGroupOrFailure.reason}'`
+      );
       someFailure = true;
       failures[compilationGroupOrFailure.reason].push(file.globalName);
       continue;
@@ -251,10 +257,17 @@ export async function getCompilationGroupFromFile(
   if ("reason" in compilerConfig) {
     return compilerConfig;
   }
+  log(
+    `File '${file.absolutePath}' will be compiled with version '${compilerConfig.config.version}'`
+  );
+
   const compilationGroup = new CompilationGroup(compilerConfig.config);
 
   compilationGroup.addFileToCompile(file, true);
   for (const dependency of transitiveDependencies) {
+    log(
+      `File '${dependency.absolutePath}' added as dependency of '${file.absolutePath}'`
+    );
     compilationGroup.addFileToCompile(dependency, false);
   }
 

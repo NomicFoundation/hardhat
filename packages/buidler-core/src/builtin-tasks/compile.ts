@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import debug from "debug";
 import fsExtra from "fs-extra";
 // TODO-HH: import lodash and other libraries dynamically
 import { flatMap, flatten, partition } from "lodash";
@@ -81,7 +82,8 @@ function isConsoleLogError(error: any): boolean {
   );
 }
 
-// TODO-HH: this is lacking in debug logs
+const log = debug("buidler:core:tasks:compile");
+
 export default function () {
   /**
    * Returns a list of absolute paths to all the solidity files in the project.
@@ -202,6 +204,10 @@ export default function () {
     ): Promise<[CompilationGroupsSuccess[], CompilationGroupsFailure[]]> => {
       const connectedComponents = dependencyGraph.getConnectedComponents();
 
+      log(
+        `The dependency graph was dividied in '${connectedComponents.length}' connected components`
+      );
+
       const compilationGroupsResults = await Promise.all(
         connectedComponents.map((graph) =>
           getCompilationGroupsFromConnectedComponent(
@@ -247,6 +253,10 @@ export default function () {
         (group) => group.emitsArtifacts()
       );
 
+      const groupsFilteredOutCount =
+        modifiedCompilationGroups.length - emittingCompilationGroups.length;
+      log(`'${groupsFilteredOutCount}' groups were filtered out`);
+
       return emittingCompilationGroups;
     }
   );
@@ -291,6 +301,7 @@ export default function () {
       { run }
     ) => {
       if (compilationGroups.length === 0) {
+        log(`No compilation groups to compile`);
         await run(TASK_COMPILE_LOG_NOTHING_TO_COMPILE);
         return;
       }
@@ -430,6 +441,9 @@ export default function () {
       const hasErrors = compilationErrors.some((x) => x.severity === "error");
 
       if (hasErrors || !output.contracts) {
+        log(
+          `Compilation failure. hasErrors='${hasErrors}' output.contracts='${!!output.contracts}'`
+        );
         throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
       }
     }
@@ -466,6 +480,7 @@ export default function () {
       let numberOfContracts = 0;
 
       for (const file of compilationGroup.getResolvedFiles()) {
+        log(`Emitting artifacts for file '${file.globalName}'`);
         if (!force && !compilationGroup.emitsArtifacts(file)) {
           continue;
         }
@@ -474,6 +489,7 @@ export default function () {
         for (const [contractName, contractOutput] of Object.entries(
           output.contracts?.[file.globalName] ?? {}
         )) {
+          log(`Emitting artifact for contract '${contractName}'`);
           numberOfContracts += 1;
 
           const artifact = getArtifactFromContractOutput(
@@ -555,6 +571,7 @@ export default function () {
       },
       { run }
     ) => {
+      log(`Compiling group with version '${compilationGroup.getVersion()}'`);
       await run(TASK_COMPILE_LOG_COMPILE_GROUP_START, { compilationGroup });
 
       const input: SolcInput = await run(TASK_COMPILE_GET_COMPILER_INPUT, {
@@ -569,6 +586,7 @@ export default function () {
       await run(TASK_COMPILE_CHECK_ERRORS, { output });
 
       if (output === undefined) {
+        log(`No output for compilation group`);
         return;
       }
 
@@ -605,6 +623,9 @@ export default function () {
       { run }
     ) => {
       if (compilationGroupsFailures.length > 0) {
+        log(
+          `There are '${compilationGroupsFailures.length}' compilation groups failures, throwing`
+        );
         const errorMessage: string = await run(
           TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
           { compilationGroupsFailures }
@@ -795,6 +816,7 @@ async function removeObsoleteArtifacts(
     if (!validArtifacts.has(artifact)) {
       // TODO-HH: consider moving all unlinks to a helper library that checks
       // that removed files are inside the project
+      log(`Removing obsolete artifact '${artifact}'`);
       fsExtra.unlinkSync(artifact);
       const dbgFile = artifact.replace(/\.json$/, ".dbg");
       // we use remove instead of unlink in case the dbg file doesn't exist
@@ -819,6 +841,7 @@ async function removeObsoleteBuildInfos(artifactsPath: string) {
 
   for (const buildInfoFile of buildInfoFiles) {
     if (!validBuildInfos.has(buildInfoFile)) {
+      log(`Removing buildInfo '${buildInfoFile}'`);
       await fsExtra.unlink(buildInfoFile);
     }
   }
@@ -846,6 +869,9 @@ function invalidateCacheMissingArtifacts(
           getArtifactPathSync(artifactsPath, file.globalName, artifact)
         )
       ) {
+        log(
+          `Invalidate cache for '${file.absolutePath}' because artifact '${artifact}' doesn't exist`
+        );
         delete solidityFilesCache[file.absolutePath];
         break;
       }
