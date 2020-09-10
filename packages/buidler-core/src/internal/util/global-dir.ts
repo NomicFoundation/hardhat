@@ -1,54 +1,69 @@
-import fsExtra from "fs-extra";
+import debug from "debug";
+import fs from "fs-extra";
+import os from "os";
+import path from "path";
 
-interface DirEntry {
-  path: string;
-  live: boolean;
-}
-
-interface DirCache {
-  [name: string]: DirEntry;
-}
-
-let paths: DirCache;
+const log = debug("buidler:core:global-dir");
 
 async function generatePaths() {
   const { default: envPaths } = await import("env-paths");
-  const generatedPaths = envPaths("buidler");
-  paths = {
-    config: {
-      path: generatedPaths.config,
-      live: false,
-    },
-    data: {
-      path: generatedPaths.data,
-      live: false,
-    },
-    cache: {
-      path: generatedPaths.cache,
-      live: false,
-    },
-  };
-  return paths;
+  return envPaths("buidler");
 }
 
-async function getDir(name: string): Promise<string> {
-  const pathsCache = paths === undefined ? await generatePaths() : paths;
-  const dir = pathsCache[name];
-  if (!dir.live) {
-    await fsExtra.ensureDir(dir.path);
-    dir.live = true;
+async function getConfigDir(): Promise<string> {
+  const { config } = await generatePaths();
+  await fs.ensureDir(config);
+  return config;
+}
+
+async function getDataDir(): Promise<string> {
+  const { data } = await generatePaths();
+  await fs.ensureDir(data);
+  return data;
+}
+
+async function getCacheDir(): Promise<string> {
+  const { cache } = await generatePaths();
+  await fs.ensureDir(cache);
+  return cache;
+}
+
+export async function readAnalyticsId() {
+  const globalDataDir = await getDataDir();
+  const idFile = path.join(globalDataDir, "analytics.json");
+  return readId(idFile);
+}
+
+export function readLegacyAnalyticsId() {
+  const oldIdFile = path.join(os.homedir(), ".buidler", "config.json");
+  return readId(oldIdFile);
+}
+
+async function readId(idFile: string) {
+  log(`Looking up Client Id at ${idFile}`);
+  let clientId: string;
+  try {
+    const data = await fs.readJSON(idFile, { encoding: "utf8" });
+    clientId = data.analytics.clientId;
+  } catch (error) {
+    return null;
   }
-  return dir.path;
+
+  log(`Client Id found: ${clientId}`);
+  return clientId;
 }
 
-export function getConfigDir(): Promise<string> {
-  return getDir("config");
-}
-
-export function getDataDir(): Promise<string> {
-  return getDir("data");
-}
-
-export function getCacheDir(): Promise<string> {
-  return getDir("cache");
+export async function writeAnalyticsId(clientId: string) {
+  const globalDataDir = await getDataDir();
+  const idFile = path.join(globalDataDir, "analytics.json");
+  await fs.writeJSON(
+    idFile,
+    {
+      analytics: {
+        clientId,
+      },
+    },
+    { encoding: "utf-8" }
+  );
+  log(`Stored clientId ${clientId}`);
 }

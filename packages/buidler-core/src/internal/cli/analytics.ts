@@ -11,6 +11,11 @@ import uuid from "uuid/v4";
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
+import {
+  readAnalyticsId,
+  readLegacyAnalyticsId,
+  writeAnalyticsId,
+} from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("buidler:core:analytics");
@@ -191,46 +196,17 @@ export class Analytics {
 }
 
 async function getClientId() {
-  const { getDataDir } = await import("../util/global-dir");
-  const globalDataDir = await getDataDir();
-  const idFile = path.join(globalDataDir, "analytics.json");
+  let clientId = await readAnalyticsId();
 
-  let clientId;
-
-  try {
-    clientId = await readId(idFile);
-  } catch (e) {
-    // We need to migrate the old ID if it exists
-    const oldIdFile = path.join(os.homedir(), ".buidler", "config.json");
-    try {
-      clientId = await readId(oldIdFile);
-    } catch (e) {
+  if (clientId === null) {
+    clientId = await readLegacyAnalyticsId();
+    if (clientId === null) {
       log("Client Id not found, generating a new one");
       clientId = uuid();
     }
-
-    await fs.writeJSON(
-      idFile,
-      {
-        analytics: {
-          clientId,
-        },
-      },
-      { encoding: "utf-8" }
-    );
-    log(`Stored clientId ${clientId}`);
+    await writeAnalyticsId(clientId);
   }
 
-  return clientId;
-}
-
-async function readId(idFile: string): Promise<string> {
-  log(`Looking up Client Id at ${idFile}`);
-  const data = await fs.readJSON(idFile, { encoding: "utf8" });
-
-  const clientId = data.analytics.clientId;
-
-  log(`Client Id found: ${clientId}`);
   return clientId;
 }
 
