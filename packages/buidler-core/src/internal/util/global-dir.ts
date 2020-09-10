@@ -67,3 +67,10 @@ export async function writeAnalyticsId(clientId: string) {
   );
   log(`Stored clientId ${clientId}`);
 }
+
+export async function getCompilerDir() {
+  const cache = await getCacheDir();
+  const compilersCache = path.join(cache, "compilers");
+  await fs.ensureDir(compilersCache);
+  return compilersCache;
+}
