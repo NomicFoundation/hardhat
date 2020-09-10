@@ -1,5 +1,6 @@
 import fsExtra from "fs-extra";
 import path from "path";
+import resolve from "resolve";
 
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -198,38 +199,11 @@ export class Resolver {
   private async _resolveLocalSourceName(
     sourceName: string
   ): Promise<ResolvedFile> {
-    try {
-      await validateSourceNameExistenceAndCasing(this._projectRoot, sourceName);
-    } catch (error) {
-      if (
-        BuidlerError.isBuidlerErrorType(
-          error,
-          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
-        )
-      ) {
-        throw new BuidlerError(
-          ERRORS.RESOLVER.FILE_NOT_FOUND,
-          { file: sourceName },
-          error
-        );
-      }
-
-      if (
-        BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
-      ) {
-        throw new BuidlerError(
-          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
-          {
-            incorrect: sourceName,
-            correct: error.messageArguments.correct,
-          },
-          error
-        );
-      }
-
-      // tslint:disable-next-line only-buidler-error
-      throw error;
-    }
+    await this._validateSourceNameExistenceAndCasing(
+      this._projectRoot,
+      sourceName,
+      false
+    );
 
     const absolutePath = path.join(this._projectRoot, sourceName);
     return this._resolveFile(sourceName, absolutePath);
@@ -263,74 +237,29 @@ export class Resolver {
       }
     }
 
-    let filePath: string;
-    try {
-      filePath = this._resolveNodeModulesFileFromProjectRoot(sourceName);
-    } catch (error) {
-      throw new BuidlerError(
-        ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
-        { file: sourceName },
-        error
-      );
+    let nodeModulesPath = path.dirname(path.dirname(packageJsonPath));
+    if (this._isScopedPackage(sourceName)) {
+      nodeModulesPath = path.dirname(nodeModulesPath);
     }
+
+    await this._validateSourceNameExistenceAndCasing(
+      nodeModulesPath,
+      sourceName,
+      true
+    );
 
     const packageInfo: {
       name: string;
       version: string;
     } = await fsExtra.readJson(packageJsonPath);
-    const sourceNameWithoutLibraryName = sourceName.substring(
-      packageInfo.name.length + 1
-    );
-
-    // We can't get the correct casing of the package name from the file system,
-    // as linked packages don't necessarily match path and package name, so
-    // we validate the package name's casing using the package.json.
-    // We assume that this condition can only be true if the casing is wrong.
-    if (libraryName !== packageInfo.name) {
-      // We throw an error that is not always correct, as it assumes that the
-      // rest of the source name has the right casing. If this were wrong, a new
-      // error will lead the user to correct it.
-      throw new BuidlerError(ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING, {
-        incorrect: sourceName,
-        correct: `${packageInfo.name}/${sourceNameWithoutLibraryName}`,
-      });
-    }
-
-    const packagePath = path.dirname(packageJsonPath);
-
-    try {
-      // We validate the file casing starting from the package's root and using
-      // the source map without library name, so that this also works for linked
-      // packages, whose library name and package path don't need to match.
-      await validateSourceNameExistenceAndCasing(
-        packagePath,
-        sourceNameWithoutLibraryName
-      );
-    } catch (error) {
-      if (
-        BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
-      ) {
-        throw new BuidlerError(
-          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
-          {
-            incorrect: sourceName,
-            correct: `${libraryName}/${error.messageArguments.correct}`,
-          },
-          error
-        );
-      }
-
-      // We know that the file exists, so we don't handle that here.
-
-      // tslint:disable-next-line only-buidler-error
-      throw error;
-    }
+    const libraryVersion = packageInfo.version;
 
     return this._resolveFile(
       sourceName,
-      filePath,
+      // We resolve to the real path here, as we may be resolving a linked library
+      await fsExtra.realpath(path.join(nodeModulesPath, sourceName)),
       libraryName,
-      packageInfo.version
+      libraryVersion
     );
   }
 
@@ -407,8 +336,9 @@ export class Resolver {
   }
 
   private _resolveNodeModulesFileFromProjectRoot(fileName: string) {
-    return require.resolve(fileName, {
-      paths: [this._projectRoot],
+    return resolve.sync(fileName, {
+      basedir: this._projectRoot,
+      preserveSymlinks: true,
     });
   }
 
@@ -465,5 +395,46 @@ export class Resolver {
 
     const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
     return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
+  }
+
+  private async _validateSourceNameExistenceAndCasing(
+    fromDir: string,
+    sourceName: string,
+    isLibrary: boolean
+  ) {
+    try {
+      await validateSourceNameExistenceAndCasing(fromDir, sourceName);
+    } catch (error) {
+      if (
+        BuidlerError.isBuidlerErrorType(
+          error,
+          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
+        )
+      ) {
+        throw new BuidlerError(
+          isLibrary
+            ? ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
+            : ERRORS.RESOLVER.FILE_NOT_FOUND,
+          { file: sourceName },
+          error
+        );
+      }
+
+      if (
+        BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
+      ) {
+        throw new BuidlerError(
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
+          {
+            incorrect: sourceName,
+            correct: error.messageArguments.correct,
+          },
+          error
+        );
+      }
+
+      // tslint:disable-next-line only-buidler-error
+      throw error;
+    }
   }
 }
