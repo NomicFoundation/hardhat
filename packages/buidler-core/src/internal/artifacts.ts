@@ -1,5 +1,6 @@
 import { sha256 } from "ethereum-cryptography/sha256";
 import fsExtra from "fs-extra";
+import * as os from "os";
 import * as path from "path";
 
 import { Artifact, SolcInput } from "../types";
@@ -92,7 +93,7 @@ function getArtifactPathFromFiles(
 
     throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
       contractName: name,
-      candidates: candidates.join(path.sep),
+      candidates: candidates.join(os.EOL),
     });
   }
 
