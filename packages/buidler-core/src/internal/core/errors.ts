@@ -255,3 +255,9 @@ function _applyErrorMessageTemplate(
 
   return template;
 }
+
+export function assertBuidlerInvariant(invariant: boolean, message: string) {
+  if (!invariant) {
+    throw new BuidlerError(ERRORS.INTERNAL.ASSERTION_ERROR, { message });
+  }
+}

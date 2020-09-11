@@ -4,6 +4,8 @@ import semver from "semver";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 import { MultiSolcConfig, SolcConfig } from "../../types";
+import { assertBuidlerInvariant, BuidlerError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
 
 import {
   getMatchingCompilerConfig,
@@ -37,11 +39,10 @@ export class CompilationGroup {
   }
 
   public merge(group: CompilationGroup): CompilationGroup {
-    if (!isEqual(this.solidityConfig, group.solidityConfig)) {
-      // TODO-HH throw a BuidlerError
-      // tslint:disable only-buidler-error
-      throw new Error("should not happen");
-    }
+    assertBuidlerInvariant(
+      isEqual(this.solidityConfig, group.solidityConfig),
+      "Merging groups with different solidity configurations"
+    );
     const mergedGroups = new CompilationGroup(group.solidityConfig);
     for (const { file, emitsArtifacts } of this._filesToCompile.values()) {
       mergedGroups.addFileToCompile(file, emitsArtifacts);
@@ -87,9 +88,9 @@ export class CompilationGroup {
     const fileToCompile = this._filesToCompile.get(file.globalName);
 
     if (fileToCompile === undefined) {
-      // TODO-HH throw a BuidlerError
-      // tslint:disable only-buidler-error
-      throw new Error("Unknown file");
+      throw new BuidlerError(ERRORS.INTERNAL.ASSERTION_ERROR, {
+        message: `File '${file.globalName}' does not exist in this compilation group`,
+      });
     }
 
     return fileToCompile.emitsArtifacts;
@@ -157,6 +158,7 @@ class CompilationGroupMerger {
 
   public addCompilationGroup(compilationGroup: CompilationGroup) {
     const groups = this._compilationGroups.get(compilationGroup.solidityConfig);
+
     if (this._isMergeable(compilationGroup.solidityConfig)) {
       if (groups === undefined) {
         this._compilationGroups.set(compilationGroup.solidityConfig, [
@@ -168,9 +170,10 @@ class CompilationGroupMerger {
           mergedGroups,
         ]);
       } else {
-        // TODO-HH throw a BuidlerError
-        // tslint:disable only-buidler-error
-        throw new Error("should not happen");
+        assertBuidlerInvariant(
+          false,
+          "More than one mergeable group was added for the same configuration"
+        );
       }
     } else {
       if (groups === undefined) {
