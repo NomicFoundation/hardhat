@@ -431,6 +431,41 @@ describe("Resolver", function () {
       it("Should forbid local imports from libraries", async function () {
         // TODO: Should we implement this?
       });
+
+      it("Should resolve libraries that have been installed with a different name successfully", async function () {
+        await assertResolvedFileFromPath(
+          resolver.resolveImport(
+            localFrom,
+            "library-with-other-name-1.2.3/c.sol"
+          ),
+          "library-with-other-name-1.2.3/c.sol",
+          path.join(
+            projectPath,
+            "node_modules/library-with-other-name-1.2.3/c.sol"
+          ),
+          {
+            name: "library-with-other-name-1.2.3",
+            version: "1.2.3",
+          }
+        );
+      });
+
+      it("Should resolve linked libraries correctly", async function () {
+        if (process.platform === "win32") {
+          this.skip();
+          return;
+        }
+
+        await assertResolvedFileFromPath(
+          resolver.resolveImport(localFrom, "linked-library/c.sol"),
+          "linked-library/c.sol",
+          path.join(projectPath, "library/c.sol"),
+          {
+            name: "linked-library",
+            version: "1.2.4",
+          }
+        );
+      });
     });
 
     describe("Relative imports", function () {
