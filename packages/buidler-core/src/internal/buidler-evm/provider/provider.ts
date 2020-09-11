@@ -12,7 +12,6 @@ import util from "util";
 import {
   BoundExperimentalBuidlerEVMMessageTraceHook,
   EthereumProvider,
-  ExperimentalBuidlerEVMMessageTraceHook,
   ProjectPaths,
 } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";

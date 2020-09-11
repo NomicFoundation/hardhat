@@ -2,7 +2,6 @@ import {
   BoundExperimentalBuidlerEVMMessageTraceHook,
   BuidlerNetworkConfig,
   EthereumProvider,
-  ExperimentalBuidlerEVMMessageTraceHook,
   HDAccountsConfig,
   HttpNetworkConfig,
   IEthereumProvider,

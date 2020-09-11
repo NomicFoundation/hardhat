@@ -11,10 +11,7 @@ import {
 import * as t from "io-ts";
 import util from "util";
 
-import {
-  BoundExperimentalBuidlerEVMMessageTraceHook,
-  ExperimentalBuidlerEVMMessageTraceHook,
-} from "../../../../types";
+import { BoundExperimentalBuidlerEVMMessageTraceHook } from "../../../../types";
 import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
