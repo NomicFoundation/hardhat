@@ -10,6 +10,8 @@ import { BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
 
+const ARTIFACTS_VERSION = 1;
+
 /**
  * Retrieves an artifact for the given `contractName` from the compilation output.
  *
@@ -200,10 +202,9 @@ export async function saveArtifact(
     pathToBuildInfo
   );
   const dbgPath = artifactPath.replace(/json$/, "dbg");
-  // TODO-HH: add versioning to dbgs
   await fsExtra.writeJSON(
     dbgPath,
-    { buildInfo: relativePathToBuildInfo },
+    { version: ARTIFACTS_VERSION, buildInfo: relativePathToBuildInfo },
     {
       spaces: 2,
     }
@@ -223,8 +224,12 @@ export async function saveBuildInfo(
     Buffer.from(JSON.stringify({ input, solcVersion }))
   ).toString("hex");
   const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
-  // TODO-HH: add versioning to buildInfos
-  await fsExtra.writeJson(buildInfoPath, { input, output, solcVersion });
+  await fsExtra.writeJson(buildInfoPath, {
+    version: ARTIFACTS_VERSION,
+    input,
+    output,
+    solcVersion,
+  });
 
   return buildInfoPath;
 }
