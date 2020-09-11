@@ -487,7 +487,7 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
             },
-            numberToRpcQuantity(0),
+            numberToRpcQuantity(1),
           ]);
 
           const result2 = await this.provider.send("eth_estimateGas", [
@@ -498,7 +498,7 @@ describe("Eth module", function () {
             },
           ]);
 
-          assert.isTrue(new BN(toBuffer(result)).lt(new BN(toBuffer(result2))));
+          assert.isTrue(new BN(toBuffer(result)).gt(new BN(toBuffer(result2))));
         });
       });
 

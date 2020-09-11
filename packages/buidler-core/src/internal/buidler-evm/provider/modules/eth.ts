@@ -306,7 +306,7 @@ export class EthModule {
     rpcCall: RpcCallRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const stateRoot = await this._blockTagToStateRoot(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
     const {
@@ -317,7 +317,7 @@ export class EthModule {
     } = await this._node.runCall(
       callParams,
       this._shouldCallOnNewBlock(blockTag),
-      stateRoot
+      blockNumber
     );
 
     await this._logCallTrace(callParams, trace);
@@ -376,7 +376,7 @@ export class EthModule {
     transactionRequest: RpcTransactionRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const stateRoot = await this._blockTagToStateRoot(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
@@ -387,7 +387,7 @@ export class EthModule {
       error,
       trace,
       consoleLogMessages,
-    } = await this._node.estimateGas(txParams, stateRoot);
+    } = await this._node.estimateGas(txParams, blockNumber);
 
     if (error !== undefined) {
       await this._logEstimateGasTrace(txParams, trace);
@@ -420,10 +420,10 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const stateRoot = await this._blockTagToStateRoot(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountBalance(address, stateRoot)
+      await this._node.getAccountBalance(address, blockNumber)
     );
   }
 
@@ -529,9 +529,9 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const stateRoot = await this._blockTagToStateRoot(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
-    return bufferToRpcData(await this._node.getCode(address, stateRoot));
+    return bufferToRpcData(await this._node.getCode(address, blockNumber));
   }
 
   // eth_getCompilers
@@ -622,9 +622,9 @@ export class EthModule {
     slot: BN,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const stateRoot = await this._blockTagToStateRoot(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
-    const data = await this._node.getStorageAt(address, slot, stateRoot);
+    const data = await this._node.getStorageAt(address, slot, blockNumber);
 
     // data should always be 32 bytes, but we are imitating Ganache here.
     // Please read the comment in `getStorageAt`.
@@ -744,10 +744,10 @@ export class EthModule {
       );
     }
 
-    const stateRoot = await this._blockTagToStateRoot(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountNonce(address, stateRoot)
+      await this._node.getAccountNonce(address, blockNumber)
     );
   }
 
@@ -1045,9 +1045,9 @@ export class EthModule {
     };
   }
 
-  private async _blockTagToStateRoot(
+  private async _blockTagToBlockNumber(
     blockTag: OptionalBlockTag
-  ): Promise<Buffer> {
+  ): Promise<BN> {
     let block: Block;
 
     if (
@@ -1065,7 +1065,7 @@ export class EthModule {
       block = await this._node.getBlockByNumber(new BN(blockNumber));
     }
 
-    return block.header.stateRoot;
+    return new BN(block.header.number);
   }
 
   private _shouldCallOnNewBlock(blockTag: OptionalBlockTag): boolean {
