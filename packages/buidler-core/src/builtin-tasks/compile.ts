@@ -18,7 +18,7 @@ import { getInputFromDependencyGraph } from "../internal/solidity/compiler/compi
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
-import { getCompilerDir } from "../internal/util/global-dir";
+import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { ResolvedBuidlerConfig, SolcInput } from "../types";
 
@@ -115,7 +115,7 @@ export default function () {
       types.json
     )
     .setAction(async ({ input }: { input: SolcInput }, { config }) => {
-      const compilersCache = await getCompilerDir();
+      const compilersCache = await getCompilersDir();
       const compiler = new Compiler(config.solc.version, compilersCache);
 
       return compiler.compile(input);
