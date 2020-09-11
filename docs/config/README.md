@@ -9,14 +9,32 @@ The entirety of your Buidler setup (i.e. your config, plugins and custom tasks) 
 
 To set up your config, you have to export an object from `buidler.config.js`.
 
-This object can have the following entries: `defaultNetwork`, `networks`, `solc`, and `paths`. A complete configuration would look like this:
+This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solc`](#solc-configuration), and [`paths`](#path-configuration). For example:
 
 ```js
 module.exports = {
-  defaultNetwork: "networkName",
-  networks: {...},
-  solc: {...},
-  paths:{...}
+  defaultNetwork: "rinkeby",
+  networks: {
+    buidlerevm: {
+    },
+    rinkeby: {
+      url: "https://rinkeby.infura.io/v3/123abc123abc123abc123abc123abcde",
+      accounts: [privateKey1, privateKey2, ...]
+    }
+  },
+  solc: {
+    version: "0.5.15",
+    optimizer: {
+      enabled: true,
+      runs: 200
+    }
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  }
 }
 ```
 
@@ -31,7 +49,7 @@ You can customize which network is used by default when running Buidler by setti
 
 ### Buidler EVM network
 
-Buidler comes built-in with a especial network called `buidlerevm`. When using this network,
+Buidler comes built-in with a special network called `buidlerevm`. When using this network,
 an instance of [Buidler EVM](../buidler-evm) will be automatically created when your run a task, script or test your smart contracts
 
 Buidler EVM has first-class support of Solidity. It always knows which

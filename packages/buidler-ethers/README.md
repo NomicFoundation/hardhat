@@ -12,7 +12,7 @@ This plugin brings to Buidler the Ethereum library `ethers.js`, which allows you
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-ethers ethers@^4.0.23
+npm install --save-dev @nomiclabs/buidler-ethers 'ethers@^5.0.0'
 ```
 
 And add the following statement to your `buidler.config.js`:
@@ -44,7 +44,6 @@ These helpers are added to the `ethers` object:
 ```typescript
 function getContractFactory(name: string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
-function getContractFactory(abi: any[], bytecode: ethers.utils.Arrayish | string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
 function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 
@@ -52,18 +51,6 @@ function getSigners() => Promise<ethers.Signer[]>;
 ```
 
 The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` be default.
-
-#### Deprecated helpers
-
-These helpers are also added, but deprecated:
-
-```typescript
-// Use getContractFactory instead
-function getContract(name: string): Promise<ethers.ContractFactory>;
-
-// Use getSigners instead
-function signers(): Promise<ethers.Signer[]>;
-```
 
 ## Usage
 
@@ -79,7 +66,7 @@ task(
   "blockNumber",
   "Prints the current block number",
   async (_, { ethers }) => {
-    await ethers.provider.getBlockNumber().then(blockNumber => {
+    await ethers.provider.getBlockNumber().then((blockNumber) => {
       console.log("Current block number: " + blockNumber);
     });
   }

@@ -65,12 +65,16 @@ For this tutorial we are going to use the Ethers.js and Waffle plugins. They'll 
 npm install --save-dev @nomiclabs/buidler-ethers ethers @nomiclabs/buidler-waffle ethereum-waffle chai
 ```
 
-Add the highlighted line to your `buidler.config.js` so that it looks like this:
+Add the highlighted lines to your `buidler.config.js` so that it looks like this:
 
-```js {1}
+```js {1,4-6}
 usePlugin("@nomiclabs/buidler-waffle");
 
-module.exports = {};
+module.exports = {
+  solc: {
+    version: "0.6.8"
+  }
+};
 ```
 
 We're only invoking `buidler-waffle` here because it depends on `buidler-ethers` so adding both isn't necessary.

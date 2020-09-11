@@ -1,5 +1,5 @@
 import {
-  BuidlerPluginError,
+  NomicLabsBuidlerPluginError,
   readArtifactSync,
 } from "@nomiclabs/buidler/plugins";
 import path from "path";
@@ -63,7 +63,8 @@ export class TruffleEnvironmentArtifacts {
         library.address === undefined ||
         library.constructor.network_id === undefined
       ) {
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
+          "@nomiclabs/buidler-truffle5",
           `Error while linking library ${library._json.contractName} into contract ${destination.contractName}: library not deployed.`
         );
       }
@@ -146,13 +147,15 @@ export class TruffleEnvironmentArtifacts {
     for (const lib of libraries) {
       const libName = lib.constructor.contractName;
       if (libs.length === 0) {
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
+          "@nomiclabs/buidler-truffle5",
           `Tried to link contract ${destination.contractName} with library ${libName}, but it uses no libraries.`
         );
       }
 
       if (!libs.includes(libName)) {
-        throw new BuidlerPluginError(
+        throw new NomicLabsBuidlerPluginError(
+          "@nomiclabs/buidler-truffle5",
           `Tried to link contract ${
             destination.contractName
           } with library ${libName}, but it's not one of its libraries. ${

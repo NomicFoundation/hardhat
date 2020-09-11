@@ -1,0 +1,25 @@
+name: LATEST_DEPENDENCY_VERSIONS
+
+on:
+  schedule:
+    - cron:  '0 0/8 * * *'
+
+jobs:
+  test-without-package-locks:
+    name: Test without package-locks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+      - name: Install node-gyp-cache
+        run: |
+          npm install -g node-gyp-cache
+          npm config set node_gyp node-gyp-cache
+      - name: Delete package-locks
+        run: "rm package-lock.json packages/*/package-lock.json"
+      - name: Install
+        run: LERNA_NO_CI=true npm install
+      - name: Run tests
+        run: npm test

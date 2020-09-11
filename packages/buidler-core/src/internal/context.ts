@@ -53,6 +53,8 @@ export class BuidlerContext {
   // you are planning to use it.
   public readonly experimentalBuidlerEVMMessageTraceHooks: ExperimentalBuidlerEVMMessageTraceHook[] = [];
 
+  private _configPath?: string;
+
   public setBuidlerRuntimeEnvironment(env: BuidlerRuntimeEnvironment) {
     if (this.environment !== undefined) {
       throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
@@ -69,5 +71,17 @@ export class BuidlerContext {
 
   public setPluginAsLoaded(pluginName: string) {
     this.loadedPlugins.push(pluginName);
+  }
+
+  public setConfigPath(configPath: string) {
+    this._configPath = configPath;
+  }
+
+  public getConfigPath(): string {
+    if (this._configPath === undefined) {
+      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_CONFIG_PATH_NOT_SET);
+    }
+
+    return this._configPath;
   }
 }

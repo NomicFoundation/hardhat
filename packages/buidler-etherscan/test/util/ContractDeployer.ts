@@ -1,6 +1,5 @@
 // tslint:disable: no-implicit-dependencies
-import { ethers } from "ethers";
-import providers from "ethers/providers";
+import { ethers, providers } from "ethers";
 
 class ContractDeployer {
   private _provider: providers.BaseProvider;

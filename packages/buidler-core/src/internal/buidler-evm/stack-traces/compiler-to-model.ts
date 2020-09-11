@@ -211,6 +211,8 @@ function getPublicVariableSelectorFromDeclarationAstNode(
 ) {
   const paramTypes: string[] = [];
 
+  // VariableDeclaration nodes for function parameters or state variables will always
+  // have their typeName fields defined.
   let nextType = variableDeclaration.typeName;
   while (true) {
     if (nextType.nodeType === "Mapping") {
@@ -333,6 +335,14 @@ function decodeEvmBytecode(
 ): Bytecode {
   const libraryAddressPositions = getLibraryAddressPositions(compilerBytecode);
 
+  const immutableReferences =
+    compilerBytecode.immutableReferences !== undefined
+      ? Object.values(compilerBytecode.immutableReferences).reduce(
+          (previousValue, currentValue) => [...previousValue, ...currentValue],
+          []
+        )
+      : [];
+
   const normalizedCode = normalizeCompilerOutputBytecode(
     compilerBytecode.object,
     libraryAddressPositions
@@ -341,7 +351,8 @@ function decodeEvmBytecode(
   const instructions = decodeInstructions(
     normalizedCode,
     compilerBytecode.sourceMap,
-    fileIdToSourceFile
+    fileIdToSourceFile,
+    isDeployment
   );
 
   return new Bytecode(
@@ -350,6 +361,7 @@ function decodeEvmBytecode(
     normalizedCode,
     instructions,
     libraryAddressPositions,
+    immutableReferences,
     solcVersion
   );
 }
@@ -401,7 +413,7 @@ function astVisibilityToVisibility(
 }
 
 function functionDefinitionKindToFunctionType(
-  kind: string
+  kind: string | undefined
 ): ContractFunctionType {
   if (kind === "constructor") {
     return ContractFunctionType.CONSTRUCTOR;
@@ -411,11 +423,20 @@ function functionDefinitionKindToFunctionType(
     return ContractFunctionType.FALLBACK;
   }
 
+  if (kind === "receive") {
+    return ContractFunctionType.RECEIVE;
+  }
+
   return ContractFunctionType.FUNCTION;
 }
 
 function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
   const paramTypes: string[] = [];
+
+  // The function selector is available in solc versions >=0.6.0
+  if (functionDefinition.functionSelector !== undefined) {
+    return Buffer.from(functionDefinition.functionSelector, "hex");
+  }
 
   for (const param of functionDefinition.parameters.parameters) {
     if (isContractType(param)) {
@@ -431,12 +452,17 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
       continue;
     }
 
-    if (param.typeName.nodeType === "ArrayTypeName") {
-      paramTypes.push(`${toCanonicalAbiType(param.typeName.baseType.name)}[]`);
+    // The rest of the function parameters always have their typeName node defined
+    const typename = param.typeName;
+    if (
+      typename.nodeType === "ArrayTypeName" ||
+      typename.nodeType === "FunctionTypeName"
+    ) {
+      paramTypes.push(typename.typeDescriptions.typeString);
       continue;
     }
 
-    paramTypes.push(toCanonicalAbiType(param.typeName.name));
+    paramTypes.push(toCanonicalAbiType(typename.name));
   }
 
   return abi.methodID(functionDefinition.name, paramTypes);
@@ -444,14 +470,16 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
 
 function isContractType(param: any) {
   return (
-    param.typeName.nodeType === "UserDefinedTypeName" &&
+    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("contract ")
   );
 }
 
 function isEnumType(param: any) {
   return (
-    param.typeName.nodeType === "UserDefinedTypeName" &&
+    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("enum ")
   );
 }

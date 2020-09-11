@@ -1,0 +1,13 @@
+{
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "IgnoredC",
+      "stackTrace": [
+        {
+          "type": "UNRECOGNIZED_CREATE_ERROR"
+        }
+      ]
+    }
+  ]
+}

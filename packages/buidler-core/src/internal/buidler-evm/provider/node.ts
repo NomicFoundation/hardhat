@@ -25,7 +25,7 @@ import Trie from "merkle-patricia-tree/secure";
 import { promisify } from "util";
 
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
-import { getUserConfigPath } from "../../core/project-structure";
+import { Reporter } from "../../sentry/reporter";
 import {
   dateToTimestampSeconds,
   getDifferenceInSeconds,
@@ -40,7 +40,10 @@ import {
   encodeSolidityStackTrace,
   SolidityError,
 } from "../stack-traces/solidity-errors";
-import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
+import {
+  SolidityStackTrace,
+  StackTraceEntryType,
+} from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
@@ -255,8 +258,8 @@ export class BuidlerNode extends EventEmitter {
   private readonly _snapshots: Snapshot[] = [];
 
   private readonly _vmTracer: VMTracer;
-  private readonly _vmTraceDecoder?: VmTraceDecoder;
-  private readonly _solidityTracer?: SolidityTracer;
+  private readonly _vmTraceDecoder: VmTraceDecoder;
+  private readonly _solidityTracer: SolidityTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
@@ -275,7 +278,6 @@ export class BuidlerNode extends EventEmitter {
     compilerOutput?: CompilerOutput
   ) {
     super();
-    const config = getUserConfigPath();
     this._stateManager = new PStateManager(this._vm.stateManager);
     this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
     this._initLocalAccounts(localAccounts);
@@ -302,6 +304,10 @@ export class BuidlerNode extends EventEmitter {
       );
     }
 
+    const contractsIdentifier = new ContractsIdentifier();
+    this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+    this._solidityTracer = new SolidityTracer();
+
     if (
       solidityVersion === undefined ||
       compilerInput === undefined ||
@@ -317,14 +323,9 @@ export class BuidlerNode extends EventEmitter {
         compilerOutput
       );
 
-      const contractsIdentifier = new ContractsIdentifier();
-
       for (const bytecode of bytecodes) {
-        contractsIdentifier.addBytecode(bytecode);
+        this._vmTraceDecoder.addBytecode(bytecode);
       }
-
-      this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-      this._solidityTracer = new SolidityTracer();
     } catch (error) {
       console.warn(
         chalk.yellow(
@@ -336,6 +337,8 @@ export class BuidlerNode extends EventEmitter {
         "Buidler EVM tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Buidler.\n",
         error
       );
+
+      Reporter.reportError(error);
     }
   }
 
@@ -403,9 +406,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -508,9 +509,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -587,9 +586,7 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    if (this._vmTraceDecoder !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
+    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -982,6 +979,40 @@ export class BuidlerNode extends EventEmitter {
     return logs;
   }
 
+  public async addCompilationResult(
+    compilerVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
+  ): Promise<boolean> {
+    let bytecodes;
+    try {
+      bytecodes = createModelsAndDecodeBytecodes(
+        compilerVersion,
+        compilerInput,
+        compilerOutput
+      );
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "The Buidler EVM tracing engine could not be updated. Run Buidler with --verbose to learn more."
+        )
+      );
+
+      log(
+        "ContractsIdentifier failed to be updated. Please report this to help us improve Buidler.\n",
+        error
+      );
+
+      return false;
+    }
+
+    for (const bytecode of bytecodes) {
+      this._vmTraceDecoder.addBytecode(bytecode);
+    }
+
+    return true;
+  }
+
   private _getSnapshotIndex(id: number): number | undefined {
     for (const [i, snapshot] of this._snapshots.entries()) {
       if (snapshot.id === id) {
@@ -1030,25 +1061,30 @@ export class BuidlerNode extends EventEmitter {
 
     let stackTrace: SolidityStackTrace | undefined;
 
-    if (this._solidityTracer !== undefined) {
-      try {
-        if (vmTracerError !== undefined) {
-          throw vmTracerError;
-        }
-
-        stackTrace = this._solidityTracer.getStackTrace(vmTrace);
-      } catch (error) {
-        this._failedStackTraces += 1;
-        log(
-          "Could not generate stack trace. Please report this to help us improve Buidler.\n",
-          error
-        );
+    try {
+      if (vmTracerError !== undefined) {
+        throw vmTracerError;
       }
+
+      stackTrace = this._solidityTracer.getStackTrace(vmTrace);
+    } catch (error) {
+      this._failedStackTraces += 1;
+      log(
+        "Could not generate stack trace. Please report this to help us improve Buidler.\n",
+        error
+      );
     }
 
     const error = vmResult.exceptionError;
 
     if (error.error === ERROR.OUT_OF_GAS) {
+      if (this._isContractTooLargeStackTrace(stackTrace)) {
+        return encodeSolidityStackTrace(
+          "Transaction run out of gas",
+          stackTrace!
+        );
+      }
+
       return new TransactionExecutionError("Transaction run out of gas");
     }
 
@@ -1087,6 +1123,17 @@ export class BuidlerNode extends EventEmitter {
     }
 
     return new TransactionExecutionError("Transaction failed: revert");
+  }
+
+  private _isContractTooLargeStackTrace(
+    stackTrace: SolidityStackTrace | undefined
+  ) {
+    return (
+      stackTrace !== undefined &&
+      stackTrace.length > 0 &&
+      stackTrace[stackTrace.length - 1].type ===
+        StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR
+    );
   }
 
   private _calculateTimestampAndOffset(timestamp?: BN): [BN, boolean, BN] {

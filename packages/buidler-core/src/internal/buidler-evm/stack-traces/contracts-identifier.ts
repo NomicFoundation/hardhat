@@ -1,10 +1,9 @@
 import { bufferToHex } from "ethereumjs-util";
 
-import { getUserConfigPath } from "../../core/project-structure";
-
 import {
   normalizeLibraryRuntimeBytecodeIfNecessary,
   zeroOutAddresses,
+  zeroOutSlices,
 } from "./library-utils";
 import { EvmMessageTrace, isCreateTrace } from "./message-trace";
 import { Bytecode } from "./model";
@@ -92,9 +91,7 @@ export class ContractsIdentifier {
   private _trie = new BytecodeTrie(-1);
   private _cache: Map<string, Bytecode> = new Map();
 
-  constructor(private readonly _enableCache = true) {
-    const config = getUserConfigPath();
-  }
+  constructor(private readonly _enableCache = true) {}
 
   public addBytecode(bytecode: Bytecode) {
     this._trie.add(bytecode);
@@ -157,13 +154,21 @@ export class ContractsIdentifier {
 
     if (normalizeLibraries) {
       for (const bytecodeWithLibraries of searchResult.descendants) {
-        if (bytecodeWithLibraries.libraryAddressPositions.length === 0) {
+        if (
+          bytecodeWithLibraries.libraryAddressPositions.length === 0 &&
+          bytecodeWithLibraries.immutableReferences.length === 0
+        ) {
           continue;
         }
 
-        const normalizedCode = zeroOutAddresses(
+        const normalizedLibrariesCode = zeroOutAddresses(
           code,
           bytecodeWithLibraries.libraryAddressPositions
+        );
+
+        const normalizedCode = zeroOutSlices(
+          normalizedLibrariesCode,
+          bytecodeWithLibraries.immutableReferences
         );
 
         const normalizedResult = this._searchBytecode(

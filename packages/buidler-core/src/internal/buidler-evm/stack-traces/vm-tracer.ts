@@ -6,8 +6,6 @@ import { precompiles } from "@nomiclabs/ethereumjs-vm/dist/evm/precompiles";
 import { BN } from "ethereumjs-util";
 import { promisify } from "util";
 
-import { getUserConfigPath } from "../../core/project-structure";
-
 import {
   CallMessageTrace,
   CreateMessageTrace,
@@ -33,7 +31,6 @@ export class VMTracer {
     private readonly _vm: VM,
     private readonly _dontThrowErrors = false
   ) {
-    const config = getUserConfigPath();
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
     this._stepHandler = this._stepHandler.bind(this);
     this._afterMessageHandler = this._afterMessageHandler.bind(this);

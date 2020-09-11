@@ -7,7 +7,7 @@ When running your contracts and tests on **Buidler EVM** you can print logging m
 This is what it looks like:
 
 ```solidity{3}
-pragma solidity ^0.5.15;
+pragma solidity ^0.6.0;
 
 import "@nomiclabs/buidler/console.sol";
 

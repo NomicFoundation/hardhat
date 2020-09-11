@@ -11,7 +11,7 @@ import * as types from "./internal/core/params/argumentTypes";
 
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
-interface CommonNetworkConfig {
+export interface CommonNetworkConfig {
   chainId?: number;
   from?: string;
   gas?: "auto" | number;
@@ -19,7 +19,7 @@ interface CommonNetworkConfig {
   gasMultiplier?: number;
 }
 
-interface BuidlerNetworkAccount {
+export interface BuidlerNetworkAccount {
   privateKey: string;
   balance: string;
 }

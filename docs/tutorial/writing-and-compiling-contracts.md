@@ -9,23 +9,23 @@ We're going to create a simple smart contract that implements a token that can b
 - The token is non-divisible. You can transfer 1, 2, 3 or 37 tokens but not 2.5.
 
 ::: tip
-You might have heard about ERC20, which is a token standard in Ethereum. Tokens such as DAI, USDC, MKR and ZRX follow the ERC20 standard which allows them all to be compatible with any software that can deal with ERC20 tokens. **For simplicity's sake the token we're going to build is *not* an ERC20.**
+You might have heard about ERC20, which is a token standard in Ethereum. Tokens such as DAI, USDC, MKR and ZRX follow the ERC20 standard which allows them all to be compatible with any software that can deal with ERC20 tokens. **For simplicity's sake the token we're going to build is _not_ an ERC20.**
 :::
 
 ## Writing smart contracts
 
-Start by creating a new directory called `contracts` and create a file inside the directory called `Token.sol`. 
+Start by creating a new directory called `contracts` and create a file inside the directory called `Token.sol`.
 
 Paste the code below into the file and take a minute to read the code. It's simple and it's full of comments explaining the basics of Solidity.
 
 ::: tip
 To get syntax highlighting you should add Solidity support to your text editor. Just look for Solidity or Ethereum plugins. We recommend using Visual Studio Code or Sublime Text 3.
-::: 
+:::
 
 ```solidity
 // Solidity files have to start with this pragma.
 // It will be used by the Solidity compiler to validate its version.
-pragma solidity ^0.5.15;
+pragma solidity ^0.6.0;
 
 
 // This is the main building block for smart contracts.
@@ -89,8 +89,8 @@ contract Token {
 `*.sol` is used for Solidity files. We recommend matching the file name to the contract it contains, which is a common practice.
 :::
 
-
 ## Compiling contracts
+
 To compile the contract run `npx buidler compile` in your terminal. The `compile` task is one of the built-in tasks.
 
 ```
@@ -99,8 +99,4 @@ Compiling...
 Compiled 1 contract successfully
 ```
 
-The contract has been successfully compiled and it's ready to be used. 
-
-::: warning
-While Solidity 0.6.x has been recently released, our recommendation is to stick with 0.5.15 for this tutorial as defined in the `pragma` directive in the contract code. Some tools and libraries haven't been fully migrated yet.
-:::
+The contract has been successfully compiled and it's ready to be used.

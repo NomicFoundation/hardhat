@@ -9,7 +9,7 @@ export default function () {
     TASK_CLEAN,
     "Clears the cache and deletes all artifacts",
     async (_, { config }) => {
-      await fsExtra.remove(config.paths.cache);
+      await fsExtra.emptyDir(config.paths.cache);
       await fsExtra.remove(config.paths.artifacts);
     }
   );

@@ -11,6 +11,7 @@ import { task, types } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
+import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
 import {
   BuidlerNetworkConfig,
@@ -19,6 +20,7 @@ import {
 } from "../types";
 
 import { TASK_NODE } from "./task-names";
+import { watchCompilerOutput } from "./utils/watch";
 
 const log = debug("buidler:core:tasks:node");
 
@@ -110,6 +112,27 @@ export default function () {
           );
 
           console.log();
+
+          try {
+            await watchCompilerOutput(
+              server.getProvider(),
+              config.solc,
+              config.paths
+            );
+          } catch (error) {
+            console.warn(
+              chalk.yellow(
+                "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Buidler EVM. Run Buidler with --verbose to learn more."
+              )
+            );
+
+            log(
+              "Compilation output can't be watched. Please report this to help us improve Buidler.\n",
+              error
+            );
+
+            Reporter.reportError(error);
+          }
 
           const networkConfig = config.networks[
             BUIDLEREVM_NETWORK_NAME

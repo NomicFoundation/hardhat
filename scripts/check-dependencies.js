@@ -3,7 +3,7 @@ const path = require("path");
 
 // An array of dependencies whose version checks are ignored for all the
 // packages
-const IGNORE_FROM_ALL = ["web3"];
+const IGNORE_FROM_ALL = ["web3", "@nomiclabs/buidler"];
 
 // A map from dependencies to package names where it should be ignored
 const IGNORE_FOR_PACKAGES = {
@@ -11,8 +11,9 @@ const IGNORE_FOR_PACKAGES = {
   "@types/chai": ["@nomiclabs/buidler-truffle4", "@nomiclabs/buidler-truffle5"],
   "truffle-contract": [
     "@nomiclabs/buidler-truffle4",
-    "@nomiclabs/buidler-truffle5"
-  ]
+    "@nomiclabs/buidler-truffle5",
+  ],
+  ethers: ["@nomiclabs/buidler-etherscan"],
 };
 
 function checkPeerDepedencies(packageJson) {
@@ -32,9 +33,7 @@ function checkPeerDepedencies(packageJson) {
   for (const dependency of Object.keys(packageJson.peerDependencies)) {
     if (packageJson.devDependencies[dependency] === undefined) {
       console.error(
-        `${
-          packageJson.name
-        } has ${dependency} as peerDependency, but not as devDependency`
+        `${packageJson.name} has ${dependency} as peerDependency, but not as devDependency`
       );
 
       success = false;
@@ -47,9 +46,7 @@ function checkPeerDepedencies(packageJson) {
       packageJson.devDependencies[dependency]
     ) {
       console.error(
-        `${
-          packageJson.name
-        } has different versions of ${dependency} as peerDependency and devDependency`
+        `${packageJson.name} has different versions of ${dependency} as peerDependency and devDependency`
       );
 
       success = false;
@@ -127,7 +124,7 @@ function mergeDependenciesMap(dependencyMaps) {
 function getAllPackageJsonPaths() {
   const packageNames = fs.readdirSync(path.join(__dirname, "..", "packages"));
 
-  const packageJsons = packageNames.map(p =>
+  const packageJsons = packageNames.map((p) =>
     path.join(__dirname, "..", "packages", p, "package.json")
   );
 

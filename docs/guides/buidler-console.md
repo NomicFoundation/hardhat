@@ -1,6 +1,6 @@
 # Using the Buidler console
 
-Budiler comes built-in with an interactive JavaScript console. You can use it by running `npx buidler console`:
+Buidler comes built-in with an interactive JavaScript console. You can use it by running `npx buidler console`:
 ```
 $ npx buidler console
 All contracts have already been compiled, skipping compilation.

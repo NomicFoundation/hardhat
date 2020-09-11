@@ -26,7 +26,7 @@ module.exports = {
     lastUpdated: true,
     repo: "nomiclabs/buidler",
     docsDir: "docs",
-    docsBranch: "master",
+    docsBranch: "website",
     editLinkText: "Help us improve this page!",
     editLinks: true,
     sidebarDepth: 1,

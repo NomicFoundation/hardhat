@@ -23,7 +23,9 @@ Note that all config extension's have to be optional.
 
 ### Throwing errors from your plugins
 
-To show better stack traces to your users, please only throw [`BuidlerPluginError`](/api/classes/buidlerpluginerror.html#constructors) errors, which can be found in `@nomiclabs/buidler/plugins`.
+To show better stack traces to your users, please consider throwing [`BuidlerPluginError`](/api/classes/buidlerpluginerror.html#constructors) errors, which can be found in `@nomiclabs/buidler/plugins`.
+
+If your error originated in your user's code, like a test or script calling one of your functions, you shouldn't use `BuidlerPluginError`.
 
 ### Optimizing your plugin for better startup time
 
