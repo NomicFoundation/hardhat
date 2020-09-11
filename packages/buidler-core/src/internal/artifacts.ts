@@ -120,11 +120,17 @@ function isFullyQualified(name: string) {
 export async function getAllArtifacts(
   artifactsPath: string
 ): Promise<string[]> {
-  // TODO-HH: there has to be a better way of doing this
-  const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"));
-  const buildInfoFiles = new Set(await getBuildInfoFiles(artifactsPath));
+  const buildInfosGlob = path.join(
+    artifactsPath,
+    BUILD_INFO_DIR_NAME,
+    "**/*.json"
+  );
 
-  return artifactFiles.filter((file) => !buildInfoFiles.has(file));
+  const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"), {
+    ignore: [buildInfosGlob],
+  });
+
+  return artifactFiles;
 }
 
 function getAllArtifactsSync(artifactsPath: string): string[] {
