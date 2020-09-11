@@ -183,8 +183,7 @@ export async function saveArtifact(
   artifact: Artifact,
   pathToBuildInfo: string
 ) {
-  // TODO-HH: we should write these files in a more atomically way
-  // write artifact
+  // artifact
   const fullyQualifiedName = `${globalName}:${artifact.contractName}`;
   const artifactPath = getArtifactPathFromFullyQualifiedName(
     artifactsPath,
@@ -192,16 +191,18 @@ export async function saveArtifact(
   );
 
   await fsExtra.ensureDir(path.dirname(artifactPath));
-  await fsExtra.writeJSON(artifactPath, artifact, {
-    spaces: 2,
-  });
 
-  // write dbg
+  // dbg
   const relativePathToBuildInfo = path.relative(
     path.dirname(artifactPath),
     pathToBuildInfo
   );
   const dbgPath = artifactPath.replace(/json$/, "dbg");
+
+  // write artifact and dbg
+  await fsExtra.writeJSON(artifactPath, artifact, {
+    spaces: 2,
+  });
   await fsExtra.writeJSON(
     dbgPath,
     { version: ARTIFACTS_VERSION, buildInfo: relativePathToBuildInfo },
