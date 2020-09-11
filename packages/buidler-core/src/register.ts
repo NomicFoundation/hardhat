@@ -44,7 +44,8 @@ if (!BuidlerContext.isCreated()) {
     config,
     buidlerArguments,
     ctx.tasksDSL.getTaskDefinitions(),
-    ctx.extendersManager.getExtenders()
+    ctx.extendersManager.getExtenders(),
+    ctx.experimentalBuidlerEVMMessageTraceHooks
   );
 
   ctx.setBuidlerRuntimeEnvironment(env);

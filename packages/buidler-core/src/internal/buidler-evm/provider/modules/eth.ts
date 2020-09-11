@@ -11,6 +11,7 @@ import {
 import * as t from "io-ts";
 import util from "util";
 
+import { BoundExperimentalBuidlerEVMMessageTraceHook } from "../../../../types";
 import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
@@ -81,7 +82,8 @@ export class EthModule {
     private readonly _node: BuidlerNode,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
-    private readonly _logger?: ModulesLogger
+    private readonly _logger?: ModulesLogger,
+    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
   ) {}
 
   public async processRequest(
@@ -322,6 +324,8 @@ export class EthModule {
     await this._logCallTrace(callParams, trace);
 
     this._logConsoleLogMessages(consoleLogMessages);
+
+    await this._runBuidlerEVMMessageTraceHooks(trace, true);
 
     if (error !== undefined) {
       if (this._throwOnCallFailures) {
@@ -1308,6 +1312,8 @@ If this error persists, try resetting your wallet's accounts.`
 
     await this._logTransactionTrace(tx, trace, block, blockResult);
 
+    await this._runBuidlerEVMMessageTraceHooks(trace, false);
+
     this._logConsoleLogMessages(consoleLogMessages);
 
     if (error !== undefined) {
@@ -1334,5 +1340,14 @@ If this error persists, try resetting your wallet's accounts.`
     }
 
     this._logger.logWithTitle("To", bufferToHex(to));
+  }
+
+  private async _runBuidlerEVMMessageTraceHooks(
+    trace: MessageTrace,
+    isCall: boolean
+  ) {
+    for (const hook of this._experimentalBuidlerEVMMessageTraceHooks) {
+      await hook(trace, isCall);
+    }
   }
 }
