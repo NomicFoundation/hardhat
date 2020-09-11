@@ -112,6 +112,9 @@ function isFullyQualified(name: string) {
   return name.includes(":");
 }
 
+/**
+ * Return a list with the absolute paths of all the existing artifacts.
+ */
 export async function getAllArtifacts(
   artifactsPath: string
 ): Promise<string[]> {
