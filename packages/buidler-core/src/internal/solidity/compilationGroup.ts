@@ -88,7 +88,7 @@ export class CompilationGroup {
     const fileToCompile = this._filesToCompile.get(file.globalName);
 
     if (fileToCompile === undefined) {
-      throw new BuidlerError(ERRORS.INTERNAL.ASSERTION_ERROR, {
+      throw new BuidlerError(ERRORS.GENERAL.ASSERTION_ERROR, {
         message: `File '${file.globalName}' does not exist in this compilation group`,
       });
     }
