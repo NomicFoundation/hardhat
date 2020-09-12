@@ -314,11 +314,7 @@ export class EthModule {
       trace,
       error,
       consoleLogMessages,
-    } = await this._node.runCall(
-      callParams,
-      this._shouldCallOnNewBlock(blockTag),
-      blockNumber
-    );
+    } = await this._node.runCall(callParams, blockNumber);
 
     await this._logCallTrace(callParams, trace);
 
@@ -1047,14 +1043,13 @@ export class EthModule {
 
   private async _blockTagToBlockNumber(
     blockTag: OptionalBlockTag
-  ): Promise<BN> {
-    let block: Block;
+  ): Promise<BN | null> {
+    if (blockTag === "pending") {
+      return null;
+    }
 
-    if (
-      blockTag === undefined ||
-      blockTag === "latest" ||
-      blockTag === "pending"
-    ) {
+    let block: Block;
+    if (blockTag === undefined || blockTag === "latest") {
       block = await this._node.getLatestBlock();
     } else {
       let blockNumber: number = 0;
@@ -1066,10 +1061,6 @@ export class EthModule {
     }
 
     return new BN(block.header.number);
-  }
-
-  private _shouldCallOnNewBlock(blockTag: OptionalBlockTag): boolean {
-    return blockTag === "pending";
   }
 
   private _extractBlock(blockTag: OptionalBlockTag): BN {

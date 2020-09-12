@@ -491,7 +491,6 @@ export class BuidlerNode extends EventEmitter {
 
   public async runCall(
     call: CallParams,
-    runOnNewBlock: boolean,
     blockNumber: BN | null
   ): Promise<{
     result: Buffer;
@@ -505,7 +504,7 @@ export class BuidlerNode extends EventEmitter {
     });
 
     const result = await this._runOnBlockContext(blockNumber, () =>
-      this._runTxAndRevertMutations(tx, runOnNewBlock)
+      this._runTxAndRevertMutations(tx, blockNumber === null)
     );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
