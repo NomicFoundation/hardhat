@@ -213,4 +213,15 @@ module.exports = [
       "Calculate compiled contract sizes",
     tags: ["Compiling", "Bytecode"],
   },
+  {
+    name: "buidler-log-remover",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    version: "1.0.0",
+    url:
+      "https://github.com/ItsNickBarry/buidler-log-remover/tree/master",
+    description:
+      "Remove Buidler console.log imports and calls from Solidity source files",
+    tags: ["Logging", "Console", "Deployment"],
+  },
 ];
