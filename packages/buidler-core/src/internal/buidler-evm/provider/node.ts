@@ -534,7 +534,7 @@ export class BuidlerNode extends EventEmitter {
 
   public async getAccountBalance(
     address: Buffer,
-    blockNumber: BN
+    blockNumber: BN | null
   ): Promise<BN> {
     const account = await this._runOnBlockContext(blockNumber, () =>
       this._stateManager.getAccount(address)
@@ -648,7 +648,7 @@ export class BuidlerNode extends EventEmitter {
   public async getStorageAt(
     address: Buffer,
     slot: BN,
-    blockNumber: BN
+    blockNumber: BN | null
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
