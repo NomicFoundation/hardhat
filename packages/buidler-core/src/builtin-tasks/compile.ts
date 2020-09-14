@@ -301,11 +301,9 @@ export default function () {
       {
         compilationGroups,
         solidityFilesCache,
-        force,
       }: {
         compilationGroups: ICompilationGroup[];
         solidityFilesCache: SolidityFilesCache;
-        force: boolean;
       },
       { run }
     ) => {
@@ -319,7 +317,6 @@ export default function () {
         await run(TASK_COMPILE_COMPILE_GROUP, {
           compilationGroup,
           solidityFilesCache,
-          force,
         });
       }
     }
@@ -470,13 +467,11 @@ export default function () {
         input,
         output,
         solidityFilesCache,
-        force,
       }: {
         compilationGroup: ICompilationGroup;
         input: SolcInput;
         output: any;
         solidityFilesCache?: SolidityFilesCache;
-        force: boolean;
       },
       { config }
     ): Promise<{ numberOfContracts: number }> => {
@@ -490,7 +485,7 @@ export default function () {
 
       for (const file of compilationGroup.getResolvedFiles()) {
         log(`Emitting artifacts for file '${file.globalName}'`);
-        if (!force && !compilationGroup.emitsArtifacts(file)) {
+        if (!compilationGroup.emitsArtifacts(file)) {
           continue;
         }
 
@@ -572,11 +567,9 @@ export default function () {
       {
         compilationGroup,
         solidityFilesCache,
-        force,
       }: {
         compilationGroup: ICompilationGroup;
         solidityFilesCache?: SolidityFilesCache;
-        force: boolean;
       },
       { run }
     ) => {
@@ -604,7 +597,6 @@ export default function () {
         input,
         output,
         solidityFilesCache,
-        force,
       });
 
       await run(TASK_COMPILE_LOG_COMPILE_GROUP_END, {
@@ -770,7 +762,6 @@ ${other.map((x) => `* ${x}`).join("\n")}
       await run(TASK_COMPILE_COMPILE_GROUPS, {
         compilationGroups: mergedCompilationGroups,
         solidityFilesCache,
-        force,
       });
 
       await removeObsoleteArtifacts(config.paths.artifacts, solidityFilesCache);
