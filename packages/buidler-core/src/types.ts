@@ -315,9 +315,8 @@ export type ActionType<ArgsT extends TaskArguments> = (
 // Network types
 
 export interface RequestArguments {
-  method: string;
-  params?: unknown;
-  [key: string]: unknown;
+  readonly method: string;
+  readonly params?: readonly unknown[] | object;
 }
 
 export interface EIP1193Provider extends EventEmitter {
