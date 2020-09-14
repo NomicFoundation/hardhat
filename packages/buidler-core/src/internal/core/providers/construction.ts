@@ -2,6 +2,7 @@ import type {
   BoundExperimentalBuidlerEVMMessageTraceHook,
   BuidlerNetworkConfig,
   EIP1193Provider,
+  EthereumProvider,
   HDAccountsConfig,
   HttpNetworkConfig,
   NetworkConfig,
@@ -41,7 +42,7 @@ export function createProvider(
   solcVersion?: string,
   paths?: ProjectPaths,
   experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
-): EIP1193Provider {
+): EthereumProvider {
   let eip1193Provider: EIP1193Provider;
 
   if (networkName === BUIDLEREVM_NETWORK_NAME) {
