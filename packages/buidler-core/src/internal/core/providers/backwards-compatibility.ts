@@ -54,7 +54,7 @@ export class BackwardsCompatibilityProviderAdapter extends EventEmitterWrapper
       }
 
       response.error = {
-        code: error.code ? +error.code : 404,
+        code: error.code ? +error.code : -1,
         message: error.message,
         data: {
           stack: error.stack,
