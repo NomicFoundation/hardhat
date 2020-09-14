@@ -5,11 +5,21 @@ import { MultiSolcConfig, SolcConfig } from "../../types";
 
 import { ResolvedFile } from "./resolver";
 
-type MatchingCompilerFailure =
-  | "NonCompilable"
-  | "NonCompilableOverriden"
-  | "ImportsIncompatibleFile"
-  | "Other";
+export type MatchingCompiler =
+  | MatchingCompilerSuccess
+  | MatchingCompilerFailure;
+
+export interface MatchingCompilerSuccess {
+  config: SolcConfig;
+}
+
+export interface MatchingCompilerFailure {
+  reason:
+    | "nonCompilable"
+    | "nonCompilableOverriden"
+    | "importsIncompatibleFile"
+    | "other";
+}
 
 /**
  * Return the compiler config that matches the given version ranges,
@@ -20,7 +30,7 @@ export function getMatchingCompilerConfig(
   directDependencies: ResolvedFile[],
   transitiveDependencies: ResolvedFile[],
   solidityConfig: MultiSolcConfig
-): SolcConfig | MatchingCompilerFailure {
+): MatchingCompiler {
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
     (x) => x.content.versionPragmas
   );
@@ -44,7 +54,7 @@ export function getMatchingCompilerConfig(
       );
     }
 
-    return overriddenCompiler;
+    return { config: overriddenCompiler };
   }
 
   // if there's no override, we find a compiler that matches the version range
@@ -60,7 +70,13 @@ export function getMatchingCompilerConfig(
     );
   }
 
-  return solidityConfig.compilers.find((x) => x.version === matchingVersion)!;
+  const matchingConfig = solidityConfig.compilers.find(
+    (x) => x.version === matchingVersion
+  )!;
+
+  return {
+    config: matchingConfig,
+  };
 }
 
 function getMatchingCompilerFailure(
@@ -71,15 +87,16 @@ function getMatchingCompilerFailure(
 ): MatchingCompilerFailure {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
-    return overriden ? "NonCompilableOverriden" : "NonCompilable";
+    const reason = overriden ? "nonCompilableOverriden" : "nonCompilable";
+    return { reason };
   }
 
   for (const dependency of directDependencies) {
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
     if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
-      return "ImportsIncompatibleFile";
+      return { reason: "importsIncompatibleFile" };
     }
   }
 
-  return "Other";
+  return { reason: "other" };
 }

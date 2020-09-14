@@ -1,6 +1,6 @@
 import debug from "debug";
 
-import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
+import type { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 
 const log = debug("buidler:core:solidity:imports");
 

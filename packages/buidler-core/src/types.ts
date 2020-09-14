@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { DeepPartial, DeepReadonly, Omit } from "ts-essentials";
+import { DeepReadonly, Omit } from "ts-essentials";
 
 import * as types from "./internal/core/params/argumentTypes";
 
@@ -79,13 +79,9 @@ export interface ProjectPaths {
   tests: string;
 }
 
-type EVMVersion = string;
-
-// TODO-HH: This must be changed to accept any solc setting
 export interface SolcConfig {
   version: string;
-  optimizer: SolcOptimizerConfig;
-  evmVersion?: EVMVersion;
+  settings?: any;
 }
 
 export interface MultiSolcConfig {

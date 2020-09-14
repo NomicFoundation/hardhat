@@ -221,6 +221,7 @@ export class BuidlerEVMProvider extends EventEmitter
       try {
         for (const buildInfoFile of buildInfoFiles) {
           const buildInfo = await fsExtra.readJson(buildInfoFile);
+          // TODO-HH: should we show a warning when this condition is false?
           if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
             buildInfos.push(buildInfo);
           }

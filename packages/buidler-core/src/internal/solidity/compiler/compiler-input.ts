@@ -47,13 +47,13 @@ export function getInputFromCompilationGroup(
   compilationGroup: CompilationGroup
 ): SolcInput {
   const sources: { [globalName: string]: { content: string } } = {};
-  for (const file of compilationGroup.getFilesToCompile()) {
+  for (const file of compilationGroup.getResolvedFiles()) {
     sources[file.globalName] = {
       content: file.content.rawContent,
     };
   }
 
-  const { optimizer, evmVersion } = compilationGroup.solidityConfig;
+  const { settings } = compilationGroup.solidityConfig;
 
   const input: SolcInput = {
     language: "Solidity",
@@ -62,7 +62,6 @@ export function getInputFromCompilationGroup(
       metadata: {
         useLiteralContent: true,
       },
-      optimizer,
       outputSelection: {
         "*": {
           "*": [
@@ -74,12 +73,9 @@ export function getInputFromCompilationGroup(
           "": ["id", "ast"],
         },
       },
+      ...settings,
     },
   };
-
-  if (evmVersion !== undefined) {
-    input.settings.evmVersion = evmVersion;
-  }
 
   return input;
 }

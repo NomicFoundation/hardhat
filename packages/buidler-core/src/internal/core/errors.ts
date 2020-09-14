@@ -255,3 +255,12 @@ function _applyErrorMessageTemplate(
 
   return template;
 }
+
+export function assertBuidlerInvariant(
+  invariant: boolean,
+  message: string
+): asserts invariant {
+  if (!invariant) {
+    throw new BuidlerError(ERRORS.GENERAL.ASSERTION_ERROR, { message });
+  }
+}

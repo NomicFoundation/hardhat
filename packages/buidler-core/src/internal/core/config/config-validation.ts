@@ -139,22 +139,14 @@ const ProjectPaths = t.type({
   tests: optional(t.string),
 });
 
-const EVMVersion = t.string;
-
-const SolcOptimizerConfig = t.type({
-  enabled: optional(t.boolean),
-  runs: optional(t.number),
-});
-
 const SingleSolcConfig = t.type({
-  version: optional(t.string),
-  optimizer: optional(SolcOptimizerConfig),
-  evmVersion: optional(EVMVersion),
+  version: t.string,
+  settings: optional(t.any),
 });
 
 const MultiSolcConfig = t.type({
   compilers: t.array(SingleSolcConfig),
-  overrides: t.record(t.string, SingleSolcConfig),
+  overrides: optional(t.record(t.string, SingleSolcConfig)),
 });
 
 const SolidityConfig = t.union([t.string, SingleSolcConfig, MultiSolcConfig]);

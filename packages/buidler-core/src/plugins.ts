@@ -3,6 +3,7 @@ export {
   NomicLabsBuidlerPluginError,
 } from "./internal/core/errors";
 export {
+  getAllArtifacts,
   saveArtifact,
   readArtifact,
   readArtifactSync,

@@ -1,5 +1,5 @@
-import { sha256 } from "ethereum-cryptography/sha256";
 import fsExtra from "fs-extra";
+import * as os from "os";
 import * as path from "path";
 
 import { Artifact, SolcInput } from "../types";
@@ -8,6 +8,8 @@ import { BUILD_INFO_DIR_NAME } from "./constants";
 import { BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
+
+const ARTIFACTS_VERSION = 1;
 
 /**
  * Retrieves an artifact for the given `contractName` from the compilation output.
@@ -92,7 +94,7 @@ function getArtifactPathFromFiles(
 
     throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
       contractName: name,
-      candidates: candidates.join(path.sep),
+      candidates: candidates.join(os.EOL),
     });
   }
 
@@ -111,13 +113,23 @@ function isFullyQualified(name: string) {
   return name.includes(":");
 }
 
+/**
+ * Return a list with the absolute paths of all the existing artifacts.
+ */
 export async function getAllArtifacts(
   artifactsPath: string
 ): Promise<string[]> {
-  const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"));
-  const buildInfoFiles = new Set(await getBuildInfoFiles(artifactsPath));
+  const buildInfosGlob = path.join(
+    artifactsPath,
+    BUILD_INFO_DIR_NAME,
+    "**/*.json"
+  );
 
-  return artifactFiles.filter((file) => !buildInfoFiles.has(file));
+  const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"), {
+    ignore: [buildInfosGlob],
+  });
+
+  return artifactFiles;
 }
 
 function getAllArtifactsSync(artifactsPath: string): string[] {
@@ -176,7 +188,7 @@ export async function saveArtifact(
   artifact: Artifact,
   pathToBuildInfo: string
 ) {
-  // write artifact
+  // artifact
   const fullyQualifiedName = `${globalName}:${artifact.contractName}`;
   const artifactPath = getArtifactPathFromFullyQualifiedName(
     artifactsPath,
@@ -184,19 +196,21 @@ export async function saveArtifact(
   );
 
   await fsExtra.ensureDir(path.dirname(artifactPath));
-  await fsExtra.writeJSON(artifactPath, artifact, {
-    spaces: 2,
-  });
 
-  // write dbg
+  // dbg
   const relativePathToBuildInfo = path.relative(
     path.dirname(artifactPath),
     pathToBuildInfo
   );
   const dbgPath = artifactPath.replace(/json$/, "dbg");
+
+  // write artifact and dbg
+  await fsExtra.writeJSON(artifactPath, artifact, {
+    spaces: 2,
+  });
   await fsExtra.writeJSON(
     dbgPath,
-    { buildInfo: relativePathToBuildInfo },
+    { version: ARTIFACTS_VERSION, buildInfo: relativePathToBuildInfo },
     {
       spaces: 2,
     }
@@ -209,6 +223,8 @@ export async function saveBuildInfo(
   output: any,
   solcVersion: string
 ): Promise<string> {
+  const { sha256 } = await import("ethereum-cryptography/sha256");
+
   const buildInfoDir = path.join(artifactsPath, BUILD_INFO_DIR_NAME);
   await fsExtra.ensureDir(buildInfoDir);
 
@@ -216,7 +232,12 @@ export async function saveBuildInfo(
     Buffer.from(JSON.stringify({ input, solcVersion }))
   ).toString("hex");
   const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
-  await fsExtra.writeJson(buildInfoPath, { input, output, solcVersion });
+  await fsExtra.writeJson(buildInfoPath, {
+    version: ARTIFACTS_VERSION,
+    input,
+    output,
+    solcVersion,
+  });
 
   return buildInfoPath;
 }
