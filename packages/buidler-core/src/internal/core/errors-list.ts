@@ -151,15 +151,14 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     },
     ASSERTION_ERROR: {
       number: 99,
-      message:
-        "An internal invariant was violated: %message%",
+      message: "An internal invariant was violated: %message%",
       title: "Invariant violation",
       description: `An internal invariant was violated.
 This is probably caused by a programming error in buidler or in one of the used plugins.
 
 Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
       shouldBeReported: true,
-    }
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {

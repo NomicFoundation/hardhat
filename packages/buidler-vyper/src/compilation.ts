@@ -9,8 +9,8 @@ import {
   ProcessResult,
 } from "@nomiclabs/buidler-docker";
 import {
+  Artifacts,
   NomicLabsBuidlerPluginError,
-  saveArtifact,
 } from "@nomiclabs/buidler/plugins";
 import { ProjectPaths } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
@@ -71,7 +71,8 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
       const globalName = path.relative(paths.sources, file);
 
       // TODO-HH what should we do instead of this empty string?
-      await saveArtifact(paths.artifacts, globalName, artifact, "");
+      const artifacts = new Artifacts(paths.artifacts);
+      await artifacts.saveArtifact(globalName, artifact, "");
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");
 

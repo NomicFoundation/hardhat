@@ -4,12 +4,8 @@ import fsExtra from "fs-extra";
 import path from "path";
 
 import {
+  Artifacts,
   getArtifactFromContractOutput,
-  getArtifactPathSync,
-  removeObsoleteArtifacts,
-  removeObsoleteBuildInfos,
-  saveArtifact,
-  saveBuildInfo,
 } from "../internal/artifacts";
 import { internalTask, task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
@@ -472,8 +468,9 @@ export default function () {
       },
       { config, run }
     ): Promise<{ numberOfContracts: number }> => {
-      const pathToBuildInfo = await saveBuildInfo(
-        config.paths.artifacts,
+      const artifacts = new Artifacts(config.paths.artifacts);
+
+      const pathToBuildInfo = await artifacts.saveBuildInfo(
         input,
         output,
         compilationGroup.getVersion()
@@ -501,8 +498,7 @@ export default function () {
             }
           );
 
-          await saveArtifact(
-            config.paths.artifacts,
+          await artifacts.saveArtifact(
             file.globalName,
             artifact,
             pathToBuildInfo
@@ -781,9 +777,9 @@ ${other.map((x) => `* ${x}`).join("\n")}
         solidityFilesCache,
       });
 
-      await removeObsoleteArtifacts(config.paths.artifacts, solidityFilesCache);
-
-      await removeObsoleteBuildInfos(config.paths.artifacts);
+      const artifacts = new Artifacts(config.paths.artifacts);
+      await artifacts.removeObsoleteArtifacts(solidityFilesCache);
+      await artifacts.removeObsoleteBuildInfos();
 
       writeSolidityFilesCache(config.paths, solidityFilesCache);
     }
@@ -830,20 +826,20 @@ function invalidateCacheMissingArtifacts(
   resolvedFiles: ResolvedFile[]
 ): SolidityFilesCache {
   resolvedFiles.forEach((file) => {
+    const artifacts = new Artifacts(artifactsPath);
+
     if (solidityFilesCache[file.absolutePath] === undefined) {
       return;
     }
 
-    const { artifacts } = solidityFilesCache[file.absolutePath];
+    const { artifacts: emittedArtifacts } = solidityFilesCache[
+      file.absolutePath
+    ];
 
-    for (const artifact of artifacts) {
-      if (
-        !fsExtra.existsSync(
-          getArtifactPathSync(artifactsPath, file.globalName, artifact)
-        )
-      ) {
+    for (const emittedArtifact of emittedArtifacts) {
+      if (!artifacts.artifactExistsSync(file.globalName, emittedArtifact)) {
         log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${artifact}' doesn't exist`
+          `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
         );
         delete solidityFilesCache[file.absolutePath];
         break;

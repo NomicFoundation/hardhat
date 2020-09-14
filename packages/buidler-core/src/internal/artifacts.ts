@@ -15,6 +15,295 @@ const ARTIFACTS_VERSION = 1;
 
 const log = debug("buidler:core:artifacts");
 
+export class Artifacts {
+  private _buildInfosGlob: string;
+  private _dbgsGlob: string;
+
+  constructor(private _artifactsPath: string) {
+    this._buildInfosGlob = path.join(
+      this._artifactsPath,
+      BUILD_INFO_DIR_NAME,
+      "**/*.json"
+    );
+    this._dbgsGlob = path.join(this._artifactsPath, "**/*.dbg.json");
+  }
+
+  /**
+   * Return a list with the absolute paths of all the existing artifacts.
+   */
+  public async getArtifacts(): Promise<string[]> {
+    const artifactFiles = await glob(
+      path.join(this._artifactsPath, "**/*.json"),
+      {
+        ignore: [this._buildInfosGlob, this._dbgsGlob],
+      }
+    );
+
+    return artifactFiles;
+  }
+
+  public getArtifactsSync(): string[] {
+    const artifactFiles = globSync(
+      path.join(this._artifactsPath, "**/*.json"),
+      {
+        ignore: [this._buildInfosGlob, this._dbgsGlob],
+      }
+    );
+
+    return artifactFiles;
+  }
+
+  public async getBuildInfoFiles(): Promise<string[]> {
+    return glob(this._buildInfosGlob);
+  }
+
+  public getBuildInfoFilesSync(): string[] {
+    return globSync(this._buildInfosGlob);
+  }
+
+  public async getDbgFiles(): Promise<string[]> {
+    return glob(this._dbgsGlob);
+  }
+
+  public async artifactExists(
+    globalName: string,
+    artifactName: string
+  ): Promise<boolean> {
+    return fsExtra.pathExists(
+      this._getArtifactPathSync(globalName, artifactName)
+    );
+  }
+
+  public artifactExistsSync(globalName: string, artifactName: string): boolean {
+    return fsExtra.pathExistsSync(
+      this._getArtifactPathSync(globalName, artifactName)
+    );
+  }
+
+  /**
+   * Asynchronically reads an artifact with the given `contractName` from the given `artifactPath`.
+   *
+   * @param artifactsPath the artifacts' directory.
+   * @param name          either the contract's name or the fully qualified name
+   */
+  public async readArtifact(name: string): Promise<Artifact> {
+    const artifactPath = await this._getArtifactPath(name);
+
+    if (!fsExtra.pathExistsSync(artifactPath)) {
+      throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+        contractName: name,
+        artifactPath,
+      });
+    }
+
+    return fsExtra.readJson(artifactPath);
+  }
+
+  /**
+   * Synchronically reads an artifact with the given `contractName` from the given `artifactPath`.
+   *
+   * @param artifactsPath the artifacts directory.
+   * @param name          either the contract's name or the fully qualified name
+   */
+  public readArtifactSync(name: string): Artifact {
+    const artifactPath = this._getArtifactPathSync(name);
+
+    if (!fsExtra.pathExistsSync(artifactPath)) {
+      throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+        contractName: name,
+        artifactPath,
+      });
+    }
+
+    return fsExtra.readJsonSync(artifactPath);
+  }
+
+  /**
+   * Stores an artifact in the given path.
+   *
+   * @param artifactsPath the artifacts' directory.
+   * @param globalName the global name of the file that emitted the artifact.
+   * @param artifact the artifact to be stored.
+   * @param pathToBuildInfo the relative path to the buildInfo for this artifact
+   */
+  public async saveArtifact(
+    globalName: string,
+    artifact: Artifact,
+    pathToBuildInfo: string
+  ) {
+    // artifact
+    const fullyQualifiedName = `${globalName}:${artifact.contractName}`;
+    const artifactPath = this._getArtifactPathFromFullyQualifiedName(
+      fullyQualifiedName
+    );
+
+    await fsExtra.ensureDir(path.dirname(artifactPath));
+
+    // dbg
+    const relativePathToBuildInfo = path.relative(
+      path.dirname(artifactPath),
+      pathToBuildInfo
+    );
+    const dbgPath = artifactPath.replace(/\.json$/, ".dbg.json");
+
+    // write artifact and dbg
+    await fsExtra.writeJSON(artifactPath, artifact, {
+      spaces: 2,
+    });
+    await fsExtra.writeJSON(
+      dbgPath,
+      { version: ARTIFACTS_VERSION, buildInfo: relativePathToBuildInfo },
+      {
+        spaces: 2,
+      }
+    );
+  }
+
+  public async saveBuildInfo(
+    input: SolcInput,
+    output: any,
+    solcVersion: string
+  ): Promise<string> {
+    const { sha256 } = await import("ethereum-cryptography/sha256");
+
+    const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
+    await fsExtra.ensureDir(buildInfoDir);
+
+    const hash = sha256(
+      Buffer.from(JSON.stringify({ input, solcVersion }))
+    ).toString("hex");
+    const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
+    await fsExtra.writeJson(buildInfoPath, {
+      version: ARTIFACTS_VERSION,
+      input,
+      output,
+      solcVersion,
+    });
+
+    return buildInfoPath;
+  }
+
+  /**
+   * Remove all artifacts that don't correspond to the current solidity files
+   */
+  public async removeObsoleteArtifacts(solidityFilesCache: SolidityFilesCache) {
+    const validArtifacts = new Set<string>();
+    for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
+      for (const artifact of artifacts) {
+        validArtifacts.add(this._getArtifactPathSync(globalName, artifact));
+      }
+    }
+
+    const existingArtifacts = await this.getArtifacts();
+
+    for (const artifact of existingArtifacts) {
+      if (!validArtifacts.has(artifact)) {
+        fsExtra.unlinkSync(artifact);
+      }
+    }
+  }
+
+  /**
+   * Remove all build infos that aren't used by any dbg file
+   */
+  public async removeObsoleteBuildInfos() {
+    const dbgFiles = await this.getDbgFiles();
+
+    const validBuildInfos = new Set<string>();
+    for (const dbgFile of dbgFiles) {
+      const { buildInfo } = await fsExtra.readJson(dbgFile);
+      validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfo));
+    }
+
+    const buildInfoFiles = await this.getBuildInfoFiles();
+
+    for (const buildInfoFile of buildInfoFiles) {
+      if (!validBuildInfos.has(buildInfoFile)) {
+        log(`Removing buildInfo '${buildInfoFile}'`);
+        await fsExtra.unlink(buildInfoFile);
+      }
+    }
+  }
+
+  private async _getArtifactPath(name: string): Promise<string> {
+    if (this._isFullyQualified(name)) {
+      return this._getArtifactPathFromFullyQualifiedName(name);
+    }
+
+    const files = await this.getArtifacts();
+    return this._getArtifactPathFromFiles(name, files);
+  }
+
+  private _getArtifactPathSync(
+    globalName: string,
+    contractName?: string
+  ): string {
+    if (contractName === undefined) {
+      if (this._isFullyQualified(globalName)) {
+        return this._getArtifactPathFromFullyQualifiedName(globalName);
+      }
+
+      const files = this.getArtifactsSync();
+      return this._getArtifactPathFromFiles(globalName, files);
+    }
+
+    const fullyQualifiedName = `${globalName}:${contractName}`;
+    const artifactPath = this._getArtifactPathFromFullyQualifiedName(
+      fullyQualifiedName
+    );
+
+    return artifactPath;
+  }
+
+  private _getArtifactPathFromFullyQualifiedName(name: string): string {
+    const nameWithoutSol = name.replace(/\.sol/, "");
+    return path.join(this._artifactsPath, `${nameWithoutSol}.json`);
+  }
+
+  private _getArtifactPathFromFiles(name: string, files: string[]): string {
+    const matchingFiles = files.filter((file) => {
+      const colonIndex = file.indexOf(":");
+      if (colonIndex === -1) {
+        // TODO throw a proper BuidlerError
+        // tslint:disable only-buidler-error
+        throw new Error("should never happen");
+      }
+      const contractName = file.slice(colonIndex + 1);
+      return contractName === `${name}.json`;
+    });
+
+    if (matchingFiles.length === 0) {
+      throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, {
+        contractName: name,
+      });
+    }
+
+    if (matchingFiles.length > 1) {
+      const candidates = matchingFiles
+        .map((file) => this._getFullyQualifiedName(file))
+        .map(path.normalize);
+
+      throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
+        contractName: name,
+        candidates: candidates.join(os.EOL),
+      });
+    }
+
+    return matchingFiles[0];
+  }
+
+  private _getFullyQualifiedName(absolutePath: string): string {
+    return path
+      .relative(this._artifactsPath, absolutePath)
+      .replace(".json", "")
+      .replace(":", ".sol:");
+  }
+
+  private _isFullyQualified(name: string) {
+    return name.includes(":");
+  }
+}
+
 /**
  * Retrieves an artifact for the given `contractName` from the compilation output.
  *
@@ -59,302 +348,4 @@ export function getArtifactFromContractOutput(
     linkReferences,
     deployedLinkReferences,
   };
-}
-
-function getFullyQualifiedName(
-  artifactsPath: string,
-  absolutePath: string
-): string {
-  return path
-    .relative(artifactsPath, absolutePath)
-    .replace(".json", "")
-    .replace(":", ".sol:");
-}
-
-function getArtifactPathFromFiles(
-  artifactsPath: string,
-  name: string,
-  files: string[]
-): string {
-  const matchingFiles = files.filter((file) => {
-    const colonIndex = file.indexOf(":");
-    if (colonIndex === -1) {
-      // TODO throw a proper BuidlerError
-      // tslint:disable only-buidler-error
-      throw new Error("should never happen");
-    }
-    const contractName = file.slice(colonIndex + 1);
-    return contractName === `${name}.json`;
-  });
-
-  if (matchingFiles.length === 0) {
-    throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, { contractName: name });
-  }
-
-  if (matchingFiles.length > 1) {
-    const candidates = matchingFiles
-      .map((file) => getFullyQualifiedName(artifactsPath, file))
-      .map(path.normalize);
-
-    throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
-      contractName: name,
-      candidates: candidates.join(os.EOL),
-    });
-  }
-
-  return matchingFiles[0];
-}
-
-function getArtifactPathFromFullyQualifiedName(
-  artifactsPath: string,
-  name: string
-): string {
-  const nameWithoutSol = name.replace(/\.sol/, "");
-  return path.join(artifactsPath, `${nameWithoutSol}.json`);
-}
-
-function isFullyQualified(name: string) {
-  return name.includes(":");
-}
-
-/**
- * Return a list with the absolute paths of all the existing artifacts.
- */
-export async function getAllArtifacts(
-  artifactsPath: string
-): Promise<string[]> {
-  const buildInfosGlob = path.join(
-    artifactsPath,
-    BUILD_INFO_DIR_NAME,
-    "**/*.json"
-  );
-
-  const dbgsGlob = path.join(artifactsPath, "**/*.dbg.json");
-
-  const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"), {
-    ignore: [buildInfosGlob, dbgsGlob],
-  });
-
-  return artifactFiles;
-}
-
-function getAllDbgFiles(artifactsPath: string): Promise<string[]> {
-  return glob(path.join(artifactsPath, "**/*.dbg.json"));
-}
-
-function getAllArtifactsSync(artifactsPath: string): string[] {
-  const artifactFiles = globSync(path.join(artifactsPath, "**/*.json"));
-  const buildInfoFiles = new Set(getBuildInfoFilesSync(artifactsPath));
-
-  return artifactFiles.filter((file) => !buildInfoFiles.has(file));
-}
-
-async function getArtifactPath(
-  artifactsPath: string,
-  name: string
-): Promise<string> {
-  if (isFullyQualified(name)) {
-    return getArtifactPathFromFullyQualifiedName(artifactsPath, name);
-  }
-
-  const files = await getAllArtifacts(artifactsPath);
-  return getArtifactPathFromFiles(artifactsPath, name, files);
-}
-
-export function getArtifactPathSync(
-  artifactsPath: string,
-  globalName: string,
-  contractName?: string
-): string {
-  if (contractName === undefined) {
-    if (isFullyQualified(globalName)) {
-      return getArtifactPathFromFullyQualifiedName(artifactsPath, globalName);
-    }
-
-    const files = getAllArtifactsSync(artifactsPath);
-    return getArtifactPathFromFiles(artifactsPath, globalName, files);
-  }
-
-  const fullyQualifiedName = `${globalName}:${contractName}`;
-  const artifactPath = getArtifactPathFromFullyQualifiedName(
-    artifactsPath,
-    fullyQualifiedName
-  );
-
-  return artifactPath;
-}
-
-/**
- * Stores an artifact in the given path.
- *
- * @param artifactsPath the artifacts' directory.
- * @param globalName the global name of the file that emitted the artifact.
- * @param artifact the artifact to be stored.
- * @param pathToBuildInfo the relative path to the buildInfo for this artifact
- */
-export async function saveArtifact(
-  artifactsPath: string,
-  globalName: string,
-  artifact: Artifact,
-  pathToBuildInfo: string
-) {
-  // artifact
-  const fullyQualifiedName = `${globalName}:${artifact.contractName}`;
-  const artifactPath = getArtifactPathFromFullyQualifiedName(
-    artifactsPath,
-    fullyQualifiedName
-  );
-
-  await fsExtra.ensureDir(path.dirname(artifactPath));
-
-  // dbg
-  const relativePathToBuildInfo = path.relative(
-    path.dirname(artifactPath),
-    pathToBuildInfo
-  );
-  const dbgPath = artifactPath.replace(/\.json$/, ".dbg.json");
-
-  // write artifact and dbg
-  await fsExtra.writeJSON(artifactPath, artifact, {
-    spaces: 2,
-  });
-  await fsExtra.writeJSON(
-    dbgPath,
-    { version: ARTIFACTS_VERSION, buildInfo: relativePathToBuildInfo },
-    {
-      spaces: 2,
-    }
-  );
-}
-
-export async function saveBuildInfo(
-  artifactsPath: string,
-  input: SolcInput,
-  output: any,
-  solcVersion: string
-): Promise<string> {
-  const { sha256 } = await import("ethereum-cryptography/sha256");
-
-  const buildInfoDir = path.join(artifactsPath, BUILD_INFO_DIR_NAME);
-  await fsExtra.ensureDir(buildInfoDir);
-
-  const hash = sha256(
-    Buffer.from(JSON.stringify({ input, solcVersion }))
-  ).toString("hex");
-  const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
-  await fsExtra.writeJson(buildInfoPath, {
-    version: ARTIFACTS_VERSION,
-    input,
-    output,
-    solcVersion,
-  });
-
-  return buildInfoPath;
-}
-
-/**
- * Asynchronically reads an artifact with the given `contractName` from the given `artifactPath`.
- *
- * @param artifactsPath the artifacts' directory.
- * @param name          either the contract's name or the fully qualified name
- */
-export async function readArtifact(
-  artifactsPath: string,
-  name: string
-): Promise<Artifact> {
-  const artifactPath = await getArtifactPath(artifactsPath, name);
-
-  if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
-      contractName: name,
-      artifactPath,
-    });
-  }
-
-  return fsExtra.readJson(artifactPath);
-}
-
-/**
- * Synchronically reads an artifact with the given `contractName` from the given `artifactPath`.
- *
- * @param artifactsPath the artifacts directory.
- * @param name          either the contract's name or the fully qualified name
- */
-export function readArtifactSync(
-  artifactsPath: string,
-  name: string
-): Artifact {
-  const artifactPath = getArtifactPathSync(artifactsPath, name);
-
-  if (!fsExtra.pathExistsSync(artifactPath)) {
-    throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
-      contractName: name,
-      artifactPath,
-    });
-  }
-
-  return fsExtra.readJsonSync(artifactPath);
-}
-
-export async function getBuildInfoFiles(
-  artifactsPath: string
-): Promise<string[]> {
-  return glob(path.join(artifactsPath, BUILD_INFO_DIR_NAME, "**/*.json"));
-}
-
-export function getBuildInfoFilesSync(artifactsPath: string): string[] {
-  return globSync(path.join(artifactsPath, BUILD_INFO_DIR_NAME, "**/*.json"));
-}
-
-/**
- * Remove all artifacts that don't correspond to the current solidity files
- */
-export async function removeObsoleteArtifacts(
-  artifactsPath: string,
-  solidityFilesCache: SolidityFilesCache
-) {
-  const validArtifacts = new Set<string>();
-  for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
-    for (const artifact of artifacts) {
-      validArtifacts.add(
-        getArtifactPathSync(artifactsPath, globalName, artifact)
-      );
-    }
-  }
-
-  const existingArtifacts = await getAllArtifacts(artifactsPath);
-
-  for (const artifact of existingArtifacts) {
-    if (!validArtifacts.has(artifact)) {
-      // TODO-HH: consider moving all unlinks to a helper library that checks
-      // that removed files are inside the project
-      log(`Removing obsolete artifact '${artifact}'`);
-      fsExtra.unlinkSync(artifact);
-      const dbgFile = artifact.replace(/\.json$/, ".dbg.json");
-      // we use remove instead of unlink in case the dbg file doesn't exist
-      fsExtra.removeSync(dbgFile);
-    }
-  }
-}
-
-/**
- * Remove all build infos that aren't used by any dbg file
- */
-export async function removeObsoleteBuildInfos(artifactsPath: string) {
-  const dbgFiles = await getAllDbgFiles(artifactsPath);
-
-  const validBuildInfos = new Set<string>();
-  for (const dbgFile of dbgFiles) {
-    const { buildInfo } = await fsExtra.readJson(dbgFile);
-    validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfo));
-  }
-
-  const buildInfoFiles = await getBuildInfoFiles(artifactsPath);
-
-  for (const buildInfoFile of buildInfoFiles) {
-    if (!validBuildInfos.has(buildInfoFile)) {
-      log(`Removing buildInfo '${buildInfoFile}'`);
-      await fsExtra.unlink(buildInfoFile);
-    }
-  }
 }

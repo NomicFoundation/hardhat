@@ -1,12 +1,11 @@
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILER_INPUT,
-  TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
 import {
+  Artifacts,
   NomicLabsBuidlerPluginError,
-  readArtifact,
 } from "@nomiclabs/buidler/plugins";
 
 import AbiEncoder from "./AbiEncoder";
@@ -63,8 +62,8 @@ task("verify-contract", "Verifies contract on etherscan")
       }
 
       await run(TASK_COMPILE);
-      const abi = (await readArtifact(config.paths.artifacts, contractName))
-        .abi;
+      const artifacts = new Artifacts(config.paths.artifacts);
+      const abi = (await artifacts.readArtifact(contractName)).abi;
       const fullVersion = await getLongVersion(config.solidity);
 
       const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
