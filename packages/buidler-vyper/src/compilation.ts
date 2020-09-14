@@ -72,7 +72,7 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
 
       // TODO-HH what should we do instead of this empty string?
       const artifacts = new Artifacts(paths.artifacts);
-      await artifacts.saveArtifact(globalName, artifact, "");
+      await artifacts.saveArtifactFiles(globalName, artifact, "");
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");
 

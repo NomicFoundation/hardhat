@@ -83,7 +83,6 @@ export class Artifacts {
   /**
    * Asynchronically reads an artifact with the given `contractName` from the given `artifactPath`.
    *
-   * @param artifactsPath the artifacts' directory.
    * @param name          either the contract's name or the fully qualified name
    */
   public async readArtifact(name: string): Promise<Artifact> {
@@ -102,7 +101,6 @@ export class Artifacts {
   /**
    * Synchronically reads an artifact with the given `contractName` from the given `artifactPath`.
    *
-   * @param artifactsPath the artifacts directory.
    * @param name          either the contract's name or the fully qualified name
    */
   public readArtifactSync(name: string): Artifact {
@@ -119,14 +117,13 @@ export class Artifacts {
   }
 
   /**
-   * Stores an artifact in the given path.
+   * Stores an artifact and its dbg file.
    *
-   * @param artifactsPath the artifacts' directory.
    * @param globalName the global name of the file that emitted the artifact.
    * @param artifact the artifact to be stored.
    * @param pathToBuildInfo the relative path to the buildInfo for this artifact
    */
-  public async saveArtifact(
+  public async saveArtifactFiles(
     globalName: string,
     artifact: Artifact,
     pathToBuildInfo: string

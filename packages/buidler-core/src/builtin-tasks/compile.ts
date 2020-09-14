@@ -498,7 +498,7 @@ export default function () {
             }
           );
 
-          await artifacts.saveArtifact(
+          await artifacts.saveArtifactFiles(
             file.globalName,
             artifact,
             pathToBuildInfo
