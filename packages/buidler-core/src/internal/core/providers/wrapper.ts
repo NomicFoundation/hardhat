@@ -9,18 +9,22 @@ export abstract class ProviderWrapper extends EventEmitterWrapper
 
   public abstract async request(args: RequestArguments): Promise<unknown>;
 
-  protected _getParams<ParamsT = any[]>(args: RequestArguments): ParamsT | [] {
-    if (args.params === undefined) {
+  protected _getParams<ParamsT extends any[] = any[]>(
+    args: RequestArguments
+  ): ParamsT | [] {
+    const params = args.params;
+
+    if (params === undefined) {
       return [];
     }
 
-    if (typeof args.params === "object") {
+    if (!Array.isArray(params)) {
       // tslint:disable-next-line only-buidler-error
       throw new Error(
         "Buidler EVM doesn't support JSON-RPC params sent as an object"
       );
     }
 
-    return args.params as ParamsT;
+    return params as ParamsT;
   }
 }
