@@ -259,15 +259,11 @@ export default function () {
         ? compilationGroups
         : compilationGroups.filter((group) => group.hasChanged());
 
-      const emittingCompilationGroups = modifiedCompilationGroups.filter(
-        (group) => group.emitsArtifacts()
-      );
-
       const groupsFilteredOutCount =
-        modifiedCompilationGroups.length - emittingCompilationGroups.length;
+        modifiedCompilationGroups.length - compilationGroups.length;
       log(`'${groupsFilteredOutCount}' groups were filtered out`);
 
-      return emittingCompilationGroups;
+      return modifiedCompilationGroups;
     }
   );
 
