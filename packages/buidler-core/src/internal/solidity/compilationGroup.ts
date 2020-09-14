@@ -4,8 +4,7 @@ import semver from "semver";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 import { MultiSolcConfig, SolcConfig } from "../../types";
-import { assertBuidlerInvariant, BuidlerError } from "../core/errors";
-import { ERRORS } from "../core/errors-list";
+import { assertBuidlerInvariant } from "../core/errors";
 
 import {
   getMatchingCompilerConfig,
@@ -88,11 +87,10 @@ export class CompilationGroup {
 
     const fileToCompile = this._filesToCompile.get(file.globalName);
 
-    if (fileToCompile === undefined) {
-      throw new BuidlerError(ERRORS.GENERAL.ASSERTION_ERROR, {
-        message: `File '${file.globalName}' does not exist in this compilation group`,
-      });
-    }
+    assertBuidlerInvariant(
+      fileToCompile !== undefined,
+      `File '${file.globalName}' does not exist in this compilation group`
+    );
 
     return fileToCompile.emitsArtifacts;
   }
