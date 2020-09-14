@@ -14,6 +14,13 @@ export abstract class ProviderWrapper extends EventEmitterWrapper
       return [];
     }
 
+    if (typeof args.params === "object") {
+      // tslint:disable-next-line only-buidler-error
+      throw new Error(
+        "Buidler EVM doesn't support JSON-RPC params sent as an object"
+      );
+    }
+
     return args.params as ParamsT;
   }
 }
