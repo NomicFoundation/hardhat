@@ -4,10 +4,10 @@ import fsExtra from "fs-extra";
 import path from "path";
 
 import {
-  getAllArtifacts,
   getArtifactFromContractOutput,
   getArtifactPathSync,
-  getBuildInfoFiles,
+  removeObsoleteArtifacts,
+  removeObsoleteBuildInfos,
   saveArtifact,
   saveBuildInfo,
 } from "../internal/artifacts";
@@ -794,59 +794,6 @@ ${other.map((x) => `* ${x}`).join("\n")}
         await run(compilationTask, compilationArgs);
       }
     });
-}
-
-/**
- * Remove all artifacts that don't correspond to the current solidity files
- */
-async function removeObsoleteArtifacts(
-  artifactsPath: string,
-  solidityFilesCache: SolidityFilesCache
-) {
-  const validArtifacts = new Set<string>();
-  for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
-    for (const artifact of artifacts) {
-      validArtifacts.add(
-        getArtifactPathSync(artifactsPath, globalName, artifact)
-      );
-    }
-  }
-
-  const existingArtifacts = await getAllArtifacts(artifactsPath);
-
-  for (const artifact of existingArtifacts) {
-    if (!validArtifacts.has(artifact)) {
-      // TODO-HH: consider moving all unlinks to a helper library that checks
-      // that removed files are inside the project
-      log(`Removing obsolete artifact '${artifact}'`);
-      fsExtra.unlinkSync(artifact);
-      const dbgFile = artifact.replace(/\.json$/, ".dbg");
-      // we use remove instead of unlink in case the dbg file doesn't exist
-      fsExtra.removeSync(dbgFile);
-    }
-  }
-}
-
-/**
- * Remove all build infos that aren't used by any dbg file
- */
-async function removeObsoleteBuildInfos(artifactsPath: string) {
-  const dbgFiles = await glob(path.join(artifactsPath, "**/*.dbg"));
-
-  const validBuildInfos = new Set<string>();
-  for (const dbgFile of dbgFiles) {
-    const { buildInfo } = await fsExtra.readJson(dbgFile);
-    validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfo));
-  }
-
-  const buildInfoFiles = await getBuildInfoFiles(artifactsPath);
-
-  for (const buildInfoFile of buildInfoFiles) {
-    if (!validBuildInfos.has(buildInfoFile)) {
-      log(`Removing buildInfo '${buildInfoFile}'`);
-      await fsExtra.unlink(buildInfoFile);
-    }
-  }
 }
 
 /**

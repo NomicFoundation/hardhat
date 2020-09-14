@@ -1,7 +1,9 @@
+import debug from "debug";
 import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
+import type { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
 import { Artifact, SolcInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
@@ -10,6 +12,8 @@ import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
 
 const ARTIFACTS_VERSION = 1;
+
+const log = debug("buidler:core:artifacts");
 
 /**
  * Retrieves an artifact for the given `contractName` from the compilation output.
@@ -125,11 +129,17 @@ export async function getAllArtifacts(
     "**/*.json"
   );
 
+  const dbgsGlob = path.join(artifactsPath, "**/*.dbg.json");
+
   const artifactFiles = await glob(path.join(artifactsPath, "**/*.json"), {
-    ignore: [buildInfosGlob],
+    ignore: [buildInfosGlob, dbgsGlob],
   });
 
   return artifactFiles;
+}
+
+function getAllDbgFiles(artifactsPath: string): Promise<string[]> {
+  return glob(path.join(artifactsPath, "**/*.dbg.json"));
 }
 
 function getAllArtifactsSync(artifactsPath: string): string[] {
@@ -202,7 +212,7 @@ export async function saveArtifact(
     path.dirname(artifactPath),
     pathToBuildInfo
   );
-  const dbgPath = artifactPath.replace(/json$/, "dbg");
+  const dbgPath = artifactPath.replace(/\.json$/, ".dbg.json");
 
   // write artifact and dbg
   await fsExtra.writeJSON(artifactPath, artifact, {
@@ -294,4 +304,57 @@ export async function getBuildInfoFiles(
 
 export function getBuildInfoFilesSync(artifactsPath: string): string[] {
   return globSync(path.join(artifactsPath, BUILD_INFO_DIR_NAME, "**/*.json"));
+}
+
+/**
+ * Remove all artifacts that don't correspond to the current solidity files
+ */
+export async function removeObsoleteArtifacts(
+  artifactsPath: string,
+  solidityFilesCache: SolidityFilesCache
+) {
+  const validArtifacts = new Set<string>();
+  for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
+    for (const artifact of artifacts) {
+      validArtifacts.add(
+        getArtifactPathSync(artifactsPath, globalName, artifact)
+      );
+    }
+  }
+
+  const existingArtifacts = await getAllArtifacts(artifactsPath);
+
+  for (const artifact of existingArtifacts) {
+    if (!validArtifacts.has(artifact)) {
+      // TODO-HH: consider moving all unlinks to a helper library that checks
+      // that removed files are inside the project
+      log(`Removing obsolete artifact '${artifact}'`);
+      fsExtra.unlinkSync(artifact);
+      const dbgFile = artifact.replace(/\.json$/, ".dbg.json");
+      // we use remove instead of unlink in case the dbg file doesn't exist
+      fsExtra.removeSync(dbgFile);
+    }
+  }
+}
+
+/**
+ * Remove all build infos that aren't used by any dbg file
+ */
+export async function removeObsoleteBuildInfos(artifactsPath: string) {
+  const dbgFiles = await getAllDbgFiles(artifactsPath);
+
+  const validBuildInfos = new Set<string>();
+  for (const dbgFile of dbgFiles) {
+    const { buildInfo } = await fsExtra.readJson(dbgFile);
+    validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfo));
+  }
+
+  const buildInfoFiles = await getBuildInfoFiles(artifactsPath);
+
+  for (const buildInfoFile of buildInfoFiles) {
+    if (!validBuildInfos.has(buildInfoFile)) {
+      log(`Removing buildInfo '${buildInfoFile}'`);
+      await fsExtra.unlink(buildInfoFile);
+    }
+  }
 }
