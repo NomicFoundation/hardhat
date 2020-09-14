@@ -40,6 +40,8 @@ export const TASK_COMPILE_CHECK_ERRORS = "compile:solidity:check-errors";
 export const TASK_COMPILE_LOG_COMPILATION_ERRORS =
   "compile:solidity:log:compilation-errors";
 export const TASK_COMPILE_EMIT_ARTIFACTS = "compile:solidity:emit-artifacts";
+export const TASK_COMPILE_GET_ARTIFACT_FROM_COMPILATION_OUTPUT =
+  "compile:solidity:get-artifact-from-compilation-output";
 export const TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES =
   "compile:solidity:handle-compilation-groups-failures";
 export const TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE =

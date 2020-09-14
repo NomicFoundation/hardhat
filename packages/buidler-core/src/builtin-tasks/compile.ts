@@ -46,6 +46,7 @@ import {
   TASK_COMPILE_COMPILE_SOLCJS,
   TASK_COMPILE_EMIT_ARTIFACTS,
   TASK_COMPILE_FILTER_COMPILATION_GROUPS,
+  TASK_COMPILE_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
   TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE,
   TASK_COMPILE_GET_COMPILATION_GROUPS,
   TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
@@ -473,7 +474,7 @@ export default function () {
         output: any;
         solidityFilesCache?: SolidityFilesCache;
       },
-      { config }
+      { config, run }
     ): Promise<{ numberOfContracts: number }> => {
       const pathToBuildInfo = await saveBuildInfo(
         config.paths.artifacts,
@@ -496,9 +497,12 @@ export default function () {
           log(`Emitting artifact for contract '${contractName}'`);
           numberOfContracts += 1;
 
-          const artifact = getArtifactFromContractOutput(
-            contractName,
-            contractOutput
+          const artifact = await run(
+            TASK_COMPILE_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
+            {
+              contractName,
+              contractOutput,
+            }
           );
 
           await saveArtifact(
@@ -524,6 +528,23 @@ export default function () {
       }
 
       return { numberOfContracts };
+    }
+  );
+
+  /**
+   * Generates the artifact for contract `contractName` given its compilation
+   * output.
+   */
+  internalTask(
+    TASK_COMPILE_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
+    async ({
+      contractName,
+      contractOutput,
+    }: {
+      contractName: string;
+      contractOutput: any;
+    }): Promise<any> => {
+      return getArtifactFromContractOutput(contractName, contractOutput);
     }
   );
 
