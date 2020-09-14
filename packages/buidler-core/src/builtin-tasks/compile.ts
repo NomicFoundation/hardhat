@@ -26,7 +26,10 @@ import {
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
 import { MatchingCompilerFailure } from "../internal/solidity/compilerMatch";
-import { DependencyGraph } from "../internal/solidity/dependencyGraph";
+import {
+  DependencyGraph,
+  IDependencyGraph,
+} from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
@@ -130,7 +133,7 @@ export default function () {
         solidityFilesCache,
       }: { sourceNames: string[]; solidityFilesCache: SolidityFilesCache },
       { config }
-    ): Promise<DependencyGraph> => {
+    ): Promise<IDependencyGraph> => {
       const parser = new Parser(solidityFilesCache ?? {});
       const resolver = new Resolver(config.paths.root, parser);
 
@@ -172,7 +175,7 @@ export default function () {
       {
         dependencyGraph,
         file,
-      }: { dependencyGraph: DependencyGraph; file: ResolvedFile },
+      }: { dependencyGraph: IDependencyGraph; file: ResolvedFile },
       { config }
     ): Promise<CompilationGroup | MatchingCompilerFailure> => {
       return getCompilationGroupFromFile(
@@ -193,7 +196,7 @@ export default function () {
   internalTask(
     TASK_COMPILE_GET_COMPILATION_GROUPS,
     async (
-      { dependencyGraph }: { dependencyGraph: DependencyGraph },
+      { dependencyGraph }: { dependencyGraph: IDependencyGraph },
       { run }
     ): Promise<[CompilationGroupsSuccess[], CompilationGroupsFailure[]]> => {
       const { partition } = await import("lodash");
@@ -645,7 +648,7 @@ export default function () {
     }: {
       compilationGroupsFailures: CompilationGroupsFailure[];
     }): Promise<string> => {
-      const { flatMap, flatten, partition } = await import("lodash");
+      const { flatMap } = await import("lodash");
       const nonCompilableOverriden = flatMap(
         compilationGroupsFailures,
         (x) => x.nonCompilableOverriden
@@ -717,7 +720,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
       let solidityFilesCache = await readSolidityFilesCache(config.paths);
 
-      const dependencyGraph: DependencyGraph = await run(
+      const dependencyGraph: IDependencyGraph = await run(
         TASK_COMPILE_GET_DEPENDENCY_GRAPH,
         { sourceNames, solidityFilesCache }
       );

@@ -10,7 +10,7 @@ import {
   getMatchingCompilerConfig,
   MatchingCompilerFailure,
 } from "./compilerMatch";
-import { DependencyGraph } from "./dependencyGraph";
+import { DependencyGraph, IDependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
 const log = debug("buidler:core:compilation-group");
@@ -200,7 +200,7 @@ class CompilationGroupMerger {
  * non-compilable files on failure.
  */
 export async function getCompilationGroupsFromConnectedComponent(
-  connectedComponent: DependencyGraph,
+  connectedComponent: IDependencyGraph,
   getFromFile: (
     file: ResolvedFile
   ) => Promise<CompilationGroup | MatchingCompilerFailure>
@@ -243,7 +243,7 @@ export async function getCompilationGroupsFromConnectedComponent(
 }
 
 export async function getCompilationGroupFromFile(
-  dependencyGraph: DependencyGraph,
+  dependencyGraph: IDependencyGraph,
   file: ResolvedFile,
   solidityConfig: MultiSolcConfig
 ): Promise<CompilationGroup | MatchingCompilerFailure> {

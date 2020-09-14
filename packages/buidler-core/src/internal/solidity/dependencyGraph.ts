@@ -1,10 +1,17 @@
 import { ResolvedFile, Resolver } from "./resolver";
 
-export class DependencyGraph {
+export interface IDependencyGraph {
+  getConnectedComponents: () => IDependencyGraph[];
+  getDependencies: (file: ResolvedFile) => ResolvedFile[];
+  getResolvedFiles: () => ResolvedFile[];
+  getTransitiveDependencies: (file: ResolvedFile) => ResolvedFile[];
+}
+
+export class DependencyGraph implements IDependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
-  ): Promise<DependencyGraph> {
+  ): Promise<IDependencyGraph> {
     const graph = new DependencyGraph();
 
     for (const resolvedFile of resolvedFiles) {
@@ -61,7 +68,7 @@ export class DependencyGraph {
     return [...transitiveDependencies];
   }
 
-  public getConnectedComponents(): DependencyGraph[] {
+  public getConnectedComponents(): IDependencyGraph[] {
     const undirectedGraph: Record<string, Set<string>> = {};
 
     for (const [
