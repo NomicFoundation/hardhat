@@ -10,7 +10,7 @@ import {
   getMatchingCompilerConfig,
   MatchingCompilerFailure,
 } from "./compilerMatch";
-import { DependencyGraph, IDependencyGraph } from "./dependencyGraph";
+import { IDependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
 const log = debug("buidler:core:compilation-group");
@@ -18,13 +18,25 @@ const log = debug("buidler:core:compilation-group");
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "*";
 
-export class CompilationGroup {
+export interface ICompilationGroup {
+  emitsArtifacts: (file?: ResolvedFile) => boolean;
+  getResolvedFiles: () => ResolvedFile[];
+  getVersion: () => string;
+  hasChanged: () => boolean;
+  merge: (other: ICompilationGroup) => ICompilationGroup;
+  getSolcConfig: () => SolcConfig;
+}
+
+export class CompilationGroup implements ICompilationGroup {
   private _filesToCompile: Map<
     string,
     { file: ResolvedFile; emitsArtifacts: boolean }
   > = new Map();
 
-  constructor(public solidityConfig: SolcConfig) {}
+  constructor(
+    public solidityConfig: SolcConfig,
+    private _cache: SolidityFilesCache
+  ) {}
 
   public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
     const fileToCompile = this._filesToCompile.get(file.globalName);
@@ -37,18 +49,21 @@ export class CompilationGroup {
     }
   }
 
-  public merge(group: CompilationGroup): CompilationGroup {
+  public merge(group: ICompilationGroup): ICompilationGroup {
     const { isEqual }: LoDashStatic = require("lodash");
     assertBuidlerInvariant(
-      isEqual(this.solidityConfig, group.solidityConfig),
+      isEqual(this.solidityConfig, group.getSolcConfig()),
       "Merging groups with different solidity configurations"
     );
-    const mergedGroups = new CompilationGroup(group.solidityConfig);
-    for (const { file, emitsArtifacts } of this._filesToCompile.values()) {
-      mergedGroups.addFileToCompile(file, emitsArtifacts);
+    const mergedGroups = new CompilationGroup(
+      group.getSolcConfig(),
+      this._cache
+    );
+    for (const file of this.getResolvedFiles()) {
+      mergedGroups.addFileToCompile(file, this.emitsArtifacts(file));
     }
-    for (const { file, emitsArtifacts } of group._filesToCompile.values()) {
-      mergedGroups.addFileToCompile(file, emitsArtifacts);
+    for (const file of group.getResolvedFiles()) {
+      mergedGroups.addFileToCompile(file, group.emitsArtifacts(file));
     }
     return mergedGroups;
   }
@@ -57,10 +72,14 @@ export class CompilationGroup {
    * Check if some file in the group has changed, or if the config of the group
    * is different from the last one that was used for that file
    */
-  public hasChanged(cache: SolidityFilesCache): boolean {
+  public hasChanged(): boolean {
     return this.getResolvedFiles().some((file) =>
-      hasChangedSinceLastCompilation(file, cache, this.solidityConfig)
+      hasChangedSinceLastCompilation(file, this._cache, this.solidityConfig)
     );
+  }
+
+  public getSolcConfig(): SolcConfig {
+    return this.solidityConfig;
   }
 
   public isEmpty() {
@@ -122,7 +141,7 @@ function hasChangedSinceLastCompilation(
 }
 
 export interface CompilationGroupsSuccess {
-  groups: CompilationGroup[];
+  groups: ICompilationGroup[];
 }
 
 export type CompilationGroupsFailure = Record<
@@ -149,27 +168,29 @@ export type CompilationGroupsResult =
 type SolidityConfigPredicate = (config: SolcConfig) => boolean;
 
 class CompilationGroupMerger {
-  private _compilationGroups: Map<SolcConfig, CompilationGroup[]> = new Map();
+  private _compilationGroups: Map<SolcConfig, ICompilationGroup[]> = new Map();
 
   constructor(private _isMergeable: SolidityConfigPredicate) {}
 
-  public getCompilationGroups(): CompilationGroup[] {
+  public getCompilationGroups(): ICompilationGroup[] {
     const { flatten }: LoDashStatic = require("lodash");
 
     return flatten([...this._compilationGroups.values()]);
   }
 
-  public addCompilationGroup(compilationGroup: CompilationGroup) {
-    const groups = this._compilationGroups.get(compilationGroup.solidityConfig);
+  public addCompilationGroup(compilationGroup: ICompilationGroup) {
+    const groups = this._compilationGroups.get(
+      compilationGroup.getSolcConfig()
+    );
 
-    if (this._isMergeable(compilationGroup.solidityConfig)) {
+    if (this._isMergeable(compilationGroup.getSolcConfig())) {
       if (groups === undefined) {
-        this._compilationGroups.set(compilationGroup.solidityConfig, [
+        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
           compilationGroup,
         ]);
       } else if (groups.length === 1) {
         const mergedGroups = groups[0].merge(compilationGroup);
-        this._compilationGroups.set(compilationGroup.solidityConfig, [
+        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
           mergedGroups,
         ]);
       } else {
@@ -180,11 +201,11 @@ class CompilationGroupMerger {
       }
     } else {
       if (groups === undefined) {
-        this._compilationGroups.set(compilationGroup.solidityConfig, [
+        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
           compilationGroup,
         ]);
       } else {
-        this._compilationGroups.set(compilationGroup.solidityConfig, [
+        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
           ...groups,
           compilationGroup,
         ]);
@@ -203,9 +224,9 @@ export async function getCompilationGroupsFromConnectedComponent(
   connectedComponent: IDependencyGraph,
   getFromFile: (
     file: ResolvedFile
-  ) => Promise<CompilationGroup | MatchingCompilerFailure>
+  ) => Promise<ICompilationGroup | MatchingCompilerFailure>
 ): Promise<CompilationGroupsResult> {
-  const compilationGroups: CompilationGroup[] = [];
+  const compilationGroups: ICompilationGroup[] = [];
   const failures: CompilationGroupsFailure = {
     nonCompilable: [],
     nonCompilableOverriden: [],
@@ -245,8 +266,9 @@ export async function getCompilationGroupsFromConnectedComponent(
 export async function getCompilationGroupFromFile(
   dependencyGraph: IDependencyGraph,
   file: ResolvedFile,
-  solidityConfig: MultiSolcConfig
-): Promise<CompilationGroup | MatchingCompilerFailure> {
+  solidityConfig: MultiSolcConfig,
+  cache: SolidityFilesCache
+): Promise<ICompilationGroup | MatchingCompilerFailure> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
     file
@@ -267,7 +289,7 @@ export async function getCompilationGroupFromFile(
     `File '${file.absolutePath}' will be compiled with version '${compilerConfig.config.version}'`
   );
 
-  const compilationGroup = new CompilationGroup(compilerConfig.config);
+  const compilationGroup = new CompilationGroup(compilerConfig.config, cache);
 
   compilationGroup.addFileToCompile(file, true);
   for (const dependency of transitiveDependencies) {
@@ -284,8 +306,8 @@ export async function getCompilationGroupFromFile(
  * Merge compilation groups affected by the solc #9573 bug
  */
 export function mergeCompilationGroupsWithBug(
-  compilationGroups: CompilationGroup[]
-): CompilationGroup[] {
+  compilationGroups: ICompilationGroup[]
+): ICompilationGroup[] {
   const merger = new CompilationGroupMerger(
     (solcConfig) =>
       solcConfig?.settings?.optimizer?.enabled === true &&
@@ -304,8 +326,8 @@ export function mergeCompilationGroupsWithBug(
  * Merge compilation groups not affected by the solc #9573 bug
  */
 export function mergeCompilationGroupsWithoutBug(
-  compilationGroups: CompilationGroup[]
-): CompilationGroup[] {
+  compilationGroups: ICompilationGroup[]
+): ICompilationGroup[] {
   const merger = new CompilationGroupMerger(
     (solcConfig) =>
       solcConfig?.settings?.optimizer?.enabled !== true ||

@@ -1,5 +1,5 @@
 import { SolcInput, SolcOptimizerConfig } from "../../../types";
-import { CompilationGroup } from "../compilationGroup";
+import { ICompilationGroup } from "../compilationGroup";
 import { DependencyGraph } from "../dependencyGraph";
 
 export function getInputFromDependencyGraph(
@@ -44,7 +44,7 @@ export function getInputFromDependencyGraph(
 }
 
 export function getInputFromCompilationGroup(
-  compilationGroup: CompilationGroup
+  compilationGroup: ICompilationGroup
 ): SolcInput {
   const sources: { [globalName: string]: { content: string } } = {};
   for (const file of compilationGroup.getResolvedFiles()) {
@@ -53,7 +53,7 @@ export function getInputFromCompilationGroup(
     };
   }
 
-  const { settings } = compilationGroup.solidityConfig;
+  const { settings } = compilationGroup.getSolcConfig();
 
   const input: SolcInput = {
     language: "Solidity",

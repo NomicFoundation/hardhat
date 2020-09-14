@@ -15,11 +15,11 @@ import { internalTask, task } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
-  CompilationGroup,
   CompilationGroupsFailure,
   CompilationGroupsSuccess,
   getCompilationGroupFromFile,
   getCompilationGroupsFromConnectedComponent,
+  ICompilationGroup,
   isCompilationGroupsSuccess,
   mergeCompilationGroupsWithoutBug,
 } from "../internal/solidity/compilationGroup";
@@ -175,13 +175,19 @@ export default function () {
       {
         dependencyGraph,
         file,
-      }: { dependencyGraph: IDependencyGraph; file: ResolvedFile },
+        solidityFilesCache,
+      }: {
+        dependencyGraph: IDependencyGraph;
+        file: ResolvedFile;
+        solidityFilesCache: SolidityFilesCache;
+      },
       { config }
-    ): Promise<CompilationGroup | MatchingCompilerFailure> => {
+    ): Promise<ICompilationGroup | MatchingCompilerFailure> => {
       return getCompilationGroupFromFile(
         dependencyGraph,
         file,
-        config.solidity
+        config.solidity,
+        solidityFilesCache
       );
     }
   );
@@ -196,7 +202,13 @@ export default function () {
   internalTask(
     TASK_COMPILE_GET_COMPILATION_GROUPS,
     async (
-      { dependencyGraph }: { dependencyGraph: IDependencyGraph },
+      {
+        dependencyGraph,
+        solidityFilesCache,
+      }: {
+        dependencyGraph: IDependencyGraph;
+        solidityFilesCache: SolidityFilesCache;
+      },
       { run }
     ): Promise<[CompilationGroupsSuccess[], CompilationGroupsFailure[]]> => {
       const { partition } = await import("lodash");
@@ -215,6 +227,7 @@ export default function () {
               run(TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE, {
                 file,
                 dependencyGraph,
+                solidityFilesCache,
               })
           )
         )
@@ -236,17 +249,14 @@ export default function () {
     async ({
       compilationGroups,
       force,
-      solidityFilesCache,
     }: {
-      compilationGroups: CompilationGroup[];
+      compilationGroups: ICompilationGroup[];
       force: boolean;
       solidityFilesCache: SolidityFilesCache;
-    }): Promise<CompilationGroup[]> => {
+    }): Promise<ICompilationGroup[]> => {
       const modifiedCompilationGroups = force
         ? compilationGroups
-        : compilationGroups.filter((group) =>
-            group.hasChanged(solidityFilesCache)
-          );
+        : compilationGroups.filter((group) => group.hasChanged());
 
       const emittingCompilationGroups = modifiedCompilationGroups.filter(
         (group) => group.emitsArtifacts()
@@ -269,8 +279,8 @@ export default function () {
     async ({
       compilationGroups,
     }: {
-      compilationGroups: CompilationGroup[];
-    }): Promise<CompilationGroup[]> => {
+      compilationGroups: ICompilationGroup[];
+    }): Promise<ICompilationGroup[]> => {
       return mergeCompilationGroupsWithoutBug(compilationGroups);
     }
   );
@@ -293,7 +303,7 @@ export default function () {
         solidityFilesCache,
         force,
       }: {
-        compilationGroups: CompilationGroup[];
+        compilationGroups: ICompilationGroup[];
         solidityFilesCache: SolidityFilesCache;
         force: boolean;
       },
@@ -327,7 +337,7 @@ export default function () {
     async ({
       compilationGroup,
     }: {
-      compilationGroup: CompilationGroup;
+      compilationGroup: ICompilationGroup;
     }): Promise<SolcInput> => {
       return getInputFromCompilationGroup(compilationGroup);
     }
@@ -462,7 +472,7 @@ export default function () {
         solidityFilesCache,
         force,
       }: {
-        compilationGroup: CompilationGroup;
+        compilationGroup: ICompilationGroup;
         input: SolcInput;
         output: any;
         solidityFilesCache?: SolidityFilesCache;
@@ -510,7 +520,7 @@ export default function () {
           solidityFilesCache[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
             globalName: file.globalName,
-            solcConfig: compilationGroup.solidityConfig,
+            solcConfig: compilationGroup.getSolcConfig(),
             imports: file.content.imports,
             versionPragmas: file.content.versionPragmas,
             artifacts: emittedArtifacts,
@@ -527,8 +537,8 @@ export default function () {
    */
   internalTask(
     TASK_COMPILE_LOG_COMPILE_GROUP_START,
-    async ({ compilationGroup }: { compilationGroup: CompilationGroup }) => {
-      console.log(`Compiling with ${compilationGroup.solidityConfig.version}`);
+    async ({ compilationGroup }: { compilationGroup: ICompilationGroup }) => {
+      console.log(`Compiling with ${compilationGroup.getVersion()}`);
     }
   );
 
@@ -540,7 +550,7 @@ export default function () {
     async ({
       numberOfContracts,
     }: {
-      compilationGroup: CompilationGroup;
+      compilationGroup: ICompilationGroup;
       numberOfContracts: number;
     }) => {
       console.log(
@@ -564,7 +574,7 @@ export default function () {
         solidityFilesCache,
         force,
       }: {
-        compilationGroup: CompilationGroup;
+        compilationGroup: ICompilationGroup;
         solidityFilesCache?: SolidityFilesCache;
         force: boolean;
       },
@@ -578,7 +588,7 @@ export default function () {
       });
 
       const output = await run(TASK_COMPILE_COMPILE, {
-        solcVersion: compilationGroup.solidityConfig.version,
+        solcVersion: compilationGroup.getVersion(),
         input,
       });
 
@@ -734,7 +744,10 @@ ${other.map((x) => `* ${x}`).join("\n")}
       const [compilationGroupsSuccesses, compilationGroupsFailures]: [
         CompilationGroupsSuccess[],
         CompilationGroupsFailure[]
-      ] = await run(TASK_COMPILE_GET_COMPILATION_GROUPS, { dependencyGraph });
+      ] = await run(TASK_COMPILE_GET_COMPILATION_GROUPS, {
+        dependencyGraph,
+        solidityFilesCache,
+      });
 
       await run(TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES, {
         compilationGroupsFailures,
@@ -744,12 +757,12 @@ ${other.map((x) => `* ${x}`).join("\n")}
         compilationGroupsSuccesses.map((x) => x.groups)
       );
 
-      const filteredCompilationGroups: CompilationGroup[] = await run(
+      const filteredCompilationGroups: ICompilationGroup[] = await run(
         TASK_COMPILE_FILTER_COMPILATION_GROUPS,
         { compilationGroups, force, solidityFilesCache }
       );
 
-      const mergedCompilationGroups: CompilationGroup[] = await run(
+      const mergedCompilationGroups: ICompilationGroup[] = await run(
         TASK_COMPILE_MERGE_COMPILATION_GROUPS,
         { compilationGroups: filteredCompilationGroups }
       );
