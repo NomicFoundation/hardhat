@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { DeepPartial, DeepReadonly, Omit } from "ts-essentials";
+import { DeepReadonly, Omit } from "ts-essentials";
 
 import * as types from "./internal/core/params/argumentTypes";
 

@@ -1,5 +1,5 @@
 import debug from "debug";
-import { flatten, isEqual } from "lodash";
+import type { LoDashStatic } from "lodash";
 import semver from "semver";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
@@ -39,6 +39,7 @@ export class CompilationGroup {
   }
 
   public merge(group: CompilationGroup): CompilationGroup {
+    const { isEqual }: LoDashStatic = require("lodash");
     assertBuidlerInvariant(
       isEqual(this.solidityConfig, group.solidityConfig),
       "Merging groups with different solidity configurations"
@@ -102,6 +103,8 @@ function hasChangedSinceLastCompilation(
   solidityFilesCache: SolidityFilesCache,
   config?: SolcConfig
 ): boolean {
+  const { isEqual }: LoDashStatic = require("lodash");
+
   const fileCache = solidityFilesCache[file.absolutePath];
 
   if (fileCache === undefined) {
@@ -153,6 +156,8 @@ class CompilationGroupMerger {
   constructor(private _isMergeable: SolidityConfigPredicate) {}
 
   public getCompilationGroups(): CompilationGroup[] {
+    const { flatten }: LoDashStatic = require("lodash");
+
     return flatten([...this._compilationGroups.values()]);
   }
 

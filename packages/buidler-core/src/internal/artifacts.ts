@@ -1,4 +1,3 @@
-import { sha256 } from "ethereum-cryptography/sha256";
 import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
@@ -224,6 +223,8 @@ export async function saveBuildInfo(
   output: any,
   solcVersion: string
 ): Promise<string> {
+  const { sha256 } = await import("ethereum-cryptography/sha256");
+
   const buildInfoDir = path.join(artifactsPath, BUILD_INFO_DIR_NAME);
   await fsExtra.ensureDir(buildInfoDir);
 

@@ -1,8 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
 import fsExtra from "fs-extra";
-// TODO-HH: import lodash and other libraries dynamically
-import { flatMap, flatten, partition } from "lodash";
 import path from "path";
 
 import {
@@ -61,11 +59,7 @@ import {
   TASK_COMPILE_MERGE_COMPILATION_GROUPS,
   TASK_COMPILE_SOLIDITY,
 } from "./task-names";
-import {
-  readSolidityFilesCache,
-  SolidityFilesCache,
-  writeSolidityFilesCache,
-} from "./utils/solidity-files-cache";
+import type { SolidityFilesCache } from "./utils/solidity-files-cache";
 
 interface CompilationError {
   error: any;
@@ -202,6 +196,8 @@ export default function () {
       { dependencyGraph }: { dependencyGraph: DependencyGraph },
       { run }
     ): Promise<[CompilationGroupsSuccess[], CompilationGroupsFailure[]]> => {
+      const { partition } = await import("lodash");
+
       const connectedComponents = dependencyGraph.getConnectedComponents();
 
       log(
@@ -649,6 +645,7 @@ export default function () {
     }: {
       compilationGroupsFailures: CompilationGroupsFailure[];
     }): Promise<string> => {
+      const { flatMap, flatten, partition } = await import("lodash");
       const nonCompilableOverriden = flatMap(
         compilationGroupsFailures,
         (x) => x.nonCompilableOverriden
@@ -707,6 +704,11 @@ ${other.map((x) => `* ${x}`).join("\n")}
   internalTask(
     TASK_COMPILE_SOLIDITY,
     async ({ force: force }: { force: boolean }, { config, run }) => {
+      const { flatten } = await import("lodash");
+      const { readSolidityFilesCache, writeSolidityFilesCache } = await import(
+        "./utils/solidity-files-cache"
+      );
+
       const sourcePaths: string[] = await run(TASK_COMPILE_GET_SOURCE_PATHS);
 
       const sourceNames: string[] = await run(TASK_COMPILE_GET_SOURCE_NAMES, {
