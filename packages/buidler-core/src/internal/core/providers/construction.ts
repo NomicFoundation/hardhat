@@ -17,6 +17,16 @@ export function isHDAccountsConfig(
   return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }
 
+function isHttpNetworkConfig(
+  netConfig: NetworkConfig
+): netConfig is HttpNetworkConfig {
+  return "url" in netConfig;
+}
+
+// This function is let's you import a provider dynamically in a pretty
+// type-safe way.
+// `ProviderNameT` and `name` must be the same literal string. TS enforces it.
+// `ModuleT` and `filePath` must also be the same, but this is not enforced.
 function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
   filePath: string,
   name: ProviderNameT
@@ -133,11 +143,8 @@ export function applyProviderWrappers(
     "ChainIdValidatorProvider"
   >("./chainId", "ChainIdValidatorProvider");
 
-  const isHttpNetworkConfig = "url" in netConfig;
-
-  if (isHttpNetworkConfig) {
-    const httpNetConfig = netConfig as Partial<HttpNetworkConfig>;
-    const accounts = httpNetConfig.accounts;
+  if (isHttpNetworkConfig(netConfig)) {
+    const accounts = netConfig.accounts;
 
     if (Array.isArray(accounts)) {
       provider = new LocalAccountsProvider(provider, accounts);
@@ -153,7 +160,7 @@ export function applyProviderWrappers(
 
     // TODO: Add some extension mechanism for account plugins here
 
-    if (typeof httpNetConfig.gas !== "number") {
+    if (typeof netConfig.gas !== "number") {
       provider = new GanacheGasMultiplierProvider(provider);
     }
   }
@@ -176,7 +183,7 @@ export function applyProviderWrappers(
     provider = new FixedGasPriceProvider(provider, netConfig.gasPrice);
   }
 
-  if (isHttpNetworkConfig && netConfig.chainId !== undefined) {
+  if (isHttpNetworkConfig(netConfig) && netConfig.chainId !== undefined) {
     provider = new ChainIdValidatorProvider(provider, netConfig.chainId);
   }
 
