@@ -7,7 +7,7 @@ import {
   getArtifactFromContractOutput,
 } from "../internal/artifacts";
 import { internalTask, task } from "../internal/core/config/config-env";
-import { BuidlerError } from "../internal/core/errors";
+import { assertBuidlerInvariant, BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
   CompilationGroupsFailure,
@@ -127,10 +127,10 @@ export default function () {
       {
         sourceNames,
         solidityFilesCache,
-      }: { sourceNames: string[]; solidityFilesCache: SolidityFilesCache },
+      }: { sourceNames: string[]; solidityFilesCache?: SolidityFilesCache },
       { config }
     ): Promise<IDependencyGraph> => {
-      const parser = new Parser(solidityFilesCache ?? {});
+      const parser = new Parser(solidityFilesCache);
       const resolver = new Resolver(config.paths.root, parser);
 
       const resolvedFiles = await Promise.all(
@@ -175,10 +175,15 @@ export default function () {
       }: {
         dependencyGraph: IDependencyGraph;
         file: ResolvedFile;
-        solidityFilesCache: SolidityFilesCache;
+        solidityFilesCache?: SolidityFilesCache;
       },
       { config }
     ): Promise<ICompilationGroup | MatchingCompilerFailure> => {
+      assertBuidlerInvariant(
+        solidityFilesCache !== undefined,
+        "The implementation of this task needs a defined solidityFilesCache"
+      );
+
       return getCompilationGroupFromFile(
         dependencyGraph,
         file,
@@ -203,7 +208,7 @@ export default function () {
         solidityFilesCache,
       }: {
         dependencyGraph: IDependencyGraph;
-        solidityFilesCache: SolidityFilesCache;
+        solidityFilesCache?: SolidityFilesCache;
       },
       { run }
     ): Promise<[CompilationGroupsSuccess[], CompilationGroupsFailure[]]> => {
@@ -248,7 +253,7 @@ export default function () {
     }: {
       compilationGroups: ICompilationGroup[];
       force: boolean;
-      solidityFilesCache: SolidityFilesCache;
+      solidityFilesCache?: SolidityFilesCache;
     }): Promise<ICompilationGroup[]> => {
       const modifiedCompilationGroups = force
         ? compilationGroups
@@ -295,7 +300,7 @@ export default function () {
         solidityFilesCache,
       }: {
         compilationGroups: ICompilationGroup[];
-        solidityFilesCache: SolidityFilesCache;
+        solidityFilesCache?: SolidityFilesCache;
       },
       { run }
     ) => {
