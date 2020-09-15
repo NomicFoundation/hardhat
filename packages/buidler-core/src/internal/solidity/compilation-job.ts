@@ -16,8 +16,9 @@ const SOLC_BUG_9573_VERSIONS = "*";
 
 export interface ICompilationJob {
   emitsArtifacts(file: ResolvedFile): boolean;
-  getResolvedFiles(): ResolvedFile[];
+  hasSolc9573Bug(): boolean;
   merge(other: ICompilationJob): ICompilationJob;
+  getResolvedFiles(): ResolvedFile[];
   getSolcConfig(): SolcConfig;
 }
 
@@ -45,8 +46,6 @@ export function isCompilationJobsFailure(
 export type CompilationJobsResult =
   | CompilationJobsSuccess
   | CompilationJobsFailure;
-
-type SolidityConfigPredicate = (config: SolcConfig) => boolean;
 
 export interface MatchingCompilerFailure {
   reason:
@@ -76,6 +75,13 @@ export class CompilationJob implements ICompilationJob {
     if (fileToCompile === undefined || emitsArtifacts) {
       this._filesToCompile.set(file.globalName, { file, emitsArtifacts });
     }
+  }
+
+  public hasSolc9573Bug(): boolean {
+    return (
+      this.solidityConfig?.settings?.optimizer?.enabled === true &&
+      semver.satisfies(this.solidityConfig.version, SOLC_BUG_9573_VERSIONS)
+    );
   }
 
   public merge(job: ICompilationJob): ICompilationJob {
@@ -126,7 +132,7 @@ export class CompilationJob implements ICompilationJob {
 class CompilationJobsMerger {
   private _compilationJobs: Map<SolcConfig, ICompilationJob[]> = new Map();
 
-  constructor(private _isMergeable: SolidityConfigPredicate) {}
+  constructor(private _isMergeable: (job: ICompilationJob) => boolean) {}
 
   public getCompilationJobs(): ICompilationJob[] {
     const { flatten }: LoDashStatic = require("lodash");
@@ -137,7 +143,7 @@ class CompilationJobsMerger {
   public addCompilationJob(compilationJob: ICompilationJob) {
     const jobs = this._compilationJobs.get(compilationJob.getSolcConfig());
 
-    if (this._isMergeable(compilationJob.getSolcConfig())) {
+    if (this._isMergeable(compilationJob)) {
       if (jobs === undefined) {
         this._compilationJobs.set(compilationJob.getSolcConfig(), [
           compilationJob,
@@ -258,11 +264,7 @@ export async function getCompilationJobFromFile(
 export function mergeCompilationJobsWithBug(
   compilationJobs: ICompilationJob[]
 ): ICompilationJob[] {
-  const merger = new CompilationJobsMerger(
-    (solcConfig) =>
-      solcConfig?.settings?.optimizer?.enabled === true &&
-      semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
-  );
+  const merger = new CompilationJobsMerger((job) => job.hasSolc9573Bug());
   for (const job of compilationJobs) {
     merger.addCompilationJob(job);
   }
@@ -278,11 +280,7 @@ export function mergeCompilationJobsWithBug(
 export function mergeCompilationJobsWithoutBug(
   compilationJobs: ICompilationJob[]
 ): ICompilationJob[] {
-  const merger = new CompilationJobsMerger(
-    (solcConfig) =>
-      solcConfig?.settings?.optimizer?.enabled !== true ||
-      !semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
-  );
+  const merger = new CompilationJobsMerger((job) => !job.hasSolc9573Bug());
   for (const job of compilationJobs) {
     merger.addCompilationJob(job);
   }
