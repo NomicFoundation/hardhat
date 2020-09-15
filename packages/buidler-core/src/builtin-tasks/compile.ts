@@ -17,11 +17,11 @@ import {
   getCompilationGroupsFromConnectedComponent,
   ICompilationGroup,
   isCompilationGroupsSuccess,
+  MatchingCompilerFailure,
   mergeCompilationGroupsWithoutBug,
 } from "../internal/solidity/compilationGroup";
 import { Compiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
-import { MatchingCompilerFailure } from "../internal/solidity/compilerMatch";
 import {
   DependencyGraph,
   IDependencyGraph,
@@ -762,7 +762,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
   internalTask(
     TASK_COMPILE_SOLIDITY,
     async ({ force: force }: { force: boolean }, { config, run }) => {
-      const { flatMap, flatten } = await import("lodash");
+      const { flatten } = await import("lodash");
       const { readSolidityFilesCache, writeSolidityFilesCache } = await import(
         "./utils/solidity-files-cache"
       );
