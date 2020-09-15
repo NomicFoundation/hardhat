@@ -71,12 +71,6 @@ type EmittedArtifactsPerJob = Array<{
   emittedArtifactsPerFile: EmittedArtifactsPerFile;
 }>;
 
-interface CompilationError {
-  error: any;
-  severity: "warning" | "error";
-  isConsole: boolean;
-}
-
 function isConsoleLogError(error: any): boolean {
   return (
     error.type === "TypeError" &&
@@ -428,32 +422,30 @@ export default function () {
    * information useful to the user.
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
-    .addParam("compilationErrors", undefined, undefined, types.any)
-    .setAction(
-      async ({
-        compilationErrors,
-      }: {
-        compilationErrors: CompilationError[];
-      }) => {
-        for (const { error, severity } of compilationErrors) {
-          if (severity === "error") {
-            console.error(chalk.red(error.formattedMessage));
-          } else {
-            console.warn(chalk.yellow(error.formattedMessage));
-          }
-        }
+    .addParam("output", undefined, undefined, types.any)
+    .setAction(async ({ output }: { output: any }) => {
+      if (output?.errors === undefined) {
+        return;
+      }
 
-        const hasConsoleErrors = compilationErrors.some((x) => x.isConsole);
-        if (hasConsoleErrors) {
-          console.error(
-            chalk.red(
-              `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
-            )
-          );
-          console.log();
+      for (const error of output.errors) {
+        if (error.severity === "error") {
+          console.error(chalk.red(error.formattedMessage));
+        } else {
+          console.warn(chalk.yellow(error.formattedMessage));
         }
       }
-    );
+
+      const hasConsoleErrors = output.errors.some(isConsoleLogError);
+      if (hasConsoleErrors) {
+        console.error(
+          chalk.red(
+            `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
+          )
+        );
+        console.log();
+      }
+    });
 
   /**
    * Receives a solc output and checks if there are errors. Throws if there are
@@ -465,38 +457,12 @@ export default function () {
   internalTask(TASK_COMPILE_SOLIDITY_CHECK_ERRORS)
     .addParam("output", undefined, undefined, types.any)
     .setAction(async ({ output }: { output: any }, { run }) => {
-      const compilationErrors: CompilationError[] = [];
-      if (output.errors) {
-        for (const error of output.errors) {
-          if (error.severity === "error") {
-            if (isConsoleLogError(error)) {
-              compilationErrors.push({
-                error,
-                severity: "error",
-                isConsole: true,
-              });
-            } else {
-              compilationErrors.push({
-                error,
-                severity: "error",
-                isConsole: false,
-              });
-            }
-          } else {
-            compilationErrors.push({
-              error,
-              severity: "warning",
-              isConsole: false,
-            });
-          }
-        }
-      }
-
       await run(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS, {
-        compilationErrors,
+        output,
       });
 
-      const hasErrors = compilationErrors.some((x) => x.severity === "error");
+      const hasErrors =
+        output.errors && output.errors.some((x: any) => x.severity === "error");
 
       if (hasErrors || !output.contracts) {
         log(
