@@ -534,7 +534,7 @@ export default function () {
         const pathToBuildInfo = await artifacts.saveBuildInfo(
           input,
           output,
-          compilationJob.getVersion()
+          compilationJob.getSolcConfig().version
         );
 
         const emittedArtifactsPerFile: EmittedArtifactsPerFile = [];
@@ -600,7 +600,7 @@ export default function () {
     .addParam("compilationJob", undefined, undefined, types.any)
     .setAction(
       async ({ compilationJob }: { compilationJob: ICompilationJob }) => {
-        console.log(`Compiling with ${compilationJob.getVersion()}`);
+        console.log(`Compiling with ${compilationJob.getSolcConfig().version}`);
       }
     );
 
@@ -641,7 +641,11 @@ export default function () {
         },
         { run }
       ): Promise<{ emittedArtifactsPerFile: EmittedArtifactsPerFile }> => {
-        log(`Compiling job with version '${compilationJob.getVersion()}'`);
+        log(
+          `Compiling job with version '${
+            compilationJob.getSolcConfig().version
+          }'`
+        );
         await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START, {
           compilationJob,
         });
@@ -654,7 +658,7 @@ export default function () {
         );
 
         const output = await run(TASK_COMPILE_SOLIDITY_COMPILE, {
-          solcVersion: compilationJob.getVersion(),
+          solcVersion: compilationJob.getSolcConfig().version,
           input,
         });
 

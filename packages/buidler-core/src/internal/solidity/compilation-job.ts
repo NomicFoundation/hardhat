@@ -17,7 +17,6 @@ const SOLC_BUG_9573_VERSIONS = "*";
 export interface ICompilationJob {
   emitsArtifacts: (file?: ResolvedFile) => boolean;
   getResolvedFiles: () => ResolvedFile[];
-  getVersion: () => string;
   merge: (other: ICompilationJob) => ICompilationJob;
   getSolcConfig: () => SolcConfig;
 }
@@ -101,10 +100,6 @@ export class CompilationJob implements ICompilationJob {
 
   public isEmpty() {
     return this._filesToCompile.size === 0;
-  }
-
-  public getVersion() {
-    return this.solidityConfig.version;
   }
 
   public getResolvedFiles(): ResolvedFile[] {
