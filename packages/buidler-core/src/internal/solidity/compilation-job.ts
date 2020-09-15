@@ -144,9 +144,7 @@ class CompilationJobsMerger {
   }
 
   public addCompilationJob(compilationJob: ICompilationJob) {
-    const jobs = this._compilationJobs.get(
-      compilationJob.getSolcConfig()
-    );
+    const jobs = this._compilationJobs.get(compilationJob.getSolcConfig());
 
     if (this._isMergeable(compilationJob.getSolcConfig())) {
       if (jobs === undefined) {
@@ -155,9 +153,7 @@ class CompilationJobsMerger {
         ]);
       } else if (jobs.length === 1) {
         const mergedJobs = jobs[0].merge(compilationJob);
-        this._compilationJobs.set(compilationJob.getSolcConfig(), [
-          mergedJobs,
-        ]);
+        this._compilationJobs.set(compilationJob.getSolcConfig(), [mergedJobs]);
       } else {
         assertBuidlerInvariant(
           false,
@@ -221,9 +217,7 @@ export async function getCompilationJobsFromConnectedComponent(
     return failures;
   }
 
-  const mergedCompilationJobs = mergeCompilationJobsWithBug(
-    compilationJobs
-  );
+  const mergedCompilationJobs = mergeCompilationJobsWithBug(compilationJobs);
 
   return { jobs: mergedCompilationJobs };
 }
