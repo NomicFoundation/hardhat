@@ -318,27 +318,34 @@ export default function () {
   /**
    * Prints a message when there's nothing to compile.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE, async () => {
-    console.log("Nothing to compile");
-  });
+  internalTask(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE)
+    .addParam("quiet", undefined, undefined, types.boolean)
+    .setAction(async ({ quiet }: { quiet: boolean }) => {
+      if (!quiet) {
+        console.log("Nothing to compile");
+      }
+    });
 
   /**
    * Receives a list of compilation jobs and sends each one to be compiled.
    */
   internalTask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
     .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async (
         {
           compilationJobs,
+          quiet,
         }: {
           compilationJobs: ICompilationJob[];
+          quiet: boolean;
         },
         { run }
       ): Promise<{ emittedArtifactsPerJob: EmittedArtifactsPerJob }> => {
         if (compilationJobs.length === 0) {
           log(`No compilation jobs to compile`);
-          await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE);
+          await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE, { quiet });
           return { emittedArtifactsPerJob: [] };
         }
 
@@ -348,6 +355,7 @@ export default function () {
             TASK_COMPILE_SOLIDITY_COMPILE_JOB,
             {
               compilationJob,
+              quiet,
             }
           );
 
@@ -423,7 +431,8 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     .addParam("output", undefined, undefined, types.any)
-    .setAction(async ({ output }: { output: any }) => {
+    .addParam("quiet", undefined, undefined, types.boolean)
+    .setAction(async ({ output }: { output: any; quiet: boolean }) => {
       if (output?.errors === undefined) {
         return;
       }
@@ -456,21 +465,26 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_CHECK_ERRORS)
     .addParam("output", undefined, undefined, types.any)
-    .setAction(async ({ output }: { output: any }, { run }) => {
-      await run(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS, {
-        output,
-      });
+    .addParam("quiet", undefined, undefined, types.boolean)
+    .setAction(
+      async ({ output, quiet }: { output: any; quiet: boolean }, { run }) => {
+        await run(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS, {
+          output,
+          quiet,
+        });
 
-      const hasErrors =
-        output.errors && output.errors.some((x: any) => x.severity === "error");
+        const hasErrors =
+          output.errors &&
+          output.errors.some((x: any) => x.severity === "error");
 
-      if (hasErrors || !output.contracts) {
-        log(
-          `Compilation failure. hasErrors='${hasErrors}' output.contracts='${!!output.contracts}'`
-        );
-        throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+        if (hasErrors || !output.contracts) {
+          log(
+            `Compilation failure. hasErrors='${hasErrors}' output.contracts='${!!output.contracts}'`
+          );
+          throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+        }
       }
-    });
+    );
 
   /**
    * Saves to disk the artifacts for a compilation job. These artifacts
@@ -564,9 +578,20 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START)
     .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
-      async ({ compilationJob }: { compilationJob: ICompilationJob }) => {
-        console.log(`Compiling with ${compilationJob.getSolcConfig().version}`);
+      async ({
+        compilationJob,
+        quiet,
+      }: {
+        compilationJob: ICompilationJob;
+        quiet: boolean;
+      }) => {
+        if (!quiet) {
+          console.log(
+            `Compiling with ${compilationJob.getSolcConfig().version}`
+          );
+        }
       }
     );
 
@@ -574,14 +599,22 @@ export default function () {
    * Prints a message after compiling a job.
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END)
+    .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("emittedArtifactsPerFile", undefined, undefined, types.any)
+    .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async ({
         emittedArtifactsPerFile,
+        quiet,
       }: {
         compilationJob: ICompilationJob;
         emittedArtifactsPerFile: EmittedArtifactsPerFile;
+        quiet: boolean;
       }) => {
+        if (quiet) {
+          return;
+        }
+
         const numberOfContracts = emittedArtifactsPerFile.length;
         console.log(
           "Compiled",
@@ -598,12 +631,15 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
     .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async (
         {
           compilationJob,
+          quiet,
         }: {
           compilationJob: ICompilationJob;
+          quiet: boolean;
         },
         { run }
       ): Promise<{ emittedArtifactsPerFile: EmittedArtifactsPerFile }> => {
@@ -614,6 +650,7 @@ export default function () {
         );
         await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START, {
           compilationJob,
+          quiet,
         });
 
         const input: SolcInput = await run(
@@ -628,7 +665,7 @@ export default function () {
           input,
         });
 
-        await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output });
+        await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
 
         if (output === undefined) {
           log(`No output for compilation job`);
@@ -647,6 +684,7 @@ export default function () {
         await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END, {
           compilationJob,
           emittedArtifactsPerFile,
+          quiet,
         });
 
         return { emittedArtifactsPerFile };
@@ -757,8 +795,12 @@ ${other.map((x) => `* ${x}`).join("\n")}
    */
   internalTask(TASK_COMPILE_SOLIDITY)
     .addParam("force", undefined, undefined, types.boolean)
+    .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
-      async ({ force: force }: { force: boolean }, { config, run }) => {
+      async (
+        { force, quiet }: { force: boolean; quiet: boolean },
+        { config, run }
+      ) => {
         const { flatten } = await import("lodash");
         const {
           readSolidityFilesCache,
@@ -821,6 +863,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
           TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
           {
             compilationJobs: mergedCompilationJobs,
+            quiet,
           }
         );
 
@@ -873,6 +916,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
    */
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
+    .addFlag("quiet", "Suppress all console output")
     .setAction(async (compilationArgs: any, { run }) => {
       const compilationTasks: string[] = await run(
         TASK_COMPILE_GET_COMPILATION_TASKS
