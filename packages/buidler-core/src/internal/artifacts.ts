@@ -7,7 +7,7 @@ import type { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-c
 import { Artifact, SolcInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
-import { BuidlerError } from "./core/errors";
+import { assertBuidlerInvariant, BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
 
@@ -53,6 +53,9 @@ export class Artifacts {
     return artifactFiles;
   }
 
+  /**
+   * Return a list with the absolute paths of all the existing build info files.
+   */
   public async getBuildInfoFiles(): Promise<string[]> {
     return glob(this._buildInfosGlob);
   }
@@ -61,16 +64,23 @@ export class Artifacts {
     return globSync(this._buildInfosGlob);
   }
 
+  /**
+   * Return a list with the absolute paths of all the existing dbg files.
+   */
   public async getDbgFiles(): Promise<string[]> {
     return glob(this._dbgsGlob);
   }
 
+  /**
+   * Checks if the artifact that corresponds to the given global name and
+   * contract name exists.
+   */
   public async artifactExists(
     globalName: string,
-    artifactName: string
+    contractName: string
   ): Promise<boolean> {
     return fsExtra.pathExists(
-      this._getArtifactPathSync(globalName, artifactName)
+      this._getArtifactPathSync(globalName, contractName)
     );
   }
 
@@ -83,7 +93,7 @@ export class Artifacts {
   /**
    * Asynchronically reads an artifact with the given `contractName` from the given `artifactPath`.
    *
-   * @param name          either the contract's name or the fully qualified name
+   * @param name  either the contract's name or the fully qualified name
    */
   public async readArtifact(name: string): Promise<Artifact> {
     const artifactPath = await this._getArtifactPath(name);
@@ -156,6 +166,10 @@ export class Artifacts {
     );
   }
 
+  /**
+   * Saves a build info file using the given data, and returns the absolute path
+   * to the written file.
+   */
   public async saveBuildInfo(
     input: SolcInput,
     output: any,
@@ -184,18 +198,20 @@ export class Artifacts {
    * Remove all artifacts that don't correspond to the current solidity files
    */
   public async removeObsoleteArtifacts(solidityFilesCache: SolidityFilesCache) {
-    const validArtifacts = new Set<string>();
+    const validArtifactsPaths = new Set<string>();
     for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
       for (const artifact of artifacts) {
-        validArtifacts.add(this._getArtifactPathSync(globalName, artifact));
+        validArtifactsPaths.add(
+          this._getArtifactPathSync(globalName, artifact)
+        );
       }
     }
 
-    const existingArtifacts = await this.getArtifacts();
+    const existingArtifactsPaths = await this.getArtifacts();
 
-    for (const artifact of existingArtifacts) {
-      if (!validArtifacts.has(artifact)) {
-        fsExtra.unlinkSync(artifact);
+    for (const artifactPath of existingArtifactsPaths) {
+      if (!validArtifactsPaths.has(artifactPath)) {
+        await this._removeArtifactFiles(artifactPath);
       }
     }
   }
@@ -208,8 +224,10 @@ export class Artifacts {
 
     const validBuildInfos = new Set<string>();
     for (const dbgFile of dbgFiles) {
-      const { buildInfo } = await fsExtra.readJson(dbgFile);
-      validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfo));
+      const buildInfoFile = await this._getBuildInfoFromDbg(dbgFile);
+      if (buildInfoFile !== undefined) {
+        validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfoFile));
+      }
     }
 
     const buildInfoFiles = await this.getBuildInfoFiles();
@@ -222,6 +240,14 @@ export class Artifacts {
     }
   }
 
+  /**
+   * Returns the absolute path to the artifact that corresponds to the given
+   * name.
+   *
+   * If the name is fully qualified, the path is computed from it.  If not, an
+   * artifact that matches the given name is searched in the existing artifacts.
+   * If there is an ambiguity, an error is thrown.
+   */
   private async _getArtifactPath(name: string): Promise<string> {
     if (this._isFullyQualified(name)) {
       return this._getArtifactPathFromFullyQualifiedName(name);
@@ -253,20 +279,18 @@ export class Artifacts {
   }
 
   private _getArtifactPathFromFullyQualifiedName(name: string): string {
-    const nameWithoutSol = name.replace(/\.sol/, "");
-    return path.join(this._artifactsPath, `${nameWithoutSol}.json`);
+    const parts = name.split(":");
+    assertBuidlerInvariant(
+      parts.length === 2,
+      "A fully qualified contract name should have exactly one colon"
+    );
+    const [globalName, contractName] = parts;
+    return path.join(this._artifactsPath, globalName, `${contractName}.json`);
   }
 
   private _getArtifactPathFromFiles(name: string, files: string[]): string {
     const matchingFiles = files.filter((file) => {
-      const colonIndex = file.indexOf(":");
-      if (colonIndex === -1) {
-        // TODO throw a proper BuidlerError
-        // tslint:disable only-buidler-error
-        throw new Error("should never happen");
-      }
-      const contractName = file.slice(colonIndex + 1);
-      return contractName === `${name}.json`;
+      return file === `${name}.json`;
     });
 
     if (matchingFiles.length === 0) {
@@ -289,15 +313,56 @@ export class Artifacts {
     return matchingFiles[0];
   }
 
+  /**
+   * Returns the FQN of a contract giving the absolute path to its artifact.
+   *
+   * For example, given a path like
+   * `/path/to/project/artifacts/contracts/Foo.sol/Bar.json`, it'll return the
+   * FQN `contracts/Foo.sol:Bar`
+   */
   private _getFullyQualifiedName(absolutePath: string): string {
-    return path
-      .relative(this._artifactsPath, absolutePath)
-      .replace(".json", "")
-      .replace(":", ".sol:");
+    const beforeColon = path.relative(
+      this._artifactsPath,
+      path.dirname(absolutePath)
+    );
+    const afterColon = path.basename(absolutePath).replace(".json", "");
+
+    return `${beforeColon}:${afterColon}`;
   }
 
   private _isFullyQualified(name: string) {
     return name.includes(":");
+  }
+
+  /**
+   * Remove the artifact file, its companion dbg and, if it exists, its build
+   * info file.
+   */
+  private async _removeArtifactFiles(artifactPath: string) {
+    await fsExtra.remove(artifactPath);
+
+    const dbgPath = artifactPath.replace(/\.json$/, ".dbg.json");
+    const buildInfoPath = await this._getBuildInfoFromDbg(dbgPath);
+
+    await fsExtra.remove(dbgPath);
+    if (buildInfoPath !== undefined) {
+      await fsExtra.remove(buildInfoPath);
+    }
+  }
+
+  /**
+   * Given the path to a dbg file, returns the absolute path to its
+   * corresponding build info file if it exists, or undefined otherwise.
+   */
+  private async _getBuildInfoFromDbg(
+    dbgPath: string
+  ): Promise<string | undefined> {
+    if (await fsExtra.pathExists(dbgPath)) {
+      const { buildInfo } = await fsExtra.readJson(dbgPath);
+      return path.resolve(path.dirname(dbgPath), buildInfo);
+    }
+
+    return undefined;
   }
 }
 
