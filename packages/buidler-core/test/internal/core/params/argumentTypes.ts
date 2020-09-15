@@ -5,6 +5,7 @@ import * as path from "path";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import * as types from "../../../../src/internal/core/params/argumentTypes";
+import { ArgumentType } from "../../../../src/types";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 function a(f: () => any) {
@@ -15,7 +16,7 @@ describe("argumentTypes", () => {
   it("should set the right name to all the argument types", () => {
     for (const typeName of Object.keys(types)) {
       const argumentTypesMap: {
-        [name: string]: types.ArgumentType<any>;
+        [name: string]: ArgumentType<any>;
       } = types;
       assert.equal(argumentTypesMap[typeName].name, typeName);
     }
@@ -301,6 +302,21 @@ describe("argumentTypes", () => {
       assert.doesNotThrow(() => types.json.validate!("json", null));
 
       assert.throws(() => types.json.validate!("json", undefined));
+    });
+  });
+
+  describe("any type", () => {
+    it("Should not be a CLI argument type", () => {
+      assert.isUndefined((types.any as any).parse);
+    });
+
+    it("Should accept anything", () => {
+      assert.doesNotThrow(() => types.any.validate("a", "as"));
+      assert.doesNotThrow(() => types.any.validate("a", undefined));
+      assert.doesNotThrow(() => types.any.validate("a", null));
+      assert.doesNotThrow(() => types.any.validate("a", []));
+      assert.doesNotThrow(() => types.any.validate("a", {}));
+      assert.doesNotThrow(() => types.any.validate("a", function () {}));
     });
   });
 });
