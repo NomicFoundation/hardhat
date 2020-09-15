@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
+import type { LoDashStatic } from "lodash";
 import path from "path";
 
 import {
@@ -30,7 +31,7 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
-import { SolcInput } from "../types";
+import { SolcConfig, SolcInput } from "../types";
 
 import {
   TASK_COMPILE,
@@ -260,14 +261,30 @@ export default function () {
     async ({
       compilationGroups,
       force,
+      solidityFilesCache,
     }: {
       compilationGroups: ICompilationGroup[];
       force: boolean;
       solidityFilesCache?: SolidityFilesCache;
     }): Promise<ICompilationGroup[]> => {
-      const modifiedCompilationGroups = force
-        ? compilationGroups
-        : compilationGroups.filter((group) => group.hasChanged());
+      assertBuidlerInvariant(
+        solidityFilesCache !== undefined,
+        "The implementation of this task needs a defined solidityFilesCache"
+      );
+
+      if (force) {
+        log(`force flag enabled, not filtering`);
+        return compilationGroups;
+      }
+
+      // use only the groups that have at least one modified file
+      const modifiedCompilationGroups = compilationGroups.filter((group) =>
+        group
+          .getResolvedFiles()
+          .some((file) =>
+            hasFileChanged(file, group.getSolcConfig(), solidityFilesCache)
+          )
+      );
 
       const groupsFilteredOutCount =
         modifiedCompilationGroups.length - compilationGroups.length;
@@ -901,4 +918,29 @@ function invalidateCacheMissingArtifacts(
   });
 
   return solidityFilesCache;
+}
+
+function hasFileChanged(
+  file: ResolvedFile,
+  solcConfig: SolcConfig,
+  solidityFilesCache: SolidityFilesCache
+): boolean {
+  const { isEqual }: LoDashStatic = require("lodash");
+
+  const fileCache = solidityFilesCache.files[file.absolutePath];
+
+  if (fileCache === undefined) {
+    // new file or no cache available, assume it's new
+    return true;
+  }
+
+  if (fileCache.lastModificationDate < file.lastModificationDate.valueOf()) {
+    return true;
+  }
+
+  if (solcConfig !== undefined && !isEqual(solcConfig, fileCache.solcConfig)) {
+    return true;
+  }
+
+  return false;
 }

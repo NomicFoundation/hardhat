@@ -22,7 +22,6 @@ export interface ICompilationGroup {
   emitsArtifacts: (file?: ResolvedFile) => boolean;
   getResolvedFiles: () => ResolvedFile[];
   getVersion: () => string;
-  hasChanged: () => boolean;
   merge: (other: ICompilationGroup) => ICompilationGroup;
   getSolcConfig: () => SolcConfig;
 }
@@ -68,16 +67,6 @@ export class CompilationGroup implements ICompilationGroup {
     return mergedGroups;
   }
 
-  /**
-   * Check if some file in the group has changed, or if the config of the group
-   * is different from the last one that was used for that file
-   */
-  public hasChanged(): boolean {
-    return this.getResolvedFiles().some((file) =>
-      hasChangedSinceLastCompilation(file, this._cache, this.solidityConfig)
-    );
-  }
-
   public getSolcConfig(): SolcConfig {
     return this.solidityConfig;
   }
@@ -113,31 +102,6 @@ export class CompilationGroup implements ICompilationGroup {
 
     return fileToCompile.emitsArtifacts;
   }
-}
-
-function hasChangedSinceLastCompilation(
-  file: ResolvedFile,
-  solidityFilesCache: SolidityFilesCache,
-  config?: SolcConfig
-): boolean {
-  const { isEqual }: LoDashStatic = require("lodash");
-
-  const fileCache = solidityFilesCache.files[file.absolutePath];
-
-  if (fileCache === undefined) {
-    // new file or no cache available, assume it's new
-    return true;
-  }
-
-  if (fileCache.lastModificationDate < file.lastModificationDate.valueOf()) {
-    return true;
-  }
-
-  if (config !== undefined && !isEqual(config, fileCache.solcConfig)) {
-    return true;
-  }
-
-  return false;
 }
 
 export interface CompilationGroupsSuccess {
