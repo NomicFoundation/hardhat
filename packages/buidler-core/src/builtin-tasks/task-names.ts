@@ -6,48 +6,47 @@ export const TASK_COMPILE = "compile";
 export const TASK_COMPILE_GET_COMPILATION_TASKS =
   "compile:get-compilation-tasks";
 export const TASK_COMPILE_SOLIDITY = "compile:solidity";
-export const TASK_COMPILE_GET_SOURCE_PATHS =
+export const TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS =
   "compile:solidity:get-source-paths";
-export const TASK_COMPILE_GET_SOURCE_NAMES =
+export const TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES =
   "compile:solidity:get-source-names";
-export const TASK_COMPILE_GET_RESOLVED_SOURCES =
-  "compile:solidity:get-resolved-sources";
-export const TASK_COMPILE_GET_DEPENDENCY_GRAPH =
+export const TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH =
   "compile:solidity:get-dependency-graph";
-export const TASK_COMPILE_GET_COMPILATION_GROUPS =
+export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS =
   "compile:solidity:get-compilation-groups";
-export const TASK_COMPILE_GET_COMPILATION_GROUP_FOR_FILE =
+export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUP_FOR_FILE =
   "compile:solidity:get-compilation-group-for-file";
-export const TASK_COMPILE_FILTER_COMPILATION_GROUPS =
+export const TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_GROUPS =
   "compile:solidity:filter-compilation-groups";
-export const TASK_COMPILE_MERGE_COMPILATION_GROUPS =
+export const TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_GROUPS =
   "compile:solidity:merge-compilation-groups";
-export const TASK_COMPILE_LOG_NOTHING_TO_COMPILE =
+export const TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE =
   "compile:solidity:log:nothing-to-compile";
-export const TASK_COMPILE_COMPILE_GROUP = "compile:solidity:compile-group";
-export const TASK_COMPILE_LOG_COMPILE_GROUP_START =
+export const TASK_COMPILE_SOLIDITY_COMPILE_GROUP =
+  "compile:solidity:compile-group";
+export const TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_START =
   "compile:solidity:log:compile-group-start";
-export const TASK_COMPILE_LOG_COMPILE_GROUP_END =
+export const TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_END =
   "compile:solidity:log:compile-group-end";
-export const TASK_COMPILE_COMPILE_GROUPS = "compile:solidity:compile-groups";
-export const TASK_COMPILE_GET_COMPILER_INPUT =
+export const TASK_COMPILE_SOLIDITY_COMPILE_GROUPS =
+  "compile:solidity:compile-groups";
+export const TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT =
   "compile:solidity:get-compiler-input";
-export const TASK_COMPILE_RUN_COMPILER = "compile:solidity:run-compiler";
-export const TASK_COMPILE_COMPILE = "compile:solidity:compile";
-export const TASK_COMPILE_COMPILE_SOLCJS = "compile:solidity:solcjs:compile";
-export const TASK_COMPILE_CHECK_CACHE = "compile:solidity:cache";
-export const TASK_COMPILE_CHECK_ERRORS = "compile:solidity:check-errors";
-export const TASK_COMPILE_LOG_COMPILATION_ERRORS =
+export const TASK_COMPILE_SOLIDITY_COMPILE = "compile:solidity:compile";
+export const TASK_COMPILE_SOLIDITY_COMPILE_SOLCJS =
+  "compile:solidity:solcjs:compile";
+export const TASK_COMPILE_SOLIDITY_CHECK_ERRORS =
+  "compile:solidity:check-errors";
+export const TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS =
   "compile:solidity:log:compilation-errors";
-export const TASK_COMPILE_EMIT_ARTIFACTS = "compile:solidity:emit-artifacts";
-export const TASK_COMPILE_GET_ARTIFACT_FROM_COMPILATION_OUTPUT =
+export const TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS =
+  "compile:solidity:emit-artifacts";
+export const TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT =
   "compile:solidity:get-artifact-from-compilation-output";
-export const TASK_COMPILE_HANDLE_COMPILATION_GROUPS_FAILURES =
+export const TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_GROUPS_FAILURES =
   "compile:solidity:handle-compilation-groups-failures";
-export const TASK_COMPILE_GET_COMPILATION_GROUPS_FAILURES_MESSAGE =
+export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS_FAILURES_MESSAGE =
   "compile:solidity:get-compilation-groups-failures-message";
-
-export const TASK_BUILD_ARTIFACTS = "compile:solidity:build-artifacts";
 
 export const TASK_CONSOLE = "console";
 
