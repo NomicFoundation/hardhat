@@ -1212,7 +1212,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     action: () => Promise<T>
   ): Promise<T> {
     let block: Block;
-    if (blockNumber == null) {
+    if (blockNumber === null) {
       block = await this.getLatestBlock();
     } else {
       block = await this.getBlockByNumber(blockNumber);

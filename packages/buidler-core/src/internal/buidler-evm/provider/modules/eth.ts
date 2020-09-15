@@ -1042,16 +1042,20 @@ export class EthModule {
       return null;
     }
 
-    let block: Block;
     if (blockTag === undefined || blockTag === "latest") {
-      block = await this._node.getLatestBlock();
-    } else {
-      let blockNumber: number = 0;
-      if (blockTag !== "earliest") {
-        blockNumber = blockTag.toNumber();
-      }
+      return this._node.getLatestBlockNumber();
+    }
 
-      block = await this._node.getBlockByNumber(new BN(blockNumber));
+    if (blockTag === "earliest") {
+      return new BN(0);
+    }
+
+    const block = await this._node.getBlockByNumber(blockTag);
+    if (block === undefined) {
+      const latestBlock = await this._node.getLatestBlockNumber();
+      throw new InvalidInputError(
+        `Received invalid block number ${blockTag.toString()}. Latest block number is ${latestBlock.toString()}`
+      );
     }
 
     return new BN(block.header.number);
