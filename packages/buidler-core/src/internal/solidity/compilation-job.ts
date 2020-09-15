@@ -15,10 +15,10 @@ const log = debug("buidler:core:compilation-job");
 const SOLC_BUG_9573_VERSIONS = "*";
 
 export interface ICompilationJob {
-  emitsArtifacts: (file?: ResolvedFile) => boolean;
-  getResolvedFiles: () => ResolvedFile[];
-  merge: (other: ICompilationJob) => ICompilationJob;
-  getSolcConfig: () => SolcConfig;
+  emitsArtifacts(file?: ResolvedFile): boolean;
+  getResolvedFiles(): ResolvedFile[];
+  merge(other: ICompilationJob): ICompilationJob;
+  getSolcConfig(): SolcConfig;
 }
 
 export interface CompilationJobsSuccess {

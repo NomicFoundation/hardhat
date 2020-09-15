@@ -1,10 +1,10 @@
 import { ResolvedFile, Resolver } from "./resolver";
 
 export interface IDependencyGraph {
-  getConnectedComponents: () => IDependencyGraph[];
-  getDependencies: (file: ResolvedFile) => ResolvedFile[];
-  getResolvedFiles: () => ResolvedFile[];
-  getTransitiveDependencies: (file: ResolvedFile) => ResolvedFile[];
+  getConnectedComponents(): IDependencyGraph[];
+  getDependencies(file: ResolvedFile): ResolvedFile[];
+  getResolvedFiles(): ResolvedFile[];
+  getTransitiveDependencies(file: ResolvedFile): ResolvedFile[];
 }
 
 export class DependencyGraph implements IDependencyGraph {
