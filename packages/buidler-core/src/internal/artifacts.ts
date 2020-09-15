@@ -199,7 +199,9 @@ export class Artifacts {
    */
   public async removeObsoleteArtifacts(solidityFilesCache: SolidityFilesCache) {
     const validArtifactsPaths = new Set<string>();
-    for (const { globalName, artifacts } of Object.values(solidityFilesCache)) {
+    const cachedFiles = Object.values(solidityFilesCache.files);
+
+    for (const { globalName, artifacts } of cachedFiles) {
       for (const artifact of artifacts) {
         validArtifactsPaths.add(
           this._getArtifactPathSync(globalName, artifact)

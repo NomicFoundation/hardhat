@@ -5,7 +5,9 @@ import * as path from "path";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
 import { ProjectPaths, SolcConfig } from "../../types";
 
-const SolidityFilesCacheEntry = t.type({
+const FORMAT_VERSION = "hh-sol-cache-1";
+
+const SolidityFilesCacheEntryCodec = t.type({
   lastModificationDate: t.number,
   globalName: t.string,
   solcConfig: t.any,
@@ -14,26 +16,38 @@ const SolidityFilesCacheEntry = t.type({
   artifacts: t.array(t.string),
 });
 
-const SolidityFilesCacheCodec = t.record(t.string, SolidityFilesCacheEntry);
+const SolidityFilesCacheCodec = t.type({
+  _format: t.string,
+  files: t.record(t.string, SolidityFilesCacheEntryCodec),
+});
 
-export type SolidityFilesCache = Record<
-  string,
-  {
-    lastModificationDate: number;
-    globalName: string;
-    solcConfig: SolcConfig;
-    imports: string[];
-    versionPragmas: string[];
-    artifacts: string[];
-  }
->;
+interface SolidityFilesCacheEntry {
+  lastModificationDate: number;
+  globalName: string;
+  solcConfig: SolcConfig;
+  imports: string[];
+  versionPragmas: string[];
+  artifacts: string[];
+}
+
+export interface SolidityFilesCache {
+  _format: string;
+  files: Record<string, SolidityFilesCacheEntry>;
+}
+
+function emptyCache(): SolidityFilesCache {
+  return {
+    _format: FORMAT_VERSION,
+    files: {},
+  };
+}
 
 async function removeModifiedFiles(
   cache: SolidityFilesCache
 ): Promise<SolidityFilesCache> {
-  const cleanedCache: SolidityFilesCache = {};
+  const cleanedCache: SolidityFilesCache = emptyCache();
 
-  for (const [absolutePath, cachedData] of Object.entries(cache)) {
+  for (const [absolutePath, cachedData] of Object.entries(cache.files)) {
     if (!fsExtra.existsSync(absolutePath)) {
       continue;
     }
@@ -41,7 +55,7 @@ async function removeModifiedFiles(
     const lastModificationDate = new Date(stats.ctime);
 
     if (lastModificationDate.valueOf() === cachedData.lastModificationDate) {
-      cleanedCache[absolutePath] = cachedData;
+      cleanedCache.files[absolutePath] = cachedData;
     }
   }
 
@@ -56,7 +70,7 @@ export async function readSolidityFilesCache(
     SOLIDITY_FILES_CACHE_FILENAME
   );
 
-  let solidityFilesCacheRaw: any = {};
+  let solidityFilesCacheRaw: any = emptyCache();
   if (fsExtra.existsSync(solidityFilesCachePath)) {
     solidityFilesCacheRaw = await fsExtra.readJson(solidityFilesCachePath);
   }

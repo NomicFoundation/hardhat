@@ -53,8 +53,8 @@ export class Parser {
   }
 
   private _getFromCache(absolutePath: string): ParsedData | null {
-    if (this._solidityFilesCache[absolutePath] !== undefined) {
-      const { imports, versionPragmas } = this._solidityFilesCache[
+    if (this._solidityFilesCache.files[absolutePath] !== undefined) {
+      const { imports, versionPragmas } = this._solidityFilesCache.files[
         absolutePath
       ];
 

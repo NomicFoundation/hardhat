@@ -511,7 +511,7 @@ export default function () {
         }
 
         if (solidityFilesCache !== undefined) {
-          solidityFilesCache[file.absolutePath] = {
+          solidityFilesCache.files[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
             globalName: file.globalName,
             solcConfig: compilationGroup.getSolcConfig(),
@@ -844,11 +844,11 @@ function invalidateCacheMissingArtifacts(
   resolvedFiles.forEach((file) => {
     const artifacts = new Artifacts(artifactsPath);
 
-    if (solidityFilesCache[file.absolutePath] === undefined) {
+    if (solidityFilesCache.files[file.absolutePath] === undefined) {
       return;
     }
 
-    const { artifacts: emittedArtifacts } = solidityFilesCache[
+    const { artifacts: emittedArtifacts } = solidityFilesCache.files[
       file.absolutePath
     ];
 
@@ -857,7 +857,7 @@ function invalidateCacheMissingArtifacts(
         log(
           `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
         );
-        delete solidityFilesCache[file.absolutePath];
+        delete solidityFilesCache.files[file.absolutePath];
         break;
       }
     }

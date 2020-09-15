@@ -122,7 +122,7 @@ function hasChangedSinceLastCompilation(
 ): boolean {
   const { isEqual }: LoDashStatic = require("lodash");
 
-  const fileCache = solidityFilesCache[file.absolutePath];
+  const fileCache = solidityFilesCache.files[file.absolutePath];
 
   if (fileCache === undefined) {
     // new file or no cache available, assume it's new
