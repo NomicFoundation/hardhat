@@ -3,12 +3,12 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
-import type { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
 import { Artifact, SolcInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
 import { assertBuidlerInvariant, BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
+import { ResolvedFile } from "./solidity/resolver";
 import { glob, globSync } from "./util/glob";
 
 const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
@@ -199,11 +199,15 @@ export class Artifacts {
   /**
    * Remove all artifacts that don't correspond to the current solidity files
    */
-  public async removeObsoleteArtifacts(solidityFilesCache: SolidityFilesCache) {
+  public async removeObsoleteArtifacts(
+    emittedArtifactsPerFile: Array<{
+      globalName: string;
+      artifacts: string[];
+    }>
+  ) {
     const validArtifactsPaths = new Set<string>();
-    const cachedFiles = Object.values(solidityFilesCache.files);
 
-    for (const { globalName, artifacts } of cachedFiles) {
+    for (const { globalName, artifacts } of emittedArtifactsPerFile) {
       for (const artifact of artifacts) {
         validArtifactsPaths.add(
           this._getArtifactPathSync(globalName, artifact)

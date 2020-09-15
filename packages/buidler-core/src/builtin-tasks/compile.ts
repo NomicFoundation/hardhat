@@ -60,6 +60,16 @@ import {
 } from "./task-names";
 import type { SolidityFilesCache } from "./utils/solidity-files-cache";
 
+type EmittedArtifactsPerFile = Array<{
+  file: ResolvedFile;
+  emittedArtifacts: string[];
+}>;
+
+type EmittedArtifactsPerGroup = Array<{
+  compilationGroup: ICompilationGroup;
+  emittedArtifactsPerFile: EmittedArtifactsPerFile;
+}>;
+
 interface CompilationError {
   error: any;
   severity: "warning" | "error";
@@ -297,25 +307,33 @@ export default function () {
     async (
       {
         compilationGroups,
-        solidityFilesCache,
       }: {
         compilationGroups: ICompilationGroup[];
-        solidityFilesCache?: SolidityFilesCache;
       },
       { run }
-    ) => {
+    ): Promise<{ emittedArtifactsPerGroup: EmittedArtifactsPerGroup }> => {
       if (compilationGroups.length === 0) {
         log(`No compilation groups to compile`);
         await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE);
-        return;
+        return { emittedArtifactsPerGroup: [] };
       }
 
+      const emittedArtifactsPerGroup: EmittedArtifactsPerGroup = [];
       for (const compilationGroup of compilationGroups) {
-        await run(TASK_COMPILE_SOLIDITY_COMPILE_GROUP, {
+        const { emittedArtifactsPerFile } = await run(
+          TASK_COMPILE_SOLIDITY_COMPILE_GROUP,
+          {
+            compilationGroup,
+          }
+        );
+
+        emittedArtifactsPerGroup.push({
           compilationGroup,
-          solidityFilesCache,
+          emittedArtifactsPerFile,
         });
       }
+
+      return { emittedArtifactsPerGroup };
     }
   );
 
@@ -466,15 +484,15 @@ export default function () {
         compilationGroup,
         input,
         output,
-        solidityFilesCache,
       }: {
         compilationGroup: ICompilationGroup;
         input: SolcInput;
         output: any;
-        solidityFilesCache?: SolidityFilesCache;
       },
       { config, run }
-    ): Promise<{ numberOfContracts: number }> => {
+    ): Promise<{
+      emittedArtifactsPerFile: EmittedArtifactsPerFile;
+    }> => {
       const artifacts = new Artifacts(config.paths.artifacts);
 
       const pathToBuildInfo = await artifacts.saveBuildInfo(
@@ -482,8 +500,8 @@ export default function () {
         output,
         compilationGroup.getVersion()
       );
-      let numberOfContracts = 0;
 
+      const emittedArtifactsPerFile: EmittedArtifactsPerFile = [];
       for (const file of compilationGroup.getResolvedFiles()) {
         log(`Emitting artifacts for file '${file.globalName}'`);
         if (!compilationGroup.emitsArtifacts(file)) {
@@ -495,7 +513,6 @@ export default function () {
           output.contracts?.[file.globalName] ?? {}
         )) {
           log(`Emitting artifact for contract '${contractName}'`);
-          numberOfContracts += 1;
 
           const artifact = await run(
             TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
@@ -514,19 +531,10 @@ export default function () {
           emittedArtifacts.push(artifact.contractName);
         }
 
-        if (solidityFilesCache !== undefined) {
-          solidityFilesCache.files[file.absolutePath] = {
-            lastModificationDate: file.lastModificationDate.valueOf(),
-            globalName: file.globalName,
-            solcConfig: compilationGroup.getSolcConfig(),
-            imports: file.content.imports,
-            versionPragmas: file.content.versionPragmas,
-            artifacts: emittedArtifacts,
-          };
-        }
+        emittedArtifactsPerFile.push({ file, emittedArtifacts });
       }
 
-      return { numberOfContracts };
+      return { emittedArtifactsPerFile };
     }
   );
 
@@ -563,11 +571,12 @@ export default function () {
   internalTask(
     TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_END,
     async ({
-      numberOfContracts,
+      emittedArtifactsPerFile,
     }: {
       compilationGroup: ICompilationGroup;
-      numberOfContracts: number;
+      emittedArtifactsPerFile: EmittedArtifactsPerFile;
     }) => {
+      const numberOfContracts = emittedArtifactsPerFile.length;
       console.log(
         "Compiled",
         numberOfContracts,
@@ -586,13 +595,11 @@ export default function () {
     async (
       {
         compilationGroup,
-        solidityFilesCache,
       }: {
         compilationGroup: ICompilationGroup;
-        solidityFilesCache?: SolidityFilesCache;
       },
       { run }
-    ) => {
+    ): Promise<{ emittedArtifactsPerFile: EmittedArtifactsPerFile }> => {
       log(`Compiling group with version '${compilationGroup.getVersion()}'`);
       await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_START, {
         compilationGroup,
@@ -614,23 +621,24 @@ export default function () {
 
       if (output === undefined) {
         log(`No output for compilation group`);
-        return;
+        return { emittedArtifactsPerFile: [] };
       }
 
-      const { numberOfContracts } = await run(
+      const { emittedArtifactsPerFile } = await run(
         TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
         {
           compilationGroup,
           input,
           output,
-          solidityFilesCache,
         }
       );
 
       await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_END, {
         compilationGroup,
-        numberOfContracts,
+        emittedArtifactsPerFile,
       });
+
+      return { emittedArtifactsPerFile };
     }
   );
 
@@ -737,7 +745,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
   internalTask(
     TASK_COMPILE_SOLIDITY,
     async ({ force: force }: { force: boolean }, { config, run }) => {
-      const { flatten } = await import("lodash");
+      const { flatMap, flatten } = await import("lodash");
       const { readSolidityFilesCache, writeSolidityFilesCache } = await import(
         "./utils/solidity-files-cache"
       );
@@ -792,13 +800,38 @@ ${other.map((x) => `* ${x}`).join("\n")}
         { compilationGroups: filteredCompilationGroups }
       );
 
-      await run(TASK_COMPILE_SOLIDITY_COMPILE_GROUPS, {
-        compilationGroups: mergedCompilationGroups,
-        solidityFilesCache,
-      });
+      const {
+        emittedArtifactsPerGroup,
+      }: { emittedArtifactsPerGroup: EmittedArtifactsPerGroup } = await run(
+        TASK_COMPILE_SOLIDITY_COMPILE_GROUPS,
+        {
+          compilationGroups: mergedCompilationGroups,
+        }
+      );
+
+      // update cache using the information about the emitted artifacts
+      for (const {
+        compilationGroup,
+        emittedArtifactsPerFile,
+      } of emittedArtifactsPerGroup) {
+        for (const { file, emittedArtifacts } of emittedArtifactsPerFile) {
+          solidityFilesCache.files[file.absolutePath] = {
+            lastModificationDate: file.lastModificationDate.valueOf(),
+            globalName: file.globalName,
+            solcConfig: compilationGroup.getSolcConfig(),
+            imports: file.content.imports,
+            versionPragmas: file.content.versionPragmas,
+            artifacts: emittedArtifacts,
+          };
+        }
+      }
+
+      const allEmittedArtifactsPerFile = Object.values(
+        solidityFilesCache.files
+      );
 
       const artifacts = new Artifacts(config.paths.artifacts);
-      await artifacts.removeObsoleteArtifacts(solidityFilesCache);
+      await artifacts.removeObsoleteArtifacts(allEmittedArtifactsPerFile);
       await artifacts.removeObsoleteBuildInfos();
 
       writeSolidityFilesCache(config.paths, solidityFilesCache);
