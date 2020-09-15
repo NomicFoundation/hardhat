@@ -15,7 +15,7 @@ const log = debug("buidler:core:compilation-job");
 const SOLC_BUG_9573_VERSIONS = "*";
 
 export interface ICompilationJob {
-  emitsArtifacts(file?: ResolvedFile): boolean;
+  emitsArtifacts(file: ResolvedFile): boolean;
   getResolvedFiles(): ResolvedFile[];
   merge(other: ICompilationJob): ICompilationJob;
   getSolcConfig(): SolcConfig;
@@ -111,11 +111,7 @@ export class CompilationJob implements ICompilationJob {
    *
    * If no file is given, check if *some* file in the job emits artifacts.
    */
-  public emitsArtifacts(file?: ResolvedFile): boolean {
-    if (file === undefined) {
-      return [...this._filesToCompile.values()].some((x) => x.emitsArtifacts);
-    }
-
+  public emitsArtifacts(file: ResolvedFile): boolean {
     const fileToCompile = this._filesToCompile.get(file.globalName);
 
     assertBuidlerInvariant(
