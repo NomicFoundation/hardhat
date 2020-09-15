@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import debug from "debug";
-import fsExtra from "fs-extra";
 import path from "path";
 
 import {

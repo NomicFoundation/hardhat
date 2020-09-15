@@ -11,7 +11,9 @@ import { assertBuidlerInvariant, BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
 
-const ARTIFACTS_VERSION = 1;
+const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
+const DBG_FORMAT_VERSION = "hh-sol-dbg-1";
+const BUILD_INFO_FORMAT_VERSION = "hh-sol-build-info-1";
 
 const log = debug("buidler:core:artifacts");
 
@@ -159,7 +161,7 @@ export class Artifacts {
     });
     await fsExtra.writeJSON(
       dbgPath,
-      { version: ARTIFACTS_VERSION, buildInfo: relativePathToBuildInfo },
+      { _format: DBG_FORMAT_VERSION, buildInfo: relativePathToBuildInfo },
       {
         spaces: 2,
       }
@@ -185,7 +187,7 @@ export class Artifacts {
     ).toString("hex");
     const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
     await fsExtra.writeJson(buildInfoPath, {
-      version: ARTIFACTS_VERSION,
+      _format: BUILD_INFO_FORMAT_VERSION,
       input,
       output,
       solcVersion,
@@ -405,6 +407,7 @@ export function getArtifactFromContractOutput(
       : {};
 
   return {
+    _format: ARTIFACT_FORMAT_VERSION,
     contractName,
     abi: contractOutput.abi,
     bytecode,
