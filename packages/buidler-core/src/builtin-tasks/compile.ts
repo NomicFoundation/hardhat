@@ -50,6 +50,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+  TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES,
@@ -58,6 +59,7 @@ import {
   TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START,
   TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE,
   TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
+  TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
 } from "./task-names";
 import type { SolidityFilesCache } from "./utils/solidity-files-cache";
 
@@ -389,6 +391,55 @@ export default function () {
     );
 
   /**
+   * Receives a solc version and returns an absolute path to a solcjs module
+   * for that version.
+   */
+  internalTask(TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH)
+    .addParam("solcVersion", undefined, undefined, types.string)
+    .setAction(
+      async (
+        { solcVersion }: { solcVersion: string },
+        { config }
+      ): Promise<string> => {
+        const { CompilerDownloader } = await import(
+          "../internal/solidity/compiler/downloader"
+        );
+
+        const downloader = new CompilerDownloader(
+          path.join(config.paths.cache, "compilers")
+        );
+
+        const solcJsPath = await downloader.getDownloadedCompilerPath(
+          solcVersion
+        );
+
+        return solcJsPath;
+      }
+    );
+
+  /**
+   * Receives an absolute path to a solcjs module and the input to be compiled,
+   * and return the generated output
+   */
+  internalTask(TASK_COMPILE_SOLIDITY_RUN_SOLCJS)
+    .addParam("solcJsPath", undefined, undefined, types.string)
+    .setAction(
+      async ({
+        input,
+        solcJsPath,
+      }: {
+        input: SolcInput;
+        solcJsPath: string;
+      }) => {
+        const compiler = new Compiler(solcJsPath);
+
+        const output = await compiler.compile(input);
+
+        return output;
+      }
+    );
+
+  /**
    * Receives a SolcInput and a solc version, compiles the input using solcjs,
    * and returns the generated output.
    *
@@ -400,14 +451,19 @@ export default function () {
     .setAction(
       async (
         { input, solcVersion }: { input: SolcInput; solcVersion: string },
-        { config }
+        { run }
       ) => {
-        const compiler = new Compiler(
-          solcVersion,
-          path.join(config.paths.cache, "compilers")
+        const solcJsPath: string = await run(
+          TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH,
+          {
+            solcVersion,
+          }
         );
 
-        const output = await compiler.compile(input);
+        const output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLCJS, {
+          input,
+          solcJsPath,
+        });
 
         return output;
       }

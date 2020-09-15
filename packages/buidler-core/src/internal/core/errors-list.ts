@@ -725,7 +725,7 @@ Please double check your \`solc\` config.`,
     DOWNLOAD_FAILED: {
       number: 501,
       message:
-        "Couldn't download compiler version %remoteVersion%. Please check your connection or use local version %localVersion%",
+        "Couldn't download compiler version %remoteVersion%. Please check your connection.",
       title: "`solc` download failed",
       description: `Couldn't download \`solc\`. 
       
@@ -735,7 +735,7 @@ Please check your Internet connection.`,
     VERSION_LIST_DOWNLOAD_FAILED: {
       number: 502,
       message:
-        "Couldn't download compiler versions list. Please check your connection or use local version %localVersion%",
+        "Couldn't download compiler versions list. Please check your connection.",
       title: "Couldn't obtain `solc` version list",
       description: `Couldn't download \`solc\`'s version list. 
       
@@ -745,7 +745,7 @@ Please check your Internet connection.`,
     INVALID_DOWNLOAD: {
       number: 503,
       message:
-        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection or use local version %localVersion%",
+        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection.",
       title: "Downloaded `solc` checksum verification failed",
       description: `Downloaded \`solc\` verification failed.. 
       

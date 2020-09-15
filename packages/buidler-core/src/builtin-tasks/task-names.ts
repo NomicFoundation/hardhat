@@ -34,6 +34,9 @@ export const TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT =
 export const TASK_COMPILE_SOLIDITY_COMPILE = "compile:solidity:compile";
 export const TASK_COMPILE_SOLIDITY_COMPILE_SOLCJS =
   "compile:solidity:solcjs:compile";
+export const TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH =
+  "compile:solidity:solcjs:get_path";
+export const TASK_COMPILE_SOLIDITY_RUN_SOLCJS = "compile:solidity:solcjs:run";
 export const TASK_COMPILE_SOLIDITY_CHECK_ERRORS =
   "compile:solidity:check-errors";
 export const TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS =
