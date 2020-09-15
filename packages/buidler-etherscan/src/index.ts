@@ -1,6 +1,6 @@
 import {
   TASK_COMPILE,
-  TASK_COMPILE_GET_COMPILER_INPUT,
+  TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/config";
 import {
@@ -66,7 +66,9 @@ task("verify-contract", "Verifies contract on etherscan")
       const abi = (await artifacts.readArtifact(contractName)).abi;
       const fullVersion = await getLongVersion(config.solidity);
 
-      const source = JSON.stringify(await run(TASK_COMPILE_GET_COMPILER_INPUT));
+      const source = JSON.stringify(
+        await run(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT)
+      );
 
       const request = toRequest({
         apiKey: etherscan.apiKey,

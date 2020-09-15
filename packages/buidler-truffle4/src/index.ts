@@ -1,5 +1,5 @@
 import {
-  TASK_COMPILE_GET_SOURCE_PATHS,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import {
@@ -92,7 +92,7 @@ export default function () {
   );
 
   internalTask(
-    TASK_COMPILE_GET_SOURCE_PATHS,
+    TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
     async (_, { config }, runSuper) => {
       const sources = await runSuper();
       const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
