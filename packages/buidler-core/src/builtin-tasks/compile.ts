@@ -11,17 +11,17 @@ import { internalTask, task } from "../internal/core/config/config-env";
 import { assertBuidlerInvariant, BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
-  CompilationGroupsFailure,
-  CompilationGroupsSuccess,
-  getCompilationGroupFromFile,
-  getCompilationGroupsFromConnectedComponent,
-  ICompilationGroup,
-  isCompilationGroupsSuccess,
+  CompilationJobsFailure,
+  CompilationJobsSuccess,
+  getCompilationJobFromFile,
+  getCompilationJobsFromConnectedComponent,
+  ICompilationJob,
+  isCompilationJobsSuccess,
   MatchingCompilerFailure,
-  mergeCompilationGroupsWithoutBug,
-} from "../internal/solidity/compilationGroup";
+  mergeCompilationJobsWithoutBug,
+} from "../internal/solidity/compilation-job";
 import { Compiler } from "../internal/solidity/compiler";
-import { getInputFromCompilationGroup } from "../internal/solidity/compiler/compiler-input";
+import { getInputFromCompilationJob } from "../internal/solidity/compiler/compiler-input";
 import {
   DependencyGraph,
   IDependencyGraph,
@@ -39,25 +39,25 @@ import {
   TASK_COMPILE_SOLIDITY,
   TASK_COMPILE_SOLIDITY_CHECK_ERRORS,
   TASK_COMPILE_SOLIDITY_COMPILE,
-  TASK_COMPILE_SOLIDITY_COMPILE_GROUP,
-  TASK_COMPILE_SOLIDITY_COMPILE_GROUPS,
+  TASK_COMPILE_SOLIDITY_COMPILE_JOB,
+  TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
   TASK_COMPILE_SOLIDITY_COMPILE_SOLCJS,
   TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
-  TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_GROUPS,
+  TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS,
   TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
-  TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUP_FOR_FILE,
-  TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS,
-  TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS,
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
-  TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_GROUPS_FAILURES,
+  TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES,
   TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS,
-  TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_END,
-  TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_START,
+  TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END,
+  TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START,
   TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE,
-  TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_GROUPS,
+  TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
 } from "./task-names";
 import type { SolidityFilesCache } from "./utils/solidity-files-cache";
 
@@ -66,8 +66,8 @@ type EmittedArtifactsPerFile = Array<{
   emittedArtifacts: string[];
 }>;
 
-type EmittedArtifactsPerGroup = Array<{
-  compilationGroup: ICompilationGroup;
+type EmittedArtifactsPerJob = Array<{
+  compilationJob: ICompilationJob;
   emittedArtifactsPerFile: EmittedArtifactsPerFile;
 }>;
 
@@ -158,7 +158,7 @@ export default function () {
 
   /**
    * Receives a dependency graph and a file in it, and returns the compilation
-   * group for that file. The compilation group should have everything that is
+   * job for that file. The compilation job should have everything that is
    * necessary to compile that file: a compiler config to be used and a list of
    * files to use as input of the compilation.
    *
@@ -169,15 +169,15 @@ export default function () {
    * For example, if you want to change the compiler settings when targetting
    * rinkeby, you could do something like this:
    *
-   *   const compilationGroup = await runSuper();
+   *   const compilationJob = await runSuper();
    *   if (config.network.name === 'rinkeby') {
-   *     compilationGroup.solidityConfig.settings = newSettings;
+   *     compilationJob.solidityConfig.settings = newSettings;
    *   }
-   *   return compilationGroup;
+   *   return compilationJob;
    *
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUP_FOR_FILE,
+    TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
     async (
       {
         dependencyGraph,
@@ -189,13 +189,13 @@ export default function () {
         solidityFilesCache?: SolidityFilesCache;
       },
       { config }
-    ): Promise<ICompilationGroup | MatchingCompilerFailure> => {
+    ): Promise<ICompilationJob | MatchingCompilerFailure> => {
       assertBuidlerInvariant(
         solidityFilesCache !== undefined,
         "The implementation of this task needs a defined solidityFilesCache"
       );
 
-      return getCompilationGroupFromFile(
+      return getCompilationJobFromFile(
         dependencyGraph,
         file,
         config.solidity,
@@ -206,13 +206,13 @@ export default function () {
 
   /**
    * Receives a dependency graph and returns a tuple with two arrays. The first
-   * array is a list of CompilationGroupsSuccess, where each item has a list of
-   * compilation groups. The second array is a list of CompilationGroupsFailure,
+   * array is a list of CompilationJobsSuccess, where each item has a list of
+   * compilation jobs. The second array is a list of CompilationJobsFailure,
    * where each item has a list of files that couldn't be compiled, grouped by
    * the reason for the failure.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS,
+    TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS,
     async (
       {
         dependencyGraph,
@@ -222,7 +222,7 @@ export default function () {
         solidityFilesCache?: SolidityFilesCache;
       },
       { run }
-    ): Promise<[CompilationGroupsSuccess[], CompilationGroupsFailure[]]> => {
+    ): Promise<[CompilationJobsSuccess[], CompilationJobsFailure[]]> => {
       const { partition } = await import("lodash");
 
       const connectedComponents = dependencyGraph.getConnectedComponents();
@@ -231,12 +231,12 @@ export default function () {
         `The dependency graph was dividied in '${connectedComponents.length}' connected components`
       );
 
-      const compilationGroupsResults = await Promise.all(
+      const compilationJobsResults = await Promise.all(
         connectedComponents.map((graph) =>
-          getCompilationGroupsFromConnectedComponent(
+          getCompilationJobsFromConnectedComponent(
             graph,
             (file: ResolvedFile) =>
-              run(TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUP_FOR_FILE, {
+              run(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE, {
                 file,
                 dependencyGraph,
                 solidityFilesCache,
@@ -245,28 +245,28 @@ export default function () {
         )
       );
 
-      return partition(compilationGroupsResults, isCompilationGroupsSuccess);
+      return partition(compilationJobsResults, isCompilationJobsSuccess);
     }
   );
 
   /**
-   * Receives a list of compilation groups and returns a new list where some of
-   * the compilation groups might've been removed.
+   * Receives a list of compilation jobs and returns a new list where some of
+   * the compilation jobs might've been removed.
    *
    * This task can be overriden to change the way the cache is used, or to use
-   * a different approach to filtering out compilation groups.
+   * a different approach to filtering out compilation jobs.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_GROUPS,
+    TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS,
     async ({
-      compilationGroups,
+      compilationJobs,
       force,
       solidityFilesCache,
     }: {
-      compilationGroups: ICompilationGroup[];
+      compilationJobs: ICompilationJob[];
       force: boolean;
       solidityFilesCache?: SolidityFilesCache;
-    }): Promise<ICompilationGroup[]> => {
+    }): Promise<ICompilationJob[]> => {
       assertBuidlerInvariant(
         solidityFilesCache !== undefined,
         "The implementation of this task needs a defined solidityFilesCache"
@@ -274,38 +274,38 @@ export default function () {
 
       if (force) {
         log(`force flag enabled, not filtering`);
-        return compilationGroups;
+        return compilationJobs;
       }
 
-      // use only the groups that have at least one modified file
-      const modifiedCompilationGroups = compilationGroups.filter((group) =>
-        group
+      // use only the jobs that have at least one modified file
+      const modifiedCompilationJobs = compilationJobs.filter((job) =>
+        job
           .getResolvedFiles()
           .some((file) =>
-            hasFileChanged(file, group.getSolcConfig(), solidityFilesCache)
+            hasFileChanged(file, job.getSolcConfig(), solidityFilesCache)
           )
       );
 
-      const groupsFilteredOutCount =
-        modifiedCompilationGroups.length - compilationGroups.length;
-      log(`'${groupsFilteredOutCount}' groups were filtered out`);
+      const jobsFilteredOutCount =
+        modifiedCompilationJobs.length - compilationJobs.length;
+      log(`'${jobsFilteredOutCount}' jobs were filtered out`);
 
-      return modifiedCompilationGroups;
+      return modifiedCompilationJobs;
     }
   );
 
   /**
-   * Receives a list of compilation groups and returns a new list where some of
-   * the groups might've been merged.
+   * Receives a list of compilation jobs and returns a new list where some of
+   * the jobs might've been merged.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_GROUPS,
+    TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
     async ({
-      compilationGroups,
+      compilationJobs,
     }: {
-      compilationGroups: ICompilationGroup[];
-    }): Promise<ICompilationGroup[]> => {
-      return mergeCompilationGroupsWithoutBug(compilationGroups);
+      compilationJobs: ICompilationJob[];
+    }): Promise<ICompilationJob[]> => {
+      return mergeCompilationJobsWithoutBug(compilationJobs);
     }
   );
 
@@ -317,58 +317,58 @@ export default function () {
   });
 
   /**
-   * Receives a list of compilation groups and sends each one to be compiled.
+   * Receives a list of compilation jobs and sends each one to be compiled.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_COMPILE_GROUPS,
+    TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
     async (
       {
-        compilationGroups,
+        compilationJobs,
       }: {
-        compilationGroups: ICompilationGroup[];
+        compilationJobs: ICompilationJob[];
       },
       { run }
-    ): Promise<{ emittedArtifactsPerGroup: EmittedArtifactsPerGroup }> => {
-      if (compilationGroups.length === 0) {
-        log(`No compilation groups to compile`);
+    ): Promise<{ emittedArtifactsPerJob: EmittedArtifactsPerJob }> => {
+      if (compilationJobs.length === 0) {
+        log(`No compilation jobs to compile`);
         await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE);
-        return { emittedArtifactsPerGroup: [] };
+        return { emittedArtifactsPerJob: [] };
       }
 
-      const emittedArtifactsPerGroup: EmittedArtifactsPerGroup = [];
-      for (const compilationGroup of compilationGroups) {
+      const emittedArtifactsPerJob: EmittedArtifactsPerJob = [];
+      for (const compilationJob of compilationJobs) {
         const { emittedArtifactsPerFile } = await run(
-          TASK_COMPILE_SOLIDITY_COMPILE_GROUP,
+          TASK_COMPILE_SOLIDITY_COMPILE_JOB,
           {
-            compilationGroup,
+            compilationJob,
           }
         );
 
-        emittedArtifactsPerGroup.push({
-          compilationGroup,
+        emittedArtifactsPerJob.push({
+          compilationJob,
           emittedArtifactsPerFile,
         });
       }
 
-      return { emittedArtifactsPerGroup };
+      return { emittedArtifactsPerJob };
     }
   );
 
   /**
-   * Receives a compilation group and returns a SolcInput.
+   * Receives a compilation job and returns a SolcInput.
    *
    * It's not recommended to override this task to modify the solc
    * configuration, override
-   * TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUP_FOR_FILE instead.
+   * TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE instead.
    */
   internalTask(
     TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
     async ({
-      compilationGroup,
+      compilationJob,
     }: {
-      compilationGroup: ICompilationGroup;
+      compilationJob: ICompilationJob;
     }): Promise<SolcInput> => {
-      return getInputFromCompilationGroup(compilationGroup);
+      return getInputFromCompilationJob(compilationJob);
     }
   );
 
@@ -398,7 +398,7 @@ export default function () {
   /**
    * This task is just a proxy to the task that compiles solcjs.
    *
-   * Override this to use a different task to compile a group.
+   * Override this to use a different task to compile a job.
    */
   internalTask(
     TASK_COMPILE_SOLIDITY_COMPILE,
@@ -443,7 +443,7 @@ export default function () {
    * errors.
    *
    * Override this task to avoid interrupting the compilation process if some
-   * group has compilation errors.
+   * job has compilation errors.
    */
   internalTask(
     TASK_COMPILE_SOLIDITY_CHECK_ERRORS,
@@ -491,18 +491,18 @@ export default function () {
   );
 
   /**
-   * Saves to disk the artifacts for a compilation group. These artifacts
+   * Saves to disk the artifacts for a compilation job. These artifacts
    * include the main artifacts, the dbg files, and the build info.
    */
   internalTask(
     TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
     async (
       {
-        compilationGroup,
+        compilationJob,
         input,
         output,
       }: {
-        compilationGroup: ICompilationGroup;
+        compilationJob: ICompilationJob;
         input: SolcInput;
         output: any;
       },
@@ -515,13 +515,13 @@ export default function () {
       const pathToBuildInfo = await artifacts.saveBuildInfo(
         input,
         output,
-        compilationGroup.getVersion()
+        compilationJob.getVersion()
       );
 
       const emittedArtifactsPerFile: EmittedArtifactsPerFile = [];
-      for (const file of compilationGroup.getResolvedFiles()) {
+      for (const file of compilationJob.getResolvedFiles()) {
         log(`Emitting artifacts for file '${file.globalName}'`);
-        if (!compilationGroup.emitsArtifacts(file)) {
+        if (!compilationJob.emitsArtifacts(file)) {
           continue;
         }
 
@@ -573,24 +573,24 @@ export default function () {
   );
 
   /**
-   * Prints a message before starting the compilation of a group.
+   * Prints a message before starting the compilation of a job.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_START,
-    async ({ compilationGroup }: { compilationGroup: ICompilationGroup }) => {
-      console.log(`Compiling with ${compilationGroup.getVersion()}`);
+    TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START,
+    async ({ compilationJob }: { compilationJob: ICompilationJob }) => {
+      console.log(`Compiling with ${compilationJob.getVersion()}`);
     }
   );
 
   /**
-   * Prints a message after compiling a group.
+   * Prints a message after compiling a job.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_END,
+    TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END,
     async ({
       emittedArtifactsPerFile,
     }: {
-      compilationGroup: ICompilationGroup;
+      compilationJob: ICompilationJob;
       emittedArtifactsPerFile: EmittedArtifactsPerFile;
     }) => {
       const numberOfContracts = emittedArtifactsPerFile.length;
@@ -605,53 +605,53 @@ export default function () {
 
   /**
    * This is an orchestrator task that uses other internal tasks to compile a
-   * compilation group.
+   * compilation job.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_COMPILE_GROUP,
+    TASK_COMPILE_SOLIDITY_COMPILE_JOB,
     async (
       {
-        compilationGroup,
+        compilationJob,
       }: {
-        compilationGroup: ICompilationGroup;
+        compilationJob: ICompilationJob;
       },
       { run }
     ): Promise<{ emittedArtifactsPerFile: EmittedArtifactsPerFile }> => {
-      log(`Compiling group with version '${compilationGroup.getVersion()}'`);
-      await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_START, {
-        compilationGroup,
+      log(`Compiling job with version '${compilationJob.getVersion()}'`);
+      await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START, {
+        compilationJob,
       });
 
       const input: SolcInput = await run(
         TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
         {
-          compilationGroup,
+          compilationJob,
         }
       );
 
       const output = await run(TASK_COMPILE_SOLIDITY_COMPILE, {
-        solcVersion: compilationGroup.getVersion(),
+        solcVersion: compilationJob.getVersion(),
         input,
       });
 
       await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output });
 
       if (output === undefined) {
-        log(`No output for compilation group`);
+        log(`No output for compilation job`);
         return { emittedArtifactsPerFile: [] };
       }
 
       const { emittedArtifactsPerFile } = await run(
         TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
         {
-          compilationGroup,
+          compilationJob,
           input,
           output,
         }
       );
 
-      await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_GROUP_END, {
-        compilationGroup,
+      await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END, {
+        compilationJob,
         emittedArtifactsPerFile,
       });
 
@@ -660,29 +660,29 @@ export default function () {
   );
 
   /**
-   * Receives a list of CompilationGroupsFailure and throws an error if it's not
+   * Receives a list of CompilationJobsFailure and throws an error if it's not
    * empty.
    *
    * This task could be overriden to avoid interrupting the compilation if
    * there's some part of the project that can't be compiled.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_GROUPS_FAILURES,
+    TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES,
     async (
       {
-        compilationGroupsFailures,
+        compilationJobsFailures,
       }: {
-        compilationGroupsFailures: CompilationGroupsFailure[];
+        compilationJobsFailures: CompilationJobsFailure[];
       },
       { run }
     ) => {
-      if (compilationGroupsFailures.length > 0) {
+      if (compilationJobsFailures.length > 0) {
         log(
-          `There are '${compilationGroupsFailures.length}' compilation groups failures, throwing`
+          `There are '${compilationJobsFailures.length}' compilation jobs failures, throwing`
         );
         const errorMessage: string = await run(
-          TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
-          { compilationGroupsFailures }
+          TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+          { compilationJobsFailures }
         );
 
         // TODO-HH throw a BuidlerError and show a better error message
@@ -693,30 +693,30 @@ export default function () {
   );
 
   /**
-   * Receives a list of CompilationGroupsFailure and returns an error message
+   * Receives a list of CompilationJobsFailure and returns an error message
    * that describes the failure.
    */
   internalTask(
-    TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS_FAILURES_MESSAGE,
+    TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
     async ({
-      compilationGroupsFailures,
+      compilationJobsFailures,
     }: {
-      compilationGroupsFailures: CompilationGroupsFailure[];
+      compilationJobsFailures: CompilationJobsFailure[];
     }): Promise<string> => {
       const { flatMap } = await import("lodash");
       const nonCompilableOverriden = flatMap(
-        compilationGroupsFailures,
+        compilationJobsFailures,
         (x) => x.nonCompilableOverriden
       );
       const nonCompilable = flatMap(
-        compilationGroupsFailures,
+        compilationJobsFailures,
         (x) => x.nonCompilable
       );
       const importsIncompatibleFile = flatMap(
-        compilationGroupsFailures,
+        compilationJobsFailures,
         (x) => x.importsIncompatibleFile
       );
-      const other = flatMap(compilationGroupsFailures, (x) => x.other);
+      const other = flatMap(compilationJobsFailures, (x) => x.other);
 
       let errorMessage =
         "The project couldn't be compiled, see reasons below.\n\n";
@@ -791,51 +791,51 @@ ${other.map((x) => `* ${x}`).join("\n")}
         dependencyGraph.getResolvedFiles()
       );
 
-      const [compilationGroupsSuccesses, compilationGroupsFailures]: [
-        CompilationGroupsSuccess[],
-        CompilationGroupsFailure[]
-      ] = await run(TASK_COMPILE_SOLIDITY_GET_COMPILATION_GROUPS, {
+      const [compilationJobsSuccesses, compilationJobsFailures]: [
+        CompilationJobsSuccess[],
+        CompilationJobsFailure[]
+      ] = await run(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS, {
         dependencyGraph,
         solidityFilesCache,
       });
 
-      await run(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_GROUPS_FAILURES, {
-        compilationGroupsFailures,
+      await run(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES, {
+        compilationJobsFailures,
       });
 
-      const compilationGroups = flatten(
-        compilationGroupsSuccesses.map((x) => x.groups)
+      const compilationJobs = flatten(
+        compilationJobsSuccesses.map((x) => x.jobs)
       );
 
-      const filteredCompilationGroups: ICompilationGroup[] = await run(
-        TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_GROUPS,
-        { compilationGroups, force, solidityFilesCache }
+      const filteredCompilationJobs: ICompilationJob[] = await run(
+        TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS,
+        { compilationJobs, force, solidityFilesCache }
       );
 
-      const mergedCompilationGroups: ICompilationGroup[] = await run(
-        TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_GROUPS,
-        { compilationGroups: filteredCompilationGroups }
+      const mergedCompilationJobs: ICompilationJob[] = await run(
+        TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
+        { compilationJobs: filteredCompilationJobs }
       );
 
       const {
-        emittedArtifactsPerGroup,
-      }: { emittedArtifactsPerGroup: EmittedArtifactsPerGroup } = await run(
-        TASK_COMPILE_SOLIDITY_COMPILE_GROUPS,
+        emittedArtifactsPerJob,
+      }: { emittedArtifactsPerJob: EmittedArtifactsPerJob } = await run(
+        TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
         {
-          compilationGroups: mergedCompilationGroups,
+          compilationJobs: mergedCompilationJobs,
         }
       );
 
       // update cache using the information about the emitted artifacts
       for (const {
-        compilationGroup,
+        compilationJob: compilationJob,
         emittedArtifactsPerFile,
-      } of emittedArtifactsPerGroup) {
+      } of emittedArtifactsPerJob) {
         for (const { file, emittedArtifacts } of emittedArtifactsPerFile) {
           solidityFilesCache.files[file.absolutePath] = {
             lastModificationDate: file.lastModificationDate.valueOf(),
             globalName: file.globalName,
-            solcConfig: compilationGroup.getSolcConfig(),
+            solcConfig: compilationJob.getSolcConfig(),
             imports: file.content.imports,
             versionPragmas: file.content.versionPragmas,
             artifacts: emittedArtifacts,

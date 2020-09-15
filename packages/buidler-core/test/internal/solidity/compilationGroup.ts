@@ -2,12 +2,12 @@ import { assert } from "chai";
 import semver from "semver";
 
 import {
-  CompilationGroup,
-  CompilationGroupsFailure,
-  CompilationGroupsResult,
+  CompilationJob,
+  CompilationJobsFailure,
+  CompilationJobsResult,
   createCompilationGroups,
-  isCompilationGroupsSuccess,
-} from "../../../src/internal/solidity/compilationGroup";
+  isCompilationJobsSuccess,
+} from "../../../src/internal/solidity/compilation-job";
 
 import { createMockData, MockFile } from "./helpers";
 
@@ -48,7 +48,7 @@ const solcConfig066 = {
   compilers: [solc066],
 };
 
-const sortByVersion = (a: CompilationGroup, b: CompilationGroup) => {
+const sortByVersion = (a: CompilationJob, b: CompilationJob) => {
   return semver.lt(a.getVersion(), b.getVersion())
     ? -1
     : semver.lt(b.getVersion(), a.getVersion())
@@ -56,17 +56,17 @@ const sortByVersion = (a: CompilationGroup, b: CompilationGroup) => {
     : 0;
 };
 
-function assertIsSuccess(result: CompilationGroupsResult): CompilationGroup[] {
-  if (!isCompilationGroupsSuccess(result)) {
+function assertIsSuccess(result: CompilationJobsResult): CoCompilationJob {
+  if (!isCompilationJobsSuccess(result)) {
     assert.fail("The given compilation groups rersult is a failure");
   }
-  return result.groups;
+  return result.jobs;
 }
 
 function assertIsFailure(
-  result: CompilationGroupsResult
-): CompilationGroupsFailure {
-  if (isCompilationGroupsSuccess(result)) {
+  result: CompilationJobsResult
+): CompilationJobsFailure {
+  if (isCompilationJobsSuccess(result)) {
     assert.fail("The given compilation groups rersult is a success");
   }
   return result;

@@ -9,43 +9,43 @@ import { assertBuidlerInvariant } from "../core/errors";
 import { IDependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
-const log = debug("buidler:core:compilation-group");
+const log = debug("buidler:core:compilation-job");
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "*";
 
-export interface ICompilationGroup {
+export interface ICompilationJob {
   emitsArtifacts: (file?: ResolvedFile) => boolean;
   getResolvedFiles: () => ResolvedFile[];
   getVersion: () => string;
-  merge: (other: ICompilationGroup) => ICompilationGroup;
+  merge: (other: ICompilationJob) => ICompilationJob;
   getSolcConfig: () => SolcConfig;
 }
 
-export interface CompilationGroupsSuccess {
-  groups: ICompilationGroup[];
+export interface CompilationJobsSuccess {
+  jobs: ICompilationJob[];
 }
 
-export type CompilationGroupsFailure = Record<
+export type CompilationJobsFailure = Record<
   MatchingCompilerFailure["reason"],
   string[]
 >;
 
-export function isCompilationGroupsSuccess(
-  result: CompilationGroupsResult
-): result is CompilationGroupsSuccess {
-  return "groups" in result;
+export function isCompilationJobsSuccess(
+  result: CompilationJobsResult
+): result is CompilationJobsSuccess {
+  return "jobs" in result;
 }
 
-export function isCompilationGroupsFailure(
-  result: CompilationGroupsResult
-): result is CompilationGroupsFailure {
-  return !isCompilationGroupsSuccess(result);
+export function isCompilationJobsFailure(
+  result: CompilationJobsResult
+): result is CompilationJobsFailure {
+  return !isCompilationJobsSuccess(result);
 }
 
-export type CompilationGroupsResult =
-  | CompilationGroupsSuccess
-  | CompilationGroupsFailure;
+export type CompilationJobsResult =
+  | CompilationJobsSuccess
+  | CompilationJobsFailure;
 
 type SolidityConfigPredicate = (config: SolcConfig) => boolean;
 
@@ -57,7 +57,7 @@ export interface MatchingCompilerFailure {
     | "other";
 }
 
-export class CompilationGroup implements ICompilationGroup {
+export class CompilationJob implements ICompilationJob {
   private _filesToCompile: Map<
     string,
     { file: ResolvedFile; emitsArtifacts: boolean }
@@ -79,23 +79,20 @@ export class CompilationGroup implements ICompilationGroup {
     }
   }
 
-  public merge(group: ICompilationGroup): ICompilationGroup {
+  public merge(job: ICompilationJob): ICompilationJob {
     const { isEqual }: LoDashStatic = require("lodash");
     assertBuidlerInvariant(
-      isEqual(this.solidityConfig, group.getSolcConfig()),
-      "Merging groups with different solidity configurations"
+      isEqual(this.solidityConfig, job.getSolcConfig()),
+      "Merging jobs with different solidity configurations"
     );
-    const mergedGroups = new CompilationGroup(
-      group.getSolcConfig(),
-      this._cache
-    );
+    const mergedJobs = new CompilationJob(job.getSolcConfig(), this._cache);
     for (const file of this.getResolvedFiles()) {
-      mergedGroups.addFileToCompile(file, this.emitsArtifacts(file));
+      mergedJobs.addFileToCompile(file, this.emitsArtifacts(file));
     }
-    for (const file of group.getResolvedFiles()) {
-      mergedGroups.addFileToCompile(file, group.emitsArtifacts(file));
+    for (const file of job.getResolvedFiles()) {
+      mergedJobs.addFileToCompile(file, job.emitsArtifacts(file));
     }
-    return mergedGroups;
+    return mergedJobs;
   }
 
   public getSolcConfig(): SolcConfig {
@@ -117,7 +114,7 @@ export class CompilationGroup implements ICompilationGroup {
   /**
    * Check if the given file emits artifacts.
    *
-   * If no file is given, check if *some* file in the group emits artifacts.
+   * If no file is given, check if *some* file in the job emits artifacts.
    */
   public emitsArtifacts(file?: ResolvedFile): boolean {
     if (file === undefined) {
@@ -128,54 +125,54 @@ export class CompilationGroup implements ICompilationGroup {
 
     assertBuidlerInvariant(
       fileToCompile !== undefined,
-      `File '${file.globalName}' does not exist in this compilation group`
+      `File '${file.globalName}' does not exist in this compilation job`
     );
 
     return fileToCompile.emitsArtifacts;
   }
 }
 
-class CompilationGroupMerger {
-  private _compilationGroups: Map<SolcConfig, ICompilationGroup[]> = new Map();
+class CompilationJobsMerger {
+  private _compilationJobs: Map<SolcConfig, ICompilationJob[]> = new Map();
 
   constructor(private _isMergeable: SolidityConfigPredicate) {}
 
-  public getCompilationGroups(): ICompilationGroup[] {
+  public getCompilationJobs(): ICompilationJob[] {
     const { flatten }: LoDashStatic = require("lodash");
 
-    return flatten([...this._compilationGroups.values()]);
+    return flatten([...this._compilationJobs.values()]);
   }
 
-  public addCompilationGroup(compilationGroup: ICompilationGroup) {
-    const groups = this._compilationGroups.get(
-      compilationGroup.getSolcConfig()
+  public addCompilationJob(compilationJob: ICompilationJob) {
+    const jobs = this._compilationJobs.get(
+      compilationJob.getSolcConfig()
     );
 
-    if (this._isMergeable(compilationGroup.getSolcConfig())) {
-      if (groups === undefined) {
-        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
-          compilationGroup,
+    if (this._isMergeable(compilationJob.getSolcConfig())) {
+      if (jobs === undefined) {
+        this._compilationJobs.set(compilationJob.getSolcConfig(), [
+          compilationJob,
         ]);
-      } else if (groups.length === 1) {
-        const mergedGroups = groups[0].merge(compilationGroup);
-        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
-          mergedGroups,
+      } else if (jobs.length === 1) {
+        const mergedJobs = jobs[0].merge(compilationJob);
+        this._compilationJobs.set(compilationJob.getSolcConfig(), [
+          mergedJobs,
         ]);
       } else {
         assertBuidlerInvariant(
           false,
-          "More than one mergeable group was added for the same configuration"
+          "More than one mergeable job was added for the same configuration"
         );
       }
     } else {
-      if (groups === undefined) {
-        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
-          compilationGroup,
+      if (jobs === undefined) {
+        this._compilationJobs.set(compilationJob.getSolcConfig(), [
+          compilationJob,
         ]);
       } else {
-        this._compilationGroups.set(compilationGroup.getSolcConfig(), [
-          ...groups,
-          compilationGroup,
+        this._compilationJobs.set(compilationJob.getSolcConfig(), [
+          ...jobs,
+          compilationJob,
         ]);
       }
     }
@@ -183,19 +180,19 @@ class CompilationGroupMerger {
 }
 
 /**
- * Creates a list of compilation groups from a dependency graph. *This function
+ * Creates a list of compilation jobs from a dependency graph. *This function
  * assumes that the given graph is a connected component*.
- * Returns the list of compilation groups on success, and a list of
+ * Returns the list of compilation jobs on success, and a list of
  * non-compilable files on failure.
  */
-export async function getCompilationGroupsFromConnectedComponent(
+export async function getCompilationJobsFromConnectedComponent(
   connectedComponent: IDependencyGraph,
   getFromFile: (
     file: ResolvedFile
-  ) => Promise<ICompilationGroup | MatchingCompilerFailure>
-): Promise<CompilationGroupsResult> {
-  const compilationGroups: ICompilationGroup[] = [];
-  const failures: CompilationGroupsFailure = {
+  ) => Promise<ICompilationJob | MatchingCompilerFailure>
+): Promise<CompilationJobsResult> {
+  const compilationJobs: ICompilationJob[] = [];
+  const failures: CompilationJobsFailure = {
     nonCompilable: [],
     nonCompilableOverriden: [],
     importsIncompatibleFile: [],
@@ -204,39 +201,39 @@ export async function getCompilationGroupsFromConnectedComponent(
 
   let someFailure = false;
   for (const file of connectedComponent.getResolvedFiles()) {
-    const compilationGroupOrFailure = await getFromFile(file);
+    const compilationJobOrFailure = await getFromFile(file);
 
     // if the file cannot be compiled, we add it to the list and continue in
     // case there are more non-compilable files
-    if ("reason" in compilationGroupOrFailure) {
+    if ("reason" in compilationJobOrFailure) {
       log(
-        `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationGroupOrFailure.reason}'`
+        `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrFailure.reason}'`
       );
       someFailure = true;
-      failures[compilationGroupOrFailure.reason].push(file.globalName);
+      failures[compilationJobOrFailure.reason].push(file.globalName);
       continue;
     }
 
-    compilationGroups.push(compilationGroupOrFailure);
+    compilationJobs.push(compilationJobOrFailure);
   }
 
   if (someFailure) {
     return failures;
   }
 
-  const mergedCompilationGroups = mergeCompilationGroupsWithBug(
-    compilationGroups
+  const mergedCompilationJobs = mergeCompilationJobsWithBug(
+    compilationJobs
   );
 
-  return { groups: mergedCompilationGroups };
+  return { jobs: mergedCompilationJobs };
 }
 
-export async function getCompilationGroupFromFile(
+export async function getCompilationJobFromFile(
   dependencyGraph: IDependencyGraph,
   file: ResolvedFile,
   solidityConfig: MultiSolcConfig,
   cache: SolidityFilesCache
-): Promise<ICompilationGroup | MatchingCompilerFailure> {
+): Promise<ICompilationJob | MatchingCompilerFailure> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
     file
@@ -257,57 +254,57 @@ export async function getCompilationGroupFromFile(
     `File '${file.absolutePath}' will be compiled with version '${compilerConfig.version}'`
   );
 
-  const compilationGroup = new CompilationGroup(compilerConfig, cache);
+  const compilationJob = new CompilationJob(compilerConfig, cache);
 
-  compilationGroup.addFileToCompile(file, true);
+  compilationJob.addFileToCompile(file, true);
   for (const dependency of transitiveDependencies) {
     log(
       `File '${dependency.absolutePath}' added as dependency of '${file.absolutePath}'`
     );
-    compilationGroup.addFileToCompile(dependency, false);
+    compilationJob.addFileToCompile(dependency, false);
   }
 
-  return compilationGroup;
+  return compilationJob;
 }
 
 /**
- * Merge compilation groups affected by the solc #9573 bug
+ * Merge compilation jobs affected by the solc #9573 bug
  */
-export function mergeCompilationGroupsWithBug(
-  compilationGroups: ICompilationGroup[]
-): ICompilationGroup[] {
-  const merger = new CompilationGroupMerger(
+export function mergeCompilationJobsWithBug(
+  compilationJobs: ICompilationJob[]
+): ICompilationJob[] {
+  const merger = new CompilationJobsMerger(
     (solcConfig) =>
       solcConfig?.settings?.optimizer?.enabled === true &&
       semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
   );
-  for (const group of compilationGroups) {
-    merger.addCompilationGroup(group);
+  for (const job of compilationJobs) {
+    merger.addCompilationJob(job);
   }
 
-  const mergedCompilationGroups = merger.getCompilationGroups();
+  const mergedCompilationJobs = merger.getCompilationJobs();
 
-  return mergedCompilationGroups;
+  return mergedCompilationJobs;
 }
 
 /**
- * Merge compilation groups not affected by the solc #9573 bug
+ * Merge compilation jobs not affected by the solc #9573 bug
  */
-export function mergeCompilationGroupsWithoutBug(
-  compilationGroups: ICompilationGroup[]
-): ICompilationGroup[] {
-  const merger = new CompilationGroupMerger(
+export function mergeCompilationJobsWithoutBug(
+  compilationJobs: ICompilationJob[]
+): ICompilationJob[] {
+  const merger = new CompilationJobsMerger(
     (solcConfig) =>
       solcConfig?.settings?.optimizer?.enabled !== true ||
       !semver.satisfies(solcConfig.version, SOLC_BUG_9573_VERSIONS)
   );
-  for (const group of compilationGroups) {
-    merger.addCompilationGroup(group);
+  for (const job of compilationJobs) {
+    merger.addCompilationJob(job);
   }
 
-  const mergedCompilationGroups = merger.getCompilationGroups();
+  const mergedCompilationJobs = merger.getCompilationJobs();
 
-  return mergedCompilationGroups;
+  return mergedCompilationJobs;
 }
 
 /**
