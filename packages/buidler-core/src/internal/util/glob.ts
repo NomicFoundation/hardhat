@@ -6,9 +6,9 @@ export async function glob(
   options: GlobOptions = {}
 ): Promise<string[]> {
   const { default: globModule } = await import("glob");
-  return util.promisify(globModule)(pattern, { realpath: true, ...options });
+  return util.promisify(globModule)(pattern, options);
 }
 
 export function globSync(pattern: string, options: GlobOptions = {}): string[] {
-  return require("glob").sync(pattern, { realpath: true, ...options });
+  return require("glob").sync(pattern, options);
 }
