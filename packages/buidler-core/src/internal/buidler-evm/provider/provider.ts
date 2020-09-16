@@ -81,7 +81,7 @@ export class BuidlerEVMProvider extends EventEmitter
   public async request(args: RequestArguments): Promise<unknown> {
     const release = await this._mutex.acquire();
 
-    if (!Array.isArray(args.params)) {
+    if (args.params !== undefined && !Array.isArray(args.params)) {
       throw new InvalidInputError(
         "Buidler EVM doesn't support JSON-RPC params sent as an object"
       );
