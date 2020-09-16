@@ -1,7 +1,7 @@
 import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import {
+  Artifacts,
   NomicLabsBuidlerPluginError,
-  readArtifact,
 } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 // tslint:disable: no-implicit-dependencies
@@ -29,10 +29,8 @@ describe.skip("Plugin integration tests", function () {
     it("Test verifying deployed contract on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
-        "TestContract1"
-      );
+      const artifacts = new Artifacts(this.env.config.paths.artifacts);
+      const { bytecode, abi } = await artifacts.readArtifact("TestContract1");
       const amount = "20";
 
       const deployedAddress = await deployContract(abi, `${bytecode}`, [
@@ -60,10 +58,8 @@ describe.skip("Plugin integration tests", function () {
     it("Should verify deployed contract on etherscan using full name", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
-        "TestContract1"
-      );
+      const artifacts = new Artifacts(this.env.config.paths.artifacts);
+      const { bytecode, abi } = await artifacts.readArtifact("TestContract1");
       const amount = "20";
 
       const deployedAddress = await deployContract(abi, `${bytecode}`, [
@@ -91,10 +87,8 @@ describe.skip("Plugin integration tests", function () {
     it("Should verify deployed inner contract on etherscan using full name", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
-        "InnerContract"
-      );
+      const artifacts = new Artifacts(this.env.config.paths.artifacts);
+      const { bytecode, abi } = await artifacts.readArtifact("InnerContract");
 
       const deployedAddress = await deployContract(abi, `${bytecode}`, []);
 
@@ -117,8 +111,8 @@ describe.skip("Plugin integration tests", function () {
     it("Should verify deployed contract with name clash on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const { bytecode, abi } = await readArtifact(
-        this.env.config.paths.artifacts,
+      const artifacts = new Artifacts(this.env.config.paths.artifacts);
+      const { bytecode, abi } = await artifacts.readArtifact(
         "TestReentrancyGuardLocal"
       );
       const deployedAddress = await deployContract(abi, `${bytecode}`, []);

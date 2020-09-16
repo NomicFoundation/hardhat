@@ -1,7 +1,7 @@
 import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import {
+  Artifacts,
   NomicLabsBuidlerPluginError,
-  readArtifactSync,
 } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import path from "path";
@@ -14,10 +14,8 @@ describe("Vyper plugin", async function () {
 
     it("Should successfully compile the contract", async function () {
       await this.env.run(TASK_COMPILE);
-      assert.equal(
-        readArtifactSync(this.env.config.paths.artifacts, "test").contractName,
-        "test"
-      );
+      const artifacts = new Artifacts(this.env.config.paths.artifacts);
+      assert.equal(artifacts.readArtifactSync("test").contractName, "test");
     });
   });
 
@@ -31,11 +29,8 @@ describe("Vyper plugin", async function () {
         assert.instanceOf(error, NomicLabsBuidlerPluginError);
         assert.include("compilation failed", error.message.toLowerCase());
 
-        assert.equal(
-          readArtifactSync(this.env.config.paths.artifacts, "test")
-            .contractName,
-          "test"
-        );
+        const artifacts = new Artifacts(this.env.config.paths.artifacts);
+        assert.equal(artifacts.readArtifactSync("test").contractName, "test");
 
         return;
       }
