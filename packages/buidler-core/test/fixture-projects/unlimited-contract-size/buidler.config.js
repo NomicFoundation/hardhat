@@ -4,4 +4,5 @@ module.exports = {
       allowUnlimitedContractSize: true,
     },
   },
+  solidity: "0.5.15",
 };
