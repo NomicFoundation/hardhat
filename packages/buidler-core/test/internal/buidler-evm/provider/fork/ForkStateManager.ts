@@ -7,6 +7,7 @@ import {
   KECCAK256_NULL,
   toBuffer,
 } from "ethereumjs-util";
+import sinon from "sinon";
 
 import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
 import { ForkStateManager } from "../../../../../src/internal/buidler-evm/provider/fork/ForkStateManager";
@@ -25,16 +26,16 @@ import {
 
 describe("ForkStateManager", () => {
   let client: JsonRpcClient;
-  let blockNumber: BN;
+  let forkBlockNumber: BN;
   let fsm: ForkStateManager;
 
   before(async () => {
     client = JsonRpcClient.forUrl(INFURA_URL);
-    blockNumber = await client.getLatestBlockNumber();
+    forkBlockNumber = await client.getLatestBlockNumber();
   });
 
   beforeEach(async () => {
-    fsm = new ForkStateManager(client, blockNumber);
+    fsm = new ForkStateManager(client, forkBlockNumber);
   });
 
   it("can be constructed", () => {
@@ -175,7 +176,7 @@ describe("ForkStateManager", () => {
 
   describe("getContractCode", () => {
     it("can get contract code", async () => {
-      const remoteCode = await client.getCode(DAI_ADDRESS, blockNumber);
+      const remoteCode = await client.getCode(DAI_ADDRESS, forkBlockNumber);
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
       assert.isTrue(fsmCode.equals(remoteCode));
@@ -187,7 +188,7 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
         toBuffer([69, 4, 20])
       );
-      const remoteCode = await client.getCode(DAI_ADDRESS, blockNumber);
+      const remoteCode = await client.getCode(DAI_ADDRESS, forkBlockNumber);
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
       assert.isTrue(fsmCode.equals(remoteCode));
@@ -221,7 +222,7 @@ describe("ForkStateManager", () => {
       const remoteValue = await client.getStorageAt(
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
-        blockNumber
+        forkBlockNumber
       );
       const fsmValue = await fsm.getContractStorage(
         DAI_ADDRESS,
@@ -237,7 +238,7 @@ describe("ForkStateManager", () => {
       const remoteValue = await client.getStorageAt(
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
-        blockNumber
+        forkBlockNumber
       );
       const fsmValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
@@ -476,7 +477,7 @@ describe("ForkStateManager", () => {
   });
 
   describe("setStateRoot", () => {
-    it("throws error when an unknown state root is passed", async () => {
+    it("throws an error when an unknown state root is passed", async () => {
       await assert.isRejected(
         fsm.setStateRoot(randomHashBuffer()),
         Error,
@@ -580,6 +581,183 @@ describe("ForkStateManager", () => {
   describe("cleanupTouchedAccounts", () => {
     it("does not throw an error", async () => {
       await fsm.cleanupTouchedAccounts();
+    });
+  });
+
+  describe("setBlockContext", () => {
+    it("throws an error if invoked during checkpoint", async () => {
+      await fsm.checkpoint();
+      assert.throws(
+        () => fsm.setBlockContext(randomHashBuffer(), new BN(0)),
+        Error,
+        "setBlockContext called when checkpointed"
+      );
+    });
+
+    it("throws an error if called when original storage cache is not empty", async () => {
+      await fsm.putContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        toBuffer("0xdeadbeef")
+      );
+      await fsm.getOriginalContractStorage(
+        DAI_ADDRESS,
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+      );
+      assert.throws(
+        () => fsm.setBlockContext(randomHashBuffer(), new BN(0)),
+        Error,
+        "setBlockContext called when original storage cache is not empty"
+      );
+    });
+
+    describe("when blockNumber is smaller or equal to forkBlockNumber", () => {
+      it("clears the state and changes the block context in which methods operate", async () => {
+        const oldBlock = forkBlockNumber.subn(10);
+        const valueAtOldBlock = await client.getStorageAt(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          oldBlock
+        );
+
+        await fsm.putContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          toBuffer("0xdeadbeef")
+        );
+
+        fsm.setBlockContext(randomHashBuffer(), oldBlock);
+        const fsmValue = await fsm.getContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        );
+        assert.equal(bufferToHex(fsmValue), bufferToHex(valueAtOldBlock));
+      });
+
+      it("sets the state root", async () => {
+        const newStateRoot = randomHashBuffer();
+        fsm.setBlockContext(newStateRoot, forkBlockNumber.subn(10));
+        assert.equal(
+          bufferToHex(await fsm.getStateRoot()),
+          bufferToHex(newStateRoot)
+        );
+      });
+    });
+
+    describe("when blockNumber is greater than forkBlockNumber", () => {
+      it("sets the state root", async () => {
+        await fsm.putContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          toBuffer("0xdeadbeef")
+        );
+        const blockOneStateRoot = await fsm.getStateRoot();
+
+        await fsm.putContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          toBuffer("0xfeedface")
+        );
+        const blockTwoStateRoot = await fsm.getStateRoot();
+
+        fsm.setBlockContext(blockOneStateRoot, forkBlockNumber.addn(1));
+        const fsmValue = await fsm.getContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        );
+        assert.equal(bufferToHex(fsmValue), "0xdeadbeef");
+      });
+    });
+  });
+
+  describe("restoreForkBlockContext", () => {
+    it("throws an error if there is uncommitted state", async () => {
+      const stateRoot = await fsm.getStateRoot();
+      fsm.setBlockContext(randomHashBuffer(), forkBlockNumber.subn(10));
+      await fsm.checkpoint();
+      assert.throws(
+        () => fsm.restoreForkBlockContext(stateRoot),
+        Error,
+        "restoreForkBlockContext called when checkpointed"
+      );
+    });
+
+    describe("when the block context has been changed", () => {
+      it("restores the fork block context in which methods operate", async () => {
+        const valueAtForkBlock = await client.getStorageAt(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          forkBlockNumber
+        );
+        const getStorageAt = sinon.spy(client, "getStorageAt");
+
+        const stateRoot = await fsm.getStateRoot();
+        fsm.setBlockContext(randomHashBuffer(), forkBlockNumber.subn(10));
+        fsm.restoreForkBlockContext(stateRoot);
+        const fsmValue = await fsm.getContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        );
+        assert.equal(bufferToHex(fsmValue), bufferToHex(valueAtForkBlock));
+        assert.isTrue(getStorageAt.calledOnce);
+        assert.equal(
+          getStorageAt.firstCall.lastArg.toString(),
+          forkBlockNumber.toString()
+        );
+
+        getStorageAt.restore();
+      });
+
+      it("sets the state root", async () => {
+        await fsm.putContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          toBuffer("0xdeadbeef")
+        );
+        const stateRoot = await fsm.getStateRoot();
+
+        fsm.setBlockContext(randomHashBuffer(), forkBlockNumber.subn(10));
+
+        await fsm.putContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          toBuffer("0xfeedface")
+        );
+
+        fsm.restoreForkBlockContext(stateRoot);
+
+        const fsmValue = await fsm.getContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        );
+        assert.equal(bufferToHex(fsmValue), "0xdeadbeef");
+      });
+    });
+
+    describe("when the block context has not been changed", () => {
+      it("sets the state root", async () => {
+        await fsm.putContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          toBuffer("0xdeadbeef")
+        );
+        const blockOneStateRoot = await fsm.getStateRoot();
+
+        await fsm.putContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          toBuffer("0xfeedface")
+        );
+        const blockTwoStateRoot = await fsm.getStateRoot();
+
+        fsm.setBlockContext(blockOneStateRoot, forkBlockNumber.addn(1));
+        fsm.restoreForkBlockContext(blockTwoStateRoot);
+        const fsmValue = await fsm.getContractStorage(
+          DAI_ADDRESS,
+          DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        );
+        assert.equal(bufferToHex(fsmValue), "0xfeedface");
+      });
     });
   });
 });

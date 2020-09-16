@@ -25,7 +25,10 @@ const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${stripZeros(position).toString("hex")}`;
 };
 
-const checkpointError = (method: string) =>
+const checkpointedError = (method: string) =>
+  new Error(`${method} called when checkpointed`);
+
+const notCheckpointedError = (method: string) =>
   new Error(`${method} called when not checkpointed`);
 
 const notSupportedError = (method: string) =>
@@ -37,10 +40,12 @@ export class ForkStateManager implements PStateManager {
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
+  private _contextBlockNumber = this._forkBlockNumber.clone();
+  private _contextChanged = false;
 
   constructor(
-    private _jsonRpcClient: JsonRpcClient,
-    private _forkBlockNumber: BN
+    private readonly _jsonRpcClient: JsonRpcClient,
+    private readonly _forkBlockNumber: BN
   ) {
     this._state = ImmutableMap();
   }
@@ -70,20 +75,20 @@ export class ForkStateManager implements PStateManager {
         ? toBuffer(localNonce)
         : this._jsonRpcClient.getTransactionCount(
             address,
-            this._forkBlockNumber
+            this._contextBlockNumber
           );
     };
 
     const getBalance = async () => {
       return localBalance !== undefined
         ? toBuffer(localBalance)
-        : this._jsonRpcClient.getBalance(address, this._forkBlockNumber);
+        : this._jsonRpcClient.getBalance(address, this._contextBlockNumber);
     };
 
     const getCode = async () => {
       return localCode !== undefined
         ? toBuffer(localCode)
-        : this._jsonRpcClient.getCode(address, this._forkBlockNumber);
+        : this._jsonRpcClient.getCode(address, this._contextBlockNumber);
     };
 
     const [nonce, balance, code] = await Promise.all([
@@ -132,7 +137,7 @@ export class ForkStateManager implements PStateManager {
     if (localCode !== undefined) {
       return toBuffer(localCode);
     }
-    return this._jsonRpcClient.getCode(address, this._forkBlockNumber);
+    return this._jsonRpcClient.getCode(address, this._contextBlockNumber);
   }
 
   public async getContractStorage(
@@ -151,7 +156,7 @@ export class ForkStateManager implements PStateManager {
     return this._jsonRpcClient.getStorageAt(
       address,
       key,
-      this._forkBlockNumber
+      this._contextBlockNumber
     );
   }
 
@@ -199,7 +204,7 @@ export class ForkStateManager implements PStateManager {
 
   public async commit(): Promise<void> {
     if (this._stateCheckpoints.length === 0) {
-      throw checkpointError("commit");
+      throw notCheckpointedError("commit");
     }
     this._stateCheckpoints.pop();
   }
@@ -207,7 +212,7 @@ export class ForkStateManager implements PStateManager {
   public async revert(): Promise<void> {
     const checkpointedRoot = this._stateCheckpoints.pop();
     if (checkpointedRoot === undefined) {
-      throw checkpointError("revert");
+      throw notCheckpointedError("revert");
     }
     await this.setStateRoot(toBuffer(checkpointedRoot));
   }
@@ -221,13 +226,7 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async setStateRoot(stateRoot: Buffer): Promise<void> {
-    const newRoot = bufferToHex(stateRoot);
-    const state = this._stateRootToState.get(newRoot);
-    if (state === undefined) {
-      throw new Error("Unknown state root");
-    }
-    this._stateRoot = newRoot;
-    this._state = state;
+    this._setStateRoot(stateRoot);
   }
 
   public async dumpStorage(address: Buffer): Promise<Record<string, string>> {
@@ -299,5 +298,46 @@ export class ForkStateManager implements PStateManager {
       ),
       _clearOriginalStorageCache: this._clearOriginalStorageCache.bind(this),
     };
+  }
+
+  public setBlockContext(stateRoot: Buffer, blockNumber: BN) {
+    if (this._stateCheckpoints.length !== 0) {
+      throw checkpointedError("setBlockContext");
+    }
+    if (this._originalStorageCache.size !== 0) {
+      throw new Error(
+        "setBlockContext called when original storage cache is not empty"
+      );
+    }
+    if (blockNumber.gt(this._forkBlockNumber)) {
+      this._setStateRoot(stateRoot);
+      return;
+    }
+    this._contextChanged = true;
+    this._state = ImmutableMap();
+    this._stateRoot = bufferToHex(stateRoot);
+    this._stateRootToState.set(this._stateRoot, this._state);
+    this._contextBlockNumber = blockNumber;
+  }
+
+  public restoreForkBlockContext(stateRoot: Buffer) {
+    if (this._stateCheckpoints.length !== 0) {
+      throw checkpointedError("restoreForkBlockContext");
+    }
+    this._setStateRoot(stateRoot);
+    if (this._contextChanged) {
+      this._contextChanged = false;
+      this._contextBlockNumber = this._forkBlockNumber;
+    }
+  }
+
+  private _setStateRoot(stateRoot: Buffer) {
+    const newRoot = bufferToHex(stateRoot);
+    const state = this._stateRootToState.get(newRoot);
+    if (state === undefined) {
+      throw new Error("Unknown state root");
+    }
+    this._stateRoot = newRoot;
+    this._state = state;
   }
 }
