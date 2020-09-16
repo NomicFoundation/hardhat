@@ -1211,10 +1211,14 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     blockNumber: BN | null,
     action: () => Promise<T>
   ): Promise<T> {
-    const block =
-      blockNumber === null
-        ? await this.getLatestBlock()
-        : await this.getBlockByNumber(blockNumber);
+    if (
+      blockNumber === null ||
+      blockNumber.eq(await this.getLatestBlockNumber())
+    ) {
+      return action();
+    }
+
+    const block = await this.getBlockByNumber(blockNumber);
     if (block === undefined) {
       // TODO handle this better
       throw new Error(
