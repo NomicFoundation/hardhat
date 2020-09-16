@@ -1,17 +1,12 @@
+import * as taskTypes from "../../builtin-tasks/types";
+
 import { ResolvedFile, Resolver } from "./resolver";
 
-export interface IDependencyGraph {
-  getConnectedComponents(): IDependencyGraph[];
-  getDependencies(file: ResolvedFile): ResolvedFile[];
-  getResolvedFiles(): ResolvedFile[];
-  getTransitiveDependencies(file: ResolvedFile): ResolvedFile[];
-}
-
-export class DependencyGraph implements IDependencyGraph {
+export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
-  ): Promise<IDependencyGraph> {
+  ): Promise<taskTypes.DependencyGraph> {
     const graph = new DependencyGraph();
 
     for (const resolvedFile of resolvedFiles) {
@@ -68,7 +63,7 @@ export class DependencyGraph implements IDependencyGraph {
     return [...transitiveDependencies];
   }
 
-  public getConnectedComponents(): IDependencyGraph[] {
+  public getConnectedComponents(): taskTypes.DependencyGraph[] {
     const undirectedGraph: Record<string, Set<string>> = {};
 
     for (const [

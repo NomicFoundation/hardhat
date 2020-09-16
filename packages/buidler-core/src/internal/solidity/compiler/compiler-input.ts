@@ -1,5 +1,5 @@
+import { CompilationJob } from "../../../builtin-tasks/types";
 import { SolcInput, SolcOptimizerConfig } from "../../../types";
-import { ICompilationJob } from "../compilation-job";
 import { DependencyGraph } from "../dependencyGraph";
 
 export function getInputFromDependencyGraph(
@@ -44,7 +44,7 @@ export function getInputFromDependencyGraph(
 }
 
 export function getInputFromCompilationJob(
-  compilationJob: ICompilationJob
+  compilationJob: CompilationJob
 ): SolcInput {
   const sources: { [globalName: string]: { content: string } } = {};
   for (const file of compilationJob.getResolvedFiles()) {

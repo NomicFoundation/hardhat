@@ -2,11 +2,11 @@ import debug from "debug";
 import type { LoDashStatic } from "lodash";
 import semver from "semver";
 
+import * as taskTypes from "../../builtin-tasks/types";
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 import { MultiSolcConfig, SolcConfig } from "../../types";
 import { assertBuidlerInvariant } from "../core/errors";
 
-import { IDependencyGraph } from "./dependencyGraph";
 import { ResolvedFile } from "./resolver";
 
 const log = debug("buidler:core:compilation-job");
@@ -14,48 +14,35 @@ const log = debug("buidler:core:compilation-job");
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "*";
 
-export interface ICompilationJob {
-  emitsArtifacts(file: ResolvedFile): boolean;
-  hasSolc9573Bug(): boolean;
-  merge(other: ICompilationJob): ICompilationJob;
-  getResolvedFiles(): ResolvedFile[];
-  getSolcConfig(): SolcConfig;
+/**
+ * An object with a list of successfully created jobs and a list of errors.
+ * The `errors` entry maps error codes (that come from the
+ * CompilationJobCreationError enum) to the source names of the files that
+ * caused that error.
+ */
+export interface CompilationJobsCreationResult {
+  jobs: taskTypes.CompilationJob[];
+  errors: {
+    [compilationJobCreationError: number]: string[];
+  };
 }
 
-export interface CompilationJobsSuccess {
-  jobs: ICompilationJob[];
+export type CompilationJobsCreationErrors = CompilationJobsCreationResult["errors"];
+
+export enum CompilationJobCreationError {
+  OTHER_ERROR = 0,
+  NON_COMPILABLE = 1,
+  NON_COMPILABLE_OVERRIDEN = 2,
+  IMPORTS_INCOMPATIBLE_FILE = 3,
 }
 
-export type CompilationJobsFailure = Record<
-  MatchingCompilerFailure["reason"],
-  string[]
->;
-
-export function isCompilationJobsSuccess(
-  result: CompilationJobsResult
-): result is CompilationJobsSuccess {
-  return "jobs" in result;
+function isCompilationJobCreationError(
+  x: unknown
+): x is CompilationJobCreationError {
+  return typeof x === "number";
 }
 
-export function isCompilationJobsFailure(
-  result: CompilationJobsResult
-): result is CompilationJobsFailure {
-  return !isCompilationJobsSuccess(result);
-}
-
-export type CompilationJobsResult =
-  | CompilationJobsSuccess
-  | CompilationJobsFailure;
-
-export interface MatchingCompilerFailure {
-  reason:
-    | "nonCompilable"
-    | "nonCompilableOverriden"
-    | "importsIncompatibleFile"
-    | "other";
-}
-
-export class CompilationJob implements ICompilationJob {
+export class CompilationJob implements taskTypes.CompilationJob {
   private _filesToCompile: Map<
     string,
     { file: ResolvedFile; emitsArtifacts: boolean }
@@ -84,7 +71,7 @@ export class CompilationJob implements ICompilationJob {
     );
   }
 
-  public merge(job: ICompilationJob): ICompilationJob {
+  public merge(job: taskTypes.CompilationJob): taskTypes.CompilationJob {
     const { isEqual }: LoDashStatic = require("lodash");
     assertBuidlerInvariant(
       isEqual(this.solidityConfig, job.getSolcConfig()),
@@ -130,17 +117,22 @@ export class CompilationJob implements ICompilationJob {
 }
 
 class CompilationJobsMerger {
-  private _compilationJobs: Map<SolcConfig, ICompilationJob[]> = new Map();
+  private _compilationJobs: Map<
+    SolcConfig,
+    taskTypes.CompilationJob[]
+  > = new Map();
 
-  constructor(private _isMergeable: (job: ICompilationJob) => boolean) {}
+  constructor(
+    private _isMergeable: (job: taskTypes.CompilationJob) => boolean
+  ) {}
 
-  public getCompilationJobs(): ICompilationJob[] {
+  public getCompilationJobs(): taskTypes.CompilationJob[] {
     const { flatten }: LoDashStatic = require("lodash");
 
     return flatten([...this._compilationJobs.values()]);
   }
 
-  public addCompilationJob(compilationJob: ICompilationJob) {
+  public addCompilationJob(compilationJob: taskTypes.CompilationJob) {
     const jobs = this._compilationJobs.get(compilationJob.getSolcConfig());
 
     if (this._isMergeable(compilationJob)) {
@@ -178,53 +170,41 @@ class CompilationJobsMerger {
  * Returns the list of compilation jobs on success, and a list of
  * non-compilable files on failure.
  */
-export async function getCompilationJobsFromConnectedComponent(
-  connectedComponent: IDependencyGraph,
+export async function createCompilationJobsFromConnectedComponent(
+  connectedComponent: taskTypes.DependencyGraph,
   getFromFile: (
     file: ResolvedFile
-  ) => Promise<ICompilationJob | MatchingCompilerFailure>
-): Promise<CompilationJobsResult> {
-  const compilationJobs: ICompilationJob[] = [];
-  const failures: CompilationJobsFailure = {
-    nonCompilable: [],
-    nonCompilableOverriden: [],
-    importsIncompatibleFile: [],
-    other: [],
-  };
+  ) => Promise<taskTypes.CompilationJob | CompilationJobCreationError>
+): Promise<CompilationJobsCreationResult> {
+  const compilationJobs: taskTypes.CompilationJob[] = [];
+  const errors: CompilationJobsCreationErrors = {};
 
-  let someFailure = false;
   for (const file of connectedComponent.getResolvedFiles()) {
-    const compilationJobOrFailure = await getFromFile(file);
+    const compilationJobOrError = await getFromFile(file);
 
-    // if the file cannot be compiled, we add it to the list and continue in
-    // case there are more non-compilable files
-    if ("reason" in compilationJobOrFailure) {
+    if (isCompilationJobCreationError(compilationJobOrError)) {
       log(
-        `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrFailure.reason}'`
+        `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrError}'`
       );
-      someFailure = true;
-      failures[compilationJobOrFailure.reason].push(file.globalName);
+      errors[compilationJobOrError] = errors[compilationJobOrError] ?? [];
+      errors[compilationJobOrError].push(file.globalName);
       continue;
     }
 
-    compilationJobs.push(compilationJobOrFailure);
+    compilationJobs.push(compilationJobOrError);
   }
 
-  if (someFailure) {
-    return failures;
-  }
+  const jobs = mergeCompilationJobsWithBug(compilationJobs);
 
-  const mergedCompilationJobs = mergeCompilationJobsWithBug(compilationJobs);
-
-  return { jobs: mergedCompilationJobs };
+  return { jobs, errors };
 }
 
-export async function getCompilationJobFromFile(
-  dependencyGraph: IDependencyGraph,
+export async function createCompilationJobFromFile(
+  dependencyGraph: taskTypes.DependencyGraph,
   file: ResolvedFile,
   solidityConfig: MultiSolcConfig,
   cache: SolidityFilesCache
-): Promise<ICompilationJob | MatchingCompilerFailure> {
+): Promise<taskTypes.CompilationJob | CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
     file
@@ -238,7 +218,7 @@ export async function getCompilationJobFromFile(
   );
 
   // if the config cannot be obtained, we just return the failure
-  if ("reason" in compilerConfig) {
+  if (isCompilationJobCreationError(compilerConfig)) {
     return compilerConfig;
   }
   log(
@@ -262,8 +242,8 @@ export async function getCompilationJobFromFile(
  * Merge compilation jobs affected by the solc #9573 bug
  */
 export function mergeCompilationJobsWithBug(
-  compilationJobs: ICompilationJob[]
-): ICompilationJob[] {
+  compilationJobs: taskTypes.CompilationJob[]
+): taskTypes.CompilationJob[] {
   const merger = new CompilationJobsMerger((job) => job.hasSolc9573Bug());
   for (const job of compilationJobs) {
     merger.addCompilationJob(job);
@@ -278,8 +258,8 @@ export function mergeCompilationJobsWithBug(
  * Merge compilation jobs not affected by the solc #9573 bug
  */
 export function mergeCompilationJobsWithoutBug(
-  compilationJobs: ICompilationJob[]
-): ICompilationJob[] {
+  compilationJobs: taskTypes.CompilationJob[]
+): taskTypes.CompilationJob[] {
   const merger = new CompilationJobsMerger((job) => !job.hasSolc9573Bug());
   for (const job of compilationJobs) {
     merger.addCompilationJob(job);
@@ -294,12 +274,12 @@ export function mergeCompilationJobsWithoutBug(
  * Return the compiler config that matches the given version ranges,
  * or a value indicating why the compiler couldn't be obtained.
  */
-export function getMatchingCompilerConfig(
+function getMatchingCompilerConfig(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
   transitiveDependencies: ResolvedFile[],
   solidityConfig: MultiSolcConfig
-): SolcConfig | MatchingCompilerFailure {
+): SolcConfig | CompilationJobCreationError {
   const { uniq }: LoDashStatic = require("lodash");
 
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
@@ -353,19 +333,20 @@ function getMatchingCompilerFailure(
   directDependencies: ResolvedFile[],
   compilerVersions: string[],
   overriden: boolean
-): MatchingCompilerFailure {
+): CompilationJobCreationError {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
-    const reason = overriden ? "nonCompilableOverriden" : "nonCompilable";
-    return { reason };
+    return overriden
+      ? CompilationJobCreationError.NON_COMPILABLE_OVERRIDEN
+      : CompilationJobCreationError.NON_COMPILABLE;
   }
 
   for (const dependency of directDependencies) {
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
     if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
-      return { reason: "importsIncompatibleFile" };
+      return CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE;
     }
   }
 
-  return { reason: "other" };
+  return CompilationJobCreationError.OTHER_ERROR;
 }
