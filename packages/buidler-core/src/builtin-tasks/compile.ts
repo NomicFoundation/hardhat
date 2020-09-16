@@ -182,7 +182,6 @@ export default function () {
         {
           dependencyGraph,
           file,
-          solidityFilesCache,
         }: {
           dependencyGraph: taskTypes.DependencyGraph;
           file: ResolvedFile;
@@ -190,16 +189,10 @@ export default function () {
         },
         { config }
       ): Promise<CompilationJob | CompilationJobCreationError> => {
-        assertBuidlerInvariant(
-          solidityFilesCache !== undefined,
-          "The implementation of this task needs a defined solidityFilesCache"
-        );
-
         return createCompilationJobFromFile(
           dependencyGraph,
           file,
-          config.solidity,
-          solidityFilesCache
+          config.solidity
         );
       }
     );

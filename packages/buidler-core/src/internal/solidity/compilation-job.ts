@@ -3,7 +3,6 @@ import type { LoDashStatic } from "lodash";
 import semver from "semver";
 
 import * as taskTypes from "../../builtin-tasks/types";
-import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 import { MultiSolcConfig, SolcConfig } from "../../types";
 import { assertBuidlerInvariant } from "../core/errors";
 
@@ -48,10 +47,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
     { file: ResolvedFile; emitsArtifacts: boolean }
   > = new Map();
 
-  constructor(
-    public solidityConfig: SolcConfig,
-    private _cache: SolidityFilesCache
-  ) {}
+  constructor(public solidityConfig: SolcConfig) {}
 
   public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
     const fileToCompile = this._filesToCompile.get(file.globalName);
@@ -77,7 +73,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
       isEqual(this.solidityConfig, job.getSolcConfig()),
       "Merging jobs with different solidity configurations"
     );
-    const mergedJobs = new CompilationJob(job.getSolcConfig(), this._cache);
+    const mergedJobs = new CompilationJob(job.getSolcConfig());
     for (const file of this.getResolvedFiles()) {
       mergedJobs.addFileToCompile(file, this.emitsArtifacts(file));
     }
@@ -202,8 +198,7 @@ export async function createCompilationJobsFromConnectedComponent(
 export async function createCompilationJobFromFile(
   dependencyGraph: taskTypes.DependencyGraph,
   file: ResolvedFile,
-  solidityConfig: MultiSolcConfig,
-  cache: SolidityFilesCache
+  solidityConfig: MultiSolcConfig
 ): Promise<taskTypes.CompilationJob | CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
@@ -225,7 +220,7 @@ export async function createCompilationJobFromFile(
     `File '${file.absolutePath}' will be compiled with version '${compilerConfig.version}'`
   );
 
-  const compilationJob = new CompilationJob(compilerConfig, cache);
+  const compilationJob = new CompilationJob(compilerConfig);
 
   compilationJob.addFileToCompile(file, true);
   for (const dependency of transitiveDependencies) {
