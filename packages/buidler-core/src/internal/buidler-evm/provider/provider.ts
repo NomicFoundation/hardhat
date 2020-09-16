@@ -12,7 +12,9 @@ import util from "util";
 import type {
   BoundExperimentalBuidlerEVMMessageTraceHook,
   EIP1193Provider,
+  EthSubscription,
   ProjectPaths,
+  ProviderConnectInfo,
   RequestArguments,
 } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
@@ -23,6 +25,7 @@ import { Mutex } from "../vendor/await-semaphore";
 
 import {
   BuidlerEVMProviderError,
+  InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
@@ -79,7 +82,7 @@ export class BuidlerEVMProvider extends EventEmitter
     const release = await this._mutex.acquire();
 
     if (!Array.isArray(args.params)) {
-      throw new Error(
+      throw new InvalidInputError(
         "Buidler EVM doesn't support JSON-RPC params sent as an object"
       );
     }
@@ -307,15 +310,47 @@ export class BuidlerEVMProvider extends EventEmitter
     this._evmModule = new EvmModule(node);
     this._buidlerModule = new BuidlerModule(node);
 
-    const listener = (payload: { filterId: BN; result: any }) => {
-      this.emit("notifications", {
-        subscription: `0x${payload.filterId.toString(16)}`,
-        result: payload.result,
-      });
+    this._forwardNodeEvents(node);
+    this._emitConnectedEvent();
+  }
+
+  private _emitConnectedEvent() {
+    // TODO: This may emit connect twice, without a disconnect when the
+    //  provider is restarted. Also, maybe a chainChanged is needed in that case
+    const event: ProviderConnectInfo = {
+      chainId: `0x${this._chainId.toString(16)}`,
+    };
+    this.emit("connect", event);
+  }
+
+  private _forwardNodeEvents(node: BuidlerNode) {
+    // TODO: This can leak a listener when the provider is restarted
+    // Handle eth_subscribe events and proxy them to handler
+    node.addListener("ethEvent", (payload: { filterId: BN; result: any }) => {
+      const subscription = `0x${payload.filterId.toString(16)}`;
+      const result = payload.result;
+      this._emitLegacySubscriptionEvent(subscription, result);
+      this._emitEip1193SubscriptionEvent(subscription, result);
+    });
+  }
+
+  private _emitLegacySubscriptionEvent(subscription: string, result: any) {
+    this.emit("notifications", {
+      subscription,
+      result,
+    });
+  }
+
+  private _emitEip1193SubscriptionEvent(subscription: string, result: unknown) {
+    const message: EthSubscription = {
+      type: "eth_subscription",
+      data: {
+        subscription,
+        result,
+      },
     };
 
-    // Handle eth_subscribe events and proxy them to handler
-    this._node.addListener("ethEvent", listener);
+    this.emit("message", message);
   }
 
   private _logModuleMessages(): boolean {
