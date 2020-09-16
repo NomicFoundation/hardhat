@@ -7,7 +7,7 @@ module.exports = {
     url: "https://api-ropsten.etherscan.io/api",
     apiKey: process.env.ETHERSCAN_API_KEY || "testtoken",
   },
-  solidity: "0.5.15"
+  solidity: "0.5.15",
   paths: {
     artifacts: "artifacts-dir",
   },
