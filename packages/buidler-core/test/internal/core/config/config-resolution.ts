@@ -30,7 +30,7 @@ describe("Config resolution", () => {
           DEFAULT_SOLC_VERSION
         );
         assert.containsAllKeys(config.networks, ["localhost"]);
-        assert.isUndefined(config.solidity.compilers[0].evmVersion);
+        assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
         assert.equal(config.defaultNetwork, "buidlerevm");
 
         const buidlerEvmConfig: BuidlerNetworkConfig = config.networks

@@ -150,7 +150,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       shouldBeReported: true,
     },
     ASSERTION_ERROR: {
-      number: 99,
+      number: 11,
       message: "An internal invariant was violated: %message%",
       title: "Invariant violation",
       description: `An internal invariant was violated.

@@ -298,7 +298,7 @@ export class Artifacts {
 
   private _getArtifactPathFromFiles(name: string, files: string[]): string {
     const matchingFiles = files.filter((file) => {
-      return file === `${name}.json`;
+      return path.basename(file) === `${name}.json`;
     });
 
     if (matchingFiles.length === 0) {

@@ -27,10 +27,6 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     return Array.from(this._resolvedFiles.values());
   }
 
-  public get(file: ResolvedFile) {
-    return this._dependenciesPerFile.get(file.globalName);
-  }
-
   public has(file: ResolvedFile): boolean {
     return this._resolvedFiles.has(file.globalName);
   }
