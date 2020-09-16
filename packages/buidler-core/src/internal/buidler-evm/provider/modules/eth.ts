@@ -318,11 +318,10 @@ export class EthModule {
 
     if (trace !== undefined) {
       await this._logCallTrace(callParams, trace);
+      await this._runBuidlerEVMMessageTraceHooks(trace, true);
     }
 
     this._logConsoleLogMessages(consoleLogMessages);
-
-    await this._runBuidlerEVMMessageTraceHooks(trace, true);
 
     if (error !== undefined) {
       if (this._throwOnCallFailures) {
@@ -1301,9 +1300,8 @@ export class EthModule {
 
     if (trace !== undefined) {
       await this._logTransactionTrace(tx, trace, block, blockResult);
+      await this._runBuidlerEVMMessageTraceHooks(trace, false);
     }
-
-    await this._runBuidlerEVMMessageTraceHooks(trace, false);
 
     this._logConsoleLogMessages(consoleLogMessages);
 

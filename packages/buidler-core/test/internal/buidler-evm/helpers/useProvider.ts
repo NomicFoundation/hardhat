@@ -47,6 +47,7 @@ export function useProvider(
       undefined,
       allowUnlimitedContractSize,
       undefined,
+      undefined,
       forkConfig
     );
     this.provider = this.buidlerEVMProvider;
