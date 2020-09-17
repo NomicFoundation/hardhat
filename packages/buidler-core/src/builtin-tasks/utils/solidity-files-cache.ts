@@ -72,8 +72,8 @@ export class SolidityFilesCache {
       const stats = await fsExtra.stat(absolutePath);
       const lastModificationDate = new Date(stats.ctime);
 
-      if (lastModificationDate.valueOf() === cachedData.lastModificationDate) {
-        this.addFile(absolutePath, cachedData);
+      if (lastModificationDate.valueOf() !== cachedData.lastModificationDate) {
+        this.removeEntry(absolutePath);
       }
     }
   }
