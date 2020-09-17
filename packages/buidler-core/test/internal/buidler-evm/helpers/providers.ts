@@ -1,11 +1,8 @@
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
-import {
-  ALCHEMY_URL,
-  INFURA_URL,
-  REMOTE_CHAIN_ID,
-  REMOTE_NETWORK_ID,
-} from "./constants";
+import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
+
+import { REMOTE_CHAIN_ID, REMOTE_NETWORK_ID } from "./constants";
 import { useProvider } from "./useProvider";
 
 export const DEFAULT_HARDFORK = "istanbul";

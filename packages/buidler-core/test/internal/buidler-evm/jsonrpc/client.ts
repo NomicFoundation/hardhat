@@ -6,15 +6,14 @@ import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
 import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
 import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
+import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 import {
-  ALCHEMY_URL,
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
   DAI_ADDRESS,
   DAI_TOTAL_SUPPLY_STORAGE_POSITION,
   EMPTY_ACCOUNT_ADDRESS,
   FIRST_TX_HASH_OF_10496585,
-  INFURA_URL,
   WETH_ADDRESS,
 } from "../helpers/constants";
 import { FORKED_PROVIDERS } from "../helpers/providers";

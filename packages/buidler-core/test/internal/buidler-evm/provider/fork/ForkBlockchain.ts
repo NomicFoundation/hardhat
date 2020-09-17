@@ -7,6 +7,7 @@ import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/c
 import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 import { Block } from "../../../../../src/internal/buidler-evm/provider/types/Block";
+import { INFURA_URL } from "../../../../setup";
 import {
   createTestLog,
   createTestReceipt,
@@ -16,7 +17,6 @@ import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
   FIRST_TX_HASH_OF_10496585,
-  INFURA_URL,
   LAST_TX_HASH_OF_10496585,
   TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";

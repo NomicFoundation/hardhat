@@ -2,11 +2,12 @@ import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
 
 import { MethodNotSupportedError } from "../../../../../src/internal/buidler-evm/provider/errors";
+import { INFURA_URL } from "../../../../setup";
 import {
   assertBuidlerEVMProviderError,
   assertInvalidArgumentsError,
 } from "../../helpers/assertions";
-import { EMPTY_ACCOUNT_ADDRESS, INFURA_URL } from "../../helpers/constants";
+import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";

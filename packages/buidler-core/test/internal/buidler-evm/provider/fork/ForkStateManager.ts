@@ -15,11 +15,11 @@ import {
   randomAddressBuffer,
   randomHashBuffer,
 } from "../../../../../src/internal/buidler-evm/provider/fork/random";
+import { INFURA_URL } from "../../../../setup";
 import {
   DAI_ADDRESS,
   DAI_TOTAL_SUPPLY_STORAGE_POSITION,
   EMPTY_ACCOUNT_ADDRESS,
-  INFURA_URL,
   NULL_BYTES_32,
   WETH_ADDRESS,
 } from "../../helpers/constants";
