@@ -36,4 +36,4 @@ Finally, you can run your tests with
 npx buidler coverage
 ```
 
-If you would like to run test files that are outside of the `test/` directory or customize the configuration of the `solidity-coverage` plugin, check out the more in-depth documentation [here]().
+If you would like to run test files that are outside of the `test/` directory or customize the configuration of the `solidity-coverage` plugin, check out the more in-depth documentation [here](https://buidler.dev/plugins/solidity-coverage.html).
