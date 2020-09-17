@@ -304,11 +304,6 @@ export class ForkStateManager implements PStateManager {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("setBlockContext");
     }
-    if (this._originalStorageCache.size !== 0) {
-      throw new Error(
-        "setBlockContext called when original storage cache is not empty"
-      );
-    }
     if (blockNumber.gt(this._forkBlockNumber)) {
       this._setStateRoot(stateRoot);
       return;
@@ -318,6 +313,8 @@ export class ForkStateManager implements PStateManager {
     this._stateRoot = bufferToHex(stateRoot);
     this._stateRootToState.set(this._stateRoot, this._state);
     this._contextBlockNumber = blockNumber;
+    // Note that we don't need to clear the original storage cache here
+    // because the VM does it before executing a message anyway.
   }
 
   public restoreForkBlockContext(stateRoot: Buffer) {

@@ -594,23 +594,6 @@ describe("ForkStateManager", () => {
       );
     });
 
-    it("throws an error if called when original storage cache is not empty", async () => {
-      await fsm.putContractStorage(
-        DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
-        toBuffer("0xdeadbeef")
-      );
-      await fsm.getOriginalContractStorage(
-        DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
-      );
-      assert.throws(
-        () => fsm.setBlockContext(randomHashBuffer(), new BN(0)),
-        Error,
-        "setBlockContext called when original storage cache is not empty"
-      );
-    });
-
     describe("when blockNumber is smaller or equal to forkBlockNumber", () => {
       it("clears the state and changes the block context in which methods operate", async () => {
         const oldBlock = forkBlockNumber.subn(10);
