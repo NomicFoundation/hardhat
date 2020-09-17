@@ -370,7 +370,9 @@ describe("Eth module", function () {
           assert.equal(result, "0x");
         });
 
-        it("Should leverage block number parameter", async function () {
+        it("Should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
+
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -394,7 +396,7 @@ describe("Eth module", function () {
                 data: EXAMPLE_CONTRACT.selectors.i,
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               },
-              numberToRpcQuantity(1),
+              numberToRpcQuantity(firstBlock + 1),
             ]),
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
@@ -458,7 +460,8 @@ describe("Eth module", function () {
           assert.isTrue(new BN(toBuffer(estimation)).lten(23000));
         });
 
-        it("should leverage block number parameter", async function () {
+        it("should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -481,7 +484,7 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
             },
-            numberToRpcQuantity(1),
+            numberToRpcQuantity(firstBlock + 1),
           ]);
 
           const result2 = await this.provider.send("eth_estimateGas", [
@@ -623,41 +626,46 @@ describe("Eth module", function () {
           assert.isTrue(balance2.gt(balance));
         });
 
-        it("should leverage block number parameter", async function () {
+        it("should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: zeroAddress(),
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
               value: numberToRpcQuantity(1),
             },
           ]);
 
+          if (!isFork) {
+            assert.strictEqual(
+              await this.provider.send("eth_getBalance", [
+                bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                "earliest",
+              ]),
+              "0x0"
+            );
+          }
+
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              zeroAddress(),
-              "earliest",
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              numberToRpcQuantity(firstBlock),
             ]),
             "0x0"
           );
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              zeroAddress(),
-              numberToRpcQuantity(0),
-            ]),
-            "0x0"
-          );
-
-          assert.strictEqual(
-            await this.provider.send("eth_getBalance", [
-              zeroAddress(),
-              numberToRpcQuantity(1),
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              numberToRpcQuantity(firstBlock + 1),
             ]),
             "0x1"
           );
 
           assert.strictEqual(
-            await this.provider.send("eth_getBalance", [zeroAddress()]),
+            await this.provider.send("eth_getBalance", [
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+            ]),
             "0x1"
           );
         });
@@ -973,7 +981,8 @@ describe("Eth module", function () {
           );
         });
 
-        it("Should leverage block number parameter", async function () {
+        it("Should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -982,7 +991,7 @@ describe("Eth module", function () {
           assert.strictEqual(
             await this.provider.send("eth_getCode", [
               exampleContract,
-              numberToRpcQuantity(0),
+              numberToRpcQuantity(firstBlock),
             ]),
             "0x"
           );
@@ -1738,6 +1747,7 @@ describe("Eth module", function () {
           describe("When a slot has been written into", function () {
             describe("When 32 bytes where written", function () {
               it("Should return a 32-byte DATA string", async function () {
+                const firstBlock = await getFirstBlock();
                 const exampleContract = await deployContract(
                   this.provider,
                   `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1747,7 +1757,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(2),
-                    numberToRpcQuantity(0),
+                    numberToRpcQuantity(firstBlock),
                   ]),
                   "0x0"
                 );
@@ -1764,6 +1774,7 @@ describe("Eth module", function () {
 
             describe("When less than 32 bytes where written", function () {
               it("Should return a DATA string with the same amount bytes that have been written", async function () {
+                const firstBlock = await getFirstBlock();
                 const exampleContract = await deployContract(
                   this.provider,
                   `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1787,7 +1798,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(0),
-                    numberToRpcQuantity(1),
+                    numberToRpcQuantity(firstBlock + 1),
                   ]),
                   "0x0"
                 );
@@ -1815,7 +1826,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(0),
-                    numberToRpcQuantity(2),
+                    numberToRpcQuantity(firstBlock + 2),
                   ]),
                   "0x7b"
                 );
@@ -2278,7 +2289,8 @@ describe("Eth module", function () {
           );
         });
 
-        it("Should leverage block number parameter", async function () {
+        it("Should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -2287,10 +2299,20 @@ describe("Eth module", function () {
             },
           ]);
 
+          if (!isFork) {
+            assertQuantity(
+              await this.provider.send("eth_getTransactionCount", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+                "earliest",
+              ]),
+              0
+            );
+          }
+
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
-              "earliest",
+              numberToRpcQuantity(firstBlock),
             ]),
             0
           );
