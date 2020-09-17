@@ -287,19 +287,9 @@ export default function () {
           return compilationJobs;
         }
 
-        const neededCompilationJobs = compilationJobs.filter((job) => {
-          const needsToBeCompiled = job.getResolvedFiles().some((file) =>
-            solidityFilesCache.hasFileChanged(
-              file.absolutePath,
-              file.lastModificationDate,
-              // we only check if the solcConfig is different for files that
-              // emit artifacts
-              job.emitsArtifacts(file) ? job.getSolcConfig() : undefined
-            )
-          );
-
-          return needsToBeCompiled;
-        });
+        const neededCompilationJobs = compilationJobs.filter((job) =>
+          needsCompilation(job, solidityFilesCache)
+        );
 
         const jobsFilteredOutCount =
           neededCompilationJobs.length - compilationJobs.length;
@@ -1012,4 +1002,28 @@ function invalidateCacheMissingArtifacts(
   });
 
   return solidityFilesCache;
+}
+
+/**
+ * Checks if the given compilation job needs to be done.
+ */
+function needsCompilation(
+  job: taskTypes.CompilationJob,
+  cache: SolidityFilesCache
+): boolean {
+  for (const file of job.getResolvedFiles()) {
+    const hasChanged = cache.hasFileChanged(
+      file.absolutePath,
+      file.lastModificationDate,
+      // we only check if the solcConfig is different for files that
+      // emit artifacts
+      job.emitsArtifacts(file) ? job.getSolcConfig() : undefined
+    );
+
+    if (hasChanged) {
+      return true;
+    }
+  }
+
+  return false;
 }

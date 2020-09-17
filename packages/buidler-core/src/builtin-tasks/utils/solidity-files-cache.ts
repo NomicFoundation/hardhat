@@ -4,7 +4,6 @@ import { LoDashStatic } from "lodash";
 import * as path from "path";
 
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
-import type { ResolvedFile } from "../../internal/solidity/resolver";
 import type { ProjectPaths, SolcConfig } from "../../types";
 
 const FORMAT_VERSION = "hh-sol-cache-1";
