@@ -391,7 +391,7 @@ export class BuidlerNode extends EventEmitter {
       nonce: await this.getAccountNonce(call.from, null),
     });
 
-    const result = await this._runOnBlockContext(blockNumber, () =>
+    const result = await this._runInBlockContext(blockNumber, () =>
       this._runTxAndRevertMutations(tx, blockNumber === null)
     );
 
@@ -426,7 +426,7 @@ export class BuidlerNode extends EventEmitter {
     address: Buffer,
     blockNumber: BN | null
   ): Promise<BN> {
-    const account = await this._runOnBlockContext(blockNumber, () =>
+    const account = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getAccount(address)
     );
 
@@ -437,7 +437,7 @@ export class BuidlerNode extends EventEmitter {
     address: Buffer,
     blockNumber: BN | null
   ): Promise<BN> {
-    const account = await this._runOnBlockContext(blockNumber, () =>
+    const account = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getAccount(address)
     );
 
@@ -485,7 +485,7 @@ export class BuidlerNode extends EventEmitter {
       gasLimit: await this.getBlockGasLimit(),
     });
 
-    const result = await this._runOnBlockContext(blockNumber, () =>
+    const result = await this._runInBlockContext(blockNumber, () =>
       this._runTxAndRevertMutations(tx)
     );
 
@@ -545,7 +545,7 @@ export class BuidlerNode extends EventEmitter {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
     let data: Promise<Buffer>;
-    data = this._runOnBlockContext(blockNumber, () =>
+    data = this._runInBlockContext(blockNumber, () =>
       this._stateManager.getContractStorage(address, key)
     );
     // TODO: The state manager returns the data as it was saved, it doesn't
@@ -592,7 +592,7 @@ export class BuidlerNode extends EventEmitter {
     address: Buffer,
     blockNumber: BN | null
   ): Promise<Buffer> {
-    return this._runOnBlockContext(blockNumber, () =>
+    return this._runInBlockContext(blockNumber, () =>
       this._stateManager.getContractCode(address)
     );
   }
@@ -1207,7 +1207,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     }
   }
 
-  private async _runOnBlockContext<T>(
+  private async _runInBlockContext<T>(
     blockNumber: BN | null,
     action: () => Promise<T>
   ): Promise<T> {
