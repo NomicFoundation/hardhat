@@ -21,6 +21,7 @@ import {
   UNISWAP_FACTORY_ADDRESS,
   WETH_ADDRESS,
 } from "../helpers/constants";
+import { EXAMPLE_CONTRACT } from "../helpers/contracts";
 import {
   dataToBN,
   quantityToBN,
@@ -35,12 +36,14 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   FORKED_PROVIDERS,
 } from "../helpers/providers";
+import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
+import { deployContract } from "../helpers/transactions";
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", () => {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
-    describe(`Using ${rpcProvider}`, () => {
+    describe(`Using ${rpcProvider}`, function () {
       before(function () {
         if (process.env.CI === "true" && rpcProvider === "Alchemy") {
           this.skip();
@@ -49,6 +52,9 @@ describe("Forked provider", () => {
 
       setCWD();
       useProvider();
+
+      const getForkBlockNumber = async () =>
+        retrieveForkBlockNumber(this.ctx.buidlerEVMProvider);
 
       describe("eth_blockNumber", () => {
         it("returns the current block number", async function () {
@@ -67,6 +73,86 @@ describe("Forked provider", () => {
 
           const bnResult = new BN(toBuffer(result));
           assert.isTrue(bnResult.gtn(0));
+        });
+
+        describe("when used in the context of a past block", () => {
+          describe("when the block number is grater than the fork block number", () => {
+            it("does not affect previously added data", async function () {
+              const forkBlockNumber = await getForkBlockNumber();
+
+              const contractAddress = await deployContract(
+                this.provider,
+                `0x${EXAMPLE_CONTRACT.bytecode.object}`
+              );
+
+              const firstState =
+                "00000000000000000000000000000000000000000000000000000000deadbeef";
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  to: contractAddress,
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  data: EXAMPLE_CONTRACT.selectors.modifiesState + firstState,
+                },
+              ]);
+
+              const temporaryState =
+                "00000000000000000000000000000000000000000000000000000000feedface";
+              await this.provider.send("eth_call", [
+                {
+                  to: contractAddress,
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  data:
+                    EXAMPLE_CONTRACT.selectors.modifiesState + temporaryState,
+                },
+                numberToRpcQuantity(forkBlockNumber + 1),
+              ]);
+
+              assert.equal(
+                await this.provider.send("eth_call", [
+                  {
+                    to: contractAddress,
+                    data: EXAMPLE_CONTRACT.selectors.i,
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  },
+                  "latest",
+                ]),
+                `0x${firstState}`
+              );
+            });
+          });
+
+          describe("when the block number is less or equal to the fork block number", () => {
+            it("does not affect previously added data", async function () {
+              const forkBlockNumber = await getForkBlockNumber();
+              await this.provider.send("buidler_impersonate", [
+                bufferToHex(BITFINEX_WALLET_ADDRESS),
+              ]);
+
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
+                  to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                  value: numberToRpcQuantity(123),
+                  gas: numberToRpcQuantity(21000),
+                  gasPrice: numberToRpcQuantity(1),
+                },
+              ]);
+
+              await this.provider.send("eth_call", [
+                {
+                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
+                  to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                  value: numberToRpcQuantity(321),
+                },
+                numberToRpcQuantity(forkBlockNumber - 1),
+              ]);
+
+              const balance = await this.provider.send("eth_getBalance", [
+                bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              ]);
+              assert.equal(quantityToNumber(balance), 123);
+            });
+          });
         });
       });
 
