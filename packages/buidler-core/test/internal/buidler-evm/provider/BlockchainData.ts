@@ -1,9 +1,8 @@
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 
-import { Block } from "../../../../internal/buidler-evm/provider/types/Block";
 import { BlockchainData } from "../../../../src/internal/buidler-evm/provider/BlockchainData";
-import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
+import { Block } from "../../../../src/internal/buidler-evm/provider/types/Block";
 import {
   createTestLog,
   createTestReceipt,
@@ -14,8 +13,7 @@ describe("BlockchainData", () => {
   let bd: BlockchainData;
 
   function createBlock(number: number) {
-    const newBlock = new Block({ header: { number } });
-    return newBlock;
+    return new Block({ header: { number } });
   }
 
   beforeEach(() => {
