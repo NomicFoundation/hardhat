@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import debug from "debug";
-import type { LoDashStatic } from "lodash";
 import path from "path";
 
 import {
@@ -27,7 +26,7 @@ import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries } from "../internal/util/unsafe";
-import { SolcConfig, SolcInput } from "../types";
+import { SolcInput } from "../types";
 
 import {
   TASK_COMPILE,
@@ -59,7 +58,10 @@ import {
 } from "./task-names";
 import * as taskTypes from "./types";
 import { CompilationJob } from "./types";
-import type { SolidityFilesCache } from "./utils/solidity-files-cache";
+import {
+  getSolidityFilesCachePath,
+  SolidityFilesCache,
+} from "./utils/solidity-files-cache";
 
 type EmittedArtifactsPerFile = Array<{
   file: ResolvedFile;
@@ -285,20 +287,25 @@ export default function () {
           return compilationJobs;
         }
 
-        // use only the jobs that have at least one modified file
-        const modifiedCompilationJobs = compilationJobs.filter((job) =>
-          job
-            .getResolvedFiles()
-            .some((file) =>
-              hasFileChanged(file, job.getSolcConfig(), solidityFilesCache)
+        const neededCompilationJobs = compilationJobs.filter((job) => {
+          const needsToBeCompiled = job.getResolvedFiles().some((file) =>
+            solidityFilesCache.hasFileChanged(
+              file.absolutePath,
+              file.lastModificationDate,
+              // we only check if the solcConfig is different for files that
+              // emit artifacts
+              job.emitsArtifacts(file) ? job.getSolcConfig() : undefined
             )
-        );
+          );
+
+          return needsToBeCompiled;
+        });
 
         const jobsFilteredOutCount =
-          modifiedCompilationJobs.length - compilationJobs.length;
+          neededCompilationJobs.length - compilationJobs.length;
         log(`'${jobsFilteredOutCount}' jobs were filtered out`);
 
-        return modifiedCompilationJobs;
+        return neededCompilationJobs;
       }
     );
 
@@ -853,11 +860,6 @@ ${other.map((x) => `* ${x}`).join("\n")}
         { force, quiet }: { force: boolean; quiet: boolean },
         { config, run }
       ) => {
-        const {
-          readSolidityFilesCache,
-          writeSolidityFilesCache,
-        } = await import("./utils/solidity-files-cache");
-
         const sourcePaths: string[] = await run(
           TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS
         );
@@ -869,7 +871,10 @@ ${other.map((x) => `* ${x}`).join("\n")}
           }
         );
 
-        let solidityFilesCache = await readSolidityFilesCache(config.paths);
+        const solidityFilesCachePath = getSolidityFilesCachePath(config.paths);
+        let solidityFilesCache = await SolidityFilesCache.readFromFile(
+          solidityFilesCachePath
+        );
 
         const dependencyGraph: taskTypes.DependencyGraph = await run(
           TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
@@ -922,26 +927,24 @@ ${other.map((x) => `* ${x}`).join("\n")}
           emittedArtifactsPerFile,
         } of emittedArtifactsPerJob) {
           for (const { file, emittedArtifacts } of emittedArtifactsPerFile) {
-            solidityFilesCache.files[file.absolutePath] = {
+            solidityFilesCache.addFile(file.absolutePath, {
               lastModificationDate: file.lastModificationDate.valueOf(),
               globalName: file.globalName,
               solcConfig: compilationJob.getSolcConfig(),
               imports: file.content.imports,
               versionPragmas: file.content.versionPragmas,
               artifacts: emittedArtifacts,
-            };
+            });
           }
         }
 
-        const allEmittedArtifactsPerFile = Object.values(
-          solidityFilesCache.files
-        );
+        const allEmittedArtifactsPerFile = solidityFilesCache.getEntries();
 
         const artifacts = new Artifacts(config.paths.artifacts);
         await artifacts.removeObsoleteArtifacts(allEmittedArtifactsPerFile);
         await artifacts.removeObsoleteBuildInfos();
 
-        writeSolidityFilesCache(config.paths, solidityFilesCache);
+        await solidityFilesCache.writeToFile(solidityFilesCachePath);
       }
     );
 
@@ -989,49 +992,24 @@ function invalidateCacheMissingArtifacts(
   resolvedFiles.forEach((file) => {
     const artifacts = new Artifacts(artifactsPath);
 
-    if (solidityFilesCache.files[file.absolutePath] === undefined) {
+    const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
+
+    if (cacheEntry === undefined) {
       return;
     }
 
-    const { artifacts: emittedArtifacts } = solidityFilesCache.files[
-      file.absolutePath
-    ];
+    const { artifacts: emittedArtifacts } = cacheEntry;
 
     for (const emittedArtifact of emittedArtifacts) {
       if (!artifacts.artifactExistsSync(file.globalName, emittedArtifact)) {
         log(
           `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
         );
-        delete solidityFilesCache.files[file.absolutePath];
+        solidityFilesCache.removeEntry(file.absolutePath);
         break;
       }
     }
   });
 
   return solidityFilesCache;
-}
-
-function hasFileChanged(
-  file: ResolvedFile,
-  solcConfig: SolcConfig,
-  solidityFilesCache: SolidityFilesCache
-): boolean {
-  const { isEqual }: LoDashStatic = require("lodash");
-
-  const fileCache = solidityFilesCache.files[file.absolutePath];
-
-  if (fileCache === undefined) {
-    // new file or no cache available, assume it's new
-    return true;
-  }
-
-  if (fileCache.lastModificationDate < file.lastModificationDate.valueOf()) {
-    return true;
-  }
-
-  if (solcConfig !== undefined && !isEqual(solcConfig, fileCache.solcConfig)) {
-    return true;
-  }
-
-  return false;
 }
