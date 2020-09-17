@@ -544,8 +544,7 @@ export class BuidlerNode extends EventEmitter {
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    let data: Promise<Buffer>;
-    data = this._runInBlockContext(blockNumber, () =>
+    let data: Buffer = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getContractStorage(address, key)
     );
     // TODO: The state manager returns the data as it was saved, it doesn't
@@ -1227,13 +1226,29 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     }
 
     const currentStateRoot = await this._stateManager.getStateRoot();
-    await this._stateManager.setStateRoot(block.header.stateRoot);
-
+    await this._setBlockContext(block);
     try {
       return await action();
     } finally {
-      await this._stateManager.setStateRoot(currentStateRoot);
+      await this._restoreBlockContext(currentStateRoot);
     }
+  }
+
+  private async _setBlockContext(block: Block): Promise<void> {
+    if (this._stateManager instanceof ForkStateManager) {
+      return this._stateManager.setBlockContext(
+        block.header.stateRoot,
+        new BN(block.header.number)
+      );
+    }
+    return this._stateManager.setStateRoot(block.header.stateRoot);
+  }
+
+  private async _restoreBlockContext(stateRoot: Buffer) {
+    if (this._stateManager instanceof ForkStateManager) {
+      return this._stateManager.restoreForkBlockContext(stateRoot);
+    }
+    return this._stateManager.setStateRoot(stateRoot);
   }
 
   private async _correctInitialEstimation(
