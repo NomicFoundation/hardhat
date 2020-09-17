@@ -80,7 +80,9 @@ export class SolidityFilesCache {
   }
 
   public async writeToFile(solidityFilesCachePath: string) {
-    await fsExtra.outputJson(solidityFilesCachePath, this._cache);
+    await fsExtra.outputJson(solidityFilesCachePath, this._cache, {
+      spaces: 2,
+    });
   }
 
   public addFile(absolutePath: string, entry: CacheEntry) {
