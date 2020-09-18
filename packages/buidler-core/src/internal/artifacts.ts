@@ -8,7 +8,6 @@ import { Artifact, SolcInput } from "../types";
 import { BUILD_INFO_DIR_NAME } from "./constants";
 import { assertBuidlerInvariant, BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
-import { ResolvedFile } from "./solidity/resolver";
 import { glob, globSync } from "./util/glob";
 
 const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
