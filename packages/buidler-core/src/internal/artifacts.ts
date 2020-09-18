@@ -177,15 +177,13 @@ export class Artifacts {
     output: any,
     solcVersion: string
   ): Promise<string> {
-    const { sha256 } = await import("ethereum-cryptography/sha256");
+    const { default: uuid } = await import("uuid/v4");
 
     const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
     await fsExtra.ensureDir(buildInfoDir);
 
-    const hash = sha256(
-      Buffer.from(JSON.stringify({ input, solcVersion }))
-    ).toString("hex");
-    const buildInfoPath = path.join(buildInfoDir, `${hash}.json`);
+    const buildInfoName = uuid();
+    const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
     await fsExtra.writeJson(buildInfoPath, {
       _format: BUILD_INFO_FORMAT_VERSION,
       input,
