@@ -420,6 +420,7 @@ export default function () {
    * and return the generated output
    */
   internalTask(TASK_COMPILE_SOLIDITY_RUN_SOLCJS)
+    .addParam("input", undefined, undefined, types.any)
     .addParam("solcJsPath", undefined, undefined, types.string)
     .setAction(
       async ({
