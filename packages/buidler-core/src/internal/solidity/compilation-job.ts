@@ -95,33 +95,22 @@ export class CompilationJob implements taskTypes.CompilationJob {
   }
 }
 
-class CompilationJobsMerger {
-  private _compilationJobs: Map<
-    SolcConfig,
-    taskTypes.CompilationJob[]
-  > = new Map();
+function mergeCompilationJobs(
+  jobs: taskTypes.CompilationJob[],
+  isMergeable: (job: taskTypes.CompilationJob) => boolean
+): taskTypes.CompilationJob[] {
+  const { flatten }: LoDashStatic = require("lodash");
 
-  constructor(
-    private _isMergeable: (job: taskTypes.CompilationJob) => boolean
-  ) {}
+  const jobsMap: Map<SolcConfig, taskTypes.CompilationJob[]> = new Map();
 
-  public getCompilationJobs(): taskTypes.CompilationJob[] {
-    const { flatten }: LoDashStatic = require("lodash");
-
-    return flatten([...this._compilationJobs.values()]);
-  }
-
-  public addCompilationJob(compilationJob: taskTypes.CompilationJob) {
-    const jobs = this._compilationJobs.get(compilationJob.getSolcConfig());
-
-    if (this._isMergeable(compilationJob)) {
-      if (jobs === undefined) {
-        this._compilationJobs.set(compilationJob.getSolcConfig(), [
-          compilationJob,
-        ]);
-      } else if (jobs.length === 1) {
-        const mergedJobs = jobs[0].merge(compilationJob);
-        this._compilationJobs.set(compilationJob.getSolcConfig(), [mergedJobs]);
+  for (const job of jobs) {
+    const mergedJobs = jobsMap.get(job.getSolcConfig());
+    if (isMergeable(job)) {
+      if (mergedJobs === undefined) {
+        jobsMap.set(job.getSolcConfig(), [job]);
+      } else if (mergedJobs.length === 1) {
+        const newJob = mergedJobs[0].merge(job);
+        jobsMap.set(job.getSolcConfig(), [newJob]);
       } else {
         assertBuidlerInvariant(
           false,
@@ -129,18 +118,15 @@ class CompilationJobsMerger {
         );
       }
     } else {
-      if (jobs === undefined) {
-        this._compilationJobs.set(compilationJob.getSolcConfig(), [
-          compilationJob,
-        ]);
+      if (mergedJobs === undefined) {
+        jobsMap.set(job.getSolcConfig(), [job]);
       } else {
-        this._compilationJobs.set(compilationJob.getSolcConfig(), [
-          ...jobs,
-          compilationJob,
-        ]);
+        jobsMap.set(job.getSolcConfig(), [...mergedJobs, job]);
       }
     }
   }
+
+  return flatten([...jobsMap.values()]);
 }
 
 /**
@@ -222,14 +208,7 @@ export async function createCompilationJobFromFile(
 export function mergeCompilationJobsWithBug(
   compilationJobs: taskTypes.CompilationJob[]
 ): taskTypes.CompilationJob[] {
-  const merger = new CompilationJobsMerger((job) => job.hasSolc9573Bug());
-  for (const job of compilationJobs) {
-    merger.addCompilationJob(job);
-  }
-
-  const mergedCompilationJobs = merger.getCompilationJobs();
-
-  return mergedCompilationJobs;
+  return mergeCompilationJobs(compilationJobs, (job) => job.hasSolc9573Bug());
 }
 
 /**
@@ -238,14 +217,7 @@ export function mergeCompilationJobsWithBug(
 export function mergeCompilationJobsWithoutBug(
   compilationJobs: taskTypes.CompilationJob[]
 ): taskTypes.CompilationJob[] {
-  const merger = new CompilationJobsMerger((job) => !job.hasSolc9573Bug());
-  for (const job of compilationJobs) {
-    merger.addCompilationJob(job);
-  }
-
-  const mergedCompilationJobs = merger.getCompilationJobs();
-
-  return mergedCompilationJobs;
+  return mergeCompilationJobs(compilationJobs, (job) => !job.hasSolc9573Bug());
 }
 
 /**
