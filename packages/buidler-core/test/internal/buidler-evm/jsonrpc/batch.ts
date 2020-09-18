@@ -1,10 +1,8 @@
 import { assert } from "chai";
 import sinon, { SinonStub } from "sinon";
 
-import {
-  HttpRequestService,
-  JsonRpcRequestBatcher,
-} from "../../../../src/internal/buidler-evm/jsonrpc/batch";
+import { JsonRpcRequestBatcher } from "../../../../src/internal/buidler-evm/jsonrpc/batch";
+import { HttpRequestService } from "../../../../src/internal/buidler-evm/jsonrpc/http";
 
 describe("JsonRpcRequestBatcher", () => {
   const batchingTime = 20;
@@ -37,6 +35,7 @@ describe("JsonRpcRequestBatcher", () => {
       assert.equal(blockTwo, "0x2");
     });
 
+    /* tslint:disable:no-floating-promises */
     it("makes two http requests for two calls separated by a delay larger than batching time", async () => {
       const clock = sinon.useFakeTimers();
       sendMock = sinon
@@ -57,6 +56,11 @@ describe("JsonRpcRequestBatcher", () => {
       assert.equal(blockTwo, "0x2");
 
       clock.restore();
+    });
+    /* tslint:enable:no-floating-promises */
+
+    it.skip("handles rejections well", async () => {
+      // TODO
     });
   });
 });

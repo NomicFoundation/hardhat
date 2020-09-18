@@ -1,3 +1,6 @@
+import * as t from "io-ts";
+
+import { optional } from "../buidler-evm/provider/input";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
@@ -8,23 +11,42 @@ export interface JsonRpcRequest {
   id: number | string;
 }
 
-interface SuccessfulJsonRpcResponse {
-  jsonrpc: string;
-  id: number | string;
-  result: any;
-}
+const successfulJsonRpcResponse = t.type(
+  {
+    jsonrpc: t.literal("2.0"),
+    id: t.union([t.number, t.string]),
+    result: t.unknown,
+  },
+  "SuccessfulJsonRpcResponse"
+);
 
-export interface FailedJsonRpcResponse {
-  jsonrpc: string;
-  id: number | string | null;
-  error: {
-    code: number;
-    message: string;
-    data?: any;
-  };
-}
+export type SuccessfulJsonRpcResponse = t.TypeOf<
+  typeof successfulJsonRpcResponse
+>;
 
-export type JsonRpcResponse = SuccessfulJsonRpcResponse | FailedJsonRpcResponse;
+const failedJsonRpcResponse = t.type(
+  {
+    jsonrpc: t.literal("2.0"),
+    id: t.union([t.number, t.string, t.null]),
+    error: t.type({
+      code: t.number,
+      message: t.string,
+      data: optional(t.unknown),
+    }),
+  },
+  "FailedJsonRpcResponse"
+);
+
+export type FailedJsonRpcResponse = t.TypeOf<typeof failedJsonRpcResponse>;
+
+export const jsonRpcResponse = t.union([
+  successfulJsonRpcResponse,
+  failedJsonRpcResponse,
+]);
+
+export type JsonRpcResponse = t.TypeOf<typeof jsonRpcResponse>;
+
+export const batchJsonRpcResponse = t.array(jsonRpcResponse);
 
 export function parseJsonResponse(text: string): JsonRpcResponse {
   try {
@@ -43,6 +65,26 @@ export function parseJsonResponse(text: string): JsonRpcResponse {
       response: text,
     });
   }
+}
+
+export function parseBatchJsonResponse(text: string): JsonRpcResponse[] {
+  function invalidResponseError() {
+    return new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
+      response: text,
+    });
+  }
+
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch (e) {
+    throw invalidResponseError();
+  }
+
+  if (!isValidBatchJsonResponse(json)) {
+    throw invalidResponseError();
+  }
+  return json;
 }
 
 export function isValidJsonRequest(payload: any): boolean {
@@ -66,37 +108,11 @@ export function isValidJsonRequest(payload: any): boolean {
 }
 
 export function isValidJsonResponse(payload: any) {
-  if (payload.jsonrpc !== "2.0") {
-    return false;
-  }
+  return jsonRpcResponse.decode(payload).isRight();
+}
 
-  if (
-    typeof payload.id !== "number" &&
-    typeof payload.id !== "string" &&
-    payload.id !== null
-  ) {
-    return false;
-  }
-
-  if (payload.id === null && payload.error === undefined) {
-    return false;
-  }
-
-  if (payload.result === undefined && payload.error === undefined) {
-    return false;
-  }
-
-  if (payload.error !== undefined) {
-    if (typeof payload.error.code !== "number") {
-      return false;
-    }
-
-    if (typeof payload.error.message !== "string") {
-      return false;
-    }
-  }
-
-  return true;
+export function isValidBatchJsonResponse(payload: any) {
+  return batchJsonRpcResponse.decode(payload).isRight();
 }
 
 export function isSuccessfulJsonResponse(
