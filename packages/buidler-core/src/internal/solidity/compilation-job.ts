@@ -3,6 +3,11 @@ import type { LoDashStatic } from "lodash";
 import semver from "semver";
 
 import * as taskTypes from "../../builtin-tasks/types";
+import {
+  CompilationJobCreationError,
+  CompilationJobsCreationErrors,
+  CompilationJobsCreationResult,
+} from "../../builtin-tasks/types";
 import { MultiSolcConfig, SolcConfig } from "../../types";
 import { assertBuidlerInvariant } from "../core/errors";
 
@@ -12,28 +17,6 @@ const log = debug("buidler:core:compilation-job");
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "*";
-
-/**
- * An object with a list of successfully created jobs and a list of errors.
- * The `errors` entry maps error codes (that come from the
- * CompilationJobCreationError enum) to the source names of the files that
- * caused that error.
- */
-export interface CompilationJobsCreationResult {
-  jobs: taskTypes.CompilationJob[];
-  errors: CompilationJobsCreationErrors;
-}
-
-export interface CompilationJobsCreationErrors {
-  [compilationJobCreationError: string]: string[];
-}
-
-export enum CompilationJobCreationError {
-  OTHER_ERROR = "other",
-  NO_COMPATIBLE_SOLC_VERSION_FOUND = "no-compatible-solc-version-found",
-  INCOMPATIBLE_OVERRIDEN_SOLC_VERSION = "incompatible-overriden-solc-version",
-  IMPORTS_INCOMPATIBLE_FILE = "imports-incompatible-file",
-}
 
 function isCompilationJobCreationError(
   x: unknown

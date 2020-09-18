@@ -10,9 +10,6 @@ import { internalTask, task, types } from "../internal/core/config/config-env";
 import { assertBuidlerInvariant, BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
-  CompilationJobCreationError,
-  CompilationJobsCreationErrors,
-  CompilationJobsCreationResult,
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,
   mergeCompilationJobsWithoutBug,
@@ -57,7 +54,12 @@ import {
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
 } from "./task-names";
 import * as taskTypes from "./types";
-import { CompilationJob } from "./types";
+import {
+  CompilationJob,
+  CompilationJobCreationError,
+  CompilationJobsCreationErrors,
+  CompilationJobsCreationResult,
+} from "./types";
 import {
   getSolidityFilesCachePath,
   SolidityFilesCache,
