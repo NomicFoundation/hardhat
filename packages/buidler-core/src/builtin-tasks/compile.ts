@@ -295,7 +295,7 @@ export default function () {
         );
 
         const jobsFilteredOutCount =
-          neededCompilationJobs.length - compilationJobs.length;
+          compilationJobs.length - neededCompilationJobs.length;
         log(`'${jobsFilteredOutCount}' jobs were filtered out`);
 
         return neededCompilationJobs;
