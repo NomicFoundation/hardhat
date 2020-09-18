@@ -1,44 +1,22 @@
-![](https://user-images.githubusercontent.com/232174/75543992-f1c39e00-5a1a-11ea-8fd4-8933638b5910.png)
-[![NPM Package](https://img.shields.io/npm/v/@nomiclabs/buidler.svg?style=flat-square)](https://www.npmjs.org/package/@nomiclabs/buidler)
-![Build Status](https://github.com/nomiclabs/buidler/workflows/CI/badge.svg)
+# RedSpot
+
+TODO
+
 ---------
-Buidler is a task runner for Ethereum smart contract developers. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://buidler.dev/plugins/) to use it with your existing tools.
+Redspot is named after Jupiter's Great Red Spot, which is also the largest DOT in the solar system. Redspot's target project is [Truffle](https://github.com/trufflesuite/truffle)  in Truffle Suite. Redspot is a development environment, testing framework and asset pipeline for `pallet-contracts`. Redspot is trying to let the development of ink! be projectized and simplify the testing and interacting with contracts.
 
-Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
+Currently, Redspot has release v0.1 which is used for MVP (minimum viable product) verification ([https://github.com/patractlabs/redspot](https://github.com/patractlabs/redspot)). However we think basic architecture not suit for future requirements due to substrate has a more flexible system. Thus we decide using [buidler](https://github.com/nomiclabs/buidler) as Redspot new core architecture for it has an outstanding desigin to allow developer using plugin to add new features.
 
-Join our [Buidler Support Discord server](https://invite.gg/BuidlerSupport) to stay up to date on new releases, plugins and tutorials.
+Therefore, from Redspot v0.2 milestones, we migrate Redspot features from old framework to buidler core framework and modify it  a lot to suit substrate under MIT licence. From now, Redspot would build more features based on this forked buidler core. 
 
-🚧 **For the most recently published code, look at the [`master`](https://github.com/nomiclabs/buidler/tree/master) branch** 🚧
+This project is used for contracts developer, if developers want to deploy and test on a blockchain, we advice developer to use "jupiter" blockchain, which is a open testnet for substrate pallet-contracts. Better than that, jupiter also provide a develop type node, that could very easily for testing contracts.
+
+Please refer to this for more information: https://github.com/patractlabs/jupiter
 
 ## Installation
 
-The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
-
-    npm install --save-dev @nomiclabs/buidler
+TODO
 
 ## Documentation
 
-On [Buidler's website](https://buidler.dev) you will find:
-
-- [Guides to get started](https://buidler.dev/getting-started/)
-- [Buidler EVM](https://buidler.dev/buidler-evm/)
-- [Plugin list](https://buidler.dev/plugins/)
-- [API docs](https://buidler.dev/api/)
-
-
-## Contributing
-
-Contributions are always welcome! Feel free to open any issue or send a pull request.
-
-Go to [CONTRIBUTING.md](./CONTRIBUTING.md) to learn about how to set up Buidler's development environment. 
-
-## Feedback, help and news
-
-[Buidler Support Telegram group](http://t.me/BuidlerSupport): for questions and feedback.
-
-[Follow Nomic Labs on Twitter.](https://twitter.com/nomiclabs)
-
-
-## Happy buidling!
-
-👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️
+TODO
