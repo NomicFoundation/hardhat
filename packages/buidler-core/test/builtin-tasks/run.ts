@@ -47,10 +47,11 @@ describe("run task", function () {
 
     const artifacts = new Artifacts(path.join(process.cwd(), "artifacts"));
     const files = await artifacts.getArtifacts();
-    const expectedFiles = ["artifacts/contracts/a.sol/A.json"].map((file) =>
-      path.join(process.cwd(), file)
+    const expectedFile = path.join(
+      process.cwd(),
+      "artifacts/contracts/a.sol/A.json"
     );
-    assert.sameMembers(files, expectedFiles);
+    assert.sameMembers(files, [expectedFile]);
 
     await fsExtra.remove("artifacts");
   });
