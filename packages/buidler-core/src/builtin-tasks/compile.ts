@@ -63,14 +63,14 @@ import {
   SolidityFilesCache,
 } from "./utils/solidity-files-cache";
 
-type EmittedArtifactsPerFile = Array<{
+type ArtifactsEmittedPerFile = Array<{
   file: ResolvedFile;
   emittedArtifacts: string[];
 }>;
 
-type EmittedArtifactsPerJob = Array<{
+type ArtifactsEmittedPerJob = Array<{
   compilationJob: CompilationJob;
-  emittedArtifactsPerFile: EmittedArtifactsPerFile;
+  emittedArtifactsPerFile: ArtifactsEmittedPerFile;
 }>;
 
 function isConsoleLogError(error: any): boolean {
@@ -342,14 +342,14 @@ export default function () {
           quiet: boolean;
         },
         { run }
-      ): Promise<{ emittedArtifactsPerJob: EmittedArtifactsPerJob }> => {
+      ): Promise<{ emittedArtifactsPerJob: ArtifactsEmittedPerJob }> => {
         if (compilationJobs.length === 0) {
           log(`No compilation jobs to compile`);
           await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE, { quiet });
           return { emittedArtifactsPerJob: [] };
         }
 
-        const emittedArtifactsPerJob: EmittedArtifactsPerJob = [];
+        const emittedArtifactsPerJob: ArtifactsEmittedPerJob = [];
         for (const compilationJob of compilationJobs) {
           const { emittedArtifactsPerFile } = await run(
             TASK_COMPILE_SOLIDITY_COMPILE_JOB,
@@ -561,7 +561,7 @@ export default function () {
         },
         { config, run }
       ): Promise<{
-        emittedArtifactsPerFile: EmittedArtifactsPerFile;
+        emittedArtifactsPerFile: ArtifactsEmittedPerFile;
       }> => {
         const artifacts = new Artifacts(config.paths.artifacts);
 
@@ -571,7 +571,7 @@ export default function () {
           compilationJob.getSolcConfig().version
         );
 
-        const emittedArtifactsPerFile: EmittedArtifactsPerFile = [];
+        const emittedArtifactsPerFile: ArtifactsEmittedPerFile = [];
         for (const file of compilationJob.getResolvedFiles()) {
           log(`Emitting artifacts for file '${file.globalName}'`);
           if (!compilationJob.emitsArtifacts(file)) {
@@ -662,7 +662,7 @@ export default function () {
         quiet,
       }: {
         compilationJob: CompilationJob;
-        emittedArtifactsPerFile: EmittedArtifactsPerFile;
+        emittedArtifactsPerFile: ArtifactsEmittedPerFile;
         quiet: boolean;
       }) => {
         if (quiet) {
@@ -696,7 +696,7 @@ export default function () {
           quiet: boolean;
         },
         { run }
-      ): Promise<{ emittedArtifactsPerFile: EmittedArtifactsPerFile }> => {
+      ): Promise<{ emittedArtifactsPerFile: ArtifactsEmittedPerFile }> => {
         log(
           `Compiling job with version '${
             compilationJob.getSolcConfig().version
@@ -903,7 +903,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
         const {
           emittedArtifactsPerJob,
-        }: { emittedArtifactsPerJob: EmittedArtifactsPerJob } = await run(
+        }: { emittedArtifactsPerJob: ArtifactsEmittedPerJob } = await run(
           TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
           {
             compilationJobs: mergedCompilationJobs,
