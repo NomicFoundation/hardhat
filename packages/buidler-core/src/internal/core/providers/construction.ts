@@ -1,9 +1,10 @@
-import {
+import type {
+  BoundExperimentalBuidlerEVMMessageTraceHook,
   BuidlerNetworkConfig,
+  EIP1193Provider,
   EthereumProvider,
   HDAccountsConfig,
   HttpNetworkConfig,
-  IEthereumProvider,
   NetworkConfig,
   NetworkConfigAccounts,
   ProjectPaths,
@@ -11,30 +12,48 @@ import {
 import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
 import { parseDateString } from "../../util/date";
 
-import { HttpProvider } from "./http";
-
 export function isHDAccountsConfig(
   accounts?: NetworkConfigAccounts
 ): accounts is HDAccountsConfig {
   return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }
 
+function isHttpNetworkConfig(
+  netConfig: NetworkConfig
+): netConfig is HttpNetworkConfig {
+  return "url" in netConfig;
+}
+
+// This function is let's you import a provider dynamically in a pretty
+// type-safe way.
+// `ProviderNameT` and `name` must be the same literal string. TS enforces it.
+// `ModuleT` and `filePath` must also be the same, but this is not enforced.
+function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
+  filePath: string,
+  name: ProviderNameT
+): ModuleT[ProviderNameT] {
+  const mod = require(filePath);
+  return mod[name];
+}
+
 export function createProvider(
   networkName: string,
   networkConfig: NetworkConfig,
   solcVersion?: string,
-  paths?: ProjectPaths
-): IEthereumProvider {
-  let provider: EthereumProvider;
+  paths?: ProjectPaths,
+  experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
+): EthereumProvider {
+  let eip1193Provider: EIP1193Provider;
 
   if (networkName === BUIDLEREVM_NETWORK_NAME) {
     const buidlerNetConfig = networkConfig as BuidlerNetworkConfig;
 
-    const {
-      BuidlerEVMProvider,
-    } = require("../../buidler-evm/provider/provider");
+    const BuidlerEVMProvider = importProvider<
+      typeof import("../../buidler-evm/provider/provider"),
+      "BuidlerEVMProvider"
+    >("../../buidler-evm/provider/provider", "BuidlerEVMProvider");
 
-    provider = new BuidlerEVMProvider(
+    eip1193Provider = new BuidlerEVMProvider(
       buidlerNetConfig.hardfork!,
       BUIDLEREVM_NETWORK_NAME,
       buidlerNetConfig.chainId!,
@@ -48,12 +67,17 @@ export function createProvider(
       buidlerNetConfig.allowUnlimitedContractSize,
       buidlerNetConfig.initialDate !== undefined
         ? parseDateString(buidlerNetConfig.initialDate)
-        : undefined
+        : undefined,
+      experimentalBuidlerEVMMessageTraceHooks
     );
   } else {
+    const HttpProvider = importProvider<
+      typeof import("./http"),
+      "HttpProvider"
+    >("./http", "HttpProvider");
     const httpNetConfig = networkConfig as HttpNetworkConfig;
 
-    provider = new HttpProvider(
+    eip1193Provider = new HttpProvider(
       httpNetConfig.url!,
       networkName,
       httpNetConfig.httpHeaders,
@@ -61,41 +85,71 @@ export function createProvider(
     );
   }
 
-  return wrapEthereumProvider(provider, networkConfig);
+  const wrappedProvider = applyProviderWrappers(eip1193Provider, networkConfig);
+
+  const BackwardsCompatibilityProviderAdapter = importProvider<
+    typeof import("./backwards-compatibility"),
+    "BackwardsCompatibilityProviderAdapter"
+  >("./backwards-compatibility", "BackwardsCompatibilityProviderAdapter");
+
+  return new BackwardsCompatibilityProviderAdapter(wrappedProvider);
 }
 
-export function wrapEthereumProvider(
-  provider: IEthereumProvider,
+export function applyProviderWrappers(
+  provider: EIP1193Provider,
   netConfig: Partial<NetworkConfig>
-): IEthereumProvider {
+): EIP1193Provider {
   // These dependencies are lazy-loaded because they are really big.
-  // We use require() instead of import() here, because we need it to be sync.
+  const LocalAccountsProvider = importProvider<
+    typeof import("./accounts"),
+    "LocalAccountsProvider"
+  >("./accounts", "LocalAccountsProvider");
+  const HDWalletProvider = importProvider<
+    typeof import("./accounts"),
+    "HDWalletProvider"
+  >("./accounts", "HDWalletProvider");
+  const FixedSenderProvider = importProvider<
+    typeof import("./accounts"),
+    "FixedSenderProvider"
+  >("./accounts", "FixedSenderProvider");
+  const AutomaticSenderProvider = importProvider<
+    typeof import("./accounts"),
+    "AutomaticSenderProvider"
+  >("./accounts", "AutomaticSenderProvider");
 
-  const {
-    createHDWalletProvider,
-    createLocalAccountsProvider,
-    createSenderProvider,
-  } = require("./accounts");
+  const AutomaticGasProvider = importProvider<
+    typeof import("./gas-providers"),
+    "AutomaticGasProvider"
+  >("./gas-providers", "AutomaticGasProvider");
+  const FixedGasProvider = importProvider<
+    typeof import("./gas-providers"),
+    "FixedGasProvider"
+  >("./gas-providers", "FixedGasProvider");
+  const AutomaticGasPriceProvider = importProvider<
+    typeof import("./gas-providers"),
+    "AutomaticGasPriceProvider"
+  >("./gas-providers", "AutomaticGasPriceProvider");
+  const FixedGasPriceProvider = importProvider<
+    typeof import("./gas-providers"),
+    "FixedGasPriceProvider"
+  >("./gas-providers", "FixedGasPriceProvider");
+  const GanacheGasMultiplierProvider = importProvider<
+    typeof import("./gas-providers"),
+    "GanacheGasMultiplierProvider"
+  >("./gas-providers", "GanacheGasMultiplierProvider");
 
-  const {
-    createAutomaticGasPriceProvider,
-    createAutomaticGasProvider,
-    createFixedGasPriceProvider,
-    createFixedGasProvider,
-  } = require("./gas-providers");
+  const ChainIdValidatorProvider = importProvider<
+    typeof import("./chainId"),
+    "ChainIdValidatorProvider"
+  >("./chainId", "ChainIdValidatorProvider");
 
-  const { createChainIdValidationProvider } = require("./chainId");
+  if (isHttpNetworkConfig(netConfig)) {
+    const accounts = netConfig.accounts;
 
-  const isHttpNetworkConfig = "url" in netConfig;
-
-  if (isHttpNetworkConfig) {
-    const httpNetConfig = netConfig as Partial<HttpNetworkConfig>;
-
-    const accounts = httpNetConfig.accounts;
     if (Array.isArray(accounts)) {
-      provider = createLocalAccountsProvider(provider, accounts);
+      provider = new LocalAccountsProvider(provider, accounts);
     } else if (isHDAccountsConfig(accounts)) {
-      provider = createHDWalletProvider(
+      provider = new HDWalletProvider(
         provider,
         accounts.mnemonic,
         accounts.path,
@@ -106,31 +160,31 @@ export function wrapEthereumProvider(
 
     // TODO: Add some extension mechanism for account plugins here
 
-    const { createGanacheGasMultiplierProvider } = require("./gas-providers");
-
-    if (typeof httpNetConfig.gas !== "number") {
-      provider = createGanacheGasMultiplierProvider(provider);
+    if (typeof netConfig.gas !== "number") {
+      provider = new GanacheGasMultiplierProvider(provider);
     }
   }
 
-  provider = createSenderProvider(provider, netConfig.from);
+  if (netConfig.from !== undefined) {
+    provider = new FixedSenderProvider(provider, netConfig.from);
+  } else {
+    provider = new AutomaticSenderProvider(provider);
+  }
 
   if (netConfig.gas === undefined || netConfig.gas === "auto") {
-    provider = createAutomaticGasProvider(provider, netConfig.gasMultiplier);
+    provider = new AutomaticGasProvider(provider, netConfig.gasMultiplier);
   } else {
-    provider = createFixedGasProvider(provider, netConfig.gas);
+    provider = new FixedGasProvider(provider, netConfig.gas);
   }
 
   if (netConfig.gasPrice === undefined || netConfig.gasPrice === "auto") {
-    provider = createAutomaticGasPriceProvider(provider);
+    provider = new AutomaticGasPriceProvider(provider);
   } else {
-    provider = createFixedGasPriceProvider(provider, netConfig.gasPrice);
+    provider = new FixedGasPriceProvider(provider, netConfig.gasPrice);
   }
 
-  if (isHttpNetworkConfig) {
-    if (netConfig.chainId !== undefined) {
-      return createChainIdValidationProvider(provider, netConfig.chainId);
-    }
+  if (isHttpNetworkConfig(netConfig) && netConfig.chainId !== undefined) {
+    provider = new ChainIdValidatorProvider(provider, netConfig.chainId);
   }
 
   return provider;

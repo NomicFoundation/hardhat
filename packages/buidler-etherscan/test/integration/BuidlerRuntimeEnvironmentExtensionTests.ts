@@ -1,29 +1,28 @@
 import { assert } from "chai";
 import path from "path";
 
-import { getDefaultEtherscanConfig } from "../../src/config";
 import { useEnvironment } from "../helpers";
 
-describe("BuidlerConfig extension", function () {
-  useEnvironment(path.join(__dirname, "..", "buidler-project"));
+describe("buidler-etherscan configuration extension", function () {
+  useEnvironment(path.join(__dirname, "..", "buidler-project-defined-config"));
 
-  it("It should add the etherscan field", function () {
+  it("the etherscan field should be present", function () {
     assert.isDefined(this.env.config.etherscan);
   });
 
-  it("The etherscan url should have value from buidler.env.config.js", function () {
-    const etherscan = getDefaultEtherscanConfig(this.env.config);
+  it("the etherscan token should have value from buidler.env.config.js", function () {
+    const { etherscan } = this.env.config;
 
-    assert.equal(etherscan.url, "https://api-ropsten.etherscan.io/api");
+    assert.equal(etherscan.apiKey, "testtoken");
   });
+});
 
-  it("The etherscan token should have value from buidler.env.config.js", function () {
-    const etherscan = getDefaultEtherscanConfig(this.env.config);
-    const apiKey =
-      process.env.ETHERSCAN_API_KEY === undefined
-        ? "testtoken"
-        : process.env.ETHERSCAN_API_KEY;
+describe("buidler-etherscan configuration defaults in an empty project", function () {
+  useEnvironment(
+    path.join(__dirname, "..", "buidler-project-undefined-config")
+  );
 
-    assert.equal(etherscan.apiKey, apiKey);
+  it("the etherscan field should be present", function () {
+    assert.isDefined(this.env.config.etherscan);
   });
 });

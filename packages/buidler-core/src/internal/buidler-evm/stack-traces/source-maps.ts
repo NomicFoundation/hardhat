@@ -135,13 +135,15 @@ export function decodeInstructions(
     }
 
     if (sourceMap.location.file !== -1) {
-      const file = fileIdToSourceFile.get(sourceMap.location.file)!;
+      const file = fileIdToSourceFile.get(sourceMap.location.file);
 
-      location = new SourceLocation(
-        file,
-        sourceMap.location.offset,
-        sourceMap.location.length
-      );
+      if (file !== undefined) {
+        location = new SourceLocation(
+          file,
+          sourceMap.location.offset,
+          sourceMap.location.length
+        );
+      }
     }
 
     const instruction = new Instruction(

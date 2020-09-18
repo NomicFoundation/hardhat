@@ -7,7 +7,13 @@
 
 ## What
 
-This plugin verifies your contracts on [Etherscan](https://etherscan.io).
+This plugin helps you verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io).
+
+It's smart and it tries to do as much as possible to facilitate the process:
+- Just provide the deployment address and constructor arguments, and the plugin will detect locally which contract to verify.
+- If your contract uses Solidity libraries, the plugin will detect them and deal with them automatically. You don't need to do anything about them.
+- A simulation of the verification process will run locally, allowing the plugin to detect and communicate any mistakes during the process.
+- Once the simulation is successful the contract will be verified using the Etherscan API.
 
 ## Installation
 
@@ -23,7 +29,7 @@ usePlugin("@nomiclabs/buidler-etherscan");
 
 ## Tasks
 
-This plugin provides the `verify-contract` task, which allows you to verify contracts through Etherscan's service.
+This plugin provides the `verify` task, which allows you to verify contracts through Etherscan's service.
 
 ## Environment extensions
 
@@ -35,10 +41,10 @@ You need to add the following Etherscan config to your `buidler.config.js` file:
 
 ```js
 module.exports = {
+  networks: {
+    mainnet: { ... }
+  },
   etherscan: {
-    // The url for the Etherscan API you want to use.
-    // For example, here we're using the one for the Ropsten test network
-    url: "https://api-ropsten.etherscan.io/api",
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: "YOUR_ETHERSCAN_API_KEY"
@@ -46,11 +52,58 @@ module.exports = {
 };
 ```
 
-Lastly, run the `verify-contract` task like so:
+Lastly, run the `verify` task, passing the address of the contract, the network where it's deployed, and the constructor arguments that were used to deploy it (if any):
 
 ```bash
-npx buidler verify-contract --contract-name MyContract --address DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
+npx buidler verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
+
+### Complex arguments
+
+When the constructor has a complex argument list, it might be easier to write a javascript module that exports the argument list. The expected format is the same as a constructor list for an [ethers contract](https://docs.ethers.io/v5/api/contract/). For example, if you have a contract like this:
+
+```solidity
+struct Point {
+  uint x;
+  uint y;
+}
+
+contract Foo {
+  constructor (uint x, string s, Point memory point, bytes b) { ... }
+}
+```
+
+then you can use an `arguments.js` file like this:
+
+```js
+module.exports = [
+  50,
+  "a string argument",
+  {
+    x: 10,
+    y: 5,
+  },
+  // bytes have to be 0x-prefixed
+  "0xabcdef",
+];
+```
+
+Where the third argument represents the value for the `point` parameter.
+
+The module can then be loaded by the `verify` task when invoked like this:
+
+```bash
+npx buidler verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
+```
+
+## How it works
+
+The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
+
+## Known limitations
+
+- Cases where more than one contract correspond to the same bytecode aren’t supported.
+- Adding, removing, moving or renaming new contracts to the buidler project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
 
 ## TypeScript support
 

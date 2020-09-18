@@ -21,6 +21,7 @@ import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
+import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries } from "../internal/util/unsafe";
 import { SolcInput } from "../types";
@@ -397,17 +398,13 @@ export default function () {
   internalTask(TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH)
     .addParam("solcVersion", undefined, undefined, types.string)
     .setAction(
-      async (
-        { solcVersion }: { solcVersion: string },
-        { config }
-      ): Promise<string> => {
+      async ({ solcVersion }: { solcVersion: string }): Promise<string> => {
         const { CompilerDownloader } = await import(
           "../internal/solidity/compiler/downloader"
         );
 
-        const downloader = new CompilerDownloader(
-          path.join(config.paths.cache, "compilers")
-        );
+        const compilersCache = await getCompilersDir();
+        const downloader = new CompilerDownloader(compilersCache);
 
         const solcJsPath = await downloader.getDownloadedCompilerPath(
           solcVersion

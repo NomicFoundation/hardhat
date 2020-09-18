@@ -1,0 +1,22 @@
+{
+  "description": "Should output console.log on contract creation event if it reverts",
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+      "imports": ["/../../../../../../../../../console.sol"],
+      "consoleLogs": [["C"]],
+      "stackTrace": [
+        {
+          "type": "REVERT_ERROR",
+          "sourceReference": {
+            "file": "c.sol",
+            "contract": "C",
+            "function": "constructor",
+            "line": 9
+          }
+        }
+      ]
+    }
+  ]
+}

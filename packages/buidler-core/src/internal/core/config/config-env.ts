@@ -3,6 +3,7 @@ import {
   ConfigExtender,
   ConfigurableTaskDefinition,
   EnvironmentExtender,
+  ExperimentalBuidlerEVMMessageTraceHook,
   TaskArguments,
 } from "../../../types";
 import { BuidlerContext } from "../../context";
@@ -87,6 +88,15 @@ export function extendEnvironment(extender: EnvironmentExtender) {
 export function extendConfig(extender: ConfigExtender) {
   const ctx = BuidlerContext.getBuidlerContext();
   ctx.configExtenders.push(extender);
+}
+
+// NOTE: This is experimental and will be removed. Please contact our team
+// if you are planning to use it.
+export function experimentalAddBuidlerEVMMessageTraceHook(
+  hook: ExperimentalBuidlerEVMMessageTraceHook
+) {
+  const ctx = BuidlerContext.getBuidlerContext();
+  ctx.experimentalBuidlerEVMMessageTraceHooks.push(hook);
 }
 
 /**

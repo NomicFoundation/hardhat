@@ -4,6 +4,7 @@ import {
   NomicLabsBuidlerPluginError,
 } from "../core/errors";
 import { isLocalDev } from "../core/execution-mode";
+import { ProviderError } from "../core/providers/errors";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import { getBuidlerVersion } from "../util/packageInfo";
 
@@ -101,6 +102,11 @@ export class Reporter {
       }
 
       // don't log errors from third-party plugins
+      return false;
+    }
+
+    // We don't report network related errors
+    if (error instanceof ProviderError) {
       return false;
     }
 
