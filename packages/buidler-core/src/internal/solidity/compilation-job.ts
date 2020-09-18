@@ -50,7 +50,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
     );
   }
 
-  public merge(job: taskTypes.CompilationJob): taskTypes.CompilationJob {
+  public merge(job: taskTypes.CompilationJob): CompilationJob {
     const { isEqual }: LoDashStatic = require("lodash");
     assertBuidlerInvariant(
       isEqual(this.solidityConfig, job.getSolcConfig()),
@@ -168,7 +168,7 @@ export async function createCompilationJobFromFile(
   dependencyGraph: taskTypes.DependencyGraph,
   file: ResolvedFile,
   solidityConfig: MultiSolcConfig
-): Promise<taskTypes.CompilationJob | CompilationJobCreationError> {
+): Promise<CompilationJob | CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
     file

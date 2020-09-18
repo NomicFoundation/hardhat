@@ -6,7 +6,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
-  ): Promise<taskTypes.DependencyGraph> {
+  ): Promise<DependencyGraph> {
     const graph = new DependencyGraph();
 
     for (const resolvedFile of resolvedFiles) {
@@ -59,7 +59,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     return [...transitiveDependencies];
   }
 
-  public getConnectedComponents(): taskTypes.DependencyGraph[] {
+  public getConnectedComponents(): DependencyGraph[] {
     const undirectedGraph: Record<string, Set<string>> = {};
 
     for (const [
