@@ -721,11 +721,6 @@ export default function () {
 
         await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
 
-        if (output === undefined) {
-          log(`No output for compilation job`);
-          return { emittedArtifactsPerFile: [] };
-        }
-
         const { emittedArtifactsPerFile } = await run(
           TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
           {
