@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { BN, setLength, toBuffer } from "ethereumjs-util";
 
-export function leftPad32(value: string | Buffer | BN) {
+export function leftPad32(value: string | Buffer | BN): string {
   return setLength(value, 32).toString("hex");
 }
 
