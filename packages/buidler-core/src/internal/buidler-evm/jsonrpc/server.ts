@@ -1,8 +1,9 @@
 import debug from "debug";
 import http, { Server } from "http";
+import { AddressInfo } from "net";
 import { Server as WSServer } from "ws";
 
-import { EthereumProvider } from "../../../types";
+import { EIP1193Provider } from "../../../types";
 import { HttpProvider } from "../../core/providers/http";
 
 import JsonRpcHandler from "./handler";
@@ -13,7 +14,7 @@ export interface JsonRpcServerConfig {
   hostname: string;
   port: number;
 
-  provider: EthereumProvider;
+  provider: EIP1193Provider;
 }
 
 export class JsonRpcServer {
@@ -35,8 +36,8 @@ export class JsonRpcServer {
     this._wsServer.on("connection", handler.handleWs);
   }
 
-  public getProvider = (name = "json-rpc"): EthereumProvider => {
-    const { address, port } = this._httpServer.address();
+  public getProvider = (name = "json-rpc"): EIP1193Provider => {
+    const { address, port } = this._httpServer.address() as AddressInfo; // TCP sockets return AddressInfo
 
     return new HttpProvider(`http://${address}:${port}/`, name);
   };
@@ -46,7 +47,8 @@ export class JsonRpcServer {
       log(`Starting JSON-RPC server on port ${this._config.port}`);
       this._httpServer.listen(this._config.port, this._config.hostname, () => {
         // We get the address and port directly from the server in order to handle random port allocation with `0`.
-        resolve(this._httpServer.address());
+        const address = this._httpServer.address() as AddressInfo; // TCP sockets return AddressInfo
+        resolve(address);
       });
     });
   };

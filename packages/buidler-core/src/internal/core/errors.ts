@@ -5,7 +5,7 @@ import { ErrorDescriptor, ERRORS, getErrorCode } from "./errors-list";
 
 const inspect = Symbol.for("nodejs.util.inspect.custom");
 
-class CustomError extends Error {
+export class CustomError extends Error {
   constructor(message: string, public readonly parent?: Error) {
     // WARNING: Using super when extending a builtin class doesn't work well
     // with TS if you are compiling to a version of JavaScript that doesn't have
