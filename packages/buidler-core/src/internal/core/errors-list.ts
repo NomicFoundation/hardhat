@@ -849,6 +849,16 @@ Candidates for this contract name are:
 Please use the fully qualified name of the contract to disambiguate it.`,
       shouldBeReported: false,
     },
+    WRONG_CASING: {
+      number: 702,
+      message:
+        "Invalid artifact path %incorrect%, its correct case-sensitive path is %correct%",
+      title: "Incorrect artifact path casing",
+      description: `You tried to get an artifact file with an incorrect casing.
+      
+Buidler's artifact resolution is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: true,
+    },
   },
   PLUGINS: {
     NOT_INSTALLED: {

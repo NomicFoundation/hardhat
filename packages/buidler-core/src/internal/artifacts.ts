@@ -80,9 +80,22 @@ export class Artifacts {
     globalName: string,
     contractName: string
   ): Promise<boolean> {
-    return fsExtra.pathExists(
-      this._getArtifactPathSync(globalName, contractName)
+    const { trueCasePath } = await import("true-case-path");
+
+    const artifactPath = this._getArtifactPathSync(globalName, contractName);
+    const trueCaseArtifactPath = await trueCasePath(
+      path.relative(this._artifactsPath, artifactPath),
+      this._artifactsPath
     );
+
+    if (trueCaseArtifactPath !== artifactPath) {
+      throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
+        incorrect: artifactPath,
+        correct: trueCaseArtifactPath,
+      });
+    }
+
+    return fsExtra.pathExists(trueCaseArtifactPath);
   }
 
   /**
