@@ -886,7 +886,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
           { sourceNames, solidityFilesCache }
         );
 
-        solidityFilesCache = invalidateCacheMissingArtifacts(
+        solidityFilesCache = await invalidateCacheMissingArtifacts(
           solidityFilesCache,
           config.paths.artifacts,
           dependencyGraph.getResolvedFiles()
@@ -989,24 +989,28 @@ ${other.map((x) => `* ${x}`).join("\n")}
  * If a file is present in the cache, but some of its artifacts is missing on
  * disk, we remove it from the cache to force it to be recompiled.
  */
-function invalidateCacheMissingArtifacts(
+async function invalidateCacheMissingArtifacts(
   solidityFilesCache: SolidityFilesCache,
   artifactsPath: string,
   resolvedFiles: ResolvedFile[]
-): SolidityFilesCache {
-  resolvedFiles.forEach((file) => {
+): Promise<SolidityFilesCache> {
+  for (const file of resolvedFiles) {
     const artifacts = new Artifacts(artifactsPath);
 
     const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
 
     if (cacheEntry === undefined) {
-      return;
+      continue;
     }
 
     const { artifacts: emittedArtifacts } = cacheEntry;
 
     for (const emittedArtifact of emittedArtifacts) {
-      if (!artifacts.artifactExistsSync(file.globalName, emittedArtifact)) {
+      const artifactExists = await artifacts.artifactExists(
+        file.globalName,
+        emittedArtifact
+      );
+      if (!artifactExists) {
         log(
           `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
         );
@@ -1014,7 +1018,7 @@ function invalidateCacheMissingArtifacts(
         break;
       }
     }
-  });
+  }
 
   return solidityFilesCache;
 }

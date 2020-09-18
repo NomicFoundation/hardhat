@@ -85,12 +85,6 @@ export class Artifacts {
     );
   }
 
-  public artifactExistsSync(globalName: string, artifactName: string): boolean {
-    return fsExtra.pathExistsSync(
-      this._getArtifactPathSync(globalName, artifactName)
-    );
-  }
-
   /**
    * Asynchronically reads an artifact with the given `contractName` from the given `artifactPath`.
    *
