@@ -174,7 +174,7 @@ export async function createCompilationJobFromFile(
     file
   );
 
-  const compilerConfig = getMatchingCompilerConfig(
+  const compilerConfig = getCompilerConfigForFile(
     file,
     directDependencies,
     transitiveDependencies,
@@ -221,10 +221,10 @@ export function mergeCompilationJobsWithoutBug(
 }
 
 /**
- * Return the compiler config that matches the given version ranges,
- * or a value indicating why the compiler couldn't be obtained.
+ * Return the compiler config with the newest version that satisfies the given
+ * version ranges, or a value indicating why the compiler couldn't be obtained.
  */
-function getMatchingCompilerConfig(
+function getCompilerConfigForFile(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
   transitiveDependencies: ResolvedFile[],
@@ -247,7 +247,7 @@ function getMatchingCompilerConfig(
   // if there's an override, we only check that
   if (overriddenCompiler !== undefined) {
     if (!semver.satisfies(overriddenCompiler.version, versionRange)) {
-      return getMatchingCompilerFailure(
+      return getCompilationJobCreationError(
         file,
         directDependencies,
         [overriddenCompiler.version],
@@ -263,7 +263,7 @@ function getMatchingCompilerConfig(
   const matchingVersion = semver.maxSatisfying(compilerVersions, versionRange);
 
   if (matchingVersion === null) {
-    return getMatchingCompilerFailure(
+    return getCompilationJobCreationError(
       file,
       directDependencies,
       compilerVersions,
@@ -278,7 +278,7 @@ function getMatchingCompilerConfig(
   return matchingConfig;
 }
 
-function getMatchingCompilerFailure(
+function getCompilationJobCreationError(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
   compilerVersions: string[],
