@@ -794,27 +794,47 @@ export default function () {
       }: {
         compilationJobsCreationErrors: CompilationJobsCreationErrors;
       }): Promise<string> => {
-        const other = errors[CompilationJobCreationError.OTHER_ERROR] ?? [];
-        const nonCompilable =
-          errors[CompilationJobCreationError.NON_COMPILABLE] ?? [];
-        const nonCompilableOverriden =
-          errors[CompilationJobCreationError.NON_COMPILABLE_OVERRIDEN] ?? [];
-        const importsIncompatibleFile =
-          errors[CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE] ?? [];
+        let noCompatibleSolc: string[] = [];
+        let incompatibleOverridenSolc: string[] = [];
+        let importsIncompatibleFile: string[] = [];
+        let other: string[] = [];
+
+        for (const [code, files] of Object.entries(errors)) {
+          if (
+            code ===
+            CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND
+          ) {
+            noCompatibleSolc = noCompatibleSolc.concat(files);
+          } else if (
+            code ===
+            CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+          ) {
+            incompatibleOverridenSolc = incompatibleOverridenSolc.concat(files);
+          } else if (
+            code === CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE
+          ) {
+            importsIncompatibleFile = importsIncompatibleFile.concat(files);
+          } else if (code === CompilationJobCreationError.OTHER_ERROR) {
+            other = other.concat(files);
+          } else {
+            // add unrecognized errors to `other`
+            other = other.concat(files);
+          }
+        }
 
         let errorMessage =
           "The project couldn't be compiled, see reasons below.\n\n";
-        if (nonCompilableOverriden.length > 0) {
+        if (incompatibleOverridenSolc.length > 0) {
           errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
 
-${nonCompilableOverriden.map((x) => `* ${x}`).join("\n")}
+${incompatibleOverridenSolc.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
-        if (nonCompilable.length > 0) {
+        if (noCompatibleSolc.length > 0) {
           errorMessage += `These files don't match any compiler in your config:
 
-${nonCompilable.map((x) => `* ${x}`).join("\n")}
+${noCompatibleSolc.map((x) => `* ${x}`).join("\n")}
 
 `;
         }

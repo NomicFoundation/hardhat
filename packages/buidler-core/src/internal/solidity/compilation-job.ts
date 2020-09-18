@@ -22,23 +22,23 @@ const SOLC_BUG_9573_VERSIONS = "*";
 export interface CompilationJobsCreationResult {
   jobs: taskTypes.CompilationJob[];
   errors: {
-    [compilationJobCreationError: number]: string[];
+    [compilationJobCreationError: string]: string[];
   };
 }
 
 export type CompilationJobsCreationErrors = CompilationJobsCreationResult["errors"];
 
 export enum CompilationJobCreationError {
-  OTHER_ERROR = 0,
-  NON_COMPILABLE = 1,
-  NON_COMPILABLE_OVERRIDEN = 2,
-  IMPORTS_INCOMPATIBLE_FILE = 3,
+  OTHER_ERROR = "other",
+  NO_COMPATIBLE_SOLC_VERSION_FOUND = "no-compatible-solc-version-found",
+  INCOMPATIBLE_OVERRIDEN_SOLC_VERSION = "incompatible-overriden-solc-version",
+  IMPORTS_INCOMPATIBLE_FILE = "imports-incompatible-file",
 }
 
 function isCompilationJobCreationError(
   x: unknown
 ): x is CompilationJobCreationError {
-  return typeof x === "number";
+  return typeof x === "string";
 }
 
 export class CompilationJob implements taskTypes.CompilationJob {
@@ -332,8 +332,8 @@ function getMatchingCompilerFailure(
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
     return overriden
-      ? CompilationJobCreationError.NON_COMPILABLE_OVERRIDEN
-      : CompilationJobCreationError.NON_COMPILABLE;
+      ? CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+      : CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND;
   }
 
   for (const dependency of directDependencies) {
