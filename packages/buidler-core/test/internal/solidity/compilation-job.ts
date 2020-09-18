@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
 import * as taskTypes from "../../../src/builtin-tasks/types";
+import { CompilationJobCreationError } from "../../../src/builtin-tasks/types";
 import {
-  CompilationJobCreationError,
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,
 } from "../../../src/internal/solidity/compilation-job";
@@ -47,7 +47,7 @@ const solcConfig066 = {
 function assertIsJob(
   result: taskTypes.CompilationJob | CompilationJobCreationError
 ): taskTypes.CompilationJob {
-  if (typeof result === "number") {
+  if (typeof result === "string") {
     assert.fail("The given compilation job result is an error");
   }
   return result;
@@ -56,7 +56,7 @@ function assertIsJob(
 function assertIsError(
   result: taskTypes.CompilationJob | CompilationJobCreationError
 ): CompilationJobCreationError {
-  if (typeof result !== "number") {
+  if (typeof result !== "string") {
     assert.fail("The given compilation job result is not an error");
   }
 
@@ -146,7 +146,7 @@ describe("Compilation jobs", function () {
 
         assert.equal(
           compilationJobCreationError,
-          CompilationJobCreationError.NON_COMPILABLE
+          CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND
         );
       });
 
@@ -173,7 +173,7 @@ describe("Compilation jobs", function () {
 
         assert.equal(
           compilationJobCreationError,
-          CompilationJobCreationError.NON_COMPILABLE_OVERRIDEN
+          CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
         );
       });
     });
@@ -426,9 +426,10 @@ describe("Compilation jobs", function () {
       );
 
       assert.lengthOf(jobs, 0);
-      assert.sameMembers(errors[CompilationJobCreationError.NON_COMPILABLE], [
-        Foo.globalName,
-      ]);
+      assert.sameMembers(
+        errors[CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND],
+        [Foo.globalName]
+      );
     });
 
     it("files without solc bug", async function () {
