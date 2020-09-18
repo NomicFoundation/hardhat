@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-waffle",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Buidler plugin to test smart contracts with Waffle",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle",
   "repository": "github:nomiclabs/buidler",

@@ -149,17 +149,26 @@ This is probably a bug in one of your plugins.
 Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
       shouldBeReported: true,
     },
-    ASSERTION_ERROR: {
-      number: 99,
+    CONTEXT_CONFIG_PATH_NOT_SET: {
+      number: 11,
       message:
-        "An internal invariant was violated: %message%",
+        "Trying to access the BuidlerContext's config path field but it wasn't set",
+      title: "BuidlerContext's config path not defined",
+      description: `The Buidler initialization process was incomplete. This is a bug.
+
+Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+      shouldBeReported: true,
+    },
+    ASSERTION_ERROR: {
+      number: 12,
+      message: "An internal invariant was violated: %message%",
       title: "Invariant violation",
       description: `An internal invariant was violated.
 This is probably caused by a programming error in buidler or in one of the used plugins.
 
 Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
       shouldBeReported: true,
-    }
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {

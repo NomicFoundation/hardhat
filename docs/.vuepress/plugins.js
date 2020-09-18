@@ -191,4 +191,26 @@ module.exports = [
       "A Buidler plugin to generate a descriptor of your Solidity source code",
     tags: ["Compiling", "Documentation"],
   },
+  {
+    name: "buidler-abi-exporter",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    version: "1.0.0",
+    url:
+      "https://github.com/ItsNickBarry/buidler-abi-exporter/tree/master",
+    description:
+      "Automatically export Solidity contract ABIs on compilation",
+    tags: ["Compiling", "ABI"],
+  },
+  {
+    name: "buidler-contract-sizer",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    version: "1.0.0",
+    url:
+      "https://github.com/ItsNickBarry/buidler-contract-sizer/tree/master",
+    description:
+      "Calculate compiled contract sizes",
+    tags: ["Compiling", "Bytecode"],
+  },
 ];

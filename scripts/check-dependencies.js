@@ -3,7 +3,7 @@ const path = require("path");
 
 // An array of dependencies whose version checks are ignored for all the
 // packages
-const IGNORE_FROM_ALL = ["web3"];
+const IGNORE_FROM_ALL = ["web3", "@nomiclabs/buidler"];
 
 // A map from dependencies to package names where it should be ignored
 const IGNORE_FOR_PACKAGES = {

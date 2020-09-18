@@ -1,4 +1,8 @@
-import { BuidlerRuntimeEnvironment, ConfigExtender } from "../types";
+import {
+  BuidlerRuntimeEnvironment,
+  ConfigExtender,
+  ExperimentalBuidlerEVMMessageTraceHook,
+} from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";
 import { BuidlerError } from "./core/errors";
@@ -45,6 +49,12 @@ export class BuidlerContext {
   public readonly loadedPlugins: string[] = [];
   public readonly configExtenders: ConfigExtender[] = [];
 
+  // NOTE: This is experimental and will be removed. Please contact our team if
+  // you are planning to use it.
+  public readonly experimentalBuidlerEVMMessageTraceHooks: ExperimentalBuidlerEVMMessageTraceHook[] = [];
+
+  private _configPath?: string;
+
   public setBuidlerRuntimeEnvironment(env: BuidlerRuntimeEnvironment) {
     if (this.environment !== undefined) {
       throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
@@ -61,5 +71,17 @@ export class BuidlerContext {
 
   public setPluginAsLoaded(pluginName: string) {
     this.loadedPlugins.push(pluginName);
+  }
+
+  public setConfigPath(configPath: string) {
+    this._configPath = configPath;
+  }
+
+  public getConfigPath(): string {
+    if (this._configPath === undefined) {
+      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_CONFIG_PATH_NOT_SET);
+    }
+
+    return this._configPath;
   }
 }

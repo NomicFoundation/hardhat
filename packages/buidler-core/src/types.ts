@@ -1,6 +1,8 @@
 import { EventEmitter } from "events";
 import { DeepReadonly, Omit } from "ts-essentials";
 
+import { MessageTrace } from "./internal/buidler-evm/stack-traces/message-trace";
+
 // Begin config types
 
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
@@ -140,6 +142,21 @@ export type ConfigExtender = (
   config: ResolvedBuidlerConfig,
   userConfig: DeepReadonly<BuidlerConfig>
 ) => void;
+
+// NOTE: This is experimental and will be removed. Please contact our team
+// if you are planning to use it.
+export type ExperimentalBuidlerEVMMessageTraceHook = (
+  bre: BuidlerRuntimeEnvironment,
+  trace: MessageTrace,
+  isMessageTraceFromACall: boolean
+) => Promise<void>;
+
+// NOTE: This is experimental and will be removed. Please contact our team
+// if you are planning to use it.
+export type BoundExperimentalBuidlerEVMMessageTraceHook = (
+  trace: MessageTrace,
+  isMessageTraceFromACall: boolean
+) => Promise<void>;
 
 /**
  * This class is used to dynamically validate task's argument types.
@@ -297,8 +314,62 @@ export type ActionType<ArgsT extends TaskArguments> = (
 
 // Network types
 
-export interface EthereumProvider extends EventEmitter {
+export interface RequestArguments {
+  readonly method: string;
+  readonly params?: readonly unknown[] | object;
+}
+
+export interface ProviderRpcError extends Error {
+  code: number;
+  data?: unknown;
+}
+
+export interface ProviderMessage {
+  readonly type: string;
+  readonly data: unknown;
+}
+
+export interface EthSubscription extends ProviderMessage {
+  readonly type: "eth_subscription";
+  readonly data: {
+    readonly subscription: string;
+    readonly result: unknown;
+  };
+}
+
+export interface ProviderConnectInfo {
+  readonly chainId: string;
+}
+
+// TODO-HH: Improve the types
+export interface EIP1193Provider extends EventEmitter {
+  request(args: RequestArguments): Promise<unknown>;
+}
+
+export interface JsonRpcRequest {
+  jsonrpc: string;
+  method: string;
+  params: any[];
+  id: number;
+}
+
+export interface JsonRpcResponse {
+  jsonrpc: string;
+  id: number;
+  result?: any;
+  error?: {
+    code: number;
+    message: string;
+    data?: any;
+  };
+}
+
+export interface EthereumProvider extends EIP1193Provider {
   send(method: string, params?: any[]): Promise<any>;
+  sendAsync(
+    payload: JsonRpcRequest,
+    callback: (error: any, response: JsonRpcResponse) => void
+  ): void;
 }
 
 // This alias is here for backwards compatibility

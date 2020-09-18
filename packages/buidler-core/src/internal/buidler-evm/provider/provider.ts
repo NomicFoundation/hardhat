@@ -8,9 +8,14 @@ import fsExtra from "fs-extra";
 import semver from "semver";
 import util from "util";
 
-import { EthereumProvider, ProjectPaths } from "../../../types";
+import type {
+  BoundExperimentalBuidlerEVMMessageTraceHook,
+  EIP1193Provider,
+  EthSubscription,
+  ProjectPaths,
+  RequestArguments,
+} from "../../../types";
 import { getBuildInfoFiles } from "../../artifacts";
-import { getUserConfigPath } from "../../core/project-structure";
 import { BuildInfo } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
@@ -18,6 +23,7 @@ import { Mutex } from "../vendor/await-semaphore";
 
 import {
   BuidlerEVMProviderError,
+  InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
@@ -37,7 +43,7 @@ const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);
 // tslint:disable only-buidler-error
 
 export class BuidlerEVMProvider extends EventEmitter
-  implements EthereumProvider {
+  implements EIP1193Provider {
   private _common?: Common;
   private _node?: BuidlerNode;
   private _ethModule?: EthModule;
@@ -63,21 +69,27 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _paths?: ProjectPaths,
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
-    private readonly _initialDate?: Date
+    private readonly _initialDate?: Date,
+    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
   ) {
     super();
-    const config = getUserConfigPath();
   }
 
-  public async send(method: string, params: any[] = []): Promise<any> {
+  public async request(args: RequestArguments): Promise<unknown> {
     const release = await this._mutex.acquire();
 
+    if (args.params !== undefined && !Array.isArray(args.params)) {
+      throw new InvalidInputError(
+        "Buidler EVM doesn't support JSON-RPC params sent as an object"
+      );
+    }
+
     try {
-      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(method)) {
-        return await this._sendWithLogging(method, params);
+      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(args.method)) {
+        return await this._sendWithLogging(args.method, args.params);
       }
 
-      return await this._send(method, params);
+      return await this._send(args.method, args.params);
     } finally {
       release();
     }
@@ -260,7 +272,8 @@ export class BuidlerEVMProvider extends EventEmitter
       node,
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
-      this._loggingEnabled ? this._logger : undefined
+      this._loggingEnabled ? this._logger : undefined,
+      this._experimentalBuidlerEVMMessageTraceHooks
     );
 
     this._netModule = new NetModule(common);
@@ -268,15 +281,37 @@ export class BuidlerEVMProvider extends EventEmitter
     this._evmModule = new EvmModule(node);
     this._buidlerModule = new BuidlerModule(node);
 
-    const listener = (payload: { filterId: BN; result: any }) => {
-      this.emit("notifications", {
-        subscription: `0x${payload.filterId.toString(16)}`,
-        result: payload.result,
-      });
+    this._forwardNodeEvents(node);
+  }
+
+  private _forwardNodeEvents(node: BuidlerNode) {
+    // TODO: This can leak a listener when the provider is restarted
+    // Handle eth_subscribe events and proxy them to handler
+    node.addListener("ethEvent", (payload: { filterId: BN; result: any }) => {
+      const subscription = `0x${payload.filterId.toString(16)}`;
+      const result = payload.result;
+      this._emitLegacySubscriptionEvent(subscription, result);
+      this._emitEip1193SubscriptionEvent(subscription, result);
+    });
+  }
+
+  private _emitLegacySubscriptionEvent(subscription: string, result: any) {
+    this.emit("notifications", {
+      subscription,
+      result,
+    });
+  }
+
+  private _emitEip1193SubscriptionEvent(subscription: string, result: unknown) {
+    const message: EthSubscription = {
+      type: "eth_subscription",
+      data: {
+        subscription,
+        result,
+      },
     };
 
-    // Handle eth_subscribe events and proxy them to handler
-    this._node.addListener("ethEvent", listener);
+    this.emit("message", message);
   }
 
   private _logModuleMessages(): boolean {

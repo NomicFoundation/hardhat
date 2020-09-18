@@ -1,21 +1,23 @@
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
-import type { MockProvider } from "ethereum-waffle";
-import { providers, Wallet } from "ethers";
+import { MockProvider } from "ethereum-waffle";
+import { providers, Signer } from "ethers";
 
 // This file only exists to workaround this: https://github.com/EthWorks/Waffle/issues/281
 
-type Fixture<T> = (wallets: Wallet[], provider: MockProvider) => Promise<T>;
+type Fixture<T> = (
+  signers: Signer[],
+  provider: providers.JsonRpcProvider
+) => Promise<T>;
 interface Snapshot<T> {
   fixture: Fixture<T>;
   data: T;
   id: string;
-  provider: providers.Web3Provider;
-  wallets: Wallet[];
+  provider: providers.JsonRpcProvider;
+  signers: Signer[];
 }
 
 function createFixtureLoader(
-  overrideWallets: Wallet[] | undefined,
-  provider: MockProvider
+  signers: Signer[],
+  provider: providers.JsonRpcProvider
 ) {
   const snapshots: Array<Snapshot<any>> = [];
 
@@ -27,12 +29,10 @@ function createFixtureLoader(
       return snapshot.data;
     }
     {
-      const wallets = overrideWallets ?? provider.getWallets();
-
-      const data = await fixture(wallets, provider);
+      const data = await fixture(signers, provider);
       const id = await provider.send("evm_snapshot", []);
 
-      snapshots.push({ fixture, data, id, provider, wallets });
+      snapshots.push({ fixture, data, id, provider, signers });
       return data;
     }
   };
@@ -40,11 +40,11 @@ function createFixtureLoader(
 
 export function buidlerCreateFixtureLoader(
   buidlerWaffleProvider: MockProvider,
-  overrideWallets?: Wallet[],
-  overrideProvider?: MockProvider
+  overrideSigners: Signer[],
+  overrideProvider?: providers.JsonRpcProvider
 ) {
   return createFixtureLoader(
-    overrideWallets,
+    overrideSigners,
     overrideProvider ?? buidlerWaffleProvider
   );
 }

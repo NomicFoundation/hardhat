@@ -5,6 +5,7 @@ import {
   BuidlerRuntimeEnvironment,
   EnvironmentExtender,
   EthereumProvider,
+  ExperimentalBuidlerEVMMessageTraceHook,
   Network,
   ParamDefinition,
   ResolvedBuidlerConfig,
@@ -14,6 +15,7 @@ import {
   TaskDefinition,
   TasksMap,
 } from "../../types";
+import { MessageTrace } from "../buidler-evm/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
 import { getSolcVersion } from "./config/helpers";
@@ -55,7 +57,8 @@ export class Environment implements BuidlerRuntimeEnvironment {
     public readonly config: ResolvedBuidlerConfig,
     public readonly buidlerArguments: BuidlerArguments,
     public readonly tasks: TasksMap,
-    extenders: EnvironmentExtender[] = []
+    extenders: EnvironmentExtender[] = [],
+    experimentalBuidlerEVMMessageTraceHooks: ExperimentalBuidlerEVMMessageTraceHook[] = []
   ) {
     log("Creating BuidlerRuntimeEnvironment");
 
@@ -78,7 +81,11 @@ export class Environment implements BuidlerRuntimeEnvironment {
         networkName,
         networkConfig,
         getSolcVersion(config.solidity),
-        config.paths
+        config.paths,
+        experimentalBuidlerEVMMessageTraceHooks.map(
+          (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
+            hook(this, trace, isCallMessageTrace)
+        )
       );
     });
 

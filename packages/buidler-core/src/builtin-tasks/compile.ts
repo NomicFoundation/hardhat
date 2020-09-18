@@ -31,6 +31,7 @@ import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
+import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { SolcInput } from "../types";
 
@@ -338,14 +339,15 @@ export default function () {
    */
   internalTask(
     TASK_COMPILE_COMPILE_SOLCJS,
-    async (
-      { input, solcVersion }: { input: SolcInput; solcVersion: string },
-      { config }
-    ) => {
-      const compiler = new Compiler(
-        solcVersion,
-        path.join(config.paths.cache, "compilers")
-      );
+    async ({
+      input,
+      solcVersion,
+    }: {
+      input: SolcInput;
+      solcVersion: string;
+    }) => {
+      const compilersCache = await getCompilersDir();
+      const compiler = new Compiler(solcVersion, compilersCache);
 
       const output = await compiler.compile(input);
 

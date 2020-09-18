@@ -62,8 +62,6 @@ export function getEnvBuidlerArguments(
     }
   }
 
-  delete envArgs.config;
-
   // TODO: This is a little type-unsafe, but we know we have all the needed arguments
   return envArgs as BuidlerArguments;
 }

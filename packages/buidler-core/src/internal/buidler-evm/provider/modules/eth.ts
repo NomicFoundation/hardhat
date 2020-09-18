@@ -11,6 +11,7 @@ import {
 import * as t from "io-ts";
 import util from "util";
 
+import { BoundExperimentalBuidlerEVMMessageTraceHook } from "../../../../types";
 import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
@@ -81,7 +82,8 @@ export class EthModule {
     private readonly _node: BuidlerNode,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
-    private readonly _logger?: ModulesLogger
+    private readonly _logger?: ModulesLogger,
+    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
   ) {}
 
   public async processRequest(
@@ -306,7 +308,7 @@ export class EthModule {
     rpcCall: RpcCallRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    await this._validateBlockTag(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
     const {
@@ -314,14 +316,13 @@ export class EthModule {
       trace,
       error,
       consoleLogMessages,
-    } = await this._node.runCall(
-      callParams,
-      this._shouldCallOnNewBlock(blockTag)
-    );
+    } = await this._node.runCall(callParams, blockNumber);
 
     await this._logCallTrace(callParams, trace);
 
     this._logConsoleLogMessages(consoleLogMessages);
+
+    await this._runBuidlerEVMMessageTraceHooks(trace, true);
 
     if (error !== undefined) {
       if (this._throwOnCallFailures) {
@@ -375,7 +376,7 @@ export class EthModule {
     transactionRequest: RpcTransactionRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    await this._validateBlockTag(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
@@ -386,7 +387,7 @@ export class EthModule {
       error,
       trace,
       consoleLogMessages,
-    } = await this._node.estimateGas(txParams);
+    } = await this._node.estimateGas(txParams, blockNumber);
 
     if (error !== undefined) {
       await this._logEstimateGasTrace(txParams, trace);
@@ -419,9 +420,11 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    await this._validateBlockTag(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
-    return numberToRpcQuantity(await this._node.getAccountBalance(address));
+    return numberToRpcQuantity(
+      await this._node.getAccountBalance(address, blockNumber)
+    );
   }
 
   // eth_getBlockByHash
@@ -526,9 +529,9 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    await this._validateBlockTag(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
-    return bufferToRpcData(await this._node.getCode(address));
+    return bufferToRpcData(await this._node.getCode(address, blockNumber));
   }
 
   // eth_getCompilers
@@ -619,9 +622,9 @@ export class EthModule {
     slot: BN,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    await this._validateBlockTag(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
-    const data = await this._node.getStorageAt(address, slot);
+    const data = await this._node.getStorageAt(address, slot, blockNumber);
 
     // data should always be 32 bytes, but we are imitating Ganache here.
     // Please read the comment in `getStorageAt`.
@@ -741,9 +744,11 @@ export class EthModule {
       );
     }
 
-    await this._validateBlockTag(blockTag);
+    const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
-    return numberToRpcQuantity(await this._node.getAccountNonce(address));
+    return numberToRpcQuantity(
+      await this._node.getAccountNonce(address, blockNumber)
+    );
   }
 
   // eth_getTransactionReceipt
@@ -1036,36 +1041,30 @@ export class EthModule {
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountNonce(rpcTx.from),
+          : await this._node.getAccountNonce(rpcTx.from, null),
     };
   }
 
-  private async _validateBlockTag(blockTag: OptionalBlockTag) {
-    const latestBlock = await this._node.getLatestBlockNumber();
-
-    if (BN.isBN(blockTag) && latestBlock.eq(blockTag)) {
-      return;
+  private async _blockTagToBlockNumber(
+    blockTag: OptionalBlockTag
+  ): Promise<BN | null> {
+    if (blockTag === "pending") {
+      return null;
     }
 
-    // We only support latest and pending. As this provider doesn't have pending transactions, its
-    // actually just latest.
-    if (
-      blockTag !== undefined &&
-      blockTag !== "latest" &&
-      blockTag !== "pending"
-    ) {
-      throw new InvalidInputError(
-        `Received block param ${blockTag.toString()} and latest block is ${latestBlock.toString()}.
+    let block: Block;
+    if (blockTag === undefined || blockTag === "latest") {
+      block = await this._node.getLatestBlock();
+    } else {
+      let blockNumber: number = 0;
+      if (blockTag !== "earliest") {
+        blockNumber = blockTag.toNumber();
+      }
 
-Only latest and pending block params are supported.
-
-If this error persists, try resetting your wallet's accounts.`
-      );
+      block = await this._node.getBlockByNumber(new BN(blockNumber));
     }
-  }
 
-  private _shouldCallOnNewBlock(blockTag: OptionalBlockTag): boolean {
-    return blockTag === "pending";
+    return new BN(block.header.number);
   }
 
   private _extractBlock(blockTag: OptionalBlockTag): BN {
@@ -1236,7 +1235,7 @@ If this error persists, try resetting your wallet's accounts.`
       return;
     }
 
-    const code = await this._node.getCode(trace.address);
+    const code = await this._node.getCode(trace.address, null);
     if (code.length === 0) {
       if (shouldBeContract) {
         this._logger.log(`WARNING: Calling an account which is not a contract`);
@@ -1308,6 +1307,8 @@ If this error persists, try resetting your wallet's accounts.`
 
     await this._logTransactionTrace(tx, trace, block, blockResult);
 
+    await this._runBuidlerEVMMessageTraceHooks(trace, false);
+
     this._logConsoleLogMessages(consoleLogMessages);
 
     if (error !== undefined) {
@@ -1334,5 +1335,14 @@ If this error persists, try resetting your wallet's accounts.`
     }
 
     this._logger.logWithTitle("To", bufferToHex(to));
+  }
+
+  private async _runBuidlerEVMMessageTraceHooks(
+    trace: MessageTrace,
+    isCall: boolean
+  ) {
+    for (const hook of this._experimentalBuidlerEVMMessageTraceHooks) {
+      await hook(trace, isCall);
+    }
   }
 }

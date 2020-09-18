@@ -1,17 +1,6 @@
 import chalk from "chalk";
-import * as fs from "fs";
-import * as path from "path";
 
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
-
-const NODE_MODULES_DIR = "node_modules";
-
-function getBuidlerNodeModules() {
-  return __dirname.substring(
-    0,
-    __dirname.lastIndexOf(NODE_MODULES_DIR) + NODE_MODULES_DIR.length
-  );
-}
 
 let cachedIsTypescriptSupported: boolean | undefined;
 
@@ -23,10 +12,14 @@ export function isTypescriptSupported() {
     } else if (
       executionMode === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION
     ) {
-      const nodeModules = getBuidlerNodeModules();
-      cachedIsTypescriptSupported =
-        fs.existsSync(path.join(nodeModules, "typescript")) &&
-        fs.existsSync(path.join(nodeModules, "ts-node"));
+      try {
+        // We resolve these from Buidler's installation.
+        require.resolve("typescript");
+        require.resolve("ts-node");
+        cachedIsTypescriptSupported = true;
+      } catch {
+        cachedIsTypescriptSupported = false;
+      }
     } else {
       // We are inside this project (e.g. running tests), or Buidler is
       // linked and we can't get the Buidler project's node_modules, so we

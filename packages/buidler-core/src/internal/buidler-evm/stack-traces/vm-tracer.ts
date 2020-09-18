@@ -6,8 +6,6 @@ import { precompiles } from "@nomiclabs/ethereumjs-vm/dist/evm/precompiles";
 import { BN } from "ethereumjs-util";
 import { promisify } from "util";
 
-import { getUserConfigPath } from "../../core/project-structure";
-
 import {
   CallMessageTrace,
   CreateMessageTrace,
@@ -21,6 +19,7 @@ import {
 
 const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
+const DUMMY_GAS_USED = new BN(0);
 
 export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
@@ -32,7 +31,6 @@ export class VMTracer {
     private readonly _vm: VM,
     private readonly _dontThrowErrors = false
   ) {
-    const config = getUserConfigPath();
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
     this._stepHandler = this._stepHandler.bind(this);
     this._afterMessageHandler = this._afterMessageHandler.bind(this);
@@ -108,6 +106,7 @@ export class VMTracer {
           numberOfSubtraces: 0,
           depth: message.depth,
           deployedContract: undefined,
+          gasUsed: DUMMY_GAS_USED,
         };
 
         trace = createTrace;
@@ -121,6 +120,7 @@ export class VMTracer {
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
             depth: message.depth,
+            gasUsed: DUMMY_GAS_USED,
           };
 
           trace = precompileTrace;
@@ -141,6 +141,7 @@ export class VMTracer {
             address: message.to,
             numberOfSubtraces: 0,
             depth: message.depth,
+            gasUsed: DUMMY_GAS_USED,
           };
 
           trace = callTrace;
@@ -210,6 +211,7 @@ export class VMTracer {
 
       trace.error = result.execResult.exceptionError;
       trace.returnData = result.execResult.returnValue;
+      trace.gasUsed = result.gasUsed;
 
       if (isCreateTrace(trace)) {
         trace.deployedContract = result.createdAddress;
