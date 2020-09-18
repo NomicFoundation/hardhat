@@ -481,7 +481,7 @@ export default function () {
   );
 
   /**
-   * Receives a list of compilation errors and prints them and any other
+   * Receives a compilation output and prints its errors and any other
    * information useful to the user.
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
