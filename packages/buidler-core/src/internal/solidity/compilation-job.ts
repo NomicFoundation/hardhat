@@ -21,12 +21,12 @@ const SOLC_BUG_9573_VERSIONS = "*";
  */
 export interface CompilationJobsCreationResult {
   jobs: taskTypes.CompilationJob[];
-  errors: {
-    [compilationJobCreationError: string]: string[];
-  };
+  errors: CompilationJobsCreationErrors;
 }
 
-export type CompilationJobsCreationErrors = CompilationJobsCreationResult["errors"];
+export interface CompilationJobsCreationErrors {
+  [compilationJobCreationError: string]: string[];
+}
 
 export enum CompilationJobCreationError {
   OTHER_ERROR = "other",
