@@ -311,16 +311,6 @@ export class BuidlerEVMProvider extends EventEmitter
     this._buidlerModule = new BuidlerModule(node);
 
     this._forwardNodeEvents(node);
-    this._emitConnectedEvent();
-  }
-
-  private _emitConnectedEvent() {
-    // TODO: This may emit connect twice, without a disconnect when the
-    //  provider is restarted. Also, maybe a chainChanged is needed in that case
-    const event: ProviderConnectInfo = {
-      chainId: `0x${this._chainId.toString(16)}`,
-    };
-    this.emit("connect", event);
   }
 
   private _forwardNodeEvents(node: BuidlerNode) {
