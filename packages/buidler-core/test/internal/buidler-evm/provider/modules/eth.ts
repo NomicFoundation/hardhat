@@ -3,6 +3,7 @@ import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
 import { InvalidInputError } from "../../../../../src/internal/buidler-evm/provider/errors";
+import { randomAddress } from "../../../../../src/internal/buidler-evm/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/buidler-evm/provider/node";
 import { TransactionParams } from "../../../../../src/internal/buidler-evm/provider/node-types";
 import {
@@ -348,6 +349,25 @@ describe("Eth module", function () {
             `0x${newState}`
           );
         });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_call",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(123),
+              },
+              numberToRpcQuantity(futureBlock),
+            ],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+          );
+        });
       });
 
       describe("eth_chainId", async function () {
@@ -431,6 +451,25 @@ describe("Eth module", function () {
           ]);
 
           assert.isTrue(new BN(toBuffer(result)).gt(new BN(toBuffer(result2))));
+        });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_estimateGas",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(123),
+              },
+              numberToRpcQuantity(futureBlock),
+            ],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+          );
         });
       });
 
@@ -602,6 +641,18 @@ describe("Eth module", function () {
               bufferToHex(EMPTY_ACCOUNT_ADDRESS),
             ]),
             "0x1"
+          );
+        });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_getBalance",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(futureBlock)],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -929,6 +980,18 @@ describe("Eth module", function () {
               numberToRpcQuantity(firstBlock),
             ]),
             "0x"
+          );
+        });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_getCode",
+            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -2258,6 +2321,18 @@ describe("Eth module", function () {
               "latest",
             ]),
             1
+          );
+        });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_getTransactionCount",
+            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });

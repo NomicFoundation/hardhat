@@ -85,8 +85,7 @@ describe("Forked provider", () => {
                 `0x${EXAMPLE_CONTRACT.bytecode.object}`
               );
 
-              const firstState =
-                "00000000000000000000000000000000000000000000000000000000deadbeef";
+              const firstState = leftPad32("0xdeadbeef");
               await this.provider.send("eth_sendTransaction", [
                 {
                   to: contractAddress,
@@ -95,8 +94,7 @@ describe("Forked provider", () => {
                 },
               ]);
 
-              const temporaryState =
-                "00000000000000000000000000000000000000000000000000000000feedface";
+              const temporaryState = leftPad32("0xfeedface");
               await this.provider.send("eth_call", [
                 {
                   to: contractAddress,
@@ -122,7 +120,49 @@ describe("Forked provider", () => {
           });
 
           describe("when the block number is less or equal to the fork block number", () => {
-            it("does not affect previously added data", async function () {
+            it("does not affect previously added storage data", async function () {
+              const forkBlockNumber = await getForkBlockNumber();
+              await this.provider.send("buidler_impersonate", [
+                bufferToHex(BITFINEX_WALLET_ADDRESS),
+              ]);
+
+              const getWrappedBalance = async () => {
+                const balanceOfSelector = `0x70a08231${leftPad32(
+                  BITFINEX_WALLET_ADDRESS
+                )}`;
+                return dataToBN(
+                  await this.provider.send("eth_call", [
+                    { to: bufferToHex(WETH_ADDRESS), data: balanceOfSelector },
+                  ])
+                ).toString();
+              };
+
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
+                  to: bufferToHex(WETH_ADDRESS),
+                  data: WETH_DEPOSIT_SELECTOR,
+                  value: numberToRpcQuantity(123),
+                  gas: numberToRpcQuantity(50000),
+                  gasPrice: numberToRpcQuantity(1),
+                },
+              ]);
+              const balance = await getWrappedBalance();
+
+              await this.provider.send("eth_call", [
+                {
+                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
+                  to: bufferToHex(WETH_ADDRESS),
+                  data: WETH_DEPOSIT_SELECTOR,
+                  value: numberToRpcQuantity(321),
+                },
+                numberToRpcQuantity(forkBlockNumber - 3),
+              ]);
+
+              assert.equal(await getWrappedBalance(), balance);
+            });
+
+            it("does not affect previously added balance data", async function () {
               const forkBlockNumber = await getForkBlockNumber();
               await this.provider.send("buidler_impersonate", [
                 bufferToHex(BITFINEX_WALLET_ADDRESS),
