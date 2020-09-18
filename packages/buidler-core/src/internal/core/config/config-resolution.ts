@@ -3,21 +3,24 @@ import * as fs from "fs";
 import path from "path";
 
 import {
+  AnalyticsConfig,
   BuidlerConfig,
   ConfigExtender,
   MultiSolcConfig,
   ProjectPaths,
   ResolvedBuidlerConfig,
+  SolcConfig,
   SolidityConfig,
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
+import { normalizeBuidlerEVMAccountsConfig } from "../providers/util";
 
 function mergeUserAndDefaultConfigs(
   defaultConfig: BuidlerConfig,
   userConfig: BuidlerConfig
-): Partial<ResolvedBuidlerConfig> {
+): Partial<BuidlerConfig> {
   return deepmerge(defaultConfig, userConfig, {
     arrayMerge: (destination: any[], source: any[]) => deepmerge([], source), // this "unproxies" the arrays
     customMerge: (key) => {
@@ -79,10 +82,18 @@ export function resolveConfig(
   const resolved = {
     ...config,
     paths,
-    networks: config.networks!,
     solidity: normalizeSolidityConfig(config.solidity!),
+    networks: {
+      ...config.networks!,
+      buidlerevm: {
+        ...config.networks!.buidlerevm,
+        accounts: normalizeBuidlerEVMAccountsConfig(
+          config.networks!.buidlerevm.accounts!
+        ),
+      },
+    },
     defaultNetwork: config.defaultNetwork!,
-    analytics: config.analytics!,
+    analytics: config.analytics! as Required<AnalyticsConfig>,
   };
 
   for (const extender of configExtenders) {

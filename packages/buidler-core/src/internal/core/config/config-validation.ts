@@ -80,6 +80,21 @@ const BuidlerNetworkAccount = t.type({
   balance: t.string,
 });
 
+const HDAccountsConfig = t.type({
+  mnemonic: t.string,
+  initialIndex: optional(t.number),
+  count: optional(t.number),
+  path: optional(t.string),
+});
+
+const BuidlerNetworkHDAccountsConfig = t.type({
+  mnemonic: t.string,
+  initialIndex: optional(t.number),
+  count: optional(t.number),
+  path: optional(t.string),
+  accountsBalance: optional(t.string),
+});
+
 const BuidlerNetworkConfig = t.type({
   hardfork: optional(t.string),
   chainId: optional(t.number),
@@ -87,20 +102,15 @@ const BuidlerNetworkConfig = t.type({
   gas: optional(t.union([t.literal("auto"), t.number])),
   gasPrice: optional(t.union([t.literal("auto"), t.number])),
   gasMultiplier: optional(t.number),
-  accounts: optional(t.array(BuidlerNetworkAccount)),
+  accounts: optional(
+    t.union([t.array(BuidlerNetworkAccount), BuidlerNetworkHDAccountsConfig])
+  ),
   blockGasLimit: optional(t.number),
   throwOnTransactionFailures: optional(t.boolean),
   throwOnCallFailures: optional(t.boolean),
   loggingEnabled: optional(t.boolean),
   allowUnlimitedContractSize: optional(t.boolean),
   initialDate: optional(t.string),
-});
-
-const HDAccountsConfig = t.type({
-  mnemonic: t.string,
-  initialIndex: optional(t.number),
-  count: optional(t.number),
-  path: optional(t.string),
 });
 
 const OtherAccountsConfig = t.type({

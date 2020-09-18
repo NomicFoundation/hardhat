@@ -17,6 +17,7 @@ import {
   BuidlerNetworkConfig,
   EthereumProvider,
   ResolvedBuidlerConfig,
+  ResolvedBuidlerNetworkConfig,
 } from "../types";
 
 import { TASK_NODE } from "./task-names";
@@ -30,7 +31,7 @@ function _createBuidlerEVMProvider(
   log("Creating BuidlerEVM Provider");
 
   const networkName = BUIDLEREVM_NETWORK_NAME;
-  const networkConfig = config.networks[networkName] as BuidlerNetworkConfig;
+  const networkConfig = config.networks[BUIDLEREVM_NETWORK_NAME];
 
   return lazyObject(() => {
     log(`Creating buidlerevm provider for JSON-RPC sever`);
@@ -42,7 +43,7 @@ function _createBuidlerEVMProvider(
   });
 }
 
-function logBuidlerEvmAccounts(networkConfig: BuidlerNetworkConfig) {
+function logBuidlerEvmAccounts(networkConfig: ResolvedBuidlerNetworkConfig) {
   if (networkConfig.accounts === undefined) {
     return;
   }
@@ -129,9 +130,7 @@ export default function () {
             Reporter.reportError(error);
           }
 
-          const networkConfig = config.networks[
-            BUIDLEREVM_NETWORK_NAME
-          ] as BuidlerNetworkConfig;
+          const networkConfig = config.networks[BUIDLEREVM_NETWORK_NAME];
           logBuidlerEvmAccounts(networkConfig);
 
           await server.waitUntilClosed();

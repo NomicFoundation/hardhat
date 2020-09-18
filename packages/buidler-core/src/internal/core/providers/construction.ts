@@ -1,13 +1,14 @@
 import type {
   BoundExperimentalBuidlerEVMMessageTraceHook,
-  BuidlerNetworkConfig,
   EIP1193Provider,
   EthereumProvider,
   HDAccountsConfig,
   HttpNetworkConfig,
-  NetworkConfig,
   NetworkConfigAccounts,
   ProjectPaths,
+  ResolvedBuidlerNetworkConfig,
+  ResolvedHttpNetworkConfig,
+  ResolvedNetworkConfig,
 } from "../../../types";
 import { ForkConfig } from "../../buidler-evm/provider/node-types";
 import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
@@ -19,9 +20,9 @@ export function isHDAccountsConfig(
   return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }
 
-function isHttpNetworkConfig(
-  netConfig: NetworkConfig
-): netConfig is HttpNetworkConfig {
+function isResolvedHttpNetworkConfig(
+  netConfig: Partial<ResolvedNetworkConfig>
+): netConfig is ResolvedHttpNetworkConfig {
   return "url" in netConfig;
 }
 
@@ -39,14 +40,14 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
 
 export function createProvider(
   networkName: string,
-  networkConfig: NetworkConfig,
+  networkConfig: ResolvedNetworkConfig,
   paths?: ProjectPaths,
   experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
 ): EthereumProvider {
   let eip1193Provider: EIP1193Provider;
 
   if (networkName === BUIDLEREVM_NETWORK_NAME) {
-    const buidlerNetConfig = networkConfig as BuidlerNetworkConfig;
+    const buidlerNetConfig = networkConfig as ResolvedBuidlerNetworkConfig;
 
     const BuidlerEVMProvider = importProvider<
       typeof import("../../buidler-evm/provider/provider"),
@@ -110,7 +111,7 @@ export function createProvider(
 
 export function applyProviderWrappers(
   provider: EIP1193Provider,
-  netConfig: Partial<NetworkConfig>
+  netConfig: Partial<ResolvedNetworkConfig>
 ): EIP1193Provider {
   // These dependencies are lazy-loaded because they are really big.
   const LocalAccountsProvider = importProvider<
@@ -156,7 +157,7 @@ export function applyProviderWrappers(
     "ChainIdValidatorProvider"
   >("./chainId", "ChainIdValidatorProvider");
 
-  if (isHttpNetworkConfig(netConfig)) {
+  if (isResolvedHttpNetworkConfig(netConfig)) {
     const accounts = netConfig.accounts;
 
     if (Array.isArray(accounts)) {
@@ -196,7 +197,10 @@ export function applyProviderWrappers(
     provider = new FixedGasPriceProvider(provider, netConfig.gasPrice);
   }
 
-  if (isHttpNetworkConfig(netConfig) && netConfig.chainId !== undefined) {
+  if (
+    isResolvedHttpNetworkConfig(netConfig) &&
+    netConfig.chainId !== undefined
+  ) {
     provider = new ChainIdValidatorProvider(provider, netConfig.chainId);
   }
 

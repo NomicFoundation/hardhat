@@ -498,6 +498,81 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
         });
+
+        describe("BuidlerNetworkHDAccounstConfig", function () {
+          it("Should fail with invalid types", function () {
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        mnemonic: 123,
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        initialIndex: "asd",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        count: "asd",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        path: 123,
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        mnemonic: "asd",
+                        accountsBalance: {},
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+        });
       });
 
       describe("HTTP network config", function () {

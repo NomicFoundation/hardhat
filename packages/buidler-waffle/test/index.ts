@@ -1,5 +1,5 @@
-import defaultConfig from "@nomiclabs/buidler/internal/core/config/default-config";
-import { BuidlerNetworkConfig } from "@nomiclabs/buidler/types";
+import { BUIDLEREVM_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
+import { ResolvedBuidlerNetworkConfig } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import path from "path";
 
@@ -14,8 +14,9 @@ describe("Waffle plugin plugin", function () {
 
           it("Should return a wallet for each of the default accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
-            const accounts = (defaultConfig.networks!
-              .buidlerevm! as BuidlerNetworkConfig).accounts!;
+            assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
+            const accounts = (this.env.network
+              .config as ResolvedBuidlerNetworkConfig).accounts;
             assert.lengthOf(wallets, accounts.length);
 
             for (let i = 0; i < wallets.length; i++) {
@@ -70,8 +71,9 @@ describe("Waffle plugin plugin", function () {
 
             it("Should return a wallet for each of the default accounts", function () {
               const wallets = this.env.waffle.provider.getWallets();
-              const accounts = (defaultConfig.networks!
-                .buidlerevm! as BuidlerNetworkConfig).accounts!;
+              assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
+              const accounts = (this.env.network
+                .config as ResolvedBuidlerNetworkConfig).accounts!;
 
               assert.lengthOf(wallets, accounts.length);
 
