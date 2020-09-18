@@ -18,7 +18,6 @@ import {
 import { MessageTrace } from "../buidler-evm/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
-import { getSolcVersion } from "./config/helpers";
 import { BuidlerError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
@@ -80,7 +79,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
       return createProvider(
         networkName,
         networkConfig,
-        getSolcVersion(config.solidity),
         config.paths,
         experimentalBuidlerEVMMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>

@@ -8,7 +8,6 @@ import {
 } from "../internal/buidler-evm/jsonrpc/server";
 import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
 import { task, types } from "../internal/core/config/config-env";
-import { getSolcVersion } from "../internal/core/config/helpers";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
@@ -38,7 +37,6 @@ function _createBuidlerEVMProvider(
     return createProvider(
       networkName,
       { loggingEnabled: true, ...networkConfig },
-      getSolcVersion(config.solidity),
       config.paths
     );
   });
