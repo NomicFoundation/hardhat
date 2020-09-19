@@ -1,3 +1,10 @@
+---
+**External Plugin**
+
+This is a third-party plugin. Please report issues in its [Github Repository](https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md).
+
+---
+
 # Running tests with solidity-coverage
 
 We recommend using the built-in [Buidler EVM](../buidler-evm/README.md) network to test your
@@ -36,4 +43,13 @@ Finally, you can run your tests with
 npx buidler coverage
 ```
 
+The below is the output of running this command with the sample tests that Buidler generates.
+
+![solidity-coverage-output](../assets/coverage_function_snapshot.PNG)
+
+---
+**Further Configuration**
+
 If you would like to run test files that are outside of the `test/` directory or customize the configuration of the `solidity-coverage` plugin, check out the more in-depth documentation [here](https://buidler.dev/plugins/solidity-coverage.html).
+
+---
