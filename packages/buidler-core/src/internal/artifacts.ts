@@ -8,6 +8,7 @@ import { Artifact, SolcInput } from "../types";
 import { BUILD_INFO_DIR_NAME } from "./constants";
 import { assertBuidlerInvariant, BuidlerError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
+import { replaceBackslashes } from "./solidity/source-names";
 import { glob, globSync } from "./util/glob";
 
 const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
@@ -80,22 +81,25 @@ export class Artifacts {
     globalName: string,
     contractName: string
   ): Promise<boolean> {
-    const { trueCasePath } = await import("true-case-path");
-
-    const artifactPath = this._getArtifactPathSync(globalName, contractName);
-    const trueCaseArtifactPath = await trueCasePath(
-      path.relative(this._artifactsPath, artifactPath),
-      this._artifactsPath
-    );
-
-    if (trueCaseArtifactPath !== artifactPath) {
-      throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
-        incorrect: artifactPath,
-        correct: trueCaseArtifactPath,
-      });
+    try {
+      await this.readArtifact(
+        this._getFullyQualifiedName(globalName, contractName)
+      );
+      return true;
+    } catch (e) {
+      return false;
     }
+  }
 
-    return fsExtra.pathExists(trueCaseArtifactPath);
+  public artifactExistsSync(globalName: string, contractName: string): boolean {
+    try {
+      this.readArtifactSync(
+        this._getFullyQualifiedName(globalName, contractName)
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
@@ -104,16 +108,37 @@ export class Artifacts {
    * @param name  either the contract's name or the fully qualified name
    */
   public async readArtifact(name: string): Promise<Artifact> {
+    const { trueCasePath } = await import("true-case-path");
     const artifactPath = await this._getArtifactPath(name);
 
-    if (!fsExtra.pathExistsSync(artifactPath)) {
-      throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
-        contractName: name,
-        artifactPath,
-      });
-    }
+    try {
+      const trueCaseArtifactPath = await trueCasePath(
+        path.relative(this._artifactsPath, artifactPath),
+        this._artifactsPath
+      );
 
-    return fsExtra.readJson(artifactPath);
+      if (artifactPath !== trueCaseArtifactPath) {
+        throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
+          correct: trueCaseArtifactPath,
+          incorrect: artifactPath,
+        });
+      }
+
+      return fsExtra.readJson(trueCaseArtifactPath);
+    } catch (error) {
+      if (
+        typeof error.message === "string" &&
+        error.message.includes("no matching file exists")
+      ) {
+        throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+          contractName: name,
+          artifactPath,
+        });
+      }
+
+      // tslint:disable-next-line only-buidler-error
+      throw error;
+    }
   }
 
   /**
@@ -122,16 +147,37 @@ export class Artifacts {
    * @param name          either the contract's name or the fully qualified name
    */
   public readArtifactSync(name: string): Artifact {
+    const { trueCasePathSync } = require("true-case-path");
     const artifactPath = this._getArtifactPathSync(name);
 
-    if (!fsExtra.pathExistsSync(artifactPath)) {
-      throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
-        contractName: name,
-        artifactPath,
-      });
-    }
+    try {
+      const trueCaseArtifactPath = trueCasePathSync(
+        path.relative(this._artifactsPath, artifactPath),
+        this._artifactsPath
+      );
 
-    return fsExtra.readJsonSync(artifactPath);
+      if (artifactPath !== trueCaseArtifactPath) {
+        throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
+          correct: trueCaseArtifactPath,
+          incorrect: artifactPath,
+        });
+      }
+
+      return fsExtra.readJsonSync(trueCaseArtifactPath);
+    } catch (error) {
+      if (
+        typeof error.message === "string" &&
+        error.message.includes("no matching file exists")
+      ) {
+        throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+          contractName: name,
+          artifactPath,
+        });
+      }
+
+      // tslint:disable-next-line only-buidler-error
+      throw error;
+    }
   }
 
   /**
@@ -313,7 +359,7 @@ export class Artifacts {
 
     if (matchingFiles.length > 1) {
       const candidates = matchingFiles
-        .map((file) => this._getFullyQualifiedName(file))
+        .map((file) => this._getFullyQualifiedNameFromPath(file))
         .map(path.normalize);
 
       throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
@@ -326,20 +372,30 @@ export class Artifacts {
   }
 
   /**
+   * Returns the FQN of a contract giving its global name of its file and its
+   * contract name.
+   */
+  private _getFullyQualifiedName(
+    globalName: string,
+    contractName: string
+  ): string {
+    return `${globalName}:${contractName}`;
+  }
+
+  /**
    * Returns the FQN of a contract giving the absolute path to its artifact.
    *
    * For example, given a path like
    * `/path/to/project/artifacts/contracts/Foo.sol/Bar.json`, it'll return the
    * FQN `contracts/Foo.sol:Bar`
    */
-  private _getFullyQualifiedName(absolutePath: string): string {
-    const beforeColon = path.relative(
-      this._artifactsPath,
-      path.dirname(absolutePath)
+  private _getFullyQualifiedNameFromPath(absolutePath: string): string {
+    const globalName = replaceBackslashes(
+      path.relative(this._artifactsPath, path.dirname(absolutePath))
     );
-    const afterColon = path.basename(absolutePath).replace(".json", "");
+    const contractName = path.basename(absolutePath).replace(".json", "");
 
-    return `${beforeColon}:${afterColon}`;
+    return this._getFullyQualifiedName(globalName, contractName);
   }
 
   private _isFullyQualified(name: string) {
