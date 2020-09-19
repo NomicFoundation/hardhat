@@ -67,6 +67,7 @@ export class SolidityFilesCache {
       this._cache.files
     )) {
       if (!fsExtra.existsSync(absolutePath)) {
+        this.removeEntry(absolutePath);
         continue;
       }
       const stats = await fsExtra.stat(absolutePath);
