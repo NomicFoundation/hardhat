@@ -1,4 +1,5 @@
 ---
+
 **External Plugin**
 
 This is a third-party plugin. Please report issues in its [Github Repository](https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md).
@@ -38,7 +39,7 @@ module.exports = {
 ```
 
 Finally, you can run your tests with
- 
+
 ```
 npx buidler coverage
 ```
