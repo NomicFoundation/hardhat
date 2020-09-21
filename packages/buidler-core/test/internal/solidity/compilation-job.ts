@@ -427,7 +427,7 @@ describe("Compilation jobs", function () {
 
       assert.lengthOf(jobs, 0);
       assert.sameMembers(
-        errors[CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND],
+        errors[CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND]!,
         [Foo.globalName]
       );
     });
