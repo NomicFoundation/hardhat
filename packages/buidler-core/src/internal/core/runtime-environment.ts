@@ -79,7 +79,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
       return createProvider(
         networkName,
         networkConfig,
-        config.solc.version,
         config.paths,
         experimentalBuidlerEVMMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>

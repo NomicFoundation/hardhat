@@ -141,11 +141,13 @@ const DEFAULT_BUIDLER_NETWORK_CONFIG: BuidlerNetworkConfig = {
 
 const defaultConfig: BuidlerConfig = {
   defaultNetwork: BUIDLEREVM_NETWORK_NAME,
-  solc: {
+  solidity: {
     version: DEFAULT_SOLC_VERSION,
-    optimizer: {
-      enabled: false,
-      runs: 200,
+    settings: {
+      optimizer: {
+        enabled: false,
+        runs: 200,
+      },
     },
   },
   networks: {

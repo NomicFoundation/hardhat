@@ -39,7 +39,6 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
 export function createProvider(
   networkName: string,
   networkConfig: NetworkConfig,
-  solcVersion?: string,
   paths?: ProjectPaths,
   experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
 ): EthereumProvider {
@@ -62,7 +61,6 @@ export function createProvider(
       buidlerNetConfig.throwOnTransactionFailures!,
       buidlerNetConfig.throwOnCallFailures!,
       buidlerNetConfig.accounts,
-      solcVersion,
       paths,
       buidlerNetConfig.loggingEnabled,
       buidlerNetConfig.allowUnlimitedContractSize,

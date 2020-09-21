@@ -5,7 +5,6 @@ import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
-import path from "path";
 import semver from "semver";
 import util from "util";
 
@@ -14,11 +13,10 @@ import type {
   EIP1193Provider,
   EthSubscription,
   ProjectPaths,
-  ProviderConnectInfo,
   RequestArguments,
 } from "../../../types";
-import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import { Artifacts } from "../../artifacts";
+import { BuildInfo } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -68,7 +66,6 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _genesisAccounts: GenesisAccount[] = [],
-    private readonly _solcVersion?: string,
     private readonly _paths?: ProjectPaths,
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
@@ -228,54 +225,31 @@ export class BuidlerEVMProvider extends EventEmitter
       return;
     }
 
-    let compilerInput: CompilerInput | undefined;
-    let compilerOutput: CompilerOutput | undefined;
+    const buildInfos: BuildInfo[] = [];
 
-    if (this._solcVersion !== undefined && this._paths !== undefined) {
-      if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
-        console.warn(
-          chalk.yellow(
-            `Solidity stack traces only work with Solidity version ${FIRST_SOLC_VERSION_SUPPORTED} or higher.`
-          )
-        );
-      } else {
-        let hasCompiledContracts = false;
+    if (this._paths !== undefined) {
+      const artifacts = new Artifacts(this._paths.artifacts);
+      const buildInfoFiles = await artifacts.getBuildInfoFiles();
 
-        if (await fsExtra.pathExists(this._paths.artifacts)) {
-          const artifactsDir = await fsExtra.readdir(this._paths.artifacts);
-          hasCompiledContracts = artifactsDir.some((f) => f.endsWith(".json"));
-        }
-
-        if (hasCompiledContracts) {
-          try {
-            const solcInputPath = path.join(
-              this._paths.cache,
-              SOLC_INPUT_FILENAME
-            );
-            const solcOutputPath = path.join(
-              this._paths.cache,
-              SOLC_OUTPUT_FILENAME
-            );
-
-            compilerInput = await fsExtra.readJSON(solcInputPath, {
-              encoding: "utf8",
-            });
-            compilerOutput = await fsExtra.readJSON(solcOutputPath, {
-              encoding: "utf8",
-            });
-          } catch (error) {
-            console.warn(
-              chalk.yellow(
-                "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
-              )
-            );
-
-            log(
-              "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
-              error
-            );
+      try {
+        for (const buildInfoFile of buildInfoFiles) {
+          const buildInfo = await fsExtra.readJson(buildInfoFile);
+          // TODO-HH: should we show a warning when this condition is false?
+          if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+            buildInfos.push(buildInfo);
           }
         }
+      } catch (error) {
+        console.warn(
+          chalk.yellow(
+            "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
+          )
+        );
+
+        log(
+          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
+          error
+        );
       }
     }
 
@@ -286,11 +260,9 @@ export class BuidlerEVMProvider extends EventEmitter
       this._networkId,
       this._blockGasLimit,
       this._genesisAccounts,
-      this._solcVersion,
       this._allowUnlimitedContractSize,
       this._initialDate,
-      compilerInput,
-      compilerOutput
+      buildInfos
     );
 
     this._common = common;

@@ -1,8 +1,7 @@
 import { EventEmitter } from "events";
-import { DeepPartial, DeepReadonly, Omit } from "ts-essentials";
+import { DeepReadonly, Omit } from "ts-essentials";
 
 import { MessageTrace } from "./internal/buidler-evm/stack-traces/message-trace";
-import * as types from "./internal/core/params/argumentTypes";
 
 // Begin config types
 
@@ -80,13 +79,17 @@ export interface ProjectPaths {
   tests: string;
 }
 
-type EVMVersion = string;
-
 export interface SolcConfig {
   version: string;
-  optimizer: SolcOptimizerConfig;
-  evmVersion?: EVMVersion;
+  settings?: any;
 }
+
+export interface MultiSolcConfig {
+  compilers: SolcConfig[];
+  overrides?: Record<string, SolcConfig>;
+}
+
+export type SolidityConfig = string | SolcConfig | MultiSolcConfig;
 
 export interface SolcOptimizerConfig {
   enabled: boolean;
@@ -101,7 +104,7 @@ export interface BuidlerConfig {
   defaultNetwork?: string;
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
-  solc?: DeepPartial<SolcConfig>;
+  solidity?: SolidityConfig;
   mocha?: Mocha.MochaOptions;
   analytics?: Partial<AnalyticsConfig>;
 }
@@ -110,8 +113,8 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   defaultNetwork: string;
   paths: ProjectPaths;
   networks: Networks;
-  solc: SolcConfig;
   analytics: AnalyticsConfig;
+  solidity: MultiSolcConfig;
 }
 
 // End config types
@@ -381,6 +384,7 @@ export interface Network {
 // Artifact types
 
 export interface Artifact {
+  _format: string;
   contractName: string;
   abi: any;
   bytecode: string; // "0x"-prefixed hex string

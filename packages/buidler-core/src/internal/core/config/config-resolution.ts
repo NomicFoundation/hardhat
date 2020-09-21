@@ -5,8 +5,10 @@ import path from "path";
 import {
   BuidlerConfig,
   ConfigExtender,
+  MultiSolcConfig,
   ProjectPaths,
   ResolvedBuidlerConfig,
+  SolidityConfig,
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
 import { BuidlerError } from "../errors";
@@ -17,8 +19,38 @@ function mergeUserAndDefaultConfigs(
   userConfig: BuidlerConfig
 ): Partial<ResolvedBuidlerConfig> {
   return deepmerge(defaultConfig, userConfig, {
-    arrayMerge: (destination: any[], source: any[]) => source,
+    arrayMerge: (destination: any[], source: any[]) => deepmerge([], source), // this "unproxies" the arrays
+    customMerge: (key) => {
+      if (key === "solidity") {
+        return (defaultValue, userValue) => {
+          return userValue === undefined
+            ? defaultValue
+            : deepmerge({}, userValue);
+        };
+      }
+      return deepmerge;
+    },
   }) as any;
+}
+
+function normalizeSolidityConfig(
+  solidityConfig: SolidityConfig
+): MultiSolcConfig {
+  if (typeof solidityConfig === "string") {
+    return {
+      compilers: [
+        {
+          version: solidityConfig,
+        },
+      ],
+    };
+  }
+
+  if ("version" in solidityConfig) {
+    return { compilers: [solidityConfig] };
+  }
+
+  return solidityConfig;
 }
 
 /**
@@ -48,7 +80,7 @@ export function resolveConfig(
     ...config,
     paths,
     networks: config.networks!,
-    solc: config.solc!,
+    solidity: normalizeSolidityConfig(config.solidity!),
     defaultNetwork: config.defaultNetwork!,
     analytics: config.analytics!,
   };

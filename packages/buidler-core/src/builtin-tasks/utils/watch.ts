@@ -3,52 +3,31 @@ import debug from "debug";
 import fsExtra from "fs-extra";
 import * as path from "path";
 
-import {
-  SOLC_INPUT_FILENAME,
-  SOLC_OUTPUT_FILENAME,
-} from "../../internal/constants";
+import { BUILD_INFO_DIR_NAME } from "../../internal/constants";
 import { Reporter } from "../../internal/sentry/reporter";
-import { EIP1193Provider, ProjectPaths, SolcConfig } from "../../types";
+import { EIP1193Provider, ProjectPaths } from "../../types";
 
 const log = debug("buidler:core:compilation-watcher");
 
 export async function watchCompilerOutput(
   provider: EIP1193Provider,
-  solcConfig: SolcConfig,
   paths: ProjectPaths
 ) {
   const chokidar = await import("chokidar");
 
-  const compilerVersion = solcConfig.version;
-  const solcInputPath = path.join(paths.cache, SOLC_INPUT_FILENAME);
-  const solcOutputPath = path.join(paths.cache, SOLC_OUTPUT_FILENAME);
+  const buildInfoDir = path.join(paths.artifacts, BUILD_INFO_DIR_NAME);
 
-  const addCompilationResult = async () => {
-    if (
-      !(await fsExtra.pathExists(path.join(paths.cache, SOLC_INPUT_FILENAME)))
-    ) {
-      return false;
-    }
-
-    if (
-      !(await fsExtra.pathExists(path.join(paths.cache, SOLC_OUTPUT_FILENAME)))
-    ) {
-      return false;
-    }
-
+  const addCompilationResult = async (buildInfo: string) => {
     try {
       log("Adding new compilation result to the node");
 
-      const compilerInput = await fsExtra.readJSON(solcInputPath, {
-        encoding: "utf8",
-      });
-      const compilerOutput = await fsExtra.readJSON(solcOutputPath, {
+      const { input, output, solcVersion } = await fsExtra.readJSON(buildInfo, {
         encoding: "utf8",
       });
 
       await provider.request({
         method: "buidler_addCompilationResult",
-        params: [compilerVersion, compilerInput, compilerOutput],
+        params: [solcVersion, input, output],
       });
     } catch (error) {
       console.warn(
@@ -66,16 +45,15 @@ export async function watchCompilerOutput(
     }
   };
 
-  log(`Watching changes on '${solcOutputPath}'`);
+  log(`Watching changes on '${buildInfoDir}'`);
 
   chokidar
-    .watch(solcOutputPath, {
+    .watch(buildInfoDir, {
       ignoreInitial: true,
       awaitWriteFinish: {
         stabilityThreshold: 250,
         pollInterval: 50,
       },
     })
-    .on("add", addCompilationResult)
-    .on("change", addCompilationResult);
+    .on("add", addCompilationResult);
 }

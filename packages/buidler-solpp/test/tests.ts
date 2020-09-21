@@ -1,7 +1,7 @@
 import {
-  TASK_COMPILE_COMPILE,
-  TASK_COMPILE_GET_COMPILER_INPUT,
-  TASK_COMPILE_GET_SOURCE_PATHS,
+  TASK_COMPILE_SOLIDITY_COMPILE,
+  TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
 } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { assert } from "chai";
 import { readFileSync } from "fs";
@@ -20,19 +20,22 @@ export async function expectErrorAsync(
   }
 }
 
-describe("Solpp plugin", async function () {
+// TODO-HH: Re-enable after having internal tasks for the compilation
+describe.skip("Solpp plugin", async function () {
   describe("js-config-project", async function () {
     useEnvironment(join(__dirname, "js-config-project"));
 
     it("should evaluate symbols as javascript functions", async function () {
-      const paths = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+      const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
       const generatedContractA = readFileSync(paths[0]).toString();
       assert.include(generatedContractA, "1337");
     });
 
     it("should compile without errors", async function () {
-      const input = this.env.run(TASK_COMPILE_GET_COMPILER_INPUT);
-      assert.doesNotThrow(() => this.env.run(TASK_COMPILE_COMPILE, { input }));
+      const input = this.env.run(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT);
+      assert.doesNotThrow(() =>
+        this.env.run(TASK_COMPILE_SOLIDITY_COMPILE, { input })
+      );
     });
   });
 
@@ -40,7 +43,7 @@ describe("Solpp plugin", async function () {
     useEnvironment(join(__dirname, "json-config-project"));
 
     it("should load definitions from json", async function () {
-      const paths = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+      const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
       const generatedContractA = readFileSync(paths[0]).toString();
 
       assert.include(generatedContractA, "48192.418291248");
@@ -58,7 +61,7 @@ describe("Solpp plugin", async function () {
     useEnvironment(join(__dirname, "buidler-project"));
 
     it("should create processed contracts in the cache directory", async function () {
-      const paths = await this.env.run(TASK_COMPILE_GET_SOURCE_PATHS);
+      const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
 
       paths.forEach((path: string) => {
         assert.include(path, "solpp-generated-contracts");

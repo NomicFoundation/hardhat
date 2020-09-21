@@ -1,11 +1,10 @@
 import * as assert from "assert";
+import * as os from "os";
 import * as path from "path";
 
 import {
+  Artifacts,
   getArtifactFromContractOutput,
-  readArtifact,
-  readArtifactSync,
-  saveArtifact,
 } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { Artifact } from "../../src/types";
@@ -21,6 +20,7 @@ describe("Artifacts utils", function () {
       });
 
       const expectedArtifact: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "Interface",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
@@ -37,6 +37,7 @@ describe("Artifacts utils", function () {
       });
 
       const expectedArtifact2: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "Interface",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
@@ -53,6 +54,7 @@ describe("Artifacts utils", function () {
       });
 
       const expectedArtifact3: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "Interface",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
@@ -71,6 +73,7 @@ describe("Artifacts utils", function () {
       );
 
       const expectedArtifact: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "Interface",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
@@ -89,6 +92,7 @@ describe("Artifacts utils", function () {
       );
 
       const expectedArtifact: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "Lib",
         abi: COMPILER_OUTPUTS.Lib.abi,
         bytecode: `0x${COMPILER_OUTPUTS.Lib.evm.bytecode.object}`,
@@ -107,6 +111,7 @@ describe("Artifacts utils", function () {
       );
 
       const expectedArtifact: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "WithBytecodeNoLibs",
         abi: COMPILER_OUTPUTS.WithBytecodeNoLibs.abi,
         bytecode: `0x${COMPILER_OUTPUTS.WithBytecodeNoLibs.evm.bytecode.object}`,
@@ -125,6 +130,7 @@ describe("Artifacts utils", function () {
       );
 
       const expectedArtifact: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "WithBytecodeAndLibs",
         abi: COMPILER_OUTPUTS.WithBytecodeAndLibs.abi,
         bytecode: `0x${COMPILER_OUTPUTS.WithBytecodeAndLibs.evm.bytecode.object}`,
@@ -146,6 +152,7 @@ describe("Artifacts utils", function () {
       );
 
       const expectedArtifact: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "WithoutBytecodeNoLibs",
         abi: COMPILER_OUTPUTS.WithoutBytecodeNoLibs.abi,
         bytecode: `0x${COMPILER_OUTPUTS.WithoutBytecodeNoLibs.evm.bytecode.object}`,
@@ -164,6 +171,7 @@ describe("Artifacts utils", function () {
       );
 
       const expectedArtifact: Artifact = {
+        _format: "hh-sol-artifact-1",
         contractName: "WithoutBytecodeWithLibs",
         abi: COMPILER_OUTPUTS.WithoutBytecodeWithLibs.abi,
         bytecode: "0x",
@@ -186,8 +194,15 @@ describe("Artifacts utils", function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(this.tmpDir, artifact);
-        const storedArtifact = await readArtifact(this.tmpDir, name);
+        const artifacts = new Artifacts(this.tmpDir);
+        await artifacts.saveArtifactFiles(
+          `${artifact.contractName}.sol`,
+          artifact,
+          ""
+        );
+        const storedArtifact = await artifacts.readArtifact(
+          artifact.contractName
+        );
 
         assert.deepEqual(storedArtifact, artifact);
       }
@@ -200,8 +215,13 @@ describe("Artifacts utils", function () {
 
       const artifact = getArtifactFromContractOutput(name, output);
 
-      await saveArtifact(nonexistentPath, artifact);
-      const storedArtifact = await readArtifact(nonexistentPath, name);
+      const artifacts = new Artifacts(nonexistentPath);
+      await artifacts.saveArtifactFiles(
+        `${artifact.contractName}.sol`,
+        artifact,
+        ""
+      );
+      const storedArtifact = await artifacts.readArtifact(name);
 
       assert.deepEqual(storedArtifact, artifact);
     });
@@ -210,24 +230,137 @@ describe("Artifacts utils", function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
         const artifact = getArtifactFromContractOutput(name, output);
 
-        await saveArtifact(this.tmpDir, artifact);
-        const storedArtifact = readArtifactSync(this.tmpDir, name);
+        const artifacts = new Artifacts(this.tmpDir);
+        await artifacts.saveArtifactFiles(
+          `${artifact.contractName}.sol`,
+          artifact,
+          ""
+        );
+        const storedArtifact = artifacts.readArtifactSync(name);
 
         assert.deepEqual(storedArtifact, artifact);
       }
     });
 
+    it("Should find the right artifact even if the global name has slashes", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactFiles("contracts/Lib.sol", artifact, "");
+
+      const storedArtifact = await artifacts.readArtifact(name);
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact even if the global name is different", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactFiles("MyLib.sol", artifact, "");
+
+      const storedArtifact = await artifacts.readArtifact(name);
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact when using the fully qualified name", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactFiles("MyLib.sol", artifact, "");
+
+      const storedArtifact = await artifacts.readArtifact("MyLib.sol:Lib");
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact when using the fully qualified name (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactFiles("MyLib.sol", artifact, "");
+
+      const storedArtifact = artifacts.readArtifactSync("MyLib.sol:Lib");
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
+    it("Should find the right artifact when using the fully qualified with slashes", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactFiles("contracts/MyLib.sol", artifact, "");
+
+      const storedArtifact = await artifacts.readArtifact(
+        "contracts/MyLib.sol:Lib"
+      );
+
+      assert.deepEqual(storedArtifact, artifact);
+    });
+
     it("Should throw when reading a non-existent contract (async)", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
       await expectBuidlerErrorAsync(
-        () => readArtifact(this.tmpDir, "NonExistent"),
+        () => artifacts.readArtifact("NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
       );
     });
 
     it("Should throw when reading a non-existent contract (sync)", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
       expectBuidlerError(
-        () => readArtifactSync(this.tmpDir, "NonExistent"),
+        () => artifacts.readArtifactSync("NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
+      );
+    });
+
+    it("Should throw when multiple artifacts match a given name (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactFiles("Lib.sol", artifact, "");
+      await artifacts.saveArtifactFiles("Lib2.sol", artifact, "");
+
+      await expectBuidlerErrorAsync(
+        () => artifacts.readArtifact(name),
+        ERRORS.ARTIFACTS.MULTIPLE_FOUND,
+        `Lib.sol:Lib${os.EOL}Lib2.sol:Lib`
+      );
+    });
+
+    it("Should throw when multiple artifacts match a given name (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+
+      const artifact = getArtifactFromContractOutput(name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactFiles("Lib.sol", artifact, "");
+      await artifacts.saveArtifactFiles("Lib2.sol", artifact, "");
+
+      expectBuidlerError(
+        () => artifacts.readArtifactSync(name),
+        ERRORS.ARTIFACTS.MULTIPLE_FOUND,
+        `Lib.sol:Lib${os.EOL}Lib2.sol:Lib`
       );
     });
   });

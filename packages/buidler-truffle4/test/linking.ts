@@ -6,6 +6,9 @@ import { useEnvironment } from "./helpers";
 
 function linkingShouldWorkCorrectly() {
   describe("Linking with an instance", function () {
+    beforeEach(async function () {
+      await this.env.run("compile");
+    });
     it("Should link correctly", async function () {
       const Lib = this.env.artifacts.require("Lib");
       const UsesLib = this.env.artifacts.require("UsesLib");
