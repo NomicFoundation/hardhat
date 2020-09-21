@@ -126,7 +126,7 @@ describe("Resolver", function () {
   });
 
   beforeEach("Init resolver", async function () {
-    resolver = new Resolver(projectPath, new Parser({}));
+    resolver = new Resolver(projectPath, new Parser());
   });
 
   describe("resolveSourceName", function () {

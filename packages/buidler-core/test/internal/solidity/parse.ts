@@ -5,7 +5,7 @@ import { Parser } from "../../../src/internal/solidity/parse";
 describe("Solidity parser", () => {
   describe("imports", () => {
     it("should work with global imports", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { imports } = parser.parse(
         `
 import "./asd.sol";
@@ -19,7 +19,7 @@ import "lib/asd.sol";
     });
 
     it("should work with star imports", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { imports } = parser.parse(
         `
 import * as from "./asd.sol";
@@ -33,7 +33,7 @@ import * as from "lib/asd.sol";
     });
 
     it("should work with selective imports", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { imports } = parser.parse(
         `
 import {symbol1} from "./asd.sol";
@@ -47,7 +47,7 @@ import {symbol1, symbol2} as from "lib/asd.sol";
     });
 
     it("should work with aliased imports", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { imports } = parser.parse(
         `
 import {symbol1 as s1} as from "./asd.sol";
@@ -61,7 +61,7 @@ import {symbol1 as s1, symbol2} as from "lib/asd.sol";
     });
 
     it("If the syntax is invalid but there's still some valid imports' they should be returned", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { imports } = parser.parse(
         `
     asd
@@ -84,7 +84,7 @@ import "./1.sol";
     });
 
     it("Should work when the parser doesn't detect some invalid syntax and the visitor breaks", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { imports } = parser.parse(
         `
       import "a.sol";
@@ -104,7 +104,7 @@ import "./1.sol";
 
   describe("version pragmas", () => {
     it("should work with a single fixed version", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { versionPragmas } = parser.parse(
         `
 pragma solidity 0.5.0;
@@ -120,7 +120,7 @@ contract Foo {}
     });
 
     it("should work with a single version range", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { versionPragmas } = parser.parse(
         `
 pragma solidity ^0.5.0;
@@ -136,7 +136,7 @@ contract Foo {}
     });
 
     it("should work with two version ranges", () => {
-      const parser = new Parser({});
+      const parser = new Parser();
       const { versionPragmas } = parser.parse(
         `
 pragma solidity ^0.5.0;

@@ -1,59 +1,18 @@
+import { CompilationJob } from "../../../builtin-tasks/types";
 import { SolcInput, SolcOptimizerConfig } from "../../../types";
-import { CompilationGroup } from "../compilationGroup";
 import { DependencyGraph } from "../dependencyGraph";
 
-export function getInputFromDependencyGraph(
-  graph: DependencyGraph,
-  optimizerConfig: SolcOptimizerConfig,
-  evmVersion?: string
+export function getInputFromCompilationJob(
+  compilationJob: CompilationJob
 ): SolcInput {
   const sources: { [globalName: string]: { content: string } } = {};
-  for (const file of graph.getResolvedFiles()) {
+  for (const file of compilationJob.getResolvedFiles()) {
     sources[file.globalName] = {
       content: file.content.rawContent,
     };
   }
 
-  const input: SolcInput = {
-    language: "Solidity",
-    sources,
-    settings: {
-      metadata: {
-        useLiteralContent: true,
-      },
-      optimizer: optimizerConfig,
-      outputSelection: {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-          ],
-          "": ["id", "ast"],
-        },
-      },
-    },
-  };
-
-  if (evmVersion !== undefined) {
-    input.settings.evmVersion = evmVersion;
-  }
-
-  return input;
-}
-
-export function getInputFromCompilationGroup(
-  compilationGroup: CompilationGroup
-): SolcInput {
-  const sources: { [globalName: string]: { content: string } } = {};
-  for (const file of compilationGroup.getResolvedFiles()) {
-    sources[file.globalName] = {
-      content: file.content.rawContent,
-    };
-  }
-
-  const { settings } = compilationGroup.solidityConfig;
+  const { settings } = compilationJob.getSolcConfig();
 
   const input: SolcInput = {
     language: "Solidity",

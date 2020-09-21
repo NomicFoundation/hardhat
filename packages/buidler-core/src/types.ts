@@ -384,6 +384,7 @@ export interface Network {
 // Artifact types
 
 export interface Artifact {
+  _format: string;
   contractName: string;
   abi: any;
   bytecode: string; // "0x"-prefixed hex string

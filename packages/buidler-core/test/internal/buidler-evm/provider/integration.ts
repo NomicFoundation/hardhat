@@ -12,7 +12,7 @@ describe("Provider integration tests", function () {
     it("Should compile", async function () {
       await this.env.run("compile");
       const artifact = await fsExtra.readJSON(
-        "artifacts/contracts/Contract:Contract.json"
+        "artifacts/contracts/Contract.sol/Contract.json"
       );
 
       try {

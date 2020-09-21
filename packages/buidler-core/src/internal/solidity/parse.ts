@@ -12,7 +12,7 @@ interface ParsedData {
 export class Parser {
   private _cache = new Map<string, ParsedData>();
 
-  constructor(private _solidityFilesCache: SolidityFilesCache) {}
+  constructor(private _solidityFilesCache?: SolidityFilesCache) {}
 
   public parse(fileContent: string, absolutePath: string): ParsedData {
     const cacheResult = this._getFromCache(absolutePath);
@@ -53,10 +53,10 @@ export class Parser {
   }
 
   private _getFromCache(absolutePath: string): ParsedData | null {
-    if (this._solidityFilesCache[absolutePath] !== undefined) {
-      const { imports, versionPragmas } = this._solidityFilesCache[
-        absolutePath
-      ];
+    const cacheEntry = this._solidityFilesCache?.getEntry(absolutePath);
+
+    if (cacheEntry !== undefined) {
+      const { imports, versionPragmas } = cacheEntry;
 
       return { imports, versionPragmas };
     }

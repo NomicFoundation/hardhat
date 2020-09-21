@@ -45,11 +45,11 @@ describe("Environment", () => {
         {
           version: "0.5.0",
           settings: {
+            evmVersion: "byzantium",
             optimizer: {
               enabled: false,
               runs: 0,
             },
-            evmVersion: "byzantium",
           },
         },
       ],
@@ -298,7 +298,7 @@ describe("Environment", () => {
       dsl.task(
         "with-subtask",
         "description",
-        async ({}, { run, config: theConfig, network }, runSuper) => {
+        async ({}, { run, config: theConfig, network }, runSuper: any) => {
           const globalAsAny = global as any;
           assert.equal(globalAsAny.config, theConfig);
           assert.isDefined(globalAsAny.config);

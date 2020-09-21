@@ -270,15 +270,15 @@ export interface CompilerOutputBytecode {
 // Ideally, we would access the input and output through some sort of artifact.
 export async function compile(taskRun: RunTaskFunction) {
   const {
-    TASK_COMPILE_COMPILE,
-    TASK_COMPILE_GET_COMPILER_INPUT,
+    TASK_COMPILE_SOLIDITY_COMPILE,
+    TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   } = await import("@nomiclabs/buidler/builtin-tasks/task-names");
 
   const compilerInput = (await taskRun(
-    TASK_COMPILE_GET_COMPILER_INPUT
+    TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT
   )) as CompilerInput;
   const compilerOutput = (await taskRun(
-    TASK_COMPILE_COMPILE
+    TASK_COMPILE_SOLIDITY_COMPILE
   )) as CompilerOutput;
   return { compilerInput, compilerOutput };
 }

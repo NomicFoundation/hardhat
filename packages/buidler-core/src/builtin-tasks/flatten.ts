@@ -6,7 +6,7 @@ import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
 import { getPackageJson } from "../internal/util/packageInfo";
 
 import {
-  TASK_COMPILE_GET_DEPENDENCY_GRAPH,
+  TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
   TASK_FLATTEN,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names";
@@ -62,7 +62,7 @@ export default function () {
       let flattened = "";
 
       const graph: DependencyGraph = await run(
-        TASK_COMPILE_GET_DEPENDENCY_GRAPH
+        TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH
       );
       if (graph.getResolvedFiles().length === 0) {
         return flattened;

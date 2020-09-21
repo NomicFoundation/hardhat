@@ -2,6 +2,7 @@ import { assert } from "chai";
 import * as fs from "fs";
 import path from "path";
 
+import * as taskTypes from "../../../src/builtin-tasks/types";
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
 import { Parser } from "../../../src/internal/solidity/parse";
 import {
@@ -16,22 +17,25 @@ import {
 import { createMockData, MockFile } from "./helpers";
 
 function assertDeps(
-  graph: DependencyGraph,
+  graph: taskTypes.DependencyGraph,
   file: ResolvedFile,
   ...deps: ResolvedFile[]
 ) {
-  assert.isTrue(graph.has(file));
-  const resolvedDeps = graph.get(file);
+  assert.includeMembers(graph.getResolvedFiles(), [file]);
+  const resolvedDeps = graph.getDependencies(file);
 
   if (resolvedDeps === undefined) {
     throw Error("This should never happen. Just making TS happy.");
   }
 
-  assert.equal(resolvedDeps.size, deps.length);
+  assert.equal(resolvedDeps.length, deps.length);
   assert.includeMembers(Array.from(resolvedDeps), deps);
 }
 
-function assertResolvedFiles(graph: DependencyGraph, ...files: ResolvedFile[]) {
+function assertResolvedFiles(
+  graph: taskTypes.DependencyGraph,
+  ...files: ResolvedFile[]
+) {
   const resolvedFiles = graph.getResolvedFiles();
 
   assert.equal(resolvedFiles.length, files.length);
@@ -49,7 +53,6 @@ describe("Dependency Graph", function () {
     let dependsOnWD: ResolvedFile;
     let loop1: ResolvedFile;
     let loop2: ResolvedFile;
-    let dependsOnLoop2: ResolvedFile;
 
     before("Mock some resolved files", function () {
       projectRoot = fs.realpathSync(".");
@@ -119,19 +122,8 @@ describe("Dependency Graph", function () {
         new Date()
       );
 
-      dependsOnLoop2 = new ResolvedFile(
-        "contracts/dependsOnLoop2.sol",
-        path.join(projectRoot, "contracts", "dependsOnLoop2.sol"),
-        {
-          rawContent: 'import "./loop2.sol";',
-          imports: ["./loop2.sol"],
-          versionPragmas: [],
-        },
-        new Date()
-      );
-
-      resolver = new Resolver(projectRoot, new Parser({}));
-      resolver.resolveImport = async (from: ResolvedFile, imported: string) => {
+      resolver = new Resolver(projectRoot, new Parser());
+      resolver.resolveImport = async (_: ResolvedFile, imported: string) => {
         switch (imported) {
           case "./WD.sol":
             return fileWithoutDependencies;
@@ -150,7 +142,7 @@ describe("Dependency Graph", function () {
 
     it("should give an empty graph if there's no entry point", async function () {
       const graph = await DependencyGraph.createFromResolvedFiles(resolver, []);
-      assert.isTrue(graph.isEmpty());
+      assert.isEmpty(graph.getResolvedFiles());
     });
 
     it("should give a graph with a single node if the only entry point has no deps", async function () {
@@ -272,7 +264,7 @@ describe("Dependency Graph", function () {
       before("Get project root", async function () {
         localResolver = new Resolver(
           await getFixtureProjectPath(PROJECT),
-          new Parser({})
+          new Parser()
         );
       });
 
@@ -294,14 +286,16 @@ describe("Dependency Graph", function () {
         assert.deepEqual(graphsA, fileA);
         assert.deepEqual(graphsB, fileB);
 
-        assert.equal(graph.get(graphsA)!.size, 1);
+        assert.equal(graph.getDependencies(graphsA).length, 1);
 
-        const graphsADep = Array.from(graph.get(graphsA)!.values())[0];
+        const graphsADep = Array.from(
+          graph.getDependencies(graphsA)!.values()
+        )[0];
         assert.deepEqual(graphsADep, fileB);
 
-        assert.equal(graph.get(graphsB)!.size, 1);
+        assert.equal(graph.getDependencies(graphsB).length, 1);
 
-        const graphsBDep = Array.from(graph.get(graphsB)!.values())[0];
+        const graphsBDep = graph.getDependencies(graphsB)[0];
         assert.deepEqual(graphsBDep, fileA);
       });
     });
@@ -310,7 +304,7 @@ describe("Dependency Graph", function () {
   describe("getConnectedComponents", function () {
     it("single file", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
-      const [graph, , [Foo]] = await createMockData([{ file: FooMock }]);
+      const [graph, [Foo]] = await createMockData([{ file: FooMock }]);
 
       const connectedComponents = graph.getConnectedComponents();
 
@@ -321,7 +315,7 @@ describe("Dependency Graph", function () {
     it("two independent files", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [graph, , [Foo, Bar]] = await createMockData([
+      const [graph, [Foo, Bar]] = await createMockData([
         { file: FooMock },
         { file: BarMock },
       ]);
@@ -336,7 +330,7 @@ describe("Dependency Graph", function () {
     it("one file imports another one", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [graph, , [Foo, Bar]] = await createMockData([
+      const [graph, [Foo, Bar]] = await createMockData([
         { file: FooMock, dependencies: [BarMock] },
         { file: BarMock },
       ]);
@@ -350,7 +344,7 @@ describe("Dependency Graph", function () {
     it("one file imports a library", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const LibMock = new MockFile("Lib", ["^0.5.0"], "SomeLibrary");
-      const [graph, , [Foo, Lib]] = await createMockData([
+      const [graph, [Foo, Lib]] = await createMockData([
         { file: FooMock, dependencies: [LibMock] },
         { file: LibMock },
       ]);
@@ -364,7 +358,7 @@ describe("Dependency Graph", function () {
     it("two files loop", async function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
-      const [graph, , [Foo, Bar]] = await createMockData([
+      const [graph, [Foo, Bar]] = await createMockData([
         { file: FooMock, dependencies: [BarMock] },
         { file: BarMock, dependencies: [FooMock] },
       ]);
@@ -379,7 +373,7 @@ describe("Dependency Graph", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+      const [graph, [Foo, Bar, Qux]] = await createMockData([
         { file: FooMock, dependencies: [BarMock] },
         { file: BarMock, dependencies: [QuxMock] },
         { file: QuxMock },
@@ -399,7 +393,7 @@ describe("Dependency Graph", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+      const [graph, [Foo, Bar, Qux]] = await createMockData([
         { file: FooMock, dependencies: [BarMock] },
         { file: BarMock },
         { file: QuxMock },
@@ -416,7 +410,7 @@ describe("Dependency Graph", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+      const [graph, [Foo, Bar, Qux]] = await createMockData([
         { file: FooMock, dependencies: [BarMock] },
         { file: BarMock, dependencies: [QuxMock] },
         { file: QuxMock, dependencies: [FooMock] },
@@ -436,7 +430,7 @@ describe("Dependency Graph", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+      const [graph, [Foo, Bar, Qux]] = await createMockData([
         { file: FooMock, dependencies: [BarMock, QuxMock] },
         { file: BarMock },
         { file: QuxMock },
@@ -456,7 +450,7 @@ describe("Dependency Graph", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const BarMock = new MockFile("Bar", ["^0.5.0"]);
       const QuxMock = new MockFile("Qux", ["^0.5.0"]);
-      const [graph, , [Foo, Bar, Qux]] = await createMockData([
+      const [graph, [Foo, Bar, Qux]] = await createMockData([
         { file: FooMock, dependencies: [QuxMock] },
         { file: BarMock, dependencies: [QuxMock] },
         { file: QuxMock },
@@ -477,7 +471,7 @@ describe("Dependency Graph", function () {
       const Foo2Mock = new MockFile("Foo2", ["^0.5.0"]);
       const Bar1Mock = new MockFile("Bar1", ["^0.5.0"]);
       const Bar2Mock = new MockFile("Bar2", ["^0.5.0"]);
-      const [graph, , [Foo1, Foo2, Bar1, Bar2]] = await createMockData([
+      const [graph, [Foo1, Foo2, Bar1, Bar2]] = await createMockData([
         { file: Foo1Mock, dependencies: [Foo2Mock] },
         { file: Foo2Mock },
         { file: Bar1Mock, dependencies: [Bar2Mock] },
@@ -503,7 +497,7 @@ describe("Dependency Graph", function () {
       const Layer2Mock = new MockFile("Layer2", ["^0.5.0"]);
       const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
       const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
-      const [graph, , resolvedFiles] = await createMockData([
+      const [graph, resolvedFiles] = await createMockData([
         { file: Layer1AMock, dependencies: [Layer2Mock] },
         { file: Layer1BMock, dependencies: [Layer2Mock] },
         { file: Layer2Mock, dependencies: [Layer3AMock, Layer3BMock] },
@@ -527,7 +521,7 @@ describe("Dependency Graph", function () {
       const Layer2BMock = new MockFile("Layer2B", ["^0.5.0"]);
       const Layer3AMock = new MockFile("Layer3A", ["^0.5.0"]);
       const Layer3BMock = new MockFile("Layer3B", ["^0.5.0"]);
-      const [graph, , resolvedFiles] = await createMockData([
+      const [graph, resolvedFiles] = await createMockData([
         { file: Layer1AMock, dependencies: [Layer2AMock, Layer2BMock] },
         { file: Layer1BMock, dependencies: [Layer2AMock, Layer2BMock] },
         { file: Layer2AMock, dependencies: [Layer3AMock, Layer3BMock] },

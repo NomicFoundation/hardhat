@@ -15,7 +15,7 @@ import type {
   ProjectPaths,
   RequestArguments,
 } from "../../../types";
-import { getBuildInfoFiles } from "../../artifacts";
+import { Artifacts } from "../../artifacts";
 import { BuildInfo } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
@@ -228,7 +228,8 @@ export class BuidlerEVMProvider extends EventEmitter
     const buildInfos: BuildInfo[] = [];
 
     if (this._paths !== undefined) {
-      const buildInfoFiles = await getBuildInfoFiles(this._paths.artifacts);
+      const artifacts = new Artifacts(this._paths.artifacts);
+      const buildInfoFiles = await artifacts.getBuildInfoFiles();
 
       try {
         for (const buildInfoFile of buildInfoFiles) {

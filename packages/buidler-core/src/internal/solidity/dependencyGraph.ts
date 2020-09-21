@@ -1,6 +1,8 @@
+import * as taskTypes from "../../builtin-tasks/types";
+
 import { ResolvedFile, Resolver } from "./resolver";
 
-export class DependencyGraph {
+export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
@@ -23,10 +25,6 @@ export class DependencyGraph {
 
   public getResolvedFiles(): ResolvedFile[] {
     return Array.from(this._resolvedFiles.values());
-  }
-
-  public get(file: ResolvedFile) {
-    return this._dependenciesPerFile.get(file.globalName);
   }
 
   public has(file: ResolvedFile): boolean {

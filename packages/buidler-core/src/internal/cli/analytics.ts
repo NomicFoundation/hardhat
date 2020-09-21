@@ -1,10 +1,8 @@
 import AbortController from "abort-controller";
 import debug from "debug";
 import { keccak256 } from "ethereumjs-util";
-import fs from "fs-extra";
 import fetch from "node-fetch";
 import os from "os";
-import path from "path";
 import qs from "qs";
 import uuid from "uuid/v4";
 

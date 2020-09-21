@@ -735,7 +735,7 @@ Please double check your \`solc\` config.`,
     DOWNLOAD_FAILED: {
       number: 501,
       message:
-        "Couldn't download compiler version %remoteVersion%. Please check your connection or use local version %localVersion%",
+        "Couldn't download compiler version %remoteVersion%. Please check your connection.",
       title: "`solc` download failed",
       description: `Couldn't download \`solc\`. 
       
@@ -745,7 +745,7 @@ Please check your Internet connection.`,
     VERSION_LIST_DOWNLOAD_FAILED: {
       number: 502,
       message:
-        "Couldn't download compiler versions list. Please check your connection or use local version %localVersion%",
+        "Couldn't download compiler versions list. Please check your connection.",
       title: "Couldn't obtain `solc` version list",
       description: `Couldn't download \`solc\`'s version list. 
       
@@ -755,7 +755,7 @@ Please check your Internet connection.`,
     INVALID_DOWNLOAD: {
       number: 503,
       message:
-        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection or use local version %localVersion%",
+        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection.",
       title: "Downloaded `solc` checksum verification failed",
       description: `Downloaded \`solc\` verification failed.. 
       
@@ -848,6 +848,16 @@ Candidates for this contract name are:
 
 Please use the fully qualified name of the contract to disambiguate it.`,
       shouldBeReported: false,
+    },
+    WRONG_CASING: {
+      number: 702,
+      message:
+        "Invalid artifact path %incorrect%, its correct case-sensitive path is %correct%",
+      title: "Incorrect artifact path casing",
+      description: `You tried to get an artifact file with an incorrect casing.
+      
+Buidler's artifact resolution is case sensitive to ensure projects are portable across different operating systems.`,
+      shouldBeReported: true,
     },
   },
   PLUGINS: {

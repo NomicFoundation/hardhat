@@ -1,9 +1,5 @@
 import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import {
-  NomicLabsBuidlerPluginError,
-  readArtifact,
-} from "@nomiclabs/buidler/plugins";
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";

@@ -17,7 +17,7 @@ function assertFileExists(pathToFile: string) {
 function assertBuildInfoExists(pathToDbg: string) {
   assertFileExists(pathToDbg);
   const { buildInfo } = fsExtra.readJsonSync(pathToDbg);
-  assertFileExists(path.resolve("artifacts", "contracts", buildInfo));
+  assertFileExists(path.resolve(path.dirname(pathToDbg), buildInfo));
 }
 
 describe("compile task", function () {
@@ -33,8 +33,10 @@ describe("compile task", function () {
     it("should compile and emit artifacts", async function () {
       await this.env.run("compile");
 
-      assertFileExists(path.join("artifacts", "contracts", "A:A.json"));
-      assertBuildInfoExists(path.join("artifacts", "contracts", "A:A.dbg"));
+      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
+      assertBuildInfoExists(
+        path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
+      );
       assert.lengthOf(globSync("artifacts/build-info/*.json"), 1);
     });
   });
@@ -46,10 +48,14 @@ describe("compile task", function () {
     it("should compile and emit artifacts", async function () {
       await this.env.run("compile");
 
-      assertFileExists(path.join("artifacts", "contracts", "A:A.json"));
-      assertFileExists(path.join("artifacts", "contracts", "B:B.json"));
-      assertBuildInfoExists(path.join("artifacts", "contracts", "A:A.dbg"));
-      assertBuildInfoExists(path.join("artifacts", "contracts", "B:B.dbg"));
+      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
+      assertFileExists(path.join("artifacts", "contracts", "B.sol", "B.json"));
+      assertBuildInfoExists(
+        path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
+      );
+      assertBuildInfoExists(
+        path.join("artifacts", "contracts", "B.sol", "B.dbg.json")
+      );
       assert.lengthOf(globSync("artifacts/build-info/*.json"), 2);
     });
   });
