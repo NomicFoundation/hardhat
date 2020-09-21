@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/buidler-truffle5",
-  "version": "1.99.0",
+  "version": "1.99.1",
   "description": "Truffle 5 Buidler compatibility plugin",
   "repository": "github:nomiclabs/buidler",
   "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5",
