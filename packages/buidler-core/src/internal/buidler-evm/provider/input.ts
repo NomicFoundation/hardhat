@@ -77,15 +77,18 @@ export const logTopics = t.union([
 
 export type LogTopics = t.TypeOf<typeof logTopics>;
 
-export const optionalBlockTag = t.union([
+export const blockTag = t.union([
   rpcQuantity,
   t.keyof({
     earliest: null,
     latest: null,
     pending: null,
   }),
-  t.undefined,
 ]);
+
+export type BlockTag = t.TypeOf<typeof blockTag>;
+
+export const optionalBlockTag = optional(blockTag);
 
 export type OptionalBlockTag = t.TypeOf<typeof optionalBlockTag>;
 
@@ -195,6 +198,18 @@ export const rpcCompilerOutput = t.type(
 
 export type RpcCompilerOutput = t.TypeOf<typeof rpcCompilerOutput>;
 
+export const rpcForkConfig = optional(
+  t.type(
+    {
+      jsonRpcUrl: t.string,
+      blockNumber: optional(t.number),
+    },
+    "RpcForkConfig"
+  )
+);
+
+export type RpcForkConfig = t.TypeOf<typeof rpcForkConfig>;
+
 export function validateParams(params: any[]): [];
 
 export function validateParams(
@@ -216,7 +231,10 @@ export function validateParams(
   block: typeof optionalBlockTag
 ): [Buffer, BN, OptionalBlockTag];
 
-export function validateParams(params: any[], data: typeof rpcData): [Buffer];
+export function validateParams(
+  params: any[],
+  data: typeof rpcData | typeof rpcData
+): [Buffer];
 
 export function validateParams(
   params: any[],
@@ -242,6 +260,12 @@ export function validateParams(
   hash: typeof rpcHash,
   bool: typeof t.boolean
 ): [Buffer, boolean];
+
+export function validateParams(
+  params: any[],
+  tag: typeof blockTag,
+  bool: typeof t.boolean
+): [BlockTag, boolean];
 
 export function validateParams(
   params: any[],
@@ -294,6 +318,11 @@ export function validateParams(
   compilerInput: typeof rpcCompilerInput,
   compilerOutput: typeof rpcCompilerOutput
 ): [string, CompilerInput, CompilerOutput];
+
+export function validateParams(
+  params: any[],
+  forkConfig: typeof rpcForkConfig
+): [RpcForkConfig];
 
 // tslint:disable only-buidler-error
 

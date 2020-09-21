@@ -357,11 +357,11 @@ async function runTest(
     compilerOptions
   );
 
-  const bytecodes = createModelsAndDecodeBytecodes(
-    compilerOptions.solidityVersion,
+  const bytecodes = createModelsAndDecodeBytecodes({
+    solcVersion: compilerOptions.solidityVersion,
     compilerInput,
-    compilerOutput
-  );
+    compilerOutput,
+  });
 
   const contractsIdentifier = new ContractsIdentifier();
 

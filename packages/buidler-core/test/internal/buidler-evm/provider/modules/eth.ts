@@ -1,28 +1,19 @@
 import { assert } from "chai";
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
-import {
-  BN,
-  bufferToHex,
-  privateToAddress,
-  toBuffer,
-  zeroAddress,
-} from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
+import { Context } from "mocha";
 
 import { InvalidInputError } from "../../../../../src/internal/buidler-evm/provider/errors";
-import {
-  COINBASE_ADDRESS,
-  TransactionParams,
-} from "../../../../../src/internal/buidler-evm/provider/node";
+import { randomAddress } from "../../../../../src/internal/buidler-evm/provider/fork/random";
+import { COINBASE_ADDRESS } from "../../../../../src/internal/buidler-evm/provider/node";
+import { TransactionParams } from "../../../../../src/internal/buidler-evm/provider/node-types";
 import {
   numberToRpcQuantity,
   RpcBlockOutput,
   RpcLogOutput,
+  RpcReceiptOutput,
   RpcTransactionOutput,
-  RpcTransactionReceiptOutput,
 } from "../../../../../src/internal/buidler-evm/provider/output";
-import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils";
-import { EthereumProvider } from "../../../../../src/types";
+import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
 import {
   assertInvalidInputError,
   assertNodeBalances,
@@ -32,103 +23,41 @@ import {
   assertTransaction,
   assertTransactionFailure,
 } from "../../helpers/assertions";
+import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import {
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
 } from "../../helpers/contracts";
-import { quantityToNumber } from "../../helpers/conversions";
+import {
+  dataToNumber,
+  quantityToBN,
+  quantityToNumber,
+} from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
-  DEFAULT_ACCOUNTS,
+  DEFAULT_ACCOUNTS_ADDRESSES,
+  DEFAULT_ACCOUNTS_BALANCES,
   DEFAULT_BLOCK_GAS_LIMIT,
-  DEFAULT_CHAIN_ID,
   PROVIDERS,
-} from "../../helpers/useProvider";
-
-const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map((account) =>
-  bufferToHex(privateToAddress(toBuffer(account.privateKey))).toLowerCase()
-);
-
-const DEFAULT_ACCOUNTS_BALANCES = DEFAULT_ACCOUNTS.map(
-  (account) => account.balance
-);
+} from "../../helpers/providers";
+import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
+import {
+  deployContract,
+  getSignedTxHash,
+  sendTransactionFromTxParams,
+  sendTxToZeroAddress,
+} from "../../helpers/transactions";
 
 const PRECOMPILES_COUNT = 8;
 
-async function sendTxToZeroAddress(
-  provider: EthereumProvider
-): Promise<string> {
-  const accounts = await provider.send("eth_accounts");
-
-  const burnTxParams = {
-    from: accounts[0],
-    to: zeroAddress(),
-    value: numberToRpcQuantity(1),
-    gas: numberToRpcQuantity(21000),
-    gasPrice: numberToRpcQuantity(1),
-  };
-
-  return provider.send("eth_sendTransaction", [burnTxParams]);
-}
-
-async function deployContract(
-  provider: EthereumProvider,
-  deploymentCode: string
-) {
-  const hash = await provider.send("eth_sendTransaction", [
-    {
-      from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-      data: deploymentCode,
-      gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
-    },
-  ]);
-
-  const { contractAddress } = await provider.send("eth_getTransactionReceipt", [
-    hash,
-  ]);
-
-  return contractAddress;
-}
-
-async function sendTransactionFromTxParams(
-  provider: EthereumProvider,
-  txParams: TransactionParams
-) {
-  return provider.send("eth_sendTransaction", [
-    {
-      to: bufferToHex(txParams.to),
-      from: bufferToHex(txParams.from),
-      data: bufferToHex(txParams.data),
-      nonce: numberToRpcQuantity(txParams.nonce),
-      value: numberToRpcQuantity(txParams.value),
-      gas: numberToRpcQuantity(txParams.gasLimit),
-      gasPrice: numberToRpcQuantity(txParams.gasPrice),
-    },
-  ]);
-}
-
-function getSignedTxHash(
-  txParams: TransactionParams,
-  signerAccountIndex: number
-) {
-  const txToSign = new Transaction(txParams, {
-    common: Common.forCustomChain(
-      "mainnet",
-      { chainId: DEFAULT_CHAIN_ID },
-      "istanbul"
-    ),
-  });
-
-  txToSign.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-
-  return bufferToHex(txToSign.hash(true));
-}
-
 describe("Eth module", function () {
-  PROVIDERS.forEach((provider) => {
-    describe(`Provider ${provider.name}`, function () {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
+    describe(`${name} provider`, function () {
       setCWD();
-      provider.useProvider();
+      useProvider();
+
+      const getFirstBlock = async () =>
+        isFork ? retrieveForkBlockNumber(this.ctx.buidlerEVMProvider) : 0;
 
       describe("eth_accounts", async function () {
         it("should return the genesis accounts in lower case", async function () {
@@ -139,29 +68,35 @@ describe("Eth module", function () {
       });
 
       describe("eth_blockNumber", async function () {
-        it("should return the current block number as QUANTITY", async function () {
-          let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+        let firstBlock: number;
 
-          await sendTxToZeroAddress(this.provider);
-
-          blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 1);
-
-          await sendTxToZeroAddress(this.provider);
-
-          blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 2);
-
-          await sendTxToZeroAddress(this.provider);
-
-          blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 3);
+        beforeEach(async function () {
+          firstBlock = await getFirstBlock();
         });
 
-        it("Shouldn increase if a transaction gets to execute and fails", async function () {
+        it("should return the current block number as QUANTITY", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+          assertQuantity(blockNumber, firstBlock);
+
+          await sendTxToZeroAddress(this.provider);
+
+          blockNumber = await this.provider.send("eth_blockNumber");
+          assertQuantity(blockNumber, firstBlock + 1);
+
+          await sendTxToZeroAddress(this.provider);
+
+          blockNumber = await this.provider.send("eth_blockNumber");
+          assertQuantity(blockNumber, firstBlock + 2);
+
+          await sendTxToZeroAddress(this.provider);
+
+          blockNumber = await this.provider.send("eth_blockNumber");
+          assertQuantity(blockNumber, firstBlock + 3);
+        });
+
+        it("Shouldn't increase if a transaction gets to execute and fails", async function () {
+          let blockNumber = await this.provider.send("eth_blockNumber");
+          assertQuantity(blockNumber, firstBlock);
 
           try {
             await this.provider.send("eth_sendTransaction", [
@@ -179,12 +114,12 @@ describe("Eth module", function () {
           }
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 1);
+          assertQuantity(blockNumber, firstBlock + 1);
         });
 
         it("Shouldn't increase if a call is made", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+          assertQuantity(blockNumber, firstBlock);
 
           await this.provider.send("eth_call", [
             {
@@ -196,7 +131,7 @@ describe("Eth module", function () {
           ]);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, 0);
+          assertQuantity(blockNumber, firstBlock);
         });
       });
 
@@ -268,7 +203,9 @@ describe("Eth module", function () {
             "0x000000000000000000000000000000000000000000000000000000000000000a"
           );
         });
+
         it("Should be run in the context of the last block with 'latest' param", async function () {
+          const firstBlock = await getFirstBlock();
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
@@ -285,10 +222,7 @@ describe("Eth module", function () {
             "latest",
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-          );
+          assert.equal(dataToNumber(blockResult), firstBlock + 1);
 
           const timestampResult = await this.provider.send("eth_call", [
             {
@@ -300,7 +234,9 @@ describe("Eth module", function () {
 
           assert.equal(timestampResult, timestamp);
         });
+
         it("Should be run in the context of the last block with without block tag param", async function () {
+          const firstBlock = await getFirstBlock();
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
@@ -316,10 +252,7 @@ describe("Eth module", function () {
             },
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-          );
+          assert.equal(dataToNumber(blockResult), firstBlock + 1);
 
           const timestampResult = await this.provider.send("eth_call", [
             {
@@ -330,7 +263,9 @@ describe("Eth module", function () {
 
           assert.equal(timestampResult, timestamp);
         });
-        it("Should be run in the context of a new block with 'pending' blog tag param", async function () {
+
+        it("Should be run in the context of a new block with 'pending' block tag param", async function () {
+          const firstBlock = await getFirstBlock();
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
@@ -347,10 +282,7 @@ describe("Eth module", function () {
             "pending",
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000002"
-          );
+          assert.equal(dataToNumber(blockResult), firstBlock + 2);
 
           const timestampResult = await this.provider.send("eth_call", [
             {
@@ -362,6 +294,7 @@ describe("Eth module", function () {
 
           assert.equal(timestampResult, timestamp);
         });
+
         it("Should return an empty buffer if called an non-contract account", async function () {
           const result = await this.provider.send("eth_call", [
             {
@@ -373,7 +306,9 @@ describe("Eth module", function () {
           assert.equal(result, "0x");
         });
 
-        it("Should leverage block number parameter", async function () {
+        it("Should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
+
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -397,7 +332,7 @@ describe("Eth module", function () {
                 data: EXAMPLE_CONTRACT.selectors.i,
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               },
-              numberToRpcQuantity(1),
+              numberToRpcQuantity(firstBlock + 1),
             ]),
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
@@ -414,14 +349,30 @@ describe("Eth module", function () {
             `0x${newState}`
           );
         });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_call",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(123),
+              },
+              numberToRpcQuantity(futureBlock),
+            ],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+          );
+        });
       });
 
       describe("eth_chainId", async function () {
         it("should return the chain id as QUANTITY", async function () {
-          assertQuantity(
-            await this.provider.send("eth_chainId"),
-            this.common.chainId()
-          );
+          assertQuantity(await this.provider.send("eth_chainId"), chainId);
         });
       });
 
@@ -464,7 +415,8 @@ describe("Eth module", function () {
           assert.isTrue(new BN(toBuffer(estimation)).lten(23000));
         });
 
-        it("should leverage block number parameter", async function () {
+        it("should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -487,7 +439,7 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
             },
-            numberToRpcQuantity(1),
+            numberToRpcQuantity(firstBlock + 1),
           ]);
 
           const result2 = await this.provider.send("eth_estimateGas", [
@@ -500,6 +452,25 @@ describe("Eth module", function () {
 
           assert.isTrue(new BN(toBuffer(result)).gt(new BN(toBuffer(result2))));
         });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_estimateGas",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(123),
+              },
+              numberToRpcQuantity(futureBlock),
+            ],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+          );
+        });
       });
 
       describe("eth_gasPrice", async function () {
@@ -509,22 +480,24 @@ describe("Eth module", function () {
       });
 
       describe("eth_getBalance", async function () {
-        it("Should return 0 for random accounts", async function () {
-          assertQuantity(
-            await this.provider.send("eth_getBalance", [zeroAddress()]),
-            0
-          );
+        it("Should return 0 for empty accounts", async function () {
+          if (!isFork) {
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [zeroAddress()]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                "0x0000000000000000000000000000000000000001",
+              ]),
+              0
+            );
+          }
 
           assertQuantity(
             await this.provider.send("eth_getBalance", [
-              "0x0000000000000000000000000000000000000001",
-            ]),
-            0
-          );
-
-          assertQuantity(
-            await this.provider.send("eth_getBalance", [
-              "0x0001231287316387168230000000000000000001",
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
             ]),
             0
           );
@@ -627,42 +600,59 @@ describe("Eth module", function () {
           assert.isTrue(balance2.gt(balance));
         });
 
-        it("should leverage block number parameter", async function () {
+        it("should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: zeroAddress(),
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
               value: numberToRpcQuantity(1),
             },
           ]);
 
+          if (!isFork) {
+            assert.strictEqual(
+              await this.provider.send("eth_getBalance", [
+                bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                "earliest",
+              ]),
+              "0x0"
+            );
+          }
+
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              zeroAddress(),
-              "earliest",
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              numberToRpcQuantity(firstBlock),
             ]),
             "0x0"
           );
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              zeroAddress(),
-              numberToRpcQuantity(0),
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              numberToRpcQuantity(firstBlock + 1),
             ]),
-            "0x0"
+            "0x1"
           );
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              zeroAddress(),
-              numberToRpcQuantity(1),
+              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
             ]),
             "0x1"
           );
+        });
 
-          assert.strictEqual(
-            await this.provider.send("eth_getBalance", [zeroAddress()]),
-            "0x1"
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_getBalance",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(futureBlock)],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -685,6 +675,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the block with transaction hashes if the second argument is false", async function () {
+          const firstBlock = await getFirstBlock();
           const txHash = await sendTxToZeroAddress(this.provider);
           const txOutput: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
@@ -697,7 +688,7 @@ describe("Eth module", function () {
           );
 
           assert.equal(block.hash, txOutput.blockHash);
-          assertQuantity(block.number, 1);
+          assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
           assert.include(block.transactions as string[], txHash);
           assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
@@ -705,6 +696,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the block with the complete transactions if the second argument is true", async function () {
+          const firstBlock = await getFirstBlock();
           const txHash = await sendTxToZeroAddress(this.provider);
           const txOutput: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
@@ -717,7 +709,7 @@ describe("Eth module", function () {
           );
 
           assert.equal(block.hash, txOutput.blockHash);
-          assertQuantity(block.number, 1);
+          assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
           assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
           assert.deepEqual(
@@ -729,112 +721,140 @@ describe("Eth module", function () {
       });
 
       describe("eth_getBlockByNumber", async function () {
-        describe("eth_getBlockByNumber", async function () {
-          it("Should return the genesis block for number 0", async function () {
-            const block = await this.provider.send("eth_getBlockByNumber", [
-              numberToRpcQuantity(0),
-              false,
-            ]);
+        it("Should return the genesis block for number 0", async function () {
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            numberToRpcQuantity(0),
+            false,
+          ]);
 
-            assert.equal(
-              block.parentHash,
-              "0x0000000000000000000000000000000000000000000000000000000000000000"
-            );
+          assert.equal(
+            block.parentHash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
 
-            assertQuantity(block.number, 0);
-            assert.isEmpty(block.transactions);
-          });
-
-          it("Should return null for unknown blocks", async function () {
-            const block = await this.provider.send("eth_getBlockByNumber", [
-              numberToRpcQuantity(2),
-              false,
-            ]);
-
-            assert.isNull(block);
-
-            const block2 = await this.provider.send("eth_getBlockByNumber", [
-              numberToRpcQuantity(1),
-              true,
-            ]);
-
-            assert.isNull(block2);
-          });
-
-          it("Should return the new blocks", async function () {
-            const genesisBlock: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              [numberToRpcQuantity(0), false]
-            );
-
-            const txHash = await sendTxToZeroAddress(this.provider);
-
-            const block: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              [numberToRpcQuantity(1), false]
-            );
-
-            assertQuantity(block.number, 1);
-            assert.equal(block.transactions.length, 1);
-            assert.equal(block.parentHash, genesisBlock.hash);
-            assert.include(block.transactions as string[], txHash);
-            assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
-            assert.isEmpty(block.uncles);
-          });
-
-          it("should return the complete transactions if the second argument is true", async function () {
-            const genesisBlock: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              [numberToRpcQuantity(0), false]
-            );
-
-            const txHash = await sendTxToZeroAddress(this.provider);
-
-            const block: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              [numberToRpcQuantity(1), true]
-            );
-
-            assertQuantity(block.number, 1);
-            assert.equal(block.transactions.length, 1);
-            assert.equal(block.parentHash, genesisBlock.hash);
-            assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
-            assert.isEmpty(block.uncles);
-
-            const txOutput = block.transactions[0] as RpcTransactionOutput;
-            assert.equal(txOutput.hash, txHash);
-            assert.equal(block.hash, txOutput.blockHash);
-            assert.equal(block.number, txOutput.blockNumber);
-            assert.equal(txOutput.transactionIndex, numberToRpcQuantity(0));
-
-            assert.deepEqual(
-              txOutput,
-              await this.provider.send("eth_getTransactionByHash", [txHash])
-            );
-          });
-
-          it("should return the right block total difficulty", async function () {
-            const genesisBlock: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              [numberToRpcQuantity(0), false]
-            );
-
-            assertQuantity(genesisBlock.totalDifficulty, 1);
-            assertQuantity(genesisBlock.difficulty, 1);
-
-            await sendTxToZeroAddress(this.provider);
-
-            const block: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              [numberToRpcQuantity(1), false]
-            );
-
-            assertQuantity(
-              block.totalDifficulty,
-              quantityToNumber(block.difficulty) + 1
-            );
-          });
+          assertQuantity(block.number, 0);
+          assert.isEmpty(block.transactions);
         });
+
+        it("Should return null for unknown blocks", async function () {
+          const firstBlock = await getFirstBlock();
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            numberToRpcQuantity(firstBlock + 2),
+            false,
+          ]);
+
+          assert.isNull(block);
+
+          const block2 = await this.provider.send("eth_getBlockByNumber", [
+            numberToRpcQuantity(firstBlock + 1),
+            true,
+          ]);
+
+          assert.isNull(block2);
+        });
+
+        it("Should return the new blocks", async function () {
+          const firstBlockNumber = await getFirstBlock();
+          const firstBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlockNumber), false]
+          );
+
+          const txHash = await sendTxToZeroAddress(this.provider);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlockNumber + 1), false]
+          );
+
+          assertQuantity(block.number, firstBlockNumber + 1);
+          assert.equal(block.transactions.length, 1);
+          assert.equal(block.parentHash, firstBlock.hash);
+          assert.include(block.transactions as string[], txHash);
+          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.isEmpty(block.uncles);
+        });
+
+        it("should return the complete transactions if the second argument is true", async function () {
+          const firstBlockNumber = await getFirstBlock();
+          const firstBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlockNumber), false]
+          );
+
+          const txHash = await sendTxToZeroAddress(this.provider);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlockNumber + 1), true]
+          );
+
+          assertQuantity(block.number, firstBlockNumber + 1);
+          assert.equal(block.transactions.length, 1);
+          assert.equal(block.parentHash, firstBlock.hash);
+          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.isEmpty(block.uncles);
+
+          const txOutput = block.transactions[0] as RpcTransactionOutput;
+          assert.equal(txOutput.hash, txHash);
+          assert.equal(block.hash, txOutput.blockHash);
+          assert.equal(block.number, txOutput.blockNumber);
+          assert.equal(txOutput.transactionIndex, numberToRpcQuantity(0));
+
+          assert.deepEqual(
+            txOutput,
+            await this.provider.send("eth_getTransactionByHash", [txHash])
+          );
+        });
+
+        it(
+          "should return the right block total difficulty",
+          isFork ? testTotalDifficultyFork : testTotalDifficulty
+        );
+
+        async function testTotalDifficultyFork(this: Context) {
+          const forkBlockNumber = await getFirstBlock();
+          const forkBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(forkBlockNumber), false]
+          );
+
+          await sendTxToZeroAddress(this.provider);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(forkBlockNumber + 1), false]
+          );
+
+          assertQuantity(
+            block.totalDifficulty,
+            quantityToBN(forkBlock.totalDifficulty).add(
+              quantityToBN(block.difficulty)
+            )
+          );
+        }
+
+        async function testTotalDifficulty(this: Context) {
+          const genesisBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(0), false]
+          );
+
+          assertQuantity(genesisBlock.totalDifficulty, 1);
+          assertQuantity(genesisBlock.difficulty, 1);
+
+          await sendTxToZeroAddress(this.provider);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(1), false]
+          );
+
+          assertQuantity(
+            block.totalDifficulty,
+            quantityToNumber(block.difficulty) + 1
+          );
+        }
       });
 
       describe("eth_getBlockTransactionCountByHash", async function () {
@@ -879,9 +899,10 @@ describe("Eth module", function () {
 
       describe("eth_getBlockTransactionCountByNumber", async function () {
         it("should return null for non-existing blocks", async function () {
+          const firstBlock = await getFirstBlock();
           assert.isNull(
             await this.provider.send("eth_getBlockTransactionCountByNumber", [
-              numberToRpcQuantity(1),
+              numberToRpcQuantity(firstBlock + 1),
             ])
           );
         });
@@ -896,11 +917,12 @@ describe("Eth module", function () {
         });
 
         it("Should return 1 for others", async function () {
+          const firstBlock = await getFirstBlock();
           await sendTxToZeroAddress(this.provider);
 
           assertQuantity(
             await this.provider.send("eth_getBlockTransactionCountByNumber", [
-              numberToRpcQuantity(1),
+              numberToRpcQuantity(firstBlock + 1),
             ]),
             1
           );
@@ -945,7 +967,8 @@ describe("Eth module", function () {
           );
         });
 
-        it("Should leverage block number parameter", async function () {
+        it("Should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -954,9 +977,21 @@ describe("Eth module", function () {
           assert.strictEqual(
             await this.provider.send("eth_getCode", [
               exampleContract,
-              numberToRpcQuantity(0),
+              numberToRpcQuantity(firstBlock),
             ]),
             "0x"
+          );
+        });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_getCode",
+            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -1074,6 +1109,7 @@ describe("Eth module", function () {
 
       describe("eth_getFilterLogs", async function () {
         it("Supports get filter logs", async function () {
+          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1101,7 +1137,7 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(log.blockNumber, "0x2");
+          assert.equal(quantityToNumber(log.blockNumber), firstBlock + 2);
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -1294,6 +1330,7 @@ describe("Eth module", function () {
         });
 
         it("Supports get filter logs with toBlock", async function () {
+          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1312,8 +1349,8 @@ describe("Eth module", function () {
 
           const filterId = await this.provider.send("eth_newFilter", [
             {
-              fromBlock: "0x0",
-              toBlock: "0x2",
+              fromBlock: numberToRpcQuantity(firstBlock),
+              toBlock: numberToRpcQuantity(firstBlock + 2),
               address: exampleContract,
               topics: [
                 [
@@ -1344,6 +1381,7 @@ describe("Eth module", function () {
 
       describe("eth_getLogs", async function () {
         it("Supports get logs", async function () {
+          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1380,7 +1418,7 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(log.blockNumber, "0x2");
+          assert.equal(quantityToNumber(log.blockNumber), firstBlock + 2);
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -1536,6 +1574,7 @@ describe("Eth module", function () {
         });
 
         it("Supports get logs with fromBlock", async function () {
+          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1563,7 +1602,7 @@ describe("Eth module", function () {
           assert.lengthOf(
             await this.provider.send("eth_getLogs", [
               {
-                fromBlock: "0x3",
+                fromBlock: numberToRpcQuantity(firstBlock + 3),
               },
             ]),
             1
@@ -1571,6 +1610,7 @@ describe("Eth module", function () {
         });
 
         it("Supports get logs with toBlock", async function () {
+          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1598,8 +1638,8 @@ describe("Eth module", function () {
           assert.lengthOf(
             await this.provider.send("eth_getLogs", [
               {
-                fromBlock: "0x0",
-                toBlock: "0x2",
+                fromBlock: numberToRpcQuantity(firstBlock + 1),
+                toBlock: numberToRpcQuantity(firstBlock + 2),
               },
             ]),
             1
@@ -1622,6 +1662,42 @@ describe("Eth module", function () {
             },
           ]);
           assert.lengthOf(logs2, 0);
+        });
+
+        it("should return a new array every time", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const logs1 = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+            },
+          ]);
+
+          logs1[0].address = "changed";
+
+          const logs2 = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+            },
+          ]);
+
+          assert.notEqual(logs1, logs2);
+          assert.notEqual(logs1[0], logs2[0]);
+          assert.notEqual(logs2[0].address, "changed");
         });
       });
 
@@ -1669,6 +1745,7 @@ describe("Eth module", function () {
           describe("When a slot has been written into", function () {
             describe("When 32 bytes where written", function () {
               it("Should return a 32-byte DATA string", async function () {
+                const firstBlock = await getFirstBlock();
                 const exampleContract = await deployContract(
                   this.provider,
                   `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1678,7 +1755,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(2),
-                    numberToRpcQuantity(0),
+                    numberToRpcQuantity(firstBlock),
                   ]),
                   "0x0"
                 );
@@ -1695,6 +1772,7 @@ describe("Eth module", function () {
 
             describe("When less than 32 bytes where written", function () {
               it("Should return a DATA string with the same amount bytes that have been written", async function () {
+                const firstBlock = await getFirstBlock();
                 const exampleContract = await deployContract(
                   this.provider,
                   `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1718,7 +1796,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(0),
-                    numberToRpcQuantity(1),
+                    numberToRpcQuantity(firstBlock + 1),
                   ]),
                   "0x0"
                 );
@@ -1746,7 +1824,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcQuantity(0),
-                    numberToRpcQuantity(2),
+                    numberToRpcQuantity(firstBlock + 2),
                   ]),
                   "0x7b"
                 );
@@ -1796,6 +1874,7 @@ describe("Eth module", function () {
         });
 
         it("should return the right info for the existing ones", async function () {
+          const firstBlock = await getFirstBlock();
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
@@ -1812,7 +1891,7 @@ describe("Eth module", function () {
           );
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(1),
+            numberToRpcQuantity(firstBlock + 1),
             false,
           ]);
 
@@ -1821,7 +1900,14 @@ describe("Eth module", function () {
             [block.hash, numberToRpcQuantity(0)]
           );
 
-          assertTransaction(tx, txHash, txParams1, 1, block.hash, 0);
+          assertTransaction(
+            tx,
+            txHash,
+            txParams1,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
 
           const txParams2: TransactionParams = {
             to: toBuffer(zeroAddress()),
@@ -1839,7 +1925,7 @@ describe("Eth module", function () {
           );
 
           const block2 = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(2),
+            numberToRpcQuantity(firstBlock + 2),
             false,
           ]);
 
@@ -1848,7 +1934,14 @@ describe("Eth module", function () {
             [block2.hash, numberToRpcQuantity(0)]
           );
 
-          assertTransaction(tx2, txHash2, txParams2, 2, block2.hash, 0);
+          assertTransaction(
+            tx2,
+            txHash2,
+            txParams2,
+            firstBlock + 2,
+            block2.hash,
+            0
+          );
         });
       });
 
@@ -1879,6 +1972,7 @@ describe("Eth module", function () {
         });
 
         it("should return the right info for the existing ones", async function () {
+          const firstBlock = await getFirstBlock();
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
@@ -1895,16 +1989,23 @@ describe("Eth module", function () {
           );
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(1),
+            numberToRpcQuantity(firstBlock + 1),
             false,
           ]);
 
           const tx: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByBlockNumberAndIndex",
-            [numberToRpcQuantity(1), numberToRpcQuantity(0)]
+            [numberToRpcQuantity(firstBlock + 1), numberToRpcQuantity(0)]
           );
 
-          assertTransaction(tx, txHash, txParams1, 1, block.hash, 0);
+          assertTransaction(
+            tx,
+            txHash,
+            txParams1,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
 
           const txParams2: TransactionParams = {
             to: toBuffer(zeroAddress()),
@@ -1922,16 +2023,23 @@ describe("Eth module", function () {
           );
 
           const block2 = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(2),
+            numberToRpcQuantity(firstBlock + 2),
             false,
           ]);
 
           const tx2: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByBlockNumberAndIndex",
-            [numberToRpcQuantity(2), numberToRpcQuantity(0)]
+            [numberToRpcQuantity(firstBlock + 2), numberToRpcQuantity(0)]
           );
 
-          assertTransaction(tx2, txHash2, txParams2, 2, block2.hash, 0);
+          assertTransaction(
+            tx2,
+            txHash2,
+            txParams2,
+            firstBlock + 2,
+            block2.hash,
+            0
+          );
         });
       });
 
@@ -1951,6 +2059,7 @@ describe("Eth module", function () {
         });
 
         it("should return the right info for the existing ones", async function () {
+          const firstBlock = await getFirstBlock();
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
@@ -1967,7 +2076,7 @@ describe("Eth module", function () {
           );
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(1),
+            numberToRpcQuantity(firstBlock + 1),
             false,
           ]);
 
@@ -1976,7 +2085,14 @@ describe("Eth module", function () {
             [txHash]
           );
 
-          assertTransaction(tx, txHash, txParams1, 1, block.hash, 0);
+          assertTransaction(
+            tx,
+            txHash,
+            txParams1,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
 
           const txParams2: TransactionParams = {
             to: toBuffer(zeroAddress()),
@@ -1994,7 +2110,7 @@ describe("Eth module", function () {
           );
 
           const block2 = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(2),
+            numberToRpcQuantity(firstBlock + 2),
             false,
           ]);
 
@@ -2003,10 +2119,18 @@ describe("Eth module", function () {
             [txHash2]
           );
 
-          assertTransaction(tx2, txHash2, txParams2, 2, block2.hash, 0);
+          assertTransaction(
+            tx2,
+            txHash2,
+            txParams2,
+            firstBlock + 2,
+            block2.hash,
+            0
+          );
         });
 
         it("should return the transaction if it gets to execute and failed", async function () {
+          const firstBlock = await getFirstBlock();
           const txParams: TransactionParams = {
             to: toBuffer([]),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
@@ -2017,9 +2141,13 @@ describe("Eth module", function () {
             gasPrice: new BN(23912),
           };
 
-          const txHash = getSignedTxHash(txParams, 0);
+          const txHash = await getSignedTxHash(
+            this.buidlerEVMProvider,
+            txParams,
+            0
+          );
 
-          // Revert. This a deployment transaction that immediately reverts without a reason
+          // Revert. This is a deployment transaction that immediately reverts without a reason
           await assertTransactionFailure(
             this.provider,
             {
@@ -2037,11 +2165,18 @@ describe("Eth module", function () {
             txHash,
           ]);
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(1),
+            numberToRpcQuantity(firstBlock + 1),
             false,
           ]);
 
-          assertTransaction(tx, txHash, txParams, 1, block.hash, 0);
+          assertTransaction(
+            tx,
+            txHash,
+            txParams,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
         });
       });
 
@@ -2152,7 +2287,8 @@ describe("Eth module", function () {
           );
         });
 
-        it("Should leverage block number parameter", async function () {
+        it("Should leverage block tag parameter", async function () {
+          const firstBlock = await getFirstBlock();
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -2161,10 +2297,20 @@ describe("Eth module", function () {
             },
           ]);
 
+          if (!isFork) {
+            assertQuantity(
+              await this.provider.send("eth_getTransactionCount", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+                "earliest",
+              ]),
+              0
+            );
+          }
+
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
-              "earliest",
+              numberToRpcQuantity(firstBlock),
             ]),
             0
           );
@@ -2175,6 +2321,18 @@ describe("Eth module", function () {
               "latest",
             ]),
             1
+          );
+        });
+
+        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+          const firstBlock = await getFirstBlock();
+          const futureBlock = firstBlock + 1;
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_getTransactionCount",
+            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -2192,6 +2350,7 @@ describe("Eth module", function () {
         });
 
         it("should return the right values for successful txs", async function () {
+          const firstBlock = await getFirstBlock();
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -2207,16 +2366,16 @@ describe("Eth module", function () {
 
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(2), false]
+            [numberToRpcQuantity(firstBlock + 2), false]
           );
 
-          const receipt: RpcTransactionReceiptOutput = await this.provider.send(
+          const receipt: RpcReceiptOutput = await this.provider.send(
             "eth_getTransactionReceipt",
             [txHash]
           );
 
           assert.equal(receipt.blockHash, block.hash);
-          assertQuantity(receipt.blockNumber, 2);
+          assertQuantity(receipt.blockNumber, firstBlock + 2);
           assert.isNull(receipt.contractAddress);
           assert.equal(receipt.cumulativeGasUsed, receipt.gasUsed);
           assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
@@ -2233,7 +2392,7 @@ describe("Eth module", function () {
           assertQuantity(log.transactionIndex, 0);
           assert.equal(log.transactionHash, txHash);
           assert.equal(log.blockHash, block.hash);
-          assertQuantity(log.blockNumber, 2);
+          assertQuantity(log.blockNumber, firstBlock + 2);
           assert.equal(log.address, contractAddress);
 
           // The new value of i is not indexed
@@ -2259,9 +2418,13 @@ describe("Eth module", function () {
             gasPrice: new BN(23912),
           };
 
-          const txHash = getSignedTxHash(txParams, 0);
+          const txHash = await getSignedTxHash(
+            this.buidlerEVMProvider,
+            txParams,
+            0
+          );
 
-          // Revert. This a deployment transaction that immediately reverts without a reason
+          // Revert. This is a deployment transaction that immediately reverts without a reason
           await assertTransactionFailure(
             this.provider,
             {
@@ -2281,6 +2444,33 @@ describe("Eth module", function () {
           );
 
           assert.isNotNull(receipt);
+        });
+
+        it("should return a new object every time", async function () {
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const receipt1: RpcReceiptOutput = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          receipt1.blockHash = "changed";
+
+          const receipt2: RpcReceiptOutput = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          assert.notEqual(receipt1, receipt2);
+          assert.notEqual(receipt2.blockHash, "changed");
         });
       });
 
@@ -2432,6 +2622,10 @@ describe("Eth module", function () {
         });
 
         it("Should throw if the signature is invalid", async function () {
+          if (isFork) {
+            this.skip();
+            return;
+          }
           await assertInvalidInputError(
             this.provider,
             "eth_sendRawTransaction",
@@ -2444,6 +2638,10 @@ describe("Eth module", function () {
         });
 
         it("Should throw if the signature is invalid but for another chain (EIP155)", async function () {
+          if (isFork) {
+            this.skip();
+            return;
+          }
           await assertInvalidInputError(
             this.provider,
             "eth_sendRawTransaction",
@@ -2455,6 +2653,10 @@ describe("Eth module", function () {
         });
 
         it("Should send the raw transaction", async function () {
+          if (isFork) {
+            this.skip();
+            return;
+          }
           // This test is a copy of: Should work with just from and data
 
           const hash = await this.provider.send("eth_sendRawTransaction", [
@@ -2498,7 +2700,7 @@ describe("Eth module", function () {
         // seems reasonable, and if it weren't we should address the issues there.
 
         describe("Params validation", function () {
-          it("Should fail if the account is not managed by the provider", async function () {
+          it("Should fail for tx sent from account that is neither local nor marked as impersonated", async function () {
             await assertTransactionFailure(
               this.provider,
               {
@@ -2547,7 +2749,22 @@ describe("Eth module", function () {
           });
         });
 
+        it("Should return a valid transaction hash", async function () {
+          const hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          assert.match(hash, /^0x[a-f\d]{64}$/);
+        });
+
         it("Should work with just from and data", async function () {
+          const firstBlock = await getFirstBlock();
           const hash = await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -2578,7 +2795,7 @@ describe("Eth module", function () {
             transactionIndex: "0x0",
           };
 
-          assertReceiptMatchesGethOne(receipt, receiptFromGeth, 1);
+          assertReceiptMatchesGethOne(receipt, receiptFromGeth, firstBlock + 1);
         });
 
         it("Should throw if the transaction fails", async function () {
@@ -2657,7 +2874,7 @@ describe("Eth module", function () {
             "Invalid nonce. Expected 2 but got 1"
           );
 
-          // Revert. This a deployment transaction that immediately reverts without a reason
+          // Revert. This is a deployment transaction that immediately reverts without a reason
           // The transaction gets executed anyway, so the account is updated
           await assertTransactionFailure(
             this.provider,
@@ -2681,21 +2898,19 @@ describe("Eth module", function () {
         });
 
         it("Should fail if a successful tx is sent more than once", async function () {
+          const txParams = {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            nonce: numberToRpcQuantity(0),
+          };
+
           const hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              nonce: numberToRpcQuantity(0),
-            },
+            txParams,
           ]);
 
           await assertTransactionFailure(
             this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              nonce: numberToRpcQuantity(0),
-            },
+            txParams,
             `known transaction: ${bufferToHex(hash)}`
           );
         });
@@ -2760,7 +2975,7 @@ describe("Eth module", function () {
       });
 
       describe("eth_subscribe", async function () {
-        if (provider.name === "JSON-RPC") {
+        if (name === "JSON-RPC") {
           return;
         }
 

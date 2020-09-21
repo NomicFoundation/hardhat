@@ -1,87 +1,39 @@
-import Common from "ethereumjs-common";
-import { BN } from "ethereumjs-util";
-
 import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
-import { BuidlerNode } from "../../../../src/internal/buidler-evm/provider/node";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
-import { EthereumProvider } from "../../../../src/types";
+import { EthereumProvider, ForkConfig } from "../../../../src/types";
+
+import {
+  DEFAULT_ACCOUNTS,
+  DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  DEFAULT_BLOCK_GAS_LIMIT,
+  DEFAULT_CHAIN_ID,
+  DEFAULT_HARDFORK,
+  DEFAULT_NETWORK_ID,
+  DEFAULT_NETWORK_NAME,
+  DEFAULT_USE_JSON_RPC,
+} from "./providers";
 
 declare module "mocha" {
   interface Context {
     provider: EthereumProvider;
-    common: Common;
+    buidlerEVMProvider: BuidlerEVMProvider;
     server?: JsonRpcServer;
   }
 }
 
-export const PROVIDERS = [
-  {
-    name: "BuidlerEVM",
-    useProvider: () => {
-      useProvider();
-    },
-  },
-  {
-    name: "JSON-RPC",
-    useProvider: () => {
-      useProvider(
-        DEFAULT_HARDFORK,
-        DEFAULT_NETWORK_NAME,
-        DEFAULT_CHAIN_ID,
-        DEFAULT_NETWORK_ID,
-        DEFAULT_BLOCK_GAS_LIMIT,
-        DEFAULT_ACCOUNTS,
-        true
-      );
-    },
-  },
-];
-
-export const DEFAULT_HARDFORK = "istanbul";
-export const DEFAULT_NETWORK_NAME = "TestNet";
-export const DEFAULT_CHAIN_ID = 123;
-export const DEFAULT_NETWORK_ID = 234;
-export const DEFAULT_BLOCK_GAS_LIMIT = 6000000;
-export const DEFAULT_ACCOUNTS = [
-  {
-    privateKey:
-      "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
-    balance: new BN(10).pow(new BN(18)),
-  },
-  {
-    privateKey:
-      "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10a",
-    balance: new BN(10).pow(new BN(18)),
-  },
-];
-export const DEFAULT_USE_JSON_RPC = false;
-
 export function useProvider(
+  useJsonRpc = DEFAULT_USE_JSON_RPC,
+  forkConfig?: ForkConfig,
   hardfork = DEFAULT_HARDFORK,
   networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
-  useJsonRpc = DEFAULT_USE_JSON_RPC,
-  allowUnlimitedContractSize = false
+  allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE
 ) {
   beforeEach("Initialize provider", async function () {
-    // We create two Nodes here, and don't use this one.
-    // We should probably change this. This is done to get the common.
-    const [common, _] = await BuidlerNode.create(
-      hardfork,
-      networkName,
-      chainId,
-      networkId,
-      blockGasLimit,
-      accounts,
-      undefined,
-      allowUnlimitedContractSize
-    );
-
-    this.common = common;
-    this.provider = new BuidlerEVMProvider(
+    this.buidlerEVMProvider = new BuidlerEVMProvider(
       hardfork,
       networkName,
       chainId,
@@ -93,8 +45,12 @@ export function useProvider(
       undefined,
       undefined,
       undefined,
-      allowUnlimitedContractSize
+      allowUnlimitedContractSize,
+      undefined,
+      undefined,
+      forkConfig
     );
+    this.provider = this.buidlerEVMProvider;
 
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
@@ -102,7 +58,6 @@ export function useProvider(
         hostname: "localhost",
         provider: this.provider,
       });
-
       await this.server.listen();
 
       this.provider = this.server.getProvider();
@@ -110,12 +65,11 @@ export function useProvider(
   });
 
   afterEach("Remove provider", async function () {
-    delete this.common;
     delete this.provider;
+    delete this.buidlerEVMProvider;
 
     if (this.server !== undefined) {
       await this.server.close();
-
       delete this.server;
     }
   });

@@ -1,6 +1,5 @@
 import { keccak256 } from "ethereumjs-util";
 
-import { getPackageJson } from "../../../util/packageInfo";
 import { MethodNotFoundError } from "../errors";
 import { rpcData, validateParams } from "../input";
 import { bufferToRpcData } from "../output";

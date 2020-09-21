@@ -4,11 +4,8 @@ import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
-import PStateManager from "@nomiclabs/ethereumjs-vm/dist/state/promisified";
 import chalk from "chalk";
 import debug from "debug";
-import Account from "ethereumjs-account";
-import Block from "ethereumjs-block";
 import Common from "ethereumjs-common";
 import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
@@ -18,20 +15,15 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
+  stripZeros,
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
-import Trie from "merkle-patricia-tree/secure";
-import { promisify } from "util";
 
 import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { Reporter } from "../../sentry/reporter";
-import {
-  dateToTimestampSeconds,
-  getDifferenceInSeconds,
-} from "../../util/date";
+import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import { MessageTrace } from "../stack-traces/message-trace";
@@ -48,15 +40,38 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
-import { Blockchain } from "./blockchain";
-import {
-  InternalError,
-  InvalidInputError,
-  TransactionExecutionError,
-} from "./errors";
+import { BuidlerBlockchain } from "./BuidlerBlockchain";
+import { InvalidInputError, TransactionExecutionError } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
-import { getRpcBlock, getRpcLog, RpcLogOutput } from "./output";
-import { getCurrentTimestamp } from "./utils";
+import { ForkBlockchain } from "./fork/ForkBlockchain";
+import { ForkStateManager } from "./fork/ForkStateManager";
+import {
+  CallParams,
+  FilterParams,
+  GenesisAccount,
+  NodeConfig,
+  Snapshot,
+  TracingConfig,
+  TransactionParams,
+} from "./node-types";
+import {
+  getRpcBlock,
+  getRpcReceipts,
+  RpcLogOutput,
+  RpcReceiptOutput,
+} from "./output";
+import { Block } from "./types/Block";
+import { PBlockchain } from "./types/PBlockchain";
+import { PStateManager } from "./types/PStateManager";
+import { asPStateManager } from "./utils/asPStateManager";
+import { asStateManager } from "./utils/asStateManager";
+import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
+import { makeCommon } from "./utils/makeCommon";
+import { makeForkClient } from "./utils/makeForkClient";
+import { makeForkCommon } from "./utils/makeForkCommon";
+import { makeStateTrie } from "./utils/makeStateTrie";
+import { putGenesisAccounts } from "./utils/putGenesisAccounts";
+import { putGenesisBlock } from "./utils/putGenesisBlock";
 
 const log = debug("buidler:core:buidler-evm:node");
 
@@ -64,192 +79,82 @@ const log = debug("buidler:core:buidler-evm:node");
 // tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
-export type Block = any;
-
-export interface GenesisAccount {
-  privateKey: string;
-  balance: string | number | BN;
-}
-
 export const COINBASE_ADDRESS = toBuffer(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
-export interface CallParams {
-  to: Buffer;
-  from: Buffer;
-  gasLimit: BN;
-  gasPrice: BN;
-  value: BN;
-  data: Buffer;
-}
-
-export interface TransactionParams {
-  to: Buffer;
-  from: Buffer;
-  gasLimit: BN;
-  gasPrice: BN;
-  value: BN;
-  data: Buffer;
-  nonce: BN;
-}
-
-export interface FilterParams {
-  fromBlock: BN;
-  toBlock: BN;
-  addresses: Buffer[];
-  normalizedTopics: Array<Array<Buffer | null> | null>;
-}
-
-export interface TxReceipt {
-  status: 0 | 1;
-  gasUsed: Buffer;
-  bitvector: Buffer;
-  logs: RpcLogOutput[];
-}
-
-export interface TxBlockResult {
-  receipt: TxReceipt;
-  createAddresses: Buffer | undefined;
-  bloomBitvector: Buffer;
-}
-
 // tslint:disable only-buidler-error
-
-export interface SolidityTracerOptions {
-  solidityVersion: string;
-  compilerInput: CompilerInput;
-  compilerOutput: CompilerOutput;
-}
-
-interface Snapshot {
-  id: number;
-  date: Date;
-  latestBlock: Block;
-  stateRoot: Buffer;
-  blockTimeOffsetSeconds: BN;
-  nextBlockTimestamp: BN;
-  transactionByHash: Map<string, Transaction>;
-  transactionHashToBlockHash: Map<string, string>;
-  blockHashToTxBlockResults: Map<string, TxBlockResult[]>;
-  blockHashToTotalDifficulty: Map<string, BN>;
-}
 
 export class BuidlerNode extends EventEmitter {
   public static async create(
-    hardfork: string,
-    networkName: string,
-    chainId: number,
-    networkId: number,
-    blockGasLimit: number,
-    genesisAccounts: GenesisAccount[] = [],
-    solidityVersion?: string,
-    allowUnlimitedContractSize?: boolean,
-    initialDate?: Date,
-    compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput
+    config: NodeConfig
   ): Promise<[Common, BuidlerNode]> {
-    const stateTrie = new Trie();
-    const putIntoStateTrie = promisify(stateTrie.put.bind(stateTrie));
-    for (const acc of genesisAccounts) {
-      let balance: BN;
+    const {
+      genesisAccounts,
+      blockGasLimit,
+      allowUnlimitedContractSize,
+      tracingConfig,
+    } = config;
 
-      if (
-        typeof acc.balance === "string" &&
-        acc.balance.toLowerCase().startsWith("0x")
-      ) {
-        balance = new BN(toBuffer(acc.balance));
-      } else {
-        balance = new BN(acc.balance);
-      }
+    let common: Common;
+    let stateManager: StateManager | ForkStateManager;
+    let blockchain: BuidlerBlockchain | ForkBlockchain;
+    let initialBlockTimeOffset: BN | undefined;
 
-      const account = new Account({ balance });
-      const pk = toBuffer(acc.privateKey);
-      const address = privateToAddress(pk);
-
-      await putIntoStateTrie(address, account.serialize());
-    }
-
-    // Mimic precompiles activation
-    for (let i = 1; i <= 8; i++) {
-      await putIntoStateTrie(
-        new BN(i).toArrayLike(Buffer, "be", 20),
-        new Account().serialize()
+    if (config.type === "forked") {
+      const { forkClient, forkBlockNumber } = await makeForkClient(
+        config.forkConfig
       );
+      common = await makeForkCommon(forkClient, forkBlockNumber);
+
+      stateManager = new ForkStateManager(forkClient, forkBlockNumber);
+      await putGenesisAccounts(stateManager, genesisAccounts);
+
+      blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
+    } else {
+      const stateTrie = await makeStateTrie(genesisAccounts);
+      common = makeCommon(config, stateTrie);
+
+      stateManager = new StateManager({
+        common,
+        trie: stateTrie,
+      });
+
+      blockchain = new BuidlerBlockchain();
+      await putGenesisBlock(blockchain, common);
+
+      if (config.initialDate !== undefined) {
+        initialBlockTimeOffset = new BN(
+          getDifferenceInSeconds(config.initialDate, new Date())
+        );
+      }
     }
-
-    const initialBlockTimestamp =
-      initialDate !== undefined
-        ? dateToTimestampSeconds(initialDate)
-        : getCurrentTimestamp();
-
-    const common = Common.forCustomChain(
-      "mainnet",
-      {
-        chainId,
-        networkId,
-        name: networkName,
-        genesis: {
-          timestamp: `0x${initialBlockTimestamp.toString(16)}`,
-          hash: "0x",
-          gasLimit: blockGasLimit,
-          difficulty: 1,
-          nonce: "0x42",
-          extraData: "0x1234",
-          stateRoot: bufferToHex(stateTrie.root),
-        },
-      },
-      hardfork
-    );
-
-    const stateManager = new StateManager({
-      common: common as any, // TS error because of a version mismatch
-      trie: stateTrie,
-    });
-
-    const blockchain = new Blockchain();
 
     const vm = new VM({
-      common: common as any, // TS error because of a version mismatch
+      common,
       activatePrecompiles: true,
-      stateManager,
-      blockchain: blockchain as any,
+      stateManager: asStateManager(stateManager) as any,
+      blockchain: blockchain.asBlockchain() as any,
       allowUnlimitedContractSize,
-    });
-
-    const genesisBlock = new Block(null, { common });
-    genesisBlock.setGenesisParams();
-
-    await new Promise((resolve) => {
-      blockchain.putBlock(genesisBlock, () => resolve());
     });
 
     const node = new BuidlerNode(
       vm,
+      asPStateManager(stateManager),
       blockchain,
-      genesisAccounts.map((acc) => toBuffer(acc.privateKey)),
       new BN(blockGasLimit),
-      genesisBlock,
-      solidityVersion,
-      initialDate,
-      compilerInput,
-      compilerOutput
+      initialBlockTimeOffset,
+      genesisAccounts,
+      tracingConfig
     );
 
     return [common, node];
   }
 
-  private readonly _common: Common;
-  private readonly _stateManager: PStateManager;
+  private readonly _localAccounts: Map<string, Buffer> = new Map(); // address => private key
+  private readonly _impersonatedAccounts: Set<string> = new Set(); // address
 
-  private readonly _accountPrivateKeys: Map<string, Buffer> = new Map();
-
-  private _blockTimeOffsetSeconds: BN = new BN(0);
   private _nextBlockTimestamp: BN = new BN(0);
-  private _transactionByHash: Map<string, Transaction> = new Map();
-  private _transactionHashToBlockHash: Map<string, string> = new Map();
-  private _blockHashToTxBlockResults: Map<string, TxBlockResult[]> = new Map();
-  private _blockHashToTotalDifficulty: Map<string, BN> = new Map();
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -263,66 +168,36 @@ export class BuidlerNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  private readonly _getLatestBlock: () => Promise<Block>;
-  private readonly _getBlock: (hashOrNumber: Buffer | BN) => Promise<Block>;
-
   private constructor(
     private readonly _vm: VM,
-    private readonly _blockchain: Blockchain,
-    localAccounts: Buffer[],
+    private readonly _stateManager: PStateManager,
+    private readonly _blockchain: PBlockchain,
     private readonly _blockGasLimit: BN,
-    genesisBlock: Block,
-    solidityVersion?: string,
-    initialDate?: Date,
-    compilerInput?: CompilerInput,
-    compilerOutput?: CompilerOutput
+    private _blockTimeOffsetSeconds: BN = new BN(0),
+    genesisAccounts: GenesisAccount[],
+    tracingConfig?: TracingConfig
   ) {
     super();
-    this._stateManager = new PStateManager(this._vm.stateManager);
-    this._common = this._vm._common as any; // TODO: There's a version mismatch, that's why we cast
-    this._initLocalAccounts(localAccounts);
 
-    this._blockHashToTotalDifficulty.set(
-      bufferToHex(genesisBlock.hash()),
-      this._computeTotalDifficulty(genesisBlock)
+    this._initLocalAccounts(genesisAccounts);
+
+    this._vmTracer = new VMTracer(
+      this._vm,
+      this._stateManager.getContractCode.bind(this._stateManager),
+      true
     );
-
-    this._getLatestBlock = promisify(
-      this._vm.blockchain.getLatestBlock.bind(this._vm.blockchain)
-    );
-
-    this._getBlock = promisify(
-      this._vm.blockchain.getBlock.bind(this._vm.blockchain)
-    );
-
-    this._vmTracer = new VMTracer(this._vm, true);
     this._vmTracer.enableTracing();
-
-    if (initialDate !== undefined) {
-      this._blockTimeOffsetSeconds = new BN(
-        getDifferenceInSeconds(initialDate, new Date())
-      );
-    }
 
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
 
-    if (
-      solidityVersion === undefined ||
-      compilerInput === undefined ||
-      compilerOutput === undefined
-    ) {
+    if (tracingConfig === undefined) {
       return;
     }
 
     try {
-      const bytecodes = createModelsAndDecodeBytecodes(
-        solidityVersion,
-        compilerInput,
-        compilerOutput
-      );
-
+      const bytecodes = createModelsAndDecodeBytecodes(tracingConfig);
       for (const bytecode of bytecodes) {
         this._vmTraceDecoder.addBytecode(bytecode);
       }
@@ -342,34 +217,46 @@ export class BuidlerNode extends EventEmitter {
     }
   }
 
+  get isForked(): boolean {
+    return this._blockchain instanceof ForkBlockchain;
+  }
+
   public async getSignedTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
-    const tx = new Transaction(txParams, { common: this._common });
+    const senderAddress = bufferToHex(txParams.from);
 
-    const pk = await this._getLocalAccountPrivateKey(txParams.from);
-    tx.sign(pk);
+    const pk = this._localAccounts.get(senderAddress);
+    if (pk !== undefined) {
+      const tx = new Transaction(txParams, { common: this._vm._common });
+      tx.sign(pk);
+      return tx;
+    }
 
-    return tx;
+    if (this._impersonatedAccounts.has(senderAddress)) {
+      return new FakeTransaction(txParams, { common: this._vm._common });
+    }
+
+    throw new InvalidInputError(`unknown account ${senderAddress}`);
   }
 
   public async _getFakeTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
-    return new FakeTransaction(txParams, { common: this._common });
+    return new FakeTransaction(txParams, { common: this._vm._common });
   }
 
   public async runTransactionInNewBlock(
     tx: Transaction
   ): Promise<{
-    trace: MessageTrace;
+    trace: MessageTrace | undefined;
     block: Block;
     blockResult: RunBlockResult;
     error?: Error;
     consoleLogMessages: string[];
   }> {
     await this._validateTransaction(tx);
-    await this._saveTransactionAsReceived(tx);
+    await this._notifyPendingTransaction(tx);
 
     const [
       blockTimestamp,
@@ -400,13 +287,14 @@ export class BuidlerNode extends EventEmitter {
     }
 
     await this._saveBlockAsSuccessfullyRun(block, result);
-    await this._saveTransactionAsSuccessfullyRun(tx, block);
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -454,7 +342,7 @@ export class BuidlerNode extends EventEmitter {
       await this._increaseBlockTimestamp(block);
     }
 
-    await promisify(block.genTxTrie.bind(block))();
+    await new Promise((resolve) => block.genTxTrie(resolve));
     block.header.transactionsTrie = block.txTrie.root;
 
     const previousRoot = await this._stateManager.getStateRoot();
@@ -494,7 +382,7 @@ export class BuidlerNode extends EventEmitter {
     blockNumber: BN | null
   ): Promise<{
     result: Buffer;
-    trace: MessageTrace;
+    trace: MessageTrace | undefined;
     error?: Error;
     consoleLogMessages: string[];
   }> {
@@ -503,7 +391,7 @@ export class BuidlerNode extends EventEmitter {
       nonce: await this.getAccountNonce(call.from, null),
     });
 
-    const result = await this._runOnBlockContext(blockNumber, () =>
+    const result = await this._runInBlockContext(blockNumber, () =>
       this._runTxAndRevertMutations(tx, blockNumber === null)
     );
 
@@ -511,7 +399,9 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -536,7 +426,7 @@ export class BuidlerNode extends EventEmitter {
     address: Buffer,
     blockNumber: BN | null
   ): Promise<BN> {
-    const account = await this._runOnBlockContext(blockNumber, () =>
+    const account = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getAccount(address)
     );
 
@@ -547,7 +437,7 @@ export class BuidlerNode extends EventEmitter {
     address: Buffer,
     blockNumber: BN | null
   ): Promise<BN> {
-    const account = await this._runOnBlockContext(blockNumber, () =>
+    const account = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getAccount(address)
     );
 
@@ -557,7 +447,7 @@ export class BuidlerNode extends EventEmitter {
   public async getAccountNonceInPreviousBlock(address: Buffer): Promise<BN> {
     const account = await this._stateManager.getAccount(address);
 
-    const latestBlock = await this._getLatestBlock();
+    const latestBlock = await this.getLatestBlock();
     const latestBlockTxsFromAccount = latestBlock.transactions.filter(
       (tx: Transaction) => tx.getSenderAddress().equals(address)
     );
@@ -566,15 +456,15 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    return this._getLatestBlock();
+    return this._blockchain.getLatestBlock();
   }
 
   public async getLatestBlockNumber(): Promise<BN> {
-    return new BN((await this._getLatestBlock()).header.number);
+    return new BN((await this.getLatestBlock()).header.number);
   }
 
   public async getLocalAccountAddresses(): Promise<string[]> {
-    return [...this._accountPrivateKeys.keys()];
+    return [...this._localAccounts.keys()];
   }
 
   public async getBlockGasLimit(): Promise<BN> {
@@ -586,7 +476,7 @@ export class BuidlerNode extends EventEmitter {
     blockNumber: BN | null
   ): Promise<{
     estimation: BN;
-    trace: MessageTrace;
+    trace: MessageTrace | undefined;
     error?: Error;
     consoleLogMessages: string[];
   }> {
@@ -595,7 +485,7 @@ export class BuidlerNode extends EventEmitter {
       gasLimit: await this.getBlockGasLimit(),
     });
 
-    const result = await this._runOnBlockContext(blockNumber, () =>
+    const result = await this._runInBlockContext(blockNumber, () =>
       this._runTxAndRevertMutations(tx)
     );
 
@@ -603,7 +493,9 @@ export class BuidlerNode extends EventEmitter {
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
 
-    vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
 
     const consoleLogMessages = await this._getConsoleLogMessages(
       vmTrace,
@@ -652,8 +544,7 @@ export class BuidlerNode extends EventEmitter {
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    let data: Promise<Buffer>;
-    data = this._runOnBlockContext(blockNumber, () =>
+    let data: Buffer = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getContractStorage(address, key)
     );
     // TODO: The state manager returns the data as it was saved, it doesn't
@@ -670,52 +561,37 @@ export class BuidlerNode extends EventEmitter {
     //   );
     // }
 
+    // TODO: remove this line once the above problem is solved
+    //  This is here to make ForkStateManager return values compatible with
+    //  the VM's state manager unpadded format
+    data = stripZeros(data);
+
     return data;
   }
 
   public async getBlockByNumber(blockNumber: BN): Promise<Block | undefined> {
-    if (blockNumber.gten(this._blockHashToTotalDifficulty.size)) {
-      return undefined;
-    }
-
-    return this._getBlock(blockNumber);
+    return this._blockchain.getBlock(blockNumber);
   }
 
-  public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
-    if (!(await this._hasBlockWithHash(hash))) {
-      return undefined;
-    }
-
-    return this._getBlock(hash);
+  public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
+    return this._blockchain.getBlock(blockHash);
   }
 
   public async getBlockByTransactionHash(
     hash: Buffer
   ): Promise<Block | undefined> {
-    const blockHash = this._transactionHashToBlockHash.get(bufferToHex(hash));
-    if (blockHash === undefined) {
-      return undefined;
-    }
-
-    return this.getBlockByHash(toBuffer(blockHash));
+    return this._blockchain.getBlockByTransactionHash(hash);
   }
 
   public async getBlockTotalDifficulty(block: Block): Promise<BN> {
-    const blockHash = bufferToHex(block.hash());
-    const td = this._blockHashToTotalDifficulty.get(blockHash);
-
-    if (td !== undefined) {
-      return td;
-    }
-
-    return this._computeTotalDifficulty(block);
+    return this._blockchain.getTotalDifficulty(block.hash());
   }
 
   public async getCode(
     address: Buffer,
     blockNumber: BN | null
   ): Promise<Buffer> {
-    return this._runOnBlockContext(blockNumber, () =>
+    return this._runInBlockContext(blockNumber, () =>
       this._stateManager.getContractCode(address)
     );
   }
@@ -736,21 +612,14 @@ export class BuidlerNode extends EventEmitter {
     return this._nextBlockTimestamp;
   }
 
-  public async getSuccessfulTransactionByHash(
-    hash: Buffer
-  ): Promise<Transaction | undefined> {
-    const tx = this._transactionByHash.get(bufferToHex(hash));
-    if (tx !== undefined && (await this._transactionWasSuccessful(tx))) {
-      return tx;
-    }
-
-    return undefined;
+  public async getTransaction(hash: Buffer): Promise<Transaction | undefined> {
+    return this._blockchain.getTransaction(hash);
   }
 
-  public async getTxBlockResults(
-    block: Block
-  ): Promise<TxBlockResult[] | undefined> {
-    return this._blockHashToTxBlockResults.get(bufferToHex(block.hash()));
+  public async getTransactionReceipt(
+    hash: Buffer
+  ): Promise<RpcReceiptOutput | undefined> {
+    return this._blockchain.getTransactionReceipt(hash);
   }
 
   public async getPendingTransactions(): Promise<Transaction[]> {
@@ -762,13 +631,13 @@ export class BuidlerNode extends EventEmitter {
     data: Buffer
   ): Promise<ECDSASignature> {
     const messageHash = hashPersonalMessage(data);
-    const privateKey = await this._getLocalAccountPrivateKey(address);
+    const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ecsign(messageHash, privateKey);
   }
 
   public async signTypedData(address: Buffer, typedData: any): Promise<string> {
-    const privateKey = await this._getLocalAccountPrivateKey(address);
+    const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ethSigUtil.signTypedData_v4(privateKey, {
       data: typedData,
@@ -790,16 +659,6 @@ export class BuidlerNode extends EventEmitter {
       stateRoot: await this._stateManager.getStateRoot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
       nextBlockTimestamp: new BN(this._nextBlockTimestamp),
-      transactionByHash: new Map(this._transactionByHash.entries()),
-      transactionHashToBlockHash: new Map(
-        this._transactionHashToBlockHash.entries()
-      ),
-      blockHashToTxBlockResults: new Map(
-        this._blockHashToTxBlockResults.entries()
-      ),
-      blockHashToTotalDifficulty: new Map(
-        this._blockHashToTotalDifficulty.entries()
-      ),
     };
 
     this._snapshots.push(snapshot);
@@ -830,14 +689,10 @@ export class BuidlerNode extends EventEmitter {
     //
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
-    this._blockchain.deleteAllFollowingBlocks(snapshot.latestBlock);
+    this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
     this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
-    this._transactionByHash = snapshot.transactionByHash;
-    this._transactionHashToBlockHash = snapshot.transactionHashToBlockHash;
-    this._blockHashToTxBlockResults = snapshot.blockHashToTxBlockResults;
-    this._blockHashToTotalDifficulty = snapshot.blockHashToTotalDifficulty;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -968,58 +823,15 @@ export class BuidlerNode extends EventEmitter {
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     filterParams = await this._computeFilterParams(filterParams, false);
-
-    const logs: RpcLogOutput[] = [];
-    for (
-      let i = filterParams.fromBlock;
-      i.lte(filterParams.toBlock);
-      i = i.addn(1)
-    ) {
-      const block = await this._getBlock(new BN(i));
-      const blockResults = this._blockHashToTxBlockResults.get(
-        bufferToHex(block.hash())
-      );
-      if (blockResults === undefined) {
-        continue;
-      }
-
-      if (
-        !bloomFilter(
-          new Bloom(block.header.bloom),
-          filterParams.addresses,
-          filterParams.normalizedTopics
-        )
-      ) {
-        continue;
-      }
-
-      for (const tx of blockResults) {
-        logs.push(
-          ...filterLogs(tx.receipt.logs, {
-            fromBlock: filterParams.fromBlock,
-            toBlock: filterParams.toBlock,
-            addresses: filterParams.addresses,
-            normalizedTopics: filterParams.normalizedTopics,
-          })
-        );
-      }
-    }
-
-    return logs;
+    return this._blockchain.getLogs(filterParams);
   }
 
   public async addCompilationResult(
-    compilerVersion: string,
-    compilerInput: CompilerInput,
-    compilerOutput: CompilerOutput
+    tracingConfig: TracingConfig
   ): Promise<boolean> {
     let bytecodes;
     try {
-      bytecodes = createModelsAndDecodeBytecodes(
-        compilerVersion,
-        compilerInput,
-        compilerOutput
-      );
+      bytecodes = createModelsAndDecodeBytecodes(tracingConfig);
     } catch (error) {
       console.warn(
         chalk.yellow(
@@ -1042,6 +854,15 @@ export class BuidlerNode extends EventEmitter {
     return true;
   }
 
+  public addImpersonatedAccount(address: Buffer): true {
+    this._impersonatedAccounts.add(bufferToHex(address));
+    return true;
+  }
+
+  public removeImpersonatedAccount(address: Buffer): boolean {
+    return this._impersonatedAccounts.delete(bufferToHex(address));
+  }
+
   private _getSnapshotIndex(id: number): number | undefined {
     for (const [i, snapshot] of this._snapshots.entries()) {
       if (snapshot.id === id) {
@@ -1057,17 +878,18 @@ export class BuidlerNode extends EventEmitter {
     return undefined;
   }
 
-  private _initLocalAccounts(localAccounts: Buffer[]) {
-    for (const pk of localAccounts) {
-      this._accountPrivateKeys.set(bufferToHex(privateToAddress(pk)), pk);
+  private _initLocalAccounts(genesisAccounts: GenesisAccount[]) {
+    const privateKeys = genesisAccounts.map((acc) => toBuffer(acc.privateKey));
+    for (const pk of privateKeys) {
+      this._localAccounts.set(bufferToHex(privateToAddress(pk)), pk);
     }
   }
 
   private async _getConsoleLogMessages(
-    vmTrace: MessageTrace,
+    vmTrace: MessageTrace | undefined,
     vmTracerError: Error | undefined
   ): Promise<string[]> {
-    if (vmTracerError !== undefined) {
+    if (vmTrace === undefined || vmTracerError !== undefined) {
       log(
         "Could not print console log. Please report this to help us improve Buidler.\n",
         vmTracerError
@@ -1081,8 +903,8 @@ export class BuidlerNode extends EventEmitter {
 
   private async _manageErrors(
     vmResult: ExecResult,
-    vmTrace: MessageTrace,
-    vmTracerError?: Error
+    vmTrace: MessageTrace | undefined,
+    vmTracerError: Error | undefined
   ): Promise<SolidityError | TransactionExecutionError | undefined> {
     if (vmResult.exceptionError === undefined) {
       return undefined;
@@ -1091,7 +913,7 @@ export class BuidlerNode extends EventEmitter {
     let stackTrace: SolidityStackTrace | undefined;
 
     try {
-      if (vmTracerError !== undefined) {
+      if (vmTrace === undefined || vmTracerError !== undefined) {
         throw vmTracerError;
       }
 
@@ -1204,7 +1026,7 @@ export class BuidlerNode extends EventEmitter {
           timestamp,
         },
       },
-      { common: this._common }
+      { common: this._vm._common }
     );
 
     block.validate = (blockchain: any, cb: any) => cb(null);
@@ -1213,7 +1035,9 @@ export class BuidlerNode extends EventEmitter {
 
     block.header.number = toBuffer(new BN(latestBlock.header.number).addn(1));
     block.header.parentHash = latestBlock.hash();
-    block.header.difficulty = block.header.canonicalDifficulty(latestBlock);
+    block.header.difficulty = block.header
+      .canonicalDifficulty(latestBlock)
+      .toBuffer();
     block.header.coinbase = await this.getCoinbaseAddress();
 
     return block;
@@ -1223,8 +1047,7 @@ export class BuidlerNode extends EventEmitter {
     this._nextBlockTimestamp = new BN(0);
   }
 
-  private async _saveTransactionAsReceived(tx: Transaction) {
-    this._transactionByHash.set(bufferToHex(tx.hash(true)), tx);
+  private async _notifyPendingTransaction(tx: Transaction) {
     this._filters.forEach((filter) => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
         const hash = bufferToHex(tx.hash(true));
@@ -1238,19 +1061,19 @@ export class BuidlerNode extends EventEmitter {
     });
   }
 
-  private async _getLocalAccountPrivateKey(sender: Buffer): Promise<Buffer> {
+  private _getLocalAccountPrivateKey(sender: Buffer): Buffer {
     const senderAddress = bufferToHex(sender);
-    if (!this._accountPrivateKeys.has(senderAddress)) {
+    if (!this._localAccounts.has(senderAddress)) {
       throw new InvalidInputError(`unknown account ${senderAddress}`);
     }
 
-    return this._accountPrivateKeys.get(senderAddress)!;
+    return this._localAccounts.get(senderAddress)!;
   }
 
   private async _addTransactionToBlock(block: Block, tx: Transaction) {
     block.transactions.push(tx);
 
-    await promisify(block.genTxTrie.bind(block))();
+    await new Promise((resolve) => block.genTxTrie(resolve));
 
     block.header.transactionsTrie = block.txTrie.root;
   }
@@ -1259,45 +1082,14 @@ export class BuidlerNode extends EventEmitter {
     block: Block,
     runBlockResult: RunBlockResult
   ) {
-    await this._putBlock(block);
+    const receipts = getRpcReceipts(block, runBlockResult);
 
-    const txBlockResults: TxBlockResult[] = [];
+    await this._blockchain.addBlock(block);
+    this._blockchain.addTransactionReceipts(receipts);
 
-    for (let i = 0; i < runBlockResult.results.length; i += 1) {
-      const result = runBlockResult.results[i];
-
-      const receipt = runBlockResult.receipts[i];
-      const logs = receipt.logs.map(
-        (rcpLog, logIndex) =>
-          (runBlockResult.receipts[i].logs[logIndex] = getRpcLog(
-            rcpLog,
-            block.transactions[i],
-            block,
-            i,
-            logIndex
-          ))
-      );
-
-      txBlockResults.push({
-        bloomBitvector: result.bloom.bitvector,
-        createAddresses: result.createdAddress,
-        receipt: {
-          status: receipt.status,
-          gasUsed: receipt.gasUsed,
-          bitvector: receipt.bitvector,
-          logs,
-        },
-      });
-    }
-
-    const blockHash = bufferToHex(block.hash());
-    this._blockHashToTxBlockResults.set(blockHash, txBlockResults);
-
-    const td = this._computeTotalDifficulty(block);
-    this._blockHashToTotalDifficulty.set(blockHash, td);
-
+    const td = await this.getBlockTotalDifficulty(block);
     const rpcLogs: RpcLogOutput[] = [];
-    for (const receipt of runBlockResult.receipts) {
+    for (const receipt of receipts) {
       rpcLogs.push(...receipt.logs);
     }
 
@@ -1343,40 +1135,9 @@ export class BuidlerNode extends EventEmitter {
     });
   }
 
-  private async _putBlock(block: Block): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this._vm.blockchain.putBlock(block, (err?: any) => {
-        if (err !== undefined && err !== null) {
-          reject(err);
-          return;
-        }
-
-        resolve();
-      });
-    });
-  }
-
-  private async _hasBlockWithHash(blockHash: Buffer): Promise<boolean> {
-    if (this._blockHashToTotalDifficulty.has(bufferToHex(blockHash))) {
-      return true;
-    }
-
-    const block = await this.getBlockByNumber(new BN(0));
-    return block.hash().equals(blockHash);
-  }
-
-  private async _saveTransactionAsSuccessfullyRun(
-    tx: Transaction,
-    block: Block
-  ) {
-    this._transactionHashToBlockHash.set(
-      bufferToHex(tx.hash(true)),
-      bufferToHex(block.hash())
-    );
-  }
-
-  private async _transactionWasSuccessful(tx: Transaction): Promise<boolean> {
-    return this._transactionHashToBlockHash.has(bufferToHex(tx.hash(true)));
+  private _transactionWasSuccessful(tx: Transaction): boolean {
+    const localTransaction = this._blockchain.getLocalTransaction(tx.hash());
+    return localTransaction !== undefined;
   }
 
   private async _timestampClashesWithPreviousBlockOne(
@@ -1391,16 +1152,12 @@ export class BuidlerNode extends EventEmitter {
   }
 
   private async _increaseBlockTimestamp(block: Block) {
-    block.header.timestamp = new BN(block.header.timestamp).addn(1);
-  }
-
-  private async _setBlockTimestamp(block: Block, timestamp: BN) {
-    block.header.timestamp = new BN(timestamp);
+    block.header.timestamp = new BN(block.header.timestamp).addn(1).toBuffer();
   }
 
   private async _validateTransaction(tx: Transaction) {
     // Geth throws this error if a tx is sent twice
-    if (await this._transactionWasSuccessful(tx)) {
+    if (this._transactionWasSuccessful(tx)) {
       throw new InvalidInputError(
         `known transaction: ${bufferToHex(tx.hash(true)).toString()}`
       );
@@ -1449,45 +1206,49 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     }
   }
 
-  private _computeTotalDifficulty(block: Block): BN {
-    const difficulty = new BN(block.header.difficulty);
-
-    const parentHash = bufferToHex(block.header.parentHash);
-    if (
-      parentHash ===
-      "0x0000000000000000000000000000000000000000000000000000000000000000"
-    ) {
-      return difficulty;
-    }
-
-    const parentTd = this._blockHashToTotalDifficulty.get(parentHash);
-
-    if (parentTd === undefined) {
-      throw new InternalError(`Unrecognized parent block ${parentHash}`);
-    }
-
-    return parentTd.add(difficulty);
-  }
-
-  private async _runOnBlockContext<T>(
+  private async _runInBlockContext<T>(
     blockNumber: BN | null,
     action: () => Promise<T>
   ): Promise<T> {
-    let block: Block;
-    if (blockNumber == null) {
-      block = await this.getLatestBlock();
-    } else {
-      block = await this.getBlockByNumber(blockNumber);
+    if (
+      blockNumber === null ||
+      blockNumber.eq(await this.getLatestBlockNumber())
+    ) {
+      return action();
+    }
+
+    const block = await this.getBlockByNumber(blockNumber);
+    if (block === undefined) {
+      // TODO handle this better
+      throw new Error(
+        `Block with number ${blockNumber} doesn't exist. This should never happen.`
+      );
     }
 
     const currentStateRoot = await this._stateManager.getStateRoot();
-    await this._stateManager.setStateRoot(block.header.stateRoot);
-
+    await this._setBlockContext(block);
     try {
       return await action();
     } finally {
-      await this._stateManager.setStateRoot(currentStateRoot);
+      await this._restoreBlockContext(currentStateRoot);
     }
+  }
+
+  private async _setBlockContext(block: Block): Promise<void> {
+    if (this._stateManager instanceof ForkStateManager) {
+      return this._stateManager.setBlockContext(
+        block.header.stateRoot,
+        new BN(block.header.number)
+      );
+    }
+    return this._stateManager.setStateRoot(block.header.stateRoot);
+  }
+
+  private async _restoreBlockContext(stateRoot: Buffer) {
+    if (this._stateManager instanceof ForkStateManager) {
+      return this._stateManager.restoreForkBlockContext(stateRoot);
+    }
+    return this._stateManager.setStateRoot(stateRoot);
   }
 
   private async _correctInitialEstimation(
@@ -1528,7 +1289,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     roundNumber = 0
   ): Promise<BN> {
     if (lowestSuccessfulEstimation.lte(highestFailingEstimation)) {
-      // This shouldn't happen, but we don't wan't to go into an infinite loop
+      // This shouldn't happen, but we don't want to go into an infinite loop
       // if it ever happens
       return lowestSuccessfulEstimation;
     }
@@ -1601,7 +1362,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
    *
    * If throwOnError is true, errors are managed locally and thrown on
    * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
-   * inspected/resetted.
+   * inspected/reset.
    */
   private async _runTxAndRevertMutations(
     tx: Transaction,
@@ -1613,11 +1374,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
       let blockContext;
       // if the context is to estimate gas or run calls in pending block
       if (runOnNewBlock) {
-        const [
-          blockTimestamp,
-          offsetShouldChange,
-          newOffset,
-        ] = this._calculateTimestampAndOffset();
+        const [blockTimestamp] = this._calculateTimestampAndOffset();
 
         blockContext = await this._getNextBlockTemplate(blockTimestamp);
         const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(

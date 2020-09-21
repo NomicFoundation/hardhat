@@ -12,10 +12,10 @@ import util from "util";
 import {
   BoundExperimentalBuidlerEVMMessageTraceHook,
   EthereumProvider,
+  ForkConfig,
   ProjectPaths,
 } from "../../../types";
 import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -31,7 +31,8 @@ import { EvmModule } from "./modules/evm";
 import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
-import { BuidlerNode, GenesisAccount } from "./node";
+import { BuidlerNode } from "./node";
+import { GenesisAccount, NodeConfig, TracingConfig } from "./node-types";
 
 const log = debug("buidler:core:buidler-evm:provider");
 
@@ -69,7 +70,8 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
-    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
+    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = [],
+    private _forkConfig?: ForkConfig
   ) {
     super();
   }
@@ -218,9 +220,64 @@ export class BuidlerEVMProvider extends EventEmitter
       return;
     }
 
-    let compilerInput: CompilerInput | undefined;
-    let compilerOutput: CompilerOutput | undefined;
+    let config: NodeConfig;
 
+    const commonConfig = {
+      blockGasLimit: this._blockGasLimit,
+      genesisAccounts: this._genesisAccounts,
+      allowUnlimitedContractSize: this._allowUnlimitedContractSize,
+      tracingConfig: await this._makeTracingConfig(),
+    };
+
+    if (this._forkConfig === undefined) {
+      config = {
+        type: "local",
+        hardfork: this._hardfork,
+        networkName: this._networkName,
+        chainId: this._chainId,
+        networkId: this._networkId,
+        initialDate: this._initialDate,
+        ...commonConfig,
+      };
+    } else {
+      config = {
+        type: "forked",
+        forkConfig: this._forkConfig,
+        ...commonConfig,
+      };
+    }
+
+    const [common, node] = await BuidlerNode.create(config);
+
+    this._common = common;
+    this._node = node;
+
+    this._ethModule = new EthModule(
+      common,
+      node,
+      this._throwOnTransactionFailures,
+      this._throwOnCallFailures,
+      this._loggingEnabled ? this._logger : undefined,
+      this._experimentalBuidlerEVMMessageTraceHooks
+    );
+
+    this._netModule = new NetModule(common);
+    this._web3Module = new Web3Module();
+    this._evmModule = new EvmModule(node);
+    this._buidlerModule = new BuidlerModule(node, this._reset.bind(this));
+
+    const listener = (payload: { filterId: BN; result: any }) => {
+      this.emit("notifications", {
+        subscription: `0x${payload.filterId.toString(16)}`,
+        result: payload.result,
+      });
+    };
+
+    // Handle eth_subscribe events and proxy them to handler
+    this._node.addListener("ethEvent", listener);
+  }
+
+  private async _makeTracingConfig(): Promise<TracingConfig | undefined> {
     if (this._solcVersion !== undefined && this._paths !== undefined) {
       if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
         console.warn(
@@ -247,12 +304,19 @@ export class BuidlerEVMProvider extends EventEmitter
               SOLC_OUTPUT_FILENAME
             );
 
-            compilerInput = await fsExtra.readJSON(solcInputPath, {
+            const compilerInput = await fsExtra.readJSON(solcInputPath, {
               encoding: "utf8",
             });
-            compilerOutput = await fsExtra.readJSON(solcOutputPath, {
+
+            const compilerOutput = await fsExtra.readJSON(solcOutputPath, {
               encoding: "utf8",
             });
+
+            return {
+              solcVersion: this._solcVersion,
+              compilerInput,
+              compilerOutput,
+            };
           } catch (error) {
             console.warn(
               chalk.yellow(
@@ -268,47 +332,12 @@ export class BuidlerEVMProvider extends EventEmitter
         }
       }
     }
+  }
 
-    const [common, node] = await BuidlerNode.create(
-      this._hardfork,
-      this._networkName,
-      this._chainId,
-      this._networkId,
-      this._blockGasLimit,
-      this._genesisAccounts,
-      this._solcVersion,
-      this._allowUnlimitedContractSize,
-      this._initialDate,
-      compilerInput,
-      compilerOutput
-    );
-
-    this._common = common;
-    this._node = node;
-
-    this._ethModule = new EthModule(
-      common,
-      node,
-      this._throwOnTransactionFailures,
-      this._throwOnCallFailures,
-      this._loggingEnabled ? this._logger : undefined,
-      this._experimentalBuidlerEVMMessageTraceHooks
-    );
-
-    this._netModule = new NetModule(common);
-    this._web3Module = new Web3Module();
-    this._evmModule = new EvmModule(node);
-    this._buidlerModule = new BuidlerModule(node);
-
-    const listener = (payload: { filterId: BN; result: any }) => {
-      this.emit("notifications", {
-        subscription: `0x${payload.filterId.toString(16)}`,
-        result: payload.result,
-      });
-    };
-
-    // Handle eth_subscribe events and proxy them to handler
-    this._node.addListener("ethEvent", listener);
+  private async _reset(forkConfig?: ForkConfig) {
+    this._forkConfig = forkConfig;
+    this._node = undefined;
+    await this._init();
   }
 
   private _logModuleMessages(): boolean {

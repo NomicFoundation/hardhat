@@ -117,6 +117,12 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   analytics: AnalyticsConfig;
 }
 
+// TODO: figure out if this needs validation with t.types
+export interface ForkConfig {
+  jsonRpcUrl: string;
+  blockNumber?: number;
+}
+
 // End config types
 
 export interface SolcInput {

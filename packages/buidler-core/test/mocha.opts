@@ -1,5 +1,6 @@
 --require test/mocha.env
 --require ts-node/register
 --require source-map-support/register
+--file test/setup.ts
 --exclude test/fixture-projects/**/*.ts --exclude test/fixture-projects/**/*.js --exclude test/helpers/**/*.ts
 --timeout 25000

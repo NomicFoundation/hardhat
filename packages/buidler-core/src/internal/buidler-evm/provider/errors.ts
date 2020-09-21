@@ -103,7 +103,11 @@ export class TransactionExecutionError extends BuidlerEVMProviderError {
 export class MethodNotSupportedError extends BuidlerEVMProviderError {
   public static readonly CODE = -32004;
 
-  constructor(message: string) {
+  constructor(method: string, onlyForked = false) {
+    const message = onlyForked
+      ? `Method ${method} is only supported in forked provider`
+      : `Method ${method} is not supported`;
+
     super(message, MethodNotSupportedError.CODE);
   }
 }

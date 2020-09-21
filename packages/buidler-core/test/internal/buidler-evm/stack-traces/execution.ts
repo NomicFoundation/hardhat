@@ -3,8 +3,9 @@ import abi from "ethereumjs-abi";
 import Account from "ethereumjs-account";
 import { Transaction, TxData } from "ethereumjs-tx";
 import { privateToAddress } from "ethereumjs-util";
-import { promisify } from "util";
 
+import { StateManager } from "../../../../src/internal/buidler-evm/provider/types/StateManager";
+import { promisify } from "../../../../src/internal/buidler-evm/provider/utils/promisify";
 import { MessageTrace } from "../../../../src/internal/buidler-evm/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/buidler-evm/stack-traces/vm-tracer";
 
@@ -76,13 +77,21 @@ export async function traceTransaction(
 
   tx.sign(senderPrivateKey);
 
-  const vmTracer = new VMTracer(vm);
+  const getContractCode = promisify(
+    (vm.stateManager as StateManager).getContractCode.bind(vm.stateManager)
+  );
+  const vmTracer = new VMTracer(vm, getContractCode);
   vmTracer.enableTracing();
 
   try {
     await vm.runTx({ tx });
 
-    return vmTracer.getLastTopLevelMessageTrace();
+    const messageTrace = vmTracer.getLastTopLevelMessageTrace();
+    if (messageTrace === undefined) {
+      const lastError = vmTracer.getLastError();
+      throw lastError ?? new Error("Cannot get last top level message trace");
+    }
+    return messageTrace;
   } finally {
     vmTracer.disableTracing();
   }

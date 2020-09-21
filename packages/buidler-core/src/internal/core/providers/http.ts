@@ -30,6 +30,10 @@ export class HttpProvider extends EventEmitter {
     super();
   }
 
+  get url(): string {
+    return this._url;
+  }
+
   public async send(method: string, params?: any[]): Promise<any> {
     // We create the error here to capture the stack traces at this point,
     // the async call that follows would probably loose of the stack trace

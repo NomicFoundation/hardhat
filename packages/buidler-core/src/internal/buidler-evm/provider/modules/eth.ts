@@ -9,6 +9,7 @@ import {
   zeroAddress,
 } from "ethereumjs-util";
 import * as t from "io-ts";
+import cloneDeep from "lodash/cloneDeep";
 import util from "util";
 
 import { BoundExperimentalBuidlerEVMMessageTraceHook } from "../../../../types";
@@ -33,12 +34,14 @@ import {
 } from "../errors";
 import { LATEST_BLOCK } from "../filter";
 import {
+  BlockTag,
+  blockTag as blockTagType,
   LogAddress,
   LogTopics,
   OptionalBlockTag,
   optionalBlockTag,
-  optionalRpcFilterRequest,
   OptionalRpcFilterRequest,
+  optionalRpcFilterRequest,
   rpcAddress,
   rpcCallRequest,
   RpcCallRequest,
@@ -54,24 +57,19 @@ import {
   rpcUnknown,
   validateParams,
 } from "../input";
-import {
-  Block,
-  BuidlerNode,
-  CallParams,
-  FilterParams,
-  TransactionParams,
-} from "../node";
+import { BuidlerNode } from "../node";
+import { CallParams, FilterParams, TransactionParams } from "../node-types";
 import {
   bufferToRpcData,
   getRpcBlock,
   getRpcTransaction,
-  getRpcTransactionReceipt,
   numberToRpcQuantity,
   RpcBlockOutput,
   RpcLogOutput,
+  RpcReceiptOutput,
   RpcTransactionOutput,
-  RpcTransactionReceiptOutput,
 } from "../output";
+import { Block } from "../types/Block";
 
 import { ModulesLogger } from "./logger";
 
@@ -107,13 +105,13 @@ export class EthModule {
         return this._coinbaseAction(...this._coinbaseParams(params));
 
       case "eth_compileLLL":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_compileSerpent":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_compileSolidity":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_estimateGas":
         return this._estimateGasAction(...this._estimateGasParams(params));
@@ -148,7 +146,7 @@ export class EthModule {
         return this._getCodeAction(...this._getCodeParams(params));
 
       case "eth_getCompilers":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_getFilterChanges":
         return this._getFilterChangesAction(
@@ -162,7 +160,7 @@ export class EthModule {
         return this._getLogsAction(...this._getLogsParams(params));
 
       case "eth_getProof":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_getStorageAt":
         return this._getStorageAtAction(...this._getStorageAtParams(params));
@@ -193,22 +191,22 @@ export class EthModule {
         );
 
       case "eth_getUncleByBlockHashAndIndex":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_getUncleByBlockNumberAndIndex":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_getUncleCountByBlockHash":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_getUncleCountByBlockNumber":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_getWork":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_hashrate":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_mining":
         return this._miningAction(...this._miningParams(params));
@@ -232,7 +230,7 @@ export class EthModule {
         );
 
       case "eth_protocolVersion":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_sendRawTransaction":
         return this._sendRawTransactionAction(
@@ -248,16 +246,16 @@ export class EthModule {
         return this._signAction(...this._signParams(params));
 
       case "eth_signTransaction":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_signTypedData":
         return this._signTypedDataAction(...this._signTypedDataParams(params));
 
       case "eth_submitHashrate":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_submitWork":
-        throw new MethodNotSupportedError(`Method ${method} is not supported`);
+        throw new MethodNotSupportedError(method);
 
       case "eth_subscribe":
         return this._subscribeAction(...this._subscribeParams(params));
@@ -318,11 +316,12 @@ export class EthModule {
       consoleLogMessages,
     } = await this._node.runCall(callParams, blockNumber);
 
-    await this._logCallTrace(callParams, trace);
+    if (trace !== undefined) {
+      await this._logCallTrace(callParams, trace);
+      await this._runBuidlerEVMMessageTraceHooks(trace, true);
+    }
 
     this._logConsoleLogMessages(consoleLogMessages);
-
-    await this._runBuidlerEVMMessageTraceHooks(trace, true);
 
     if (error !== undefined) {
       if (this._throwOnCallFailures) {
@@ -390,7 +389,9 @@ export class EthModule {
     } = await this._node.estimateGas(txParams, blockNumber);
 
     if (error !== undefined) {
-      await this._logEstimateGasTrace(txParams, trace);
+      if (trace !== undefined) {
+        await this._logEstimateGasTrace(txParams, trace);
+      }
 
       this._logConsoleLogMessages(consoleLogMessages);
 
@@ -449,15 +450,15 @@ export class EthModule {
 
   // eth_getBlockByNumber
 
-  private _getBlockByNumberParams(params: any[]): [OptionalBlockTag, boolean] {
-    return validateParams(params, optionalBlockTag, t.boolean);
+  private _getBlockByNumberParams(params: any[]): [BlockTag, boolean] {
+    return validateParams(params, blockTagType, t.boolean);
   }
 
   private async _getBlockByNumberAction(
-    tag: OptionalBlockTag,
+    tag: BlockTag,
     includeTransactions: boolean
   ): Promise<RpcBlockOutput | null> {
-    let block: Block;
+    let block: Block | undefined;
 
     if (typeof tag === "string") {
       if (tag === "earliest") {
@@ -470,10 +471,7 @@ export class EthModule {
         );
       }
     } else {
-      // The tag can't be undefined because the includeTransactions param is
-      // required.
-      // TODO: Make this more explicit
-      block = await this._node.getBlockByNumber(tag!);
+      block = await this._node.getBlockByNumber(tag);
     }
 
     if (block === undefined) {
@@ -606,7 +604,8 @@ export class EthModule {
     filter: RpcFilterRequest
   ): Promise<RpcLogOutput[]> {
     const filterParams = await this._rpcFilterRequestToGetLogsParams(filter);
-    return this._node.getLogs(filterParams);
+    const logs = await this._node.getLogs(filterParams);
+    return cloneDeep(logs);
   }
 
   // eth_getProof
@@ -694,7 +693,7 @@ export class EthModule {
   private async _getTransactionByHashAction(
     hash: Buffer
   ): Promise<RpcTransactionOutput | null> {
-    const tx = await this._node.getSuccessfulTransactionByHash(hash);
+    const tx = await this._node.getTransaction(hash);
     if (tx === undefined) {
       return null;
     }
@@ -759,22 +758,12 @@ export class EthModule {
 
   private async _getTransactionReceiptAction(
     hash: Buffer
-  ): Promise<RpcTransactionReceiptOutput | null> {
-    // We do not return receipts for failed transactions
-    const tx = await this._node.getSuccessfulTransactionByHash(hash);
-
-    if (tx === undefined) {
+  ): Promise<RpcReceiptOutput | null> {
+    const receipt = await this._node.getTransactionReceipt(hash);
+    if (receipt === undefined) {
       return null;
     }
-
-    const block = (await this._node.getBlockByTransactionHash(hash))!;
-
-    const transactions: Transaction[] = block.transactions;
-    const index = transactions.findIndex((bt) => bt.hash().equals(hash));
-
-    const txBlockResults = await this._node.getTxBlockResults(block);
-
-    return getRpcTransactionReceipt(tx, block, index, txBlockResults!);
+    return cloneDeep(receipt);
   }
 
   // eth_getUncleByBlockHashAndIndex
@@ -1052,16 +1041,20 @@ export class EthModule {
       return null;
     }
 
-    let block: Block;
     if (blockTag === undefined || blockTag === "latest") {
-      block = await this._node.getLatestBlock();
-    } else {
-      let blockNumber: number = 0;
-      if (blockTag !== "earliest") {
-        blockNumber = blockTag.toNumber();
-      }
+      return this._node.getLatestBlockNumber();
+    }
 
-      block = await this._node.getBlockByNumber(new BN(blockNumber));
+    if (blockTag === "earliest") {
+      return new BN(0);
+    }
+
+    const block = await this._node.getBlockByNumber(blockTag);
+    if (block === undefined) {
+      const latestBlock = await this._node.getLatestBlockNumber();
+      throw new InvalidInputError(
+        `Received invalid block number ${blockTag.toString()}. Latest block number is ${latestBlock.toString()}`
+      );
     }
 
     return new BN(block.header.number);
@@ -1305,9 +1298,10 @@ export class EthModule {
       error,
     } = await this._node.runTransactionInNewBlock(tx);
 
-    await this._logTransactionTrace(tx, trace, block, blockResult);
-
-    await this._runBuidlerEVMMessageTraceHooks(trace, false);
+    if (trace !== undefined) {
+      await this._logTransactionTrace(tx, trace, block, blockResult);
+      await this._runBuidlerEVMMessageTraceHooks(trace, false);
+    }
 
     this._logConsoleLogMessages(consoleLogMessages);
 
