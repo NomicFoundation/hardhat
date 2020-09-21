@@ -250,14 +250,14 @@ export class Artifacts {
    * Remove all artifacts that don't correspond to the current solidity files
    */
   public async removeObsoleteArtifacts(
-    emittedArtifactsPerFile: Array<{
+    artifactsEmittedPerFile: Array<{
       globalName: string;
       artifacts: string[];
     }>
   ) {
     const validArtifactsPaths = new Set<string>();
 
-    for (const { globalName, artifacts } of emittedArtifactsPerFile) {
+    for (const { globalName, artifacts } of artifactsEmittedPerFile) {
       for (const artifact of artifacts) {
         validArtifactsPaths.add(
           this._getArtifactPathSync(globalName, artifact)

@@ -68,12 +68,12 @@ import {
 
 type ArtifactsEmittedPerFile = Array<{
   file: ResolvedFile;
-  emittedArtifacts: string[];
+  artifactsEmitted: string[];
 }>;
 
 type ArtifactsEmittedPerJob = Array<{
   compilationJob: CompilationJob;
-  emittedArtifactsPerFile: ArtifactsEmittedPerFile;
+  artifactsEmittedPerFile: ArtifactsEmittedPerFile;
 }>;
 
 function isConsoleLogError(error: any): boolean {
@@ -345,16 +345,16 @@ export default function () {
           quiet: boolean;
         },
         { run }
-      ): Promise<{ emittedArtifactsPerJob: ArtifactsEmittedPerJob }> => {
+      ): Promise<{ artifactsEmittedPerJob: ArtifactsEmittedPerJob }> => {
         if (compilationJobs.length === 0) {
           log(`No compilation jobs to compile`);
           await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE, { quiet });
-          return { emittedArtifactsPerJob: [] };
+          return { artifactsEmittedPerJob: [] };
         }
 
-        const emittedArtifactsPerJob: ArtifactsEmittedPerJob = [];
+        const artifactsEmittedPerJob: ArtifactsEmittedPerJob = [];
         for (const compilationJob of compilationJobs) {
-          const { emittedArtifactsPerFile } = await run(
+          const { artifactsEmittedPerFile } = await run(
             TASK_COMPILE_SOLIDITY_COMPILE_JOB,
             {
               compilationJob,
@@ -362,13 +362,13 @@ export default function () {
             }
           );
 
-          emittedArtifactsPerJob.push({
+          artifactsEmittedPerJob.push({
             compilationJob,
-            emittedArtifactsPerFile,
+            artifactsEmittedPerFile,
           });
         }
 
-        return { emittedArtifactsPerJob };
+        return { artifactsEmittedPerJob };
       }
     );
 
@@ -561,7 +561,7 @@ export default function () {
         },
         { config, run }
       ): Promise<{
-        emittedArtifactsPerFile: ArtifactsEmittedPerFile;
+        artifactsEmittedPerFile: ArtifactsEmittedPerFile;
       }> => {
         const artifacts = new Artifacts(config.paths.artifacts);
 
@@ -571,14 +571,14 @@ export default function () {
           compilationJob.getSolcConfig().version
         );
 
-        const emittedArtifactsPerFile: ArtifactsEmittedPerFile = [];
+        const artifactsEmittedPerFile: ArtifactsEmittedPerFile = [];
         for (const file of compilationJob.getResolvedFiles()) {
           log(`Emitting artifacts for file '${file.globalName}'`);
           if (!compilationJob.emitsArtifacts(file)) {
             continue;
           }
 
-          const emittedArtifacts = [];
+          const artifactsEmitted = [];
           for (const [contractName, contractOutput] of Object.entries(
             output.contracts?.[file.globalName] ?? {}
           )) {
@@ -598,13 +598,16 @@ export default function () {
               pathToBuildInfo
             );
 
-            emittedArtifacts.push(artifact.contractName);
+            artifactsEmitted.push(artifact.contractName);
           }
 
-          emittedArtifactsPerFile.push({ file, emittedArtifacts });
+          artifactsEmittedPerFile.push({
+            file,
+            artifactsEmitted,
+          });
         }
 
-        return { emittedArtifactsPerFile };
+        return { artifactsEmittedPerFile };
       }
     );
 
@@ -654,22 +657,22 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END)
     .addParam("compilationJob", undefined, undefined, types.any)
-    .addParam("emittedArtifactsPerFile", undefined, undefined, types.any)
+    .addParam("artifactsEmittedPerFile", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async ({
-        emittedArtifactsPerFile,
+        artifactsEmittedPerFile,
         quiet,
       }: {
         compilationJob: CompilationJob;
-        emittedArtifactsPerFile: ArtifactsEmittedPerFile;
+        artifactsEmittedPerFile: ArtifactsEmittedPerFile;
         quiet: boolean;
       }) => {
         if (quiet) {
           return;
         }
 
-        const numberOfContracts = emittedArtifactsPerFile.length;
+        const numberOfContracts = artifactsEmittedPerFile.length;
         console.log(
           "Compiled",
           numberOfContracts,
@@ -696,7 +699,7 @@ export default function () {
           quiet: boolean;
         },
         { run }
-      ): Promise<{ emittedArtifactsPerFile: ArtifactsEmittedPerFile }> => {
+      ): Promise<{ artifactsEmittedPerFile: ArtifactsEmittedPerFile }> => {
         log(
           `Compiling job with version '${
             compilationJob.getSolcConfig().version
@@ -721,7 +724,7 @@ export default function () {
 
         await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
 
-        const { emittedArtifactsPerFile } = await run(
+        const { artifactsEmittedPerFile } = await run(
           TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
           {
             compilationJob,
@@ -732,11 +735,11 @@ export default function () {
 
         await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END, {
           compilationJob,
-          emittedArtifactsPerFile,
+          artifactsEmittedPerFile,
           quiet,
         });
 
-        return { emittedArtifactsPerFile };
+        return { artifactsEmittedPerFile };
       }
     );
 
@@ -917,8 +920,8 @@ ${other.map((x) => `* ${x}`).join("\n")}
         );
 
         const {
-          emittedArtifactsPerJob,
-        }: { emittedArtifactsPerJob: ArtifactsEmittedPerJob } = await run(
+          artifactsEmittedPerJob,
+        }: { artifactsEmittedPerJob: ArtifactsEmittedPerJob } = await run(
           TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
           {
             compilationJobs: mergedCompilationJobs,
@@ -929,24 +932,24 @@ ${other.map((x) => `* ${x}`).join("\n")}
         // update cache using the information about the emitted artifacts
         for (const {
           compilationJob: compilationJob,
-          emittedArtifactsPerFile,
-        } of emittedArtifactsPerJob) {
-          for (const { file, emittedArtifacts } of emittedArtifactsPerFile) {
+          artifactsEmittedPerFile: artifactsEmittedPerFile,
+        } of artifactsEmittedPerJob) {
+          for (const { file, artifactsEmitted } of artifactsEmittedPerFile) {
             solidityFilesCache.addFile(file.absolutePath, {
               lastModificationDate: file.lastModificationDate.valueOf(),
               globalName: file.globalName,
               solcConfig: compilationJob.getSolcConfig(),
               imports: file.content.imports,
               versionPragmas: file.content.versionPragmas,
-              artifacts: emittedArtifacts,
+              artifacts: artifactsEmitted,
             });
           }
         }
 
-        const allEmittedArtifactsPerFile = solidityFilesCache.getEntries();
+        const allArtifactsEmittedPerFile = solidityFilesCache.getEntries();
 
         const artifacts = new Artifacts(config.paths.artifacts);
-        await artifacts.removeObsoleteArtifacts(allEmittedArtifactsPerFile);
+        await artifacts.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
         await artifacts.removeObsoleteBuildInfos();
 
         await solidityFilesCache.writeToFile(solidityFilesCachePath);
@@ -1003,16 +1006,16 @@ async function invalidateCacheMissingArtifacts(
       continue;
     }
 
-    const { artifacts: emittedArtifacts } = cacheEntry;
+    const { artifacts: artifactsEmitted } = cacheEntry;
 
-    for (const emittedArtifact of emittedArtifacts) {
+    for (const artifactEmitted of artifactsEmitted) {
       const artifactExists = await artifacts.artifactExists(
         file.globalName,
-        emittedArtifact
+        artifactEmitted
       );
       if (!artifactExists) {
         log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
+          `Invalidate cache for '${file.absolutePath}' because artifact '${artifactEmitted}' doesn't exist`
         );
         solidityFilesCache.removeEntry(file.absolutePath);
         break;
