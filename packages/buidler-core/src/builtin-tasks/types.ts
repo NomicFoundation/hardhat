@@ -36,9 +36,9 @@ export interface CompilationJobsCreationResult {
   errors: CompilationJobsCreationErrors;
 }
 
-export interface CompilationJobsCreationErrors {
-  [compilationJobCreationError: string]: string[];
-}
+export type CompilationJobsCreationErrors = {
+  [error in CompilationJobCreationError]?: string[];
+};
 
 export enum CompilationJobCreationError {
   OTHER_ERROR = "other",

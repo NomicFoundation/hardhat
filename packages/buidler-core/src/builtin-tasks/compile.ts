@@ -23,7 +23,7 @@ import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
-import { unsafeObjectEntries } from "../internal/util/unsafe";
+import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
 import { SolcInput } from "../types";
 
 import {
@@ -248,11 +248,14 @@ export default function () {
             acc.jobs = acc.jobs.concat(jobs);
             for (const [code, files] of unsafeObjectEntries(errors)) {
               acc.errors[code] = acc.errors[code] ?? [];
-              acc.errors[code] = acc.errors[code].concat(files);
+              acc.errors[code] = acc.errors[code]!.concat(files!);
             }
             return acc;
           },
-          { jobs: [], errors: {} }
+          {
+            jobs: [],
+            errors: {},
+          }
         );
 
         return compilationJobsCreationResult;
@@ -763,7 +766,7 @@ export default function () {
       ) => {
         const hasErrors = unsafeObjectEntries(
           compilationJobsCreationErrors
-        ).some(([, errors]) => errors.length > 0);
+        ).some(([, errors]) => errors!.length > 0);
 
         if (hasErrors) {
           log(`There were errors creating the compilation jobs, throwing`);
@@ -796,7 +799,13 @@ export default function () {
         let importsIncompatibleFile: string[] = [];
         let other: string[] = [];
 
-        for (const [code, files] of Object.entries(errors)) {
+        for (const code of unsafeObjectKeys(errors)) {
+          const files = errors[code];
+
+          if (files === undefined) {
+            continue;
+          }
+
           if (
             code ===
             CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND

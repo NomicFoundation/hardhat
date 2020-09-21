@@ -152,7 +152,7 @@ export async function createCompilationJobsFromConnectedComponent(
         `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrError}'`
       );
       errors[compilationJobOrError] = errors[compilationJobOrError] ?? [];
-      errors[compilationJobOrError].push(file.globalName);
+      errors[compilationJobOrError]!.push(file.globalName);
       continue;
     }
 
