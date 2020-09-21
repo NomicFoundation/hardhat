@@ -308,38 +308,49 @@ export function getValidationErrors(config: any): string[] {
         );
       }
 
-      if (buidlerNetwork.accounts !== undefined) {
-        if (Array.isArray(buidlerNetwork.accounts)) {
-          for (const account of buidlerNetwork.accounts) {
-            if (typeof account.privateKey !== "string") {
-              errors.push(
-                getErrorMessage(
-                  `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].privateKey`,
-                  account.privateKey,
-                  "string"
-                )
-              );
-            }
-
-            if (typeof account.balance !== "string") {
-              errors.push(
-                getErrorMessage(
-                  `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].balance`,
-                  account.balance,
-                  "string"
-                )
-              );
-            }
+      if (Array.isArray(buidlerNetwork.accounts)) {
+        for (const account of buidlerNetwork.accounts) {
+          if (typeof account.privateKey !== "string") {
+            errors.push(
+              getErrorMessage(
+                `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].privateKey`,
+                account.privateKey,
+                "string"
+              )
+            );
           }
-        } else {
+
+          if (typeof account.balance !== "string") {
+            errors.push(
+              getErrorMessage(
+                `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].balance`,
+                account.balance,
+                "string"
+              )
+            );
+          }
+        }
+      } else if (typeof buidlerNetwork.accounts === "object") {
+        const hdConfigResult = BuidlerNetworkHDAccountsConfig.decode(
+          buidlerNetwork.accounts
+        );
+        if (hdConfigResult.isLeft()) {
           errors.push(
             getErrorMessage(
               `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
               buidlerNetwork.accounts,
-              "[{privateKey: string, balance: string}] | undefined"
+              "[{privateKey: string, balance: string}] | BuidlerNetworkHDAccountsConfig | undefined"
             )
           );
         }
+      } else if (buidlerNetwork.accounts !== undefined) {
+        errors.push(
+          getErrorMessage(
+            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
+            buidlerNetwork.accounts,
+            "[{privateKey: string, balance: string}] | BuidlerNetworkHDAccountsConfig | undefined"
+          )
+        );
       }
     }
 
