@@ -1,5 +1,26 @@
-import { ResolvedFile } from "../internal/solidity/resolver";
 import { SolcConfig } from "../types";
+
+export interface LibraryInfo {
+  name: string;
+  version: string;
+}
+
+export interface FileContent {
+  rawContent: string;
+  imports: string[];
+  versionPragmas: string[];
+}
+
+export interface ResolvedFile {
+  library?: LibraryInfo;
+  globalName: string;
+  absolutePath: string;
+  content: FileContent;
+  // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
+  // properties (e.g. its name) are changed, only when it's content changes.
+  lastModificationDate: Date;
+  getVersionedName(): string;
+}
 
 /**
  * A CompilationJob includes all the necessary information to generate artifacts

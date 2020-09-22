@@ -67,7 +67,7 @@ import {
 } from "./utils/solidity-files-cache";
 
 type ArtifactsEmittedPerFile = Array<{
-  file: ResolvedFile;
+  file: taskTypes.ResolvedFile;
   artifactsEmitted: string[];
 }>;
 
@@ -189,7 +189,7 @@ export default function () {
           file,
         }: {
           dependencyGraph: taskTypes.DependencyGraph;
-          file: ResolvedFile;
+          file: taskTypes.ResolvedFile;
           solidityFilesCache?: SolidityFilesCache;
         },
         { config }
@@ -233,7 +233,7 @@ export default function () {
           connectedComponents.map((graph) =>
             createCompilationJobsFromConnectedComponent(
               graph,
-              (file: ResolvedFile) =>
+              (file: taskTypes.ResolvedFile) =>
                 run(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE, {
                   file,
                   dependencyGraph,
