@@ -300,7 +300,7 @@ export class SolidityError extends Error {
 
 class SolidityCallSite implements NodeJS.CallSite {
   constructor(
-    private _fileSourceName: string | undefined,
+    private _sourceName: string | undefined,
     private _contract: string,
     private _functionName: string | undefined,
     private _line: number | undefined
@@ -315,9 +315,7 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getFileName() {
-    return this._fileSourceName !== undefined
-      ? this._fileSourceName
-      : "unknown";
+    return this._sourceName ?? "unknown";
   }
 
   public getFunction() {

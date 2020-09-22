@@ -1,6 +1,6 @@
 export interface CompilerInput {
   language: "Solidity";
-  sources: { [fileSourceName: string]: { content: string } };
+  sources: { [sourceName: string]: { content: string } };
   settings: {
     optimizer: { runs: number; enabled: boolean };
     outputSelection: {
@@ -45,7 +45,7 @@ export interface CompilerOutputBytecode {
   opcodes: string;
   sourceMap: string;
   linkReferences: {
-    [libraryFileSourceName: string]: {
+    [sourceName: string]: {
       [libraryName: string]: Array<{ start: 0; length: 20 }>;
     };
   };
