@@ -17,11 +17,11 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 
   const filesMap: ResolvedFilesMap = {};
   const resolvedFiles = dependenciesGraph.getResolvedFiles();
-  resolvedFiles.forEach((f) => (filesMap[f.globalName] = f));
+  resolvedFiles.forEach((f) => (filesMap[f.sourceName] = f));
 
   for (const [from, deps] of dependenciesGraph.entries()) {
     for (const to of deps) {
-      graph.add(to.globalName, from.globalName);
+      graph.add(to.sourceName, from.sourceName);
     }
   }
 
@@ -31,7 +31,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     // If an entry has no dependency it won't be included in the graph, so we
     // add them and then dedup the array
     const withEntries = topologicalSortedNames.concat(
-      resolvedFiles.map((f) => f.globalName)
+      resolvedFiles.map((f) => f.sourceName)
     );
 
     const sortedNames = [...new Set(withEntries)];

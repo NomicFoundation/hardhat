@@ -166,7 +166,7 @@ function encodeStackTraceEntry(
 
     case StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY:
       return new SolidityCallSite(
-        stackTraceEntry.sourceReference.file.globalName,
+        stackTraceEntry.sourceReference.file.sourceName,
         stackTraceEntry.sourceReference.contract,
         `internal@${stackTraceEntry.pc}`,
         undefined
@@ -190,7 +190,7 @@ function sourceReferenceToSolidityCallsite(
   sourceReference: SourceReference
 ): SolidityCallSite {
   return new SolidityCallSite(
-    sourceReference.file.globalName,
+    sourceReference.file.sourceName,
     sourceReference.contract,
     sourceReference.function !== undefined
       ? sourceReference.function
@@ -300,7 +300,7 @@ export class SolidityError extends Error {
 
 class SolidityCallSite implements NodeJS.CallSite {
   constructor(
-    private _fileGlobalName: string | undefined,
+    private _sourceName: string | undefined,
     private _contract: string,
     private _functionName: string | undefined,
     private _line: number | undefined
@@ -315,9 +315,7 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getFileName() {
-    return this._fileGlobalName !== undefined
-      ? this._fileGlobalName
-      : "unknown";
+    return this._sourceName ?? "unknown";
   }
 
   public getFunction() {

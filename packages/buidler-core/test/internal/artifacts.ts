@@ -242,7 +242,7 @@ describe("Artifacts utils", function () {
       }
     });
 
-    it("Should find the right artifact even if the global name has slashes", async function () {
+    it("Should find the right artifact even if the source name has slashes", async function () {
       const output = COMPILER_OUTPUTS.Lib;
       const name = "Lib";
 
@@ -256,7 +256,7 @@ describe("Artifacts utils", function () {
       assert.deepEqual(storedArtifact, artifact);
     });
 
-    it("Should find the right artifact even if the global name is different", async function () {
+    it("Should find the right artifact even if the source name is different", async function () {
       const output = COMPILER_OUTPUTS.Lib;
       const name = "Lib";
 

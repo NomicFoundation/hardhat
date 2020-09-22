@@ -126,7 +126,7 @@ export async function compareBytecode(
 }
 
 interface ResolvedLinks {
-  [libraryFileGlobalName: string]: {
+  [sourceName: string]: {
     [libraryName: string]: string;
   };
 }
@@ -230,7 +230,7 @@ export function zeroOutSlices(
 
 export interface CompilerInput {
   language: "Solidity";
-  sources: { [fileGlobalName: string]: { content: string } };
+  sources: { [sourceName: string]: { content: string } };
   settings: {
     optimizer: { runs: number; enabled: boolean };
     evmVersion?: string;
@@ -240,7 +240,7 @@ export interface CompilerInput {
 
 export interface CompilerOutput {
   contracts: {
-    [globalName: string]: {
+    [sourceName: string]: {
       [contractName: string]: {
         abi: any;
         evm: {
@@ -255,7 +255,7 @@ export interface CompilerOutput {
 export interface CompilerOutputBytecode {
   object: string;
   linkReferences: {
-    [libraryFileGlobalName: string]: {
+    [sourceName: string]: {
       [libraryName: string]: Array<{ start: number; length: 20 }>;
     };
   };

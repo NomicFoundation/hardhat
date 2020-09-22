@@ -12,19 +12,19 @@ describe("compiler-input module", function () {
       enabled: false,
     };
 
-    const globalName1 = "the/global/name.sol";
+    const sourceName1 = "the/source/name.sol";
     const path1 = "/fake/absolute/path";
     const content1 = "THE CONTENT1";
 
-    const globalName2 = "the/global/name2.sol";
+    const sourceName2 = "the/source/name2.sol";
     const path2 = "/fake/absolute/path2";
     const content2 = "THE CONTENT2";
 
     const expectedInput: SolcInput = {
       language: "Solidity",
       sources: {
-        [globalName1]: { content: content1 },
-        [globalName2]: { content: content2 },
+        [sourceName1]: { content: content1 },
+        [sourceName2]: { content: content2 },
       },
       settings: {
         metadata: {
@@ -47,13 +47,13 @@ describe("compiler-input module", function () {
 
     const files = [
       new ResolvedFile(
-        globalName1,
+        sourceName1,
         path1,
         { rawContent: content1, imports: [], versionPragmas: [] },
         new Date()
       ),
       new ResolvedFile(
-        globalName2,
+        sourceName2,
         path2,
         { rawContent: content2, imports: [], versionPragmas: [] },
         new Date()

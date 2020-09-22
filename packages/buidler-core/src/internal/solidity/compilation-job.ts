@@ -33,13 +33,13 @@ export class CompilationJob implements taskTypes.CompilationJob {
   constructor(public solidityConfig: SolcConfig) {}
 
   public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
-    const fileToCompile = this._filesToCompile.get(file.globalName);
+    const fileToCompile = this._filesToCompile.get(file.sourceName);
 
     // if the file doesn't exist, we add it
     // we also add it if emitsArtifacts is true, to override it in case it was
     // previously added but with a false emitsArtifacts
     if (fileToCompile === undefined || emitsArtifacts) {
-      this._filesToCompile.set(file.globalName, { file, emitsArtifacts });
+      this._filesToCompile.set(file.sourceName, { file, emitsArtifacts });
     }
   }
 
@@ -84,11 +84,11 @@ export class CompilationJob implements taskTypes.CompilationJob {
    * If no file is given, check if *some* file in the job emits artifacts.
    */
   public emitsArtifacts(file: ResolvedFile): boolean {
-    const fileToCompile = this._filesToCompile.get(file.globalName);
+    const fileToCompile = this._filesToCompile.get(file.sourceName);
 
     assertBuidlerInvariant(
       fileToCompile !== undefined,
-      `File '${file.globalName}' does not exist in this compilation job`
+      `File '${file.sourceName}' does not exist in this compilation job`
     );
 
     return fileToCompile.emitsArtifacts;
@@ -152,7 +152,7 @@ export async function createCompilationJobsFromConnectedComponent(
         `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrError}'`
       );
       errors[compilationJobOrError] = errors[compilationJobOrError] ?? [];
-      errors[compilationJobOrError]!.push(file.globalName);
+      errors[compilationJobOrError]!.push(file.sourceName);
       continue;
     }
 
@@ -242,7 +242,7 @@ function getCompilerConfigForFile(
 
   const overrides = solidityConfig.overrides ?? {};
 
-  const overriddenCompiler = overrides[file.globalName];
+  const overriddenCompiler = overrides[file.sourceName];
 
   // if there's an override, we only check that
   if (overriddenCompiler !== undefined) {

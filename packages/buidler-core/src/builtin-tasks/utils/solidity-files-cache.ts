@@ -10,7 +10,7 @@ const FORMAT_VERSION = "hh-sol-cache-1";
 
 const CacheEntryCodec = t.type({
   lastModificationDate: t.number,
-  globalName: t.string,
+  sourceName: t.string,
   solcConfig: t.any,
   imports: t.array(t.string),
   versionPragmas: t.array(t.string),
@@ -24,7 +24,7 @@ const CacheCodec = t.type({
 
 export interface CacheEntry {
   lastModificationDate: number;
-  globalName: string;
+  sourceName: string;
   solcConfig: SolcConfig;
   imports: string[];
   versionPragmas: string[];

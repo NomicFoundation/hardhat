@@ -5,9 +5,9 @@ import { DependencyGraph } from "../dependencyGraph";
 export function getInputFromCompilationJob(
   compilationJob: CompilationJob
 ): SolcInput {
-  const sources: { [globalName: string]: { content: string } } = {};
+  const sources: { [sourceName: string]: { content: string } } = {};
   for (const file of compilationJob.getResolvedFiles()) {
-    sources[file.globalName] = {
+    sources[file.sourceName] = {
       content: file.content.rawContent,
     };
   }

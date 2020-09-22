@@ -28,7 +28,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   }
 
   public has(file: ResolvedFile): boolean {
-    return this._resolvedFiles.has(file.globalName);
+    return this._resolvedFiles.has(file.sourceName);
   }
 
   public isEmpty(): boolean {
@@ -43,7 +43,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
   public getDependencies(file: ResolvedFile): ResolvedFile[] {
     const dependencies =
-      this._dependenciesPerFile.get(file.globalName) ?? new Set();
+      this._dependenciesPerFile.get(file.sourceName) ?? new Set();
 
     return [...dependencies];
   }
@@ -63,15 +63,15 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     const undirectedGraph: Record<string, Set<string>> = {};
 
     for (const [
-      globalName,
+      sourceName,
       dependencies,
     ] of this._dependenciesPerFile.entries()) {
-      undirectedGraph[globalName] = undirectedGraph[globalName] ?? new Set();
+      undirectedGraph[sourceName] = undirectedGraph[sourceName] ?? new Set();
       for (const dependency of dependencies) {
-        undirectedGraph[dependency.globalName] =
-          undirectedGraph[dependency.globalName] ?? new Set();
-        undirectedGraph[globalName].add(dependency.globalName);
-        undirectedGraph[dependency.globalName].add(globalName);
+        undirectedGraph[dependency.sourceName] =
+          undirectedGraph[dependency.sourceName] ?? new Set();
+        undirectedGraph[sourceName].add(dependency.sourceName);
+        undirectedGraph[dependency.sourceName].add(sourceName);
       }
     }
 
@@ -106,12 +106,12 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     for (const component of components) {
       const dependencyGraph = new DependencyGraph();
 
-      for (const globalName of component) {
-        const file = this._resolvedFiles.get(globalName)!;
-        const dependencies = this._dependenciesPerFile.get(globalName)!;
+      for (const sourceName of component) {
+        const file = this._resolvedFiles.get(sourceName)!;
+        const dependencies = this._dependenciesPerFile.get(sourceName)!;
 
-        dependencyGraph._resolvedFiles.set(globalName, file);
-        dependencyGraph._dependenciesPerFile.set(globalName, dependencies);
+        dependencyGraph._resolvedFiles.set(sourceName, file);
+        dependencyGraph._dependenciesPerFile.set(sourceName, dependencies);
       }
       connectedComponents.push(dependencyGraph);
     }
@@ -152,8 +152,8 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     this._visitedFiles.add(file.absolutePath);
 
     const dependencies = new Set<ResolvedFile>();
-    this._resolvedFiles.set(file.globalName, file);
-    this._dependenciesPerFile.set(file.globalName, dependencies);
+    this._resolvedFiles.set(file.sourceName, file);
+    this._dependenciesPerFile.set(file.sourceName, dependencies);
 
     for (const imp of file.content.imports) {
       const dependency = await resolver.resolveImport(file, imp);

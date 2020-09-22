@@ -33,8 +33,8 @@ const buildContent = (rawContent: string) => ({
 });
 
 describe("Resolved file", function () {
-  const globalName = "globalName.sol";
-  const absolutePath = "/path/to/file/globalName.sol";
+  const sourceName = "sourceName.sol";
+  const absolutePath = "/path/to/file/sourceName.sol";
   const content = buildContent("the file content");
   const lastModificationDate = new Date();
   const libraryName = "lib";
@@ -45,14 +45,14 @@ describe("Resolved file", function () {
 
   before("init files", function () {
     resolvedFileWithoutLibrary = new ResolvedFile(
-      globalName,
+      sourceName,
       absolutePath,
       content,
       lastModificationDate
     );
 
     resolvedFileWithLibrary = new ResolvedFile(
-      globalName,
+      sourceName,
       absolutePath,
       content,
       lastModificationDate,
@@ -63,7 +63,7 @@ describe("Resolved file", function () {
 
   it("should be constructed correctly without a library", function () {
     assertResolvedFilePartiallyEquals(resolvedFileWithoutLibrary, {
-      globalName,
+      sourceName,
       absolutePath,
       content,
       lastModificationDate,
@@ -73,7 +73,7 @@ describe("Resolved file", function () {
 
   it("Should be constructed correctly with a library", function () {
     assertResolvedFilePartiallyEquals(resolvedFileWithLibrary, {
-      globalName,
+      sourceName,
       absolutePath,
       content,
       lastModificationDate,
@@ -85,14 +85,14 @@ describe("Resolved file", function () {
   });
 
   describe("getVersionedName", function () {
-    it("Should give the global name if the file isn't from a library", function () {
-      assert.equal(resolvedFileWithoutLibrary.getVersionedName(), globalName);
+    it("Should give the source name if the file isn't from a library", function () {
+      assert.equal(resolvedFileWithoutLibrary.getVersionedName(), sourceName);
     });
 
     it("Should add the version if the file is from a library", function () {
       assert.equal(
         resolvedFileWithLibrary.getVersionedName(),
-        `${globalName}@v${libraryVersion}`
+        `${sourceName}@v${libraryVersion}`
       );
     });
   });
@@ -107,7 +107,7 @@ async function assertResolvedFileFromPath(
   const resolved = await resolverPromise;
   const absolutePath = await fsExtra.realpath(filePath);
 
-  assert.equal(resolved.globalName, expectedSourceName);
+  assert.equal(resolved.sourceName, expectedSourceName);
   assert.equal(resolved.absolutePath, absolutePath);
   assert.deepEqual(resolved.library, libraryInfo);
 

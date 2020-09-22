@@ -1,6 +1,6 @@
 export interface CompilerInput {
   language: "Solidity";
-  sources: { [fileGlobalName: string]: { content: string } };
+  sources: { [sourceName: string]: { content: string } };
   settings: {
     optimizer: { runs: number; enabled: boolean };
     outputSelection: {
@@ -16,7 +16,7 @@ export interface CompilerInput {
 export interface CompilerOutput {
   sources: CompilerOutputSources;
   contracts: {
-    [globalName: string]: {
+    [sourceName: string]: {
       [contractName: string]: {
         abi: any;
         evm: {
@@ -37,7 +37,7 @@ export interface CompilerOutputSource {
 }
 
 export interface CompilerOutputSources {
-  [globalName: string]: CompilerOutputSource;
+  [sourceName: string]: CompilerOutputSource;
 }
 
 export interface CompilerOutputBytecode {
@@ -45,7 +45,7 @@ export interface CompilerOutputBytecode {
   opcodes: string;
   sourceMap: string;
   linkReferences: {
-    [libraryFileGlobalName: string]: {
+    [sourceName: string]: {
       [libraryName: string]: Array<{ start: 0; length: 20 }>;
     };
   };

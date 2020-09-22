@@ -7,11 +7,11 @@ import {
 import { ResolvedFile } from "../../../src/internal/solidity/resolver";
 
 function mockCachedFile(
-  globalName: string,
+  sourceName: string,
   other: Partial<CacheEntry> = {}
 ): CacheEntry {
   return {
-    globalName,
+    sourceName,
     lastModificationDate: new Date().valueOf(),
     solcConfig: { version: "0.6.6" },
     imports: [],

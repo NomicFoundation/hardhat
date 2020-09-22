@@ -576,14 +576,14 @@ export default function () {
 
         const artifactsEmittedPerFile: ArtifactsEmittedPerFile = [];
         for (const file of compilationJob.getResolvedFiles()) {
-          log(`Emitting artifacts for file '${file.globalName}'`);
+          log(`Emitting artifacts for file '${file.sourceName}'`);
           if (!compilationJob.emitsArtifacts(file)) {
             continue;
           }
 
           const artifactsEmitted = [];
           for (const [contractName, contractOutput] of Object.entries(
-            output.contracts?.[file.globalName] ?? {}
+            output.contracts?.[file.sourceName] ?? {}
           )) {
             log(`Emitting artifact for contract '${contractName}'`);
 
@@ -596,7 +596,7 @@ export default function () {
             );
 
             await artifacts.saveArtifactFiles(
-              file.globalName,
+              file.sourceName,
               artifact,
               pathToBuildInfo
             );
@@ -946,7 +946,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
           for (const { file, artifactsEmitted } of artifactsEmittedPerFile) {
             solidityFilesCache.addFile(file.absolutePath, {
               lastModificationDate: file.lastModificationDate.valueOf(),
-              globalName: file.globalName,
+              sourceName: file.sourceName,
               solcConfig: compilationJob.getSolcConfig(),
               imports: file.content.imports,
               versionPragmas: file.content.versionPragmas,
@@ -1019,7 +1019,7 @@ async function invalidateCacheMissingArtifacts(
 
     for (const artifactEmitted of artifactsEmitted) {
       const artifactExists = await artifacts.artifactExists(
-        file.globalName,
+        file.sourceName,
         artifactEmitted
       );
       if (!artifactExists) {
