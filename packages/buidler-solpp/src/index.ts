@@ -4,6 +4,7 @@ import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
 import path from "path";
 
+import "./type-extensions";
 import { SolppConfig } from "./types";
 
 export const PROCESSED_CACHE_DIRNAME = "solpp-generated-contracts";

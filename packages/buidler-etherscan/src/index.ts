@@ -6,6 +6,7 @@ import semver from "semver";
 
 import { defaultEtherscanConfig } from "./config";
 import { pluginName } from "./pluginContext";
+import "./type-extensions";
 
 interface VerificationArgs {
   address: string;

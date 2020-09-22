@@ -14,6 +14,7 @@ import debug from "debug";
 const log = debug("buidler:plugin:ganache");
 
 import { GanacheService } from "./ganache-service";
+import "./type-extensions";
 
 ensurePluginLoadedWithUsePlugin();
 

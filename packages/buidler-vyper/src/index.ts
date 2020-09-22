@@ -3,6 +3,7 @@ import { task } from "@nomiclabs/buidler/internal/core/config/config-env";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 
 import { VyperConfig } from "./types";
+import "./type-extensions";
 
 function getConfig(config: ResolvedBuidlerConfig): VyperConfig {
   const defaultConfig = { version: "latest" };

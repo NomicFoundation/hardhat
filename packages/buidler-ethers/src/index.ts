@@ -4,6 +4,7 @@ import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import EthersT from "ethers";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
+import "./type-extensions";
 
 export default function () {
   extendEnvironment((env: BuidlerRuntimeEnvironment) => {

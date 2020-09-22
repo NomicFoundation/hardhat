@@ -25,6 +25,7 @@ import {
 } from "./fixture";
 import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
+import "./type-extensions";
 
 export default function () {
   usePlugin("@nomiclabs/buidler-web3-legacy");
