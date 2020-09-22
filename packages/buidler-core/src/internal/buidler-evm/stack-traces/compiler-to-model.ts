@@ -56,10 +56,10 @@ function createSourcesModelFromAst(
 ) {
   const contractIdToLinearizedBaseContractIds = new Map<number, number[]>();
 
-  for (const [globalName, source] of Object.entries(compilerOutput.sources)) {
+  for (const [sourceName, source] of Object.entries(compilerOutput.sources)) {
     const file = new SourceFile(
-      globalName,
-      compilerInput.sources[globalName].content
+      sourceName,
+      compilerInput.sources[sourceName].content
     );
 
     fileIdToSourceFile.set(source.id, file);
@@ -294,7 +294,7 @@ function decodeBytecodes(
   const bytecodes: Bytecode[] = [];
 
   for (const contract of contractIdToContract.values()) {
-    const contractFile = contract.location.file.globalName;
+    const contractFile = contract.location.file.sourceName;
     const contractEvmOutput =
       compilerOutput.contracts[contractFile][contract.name].evm;
 
@@ -531,7 +531,7 @@ function correctSelectors(
 
     const contract = bytecode.contract;
     const methodIdentifiers =
-      compilerOutput.contracts[contract.location.file.globalName][contract.name]
+      compilerOutput.contracts[contract.location.file.sourceName][contract.name]
         .evm.methodIdentifiers;
 
     for (const [signature, hexSelector] of Object.entries(methodIdentifiers)) {

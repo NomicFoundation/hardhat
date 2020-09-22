@@ -74,16 +74,16 @@ export class Artifacts {
   }
 
   /**
-   * Checks if the artifact that corresponds to the given global name and
+   * Checks if the artifact that corresponds to the given source name and
    * contract name exists.
    */
   public async artifactExists(
-    globalName: string,
+    sourceName: string,
     contractName: string
   ): Promise<boolean> {
     try {
       await this.readArtifact(
-        this._getFullyQualifiedName(globalName, contractName)
+        this._getFullyQualifiedName(sourceName, contractName)
       );
       return true;
     } catch (e) {
@@ -91,10 +91,10 @@ export class Artifacts {
     }
   }
 
-  public artifactExistsSync(globalName: string, contractName: string): boolean {
+  public artifactExistsSync(sourceName: string, contractName: string): boolean {
     try {
       this.readArtifactSync(
-        this._getFullyQualifiedName(globalName, contractName)
+        this._getFullyQualifiedName(sourceName, contractName)
       );
       return true;
     } catch (e) {
@@ -183,17 +183,17 @@ export class Artifacts {
   /**
    * Stores an artifact and its dbg file.
    *
-   * @param globalName the global name of the file that emitted the artifact.
+   * @param sourceName the source name of the file that emitted the artifact.
    * @param artifact the artifact to be stored.
    * @param pathToBuildInfo the relative path to the buildInfo for this artifact
    */
   public async saveArtifactFiles(
-    globalName: string,
+    sourceName: string,
     artifact: Artifact,
     pathToBuildInfo: string
   ) {
     // artifact
-    const fullyQualifiedName = `${globalName}:${artifact.contractName}`;
+    const fullyQualifiedName = `${sourceName}:${artifact.contractName}`;
     const artifactPath = this._getArtifactPathFromFullyQualifiedName(
       fullyQualifiedName
     );
@@ -251,16 +251,16 @@ export class Artifacts {
    */
   public async removeObsoleteArtifacts(
     artifactsEmittedPerFile: Array<{
-      globalName: string;
+      sourceName: string;
       artifacts: string[];
     }>
   ) {
     const validArtifactsPaths = new Set<string>();
 
-    for (const { globalName, artifacts } of artifactsEmittedPerFile) {
+    for (const { sourceName, artifacts } of artifactsEmittedPerFile) {
       for (const artifact of artifacts) {
         validArtifactsPaths.add(
-          this._getArtifactPathSync(globalName, artifact)
+          this._getArtifactPathSync(sourceName, artifact)
         );
       }
     }
@@ -316,19 +316,19 @@ export class Artifacts {
   }
 
   private _getArtifactPathSync(
-    globalName: string,
+    sourceName: string,
     contractName?: string
   ): string {
     if (contractName === undefined) {
-      if (this._isFullyQualified(globalName)) {
-        return this._getArtifactPathFromFullyQualifiedName(globalName);
+      if (this._isFullyQualified(sourceName)) {
+        return this._getArtifactPathFromFullyQualifiedName(sourceName);
       }
 
       const files = this.getArtifactsSync();
-      return this._getArtifactPathFromFiles(globalName, files);
+      return this._getArtifactPathFromFiles(sourceName, files);
     }
 
-    const fullyQualifiedName = `${globalName}:${contractName}`;
+    const fullyQualifiedName = `${sourceName}:${contractName}`;
     const artifactPath = this._getArtifactPathFromFullyQualifiedName(
       fullyQualifiedName
     );
@@ -342,8 +342,8 @@ export class Artifacts {
       parts.length === 2,
       "A fully qualified contract name should have exactly one colon"
     );
-    const [globalName, contractName] = parts;
-    return path.join(this._artifactsPath, globalName, `${contractName}.json`);
+    const [sourceName, contractName] = parts;
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
   private _getArtifactPathFromFiles(name: string, files: string[]): string {
@@ -372,14 +372,14 @@ export class Artifacts {
   }
 
   /**
-   * Returns the FQN of a contract giving its global name of its file and its
+   * Returns the FQN of a contract giving its source name of its file and its
    * contract name.
    */
   private _getFullyQualifiedName(
-    globalName: string,
+    sourceName: string,
     contractName: string
   ): string {
-    return `${globalName}:${contractName}`;
+    return `${sourceName}:${contractName}`;
   }
 
   /**
@@ -390,12 +390,12 @@ export class Artifacts {
    * FQN `contracts/Foo.sol:Bar`
    */
   private _getFullyQualifiedNameFromPath(absolutePath: string): string {
-    const globalName = replaceBackslashes(
+    const sourceName = replaceBackslashes(
       path.relative(this._artifactsPath, path.dirname(absolutePath))
     );
     const contractName = path.basename(absolutePath).replace(".json", "");
 
-    return this._getFullyQualifiedName(globalName, contractName);
+    return this._getFullyQualifiedName(sourceName, contractName);
   }
 
   private _isFullyQualified(name: string) {

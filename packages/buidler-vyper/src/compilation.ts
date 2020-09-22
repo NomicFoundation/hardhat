@@ -70,11 +70,11 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
       await fsExtra.ensureDir(paths.artifacts);
 
       // TODO this might not work on windows, maybe we should use `slash` here
-      const globalName = path.relative(paths.sources, file);
+      const sourceName = path.relative(paths.sources, file);
 
       // TODO-HH what should we do instead of this empty string?
       const artifacts = new Artifacts(paths.artifacts);
-      await artifacts.saveArtifactFiles(globalName, artifact, "");
+      await artifacts.saveArtifactFiles(sourceName, artifact, "");
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");
 

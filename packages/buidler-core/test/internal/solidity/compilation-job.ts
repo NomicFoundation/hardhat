@@ -116,7 +116,7 @@ describe("Compilation jobs", function () {
           {
             ...solcConfig066,
             overrides: {
-              [Foo.globalName]: solc055,
+              [Foo.sourceName]: solc055,
             },
           }
         );
@@ -162,7 +162,7 @@ describe("Compilation jobs", function () {
           {
             ...solcConfig055,
             overrides: {
-              [Foo.globalName]: solc066,
+              [Foo.sourceName]: solc066,
             },
           }
         );
@@ -428,7 +428,7 @@ describe("Compilation jobs", function () {
       assert.lengthOf(jobs, 0);
       assert.sameMembers(
         errors[CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND]!,
-        [Foo.globalName]
+        [Foo.sourceName]
       );
     });
 

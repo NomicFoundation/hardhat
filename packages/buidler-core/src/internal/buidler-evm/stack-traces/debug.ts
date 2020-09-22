@@ -40,7 +40,7 @@ export function printCreateTrace(trace: CreateMessageTrace, depth: number) {
 
   if (trace.bytecode !== undefined) {
     console.log(
-      `${margin} deploying contract: ${trace.bytecode.contract.location.file.globalName}:${trace.bytecode.contract.name}`
+      `${margin} deploying contract: ${trace.bytecode.contract.location.file.sourceName}:${trace.bytecode.contract.name}`
     );
 
     console.log(`${margin} code: ${bufferToHex(trace.code)}`);
@@ -92,7 +92,7 @@ export function printCallTrace(trace: CallMessageTrace, depth: number) {
 
   if (trace.bytecode !== undefined) {
     console.log(
-      `${margin} calling contract: ${trace.bytecode.contract.location.file.globalName}:${trace.bytecode.contract.name}`
+      `${margin} calling contract: ${trace.bytecode.contract.location.file.sourceName}:${trace.bytecode.contract.name}`
     );
   } else {
     console.log(
@@ -132,7 +132,7 @@ function traceSteps(
         let location: string = "";
 
         if (inst.location !== undefined) {
-          location += inst.location.file.globalName;
+          location += inst.location.file.sourceName;
 
           const func = inst.location.getContainingFunction();
           if (func !== undefined) {
@@ -181,7 +181,7 @@ function flattenSourceReference(sourceReference?: SourceReference) {
 
   return {
     ...sourceReference,
-    file: sourceReference.file.globalName,
+    file: sourceReference.file.sourceName,
   };
 }
 

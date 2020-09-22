@@ -12,7 +12,7 @@ import {
 const projectRoot = fs.realpathSync(".");
 
 export class MockFile {
-  public readonly globalName: string;
+  public readonly sourceName: string;
   public readonly absolutePath: string;
 
   constructor(
@@ -20,7 +20,7 @@ export class MockFile {
     public versionPragmas: string[],
     public libraryName?: string
   ) {
-    this.globalName = `contracts/${name}.sol`;
+    this.sourceName = `contracts/${name}.sol`;
     this.absolutePath = path.join(projectRoot, "contracts", `${name}.sol`);
   }
 }
@@ -50,7 +50,7 @@ export async function createMockData(
 
   const resolvedFiles = [...filesMap.keys()].map((mockFile) => {
     const resolvedFile = new ResolvedFile(
-      mockFile.globalName,
+      mockFile.sourceName,
       mockFile.absolutePath,
       {
         rawContent: "mock file",

@@ -16,7 +16,7 @@ import {
 } from "./source-names";
 
 export interface ResolvedFilesMap {
-  [globalName: string]: ResolvedFile;
+  [sourceName: string]: ResolvedFile;
 }
 
 export interface LibraryInfo {
@@ -36,8 +36,7 @@ export class ResolvedFile {
   public readonly library?: LibraryInfo;
 
   constructor(
-    // TODO-HH: Rename this to sourceName. This is what the solidity team uses.
-    public readonly globalName: string,
+    public readonly sourceName: string,
     public readonly absolutePath: string,
     public readonly content: FileContent,
     // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
@@ -46,11 +45,6 @@ export class ResolvedFile {
     libraryName?: string,
     libraryVersion?: string
   ) {
-    this.globalName = globalName;
-    this.absolutePath = absolutePath;
-    this.content = content;
-    this.lastModificationDate = lastModificationDate;
-
     if (libraryName !== undefined && libraryVersion !== undefined) {
       this.library = {
         name: libraryName,
@@ -61,7 +55,7 @@ export class ResolvedFile {
 
   public getVersionedName() {
     return (
-      this.globalName +
+      this.sourceName +
       (this.library !== undefined ? `@v${this.library.version}` : "")
     );
   }
@@ -100,7 +94,7 @@ export class Resolver {
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
       throw new BuidlerError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
-        from: from.globalName,
+        from: from.sourceName,
         imported,
         protocol: scheme,
       });
@@ -108,14 +102,14 @@ export class Resolver {
 
     if (replaceBackslashes(imported) !== imported) {
       throw new BuidlerError(ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH, {
-        from: from.globalName,
+        from: from.sourceName,
         imported,
       });
     }
 
     if (isAbsolutePathSourceName(imported)) {
       throw new BuidlerError(ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH, {
-        from: from.globalName,
+        from: from.sourceName,
         imported,
       });
     }
@@ -153,7 +147,7 @@ export class Resolver {
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
           {
             imported,
-            from: from.globalName,
+            from: from.sourceName,
           },
           error
         );
@@ -169,7 +163,7 @@ export class Resolver {
           ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING,
           {
             imported,
-            from: from.globalName,
+            from: from.sourceName,
           },
           error
         );
@@ -185,7 +179,7 @@ export class Resolver {
           ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED,
           {
             library: error.messageArguments.library,
-            from: from.globalName,
+            from: from.sourceName,
           },
           error
         );
@@ -275,7 +269,7 @@ export class Resolver {
     }
 
     const sourceName = normalizeSourceName(
-      path.join(path.dirname(from.globalName), imported)
+      path.join(path.dirname(from.sourceName), imported)
     );
 
     // If the file with the import is local, and the normalized version
@@ -283,18 +277,18 @@ export class Resolver {
     if (from.library === undefined && sourceName.startsWith("../")) {
       throw new BuidlerError(
         ERRORS.RESOLVER.INVALID_IMPORT_OUTSIDE_OF_PROJECT,
-        { from: from.globalName, imported }
+        { from: from.sourceName, imported }
       );
     }
 
     if (
       from.library !== undefined &&
-      !this._isInsideSameDir(from.globalName, sourceName)
+      !this._isInsideSameDir(from.sourceName, sourceName)
     ) {
       // If the file is being imported from a library, this means that it's
       // trying to reach another one.
       throw new BuidlerError(ERRORS.RESOLVER.ILLEGAL_IMPORT, {
-        from: from.globalName,
+        from: from.sourceName,
         imported,
       });
     }
@@ -390,7 +384,7 @@ export class Resolver {
     imported: string
   ): string {
     const sourceName = normalizeSourceName(
-      path.join(path.dirname(from.globalName), imported)
+      path.join(path.dirname(from.sourceName), imported)
     );
 
     const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);

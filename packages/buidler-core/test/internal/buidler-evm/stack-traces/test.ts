@@ -305,7 +305,7 @@ function compareStackTraces(
       );
 
       assert.equal(
-        actual.sourceReference!.file.globalName,
+        actual.sourceReference!.file.sourceName,
         expected.sourceReference.file,
         `Stack trace of tx ${txIndex} entry ${i} have different file names`
       );

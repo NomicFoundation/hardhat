@@ -37,7 +37,7 @@ export class SourceFile {
   public readonly functions: ContractFunction[] = [];
 
   constructor(
-    public readonly globalName: string,
+    public readonly sourceName: string,
     public readonly content: string
   ) {}
 
