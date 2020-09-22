@@ -34,12 +34,6 @@ if (!BuidlerContext.isCreated()) {
 
   const config = loadConfigAndTasks(buidlerArguments);
 
-  // TODO: This is here for backwards compatibility.
-  // There are very few projects using this.
-  if (buidlerArguments.network === undefined) {
-    buidlerArguments.network = config.defaultNetwork;
-  }
-
   const env = new Environment(
     config,
     buidlerArguments,
