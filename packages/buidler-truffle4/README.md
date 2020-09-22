@@ -43,4 +43,23 @@ Install it, run `npx buidler test` and your Truffle tests should run with no nee
 
 ## TypeScript support
 
-You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-truffle4/src/type-extensions.d.ts"`
+If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+
+``` typescript
+/// <reference types="@nomiclabs/buidler-truffle4" />
+/// <reference types="@nomiclabs/buidler-web3-legacy" />
+```
+
+If you already have this file, just add those lines to it.
+
+
+Then you have to include that file in the `files` array of your `tsconfig.json`:
+
+```json
+{
+  ...
+  "files": [..., "buidler-env.d.ts"]
+}
+```
+
+using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
