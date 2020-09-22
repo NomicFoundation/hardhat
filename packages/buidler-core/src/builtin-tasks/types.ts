@@ -1,16 +1,8 @@
 import { SolcConfig } from "../types";
 
-export interface LibraryInfo {
-  name: string;
-  version: string;
-}
-
-export interface FileContent {
-  rawContent: string;
-  imports: string[];
-  versionPragmas: string[];
-}
-
+/**
+ * A Solidity file.
+ */
 export interface ResolvedFile {
   library?: LibraryInfo;
   globalName: string;
@@ -20,6 +12,24 @@ export interface ResolvedFile {
   // properties (e.g. its name) are changed, only when it's content changes.
   lastModificationDate: Date;
   getVersionedName(): string;
+}
+
+/**
+ * Information about an npm library.
+ */
+export interface LibraryInfo {
+  name: string;
+  version: string;
+}
+
+/**
+ * The content of a Solidity file. Including its raw content, its imports and
+ * version pragma directives.
+ */
+export interface FileContent {
+  rawContent: string;
+  imports: string[];
+  versionPragmas: string[];
 }
 
 /**
