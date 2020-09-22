@@ -85,7 +85,7 @@ This plugin supports TypeScript by following these steps:
 
     Then you have to include that file in the `files` array of your `tsconfig.json`:
 
-    ```json
+    ```
     {
       ...
       "files": [..., "buidler-env.d.ts"]
