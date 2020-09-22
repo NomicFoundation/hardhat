@@ -2,8 +2,8 @@ import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { task } from "@nomiclabs/buidler/internal/core/config/config-env";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 
-import { VyperConfig } from "./types";
 import "./type-extensions";
+import { VyperConfig } from "./types";
 
 function getConfig(config: ResolvedBuidlerConfig): VyperConfig {
   const defaultConfig = { version: "latest" };
