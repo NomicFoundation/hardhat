@@ -4,9 +4,8 @@
     "outDir": "./build-test",
     "rootDirs": ["./test"]
   },
-  "include": ["./test/**/*.ts"],
+  "include": ["./test/**/*.ts", "./src/type-extensions.ts", "./buidler-env.d.ts"],
   "exclude": ["./test/**/buidler.config.ts"],
-  "files": ["./buidler-env.d.ts"],
   "references": [
     {
       "path": "./src"
