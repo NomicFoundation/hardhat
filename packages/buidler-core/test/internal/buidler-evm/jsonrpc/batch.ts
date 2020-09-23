@@ -59,8 +59,43 @@ describe("JsonRpcRequestBatcher", () => {
     });
     /* tslint:enable:no-floating-promises */
 
-    it.skip("handles rejections well", async () => {
-      // TODO
+    it("converts errors to rejections", async () => {
+      const clock = sinon.useFakeTimers();
+      sendMock = sinon
+        .mock()
+        .resolves([new Error("oops"), "0x2", new Error("oh no")]);
+      const promise1 = batcher.send("eth_blockNumber");
+      const promise2 = batcher.send("eth_blockNumber");
+      const promise3 = batcher.send("eth_blockNumber");
+
+      // handle promise rejections
+      promise1.catch(() => {});
+      promise3.catch(() => {});
+
+      await clock.runAllAsync();
+      clock.restore();
+      await assert.isRejected(promise1);
+      await promise2;
+      await assert.isRejected(promise3);
+    });
+
+    it("propagates rejection to all promises", async () => {
+      const clock = sinon.useFakeTimers();
+      sendMock = sinon.mock().rejects(new Error("dang it"));
+      const promise1 = batcher.send("eth_blockNumber");
+      const promise2 = batcher.send("eth_blockNumber");
+      const promise3 = batcher.send("eth_blockNumber");
+
+      // handle promise rejections
+      promise1.catch(() => {});
+      promise2.catch(() => {});
+      promise3.catch(() => {});
+
+      await clock.runAllAsync();
+      clock.restore();
+      await assert.isRejected(promise1);
+      await assert.isRejected(promise2);
+      await assert.isRejected(promise3);
     });
   });
 });

@@ -5,8 +5,7 @@ import sinon from "sinon";
 import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
 import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
 import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
-import { HttpProvider } from "../../../../src/internal/core/providers/http";
-import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
@@ -47,9 +46,9 @@ describe("JsonRpcClient", () => {
 
       describe("eth_blockNumber", () => {
         let response: any;
-        const fakeProvider: HttpProvider = {
+        const fakeProvider = {
           send: () => Promise.resolve(response),
-        } as any;
+        };
 
         it("returns correct values", async () => {
           const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
@@ -271,7 +270,7 @@ describe("JsonRpcClient", () => {
       const fakeProvider = {
         send: sinon.fake.resolves(response1),
       };
-      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
 
       function getStorageAt() {
         return clientWithFakeProvider.getStorageAt(
@@ -297,7 +296,7 @@ describe("JsonRpcClient", () => {
           .onSecondCall()
           .resolves(response2),
       };
-      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
 
       await clientWithFakeProvider.getStorageAt(
         DAI_ADDRESS,
@@ -320,7 +319,6 @@ describe("JsonRpcClient", () => {
 
     it("makes a retry on the 'header not found' error", async () => {
       const fakeProvider = {
-        url: INFURA_URL,
         send: sinon
           .stub()
           .onFirstCall()
@@ -329,7 +327,10 @@ describe("JsonRpcClient", () => {
           .resolves(response),
       };
 
-      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(
+        fakeProvider,
+        INFURA_URL
+      );
       const value = await clientWithFakeProvider.getStorageAt(
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
@@ -341,7 +342,6 @@ describe("JsonRpcClient", () => {
 
     it("does not retry more than once", async () => {
       const fakeProvider = {
-        url: INFURA_URL,
         send: sinon
           .stub()
           .onFirstCall()
@@ -352,7 +352,10 @@ describe("JsonRpcClient", () => {
           .resolves(response),
       };
 
-      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(
+        fakeProvider,
+        INFURA_URL
+      );
       await assert.isRejected(
         clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
@@ -365,7 +368,6 @@ describe("JsonRpcClient", () => {
 
     it("does not retry on a different error", async () => {
       const fakeProvider = {
-        url: INFURA_URL,
         send: sinon
           .stub()
           .onFirstCall()
@@ -374,7 +376,10 @@ describe("JsonRpcClient", () => {
           .resolves(response),
       };
 
-      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(
+        fakeProvider,
+        INFURA_URL
+      );
       await assert.isRejected(
         clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
@@ -387,7 +392,6 @@ describe("JsonRpcClient", () => {
 
     it("does not retry when other RPC provider is used", async () => {
       const fakeProvider = {
-        url: "https://some.other/provider",
         send: sinon
           .stub()
           .onFirstCall()
@@ -396,7 +400,10 @@ describe("JsonRpcClient", () => {
           .resolves(response),
       };
 
-      const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
+      const clientWithFakeProvider = new JsonRpcClient(
+        fakeProvider,
+        "https://some.other/provider"
+      );
       await assert.isRejected(
         clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,

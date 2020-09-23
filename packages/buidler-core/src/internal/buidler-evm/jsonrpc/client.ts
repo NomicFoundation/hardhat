@@ -1,9 +1,10 @@
 import { BN, bufferToHex } from "ethereumjs-util";
 import * as t from "io-ts";
 
-import { HttpProvider } from "../../core/providers/http";
 import { BlockTag, rpcData, rpcQuantity } from "../provider/input";
 
+import { JsonRpcRequestBatcher, JsonRpcSender } from "./batch";
+import { BatchHttpRequestService } from "./http";
 import {
   decode,
   nullable,
@@ -18,12 +19,14 @@ import {
 
 export class JsonRpcClient {
   public static forUrl(url: string) {
-    return new JsonRpcClient(new HttpProvider(url, "external network"));
+    const service = new BatchHttpRequestService(url);
+    const batcher = new JsonRpcRequestBatcher(service);
+    return new JsonRpcClient(batcher, url);
   }
 
   private _cache: Map<string, any> = new Map();
 
-  constructor(private _httpProvider: HttpProvider) {}
+  constructor(private _sender: JsonRpcSender, private _url = "") {}
 
   public async getLatestBlockNumber(): Promise<BN> {
     return this._perform("eth_blockNumber", [], rpcQuantity);
@@ -197,11 +200,11 @@ export class JsonRpcClient {
     isRetryCall = false
   ): Promise<any> {
     try {
-      return await this._httpProvider.send(method, params);
+      return await this._sender.send(method, params);
     } catch (err) {
       if (
         !isRetryCall &&
-        this._httpProvider.url.includes("infura") &&
+        this._url.includes("infura") &&
         err instanceof Error &&
         err.message.includes("header not found")
       ) {

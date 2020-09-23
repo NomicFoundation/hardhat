@@ -1,4 +1,4 @@
-import type { default as nodeFetch } from "node-fetch";
+import { default as nodeFetch } from "node-fetch";
 
 import { BuidlerError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
@@ -21,9 +21,9 @@ export interface HttpRequestService {
 
 export class BatchHttpRequestService implements HttpRequestService {
   constructor(
-    private readonly _fetch: typeof nodeFetch,
     private readonly _url: string,
-    private readonly _timeout: number
+    private readonly _fetch = nodeFetch,
+    private readonly _timeout: number = 20000
   ) {}
 
   public async send(request: JsonRpcRequest[]): Promise<ResultOrError[]> {

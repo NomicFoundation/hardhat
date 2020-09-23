@@ -12,13 +12,17 @@ interface DeferredRequest {
   reject: RejectFunction;
 }
 
-export class JsonRpcRequestBatcher {
+export interface JsonRpcSender {
+  send(method: string, params?: any[]): Promise<any>;
+}
+
+export class JsonRpcRequestBatcher implements JsonRpcSender {
   private _deferredRequests: DeferredRequest[] = [];
   private _nextRequestId = 1;
 
   constructor(
     private readonly _httpService: HttpRequestService,
-    private readonly _batchingTime: number
+    private readonly _batchingTime: number = 0
   ) {}
 
   public send(method: string, params?: any[]): Promise<any> {
