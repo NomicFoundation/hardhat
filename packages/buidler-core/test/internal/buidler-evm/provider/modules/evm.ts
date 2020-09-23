@@ -595,7 +595,10 @@ describe("Evm module", function () {
                 false,
               ]);
             };
-            const clock = sinon.useFakeTimers(Date.now());
+            const clock = sinon.useFakeTimers({
+              now: Date.now(),
+              toFake: ["Date"],
+            });
 
             await this.provider.send("evm_increaseTime", [100]);
             const snapshotBlock = await mineEmptyBlock();
