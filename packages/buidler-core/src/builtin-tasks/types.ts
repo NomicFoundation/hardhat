@@ -5,7 +5,7 @@ import { SolcConfig } from "../types";
  */
 export interface ResolvedFile {
   library?: LibraryInfo;
-  globalName: string;
+  sourceName: string;
   absolutePath: string;
   content: FileContent;
   // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
