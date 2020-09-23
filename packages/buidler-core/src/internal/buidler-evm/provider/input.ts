@@ -6,7 +6,7 @@ import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 
 import { InvalidArgumentsError } from "./errors";
 
-export function optional<TypeT, OutputT>(
+function optional<TypeT, OutputT>(
   codec: t.Type<TypeT, OutputT, unknown>,
   name: string = `${codec.name} | undefined`
 ): t.Type<TypeT | undefined, OutputT | undefined, unknown> {

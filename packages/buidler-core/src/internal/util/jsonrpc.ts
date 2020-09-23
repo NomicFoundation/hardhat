@@ -1,6 +1,5 @@
 import * as t from "io-ts";
 
-import { optional } from "../buidler-evm/provider/input";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
@@ -28,11 +27,15 @@ const failedJsonRpcResponse = t.type(
   {
     jsonrpc: t.literal("2.0"),
     id: t.union([t.number, t.string, t.null]),
-    error: t.type({
-      code: t.number,
-      message: t.string,
-      data: optional(t.unknown),
-    }),
+    error: t.intersection([
+      t.type({
+        code: t.number,
+        message: t.string,
+      }),
+      t.partial({
+        data: t.unknown,
+      }),
+    ]),
   },
   "FailedJsonRpcResponse"
 );

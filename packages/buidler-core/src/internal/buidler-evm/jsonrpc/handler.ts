@@ -106,7 +106,9 @@ export default class JsonRpcHandler {
           rpcReq.method === "eth_subscribe" &&
           isSuccessfulJsonResponse(rpcResp)
         ) {
-          subscriptions.push(rpcResp.result.id);
+          try {
+            subscriptions.push((rpcResp.result as any).id);
+          } catch {}
         }
       } catch (error) {
         rpcResp = _handleError(error);
