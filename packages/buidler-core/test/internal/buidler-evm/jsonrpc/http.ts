@@ -37,7 +37,7 @@ describe("BatchHttpRequestService", () => {
 
   beforeEach(() => {
     const fetch = ((...args: any[]) => fetchMock(args)) as typeof nodeFetch;
-    service = new BatchHttpRequestService(fetch, "https://example.com", 20_000);
+    service = new BatchHttpRequestService("https://example.com", fetch, 20_000);
   });
 
   describe("send", () => {
