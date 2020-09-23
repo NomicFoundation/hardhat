@@ -2,6 +2,11 @@ import fsExtra from "fs-extra";
 import path from "path";
 import resolve from "resolve";
 
+import {
+  FileContent,
+  LibraryInfo,
+  ResolvedFile as IResolvedFile,
+} from "../../builtin-tasks/types";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
@@ -19,28 +24,15 @@ export interface ResolvedFilesMap {
   [sourceName: string]: ResolvedFile;
 }
 
-export interface LibraryInfo {
-  name: string;
-  version: string;
-}
-
-interface FileContent {
-  rawContent: string;
-  imports: string[];
-  versionPragmas: string[];
-}
-
 const NODE_MODULES = "node_modules";
 
-export class ResolvedFile {
+export class ResolvedFile implements IResolvedFile {
   public readonly library?: LibraryInfo;
 
   constructor(
     public readonly sourceName: string,
     public readonly absolutePath: string,
     public readonly content: FileContent,
-    // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
-    // properties (e.g. its name) are changed, only when it's content changes.
     public readonly lastModificationDate: Date,
     libraryName?: string,
     libraryVersion?: string

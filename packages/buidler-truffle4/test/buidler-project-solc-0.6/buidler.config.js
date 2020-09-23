@@ -8,5 +8,5 @@ module.exports = {
       accounts: [],
     },
   },
-  solidity: "0.6.1" ,
+  solidity: "0.6.1",
 };

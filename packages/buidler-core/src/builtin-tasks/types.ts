@@ -1,5 +1,36 @@
-import { ResolvedFile } from "../internal/solidity/resolver";
 import { SolcConfig } from "../types";
+
+/**
+ * A Solidity file.
+ */
+export interface ResolvedFile {
+  library?: LibraryInfo;
+  globalName: string;
+  absolutePath: string;
+  content: FileContent;
+  // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
+  // properties (e.g. its name) are changed, only when it's content changes.
+  lastModificationDate: Date;
+  getVersionedName(): string;
+}
+
+/**
+ * Information about an npm library.
+ */
+export interface LibraryInfo {
+  name: string;
+  version: string;
+}
+
+/**
+ * The content of a Solidity file. Including its raw content, its imports and
+ * version pragma directives.
+ */
+export interface FileContent {
+  rawContent: string;
+  imports: string[];
+  versionPragmas: string[];
+}
 
 /**
  * A CompilationJob includes all the necessary information to generate artifacts
