@@ -302,10 +302,6 @@ export class JsonRpcClient {
   }
 
   private _shouldRetry(isRetryCall: boolean, err: any) {
-    console.log(this._httpProvider.url);
-    if (err instanceof Error && err.message === undefined) {
-      console.log({ err });
-    }
     return (
       !isRetryCall &&
       this._httpProvider.url.includes("infura") &&
