@@ -76,8 +76,8 @@ jobs:
         run: npm install
       - name: Run tests
         env:
-          INFURA_URL: ${{ secrets.WINDOWS__INFURA_URL }}
-          ALCHEMY_URL: ${{ secrets.WINDOWS__ALCHEMY_URL }}
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         run: npm run test
 
   test_macos:
@@ -105,8 +105,8 @@ jobs:
         run: npm install
       - name: Run tests
         env:
-          INFURA_URL: ${{ secrets.MACOS__INFURA_URL }}
-          ALCHEMY_URL: ${{ secrets.MACOS__ALCHEMY_URL }}
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         run: npm run test
 
   test_linux:
@@ -115,16 +115,6 @@ jobs:
     strategy:
       matrix:
         node: [10, 12, 13]
-        include:
-          - node: 10
-            INFURA_URL: LINUX_NODE_10__INFURA_URL
-            ALCHEMY_URL: LINUX_NODE_10__ALCHEMY_URL
-          - node: 12
-            INFURA_URL: LINUX_NODE_12__INFURA_URL
-            ALCHEMY_URL: LINUX_NODE_12__ALCHEMY_URL
-          - node: 13
-            INFURA_URL: LINUX_NODE_13__INFURA_URL
-            ALCHEMY_URL: LINUX_NODE_13__ALCHEMY_URL
     steps:
       - uses: actions/setup-node@v1
         with:
@@ -149,6 +139,6 @@ jobs:
         run: npm install
       - name: Run tests
         env:
-          INFURA_URL: ${{ secrets[matrix.INFURA_URL] }}
-          ALCHEMY_URL: ${{ secrets[matrix.ALCHEMY_URL] }}
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         run: npm run test

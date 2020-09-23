@@ -8,7 +8,7 @@ function getEnv(key: string): string {
   if (variable === undefined) {
     throw new Error(`${key} is not set`);
   }
-  return variable;
+  return variable.trim();
 }
 
 export const INFURA_URL = getEnv("INFURA_URL");

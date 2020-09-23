@@ -70,32 +70,33 @@ export class ForkStateManager implements PStateManager {
     const localBalance = localAccount?.get("balance");
     const localCode = localAccount?.get("code");
 
-    const getNonce = async () => {
-      return localNonce !== undefined
-        ? toBuffer(localNonce)
-        : this._jsonRpcClient.getTransactionCount(
-            address,
-            this._contextBlockNumber
-          );
-    };
+    let nonce: Buffer | BN | undefined =
+      localNonce !== undefined ? toBuffer(localNonce) : undefined;
 
-    const getBalance = async () => {
-      return localBalance !== undefined
-        ? toBuffer(localBalance)
-        : this._jsonRpcClient.getBalance(address, this._contextBlockNumber);
-    };
+    let balance: Buffer | BN | undefined =
+      localBalance !== undefined ? toBuffer(localBalance) : undefined;
 
-    const getCode = async () => {
-      return localCode !== undefined
-        ? toBuffer(localCode)
-        : this._jsonRpcClient.getCode(address, this._contextBlockNumber);
-    };
+    let code: Buffer | undefined =
+      localCode !== undefined ? toBuffer(localCode) : undefined;
 
-    const [nonce, balance, code] = await Promise.all([
-      getNonce(),
-      getBalance(),
-      getCode(),
-    ]);
+    if (balance === undefined || nonce === undefined || code === undefined) {
+      const accountData = await this._jsonRpcClient.getAccountData(
+        address,
+        this._contextBlockNumber
+      );
+
+      if (nonce === undefined) {
+        nonce = accountData.transactionCount;
+      }
+
+      if (balance === undefined) {
+        balance = accountData.balance;
+      }
+
+      if (code === undefined) {
+        code = accountData.code;
+      }
+    }
 
     const codeHash = keccak256(code);
     // We ignore stateRoot since we found that it is not used anywhere of interest to us

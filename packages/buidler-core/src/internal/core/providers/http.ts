@@ -5,6 +5,7 @@ import {
   JsonRpcRequest,
   JsonRpcResponse,
   parseJsonResponse,
+  SuccessfulJsonRpcResponse,
 } from "../../util/jsonrpc";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -53,9 +54,47 @@ export class HttpProvider extends EventEmitter {
     return jsonRpcResponse.result;
   }
 
+  /**
+   * Sends a batch of requests. Fails if any of them fails.
+   */
+  public async sendBatch(
+    batch: Array<{ method: string; params: any[] }>
+  ): Promise<any[]> {
+    // We create the errors here to capture the stack traces at this point,
+    // the async call that follows would probably loose of the stack trace
+    const error: ProviderError = new Error();
+
+    const requests = batch.map((r) =>
+      this._getJsonRpcRequest(r.method, r.params)
+    );
+
+    const jsonRpcResponses = await this._fetchJsonRpcResponse(requests);
+
+    for (const response of jsonRpcResponses) {
+      if (isErrorResponse(response)) {
+        error.message = response.error.message;
+        error.code = response.error.code;
+        error.data = response.error.data;
+        // tslint:disable-next-line only-buidler-error
+        throw error;
+      }
+    }
+
+    // We already know that it has this type, but TS can't infer it.
+    const responses = jsonRpcResponses as SuccessfulJsonRpcResponse[];
+
+    return responses.map((response) => response.result);
+  }
+
   private async _fetchJsonRpcResponse(
     request: JsonRpcRequest
-  ): Promise<JsonRpcResponse> {
+  ): Promise<JsonRpcResponse>;
+  private async _fetchJsonRpcResponse(
+    request: JsonRpcRequest[]
+  ): Promise<JsonRpcResponse[]>;
+  private async _fetchJsonRpcResponse(
+    request: JsonRpcRequest | JsonRpcRequest[]
+  ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
     const { default: fetch } = await import("node-fetch");
 
     try {
