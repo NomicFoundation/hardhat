@@ -39,7 +39,7 @@
     "@ethersproject/abi": "^5.0.2",
     "@ethersproject/address": "^5.0.2",
     "cbor": "^5.0.2",
-    "ethereumjs-abi": "^0.6.8",
+    "fs-extra": "^7.0.1",
     "node-fetch": "^2.6.0",
     "semver": "^6.3.0"
   },
@@ -47,6 +47,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/cbor": "^5.0.1",
     "@types/chai": "^4.2.0",
+    "@types/fs-extra": "^5.1.0",
     "@types/nock": "^9.3.1",
     "@types/node-fetch": "^2.3.7",
     "@types/semver": "^6.0.2",

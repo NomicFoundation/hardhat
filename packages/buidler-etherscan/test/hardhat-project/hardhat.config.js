@@ -8,7 +8,7 @@ module.exports = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
-  solc: {
+  solidity: {
     version: "0.5.15",
   },
   networks: {
