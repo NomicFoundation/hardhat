@@ -74,9 +74,25 @@ that directory in your tests, or [customize your Buidler config](https://buidler
 
 This plugin supports TypeScript by following these steps:
 
-1. Add these to your `tsconfig.json`'s `files` array:
-  * `"node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts"`
-  * `"node_modules/@nomiclabs/buidler-waffle/src/type-extensions.d.ts"`
+1. Create a `buidler-env.d.ts` file like this:
+
+    ``` typescript
+    /// <reference types="@nomiclabs/buidler-waffle" />
+    /// <reference types="@nomiclabs/buidler-ethers" />
+    ```
+
+    If you already have this file, just add those lines to it.
+
+    Then you have to include that file in the `files` array of your `tsconfig.json`:
+
+    ```
+    {
+      ...
+      "files": [..., "buidler-env.d.ts"]
+    }
+    ```
+
+    using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
 
 2. Install these packages: `npm install --save-dev @types/mocha @types/chai`
 

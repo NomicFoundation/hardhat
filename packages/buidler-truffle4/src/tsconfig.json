@@ -7,7 +7,7 @@
   },
   "include": [
     "./**/*.ts",
-    "../node_modules/@nomiclabs/buidler-web3-legacy/src/type-extensions.d.ts"
+    "../buidler-env.d.ts"
   ],
   "exclude": [],
   "references": [

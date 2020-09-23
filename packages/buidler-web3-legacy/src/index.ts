@@ -2,6 +2,7 @@ import { extendEnvironment } from "@nomiclabs/buidler/config";
 import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
 
 import { promisifyWeb3 } from "./pweb3";
+import "./type-extensions";
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";
 
 export default function () {
