@@ -103,7 +103,7 @@ export default function () {
     if (!wasWarningShown) {
       if ((await hasMigrations(paths)) && !hasFixture) {
         console.warn(
-          "Your project has Truffle migrations, which have to be turn into a fixture to run your tests with Hardhat"
+          "Your project has Truffle migrations, which have to be turned into a fixture to run your tests with Hardhat"
         );
 
         wasWarningShown = true;
