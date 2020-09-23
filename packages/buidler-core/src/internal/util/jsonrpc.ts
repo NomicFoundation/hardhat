@@ -8,7 +8,7 @@ export interface JsonRpcRequest {
   id: number | string;
 }
 
-interface SuccessfulJsonRpcResponse {
+export interface SuccessfulJsonRpcResponse {
   jsonrpc: string;
   id: number | string;
   result: any;
@@ -26,15 +26,20 @@ export interface FailedJsonRpcResponse {
 
 export type JsonRpcResponse = SuccessfulJsonRpcResponse | FailedJsonRpcResponse;
 
-export function parseJsonResponse(text: string): JsonRpcResponse {
+export function parseJsonResponse(
+  text: string
+): JsonRpcResponse | JsonRpcResponse[] {
   try {
     const json = JSON.parse(text);
 
-    if (!isValidJsonResponse(json)) {
-      // We are sending the proper error inside the catch part of the statement.
-      // We just need to raise anything here.
-      // tslint:disable-next-line only-buidler-error
-      throw new Error();
+    const responses = Array.isArray(json) ? json : [json];
+    for (const response of responses) {
+      if (!isValidJsonResponse(response)) {
+        // We are sending the proper error inside the catch part of the statement.
+        // We just need to raise anything here.
+        // tslint:disable-next-line only-buidler-error
+        throw new Error();
+      }
     }
 
     return json;

@@ -98,11 +98,40 @@ export class JsonRpcClient {
   }
 
   public async getCode(address: Buffer, blockTag: BlockTag): Promise<Buffer> {
-    return this._perform(
-      "eth_getCode",
-      [bufferToHex(address), blockTagToString(blockTag)],
-      rpcData
+    // This is an ad-hoc optimization, devised by manually observing multiple
+    // execution traces, and noticing that most of the time a call to `getCode`
+    // is followed by one to `getAccountData`.
+    const data = await this.getAccountData(address, blockTag);
+    return data.code;
+  }
+
+  public async getAccountData(
+    address: Buffer,
+    blockTag: BlockTag
+  ): Promise<{ code: Buffer; transactionCount: BN; balance: BN }> {
+    const results = await this._performBatch(
+      {
+        method: "eth_getCode",
+        params: [bufferToHex(address), blockTagToString(blockTag)],
+        tType: rpcData,
+      },
+      {
+        method: "eth_getTransactionCount",
+        params: [bufferToHex(address), blockTagToString(blockTag)],
+        tType: rpcQuantity,
+      },
+      {
+        method: "eth_getBalance",
+        params: [bufferToHex(address), blockTagToString(blockTag)],
+        tType: rpcQuantity,
+      }
     );
+
+    return {
+      code: results[0],
+      transactionCount: results[1],
+      balance: results[2],
+    };
   }
 
   public async getStorageAt(
@@ -181,14 +210,64 @@ export class JsonRpcClient {
     params: any[],
     tType: t.Type<T>
   ): Promise<T> {
-    const key = `${method} ${JSON.stringify(params)}`;
+    const key = this._getCacheKey(method, params);
     if (this._cache.has(key)) {
       return this._cache.get(key);
     }
+
     const result = await this._send(method, params);
     const decoded = decode(result, tType);
     this._cache.set(key, decoded);
     return decoded;
+  }
+
+  private _getCacheKey(method: string, params: any[]) {
+    return `${method} ${JSON.stringify(params)}`;
+  }
+
+  private async _performBatch(
+    ...batch: Array<{ method: string; params: any[]; tType: t.Type<any> }>
+  ): Promise<any[]> {
+    const responses = [];
+    const missingResponseIndexes = [];
+
+    for (let i = 0; i < batch.length; i++) {
+      const entry = batch[i];
+      const key = this._getCacheKey(entry.method, entry.params);
+
+      if (this._cache.has(key)) {
+        responses.push(this._cache.get(key));
+      } else {
+        responses.push(undefined);
+        missingResponseIndexes.push(i);
+      }
+    }
+
+    if (missingResponseIndexes.length === 0) {
+      return responses;
+    }
+
+    const results = await this._sendBatch(
+      missingResponseIndexes.map((i) => ({
+        method: batch[i].method,
+        params: batch[i].params,
+      }))
+    );
+
+    for (let resultIndex = 0; resultIndex < results.length; resultIndex++) {
+      const responseIndex = missingResponseIndexes[resultIndex];
+      const decoded = decode(results[resultIndex], batch[responseIndex].tType);
+
+      responses[responseIndex] = decoded;
+
+      const cacheKey = this._getCacheKey(
+        batch[responseIndex].method,
+        batch[responseIndex].params
+      );
+      this._cache.set(cacheKey, decoded);
+    }
+
+    return responses;
   }
 
   private async _send(
@@ -199,17 +278,36 @@ export class JsonRpcClient {
     try {
       return await this._httpProvider.send(method, params);
     } catch (err) {
-      if (
-        !isRetryCall &&
-        this._httpProvider.url.includes("infura") &&
-        err instanceof Error &&
-        err.message.includes("header not found")
-      ) {
+      if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);
       }
       // tslint:disable-next-line only-buidler-error
       throw err;
     }
+  }
+
+  private async _sendBatch(
+    batch: Array<{ method: string; params: any[] }>,
+    isRetryCall = false
+  ): Promise<any[]> {
+    try {
+      return await this._httpProvider.sendBatch(batch);
+    } catch (err) {
+      if (this._shouldRetry(isRetryCall, err)) {
+        return this._sendBatch(batch, true);
+      }
+      // tslint:disable-next-line only-buidler-error
+      throw err;
+    }
+  }
+
+  private _shouldRetry(isRetryCall: boolean, err: any) {
+    return (
+      !isRetryCall &&
+      this._httpProvider.url.includes("infura") &&
+      err instanceof Error &&
+      err.message.includes("header not found")
+    );
   }
 }
 
