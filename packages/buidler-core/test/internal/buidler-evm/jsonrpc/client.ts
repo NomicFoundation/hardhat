@@ -387,7 +387,7 @@ describe("JsonRpcClient", () => {
 
     it("does not retry when other RPC provider is used", async () => {
       const fakeProvider = {
-        url: ALCHEMY_URL,
+        url: "https://some.other/provider",
         send: sinon
           .stub()
           .onFirstCall()
