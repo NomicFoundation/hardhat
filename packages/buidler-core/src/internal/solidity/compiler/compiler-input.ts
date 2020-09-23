@@ -1,17 +1,18 @@
+import { CompilationJob } from "../../../builtin-tasks/types";
 import { SolcInput, SolcOptimizerConfig } from "../../../types";
 import { DependencyGraph } from "../dependencyGraph";
 
-export function getInputFromDependencyGraph(
-  graph: DependencyGraph,
-  optimizerConfig: SolcOptimizerConfig,
-  evmVersion?: string
+export function getInputFromCompilationJob(
+  compilationJob: CompilationJob
 ): SolcInput {
-  const sources: { [globalName: string]: { content: string } } = {};
-  for (const file of graph.getResolvedFiles()) {
-    sources[file.globalName] = {
-      content: file.content,
+  const sources: { [sourceName: string]: { content: string } } = {};
+  for (const file of compilationJob.getResolvedFiles()) {
+    sources[file.sourceName] = {
+      content: file.content.rawContent,
     };
   }
+
+  const { settings } = compilationJob.getSolcConfig();
 
   const input: SolcInput = {
     language: "Solidity",
@@ -20,7 +21,6 @@ export function getInputFromDependencyGraph(
       metadata: {
         useLiteralContent: true,
       },
-      optimizer: optimizerConfig,
       outputSelection: {
         "*": {
           "*": [
@@ -32,12 +32,9 @@ export function getInputFromDependencyGraph(
           "": ["id", "ast"],
         },
       },
+      ...settings,
     },
   };
-
-  if (evmVersion !== undefined) {
-    input.settings.evmVersion = evmVersion;
-  }
 
   return input;
 }

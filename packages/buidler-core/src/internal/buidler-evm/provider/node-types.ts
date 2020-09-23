@@ -1,7 +1,11 @@
 import { BN } from "ethereumjs-util";
 
 import { ForkConfig } from "../../../types";
-import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
+import {
+  BuildInfo,
+  CompilerInput,
+  CompilerOutput,
+} from "../stack-traces/compiler-types";
 
 import { Block } from "./types/Block";
 
@@ -29,9 +33,7 @@ export interface ForkedNodeConfig extends CommonConfig {
 }
 
 export interface TracingConfig {
-  solcVersion: string;
-  compilerInput: CompilerInput;
-  compilerOutput: CompilerOutput;
+  buildInfos?: BuildInfo[];
 }
 
 export interface GenesisAccount {

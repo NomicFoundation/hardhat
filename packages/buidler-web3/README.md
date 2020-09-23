@@ -52,4 +52,22 @@ Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/
 
 ## TypeScript support
 
-You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts"`
+If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+
+``` typescript
+/// <reference types="@nomiclabs/buidler-web3" />
+```
+
+If you already have this file, just add that line to it.
+
+
+Then you have to include that file in the `files` array of your `tsconfig.json`:
+
+```json
+{
+  ...
+  "files": [..., "buidler-env.d.ts"]
+}
+```
+
+using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.

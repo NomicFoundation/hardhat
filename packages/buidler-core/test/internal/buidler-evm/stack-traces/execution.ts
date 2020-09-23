@@ -9,8 +9,6 @@ import { promisify } from "../../../../src/internal/buidler-evm/provider/utils/p
 import { MessageTrace } from "../../../../src/internal/buidler-evm/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/buidler-evm/stack-traces/vm-tracer";
 
-// These shouldn't be global, but 🤷
-let nonce = 0;
 const senderPrivateKey = Buffer.from(
   "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
   "hex"
@@ -18,9 +16,6 @@ const senderPrivateKey = Buffer.from(
 const senderAddress = privateToAddress(senderPrivateKey);
 
 export async function instantiateVm(): Promise<VM> {
-  // We reset this global here
-  nonce = 0;
-
   const account = new Account({ balance: 1e18 });
 
   const vm = new VM({ activatePrecompiles: true });
@@ -71,7 +66,7 @@ export async function traceTransaction(
     value: 0,
     gasLimit: 4000000, // We assume that 4M is enough,
     gasPrice: 1,
-    nonce: nonce++,
+    nonce: await getNextNonce(vm),
     ...txData,
   });
 
@@ -95,4 +90,9 @@ export async function traceTransaction(
   } finally {
     vmTracer.disableTracing();
   }
+}
+
+async function getNextNonce(vm: VM): Promise<Buffer> {
+  const acc = await vm.pStateManager.getAccount(senderAddress);
+  return acc.nonce;
 }

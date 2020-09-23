@@ -83,11 +83,11 @@ export class BuidlerModule {
     compilerInput: CompilerInput,
     compilerOutput: CompilerOutput
   ): Promise<boolean> {
-    return this._node.addCompilationResult({
+    return this._node.addCompilationResult(
       solcVersion,
       compilerInput,
-      compilerOutput,
-    });
+      compilerOutput
+    );
   }
 
   // buidler_impersonate

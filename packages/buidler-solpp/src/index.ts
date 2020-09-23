@@ -1,9 +1,10 @@
-import { TASK_COMPILE_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { internalTask } from "@nomiclabs/buidler/config";
 import { ResolvedBuidlerConfig } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
 import path from "path";
 
+import "./type-extensions";
 import { SolppConfig } from "./types";
 
 export const PROCESSED_CACHE_DIRNAME = "solpp-generated-contracts";
@@ -63,7 +64,7 @@ export default function () {
   );
 
   internalTask(
-    TASK_COMPILE_GET_SOURCE_PATHS,
+    TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
     async (_, { config, run }, runSuper) => {
       const filePaths: string[] = await runSuper();
       const files = await readFiles(filePaths);

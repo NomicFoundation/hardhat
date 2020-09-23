@@ -24,6 +24,7 @@ import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
+import { CompilerInput, CompilerOutput } from "../stack-traces/compiler-types";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import { MessageTrace } from "../stack-traces/message-trace";
@@ -143,6 +144,7 @@ export class BuidlerNode extends EventEmitter {
       asPStateManager(stateManager),
       blockchain,
       new BN(blockGasLimit),
+
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig
@@ -192,14 +194,21 @@ export class BuidlerNode extends EventEmitter {
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
 
-    if (tracingConfig === undefined) {
+    if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
       return;
     }
 
     try {
-      const bytecodes = createModelsAndDecodeBytecodes(tracingConfig);
-      for (const bytecode of bytecodes) {
-        this._vmTraceDecoder.addBytecode(bytecode);
+      for (const buildInfo of tracingConfig.buildInfos) {
+        const bytecodes = createModelsAndDecodeBytecodes(
+          buildInfo.solcVersion,
+          buildInfo.input,
+          buildInfo.output
+        );
+
+        for (const bytecode of bytecodes) {
+          this._vmTraceDecoder.addBytecode(bytecode);
+        }
       }
     } catch (error) {
       console.warn(
@@ -827,11 +836,17 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async addCompilationResult(
-    tracingConfig: TracingConfig
+    solcVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
   ): Promise<boolean> {
     let bytecodes;
     try {
-      bytecodes = createModelsAndDecodeBytecodes(tracingConfig);
+      bytecodes = createModelsAndDecodeBytecodes(
+        solcVersion,
+        compilerInput,
+        compilerOutput
+      );
     } catch (error) {
       console.warn(
         chalk.yellow(

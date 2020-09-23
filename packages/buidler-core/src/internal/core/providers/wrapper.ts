@@ -1,34 +1,34 @@
-import { IEthereumProvider } from "../../../types";
+import { EIP1193Provider, RequestArguments } from "../../../types";
+import { EventEmitterWrapper } from "../../util/event-emitter";
 
-export function wrapSend(
-  provider: IEthereumProvider,
-  sendWrapper: (method: string, params: any[]) => Promise<any>
-): IEthereumProvider {
-  const cloningSendWrapper = (method: string, params: any[] = []) => {
-    const cloneDeep = require("lodash/cloneDeep");
-    return sendWrapper(method, cloneDeep(params));
-  };
+import { ProviderError } from "./errors";
 
-  return new Proxy(provider, {
-    get(target: IEthereumProvider, p: PropertyKey, receiver: any): any {
-      if (p === "send") {
-        return cloningSendWrapper;
-      }
+export abstract class ProviderWrapper extends EventEmitterWrapper
+  implements EIP1193Provider {
+  constructor(protected readonly _wrappedProvider: EIP1193Provider) {
+    super(_wrappedProvider);
+  }
 
-      const originalValue = Reflect.get(target, p, receiver);
+  public abstract async request(args: RequestArguments): Promise<unknown>;
 
-      if (originalValue instanceof Function) {
-        return (...args: any[]) => {
-          const returned = Reflect.apply(originalValue, target, args);
-          if (returned !== target) {
-            return returned;
-          }
+  protected _getParams<ParamsT extends any[] = any[]>(
+    args: RequestArguments
+  ): ParamsT | [] {
+    const params = args.params;
 
-          return receiver;
-        };
-      }
+    if (params === undefined) {
+      return [];
+    }
 
-      return originalValue;
-    },
-  });
+    if (!Array.isArray(params)) {
+      // -32000	is Invalid input according to https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1474.md#error-codes
+      // tslint:disable-next-line only-buidler-error
+      throw new ProviderError(
+        "Buidler EVM doesn't support JSON-RPC params sent as an object",
+        -32000
+      );
+    }
+
+    return params as ParamsT;
+  }
 }

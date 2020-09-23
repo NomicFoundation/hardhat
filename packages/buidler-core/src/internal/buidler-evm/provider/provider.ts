@@ -5,23 +5,30 @@ import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
-import path from "path";
 import semver from "semver";
 import util from "util";
 
-import {
+import type {
   BoundExperimentalBuidlerEVMMessageTraceHook,
-  EthereumProvider,
+  EIP1193Provider,
+  EthSubscription,
   ForkConfig,
   ProjectPaths,
+  RequestArguments,
 } from "../../../types";
-import { SOLC_INPUT_FILENAME, SOLC_OUTPUT_FILENAME } from "../../constants";
+import { Artifacts } from "../../artifacts";
+import {
+  BuildInfo,
+  CompilerInput,
+  CompilerOutput,
+} from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 
 import {
   BuidlerEVMProviderError,
+  InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
@@ -42,7 +49,7 @@ const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);
 // tslint:disable only-buidler-error
 
 export class BuidlerEVMProvider extends EventEmitter
-  implements EthereumProvider {
+  implements EIP1193Provider {
   private _common?: Common;
   private _node?: BuidlerNode;
   private _ethModule?: EthModule;
@@ -65,7 +72,6 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _genesisAccounts: GenesisAccount[] = [],
-    private readonly _solcVersion?: string,
     private readonly _paths?: ProjectPaths,
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
@@ -76,15 +82,21 @@ export class BuidlerEVMProvider extends EventEmitter
     super();
   }
 
-  public async send(method: string, params: any[] = []): Promise<any> {
+  public async request(args: RequestArguments): Promise<unknown> {
     const release = await this._mutex.acquire();
 
+    if (args.params !== undefined && !Array.isArray(args.params)) {
+      throw new InvalidInputError(
+        "Buidler EVM doesn't support JSON-RPC params sent as an object"
+      );
+    }
+
     try {
-      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(method)) {
-        return await this._sendWithLogging(method, params);
+      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(args.method)) {
+        return await this._sendWithLogging(args.method, args.params);
       }
 
-      return await this._send(method, params);
+      return await this._send(args.method, args.params);
     } finally {
       release();
     }
@@ -266,78 +278,85 @@ export class BuidlerEVMProvider extends EventEmitter
     this._evmModule = new EvmModule(node);
     this._buidlerModule = new BuidlerModule(node, this._reset.bind(this));
 
-    const listener = (payload: { filterId: BN; result: any }) => {
-      this.emit("notifications", {
-        subscription: `0x${payload.filterId.toString(16)}`,
-        result: payload.result,
-      });
-    };
-
-    // Handle eth_subscribe events and proxy them to handler
-    this._node.addListener("ethEvent", listener);
+    this._forwardNodeEvents(node);
   }
 
   private async _makeTracingConfig(): Promise<TracingConfig | undefined> {
-    if (this._solcVersion !== undefined && this._paths !== undefined) {
-      if (semver.lt(this._solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
-        console.warn(
-          chalk.yellow(
-            `Solidity stack traces only work with Solidity version ${FIRST_SOLC_VERSION_SUPPORTED} or higher.`
-          )
-        );
-      } else {
-        let hasCompiledContracts = false;
+    if (this._paths !== undefined) {
+      const buildInfos = [];
 
-        if (await fsExtra.pathExists(this._paths.artifacts)) {
-          const artifactsDir = await fsExtra.readdir(this._paths.artifacts);
-          hasCompiledContracts = artifactsDir.some((f) => f.endsWith(".json"));
-        }
+      const artifacts = new Artifacts(this._paths.artifacts);
+      const buildInfoFiles = await artifacts.getBuildInfoFiles();
 
-        if (hasCompiledContracts) {
-          try {
-            const solcInputPath = path.join(
-              this._paths.cache,
-              SOLC_INPUT_FILENAME
-            );
-            const solcOutputPath = path.join(
-              this._paths.cache,
-              SOLC_OUTPUT_FILENAME
-            );
-
-            const compilerInput = await fsExtra.readJSON(solcInputPath, {
-              encoding: "utf8",
-            });
-
-            const compilerOutput = await fsExtra.readJSON(solcOutputPath, {
-              encoding: "utf8",
-            });
-
-            return {
-              solcVersion: this._solcVersion,
-              compilerInput,
-              compilerOutput,
-            };
-          } catch (error) {
-            console.warn(
-              chalk.yellow(
-                "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
-              )
-            );
-
-            log(
-              "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
-              error
-            );
+      try {
+        for (const buildInfoFile of buildInfoFiles) {
+          const buildInfo = await fsExtra.readJson(buildInfoFile);
+          // TODO-HH: should we show a warning when this condition is false?
+          if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+            buildInfos.push(buildInfo);
           }
         }
+
+        return {
+          buildInfos,
+        };
+      } catch (error) {
+        console.warn(
+          chalk.yellow(
+            "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
+          )
+        );
+
+        log(
+          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
+          error
+        );
       }
     }
   }
 
   private async _reset(forkConfig?: ForkConfig) {
     this._forkConfig = forkConfig;
+    if (this._node !== undefined) {
+      this._stopForwardingNodeEvents(this._node);
+    }
     this._node = undefined;
+
     await this._init();
+  }
+
+  private _forwardNodeEvents(node: BuidlerNode) {
+    node.addListener("ethEvent", this._ethEventListener);
+  }
+
+  private _stopForwardingNodeEvents(node: BuidlerNode) {
+    node.removeListener("ethEvent", this._ethEventListener);
+  }
+
+  private _ethEventListener = (payload: { filterId: BN; result: any }) => {
+    const subscription = `0x${payload.filterId.toString(16)}`;
+    const result = payload.result;
+    this._emitLegacySubscriptionEvent(subscription, result);
+    this._emitEip1193SubscriptionEvent(subscription, result);
+  };
+
+  private _emitLegacySubscriptionEvent(subscription: string, result: any) {
+    this.emit("notifications", {
+      subscription,
+      result,
+    });
+  }
+
+  private _emitEip1193SubscriptionEvent(subscription: string, result: unknown) {
+    const message: EthSubscription = {
+      type: "eth_subscription",
+      data: {
+        subscription,
+        result,
+      },
+    };
+
+    this.emit("message", message);
   }
 
   private _logModuleMessages(): boolean {

@@ -14,6 +14,7 @@ module.exports = {
       ],
     },
   },
+  solidity: "0.5.15",
   unknown: {
     asd: 123,
   },

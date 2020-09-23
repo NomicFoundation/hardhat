@@ -9,11 +9,15 @@ import { TransactionParams } from "../../../../../src/internal/buidler-evm/provi
 import {
   numberToRpcQuantity,
   RpcBlockOutput,
-  RpcLogOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
 } from "../../../../../src/internal/buidler-evm/provider/output";
 import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
+import {
+  EthereumProvider,
+  EthSubscription,
+  ProviderMessage,
+} from "../../../../../src/types";
 import {
   assertInvalidInputError,
   assertNodeBalances,
@@ -2979,19 +2983,60 @@ describe("Eth module", function () {
           return;
         }
 
+        function createFilterResultsGetter(
+          ethereumProvider: EthereumProvider,
+          filter: string
+        ) {
+          const notificationsResults: any[] = [];
+          const notificationsListener = (payload: {
+            subscription: string;
+            result: any;
+          }) => {
+            if (filter === payload.subscription) {
+              notificationsResults.push(payload.result);
+            }
+          };
+
+          ethereumProvider.addListener("notifications", notificationsListener);
+
+          const messageResults: any[] = [];
+          const messageListener = (event: ProviderMessage) => {
+            if (event.type === "eth_subscription") {
+              const subscriptionMessage = event as EthSubscription;
+              if (filter === subscriptionMessage.data.subscription) {
+                messageResults.push(subscriptionMessage.data.result);
+              }
+            }
+          };
+
+          ethereumProvider.addListener("message", messageListener);
+
+          let shouldUnsubscribe = true;
+
+          return () => {
+            if (shouldUnsubscribe) {
+              ethereumProvider.removeListener(
+                "notifications",
+                notificationsListener
+              );
+
+              ethereumProvider.removeListener("message", messageListener);
+              shouldUnsubscribe = false;
+            }
+
+            return {
+              notificationsResults,
+              messageResults,
+            };
+          };
+        }
+
         it("Supports newHeads subscribe", async function () {
-          const heads: any[] = [];
           const filterId = await this.provider.send("eth_subscribe", [
             "newHeads",
           ]);
 
-          const listener = (payload: { subscription: string; result: any }) => {
-            if (filterId === payload.subscription) {
-              heads.push(payload.result);
-            }
-          };
-
-          this.provider.addListener("notifications", listener);
+          const getResults = createFilterResultsGetter(this.provider, filterId);
 
           await this.provider.send("evm_mine", []);
           await this.provider.send("evm_mine", []);
@@ -3001,22 +3046,16 @@ describe("Eth module", function () {
             await this.provider.send("eth_unsubscribe", [filterId])
           );
 
-          assert.lengthOf(heads, 3);
+          assert.lengthOf(getResults().notificationsResults, 3);
+          assert.lengthOf(getResults().messageResults, 3);
         });
 
         it("Supports newPendingTransactions subscribe", async function () {
-          const pendingTransactions: string[] = [];
           const filterId = await this.provider.send("eth_subscribe", [
             "newPendingTransactions",
           ]);
 
-          const listener = (payload: { subscription: string; result: any }) => {
-            if (filterId === payload.subscription) {
-              pendingTransactions.push(payload.result);
-            }
-          };
-
-          this.provider.addListener("notifications", listener);
+          const getResults = createFilterResultsGetter(this.provider, filterId);
 
           const accounts = await this.provider.send("eth_accounts");
           const burnTxParams = {
@@ -3033,7 +3072,8 @@ describe("Eth module", function () {
 
           await this.provider.send("eth_sendTransaction", [burnTxParams]);
 
-          assert.lengthOf(pendingTransactions, 1);
+          assert.lengthOf(getResults().notificationsResults, 1);
+          assert.lengthOf(getResults().messageResults, 1);
         });
 
         it("Supports logs subscribe", async function () {
@@ -3042,7 +3082,6 @@ describe("Eth module", function () {
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
           );
 
-          const logs: RpcLogOutput[] = [];
           const filterId = await this.provider.send("eth_subscribe", [
             "logs",
             {
@@ -3050,13 +3089,7 @@ describe("Eth module", function () {
             },
           ]);
 
-          const listener = (payload: { subscription: string; result: any }) => {
-            if (filterId === payload.subscription) {
-              logs.push(payload.result);
-            }
-          };
-
-          this.provider.addListener("notifications", listener);
+          const getResults = createFilterResultsGetter(this.provider, filterId);
 
           const newState =
             "000000000000000000000000000000000000000000000000000000000000007b";
@@ -3069,7 +3102,8 @@ describe("Eth module", function () {
             },
           ]);
 
-          assert.lengthOf(logs, 1);
+          assert.lengthOf(getResults().notificationsResults, 1);
+          assert.lengthOf(getResults().messageResults, 1);
         });
       });
 

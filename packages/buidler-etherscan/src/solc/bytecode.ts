@@ -126,7 +126,7 @@ export async function compareBytecode(
 }
 
 interface ResolvedLinks {
-  [libraryFileGlobalName: string]: {
+  [sourceName: string]: {
     [libraryName: string]: string;
   };
 }
@@ -230,7 +230,7 @@ export function zeroOutSlices(
 
 export interface CompilerInput {
   language: "Solidity";
-  sources: { [fileGlobalName: string]: { content: string } };
+  sources: { [sourceName: string]: { content: string } };
   settings: {
     optimizer: { runs: number; enabled: boolean };
     evmVersion?: string;
@@ -240,7 +240,7 @@ export interface CompilerInput {
 
 export interface CompilerOutput {
   contracts: {
-    [globalName: string]: {
+    [sourceName: string]: {
       [contractName: string]: {
         abi: any;
         evm: {
@@ -255,7 +255,7 @@ export interface CompilerOutput {
 export interface CompilerOutputBytecode {
   object: string;
   linkReferences: {
-    [libraryFileGlobalName: string]: {
+    [sourceName: string]: {
       [libraryName: string]: Array<{ start: number; length: 20 }>;
     };
   };
@@ -270,15 +270,15 @@ export interface CompilerOutputBytecode {
 // Ideally, we would access the input and output through some sort of artifact.
 export async function compile(taskRun: RunTaskFunction) {
   const {
-    TASK_COMPILE_COMPILE,
-    TASK_COMPILE_GET_COMPILER_INPUT,
+    TASK_COMPILE_SOLIDITY_COMPILE,
+    TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   } = await import("@nomiclabs/buidler/builtin-tasks/task-names");
 
   const compilerInput = (await taskRun(
-    TASK_COMPILE_GET_COMPILER_INPUT
+    TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT
   )) as CompilerInput;
   const compilerOutput = (await taskRun(
-    TASK_COMPILE_COMPILE
+    TASK_COMPILE_SOLIDITY_COMPILE
   )) as CompilerOutput;
   return { compilerInput, compilerOutput };
 }

@@ -4,6 +4,7 @@ import { lazyObject } from "@nomiclabs/buidler/plugins";
 import { buidlerDeployContract, getDeployMockContract } from "./deploy";
 import { getLinkFunction } from "./link";
 import { initializeWaffleMatchers } from "./matchers";
+import "./type-extensions";
 
 export default function () {
   extendEnvironment((bre) => {

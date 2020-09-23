@@ -12,7 +12,5 @@ module.exports = {
       gasMultiplier: 3,
     },
   },
-  solc: {
-    version: "0.4.25",
-  },
+  solidity: "0.4.25",
 };

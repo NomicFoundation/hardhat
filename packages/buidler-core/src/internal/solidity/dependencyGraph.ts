@@ -1,7 +1,8 @@
-import { getImports } from "./imports";
+import * as taskTypes from "../../builtin-tasks/types";
+
 import { ResolvedFile, Resolver } from "./resolver";
 
-export class DependencyGraph {
+export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
     resolvedFiles: ResolvedFile[]
@@ -15,17 +16,129 @@ export class DependencyGraph {
     return graph;
   }
 
-  public readonly dependenciesPerFile = new Map<
-    ResolvedFile,
-    Set<ResolvedFile>
-  >();
+  private _resolvedFiles = new Map<string, ResolvedFile>();
+  private _dependenciesPerFile = new Map<string, Set<ResolvedFile>>();
 
   private readonly _visitedFiles = new Set<string>();
 
   private constructor() {}
 
   public getResolvedFiles(): ResolvedFile[] {
-    return Array.from(this.dependenciesPerFile.keys());
+    return Array.from(this._resolvedFiles.values());
+  }
+
+  public has(file: ResolvedFile): boolean {
+    return this._resolvedFiles.has(file.sourceName);
+  }
+
+  public isEmpty(): boolean {
+    return this._resolvedFiles.size === 0;
+  }
+
+  public entries(): Array<[ResolvedFile, Set<ResolvedFile>]> {
+    return Array.from(
+      this._dependenciesPerFile.entries()
+    ).map(([key, value]) => [this._resolvedFiles.get(key)!, value]);
+  }
+
+  public getDependencies(file: ResolvedFile): ResolvedFile[] {
+    const dependencies =
+      this._dependenciesPerFile.get(file.sourceName) ?? new Set();
+
+    return [...dependencies];
+  }
+
+  public getTransitiveDependencies(file: ResolvedFile): ResolvedFile[] {
+    const visited = new Set<ResolvedFile>();
+
+    const transitiveDependencies = this._getTransitiveDependencies(
+      file,
+      visited
+    );
+
+    return [...transitiveDependencies];
+  }
+
+  public getConnectedComponents(): DependencyGraph[] {
+    const undirectedGraph: Record<string, Set<string>> = {};
+
+    for (const [
+      sourceName,
+      dependencies,
+    ] of this._dependenciesPerFile.entries()) {
+      undirectedGraph[sourceName] = undirectedGraph[sourceName] ?? new Set();
+      for (const dependency of dependencies) {
+        undirectedGraph[dependency.sourceName] =
+          undirectedGraph[dependency.sourceName] ?? new Set();
+        undirectedGraph[sourceName].add(dependency.sourceName);
+        undirectedGraph[dependency.sourceName].add(sourceName);
+      }
+    }
+
+    const components: Array<Set<string>> = [];
+    const visited = new Set<string>();
+
+    for (const node of Object.keys(undirectedGraph)) {
+      if (visited.has(node)) {
+        continue;
+      }
+      visited.add(node);
+      const component = new Set([node]);
+      const stack = [...undirectedGraph[node]];
+      while (stack.length > 0) {
+        const newNode = stack.pop()!;
+        if (visited.has(newNode)) {
+          continue;
+        }
+        visited.add(newNode);
+        component.add(newNode);
+        [...undirectedGraph[newNode]].forEach((adjacent) => {
+          if (!visited.has(adjacent)) {
+            stack.push(adjacent);
+          }
+        });
+      }
+
+      components.push(component);
+    }
+
+    const connectedComponents: DependencyGraph[] = [];
+    for (const component of components) {
+      const dependencyGraph = new DependencyGraph();
+
+      for (const sourceName of component) {
+        const file = this._resolvedFiles.get(sourceName)!;
+        const dependencies = this._dependenciesPerFile.get(sourceName)!;
+
+        dependencyGraph._resolvedFiles.set(sourceName, file);
+        dependencyGraph._dependenciesPerFile.set(sourceName, dependencies);
+      }
+      connectedComponents.push(dependencyGraph);
+    }
+
+    return connectedComponents;
+  }
+
+  private _getTransitiveDependencies(
+    file: ResolvedFile,
+    visited: Set<ResolvedFile>
+  ): Set<ResolvedFile> {
+    if (visited.has(file)) {
+      return new Set();
+    }
+    visited.add(file);
+
+    const directDependencies = this.getDependencies(file);
+    const transitiveDependencies = new Set<ResolvedFile>(directDependencies);
+
+    for (const transitiveDependency of transitiveDependencies) {
+      this._getTransitiveDependencies(
+        transitiveDependency,
+        visited
+      ).forEach((x) => transitiveDependencies.add(x));
+    }
+
+    return transitiveDependencies;
   }
 
   private async _addDependenciesFrom(
@@ -39,11 +152,10 @@ export class DependencyGraph {
     this._visitedFiles.add(file.absolutePath);
 
     const dependencies = new Set<ResolvedFile>();
-    this.dependenciesPerFile.set(file, dependencies);
+    this._resolvedFiles.set(file.sourceName, file);
+    this._dependenciesPerFile.set(file.sourceName, dependencies);
 
-    const imports = getImports(file.content);
-
-    for (const imp of imports) {
+    for (const imp of file.content.imports) {
       const dependency = await resolver.resolveImport(file, imp);
       dependencies.add(dependency);
 

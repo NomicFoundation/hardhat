@@ -8,7 +8,5 @@ module.exports = {
       accounts: [],
     },
   },
-  solc: {
-    version: "0.6.1",
-  },
+  solidity: "0.6.1",
 };
