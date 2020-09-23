@@ -42,12 +42,23 @@ Take a look at the [testing guide](https://buidler.dev/guides/testing) for a tut
 
 ## TypeScript support
 
-This plugin supports TypeScript through a type extensions file `type-extensions.d.ts`. Add it to the `files` field of your `tsconfig.json` file to enable TypeScript support. This plugins depends on the [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) plugin, so you should add that plugin's type extensions file as well, like this:
+If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+
+``` typescript
+/// <reference types="@nomiclabs/buidler-truffle5" />
+/// <reference types="@nomiclabs/buidler-web3" />
+```
+
+If you already have this file, just add those lines to it.
+
+
+Then you have to include that file in the `files` array of your `tsconfig.json`:
 
 ```json
-"files": [
-    "./buidler.config.ts",
-    "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts",
-    "./node_modules/@nomiclabs/buidler-truffle5/src/type-extensions.d.ts"
-  ]
+{
+  ...
+  "files": [..., "buidler-env.d.ts"]
+}
 ```
+
+using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.

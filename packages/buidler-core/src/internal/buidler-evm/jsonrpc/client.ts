@@ -276,7 +276,7 @@ export class JsonRpcClient {
     isRetryCall = false
   ): Promise<any> {
     try {
-      return await this._httpProvider.send(method, params);
+      return await this._httpProvider.request({ method, params });
     } catch (err) {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);

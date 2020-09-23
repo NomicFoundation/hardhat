@@ -6,7 +6,7 @@ import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
 import { getPackageJson } from "../internal/util/packageInfo";
 
 import {
-  TASK_COMPILE_GET_DEPENDENCY_GRAPH,
+  TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
   TASK_FLATTEN,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names";
@@ -17,11 +17,11 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 
   const filesMap: ResolvedFilesMap = {};
   const resolvedFiles = dependenciesGraph.getResolvedFiles();
-  resolvedFiles.forEach((f) => (filesMap[f.globalName] = f));
+  resolvedFiles.forEach((f) => (filesMap[f.sourceName] = f));
 
-  for (const [from, deps] of dependenciesGraph.dependenciesPerFile.entries()) {
+  for (const [from, deps] of dependenciesGraph.entries()) {
     for (const to of deps) {
-      graph.add(to.globalName, from.globalName);
+      graph.add(to.sourceName, from.sourceName);
     }
   }
 
@@ -31,7 +31,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     // If an entry has no dependency it won't be included in the graph, so we
     // add them and then dedup the array
     const withEntries = topologicalSortedNames.concat(
-      resolvedFiles.map((f) => f.globalName)
+      resolvedFiles.map((f) => f.sourceName)
     );
 
     const sortedNames = [...new Set(withEntries)];
@@ -49,7 +49,9 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 function getFileWithoutImports(resolvedFile: ResolvedFile) {
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+).*$/gm;
 
-  return resolvedFile.content.replace(IMPORT_SOLIDITY_REGEX, "").trim();
+  return resolvedFile.content.rawContent
+    .replace(IMPORT_SOLIDITY_REGEX, "")
+    .trim();
 }
 
 export default function () {
@@ -60,7 +62,7 @@ export default function () {
       let flattened = "";
 
       const graph: DependencyGraph = await run(
-        TASK_COMPILE_GET_DEPENDENCY_GRAPH
+        TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH
       );
       if (graph.getResolvedFiles().length === 0) {
         return flattened;

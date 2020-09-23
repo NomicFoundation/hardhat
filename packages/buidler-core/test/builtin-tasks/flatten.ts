@@ -11,7 +11,7 @@ function getContractsOrder(flattenedFiles: string) {
   return matches!.map((m: string) => m.replace("contract", "").trim());
 }
 
-describe("Flatten task", () => {
+describe.skip("Flatten task", () => {
   useEnvironment();
 
   describe("When there no contracts", function () {

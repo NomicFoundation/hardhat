@@ -101,6 +101,8 @@ interface DeployedContract {
   address: Buffer;
 }
 
+const TEST_TIMEOUT_MILLIS = 35000;
+
 function defineTest(
   dirPath: string,
   testDefinition: TestDefinition,
@@ -117,7 +119,9 @@ function defineTest(
     testDefinition.solc !== undefined &&
     !semver.satisfies(compilerOptions.solidityVersion, testDefinition.solc);
 
-  const func = async function () {
+  const func = async function (this: Mocha.Context) {
+    this.timeout(TEST_TIMEOUT_MILLIS);
+
     await runTest(dirPath, testDefinition, sources, {
       ...compilerOptions,
       runs,
@@ -301,7 +305,7 @@ function compareStackTraces(
       );
 
       assert.equal(
-        actual.sourceReference!.file.globalName,
+        actual.sourceReference!.file.sourceName,
         expected.sourceReference.file,
         `Stack trace of tx ${txIndex} entry ${i} have different file names`
       );
@@ -357,11 +361,11 @@ async function runTest(
     compilerOptions
   );
 
-  const bytecodes = createModelsAndDecodeBytecodes({
-    solcVersion: compilerOptions.solidityVersion,
+  const bytecodes = createModelsAndDecodeBytecodes(
+    compilerOptions.solidityVersion,
     compilerInput,
-    compilerOutput,
-  });
+    compilerOutput
+  );
 
   const contractsIdentifier = new ContractsIdentifier();
 

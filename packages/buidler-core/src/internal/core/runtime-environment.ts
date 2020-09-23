@@ -79,7 +79,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
       return createProvider(
         networkName,
         networkConfig,
-        config.solc.version,
         config.paths,
         experimentalBuidlerEVMMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
@@ -316,10 +315,6 @@ export class Environment implements BuidlerRuntimeEnvironment {
     argumentValue: any
   ) {
     const { name: paramName, type, isVariadic } = paramDefinition;
-    if (type === undefined || type.validate === undefined) {
-      // no type or no validate() method defined, just skip validation.
-      return;
-    }
 
     // in case of variadic param, argValue is an array and the type validation must pass for all values.
     // otherwise, it's a single value that is to be validated

@@ -1,4 +1,4 @@
-import { readArtifact } from "@nomiclabs/buidler/plugins";
+import { Artifacts } from "@nomiclabs/buidler/plugins";
 import {
   BuidlerRuntimeEnvironment,
   NetworkConfig,
@@ -52,7 +52,8 @@ export async function getContractFactoryByName(
   name: string,
   signer?: ethers.Signer
 ) {
-  const artifact = await readArtifact(bre.config.paths.artifacts, name);
+  const artifacts = new Artifacts(bre.config.paths.artifacts);
+  const artifact = await artifacts.readArtifact(name);
   return getContractFactoryByAbiAndBytecode(
     bre,
     artifact.abi,

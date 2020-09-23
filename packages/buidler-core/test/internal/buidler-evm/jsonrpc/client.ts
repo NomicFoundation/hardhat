@@ -18,6 +18,10 @@ import {
 } from "../helpers/constants";
 import { FORKED_PROVIDERS } from "../helpers/providers";
 
+type FakeProvider = Pick<HttpProvider, "url" | "sendBatch"> & {
+  request: sinon.SinonStub | HttpProvider["request"];
+};
+
 describe("JsonRpcClient", () => {
   FORKED_PROVIDERS.forEach(({ rpcProvider, jsonRpcUrl }) => {
     describe(`Using ${rpcProvider}`, () => {
@@ -25,6 +29,8 @@ describe("JsonRpcClient", () => {
 
       before(function () {
         if (process.env.CI === "true" && rpcProvider === "Alchemy") {
+          // We skip this Alchemy tests in the CI because it normally hits a
+          // rate limit, and we don't handle those yet
           this.skip();
         }
       });
@@ -47,19 +53,21 @@ describe("JsonRpcClient", () => {
 
       describe("eth_blockNumber", () => {
         let response: any;
-        const fakeProvider: HttpProvider = {
-          send: () => Promise.resolve(response),
-        } as any;
+        const fakeProvider: FakeProvider = {
+          request: () => Promise.resolve(response),
+          url: "fake",
+          sendBatch: () => Promise.resolve([]),
+        };
 
         it("returns correct values", async () => {
-          const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
+          const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
           response = "0x1";
           const result = await clientWithFakeProvider.getLatestBlockNumber();
           assert.isTrue(result.eqn(1));
         });
 
         it("validates the response", async () => {
-          const clientWithFakeProvider = new JsonRpcClient(fakeProvider);
+          const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
           response = "foo";
           await assert.isRejected(
             clientWithFakeProvider.getLatestBlockNumber(),
@@ -268,8 +276,10 @@ describe("JsonRpcClient", () => {
       "0x00000000000000000000000000000000000000000067bafa8fb7228f04ffa793";
 
     it("caches fetched data", async () => {
-      const fakeProvider = {
-        send: sinon.fake.resolves(response1),
+      const fakeProvider: FakeProvider = {
+        request: sinon.fake.resolves(response1),
+        url: "fake",
+        sendBatch: () => Promise.resolve([]),
       };
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
 
@@ -284,18 +294,20 @@ describe("JsonRpcClient", () => {
       await getStorageAt();
       const value = await getStorageAt();
 
-      assert.isTrue(fakeProvider.send.calledOnce);
+      assert.isTrue((fakeProvider.request as sinon.SinonStub).calledOnce);
       assert.isTrue(value.equals(toBuffer(response1)));
     });
 
     it("is parameter aware", async () => {
-      const fakeProvider = {
-        send: sinon
+      const fakeProvider: FakeProvider = {
+        request: sinon
           .stub()
           .onFirstCall()
           .resolves(response1)
           .onSecondCall()
           .resolves(response2),
+        url: "fake",
+        sendBatch: () => Promise.resolve([]),
       };
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
 
@@ -309,24 +321,31 @@ describe("JsonRpcClient", () => {
         toBuffer([2]),
         "latest"
       );
-      assert.isTrue(fakeProvider.send.calledTwice);
+      assert.isTrue((fakeProvider.request as sinon.SinonStub).calledTwice);
       assert.isTrue(value.equals(toBuffer(response2)));
     });
   });
 
   describe("Retry on Infura's error", () => {
+    before(function () {
+      if (INFURA_URL === undefined) {
+        this.skip();
+      }
+    });
+
     const response =
       "0x00000000000000000000000000000000000000000067bafa8fb7228f04ffa792";
 
     it("makes a retry on the 'header not found' error", async () => {
-      const fakeProvider = {
-        url: INFURA_URL,
-        send: sinon
+      const fakeProvider: FakeProvider = {
+        url: INFURA_URL!,
+        request: sinon
           .stub()
           .onFirstCall()
           .rejects(new Error("header not found"))
           .onSecondCall()
           .resolves(response),
+        sendBatch: () => Promise.resolve([]),
       };
 
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
@@ -335,14 +354,14 @@ describe("JsonRpcClient", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
         "latest"
       );
-      assert.isTrue(fakeProvider.send.calledTwice);
+      assert.isTrue((fakeProvider.request as sinon.SinonStub).calledTwice);
       assert.isTrue(value.equals(toBuffer(response)));
     });
 
     it("does not retry more than once", async () => {
-      const fakeProvider = {
-        url: INFURA_URL,
-        send: sinon
+      const fakeProvider: FakeProvider = {
+        url: INFURA_URL!,
+        request: sinon
           .stub()
           .onFirstCall()
           .rejects(new Error("header not found"))
@@ -350,6 +369,7 @@ describe("JsonRpcClient", () => {
           .rejects(new Error("header not found"))
           .onThirdCall()
           .resolves(response),
+        sendBatch: () => Promise.resolve([]),
       };
 
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
@@ -364,14 +384,15 @@ describe("JsonRpcClient", () => {
     });
 
     it("does not retry on a different error", async () => {
-      const fakeProvider = {
-        url: INFURA_URL,
-        send: sinon
+      const fakeProvider: FakeProvider = {
+        url: INFURA_URL!,
+        request: sinon
           .stub()
           .onFirstCall()
           .rejects(new Error("different error"))
           .onSecondCall()
           .resolves(response),
+        sendBatch: () => Promise.resolve([]),
       };
 
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);
@@ -386,14 +407,15 @@ describe("JsonRpcClient", () => {
     });
 
     it("does not retry when other RPC provider is used", async () => {
-      const fakeProvider = {
-        url: ALCHEMY_URL,
-        send: sinon
+      const fakeProvider: FakeProvider = {
+        url: ALCHEMY_URL!,
+        request: sinon
           .stub()
           .onFirstCall()
           .rejects(new Error("header not found"))
           .onSecondCall()
           .resolves(response),
+        sendBatch: () => Promise.resolve([]),
       };
 
       const clientWithFakeProvider = new JsonRpcClient(fakeProvider as any);

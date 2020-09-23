@@ -107,4 +107,22 @@ The plugin works by fetching the bytecode in the given address and using it to c
 
 ## TypeScript support
 
-You need to add this to your `tsconfig.json`'s `files` array: `"node_modules/@nomiclabs/buidler-etherscan/src/type-extensions.d.ts"`
+If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+
+``` typescript
+/// <reference types="@nomiclabs/buidler-etherscan" />
+```
+
+If you already have this file, just add that line to it.
+
+
+Then you have to include that file in the `files` array of your `tsconfig.json`:
+
+```json
+{
+  ...
+  "files": [..., "buidler-env.d.ts"]
+}
+```
+
+using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.

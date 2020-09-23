@@ -4,11 +4,7 @@
     "outDir": "./build-test",
     "rootDirs": ["./test"]
   },
-  "include": [
-    "./test/**/*.ts",
-    "./src/type-extensions.d.ts",
-    "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts"
-  ],
+  "include": ["./test/**/*.ts", "./src/type-extensions.ts", "./buidler-env.d.ts"],
   "exclude": ["./test/**/buidler.config.ts"],
   "references": [
     {

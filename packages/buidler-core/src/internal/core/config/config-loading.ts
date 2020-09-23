@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import path from "path";
 
 import { BuidlerArguments, ResolvedBuidlerConfig } from "../../../types";
@@ -7,6 +8,7 @@ import { getUserConfigPath } from "../project-structure";
 
 import { resolveConfig } from "./config-resolution";
 import { validateConfig } from "./config-validation";
+import { DEFAULT_SOLC_VERSION } from "./default-config";
 
 function importCsjOrEsModule(filePath: string): any {
   const imported = require(filePath);
@@ -46,6 +48,14 @@ export function loadConfigAndTasks(
   const defaultConfig = importCsjOrEsModule("./default-config");
   const userConfig = importCsjOrEsModule(configPath);
   validateConfig(userConfig);
+
+  if (userConfig.solidity === undefined) {
+    console.warn(
+      chalk.yellow(
+        `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.`
+      )
+    );
+  }
 
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(configEnv).forEach((key) => (globalAsAny[key] = undefined));

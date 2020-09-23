@@ -3,6 +3,8 @@ import util from "util";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
+const inspect = Symbol.for("nodejs.util.inspect.custom");
+
 /**
  * This module provides function to implement proxy-based object, functions, and
  * classes (they are functions). They receive an initializer function that it's
@@ -34,7 +36,7 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
   return createLazyProxy(
     objectCreator,
     (getRealTarget) => ({
-      [util.inspect.custom]() {
+      [inspect]() {
         const realTarget = getRealTarget();
         return util.inspect(realTarget);
       },
@@ -62,7 +64,7 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
     (getRealTarget) => {
       function dummyTarget() {}
 
-      (dummyTarget as any)[util.inspect.custom] = function () {
+      (dummyTarget as any)[inspect] = function () {
         const realTarget = getRealTarget();
         return util.inspect(realTarget);
       };

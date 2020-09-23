@@ -1,5 +1,6 @@
 import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { EthereumProvider, ForkConfig } from "../../../../src/types";
 
 import {
@@ -44,13 +45,14 @@ export function useProvider(
       accounts,
       undefined,
       undefined,
-      undefined,
       allowUnlimitedContractSize,
       undefined,
       undefined,
       forkConfig
     );
-    this.provider = this.buidlerEVMProvider;
+    this.provider = new BackwardsCompatibilityProviderAdapter(
+      this.buidlerEVMProvider
+    );
 
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
@@ -60,7 +62,9 @@ export function useProvider(
       });
       await this.server.listen();
 
-      this.provider = this.server.getProvider();
+      this.provider = new BackwardsCompatibilityProviderAdapter(
+        this.server.getProvider()
+      );
     }
   });
 

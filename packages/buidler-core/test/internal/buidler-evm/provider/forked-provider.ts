@@ -44,14 +44,16 @@ const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 describe("Forked provider", () => {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     describe(`Using ${rpcProvider}`, function () {
+      setCWD();
+      useProvider();
+
       before(function () {
         if (process.env.CI === "true" && rpcProvider === "Alchemy") {
+          // We skip this Alchemy tests in the CI because it normally hits a
+          // rate limit, and we don't handle those yet
           this.skip();
         }
       });
-
-      setCWD();
-      useProvider();
 
       const getForkBlockNumber = async () =>
         retrieveForkBlockNumber(this.ctx.buidlerEVMProvider);

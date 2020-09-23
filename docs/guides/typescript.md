@@ -121,26 +121,14 @@ export default config;
 
 Some Buidler plugins, like [buidler-waffle](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-waffle) and [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers), add new properties to the [Buidler Runtime Environment]. To keep everything type-safe and make using them with TypeScript possible, they provide type extension files.
 
-For these to be taken into account, you'll need to add the type extension files to the `files` field in your `tsconfig.json`, like this:
-
-```json
-"files": [
-  "./buidler.config.ts",
-  "./node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts",
-  "./node_modules/@nomiclabs/buidler-waffle/src/type-extensions.d.ts"
-]
-```
-
-Alternatively, if for whatever reason you can't import the type extension files from node_modules, you can use the [triple-slash directive](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html).
-
-Create a new file called `buidler-env.d.ts` and write this inside:
+For these to be taken into account, you'll need to create a new file called `buidler-env.d.ts` and write something like this inside (the content will depend on the plugins you are including):
 
 ```ts
-/// <reference types="@nomiclabs/buidler-ethers/src/type-extensions" />
-/// <reference types="@nomiclabs/buidler-waffle/src/type-extensions" />
+/// <reference types="@nomiclabs/buidler-ethers" />
+/// <reference types="@nomiclabs/buidler-waffle" />
 ```
 
-You shouldn't need to modify your `tsconfig.json` this time, because these are `.d.ts` file and should be included by the compiler, but here's how you can do it, in case you have to:
+And then include that file in the `files` entry of your `tsconfig.json`:
 
 ```json
 "files": [
@@ -149,7 +137,7 @@ You shouldn't need to modify your `tsconfig.json` this time, because these are `
 ]
 ```
 
-Plugins that include type extensions should have documentation detailing their existance and the path to the type extension file.
+Plugins that include type extensions should have documentation detailing their existence.
 
 ## Writing tests and scripts
 
