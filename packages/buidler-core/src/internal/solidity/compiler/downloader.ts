@@ -21,8 +21,7 @@ export interface CompilersList {
   latestRelease: string;
 }
 
-const COMPILER_FILES_DIR_URL =
-  "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/";
+const COMPILER_FILES_DIR_URL = "https://solc-bin.ethereum.org/bin/";
 
 const COMPILERS_LIST_URL = `${COMPILER_FILES_DIR_URL}list.json`;
 
