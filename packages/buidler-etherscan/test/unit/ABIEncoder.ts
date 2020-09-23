@@ -4,7 +4,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { encodeArguments } from "../../src/ABIEncoder";
 
 describe("constructor argument validation tests", () => {
-  const contractFilename = "TheContract.sol";
+  const sourceName = "TheContract.sol";
   const contractName = "TheContract";
 
   it("should validate empty argument list", async () => {
@@ -18,7 +18,7 @@ describe("constructor argument validation tests", () => {
     const constructorArguments: any[] = [];
     const encodedArguments = await encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     );
@@ -41,7 +41,7 @@ describe("constructor argument validation tests", () => {
     const constructorArguments: any[] = [50];
     const encodedArguments = await encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     );
@@ -71,7 +71,7 @@ describe("constructor argument validation tests", () => {
 
     const encodedArguments = await encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     ).catch((reason) => {
@@ -99,7 +99,7 @@ describe("constructor argument validation tests", () => {
     const constructorArguments: any[] = [50];
     return encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     ).catch((reason) => {
@@ -123,7 +123,7 @@ describe("constructor argument validation tests", () => {
     const constructorArguments: any[] = [50, 100];
     return encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     ).catch((reason) => {
@@ -159,7 +159,7 @@ describe("constructor argument validation tests", () => {
     ];
     const encodedArguments = await encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     );
@@ -201,7 +201,7 @@ describe("constructor argument validation tests", () => {
     ];
     return encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     ).catch((reason) => {
@@ -258,7 +258,7 @@ describe("constructor argument validation tests", () => {
     ];
     const encodedArguments = await encodeArguments(
       abi,
-      contractFilename,
+      sourceName,
       contractName,
       constructorArguments
     );

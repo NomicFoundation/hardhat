@@ -25,7 +25,7 @@ export function toVerifyRequest(params: {
   apiKey: string;
   contractAddress: string;
   sourceCode: string;
-  contractFilename: string;
+  sourceName: string;
   contractName: string;
   compilerVersion: string;
   constructorArguments: string;
@@ -37,7 +37,7 @@ export function toVerifyRequest(params: {
     contractaddress: params.contractAddress,
     sourceCode: params.sourceCode,
     codeformat: "solidity-standard-json-input",
-    contractname: `${params.contractFilename}:${params.contractName}`,
+    contractname: `${params.sourceName}:${params.contractName}`,
     compilerversion: params.compilerVersion,
     constructorArguements: params.constructorArguments,
   };

@@ -60,9 +60,7 @@ See https://etherscan.io/apis`
   // TODO: perhaps querying and scraping this list would be a better approach?
   // This list should be validated - it links to https://github.com/ethereum/solc-bin/blob/gh-pages/bin/list.txt
   // which has many old compilers included in the list too.
-  const configuredVersions = config.solidity.compilers.map(({ version }) => {
-    return version;
-  });
+  const configuredVersions = config.solidity.compilers.map((c) => c.version);
   if (config.solidity.overrides !== undefined) {
     for (const { version } of Object.values(config.solidity.overrides)) {
       configuredVersions.push(version);
@@ -192,7 +190,7 @@ Possible causes are:
   if (contractMatches.length > 1) {
     const nameList = contractMatches
       .map((contract) => {
-        return `${contract.contractFilename}:${contract.contractName}`;
+        return `${contract.sourceName}:${contract.contractName}`;
       })
       .join(", ");
     const message = `More than one contract was found to match the deployed bytecode.
@@ -205,7 +203,7 @@ ${nameList}`;
   const { encodeArguments } = await import("./ABIEncoder");
   const deployArgumentsEncoded = await encodeArguments(
     contractInformation.contract.abi,
-    contractInformation.contractFilename,
+    contractInformation.sourceName,
     contractInformation.contractName,
     constructorArguments
   );
@@ -224,7 +222,7 @@ ${nameList}`;
     apiKey: etherscan.apiKey,
     contractAddress: address,
     sourceCode: compilerInputJSON,
-    contractFilename: contractInformation.contractFilename,
+    sourceName: contractInformation.sourceName,
     contractName: contractInformation.contractName,
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,
@@ -237,7 +235,7 @@ ${nameList}`;
 
   console.log(
     `Successfully submitted source code for contract
-${contractInformation.contractFilename}:${contractInformation.contractName} at ${address}
+${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
 for verification on etherscan. Waiting for verification result...`
   );
 

@@ -95,9 +95,10 @@ interface BuildInfo {
   solcVersion: string;
 }
 
-interface ContractBuildInfo extends BuildInfo {
+interface ContractBuildInfo {
   contractName: string;
-  contractFilename: string;
+  sourceName: string;
+  buildInfo: BuildInfo;
 }
 
 /**/
@@ -108,14 +109,8 @@ export async function lookupMatchingBytecode(
   inferralType: InferralType
 ) {
   const contractMatches = [];
-  for (const {
-    contractName,
-    contractFilename,
-    input,
-    output,
-    solcVersion,
-  } of contractBuilds) {
-    const contract = output.contracts[contractFilename][contractName];
+  for (const { contractName, sourceName, buildInfo } of contractBuilds) {
+    const contract = buildInfo.output.contracts[sourceName][contractName];
     // Normalize deployed bytecode according to this contract.
     const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
 
@@ -135,12 +130,12 @@ export async function lookupMatchingBytecode(
       } = comparison;
       // The bytecode matches
       contractMatches.push({
-        compilerInput: input,
-        solcVersion,
+        compilerInput: buildInfo.input,
+        solcVersion: buildInfo.solcVersion,
         immutableValues,
         libraryLinks,
         normalizedBytecode,
-        contractFilename,
+        sourceName,
         contractName,
         contract,
       });
@@ -306,7 +301,7 @@ export async function compile(
   taskRun: RunTaskFunction,
   matchingVersions: string[],
   artifactsPath: string
-) {
+): Promise<ContractBuildInfo[]> {
   const { TASK_COMPILE } = await import("hardhat/builtin-tasks/task-names");
 
   await taskRun(TASK_COMPILE);
@@ -328,20 +323,17 @@ export async function compile(
   const artifactFiles = await artifacts.getArtifacts();
   for (const artifactFile of artifactFiles) {
     const contractName = path.basename(artifactFile.replace(".json", ""));
-    const contractFilename = path.relative(
-      artifactsPath,
-      path.dirname(artifactFile)
-    );
+    const sourceName = path.relative(artifactsPath, path.dirname(artifactFile));
     const dbgFile = path.join(
       artifactsPath,
-      contractFilename,
+      sourceName,
       `${contractName}.dbg.json`
     );
     const dbgInfo: { buildInfo: string } = await fs.readJSON(dbgFile);
     contracts.push({
       contractName,
-      contractFilename,
-      ...builds[path.basename(dbgInfo.buildInfo)],
+      sourceName,
+      buildInfo: builds[path.basename(dbgInfo.buildInfo)],
     });
   }
 

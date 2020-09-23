@@ -4,7 +4,7 @@ import { pluginName } from "./pluginContext";
 
 export async function encodeArguments(
   abi: any,
-  contractFilename: string,
+  sourceName: string,
   contractName: string,
   constructorArguments: any[]
 ) {
@@ -24,7 +24,7 @@ export async function encodeArguments(
     } = await import("./ABITypes");
     if (isABIArgumentLengthError(error)) {
       // TODO: add a list of types and constructor arguments to the error message?
-      const message = `The constructor for ${contractFilename}:${contractName} has ${error.count.types} parameters
+      const message = `The constructor for ${sourceName}:${contractName} has ${error.count.types} parameters
 but ${error.count.values} arguments were provided instead.`;
       throw new NomicLabsHardhatPluginError(pluginName, message, error);
     }
