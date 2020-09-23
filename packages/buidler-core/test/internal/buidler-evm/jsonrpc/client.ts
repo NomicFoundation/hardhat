@@ -6,7 +6,7 @@ import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
 import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
 import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
-import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
@@ -408,7 +408,7 @@ describe("JsonRpcClient", () => {
 
     it("does not retry when other RPC provider is used", async () => {
       const fakeProvider: FakeProvider = {
-        url: ALCHEMY_URL!,
+        url: "other",
         request: sinon
           .stub()
           .onFirstCall()
