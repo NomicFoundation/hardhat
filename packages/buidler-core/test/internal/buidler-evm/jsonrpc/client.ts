@@ -27,12 +27,6 @@ describe("JsonRpcClient", () => {
     describe(`Using ${rpcProvider}`, () => {
       let client: JsonRpcClient;
 
-      before(function () {
-        if (process.env.CI === "true" && rpcProvider === "Alchemy") {
-          this.skip();
-        }
-      });
-
       beforeEach(() => {
         client = JsonRpcClient.forUrl(jsonRpcUrl);
       });
@@ -325,12 +319,18 @@ describe("JsonRpcClient", () => {
   });
 
   describe("Retry on Infura's error", () => {
+    before(function () {
+      if (INFURA_URL === undefined) {
+        this.skip();
+      }
+    });
+
     const response =
       "0x00000000000000000000000000000000000000000067bafa8fb7228f04ffa792";
 
     it("makes a retry on the 'header not found' error", async () => {
       const fakeProvider: FakeProvider = {
-        url: INFURA_URL,
+        url: INFURA_URL!,
         request: sinon
           .stub()
           .onFirstCall()
@@ -352,7 +352,7 @@ describe("JsonRpcClient", () => {
 
     it("does not retry more than once", async () => {
       const fakeProvider: FakeProvider = {
-        url: INFURA_URL,
+        url: INFURA_URL!,
         request: sinon
           .stub()
           .onFirstCall()
@@ -377,7 +377,7 @@ describe("JsonRpcClient", () => {
 
     it("does not retry on a different error", async () => {
       const fakeProvider: FakeProvider = {
-        url: INFURA_URL,
+        url: INFURA_URL!,
         request: sinon
           .stub()
           .onFirstCall()
@@ -400,7 +400,7 @@ describe("JsonRpcClient", () => {
 
     it("does not retry when other RPC provider is used", async () => {
       const fakeProvider: FakeProvider = {
-        url: ALCHEMY_URL,
+        url: ALCHEMY_URL!,
         request: sinon
           .stub()
           .onFirstCall()

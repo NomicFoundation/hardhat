@@ -50,30 +50,44 @@ export const PROVIDERS = [
       useProvider(true);
     },
   },
-  {
+];
+
+export const FORKED_PROVIDERS: Array<{
+  rpcProvider: string;
+  jsonRpcUrl: string;
+  useProvider: () => void;
+}> = [];
+
+if (ALCHEMY_URL !== undefined) {
+  const url = ALCHEMY_URL;
+
+  FORKED_PROVIDERS.push({
+    rpcProvider: "Alchemy",
+    jsonRpcUrl: url,
+    useProvider: () => {
+      useProvider(false, { jsonRpcUrl: url });
+    },
+  });
+}
+
+if (INFURA_URL !== undefined) {
+  const url = INFURA_URL;
+
+  PROVIDERS.push({
     name: "Forked",
     isFork: true,
     networkId: REMOTE_NETWORK_ID,
     chainId: REMOTE_CHAIN_ID,
     useProvider: () => {
-      useProvider(false, { jsonRpcUrl: INFURA_URL });
+      useProvider(false, { jsonRpcUrl: url });
     },
-  },
-];
+  });
 
-export const FORKED_PROVIDERS = [
-  {
-    rpcProvider: "Alchemy",
-    jsonRpcUrl: ALCHEMY_URL,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: ALCHEMY_URL });
-    },
-  },
-  {
+  FORKED_PROVIDERS.push({
     rpcProvider: "Infura",
-    jsonRpcUrl: INFURA_URL,
+    jsonRpcUrl: url,
     useProvider: () => {
-      useProvider(false, { jsonRpcUrl: INFURA_URL });
+      useProvider(false, { jsonRpcUrl: url });
     },
-  },
-];
+  });
+}

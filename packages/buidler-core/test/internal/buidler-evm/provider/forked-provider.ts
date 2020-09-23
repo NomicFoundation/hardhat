@@ -44,12 +44,6 @@ const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 describe("Forked provider", () => {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     describe(`Using ${rpcProvider}`, function () {
-      before(function () {
-        if (process.env.CI === "true" && rpcProvider === "Alchemy") {
-          this.skip();
-        }
-      });
-
       setCWD();
       useProvider();
 
