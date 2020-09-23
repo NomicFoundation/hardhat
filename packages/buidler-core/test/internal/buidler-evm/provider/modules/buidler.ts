@@ -109,6 +109,12 @@ describe("Buidler module", function () {
       }
 
       describe("buidler_reset", function () {
+        before(function () {
+          if (INFURA_URL === undefined) {
+            this.skip();
+          }
+        });
+
         it("validates input parameters", async function () {
           await assertInvalidArgumentsError(this.provider, "buidler_reset", [
             {},
