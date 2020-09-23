@@ -47,6 +47,14 @@ describe("Forked provider", () => {
       setCWD();
       useProvider();
 
+      before(function () {
+        if (process.env.CI === "true" && rpcProvider === "Alchemy") {
+          // We skip this Alchemy tests in the CI because it normally hits a
+          // rate limit, and we don't handle those yet
+          this.skip();
+        }
+      });
+
       const getForkBlockNumber = async () =>
         retrieveForkBlockNumber(this.ctx.buidlerEVMProvider);
 

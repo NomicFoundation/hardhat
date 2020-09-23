@@ -27,6 +27,14 @@ describe("JsonRpcClient", () => {
     describe(`Using ${rpcProvider}`, () => {
       let client: JsonRpcClient;
 
+      before(function () {
+        if (process.env.CI === "true" && rpcProvider === "Alchemy") {
+          // We skip this Alchemy tests in the CI because it normally hits a
+          // rate limit, and we don't handle those yet
+          this.skip();
+        }
+      });
+
       beforeEach(() => {
         client = JsonRpcClient.forUrl(jsonRpcUrl);
       });
