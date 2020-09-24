@@ -48,7 +48,7 @@ module.exports = {};
 ```
 And then run `npx buidler accounts` to try it.
 
-Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/documentation/#buidler-runtime-environment-bre) to learn how to access the BRE in different ways to use Web3.js from anywhere the BRE is accessible.
+Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/documentation/#hardhat-runtime-environment-hre) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.
 
 ## TypeScript support
 

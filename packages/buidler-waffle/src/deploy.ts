@@ -14,7 +14,7 @@ export function getDeployMockContract() {
 }
 
 export async function buidlerDeployContract(
-  bre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   signer: Signer,
   contractJSON: any,
   args: any[] = [],
@@ -24,9 +24,9 @@ export async function buidlerDeployContract(
 
   if (
     overrideOptions.gasLimit === undefined &&
-    typeof bre.network.config.gas === "number"
+    typeof hre.network.config.gas === "number"
   ) {
-    overrideOptions.gasLimit = bre.network.config.gas;
+    overrideOptions.gasLimit = hre.network.config.gas;
   }
 
   return deployContract(signer, contractJSON, args, overrideOptions);

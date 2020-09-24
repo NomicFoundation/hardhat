@@ -54,7 +54,7 @@ describe("Buidler context", async function () {
       assert.isFalse(BuidlerContext.isCreated());
     });
 
-    it("should throw when BRE is not defined", async function () {
+    it("should throw when HRE is not defined", async function () {
       const ctx = BuidlerContext.createBuidlerContext();
       expectBuidlerError(
         () => ctx.getBuidlerRuntimeEnvironment(),
@@ -66,13 +66,13 @@ describe("Buidler context", async function () {
   describe("environment creates context", async function () {
     useFixtureProject("config-project");
     useEnvironment();
-    it("should create context and set BRE into context", async function () {
+    it("should create context and set HRE into context", async function () {
       assert.equal(
         BuidlerContext.getBuidlerContext().getBuidlerRuntimeEnvironment(),
         this.env
       );
     });
-    it("should throw when trying to set BRE", async function () {
+    it("should throw when trying to set HRE", async function () {
       expectBuidlerError(
         () =>
           BuidlerContext.getBuidlerContext().setBuidlerRuntimeEnvironment(

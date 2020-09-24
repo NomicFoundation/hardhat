@@ -5,42 +5,42 @@ import {
 } from "@nomiclabs/buidler/types";
 import { ethers } from "ethers";
 
-export async function getSigners(bre: HardhatRuntimeEnvironment) {
-  const accounts = await bre.ethers.provider.listAccounts();
+export async function getSigners(hre: HardhatRuntimeEnvironment) {
+  const accounts = await hre.ethers.provider.listAccounts();
   return accounts.map((account: string) =>
-    bre.ethers.provider.getSigner(account)
+    hre.ethers.provider.getSigner(account)
   );
 }
 
 export function getContractFactory(
-  bre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   name: string,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
 export function getContractFactory(
-  bre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
 export async function getContractFactory(
-  bre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   bytecodeOrSigner?: ethers.Signer | ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
     return getContractFactoryByName(
-      bre,
+      hre,
       nameOrAbi,
       bytecodeOrSigner as ethers.Signer | undefined
     );
   }
 
   return getContractFactoryByAbiAndBytecode(
-    bre,
+    hre,
     nameOrAbi,
     bytecodeOrSigner as ethers.utils.BytesLike | string,
     signer
@@ -48,14 +48,14 @@ export async function getContractFactory(
 }
 
 export async function getContractFactoryByName(
-  bre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   name: string,
   signer?: ethers.Signer
 ) {
-  const artifacts = new Artifacts(bre.config.paths.artifacts);
+  const artifacts = new Artifacts(hre.config.paths.artifacts);
   const artifact = await artifacts.readArtifact(name);
   return getContractFactoryByAbiAndBytecode(
-    bre,
+    hre,
     artifact.abi,
     artifact.bytecode,
     signer
@@ -63,46 +63,46 @@ export async function getContractFactoryByName(
 }
 
 export async function getContractFactoryByAbiAndBytecode(
-  bre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ) {
   if (signer === undefined) {
-    const signers = await bre.ethers.getSigners();
+    const signers = await hre.ethers.getSigners();
     signer = signers[0];
   }
 
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
-    bre.network.config,
+    hre.network.config,
     abi
   );
 
-  return new bre.ethers.ContractFactory(abiWithAddedGas, bytecode, signer);
+  return new hre.ethers.ContractFactory(abiWithAddedGas, bytecode, signer);
 }
 
 export async function getContractAt(
-  bre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   address: string,
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
-    const factory = await getContractFactoryByName(bre, nameOrAbi, signer);
+    const factory = await getContractFactoryByName(hre, nameOrAbi, signer);
     return factory.attach(address);
   }
 
   if (signer === undefined) {
-    const signers = await bre.ethers.getSigners();
+    const signers = await hre.ethers.getSigners();
     signer = signers[0];
   }
 
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
-    bre.network.config,
+    hre.network.config,
     nameOrAbi
   );
 
-  return new bre.ethers.Contract(address, abiWithAddedGas, signer);
+  return new hre.ethers.Contract(address, abiWithAddedGas, signer);
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network

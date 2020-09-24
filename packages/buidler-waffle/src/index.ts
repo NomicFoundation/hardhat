@@ -7,10 +7,10 @@ import { initializeWaffleMatchers } from "./matchers";
 import "./type-extensions";
 
 export default function () {
-  extendEnvironment((bre) => {
+  extendEnvironment((hre) => {
     // We can't actually implement a MockProvider because of its private
     // properties, so we cast it here 😢
-    bre.waffle = lazyObject(() => {
+    hre.waffle = lazyObject(() => {
       const {
         WaffleMockProviderAdapter,
       } = require("./waffle-provider-adapter");
@@ -18,12 +18,12 @@ export default function () {
       const { buidlerCreateFixtureLoader } = require("./fixtures");
 
       const buidlerWaffleProvider = new WaffleMockProviderAdapter(
-        bre.network
+        hre.network
       ) as any;
 
       return {
         provider: buidlerWaffleProvider,
-        deployContract: buidlerDeployContract.bind(undefined, bre),
+        deployContract: buidlerDeployContract.bind(undefined, hre),
         deployMockContract: getDeployMockContract(),
         solidity: require("./waffle-chai"),
         createFixtureLoader: buidlerCreateFixtureLoader.bind(
@@ -35,7 +35,7 @@ export default function () {
       };
     });
 
-    initializeWaffleMatchers(bre.config.paths.root);
+    initializeWaffleMatchers(hre.config.paths.root);
   });
 
   usePlugin("@nomiclabs/buidler-ethers");

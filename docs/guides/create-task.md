@@ -164,7 +164,7 @@ Creating a task is done by calling the [`task` function](/api/#task). It will re
 The simplest task you can define is
 
 ```js
-task("hello", "Prints 'Hello, World!'", async function(taskArguments, bre, runSuper) {
+task("hello", "Prints 'Hello, World!'", async function(taskArguments, hre, runSuper) {
   console.log("Hello, World!");
 });
 ```
@@ -173,7 +173,7 @@ task("hello", "Prints 'Hello, World!'", async function(taskArguments, bre, runSu
 
 - `taskArguments` is an object with the parsed CLI arguments of the task. In this case, it's an empty object.
 
-- `bre` is the [Buidler Runtime Environment](../advanced/buidler-runtime-environment.md).
+- `hre` is the [Buidler Runtime Environment](../advanced/buidler-runtime-environment.md).
 
 - `runSuper` is only relevant if you are overriding an existing task, which we'll learn about next. Its purpose is to let you run the original task's action.
 

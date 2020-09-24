@@ -44,7 +44,7 @@ The `waffle` object has these properties:
 - `loadFixture`
 
 This plugin depends on [`@nomiclabs/buidler-ethers`](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers),
-so it also injects an `ethers` object into the BRE, which is documented [here](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers#environment-extensions).
+so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers#environment-extensions).
 
 ## Usage
 

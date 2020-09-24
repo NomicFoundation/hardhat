@@ -77,7 +77,7 @@ module.exports = {};
 
 And then run `npx buidler blockNumber` to try it.
 
-Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/advanced/buidler-runtime-environment.html) to learn how to access the BRE in different ways to use ethers.js from anywhere the BRE is accessible.
+Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/advanced/hardhat-runtime-environment.html) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
 
 ## TypeScript support
 

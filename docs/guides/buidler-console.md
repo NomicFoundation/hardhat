@@ -38,7 +38,7 @@ And the initialized `ethers` object if you're using the `buidler-ethers` plugin:
 
 And the `artifacts` object if you're using the `buidler-truffle5` plugin, and so on. 
 
-Anything that has been injected into the [Buidler Runtime Environment] will be magically available in the global scope, or if you're the more explicit kind of developer, you can also require the BRE explicitly and get autocomplete:
+Anything that has been injected into the [Buidler Runtime Environment] will be magically available in the global scope, or if you're the more explicit kind of developer, you can also require the HRE explicitly and get autocomplete:
 
 TODO-HH: re-run this
 

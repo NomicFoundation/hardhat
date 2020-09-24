@@ -69,8 +69,8 @@ usePlugin("@nomiclabs/buidler-waffle");
 
 // This is a sample Buidler task. To learn how to create your own go to
 // https://buidler.dev/guides/create-task.html
-task("accounts", "Prints the list of accounts", async (taskArgs, bre) => {
-  const accounts = await bre.ethers.getSigners();
+task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
+  const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
     console.log(await account.getAddress());
@@ -143,7 +143,7 @@ Plugins that include type extensions should have documentation detailing their e
 
 To write your smart contract tests and scripts you'll most likely need access to an Ethereum library to interact with your smart contracts. This will probably be one of [buidler-ethers](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers) or [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3), all of which inject instances into the [Buidler Runtime Environment].
 
-When using JavaScript, all the properties in the BRE are injected into the global scope, and are also available by getting the BRE explicitly. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly.
+When using JavaScript, all the properties in the HRE are injected into the global scope, and are also available by getting the HRE explicitly. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly.
 
 An example for tests:
 

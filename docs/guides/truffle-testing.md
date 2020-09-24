@@ -168,5 +168,5 @@ describe("Greeter contract", function() {
 Checkout the plugin's [README file](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5) for more information about it.
 
 
-[Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
+[Buidler Runtime Environment]: /documentation/#hardhat-runtime-environment-hre
 

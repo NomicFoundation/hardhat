@@ -231,4 +231,4 @@ Run your tests with `npx buidler test` and you should get stack traces when a tr
 [buidler evm]: ../buidler-evm/README.md
 
 
-[Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
+[Buidler Runtime Environment]: /documentation/#hardhat-runtime-environment-hre

@@ -23,7 +23,7 @@ import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
-const log = debug("buidler:core:bre");
+const log = debug("buidler:core:hre");
 
 export class Environment implements HardhatRuntimeEnvironment {
   private static readonly _BLACKLISTED_PROPERTIES: string[] = [

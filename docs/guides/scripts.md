@@ -20,7 +20,7 @@ This makes it easy to port scripts that were developed for other tools that inje
 The second option leverages Buidler's architecture to allow for more flexibility. Buidler has been designed as a library, allowing you to get creative and build standalone CLI tools that access your development environment. This means that by simply requiring it:
 
 ```js
-const bre = require("@nomiclabs/buidler");
+const hre = require("@nomiclabs/buidler");
 ```
 
 You can get access to all your tasks and plugins. To run these scripts you simply go through node: `node script.js`.
@@ -46,8 +46,8 @@ Inside `scripts/` you will find `sample-script.js`. Read through its comments to
 Done? Before running the script with `node` you need to declare `ethers`. This is needed because Buidler won't be injecting it on the global scope as it does when calling the `run` task.
 
 ```js{2}
-const bre = require("@nomiclabs/buidler");
-const ethers = bre.ethers;
+const hre = require("@nomiclabs/buidler");
+const ethers = hre.ethers;
 
 async function main() {
   //...
@@ -61,10 +61,10 @@ $ node scripts/sample-script.js
 Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-By accessing the [Buidler Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `bre.run('compile')`. Uncomment the following line out and re-run the script with `node`:
+By accessing the [Buidler Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Buidler always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `hre.run('compile')`. Uncomment the following line out and re-run the script with `node`:
 
 ```js
-await bre.run("compile");
+await hre.run("compile");
 ```
 
 ```

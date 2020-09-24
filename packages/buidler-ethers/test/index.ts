@@ -9,7 +9,7 @@ import { useEnvironment } from "./helpers";
 describe("Ethers plugin", function () {
   useEnvironment(path.join(__dirname, "buidler-project"));
 
-  describe("BRE extensions", function () {
+  describe("HRE extensions", function () {
     it("should extend buidler runtime environment", function () {
       assert.isDefined(this.env.ethers);
       assert.containsAllKeys(this.env.ethers, [

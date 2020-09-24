@@ -15,7 +15,7 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
   public getWallets() {
     if (this._buidlerNetwork.name !== "buidlerevm") {
       throw new Error(`This method only works with Buidler EVM.
-You can use \`await bre.ethers.signers()\` in other networks.`);
+You can use \`await hre.ethers.signers()\` in other networks.`);
     }
 
     return (this._buidlerNetwork

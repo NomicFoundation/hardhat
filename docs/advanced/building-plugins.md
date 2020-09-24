@@ -9,9 +9,9 @@ Plugins are bits of reusable configuration. Anything that you can do in a plugin
 
 The main things that plugins can do are extending the Buidler Runtime Environment, extending the Buidler config, defining new tasks, and overriding existing ones.
 
-### Extending the BRE
+### Extending the HRE
 
-To learn how to successfully extend the [BRE](./buidler-runtime-environment.md) in TypeScript, and to give your users type information about your extension, take a look at [`src/index.ts`](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts) in the boilerplate repo and read the [Extending the BRE](./buidler-runtime-environment.md#extending-the-bre) documentation.
+To learn how to successfully extend the [HRE](./buidler-runtime-environment.md) in TypeScript, and to give your users type information about your extension, take a look at [`src/index.ts`](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts) in the boilerplate repo and read the [Extending the HRE](./hardhat-runtime-environment.md#extending-the-hre) documentation.
 
 Make sure to keep the type extension in your main file, as that convention is used across different plugins.
 
