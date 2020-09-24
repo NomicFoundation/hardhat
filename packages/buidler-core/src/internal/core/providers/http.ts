@@ -130,8 +130,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         }
 
         const url = new URL(this._url);
-        throw new Error(
-          `Too Many Requests error received from ${url.hostname}`
+
+        // tslint:disable-next-line only-buidler-error
+        throw new ProviderError(
+          `Too Many Requests error received from ${url.hostname}`,
+          -32005 // Limit exceeded according to EIP1474
         );
       }
 
