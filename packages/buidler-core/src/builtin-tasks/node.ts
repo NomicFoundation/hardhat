@@ -66,7 +66,7 @@ Private Key: ${privateKey}
 }
 
 export default function () {
-  task(TASK_NODE, "Starts a JSON-RPC server on top of Buidler EVM")
+  task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     .addOptionalParam(
       "hostname",
       "The host to which to bind to for new connections",
@@ -119,7 +119,7 @@ export default function () {
           } catch (error) {
             console.warn(
               chalk.yellow(
-                "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Buidler EVM. Run Buidler with --verbose to learn more."
+                "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Hardhat Network. Run Buidler with --verbose to learn more."
               )
             );
 

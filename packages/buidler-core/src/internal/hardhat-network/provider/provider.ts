@@ -86,7 +86,7 @@ export class HardhatNetworkProvider extends EventEmitter
 
     if (args.params !== undefined && !Array.isArray(args.params)) {
       throw new InvalidInputError(
-        "Buidler EVM doesn't support JSON-RPC params sent as an object"
+        "Hardhat Network doesn't support JSON-RPC params sent as an object"
       );
     }
 

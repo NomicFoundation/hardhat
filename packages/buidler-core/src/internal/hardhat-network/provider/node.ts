@@ -213,12 +213,12 @@ export class HardhatNode extends EventEmitter {
     } catch (error) {
       console.warn(
         chalk.yellow(
-          "The Buidler EVM tracing engine could not be initialized. Run Buidler with --verbose to learn more."
+          "The Hardhat Network tracing engine could not be initialized. Run Buidler with --verbose to learn more."
         )
       );
 
       log(
-        "Buidler EVM tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Buidler.\n",
+        "Hardhat Network tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Buidler.\n",
         error
       );
 
@@ -850,7 +850,7 @@ export class HardhatNode extends EventEmitter {
     } catch (error) {
       console.warn(
         chalk.yellow(
-          "The Buidler EVM tracing engine could not be updated. Run Buidler with --verbose to learn more."
+          "The Hardhat Network tracing engine could not be updated. Run Buidler with --verbose to learn more."
         )
       );
 

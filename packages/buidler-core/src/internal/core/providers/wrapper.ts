@@ -24,7 +24,7 @@ export abstract class ProviderWrapper extends EventEmitterWrapper
       // -32000	is Invalid input according to https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1474.md#error-codes
       // tslint:disable-next-line only-hardhat-error
       throw new ProviderError(
-        "Buidler EVM doesn't support JSON-RPC params sent as an object",
+        "Hardhat Network doesn't support JSON-RPC params sent as an object",
         -32000
       );
     }

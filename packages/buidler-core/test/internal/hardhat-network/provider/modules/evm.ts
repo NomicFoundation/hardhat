@@ -241,7 +241,7 @@ describe("Evm module", function () {
         });
 
         describe("When the initial date is in the past", function () {
-          // These test use a Buidler EVM instance with an initialDate in the
+          // These test use a Hardhat Network instance with an initialDate in the
           // past. We do this by using a fixture project and useEnvironment(),
           // so instead of using this.provider they must use
           // this.env.network.provider
