@@ -31,10 +31,10 @@ describe("Config resolution", () => {
         );
         assert.containsAllKeys(config.networks, ["localhost"]);
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
-        assert.equal(config.defaultNetwork, "buidlerevm");
+        assert.equal(config.defaultNetwork, "hardhat");
 
         const buidlerEvmConfig: HardhatNetworkConfig = config.networks
-          .buidlerevm as HardhatNetworkConfig;
+          .hardhat as HardhatNetworkConfig;
 
         assert.equal(buidlerEvmConfig.throwOnTransactionFailures, true);
         assert.equal(buidlerEvmConfig.throwOnCallFailures, true);

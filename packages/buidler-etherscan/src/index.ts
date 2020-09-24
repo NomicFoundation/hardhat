@@ -1,5 +1,8 @@
 import { extendConfig, task } from "@nomiclabs/buidler/config";
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import {
+  HARDHAT_NETWORK_NAME,
+  NomicLabsBuidlerPluginError,
+} from "@nomiclabs/buidler/plugins";
 import { ActionType } from "@nomiclabs/buidler/types";
 import path from "path";
 import semver from "semver";
@@ -36,7 +39,7 @@ See https://etherscan.io/apis`
     );
   }
 
-  if (network.name === "buidlerevm") {
+  if (network.name === HARDHAT_NETWORK_NAME) {
     throw new NomicLabsBuidlerPluginError(
       pluginName,
       `The selected network is ${network.name}. Please select a network supported by Etherscan.`

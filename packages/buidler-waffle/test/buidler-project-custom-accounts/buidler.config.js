@@ -3,7 +3,7 @@ loadPluginFile(__dirname + "/../../src/index");
 
 module.exports = {
   networks: {
-    buidlerevm: {
+    hardhat: {
       accounts: [
         {
           privateKey:

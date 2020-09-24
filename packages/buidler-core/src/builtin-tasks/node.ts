@@ -6,7 +6,7 @@ import {
   JsonRpcServer,
   JsonRpcServerConfig,
 } from "../internal/buidler-evm/jsonrpc/server";
-import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
+import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { task, types } from "../internal/core/config/config-env";
 import { BuidlerError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -24,16 +24,16 @@ import { watchCompilerOutput } from "./utils/watch";
 
 const log = debug("buidler:core:tasks:node");
 
-function _createBuidlerEVMProvider(
+function _createHardhatNetworkProvider(
   config: ResolvedHardhatConfig
 ): EthereumProvider {
-  log("Creating BuidlerEVM Provider");
+  log("Creating HardhatNetworkProvider");
 
-  const networkName = BUIDLEREVM_NETWORK_NAME;
-  const networkConfig = config.networks[BUIDLEREVM_NETWORK_NAME];
+  const networkName = HARDHAT_NETWORK_NAME;
+  const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
   return lazyObject(() => {
-    log(`Creating buidlerevm provider for JSON-RPC sever`);
+    log(`Creating hardhat provider for JSON-RPC sever`);
     return createProvider(
       networkName,
       { loggingEnabled: true, ...networkConfig },
@@ -42,7 +42,9 @@ function _createBuidlerEVMProvider(
   });
 }
 
-function logBuidlerEvmAccounts(networkConfig: ResolvedHardhatNetworkConfig) {
+function logHardhatNetworkAccounts(
+  networkConfig: ResolvedHardhatNetworkConfig
+) {
   if (networkConfig.accounts === undefined) {
     return;
   }
@@ -80,7 +82,7 @@ export default function () {
     .setAction(
       async ({ hostname, port }, { network, hardhatArguments, config }) => {
         if (
-          network.name !== BUIDLEREVM_NETWORK_NAME &&
+          network.name !== HARDHAT_NETWORK_NAME &&
           // We normally set the default network as hardhatArguments.network,
           // so this check isn't enough, and we add the next one. This has the
           // effect of `--network <defaultNetwork>` being a false negative, but
@@ -97,7 +99,7 @@ export default function () {
           const serverConfig: JsonRpcServerConfig = {
             hostname,
             port,
-            provider: _createBuidlerEVMProvider(config),
+            provider: _createHardhatNetworkProvider(config),
           };
 
           const server = new JsonRpcServer(serverConfig);
@@ -129,8 +131,8 @@ export default function () {
             Reporter.reportError(error);
           }
 
-          const networkConfig = config.networks[BUIDLEREVM_NETWORK_NAME];
-          logBuidlerEvmAccounts(networkConfig);
+          const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
+          logHardhatNetworkAccounts(networkConfig);
 
           await server.waitUntilClosed();
         } catch (error) {

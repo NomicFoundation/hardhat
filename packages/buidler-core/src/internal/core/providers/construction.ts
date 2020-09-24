@@ -11,7 +11,7 @@ import type {
   ResolvedNetworkConfig,
 } from "../../../types";
 import { ForkConfig } from "../../buidler-evm/provider/node-types";
-import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
+import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { parseDateString } from "../../util/date";
 
 export function isHDAccountsConfig(
@@ -46,7 +46,7 @@ export function createProvider(
 ): EthereumProvider {
   let eip1193Provider: EIP1193Provider;
 
-  if (networkName === BUIDLEREVM_NETWORK_NAME) {
+  if (networkName === HARDHAT_NETWORK_NAME) {
     const buidlerNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
 
     const BuidlerEVMProvider = importProvider<
@@ -68,7 +68,7 @@ export function createProvider(
 
     eip1193Provider = new BuidlerEVMProvider(
       buidlerNetConfig.hardfork!,
-      BUIDLEREVM_NETWORK_NAME,
+      HARDHAT_NETWORK_NAME,
       buidlerNetConfig.chainId!,
       buidlerNetConfig.chainId!,
       buidlerNetConfig.blockGasLimit!,

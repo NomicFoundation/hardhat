@@ -19,7 +19,7 @@ GLOBAL OPTIONS:
   --config              A Buidler config file.
   --emoji               Use emoji in messages.
   --help                Shows this message.
-  --network             The network to connect to. (default: "buidlerevm")
+  --network             The network to connect to. (default: "hardhat")
   --show-stack-traces   Show stack traces.
   --version             Shows buidler's version.
 
@@ -81,7 +81,7 @@ GLOBAL OPTIONS:
   --config              A Buidler config file.
   --emoji               Use emoji in messages.
   --help                Shows this message.
-  --network             The network to connect to. (default: "buidlerevm")
+  --network             The network to connect to. (default: "hardhat")
   --show-stack-traces   Show stack traces.
   --version             Shows buidler's version.
 

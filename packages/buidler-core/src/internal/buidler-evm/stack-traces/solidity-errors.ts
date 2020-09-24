@@ -66,7 +66,7 @@ export function encodeSolidityStackTrace(
     if (previousStack !== undefined) {
       stack = previousStack;
     } else {
-      // We remove BuidlerEVM related stack traces
+      // We remove Hardhat Network related stack traces
       stack.splice(0, 3);
     }
 

@@ -12,7 +12,7 @@ The `compile` task will be called before opening the console prompt, but you can
 The execution environment for the console is the same as for tasks. This means the configuration has been processed, and the [Buidler Runtime Environment] initialized and injected into the global scope. For example, that you'll have access in the global scope to the `config` object:
 ```
 > config
-{ defaultNetwork: 'buidlerevm',
+{ defaultNetwork: 'hardhat',
   solc:
    { version: '0.5.8', optimizer: { enabled: false, runs: 200 } },
   

@@ -9,7 +9,7 @@ import {
 } from "@nomiclabs/buidler/config";
 import { glob } from "@nomiclabs/buidler/internal/util/glob";
 import {
-  BUIDLEREVM_NETWORK_NAME,
+  HARDHAT_NETWORK_NAME,
   lazyFunction,
   lazyObject,
   NomicLabsBuidlerPluginError,
@@ -130,7 +130,7 @@ export default function () {
       description: string,
       definition: (accounts: string[]) => any
     ) => {
-      if (env.network.name === BUIDLEREVM_NETWORK_NAME) {
+      if (env.network.name === HARDHAT_NETWORK_NAME) {
         if (accounts === undefined) {
           const {
             privateToAddress,
@@ -164,7 +164,7 @@ export default function () {
   internalTask(
     TASK_TEST_SETUP_TEST_ENVIRONMENT,
     async (_, { web3, network }) => {
-      if (network.name !== BUIDLEREVM_NETWORK_NAME) {
+      if (network.name !== HARDHAT_NETWORK_NAME) {
         accounts = await web3.eth.getAccounts();
       }
     }

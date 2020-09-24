@@ -15,7 +15,7 @@ This object can have the following entries: `defaultNetwork`, [`networks`](#netw
 module.exports = {
   defaultNetwork: "rinkeby",
   networks: {
-    buidlerevm: {
+    hardhat: {
     },
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/123abc123abc123abc123abc123abcde",
@@ -45,18 +45,18 @@ The `networks` config field is an optional object where network names map to the
 There are two kinds of networks in Buidler: [JSON-RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) based networks,
 and the built-in Buidler EVM network.
 
-You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"buidlerevm"`.
+You can customize which network is used by default when running Buidler by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"hardhat"`.
 
 ### Buidler EVM network
 
-Buidler comes built-in with a special network called `buidlerevm`. When using this network,
+Buidler comes built-in with a special network called `hardhat`. When using this network,
 an instance of [Buidler EVM](../buidler-evm) will be automatically created when your run a task, script or test your smart contracts
 
 Buidler EVM has first-class support of Solidity. It always knows which
 smart contracts are being run and knows exactly what they do and why
 they fail. Learn more about it [here](../buidler-evm).
 
-You can set the following fields on the `buidlerevm` config:
+You can set the following fields on the `hardhat` config:
 
 - `chainId`: The chan id number used by Buidler EVM's blockchain. Default value: `31337`.
 
@@ -134,7 +134,7 @@ To use an HD Wallet with Buidler you should set your network's `accounts` field 
     localhost: {
       url: "http://127.0.0.1:8545"
     },
-    buidlerevm: {
+    hardhat: {
       // See its defaults
     }
 }

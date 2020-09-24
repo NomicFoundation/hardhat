@@ -1,4 +1,4 @@
-import { BUIDLEREVM_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
+import { HARDHAT_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
 import { ResolvedHardhatNetworkConfig } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import path from "path";
@@ -8,13 +8,13 @@ import { useEnvironment } from "./helpers";
 describe("Waffle plugin plugin", function () {
   describe("Buidler's Waffle provider adapter", function () {
     describe("provider.getWallets", function () {
-      describe("With buidlerevm", function () {
-        describe("With the default buidlerevm accounts", function () {
+      describe("With hardhat", function () {
+        describe("With the default hardhat accounts", function () {
           useEnvironment(path.join(__dirname, "buidler-project"));
 
           it("Should return a wallet for each of the default accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
-            assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
+            assert.equal(this.env.network.name, HARDHAT_NETWORK_NAME);
             const accounts = (this.env.network
               .config as ResolvedHardhatNetworkConfig).accounts;
             assert.lengthOf(wallets, accounts.length);
@@ -28,7 +28,7 @@ describe("Waffle plugin plugin", function () {
           });
         });
 
-        describe("With customized buidlerevm accounts", function () {
+        describe("With customized hardhat accounts", function () {
           useEnvironment(
             path.join(__dirname, "buidler-project-custom-accounts")
           );
@@ -39,7 +39,7 @@ describe("Waffle plugin plugin", function () {
               __dirname,
               "buidler-project-custom-accounts",
               "buidler.config.js"
-            )).networks.buidlerevm.accounts;
+            )).networks.hardhat.accounts;
 
             assert.lengthOf(wallets, accounts.length);
 
@@ -65,13 +65,13 @@ describe("Waffle plugin plugin", function () {
       });
 
       describe("Deprecated getWallets", function () {
-        describe("With buidlerevm", function () {
-          describe("With the default buidlerevm accounts", function () {
+        describe("With hardhat", function () {
+          describe("With the default hardhat accounts", function () {
             useEnvironment(path.join(__dirname, "buidler-project"));
 
             it("Should return a wallet for each of the default accounts", function () {
               const wallets = this.env.waffle.provider.getWallets();
-              assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
+              assert.equal(this.env.network.name, HARDHAT_NETWORK_NAME);
               const accounts = (this.env.network
                 .config as ResolvedHardhatNetworkConfig).accounts!;
 

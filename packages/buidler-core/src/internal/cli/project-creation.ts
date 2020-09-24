@@ -3,7 +3,7 @@ import fsExtra from "fs-extra";
 import os from "os";
 import path from "path";
 
-import { BUIDLER_NAME } from "../constants";
+import { HARDHAT_NAME } from "../constants";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
@@ -53,7 +53,7 @@ async function printWelcomeMessage() {
 
   console.log(
     chalk.cyan(
-      `${emoji("👷 ")}Welcome to ${BUIDLER_NAME} v${packageJson.version}${emoji(
+      `${emoji("👷 ")}Welcome to ${HARDHAT_NAME} v${packageJson.version}${emoji(
         " 👷‍"
       )}‍\n`
     )

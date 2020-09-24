@@ -14,7 +14,7 @@ Buidler comes built-in with Buidler EVM, a local Ethereum network designed for d
 
 ## How can I use it?
 
-- Buidler will always spin up an instance on startup when `defaultNetwork` is empty or set to `buidlerevm`. It's the default behavior.
+- Buidler will always spin up an instance on startup when `defaultNetwork` is empty or set to `hardhat`. It's the default behavior.
 - It can be used to run tests, in the console, scripts, and tasks
 - Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to the provider
 - There's no need to make any changes to your tests or scripts.

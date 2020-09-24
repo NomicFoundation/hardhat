@@ -551,7 +551,7 @@ function correctSelectors(
       if (!fixedSelector) {
         // tslint:disable-next-line only-buidler-error
         throw new Error(
-          `Failed to compute the selector one or more implementations of ${contract.name}#${functionName}. BuidlerEVM can automatically fix this problem if you don't use function overloading.`
+          `Failed to compute the selector one or more implementations of ${contract.name}#${functionName}. Hardhat Network can automatically fix this problem if you don't use function overloading.`
         );
       }
     }

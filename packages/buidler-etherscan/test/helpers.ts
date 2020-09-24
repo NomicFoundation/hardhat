@@ -16,7 +16,7 @@ export function resetBuidler() {
 
 export function useEnvironment(
   projectPath: string,
-  network: string = "buidlerevm"
+  network: string = "hardhat"
 ) {
   beforeEach("Loading buidler environment", function () {
     process.chdir(projectPath);

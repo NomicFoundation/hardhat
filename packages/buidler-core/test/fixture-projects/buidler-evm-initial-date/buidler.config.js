@@ -1,6 +1,6 @@
 module.exports = {
   networks: {
-    buidlerevm: {
+    hardhat: {
       initialDate: "2019-03-06T00:00:00",
     },
   },

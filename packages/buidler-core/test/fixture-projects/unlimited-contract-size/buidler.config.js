@@ -1,6 +1,6 @@
 module.exports = {
   networks: {
-    buidlerevm: {
+    hardhat: {
       allowUnlimitedContractSize: true,
     },
   },

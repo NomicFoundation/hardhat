@@ -17,7 +17,7 @@ describe("Web3 module", function () {
         it.skip("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
           assert.isTrue(
-            res.startsWith("BuidlerEVM/1.0.0-beta.13/ethereumjs-vm/4")
+            res.startsWith("HardhatNetwork/1.0.0-beta.13/ethereumjs-vm/4")
           );
         });
       });

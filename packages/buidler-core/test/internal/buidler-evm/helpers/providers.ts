@@ -33,7 +33,7 @@ export const DEFAULT_ACCOUNTS_BALANCES = DEFAULT_ACCOUNTS.map(
 
 export const PROVIDERS = [
   {
-    name: "BuidlerEVM",
+    name: "Hardhat Network",
     isFork: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,

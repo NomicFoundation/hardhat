@@ -3,8 +3,8 @@ import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
 
 import {
-  BUIDLEREVM_NETWORK_NAME,
-  BUIDLEREVM_SUPPORTED_HARDFORKS,
+  HARDHAT_NETWORK_NAME,
+  HARDHAT_NETWORK_SUPPORTED_HARDFORKS,
 } from "../../constants";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -198,14 +198,14 @@ export function getValidationErrors(config: any): string[] {
 
   // These can't be validated with io-ts
   if (config !== undefined && typeof config.networks === "object") {
-    const buidlerNetwork = config.networks[BUIDLEREVM_NETWORK_NAME];
+    const buidlerNetwork = config.networks[HARDHAT_NETWORK_NAME];
     if (buidlerNetwork !== undefined) {
       if (
         buidlerNetwork.hardfork !== undefined &&
-        !BUIDLEREVM_SUPPORTED_HARDFORKS.includes(buidlerNetwork.hardfork)
+        !HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(buidlerNetwork.hardfork)
       ) {
         errors.push(
-          `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.hardfork is not supported. Use one of ${BUIDLEREVM_SUPPORTED_HARDFORKS.join(
+          `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.hardfork is not supported. Use one of ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
             ", "
           )}`
         );
@@ -217,7 +217,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.allowUnlimitedContractSize`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.allowUnlimitedContractSize`,
             buidlerNetwork.allowUnlimitedContractSize,
             "boolean | undefined"
           )
@@ -230,7 +230,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.initialDate`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.initialDate`,
             buidlerNetwork.initialDate,
             "string | undefined"
           )
@@ -243,7 +243,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnTransactionFailures`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.throwOnTransactionFailures`,
             buidlerNetwork.throwOnTransactionFailures,
             "boolean | undefined"
           )
@@ -256,7 +256,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnCallFailures`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.throwOnCallFailures`,
             buidlerNetwork.throwOnCallFailures,
             "boolean | undefined"
           )
@@ -265,7 +265,7 @@ export function getValidationErrors(config: any): string[] {
 
       if (buidlerNetwork.url !== undefined) {
         errors.push(
-          `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME} can't have an url`
+          `HardhatConfig.networks.${HARDHAT_NETWORK_NAME} can't have an url`
         );
       }
 
@@ -275,7 +275,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.blockGasLimit`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.blockGasLimit`,
             buidlerNetwork.blockGasLimit,
             "number | undefined"
           )
@@ -288,7 +288,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.chainId`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chainId`,
             buidlerNetwork.chainId,
             "number | undefined"
           )
@@ -301,7 +301,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.loggingEnabled`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.loggingEnabled`,
             buidlerNetwork.loggingEnabled,
             "boolean | undefined"
           )
@@ -313,7 +313,7 @@ export function getValidationErrors(config: any): string[] {
           if (typeof account.privateKey !== "string") {
             errors.push(
               getErrorMessage(
-                `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].privateKey`,
+                `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts[].privateKey`,
                 account.privateKey,
                 "string"
               )
@@ -323,7 +323,7 @@ export function getValidationErrors(config: any): string[] {
           if (typeof account.balance !== "string") {
             errors.push(
               getErrorMessage(
-                `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].balance`,
+                `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts[].balance`,
                 account.balance,
                 "string"
               )
@@ -337,7 +337,7 @@ export function getValidationErrors(config: any): string[] {
         if (hdConfigResult.isLeft()) {
           errors.push(
             getErrorMessage(
-              `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
+              `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts`,
               buidlerNetwork.accounts,
               "[{privateKey: string, balance: string}] | HardhatNetworkHDAccountsConfig | undefined"
             )
@@ -346,7 +346,7 @@ export function getValidationErrors(config: any): string[] {
       } else if (buidlerNetwork.accounts !== undefined) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts`,
             buidlerNetwork.accounts,
             "[{privateKey: string, balance: string}] | HardhatNetworkHDAccountsConfig | undefined"
           )
@@ -357,7 +357,7 @@ export function getValidationErrors(config: any): string[] {
     for (const [networkName, netConfig] of Object.entries<any>(
       config.networks
     )) {
-      if (networkName === BUIDLEREVM_NETWORK_NAME) {
+      if (networkName === HARDHAT_NETWORK_NAME) {
         continue;
       }
 
@@ -389,7 +389,7 @@ export function getValidationErrors(config: any): string[] {
   }
 
   // io-ts can get confused if there are errors that it can't understand.
-  // Especially around BuidlerEVM's config. It will treat it as an HTTPConfig,
+  // Especially around Hardhat Network's config. It will treat it as an HTTPConfig,
   // and may give a loot of errors.
   if (errors.length > 0) {
     return errors;

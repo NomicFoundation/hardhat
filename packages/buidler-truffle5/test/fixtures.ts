@@ -1,4 +1,4 @@
-import { BUIDLEREVM_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
+import { HARDHAT_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import path from "path";
 
@@ -16,7 +16,7 @@ describe("Truffle fixtures support", function () {
     describe("In a project without migrations", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.4"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should not detect any", async function () {
@@ -27,7 +27,7 @@ describe("Truffle fixtures support", function () {
     describe("In a project with migrations", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-migrations"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should detect them", async function () {
@@ -40,7 +40,7 @@ describe("Truffle fixtures support", function () {
     describe("In a project without fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-solc-0.4"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should not detect any", async function () {
@@ -51,7 +51,7 @@ describe("Truffle fixtures support", function () {
     describe("In a project with a js fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-fixture"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should detect them", async function () {
@@ -62,7 +62,7 @@ describe("Truffle fixtures support", function () {
     describe("In a project with a ts fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-ts-fixture"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should detect them", async function () {
@@ -75,7 +75,7 @@ describe("Truffle fixtures support", function () {
     describe("In a project with a js fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-fixture"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should load it correctly", async function () {
@@ -87,7 +87,7 @@ describe("Truffle fixtures support", function () {
     describe("In a project with a ts fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-ts-fixture"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should load it correctly", async function () {
@@ -99,7 +99,7 @@ describe("Truffle fixtures support", function () {
     describe("In an invalid fixture", function () {
       useEnvironment(
         path.join(__dirname, "buidler-project-with-invalid-fixture"),
-        BUIDLEREVM_NETWORK_NAME
+        HARDHAT_NETWORK_NAME
       );
 
       it("Should load it correctly", async function () {
@@ -119,7 +119,7 @@ describe("Truffle fixtures support", function () {
   describe("Fixtures integration test", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.5"),
-      BUIDLEREVM_NETWORK_NAME
+      HARDHAT_NETWORK_NAME
     );
 
     it("Should detect deployed contracts", async function () {

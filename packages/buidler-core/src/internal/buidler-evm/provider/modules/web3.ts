@@ -34,7 +34,7 @@ export class Web3Module {
 
     // const buidlerPackage = await getPackageJson();
     // const ethereumjsVMPackage = require("@nomiclabs/ethereumjs-vm/package.json");
-    // return `BuidlerEVM/${buidlerPackage.version}/ethereumjs-vm/${ethereumjsVMPackage.version}`;
+    // return `HardhatNetwork/${buidlerPackage.version}/ethereumjs-vm/${ethereumjsVMPackage.version}`;
   }
 
   // web3_sha3

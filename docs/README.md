@@ -55,7 +55,7 @@ footer: Copyright © 2018-2019 Nomic Labs LLC
   usePlugin("@nomiclabs/buidler-docker-solc");
 
   module.exports = {
-    buidlerevm: {
+    hardhat: {
       throwOnTransactionFailures: true
     }
   };

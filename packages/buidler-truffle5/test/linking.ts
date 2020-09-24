@@ -1,4 +1,4 @@
-import { BUIDLEREVM_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
+import { HARDHAT_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import path from "path";
 
@@ -127,7 +127,7 @@ describe("Libraries linking", function () {
   describe("When using solc 0.4.x", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.4"),
-      BUIDLEREVM_NETWORK_NAME
+      HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
   });
@@ -135,7 +135,7 @@ describe("Libraries linking", function () {
   describe("When using solc 0.5.x", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.5"),
-      BUIDLEREVM_NETWORK_NAME
+      HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
   });
@@ -143,7 +143,7 @@ describe("Libraries linking", function () {
   describe("When using solc 0.6.x", function () {
     useEnvironment(
       path.join(__dirname, "buidler-project-solc-0.6"),
-      BUIDLEREVM_NETWORK_NAME
+      HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
   });

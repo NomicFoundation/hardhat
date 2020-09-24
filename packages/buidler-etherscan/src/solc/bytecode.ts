@@ -224,7 +224,7 @@ export function zeroOutSlices(
   return code;
 }
 
-/* Taken from stack trace buidlerevm internals
+/* Taken from stack trace hardhat internals
  *  This is not an exhaustive interface for compiler input nor output.
  */
 

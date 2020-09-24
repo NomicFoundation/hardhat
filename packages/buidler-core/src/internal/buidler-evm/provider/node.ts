@@ -560,7 +560,7 @@ export class BuidlerNode extends EventEmitter {
     //  pad it. Technically, the storage consists of 32-byte slots, so we should
     //  always return 32 bytes. The problem is that Ganache doesn't handle them
     //  this way. We compromise a little here to ease the migration into
-    //  BuidlerEVM :(
+    //  Hardhat Network :(
 
     // const EXPECTED_DATA_SIZE = 32;
     // if (data.length < EXPECTED_DATA_SIZE) {

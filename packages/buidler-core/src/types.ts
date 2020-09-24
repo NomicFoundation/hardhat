@@ -79,12 +79,12 @@ export type ResolvedNetworkConfig =
   | ResolvedHttpNetworkConfig;
 
 export interface Networks {
-  buidlerevm: HardhatNetworkConfig;
+  hardhat: HardhatNetworkConfig;
   [networkName: string]: NetworkConfig;
 }
 
 export interface ResolvedNetworks {
-  buidlerevm: ResolvedHardhatNetworkConfig;
+  hardhat: ResolvedHardhatNetworkConfig;
   [networkName: string]: ResolvedNetworkConfig;
 }
 

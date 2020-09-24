@@ -817,9 +817,9 @@ We recommend not using this kind of dependencies.`,
     JSONRPC_UNSUPPORTED_NETWORK: {
       number: 606,
       message:
-        "Unsupported network for JSON-RPC server. Only buidlerevm is currently supported.",
+        "Unsupported network for JSON-RPC server. Only hardhat is currently supported.",
       title: "Unsupported network for JSON-RPC server.",
-      description: `JSON-RPC server can only be started when running the BuidlerEVM network.
+      description: `JSON-RPC server can only be started when running the Hardhat Network.
       
 To start the JSON-RPC server, retry the command without the --network parameter.`,
       shouldBeReported: false,

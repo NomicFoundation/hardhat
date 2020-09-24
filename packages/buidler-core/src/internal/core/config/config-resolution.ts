@@ -85,10 +85,10 @@ export function resolveConfig(
     solidity: normalizeSolidityConfig(config.solidity!),
     networks: {
       ...config.networks!,
-      buidlerevm: {
-        ...config.networks!.buidlerevm,
+      hardhat: {
+        ...config.networks!.hardhat,
         accounts: normalizeBuidlerEVMAccountsConfig(
-          config.networks!.buidlerevm.accounts!
+          config.networks!.hardhat.accounts!
         ),
       },
     },

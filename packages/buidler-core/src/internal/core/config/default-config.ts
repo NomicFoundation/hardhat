@@ -1,5 +1,5 @@
 import { HardhatConfig, HardhatNetworkConfig } from "../../../types";
-import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
+import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.5.15";
 export const BUIDLEREVM_DEFAULT_GAS_PRICE = 8e9;
@@ -24,7 +24,7 @@ const DEFAULT_BUIDLER_NETWORK_CONFIG: HardhatNetworkConfig = {
 };
 
 const defaultConfig: HardhatConfig = {
-  defaultNetwork: BUIDLEREVM_NETWORK_NAME,
+  defaultNetwork: HARDHAT_NETWORK_NAME,
   solidity: {
     version: DEFAULT_SOLC_VERSION,
     settings: {
@@ -35,7 +35,7 @@ const defaultConfig: HardhatConfig = {
     },
   },
   networks: {
-    [BUIDLEREVM_NETWORK_NAME]: DEFAULT_BUIDLER_NETWORK_CONFIG,
+    [HARDHAT_NETWORK_NAME]: DEFAULT_BUIDLER_NETWORK_CONFIG,
     localhost: {
       url: "http://127.0.0.1:8545",
     },

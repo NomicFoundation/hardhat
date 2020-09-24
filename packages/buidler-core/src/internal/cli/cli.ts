@@ -6,7 +6,7 @@ import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
 import { TaskArguments } from "../../types";
-import { BUIDLER_NAME } from "../constants";
+import { HARDHAT_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError, BuidlerPluginError } from "../core/errors";
@@ -209,11 +209,11 @@ async function main() {
         )}`;
 
         console.error(
-          `For more info go to ${link} or run ${BUIDLER_NAME} with --show-stack-traces`
+          `For more info go to ${link} or run ${HARDHAT_NAME} with --show-stack-traces`
         );
       } else {
         console.error(
-          `For more info run ${BUIDLER_NAME} with --show-stack-traces`
+          `For more info run ${HARDHAT_NAME} with --show-stack-traces`
         );
       }
     }
