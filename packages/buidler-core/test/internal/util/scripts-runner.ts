@@ -129,7 +129,7 @@ describe("Scripts runner", function () {
 
       const statusCode = await runScriptWithBuidler(
         this.env.hardhatArguments,
-        "./assert-buidler-arguments.js"
+        "./assert-hardhat-arguments.js"
       );
 
       assert.equal(statusCode, 0);

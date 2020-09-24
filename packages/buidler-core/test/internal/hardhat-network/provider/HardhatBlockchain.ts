@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { BufferLike } from "ethereumjs-tx";
 import { BN, zeros } from "ethereumjs-util";
 
-import { BuidlerBlockchain } from "../../../../src/internal/hardhat-network/provider/BuidlerBlockchain";
+import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import { PBlockchain } from "../../../../src/internal/hardhat-network/provider/types/PBlockchain";
@@ -12,7 +12,7 @@ import {
   createTestTransaction,
 } from "../helpers/blockchain";
 
-describe("BuidlerBlockchain", () => {
+describe("HardhatBlockchain", () => {
   let blockchain: PBlockchain;
   let blocks: Block[];
 
@@ -24,7 +24,7 @@ describe("BuidlerBlockchain", () => {
   }
 
   beforeEach(() => {
-    blockchain = new BuidlerBlockchain();
+    blockchain = new HardhatBlockchain();
     blocks = [];
   });
 

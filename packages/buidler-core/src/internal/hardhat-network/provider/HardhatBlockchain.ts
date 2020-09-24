@@ -10,7 +10,7 @@ import { PBlockchain, toBlockchain } from "./types/PBlockchain";
 
 /* tslint:disable only-hardhat-error */
 
-export class BuidlerBlockchain implements PBlockchain {
+export class HardhatBlockchain implements PBlockchain {
   private readonly _data = new BlockchainData();
   private _length = 0;
 

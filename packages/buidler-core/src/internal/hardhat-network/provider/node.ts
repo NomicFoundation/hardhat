@@ -41,7 +41,7 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
-import { BuidlerBlockchain } from "./BuidlerBlockchain";
+import { HardhatBlockchain } from "./HardhatBlockchain";
 import { InvalidInputError, TransactionExecutionError } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
@@ -99,7 +99,7 @@ export class BuidlerNode extends EventEmitter {
 
     let common: Common;
     let stateManager: StateManager | ForkStateManager;
-    let blockchain: BuidlerBlockchain | ForkBlockchain;
+    let blockchain: HardhatBlockchain | ForkBlockchain;
     let initialBlockTimeOffset: BN | undefined;
 
     if (config.type === "forked") {
@@ -121,7 +121,7 @@ export class BuidlerNode extends EventEmitter {
         trie: stateTrie,
       });
 
-      blockchain = new BuidlerBlockchain();
+      blockchain = new HardhatBlockchain();
       await putGenesisBlock(blockchain, common);
 
       if (config.initialDate !== undefined) {
