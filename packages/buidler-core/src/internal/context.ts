@@ -1,7 +1,7 @@
 import {
-  HardhatRuntimeEnvironment,
   ConfigExtender,
   ExperimentalBuidlerEVMMessageTraceHook,
+  HardhatRuntimeEnvironment,
 } from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";

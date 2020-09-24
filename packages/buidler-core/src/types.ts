@@ -426,18 +426,18 @@ export interface LinkReferences {
   };
 }
 
-// Buidler Runtime Environment types
+// Hardhat Runtime Environment types
 
 /**
- * Buidler arguments:
+ * Hardhat arguments:
  * * network: the network to be used.
  * * showStackTraces: flag to show stack traces.
- * * version: flag to show buidler's version.
- * * help: flag to show buidler's help message.
+ * * version: flag to show hardhat's version.
+ * * help: flag to show hardhat's help message.
  * * emoji:
- * * config: used to specify buidler's config file.
+ * * config: used to specify hardhat's config file.
  */
-export interface BuidlerArguments {
+export interface HardhatArguments {
   network?: string;
   showStackTraces: boolean;
   version: boolean;
@@ -449,8 +449,8 @@ export interface BuidlerArguments {
 }
 
 export type BuidlerParamDefinitions = {
-  [param in keyof Required<BuidlerArguments>]: CLIOptionalParamDefinition<
-    BuidlerArguments[param]
+  [param in keyof Required<HardhatArguments>]: CLIOptionalParamDefinition<
+    HardhatArguments[param]
   >;
 };
 
@@ -465,7 +465,7 @@ export type RunTaskFunction = (
 
 export interface HardhatRuntimeEnvironment {
   readonly config: ResolvedHardhatConfig;
-  readonly buidlerArguments: BuidlerArguments;
+  readonly hardhatArguments: HardhatArguments;
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
   readonly network: Network;

@@ -4,8 +4,8 @@ import path from "path";
 
 import {
   AnalyticsConfig,
-  HardhatConfig,
   ConfigExtender,
+  HardhatConfig,
   MultiSolcConfig,
   ProjectPaths,
   ResolvedHardhatConfig,

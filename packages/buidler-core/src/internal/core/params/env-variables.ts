@@ -1,6 +1,6 @@
 import ProcessEnv = NodeJS.ProcessEnv;
 
-import { BuidlerArguments, BuidlerParamDefinitions } from "../../../types";
+import { HardhatArguments, BuidlerParamDefinitions } from "../../../types";
 import { ArgumentsParser } from "../../cli/ArgumentsParser";
 import { unsafeObjectKeys } from "../../util/unsafe";
 import { BuidlerError } from "../errors";
@@ -18,11 +18,11 @@ export function paramNameToEnvVariable(paramName: string): string {
 }
 
 export function getEnvVariablesMap(
-  buidlerArguments: BuidlerArguments
+  hardhatArguments: HardhatArguments
 ): { [envVar: string]: string } {
   const values: { [envVar: string]: string } = {};
 
-  for (const [name, value] of Object.entries(buidlerArguments)) {
+  for (const [name, value] of Object.entries(hardhatArguments)) {
     if (value === undefined) {
       continue;
     }
@@ -33,10 +33,10 @@ export function getEnvVariablesMap(
   return values;
 }
 
-export function getEnvBuidlerArguments(
+export function getEnvHardhatArguments(
   paramDefinitions: BuidlerParamDefinitions,
   envVariables: ProcessEnv
-): BuidlerArguments {
+): HardhatArguments {
   const envArgs: any = {};
 
   for (const paramName of unsafeObjectKeys(paramDefinitions)) {
@@ -63,5 +63,5 @@ export function getEnvBuidlerArguments(
   }
 
   // TODO: This is a little type-unsafe, but we know we have all the needed arguments
-  return envArgs as BuidlerArguments;
+  return envArgs as HardhatArguments;
 }

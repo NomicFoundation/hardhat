@@ -20,7 +20,7 @@ export default function () {
     .setAction(
       async (
         { script, noCompile }: { script: string; noCompile: boolean },
-        { run, buidlerArguments }
+        { run, hardhatArguments }
       ) => {
         if (!(await fsExtra.pathExists(script))) {
           throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, {
@@ -38,7 +38,7 @@ export default function () {
 
         try {
           process.exitCode = await runScriptWithBuidler(
-            buidlerArguments,
+            hardhatArguments,
             script
           );
         } catch (error) {

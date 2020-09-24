@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import path from "path";
 
-import { BuidlerArguments, ResolvedHardhatConfig } from "../../../types";
+import { HardhatArguments, ResolvedHardhatConfig } from "../../../types";
 import { BuidlerContext } from "../../context";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
@@ -16,10 +16,10 @@ function importCsjOrEsModule(filePath: string): any {
 }
 
 export function loadConfigAndTasks(
-  buidlerArguments?: Partial<BuidlerArguments>
+  hardhatArguments?: Partial<HardhatArguments>
 ): ResolvedHardhatConfig {
   let configPath =
-    buidlerArguments !== undefined ? buidlerArguments.config : undefined;
+    hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 
   if (configPath === undefined) {
     configPath = getUserConfigPath();

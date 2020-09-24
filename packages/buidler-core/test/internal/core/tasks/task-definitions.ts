@@ -8,7 +8,7 @@ import {
 } from "../../../../src/internal/core/tasks/task-definitions";
 import { unsafeObjectKeys } from "../../../../src/internal/util/unsafe";
 import {
-  BuidlerArguments,
+  HardhatArguments,
   ParamDefinition,
   TaskDefinition,
 } from "../../../../src/types";
@@ -193,7 +193,7 @@ describe("SimpleTaskDefinition", () => {
       it("Should throw if a param clashes", () => {
         // This is constructed to force a type error here if a Buidler arg is
         // added and not tested.
-        const buidlerArgs: BuidlerArguments = {
+        const hardhatArgs: HardhatArguments = {
           showStackTraces: true,
           network: "",
           version: false,
@@ -202,7 +202,7 @@ describe("SimpleTaskDefinition", () => {
           verbose: false,
         };
 
-        Object.keys(buidlerArgs).forEach((name) => testClashWith(name));
+        Object.keys(hardhatArgs).forEach((name) => testClashWith(name));
       });
     });
 

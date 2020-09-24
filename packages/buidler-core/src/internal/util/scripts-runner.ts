@@ -1,7 +1,7 @@
 import debug from "debug";
 import path from "path";
 
-import { BuidlerArguments } from "../../types";
+import { HardhatArguments } from "../../types";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
 
@@ -40,7 +40,7 @@ export async function runScript(
 }
 
 export async function runScriptWithBuidler(
-  buidlerArguments: BuidlerArguments,
+  hardhatArguments: HardhatArguments,
   scriptPath: string,
   scriptArgs: string[] = [],
   extraNodeArgs: string[] = [],
@@ -55,7 +55,7 @@ export async function runScriptWithBuidler(
     scriptArgs,
     [...extraNodeArgs, "--require", buidlerRegisterPath],
     {
-      ...getEnvVariablesMap(buidlerArguments),
+      ...getEnvVariablesMap(hardhatArguments),
       ...extraEnvVars,
     }
   );

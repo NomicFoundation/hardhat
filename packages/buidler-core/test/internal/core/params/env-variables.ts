@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/buidler-params";
 import {
-  getEnvBuidlerArguments,
+  getEnvHardhatArguments,
   getEnvVariablesMap,
   paramNameToEnvVariable,
 } from "../../../../src/internal/core/params/env-variables";
@@ -30,7 +30,7 @@ describe("paramNameToEnvVariable", () => {
 
 describe("Env vars arguments parsing", () => {
   it("Should use the default values if arguments are not defined", () => {
-    const args = getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
+    const args = getEnvHardhatArguments(BUIDLER_PARAM_DEFINITIONS, {
       IRRELEVANT_ENV_VAR: "123",
     });
     assert.equal(args.help, BUIDLER_PARAM_DEFINITIONS.help.defaultValue);
@@ -44,7 +44,7 @@ describe("Env vars arguments parsing", () => {
   });
 
   it("Should accept values", () => {
-    const args = getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
+    const args = getEnvHardhatArguments(BUIDLER_PARAM_DEFINITIONS, {
       IRRELEVANT_ENV_VAR: "123",
       BUIDLER_NETWORK: "asd",
       BUIDLER_SHOW_STACK_TRACES: "true",
@@ -65,7 +65,7 @@ describe("Env vars arguments parsing", () => {
   it("should throw if an invalid value is passed", () => {
     expectBuidlerError(
       () =>
-        getEnvBuidlerArguments(BUIDLER_PARAM_DEFINITIONS, {
+        getEnvHardhatArguments(BUIDLER_PARAM_DEFINITIONS, {
           BUIDLER_HELP: "123",
         }),
       ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE

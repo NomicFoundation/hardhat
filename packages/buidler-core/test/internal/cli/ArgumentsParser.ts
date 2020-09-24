@@ -14,7 +14,7 @@ import {
   SimpleTaskDefinition,
 } from "../../../src/internal/core/tasks/task-definitions";
 import {
-  BuidlerArguments,
+  HardhatArguments,
   TaskArguments,
   TaskDefinition,
 } from "../../../src/types";
@@ -22,7 +22,7 @@ import { expectBuidlerError } from "../../helpers/errors";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
-  let envArgs: BuidlerArguments;
+  let envArgs: HardhatArguments;
   let taskDefinition: TaskDefinition;
   let overridenTaskDefinition: OverriddenTaskDefinition;
 
@@ -114,18 +114,18 @@ describe("ArgumentsParser", () => {
       ];
 
       const {
-        buidlerArguments,
+        hardhatArguments,
         taskName,
         unparsedCLAs,
-      } = argumentsParser.parseBuidlerArguments(
+      } = argumentsParser.parseHardhatArguments(
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
         rawCLAs
       );
       assert.equal(taskName, "compile");
-      assert.equal(buidlerArguments.showStackTraces, true);
-      assert.equal(buidlerArguments.network, "local");
-      assert.equal(buidlerArguments.emoji, false);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
       assert.equal(unparsedCLAs.length, 1);
       assert.equal("--task-param", unparsedCLAs[0]);
     });
@@ -140,18 +140,18 @@ describe("ArgumentsParser", () => {
       ];
 
       const {
-        buidlerArguments,
+        hardhatArguments,
         taskName,
         unparsedCLAs,
-      } = argumentsParser.parseBuidlerArguments(
+      } = argumentsParser.parseHardhatArguments(
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
         rawCLAs
       );
       assert.equal(taskName, "compile");
-      assert.equal(buidlerArguments.showStackTraces, true);
-      assert.equal(buidlerArguments.network, "local");
-      assert.equal(buidlerArguments.emoji, false);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
       assert.equal(unparsedCLAs.length, 1);
       assert.equal("--task-param", unparsedCLAs[0]);
     });
@@ -167,7 +167,7 @@ describe("ArgumentsParser", () => {
 
       expectBuidlerError(
         () =>
-          argumentsParser.parseBuidlerArguments(
+          argumentsParser.parseHardhatArguments(
             BUIDLER_PARAM_DEFINITIONS,
             envArgs,
             rawCLAs
@@ -184,27 +184,27 @@ describe("ArgumentsParser", () => {
         "compile",
       ];
 
-      const buidlerArguments: TaskArguments = {};
+      const hardhatArguments: TaskArguments = {};
       assert.equal(
         0,
         argumentsParser["_parseArgumentAt"](
           rawCLAs,
           0,
           BUIDLER_PARAM_DEFINITIONS,
-          buidlerArguments
+          hardhatArguments
         )
       );
-      assert.equal(buidlerArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(
         2,
         argumentsParser["_parseArgumentAt"](
           rawCLAs,
           1,
           BUIDLER_PARAM_DEFINITIONS,
-          buidlerArguments
+          hardhatArguments
         )
       );
-      assert.equal(buidlerArguments.network, "local");
+      assert.equal(hardhatArguments.network, "local");
     });
 
     it("should fail trying to parse buidler with invalid argument", () => {
@@ -216,7 +216,7 @@ describe("ArgumentsParser", () => {
       ];
       expectBuidlerError(
         () =>
-          argumentsParser.parseBuidlerArguments(
+          argumentsParser.parseHardhatArguments(
             BUIDLER_PARAM_DEFINITIONS,
             envArgs,
             rawCLAs
@@ -236,7 +236,7 @@ describe("ArgumentsParser", () => {
       ];
       expectBuidlerError(
         () =>
-          argumentsParser.parseBuidlerArguments(
+          argumentsParser.parseHardhatArguments(
             BUIDLER_PARAM_DEFINITIONS,
             envArgs,
             rawCLAs
@@ -246,7 +246,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should only add non-present arguments", () => {
-      const buidlerArguments = argumentsParser["_addBuidlerDefaultArguments"](
+      const hardhatArguments = argumentsParser["_addBuidlerDefaultArguments"](
         BUIDLER_PARAM_DEFINITIONS,
         envArgs,
         {
@@ -254,8 +254,8 @@ describe("ArgumentsParser", () => {
         }
       );
 
-      assert.isTrue(buidlerArguments.showStackTraces);
-      assert.isFalse(buidlerArguments.emoji);
+      assert.isTrue(hardhatArguments.showStackTraces);
+      assert.isFalse(hardhatArguments.emoji);
     });
   });
 

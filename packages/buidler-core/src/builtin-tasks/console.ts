@@ -16,7 +16,7 @@ export default function () {
     .setAction(
       async (
         { noCompile }: { noCompile: boolean },
-        { config, run, buidlerArguments }
+        { config, run, hardhatArguments }
       ) => {
         if (!noCompile) {
           await run("compile");
@@ -38,7 +38,7 @@ export default function () {
         );
 
         // Running the script "" is like running `node`, so this starts the repl
-        await runScriptWithBuidler(buidlerArguments, "", [], nodeArgs, {
+        await runScriptWithBuidler(hardhatArguments, "", [], nodeArgs, {
           NODE_REPL_HISTORY: historyFile,
         });
       }

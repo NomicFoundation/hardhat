@@ -12,7 +12,7 @@ import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError, BuidlerPluginError } from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
-import { getEnvBuidlerArguments } from "../core/params/env-variables";
+import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
@@ -51,7 +51,7 @@ async function main() {
 
     ensureValidNodeVersion(packageJson);
 
-    const envVariableArguments = getEnvBuidlerArguments(
+    const envVariableArguments = getEnvHardhatArguments(
       BUIDLER_PARAM_DEFINITIONS,
       process.env
     );
@@ -59,28 +59,28 @@ async function main() {
     const argumentsParser = new ArgumentsParser();
 
     const {
-      buidlerArguments,
+      hardhatArguments,
       taskName: parsedTaskName,
       unparsedCLAs,
-    } = argumentsParser.parseBuidlerArguments(
+    } = argumentsParser.parseHardhatArguments(
       BUIDLER_PARAM_DEFINITIONS,
       envVariableArguments,
       process.argv.slice(2)
     );
 
-    if (buidlerArguments.verbose) {
+    if (hardhatArguments.verbose) {
       Reporter.setVerbose(true);
       debug.enable("buidler*");
     }
 
-    if (buidlerArguments.emoji) {
+    if (hardhatArguments.emoji) {
       enableEmoji();
     }
 
-    showStackTraces = buidlerArguments.showStackTraces;
+    showStackTraces = hardhatArguments.showStackTraces;
 
     if (
-      buidlerArguments.config === undefined &&
+      hardhatArguments.config === undefined &&
       !isCwdInsideProject() &&
       process.stdout.isTTY === true
     ) {
@@ -89,7 +89,7 @@ async function main() {
     }
 
     // --version is a special case
-    if (buidlerArguments.version) {
+    if (hardhatArguments.version) {
       await printVersionMessage(packageJson);
       return;
     }
@@ -97,7 +97,7 @@ async function main() {
     loadTsNodeIfPresent();
 
     const ctx = BuidlerContext.createBuidlerContext();
-    const config = loadConfigAndTasks(buidlerArguments);
+    const config = loadConfigAndTasks(hardhatArguments);
 
     const analytics = await Analytics.getInstance(
       config.paths.root,
@@ -118,7 +118,7 @@ async function main() {
     let taskArguments: TaskArguments;
 
     // --help is a also special case
-    if (buidlerArguments.help && taskName !== TASK_HELP) {
+    if (hardhatArguments.help && taskName !== TASK_HELP) {
       taskArguments = { task: taskName };
       taskName = TASK_HELP;
     } else {
@@ -145,7 +145,7 @@ async function main() {
 
     const env = new Environment(
       config,
-      buidlerArguments,
+      hardhatArguments,
       taskDefinitions,
       envExtenders,
       ctx.experimentalBuidlerEVMMessageTraceHooks

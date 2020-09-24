@@ -1,11 +1,11 @@
 import debug from "debug";
 
 import {
-  BuidlerArguments,
-  HardhatRuntimeEnvironment,
   EnvironmentExtender,
   EthereumProvider,
   ExperimentalBuidlerEVMMessageTraceHook,
+  HardhatArguments,
+  HardhatRuntimeEnvironment,
   Network,
   ParamDefinition,
   ResolvedHardhatConfig,
@@ -48,13 +48,13 @@ export class Environment implements HardhatRuntimeEnvironment {
    * of the requires in the buidler's config file and its plugins.
    *
    * @param config The buidler's config object.
-   * @param buidlerArguments The parsed buidler's arguments.
+   * @param hardhatArguments The parsed buidler's arguments.
    * @param tasks A map of tasks.
    * @param extenders A list of extenders.
    */
   constructor(
     public readonly config: ResolvedHardhatConfig,
-    public readonly buidlerArguments: BuidlerArguments,
+    public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = [],
     experimentalBuidlerEVMMessageTraceHooks: ExperimentalBuidlerEVMMessageTraceHook[] = []
@@ -62,8 +62,8 @@ export class Environment implements HardhatRuntimeEnvironment {
     log("Creating HardhatRuntimeEnvironment");
 
     const networkName =
-      buidlerArguments.network !== undefined
-        ? buidlerArguments.network
+      hardhatArguments.network !== undefined
+        ? hardhatArguments.network
         : config.defaultNetwork;
 
     const networkConfig = config.networks[networkName];

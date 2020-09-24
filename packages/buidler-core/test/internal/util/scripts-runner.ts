@@ -109,7 +109,7 @@ describe("Scripts runner", function () {
         statusCodeWithoutBuidler,
       ] = await Promise.all([
         runScriptWithBuidler(
-          this.env.buidlerArguments,
+          this.env.hardhatArguments,
           "./successful-script.js"
         ),
         runScript("./successful-script.js"),
@@ -125,10 +125,10 @@ describe("Scripts runner", function () {
       // This is only for testing purposes, as we can't set a buidler argument
       // as the CLA does, and env variables always get forwarded to child
       // processes
-      this.env.buidlerArguments.network = "custom";
+      this.env.hardhatArguments.network = "custom";
 
       const statusCode = await runScriptWithBuidler(
-        this.env.buidlerArguments,
+        this.env.hardhatArguments,
         "./assert-buidler-arguments.js"
       );
 

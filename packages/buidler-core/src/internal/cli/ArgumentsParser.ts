@@ -1,7 +1,7 @@
 import {
-  BuidlerArguments,
   BuidlerParamDefinitions,
   CLIArgumentType,
+  HardhatArguments,
   ParamDefinition,
   ParamDefinitionsMap,
   TaskArguments,
@@ -41,16 +41,16 @@ export class ArgumentsParser {
     );
   }
 
-  public parseBuidlerArguments(
+  public parseHardhatArguments(
     buidlerParamDefinitions: BuidlerParamDefinitions,
-    envVariableArguments: BuidlerArguments,
+    envVariableArguments: HardhatArguments,
     rawCLAs: string[]
   ): {
-    buidlerArguments: BuidlerArguments;
+    hardhatArguments: HardhatArguments;
     taskName?: string;
     unparsedCLAs: string[];
   } {
-    const buidlerArguments: Partial<BuidlerArguments> = {};
+    const hardhatArguments: Partial<HardhatArguments> = {};
     let taskName: string | undefined;
     const unparsedCLAs: string[] = [];
 
@@ -74,7 +74,7 @@ export class ArgumentsParser {
           rawCLAs,
           i,
           buidlerParamDefinitions,
-          buidlerArguments
+          hardhatArguments
         );
       } else {
         if (!this._isCLAParamName(arg, buidlerParamDefinitions)) {
@@ -86,16 +86,16 @@ export class ArgumentsParser {
           rawCLAs,
           i,
           buidlerParamDefinitions,
-          buidlerArguments
+          hardhatArguments
         );
       }
     }
 
     return {
-      buidlerArguments: this._addBuidlerDefaultArguments(
+      hardhatArguments: this._addBuidlerDefaultArguments(
         buidlerParamDefinitions,
         envVariableArguments,
-        buidlerArguments
+        hardhatArguments
       ),
       taskName,
       unparsedCLAs,
@@ -155,12 +155,12 @@ export class ArgumentsParser {
 
   private _addBuidlerDefaultArguments(
     buidlerParamDefinitions: BuidlerParamDefinitions,
-    envVariableArguments: BuidlerArguments,
-    buidlerArguments: Partial<BuidlerArguments>
-  ): BuidlerArguments {
+    envVariableArguments: HardhatArguments,
+    hardhatArguments: Partial<HardhatArguments>
+  ): HardhatArguments {
     return {
       ...envVariableArguments,
-      ...buidlerArguments,
+      ...hardhatArguments,
     };
   }
 

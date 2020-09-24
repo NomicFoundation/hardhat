@@ -9,7 +9,7 @@ import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
 import { resetBuidlerContext } from "../../../src/internal/reset";
 import {
-  BuidlerArguments,
+  HardhatArguments,
   HardhatRuntimeEnvironment,
   ParamDefinition,
   ResolvedHardhatConfig,
@@ -61,7 +61,7 @@ describe("Environment", () => {
     analytics: { enabled: true },
   };
 
-  const args: BuidlerArguments = {
+  const args: HardhatArguments = {
     network: "local",
     showStackTraces: false,
     version: false,

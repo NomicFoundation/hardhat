@@ -14,7 +14,6 @@ import { createProvider } from "../internal/core/providers/construction";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
 import {
-  HardhatNetworkConfig,
   EthereumProvider,
   ResolvedHardhatConfig,
   ResolvedHardhatNetworkConfig,
@@ -79,15 +78,15 @@ export default function () {
       types.int
     )
     .setAction(
-      async ({ hostname, port }, { network, buidlerArguments, config }) => {
+      async ({ hostname, port }, { network, hardhatArguments: hardhatArguments, config }) => {
         if (
           network.name !== BUIDLEREVM_NETWORK_NAME &&
-          // We normally set the default network as buidlerArguments.network,
+          // We normally set the default network as hardhatArguments.network,
           // so this check isn't enough, and we add the next one. This has the
           // effect of `--network <defaultNetwork>` being a false negative, but
           // not a big deal.
-          buidlerArguments.network !== undefined &&
-          buidlerArguments.network !== config.defaultNetwork
+          hardhatArguments.network !== undefined &&
+          hardhatArguments.network !== config.defaultNetwork
         ) {
           throw new BuidlerError(
             ERRORS.BUILTIN_TASKS.JSONRPC_UNSUPPORTED_NETWORK

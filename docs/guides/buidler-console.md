@@ -40,6 +40,8 @@ And the `artifacts` object if you're using the `buidler-truffle5` plugin, and so
 
 Anything that has been injected into the [Buidler Runtime Environment] will be magically available in the global scope, or if you're the more explicit kind of developer, you can also require the BRE explicitly and get autocomplete:
 
+TODO-HH: re-run this
+
 ```
 > const buidler = require("@nomiclabs/buidler")
 undefined
@@ -50,7 +52,7 @@ buidler.valueOf
 
 buidler._runTaskDefinition    buidler.constructor           buidler.injectToGlobal
 
-buidler._extenders            buidler.buidlerArguments      buidler.config                buidler.ethereum              buidler.ethers
+buidler._extenders            buidler.hardhatArguments      buidler.config                buidler.ethereum              buidler.ethers
 buidler.network               buidler.run                   buidler.tasks
 
 >

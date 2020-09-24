@@ -6,7 +6,7 @@ import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
-import { getEnvBuidlerArguments } from "../core/params/env-variables";
+import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 
 let ctx: BuidlerContext;
@@ -25,20 +25,20 @@ if (BuidlerContext.isCreated()) {
 } else {
   ctx = BuidlerContext.createBuidlerContext();
 
-  const buidlerArguments = getEnvBuidlerArguments(
+  const hardhatArguments = getEnvHardhatArguments(
     BUIDLER_PARAM_DEFINITIONS,
     process.env
   );
 
-  if (buidlerArguments.verbose) {
+  if (hardhatArguments.verbose) {
     debug.enable("buidler*");
   }
 
-  const config = loadConfigAndTasks(buidlerArguments);
+  const config = loadConfigAndTasks(hardhatArguments);
 
   env = new Environment(
     config,
-    buidlerArguments,
+    hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.extendersManager.getExtenders(),
     ctx.experimentalBuidlerEVMMessageTraceHooks
