@@ -1,7 +1,7 @@
 import { EtherscanConfig } from "./types";
 
 declare module "@nomiclabs/buidler/types" {
-  interface BuidlerConfig {
+  interface HardhatConfig {
     etherscan?: EtherscanConfig;
   }
 

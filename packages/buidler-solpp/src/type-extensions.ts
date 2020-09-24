@@ -3,7 +3,7 @@ import "@nomiclabs/buidler/types";
 import { SolppConfig } from "./types";
 
 declare module "@nomiclabs/buidler/types" {
-  interface BuidlerConfig {
+  interface HardhatConfig {
     solpp?: Partial<SolppConfig>;
   }
 }

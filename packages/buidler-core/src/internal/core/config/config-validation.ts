@@ -165,7 +165,7 @@ const AnalyticsConfig = t.type({
   enabled: optional(t.boolean),
 });
 
-const BuidlerConfig = t.type(
+const HardhatConfig = t.type(
   {
     defaultNetwork: optional(t.string),
     networks: optional(Networks),
@@ -173,7 +173,7 @@ const BuidlerConfig = t.type(
     solidity: optional(SolidityConfig),
     analytics: optional(AnalyticsConfig),
   },
-  "BuidlerConfig"
+  "HardhatConfig"
 );
 
 /**
@@ -205,7 +205,7 @@ export function getValidationErrors(config: any): string[] {
         !BUIDLEREVM_SUPPORTED_HARDFORKS.includes(buidlerNetwork.hardfork)
       ) {
         errors.push(
-          `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.hardfork is not supported. Use one of ${BUIDLEREVM_SUPPORTED_HARDFORKS.join(
+          `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.hardfork is not supported. Use one of ${BUIDLEREVM_SUPPORTED_HARDFORKS.join(
             ", "
           )}`
         );
@@ -217,7 +217,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.allowUnlimitedContractSize`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.allowUnlimitedContractSize`,
             buidlerNetwork.allowUnlimitedContractSize,
             "boolean | undefined"
           )
@@ -230,7 +230,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.initialDate`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.initialDate`,
             buidlerNetwork.initialDate,
             "string | undefined"
           )
@@ -243,7 +243,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnTransactionFailures`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnTransactionFailures`,
             buidlerNetwork.throwOnTransactionFailures,
             "boolean | undefined"
           )
@@ -256,7 +256,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnCallFailures`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.throwOnCallFailures`,
             buidlerNetwork.throwOnCallFailures,
             "boolean | undefined"
           )
@@ -265,7 +265,7 @@ export function getValidationErrors(config: any): string[] {
 
       if (buidlerNetwork.url !== undefined) {
         errors.push(
-          `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME} can't have an url`
+          `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME} can't have an url`
         );
       }
 
@@ -275,7 +275,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.blockGasLimit`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.blockGasLimit`,
             buidlerNetwork.blockGasLimit,
             "number | undefined"
           )
@@ -288,7 +288,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.chainId`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.chainId`,
             buidlerNetwork.chainId,
             "number | undefined"
           )
@@ -301,7 +301,7 @@ export function getValidationErrors(config: any): string[] {
       ) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.loggingEnabled`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.loggingEnabled`,
             buidlerNetwork.loggingEnabled,
             "boolean | undefined"
           )
@@ -313,7 +313,7 @@ export function getValidationErrors(config: any): string[] {
           if (typeof account.privateKey !== "string") {
             errors.push(
               getErrorMessage(
-                `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].privateKey`,
+                `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].privateKey`,
                 account.privateKey,
                 "string"
               )
@@ -323,7 +323,7 @@ export function getValidationErrors(config: any): string[] {
           if (typeof account.balance !== "string") {
             errors.push(
               getErrorMessage(
-                `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].balance`,
+                `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts[].balance`,
                 account.balance,
                 "string"
               )
@@ -337,7 +337,7 @@ export function getValidationErrors(config: any): string[] {
         if (hdConfigResult.isLeft()) {
           errors.push(
             getErrorMessage(
-              `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
+              `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
               buidlerNetwork.accounts,
               "[{privateKey: string, balance: string}] | BuidlerNetworkHDAccountsConfig | undefined"
             )
@@ -346,7 +346,7 @@ export function getValidationErrors(config: any): string[] {
       } else if (buidlerNetwork.accounts !== undefined) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
+            `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
             buidlerNetwork.accounts,
             "[{privateKey: string, balance: string}] | BuidlerNetworkHDAccountsConfig | undefined"
           )
@@ -368,7 +368,7 @@ export function getValidationErrors(config: any): string[] {
       if (typeof netConfig.url !== "string") {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${networkName}.url`,
+            `HardhatConfig.networks.${networkName}.url`,
             netConfig.url,
             "string"
           )
@@ -379,7 +379,7 @@ export function getValidationErrors(config: any): string[] {
       if (netConfigResult.isLeft()) {
         errors.push(
           getErrorMessage(
-            `BuidlerConfig.networks.${networkName}`,
+            `HardhatConfig.networks.${networkName}`,
             netConfig,
             "HttpNetworkConfig"
           )
@@ -395,7 +395,7 @@ export function getValidationErrors(config: any): string[] {
     return errors;
   }
 
-  const result = BuidlerConfig.decode(config);
+  const result = HardhatConfig.decode(config);
 
   if (result.isRight()) {
     return errors;

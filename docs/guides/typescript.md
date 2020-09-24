@@ -108,9 +108,9 @@ One of the advantages of using TypeScript, is that you can have an type-safe con
 To do that, you have to write your config in TypeScript in this way:
 
 ```ts
-import { BuidlerConfig } from "@nomiclabs/buidler/config";
+import { HardhatConfig } from "@nomiclabs/hardhat/config";
 
-const config: BuidlerConfig = {
+const config: HardhatConfig = {
   // Your type-safe config goes here
 };
 

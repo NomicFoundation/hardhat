@@ -4,7 +4,7 @@ import path from "path";
 
 import {
   AnalyticsConfig,
-  BuidlerConfig,
+  HardhatConfig,
   ConfigExtender,
   MultiSolcConfig,
   ProjectPaths,
@@ -18,9 +18,9 @@ import { ERRORS } from "../errors-list";
 import { normalizeBuidlerEVMAccountsConfig } from "../providers/util";
 
 function mergeUserAndDefaultConfigs(
-  defaultConfig: BuidlerConfig,
-  userConfig: BuidlerConfig
-): Partial<BuidlerConfig> {
+  defaultConfig: HardhatConfig,
+  userConfig: HardhatConfig
+): Partial<HardhatConfig> {
   return deepmerge(defaultConfig, userConfig, {
     arrayMerge: (destination: any[], source: any[]) => deepmerge([], source), // this "unproxies" the arrays
     customMerge: (key) => {
@@ -69,8 +69,8 @@ function normalizeSolidityConfig(
  */
 export function resolveConfig(
   userConfigPath: string,
-  defaultConfig: BuidlerConfig,
-  userConfig: BuidlerConfig,
+  defaultConfig: HardhatConfig,
+  userConfig: HardhatConfig,
   configExtenders: ConfigExtender[]
 ): ResolvedBuidlerConfig {
   userConfig = deepFreezeUserConfig(userConfig);

@@ -1,4 +1,4 @@
-import { BuidlerConfig, BuidlerNetworkConfig } from "../../../types";
+import { HardhatConfig, BuidlerNetworkConfig } from "../../../types";
 import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.5.15";
@@ -23,7 +23,7 @@ const DEFAULT_BUIDLER_NETWORK_CONFIG: BuidlerNetworkConfig = {
   },
 };
 
-const defaultConfig: BuidlerConfig = {
+const defaultConfig: HardhatConfig = {
   defaultNetwork: BUIDLEREVM_NETWORK_NAME,
   solidity: {
     version: DEFAULT_SOLC_VERSION,

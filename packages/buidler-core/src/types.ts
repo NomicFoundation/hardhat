@@ -127,7 +127,7 @@ export interface AnalyticsConfig {
   enabled: boolean;
 }
 
-export interface BuidlerConfig {
+export interface HardhatConfig {
   defaultNetwork?: string;
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
@@ -136,7 +136,7 @@ export interface BuidlerConfig {
   analytics?: Partial<AnalyticsConfig>;
 }
 
-export interface ResolvedBuidlerConfig extends BuidlerConfig {
+export interface ResolvedBuidlerConfig extends HardhatConfig {
   defaultNetwork: string;
   paths: ProjectPaths;
   networks: ResolvedNetworks;
@@ -167,7 +167,7 @@ export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
 
 export type ConfigExtender = (
   config: ResolvedBuidlerConfig,
-  userConfig: DeepReadonly<BuidlerConfig>
+  userConfig: DeepReadonly<HardhatConfig>
 ) => void;
 
 // NOTE: This is experimental and will be removed. Please contact our team
