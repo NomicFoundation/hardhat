@@ -14,7 +14,7 @@ npm init --yes
 npm install --save-dev @nomiclabs/buidler
 ```
 
-Now run npx buidler inside your project folder and select `Create an empty buidler.config.js`.
+Now run npx buidler inside your project folder and select `Create an empty hardhat.config.js`.
 
 Let's now install the `Truffle` and `Web3.js` plugins, as well as `web3.js` itself.
 
@@ -22,7 +22,7 @@ Let's now install the `Truffle` and `Web3.js` plugins, as well as `web3.js` itse
 npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
 ```
 
-Enable the Truffle 5 plugin on your Buidler config file by adding
+Enable the Truffle 5 plugin on your Hardhat config file by adding
 
 ```js{1}
 usePlugin("@nomiclabs/buidler-truffle5");

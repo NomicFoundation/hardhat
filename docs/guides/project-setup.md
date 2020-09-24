@@ -1,6 +1,6 @@
 # Setting up a project
 
-A Buidler project is any directory with a valid `buidler.config.js` file in it. If you run `npx buidler` in a path without one you will be shown two options to facilitate project creation:
+A Buidler project is any directory with a valid `hardhat.config.js` file in it. If you run `npx buidler` in a path without one you will be shown two options to facilitate project creation:
 ```
 $ npx buidler
 888               d8b      888 888
@@ -16,11 +16,11 @@ $ npx buidler
 
 ? What do you want to do? …
 ❯ Create a sample project
-  Create an empty buidler.config.js
+  Create an empty hardhat.config.js
   Quit
 ```
 
-If you select _Create an empty buidler.config.js_, Buidler will create a `buidler.config.js` with the following content:
+If you select _Create an empty hardhat.config.js_, Buidler will create a `hardhat.config.js` with the following content:
 ```js
 module.exports = {};
 ```
@@ -33,7 +33,7 @@ If you select _Create a sample project_ a simple project creation wizard will as
 contracts/
 scripts/
 test/
-buidler.config.js
+hardhat.config.js
 ```
 
 These are the default paths for a Buidler project. Except for `scripts/`, which is just a normal directory unrelated to your config. 
@@ -49,7 +49,7 @@ When it comes to testing your contracts, Buidler comes with some built-in defaul
 - [Mocha](https://mochajs.org/) as the test runner
 - The built-in [Buidler EVM](../buidler-evm/README.md) as the development network to test on
 
-If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `buidler.config.js`, which is how Buidler projects manage settings. Make use of the `--network` CLI parameter to quickly change the network.
+If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Buidler projects manage settings. Make use of the `--network` CLI parameter to quickly change the network.
 
 Take a look at the [networks configuration section](../config/README.md#networks-configuration) to learn more about setting up different networks.
 

@@ -119,7 +119,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
 %errors%
   
 To learn more about Buidler's configuration, please go to https://buidler.dev/config/`,
-      title: "Invalid Buidler config",
+      title: "Invalid Hardhat config",
       description: `You have one or more errors in your config file. 
       
 Check the error message for details, or go to [documentation](https://buidler.dev/config/) to learn more.`,
@@ -128,11 +128,11 @@ Check the error message for details, or go to [documentation](https://buidler.de
     LIB_IMPORTED_FROM_THE_CONFIG: {
       number: 9,
       message: `Error while loading Buidler's configuration.
-You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`,
+You probably imported @nomiclabs/buidler instead of @nomiclabs/hardhat/config`,
       title: "Failed to load config file",
       description: `There was an error while loading your config file. 
 
-The most common source of errors is trying to import \`@nomiclabs/buidler\` instead of \`@nomiclabs/buidler/config\`.
+The most common source of errors is trying to import \`@nomiclabs/buidler\` instead of \`@nomiclabs/hardhat/config\`.
 
 Please make sure your config file is correct.`,
       shouldBeReported: false,

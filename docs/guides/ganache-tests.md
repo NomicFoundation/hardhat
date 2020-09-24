@@ -30,7 +30,7 @@ To use it, you have to install it with `npm`
 npm install --save-dev @nomiclabs/buidler-ganache
 ```
 
-and add this line at the beginning of your `buidler.config.js`
+and add this line at the beginning of your `hardhat.config.js`
 
 ```js
 usePlugin("@nomiclabs/buidler-ganache");

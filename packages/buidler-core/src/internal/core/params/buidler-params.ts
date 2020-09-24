@@ -51,7 +51,7 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   config: {
     name: "config",
     defaultValue: undefined,
-    description: "A Buidler config file.",
+    description: "A Hardhat config file.",
     type: types.inputFile,
     isFlag: false,
     isOptional: true,

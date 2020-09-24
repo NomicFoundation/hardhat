@@ -15,7 +15,7 @@ This plugin runs solhint on the project's sources and prints the report.
 npm install --save-dev @nomiclabs/buidler-solhint
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-solhint");

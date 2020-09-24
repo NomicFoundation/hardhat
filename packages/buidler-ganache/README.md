@@ -16,7 +16,7 @@ automatically started before running tests and scripts, and stopped when finishe
 npm install --save-dev @nomiclabs/buidler-ganache
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-ganache");

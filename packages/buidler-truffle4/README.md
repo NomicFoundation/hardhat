@@ -21,7 +21,7 @@ This plugin requires [buidler-web3-legacy](https://github.com/nomiclabs/buidler/
 npm install --save-dev @nomiclabs/buidler-truffle4 @nomiclabs/buidler-web3-legacy web3@^0.20.7
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-truffle4");

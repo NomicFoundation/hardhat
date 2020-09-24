@@ -57,7 +57,7 @@ function normalizeSolidityConfig(
 }
 
 /**
- * This functions resolves the buidler config by merging the user provided config
+ * This functions resolves the hardhat config by merging the user provided config
  * and the buidler default config.
  *
  * @param userConfigPath the user config filepath

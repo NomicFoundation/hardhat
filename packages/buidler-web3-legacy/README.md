@@ -15,7 +15,7 @@ This plugin brings to Buidler the Web3 module and an initialized instance of Web
 npm install --save-dev @nomiclabs/buidler-web3-legacy web3@^0.20.7
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-web3-legacy");

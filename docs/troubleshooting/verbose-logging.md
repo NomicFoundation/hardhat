@@ -24,7 +24,7 @@ pato@pmbp:asd% npx buidler --verbose
   buidler:core:plugins Loading plugin file /Users/pato/projects/buidler/buidler/packages/buidler-web3/dist/index.js +0ms
   buidler:core:analytics Computing Project Id for /private/tmp/asd +0ms
   buidler:core:analytics Project Id set to acce19ef71fcff30788e87c9d69ca4d0a5aee84c8f8cf696183a21b788730078 +1ms
-  buidler:core:analytics Looking up Client Id at /Users/pato/.buidler/config.json +1ms
+  buidler:core:analytics Looking up Client Id at /Users/pato/.hardhat/config.json +1ms
   buidler:core:analytics Client Id found: 61cf5dde-8c57-447b-bfe0-d57bdd80ab68 +1ms
   buidler:core:hre Creating HardhatRuntimeEnvironment +0ms
   buidler:core:hre Running task help +1ms
@@ -34,7 +34,7 @@ Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config              A Buidler config file.
+  --config              A Hardhat config file.
   --emoji               Use emoji in messages.
   --help                Shows this message, or a task's help if its name is provided
   --max-memory          The maximum amount of memory that Buidler can use.

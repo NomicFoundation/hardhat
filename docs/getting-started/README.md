@@ -39,7 +39,7 @@ $ npx buidler
 
 ? What do you want to do? …
 ❯ Create a sample project
-  Create an empty buidler.config.js
+  Create an empty hardhat.config.js
   Quit
 ```
 
@@ -63,7 +63,7 @@ Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config            A Buidler config file. 
+  --config            A Hardhat config file. 
   --emoji             Use emoji in messages. 
   --help              Shows this message, or a task's help if its name is provided 
   --max-memory        The maximum amount of memory that Buidler can use. 
@@ -90,9 +90,9 @@ To get help for a specific task run: npx buidler help [task]
 
 This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 
 
-If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
+If you take a look at `hardhat.config.js`, you will find the definition of the task `accounts`:
 
-<<< @/../packages/buidler-core/sample-project/buidler.config.js{5-11}
+<<< @/../packages/buidler-core/sample-project/hardhat.config.js{5-11}
 
 To run it, try `npx buidler accounts`:
 

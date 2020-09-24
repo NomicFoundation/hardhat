@@ -21,7 +21,7 @@ In the same directory where you installed **Buidler** run:
 npx buidler
 ```
 
-Select `Create an empty buidler.config.js` with your keyboard and hit enter.
+Select `Create an empty hardhat.config.js` with your keyboard and hit enter.
 
 
 ```{15}
@@ -39,11 +39,11 @@ $ npx buidler
 
 ? What do you want to do? …
   Create a sample project
-❯ Create an empty buidler.config.js
+❯ Create an empty hardhat.config.js
   Quit
 ```
 
-When **Buidler** is run, it searches for the closest `buidler.config.js` file starting from the current working directory. This file normally lives in the root of your project and an empty `buidler.config.js` is enough for **Buidler** to work. The entirety of your setup is contained in this file.
+When **Buidler** is run, it searches for the closest `hardhat.config.js` file starting from the current working directory. This file normally lives in the root of your project and an empty `hardhat.config.js` is enough for **Buidler** to work. The entirety of your setup is contained in this file.
 
 ## Buidler's architecture
 
@@ -65,7 +65,7 @@ For this tutorial we are going to use the Ethers.js and Waffle plugins. They'll 
 npm install --save-dev @nomiclabs/buidler-ethers ethers @nomiclabs/buidler-waffle ethereum-waffle chai
 ```
 
-Add the highlighted lines to your `buidler.config.js` so that it looks like this:
+Add the highlighted lines to your `hardhat.config.js` so that it looks like this:
 
 ```js {1,4-6}
 usePlugin("@nomiclabs/buidler-waffle");

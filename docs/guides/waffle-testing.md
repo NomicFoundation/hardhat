@@ -27,7 +27,7 @@ $ npx buidler
 
 ? What do you want to do? …
 ❯ Create a sample project
-  Create an empty buidler.config.js
+  Create an empty hardhat.config.js
   Quit
 ```
 
@@ -37,9 +37,9 @@ Select `Create a sample project`. This will create some files but also install t
 Buidler will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
 :::
 
-Look at the `buidler.config.js` file and you'll see that the Waffle plugin is enabled:
+Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is enabled:
 
-<<< @/../packages/buidler-core/sample-project/buidler.config.js{1}
+<<< @/../packages/buidler-core/sample-project/hardhat.config.js{1}
 
 ::: tip 
 There's no need for `usePlugin("@nomiclabs/buidler-ethers")`, as `buidler-waffle` already does it.
@@ -168,7 +168,7 @@ As an example, this Waffle configuration file:
 }
 ```
 
-Would translate into this Buidler config:
+Would translate into this Hardhat config:
 
 ```js
 module.exports = {
@@ -220,7 +220,7 @@ const { deployContract } = waffle;
 Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions. If you're fighting a "Transaction run out of gas" error, double-check the size of your contract and bump the gas limit if needed.
 :::
 
-Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and use the plugin's provider like this
+Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Hardhat config and use the plugin's provider like this
 
 ```js
 const provider = waffle.provider;

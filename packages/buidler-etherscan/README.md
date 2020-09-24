@@ -21,7 +21,7 @@ It's smart and it tries to do as much as possible to facilitate the process:
 npm install --save-dev @nomiclabs/buidler-etherscan
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -37,7 +37,7 @@ This plugin does not extend the environment.
 
 ## Usage
 
-You need to add the following Etherscan config to your `buidler.config.js` file:
+You need to add the following Etherscan config to your `hardhat.config.js` file:
 
 ```js
 module.exports = {

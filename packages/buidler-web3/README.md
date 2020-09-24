@@ -15,7 +15,7 @@ This plugin brings to Buidler the Web3 module and an initialized instance of Web
 npm install --save-dev @nomiclabs/buidler-web3 web3
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-web3");
@@ -33,7 +33,7 @@ This plugin adds the following elements to the `HardhatRuntimeEnvironment`:
 - `web3`: An instantiated Web3.js object connected to the selected network.
 
 ## Usage
-Install it and access Web3.js through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `buidler.config.js`:
+Install it and access Web3.js through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
 ```
 usePlugin("@nomiclabs/buidler-web3");
 

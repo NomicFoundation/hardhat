@@ -1,13 +1,13 @@
 # Configuration
 
-When Buidler is run, it searches for the closest `buidler.config.js` file starting
-from the Current Working Directory. This file normally lives in the root of your project. An empty `buidler.config.js` is enough for Buidler to work.
+When Buidler is run, it searches for the closest `hardhat.config.js` file starting
+from the Current Working Directory. This file normally lives in the root of your project. An empty `hardhat.config.js` is enough for Buidler to work.
 
 The entirety of your Buidler setup (i.e. your config, plugins and custom tasks) is contained in this file.
 
 ## Available config options
 
-To set up your config, you have to export an object from `buidler.config.js`.
+To set up your config, you have to export an object from `hardhat.config.js`.
 
 This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solc`](#solc-configuration), and [`paths`](#path-configuration). For example:
 
@@ -154,7 +154,7 @@ The `solc` config field is an optional object which can contain the following ke
 
 You can customize the different paths that Buidler uses by providing an object with the following keys:
 
-- `root`: The root of the Buidler project. This path is resolved from the `buidler.config.js`'s directory. Default value: The directory containing the config file.
+- `root`: The root of the Buidler project. This path is resolved from the `hardhat.config.js`'s directory. Default value: The directory containing the config file.
 - `sources`: The directory where your contract are stored. This path is resolved from the project's root. Default value: './contracts'.
 - `tests`: The directory where your tests are located. This path is resolved from the project's root. Default value: './test'.
 

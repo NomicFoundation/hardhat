@@ -24,7 +24,7 @@ Then, you need to install the plugin by running
 npm install --save-dev @nomiclabs/buidler-vyper
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-vyper");

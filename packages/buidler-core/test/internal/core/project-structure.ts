@@ -56,7 +56,7 @@ describe("project structure", () => {
         );
 
         configPath = await fsExtra.realpath(
-          path.join(pathToFixtureRoot, "buidler.config.js")
+          path.join(pathToFixtureRoot, "hardhat.config.js")
         );
       });
 

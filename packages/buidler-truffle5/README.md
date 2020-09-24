@@ -19,7 +19,7 @@ This plugin requires [buidler-web3](https://github.com/nomiclabs/buidler/tree/ma
 npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-truffle5");

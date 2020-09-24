@@ -62,8 +62,8 @@ export class Reporter {
   }
 
   /**
-   * The path to the buidler config file. We use this when files are anonymized,
-   * since the buidler config is the only file in the user's project that is not
+   * The path to the hardhat config file. We use this when files are anonymized,
+   * since the hardhat config is the only file in the user's project that is not
    * anonymized.
    */
   public static setConfigPath(configPath: string) {

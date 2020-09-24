@@ -38,7 +38,7 @@ describe("Waffle plugin plugin", function () {
             const accounts = require(path.join(
               __dirname,
               "buidler-project-custom-accounts",
-              "buidler.config.js"
+              "hardhat.config.js"
             )).networks.hardhat.accounts;
 
             assert.lengthOf(wallets, accounts.length);

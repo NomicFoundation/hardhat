@@ -62,9 +62,9 @@ describe("Anonymizer", () => {
     assert.isFalse(anonymizationResult.anonymizeContent);
   });
 
-  describe("buidler config", () => {
+  describe("hardhat config", () => {
     it("should return only the config's relative path", () => {
-      const pathToBuidlerConfig = path.join(PROJECT_ROOT, "buidler.config.ts");
+      const pathToBuidlerConfig = path.join(PROJECT_ROOT, "hardhat.config.ts");
       const anonymizer = new MockedAnonymizer(pathToBuidlerConfig);
       anonymizer.getFilePackageJsonPathResult = path.join(
         PROJECT_ROOT,
@@ -75,7 +75,7 @@ describe("Anonymizer", () => {
         pathToBuidlerConfig
       );
 
-      assert.equal(anonymizationResult.anonymizedFilename, "buidler.config.ts");
+      assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
       assert.isTrue(anonymizationResult.anonymizeContent);
     });
 
@@ -83,7 +83,7 @@ describe("Anonymizer", () => {
       const pathToBuidlerConfig = path.join(
         PROJECT_ROOT,
         "config",
-        "buidler.config.ts"
+        "hardhat.config.ts"
       );
       const anonymizer = new MockedAnonymizer(pathToBuidlerConfig);
       anonymizer.getFilePackageJsonPathResult = path.join(
@@ -97,7 +97,7 @@ describe("Anonymizer", () => {
 
       assert.equal(
         anonymizationResult.anonymizedFilename,
-        path.join("config", "buidler.config.ts")
+        path.join("config", "hardhat.config.ts")
       );
       assert.isTrue(anonymizationResult.anonymizeContent);
     });
@@ -106,7 +106,7 @@ describe("Anonymizer", () => {
       const pathToBuidlerConfig = path.join(
         PROJECT_ROOT,
         "config",
-        "buidler.config.ts"
+        "hardhat.config.ts"
       );
       const anonymizer = new MockedAnonymizer(pathToBuidlerConfig);
 
@@ -114,7 +114,7 @@ describe("Anonymizer", () => {
         pathToBuidlerConfig
       );
 
-      assert.equal(anonymizationResult.anonymizedFilename, "buidler.config.ts");
+      assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
       assert.isTrue(anonymizationResult.anonymizeContent);
     });
   });

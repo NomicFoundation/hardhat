@@ -72,7 +72,7 @@ export async function inferSolcVersion(
   return range;
 }
 
-// TODO: this could be retrieved from the buidler config instead.
+// TODO: this could be retrieved from the hardhat config instead.
 export async function getLongVersion(shortVersion: string): Promise<string> {
   const versions = await getVersions();
   const fullVersion = versions.releases[shortVersion];

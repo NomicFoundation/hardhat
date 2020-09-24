@@ -2,7 +2,7 @@
 const env = require("@nomiclabs/buidler");
 
 async function main() {
-  const customConfigs = require("../../buidler-project-with-configs/buidler.config.js");
+  const customConfigs = require("../../buidler-project-with-configs/hardhat.config.js");
   const customOptions = customConfigs.networks.ganache;
 
   const accounts = await env.network.provider.send("eth_accounts");

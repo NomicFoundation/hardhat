@@ -33,7 +33,7 @@ const verify: ActionType<VerificationArgs> = async (
   if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `Please provide an Etherscan API token via buidler config.
+      `Please provide an Etherscan API token via hardhat config.
 E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
 See https://etherscan.io/apis`
     );
@@ -162,7 +162,7 @@ The selected compiler version is v${config.solidity.compilers[0].version}.
 ${detailedContext}
 
 Possible causes are:
-  - Wrong compiler version in buidler config.
+  - Wrong compiler version in hardhat config.
   - The given address is wrong.
   - The selected network (${network.name}) is wrong.`;
     throw new NomicLabsHardhatPluginError(pluginName, message);

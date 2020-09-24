@@ -4,7 +4,7 @@ In this guide, we will explore the creation of plugins for Buidler, which are th
 
 ### What exactly are plugins in Buidler?
 
-Plugins in Buidler are essentially reusable bits of configuration, which are defined programmatically using a DSL. When developing a plugin the main tools available to integrate new functionality are extending the [Buidler Runtime Environment], extending the Buidler config, defining new tasks and overriding existing ones, which are all configuration actions achieved through code.
+Plugins in Buidler are essentially reusable bits of configuration, which are defined programmatically using a DSL. When developing a plugin the main tools available to integrate new functionality are extending the [Buidler Runtime Environment], extending the Hardhat config, defining new tasks and overriding existing ones, which are all configuration actions achieved through code.
 
 Some examples of things you could achieve by creating a plugin are running a linter when the `check` task runs, using different compiler versions for different files or generating an UML diagram for your contracts.
 
@@ -12,7 +12,7 @@ Let’s go through the process of creating a plugin to inject ethers.js to the [
 
 The environment is configured through a queue of extension functions that you can add to using the `extendEnvironment()` function. It receives one parameter which is an async function which will be executed after the required initialization is done, in order.
 
-For example, adding the following to `buidler.config.js`:
+For example, adding the following to `hardhat.config.js`:
 
 ```js
 extendEnvironment(hre => {

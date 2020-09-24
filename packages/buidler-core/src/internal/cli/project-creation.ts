@@ -11,7 +11,7 @@ import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 import { emoji } from "./emoji";
 
 const CREATE_SAMPLE_PROJECT_ACTION = "Create a sample project";
-const CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty buidler.config.js";
+const CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js";
 const QUIT_ACTION = "Quit";
 
 const SAMPLE_PROJECT_DEPENDENCIES = {
@@ -131,7 +131,7 @@ async function printRecommendedDepsInstallationInstructions() {
 
 async function writeEmptyBuidlerConfig() {
   return fsExtra.writeFile(
-    "buidler.config.js",
+    "hardhat.config.js",
     "module.exports = {};\n",
     "utf-8"
   );

@@ -52,7 +52,7 @@ buidler.valueOf
 
 buidler._runTaskDefinition    buidler.constructor           buidler.injectToGlobal
 
-buidler._extenders            buidler.hardhatArguments      buidler.config                buidler.ethereum              buidler.ethers
+buidler._extenders            buidler.hardhatArguments      hardhat.config                buidler.ethereum              buidler.ethers
 buidler.network               buidler.run                   buidler.tasks
 
 >

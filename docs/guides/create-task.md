@@ -16,7 +16,7 @@ Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config              A Buidler config file.
+  --config              A Hardhat config file.
   --emoji               Use emoji in messages.
   --help                Shows this message.
   --network             The network to connect to. (default: "hardhat")
@@ -51,13 +51,13 @@ npm install --save-dev @nomiclabs/buidler-web3 web3
 
 _Take a look at the [list of Buidler plugins](../plugins/README.md) to see other available libraries._
 
-Task creation code can go in `buidler.config.js`, or whatever your configuration file is called. It’s a good place to create simple tasks. If your task is more complex, it's also perfectly valid to split the code into several files and `require` from the configuration file.
+Task creation code can go in `hardhat.config.js`, or whatever your configuration file is called. It’s a good place to create simple tasks. If your task is more complex, it's also perfectly valid to split the code into several files and `require` from the configuration file.
 
 _If you’re writing a Buidler plugin that adds a task, they can also be created from a separate npm package. Learn more about creating tasks through plugins in our [How to create a plugin guide](./create-plugin.md)._
 
 **The configuration file is always executed on startup before anything else happens.** It's good to keep this in mind. We will load the Web3.js plugin and add our task creation code to it.
 
-For this tutorial, we're going to create a task to get an account’s balance from the terminal. You can do this with the Buidler’s config DSL, which is available in the global scope of `buidler.config.js`:
+For this tutorial, we're going to create a task to get an account’s balance from the terminal. You can do this with the Buidler’s config DSL, which is available in the global scope of `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-web3");
@@ -78,7 +78,7 @@ Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config              A Buidler config file.
+  --config              A Hardhat config file.
   --emoji               Use emoji in messages.
   --help                Shows this message.
   --network             The network to connect to. (default: "hardhat")
@@ -157,7 +157,7 @@ And there you have it. Your first fully functional Buidler task, allowing you to
 
 ## Advanced usage
 
-You can create your own tasks in your `buidler.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("@nomiclabs/buidler/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
+You can create your own tasks in your `hardhat.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("@nomiclabs/hardhat/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
 
 Creating a task is done by calling the [`task` function](/api/#task). It will return a [`TaskDefinition`](/api/interfaces/taskdefinition.html) object, which can be used to define the task's parameters. There are multiple ways of calling `task`, take a look at [its API documentation](/api/#task).
 
@@ -245,7 +245,7 @@ Failing to follow these restrictions will result in an exception being thrown wh
 
 Buidler takes care of validating and parsing the values provided for each parameter. You can declare the type of a parameter, and Buidler will get the CLI strings and convert them into your desired type. If this conversion fails, it will print an error message explaining why.
 
-A number of types are available in the Config DSL through a `types` object. This object is injected into the global scope before processing your `buidler.config.js`, but you can also import it explicitly with `const { types } = require("@nomiclabs/buidler/config")` and take advantage of your editor's autocomplete.
+A number of types are available in the Config DSL through a `types` object. This object is injected into the global scope before processing your `hardhat.config.js`, but you can also import it explicitly with `const { types } = require("@nomiclabs/hardhat/config")` and take advantage of your editor's autocomplete.
 
 An example of a task defining a type for one of its parameters is
 

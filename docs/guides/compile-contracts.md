@@ -37,7 +37,7 @@ Each artifact consists of a json with the following properties:
 
 ## Configuring the compiler
 
-If you need to customize the `solc` compiler options, then you can do so through the `solc` config field in your `buidler.config.js`, which is an optional object that can contain the following properties:
+If you need to customize the `solc` compiler options, then you can do so through the `solc` config field in your `hardhat.config.js`, which is an optional object that can contain the following properties:
 
 - `version`: the solc version to use. We recommend always setting this field. Default value: `"0.5.15"`.
 
@@ -58,7 +58,7 @@ contracts/
   6/
 ```
 
-Create a `buidler.config.5.js` with the following contents:
+Create a `hardhat.config.5.js` with the following contents:
 ```js
 module.exports = {
   solc: {
@@ -70,7 +70,7 @@ module.exports = {
 };
 ```
 
-Set your `buidler.config.js` to the following contents:
+Set your `hardhat.config.js` to the following contents:
 ```js
 usePlugin("@nomiclabs/buidler-waffle");
 
@@ -84,7 +84,7 @@ module.exports = {
 };
 ```
 
-Then run at least once `npx buidler compile --config buidler.config.5.js`, and use `npx buidler test` as you normally would to run your tests.
+Then run at least once `npx buidler compile --config hardhat.config.5.js`, and use `npx buidler test` as you normally would to run your tests.
 
 Note that this section isn't exclusively for Solidity `5` and `6`, but also works with Solidity `4`.
 

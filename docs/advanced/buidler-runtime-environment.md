@@ -6,7 +6,7 @@ The Buidler Runtime Environment, or HRE for short, is an object containing all t
 
 When you require Buidler (`const buidler = require("@nomiclabs/buidler")`) you're getting an instance of the HRE.
 
-During initialization, the Buidler configuration file essentially constructs a list of things to be added to the HRE. This includes tasks, configs and plugins. Then when tasks, tests or scripts run, the HRE is always present and available to access anything that is contained in it.
+During initialization, the Hardhat configuration file essentially constructs a list of things to be added to the HRE. This includes tasks, configs and plugins. Then when tasks, tests or scripts run, the HRE is always present and available to access anything that is contained in it.
 
 The HRE has a role of centralizing coordination across all Buidler components. This architecture allows for plugins to inject functionality that becomes available everywhere the HRE is accessible.
 

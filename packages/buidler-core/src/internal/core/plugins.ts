@@ -53,11 +53,11 @@ export function usePlugin(
     //      subpackage1/
     //        node_modules/
     //          plugin@v1/
-    //        buidler.config.js
+    //        hardhat.config.js
     //      subpackage2/
     //        node_modules/
     //          plugin@v2/
-    //        buidler.config.js
+    //        hardhat.config.js
     //
     // If we were to load the plugins from the Buidler installation in this
     // situation, they wouldn't be found. Instead, we should load them from the

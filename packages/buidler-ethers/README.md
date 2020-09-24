@@ -15,7 +15,7 @@ This plugin brings to Buidler the Ethereum library `ethers.js`, which allows you
 npm install --save-dev @nomiclabs/buidler-ethers 'ethers@^5.0.0'
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-ethers");
@@ -56,7 +56,7 @@ The `Contract`s and `ContractFactory`s returned by these helpers are connected t
 
 There are no additional steps you need to take for this plugin to work.
 
-Install it and access ethers through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `buidler.config.js`:
+Install it and access ethers through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-ethers");

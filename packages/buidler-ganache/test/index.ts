@@ -55,7 +55,7 @@ describe("Ganache plugin with custom configs", function () {
 
   it("Should load custom configs in buidler's config'", function () {
     assert.isDefined(this.env.config.networks.ganache);
-    const customConfigs = require("./buidler-project-with-configs/buidler.config.js");
+    const customConfigs = require("./buidler-project-with-configs/hardhat.config.js");
 
     assert.isDefined(customConfigs.networks.ganache);
     const customOptions = customConfigs.networks.ganache;
@@ -70,7 +70,7 @@ describe("Ganache plugin with custom configs", function () {
 
   it("Should expose merged (custom + defaults) configs in buidler's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
-    const customConfigs = require("./buidler-project-with-configs/buidler.config.js");
+    const customConfigs = require("./buidler-project-with-configs/hardhat.config.js");
     const defaultOptions = GanacheService.getDefaultOptions() as any;
 
     assert.isDefined(customConfigs.networks.ganache);

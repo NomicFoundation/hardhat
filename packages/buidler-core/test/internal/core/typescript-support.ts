@@ -29,7 +29,7 @@ describe("Typescript support", function () {
     });
   });
 
-  describe("buidler.config.ts", function () {
+  describe("hardhat.config.ts", function () {
     useFixtureProject("typescript-project");
     useEnvironment();
 

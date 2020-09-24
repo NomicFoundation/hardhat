@@ -7,7 +7,7 @@ plugin go to the [TypeScript plugin boilerplate project](https://github.com/nomi
 
 Plugins are bits of reusable configuration. Anything that you can do in a plugin, can also be done in your config file. You can test your ideas in a config file, and move them into a plugin when ready.
 
-The main things that plugins can do are extending the Buidler Runtime Environment, extending the Buidler config, defining new tasks, and overriding existing ones.
+The main things that plugins can do are extending the Buidler Runtime Environment, extending the Hardhat config, defining new tasks, and overriding existing ones.
 
 ### Extending the HRE
 
@@ -15,9 +15,9 @@ To learn how to successfully extend the [HRE](./buidler-runtime-environment.md) 
 
 Make sure to keep the type extension in your main file, as that convention is used across different plugins.
 
-### Extending the Buidler config
+### Extending the Hardhat config
 
-An example on how to add fields to the Buidler config can be found in [`src/index.ts`](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts).
+An example on how to add fields to the Hardhat config can be found in [`src/index.ts`](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/blob/master/src/index.ts).
 
 Note that all config extension's have to be optional.
 

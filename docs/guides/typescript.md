@@ -1,6 +1,6 @@
 # TypeScript Support
 
-In this guide, we will go through the steps to get a Buidler project working with TypeScript. This means that you can write your Buidler config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/). For a general overview of using Buidler refer to the [Getting started guide](../getting-started).
+In this guide, we will go through the steps to get a Buidler project working with TypeScript. This means that you can write your Hardhat config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/). For a general overview of using Buidler refer to the [Getting started guide](../getting-started).
 
 ## Installing dependencies
 
@@ -26,7 +26,7 @@ Let's get started with a fresh Buidler project. Run `npx buidler` and go through
 ```
 $ ls -l
 total 400
--rw-r--r--    1 fzeoli  staff     195 Jul 30 15:27 buidler.config.js
+-rw-r--r--    1 fzeoli  staff     195 Jul 30 15:27 hardhat.config.js
 drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 contracts
 drwxr-xr-x  502 fzeoli  staff   16064 Jul 30 15:31 node_modules
 -rw-r--r--    1 fzeoli  staff  194953 Jul 30 15:31 package-lock.json
@@ -35,13 +35,13 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 scripts
 drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 ```
 
-Now we are going to rename the config file from `buidler.config.js` to `buidler.config.ts`, run:
+Now we are going to rename the config file from `hardhat.config.js` to `hardhat.config.ts`, run:
 
 ```
-mv buidler.config.js buidler.config.ts
+mv hardhat.config.js hardhat.config.ts
 ```
 
-We also need to adapt it to explicitly import the Buidler config DSL, and use the [Buidler Runtime Environment] explicitly.
+We also need to adapt it to explicitly import the Hardhat config DSL, and use the [Buidler Runtime Environment] explicitly.
 
 For example, the sample project's config turns from this
 ```js{5,13}
@@ -63,7 +63,7 @@ module.exports = {};
 into this
 
 ```typescript{1,7,8,15}
-import { task, usePlugin } from "@nomiclabs/buidler/config";
+import { task, usePlugin } from "@nomiclabs/hardhat/config";
 
 usePlugin("@nomiclabs/buidler-waffle");
 
@@ -94,7 +94,7 @@ Next, create a file `tsconfig.json` in your project directory and put the follow
   },
   "include": ["./scripts", "./test"],
   "files": [
-    "./buidler.config.ts"
+    "./hardhat.config.ts"
   ]
 }
 ```
@@ -132,7 +132,7 @@ And then include that file in the `files` entry of your `tsconfig.json`:
 
 ```json
 "files": [
-  "./buidler.config.ts",
+  "./hardhat.config.ts",
   "./buidler-env.d.ts",
 ]
 ```

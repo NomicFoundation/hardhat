@@ -6,7 +6,7 @@
     "rootDirs": ["./test"]
   },
   "include": ["./test/**/*.ts"],
-  "exclude": ["./test/**/buidler.config.ts"],
+  "exclude": ["./test/**/hardhat.config.ts"],
   "references": [
     {
       "path": "./src"

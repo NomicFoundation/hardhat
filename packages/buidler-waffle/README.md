@@ -19,7 +19,7 @@ and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle
 npm install --save-dev @nomiclabs/buidler-waffle 'ethereum-waffle@^3.0.0' @nomiclabs/buidler-ethers 'ethers@^5.0.0'
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 usePlugin("@nomiclabs/buidler-waffle");
@@ -68,7 +68,7 @@ const { deployContract } = waffle;
 Also, you don't need to call `chai.use`.
 
 Note that by default, Buidler save its compilation output into `artifacts/` instead of `build/`. You can either use
-that directory in your tests, or [customize your Buidler config](https://buidler.dev/config/#path-configuration).
+that directory in your tests, or [customize your Hardhat config](https://buidler.dev/config/#path-configuration).
 
 ## TypeScript support
 

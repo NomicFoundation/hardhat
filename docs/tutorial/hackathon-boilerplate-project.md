@@ -70,7 +70,7 @@ npx buidler --network localhost faucet <your address>
 
 You'll run a custom **Buidler** task we included that uses the balance of the deploying account to send 100 MBT and 1 ETH to your address. This will allow you to send tokens to another address.
 
-You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/nomiclabs/buidler-hackathon-boilerplate/blob/master/tasks/faucet.js), which is required from `buidler.config.js`. 
+You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/nomiclabs/buidler-hackathon-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`. 
 
 ```
 $ npx buidler --network localhost faucet 0x0987a41e73e69f60c5071ce3c8f7e730f9a60f90

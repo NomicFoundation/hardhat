@@ -30,7 +30,7 @@ To try this out, let's look at a fresh Buidler project. Run `npx buidler` and go
 ```
 $ ls -l
 total 400
--rw-r--r--    1 fzeoli  staff     195 Jul 30 15:27 buidler.config.js
+-rw-r--r--    1 fzeoli  staff     195 Jul 30 15:27 hardhat.config.js
 drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 contracts
 drwxr-xr-x  502 fzeoli  staff   16064 Jul 30 15:31 node_modules
 -rw-r--r--    1 fzeoli  staff  194953 Jul 30 15:31 package-lock.json
