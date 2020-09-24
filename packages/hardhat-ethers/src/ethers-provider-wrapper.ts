@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
-import { IEthereumProvider } from "hardhat/types";
+import { EthereumProvider } from "hardhat/types";
 
 export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
-  private readonly _hardhatProvider: IEthereumProvider;
+  private readonly _hardhatProvider: EthereumProvider;
 
-  constructor(hardhatProvider: IEthereumProvider) {
+  constructor(hardhatProvider: EthereumProvider) {
     super();
     this._hardhatProvider = hardhatProvider;
   }

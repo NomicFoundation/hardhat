@@ -3,12 +3,12 @@ import type { LoDashStatic } from "lodash";
 import semver from "semver";
 
 import * as taskTypes from "../../builtin-tasks/types";
+import { MultiSolcConfig, SolcConfig } from "../../types";
 import {
   CompilationJobCreationError,
   CompilationJobsCreationErrors,
   CompilationJobsCreationResult,
 } from "../../builtin-tasks/types";
-import { MultiSolcConfig, SolcConfig } from "../../types";
 import { assertHardhatInvariant } from "../core/errors";
 
 import { ResolvedFile } from "./resolver";

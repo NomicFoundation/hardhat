@@ -1,7 +1,6 @@
 import debug from "debug";
 import { TASK_RUN, TASK_TEST } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, task } from "hardhat/config";
-import { ensurePluginLoadedWithUsePlugin } from "hardhat/plugins";
 import {
   HardhatRuntimeEnvironment,
   RunSuperFunction,
@@ -11,8 +10,6 @@ import {
 const log = debug("hardhat:plugin:ganache");
 
 import { GanacheService } from "./ganache-service";
-
-ensurePluginLoadedWithUsePlugin();
 
 export default function () {
   task(TASK_TEST, async (args, env, runSuper) => {
