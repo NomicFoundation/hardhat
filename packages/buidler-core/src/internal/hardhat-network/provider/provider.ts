@@ -45,7 +45,7 @@ const log = debug("hardhat:core:hardhat-network:provider");
 // Set of methods that are never logged
 const PRIVATE_RPC_METHODS = new Set(["hardhat_getStackTraceFailuresCount"]);
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export class HardhatNetworkProvider extends EventEmitter
   implements EIP1193Provider {

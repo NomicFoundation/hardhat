@@ -4,7 +4,7 @@ import { MethodNotFoundError } from "../errors";
 import { validateParams } from "../input";
 import { numberToRpcQuantity } from "../output";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export class NetModule {
   constructor(private readonly _common: Common) {}

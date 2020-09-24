@@ -4,7 +4,7 @@ import { MethodNotFoundError } from "../errors";
 import { rpcData, validateParams } from "../input";
 import { bufferToRpcData } from "../output";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export class Web3Module {
   public async processRequest(

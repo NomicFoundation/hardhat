@@ -84,7 +84,7 @@ export const COINBASE_ADDRESS = toBuffer(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export class BuidlerNode extends EventEmitter {
   public static async create(

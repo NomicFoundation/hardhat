@@ -17,7 +17,7 @@ import {
   InvalidRequestError,
 } from "../provider/errors";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export default class JsonRpcHandler {
   constructor(private readonly _provider: EIP1193Provider) {}

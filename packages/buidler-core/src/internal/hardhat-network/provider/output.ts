@@ -72,7 +72,7 @@ export interface RpcLogOutput {
   transactionIndex: string | null;
 }
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export function numberToRpcQuantity(n: number | BN): string {
   // This is here because we have some any's from dependencies

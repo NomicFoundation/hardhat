@@ -41,7 +41,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
       throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw error;
   }
 }

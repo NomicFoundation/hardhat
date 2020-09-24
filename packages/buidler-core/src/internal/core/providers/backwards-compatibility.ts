@@ -49,7 +49,7 @@ export class BackwardsCompatibilityProviderAdapter extends EventEmitterWrapper
       });
     } catch (error) {
       if (error.code === undefined) {
-        // tslint:disable-next-line only-buidler-error
+        // tslint:disable-next-line only-hardhat-error
         throw error;
       }
 

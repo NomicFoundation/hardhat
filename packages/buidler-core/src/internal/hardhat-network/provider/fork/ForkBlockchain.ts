@@ -23,7 +23,7 @@ import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
-/* tslint:disable only-buidler-error */
+/* tslint:disable only-hardhat-error */
 
 export class ForkBlockchain implements PBlockchain {
   private _data = new BlockchainData();

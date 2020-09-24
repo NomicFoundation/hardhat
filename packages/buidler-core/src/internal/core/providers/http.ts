@@ -48,7 +48,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       error.message = jsonRpcResponse.error.message;
       error.code = jsonRpcResponse.error.code;
       error.data = jsonRpcResponse.error.data;
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
 
@@ -76,7 +76,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         error.message = response.error.message;
         error.code = response.error.code;
         error.data = response.error.data;
-        // tslint:disable-next-line only-buidler-error
+        // tslint:disable-next-line only-hardhat-error
         throw error;
       }
     }
@@ -124,7 +124,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         throw new HardhatError(ERRORS.NETWORK.NETWORK_TIMEOUT, {}, error);
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }

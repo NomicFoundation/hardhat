@@ -76,7 +76,7 @@ abstract class MultipliedGasEstimationProvider extends ProviderWrapper {
         return numberToRpcQuantity(blockGasLimit);
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }

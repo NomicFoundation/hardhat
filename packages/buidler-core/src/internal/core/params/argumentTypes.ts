@@ -181,7 +181,7 @@ export const inputFile: CLIArgumentType<string> = {
 
       if (stats.isDirectory()) {
         // This is caught and encapsulated in a buidler error.
-        // tslint:disable-next-line only-buidler-error
+        // tslint:disable-next-line only-hardhat-error
         throw new Error(`${strValue} is a directory, not a file`);
       }
     } catch (error) {

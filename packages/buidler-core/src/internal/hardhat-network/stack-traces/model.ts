@@ -2,7 +2,7 @@ import { bufferToHex } from "ethereumjs-util";
 
 import { Opcode } from "./opcodes";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export enum JumpType {
   NOT_JUMP,

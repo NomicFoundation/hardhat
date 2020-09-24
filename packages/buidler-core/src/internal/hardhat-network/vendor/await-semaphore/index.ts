@@ -1,7 +1,7 @@
 // Based on: https://github.com/notenoughneon/await-semaphore/blob/f117a6b59324038c9e8ee04c70c328215a727812/index.ts
 // which is distributed under this license: https://github.com/notenoughneon/await-semaphore/blob/f117a6b59324038c9e8ee04c70c328215a727812/LICENSE
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export class Semaphore {
   public count: number;

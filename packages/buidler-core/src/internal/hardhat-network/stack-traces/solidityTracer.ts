@@ -45,7 +45,7 @@ import {
   UnmappedSolc063RevertErrorStackTraceEntry,
 } from "./solidity-stack-trace";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
 const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";

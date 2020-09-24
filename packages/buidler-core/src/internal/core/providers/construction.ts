@@ -10,8 +10,8 @@ import type {
   ResolvedHttpNetworkConfig,
   ResolvedNetworkConfig,
 } from "../../../types";
-import { ForkConfig } from "../../hardhat-network/provider/node-types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
+import { ForkConfig } from "../../hardhat-network/provider/node-types";
 import { parseDateString } from "../../util/date";
 
 export function isHDAccountsConfig(

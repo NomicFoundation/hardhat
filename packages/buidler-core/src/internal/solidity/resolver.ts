@@ -177,7 +177,7 @@ export class Resolver {
         );
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }
@@ -419,7 +419,7 @@ export class Resolver {
         );
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }

@@ -32,7 +32,7 @@ export function toBlockchain(pb: PBlockchain): Blockchain {
   async function getBlock(blockTag: number | Buffer | BN) {
     const block = await pb.getBlock(blockTag);
     if (block === undefined) {
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw new Error("Block not found");
     }
   }
@@ -61,6 +61,6 @@ function getDetails(_: string, cb: Callback) {
 }
 
 function iterator() {
-  // tslint:disable-next-line only-buidler-error
+  // tslint:disable-next-line only-hardhat-error
   throw new Error(".iterator() is not supported");
 }

@@ -17,7 +17,7 @@ import { StateManager } from "../types/StateManager";
 import { AccountState, makeAccountState } from "./Account";
 import { randomHash } from "./random";
 
-/* tslint:disable only-buidler-error */
+/* tslint:disable only-hardhat-error */
 
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
 

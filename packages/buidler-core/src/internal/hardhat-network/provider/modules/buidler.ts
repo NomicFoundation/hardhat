@@ -15,7 +15,7 @@ import {
 import { BuidlerNode } from "../node";
 import { ForkConfig } from "../node-types";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export class BuidlerModule {
   constructor(

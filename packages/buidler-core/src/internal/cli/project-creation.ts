@@ -168,7 +168,7 @@ async function getAction() {
       return QUIT_ACTION;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw e;
   }
 }
@@ -221,7 +221,7 @@ export async function createProject() {
       return;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw e;
   }
 
@@ -364,7 +364,7 @@ async function confirmRecommendedDepsInstallation(): Promise<boolean> {
       return false;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw e;
   }
 

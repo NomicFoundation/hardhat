@@ -776,7 +776,7 @@ export default function () {
           );
 
           // TODO-HH throw a HardhatError and show a better error message
-          // tslint:disable only-buidler-error
+          // tslint:disable only-hardhat-error
           throw new Error(errorMessage);
         }
       }

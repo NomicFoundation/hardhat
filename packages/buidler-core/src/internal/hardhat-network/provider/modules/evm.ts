@@ -6,7 +6,7 @@ import { rpcQuantity, validateParams } from "../input";
 import { BuidlerNode } from "../node";
 import { numberToRpcQuantity } from "../output";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export class EvmModule {
   constructor(private readonly _node: BuidlerNode) {}

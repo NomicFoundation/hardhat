@@ -281,7 +281,7 @@ export class JsonRpcClient {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);
       }
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw err;
     }
   }
@@ -296,7 +296,7 @@ export class JsonRpcClient {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._sendBatch(batch, true);
       }
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw err;
     }
   }

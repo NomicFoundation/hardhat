@@ -14,7 +14,7 @@ import {
   PrecompileMessageTrace,
 } from "./message-trace";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);

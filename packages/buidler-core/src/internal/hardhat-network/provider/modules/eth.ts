@@ -73,7 +73,7 @@ import { Block } from "../types/Block";
 
 import { ModulesLogger } from "./logger";
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 export class EthModule {
   constructor(
     private readonly _common: Common,

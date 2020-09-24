@@ -75,7 +75,7 @@ export async function isLocalSourceName(
       return false;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw error;
   }
 
@@ -196,7 +196,7 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
       );
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw error;
   }
 }

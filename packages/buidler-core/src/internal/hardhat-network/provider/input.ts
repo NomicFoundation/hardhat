@@ -324,7 +324,7 @@ export function validateParams(
   forkConfig: typeof rpcForkConfig
 ): [RpcForkConfig];
 
-// tslint:disable only-buidler-error
+// tslint:disable only-hardhat-error
 
 export function validateParams(params: any[], ...types: Array<t.Type<any>>) {
   if (types === undefined && params.length > 0) {

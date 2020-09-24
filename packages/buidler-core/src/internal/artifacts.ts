@@ -136,7 +136,7 @@ export class Artifacts {
         });
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }
@@ -175,7 +175,7 @@ export class Artifacts {
         });
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }

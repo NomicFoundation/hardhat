@@ -8,7 +8,7 @@ import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
 import { PBlockchain, toBlockchain } from "./types/PBlockchain";
 
-/* tslint:disable only-buidler-error */
+/* tslint:disable only-hardhat-error */
 
 export class BuidlerBlockchain implements PBlockchain {
   private readonly _data = new BlockchainData();

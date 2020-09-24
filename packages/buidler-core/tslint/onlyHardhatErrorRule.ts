@@ -8,7 +8,7 @@ import * as ts from "typescript";
 
 export class Rule extends Lint.Rules.TypedRule {
   public static metadata: Lint.IRuleMetadata = {
-    ruleName: "only-buidler-error",
+    ruleName: "only-hardhat-error",
     description: "Enforces that only HardhatError is thrown.",
     optionsDescription: "Not configurable.",
     options: null,
