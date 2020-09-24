@@ -10,7 +10,7 @@ import {
 import { HardhatError } from "../errors";
 import { ErrorDescriptor, ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";
-import { HARDHAT_PARAM_DEFINITIONS } from "../params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../params/hardhat-params";
 
 function isCLIArgumentType(
   type: ArgumentType<any>

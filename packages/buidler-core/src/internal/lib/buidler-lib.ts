@@ -5,7 +5,7 @@ import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
-import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 

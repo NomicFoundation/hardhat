@@ -1,7 +1,7 @@
 import { HelpPrinter } from "../internal/cli/HelpPrinter";
 import { HARDHAT_EXECUTABLE_NAME, HARDHAT_NAME } from "../internal/constants";
 import { task } from "../internal/core/config/config-env";
-import { HARDHAT_PARAM_DEFINITIONS } from "../internal/core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../internal/core/params/hardhat-params";
 import { getPackageJson } from "../internal/util/packageInfo";
 
 import { TASK_HELP } from "./task-names";

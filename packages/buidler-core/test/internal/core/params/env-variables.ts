@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import { HARDHAT_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/hardhat-params";
 import {
   getEnvHardhatArguments,
   getEnvVariablesMap,

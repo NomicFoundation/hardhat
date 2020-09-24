@@ -8,7 +8,7 @@ import {
   int,
   string,
 } from "../../../src/internal/core/params/argumentTypes";
-import { HARDHAT_PARAM_DEFINITIONS } from "../../../src/internal/core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../../../src/internal/core/params/hardhat-params";
 import {
   OverriddenTaskDefinition,
   SimpleTaskDefinition,
