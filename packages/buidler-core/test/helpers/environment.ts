@@ -9,7 +9,7 @@ declare module "mocha" {
 
 export function useEnvironment() {
   beforeEach("Load environment", function () {
-    this.env = require("../../src/internal/lib/buidler-lib");
+    this.env = require("../../src/internal/lib/hardhat-lib");
   });
 
   afterEach("reset buidler context", function () {

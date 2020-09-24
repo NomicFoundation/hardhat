@@ -22,12 +22,12 @@ describe("Buidler lib", () => {
   });
 
   it("should reuse global state", async function () {
-    let environment = require("../../../src/internal/lib/buidler-lib");
+    let environment = require("../../../src/internal/lib/hardhat-lib");
     assert.isTrue(this.env === environment);
 
     resetHardhatContext();
 
-    environment = require("../../../src/internal/lib/buidler-lib");
+    environment = require("../../../src/internal/lib/hardhat-lib");
     assert.equal(await environment.run("example"), 28);
     assert.isFalse(this.env === environment);
   });

@@ -43,7 +43,7 @@
     "**/internal/solidity/compiler/downloader.ts",
     "**/internal/solidity/dependencyGraph.ts",
     "**/internal/constants.ts",
-    "**/internal/lib/buidler-lib.ts",
+    "**/internal/lib/hardhat-lib.ts",
     "**/builtin-tasks/help.ts",
     "**/builtin-tasks/compile.ts",
     "**/builtin-tasks/utils/cache.ts",

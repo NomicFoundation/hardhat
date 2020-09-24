@@ -38,7 +38,7 @@ export function resetHardhatContext() {
   // Unload all the buidler's entry-points.
   unloadModule("../register");
   unloadModule("./cli/cli");
-  unloadModule("./lib/buidler-lib");
+  unloadModule("./lib/hardhat-lib");
 }
 
 function unloadModule(path: string) {

@@ -5,8 +5,8 @@
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://usehardhat.com",
   "repository": "github:nomiclabs/hardhat",
-  "main": "internal/lib/buidler-lib.js",
-  "types": "internal/lib/buidler-lib.d.ts",
+  "main": "internal/lib/hardhat-lib.js",
+  "types": "internal/lib/hardhat-lib.d.ts",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "keywords": [
     "ethereum",

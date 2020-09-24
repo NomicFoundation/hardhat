@@ -21,7 +21,7 @@ describe("Typescript support", function () {
       }
 
       assert.throws(
-        () => require("../../../src/internal/lib/buidler-lib"),
+        () => require("../../../src/internal/lib/hardhat-lib"),
         "TS7006"
       );
 
