@@ -54,7 +54,7 @@ describe("Buidler EVM special options", function () {
   });
 
   describe("initialDate", function () {
-    useFixtureProject("buidler-evm-initial-date");
+    useFixtureProject("hardhat-network-initial-date");
     useEnvironment();
 
     it("Should set the blockchain date to the initialDate", async function () {

@@ -246,7 +246,7 @@ describe("Evm module", function () {
           // so instead of using this.provider they must use
           // this.env.network.provider
 
-          useFixtureProject("buidler-evm-initial-date");
+          useFixtureProject("hardhat-network-initial-date");
           useEnvironment();
 
           it("should still set the nextBlockTimestamp if it is less than the real time but larger than the previous block", async function () {
