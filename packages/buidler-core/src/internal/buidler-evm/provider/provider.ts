@@ -12,16 +12,10 @@ import type {
   BoundExperimentalBuidlerEVMMessageTraceHook,
   EIP1193Provider,
   EthSubscription,
-  ForkConfig,
   ProjectPaths,
   RequestArguments,
 } from "../../../types";
 import { Artifacts } from "../../artifacts";
-import {
-  BuildInfo,
-  CompilerInput,
-  CompilerOutput,
-} from "../stack-traces/compiler-types";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -39,7 +33,12 @@ import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
 import { BuidlerNode } from "./node";
-import { GenesisAccount, NodeConfig, TracingConfig } from "./node-types";
+import {
+  ForkConfig,
+  GenesisAccount,
+  NodeConfig,
+  TracingConfig,
+} from "./node-types";
 
 const log = debug("buidler:core:buidler-evm:provider");
 

@@ -1,7 +1,8 @@
 import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
+import { ForkConfig } from "../../../../src/internal/buidler-evm/provider/node-types";
 import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
-import { EthereumProvider, ForkConfig } from "../../../../src/types";
+import { EthereumProvider } from "../../../../src/types";
 
 import {
   DEFAULT_ACCOUNTS,

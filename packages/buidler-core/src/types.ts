@@ -29,6 +29,11 @@ export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   loggingEnabled?: boolean;
   allowUnlimitedContractSize?: boolean;
   initialDate?: string;
+  forking?: {
+    enabled?: boolean;
+    url?: string;
+    blockNumber?: number;
+  };
 }
 
 export interface HDAccountsConfig {
@@ -115,12 +120,6 @@ export interface ResolvedBuidlerConfig extends BuidlerConfig {
   networks: Networks;
   analytics: AnalyticsConfig;
   solidity: MultiSolcConfig;
-}
-
-// TODO: figure out if this needs validation with t.types
-export interface ForkConfig {
-  jsonRpcUrl: string;
-  blockNumber?: number;
 }
 
 // End config types

@@ -1,6 +1,5 @@
 import * as t from "io-ts";
 
-import { ForkConfig } from "../../../../types";
 import {
   CompilerInput,
   CompilerOutput,
@@ -14,6 +13,7 @@ import {
   validateParams,
 } from "../input";
 import { BuidlerNode } from "../node";
+import { ForkConfig } from "../node-types";
 
 // tslint:disable only-buidler-error
 

@@ -1,7 +1,7 @@
 import { BN } from "ethereumjs-util";
 
-import { ForkConfig } from "../../../../types";
 import { JsonRpcClient } from "../../jsonrpc/client";
+import { ForkConfig } from "../node-types";
 
 export async function makeForkClient(forkConfig: ForkConfig) {
   const forkClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl);
