@@ -1,5 +1,5 @@
 import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";
@@ -95,7 +95,7 @@ describe("Plugin integration tests", function () {
           console.log(reason);
           assert.instanceOf(
             reason,
-            NomicLabsBuidlerPluginError,
+            NomicLabsHardhatPluginError,
             "Ambiguous inferences need to be reported since they are not handled well yet"
           );
         });

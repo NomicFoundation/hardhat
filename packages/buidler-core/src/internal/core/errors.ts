@@ -93,21 +93,21 @@ export class HardhatError extends CustomError {
 /**
  * This class is used to throw errors from buidler plugins made by third parties.
  */
-export class BuidlerPluginError extends CustomError {
-  public static isBuidlerPluginError(other: any): other is BuidlerPluginError {
+export class HardhatPluginError extends CustomError {
+  public static isHardhatPluginError(other: any): other is HardhatPluginError {
     return (
       other !== undefined &&
       other !== null &&
-      other._isBuidlerPluginError === true
+      other._isHardhatPluginError === true
     );
   }
 
   public readonly pluginName: string;
 
-  private readonly _isBuidlerPluginError: boolean;
+  private readonly _isHardhatPluginError: boolean;
 
   /**
-   * Creates a BuidlerPluginError.
+   * Creates a HardhatPluginError.
    *
    * @param pluginName The name of the plugin.
    * @param message An error message that will be shown to the user.
@@ -139,27 +139,27 @@ export class BuidlerPluginError extends CustomError {
       this.pluginName = getClosestCallerPackage()!;
     }
 
-    this._isBuidlerPluginError = true;
-    Object.setPrototypeOf(this, BuidlerPluginError.prototype);
+    this._isHardhatPluginError = true;
+    Object.setPrototypeOf(this, HardhatPluginError.prototype);
   }
 }
 
-export class NomicLabsBuidlerPluginError extends BuidlerPluginError {
-  public static isNomicLabsBuidlerPluginError(
+export class NomicLabsHardhatPluginError extends HardhatPluginError {
+  public static isNomicLabsHardhatPluginError(
     other: any
-  ): other is NomicLabsBuidlerPluginError {
+  ): other is NomicLabsHardhatPluginError {
     return (
       other !== undefined &&
       other !== null &&
-      other._isNomicLabsBuidlerPluginError === true
+      other._isNomicLabsHardhatPluginError === true
     );
   }
 
-  private readonly _isNomicLabsBuidlerPluginError: boolean;
+  private readonly _isNomicLabsHardhatPluginError: boolean;
 
   /**
    * This class is used to throw errors from *core* buidler plugins. If you are
-   * developing a third-party plugin, use BuidlerPluginError instead.
+   * developing a third-party plugin, use HardhatPluginError instead.
    */
   public constructor(
     pluginName: string,
@@ -169,8 +169,8 @@ export class NomicLabsBuidlerPluginError extends BuidlerPluginError {
   ) {
     super(pluginName, message, parent);
 
-    this._isNomicLabsBuidlerPluginError = true;
-    Object.setPrototypeOf(this, NomicLabsBuidlerPluginError.prototype);
+    this._isNomicLabsHardhatPluginError = true;
+    Object.setPrototypeOf(this, NomicLabsHardhatPluginError.prototype);
   }
 }
 

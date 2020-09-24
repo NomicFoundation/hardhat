@@ -1,4 +1,4 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
+import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import {
   HardhatRuntimeEnvironment,
   ProjectPaths,
@@ -43,7 +43,7 @@ export async function getTruffleFixtureFunction(
   }
 
   if (!(fixture instanceof Function)) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       "@nomiclabs/buidler-truffle4",
       `Truffle fixture file ${fixturePath} must return a function`
     );

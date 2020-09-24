@@ -70,7 +70,7 @@ export async function isLocalSourceName(
     await getPathTrueCase(projectRoot, firstDirOrFileName);
   } catch (error) {
     if (
-      HardhatError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
+      HardhatError.isHardhatErrorType(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
     ) {
       return false;
     }

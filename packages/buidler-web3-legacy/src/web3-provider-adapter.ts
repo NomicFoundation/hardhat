@@ -1,4 +1,4 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { IEthereumProvider } from "@nomiclabs/buidler/types";
 import util from "util";
 
@@ -35,13 +35,13 @@ export class Web3HTTPProviderAdapter {
 
   public send(payload?: Partial<JsonRpcRequest>) {
     if (payload !== undefined && payload.method !== undefined) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         "@nomiclabs/buidler-web3-legacy",
         `Trying to call RPC method ${payload.method}, but synchronous requests are not supported, use pweb3 instead`
       );
     }
 
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       "@nomiclabs/buidler-web3-legacy",
       "Synchronous requests are not supported, use pweb3 instead"
     );

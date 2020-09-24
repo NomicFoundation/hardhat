@@ -9,7 +9,7 @@ import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { HardhatError, BuidlerPluginError } from "../core/errors";
+import { HardhatError, HardhatPluginError } from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
@@ -168,13 +168,13 @@ async function main() {
     }
     log(`Killing Buidler after successfully running task ${taskName}`);
   } catch (error) {
-    let isBuidlerError = false;
+    let isHardhatError = false;
 
-    if (HardhatError.isBuidlerError(error)) {
-      isBuidlerError = true;
+    if (HardhatError.isHardhatError(error)) {
+      isHardhatError = true;
       console.error(chalk.red(`Error ${error.message}`));
-    } else if (BuidlerPluginError.isBuidlerPluginError(error)) {
-      isBuidlerError = true;
+    } else if (HardhatPluginError.isHardhatPluginError(error)) {
+      isHardhatError = true;
       console.error(
         chalk.red(`Error in plugin ${error.pluginName}: ${error.message}`)
       );
@@ -197,13 +197,13 @@ async function main() {
     if (showStackTraces) {
       console.error(error);
     } else {
-      if (!isBuidlerError) {
+      if (!isHardhatError) {
         console.error(
           `If you think this is a bug in Buidler, please report it here: https://buidler.dev/reportbug`
         );
       }
 
-      if (HardhatError.isBuidlerError(error)) {
+      if (HardhatError.isHardhatError(error)) {
         const link = `https://buidler.dev/${getErrorCode(
           error.errorDescriptor
         )}`;

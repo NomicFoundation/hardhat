@@ -7,7 +7,7 @@ import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetBuidlerContext } from "../../../../src/internal/reset";
 import { useEnvironment } from "../../../helpers/environment";
-import { expectBuidlerError } from "../../../helpers/errors";
+import { expectHardhatError } from "../../../helpers/errors";
 import {
   getFixtureProjectPath,
   useFixtureProject,
@@ -39,7 +39,7 @@ describe("config loading", function () {
       });
 
       it("Should throw the right error", function () {
-        expectBuidlerError(
+        expectHardhatError(
           () => loadConfigAndTasks(),
           ERRORS.GENERAL.INVALID_CONFIG
         );
@@ -145,7 +145,7 @@ describe("config loading", function () {
     });
 
     it("should accept a relative path from the CWD", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => loadConfigAndTasks(),
         ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG
       );

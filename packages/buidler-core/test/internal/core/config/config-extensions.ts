@@ -10,7 +10,7 @@ import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetBuidlerContext } from "../../../../src/internal/reset";
 import { useEnvironment } from "../../../helpers/environment";
-import { expectBuidlerError } from "../../../helpers/errors";
+import { expectHardhatError } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
 
 describe("Config extensions", function () {
@@ -41,7 +41,7 @@ describe("Config extensions", function () {
     });
 
     it("Should throw the right error when trying to modify the user config", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => loadConfigAndTasks(),
         ERRORS.GENERAL.USER_CONFIG_MODIFIED
       );

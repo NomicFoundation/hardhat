@@ -2,8 +2,8 @@ import { assert } from "chai";
 
 import {
   HardhatError,
-  BuidlerPluginError,
-  NomicLabsBuidlerPluginError,
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
 } from "../../../src/internal/core/errors";
 import { ErrorDescriptor } from "../../../src/internal/core/errors-list";
 import { Reporter } from "../../../src/internal/sentry/reporter";
@@ -24,7 +24,7 @@ describe("Reporter", () => {
       assert.isTrue(result);
     });
 
-    it("should report BuidlerErrors that have the shouldBeReported flag", () => {
+    it("should report HardhatErrors that have the shouldBeReported flag", () => {
       const error = new HardhatError({
         ...mockErrorDescriptor,
         shouldBeReported: true,
@@ -34,7 +34,7 @@ describe("Reporter", () => {
       assert.isTrue(result);
     });
 
-    it("should not report BuidlerErrors that don't have the shouldBeReported flag", () => {
+    it("should not report HardhatErrors that don't have the shouldBeReported flag", () => {
       const error = new HardhatError({
         ...mockErrorDescriptor,
         shouldBeReported: false,
@@ -44,17 +44,17 @@ describe("Reporter", () => {
       assert.isFalse(result);
     });
 
-    it("should not report BuidlerPluginErrors", () => {
+    it("should not report HardhatPluginErrors", () => {
       const result = Reporter.shouldReport(
-        new BuidlerPluginError("asd", "asd")
+        new HardhatPluginError("asd", "asd")
       );
 
       assert.isFalse(result);
     });
 
-    it("should report NomicLabsBuidlerPluginErrors that have the shouldBeReported flag", () => {
+    it("should report NomicLabsHardhatPluginErrors that have the shouldBeReported flag", () => {
       const result = Reporter.shouldReport(
-        new NomicLabsBuidlerPluginError(
+        new NomicLabsHardhatPluginError(
           "asd",
           "asd",
           new Error("some message"),
@@ -65,9 +65,9 @@ describe("Reporter", () => {
       assert.isTrue(result);
     });
 
-    it("should not report NomicLabsBuidlerPluginErrors that don't have the shouldBeReported flag", () => {
+    it("should not report NomicLabsHardhatPluginErrors that don't have the shouldBeReported flag", () => {
       const result = Reporter.shouldReport(
-        new NomicLabsBuidlerPluginError(
+        new NomicLabsHardhatPluginError(
           "asd",
           "asd",
           new Error("some message"),

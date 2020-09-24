@@ -10,7 +10,7 @@ import {
 } from "@nomiclabs/buidler-docker";
 import {
   Artifacts,
-  NomicLabsBuidlerPluginError,
+  NomicLabsHardhatPluginError,
 } from "@nomiclabs/buidler/plugins";
 import { ProjectPaths } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
@@ -83,7 +83,7 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
   }
 
   if (someContractFailed) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       "@nomiclabs/buidler-vyper",
       "Compilation failed"
     );
@@ -172,7 +172,7 @@ async function saveLastVyperVersionUsed(version: string, paths: ProjectPaths) {
 
 async function validateDockerIsInstalled() {
   if (!(await BuidlerDocker.isInstalled())) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       "@nomiclabs/buidler-vyper",
       `Docker Desktop is not installed.
 Please install it by following the instructions on https://www.docker.com/get-started`
@@ -286,7 +286,7 @@ async function handleCommonErrors<T>(promise: Promise<T>): Promise<T> {
       error instanceof DockerNotRunningError ||
       error instanceof DockerBadGatewayError
     ) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         "@nomiclabs/buidler-vyper",
         "Docker Desktop is not running.\nPlease open it and wait until it finishes booting.",
         error
@@ -294,7 +294,7 @@ async function handleCommonErrors<T>(promise: Promise<T>): Promise<T> {
     }
 
     if (error instanceof DockerHubConnectionError) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         "@nomiclabs/buidler-vyper",
         `Error connecting to Docker Hub.
 Please check your internet connection.`,
@@ -303,7 +303,7 @@ Please check your internet connection.`,
     }
 
     if (error instanceof DockerServerError) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         "@nomiclabs/buidler-vyper",
         "Docker error",
         error
@@ -311,7 +311,7 @@ Please check your internet connection.`,
     }
 
     if (error instanceof ImageDoesntExistError) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         "@nomiclabs/buidler-vyper",
         `Docker image ${BuidlerDocker.imageToRepoTag(
           error.image

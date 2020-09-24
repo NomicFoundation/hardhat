@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { lazyFunction, lazyObject } from "../../../src/internal/util/lazy";
-import { expectBuidlerError } from "../../helpers/errors";
+import { expectHardhatError } from "../../helpers/errors";
 
 // tslint:disable no-inferred-empty-object-type
 
@@ -74,22 +74,22 @@ describe("lazy module", () => {
     it("doesn't support classes", () => {
       const obj = lazyObject(() => class {}) as any;
 
-      expectBuidlerError(
+      expectHardhatError(
         () => (obj.asd = 123),
         ERRORS.GENERAL.UNSUPPORTED_OPERATION
       );
-      expectBuidlerError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
+      expectHardhatError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
       assert.throws(() => new obj(), "obj is not a constructor");
     });
 
     it("doesn't support functions", () => {
       const obj = lazyObject(() => () => {}) as any;
 
-      expectBuidlerError(
+      expectHardhatError(
         () => (obj.asd = 123),
         ERRORS.GENERAL.UNSUPPORTED_OPERATION
       );
-      expectBuidlerError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
+      expectHardhatError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
 
       assert.throws(() => obj(), "obj is not a function");
     });
@@ -202,7 +202,7 @@ describe("lazy module", () => {
 
     it("should throw if it's used to create an object without prototype", () => {
       const obj = lazyObject(() => Object.create(null));
-      expectBuidlerError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
+      expectHardhatError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
     });
   });
 });

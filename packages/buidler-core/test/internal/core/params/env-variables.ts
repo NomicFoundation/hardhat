@@ -7,7 +7,7 @@ import {
   getEnvVariablesMap,
   paramNameToEnvVariable,
 } from "../../../../src/internal/core/params/env-variables";
-import { expectBuidlerError } from "../../../helpers/errors";
+import { expectHardhatError } from "../../../helpers/errors";
 
 // This is testing an internal function, which may seem weird, but its behaviour
 // is 100% user facing.
@@ -63,7 +63,7 @@ describe("Env vars arguments parsing", () => {
   });
 
   it("should throw if an invalid value is passed", () => {
-    expectBuidlerError(
+    expectHardhatError(
       () =>
         getEnvHardhatArguments(BUIDLER_PARAM_DEFINITIONS, {
           BUIDLER_HELP: "123",

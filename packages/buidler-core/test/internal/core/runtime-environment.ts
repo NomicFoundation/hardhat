@@ -16,8 +16,8 @@ import {
   TasksMap,
 } from "../../../src/types";
 import {
-  expectBuidlerError,
-  expectBuidlerErrorAsync,
+  expectHardhatError,
+  expectHardhatErrorAsync,
 } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
 
@@ -161,7 +161,7 @@ describe("Environment", () => {
         assert.isDefined(taskResult);
 
         // same task throws with required param missing
-        await expectBuidlerErrorAsync(async () => {
+        await expectHardhatErrorAsync(async () => {
           await env.run("complexExampleTask", {});
         }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
       });
@@ -252,7 +252,7 @@ describe("Environment", () => {
           taskNameToRun: string,
           taskArguments: any
         ) => {
-          await expectBuidlerErrorAsync(async () => {
+          await expectHardhatErrorAsync(async () => {
             await env.run(taskNameToRun, taskArguments);
             console.error(
               `should have thrown task run: '${taskNameToRun}' with arguments: `,
@@ -327,7 +327,7 @@ describe("Environment", () => {
     });
 
     it("Should throw if the chosen network doesn't exist", () => {
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         const ctx = BuidlerContext.getBuidlerContext();
         env = new Environment(
           config,

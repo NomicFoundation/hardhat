@@ -1,4 +1,4 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { DecoderOptions } from "cbor";
 
 import { pluginName } from "../pluginContext";
@@ -6,14 +6,14 @@ import { pluginName } from "../pluginContext";
 export const METADATA_LENGTH_SIZE = 2;
 
 // Instances of these errors are not supposed to be seen by the task.
-export class VersionNotFoundError extends NomicLabsBuidlerPluginError {
+export class VersionNotFoundError extends NomicLabsHardhatPluginError {
   constructor(message: string) {
     super(pluginName, message, undefined, true);
     Object.setPrototypeOf(this, VersionNotFoundError.prototype);
   }
 }
 
-export class MetadataAbsentError extends NomicLabsBuidlerPluginError {
+export class MetadataAbsentError extends NomicLabsHardhatPluginError {
   constructor(message: string) {
     super(pluginName, message, undefined, true);
     Object.setPrototypeOf(this, MetadataAbsentError.prototype);

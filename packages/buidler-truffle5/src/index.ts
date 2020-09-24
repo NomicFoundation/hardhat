@@ -12,7 +12,7 @@ import {
   HARDHAT_NETWORK_NAME,
   lazyFunction,
   lazyObject,
-  NomicLabsBuidlerPluginError,
+  NomicLabsHardhatPluginError,
 } from "@nomiclabs/buidler/plugins";
 import { ResolvedHardhatNetworkConfig } from "@nomiclabs/buidler/types";
 import { join } from "path";
@@ -93,7 +93,7 @@ export default function () {
 
       formatters.inputTransactionFormatter = function (options: any) {
         if (options.from === undefined) {
-          throw new NomicLabsBuidlerPluginError(
+          throw new NomicLabsHardhatPluginError(
             "@nomiclabs/buidler-truffle5",
             "There's no account available in the selected network."
           );
@@ -145,7 +145,7 @@ export default function () {
           );
         }
       } else if (accounts === undefined) {
-        throw new NomicLabsBuidlerPluginError(
+        throw new NomicLabsHardhatPluginError(
           "@nomiclabs/buidler-truffle5",
           `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Buidler's CLI`
         );

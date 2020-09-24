@@ -8,7 +8,7 @@ import {
 } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { Artifact } from "../../src/types";
-import { expectBuidlerError, expectBuidlerErrorAsync } from "../helpers/errors";
+import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";
 
 describe("Artifacts utils", function () {
@@ -316,7 +316,7 @@ describe("Artifacts utils", function () {
 
     it("Should throw when reading a non-existent contract (async)", async function () {
       const artifacts = new Artifacts(this.tmpDir);
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => artifacts.readArtifact("NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
       );
@@ -324,7 +324,7 @@ describe("Artifacts utils", function () {
 
     it("Should throw when reading a non-existent contract (sync)", async function () {
       const artifacts = new Artifacts(this.tmpDir);
-      expectBuidlerError(
+      expectHardhatError(
         () => artifacts.readArtifactSync("NonExistent"),
         ERRORS.ARTIFACTS.NOT_FOUND
       );
@@ -340,7 +340,7 @@ describe("Artifacts utils", function () {
       await artifacts.saveArtifactFiles("Lib.sol", artifact, "");
       await artifacts.saveArtifactFiles("Lib2.sol", artifact, "");
 
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => artifacts.readArtifact(name),
         ERRORS.ARTIFACTS.MULTIPLE_FOUND,
         `Lib.sol:Lib${os.EOL}Lib2.sol:Lib`
@@ -357,7 +357,7 @@ describe("Artifacts utils", function () {
       await artifacts.saveArtifactFiles("Lib.sol", artifact, "");
       await artifacts.saveArtifactFiles("Lib2.sol", artifact, "");
 
-      expectBuidlerError(
+      expectHardhatError(
         () => artifacts.readArtifactSync(name),
         ERRORS.ARTIFACTS.MULTIPLE_FOUND,
         `Lib.sol:Lib${os.EOL}Lib2.sol:Lib`

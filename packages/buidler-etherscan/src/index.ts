@@ -1,7 +1,7 @@
 import { extendConfig, task } from "@nomiclabs/buidler/config";
 import {
   HARDHAT_NETWORK_NAME,
-  NomicLabsBuidlerPluginError,
+  NomicLabsHardhatPluginError,
 } from "@nomiclabs/buidler/plugins";
 import { ActionType } from "@nomiclabs/buidler/types";
 import path from "path";
@@ -31,7 +31,7 @@ const verify: ActionType<VerificationArgs> = async (
   const { etherscan } = config;
 
   if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `Please provide an Etherscan API token via buidler config.
 E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
@@ -40,7 +40,7 @@ See https://etherscan.io/apis`
   }
 
   if (network.name === HARDHAT_NETWORK_NAME) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `The selected network is ${network.name}. Please select a network supported by Etherscan.`
     );
@@ -48,7 +48,7 @@ See https://etherscan.io/apis`
 
   const { isAddress } = await import("@ethersproject/address");
   if (!isAddress(address)) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `${address} is an invalid address.`
     );
@@ -67,7 +67,7 @@ See https://etherscan.io/apis`
       supportedSolcVersionRange
     )
   ) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `Etherscan only supports compiler versions 0.4.11 and higher.
 See https://etherscan.io/solcversions for more information.`
@@ -83,14 +83,14 @@ See https://etherscan.io/solcversions for more information.`
     try {
       constructorArguments = (await import(constructorArgsModule)).default;
       if (!Array.isArray(constructorArguments)) {
-        throw new NomicLabsBuidlerPluginError(
+        throw new NomicLabsHardhatPluginError(
           pluginName,
           `The module doesn't export a list. The module should look like this:
 module.exports = [ arg1, arg2, ... ];`
         );
       }
     } catch (error) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         pluginName,
         `Importing the module for the constructor arguments list failed.
 Reason: ${error.message}`,
@@ -111,7 +111,7 @@ Reason: ${error.message}`,
     etherscanAPIEndpoint = await getEtherscanEndpoint(network.provider);
   } catch (error) {
     if (error instanceof NetworkProberError) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         pluginName,
         `${error.message} The selected network is ${network.name}.
 
@@ -130,7 +130,7 @@ Possible causes are:
     network.provider
   );
   if (deployedContractBytecode === null) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `The address ${address} has no bytecode. Is the contract deployed to this network?
 The selected network is ${network.name}.`
@@ -165,7 +165,7 @@ Possible causes are:
   - Wrong compiler version in buidler config.
   - The given address is wrong.
   - The selected network (${network.name}) is wrong.`;
-    throw new NomicLabsBuidlerPluginError(pluginName, message);
+    throw new NomicLabsHardhatPluginError(pluginName, message);
   }
 
   const { lookupMatchingBytecode, compile } = await import("./solc/bytecode");
@@ -187,7 +187,7 @@ Possible causes are:
   - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
   - The given address is wrong.
   - The selected network (${network.name}) is wrong.`;
-    throw new NomicLabsBuidlerPluginError(pluginName, message);
+    throw new NomicLabsHardhatPluginError(pluginName, message);
   }
   if (contractMatches.length > 1) {
     const nameList = contractMatches
@@ -198,7 +198,7 @@ Possible causes are:
     const message = `More than one contract was found to match the deployed bytecode.
 The plugin does not yet support this case. Contracts found:
 ${nameList}`;
-    throw new NomicLabsBuidlerPluginError(pluginName, message, undefined, true);
+    throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
   }
   const [contractInformation] = contractMatches;
 
@@ -259,7 +259,7 @@ for verification on etherscan. Waiting for verification result...`
     console.log("Successfully verified contract on etherscan");
   } else {
     // Reaching this branch shouldn't be possible unless the API is behaving in a new way.
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `The API responded with an unexpected message.
 Contract verification may have succeeded and should be checked manually.

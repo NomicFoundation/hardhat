@@ -1,6 +1,6 @@
 export {
-  BuidlerPluginError,
-  NomicLabsBuidlerPluginError,
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
 } from "./internal/core/errors";
 export { Artifacts } from "./internal/artifacts";
 export { lazyObject, lazyFunction } from "./internal/util/lazy";

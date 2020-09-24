@@ -1,4 +1,4 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 
 import { pluginName } from "../pluginContext";
 
@@ -78,7 +78,7 @@ export async function getLongVersion(shortVersion: string): Promise<string> {
   const fullVersion = versions.releases[shortVersion];
 
   if (fullVersion === undefined || fullVersion === "") {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       "Given solc version doesn't exist"
     );
@@ -95,7 +95,7 @@ export async function getVersions(): Promise<CompilersList> {
 
     if (!response.ok) {
       const responseText = await response.text();
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         pluginName,
         `HTTP response is not ok. Status code: ${response.status} Response text: ${responseText}`
       );
@@ -103,7 +103,7 @@ export async function getVersions(): Promise<CompilersList> {
 
     return response.json();
   } catch (error) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `Failed to obtain list of solc versions. Reason: ${error.message}`,
       error

@@ -18,7 +18,7 @@ import {
   TaskArguments,
   TaskDefinition,
 } from "../../../src/types";
-import { expectBuidlerError } from "../../helpers/errors";
+import { expectHardhatError } from "../../helpers/errors";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
@@ -58,17 +58,17 @@ describe("ArgumentsParser", () => {
   });
 
   it("Should throw if a param name CLA isn't all lowercase", () => {
-    expectBuidlerError(
+    expectHardhatError(
       () => ArgumentsParser.cLAToParamName("--showStackTraces"),
       ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
 
-    expectBuidlerError(
+    expectHardhatError(
       () => ArgumentsParser.cLAToParamName("--showstackTraces"),
       ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
 
-    expectBuidlerError(
+    expectHardhatError(
       () => ArgumentsParser.cLAToParamName("--show-stack-Traces"),
       ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
@@ -165,7 +165,7 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      expectBuidlerError(
+      expectHardhatError(
         () =>
           argumentsParser.parseHardhatArguments(
             BUIDLER_PARAM_DEFINITIONS,
@@ -214,7 +214,7 @@ describe("ArgumentsParser", () => {
         "local",
         "--invalid-param",
       ];
-      expectBuidlerError(
+      expectHardhatError(
         () =>
           argumentsParser.parseHardhatArguments(
             BUIDLER_PARAM_DEFINITIONS,
@@ -234,7 +234,7 @@ describe("ArgumentsParser", () => {
         "local",
         "compile",
       ];
-      expectBuidlerError(
+      expectHardhatError(
         () =>
           argumentsParser.parseHardhatArguments(
             BUIDLER_PARAM_DEFINITIONS,
@@ -327,7 +327,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail when passing invalid parameter", () => {
       const rawCLAs: string[] = ["--invalid-parameter", "not_valid"];
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME);
     });
@@ -339,7 +339,7 @@ describe("ArgumentsParser", () => {
         "a variadic params"
       );
 
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG);
     });
@@ -349,7 +349,7 @@ describe("ArgumentsParser", () => {
       const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(definition, rawCLAs);
       }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
     });
@@ -359,14 +359,14 @@ describe("ArgumentsParser", () => {
       const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(definition, rawCLAs);
       }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
     });
 
     it("should fail when passing unneeded arguments", () => {
       const rawCLAs: string[] = ["more", "arguments"];
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG);
     });
@@ -396,7 +396,7 @@ describe("ArgumentsParser", () => {
         .addOptionalParam("b", "A boolean", true, boolean)
         .setAction(async () => {});
 
-      expectBuidlerError(
+      expectHardhatError(
         () => argumentsParser.parseTaskArguments(taskDefinition, rawCLAs),
         ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT
       );

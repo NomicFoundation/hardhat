@@ -12,10 +12,10 @@ import {
   ParamDefinition,
   TaskDefinition,
 } from "../../../../src/types";
-import { expectBuidlerError } from "../../../helpers/errors";
+import { expectHardhatError } from "../../../helpers/errors";
 
 function expectThrowParamAlreadyDefinedError(f: () => any) {
-  expectBuidlerError(f, ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED);
+  expectHardhatError(f, ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED);
 }
 
 function getLastPositionalParam(taskDefinition: TaskDefinition) {
@@ -65,7 +65,7 @@ describe("SimpleTaskDefinition", () => {
     });
 
     it("starts with an action that throws", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => taskDefinition.action({}, {} as any, runSuperNop),
         ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
       );
@@ -160,31 +160,31 @@ describe("SimpleTaskDefinition", () => {
 
     describe("param name clashes with Buidler's ones", () => {
       function testClashWith(name: string) {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam(name),
           ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
         );
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addOptionalParam(name),
           ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
         );
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addFlag(name),
           ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
         );
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addPositionalParam(name),
           ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
         );
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addOptionalPositionalParam(name),
           ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
         );
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addVariadicPositionalParam(name),
           ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
         );
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addOptionalVariadicPositionalParam(name),
           ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
         );
@@ -213,14 +213,14 @@ describe("SimpleTaskDefinition", () => {
         });
 
         it("throws when trying to add a new positional param", () => {
-          expectBuidlerError(
+          expectHardhatError(
             () => taskDefinition.addPositionalParam("asd2"),
             ERRORS.TASK_DEFINITIONS.MANDATORY_PARAM_AFTER_OPTIONAL
           );
         });
 
         it("throws when trying to add a new variadic positional param", () => {
-          expectBuidlerError(
+          expectHardhatError(
             () => taskDefinition.addVariadicPositionalParam("asd2"),
             ERRORS.TASK_DEFINITIONS.MANDATORY_PARAM_AFTER_OPTIONAL
           );
@@ -271,28 +271,28 @@ describe("SimpleTaskDefinition", () => {
         });
 
         it("should throw on adding a positional param", () => {
-          expectBuidlerError(
+          expectHardhatError(
             () => taskDefinition.addPositionalParam("p"),
             ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC
           );
         });
 
         it("should throw on adding an optional positional param", () => {
-          expectBuidlerError(
+          expectHardhatError(
             () => taskDefinition.addOptionalPositionalParam("p"),
             ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC
           );
         });
 
         it("should throw on adding another variadic param", () => {
-          expectBuidlerError(
+          expectHardhatError(
             () => taskDefinition.addVariadicPositionalParam("p"),
             ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC
           );
         });
 
         it("should throw on adding an optional variadic param", () => {
-          expectBuidlerError(
+          expectHardhatError(
             () => taskDefinition.addOptionalVariadicPositionalParam("p"),
             ERRORS.TASK_DEFINITIONS.PARAM_AFTER_VARIADIC
           );
@@ -327,42 +327,42 @@ describe("SimpleTaskDefinition", () => {
 
     describe("addParam", () => {
       it("Should fail if the param name isn't camelCase", function () {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("A"),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("Aa"),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("0"),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("0a"),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("a "),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("a-1"),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("a_"),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("a_b"),
           ERRORS.TASK_DEFINITIONS.INVALID_PARAM_NAME_CASING
         );
@@ -403,14 +403,14 @@ describe("SimpleTaskDefinition", () => {
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("p", "desc", 123),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
       });
 
       it("should throw if a default value is set to a mandatory param", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addParam("p", "desc", 123, types.int, false),
           ERRORS.TASK_DEFINITIONS.DEFAULT_IN_MANDATORY_PARAM
         );
@@ -445,7 +445,7 @@ describe("SimpleTaskDefinition", () => {
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addOptionalParam("p", "desc", 123),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
@@ -509,14 +509,14 @@ describe("SimpleTaskDefinition", () => {
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addPositionalParam("p", "desc", 123),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
       });
 
       it("should throw if a default value is set to a mandatory param", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () =>
             taskDefinition.addPositionalParam(
               "p",
@@ -579,7 +579,7 @@ describe("SimpleTaskDefinition", () => {
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addOptionalPositionalParam("p", "desc", 123),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
@@ -650,19 +650,19 @@ describe("SimpleTaskDefinition", () => {
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addVariadicPositionalParam("p", "desc", 123),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () => taskDefinition.addVariadicPositionalParam("p", "desc", [123]),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
       });
 
       it("should throw if a default value is set to a mandatory param", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () =>
             taskDefinition.addVariadicPositionalParam(
               "p",
@@ -674,7 +674,7 @@ describe("SimpleTaskDefinition", () => {
           ERRORS.TASK_DEFINITIONS.DEFAULT_IN_MANDATORY_PARAM
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () =>
             taskDefinition.addVariadicPositionalParam(
               "p",
@@ -759,13 +759,13 @@ describe("SimpleTaskDefinition", () => {
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () =>
             taskDefinition.addOptionalVariadicPositionalParam("p", "desc", 123),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
 
-        expectBuidlerError(
+        expectHardhatError(
           () =>
             taskDefinition.addOptionalVariadicPositionalParam("p", "desc", [
               123,
@@ -784,35 +784,35 @@ describe("SimpleTaskDefinition", () => {
 
         describe("When using non-cli argument types", () => {
           it("Should throw on addParam", () => {
-            expectBuidlerError(
+            expectHardhatError(
               () => task.addParam("p", "p", undefined, types.any),
               ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
             );
           });
 
           it("Should  throw on addOptionalParam", () => {
-            expectBuidlerError(
+            expectHardhatError(
               () => task.addOptionalParam("p", "p", "asd", types.any),
               ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
             );
           });
 
           it("Should  throw on addPositionalParam", () => {
-            expectBuidlerError(
+            expectHardhatError(
               () => task.addPositionalParam("p", "p", undefined, types.any),
               ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
             );
           });
 
           it("Should  throw on addOptionalPositionalParam", () => {
-            expectBuidlerError(
+            expectHardhatError(
               () => task.addOptionalPositionalParam("p", "p", "asd", types.any),
               ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
             );
           });
 
           it("Should  throw on addVariadicPositionalParam", () => {
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 task.addVariadicPositionalParam("p", "p", undefined, types.any),
               ERRORS.TASK_DEFINITIONS.CLI_ARGUMENT_TYPE_REQUIRED
@@ -820,7 +820,7 @@ describe("SimpleTaskDefinition", () => {
           });
 
           it("Should  throw on addVariadicPositionalParam", () => {
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 task.addOptionalVariadicPositionalParam(
                   "p",
@@ -1011,13 +1011,13 @@ describe("OverriddenTaskDefinition", () => {
       assert.isDefined(parentTask.paramDefinitions[definedParamName]);
 
       // expect PARAM_ALREADY_DEFINED for add flag param
-      expectBuidlerError(
+      expectHardhatError(
         () => overriddenTask.addFlag(definedParamName),
         ERRORS.TASK_DEFINITIONS.PARAM_ALREADY_DEFINED
       );
 
       // expect PARAM_ALREADY_DEFINED for add optional param using addParam method
-      expectBuidlerError(
+      expectHardhatError(
         () =>
           overriddenTask.addParam(
             definedParamName,
@@ -1030,7 +1030,7 @@ describe("OverriddenTaskDefinition", () => {
       );
 
       // expect PARAM_ALREADY_DEFINED for add optional param using addParam method
-      expectBuidlerError(
+      expectHardhatError(
         () =>
           overriddenTask.addOptionalParam(
             definedParamName,
@@ -1043,7 +1043,7 @@ describe("OverriddenTaskDefinition", () => {
     });
 
     it("should throw if addParam is called with isOptional = false", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => overriddenTask.addParam("p"),
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_MANDATORY_PARAMS
       );
@@ -1072,28 +1072,28 @@ describe("OverriddenTaskDefinition", () => {
     });
 
     it("should throw if addPositionalParam is called", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => overriddenTask.addPositionalParam("p"),
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
       );
     });
 
     it("should throw if addOptionalPositionalParam is called", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => overriddenTask.addOptionalPositionalParam("p"),
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
       );
     });
 
     it("should throw if addVariadicPositionalParam is called", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => overriddenTask.addVariadicPositionalParam("p"),
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );
     });
 
     it("should throw if addOptionalVariadicPositionalParam is called", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => overriddenTask.addOptionalVariadicPositionalParam("p"),
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );

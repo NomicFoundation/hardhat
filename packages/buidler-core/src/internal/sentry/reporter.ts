@@ -1,7 +1,7 @@
 import {
   HardhatError,
-  BuidlerPluginError,
-  NomicLabsBuidlerPluginError,
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
 } from "../core/errors";
 import { isLocalDev } from "../core/execution-mode";
 import { ProviderError } from "../core/providers/errors";
@@ -90,14 +90,14 @@ export class Reporter {
 
   public static shouldReport(error: Error): boolean {
     if (
-      HardhatError.isBuidlerError(error) &&
+      HardhatError.isHardhatError(error) &&
       !error.errorDescriptor.shouldBeReported
     ) {
       return false;
     }
 
-    if (BuidlerPluginError.isBuidlerPluginError(error)) {
-      if (NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(error)) {
+    if (HardhatPluginError.isHardhatPluginError(error)) {
+      if (NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(error)) {
         return error.shouldBeReported;
       }
 

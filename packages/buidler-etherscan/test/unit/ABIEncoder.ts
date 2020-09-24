@@ -1,4 +1,4 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 
 import { encodeArguments } from "../../src/ABIEncoder";
@@ -75,7 +75,7 @@ describe("constructor argument validation tests", () => {
       contractName,
       constructorArguments
     ).catch((reason) => {
-      assert.instanceOf(reason, NomicLabsBuidlerPluginError);
+      assert.instanceOf(reason, NomicLabsHardhatPluginError);
     });
   });
 
@@ -103,7 +103,7 @@ describe("constructor argument validation tests", () => {
       contractName,
       constructorArguments
     ).catch((reason) => {
-      assert.instanceOf(reason, NomicLabsBuidlerPluginError);
+      assert.instanceOf(reason, NomicLabsHardhatPluginError);
     });
   });
 
@@ -127,7 +127,7 @@ describe("constructor argument validation tests", () => {
       contractName,
       constructorArguments
     ).catch((reason) => {
-      assert.instanceOf(reason, NomicLabsBuidlerPluginError);
+      assert.instanceOf(reason, NomicLabsHardhatPluginError);
     });
   });
 
@@ -205,7 +205,7 @@ describe("constructor argument validation tests", () => {
       contractName,
       constructorArguments
     ).catch((reason) => {
-      assert.instanceOf(reason, NomicLabsBuidlerPluginError);
+      assert.instanceOf(reason, NomicLabsHardhatPluginError);
     });
   });
 

@@ -1,4 +1,4 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { HardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 // tslint:disable: no-implicit-dependencies
 import nock from "nock";
@@ -31,7 +31,7 @@ describe("solc version retrieval tests", () => {
       .reply(404);
 
     return getLongVersion("0.5.1").catch((e) =>
-      assert.isTrue(e instanceof BuidlerPluginError)
+      assert.isTrue(e instanceof HardhatPluginError)
     );
   });
 
@@ -49,7 +49,7 @@ describe("solc version retrieval tests", () => {
         assert.fail();
       })
       .catch((e) => {
-        assert.isTrue(e instanceof BuidlerPluginError);
+        assert.isTrue(e instanceof HardhatPluginError);
       });
   });
 });

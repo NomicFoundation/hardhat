@@ -4,7 +4,7 @@ import { BuidlerContext } from "../../src/internal/context";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { resetBuidlerContext } from "../../src/internal/reset";
 import { useEnvironment } from "../helpers/environment";
-import { expectBuidlerError } from "../helpers/errors";
+import { expectHardhatError } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 
 describe("Buidler context", async function () {
@@ -14,7 +14,7 @@ describe("Buidler context", async function () {
     });
 
     it("should throw when context isn't created", async function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => BuidlerContext.getBuidlerContext(),
         ERRORS.GENERAL.CONTEXT_NOT_CREATED
       );
@@ -40,7 +40,7 @@ describe("Buidler context", async function () {
 
     it("should throw when recreating buidler context", async function () {
       BuidlerContext.createBuidlerContext();
-      expectBuidlerError(
+      expectHardhatError(
         () => BuidlerContext.createBuidlerContext(),
         ERRORS.GENERAL.CONTEXT_ALREADY_CREATED
       );
@@ -56,7 +56,7 @@ describe("Buidler context", async function () {
 
     it("should throw when HRE is not defined", async function () {
       const ctx = BuidlerContext.createBuidlerContext();
-      expectBuidlerError(
+      expectHardhatError(
         () => ctx.getBuidlerRuntimeEnvironment(),
         ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED
       );
@@ -73,7 +73,7 @@ describe("Buidler context", async function () {
       );
     });
     it("should throw when trying to set HRE", async function () {
-      expectBuidlerError(
+      expectHardhatError(
         () =>
           BuidlerContext.getBuidlerContext().setBuidlerRuntimeEnvironment(
             this.env

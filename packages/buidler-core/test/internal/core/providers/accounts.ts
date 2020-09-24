@@ -12,8 +12,8 @@ import {
 import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { EIP1193Provider } from "../../../../src/types";
 import {
-  expectBuidlerError,
-  expectBuidlerErrorAsync,
+  expectHardhatError,
+  expectHardhatErrorAsync,
 } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
@@ -69,7 +69,7 @@ describe("Local accounts provider", () => {
       },
     ];
 
-    await expectBuidlerErrorAsync(
+    await expectHardhatErrorAsync(
       () => wrapper.request({ method: "eth_sendTransaction", params }),
       ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
       "gas"
@@ -87,7 +87,7 @@ describe("Local accounts provider", () => {
       },
     ];
 
-    await expectBuidlerErrorAsync(
+    await expectHardhatErrorAsync(
       () => wrapper.request({ method: "eth_sendTransaction", params }),
       ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
       "gasPrice"
@@ -124,7 +124,7 @@ describe("Local accounts provider", () => {
   });
 
   it("Should throw if trying to send from an account that isn't local", async () => {
-    await expectBuidlerErrorAsync(
+    await expectHardhatErrorAsync(
       () =>
         wrapper.request({
           method: "eth_sendTransaction",
@@ -241,7 +241,7 @@ describe("Local accounts provider", () => {
     });
 
     it("Should throw if no data is given", async () => {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () =>
           wrapper.request({
             method: "eth_sign",
@@ -252,7 +252,7 @@ describe("Local accounts provider", () => {
     });
 
     it("Should throw if the address isn't one of the local ones", async () => {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () =>
           wrapper.request({
             method: "eth_sign",
@@ -319,32 +319,32 @@ describe("hdwallet provider", () => {
     });
 
     it("Should throw if the path is invalid", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => new HDWalletProvider(mock, mnemonic, ""),
         ERRORS.NETWORK.INVALID_HD_PATH
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => new HDWalletProvider(mock, mnemonic, "m/"),
         ERRORS.NETWORK.INVALID_HD_PATH
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => new HDWalletProvider(mock, mnemonic, "m//"),
         ERRORS.NETWORK.INVALID_HD_PATH
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => new HDWalletProvider(mock, mnemonic, "m/'"),
         ERRORS.NETWORK.INVALID_HD_PATH
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => new HDWalletProvider(mock, mnemonic, "m/0''"),
         ERRORS.NETWORK.INVALID_HD_PATH
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => new HDWalletProvider(mock, mnemonic, "ghj"),
         ERRORS.NETWORK.INVALID_HD_PATH
       );

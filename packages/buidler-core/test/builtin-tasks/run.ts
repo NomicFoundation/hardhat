@@ -5,7 +5,7 @@ import * as path from "path";
 import { Artifacts } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { useEnvironment } from "../helpers/environment";
-import { expectBuidlerErrorAsync } from "../helpers/errors";
+import { expectHardhatErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 
 describe("run task", function () {
@@ -13,7 +13,7 @@ describe("run task", function () {
   useEnvironment();
 
   it("Should fail if a script doesn't exist", async function () {
-    await expectBuidlerErrorAsync(
+    await expectHardhatErrorAsync(
       () =>
         this.env.run("run", { script: "./does-not-exist", noCompile: true }),
       ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND

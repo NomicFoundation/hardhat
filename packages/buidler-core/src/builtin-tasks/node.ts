@@ -136,7 +136,7 @@ export default function () {
 
           await server.waitUntilClosed();
         } catch (error) {
-          if (HardhatError.isBuidlerError(error)) {
+          if (HardhatError.isHardhatError(error)) {
             throw error;
           }
 

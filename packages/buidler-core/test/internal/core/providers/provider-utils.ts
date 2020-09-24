@@ -5,7 +5,7 @@ import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/providers/provider-utils";
-import { expectBuidlerError } from "../../../helpers/errors";
+import { expectHardhatError } from "../../../helpers/errors";
 
 describe("Provider utils", function () {
   describe("rpcQuantityToNumber", function () {
@@ -17,32 +17,32 @@ describe("Provider utils", function () {
     });
 
     it("Should not accept invalid quantities", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => rpcQuantityToNumber("0x"),
         ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => rpcQuantityToNumber("0X1"),
         ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => rpcQuantityToNumber(""),
         ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => rpcQuantityToNumber("0x01"),
         ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => rpcQuantityToNumber("0xp"),
         ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => rpcQuantityToNumber("ff"),
         ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE
       );

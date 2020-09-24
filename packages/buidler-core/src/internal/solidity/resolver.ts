@@ -126,11 +126,11 @@ export class Resolver {
       return await this.resolveSourceName(sourceName);
     } catch (error) {
       if (
-        HardhatError.isBuidlerErrorType(
+        HardhatError.isHardhatErrorType(
           error,
           ERRORS.RESOLVER.FILE_NOT_FOUND
         ) ||
-        HardhatError.isBuidlerErrorType(
+        HardhatError.isHardhatErrorType(
           error,
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         )
@@ -146,7 +146,7 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isBuidlerErrorType(
+        HardhatError.isHardhatErrorType(
           error,
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         )
@@ -162,7 +162,7 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isBuidlerErrorType(
+        HardhatError.isHardhatErrorType(
           error,
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         )
@@ -392,7 +392,7 @@ export class Resolver {
       await validateSourceNameExistenceAndCasing(fromDir, sourceName);
     } catch (error) {
       if (
-        HardhatError.isBuidlerErrorType(
+        HardhatError.isHardhatErrorType(
           error,
           ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
         )
@@ -407,7 +407,7 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
+        HardhatError.isHardhatErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
       ) {
         throw new HardhatError(
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,

@@ -3,8 +3,8 @@ import { assert } from "chai";
 import {
   applyErrorMessageTemplate,
   HardhatError,
-  BuidlerPluginError,
-  NomicLabsBuidlerPluginError,
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
 } from "../../../src/internal/core/errors";
 import {
   ERROR_RANGES,
@@ -12,7 +12,7 @@ import {
   ERRORS,
 } from "../../../src/internal/core/errors-list";
 import { unsafeObjectKeys } from "../../../src/internal/util/unsafe";
-import { expectBuidlerError } from "../../helpers/errors";
+import { expectHardhatError } from "../../helpers/errors";
 
 const mockErrorDescriptor: ErrorDescriptor = {
   number: 123,
@@ -24,24 +24,24 @@ const mockErrorDescriptor: ErrorDescriptor = {
 
 describe("BuilderError", () => {
   describe("Type guard", () => {
-    it("Should return true for BuidlerErrors", () => {
+    it("Should return true for HardhatErrors", () => {
       assert.isTrue(
-        HardhatError.isBuidlerError(new HardhatError(mockErrorDescriptor))
+        HardhatError.isHardhatError(new HardhatError(mockErrorDescriptor))
       );
     });
 
     it("Should return false for everything else", () => {
-      assert.isFalse(HardhatError.isBuidlerError(new Error()));
+      assert.isFalse(HardhatError.isHardhatError(new Error()));
       assert.isFalse(
-        HardhatError.isBuidlerError(
-          new NomicLabsBuidlerPluginError("asd", "asd")
+        HardhatError.isHardhatError(
+          new NomicLabsHardhatPluginError("asd", "asd")
         )
       );
-      assert.isFalse(HardhatError.isBuidlerError(undefined));
-      assert.isFalse(HardhatError.isBuidlerError(null));
-      assert.isFalse(HardhatError.isBuidlerError(123));
-      assert.isFalse(HardhatError.isBuidlerError("123"));
-      assert.isFalse(HardhatError.isBuidlerError({ asd: 123 }));
+      assert.isFalse(HardhatError.isHardhatError(undefined));
+      assert.isFalse(HardhatError.isHardhatError(null));
+      assert.isFalse(HardhatError.isHardhatError(123));
+      assert.isFalse(HardhatError.isHardhatError("123"));
+      assert.isFalse(HardhatError.isHardhatError({ asd: 123 }));
     });
   });
 
@@ -207,28 +207,28 @@ describe("Error descriptors", () => {
   });
 });
 
-describe("BuidlerPluginError", () => {
+describe("HardhatPluginError", () => {
   describe("Type guard", () => {
-    it("Should return true for BuidlerPluginError", () => {
+    it("Should return true for HardhatPluginError", () => {
       assert.isTrue(
-        BuidlerPluginError.isBuidlerPluginError(
-          new BuidlerPluginError("asd", "asd")
+        HardhatPluginError.isHardhatPluginError(
+          new HardhatPluginError("asd", "asd")
         )
       );
     });
 
     it("Should return false for everything else", () => {
-      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(new Error()));
+      assert.isFalse(HardhatPluginError.isHardhatPluginError(new Error()));
       assert.isFalse(
-        BuidlerPluginError.isBuidlerPluginError(
+        HardhatPluginError.isHardhatPluginError(
           new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
         )
       );
-      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(undefined));
-      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(null));
-      assert.isFalse(BuidlerPluginError.isBuidlerPluginError(123));
-      assert.isFalse(BuidlerPluginError.isBuidlerPluginError("123"));
-      assert.isFalse(BuidlerPluginError.isBuidlerPluginError({ asd: 123 }));
+      assert.isFalse(HardhatPluginError.isHardhatPluginError(undefined));
+      assert.isFalse(HardhatPluginError.isHardhatPluginError(null));
+      assert.isFalse(HardhatPluginError.isHardhatPluginError(123));
+      assert.isFalse(HardhatPluginError.isHardhatPluginError("123"));
+      assert.isFalse(HardhatPluginError.isHardhatPluginError({ asd: 123 }));
     });
   });
 
@@ -238,7 +238,7 @@ describe("BuidlerPluginError", () => {
         const message = "m";
         const parent = new Error();
 
-        const error = new BuidlerPluginError(message, parent);
+        const error = new HardhatPluginError(message, parent);
 
         assert.equal(error.message, message);
         assert.equal(error.parent, parent);
@@ -247,7 +247,7 @@ describe("BuidlerPluginError", () => {
       it("Should work without a parent error", () => {
         const message = "m2";
 
-        const error = new BuidlerPluginError(message);
+        const error = new HardhatPluginError(message);
 
         assert.equal(error.message, message);
         assert.isUndefined(error.parent);
@@ -257,7 +257,7 @@ describe("BuidlerPluginError", () => {
         const message = "m";
         const parent = new Error();
 
-        const error = new BuidlerPluginError(message, parent);
+        const error = new HardhatPluginError(message, parent);
 
         // This is being called from mocha, so that would be used as plugin name
         assert.equal(error.pluginName, "mocha");
@@ -267,9 +267,9 @@ describe("BuidlerPluginError", () => {
         const message = "m";
         const parent = new Error();
 
-        const error = new BuidlerPluginError(message, parent);
+        const error = new HardhatPluginError(message, parent);
 
-        assert.instanceOf(error, BuidlerPluginError);
+        assert.instanceOf(error, HardhatPluginError);
       });
     });
 
@@ -279,7 +279,7 @@ describe("BuidlerPluginError", () => {
         const message = "m";
         const parent = new Error();
 
-        const error = new BuidlerPluginError(plugin, message, parent);
+        const error = new HardhatPluginError(plugin, message, parent);
 
         assert.equal(error.pluginName, plugin);
         assert.equal(error.message, message);
@@ -290,7 +290,7 @@ describe("BuidlerPluginError", () => {
         const plugin = "p2";
         const message = "m2";
 
-        const error = new BuidlerPluginError(plugin, message);
+        const error = new HardhatPluginError(plugin, message);
 
         assert.equal(error.pluginName, plugin);
         assert.equal(error.message, message);
@@ -302,60 +302,60 @@ describe("BuidlerPluginError", () => {
         const message = "m";
         const parent = new Error();
 
-        const error = new BuidlerPluginError(plugin, message, parent);
+        const error = new HardhatPluginError(plugin, message, parent);
 
-        assert.instanceOf(error, BuidlerPluginError);
+        assert.instanceOf(error, HardhatPluginError);
       });
     });
   });
 });
 
-describe("NomicLabsBuidlerPluginError", () => {
+describe("NomicLabsHardhatPluginError", () => {
   describe("Type guard", () => {
-    it("Should return true for NomicLabsBuidlerPluginError", () => {
+    it("Should return true for NomicLabsHardhatPluginError", () => {
       assert.isTrue(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(
-          new NomicLabsBuidlerPluginError("asd", "asd")
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(
+          new NomicLabsHardhatPluginError("asd", "asd")
         )
       );
     });
 
-    it("Should also be a BuidlerPluginError", () => {
+    it("Should also be a HardhatPluginError", () => {
       assert.isTrue(
-        BuidlerPluginError.isBuidlerPluginError(
-          new NomicLabsBuidlerPluginError("asd", "asd")
+        HardhatPluginError.isHardhatPluginError(
+          new NomicLabsHardhatPluginError("asd", "asd")
         )
       );
     });
 
     it("Should return false for everything else", () => {
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(new Error())
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(new Error())
       );
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(
           new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
         )
       );
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(
-          new BuidlerPluginError("asd", "asd")
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(
+          new HardhatPluginError("asd", "asd")
         )
       );
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(undefined)
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(undefined)
       );
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(null)
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(null)
       );
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(123)
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(123)
       );
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError("123")
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError("123")
       );
       assert.isFalse(
-        NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError({ asd: 123 })
+        NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError({ asd: 123 })
       );
     });
   });
@@ -364,17 +364,17 @@ describe("NomicLabsBuidlerPluginError", () => {
 describe("applyErrorMessageTemplate", () => {
   describe("Variable names", () => {
     it("Should reject invalid variable names", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => applyErrorMessageTemplate("", { "1": 1 }),
         ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => applyErrorMessageTemplate("", { "asd%": 1 }),
         ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => applyErrorMessageTemplate("", { "asd asd": 1 }),
         ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME
       );
@@ -383,17 +383,17 @@ describe("applyErrorMessageTemplate", () => {
 
   describe("Values", () => {
     it("shouldn't contain valid variable tags", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => applyErrorMessageTemplate("%asd%", { asd: "%as%" }),
         ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => applyErrorMessageTemplate("%asd%", { asd: "%a123%" }),
         ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () =>
           applyErrorMessageTemplate("%asd%", {
             asd: { toString: () => "%asd%" },
@@ -403,7 +403,7 @@ describe("applyErrorMessageTemplate", () => {
     });
 
     it("Shouldn't contain the %% tag", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => applyErrorMessageTemplate("%asd%", { asd: "%%" }),
         ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG
       );
@@ -503,7 +503,7 @@ describe("applyErrorMessageTemplate", () => {
 
     describe("Missing variable tag", () => {
       it("Should fail if a viable tag is missing and its value is not", () => {
-        expectBuidlerError(
+        expectHardhatError(
           () => applyErrorMessageTemplate("", { asd: "123" }),
           ERRORS.INTERNAL.TEMPLATE_VARIABLE_TAG_MISSING
         );

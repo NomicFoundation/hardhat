@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { TasksDSL } from "../../../../src/internal/core/tasks/dsl";
-import { expectBuidlerErrorAsync } from "../../../helpers/errors";
+import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 describe("TasksDSL", () => {
   let dsl: TasksDSL;
@@ -48,7 +48,7 @@ describe("TasksDSL", () => {
     const runSuperNop: any = async () => {};
     runSuperNop.isDefined = false;
 
-    await expectBuidlerErrorAsync(
+    await expectHardhatErrorAsync(
       () => task.action({}, {} as any, runSuperNop),
       ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
     );

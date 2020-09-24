@@ -14,7 +14,7 @@ import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/providers/provider-utils";
-import { expectBuidlerErrorAsync } from "../../../helpers/errors";
+import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
 
@@ -266,7 +266,7 @@ describe("Base providers wrapping", () => {
         chainId: 2,
       });
 
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => provider.request({ method: "eth_getAccounts", params: [] }),
         ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID
       );
