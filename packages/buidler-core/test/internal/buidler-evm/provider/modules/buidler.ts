@@ -19,7 +19,7 @@ describe("Buidler module", function () {
       useProvider();
 
       describe(
-        "buidler_impersonate",
+        "hardhat_impersonate",
         isFork ? testBuidlerImpersonateFork : testBuidlerImpersonate
       );
 
@@ -27,19 +27,19 @@ describe("Buidler module", function () {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
-            "buidler_impersonate",
+            "hardhat_impersonate",
             ["0x1234"]
           );
 
           await assertInvalidArgumentsError(
             this.provider,
-            "buidler_impersonate",
+            "hardhat_impersonate",
             ["1234567890abcdef1234567890abcdef12345678"]
           );
         });
 
         it("returns true", async function () {
-          const result = await this.provider.send("buidler_impersonate", [
+          const result = await this.provider.send("hardhat_impersonate", [
             bufferToHex(EMPTY_ACCOUNT_ADDRESS),
           ]);
           assert.isTrue(result);
@@ -50,16 +50,16 @@ describe("Buidler module", function () {
         it("is not supported", async function () {
           await assertBuidlerEVMProviderError(
             this.provider,
-            "buidler_impersonate",
+            "hardhat_impersonate",
             [],
-            `Method buidler_impersonate is only supported in forked provider`,
+            `Method hardhat_impersonate is only supported in forked provider`,
             MethodNotSupportedError.CODE
           );
         });
       }
 
       describe(
-        "buidler_stopImpersonating",
+        "hardhat_stopImpersonating",
         isFork ? testBuidlerStopImpersonatingFork : testBuidlerStopImpersonating
       );
 
@@ -67,29 +67,29 @@ describe("Buidler module", function () {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
-            "buidler_stopImpersonating",
+            "hardhat_stopImpersonating",
             ["0x1234"]
           );
 
           await assertInvalidArgumentsError(
             this.provider,
-            "buidler_stopImpersonating",
+            "hardhat_stopImpersonating",
             ["1234567890abcdef1234567890abcdef12345678"]
           );
         });
 
         it("returns true if the account was impersonated before", async function () {
-          await this.provider.send("buidler_impersonate", [
+          await this.provider.send("hardhat_impersonate", [
             bufferToHex(EMPTY_ACCOUNT_ADDRESS),
           ]);
-          const result = await this.provider.send("buidler_stopImpersonating", [
+          const result = await this.provider.send("hardhat_stopImpersonating", [
             bufferToHex(EMPTY_ACCOUNT_ADDRESS),
           ]);
           assert.isTrue(result);
         });
 
         it("returns false if the account wasn't impersonated before", async function () {
-          const result = await this.provider.send("buidler_stopImpersonating", [
+          const result = await this.provider.send("hardhat_stopImpersonating", [
             bufferToHex(EMPTY_ACCOUNT_ADDRESS),
           ]);
           assert.isFalse(result);
@@ -100,15 +100,15 @@ describe("Buidler module", function () {
         it("is not supported", async function () {
           await assertBuidlerEVMProviderError(
             this.provider,
-            "buidler_stopImpersonating",
+            "hardhat_stopImpersonating",
             [],
-            `Method buidler_stopImpersonating is only supported in forked provider`,
+            `Method hardhat_stopImpersonating is only supported in forked provider`,
             MethodNotSupportedError.CODE
           );
         });
       }
 
-      describe("buidler_reset", function () {
+      describe("hardhat_reset", function () {
         before(function () {
           if (INFURA_URL === undefined) {
             this.skip();
@@ -116,20 +116,20 @@ describe("Buidler module", function () {
         });
 
         it("validates input parameters", async function () {
-          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+          await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {},
           ]);
-          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+          await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
               jsonRpcUrl: 123,
             },
           ]);
-          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+          await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
               blockNumber: 0,
             },
           ]);
-          await assertInvalidArgumentsError(this.provider, "buidler_reset", [
+          await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
               jsonRpcUrl: INFURA_URL,
               blockNumber: "0",
@@ -138,7 +138,7 @@ describe("Buidler module", function () {
         });
 
         it("returns true", async function () {
-          const result = await this.provider.send("buidler_reset", [
+          const result = await this.provider.send("hardhat_reset", [
             { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
           ]);
           assert.isTrue(result);
@@ -158,7 +158,7 @@ describe("Buidler module", function () {
 
         function testForkedProviderBehaviour() {
           it("can reset the forked provider to a given forkBlockNumber", async function () {
-            await this.provider.send("buidler_reset", [
+            await this.provider.send("hardhat_reset", [
               { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
@@ -166,10 +166,10 @@ describe("Buidler module", function () {
 
           it("can reset the forked provider to the latest block number", async function () {
             const initialBlock = await getLatestBlockNumber();
-            await this.provider.send("buidler_reset", [
+            await this.provider.send("hardhat_reset", [
               { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
             ]);
-            await this.provider.send("buidler_reset", [
+            await this.provider.send("hardhat_reset", [
               { jsonRpcUrl: INFURA_URL },
             ]);
 
@@ -179,7 +179,7 @@ describe("Buidler module", function () {
           });
 
           it("can reset the forked provider to a normal provider", async function () {
-            await this.provider.send("buidler_reset", []);
+            await this.provider.send("hardhat_reset", []);
             assert.equal(await getLatestBlockNumber(), 0);
           });
         }
@@ -188,22 +188,22 @@ describe("Buidler module", function () {
           it("can reset the provider to initial state", async function () {
             await this.provider.send("evm_mine");
             assert.equal(await getLatestBlockNumber(), 1);
-            await this.provider.send("buidler_reset", []);
+            await this.provider.send("hardhat_reset", []);
             assert.equal(await getLatestBlockNumber(), 0);
           });
 
           it("can reset the provider with a fork config", async function () {
-            await this.provider.send("buidler_reset", [
+            await this.provider.send("hardhat_reset", [
               { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
           });
 
           it("can reset the provider with fork config back to normal config", async function () {
-            await this.provider.send("buidler_reset", [
+            await this.provider.send("hardhat_reset", [
               { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
             ]);
-            await this.provider.send("buidler_reset", []);
+            await this.provider.send("hardhat_reset", []);
             assert.equal(await getLatestBlockNumber(), 0);
           });
         }

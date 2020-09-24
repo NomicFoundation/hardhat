@@ -3,11 +3,11 @@ import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.5.15";
 export const BUIDLEREVM_DEFAULT_GAS_PRICE = 8e9;
-const BUIDLER_EVM_MNEMONIC =
+const HARDHAT_NETWORK_MNEMONIC =
   "test test test test test test test test test test test junk";
-export const DEFAULT_BUIDLER_NETWORK_BALANCE = "10000000000000000000000";
+export const DEFAULT_HARDHAT_NETWORK_BALANCE = "10000000000000000000000";
 
-const DEFAULT_BUIDLER_NETWORK_CONFIG: HardhatNetworkConfig = {
+const DEFAULT_HARDHAT_NETWORK_CONFIG: HardhatNetworkConfig = {
   hardfork: "istanbul",
   blockGasLimit: 9500000,
   gas: 9500000,
@@ -17,9 +17,9 @@ const DEFAULT_BUIDLER_NETWORK_CONFIG: HardhatNetworkConfig = {
   throwOnCallFailures: true,
   allowUnlimitedContractSize: false,
   accounts: {
-    mnemonic: BUIDLER_EVM_MNEMONIC,
+    mnemonic: HARDHAT_NETWORK_MNEMONIC,
     count: 20,
-    accountsBalance: DEFAULT_BUIDLER_NETWORK_BALANCE,
+    accountsBalance: DEFAULT_HARDHAT_NETWORK_BALANCE,
   },
 };
 
@@ -35,7 +35,7 @@ const defaultConfig: HardhatConfig = {
     },
   },
   networks: {
-    [HARDHAT_NETWORK_NAME]: DEFAULT_BUIDLER_NETWORK_CONFIG,
+    [HARDHAT_NETWORK_NAME]: DEFAULT_HARDHAT_NETWORK_CONFIG,
     localhost: {
       url: "http://127.0.0.1:8545",
     },

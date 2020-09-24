@@ -10,7 +10,7 @@ import {
 import { HardhatError } from "../errors";
 import { ErrorDescriptor, ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";
-import { BUIDLER_PARAM_DEFINITIONS } from "../params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../params/buidler-params";
 
 function isCLIArgumentType(
   type: ArgumentType<any>
@@ -443,9 +443,9 @@ export class SimpleTaskDefinition implements TaskDefinition {
       });
     }
 
-    if (Object.keys(BUIDLER_PARAM_DEFINITIONS).includes(name)) {
+    if (Object.keys(HARDHAT_PARAM_DEFINITIONS).includes(name)) {
       throw new HardhatError(
-        ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM,
+        ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM,
         {
           paramName: name,
           taskName: this.name,

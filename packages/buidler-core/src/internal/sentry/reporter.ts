@@ -134,8 +134,8 @@ export class Reporter {
       this.enabled = false;
     }
 
-    // set BUIDLER_ENABLE_SENTRY=true to enable sentry during development (for local testing)
-    if (isLocalDev() && process.env.BUIDLER_ENABLE_SENTRY === undefined) {
+    // set HARDHAT_ENABLE_SENTRY=true to enable sentry during development (for local testing)
+    if (isLocalDev() && process.env.HARDHAT_ENABLE_SENTRY === undefined) {
       this.enabled = false;
     }
   }

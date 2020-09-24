@@ -15,7 +15,7 @@ export function useEnvironment(projectPath: string) {
     await fsExtra.remove("cache");
     await fsExtra.remove("artifacts");
 
-    process.env.BUIDLER_NETWORK = "localhost";
+    process.env.HARDHAT_NETWORK = "localhost";
 
     this.env = require("@nomiclabs/buidler");
   });

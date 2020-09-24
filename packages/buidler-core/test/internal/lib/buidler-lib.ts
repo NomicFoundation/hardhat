@@ -9,7 +9,7 @@ describe("Buidler lib", () => {
   useEnvironment();
 
   before(() => {
-    process.env.BUIDLER_NETWORK = "localhost";
+    process.env.HARDHAT_NETWORK = "localhost";
   });
 
   it("should load environment", function () {

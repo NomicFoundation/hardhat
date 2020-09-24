@@ -9,7 +9,7 @@ import semver from "semver";
 import util from "util";
 
 import type {
-  BoundExperimentalHardhatEVMMessageTraceHook,
+  BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthSubscription,
   ProjectPaths,
@@ -43,7 +43,7 @@ import {
 const log = debug("hardhat:core:hardhat-network:provider");
 
 // Set of methods that are never logged
-const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);
+const PRIVATE_RPC_METHODS = new Set(["hardhat_getStackTraceFailuresCount"]);
 
 // tslint:disable only-buidler-error
 
@@ -75,7 +75,7 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
-    private readonly _experimentalHardhatEVMMessageTraceHooks: BoundExperimentalHardhatEVMMessageTraceHook[] = [],
+    private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
     private _forkConfig?: ForkConfig
   ) {
     super();
@@ -219,7 +219,7 @@ export class BuidlerEVMProvider extends EventEmitter
       return this._evmModule!.processRequest(method, params);
     }
 
-    if (method.startsWith("buidler_")) {
+    if (method.startsWith("hardhat_")) {
       return this._buidlerModule!.processRequest(method, params);
     }
 
@@ -269,7 +269,7 @@ export class BuidlerEVMProvider extends EventEmitter
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
       this._loggingEnabled ? this._logger : undefined,
-      this._experimentalHardhatEVMMessageTraceHooks
+      this._experimentalHardhatNetworkMessageTraceHooks
     );
 
     this._netModule = new NetModule(common);

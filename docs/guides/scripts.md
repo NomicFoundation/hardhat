@@ -78,13 +78,13 @@ Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 You can still pass arguments to Buidler when using it as a library. This is done
 by setting environment variables. These are: 
 
-* `BUIDLER_NETWORK`: Sets the network to connect to.
+* `HARDHAT_NETWORK`: Sets the network to connect to.
 
-* `BUIDLER_SHOW_STACK_TRACES`: Enables JavaScript stack traces of expected errors.
+* `HARDHAT_SHOW_STACK_TRACES`: Enables JavaScript stack traces of expected errors.
 
-* `BUIDLER_VERBOSE`: Enables Buidler verbose logging.
+* `HARDHAT_VERBOSE`: Enables Buidler verbose logging.
 
-* `BUIDLER_MAX_MEMORY`: Sets the maximum amount of memory that Buidler can use.
+* `HARDHAT_MAX_MEMORY`: Sets the maximum amount of memory that Buidler can use.
 
    
 

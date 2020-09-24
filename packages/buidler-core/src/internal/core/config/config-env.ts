@@ -3,7 +3,7 @@ import {
   ConfigExtender,
   ConfigurableTaskDefinition,
   EnvironmentExtender,
-  ExperimentalHardhatEVMMessageTraceHook,
+  ExperimentalHardhatNetworkMessageTraceHook,
   TaskArguments,
 } from "../../../types";
 import { BuidlerContext } from "../../context";
@@ -93,10 +93,10 @@ export function extendConfig(extender: ConfigExtender) {
 // NOTE: This is experimental and will be removed. Please contact our team
 // if you are planning to use it.
 export function experimentalAddBuidlerEVMMessageTraceHook(
-  hook: ExperimentalHardhatEVMMessageTraceHook
+  hook: ExperimentalHardhatNetworkMessageTraceHook
 ) {
   const ctx = BuidlerContext.getBuidlerContext();
-  ctx.experimentalHardhatEVMMessageTraceHooks.push(hook);
+  ctx.experimentalHardhatNetworkMessageTraceHooks.push(hook);
 }
 
 /**

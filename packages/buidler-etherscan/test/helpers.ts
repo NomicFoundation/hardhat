@@ -20,7 +20,7 @@ export function useEnvironment(
 ) {
   beforeEach("Loading buidler environment", function () {
     process.chdir(projectPath);
-    process.env.BUIDLER_NETWORK = network;
+    process.env.HARDHAT_NETWORK = network;
 
     this.env = require("@nomiclabs/buidler");
   });

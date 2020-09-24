@@ -1,6 +1,6 @@
 import { fork } from "child_process";
 
-import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 
 import { ArgumentsParser } from "./ArgumentsParser";
@@ -12,14 +12,14 @@ if (process.env.DISABLE_BUIDLEREVM_OPTIMIZATIONS === undefined) {
 }
 
 const envVariableArguments = getEnvHardhatArguments(
-  BUIDLER_PARAM_DEFINITIONS,
+  HARDHAT_PARAM_DEFINITIONS,
   process.env
 );
 
 const argumentsParser = new ArgumentsParser();
 
 const { hardhatArguments } = argumentsParser.parseHardhatArguments(
-  BUIDLER_PARAM_DEFINITIONS,
+  HARDHAT_PARAM_DEFINITIONS,
   envVariableArguments,
   process.argv.slice(2)
 );

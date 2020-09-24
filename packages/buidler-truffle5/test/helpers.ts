@@ -10,7 +10,7 @@ declare module "mocha" {
 export function useEnvironment(projectPath: string, networkName = "localhost") {
   beforeEach("Loading buidler environment", function () {
     process.chdir(projectPath);
-    process.env.BUIDLER_NETWORK = networkName;
+    process.env.HARDHAT_NETWORK = networkName;
 
     this.env = require("@nomiclabs/buidler");
   });
@@ -21,6 +21,6 @@ export function useEnvironment(projectPath: string, networkName = "localhost") {
 
   afterEach("Resetting buidler", function () {
     resetBuidlerContext();
-    delete process.env.BUIDLER_NETWORK;
+    delete process.env.HARDHAT_NETWORK;
   });
 }

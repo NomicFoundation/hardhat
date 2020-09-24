@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import { BUIDLER_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/buidler-params";
 import {
   getEnvHardhatArguments,
   getEnvVariablesMap,
@@ -12,45 +12,45 @@ import { expectHardhatError } from "../../../helpers/errors";
 // This is testing an internal function, which may seem weird, but its behaviour
 // is 100% user facing.
 describe("paramNameToEnvVariable", () => {
-  it("should convert camelCase to UPPER_CASE and prepend BUIDLER_", () => {
-    assert.equal(paramNameToEnvVariable("a"), "BUIDLER_A");
-    assert.equal(paramNameToEnvVariable("B"), "BUIDLER_B");
-    assert.equal(paramNameToEnvVariable("AC"), "BUIDLER_A_C");
-    assert.equal(paramNameToEnvVariable("aC"), "BUIDLER_A_C");
+  it("should convert camelCase to UPPER_CASE and prepend HARDHAT_", () => {
+    assert.equal(paramNameToEnvVariable("a"), "HARDHAT_A");
+    assert.equal(paramNameToEnvVariable("B"), "HARDHAT_B");
+    assert.equal(paramNameToEnvVariable("AC"), "HARDHAT_A_C");
+    assert.equal(paramNameToEnvVariable("aC"), "HARDHAT_A_C");
     assert.equal(
       paramNameToEnvVariable("camelCaseRight"),
-      "BUIDLER_CAMEL_CASE_RIGHT"
+      "HARDHAT_CAMEL_CASE_RIGHT"
     );
     assert.equal(
       paramNameToEnvVariable("somethingAB"),
-      "BUIDLER_SOMETHING_A_B"
+      "HARDHAT_SOMETHING_A_B"
     );
   });
 });
 
 describe("Env vars arguments parsing", () => {
   it("Should use the default values if arguments are not defined", () => {
-    const args = getEnvHardhatArguments(BUIDLER_PARAM_DEFINITIONS, {
+    const args = getEnvHardhatArguments(HARDHAT_PARAM_DEFINITIONS, {
       IRRELEVANT_ENV_VAR: "123",
     });
-    assert.equal(args.help, BUIDLER_PARAM_DEFINITIONS.help.defaultValue);
-    assert.equal(args.network, BUIDLER_PARAM_DEFINITIONS.network.defaultValue);
-    assert.equal(args.emoji, BUIDLER_PARAM_DEFINITIONS.emoji.defaultValue);
+    assert.equal(args.help, HARDHAT_PARAM_DEFINITIONS.help.defaultValue);
+    assert.equal(args.network, HARDHAT_PARAM_DEFINITIONS.network.defaultValue);
+    assert.equal(args.emoji, HARDHAT_PARAM_DEFINITIONS.emoji.defaultValue);
     assert.equal(
       args.showStackTraces,
-      BUIDLER_PARAM_DEFINITIONS.showStackTraces.defaultValue
+      HARDHAT_PARAM_DEFINITIONS.showStackTraces.defaultValue
     );
-    assert.equal(args.version, BUIDLER_PARAM_DEFINITIONS.version.defaultValue);
+    assert.equal(args.version, HARDHAT_PARAM_DEFINITIONS.version.defaultValue);
   });
 
   it("Should accept values", () => {
-    const args = getEnvHardhatArguments(BUIDLER_PARAM_DEFINITIONS, {
+    const args = getEnvHardhatArguments(HARDHAT_PARAM_DEFINITIONS, {
       IRRELEVANT_ENV_VAR: "123",
-      BUIDLER_NETWORK: "asd",
-      BUIDLER_SHOW_STACK_TRACES: "true",
-      BUIDLER_EMOJI: "true",
-      BUIDLER_VERSION: "true",
-      BUIDLER_HELP: "true",
+      HARDHAT_NETWORK: "asd",
+      HARDHAT_SHOW_STACK_TRACES: "true",
+      HARDHAT_EMOJI: "true",
+      HARDHAT_VERSION: "true",
+      HARDHAT_HELP: "true",
     });
 
     assert.equal(args.network, "asd");
@@ -65,8 +65,8 @@ describe("Env vars arguments parsing", () => {
   it("should throw if an invalid value is passed", () => {
     expectHardhatError(
       () =>
-        getEnvHardhatArguments(BUIDLER_PARAM_DEFINITIONS, {
-          BUIDLER_HELP: "123",
+        getEnvHardhatArguments(HARDHAT_PARAM_DEFINITIONS, {
+          HARDHAT_HELP: "123",
         }),
       ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE
     );
@@ -86,12 +86,12 @@ describe("getEnvVariablesMap", () => {
         config: undefined, // config is optional
       }),
       {
-        BUIDLER_NETWORK: "asd",
-        BUIDLER_EMOJI: "false",
-        BUIDLER_HELP: "true",
-        BUIDLER_SHOW_STACK_TRACES: "true",
-        BUIDLER_VERSION: "false",
-        BUIDLER_VERBOSE: "true",
+        HARDHAT_NETWORK: "asd",
+        HARDHAT_EMOJI: "false",
+        HARDHAT_HELP: "true",
+        HARDHAT_SHOW_STACK_TRACES: "true",
+        HARDHAT_VERSION: "false",
+        HARDHAT_VERBOSE: "true",
       }
     );
   });

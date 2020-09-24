@@ -162,31 +162,31 @@ describe("SimpleTaskDefinition", () => {
       function testClashWith(name: string) {
         expectHardhatError(
           () => taskDefinition.addParam(name),
-          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
+          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM
         );
         expectHardhatError(
           () => taskDefinition.addOptionalParam(name),
-          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
+          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM
         );
         expectHardhatError(
           () => taskDefinition.addFlag(name),
-          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
+          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM
         );
         expectHardhatError(
           () => taskDefinition.addPositionalParam(name),
-          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
+          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM
         );
         expectHardhatError(
           () => taskDefinition.addOptionalPositionalParam(name),
-          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
+          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM
         );
         expectHardhatError(
           () => taskDefinition.addVariadicPositionalParam(name),
-          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
+          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM
         );
         expectHardhatError(
           () => taskDefinition.addOptionalVariadicPositionalParam(name),
-          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_BUIDLER_PARAM
+          ERRORS.TASK_DEFINITIONS.PARAM_CLASHES_WITH_HARDHAT_PARAM
         );
       }
 

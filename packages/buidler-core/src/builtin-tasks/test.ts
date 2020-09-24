@@ -89,7 +89,7 @@ export default function () {
         }
 
         const failures = await network.provider.send(
-          "buidler_getStackTraceFailuresCount"
+          "hardhat_getStackTraceFailuresCount"
         );
 
         if (failures === 0) {

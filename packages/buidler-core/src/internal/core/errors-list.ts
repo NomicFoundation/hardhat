@@ -324,7 +324,7 @@ Please double check your task definitions.`,
 Please double check your task definitions.`,
       shouldBeReported: false,
     },
-    PARAM_CLASHES_WITH_BUIDLER_PARAM: {
+    PARAM_CLASHES_WITH_HARDHAT_PARAM: {
       number: 202,
       message:
         "Could not set param %paramName% for task %taskName% because its name is used as a param for Buidler.",

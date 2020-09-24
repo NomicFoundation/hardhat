@@ -164,7 +164,7 @@ function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
         defineTest(dirPath, testDefinition, sources, compilerOptions);
       });
 
-      if (process.env.BUIDLER_EVM_TESTS_WITH_OPTIMIZATIONS !== undefined) {
+      if (process.env.HARDHAT_NETWORK_TESTS_WITH_OPTIMIZATIONS !== undefined) {
         const runsNumbers = [1, 200, 10000];
 
         for (const runs of runsNumbers) {
@@ -681,13 +681,13 @@ describe("Stack traces", function () {
 
   // if a path to a solc file was specified, we only run these tests and use
   // that compiler
-  const customSolcPath = process.env.BUIDLER_TESTS_SOLC_PATH;
+  const customSolcPath = process.env.HARDHAT_TESTS_SOLC_PATH;
   if (customSolcPath !== undefined) {
-    const customSolcVersion = process.env.BUIDLER_TESTS_SOLC_VERSION;
+    const customSolcVersion = process.env.HARDHAT_TESTS_SOLC_VERSION;
 
     if (customSolcVersion === undefined) {
       console.error(
-        "BUIDLER_TESTS_SOLC_VERSION has to be set when using BUIDLER_TESTS_SOLC_PATH"
+        "HARDHAT_TESTS_SOLC_VERSION has to be set when using HARDHAT_TESTS_SOLC_PATH"
       );
       process.exit(1);
     }

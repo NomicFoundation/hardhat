@@ -26,7 +26,7 @@ export async function watchCompilerOutput(
       });
 
       await provider.request({
-        method: "buidler_addCompilationResult",
+        method: "hardhat_addCompilationResult",
         params: [solcVersion, input, output],
       });
     } catch (error) {

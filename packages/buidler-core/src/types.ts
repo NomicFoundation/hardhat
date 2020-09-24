@@ -172,7 +172,7 @@ export type ConfigExtender = (
 
 // NOTE: This is experimental and will be removed. Please contact our team
 // if you are planning to use it.
-export type ExperimentalHardhatEVMMessageTraceHook = (
+export type ExperimentalHardhatNetworkMessageTraceHook = (
   hre: HardhatRuntimeEnvironment,
   trace: MessageTrace,
   isMessageTraceFromACall: boolean
@@ -180,7 +180,7 @@ export type ExperimentalHardhatEVMMessageTraceHook = (
 
 // NOTE: This is experimental and will be removed. Please contact our team
 // if you are planning to use it.
-export type BoundExperimentalHardhatEVMMessageTraceHook = (
+export type BoundExperimentalHardhatNetworkMessageTraceHook = (
   trace: MessageTrace,
   isMessageTraceFromACall: boolean
 ) => Promise<void>;

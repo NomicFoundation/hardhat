@@ -12,7 +12,7 @@ import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 import util from "util";
 
-import { BoundExperimentalHardhatEVMMessageTraceHook } from "../../../../types";
+import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
 import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
@@ -81,7 +81,7 @@ export class EthModule {
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _logger?: ModulesLogger,
-    private readonly _experimentalHardhatEVMMessageTraceHooks: BoundExperimentalHardhatEVMMessageTraceHook[] = []
+    private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
 
   public async processRequest(
@@ -1335,7 +1335,7 @@ export class EthModule {
     trace: MessageTrace,
     isCall: boolean
   ) {
-    for (const hook of this._experimentalHardhatEVMMessageTraceHooks) {
+    for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
       await hook(trace, isCall);
     }
   }

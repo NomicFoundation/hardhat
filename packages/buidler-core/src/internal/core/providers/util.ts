@@ -3,7 +3,7 @@ import {
   HardhatNetworkHDAccountsConfig,
 } from "../../../types";
 import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
-import { DEFAULT_BUIDLER_NETWORK_BALANCE } from "../config/default-config";
+import { DEFAULT_HARDHAT_NETWORK_BALANCE } from "../config/default-config";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
@@ -60,6 +60,6 @@ export function normalizeBuidlerEVMAccountsConfig(
     accountsConfig.count
   ).map((pk) => ({
     privateKey: bufferToHex(pk),
-    balance: accountsConfig.accountsBalance ?? DEFAULT_BUIDLER_NETWORK_BALANCE,
+    balance: accountsConfig.accountsBalance ?? DEFAULT_HARDHAT_NETWORK_BALANCE,
   }));
 }

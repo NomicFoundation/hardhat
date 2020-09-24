@@ -1,6 +1,6 @@
 import {
   ConfigExtender,
-  ExperimentalHardhatEVMMessageTraceHook,
+  ExperimentalHardhatNetworkMessageTraceHook,
   HardhatRuntimeEnvironment,
 } from "../types";
 
@@ -51,7 +51,7 @@ export class BuidlerContext {
 
   // NOTE: This is experimental and will be removed. Please contact our team if
   // you are planning to use it.
-  public readonly experimentalHardhatEVMMessageTraceHooks: ExperimentalHardhatEVMMessageTraceHook[] = [];
+  public readonly experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [];
 
   private _configPath?: string;
 

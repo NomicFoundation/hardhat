@@ -11,7 +11,7 @@ import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { HardhatError, HardhatPluginError } from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
-import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
@@ -52,7 +52,7 @@ async function main() {
     ensureValidNodeVersion(packageJson);
 
     const envVariableArguments = getEnvHardhatArguments(
-      BUIDLER_PARAM_DEFINITIONS,
+      HARDHAT_PARAM_DEFINITIONS,
       process.env
     );
 
@@ -63,7 +63,7 @@ async function main() {
       taskName: parsedTaskName,
       unparsedCLAs,
     } = argumentsParser.parseHardhatArguments(
-      BUIDLER_PARAM_DEFINITIONS,
+      HARDHAT_PARAM_DEFINITIONS,
       envVariableArguments,
       process.argv.slice(2)
     );
@@ -148,7 +148,7 @@ async function main() {
       hardhatArguments,
       taskDefinitions,
       envExtenders,
-      ctx.experimentalHardhatEVMMessageTraceHooks
+      ctx.experimentalHardhatNetworkMessageTraceHooks
     );
 
     ctx.setBuidlerRuntimeEnvironment(env);

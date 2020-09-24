@@ -28,34 +28,34 @@ export class BuidlerModule {
     params: any[] = []
   ): Promise<any> {
     switch (method) {
-      case "buidler_getStackTraceFailuresCount":
+      case "hardhat_getStackTraceFailuresCount":
         return this._getStackTraceFailuresCountAction(
           ...this._getStackTraceFailuresCountParams(params)
         );
-      case "buidler_addCompilationResult":
+      case "hardhat_addCompilationResult":
         return this._addCompilationResultAction(
           ...this._addCompilationResultParams(params)
         );
-      case "buidler_impersonate":
+      case "hardhat_impersonate":
         if (!this._node.isForked) {
           throw new MethodNotSupportedError(method, true);
         }
         return this._impersonateAction(...this._impersonateParams(params));
-      case "buidler_stopImpersonating":
+      case "hardhat_stopImpersonating":
         if (!this._node.isForked) {
           throw new MethodNotSupportedError(method, true);
         }
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
         );
-      case "buidler_reset":
+      case "hardhat_reset":
         return this._resetAction(...this._resetParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
   }
 
-  // buidler_getStackTraceFailuresCount
+  // hardhat_getStackTraceFailuresCount
 
   private _getStackTraceFailuresCountParams(params: any[]): [] {
     return validateParams(params);
@@ -65,7 +65,7 @@ export class BuidlerModule {
     return this._node.getStackTraceFailuresCount();
   }
 
-  // buidler_addCompilationResult
+  // hardhat_addCompilationResult
 
   private _addCompilationResultParams(
     params: any[]
@@ -90,7 +90,7 @@ export class BuidlerModule {
     );
   }
 
-  // buidler_impersonate
+  // hardhat_impersonate
 
   private _impersonateParams(params: any[]): [Buffer] {
     return validateParams(params, rpcAddress);
@@ -100,7 +100,7 @@ export class BuidlerModule {
     return this._node.addImpersonatedAccount(address);
   }
 
-  // buidler_stopImpersonating
+  // hardhat_stopImpersonating
 
   private _stopImpersonatingParams(params: any[]): [Buffer] {
     return validateParams(params, rpcAddress);
@@ -110,7 +110,7 @@ export class BuidlerModule {
     return this._node.removeImpersonatedAccount(address);
   }
 
-  // buidler_reset
+  // hardhat_reset
 
   private _resetParams(params: any[]): [ForkConfig | undefined] {
     return validateParams(params, rpcForkConfig);

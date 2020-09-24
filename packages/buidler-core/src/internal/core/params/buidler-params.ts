@@ -2,7 +2,7 @@ import { HardhatParamDefinitions } from "../../../types";
 
 import * as types from "./argumentTypes";
 
-export const BUIDLER_PARAM_DEFINITIONS: HardhatParamDefinitions = {
+export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   network: {
     name: "network",
     defaultValue: undefined,

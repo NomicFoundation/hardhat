@@ -11,7 +11,7 @@ import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 import { emoji } from "./emoji";
 
 const CREATE_SAMPLE_PROJECT_ACTION = "Create a sample project";
-const CREATE_EMPTY_BUIDLER_CONFIG_ACTION = "Create an empty buidler.config.js";
+const CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty buidler.config.js";
 const QUIT_ACTION = "Quit";
 
 const SAMPLE_PROJECT_DEPENDENCIES = {
@@ -153,9 +153,9 @@ async function getAction() {
             value: CREATE_SAMPLE_PROJECT_ACTION,
           },
           {
-            name: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
-            message: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
-            value: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
+            name: CREATE_EMPTY_HARDHAT_CONFIG_ACTION,
+            message: CREATE_EMPTY_HARDHAT_CONFIG_ACTION,
+            value: CREATE_EMPTY_HARDHAT_CONFIG_ACTION,
           },
           { name: QUIT_ACTION, message: QUIT_ACTION, value: QUIT_ACTION },
         ],
@@ -185,7 +185,7 @@ export async function createProject() {
     return;
   }
 
-  if (action === CREATE_EMPTY_BUIDLER_CONFIG_ACTION) {
+  if (action === CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
     await writeEmptyBuidlerConfig();
     console.log(
       `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`

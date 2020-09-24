@@ -5,7 +5,7 @@ import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
-import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 
@@ -26,7 +26,7 @@ if (BuidlerContext.isCreated()) {
   ctx = BuidlerContext.createBuidlerContext();
 
   const hardhatArguments = getEnvHardhatArguments(
-    BUIDLER_PARAM_DEFINITIONS,
+    HARDHAT_PARAM_DEFINITIONS,
     process.env
   );
 
@@ -41,7 +41,7 @@ if (BuidlerContext.isCreated()) {
     hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.extendersManager.getExtenders(),
-    ctx.experimentalHardhatEVMMessageTraceHooks
+    ctx.experimentalHardhatNetworkMessageTraceHooks
   );
 
   ctx.setBuidlerRuntimeEnvironment(env);

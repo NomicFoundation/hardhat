@@ -13,4 +13,4 @@ If you are experiencing this problem, you can use Buidler's `--max-memory` argum
 npx buidler --max-memory 4096 compile
 ```
 
-If you find yourself using this all the time, you can set it with an environment variable in your `.bashrc`: `export BUIDLER_MAX_MEMORY=4096`.
+If you find yourself using this all the time, you can set it with an environment variable in your `.bashrc`: `export HARDHAT_MAX_MEMORY=4096`.
