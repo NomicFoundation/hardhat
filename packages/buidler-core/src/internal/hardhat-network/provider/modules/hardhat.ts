@@ -4,7 +4,7 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../stack-traces/compiler-types";
-import { MethodNotFoundError, MethodNotSupportedError } from "../errors";
+import { MethodNotFoundError } from "../errors";
 import {
   rpcAddress,
   rpcCompilerInput,
@@ -32,22 +32,20 @@ export class HardhatModule {
         return this._getStackTraceFailuresCountAction(
           ...this._getStackTraceFailuresCountParams(params)
         );
+
       case "hardhat_addCompilationResult":
         return this._addCompilationResultAction(
           ...this._addCompilationResultParams(params)
         );
+
       case "hardhat_impersonate":
-        if (!this._node.isForked) {
-          throw new MethodNotSupportedError(method, true);
-        }
         return this._impersonateAction(...this._impersonateParams(params));
+
       case "hardhat_stopImpersonating":
-        if (!this._node.isForked) {
-          throw new MethodNotSupportedError(method, true);
-        }
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
         );
+
       case "hardhat_reset":
         return this._resetAction(...this._resetParams(params));
     }
