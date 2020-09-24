@@ -199,12 +199,12 @@ async function main() {
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Buidler, please report it here: https://buidler.dev/reportbug`
+          `If you think this is a bug in Buidler, please report it here: https://usehardhat.com/reportbug`
         );
       }
 
       if (HardhatError.isHardhatError(error)) {
-        const link = `https://buidler.dev/${getErrorCode(
+        const link = `https://usehardhat.com/${getErrorCode(
           error.errorDescriptor
         )}`;
 

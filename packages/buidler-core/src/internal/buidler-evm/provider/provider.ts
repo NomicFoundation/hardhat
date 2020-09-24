@@ -157,7 +157,7 @@ export class HardhatNetworkProvider extends EventEmitter
         this._logError(err, true);
         this._log("");
         this._log(
-          "If you think this is a bug in Buidler, please report it here: https://buidler.dev/reportbug",
+          "If you think this is a bug in Buidler, please report it here: https://usehardhat.com/reportbug",
           true
         );
       }

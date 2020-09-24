@@ -1,7 +1,7 @@
 usePlugin("@nomiclabs/buidler-waffle");
 
 // This is a sample Buidler task. To learn how to create your own go to
-// https://buidler.dev/guides/create-task.html
+// https://usehardhat.com/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
   const accounts = await ethers.getSigners();
 
@@ -13,7 +13,7 @@ task("accounts", "Prints the list of accounts", async () => {
 // You have to export an object to set up your config
 // This object can have the following optional entries:
 // defaultNetwork, networks, solc, and paths.
-// Go to https://buidler.dev/config/ to learn more
+// Go to https://usehardhat.com/config/ to learn more
 module.exports = {
   // This is a sample solidity configuration that specifies which version of solc to use
   solidity: {

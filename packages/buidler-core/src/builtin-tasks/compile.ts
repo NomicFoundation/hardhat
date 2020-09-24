@@ -506,7 +506,7 @@ export default function () {
       if (hasConsoleErrors) {
         console.error(
           chalk.red(
-            `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
+            `The console.log call you made isn’t supported. See https://usehardhat.com/console-log for the list of supported methods.`
           )
         );
         console.log();

@@ -3,7 +3,7 @@
   "version": "1.4.7",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://buidler.dev",
+  "homepage": "https://usehardhat.com",
   "repository": "github:nomiclabs/buidler",
   "main": "internal/lib/buidler-lib.js",
   "types": "internal/lib/buidler-lib.d.ts",
