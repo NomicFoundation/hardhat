@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import type { Response } from "node-fetch";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
@@ -16,6 +17,9 @@ import { ProviderError } from "./errors";
 function isErrorResponse(response: any): response is FailedJsonRpcResponse {
   return typeof response.error !== "undefined";
 }
+
+const MAX_RETRIES = 3;
+const MAX_RETRY_AWAIT_SECONDS = 2;
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
@@ -88,13 +92,20 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   }
 
   private async _fetchJsonRpcResponse(
-    request: JsonRpcRequest
+    request: JsonRpcRequest,
+    retryNumber?: number
   ): Promise<JsonRpcResponse>;
   private async _fetchJsonRpcResponse(
-    request: JsonRpcRequest[]
+    request: JsonRpcRequest[],
+    retryNumber?: number
   ): Promise<JsonRpcResponse[]>;
   private async _fetchJsonRpcResponse(
-    request: JsonRpcRequest | JsonRpcRequest[]
+    request: JsonRpcRequest | JsonRpcRequest[],
+    retryNumber?: number
+  ): Promise<JsonRpcResponse | JsonRpcResponse[]>;
+  private async _fetchJsonRpcResponse(
+    request: JsonRpcRequest | JsonRpcRequest[],
+    retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
     const { default: fetch } = await import("node-fetch");
 
@@ -109,6 +120,13 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
           ...this._extraHeaders,
         },
       });
+
+      if (this._isRateLimitResponse(response)) {
+        const seconds = this._getRetryAfterSeconds(response);
+        if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
+          return await this._retry(request, seconds, retryNumber);
+        }
+      }
 
       return parseJsonResponse(await response.text());
     } catch (error) {
@@ -129,6 +147,15 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     }
   }
 
+  private async _retry(
+    request: JsonRpcRequest | JsonRpcRequest[],
+    seconds: number,
+    retryNumber: number
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
+    return this._fetchJsonRpcResponse(request, retryNumber + 1);
+  }
+
   private _getJsonRpcRequest(
     method: string,
     params: any[] = []
@@ -139,5 +166,36 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       params,
       id: this._nextRequestId++,
     };
+  }
+
+  private _shouldRetry(retryNumber: number, retryAfterSeconds: number) {
+    if (retryNumber > MAX_RETRIES) {
+      return false;
+    }
+
+    if (retryAfterSeconds > MAX_RETRY_AWAIT_SECONDS) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private _isRateLimitResponse(response: Response) {
+    return response.status === 409;
+  }
+
+  private _getRetryAfterSeconds(response: Response): number | undefined {
+    const header = response.headers.get("Retry-After");
+
+    if (header === undefined || header === null) {
+      return undefined;
+    }
+
+    const parsed = parseInt(header, 10);
+    if (isNaN(parsed)) {
+      return undefined;
+    }
+
+    return parsed;
   }
 }
