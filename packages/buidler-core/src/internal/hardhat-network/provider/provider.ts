@@ -26,7 +26,7 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
-import { BuidlerModule } from "./modules/buidler";
+import { HardhatModule } from "./modules/hardhat";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { ModulesLogger } from "./modules/logger";
@@ -55,7 +55,7 @@ export class HardhatNetworkProvider extends EventEmitter
   private _netModule?: NetModule;
   private _web3Module?: Web3Module;
   private _evmModule?: EvmModule;
-  private _buidlerModule?: BuidlerModule;
+  private _hardhatModule?: HardhatModule;
   private readonly _mutex = new Mutex();
   private readonly _logger = new ModulesLogger();
 
@@ -220,7 +220,7 @@ export class HardhatNetworkProvider extends EventEmitter
     }
 
     if (method.startsWith("hardhat_")) {
-      return this._buidlerModule!.processRequest(method, params);
+      return this._hardhatModule!.processRequest(method, params);
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -275,7 +275,7 @@ export class HardhatNetworkProvider extends EventEmitter
     this._netModule = new NetModule(common);
     this._web3Module = new Web3Module();
     this._evmModule = new EvmModule(node);
-    this._buidlerModule = new BuidlerModule(node, this._reset.bind(this));
+    this._hardhatModule = new HardhatModule(node, this._reset.bind(this));
 
     this._forwardNodeEvents(node);
   }

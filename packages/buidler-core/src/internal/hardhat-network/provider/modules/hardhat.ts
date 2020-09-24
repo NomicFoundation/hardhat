@@ -17,7 +17,7 @@ import { ForkConfig } from "../node-types";
 
 // tslint:disable only-hardhat-error
 
-export class BuidlerModule {
+export class HardhatModule {
   constructor(
     private readonly _node: BuidlerNode,
     private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>
