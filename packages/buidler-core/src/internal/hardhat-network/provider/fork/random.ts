@@ -1,11 +1,19 @@
-import { toBuffer } from "ethereumjs-util";
+import { bufferToHex, keccak256 } from "ethereumjs-util";
 
-export const randomHash = () => randomHexString(64);
-export const randomHashBuffer = () => toBuffer(randomHash());
-export const randomAddress = () => randomHexString(40);
-export const randomAddressBuffer = () => toBuffer(randomAddress());
+export const randomHash = () => bufferToHex(randomHashBuffer());
 
-const randomHexDigit = () => Math.floor(Math.random() * 16).toString(16);
+let next: Buffer | undefined;
+export const randomHashBuffer = () => {
+  if (next === undefined) {
+    next = keccak256("seed");
+  }
 
-const randomHexString = (length: number) =>
-  `0x${new Array(length).fill(0).map(randomHexDigit).join("")}`;
+  const result = next;
+  next = keccak256(next);
+
+  return result;
+};
+
+export const randomAddress = () => bufferToHex(randomAddressBuffer());
+
+export const randomAddressBuffer = () => randomHashBuffer().slice(0, 20);
