@@ -22,7 +22,7 @@ const mockErrorDescriptor: ErrorDescriptor = {
   shouldBeReported: false,
 };
 
-describe("BuilderError", () => {
+describe("HardhatError", () => {
   describe("Type guard", () => {
     it("Should return true for HardhatErrors", () => {
       assert.isTrue(

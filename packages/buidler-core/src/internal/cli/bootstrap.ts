@@ -1,7 +1,7 @@
 import { fork } from "child_process";
 
-import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
+import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 
 import { ArgumentsParser } from "./ArgumentsParser";
 

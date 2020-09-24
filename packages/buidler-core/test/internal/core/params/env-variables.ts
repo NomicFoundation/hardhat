@@ -1,12 +1,12 @@
 import { assert } from "chai";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import { HARDHAT_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/hardhat-params";
 import {
   getEnvHardhatArguments,
   getEnvVariablesMap,
   paramNameToEnvVariable,
 } from "../../../../src/internal/core/params/env-variables";
+import { HARDHAT_PARAM_DEFINITIONS } from "../../../../src/internal/core/params/hardhat-params";
 import { expectHardhatError } from "../../../helpers/errors";
 
 // This is testing an internal function, which may seem weird, but its behaviour

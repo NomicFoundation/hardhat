@@ -2,8 +2,8 @@ import debug from "debug";
 
 import { HardhatContext } from "./internal/context";
 import { loadConfigAndTasks } from "./internal/core/config/config-loading";
-import { HARDHAT_PARAM_DEFINITIONS } from "./internal/core/params/hardhat-params";
 import { getEnvHardhatArguments } from "./internal/core/params/env-variables";
+import { HARDHAT_PARAM_DEFINITIONS } from "./internal/core/params/hardhat-params";
 import { Environment } from "./internal/core/runtime-environment";
 import { loadTsNodeIfPresent } from "./internal/core/typescript-support";
 import {

@@ -41,11 +41,11 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
-import { HardhatBlockchain } from "./HardhatBlockchain";
 import { InvalidInputError, TransactionExecutionError } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
+import { HardhatBlockchain } from "./HardhatBlockchain";
 import {
   CallParams,
   FilterParams,

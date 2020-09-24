@@ -2,8 +2,8 @@ import { assert } from "chai";
 import { BufferLike } from "ethereumjs-tx";
 import { BN, zeros } from "ethereumjs-util";
 
-import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
 import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import { PBlockchain } from "../../../../src/internal/hardhat-network/provider/types/PBlockchain";
 import {

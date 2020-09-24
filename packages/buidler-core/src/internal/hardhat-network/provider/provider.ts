@@ -26,9 +26,9 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
-import { HardhatModule } from "./modules/hardhat";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
+import { HardhatModule } from "./modules/hardhat";
 import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";

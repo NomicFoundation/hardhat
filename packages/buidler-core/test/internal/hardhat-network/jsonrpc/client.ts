@@ -3,9 +3,9 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import sinon from "sinon";
 
 import { RpcTransaction } from "../../../../internal/hardhat-network/jsonrpc/types";
+import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { JsonRpcClient } from "../../../../src/internal/hardhat-network/jsonrpc/client";
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
-import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { INFURA_URL } from "../../../setup";
 import {
   BLOCK_HASH_OF_10496585,
