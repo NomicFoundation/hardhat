@@ -213,6 +213,20 @@ ${nameList}`;
   }
   const [contractInformation] = contractMatches;
 
+  const libraryLinks = contractInformation.libraryLinks;
+  const deployLibraryReferences =
+    contractInformation.contract.evm.bytecode.linkReferences;
+  if (
+    Object.keys(libraryLinks).length <
+    Object.keys(deployLibraryReferences).length
+  ) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
+This can occur if the library is only called in the contract constructor.`
+    );
+  }
+
   const { encodeArguments } = await import("./ABIEncoder");
   const deployArgumentsEncoded = await encodeArguments(
     contractInformation.contract.abi,

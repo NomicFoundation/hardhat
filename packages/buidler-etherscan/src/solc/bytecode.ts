@@ -222,7 +222,9 @@ export async function normalizeBytecode(
 ) {
   const nestedSliceReferences: NestedSliceReferences = [];
   const libraryLinks: ResolvedLinks = {};
-  for (const [filename, libraries] of Object.entries(symbols.linkReferences)) {
+  for (const [sourceName, libraries] of Object.entries(
+    symbols.linkReferences
+  )) {
     for (const [libraryName, linkReferences] of Object.entries(libraries)) {
       // Is this even a possibility?
       if (linkReferences.length === 0) {
@@ -230,11 +232,11 @@ export async function normalizeBytecode(
       }
 
       const { start, length } = linkReferences[0];
-      if (libraryLinks[filename] === undefined) {
-        libraryLinks[filename] = {};
+      if (libraryLinks[sourceName] === undefined) {
+        libraryLinks[sourceName] = {};
       }
       // We have the bytecode encoded as a hex string
-      libraryLinks[filename][libraryName] = `0x${bytecode.slice(
+      libraryLinks[sourceName][libraryName] = `0x${bytecode.slice(
         start * 2,
         (start + length) * 2
       )}`;
