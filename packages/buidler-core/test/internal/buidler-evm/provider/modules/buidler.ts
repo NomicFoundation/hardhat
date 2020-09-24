@@ -4,7 +4,7 @@ import { bufferToHex } from "ethereumjs-util";
 import { MethodNotSupportedError } from "../../../../../src/internal/buidler-evm/provider/errors";
 import { INFURA_URL } from "../../../../setup";
 import {
-  assertBuidlerEVMProviderError,
+  assertHardhatNetworkProviderError,
   assertInvalidArgumentsError,
 } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
@@ -48,7 +48,7 @@ describe("Buidler module", function () {
 
       function testBuidlerImpersonate() {
         it("is not supported", async function () {
-          await assertBuidlerEVMProviderError(
+          await assertHardhatNetworkProviderError(
             this.provider,
             "hardhat_impersonate",
             [],
@@ -98,7 +98,7 @@ describe("Buidler module", function () {
 
       function testBuidlerStopImpersonating() {
         it("is not supported", async function () {
-          await assertBuidlerEVMProviderError(
+          await assertHardhatNetworkProviderError(
             this.provider,
             "hardhat_stopImpersonating",
             [],

@@ -9,7 +9,7 @@ import {
   CompilationJobsCreationResult,
 } from "../../builtin-tasks/types";
 import { MultiSolcConfig, SolcConfig } from "../../types";
-import { assertBuidlerInvariant } from "../core/errors";
+import { assertHardhatInvariant } from "../core/errors";
 
 import { ResolvedFile } from "./resolver";
 
@@ -52,7 +52,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
 
   public merge(job: taskTypes.CompilationJob): CompilationJob {
     const { isEqual }: LoDashStatic = require("lodash");
-    assertBuidlerInvariant(
+    assertHardhatInvariant(
       isEqual(this.solidityConfig, job.getSolcConfig()),
       "Merging jobs with different solidity configurations"
     );
@@ -86,7 +86,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
   public emitsArtifacts(file: ResolvedFile): boolean {
     const fileToCompile = this._filesToCompile.get(file.sourceName);
 
-    assertBuidlerInvariant(
+    assertHardhatInvariant(
       fileToCompile !== undefined,
       `File '${file.sourceName}' does not exist in this compilation job`
     );
@@ -112,7 +112,7 @@ function mergeCompilationJobs(
         const newJob = mergedJobs[0].merge(job);
         jobsMap.set(job.getSolcConfig(), [newJob]);
       } else {
-        assertBuidlerInvariant(
+        assertHardhatInvariant(
           false,
           "More than one mergeable job was added for the same configuration"
         );

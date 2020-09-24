@@ -6,7 +6,7 @@ import * as path from "path";
 import { Artifact, SolcInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
-import { assertBuidlerInvariant, HardhatError } from "./core/errors";
+import { assertHardhatInvariant, HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { replaceBackslashes } from "./solidity/source-names";
 import { glob, globSync } from "./util/glob";
@@ -338,7 +338,7 @@ export class Artifacts {
 
   private _getArtifactPathFromFullyQualifiedName(name: string): string {
     const parts = name.split(":");
-    assertBuidlerInvariant(
+    assertHardhatInvariant(
       parts.length === 2,
       "A fully qualified contract name should have exactly one colon"
     );

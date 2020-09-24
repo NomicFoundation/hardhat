@@ -247,7 +247,7 @@ describe("ArgumentsParser", () => {
 
     it("should only add non-present arguments", () => {
       const hardhatArguments = argumentsParser["_addBuidlerDefaultArguments"](
-        HARDHAHARDHAT_PARAM_DEFINITIONS,
+        HARDHAT_PARAM_DEFINITIONS,
         envArgs,
         {
           showStackTraces: true,

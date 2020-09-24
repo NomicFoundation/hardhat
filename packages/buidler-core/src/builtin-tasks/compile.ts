@@ -7,7 +7,7 @@ import {
   getArtifactFromContractOutput,
 } from "../internal/artifacts";
 import { internalTask, task, types } from "../internal/core/config/config-env";
-import { assertBuidlerInvariant, HardhatError } from "../internal/core/errors";
+import { assertHardhatInvariant, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
   createCompilationJobFromFile,
@@ -283,7 +283,7 @@ export default function () {
         force: boolean;
         solidityFilesCache?: SolidityFilesCache;
       }): Promise<CompilationJob[]> => {
-        assertBuidlerInvariant(
+        assertHardhatInvariant(
           solidityFilesCache !== undefined,
           "The implementation of this task needs a defined solidityFilesCache"
         );

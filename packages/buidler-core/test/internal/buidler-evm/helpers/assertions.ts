@@ -18,7 +18,7 @@ import {
 } from "../../../../src/internal/buidler-evm/provider/output";
 import { EthereumProvider } from "../../../../src/types";
 
-export async function assertBuidlerEVMProviderError(
+export async function assertHardhatNetworkProviderError(
   provider: EthereumProvider,
   method: string,
   params: any[] = [],
@@ -49,7 +49,7 @@ export async function assertNotSupported(
   provider: EthereumProvider,
   method: string
 ) {
-  return assertBuidlerEVMProviderError(
+  return assertHardhatNetworkProviderError(
     provider,
     method,
     [],
@@ -64,7 +64,7 @@ export async function assertInvalidArgumentsError(
   params: any[] = [],
   message?: string
 ) {
-  return assertBuidlerEVMProviderError(
+  return assertHardhatNetworkProviderError(
     provider,
     method,
     params,
@@ -79,7 +79,7 @@ export async function assertInvalidInputError(
   params: any[] = [],
   message?: string
 ) {
-  return assertBuidlerEVMProviderError(
+  return assertHardhatNetworkProviderError(
     provider,
     method,
     params,

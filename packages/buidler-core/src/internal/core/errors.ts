@@ -256,7 +256,7 @@ function _applyErrorMessageTemplate(
   return template;
 }
 
-export function assertBuidlerInvariant(
+export function assertHardhatInvariant(
   invariant: boolean,
   message: string
 ): asserts invariant {
