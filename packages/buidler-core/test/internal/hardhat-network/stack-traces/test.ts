@@ -5,34 +5,34 @@ import fs from "fs";
 import path from "path";
 import semver from "semver";
 
-import { createModelsAndDecodeBytecodes } from "../../../../src/internal/buidler-evm/stack-traces/compiler-to-model";
+import { createModelsAndDecodeBytecodes } from "../../../../src/internal/hardhat-network/stack-traces/compiler-to-model";
 import {
   CompilerInput,
   CompilerOutput,
   CompilerOutputBytecode,
-} from "../../../../src/internal/buidler-evm/stack-traces/compiler-types";
+} from "../../../../src/internal/hardhat-network/stack-traces/compiler-types";
 import {
   ConsoleLogger,
   ConsoleLogs,
-} from "../../../../src/internal/buidler-evm/stack-traces/consoleLogger";
-import { ContractsIdentifier } from "../../../../src/internal/buidler-evm/stack-traces/contracts-identifier";
+} from "../../../../src/internal/hardhat-network/stack-traces/consoleLogger";
+import { ContractsIdentifier } from "../../../../src/internal/hardhat-network/stack-traces/contracts-identifier";
 import {
   printMessageTrace,
   printStackTrace,
-} from "../../../../src/internal/buidler-evm/stack-traces/debug";
-import { linkHexStringBytecode } from "../../../../src/internal/buidler-evm/stack-traces/library-utils";
+} from "../../../../src/internal/hardhat-network/stack-traces/debug";
+import { linkHexStringBytecode } from "../../../../src/internal/hardhat-network/stack-traces/library-utils";
 import {
   CallMessageTrace,
   CreateMessageTrace,
   MessageTrace,
-} from "../../../../src/internal/buidler-evm/stack-traces/message-trace";
-import { decodeRevertReason } from "../../../../src/internal/buidler-evm/stack-traces/revert-reasons";
+} from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
+import { decodeRevertReason } from "../../../../src/internal/hardhat-network/stack-traces/revert-reasons";
 import {
   SolidityStackTraceEntry,
   StackTraceEntryType,
-} from "../../../../src/internal/buidler-evm/stack-traces/solidity-stack-trace";
-import { SolidityTracer } from "../../../../src/internal/buidler-evm/stack-traces/solidityTracer";
-import { VmTraceDecoder } from "../../../../src/internal/buidler-evm/stack-traces/vm-trace-decoder";
+} from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
+import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
+import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
 import { setCWD } from "../helpers/cwd";
 
 import { compile, CompilerOptions } from "./compilation";

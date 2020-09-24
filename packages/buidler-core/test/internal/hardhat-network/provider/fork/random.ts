@@ -3,7 +3,7 @@ import { assert } from "chai";
 import {
   randomAddress,
   randomHash,
-} from "../../../../../src/internal/buidler-evm/provider/fork/random";
+} from "../../../../../src/internal/hardhat-network/provider/fork/random";
 
 const HASH_REGEX = /^0x[a-f\d]{64}$/;
 const ADDRESS_REGEX = /^0x[a-f\d]{40}$/;

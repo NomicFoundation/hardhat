@@ -1,7 +1,7 @@
 /* tslint:disable:no-string-literal */
 import Common from "ethereumjs-common";
 
-import { HardhatNetworkProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 
 export async function retrieveCommon(
   provider: HardhatNetworkProvider

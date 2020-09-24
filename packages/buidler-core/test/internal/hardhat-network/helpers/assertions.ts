@@ -5,17 +5,17 @@ import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotSupportedError,
-} from "../../../../src/internal/buidler-evm/provider/errors";
+} from "../../../../src/internal/hardhat-network/provider/errors";
 import {
   rpcQuantity,
   RpcTransactionRequestInput,
-} from "../../../../src/internal/buidler-evm/provider/input";
-import { TransactionParams } from "../../../../src/internal/buidler-evm/provider/node-types";
+} from "../../../../src/internal/hardhat-network/provider/input";
+import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
 import {
   numberToRpcQuantity,
   RpcReceiptOutput,
   RpcTransactionOutput,
-} from "../../../../src/internal/buidler-evm/provider/output";
+} from "../../../../src/internal/hardhat-network/provider/output";
 import { EthereumProvider } from "../../../../src/types";
 
 export async function assertHardhatNetworkProviderError(

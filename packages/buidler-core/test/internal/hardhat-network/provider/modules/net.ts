@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../../src/internal/buidler-evm/provider/output";
+import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 

@@ -15,7 +15,7 @@ import {
   TaskDefinition,
   TasksMap,
 } from "../../types";
-import { MessageTrace } from "../buidler-evm/stack-traces/message-trace";
+import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
 import { HardhatError } from "./errors";

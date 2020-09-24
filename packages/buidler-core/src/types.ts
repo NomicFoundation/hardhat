@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { DeepReadonly, Omit } from "ts-essentials";
 
-import { MessageTrace } from "./internal/buidler-evm/stack-traces/message-trace";
+import { MessageTrace } from "./internal/hardhat-network/stack-traces/message-trace";
 
 // Begin config types
 

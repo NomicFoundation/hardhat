@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 
-import { BlockchainData } from "../../../../src/internal/buidler-evm/provider/BlockchainData";
-import { Block } from "../../../../src/internal/buidler-evm/provider/types/Block";
+import { BlockchainData } from "../../../../src/internal/hardhat-network/provider/BlockchainData";
+import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import {
   createTestLog,
   createTestReceipt,

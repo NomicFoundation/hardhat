@@ -1,4 +1,4 @@
-import { wrapWithSolidityErrorsCorrection } from "@nomiclabs/buidler/internal/buidler-evm/stack-traces/solidity-errors";
+import { wrapWithSolidityErrorsCorrection } from "@nomiclabs/buidler/internal/hardhat-network/stack-traces/solidity-errors";
 import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { promisify } from "util";
 

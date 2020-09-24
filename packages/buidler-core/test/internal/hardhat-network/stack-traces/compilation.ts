@@ -6,7 +6,7 @@ import solcWrapper from "solc/wrapper";
 import {
   CompilerInput,
   CompilerOutput,
-} from "../../../../src/internal/buidler-evm/stack-traces/compiler-types";
+} from "../../../../src/internal/hardhat-network/stack-traces/compiler-types";
 
 export interface CompilerOptions {
   solidityVersion: string;

@@ -2,9 +2,9 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import sinon from "sinon";
 
-import { RpcTransaction } from "../../../../internal/buidler-evm/jsonrpc/types";
-import { JsonRpcClient } from "../../../../src/internal/buidler-evm/jsonrpc/client";
-import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
+import { RpcTransaction } from "../../../../internal/hardhat-network/jsonrpc/types";
+import { JsonRpcClient } from "../../../../src/internal/hardhat-network/jsonrpc/client";
+import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { INFURA_URL } from "../../../setup";
 import {

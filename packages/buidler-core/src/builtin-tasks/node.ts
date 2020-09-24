@@ -2,15 +2,15 @@ import chalk from "chalk";
 import debug from "debug";
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
-import {
-  JsonRpcServer,
-  JsonRpcServerConfig,
-} from "../internal/buidler-evm/jsonrpc/server";
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
+import {
+  JsonRpcServer,
+  JsonRpcServerConfig,
+} from "../internal/hardhat-network/jsonrpc/server";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
 import {

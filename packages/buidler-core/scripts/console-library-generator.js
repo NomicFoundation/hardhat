@@ -159,7 +159,7 @@ consoleSolFIle += "}\n";
 logger = logger + "};\n";
 
 fs.writeFileSync(
-  __dirname + "/../src/internal/buidler-evm/stack-traces/logger.ts",
+  __dirname + "/../src/internal/hardhat-network/stack-traces/logger.ts",
   logger
 );
 fs.writeFileSync(__dirname + "/../console.sol", consoleSolFIle);

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
 
-import { MethodNotSupportedError } from "../../../../../src/internal/buidler-evm/provider/errors";
+import { MethodNotSupportedError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { INFURA_URL } from "../../../../setup";
 import {
   assertHardhatNetworkProviderError,

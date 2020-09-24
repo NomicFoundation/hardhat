@@ -1,12 +1,12 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
-import { randomAddressBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
+import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import {
   numberToRpcQuantity,
   RpcLogOutput,
   RpcReceiptOutput,
-} from "../../../../src/internal/buidler-evm/provider/output";
+} from "../../../../src/internal/hardhat-network/provider/output";
 
 export function createTestTransaction() {
   return new Transaction({ to: randomAddressBuffer() });

@@ -9,12 +9,12 @@ import {
 } from "ethereumjs-util";
 import sinon from "sinon";
 
-import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
-import { ForkStateManager } from "../../../../../src/internal/buidler-evm/provider/fork/ForkStateManager";
+import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
+import { ForkStateManager } from "../../../../../src/internal/hardhat-network/provider/fork/ForkStateManager";
 import {
   randomAddressBuffer,
   randomHashBuffer,
-} from "../../../../../src/internal/buidler-evm/provider/fork/random";
+} from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { INFURA_URL } from "../../../../setup";
 import {
   DAI_ADDRESS,

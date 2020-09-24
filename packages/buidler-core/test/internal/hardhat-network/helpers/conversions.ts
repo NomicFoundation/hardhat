@@ -4,11 +4,11 @@
  */
 import { BN } from "ethereumjs-util";
 
-import { decode } from "../../../../src/internal/buidler-evm/jsonrpc/types";
+import { decode } from "../../../../src/internal/hardhat-network/jsonrpc/types";
 import {
   rpcData,
   rpcQuantity,
-} from "../../../../src/internal/buidler-evm/provider/input";
+} from "../../../../src/internal/hardhat-network/provider/input";
 
 export function quantityToNumber(quantity: string): number {
   return parseInt(quantity.substring(2), 16);

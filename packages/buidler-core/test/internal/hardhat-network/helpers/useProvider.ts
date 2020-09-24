@@ -1,6 +1,6 @@
-import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
-import { ForkConfig } from "../../../../src/internal/buidler-evm/provider/node-types";
-import { HardhatNetworkProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
+import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { EthereumProvider } from "../../../../src/types";
 

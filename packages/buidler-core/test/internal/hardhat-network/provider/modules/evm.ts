@@ -6,8 +6,8 @@ import {
   bufferToRpcData,
   numberToRpcQuantity,
   RpcBlockOutput,
-} from "../../../../../src/internal/buidler-evm/provider/output";
-import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
+} from "../../../../../src/internal/hardhat-network/provider/output";
+import { getCurrentTimestamp } from "../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { EthereumProvider } from "../../../../../src/types";
 import { useEnvironment } from "../../../../helpers/environment";
 import { useFixtureProject } from "../../../../helpers/project";

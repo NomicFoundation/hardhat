@@ -1,9 +1,9 @@
 import { Transaction } from "ethereumjs-tx";
 import { bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 
-import { TransactionParams } from "../../../../src/internal/buidler-evm/provider/node-types";
-import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
-import { HardhatNetworkProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
+import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
+import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../src/types";
 
 import {

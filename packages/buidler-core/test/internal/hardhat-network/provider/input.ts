@@ -2,14 +2,14 @@ import { assert } from "chai";
 import { toBuffer } from "ethereumjs-util";
 import * as t from "io-ts";
 
-import { InvalidArgumentsError } from "../../../../src/internal/buidler-evm/provider/errors";
+import { InvalidArgumentsError } from "../../../../src/internal/hardhat-network/provider/errors";
 import {
   optionalBlockTag,
   rpcAddress,
   rpcHash,
   rpcQuantity,
   validateParams,
-} from "../../../../src/internal/buidler-evm/provider/input";
+} from "../../../../src/internal/hardhat-network/provider/input";
 import { setCWD } from "../helpers/cwd";
 
 describe("validateParams", function () {

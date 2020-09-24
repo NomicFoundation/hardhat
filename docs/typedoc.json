@@ -56,6 +56,6 @@
     "**/builtin-tasks/run.ts",
     "**/register.ts",
     "**/internal/core/config/config-validation.ts",
-    "**/internal/buidler-evm/**/*.ts"
+    "**/internal/hardhat-network/**/*.ts"
   ]
 }

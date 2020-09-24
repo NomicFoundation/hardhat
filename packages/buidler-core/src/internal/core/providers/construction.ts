@@ -10,7 +10,7 @@ import type {
   ResolvedHttpNetworkConfig,
   ResolvedNetworkConfig,
 } from "../../../types";
-import { ForkConfig } from "../../buidler-evm/provider/node-types";
+import { ForkConfig } from "../../hardhat-network/provider/node-types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { parseDateString } from "../../util/date";
 
@@ -50,9 +50,9 @@ export function createProvider(
     const buidlerNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
 
     const HardhatNetworkProvider = importProvider<
-      typeof import("../../buidler-evm/provider/provider"),
+      typeof import("../../hardhat-network/provider/provider"),
       "HardhatNetworkProvider"
-    >("../../buidler-evm/provider/provider", "HardhatNetworkProvider");
+    >("../../hardhat-network/provider/provider", "HardhatNetworkProvider");
 
     let forkConfig: ForkConfig | undefined;
 

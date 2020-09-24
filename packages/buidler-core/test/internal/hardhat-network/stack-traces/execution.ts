@@ -4,10 +4,10 @@ import Account from "ethereumjs-account";
 import { Transaction, TxData } from "ethereumjs-tx";
 import { privateToAddress } from "ethereumjs-util";
 
-import { StateManager } from "../../../../src/internal/buidler-evm/provider/types/StateManager";
-import { promisify } from "../../../../src/internal/buidler-evm/provider/utils/promisify";
-import { MessageTrace } from "../../../../src/internal/buidler-evm/stack-traces/message-trace";
-import { VMTracer } from "../../../../src/internal/buidler-evm/stack-traces/vm-tracer";
+import { StateManager } from "../../../../src/internal/hardhat-network/provider/types/StateManager";
+import { promisify } from "../../../../src/internal/hardhat-network/provider/utils/promisify";
+import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
+import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 
 const senderPrivateKey = Buffer.from(
   "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",

@@ -1,6 +1,6 @@
 /* tslint:disable:no-string-literal */
-import { ForkBlockchain } from "../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
-import { HardhatNetworkProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { ForkBlockchain } from "../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
+import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 
 export async function retrieveForkBlockNumber(
   provider: HardhatNetworkProvider

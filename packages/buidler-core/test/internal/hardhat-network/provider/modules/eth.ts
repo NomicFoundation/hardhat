@@ -2,17 +2,17 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
-import { InvalidInputError } from "../../../../../src/internal/buidler-evm/provider/errors";
-import { randomAddress } from "../../../../../src/internal/buidler-evm/provider/fork/random";
-import { COINBASE_ADDRESS } from "../../../../../src/internal/buidler-evm/provider/node";
-import { TransactionParams } from "../../../../../src/internal/buidler-evm/provider/node-types";
+import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
+import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
+import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
+import { TransactionParams } from "../../../../../src/internal/hardhat-network/provider/node-types";
 import {
   numberToRpcQuantity,
   RpcBlockOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
-} from "../../../../../src/internal/buidler-evm/provider/output";
-import { getCurrentTimestamp } from "../../../../../src/internal/buidler-evm/provider/utils/getCurrentTimestamp";
+} from "../../../../../src/internal/hardhat-network/provider/output";
+import { getCurrentTimestamp } from "../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import {
   EthereumProvider,
   EthSubscription,

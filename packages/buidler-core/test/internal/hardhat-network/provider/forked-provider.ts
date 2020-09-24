@@ -3,8 +3,8 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 // tslint:disable-next-line:no-implicit-dependencies
 import { Contract, utils, Wallet } from "ethers";
 
-import { InvalidInputError } from "../../../../src/internal/buidler-evm/provider/errors";
-import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
+import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
+import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
 import ERC20Abi from "../abi/ERC20/ERC20.json";
 import UniswapExchangeAbi from "../abi/Uniswap/Exchange.json";
 import UniswapFactoryAbi from "../abi/Uniswap/Factory.json";

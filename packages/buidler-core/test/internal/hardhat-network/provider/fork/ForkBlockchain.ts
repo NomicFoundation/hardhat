@@ -3,10 +3,10 @@ import Common from "ethereumjs-common";
 import { BufferLike } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
 
-import { JsonRpcClient } from "../../../../../src/internal/buidler-evm/jsonrpc/client";
-import { ForkBlockchain } from "../../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
-import { randomHashBuffer } from "../../../../../src/internal/buidler-evm/provider/fork/random";
-import { Block } from "../../../../../src/internal/buidler-evm/provider/types/Block";
+import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
+import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
+import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/fork/random";
+import { Block } from "../../../../../src/internal/hardhat-network/provider/types/Block";
 import { INFURA_URL } from "../../../../setup";
 import {
   createTestLog,

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { keccak256, toBuffer } from "ethereumjs-util";
 
-import { bufferToRpcData } from "../../../../../src/internal/buidler-evm/provider/output";
+import { bufferToRpcData } from "../../../../../src/internal/hardhat-network/provider/output";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 

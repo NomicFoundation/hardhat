@@ -2,10 +2,10 @@ import { assert } from "chai";
 import { BufferLike } from "ethereumjs-tx";
 import { BN, zeros } from "ethereumjs-util";
 
-import { BuidlerBlockchain } from "../../../../src/internal/buidler-evm/provider/BuidlerBlockchain";
-import { randomHashBuffer } from "../../../../src/internal/buidler-evm/provider/fork/random";
-import { Block } from "../../../../src/internal/buidler-evm/provider/types/Block";
-import { PBlockchain } from "../../../../src/internal/buidler-evm/provider/types/PBlockchain";
+import { BuidlerBlockchain } from "../../../../src/internal/hardhat-network/provider/BuidlerBlockchain";
+import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
+import { PBlockchain } from "../../../../src/internal/hardhat-network/provider/types/PBlockchain";
 import {
   createTestLog,
   createTestReceipt,
