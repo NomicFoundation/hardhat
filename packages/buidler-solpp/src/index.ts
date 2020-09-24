@@ -13,7 +13,7 @@ function getDefaultConfig(config: ResolvedHardhatConfig): SolppConfig {
   return {
     defs: {},
     cwd: config.paths.sources,
-    name: "buidler-solpp",
+    name: "hardhat-solpp",
     collapseEmptyLines: false,
     noPreprocessor: false,
     noFlatten: true,
@@ -36,7 +36,7 @@ async function readFiles(filePaths: string[]): Promise<string[][]> {
 
 export default function () {
   internalTask(
-    "buidler-solpp:run-solpp",
+    "hardhat-solpp:run-solpp",
     async (
       { files, opts }: { files: string[][]; opts: SolppConfig },
       { config }: { config: ResolvedHardhatConfig }
@@ -69,7 +69,7 @@ export default function () {
       const filePaths: string[] = await runSuper();
       const files = await readFiles(filePaths);
       const opts = getConfig(config);
-      return run("buidler-solpp:run-solpp", { files, opts });
+      return run("hardhat-solpp:run-solpp", { files, opts });
     }
   );
 }

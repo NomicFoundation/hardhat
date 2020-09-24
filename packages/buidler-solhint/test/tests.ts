@@ -23,12 +23,12 @@ describe("Solhint plugin", function () {
     useEnvironment(path.join(__dirname, "hardhat-project"));
 
     it("should define solhint task", function () {
-      assert.isDefined(this.env.tasks["buidler-solhint:run-solhint"]);
+      assert.isDefined(this.env.tasks["hardhat-solhint:run-solhint"]);
       assert.isDefined(this.env.tasks.check);
     });
 
     it("return a report", async function () {
-      const reports = await this.env.run("buidler-solhint:run-solhint");
+      const reports = await this.env.run("hardhat-solhint:run-solhint");
       assert.equal(reports.length, 1);
       assert.isTrue(
         // This test is a little sloppy, but the actual number doesn't matter
@@ -42,7 +42,7 @@ describe("Solhint plugin", function () {
     useEnvironment(path.join(__dirname, "no-config-project"));
 
     it("return a report", async function () {
-      const reports = await this.env.run("buidler-solhint:run-solhint");
+      const reports = await this.env.run("hardhat-solhint:run-solhint");
       assert.equal(reports.length, 1);
       assert.equal(reports[0].reports[0].ruleId, "max-line-length");
     });
@@ -58,7 +58,7 @@ describe("Solhint plugin", function () {
       await writeJson(SOLHINT_CONFIG_FILENAME, invalidExtensionConfig);
 
       await expectErrorAsync(
-        () => this.env.run("buidler-solhint:run-solhint"),
+        () => this.env.run("hardhat-solhint:run-solhint"),
         "An error occurred when processing your solhint config."
       );
     });
@@ -72,7 +72,7 @@ describe("Solhint plugin", function () {
       await writeJson(SOLHINT_CONFIG_FILENAME, invalidRuleConfig);
 
       await expectErrorAsync(
-        () => this.env.run("buidler-solhint:run-solhint"),
+        () => this.env.run("hardhat-solhint:run-solhint"),
         "An error occurred when processing your solhint config."
       );
     });
@@ -81,7 +81,7 @@ describe("Solhint plugin", function () {
       const invalidConfig = "asd";
       await writeFile(SOLHINT_CONFIG_FILENAME, invalidConfig);
       await expectErrorAsync(
-        () => this.env.run("buidler-solhint:run-solhint"),
+        () => this.env.run("hardhat-solhint:run-solhint"),
         "An error occurred when loading your solhint config."
       );
     });

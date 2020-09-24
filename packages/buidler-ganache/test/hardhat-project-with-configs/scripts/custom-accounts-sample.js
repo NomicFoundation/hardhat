@@ -1,4 +1,4 @@
-// We require the Buidler Runtime Environment explicitly here. This is optional.
+// We require the Hardhat Runtime Environment explicitly here. This is optional.
 const env = require("@nomiclabs/buidler");
 
 async function main() {

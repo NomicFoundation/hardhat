@@ -17,7 +17,7 @@ export default function () {
         ...ethers,
 
         // The provider wrapper should be removed once this is released
-        // https://github.com/nomiclabs/buidler/pull/608
+        // https://github.com/nomiclabs/hardhat/pull/608
         provider: new EthersProviderWrapper(env.network.provider),
 
         getSigners: async () => getSigners(env),

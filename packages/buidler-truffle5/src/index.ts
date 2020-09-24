@@ -27,7 +27,7 @@ import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 import "./type-extensions";
 
-// See buidler-core's CONTRIBUTING.md
+// See hardhat-core's CONTRIBUTING.md
 let originalFormatter: any;
 let originalGetGasEstimate: any;
 let originalPrepareCall: any;
@@ -94,7 +94,7 @@ export default function () {
       formatters.inputTransactionFormatter = function (options: any) {
         if (options.from === undefined) {
           throw new NomicLabsHardhatPluginError(
-            "@nomiclabs/buidler-truffle5",
+            "@nomiclabs/hardhat-truffle5",
             "There's no account available in the selected network."
           );
         }
@@ -146,8 +146,8 @@ export default function () {
         }
       } else if (accounts === undefined) {
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-truffle5",
-          `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Buidler's CLI`
+          "@nomiclabs/hardhat-truffle5",
+          `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Hardhat's CLI`
         );
       }
 
@@ -187,7 +187,7 @@ export default function () {
     if (!wasWarningShown) {
       if ((await hasMigrations(paths)) && !hasFixture) {
         console.warn(
-          "Your project has Truffle migrations, which have to be turn into a fixture to run your tests with Buidler"
+          "Your project has Truffle migrations, which have to be turn into a fixture to run your tests with Hardhat"
         );
 
         wasWarningShown = true;

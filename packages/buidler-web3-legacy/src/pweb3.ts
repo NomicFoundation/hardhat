@@ -24,7 +24,7 @@ export function promisifyWeb3(web3: any) {
         Object.defineProperty(pweb3[module], prop, {
           get: () => {
             throw new NomicLabsHardhatPluginError(
-              "@nomiclabs/buidler-web3-legacy",
+              "@nomiclabs/hardhat-web3-legacy",
               `pweb3.${module}.${prop} is not supported.`
             );
           },
@@ -33,7 +33,7 @@ export function promisifyWeb3(web3: any) {
         Object.defineProperty(pweb3[module], prop, {
           get: () => {
             throw new NomicLabsHardhatPluginError(
-              "@nomiclabs/buidler-web3-legacy",
+              "@nomiclabs/hardhat-web3-legacy",
               "pweb3 doesn't support synchronous calls."
             );
           },
@@ -59,7 +59,7 @@ export function promisifyWeb3(web3: any) {
     contractFactory.new = (...args: any[]) => {
       if (typeof args[args.length - 1] === "function") {
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-web3-legacy",
+          "@nomiclabs/hardhat-web3-legacy",
           "pweb3.eth.ContractFactory.new doesn't support callbacks."
         );
       }
@@ -105,7 +105,7 @@ export function promisifyWeb3(web3: any) {
       }
 
       throw new NomicLabsHardhatPluginError(
-        "@nomiclabs/buidler-web3-legacy",
+        "@nomiclabs/hardhat-web3-legacy",
         "pweb3.eth.ContractFactory.at doesn't support callbacks."
       );
     };

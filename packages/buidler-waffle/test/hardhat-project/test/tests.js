@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-describe("Internal test suite of buidler-waffle's test project", function () {
+describe("Internal test suite of hardhat-waffle's test project", function () {
   it("Should have waffle assertions loaded", function () {
     const chai = require("chai");
     if (!("revertedWith" in chai.Assertion.prototype)) {
@@ -17,7 +17,7 @@ describe("Internal test suite of buidler-waffle's test project", function () {
       try {
         expect("balanceOf").to.be.calledOnContractWith("asd", ["asd"]);
       } catch (error) {
-        if (error.message.includes("is not supported by Buidler")) {
+        if (error.message.includes("is not supported by Hardhat")) {
           return;
         }
       }
@@ -29,7 +29,7 @@ describe("Internal test suite of buidler-waffle's test project", function () {
       try {
         expect("balanceOf").to.be.calledOnContract("asd");
       } catch (error) {
-        if (error.message.includes("is not supported by Buidler")) {
+        if (error.message.includes("is not supported by Hardhat")) {
           return;
         }
       }

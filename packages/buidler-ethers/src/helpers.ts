@@ -119,7 +119,7 @@ function addGasToAbiMethodsIfNecessary(
 
   // ethers adds 21000 to whatever the abi `gas` field has. This may lead to
   // OOG errors, as people may set the default gas to the same value as the
-  // block gas limit, especially on Buidler EVM.
+  // block gas limit, especially on Hardhat Network.
   // To avoid this, we substract 21000.
   const gasLimit = ethers.BigNumber.from(networkConfig.gas)
     .sub(21000)

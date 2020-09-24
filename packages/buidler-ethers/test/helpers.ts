@@ -8,14 +8,14 @@ declare module "mocha" {
 }
 
 export function useEnvironment(projectPath: string) {
-  beforeEach("Loading buidler environment", function () {
+  beforeEach("Loading hardhat environment", function () {
     process.chdir(projectPath);
     process.env.HARDHAT_NETWORK = "localhost";
 
     this.env = require("@nomiclabs/buidler");
   });
 
-  afterEach("Resetting buidler", function () {
+  afterEach("Resetting hardhat", function () {
     delete process.env.HARDHAT_NETWORK;
     resetHardhatContext();
   });

@@ -13,7 +13,7 @@ export function getDeployMockContract() {
   return waffleMockContract.deployMockContract;
 }
 
-export async function buidlerDeployContract(
+export async function hardhatDeployContract(
   hre: HardhatRuntimeEnvironment,
   signer: Signer,
   contractJSON: any,

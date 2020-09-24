@@ -9,7 +9,7 @@ declare module "mocha" {
 }
 
 export function useEnvironment(projectPath: string) {
-  beforeEach("Loading buidler environment", async function () {
+  beforeEach("Loading hardhat environment", async function () {
     process.chdir(projectPath);
 
     await fsExtra.remove("cache");
@@ -20,7 +20,7 @@ export function useEnvironment(projectPath: string) {
     this.env = require("@nomiclabs/buidler");
   });
 
-  afterEach("Resetting buidler", function () {
+  afterEach("Resetting hardhat", function () {
     resetHardhatContext();
   });
 }

@@ -10,7 +10,7 @@ describe("Ethers plugin", function () {
   useEnvironment(path.join(__dirname, "hardhat-project"));
 
   describe("HRE extensions", function () {
-    it("should extend buidler runtime environment", function () {
+    it("should extend hardhat runtime environment", function () {
       assert.isDefined(this.env.ethers);
       assert.containsAllKeys(this.env.ethers, [
         "provider",

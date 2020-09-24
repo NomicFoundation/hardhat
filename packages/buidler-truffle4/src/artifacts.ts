@@ -64,7 +64,7 @@ export class TruffleEnvironmentArtifacts {
         library.constructor.network_id === undefined
       ) {
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-truffle5",
+          "@nomiclabs/hardhat-truffle5",
           `Error while linking library ${library._json.contractName} into contract ${destination.contractName}: library not deployed.`
         );
       }
@@ -147,14 +147,14 @@ export class TruffleEnvironmentArtifacts {
       const libName = lib.constructor.contractName;
       if (libs.length === 0) {
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-truffle5",
+          "@nomiclabs/hardhat-truffle5",
           `Tried to link contract ${destination.contractName} with library ${libName}, but it uses no libraries.`
         );
       }
 
       if (!libs.includes(libName)) {
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-truffle5",
+          "@nomiclabs/hardhat-truffle5",
           `Tried to link contract ${
             destination.contractName
           } with library ${libName}, but it's not one of its libraries. ${

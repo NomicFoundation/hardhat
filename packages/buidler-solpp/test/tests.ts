@@ -76,7 +76,7 @@ describe.skip("Solpp plugin", async function () {
         collapseEmptyLines: true,
         noPreprocessor: false,
       };
-      const paths = await this.env.run("buidler-solpp:run-solpp", {
+      const paths = await this.env.run("hardhat-solpp:run-solpp", {
         files,
         opts,
       });
@@ -115,7 +115,7 @@ describe.skip("Solpp plugin", async function () {
         const opts = {};
 
         await expectErrorAsync(async () =>
-          this.env.run("buidler-solpp:run-solpp", {
+          this.env.run("hardhat-solpp:run-solpp", {
             files,
             opts,
           })

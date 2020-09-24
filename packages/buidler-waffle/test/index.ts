@@ -6,7 +6,7 @@ import path from "path";
 import { useEnvironment } from "./helpers";
 
 describe("Waffle plugin plugin", function () {
-  describe("Buidler's Waffle provider adapter", function () {
+  describe("Hardhat's Waffle provider adapter", function () {
     describe("provider.getWallets", function () {
       describe("With hardhat", function () {
         describe("With the default hardhat accounts", function () {
@@ -59,7 +59,7 @@ describe("Waffle plugin plugin", function () {
         it("Should throw an error", function () {
           assert.throws(
             () => this.env.waffle.provider.getWallets(),
-            "This method only works with Buidler EVM"
+            "This method only works with Hardhat EVM"
           );
         });
       });

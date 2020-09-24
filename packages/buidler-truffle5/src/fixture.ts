@@ -44,7 +44,7 @@ export async function getTruffleFixtureFunction(
 
   if (!(fixture instanceof Function)) {
     throw new NomicLabsHardhatPluginError(
-      "@nomiclabs/buidler-truffle5",
+      "@nomiclabs/hardhat-truffle5",
       `Truffle fixture file ${fixturePath} must return a function`
     );
   }

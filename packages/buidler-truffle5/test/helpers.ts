@@ -8,7 +8,7 @@ declare module "mocha" {
 }
 
 export function useEnvironment(projectPath: string, networkName = "localhost") {
-  beforeEach("Loading buidler environment", function () {
+  beforeEach("Loading hardhat environment", function () {
     process.chdir(projectPath);
     process.env.HARDHAT_NETWORK = networkName;
 
@@ -19,7 +19,7 @@ export function useEnvironment(projectPath: string, networkName = "localhost") {
     await this.env.run("compile");
   });
 
-  afterEach("Resetting buidler", function () {
+  afterEach("Resetting hardhat", function () {
     resetHardhatContext();
     delete process.env.HARDHAT_NETWORK;
   });

@@ -19,7 +19,7 @@ function getFormatter(formatterName = "stylish") {
     return require(formatterPath);
   } catch (ex) {
     throw new NomicLabsHardhatPluginError(
-      "@nomiclabs/buidler-solhint",
+      "@nomiclabs/hardhat-solhint",
       `An error occurred loading the solhint formatter ${formatterName}`,
       ex
     );
@@ -55,7 +55,7 @@ async function getSolhintConfig(rootDirectory: string) {
       solhintConfig = await loadConfig();
     } catch (err) {
       throw new NomicLabsHardhatPluginError(
-        "@nomiclabs/buidler-solhint",
+        "@nomiclabs/hardhat-solhint",
         "An error occurred when loading your solhint config.",
         err
       );
@@ -68,7 +68,7 @@ async function getSolhintConfig(rootDirectory: string) {
     solhintConfig = applyExtends(solhintConfig);
   } catch (err) {
     throw new NomicLabsHardhatPluginError(
-      "@nomiclabs/buidler-solhint",
+      "@nomiclabs/hardhat-solhint",
       "An error occurred when processing your solhint config.",
       err
     );
@@ -83,7 +83,7 @@ function printReport(reports: any) {
 }
 
 export default function () {
-  internalTask("buidler-solhint:run-solhint", async (_, { config }) => {
+  internalTask("hardhat-solhint:run-solhint", async (_, { config }) => {
     const { processPath } = await import("solhint/lib/index");
     return processPath(
       join(config.paths.sources, "**", "*.sol"),
@@ -96,7 +96,7 @@ export default function () {
       await runSuper();
     }
 
-    const reports = await run("buidler-solhint:run-solhint");
+    const reports = await run("hardhat-solhint:run-solhint");
 
     printReport(reports);
   });

@@ -63,7 +63,7 @@ function linkingShouldWorkCorrectly() {
 
       assert.throws(
         () => UsesLib.link("Lib", "0x1111111111111111111111111111111111111111"),
-        "Linking contracts by name is not supported by Buidler. Please use UsesLib.link(libraryInstance) instead."
+        "Linking contracts by name is not supported by Hardhat. Please use UsesLib.link(libraryInstance) instead."
       );
     });
   });
@@ -75,7 +75,7 @@ function linkingShouldWorkCorrectly() {
       assert.throws(
         () =>
           UsesLib.link({ Lib: "0x1111111111111111111111111111111111111111" }),
-        "Linking contracts with a map of addresses is not supported by Buidler. Please use UsesLib.link(libraryInstance) instead"
+        "Linking contracts with a map of addresses is not supported by Hardhat. Please use UsesLib.link(libraryInstance) instead"
       );
     });
   });

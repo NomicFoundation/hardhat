@@ -117,7 +117,7 @@ Reason: ${error.message}`,
 
 Possible causes are:
   - The selected network (${network.name}) is wrong.
-  - Faulty buidler network config.`,
+  - Faulty hardhat network config.`,
         error
       );
     }

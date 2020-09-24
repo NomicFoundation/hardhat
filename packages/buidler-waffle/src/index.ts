@@ -1,7 +1,7 @@
 import { extendEnvironment, usePlugin } from "@nomiclabs/buidler/config";
 import { lazyObject } from "@nomiclabs/buidler/plugins";
 
-import { buidlerDeployContract, getDeployMockContract } from "./deploy";
+import { getDeployMockContract, hardhatDeployContract } from "./deploy";
 import { getLinkFunction } from "./link";
 import { initializeWaffleMatchers } from "./matchers";
 import "./type-extensions";
@@ -15,22 +15,22 @@ export default function () {
         WaffleMockProviderAdapter,
       } = require("./waffle-provider-adapter");
 
-      const { buidlerCreateFixtureLoader } = require("./fixtures");
+      const { hardhatCreateFixtureLoader } = require("./fixtures");
 
-      const buidlerWaffleProvider = new WaffleMockProviderAdapter(
+      const hardhatWaffleProvider = new WaffleMockProviderAdapter(
         hre.network
       ) as any;
 
       return {
-        provider: buidlerWaffleProvider,
-        deployContract: buidlerDeployContract.bind(undefined, hre),
+        provider: hardhatWaffleProvider,
+        deployContract: hardhatDeployContract.bind(undefined, hre),
         deployMockContract: getDeployMockContract(),
         solidity: require("./waffle-chai"),
-        createFixtureLoader: buidlerCreateFixtureLoader.bind(
+        createFixtureLoader: hardhatCreateFixtureLoader.bind(
           undefined,
-          buidlerWaffleProvider
+          hardhatWaffleProvider
         ),
-        loadFixture: buidlerCreateFixtureLoader(buidlerWaffleProvider),
+        loadFixture: hardhatCreateFixtureLoader(hardhatWaffleProvider),
         link: getLinkFunction(),
       };
     });

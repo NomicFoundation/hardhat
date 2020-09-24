@@ -66,8 +66,8 @@ export default function () {
         }
       } else if (accounts === undefined) {
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-truffle4",
-          `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Buidler's CLI`
+          "@nomiclabs/hardhat-truffle4",
+          `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Hardhat's CLI`
         );
       }
 
@@ -107,7 +107,7 @@ export default function () {
     if (!wasWarningShown) {
       if ((await hasMigrations(paths)) && !hasFixture) {
         console.warn(
-          "Your project has Truffle migrations, which have to be turn into a fixture to run your tests with Buidler"
+          "Your project has Truffle migrations, which have to be turn into a fixture to run your tests with Hardhat"
         );
 
         wasWarningShown = true;

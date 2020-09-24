@@ -105,7 +105,7 @@ export class LazyTruffleContractProvisioner {
 
         if (alreadyLinkedLibs[libName]) {
           throw new NomicLabsHardhatPluginError(
-            "@nomiclabs/buidler-truffle4",
+            "@nomiclabs/hardhat-truffle4",
             `Contract ${Contract.contractName} has already been linked to ${libName}.`
           );
         }
@@ -121,14 +121,14 @@ export class LazyTruffleContractProvisioner {
       if (!linkingByInstance) {
         if (typeof args[0] === "string") {
           throw new NomicLabsHardhatPluginError(
-            "@nomiclabs/buidler-truffle4",
-            `Linking contracts by name is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+            "@nomiclabs/hardhat-truffle4",
+            `Linking contracts by name is not supported by Hardhat. Please use ${Contract.contractName}.link(libraryInstance) instead.`
           );
         }
 
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-truffle4",
-          `Linking contracts with a map of addresses is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+          "@nomiclabs/hardhat-truffle4",
+          `Linking contracts with a map of addresses is not supported by Hardhat. Please use ${Contract.contractName}.link(libraryInstance) instead.`
         );
       }
 
@@ -261,7 +261,7 @@ export class LazyTruffleContractProvisioner {
       if (accounts.length === 0) {
         if (isDefaultAccountRequired) {
           throw new NomicLabsHardhatPluginError(
-            "@nomiclabs/buidler-truffle4",
+            "@nomiclabs/hardhat-truffle4",
             "There's no account available in the selected network."
           );
         }
@@ -291,7 +291,7 @@ export class LazyTruffleContractProvisioner {
 
       if (address === undefined) {
         throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/buidler-truffle5",
+          "@nomiclabs/hardhat-truffle5",
           `Trying to get deployed instance of ${Contract.contractName}, but none was set.`
         );
       }

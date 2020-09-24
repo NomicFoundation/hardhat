@@ -12,7 +12,7 @@ describe("Ganache plugin with empty configs", function () {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it("Should expose ganache defaults configs in buidler's config", function () {
+  it("Should expose ganache defaults configs in hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const defaultOptions = GanacheService.getDefaultOptions() as any;
     const options = this.env.config.networks.ganache as any;
@@ -23,11 +23,11 @@ describe("Ganache plugin with empty configs", function () {
     }
   });
 
-  it("Should run Buidler TEST task using Ganache", async function () {
+  it("Should run Hardhat TEST task using Ganache", async function () {
     await this.env.run("test", { noCompile: true, testFiles: [] });
   });
 
-  it("Should run Buidler RUN task 'accounts-sample.js' using Ganache", async function () {
+  it("Should run Hardhat RUN task 'accounts-sample.js' using Ganache", async function () {
     await this.env.run("run", {
       noCompile: true,
       script: "scripts/accounts-sample.js",
@@ -36,7 +36,7 @@ describe("Ganache plugin with empty configs", function () {
     assert.equal(process.exitCode, 0);
   });
 
-  it("Should run Buidler RUN task 'delayed-sample.js' using Ganache", async function () {
+  it("Should run Hardhat RUN task 'delayed-sample.js' using Ganache", async function () {
     await this.env.run("run", {
       noCompile: true,
       script: "scripts/delayed-sample.js",
@@ -49,11 +49,11 @@ describe("Ganache plugin with empty configs", function () {
 describe("Ganache plugin with custom configs", function () {
   useEnvironment(path.join(__dirname, "hardhat-project-with-configs"));
 
-  it("Should add ganache network to buidler's config", function () {
+  it("Should add ganache network to hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it("Should load custom configs in buidler's config'", function () {
+  it("Should load custom configs in hardhat's config'", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs = require("./hardhat-project-with-configs/hardhat.config.js");
 
@@ -68,7 +68,7 @@ describe("Ganache plugin with custom configs", function () {
     }
   });
 
-  it("Should expose merged (custom + defaults) configs in buidler's config", function () {
+  it("Should expose merged (custom + defaults) configs in hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs = require("./hardhat-project-with-configs/hardhat.config.js");
     const defaultOptions = GanacheService.getDefaultOptions() as any;
@@ -85,7 +85,7 @@ describe("Ganache plugin with custom configs", function () {
     }
   });
 
-  it("Should run Buidler RUN task using Ganache with custom configs", async function () {
+  it("Should run Hardhat RUN task using Ganache with custom configs", async function () {
     await this.env.run("run", {
       noCompile: true,
       script: "scripts/custom-accounts-sample.js",

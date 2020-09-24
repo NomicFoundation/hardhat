@@ -3,42 +3,42 @@
 
 import { Image } from "./types";
 
-export class BuidlerDockerError extends Error {
+export class HardhatDockerError extends Error {
   public constructor(public readonly parent?: Error) {
     super();
-    Object.setPrototypeOf(this, BuidlerDockerError.prototype);
+    Object.setPrototypeOf(this, HardhatDockerError.prototype);
   }
 }
 
-export class DockerHubConnectionError extends BuidlerDockerError {
+export class DockerHubConnectionError extends HardhatDockerError {
   public constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerHubConnectionError.prototype);
   }
 }
 
-export class DockerNotInstalledError extends BuidlerDockerError {
+export class DockerNotInstalledError extends HardhatDockerError {
   public constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerNotInstalledError.prototype);
   }
 }
 
-export class DockerNotRunningError extends BuidlerDockerError {
+export class DockerNotRunningError extends HardhatDockerError {
   public constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerNotRunningError.prototype);
   }
 }
 
-export class DockerBadGatewayError extends BuidlerDockerError {
+export class DockerBadGatewayError extends HardhatDockerError {
   public constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerBadGatewayError.prototype);
   }
 }
 
-export class ImageDoesntExistError extends BuidlerDockerError {
+export class ImageDoesntExistError extends HardhatDockerError {
   public constructor(
     public readonly image: Image,
     public readonly parent?: Error
@@ -48,7 +48,7 @@ export class ImageDoesntExistError extends BuidlerDockerError {
   }
 }
 
-export class BindDoesntExistInHostError extends BuidlerDockerError {
+export class BindDoesntExistInHostError extends HardhatDockerError {
   constructor(public readonly path: string) {
     super();
 
@@ -56,7 +56,7 @@ export class BindDoesntExistInHostError extends BuidlerDockerError {
   }
 }
 
-export class DockerServerError extends BuidlerDockerError {
+export class DockerServerError extends HardhatDockerError {
   public constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerServerError.prototype);
@@ -79,7 +79,7 @@ export class DockerServerError extends BuidlerDockerError {
   }
 }
 
-export class ExecutableNotFoundError extends BuidlerDockerError {
+export class ExecutableNotFoundError extends HardhatDockerError {
   public constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, ExecutableNotFoundError.prototype);

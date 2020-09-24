@@ -38,13 +38,13 @@ function createFixtureLoader(
   };
 }
 
-export function buidlerCreateFixtureLoader(
-  buidlerWaffleProvider: MockProvider,
+export function hardhatCreateFixtureLoader(
+  hardhatWaffleProvider: MockProvider,
   overrideSigners: Signer[],
   overrideProvider?: providers.JsonRpcProvider
 ) {
   return createFixtureLoader(
     overrideSigners,
-    overrideProvider ?? buidlerWaffleProvider
+    overrideProvider ?? hardhatWaffleProvider
   );
 }

@@ -7,7 +7,7 @@ declare module "mocha" {
   }
 }
 
-export function resetBuidler() {
+export function resetHardhat() {
   // TODO#plugins-refactor: These shouldn't be necessary
   delete require.cache[require.resolve("../src/index")];
 
@@ -18,14 +18,14 @@ export function useEnvironment(
   projectPath: string,
   network: string = "hardhat"
 ) {
-  beforeEach("Loading buidler environment", function () {
+  beforeEach("Loading hardhat environment", function () {
     process.chdir(projectPath);
     process.env.HARDHAT_NETWORK = network;
 
     this.env = require("@nomiclabs/buidler");
   });
 
-  afterEach("Resetting buidler", function () {
-    resetBuidler();
+  afterEach("Resetting hardhat", function () {
+    resetHardhat();
   });
 }

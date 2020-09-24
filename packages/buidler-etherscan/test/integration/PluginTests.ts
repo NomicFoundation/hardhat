@@ -22,7 +22,7 @@ describe("Plugin integration tests", function () {
     }
   });
 
-  describe("Using a normal Buidler project", function () {
+  describe("Using a normal Hardhat project", function () {
     useEnvironment(path.join(__dirname, "..", "hardhat-project"), "testnet");
 
     let placeholder: string;

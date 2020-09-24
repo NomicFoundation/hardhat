@@ -17,9 +17,9 @@ import { BindsMap, ContainerConfig, Image, ProcessResult } from "./types";
 
 const DOCKER_SOCKET_PATH = "/var/run/docker.sock";
 
-export class BuidlerDocker {
+export class HardhatDocker {
   public static async create() {
-    if (!(await BuidlerDocker.isInstalled())) {
+    if (!(await HardhatDocker.isInstalled())) {
       throw new DockerNotInstalledError();
     }
 
@@ -30,7 +30,7 @@ export class BuidlerDocker {
 
     const { default: DockerImpl } = await import("dockerode");
 
-    return new BuidlerDocker(DockerImpl);
+    return new HardhatDocker(DockerImpl);
   }
 
   public static async isInstalled(): Promise<boolean> {
@@ -47,7 +47,7 @@ export class BuidlerDocker {
 
   private readonly _docker: Docker;
 
-  // The constructor is private, see [[BuidlerDocker.create]].
+  // The constructor is private, see [[HardhatDocker.create]].
   private constructor(DockerImpl: typeof Docker) {
     // TODO: This doesn't support windows
     this._docker = new DockerImpl({ socketPath: DOCKER_SOCKET_PATH });
@@ -94,7 +94,7 @@ export class BuidlerDocker {
         img.RepoTags !== null &&
         img.RepoTags.some(
           (repoAndTag: string) =>
-            repoAndTag === BuidlerDocker.imageToRepoTag(image)
+            repoAndTag === HardhatDocker.imageToRepoTag(image)
         )
     );
   }
@@ -109,7 +109,7 @@ export class BuidlerDocker {
         img.RepoTags !== null &&
         img.RepoTags.some(
           (repoAndTag: string) =>
-            repoAndTag === BuidlerDocker.imageToRepoTag(image)
+            repoAndTag === HardhatDocker.imageToRepoTag(image)
         )
     );
 
@@ -128,7 +128,7 @@ export class BuidlerDocker {
     }
 
     const im: IncomingMessage = await this._withCommonErrors(
-      this._docker.pull(BuidlerDocker.imageToRepoTag(image), {})
+      this._docker.pull(HardhatDocker.imageToRepoTag(image), {})
     );
 
     return new Promise((resolve, reject) => {
@@ -162,7 +162,7 @@ export class BuidlerDocker {
 
     const container = await this._withCommonErrors(
       this._docker.run(
-        BuidlerDocker.imageToRepoTag(image),
+        HardhatDocker.imageToRepoTag(image),
         command,
         [stdout, stderr],
         createOptions
