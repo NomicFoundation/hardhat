@@ -1,5 +1,5 @@
-# 6. Debugging with Buidler EVM
-**Buidler** comes built-in with **Buidler EVM**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code. It's the default network **Buidler** connects to, so you don't need to setup anything for it to work. Just run your tests.
+# 6. Debugging with Hardhat Network
+**Buidler** comes built-in with **Buidler EVM**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code. It's the default network **Hardhat** connects to, so you don't need to setup anything for it to work. Just run your tests.
 
 ## Solidity `console.log`
 When running your contracts and tests on **Buidler EVM** you can print logging messages and contract variables calling `console.log()` from your Solidity code. To use it you have to import **Buidler**'s`console.log` from your contract code.

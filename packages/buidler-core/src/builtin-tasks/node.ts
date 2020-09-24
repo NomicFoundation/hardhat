@@ -22,7 +22,7 @@ import {
 import { TASK_NODE } from "./task-names";
 import { watchCompilerOutput } from "./utils/watch";
 
-const log = debug("buidler:core:tasks:node");
+const log = debug("hardhat:core:tasks:node");
 
 function _createHardhatNetworkProvider(
   config: ResolvedHardhatConfig

@@ -74,7 +74,7 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisAccounts } from "./utils/putGenesisAccounts";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 
-const log = debug("buidler:core:buidler-evm:node");
+const log = debug("hardhat:core:hardhat-network:node");
 
 // This library's types are wrong, they don't type check
 // tslint:disable-next-line no-var-requires

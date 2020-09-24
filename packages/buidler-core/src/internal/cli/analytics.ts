@@ -16,7 +16,7 @@ import {
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
 
-const log = debug("buidler:core:analytics");
+const log = debug("hardhat:core:analytics");
 
 // VERY IMPORTANT:
 // The documentation doesn't say so, but the user-agent parameter is required (ua).

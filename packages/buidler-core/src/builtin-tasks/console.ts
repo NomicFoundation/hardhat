@@ -9,7 +9,7 @@ import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 import { TASK_CONSOLE } from "./task-names";
 
 export default function () {
-  const log = debug("buidler:core:tasks:console");
+  const log = debug("hardhat:core:tasks:console");
 
   task(TASK_CONSOLE, "Opens a buidler console")
     .addFlag("noCompile", "Don't compile before running this task")

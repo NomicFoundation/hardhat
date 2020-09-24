@@ -8,7 +8,7 @@ import { HttpProvider } from "../../core/providers/http";
 
 import JsonRpcHandler from "./handler";
 
-const log = debug("buidler:core:buidler-evm:jsonrpc");
+const log = debug("hardhat:core:hardhat-network:jsonrpc");
 
 export interface JsonRpcServerConfig {
   hostname: string;

@@ -9,7 +9,7 @@ import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 import { TASK_COMPILE, TASK_RUN } from "./task-names";
 
 export default function () {
-  const log = debug("buidler:core:tasks:run");
+  const log = debug("hardhat:core:tasks:run");
 
   task(TASK_RUN, "Runs a user-defined script after compiling the project")
     .addPositionalParam(

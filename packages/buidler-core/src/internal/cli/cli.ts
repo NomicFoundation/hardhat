@@ -24,7 +24,7 @@ import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
 
-const log = debug("buidler:core:cli");
+const log = debug("hardhat:core:cli");
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 
@@ -70,7 +70,7 @@ async function main() {
 
     if (hardhatArguments.verbose) {
       Reporter.setVerbose(true);
-      debug.enable("buidler*");
+      debug.enable("hardhat*");
     }
 
     if (hardhatArguments.emoji) {

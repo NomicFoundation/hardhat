@@ -4,13 +4,13 @@ import debug from "debug";
 import { Anonymizer } from "./anonymizer";
 import { SENTRY_DSN } from "./reporter";
 
-const log = debug("buidler:sentry:subprocess");
+const log = debug("hardhat:sentry:subprocess");
 
 async function main() {
   const verbose = process.env.BUIDLER_SENTRY_VERBOSE === "true";
 
   if (verbose) {
-    debug.enable("buidler*");
+    debug.enable("hardhat*");
   }
 
   log("starting subprocess");

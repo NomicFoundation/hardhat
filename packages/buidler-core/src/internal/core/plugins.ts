@@ -8,7 +8,7 @@ import { BuidlerError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
 
-const log = debug("buidler:core:plugins");
+const log = debug("hardhat:core:plugins");
 
 interface PackageJson {
   name: string;

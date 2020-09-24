@@ -2,7 +2,7 @@ import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/er
 import debug from "debug";
 import { URL } from "url";
 
-const log = debug("buidler:plugin:ganache-service");
+const log = debug("hardhat:plugin:ganache-service");
 
 declare interface GanacheOptions {
   url: string;

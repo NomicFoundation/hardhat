@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import os from "os";
 import path from "path";
 
-const log = debug("buidler:core:global-dir");
+const log = debug("hardhat:core:global-dir");
 
 async function generatePaths() {
   const { default: envPaths } = await import("env-paths");

@@ -2,7 +2,7 @@
 
 You can enable Buidler's verbose mode by running it with its `--verbose` flag, or by setting the `BUIDLER_VERBOSE` environment variable to `true`.
 
-This mode will print a lot of output that can be super useful for debugging. An example of Buidler run in verbose mode is:
+This mode will print a lot of output that can be super useful for debugging. An example of Hardhat run in verbose mode is:
 
 // TODO-HH: re-run this
 

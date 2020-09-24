@@ -2,7 +2,7 @@ import debug from "debug";
 import findUp from "find-up";
 import path from "path";
 
-const log = debug("buidler:core:execution-mode");
+const log = debug("hardhat:core:execution-mode");
 
 /**
  * This module defines different Buidler execution modes and autodetects them.

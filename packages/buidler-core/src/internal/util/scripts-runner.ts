@@ -5,7 +5,7 @@ import { HardhatArguments } from "../../types";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
 
-const log = debug("buidler:core:scripts-runner");
+const log = debug("hardhat:core:scripts-runner");
 
 export async function runScript(
   scriptPath: string,

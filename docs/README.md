@@ -90,7 +90,7 @@ contract('ERC721', function () {
 
 
   <div class="example-4">
-  <h3>4. Debug your code with Buidler EVM</h3>
+  <h3>4. Debug your code with Hardhat Network</h3>
 
   ```
 $ npx buidler test

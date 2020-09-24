@@ -13,7 +13,7 @@ import { assertBuidlerInvariant } from "../core/errors";
 
 import { ResolvedFile } from "./resolver";
 
-const log = debug("buidler:core:compilation-job");
+const log = debug("hardhat:core:compilation-job");
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "*";

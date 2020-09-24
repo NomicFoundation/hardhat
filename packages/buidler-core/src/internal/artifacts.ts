@@ -15,7 +15,7 @@ const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
 const DBG_FORMAT_VERSION = "hh-sol-dbg-1";
 const BUILD_INFO_FORMAT_VERSION = "hh-sol-build-info-1";
 
-const log = debug("buidler:core:artifacts");
+const log = debug("hardhat:core:artifacts");
 
 export class Artifacts {
   private _buildInfosGlob: string;

@@ -15,7 +15,7 @@ In this tutorial we'll guide you through:
 - Creating and configuring a **Buidler** project
 - The basics of a Solidity smart contract that implements a token
 - Writing automated tests for your contract using [Ethers.js](https://docs.ethers.io/ethers.js/html/) and [Waffle](https://getwaffle.io/)
-- Debugging Solidity with `console.log()` using **Buidler EVM**
+- Debugging Solidity with `console.log()` using **Hardhat Network**
 - Deploying your contract to **Buidler EVM** and Ethereum testnets
 
  To follow this tutorial you should be able to:

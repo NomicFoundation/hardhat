@@ -11,7 +11,7 @@ import {
 } from "@nomiclabs/buidler/types";
 import debug from "debug";
 
-const log = debug("buidler:plugin:ganache");
+const log = debug("hardhat:plugin:ganache");
 
 import { GanacheService } from "./ganache-service";
 

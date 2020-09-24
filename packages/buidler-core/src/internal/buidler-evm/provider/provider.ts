@@ -40,7 +40,7 @@ import {
   TracingConfig,
 } from "./node-types";
 
-const log = debug("buidler:core:buidler-evm:provider");
+const log = debug("hardhat:core:hardhat-network:provider");
 
 // Set of methods that are never logged
 const PRIVATE_RPC_METHODS = new Set(["buidler_getStackTraceFailuresCount"]);

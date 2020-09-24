@@ -29,7 +29,7 @@ if (!BuidlerContext.isCreated()) {
   );
 
   if (hardhatArguments.verbose) {
-    debug.enable("buidler*");
+    debug.enable("hardhat*");
   }
 
   const config = loadConfigAndTasks(hardhatArguments);

@@ -85,7 +85,7 @@ function isConsoleLogError(error: any): boolean {
   );
 }
 
-const log = debug("buidler:core:tasks:compile");
+const log = debug("hardhat:core:tasks:compile");
 
 export default function () {
   /**
