@@ -6,6 +6,7 @@ import {
   validateConfig,
 } from "../../../../src/internal/core/config/config-validation";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
+import { BuidlerNetworkHDAccountsConfig } from "../../../../src/types";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 describe("Config validation", function () {
@@ -497,6 +498,111 @@ describe("Config validation", function () {
               }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
+        });
+
+        describe("BuidlerNetworkHDAccounstConfig", function () {
+          it("Should accept a valid HD config", function () {
+            let hdConfig: BuidlerNetworkHDAccountsConfig = {
+              mnemonic: "asd",
+            };
+
+            validateConfig({
+              networks: {
+                [BUIDLEREVM_NETWORK_NAME]: {
+                  accounts: hdConfig,
+                },
+              },
+            });
+
+            hdConfig = {
+              mnemonic: "asd",
+              accountsBalance: "123",
+              count: 123,
+              initialIndex: 1,
+              path: "m/1/2",
+            };
+
+            validateConfig({
+              networks: {
+                [BUIDLEREVM_NETWORK_NAME]: {
+                  accounts: hdConfig,
+                },
+              },
+            });
+          });
+
+          it("Should fail with invalid types", function () {
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        mnemonic: 123,
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        initialIndex: "asd",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        count: "asd",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        path: 123,
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectBuidlerError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [BUIDLEREVM_NETWORK_NAME]: {
+                      accounts: {
+                        mnemonic: "asd",
+                        accountsBalance: {},
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
         });
       });
 

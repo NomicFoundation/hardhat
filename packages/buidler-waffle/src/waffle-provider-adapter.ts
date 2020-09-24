@@ -1,4 +1,7 @@
-import { BuidlerNetworkConfig, Network } from "@nomiclabs/buidler/types";
+import {
+  Network,
+  ResolvedBuidlerNetworkConfig,
+} from "@nomiclabs/buidler/types";
 import { providers, Wallet } from "ethers";
 
 // This class is an extension of buidler-ethers' wrapper.
@@ -15,7 +18,8 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
 You can use \`await bre.ethers.signers()\` in other networks.`);
     }
 
-    return (this._buidlerNetwork.config as BuidlerNetworkConfig).accounts!.map(
+    return (this._buidlerNetwork
+      .config as ResolvedBuidlerNetworkConfig).accounts!.map(
       (acc) => new Wallet(acc.privateKey, this)
     );
   }

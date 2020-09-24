@@ -28,6 +28,9 @@ describe("Environment", () => {
       local: {
         url: "http://localhost:8545",
       },
+      buidlerevm: {
+        accounts: [],
+      },
       default: {
         url: "http://localhost:8545",
       },

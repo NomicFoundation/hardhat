@@ -26,8 +26,6 @@ jobs:
             node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-10-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-10-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache
@@ -54,8 +52,6 @@ jobs:
             node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-10-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-10-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache
@@ -96,8 +92,6 @@ jobs:
             node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-10-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-10-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache
@@ -130,8 +124,6 @@ jobs:
             node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/*/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node }}-
       - name: Install node-gyp-cache
         run: |
           npm install -g node-gyp-cache

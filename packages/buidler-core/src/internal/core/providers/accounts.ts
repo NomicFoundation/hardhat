@@ -1,11 +1,11 @@
 import { Transaction as TransactionT } from "ethereumjs-tx";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
-import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
 import { BuidlerError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 import { ProviderWrapperWithChainId } from "./chainId";
+import { derivePrivateKeys } from "./util";
 import { ProviderWrapper } from "./wrapper";
 
 // This library's types are wrong, they don't type check
@@ -207,31 +207,12 @@ export class HDWalletProvider extends LocalAccountsProvider {
     initialIndex: number = 0,
     count: number = 10
   ) {
-    if (hdpath.match(HD_PATH_REGEX) === null) {
-      throw new BuidlerError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
-    }
-
-    if (!hdpath.endsWith("/")) {
-      hdpath += "/";
-    }
-
-    const privateKeys: Buffer[] = [];
-
-    for (let i = initialIndex; i < initialIndex + count; i++) {
-      const privateKey = deriveKeyFromMnemonicAndPath(
-        mnemonic,
-        hdpath + i.toString()
-      );
-
-      if (privateKey === undefined) {
-        throw new BuidlerError(ERRORS.NETWORK.CANT_DERIVE_KEY, {
-          mnemonic,
-          path: hdpath,
-        });
-      }
-
-      privateKeys.push(privateKey);
-    }
+    const privateKeys = derivePrivateKeys(
+      mnemonic,
+      hdpath,
+      initialIndex,
+      count
+    );
 
     const { bufferToHex } = require("ethereumjs-util");
     const privateKeysAsHex = privateKeys.map((pk) => bufferToHex(pk));
