@@ -6,7 +6,7 @@ import {
   HARDHAT_NETWORK_NAME,
   HARDHAT_NETWORK_SUPPORTED_HARDFORKS,
 } from "../../constants";
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 function stringify(v: any): string {
@@ -177,7 +177,7 @@ const HardhatConfig = t.type(
 );
 
 /**
- * Validates the config, throwing a BuidlerError if invalid.
+ * Validates the config, throwing a HardhatError if invalid.
  * @param config
  */
 export function validateConfig(config: any) {
@@ -190,7 +190,7 @@ export function validateConfig(config: any) {
   let errorList = errors.join("\n  * ");
   errorList = `  * ${errorList}`;
 
-  throw new BuidlerError(ERRORS.GENERAL.INVALID_CONFIG, { errors: errorList });
+  throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG, { errors: errorList });
 }
 
 export function getValidationErrors(config: any): string[] {

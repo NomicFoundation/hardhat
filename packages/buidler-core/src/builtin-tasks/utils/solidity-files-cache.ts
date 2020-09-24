@@ -57,7 +57,7 @@ export class SolidityFilesCache {
     }
 
     // tslint:disable-next-line only-buidler-error
-    throw new Error("Couldn't read cache file, try running the clean task"); // TODO use BuidlerError
+    throw new Error("Couldn't read cache file, try running the clean task"); // TODO use HardhatError
   }
 
   constructor(private _cache: Cache) {}

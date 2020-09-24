@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import {
   applyErrorMessageTemplate,
-  BuidlerError,
+  HardhatError,
   BuidlerPluginError,
   NomicLabsBuidlerPluginError,
 } from "../../../src/internal/core/errors";
@@ -26,37 +26,37 @@ describe("BuilderError", () => {
   describe("Type guard", () => {
     it("Should return true for BuidlerErrors", () => {
       assert.isTrue(
-        BuidlerError.isBuidlerError(new BuidlerError(mockErrorDescriptor))
+        HardhatError.isBuidlerError(new HardhatError(mockErrorDescriptor))
       );
     });
 
     it("Should return false for everything else", () => {
-      assert.isFalse(BuidlerError.isBuidlerError(new Error()));
+      assert.isFalse(HardhatError.isBuidlerError(new Error()));
       assert.isFalse(
-        BuidlerError.isBuidlerError(
+        HardhatError.isBuidlerError(
           new NomicLabsBuidlerPluginError("asd", "asd")
         )
       );
-      assert.isFalse(BuidlerError.isBuidlerError(undefined));
-      assert.isFalse(BuidlerError.isBuidlerError(null));
-      assert.isFalse(BuidlerError.isBuidlerError(123));
-      assert.isFalse(BuidlerError.isBuidlerError("123"));
-      assert.isFalse(BuidlerError.isBuidlerError({ asd: 123 }));
+      assert.isFalse(HardhatError.isBuidlerError(undefined));
+      assert.isFalse(HardhatError.isBuidlerError(null));
+      assert.isFalse(HardhatError.isBuidlerError(123));
+      assert.isFalse(HardhatError.isBuidlerError("123"));
+      assert.isFalse(HardhatError.isBuidlerError({ asd: 123 }));
     });
   });
 
   describe("Without parent error", () => {
     it("should have the right error number", () => {
-      const error = new BuidlerError(mockErrorDescriptor);
+      const error = new HardhatError(mockErrorDescriptor);
       assert.equal(error.number, mockErrorDescriptor.number);
     });
 
     it("should format the error code to 4 digits", () => {
-      const error = new BuidlerError(mockErrorDescriptor);
+      const error = new HardhatError(mockErrorDescriptor);
       assert.equal(error.message.substr(0, 9), "BDLR123: ");
 
       assert.equal(
-        new BuidlerError({
+        new HardhatError({
           number: 1,
           message: "",
           title: "Title",
@@ -69,12 +69,12 @@ describe("BuilderError", () => {
     });
 
     it("should have the right error message", () => {
-      const error = new BuidlerError(mockErrorDescriptor);
+      const error = new HardhatError(mockErrorDescriptor);
       assert.equal(error.message, `BDLR123: ${mockErrorDescriptor.message}`);
     });
 
     it("should format the error message with the template params", () => {
-      const error = new BuidlerError(
+      const error = new HardhatError(
         {
           number: 12,
           message: "%a% %b% %c%",
@@ -88,24 +88,24 @@ describe("BuilderError", () => {
     });
 
     it("shouldn't have a parent", () => {
-      assert.isUndefined(new BuidlerError(mockErrorDescriptor).parent);
+      assert.isUndefined(new HardhatError(mockErrorDescriptor).parent);
     });
 
     it("Should work with instanceof", () => {
-      const error = new BuidlerError(mockErrorDescriptor);
-      assert.instanceOf(error, BuidlerError);
+      const error = new HardhatError(mockErrorDescriptor);
+      assert.instanceOf(error, HardhatError);
     });
   });
 
   describe("With parent error", () => {
     it("should have the right parent error", () => {
       const parent = new Error();
-      const error = new BuidlerError(mockErrorDescriptor, {}, parent);
+      const error = new HardhatError(mockErrorDescriptor, {}, parent);
       assert.equal(error.parent, parent);
     });
 
     it("should format the error message with the template params", () => {
-      const error = new BuidlerError(
+      const error = new HardhatError(
         {
           number: 12,
           message: "%a% %b% %c%",
@@ -121,8 +121,8 @@ describe("BuilderError", () => {
 
     it("Should work with instanceof", () => {
       const parent = new Error();
-      const error = new BuidlerError(mockErrorDescriptor, {}, parent);
-      assert.instanceOf(error, BuidlerError);
+      const error = new HardhatError(mockErrorDescriptor, {}, parent);
+      assert.instanceOf(error, HardhatError);
     });
   });
 });
@@ -221,7 +221,7 @@ describe("BuidlerPluginError", () => {
       assert.isFalse(BuidlerPluginError.isBuidlerPluginError(new Error()));
       assert.isFalse(
         BuidlerPluginError.isBuidlerPluginError(
-          new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
+          new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
         )
       );
       assert.isFalse(BuidlerPluginError.isBuidlerPluginError(undefined));
@@ -334,7 +334,7 @@ describe("NomicLabsBuidlerPluginError", () => {
       );
       assert.isFalse(
         NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(
-          new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
+          new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT)
         )
       );
       assert.isFalse(

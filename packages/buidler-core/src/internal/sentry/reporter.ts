@@ -1,5 +1,5 @@
 import {
-  BuidlerError,
+  HardhatError,
   BuidlerPluginError,
   NomicLabsBuidlerPluginError,
 } from "../core/errors";
@@ -90,7 +90,7 @@ export class Reporter {
 
   public static shouldReport(error: Error): boolean {
     if (
-      BuidlerError.isBuidlerError(error) &&
+      HardhatError.isBuidlerError(error) &&
       !error.errorDescriptor.shouldBeReported
     ) {
       return false;

@@ -1,4 +1,4 @@
-import { BuidlerError } from "../core/errors";
+import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
 export interface JsonRpcRequest {
@@ -44,7 +44,7 @@ export function parseJsonResponse(
 
     return json;
   } catch (error) {
-    throw new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
+    throw new HardhatError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
       response: text,
     });
   }

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import {
-  BuidlerError,
+  HardhatError,
   BuidlerPluginError,
   NomicLabsBuidlerPluginError,
 } from "../../../src/internal/core/errors";
@@ -25,7 +25,7 @@ describe("Reporter", () => {
     });
 
     it("should report BuidlerErrors that have the shouldBeReported flag", () => {
-      const error = new BuidlerError({
+      const error = new HardhatError({
         ...mockErrorDescriptor,
         shouldBeReported: true,
       });
@@ -35,7 +35,7 @@ describe("Reporter", () => {
     });
 
     it("should not report BuidlerErrors that don't have the shouldBeReported flag", () => {
-      const error = new BuidlerError({
+      const error = new HardhatError({
         ...mockErrorDescriptor,
         shouldBeReported: false,
       });

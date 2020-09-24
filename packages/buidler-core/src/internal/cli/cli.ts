@@ -9,7 +9,7 @@ import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { BuidlerError, BuidlerPluginError } from "../core/errors";
+import { HardhatError, BuidlerPluginError } from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
@@ -35,7 +35,7 @@ async function printVersionMessage(packageJson: PackageJson) {
 function ensureValidNodeVersion(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
-    throw new BuidlerError(ERRORS.GENERAL.INVALID_NODE_VERSION, {
+    throw new HardhatError(ERRORS.GENERAL.INVALID_NODE_VERSION, {
       requirement,
     });
   }
@@ -125,13 +125,13 @@ async function main() {
       const taskDefinition = taskDefinitions[taskName];
 
       if (taskDefinition === undefined) {
-        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
           task: taskName,
         });
       }
 
       if (taskDefinition.isInternal) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.ARGUMENTS.RUNNING_INTERNAL_TASK_FROM_CLI,
           { name: taskDefinition.name }
         );
@@ -170,7 +170,7 @@ async function main() {
   } catch (error) {
     let isBuidlerError = false;
 
-    if (BuidlerError.isBuidlerError(error)) {
+    if (HardhatError.isBuidlerError(error)) {
       isBuidlerError = true;
       console.error(chalk.red(`Error ${error.message}`));
     } else if (BuidlerPluginError.isBuidlerPluginError(error)) {
@@ -203,7 +203,7 @@ async function main() {
         );
       }
 
-      if (BuidlerError.isBuidlerError(error)) {
+      if (HardhatError.isBuidlerError(error)) {
         const link = `https://buidler.dev/${getErrorCode(
           error.errorDescriptor
         )}`;

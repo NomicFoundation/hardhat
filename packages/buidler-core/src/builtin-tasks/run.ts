@@ -2,7 +2,7 @@ import debug from "debug";
 import fsExtra from "fs-extra";
 
 import { task } from "../internal/core/config/config-env";
-import { BuidlerError } from "../internal/core/errors";
+import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { runScriptWithBuidler } from "../internal/util/scripts-runner";
 
@@ -23,7 +23,7 @@ export default function () {
         { run, hardhatArguments }
       ) => {
         if (!(await fsExtra.pathExists(script))) {
-          throw new BuidlerError(ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, {
+          throw new HardhatError(ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, {
             script,
           });
         }
@@ -42,7 +42,7 @@ export default function () {
             script
           );
         } catch (error) {
-          throw new BuidlerError(
+          throw new HardhatError(
             ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
             {
               script,

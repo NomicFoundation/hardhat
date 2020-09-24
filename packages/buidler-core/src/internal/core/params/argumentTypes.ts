@@ -2,7 +2,7 @@ import * as fs from "fs";
 import fsExtra from "fs-extra";
 
 import { ArgumentType, CLIArgumentType } from "../../../types";
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 /**
@@ -25,7 +25,7 @@ export const string: CLIArgumentType<string> = {
     const isString = typeof value === "string";
 
     if (!isString) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
         type: string.name,
@@ -50,7 +50,7 @@ export const boolean: CLIArgumentType<boolean> = {
       return false;
     }
 
-    throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+    throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
       value: strValue,
       name: argName,
       type: "boolean",
@@ -68,7 +68,7 @@ export const boolean: CLIArgumentType<boolean> = {
     const isBoolean = typeof value === "boolean";
 
     if (!isBoolean) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
         type: boolean.name,
@@ -92,7 +92,7 @@ export const int: CLIArgumentType<number> = {
       strValue.match(decimalPattern) === null &&
       strValue.match(hexPattern) === null
     ) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
         type: int.name,
@@ -112,7 +112,7 @@ export const int: CLIArgumentType<number> = {
   validate: (argName: string, value: any): void => {
     const isInt = Number.isInteger(value);
     if (!isInt) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
         type: int.name,
@@ -136,7 +136,7 @@ export const float: CLIArgumentType<number> = {
       strValue.match(decimalPattern) === null &&
       strValue.match(hexPattern) === null
     ) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value: strValue,
         name: argName,
         type: float.name,
@@ -158,7 +158,7 @@ export const float: CLIArgumentType<number> = {
     const isFloatOrInteger = typeof value === "number" && !isNaN(value);
 
     if (!isFloatOrInteger) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
         type: float.name,
@@ -185,7 +185,7 @@ export const inputFile: CLIArgumentType<string> = {
         throw new Error(`${strValue} is a directory, not a file`);
       }
     } catch (error) {
-      throw new BuidlerError(
+      throw new HardhatError(
         ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
         {
           name: argName,
@@ -211,7 +211,7 @@ export const inputFile: CLIArgumentType<string> = {
       inputFile.parse(argName, value);
     } catch (error) {
       // the input value is considered invalid, throw error.
-      throw new BuidlerError(
+      throw new HardhatError(
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
           value,
@@ -230,7 +230,7 @@ export const json: CLIArgumentType<any> = {
     try {
       return JSON.parse(strValue);
     } catch (error) {
-      throw new BuidlerError(
+      throw new HardhatError(
         ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT,
         {
           param: argName,
@@ -252,7 +252,7 @@ export const json: CLIArgumentType<any> = {
    */
   validate: (argName: string, value: any): void => {
     if (value === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
         value,
         name: argName,
         type: json.name,

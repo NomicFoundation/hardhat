@@ -4,7 +4,7 @@ import path from "path";
 
 import { getPackageRoot } from "../util/packageInfo";
 
-import { BuidlerError } from "./errors";
+import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { isTypescriptSupported } from "./typescript-support";
 const JS_CONFIG_FILENAME = "buidler.config.js";
@@ -27,7 +27,7 @@ export function getUserConfigPath() {
 
   const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);
   if (pathToConfigFile === null) {
-    throw new BuidlerError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
+    throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
   }
 
   return pathToConfigFile;

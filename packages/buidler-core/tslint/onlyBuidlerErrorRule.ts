@@ -9,7 +9,7 @@ import * as ts from "typescript";
 export class Rule extends Lint.Rules.TypedRule {
   public static metadata: Lint.IRuleMetadata = {
     ruleName: "only-buidler-error",
-    description: "Enforces that only BuidlerError is thrown.",
+    description: "Enforces that only HardhatError is thrown.",
     optionsDescription: "Not configurable.",
     options: null,
     type: "maintainability",
@@ -39,12 +39,12 @@ function walk(ctx: Lint.WalkContext<string[]>, tc: ts.TypeChecker) {
     if (isThrowStatement(node)) {
       const expression = node.expression!;
 
-      if (!isBuidlerError(expression, tc)) {
+      if (!isHardhatError(expression, tc)) {
         const exceptionName = getExpressionClassName(expression, tc);
 
         ctx.addFailureAtNode(
           expression,
-          `Only BuidlerError must be thrown, ${exceptionName} found.`
+          `Only HardhatError must be thrown, ${exceptionName} found.`
         );
       }
     }
@@ -62,6 +62,6 @@ function getExpressionClassName(expression: ts.Expression, tc: ts.TypeChecker) {
   return exceptionType.symbol.getName();
 }
 
-function isBuidlerError(expression: ts.Expression, tc: ts.TypeChecker) {
-  return getExpressionClassName(expression, tc) === "BuidlerError";
+function isHardhatError(expression: ts.Expression, tc: ts.TypeChecker) {
+  return getExpressionClassName(expression, tc) === "HardhatError";
 }

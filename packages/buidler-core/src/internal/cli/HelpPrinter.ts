@@ -4,7 +4,7 @@ import {
   ParamDefinitionsMap,
   TasksMap,
 } from "../../types";
-import { BuidlerError } from "../core/errors";
+import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
 import { ArgumentsParser } from "./ArgumentsParser";
@@ -59,7 +59,7 @@ export class HelpPrinter {
     const taskDefinition = this._tasks[taskName];
 
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+      throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
         task: taskName,
       });
     }

@@ -3,7 +3,7 @@ import ProcessEnv = NodeJS.ProcessEnv;
 import { HardhatArguments, HardhatParamDefinitions } from "../../../types";
 import { ArgumentsParser } from "../../cli/ArgumentsParser";
 import { unsafeObjectKeys } from "../../util/unsafe";
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 const BUIDLER_ENV_ARGUMENT_PREFIX = "BUIDLER_";
@@ -48,7 +48,7 @@ export function getEnvHardhatArguments(
       try {
         envArgs[paramName] = definition.type.parse(paramName, rawValue);
       } catch (error) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE,
           {
             varName: envVarName,

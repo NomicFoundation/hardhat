@@ -8,7 +8,7 @@ import {
 } from "../internal/buidler-evm/jsonrpc/server";
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { task, types } from "../internal/core/config/config-env";
-import { BuidlerError } from "../internal/core/errors";
+import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
 import { Reporter } from "../internal/sentry/reporter";
@@ -90,7 +90,7 @@ export default function () {
           hardhatArguments.network !== undefined &&
           hardhatArguments.network !== config.defaultNetwork
         ) {
-          throw new BuidlerError(
+          throw new HardhatError(
             ERRORS.BUILTIN_TASKS.JSONRPC_UNSUPPORTED_NETWORK
           );
         }
@@ -136,11 +136,11 @@ export default function () {
 
           await server.waitUntilClosed();
         } catch (error) {
-          if (BuidlerError.isBuidlerError(error)) {
+          if (HardhatError.isBuidlerError(error)) {
             throw error;
           }
 
-          throw new BuidlerError(
+          throw new HardhatError(
             ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
             {
               error: error.message,

@@ -6,7 +6,7 @@ import * as path from "path";
 import { Artifact, SolcInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
-import { assertBuidlerInvariant, BuidlerError } from "./core/errors";
+import { assertBuidlerInvariant, HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { replaceBackslashes } from "./solidity/source-names";
 import { glob, globSync } from "./util/glob";
@@ -118,7 +118,7 @@ export class Artifacts {
       );
 
       if (artifactPath !== trueCaseArtifactPath) {
-        throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
           correct: trueCaseArtifactPath,
           incorrect: artifactPath,
         });
@@ -130,7 +130,7 @@ export class Artifacts {
         typeof error.message === "string" &&
         error.message.includes("no matching file exists")
       ) {
-        throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+        throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
           contractName: name,
           artifactPath,
         });
@@ -157,7 +157,7 @@ export class Artifacts {
       );
 
       if (artifactPath !== trueCaseArtifactPath) {
-        throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
           correct: trueCaseArtifactPath,
           incorrect: artifactPath,
         });
@@ -169,7 +169,7 @@ export class Artifacts {
         typeof error.message === "string" &&
         error.message.includes("no matching file exists")
       ) {
-        throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+        throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
           contractName: name,
           artifactPath,
         });
@@ -352,7 +352,7 @@ export class Artifacts {
     });
 
     if (matchingFiles.length === 0) {
-      throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
         contractName: name,
       });
     }
@@ -362,7 +362,7 @@ export class Artifacts {
         .map((file) => this._getFullyQualifiedNameFromPath(file))
         .map(path.normalize);
 
-      throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
+      throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
         contractName: name,
         candidates: candidates.join(os.EOL),
       });

@@ -5,7 +5,7 @@ import {
 } from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";
-import { BuidlerError } from "./core/errors";
+import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { TasksDSL } from "./core/tasks/dsl";
 
@@ -21,7 +21,7 @@ export class BuidlerContext {
 
   public static createBuidlerContext(): BuidlerContext {
     if (this.isCreated()) {
-      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_ALREADY_CREATED);
+      throw new HardhatError(ERRORS.GENERAL.CONTEXT_ALREADY_CREATED);
     }
     const globalWithBuidlerContext = global as GlobalWithBuidlerContext;
     const ctx = new BuidlerContext();
@@ -33,7 +33,7 @@ export class BuidlerContext {
     const globalWithBuidlerContext = global as GlobalWithBuidlerContext;
     const ctx = globalWithBuidlerContext.__buidlerContext;
     if (ctx === undefined) {
-      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_NOT_CREATED);
+      throw new HardhatError(ERRORS.GENERAL.CONTEXT_NOT_CREATED);
     }
     return ctx;
   }
@@ -57,14 +57,14 @@ export class BuidlerContext {
 
   public setBuidlerRuntimeEnvironment(env: HardhatRuntimeEnvironment) {
     if (this.environment !== undefined) {
-      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
+      throw new HardhatError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
     }
     this.environment = env;
   }
 
   public getBuidlerRuntimeEnvironment(): HardhatRuntimeEnvironment {
     if (this.environment === undefined) {
-      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED);
+      throw new HardhatError(ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED);
     }
     return this.environment;
   }
@@ -79,7 +79,7 @@ export class BuidlerContext {
 
   public getConfigPath(): string {
     if (this._configPath === undefined) {
-      throw new BuidlerError(ERRORS.GENERAL.CONTEXT_CONFIG_PATH_NOT_SET);
+      throw new HardhatError(ERRORS.GENERAL.CONTEXT_CONFIG_PATH_NOT_SET);
     }
 
     return this._configPath;

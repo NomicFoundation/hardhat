@@ -3,7 +3,7 @@ import debug from "debug";
 import { HardhatRuntimeEnvironment } from "../../types";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { BuidlerError } from "../core/errors";
+import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
@@ -18,7 +18,7 @@ if (BuidlerContext.isCreated()) {
   // The most probable reason for this to happen is that this file was imported
   // from the config file
   if (ctx.environment === undefined) {
-    throw new BuidlerError(ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG);
+    throw new HardhatError(ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG);
   }
 
   env = ctx.environment;

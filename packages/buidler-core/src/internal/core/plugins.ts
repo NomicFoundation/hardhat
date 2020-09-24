@@ -4,7 +4,7 @@ import * as semver from "semver";
 
 import { BuidlerContext } from "../context";
 
-import { BuidlerError } from "./errors";
+import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
 
@@ -87,7 +87,7 @@ export function usePlugin(
   if (pluginPackageJson === undefined) {
     const installExtraFlags = globalFlag;
 
-    throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, {
+    throw new HardhatError(ERRORS.PLUGINS.NOT_INSTALLED, {
       plugin: pluginName,
       extraMessage: globalWarning,
       extraFlags: installExtraFlags,
@@ -114,7 +114,7 @@ export function usePlugin(
       }
 
       if (dependencyPackageJson === undefined) {
-        throw new BuidlerError(ERRORS.PLUGINS.MISSING_DEPENDENCY, {
+        throw new HardhatError(ERRORS.PLUGINS.MISSING_DEPENDENCY, {
           plugin: pluginName,
           dependency: dependencyName,
           extraMessage: globalWarning,
@@ -130,7 +130,7 @@ export function usePlugin(
           includePrerelease: true,
         })
       ) {
-        throw new BuidlerError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
+        throw new HardhatError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
           plugin: pluginName,
           dependency: dependencyName,
           extraMessage: globalWarning,

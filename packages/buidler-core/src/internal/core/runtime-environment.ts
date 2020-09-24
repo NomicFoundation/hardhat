@@ -18,7 +18,7 @@ import {
 import { MessageTrace } from "../buidler-evm/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
-import { BuidlerError } from "./errors";
+import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
@@ -69,7 +69,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     const networkConfig = config.networks[networkName];
 
     if (networkConfig === undefined) {
-      throw new BuidlerError(ERRORS.NETWORK.CONFIG_NOT_FOUND, {
+      throw new HardhatError(ERRORS.NETWORK.CONFIG_NOT_FOUND, {
         network: networkName,
       });
     }
@@ -114,7 +114,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     log("Running task %s", name);
 
     if (taskDefinition === undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+      throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
         task: name,
       });
     }
@@ -182,7 +182,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       runSuperFunction.isDefined = true;
     } else {
       runSuperFunction = async () => {
-        throw new BuidlerError(ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE, {
+        throw new HardhatError(ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE, {
           taskName: taskDefinition.name,
         });
       };
@@ -211,7 +211,7 @@ export class Environment implements HardhatRuntimeEnvironment {
    * Also, populate missing, non-mandatory arguments with default param values (if any).
    *
    * @private
-   * @throws BuidlerError if any of the following are true:
+   * @throws HardhatError if any of the following are true:
    *  > a required argument is missing
    *  > an argument's value's type doesn't match the defined param type
    *
@@ -234,7 +234,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     ];
 
     const initResolvedArguments: {
-      errors: BuidlerError[];
+      errors: HardhatError[];
       values: TaskArguments;
     } = { errors: [], values: {} };
 
@@ -291,7 +291,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       }
 
       // undefined & mandatory argument -> error
-      throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+      throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
         param: name,
       });
     }

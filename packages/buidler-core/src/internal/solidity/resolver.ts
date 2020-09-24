@@ -7,7 +7,7 @@ import {
   LibraryInfo,
   ResolvedFile as IResolvedFile,
 } from "../../builtin-tasks/types";
-import { BuidlerError } from "../core/errors";
+import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
 import { Parser } from "./parse";
@@ -85,7 +85,7 @@ export class Resolver {
   ): Promise<ResolvedFile> {
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
-      throw new BuidlerError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
+      throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
         from: from.sourceName,
         imported,
         protocol: scheme,
@@ -93,14 +93,14 @@ export class Resolver {
     }
 
     if (replaceBackslashes(imported) !== imported) {
-      throw new BuidlerError(ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH, {
+      throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH, {
         from: from.sourceName,
         imported,
       });
     }
 
     if (isAbsolutePathSourceName(imported)) {
-      throw new BuidlerError(ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH, {
+      throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH, {
         from: from.sourceName,
         imported,
       });
@@ -126,16 +126,16 @@ export class Resolver {
       return await this.resolveSourceName(sourceName);
     } catch (error) {
       if (
-        BuidlerError.isBuidlerErrorType(
+        HardhatError.isBuidlerErrorType(
           error,
           ERRORS.RESOLVER.FILE_NOT_FOUND
         ) ||
-        BuidlerError.isBuidlerErrorType(
+        HardhatError.isBuidlerErrorType(
           error,
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         )
       ) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
           {
             imported,
@@ -146,12 +146,12 @@ export class Resolver {
       }
 
       if (
-        BuidlerError.isBuidlerErrorType(
+        HardhatError.isBuidlerErrorType(
           error,
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         )
       ) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING,
           {
             imported,
@@ -162,12 +162,12 @@ export class Resolver {
       }
 
       if (
-        BuidlerError.isBuidlerErrorType(
+        HardhatError.isBuidlerErrorType(
           error,
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         )
       ) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED,
           {
             library: error.messageArguments.library,
@@ -213,7 +213,7 @@ export class Resolver {
         const buidlerCoreDir = path.join(__dirname, "..", "..");
         packageJsonPath = path.join(buidlerCoreDir, "package.json");
       } else {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
           {
             library: libraryName,
@@ -267,7 +267,7 @@ export class Resolver {
     // If the file with the import is local, and the normalized version
     // starts with ../ means that it's trying to get outside of the project.
     if (from.library === undefined && sourceName.startsWith("../")) {
-      throw new BuidlerError(
+      throw new HardhatError(
         ERRORS.RESOLVER.INVALID_IMPORT_OUTSIDE_OF_PROJECT,
         { from: from.sourceName, imported }
       );
@@ -279,7 +279,7 @@ export class Resolver {
     ) {
       // If the file is being imported from a library, this means that it's
       // trying to reach another one.
-      throw new BuidlerError(ERRORS.RESOLVER.ILLEGAL_IMPORT, {
+      throw new HardhatError(ERRORS.RESOLVER.ILLEGAL_IMPORT, {
         from: from.sourceName,
         imported,
       });
@@ -392,12 +392,12 @@ export class Resolver {
       await validateSourceNameExistenceAndCasing(fromDir, sourceName);
     } catch (error) {
       if (
-        BuidlerError.isBuidlerErrorType(
+        HardhatError.isBuidlerErrorType(
           error,
           ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
         )
       ) {
-        throw new BuidlerError(
+        throw new HardhatError(
           isLibrary
             ? ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
             : ERRORS.RESOLVER.FILE_NOT_FOUND,
@@ -407,9 +407,9 @@ export class Resolver {
       }
 
       if (
-        BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
+        HardhatError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
       ) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
           {
             incorrect: sourceName,

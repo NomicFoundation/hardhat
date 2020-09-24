@@ -44,19 +44,19 @@ export class CustomError extends Error {
   }
 }
 
-export class BuidlerError extends CustomError {
-  public static isBuidlerError(other: any): other is BuidlerError {
+export class HardhatError extends CustomError {
+  public static isHardhatError(other: any): other is HardhatError {
     return (
-      other !== undefined && other !== null && other._isBuidlerError === true
+      other !== undefined && other !== null && other._isHardhatError === true
     );
   }
 
-  public static isBuidlerErrorType(
+  public static isHardhatErrorType(
     other: any,
     descriptor: ErrorDescriptor
-  ): other is BuidlerError {
+  ): other is HardhatError {
     return (
-      BuidlerError.isBuidlerError(other) &&
+      HardhatError.isHardhatError(other) &&
       other.errorDescriptor.number === descriptor.number
     );
   }
@@ -65,7 +65,7 @@ export class BuidlerError extends CustomError {
   public readonly number: number;
   public readonly messageArguments: Record<string, any>;
 
-  private readonly _isBuidlerError: boolean;
+  private readonly _isHardhatError: boolean;
 
   constructor(
     errorDescriptor: ErrorDescriptor,
@@ -85,8 +85,8 @@ export class BuidlerError extends CustomError {
     this.number = errorDescriptor.number;
     this.messageArguments = messageArguments;
 
-    this._isBuidlerError = true;
-    Object.setPrototypeOf(this, BuidlerError.prototype);
+    this._isHardhatError = true;
+    Object.setPrototypeOf(this, HardhatError.prototype);
   }
 }
 
@@ -204,7 +204,7 @@ function _applyErrorMessageTemplate(
   if (!isRecursiveCall) {
     for (const variableName of Object.keys(values)) {
       if (variableName.match(/^[a-zA-Z][a-zA-Z0-9]*$/) === null) {
-        throw new BuidlerError(ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME, {
+        throw new HardhatError(ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME, {
           variable: variableName,
         });
       }
@@ -212,7 +212,7 @@ function _applyErrorMessageTemplate(
       const variableTag = `%${variableName}%`;
 
       if (!template.includes(variableTag)) {
-        throw new BuidlerError(ERRORS.INTERNAL.TEMPLATE_VARIABLE_TAG_MISSING, {
+        throw new HardhatError(ERRORS.INTERNAL.TEMPLATE_VARIABLE_TAG_MISSING, {
           variable: variableName,
         });
       }
@@ -244,7 +244,7 @@ function _applyErrorMessageTemplate(
     const variableTag = `%${variableName}%`;
 
     if (value.match(/%([a-zA-Z][a-zA-Z0-9]*)?%/) !== null) {
-      throw new BuidlerError(
+      throw new HardhatError(
         ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG,
         { variable: variableName }
       );
@@ -261,6 +261,6 @@ export function assertBuidlerInvariant(
   message: string
 ): asserts invariant {
   if (!invariant) {
-    throw new BuidlerError(ERRORS.GENERAL.ASSERTION_ERROR, { message });
+    throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, { message });
   }
 }

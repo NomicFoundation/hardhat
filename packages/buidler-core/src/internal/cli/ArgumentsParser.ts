@@ -7,7 +7,7 @@ import {
   TaskArguments,
   TaskDefinition,
 } from "../../types";
-import { BuidlerError } from "../core/errors";
+import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
 export class ArgumentsParser {
@@ -25,7 +25,7 @@ export class ArgumentsParser {
 
   public static cLAToParamName(cLA: string): string {
     if (cLA.toLowerCase() !== cLA) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING, {
+      throw new HardhatError(ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING, {
         param: cLA,
       });
     }
@@ -64,7 +64,7 @@ export class ArgumentsParser {
         }
 
         if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
-          throw new BuidlerError(
+          throw new HardhatError(
             ERRORS.ARGUMENTS.UNRECOGNIZED_COMMAND_LINE_ARG,
             { argument: arg }
           );
@@ -135,7 +135,7 @@ export class ArgumentsParser {
       }
 
       if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
-        throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME, {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME, {
           param: arg,
         });
       }
@@ -175,7 +175,7 @@ export class ArgumentsParser {
         continue;
       }
       if (!definition.isOptional) {
-        throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+        throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
           param: ArgumentsParser.paramNameToCLA(paramName),
         });
       }
@@ -208,7 +208,7 @@ export class ArgumentsParser {
     const definition = paramDefinitions[paramName];
 
     if (parsedArguments[paramName] !== undefined) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.REPEATED_PARAM, {
+      throw new HardhatError(ERRORS.ARGUMENTS.REPEATED_PARAM, {
         param: claArg,
       });
     }
@@ -220,7 +220,7 @@ export class ArgumentsParser {
       const value = rawCLAs[index];
 
       if (value === undefined) {
-        throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
+        throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
           param: ArgumentsParser.paramNameToCLA(paramName),
         });
       }
@@ -250,7 +250,7 @@ export class ArgumentsParser {
 
       if (rawArg === undefined) {
         if (!definition.isOptional) {
-          throw new BuidlerError(ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG, {
+          throw new HardhatError(ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG, {
             param: definition.name,
           });
         }
@@ -275,7 +275,7 @@ export class ArgumentsParser {
       !hasVariadicParam &&
       rawPositionalParamArgs.length > positionalParamDefinitions.length
     ) {
-      throw new BuidlerError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
+      throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
         argument: rawPositionalParamArgs[positionalParamDefinitions.length],
       });
     }

@@ -13,7 +13,7 @@ import {
   SolidityConfig,
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { normalizeBuidlerEVMAccountsConfig } from "../providers/util";
 
@@ -174,7 +174,7 @@ function deepFreezeUserConfig(
       value: any,
       receiver: any
     ): boolean {
-      throw new BuidlerError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
+      throw new HardhatError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
         path: [...propertyPath, property]
           .map((pathPart) => pathPart.toString())
           .join("."),
