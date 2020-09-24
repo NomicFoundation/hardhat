@@ -9,38 +9,38 @@ import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { TasksDSL } from "./core/tasks/dsl";
 
-export type GlobalWithBuidlerContext = NodeJS.Global & {
-  __buidlerContext: BuidlerContext;
+export type GlobalWithHardhatContext = NodeJS.Global & {
+  __hardhatContext: HardhatContext;
 };
 
-export class BuidlerContext {
+export class HardhatContext {
   public static isCreated(): boolean {
-    const globalWithBuidlerContext = global as GlobalWithBuidlerContext;
-    return globalWithBuidlerContext.__buidlerContext !== undefined;
+    const globalWithHardhatContext = global as GlobalWithHardhatContext;
+    return globalWithHardhatContext.__hardhatContext !== undefined;
   }
 
-  public static createBuidlerContext(): BuidlerContext {
+  public static createHardhatContext(): HardhatContext {
     if (this.isCreated()) {
       throw new HardhatError(ERRORS.GENERAL.CONTEXT_ALREADY_CREATED);
     }
-    const globalWithBuidlerContext = global as GlobalWithBuidlerContext;
-    const ctx = new BuidlerContext();
-    globalWithBuidlerContext.__buidlerContext = ctx;
+    const globalWithHardhatContext = global as GlobalWithHardhatContext;
+    const ctx = new HardhatContext();
+    globalWithHardhatContext.__hardhatContext = ctx;
     return ctx;
   }
 
-  public static getBuidlerContext(): BuidlerContext {
-    const globalWithBuidlerContext = global as GlobalWithBuidlerContext;
-    const ctx = globalWithBuidlerContext.__buidlerContext;
+  public static getHardhatContext(): HardhatContext {
+    const globalWithHardhatContext = global as GlobalWithHardhatContext;
+    const ctx = globalWithHardhatContext.__hardhatContext;
     if (ctx === undefined) {
       throw new HardhatError(ERRORS.GENERAL.CONTEXT_NOT_CREATED);
     }
     return ctx;
   }
 
-  public static deleteBuidlerContext() {
+  public static deleteHardhatContext() {
     const globalAsAny = global as any;
-    globalAsAny.__buidlerContext = undefined;
+    globalAsAny.__hardhatContext = undefined;
   }
 
   public readonly tasksDSL = new TasksDSL();
@@ -55,14 +55,14 @@ export class BuidlerContext {
 
   private _configPath?: string;
 
-  public setBuidlerRuntimeEnvironment(env: HardhatRuntimeEnvironment) {
+  public setHardhatRuntimeEnvironment(env: HardhatRuntimeEnvironment) {
     if (this.environment !== undefined) {
       throw new HardhatError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
     }
     this.environment = env;
   }
 
-  public getBuidlerRuntimeEnvironment(): HardhatRuntimeEnvironment {
+  public getHardhatRuntimeEnvironment(): HardhatRuntimeEnvironment {
     if (this.environment === undefined) {
       throw new HardhatError(ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED);
     }

@@ -2,7 +2,7 @@ import debug from "debug";
 import * as path from "path";
 import * as semver from "semver";
 
-import { BuidlerContext } from "../context";
+import { HardhatContext } from "../context";
 
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
@@ -21,12 +21,12 @@ interface PackageJson {
 /**
  * Validates a plugin dependencies and loads it.
  * @param pluginName - The plugin name
- * @param buidlerContext - The BuidlerContext
+ * @param hardhatContext - The HardhatContext
  * @param from - Where to resolve plugins and dependencies from. Only for
  * testing purposes.
  */
 export function usePlugin(
-  buidlerContext: BuidlerContext,
+  hardhatContext: HardhatContext,
   pluginName: string,
   from?: string
 ) {
@@ -70,7 +70,7 @@ export function usePlugin(
     if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
       from = __dirname;
     } else {
-      from = buidlerContext.getConfigPath();
+      from = hardhatContext.getConfigPath();
     }
   }
 
@@ -97,7 +97,7 @@ export function usePlugin(
   // We use the package.json's version of the name, as it is normalized.
   pluginName = pluginPackageJson.name;
 
-  if (buidlerContext.loadedPlugins.includes(pluginName)) {
+  if (hardhatContext.loadedPlugins.includes(pluginName)) {
     return;
   }
 
@@ -146,7 +146,7 @@ export function usePlugin(
   const pluginPath = require.resolve(pluginName, options);
   loadPluginFile(pluginPath);
 
-  buidlerContext.setPluginAsLoaded(pluginName);
+  hardhatContext.setPluginAsLoaded(pluginName);
 }
 
 export function loadPluginFile(absolutePluginFilePath: string) {

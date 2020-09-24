@@ -7,7 +7,7 @@ import "source-map-support/register";
 import { TASK_HELP } from "../../builtin-tasks/task-names";
 import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
-import { BuidlerContext } from "../context";
+import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { HardhatError, HardhatPluginError } from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
@@ -96,7 +96,7 @@ async function main() {
 
     loadTsNodeIfPresent();
 
-    const ctx = BuidlerContext.createBuidlerContext();
+    const ctx = HardhatContext.createHardhatContext();
     const config = loadConfigAndTasks(hardhatArguments);
 
     const analytics = await Analytics.getInstance(
@@ -151,7 +151,7 @@ async function main() {
       ctx.experimentalHardhatNetworkMessageTraceHooks
     );
 
-    ctx.setBuidlerRuntimeEnvironment(env);
+    ctx.setHardhatRuntimeEnvironment(env);
 
     const timestampBeforeRun = new Date().getTime();
 

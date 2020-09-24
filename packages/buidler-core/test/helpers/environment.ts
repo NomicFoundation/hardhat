@@ -1,4 +1,4 @@
-import { resetBuidlerContext } from "../../src/internal/reset";
+import { resetHardhatContext } from "../../src/internal/reset";
 import { HardhatRuntimeEnvironment } from "../../src/types";
 
 declare module "mocha" {
@@ -13,6 +13,6 @@ export function useEnvironment() {
   });
 
   afterEach("reset buidler context", function () {
-    resetBuidlerContext();
+    resetHardhatContext();
   });
 }

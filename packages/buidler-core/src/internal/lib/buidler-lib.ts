@@ -1,7 +1,7 @@
 import debug from "debug";
 
 import { HardhatRuntimeEnvironment } from "../../types";
-import { BuidlerContext } from "../context";
+import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -9,11 +9,11 @@ import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/buidler-params";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 
-let ctx: BuidlerContext;
+let ctx: HardhatContext;
 let env: HardhatRuntimeEnvironment;
 
-if (BuidlerContext.isCreated()) {
-  ctx = BuidlerContext.getBuidlerContext();
+if (HardhatContext.isCreated()) {
+  ctx = HardhatContext.getHardhatContext();
 
   // The most probable reason for this to happen is that this file was imported
   // from the config file
@@ -23,7 +23,7 @@ if (BuidlerContext.isCreated()) {
 
   env = ctx.environment;
 } else {
-  ctx = BuidlerContext.createBuidlerContext();
+  ctx = HardhatContext.createHardhatContext();
 
   const hardhatArguments = getEnvHardhatArguments(
     HARDHAT_PARAM_DEFINITIONS,
@@ -44,7 +44,7 @@ if (BuidlerContext.isCreated()) {
     ctx.experimentalHardhatNetworkMessageTraceHooks
   );
 
-  ctx.setBuidlerRuntimeEnvironment(env);
+  ctx.setHardhatRuntimeEnvironment(env);
 }
 
 export = env;

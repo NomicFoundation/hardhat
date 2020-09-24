@@ -1,4 +1,4 @@
-import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
+import { resetHardhatContext } from "@nomiclabs/buidler/plugins-testing";
 import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 
 declare module "mocha" {
@@ -11,7 +11,7 @@ export function resetBuidler() {
   // TODO#plugins-refactor: These shouldn't be necessary
   delete require.cache[require.resolve("../src/index")];
 
-  resetBuidlerContext();
+  resetHardhatContext();
 }
 
 export function useEnvironment(

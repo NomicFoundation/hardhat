@@ -1,6 +1,6 @@
 import debug from "debug";
 
-import { BuidlerContext } from "./internal/context";
+import { HardhatContext } from "./internal/context";
 import { loadConfigAndTasks } from "./internal/core/config/config-loading";
 import { HARDHAT_PARAM_DEFINITIONS } from "./internal/core/params/buidler-params";
 import { getEnvHardhatArguments } from "./internal/core/params/env-variables";
@@ -11,11 +11,11 @@ import {
   isNodeCalledWithoutAScript,
 } from "./internal/util/console";
 
-if (!BuidlerContext.isCreated()) {
+if (!HardhatContext.isCreated()) {
   // tslint:disable-next-line no-var-requires
   require("source-map-support/register");
 
-  const ctx = BuidlerContext.createBuidlerContext();
+  const ctx = HardhatContext.createHardhatContext();
 
   if (isNodeCalledWithoutAScript()) {
     disableReplWriterShowProxy();
@@ -42,7 +42,7 @@ if (!BuidlerContext.isCreated()) {
     ctx.experimentalHardhatNetworkMessageTraceHooks
   );
 
-  ctx.setBuidlerRuntimeEnvironment(env);
+  ctx.setHardhatRuntimeEnvironment(env);
 
   env.injectToGlobal();
 }

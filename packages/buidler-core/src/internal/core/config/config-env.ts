@@ -6,7 +6,7 @@ import {
   ExperimentalHardhatNetworkMessageTraceHook,
   TaskArguments,
 } from "../../../types";
-import { BuidlerContext } from "../../context";
+import { HardhatContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
 import { usePlugin as usePluginImplementation } from "../plugins";
 
@@ -26,7 +26,7 @@ export function task<ArgsT extends TaskArguments>(
   descriptionOrAction?: string | ActionType<ArgsT>,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition {
-  const ctx = BuidlerContext.getBuidlerContext();
+  const ctx = HardhatContext.getHardhatContext();
   const dsl = ctx.tasksDSL;
 
   if (descriptionOrAction === undefined) {
@@ -56,7 +56,7 @@ export function internalTask<ArgsT extends TaskArguments>(
   descriptionOrAction?: string | ActionType<ArgsT>,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition {
-  const ctx = BuidlerContext.getBuidlerContext();
+  const ctx = HardhatContext.getHardhatContext();
   const dsl = ctx.tasksDSL;
 
   if (descriptionOrAction === undefined) {
@@ -80,13 +80,13 @@ export const types = argumentTypes;
  * Environment.
  */
 export function extendEnvironment(extender: EnvironmentExtender) {
-  const ctx = BuidlerContext.getBuidlerContext();
+  const ctx = HardhatContext.getHardhatContext();
   const extenderManager = ctx.extendersManager;
   extenderManager.add(extender);
 }
 
 export function extendConfig(extender: ConfigExtender) {
-  const ctx = BuidlerContext.getBuidlerContext();
+  const ctx = HardhatContext.getHardhatContext();
   ctx.configExtenders.push(extender);
 }
 
@@ -95,7 +95,7 @@ export function extendConfig(extender: ConfigExtender) {
 export function experimentalAddBuidlerEVMMessageTraceHook(
   hook: ExperimentalHardhatNetworkMessageTraceHook
 ) {
-  const ctx = BuidlerContext.getBuidlerContext();
+  const ctx = HardhatContext.getHardhatContext();
   ctx.experimentalHardhatNetworkMessageTraceHooks.push(hook);
 }
 
@@ -104,6 +104,6 @@ export function experimentalAddBuidlerEVMMessageTraceHook(
  * @param pluginName The plugin name.
  */
 export function usePlugin(pluginName: string) {
-  const ctx = BuidlerContext.getBuidlerContext();
+  const ctx = HardhatContext.getHardhatContext();
   usePluginImplementation(ctx, pluginName);
 }

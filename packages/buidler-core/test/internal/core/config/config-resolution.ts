@@ -1,21 +1,21 @@
 import { assert } from "chai";
 import * as path from "path";
 
-import { BuidlerContext } from "../../../../src/internal/context";
+import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { resolveProjectPaths } from "../../../../src/internal/core/config/config-resolution";
 import { DEFAULT_SOLC_VERSION } from "../../../../src/internal/core/config/default-config";
-import { resetBuidlerContext } from "../../../../src/internal/reset";
+import { resetHardhatContext } from "../../../../src/internal/reset";
 import { HardhatNetworkConfig, HttpNetworkConfig } from "../../../../src/types";
 import { useFixtureProject } from "../../../helpers/project";
 
 describe("Config resolution", () => {
   beforeEach(() => {
-    BuidlerContext.createBuidlerContext();
+    HardhatContext.createHardhatContext();
   });
 
   afterEach(() => {
-    resetBuidlerContext();
+    resetHardhatContext();
   });
 
   describe("Default config merging", () => {

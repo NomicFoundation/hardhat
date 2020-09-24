@@ -76,7 +76,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     },
     CONTEXT_ALREADY_CREATED: {
       number: 4,
-      message: "BuidlerContext is already created.",
+      message: "HardhatContext is already created.",
       title: "Buidler was already initialized",
       description: `Buidler initialization was executed twice. This is a bug.
 
@@ -85,7 +85,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     },
     CONTEXT_NOT_CREATED: {
       number: 5,
-      message: "BuidlerContext is not created.",
+      message: "HardhatContext is not created.",
       title: "Buidler wasn't initialized",
       description: `Buidler initialization failed. This is a bug.
 
@@ -95,7 +95,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     CONTEXT_BRE_NOT_DEFINED: {
       number: 6,
       message:
-        "Buidler Runtime Environment is not defined in the BuidlerContext.",
+        "Buidler Runtime Environment is not defined in the HardhatContext.",
       title: "Buidler Runtime Environment not created",
       description: `Buidler initialization failed. This is a bug.
 
@@ -105,7 +105,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     CONTEXT_BRE_ALREADY_DEFINED: {
       number: 7,
       message:
-        "Buidler Runtime Environment is already defined in the BuidlerContext",
+        "Buidler Runtime Environment is already defined in the HardhatContext",
       title: "Tried to create the Buidler Runtime Environment twice",
       description: `The Buidler initialization process was executed twice. This is a bug.
 
@@ -152,8 +152,8 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
     CONTEXT_CONFIG_PATH_NOT_SET: {
       number: 11,
       message:
-        "Trying to access the BuidlerContext's config path field but it wasn't set",
-      title: "BuidlerContext's config path not defined",
+        "Trying to access the HardhatContext's config path field but it wasn't set",
+      title: "HardhatContext's config path not defined",
       description: `The Buidler initialization process was incomplete. This is a bug.
 
 Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,

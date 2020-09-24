@@ -5,10 +5,10 @@
 
 import { assert } from "chai";
 
-import { BuidlerContext } from "../../../../src/internal/context";
+import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import { resetBuidlerContext } from "../../../../src/internal/reset";
+import { resetHardhatContext } from "../../../../src/internal/reset";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectHardhatError } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
@@ -33,11 +33,11 @@ describe("Config extensions", function () {
     useFixtureProject("invalid-config-extension");
 
     beforeEach(function () {
-      BuidlerContext.createBuidlerContext();
+      HardhatContext.createHardhatContext();
     });
 
     afterEach(function () {
-      resetBuidlerContext();
+      resetHardhatContext();
     });
 
     it("Should throw the right error when trying to modify the user config", function () {

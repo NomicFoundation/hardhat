@@ -4,13 +4,13 @@
  * This doesn't unload any loaded Buidler plugin, so those have to be unloaded
  * manually with `unloadModule`.
  */
-import { BuidlerContext } from "./context";
+import { HardhatContext } from "./context";
 import { getUserConfigPath } from "./core/project-structure";
 import { globSync } from "./util/glob";
 
-export function resetBuidlerContext() {
-  if (BuidlerContext.isCreated()) {
-    const ctx = BuidlerContext.getBuidlerContext();
+export function resetHardhatContext() {
+  if (HardhatContext.isCreated()) {
+    const ctx = HardhatContext.getHardhatContext();
     const globalAsAny = global as any;
     if (ctx.environment !== undefined) {
       for (const key of Object.keys(ctx.environment)) {
@@ -32,7 +32,7 @@ export function resetBuidlerContext() {
         unloadModule(configPath);
       }
     }
-    BuidlerContext.deleteBuidlerContext();
+    HardhatContext.deleteHardhatContext();
   }
 
   // Unload all the buidler's entry-points.

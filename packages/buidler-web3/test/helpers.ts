@@ -1,4 +1,4 @@
-import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
+import { resetHardhatContext } from "@nomiclabs/buidler/plugins-testing";
 import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 
 declare module "mocha" {
@@ -16,6 +16,6 @@ export function useEnvironment(projectPath: string) {
   });
 
   afterEach("Resetting buidler", function () {
-    resetBuidlerContext();
+    resetHardhatContext();
   });
 }

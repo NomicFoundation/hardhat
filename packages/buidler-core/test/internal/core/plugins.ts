@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import path from "path";
 
-import { BuidlerContext } from "../../../src/internal/context";
+import { HardhatContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import {
   loadPluginFile,
@@ -96,14 +96,14 @@ describe("plugin system", function () {
       FIXTURE_PROJECT_PATH,
       "doesnt-need-to-exist-config.js"
     );
-    let ctx: BuidlerContext;
+    let ctx: HardhatContext;
 
     beforeEach(function () {
-      ctx = BuidlerContext.createBuidlerContext();
+      ctx = HardhatContext.createHardhatContext();
     });
 
     afterEach(function () {
-      BuidlerContext.deleteBuidlerContext();
+      HardhatContext.deleteHardhatContext();
       delete globalAsAny.loaded;
     });
 

@@ -1,4 +1,4 @@
-import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
+import { resetHardhatContext } from "@nomiclabs/buidler/plugins-testing";
 import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
 
@@ -21,6 +21,6 @@ export function useEnvironment(projectPath: string) {
   });
 
   afterEach("Resetting buidler", function () {
-    resetBuidlerContext();
+    resetHardhatContext();
   });
 }

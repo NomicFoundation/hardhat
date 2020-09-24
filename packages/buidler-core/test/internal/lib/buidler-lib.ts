@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { resetBuidlerContext } from "../../../src/internal/reset";
+import { resetHardhatContext } from "../../../src/internal/reset";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
 
@@ -25,7 +25,7 @@ describe("Buidler lib", () => {
     let environment = require("../../../src/internal/lib/buidler-lib");
     assert.isTrue(this.env === environment);
 
-    resetBuidlerContext();
+    resetHardhatContext();
 
     environment = require("../../../src/internal/lib/buidler-lib");
     assert.equal(await environment.run("example"), 28);
