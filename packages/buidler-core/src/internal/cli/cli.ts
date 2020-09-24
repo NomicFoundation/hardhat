@@ -5,7 +5,7 @@ import semver from "semver";
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
-import { ResolvedBuidlerConfig, TaskArguments } from "../../types";
+import { ResolvedHardhatConfig, TaskArguments } from "../../types";
 import { BUIDLER_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";

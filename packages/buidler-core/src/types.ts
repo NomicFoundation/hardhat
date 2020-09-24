@@ -136,7 +136,7 @@ export interface HardhatConfig {
   analytics?: Partial<AnalyticsConfig>;
 }
 
-export interface ResolvedBuidlerConfig extends HardhatConfig {
+export interface ResolvedHardhatConfig extends HardhatConfig {
   defaultNetwork: string;
   paths: ProjectPaths;
   networks: ResolvedNetworks;
@@ -166,7 +166,7 @@ export interface SolcInput {
 export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
 
 export type ConfigExtender = (
-  config: ResolvedBuidlerConfig,
+  config: ResolvedHardhatConfig,
   userConfig: DeepReadonly<HardhatConfig>
 ) => void;
 
@@ -464,7 +464,7 @@ export type RunTaskFunction = (
 ) => Promise<any>;
 
 export interface BuidlerRuntimeEnvironment {
-  readonly config: ResolvedBuidlerConfig;
+  readonly config: ResolvedHardhatConfig;
   readonly buidlerArguments: BuidlerArguments;
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;

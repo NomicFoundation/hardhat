@@ -16,7 +16,7 @@ import { lazyObject } from "../internal/util/lazy";
 import {
   BuidlerNetworkConfig,
   EthereumProvider,
-  ResolvedBuidlerConfig,
+  ResolvedHardhatConfig,
   ResolvedBuidlerNetworkConfig,
 } from "../types";
 
@@ -26,7 +26,7 @@ import { watchCompilerOutput } from "./utils/watch";
 const log = debug("buidler:core:tasks:node");
 
 function _createBuidlerEVMProvider(
-  config: ResolvedBuidlerConfig
+  config: ResolvedHardhatConfig
 ): EthereumProvider {
   log("Creating BuidlerEVM Provider");
 

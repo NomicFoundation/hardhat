@@ -5,7 +5,7 @@ declare module "@nomiclabs/buidler/types" {
     etherscan?: EtherscanConfig;
   }
 
-  interface ResolvedBuidlerConfig {
+  interface ResolvedHardhatConfig {
     etherscan: EtherscanConfig;
   }
 }

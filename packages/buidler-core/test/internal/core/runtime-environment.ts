@@ -12,7 +12,7 @@ import {
   BuidlerArguments,
   BuidlerRuntimeEnvironment,
   ParamDefinition,
-  ResolvedBuidlerConfig,
+  ResolvedHardhatConfig,
   TasksMap,
 } from "../../../src/types";
 import {
@@ -22,7 +22,7 @@ import {
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
-  const config: ResolvedBuidlerConfig = {
+  const config: ResolvedHardhatConfig = {
     defaultNetwork: "default",
     networks: {
       local: {

@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import path from "path";
 
-import { BuidlerArguments, ResolvedBuidlerConfig } from "../../../types";
+import { BuidlerArguments, ResolvedHardhatConfig } from "../../../types";
 import { BuidlerContext } from "../../context";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
@@ -17,7 +17,7 @@ function importCsjOrEsModule(filePath: string): any {
 
 export function loadConfigAndTasks(
   buidlerArguments?: Partial<BuidlerArguments>
-): ResolvedBuidlerConfig {
+): ResolvedHardhatConfig {
   let configPath =
     buidlerArguments !== undefined ? buidlerArguments.config : undefined;
 

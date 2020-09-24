@@ -8,7 +8,7 @@ import {
   ExperimentalBuidlerEVMMessageTraceHook,
   Network,
   ParamDefinition,
-  ResolvedBuidlerConfig,
+  ResolvedHardhatConfig,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
@@ -53,7 +53,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
    * @param extenders A list of extenders.
    */
   constructor(
-    public readonly config: ResolvedBuidlerConfig,
+    public readonly config: ResolvedHardhatConfig,
     public readonly buidlerArguments: BuidlerArguments,
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = [],

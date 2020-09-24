@@ -8,7 +8,7 @@ import {
   ConfigExtender,
   MultiSolcConfig,
   ProjectPaths,
-  ResolvedBuidlerConfig,
+  ResolvedHardhatConfig,
   SolcConfig,
   SolidityConfig,
 } from "../../../types";
@@ -72,7 +72,7 @@ export function resolveConfig(
   defaultConfig: HardhatConfig,
   userConfig: HardhatConfig,
   configExtenders: ConfigExtender[]
-): ResolvedBuidlerConfig {
+): ResolvedHardhatConfig {
   userConfig = deepFreezeUserConfig(userConfig);
 
   const config = mergeUserAndDefaultConfigs(defaultConfig, userConfig);
