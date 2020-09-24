@@ -18,28 +18,28 @@
 import { ProviderRpcError } from "../../../types";
 import { CustomError } from "../../core/errors";
 
-export class BuidlerEVMProviderError extends CustomError
+export class HardhatNetworkProviderError extends CustomError
   implements ProviderRpcError {
-  public static isBuidlerEVMProviderError(
+  public static isHardhatNetworkProviderError(
     other: any
-  ): other is BuidlerEVMProviderError {
+  ): other is HardhatNetworkProviderError {
     return (
       other !== undefined &&
       other !== null &&
-      other._isBuidlerEVMProviderError === true
+      other._isHardhatNetworkProviderError === true
     );
   }
 
-  private readonly _isBuidlerEVMProviderError: boolean;
+  private readonly _isHardhatNetworkProviderError: boolean;
 
   constructor(message: string, public readonly code: number) {
     super(message);
 
-    this._isBuidlerEVMProviderError = true;
+    this._isHardhatNetworkProviderError = true;
   }
 }
 
-export class InvalidJsonInputError extends BuidlerEVMProviderError {
+export class InvalidJsonInputError extends HardhatNetworkProviderError {
   public static readonly CODE = -32700;
 
   constructor(message: string) {
@@ -47,7 +47,7 @@ export class InvalidJsonInputError extends BuidlerEVMProviderError {
   }
 }
 
-export class InvalidRequestError extends BuidlerEVMProviderError {
+export class InvalidRequestError extends HardhatNetworkProviderError {
   public static readonly CODE = -32600;
 
   constructor(message: string) {
@@ -55,7 +55,7 @@ export class InvalidRequestError extends BuidlerEVMProviderError {
   }
 }
 
-export class MethodNotFoundError extends BuidlerEVMProviderError {
+export class MethodNotFoundError extends HardhatNetworkProviderError {
   public static readonly CODE = -32601;
 
   constructor(message: string) {
@@ -63,7 +63,7 @@ export class MethodNotFoundError extends BuidlerEVMProviderError {
   }
 }
 
-export class InvalidArgumentsError extends BuidlerEVMProviderError {
+export class InvalidArgumentsError extends HardhatNetworkProviderError {
   public static readonly CODE = -32602;
 
   constructor(message: string) {
@@ -71,7 +71,7 @@ export class InvalidArgumentsError extends BuidlerEVMProviderError {
   }
 }
 
-export class InternalError extends BuidlerEVMProviderError {
+export class InternalError extends HardhatNetworkProviderError {
   public static readonly CODE = -32603;
 
   constructor(message: string) {
@@ -79,7 +79,7 @@ export class InternalError extends BuidlerEVMProviderError {
   }
 }
 
-export class InvalidInputError extends BuidlerEVMProviderError {
+export class InvalidInputError extends HardhatNetworkProviderError {
   public static readonly CODE = -32000;
 
   constructor(message: string) {
@@ -87,7 +87,7 @@ export class InvalidInputError extends BuidlerEVMProviderError {
   }
 }
 
-export class TransactionExecutionError extends BuidlerEVMProviderError {
+export class TransactionExecutionError extends HardhatNetworkProviderError {
   public static readonly CODE = -32003;
 
   public parent: Error;
@@ -104,7 +104,7 @@ export class TransactionExecutionError extends BuidlerEVMProviderError {
   }
 }
 
-export class MethodNotSupportedError extends BuidlerEVMProviderError {
+export class MethodNotSupportedError extends HardhatNetworkProviderError {
   public static readonly CODE = -32004;
 
   constructor(method: string, onlyForked = false) {

@@ -21,7 +21,7 @@ import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 
 import {
-  BuidlerEVMProviderError,
+  HardhatNetworkProviderError,
   InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
@@ -47,7 +47,7 @@ const PRIVATE_RPC_METHODS = new Set(["hardhat_getStackTraceFailuresCount"]);
 
 // tslint:disable only-buidler-error
 
-export class BuidlerEVMProvider extends EventEmitter
+export class HardhatNetworkProvider extends EventEmitter
   implements EIP1193Provider {
   private _common?: Common;
   private _node?: BuidlerNode;
@@ -151,7 +151,7 @@ export class BuidlerEVMProvider extends EventEmitter
 
       if (err instanceof SolidityError) {
         this._logError(err);
-      } else if (err instanceof BuidlerEVMProviderError) {
+      } else if (err instanceof HardhatNetworkProviderError) {
         this._log(err.message, true);
       } else {
         this._logError(err, true);

@@ -3,7 +3,7 @@ import { bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 
 import { TransactionParams } from "../../../../src/internal/buidler-evm/provider/node-types";
 import { numberToRpcQuantity } from "../../../../src/internal/buidler-evm/provider/output";
-import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { HardhatNetworkProvider } from "../../../../src/internal/buidler-evm/provider/provider";
 import { EthereumProvider } from "../../../../src/types";
 
 import {
@@ -66,12 +66,12 @@ export async function sendTransactionFromTxParams(
 }
 
 export async function getSignedTxHash(
-  buidlerEVMProvider: BuidlerEVMProvider,
+  hardhatNetworkProvider: HardhatNetworkProvider,
   txParams: TransactionParams,
   signerAccountIndex: number
 ) {
   const txToSign = new Transaction(txParams, {
-    common: await retrieveCommon(buidlerEVMProvider),
+    common: await retrieveCommon(hardhatNetworkProvider),
   });
 
   txToSign.sign(toBuffer(DEFAULT_ACCOUNTS[signerAccountIndex].privateKey));

@@ -1,8 +1,8 @@
 /* tslint:disable:no-string-literal */
 import { ForkBlockchain } from "../../../../src/internal/buidler-evm/provider/fork/ForkBlockchain";
-import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { HardhatNetworkProvider } from "../../../../src/internal/buidler-evm/provider/provider";
 
-export async function retrieveForkBlockNumber(provider: BuidlerEVMProvider) {
+export async function retrieveForkBlockNumber(provider: HardhatNetworkProvider) {
   if (provider["_node"] === undefined) {
     await provider["_init"]();
   }

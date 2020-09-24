@@ -11,7 +11,7 @@ import {
   JsonRpcResponse,
 } from "../../util/jsonrpc";
 import {
-  BuidlerEVMProviderError,
+  HardhatNetworkProviderError,
   InternalError,
   InvalidJsonInputError,
   InvalidRequestError,
@@ -225,7 +225,7 @@ const _readWsRequest = (msg: string): JsonRpcRequest => {
 
 const _handleError = (error: any): JsonRpcResponse => {
   // In case of non-buidler error, treat it as internal and associate the appropriate error code.
-  if (!BuidlerEVMProviderError.isBuidlerEVMProviderError(error)) {
+  if (!HardhatNetworkProviderError.isHardhatNetworkProviderError(error)) {
     error = new InternalError(error.message);
   }
 

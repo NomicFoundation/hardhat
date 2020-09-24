@@ -49,10 +49,10 @@ export function createProvider(
   if (networkName === HARDHAT_NETWORK_NAME) {
     const buidlerNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
 
-    const BuidlerEVMProvider = importProvider<
+    const HardhatNetworkProvider = importProvider<
       typeof import("../../buidler-evm/provider/provider"),
-      "BuidlerEVMProvider"
-    >("../../buidler-evm/provider/provider", "BuidlerEVMProvider");
+      "HardhatNetworkProvider"
+    >("../../buidler-evm/provider/provider", "HardhatNetworkProvider");
 
     let forkConfig: ForkConfig | undefined;
 
@@ -66,7 +66,7 @@ export function createProvider(
       };
     }
 
-    eip1193Provider = new BuidlerEVMProvider(
+    eip1193Provider = new HardhatNetworkProvider(
       buidlerNetConfig.hardfork!,
       HARDHAT_NETWORK_NAME,
       buidlerNetConfig.chainId!,

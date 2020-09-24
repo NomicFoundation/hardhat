@@ -56,7 +56,7 @@ describe("Forked provider", () => {
       });
 
       const getForkBlockNumber = async () =>
-        retrieveForkBlockNumber(this.ctx.buidlerEVMProvider);
+        retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider);
 
       describe("eth_blockNumber", () => {
         it("returns the current block number", async function () {

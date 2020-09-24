@@ -1,6 +1,6 @@
 import { JsonRpcServer } from "../../../../src/internal/buidler-evm/jsonrpc/server";
 import { ForkConfig } from "../../../../src/internal/buidler-evm/provider/node-types";
-import { BuidlerEVMProvider } from "../../../../src/internal/buidler-evm/provider/provider";
+import { HardhatNetworkProvider } from "../../../../src/internal/buidler-evm/provider/provider";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { EthereumProvider } from "../../../../src/types";
 
@@ -18,7 +18,7 @@ import {
 declare module "mocha" {
   interface Context {
     provider: EthereumProvider;
-    buidlerEVMProvider: BuidlerEVMProvider;
+    hardhatNetworkProvider: HardhatNetworkProvider;
     server?: JsonRpcServer;
   }
 }
@@ -35,7 +35,7 @@ export function useProvider(
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE
 ) {
   beforeEach("Initialize provider", async function () {
-    this.buidlerEVMProvider = new BuidlerEVMProvider(
+    this.hardhatNetworkProvider = new HardhatNetworkProvider(
       hardfork,
       networkName,
       chainId,
@@ -52,7 +52,7 @@ export function useProvider(
       forkConfig
     );
     this.provider = new BackwardsCompatibilityProviderAdapter(
-      this.buidlerEVMProvider
+      this.hardhatNetworkProvider
     );
 
     if (useJsonRpc) {
@@ -71,7 +71,7 @@ export function useProvider(
 
   afterEach("Remove provider", async function () {
     delete this.provider;
-    delete this.buidlerEVMProvider;
+    delete this.hardhatNetworkProvider;
 
     if (this.server !== undefined) {
       await this.server.close();

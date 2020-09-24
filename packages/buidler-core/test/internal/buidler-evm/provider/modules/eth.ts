@@ -61,7 +61,7 @@ describe("Eth module", function () {
       useProvider();
 
       const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.buidlerEVMProvider) : 0;
+        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("eth_accounts", async function () {
         it("should return the genesis accounts in lower case", async function () {
@@ -2146,7 +2146,7 @@ describe("Eth module", function () {
           };
 
           const txHash = await getSignedTxHash(
-            this.buidlerEVMProvider,
+            this.hardhatNetworkProvider,
             txParams,
             0
           );
@@ -2423,7 +2423,7 @@ describe("Eth module", function () {
           };
 
           const txHash = await getSignedTxHash(
-            this.buidlerEVMProvider,
+            this.hardhatNetworkProvider,
             txParams,
             0
           );
