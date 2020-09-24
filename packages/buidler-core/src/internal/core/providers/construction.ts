@@ -47,7 +47,7 @@ export function createProvider(
   let eip1193Provider: EIP1193Provider;
 
   if (networkName === HARDHAT_NETWORK_NAME) {
-    const buidlerNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
+    const hardhatNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
 
     const HardhatNetworkProvider = importProvider<
       typeof import("../../hardhat-network/provider/provider"),
@@ -57,29 +57,29 @@ export function createProvider(
     let forkConfig: ForkConfig | undefined;
 
     if (
-      buidlerNetConfig.forking?.enabled === true &&
-      buidlerNetConfig.forking?.url !== undefined
+      hardhatNetConfig.forking?.enabled === true &&
+      hardhatNetConfig.forking?.url !== undefined
     ) {
       forkConfig = {
-        jsonRpcUrl: buidlerNetConfig.forking?.url,
-        blockNumber: buidlerNetConfig.forking?.blockNumber,
+        jsonRpcUrl: hardhatNetConfig.forking?.url,
+        blockNumber: hardhatNetConfig.forking?.blockNumber,
       };
     }
 
     eip1193Provider = new HardhatNetworkProvider(
-      buidlerNetConfig.hardfork!,
+      hardhatNetConfig.hardfork!,
       HARDHAT_NETWORK_NAME,
-      buidlerNetConfig.chainId!,
-      buidlerNetConfig.chainId!,
-      buidlerNetConfig.blockGasLimit!,
-      buidlerNetConfig.throwOnTransactionFailures!,
-      buidlerNetConfig.throwOnCallFailures!,
-      buidlerNetConfig.accounts,
+      hardhatNetConfig.chainId!,
+      hardhatNetConfig.chainId!,
+      hardhatNetConfig.blockGasLimit!,
+      hardhatNetConfig.throwOnTransactionFailures!,
+      hardhatNetConfig.throwOnCallFailures!,
+      hardhatNetConfig.accounts,
       paths,
-      buidlerNetConfig.loggingEnabled,
-      buidlerNetConfig.allowUnlimitedContractSize,
-      buidlerNetConfig.initialDate !== undefined
-        ? parseDateString(buidlerNetConfig.initialDate)
+      hardhatNetConfig.loggingEnabled,
+      hardhatNetConfig.allowUnlimitedContractSize,
+      hardhatNetConfig.initialDate !== undefined
+        ? parseDateString(hardhatNetConfig.initialDate)
         : undefined,
       experimentalHardhatNetworkMessageTraceHooks,
       forkConfig

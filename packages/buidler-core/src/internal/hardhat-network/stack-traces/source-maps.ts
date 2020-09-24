@@ -44,7 +44,7 @@ function uncompressSourcemaps(compressedSourcemap: string): SourceMap[] {
 
     const hasEveryPart = hasParts0 && hasParts1 && hasParts2 && hasParts3;
 
-    // See: https://github.com/nomiclabs/buidler/issues/593
+    // See: https://github.com/nomiclabs/hardhat/issues/593
     if (i === 0 && !hasEveryPart) {
       mappings.push({
         jumpType: JumpType.NOT_JUMP,

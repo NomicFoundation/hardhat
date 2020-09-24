@@ -74,9 +74,9 @@ export const types = argumentTypes;
 
 /**
  * Register an environment extender what will be run after the
- * Buidler Runtime Environment is initialized.
+ * Hardhat Runtime Environment is initialized.
  *
- * @param extender A function that receives the Buidler Runtime
+ * @param extender A function that receives the Hardhat Runtime
  * Environment.
  */
 export function extendEnvironment(extender: EnvironmentExtender) {
@@ -100,7 +100,7 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 }
 
 /**
- * Loads a Buidler plugin
+ * Loads a Hardhat plugin
  * @param pluginName The plugin name.
  */
 export function usePlugin(pluginName: string) {

@@ -24,7 +24,7 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   version: {
     name: "version",
     defaultValue: false,
-    description: "Shows buidler's version.",
+    description: "Shows hardhat's version.",
     type: types.boolean,
     isFlag: true,
     isOptional: true,
@@ -60,7 +60,7 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   verbose: {
     name: "verbose",
     defaultValue: false,
-    description: "Enables Buidler verbose logging",
+    description: "Enables Hardhat verbose logging",
     type: types.boolean,
     isFlag: true,
     isOptional: true,
@@ -69,7 +69,7 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   maxMemory: {
     name: "maxMemory",
     defaultValue: undefined,
-    description: "The maximum amount of memory that Buidler can use.",
+    description: "The maximum amount of memory that Hardhat can use.",
     type: types.int,
     isOptional: true,
     isFlag: false,

@@ -32,9 +32,9 @@ export class Web3Module {
     // TODO: This is a temporal fix because of https://github.com/OpenZeppelin/openzeppelin-test-helpers/pull/73
     return "EthereumJS TestRPC/v2.8.0/ethereum-js";
 
-    // const buidlerPackage = await getPackageJson();
+    // const hardhatPackage = await getPackageJson();
     // const ethereumjsVMPackage = require("@nomiclabs/ethereumjs-vm/package.json");
-    // return `HardhatNetwork/${buidlerPackage.version}/ethereumjs-vm/${ethereumjsVMPackage.version}`;
+    // return `HardhatNetwork/${hardhatPackage.version}/ethereumjs-vm/${ethereumjsVMPackage.version}`;
   }
 
   // web3_sha3

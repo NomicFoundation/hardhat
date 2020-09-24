@@ -101,7 +101,7 @@ export default function () {
             `Failed to generate ${failures} ${pluralize(
               failures,
               "stack trace"
-            )}. Run Buidler with --verbose to learn more.`
+            )}. Run Hardhat with --verbose to learn more.`
           )
         );
       }

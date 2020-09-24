@@ -12,7 +12,7 @@ import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
-describe("Buidler module", function () {
+describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     describe(`${name} provider`, function () {
       setCWD();
@@ -20,10 +20,10 @@ describe("Buidler module", function () {
 
       describe(
         "hardhat_impersonate",
-        isFork ? testBuidlerImpersonateFork : testBuidlerImpersonate
+        isFork ? testHardhatImpersonateFork : testHardhatImpersonate
       );
 
-      function testBuidlerImpersonateFork() {
+      function testHardhatImpersonateFork() {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
@@ -46,7 +46,7 @@ describe("Buidler module", function () {
         });
       }
 
-      function testBuidlerImpersonate() {
+      function testHardhatImpersonate() {
         it("is not supported", async function () {
           await assertHardhatNetworkProviderError(
             this.provider,
@@ -60,10 +60,10 @@ describe("Buidler module", function () {
 
       describe(
         "hardhat_stopImpersonating",
-        isFork ? testBuidlerStopImpersonatingFork : testBuidlerStopImpersonating
+        isFork ? testHardhatStopImpersonatingFork : testHardhatStopImpersonating
       );
 
-      function testBuidlerStopImpersonatingFork() {
+      function testHardhatStopImpersonatingFork() {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
@@ -96,7 +96,7 @@ describe("Buidler module", function () {
         });
       }
 
-      function testBuidlerStopImpersonating() {
+      function testHardhatStopImpersonating() {
         it("is not supported", async function () {
           await assertHardhatNetworkProviderError(
             this.provider,

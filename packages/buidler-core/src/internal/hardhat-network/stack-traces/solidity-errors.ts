@@ -266,7 +266,7 @@ function getMessageFromLastStackTraceEntry(
       return "Transaction reverted without a reason";
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
-      return `Transaction reverted for an unrecognized reason. Please report this to help us improve Buidler.`;
+      return `Transaction reverted for an unrecognized reason. Please report this to help us improve Hardhat.`;
 
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       return "Transaction reverted without a reason and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";

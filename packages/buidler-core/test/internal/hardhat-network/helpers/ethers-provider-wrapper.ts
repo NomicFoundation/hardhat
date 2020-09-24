@@ -3,18 +3,18 @@ import { ethers } from "ethers";
 
 import { IEthereumProvider } from "../../../../src/types";
 
-// This class has been copied from @nomiclabs/buidler-ethers package to avoid circular dependency
+// This class has been copied from @nomiclabs/hardhat-ethers package to avoid circular dependency
 
 export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
-  private readonly _buidlerProvider: IEthereumProvider;
+  private readonly _hardhatProvider: IEthereumProvider;
 
-  constructor(buidlerProvider: IEthereumProvider) {
+  constructor(hardhatProvider: IEthereumProvider) {
     super();
-    this._buidlerProvider = buidlerProvider;
+    this._hardhatProvider = hardhatProvider;
   }
 
   public async send(method: string, params: any): Promise<any> {
-    const result = await this._buidlerProvider.send(method, params);
+    const result = await this._hardhatProvider.send(method, params);
 
     // We replicate ethers' behavior.
     this.emit("debug", {

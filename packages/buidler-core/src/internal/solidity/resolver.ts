@@ -206,12 +206,12 @@ export class Resolver {
         path.join(libraryName, "package.json")
       );
     } catch (error) {
-      // if the project is using a dependency from buidler itself but it can't
+      // if the project is using a dependency from hardhat itself but it can't
       // be found, this means that a global installation is being used, so we
       // resolve the dependency relative to this file
       if (libraryName === "@nomiclabs/buidler") {
-        const buidlerCoreDir = path.join(__dirname, "..", "..");
-        packageJsonPath = path.join(buidlerCoreDir, "package.json");
+        const hardhatCoreDir = path.join(__dirname, "..", "..");
+        packageJsonPath = path.join(hardhatCoreDir, "package.json");
       } else {
         throw new HardhatError(
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,

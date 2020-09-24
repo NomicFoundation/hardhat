@@ -157,7 +157,7 @@ export class HardhatNetworkProvider extends EventEmitter
         this._logError(err, true);
         this._log("");
         this._log(
-          "If you think this is a bug in Buidler, please report it here: https://usehardhat.com/reportbug",
+          "If you think this is a bug in Hardhat, please report it here: https://usehardhat.com/reportbug",
           true
         );
       }
@@ -302,12 +302,12 @@ export class HardhatNetworkProvider extends EventEmitter
       } catch (error) {
         console.warn(
           chalk.yellow(
-            "Stack traces engine could not be initialized. Run Buidler with --verbose to learn more."
+            "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
           )
         );
 
         log(
-          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Buidler.\n",
+          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Hardhat.\n",
           error
         );
       }

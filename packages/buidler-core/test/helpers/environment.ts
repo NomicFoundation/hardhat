@@ -12,7 +12,7 @@ export function useEnvironment() {
     this.env = require("../../src/internal/lib/hardhat-lib");
   });
 
-  afterEach("reset buidler context", function () {
+  afterEach("reset hardhat context", function () {
     resetHardhatContext();
   });
 }

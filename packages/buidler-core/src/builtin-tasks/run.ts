@@ -4,7 +4,7 @@ import fsExtra from "fs-extra";
 import { task } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
-import { runScriptWithBuidler } from "../internal/util/scripts-runner";
+import { runScriptWithHardhat } from "../internal/util/scripts-runner";
 
 import { TASK_COMPILE, TASK_RUN } from "./task-names";
 
@@ -14,7 +14,7 @@ export default function () {
   task(TASK_RUN, "Runs a user-defined script after compiling the project")
     .addPositionalParam(
       "script",
-      "A js file to be run within buidler's environment"
+      "A js file to be run within hardhat's environment"
     )
     .addFlag("noCompile", "Don't compile before running this task")
     .setAction(
@@ -37,7 +37,7 @@ export default function () {
         );
 
         try {
-          process.exitCode = await runScriptWithBuidler(
+          process.exitCode = await runScriptWithHardhat(
             hardhatArguments,
             script
           );

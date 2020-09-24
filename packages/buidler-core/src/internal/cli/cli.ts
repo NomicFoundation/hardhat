@@ -166,7 +166,7 @@ async function main() {
     } else {
       abortAnalytics();
     }
-    log(`Killing Buidler after successfully running task ${taskName}`);
+    log(`Killing Hardhat after successfully running task ${taskName}`);
   } catch (error) {
     let isHardhatError = false;
 
@@ -199,7 +199,7 @@ async function main() {
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Buidler, please report it here: https://usehardhat.com/reportbug`
+          `If you think this is a bug in Hardhat, please report it here: https://usehardhat.com/reportbug`
         );
       }
 

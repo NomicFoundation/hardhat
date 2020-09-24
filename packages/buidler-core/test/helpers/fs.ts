@@ -10,7 +10,7 @@ declare module "mocha" {
 
 async function getEmptyTmpDir(nameHint: string) {
   const tmpDirContainer = os.tmpdir();
-  const tmpDir = path.join(tmpDirContainer, `buidler-tests-${nameHint}`);
+  const tmpDir = path.join(tmpDirContainer, `hardhat-tests-${nameHint}`);
   await fsExtra.ensureDir(tmpDir);
   await fsExtra.emptyDir(tmpDir);
 

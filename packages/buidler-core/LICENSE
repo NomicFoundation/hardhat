@@ -2,9 +2,9 @@ The Hardhat Network functionality is licensed under the NOMIC LABS DEVELOPER
 LICENSE AGREEMENT as defined below. This includes the source code contained
 in the directories "src/internal/hardhat-network" and "test/internal/hardhat-network"
 as well as the compiled code in the "internal/hardhat-network" directory of the
-"@nomiclabs/buidler" NPM package. The contents of the "sample-project/" 
+"@nomiclabs/hardhat" NPM package. The contents of the "sample-project/" 
 directory is licensed under the The Unlicense as defined below. All other 
-Buidler code is licensed under the MIT License as defined below.
+Hardhat code is licensed under the MIT License as defined below.
 
 
 
@@ -65,14 +65,14 @@ NOMIC LABS DEVELOPER LICENSE AGREEMENT
 
 This Nomic Labs Developer License Agreement (the "Agreement") governs the use of
 the Hardhat Network software (the "Software") distributed by Nomic Labs LLC
-("Nomic Labs") as a component of the buidler-core software. By using the
+("Nomic Labs") as a component of the hardhat-core software. By using the
 Software, you (or the entity on whose behalf you are using the Software)
 ("Licensee") agree to be bound by this Agreement.
 
 1. License Grant. Nomic Labs grants to Licensee a non-exclusive, revocable and
 non-transferable right to: (a) reproduce and distribute verbatim copies of the
 Software, (b) run the Software for Licensee's internal business purposes,
-(c) produce derivative works of buidler-core that incorporate the Software
+(c) produce derivative works of hardhat-core that incorporate the Software
 unmodified, and (d) use the software as a developer tool to produce and test
 Licensee's own software products ("Licensee Products"). Licensee Products are
 not restricted by this Agreement so long as they do not incorporate any portion

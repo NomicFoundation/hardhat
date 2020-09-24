@@ -224,7 +224,7 @@ const _readWsRequest = (msg: string): JsonRpcRequest => {
 };
 
 const _handleError = (error: any): JsonRpcResponse => {
-  // In case of non-buidler error, treat it as internal and associate the appropriate error code.
+  // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
   if (!HardhatNetworkProviderError.isHardhatNetworkProviderError(error)) {
     error = new InternalError(error.message);
   }

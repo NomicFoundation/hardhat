@@ -1,7 +1,7 @@
 /**
- * This function resets the buidler context.
+ * This function resets the hardhat context.
  *
- * This doesn't unload any loaded Buidler plugin, so those have to be unloaded
+ * This doesn't unload any loaded Hardhat plugin, so those have to be unloaded
  * manually with `unloadModule`.
  */
 import { HardhatContext } from "./context";
@@ -25,7 +25,7 @@ export function resetHardhatContext() {
       try {
         configPath = getUserConfigPath();
       } catch (error) {
-        // We weren't in a buidler project
+        // We weren't in a hardhat project
       }
 
       if (configPath !== undefined) {
@@ -35,7 +35,7 @@ export function resetHardhatContext() {
     HardhatContext.deleteHardhatContext();
   }
 
-  // Unload all the buidler's entry-points.
+  // Unload all the hardhat's entry-points.
   unloadModule("../register");
   unloadModule("./cli/cli");
   unloadModule("./lib/hardhat-lib");

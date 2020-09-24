@@ -41,14 +41,14 @@ export class Environment implements HardhatRuntimeEnvironment {
   private readonly _extenders: EnvironmentExtender[];
 
   /**
-   * Initializes the Buidler Runtime Environment and the given
+   * Initializes the Hardhat Runtime Environment and the given
    * extender functions.
    *
    * @remarks The extenders' execution order is given by the order
-   * of the requires in the buidler's config file and its plugins.
+   * of the requires in the hardhat's config file and its plugins.
    *
-   * @param config The buidler's config object.
-   * @param hardhatArguments The parsed buidler's arguments.
+   * @param config The hardhat's config object.
+   * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
    * @param extenders A list of extenders.
    */
@@ -128,7 +128,7 @@ export class Environment implements HardhatRuntimeEnvironment {
   };
 
   /**
-   * Injects the properties of `this` (the Buidler Runtime Environment) into the global scope.
+   * Injects the properties of `this` (the Hardhat Runtime Environment) into the global scope.
    *
    * @param blacklist a list of property names that won't be injected.
    *

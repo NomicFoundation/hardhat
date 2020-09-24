@@ -2,6 +2,6 @@
 /* tslint:disable */
 import chalk from "chalk";
 
-console.error(chalk.cyan("You probably meant to type buidler. We got you."));
+console.error(chalk.cyan("You probably meant to type hardhat. We got you."));
 
 require("./bootstrap");

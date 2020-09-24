@@ -32,12 +32,12 @@ export async function watchCompilerOutput(
     } catch (error) {
       console.warn(
         chalk.yellow(
-          "There was a problem adding the new compiler result. Run Buidler with --verbose to learn more."
+          "There was a problem adding the new compiler result. Run Hardhat with --verbose to learn more."
         )
       );
 
       log(
-        "Last compilation result couldn't be added. Please report this to help us improve Buidler.\n",
+        "Last compilation result couldn't be added. Please report this to help us improve Hardhat.\n",
         error
       );
 

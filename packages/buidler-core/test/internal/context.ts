@@ -7,7 +7,7 @@ import { useEnvironment } from "../helpers/environment";
 import { expectHardhatError } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 
-describe("Buidler context", async function () {
+describe("Hardhat context", async function () {
   describe("no context", () => {
     it("context is not defined", async function () {
       assert.isFalse(HardhatContext.isCreated());
@@ -38,7 +38,7 @@ describe("Buidler context", async function () {
       assert.isUndefined(ctx.environment);
     });
 
-    it("should throw when recreating buidler context", async function () {
+    it("should throw when recreating hardhat context", async function () {
       HardhatContext.createHardhatContext();
       expectHardhatError(
         () => HardhatContext.createHardhatContext(),

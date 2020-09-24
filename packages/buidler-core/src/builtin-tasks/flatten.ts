@@ -69,7 +69,7 @@ export default function () {
       }
 
       const packageJson = await getPackageJson();
-      flattened += `// Sources flattened with buidler v${packageJson.version} https://usehardhat.com`;
+      flattened += `// Sources flattened with hardhat v${packageJson.version} https://usehardhat.com`;
 
       const sortedFiles = getSortedFiles(graph);
 

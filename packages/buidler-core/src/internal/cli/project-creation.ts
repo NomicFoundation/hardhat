@@ -111,12 +111,12 @@ function printSuggestedCommands() {
       : "npx ";
 
   console.log(`Try running some of the following tasks:`);
-  console.log(`  ${npx}buidler accounts`);
-  console.log(`  ${npx}buidler compile`);
-  console.log(`  ${npx}buidler test`);
-  console.log(`  ${npx}buidler node`);
+  console.log(`  ${npx}hardhat accounts`);
+  console.log(`  ${npx}hardhat compile`);
+  console.log(`  ${npx}hardhat test`);
+  console.log(`  ${npx}hardhat node`);
   console.log(`  node scripts/sample-script.js`);
-  console.log(`  ${npx}buidler help`);
+  console.log(`  ${npx}hardhat help`);
 }
 
 async function printRecommendedDepsInstallationInstructions() {
@@ -129,7 +129,7 @@ async function printRecommendedDepsInstallationInstructions() {
   console.log(`  ${cmd.join(" ")}`);
 }
 
-async function writeEmptyBuidlerConfig() {
+async function writeEmptyHardhatConfig() {
   return fsExtra.writeFile(
     "hardhat.config.js",
     "module.exports = {};\n",
@@ -186,7 +186,7 @@ export async function createProject() {
   }
 
   if (action === CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
-    await writeEmptyBuidlerConfig();
+    await writeEmptyHardhatConfig();
     console.log(
       `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`
     );
@@ -205,7 +205,7 @@ export async function createProject() {
         name: "projectRoot",
         type: "input",
         initial: process.cwd(),
-        message: "Buidler project root:",
+        message: "Hardhat project root:",
       },
       createConfirmationPrompt(
         "shouldAddGitIgnore",

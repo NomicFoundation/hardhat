@@ -37,19 +37,19 @@ export function usePlugin(
   if (from === undefined) {
     // We have two different ways to search for plugins.
     //
-    // If Buidler is installed globally, we want to force the plugins to also be
+    // If Hardhat is installed globally, we want to force the plugins to also be
     // installed globally, otherwise we can end up in a very chaotic situation.
-    // The way we enforce this is by setting `from` to something inside Buidler
+    // The way we enforce this is by setting `from` to something inside Hardhat
     // itself, as it will be placed in the global node_modules.
     //
-    // If Buidler is not installed globally, we want the plugins to be
-    // accessible from the project's root, not from the Buidler installation.
-    // The reason for this is that yarn workspaces can easily hoist Buidler and
+    // If Hardhat is not installed globally, we want the plugins to be
+    // accessible from the project's root, not from the Hardhat installation.
+    // The reason for this is that yarn workspaces can easily hoist Hardhat and
     // not the plugins, leaving you with something like this:
     //
     //    root/
     //      node_modules/
-    //        buidler
+    //        hardhat
     //      subpackage1/
     //        node_modules/
     //          plugin@v1/
@@ -59,7 +59,7 @@ export function usePlugin(
     //          plugin@v2/
     //        hardhat.config.js
     //
-    // If we were to load the plugins from the Buidler installation in this
+    // If we were to load the plugins from the Hardhat installation in this
     // situation, they wouldn't be found. Instead, we should load them from the
     // project's root.
     //
@@ -79,7 +79,7 @@ export function usePlugin(
   if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
     globalFlag = " --global";
     globalWarning =
-      "You are using a global installation of Buidler. Plugins and their dependencies must also be global.\n";
+      "You are using a global installation of Hardhat. Plugins and their dependencies must also be global.\n";
   }
 
   const pluginPackageJson = readPackageJson(pluginName, from);

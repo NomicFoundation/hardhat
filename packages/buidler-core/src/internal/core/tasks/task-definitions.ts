@@ -83,7 +83,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Adds a paramater to the task's definition.
    *
    * @remarks This will throw if the `name` is already used by this task or
-   * by Buidler's global parameters.
+   * by Hardhat's global parameters.
    *
    * @param name The parameter's name.
    * @param description The parameter's description.
@@ -200,7 +200,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Adds a positional paramater to the task's definition.
    *
    * @remarks This will throw if the `name` is already used by this task or
-   * by Buidler's global parameters.
+   * by Hardhat's global parameters.
    * @remarks This will throw if `isOptional` is `false` and an optional positional
    * param was already set.
    * @remarks This will throw if a variadic positional param is already set.
@@ -433,7 +433,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * @param name the param's name.
    *
    * @throws BDLR201 if `name` is already used as a param.
-   * @throws BDLR202 if `name` is already used as a param by Buidler
+   * @throws BDLR202 if `name` is already used as a param by Hardhat
    */
   private _validateNameNotUsed(name: string) {
     if (this._hasParamDefined(name)) {

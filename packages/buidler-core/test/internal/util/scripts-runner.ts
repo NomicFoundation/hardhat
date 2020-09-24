@@ -1,9 +1,9 @@
 import { assert } from "chai";
 
 import {
-  resolveBuidlerRegisterPath,
+  resolveHardhatRegisterPath,
   runScript,
-  runScriptWithBuidler,
+  runScriptWithHardhat,
 } from "../../../src/internal/util/scripts-runner";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
@@ -35,9 +35,9 @@ describe("Scripts runner", function () {
   });
 
   it("Should resolve to the status code of the script run", async function () {
-    const buidlerRegisterPath = resolveBuidlerRegisterPath();
+    const hardhatRegisterPath = resolveHardhatRegisterPath();
 
-    const extraNodeArgs = ["--require", buidlerRegisterPath];
+    const extraNodeArgs = ["--require", hardhatRegisterPath];
     const scriptArgs: string[] = [];
 
     const runScriptCases = [
@@ -100,34 +100,34 @@ describe("Scripts runner", function () {
     );
   });
 
-  describe("runWithBuidler", function () {
+  describe("runWithHardhat", function () {
     useEnvironment();
 
-    it("Should load buidler/register successfully", async function () {
+    it("Should load hardhat/register successfully", async function () {
       const [
-        statusCodeWithBuidler,
-        statusCodeWithoutBuidler,
+        statusCodeWithHardhat,
+        statusCodeWithoutHardhat,
       ] = await Promise.all([
-        runScriptWithBuidler(
+        runScriptWithHardhat(
           this.env.hardhatArguments,
           "./successful-script.js"
         ),
         runScript("./successful-script.js"),
       ]);
 
-      assert.equal(statusCodeWithBuidler, 0);
+      assert.equal(statusCodeWithHardhat, 0);
 
       // We check here that the script is correctly testing this:
-      assert.notEqual(statusCodeWithoutBuidler, 0);
+      assert.notEqual(statusCodeWithoutHardhat, 0);
     });
 
-    it("Should forward all the buidler arguments", async function () {
-      // This is only for testing purposes, as we can't set a buidler argument
+    it("Should forward all the hardhat arguments", async function () {
+      // This is only for testing purposes, as we can't set a hardhat argument
       // as the CLA does, and env variables always get forwarded to child
       // processes
       this.env.hardhatArguments.network = "custom";
 
-      const statusCode = await runScriptWithBuidler(
+      const statusCode = await runScriptWithHardhat(
         this.env.hardhatArguments,
         "./assert-hardhat-arguments.js"
       );

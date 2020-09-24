@@ -119,12 +119,12 @@ export default function () {
           } catch (error) {
             console.warn(
               chalk.yellow(
-                "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Hardhat Network. Run Buidler with --verbose to learn more."
+                "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Hardhat Network. Run Hardhat with --verbose to learn more."
               )
             );
 
             log(
-              "Compilation output can't be watched. Please report this to help us improve Buidler.\n",
+              "Compilation output can't be watched. Please report this to help us improve Hardhat.\n",
               error
             );
 

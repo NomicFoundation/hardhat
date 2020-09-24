@@ -9,7 +9,7 @@ export class CustomError extends Error {
   constructor(message: string, public readonly parent?: Error) {
     // WARNING: Using super when extending a builtin class doesn't work well
     // with TS if you are compiling to a version of JavaScript that doesn't have
-    // native classes. We don't do that in Buidler.
+    // native classes. We don't do that in Hardhat.
     //
     // For more info about this, take a look at: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
     super(message);
@@ -91,7 +91,7 @@ export class HardhatError extends CustomError {
 }
 
 /**
- * This class is used to throw errors from buidler plugins made by third parties.
+ * This class is used to throw errors from hardhat plugins made by third parties.
  */
 export class HardhatPluginError extends CustomError {
   public static isHardhatPluginError(other: any): other is HardhatPluginError {
@@ -158,7 +158,7 @@ export class NomicLabsHardhatPluginError extends HardhatPluginError {
   private readonly _isNomicLabsHardhatPluginError: boolean;
 
   /**
-   * This class is used to throw errors from *core* buidler plugins. If you are
+   * This class is used to throw errors from *core* hardhat plugins. If you are
    * developing a third-party plugin, use HardhatPluginError instead.
    */
   public constructor(

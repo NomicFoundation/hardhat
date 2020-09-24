@@ -103,8 +103,8 @@ describe("ArgumentsParser", () => {
     );
   });
 
-  describe("buidler arguments", () => {
-    it("should parse buidler arguments with task", () => {
+  describe("hardhat arguments", () => {
+    it("should parse hardhat arguments with task", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
@@ -130,7 +130,7 @@ describe("ArgumentsParser", () => {
       assert.equal("--task-param", unparsedCLAs[0]);
     });
 
-    it("should parse buidler arguments after taskname", () => {
+    it("should parse hardhat arguments after taskname", () => {
       const rawCLAs: string[] = [
         "compile",
         "--task-param",
@@ -176,7 +176,7 @@ describe("ArgumentsParser", () => {
       );
     });
 
-    it("should parse a buidler argument", () => {
+    it("should parse a hardhat argument", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
@@ -207,7 +207,7 @@ describe("ArgumentsParser", () => {
       assert.equal(hardhatArguments.network, "local");
     });
 
-    it("should fail trying to parse buidler with invalid argument", () => {
+    it("should fail trying to parse hardhat with invalid argument", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
@@ -246,7 +246,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should only add non-present arguments", () => {
-      const hardhatArguments = argumentsParser["_addBuidlerDefaultArguments"](
+      const hardhatArguments = argumentsParser["_addHardhatDefaultArguments"](
         HARDHAT_PARAM_DEFINITIONS,
         envArgs,
         {

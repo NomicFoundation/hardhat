@@ -263,7 +263,7 @@ export class ForkStateManager implements PStateManager {
     // perform this operation.
   }
 
-  // NOTE: this method is PUBLIC despite the naming convention of buidler
+  // NOTE: this method is PUBLIC despite the naming convention of hardhat
   public _clearOriginalStorageCache(): void {
     this._originalStorageCache = new Map();
   }

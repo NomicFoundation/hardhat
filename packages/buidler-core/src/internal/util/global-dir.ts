@@ -7,7 +7,7 @@ const log = debug("hardhat:core:global-dir");
 
 async function generatePaths() {
   const { default: envPaths } = await import("env-paths");
-  return envPaths("buidler");
+  return envPaths("hardhat");
 }
 
 async function getConfigDir(): Promise<string> {
@@ -34,6 +34,7 @@ export async function readAnalyticsId() {
   return readId(idFile);
 }
 
+// TODO-HH: we have two "legacies" now
 export function readLegacyAnalyticsId() {
   const oldIdFile = path.join(os.homedir(), ".buidler", "config.json");
   return readId(oldIdFile);

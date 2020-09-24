@@ -34,21 +34,21 @@ describe("Anonymizer", () => {
     assert.isTrue(anonymizationResult.anonymizeContent);
   });
 
-  it("should not anonymize paths of buidler files", () => {
+  it("should not anonymize paths of hardhat files", () => {
     const anonymizer = new Anonymizer();
-    const buidlerFilePath = path.join(
+    const hardhatFilePath = path.join(
       "node_modules",
       "@nomiclabs",
-      "buidler-core",
-      "someBuidlerFile.js"
+      "hardhat-core",
+      "someHardhatFile.js"
     );
     const anonymizationResult = anonymizer.anonymizeFilename(
-      path.join(PROJECT_ROOT, buidlerFilePath)
+      path.join(PROJECT_ROOT, hardhatFilePath)
     );
 
     assert.equal(
       anonymizationResult.anonymizedFilename,
-      path.join(buidlerFilePath)
+      path.join(hardhatFilePath)
     );
     assert.isFalse(anonymizationResult.anonymizeContent);
   });
@@ -64,15 +64,15 @@ describe("Anonymizer", () => {
 
   describe("hardhat config", () => {
     it("should return only the config's relative path", () => {
-      const pathToBuidlerConfig = path.join(PROJECT_ROOT, "hardhat.config.ts");
-      const anonymizer = new MockedAnonymizer(pathToBuidlerConfig);
+      const pathToHardhatConfig = path.join(PROJECT_ROOT, "hardhat.config.ts");
+      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
       anonymizer.getFilePackageJsonPathResult = path.join(
         PROJECT_ROOT,
         "package.json"
       );
 
       const anonymizationResult = anonymizer.anonymizeFilename(
-        pathToBuidlerConfig
+        pathToHardhatConfig
       );
 
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
@@ -80,19 +80,19 @@ describe("Anonymizer", () => {
     });
 
     it("should return only the config's relative path when it's not in the root", () => {
-      const pathToBuidlerConfig = path.join(
+      const pathToHardhatConfig = path.join(
         PROJECT_ROOT,
         "config",
         "hardhat.config.ts"
       );
-      const anonymizer = new MockedAnonymizer(pathToBuidlerConfig);
+      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
       anonymizer.getFilePackageJsonPathResult = path.join(
         PROJECT_ROOT,
         "package.json"
       );
 
       const anonymizationResult = anonymizer.anonymizeFilename(
-        pathToBuidlerConfig
+        pathToHardhatConfig
       );
 
       assert.equal(
@@ -103,15 +103,15 @@ describe("Anonymizer", () => {
     });
 
     it("should return only the config's base name if package.json cannot be found", () => {
-      const pathToBuidlerConfig = path.join(
+      const pathToHardhatConfig = path.join(
         PROJECT_ROOT,
         "config",
         "hardhat.config.ts"
       );
-      const anonymizer = new MockedAnonymizer(pathToBuidlerConfig);
+      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
 
       const anonymizationResult = anonymizer.anonymizeFilename(
-        pathToBuidlerConfig
+        pathToHardhatConfig
       );
 
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");

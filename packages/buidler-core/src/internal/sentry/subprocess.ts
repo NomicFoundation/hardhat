@@ -54,7 +54,7 @@ async function main() {
     const anonymizedEvent = anonymizer.anonymize(event);
 
     if (anonymizedEvent.isRight()) {
-      if (anonymizer.raisedByBuidler(anonymizedEvent.value)) {
+      if (anonymizer.raisedByHardhat(anonymizedEvent.value)) {
         Sentry.captureEvent(anonymizedEvent.value);
       }
     } else {

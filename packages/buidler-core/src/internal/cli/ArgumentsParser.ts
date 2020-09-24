@@ -92,7 +92,7 @@ export class ArgumentsParser {
     }
 
     return {
-      hardhatArguments: this._addBuidlerDefaultArguments(
+      hardhatArguments: this._addHardhatDefaultArguments(
         hardhatParamDefinitions,
         envVariableArguments,
         hardhatArguments
@@ -153,7 +153,7 @@ export class ArgumentsParser {
     return { paramArguments, rawPositionalArguments };
   }
 
-  private _addBuidlerDefaultArguments(
+  private _addHardhatDefaultArguments(
     hardhatParamDefinitions: HardhatParamDefinitions,
     envVariableArguments: HardhatArguments,
     hardhatArguments: Partial<HardhatArguments>

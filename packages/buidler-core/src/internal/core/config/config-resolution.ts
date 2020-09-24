@@ -58,10 +58,10 @@ function normalizeSolidityConfig(
 
 /**
  * This functions resolves the hardhat config by merging the user provided config
- * and the buidler default config.
+ * and the hardhat default config.
  *
  * @param userConfigPath the user config filepath
- * @param defaultConfig  the buidler's default config object
+ * @param defaultConfig  the hardhat's default config object
  * @param userConfig     the user config object
  * @param configExtenders An array of ConfigExtenders
  *

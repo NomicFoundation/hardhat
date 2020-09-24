@@ -1,6 +1,6 @@
 usePlugin("@nomiclabs/buidler-waffle");
 
-// This is a sample Buidler task. To learn how to create your own go to
+// This is a sample Hardhat task. To learn how to create your own go to
 // https://usehardhat.com/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
   const accounts = await ethers.getSigners();

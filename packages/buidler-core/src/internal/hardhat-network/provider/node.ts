@@ -213,12 +213,12 @@ export class HardhatNode extends EventEmitter {
     } catch (error) {
       console.warn(
         chalk.yellow(
-          "The Hardhat Network tracing engine could not be initialized. Run Buidler with --verbose to learn more."
+          "The Hardhat Network tracing engine could not be initialized. Run Hardhat with --verbose to learn more."
         )
       );
 
       log(
-        "Hardhat Network tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Buidler.\n",
+        "Hardhat Network tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Hardhat.\n",
         error
       );
 
@@ -850,12 +850,12 @@ export class HardhatNode extends EventEmitter {
     } catch (error) {
       console.warn(
         chalk.yellow(
-          "The Hardhat Network tracing engine could not be updated. Run Buidler with --verbose to learn more."
+          "The Hardhat Network tracing engine could not be updated. Run Hardhat with --verbose to learn more."
         )
       );
 
       log(
-        "ContractsIdentifier failed to be updated. Please report this to help us improve Buidler.\n",
+        "ContractsIdentifier failed to be updated. Please report this to help us improve Hardhat.\n",
         error
       );
 
@@ -906,7 +906,7 @@ export class HardhatNode extends EventEmitter {
   ): Promise<string[]> {
     if (vmTrace === undefined || vmTracerError !== undefined) {
       log(
-        "Could not print console log. Please report this to help us improve Buidler.\n",
+        "Could not print console log. Please report this to help us improve Hardhat.\n",
         vmTracerError
       );
 
@@ -936,7 +936,7 @@ export class HardhatNode extends EventEmitter {
     } catch (error) {
       this._failedStackTraces += 1;
       log(
-        "Could not generate stack trace. Please report this to help us improve Buidler.\n",
+        "Could not generate stack trace. Please report this to help us improve Hardhat.\n",
         error
       );
     }

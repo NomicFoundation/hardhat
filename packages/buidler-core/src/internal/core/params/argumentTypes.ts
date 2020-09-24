@@ -180,7 +180,7 @@ export const inputFile: CLIArgumentType<string> = {
       const stats = fs.lstatSync(strValue);
 
       if (stats.isDirectory()) {
-        // This is caught and encapsulated in a buidler error.
+        // This is caught and encapsulated in a hardhat error.
         // tslint:disable-next-line only-hardhat-error
         throw new Error(`${strValue} is a directory, not a file`);
       }

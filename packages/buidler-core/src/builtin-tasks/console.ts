@@ -4,14 +4,14 @@ import * as path from "path";
 import * as semver from "semver";
 
 import { task } from "../internal/core/config/config-env";
-import { runScriptWithBuidler } from "../internal/util/scripts-runner";
+import { runScriptWithHardhat } from "../internal/util/scripts-runner";
 
 import { TASK_CONSOLE } from "./task-names";
 
 export default function () {
   const log = debug("hardhat:core:tasks:console");
 
-  task(TASK_CONSOLE, "Opens a buidler console")
+  task(TASK_CONSOLE, "Opens a hardhat console")
     .addFlag("noCompile", "Don't compile before running this task")
     .setAction(
       async (
@@ -34,11 +34,11 @@ export default function () {
         }
 
         log(
-          `Creating a Node REPL subprocess with Buidler's register so we can set some Node's flags`
+          `Creating a Node REPL subprocess with Hardhat's register so we can set some Node's flags`
         );
 
         // Running the script "" is like running `node`, so this starts the repl
-        await runScriptWithBuidler(hardhatArguments, "", [], nodeArgs, {
+        await runScriptWithHardhat(hardhatArguments, "", [], nodeArgs, {
           NODE_REPL_HISTORY: historyFile,
         });
       }

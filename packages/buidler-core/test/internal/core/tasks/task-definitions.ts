@@ -158,7 +158,7 @@ describe("SimpleTaskDefinition", () => {
       });
     });
 
-    describe("param name clashes with Buidler's ones", () => {
+    describe("param name clashes with Hardhat's ones", () => {
       function testClashWith(name: string) {
         expectHardhatError(
           () => taskDefinition.addParam(name),
@@ -191,7 +191,7 @@ describe("SimpleTaskDefinition", () => {
       }
 
       it("Should throw if a param clashes", () => {
-        // This is constructed to force a type error here if a Buidler arg is
+        // This is constructed to force a type error here if a Hardhat arg is
         // added and not tested.
         const hardhatArgs: HardhatArguments = {
           showStackTraces: true,

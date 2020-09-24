@@ -39,21 +39,21 @@ export async function runScript(
   });
 }
 
-export async function runScriptWithBuidler(
+export async function runScriptWithHardhat(
   hardhatArguments: HardhatArguments,
   scriptPath: string,
   scriptArgs: string[] = [],
   extraNodeArgs: string[] = [],
   extraEnvVars: { [name: string]: string } = {}
 ): Promise<number> {
-  log(`Creating Buidler subprocess to run ${scriptPath}`);
+  log(`Creating Hardhat subprocess to run ${scriptPath}`);
 
-  const buidlerRegisterPath = resolveBuidlerRegisterPath();
+  const hardhatRegisterPath = resolveHardhatRegisterPath();
 
   return runScript(
     scriptPath,
     scriptArgs,
-    [...extraNodeArgs, "--require", buidlerRegisterPath],
+    [...extraNodeArgs, "--require", hardhatRegisterPath],
     {
       ...getEnvVariablesMap(hardhatArguments),
       ...extraEnvVars,
@@ -87,10 +87,10 @@ function withFixedInspectArg(argv: string[]) {
 }
 
 /**
- * Ensure buidler/register source file path is resolved to compiled JS file
+ * Ensure hardhat/register source file path is resolved to compiled JS file
  * instead of TS source file, so we don't need to run ts-node unnecessarily.
  */
-export function resolveBuidlerRegisterPath() {
+export function resolveHardhatRegisterPath() {
   const executionMode = getExecutionMode();
   const isCompiledInstallation = [
     ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION,
@@ -98,18 +98,18 @@ export function resolveBuidlerRegisterPath() {
     ExecutionMode.EXECUTION_MODE_LINKED,
   ].includes(executionMode);
 
-  const buidlerCoreBaseDir = path.join(__dirname, "..", "..");
+  const hardhatCoreBaseDir = path.join(__dirname, "..", "..");
 
-  const buidlerCoreCompiledDir = isCompiledInstallation
-    ? buidlerCoreBaseDir
-    : path.join(buidlerCoreBaseDir, "..");
+  const hardhatCoreCompiledDir = isCompiledInstallation
+    ? hardhatCoreBaseDir
+    : path.join(hardhatCoreBaseDir, "..");
 
-  const buidlerCoreRegisterCompiledPath = path.join(
-    buidlerCoreCompiledDir,
+  const hardhatCoreRegisterCompiledPath = path.join(
+    hardhatCoreCompiledDir,
     "register"
   );
 
-  return buidlerCoreRegisterCompiledPath;
+  return hardhatCoreRegisterCompiledPath;
 }
 
 function getTsNodeArgsIfNeeded(scriptPath: string) {

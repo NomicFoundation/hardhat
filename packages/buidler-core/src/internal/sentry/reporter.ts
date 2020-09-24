@@ -6,7 +6,7 @@ import {
 import { isLocalDev } from "../core/execution-mode";
 import { ProviderError } from "../core/providers/errors";
 import { isRunningOnCiServer } from "../util/ci-detection";
-import { getBuidlerVersion } from "../util/packageInfo";
+import { getHardhatVersion } from "../util/packageInfo";
 
 import { getSubprocessTransport } from "./transport";
 
@@ -35,8 +35,8 @@ export class Reporter {
     Sentry.setExtra("configPath", instance.configPath);
     Sentry.setExtra("nodeVersion", process.version);
 
-    const buidlerVersion = getBuidlerVersion();
-    Sentry.setExtra("buidlerVersion", buidlerVersion);
+    const hardhatVersion = getHardhatVersion();
+    Sentry.setExtra("hardhatVersion", hardhatVersion);
 
     Sentry.captureException(error);
 
