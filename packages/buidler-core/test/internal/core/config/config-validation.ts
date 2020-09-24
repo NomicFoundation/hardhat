@@ -500,7 +500,7 @@ describe("Config validation", function () {
           );
         });
 
-        describe("BuidlerNetworkHDAccounstConfig", function () {
+        describe("HardhatNetworkHDAccounstConfig", function () {
           it("Should accept a valid HD config", function () {
             let hdConfig: HardhatNetworkHDAccountsConfig = {
               mnemonic: "asd",
@@ -620,7 +620,7 @@ describe("Config validation", function () {
             assert.isEmpty(errors);
           });
 
-          it("Shouldn't fail if no url is set for buidler network", function () {
+          it("Shouldn't fail if no url is set for hardhat network", function () {
             const errors = getValidationErrors({
               networks: { [HARDHAT_NETWORK_NAME]: {} },
             });

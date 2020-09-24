@@ -198,11 +198,11 @@ export function getValidationErrors(config: any): string[] {
 
   // These can't be validated with io-ts
   if (config !== undefined && typeof config.networks === "object") {
-    const buidlerNetwork = config.networks[HARDHAT_NETWORK_NAME];
-    if (buidlerNetwork !== undefined) {
+    const hardhatNetwork = config.networks[HARDHAT_NETWORK_NAME];
+    if (hardhatNetwork !== undefined) {
       if (
-        buidlerNetwork.hardfork !== undefined &&
-        !HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(buidlerNetwork.hardfork)
+        hardhatNetwork.hardfork !== undefined &&
+        !HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardhatNetwork.hardfork)
       ) {
         errors.push(
           `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.hardfork is not supported. Use one of ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
@@ -212,104 +212,104 @@ export function getValidationErrors(config: any): string[] {
       }
 
       if (
-        buidlerNetwork.allowUnlimitedContractSize !== undefined &&
-        typeof buidlerNetwork.allowUnlimitedContractSize !== "boolean"
+        hardhatNetwork.allowUnlimitedContractSize !== undefined &&
+        typeof hardhatNetwork.allowUnlimitedContractSize !== "boolean"
       ) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.allowUnlimitedContractSize`,
-            buidlerNetwork.allowUnlimitedContractSize,
+            hardhatNetwork.allowUnlimitedContractSize,
             "boolean | undefined"
           )
         );
       }
 
       if (
-        buidlerNetwork.initialDate !== undefined &&
-        typeof buidlerNetwork.initialDate !== "string"
+        hardhatNetwork.initialDate !== undefined &&
+        typeof hardhatNetwork.initialDate !== "string"
       ) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.initialDate`,
-            buidlerNetwork.initialDate,
+            hardhatNetwork.initialDate,
             "string | undefined"
           )
         );
       }
 
       if (
-        buidlerNetwork.throwOnTransactionFailures !== undefined &&
-        typeof buidlerNetwork.throwOnTransactionFailures !== "boolean"
+        hardhatNetwork.throwOnTransactionFailures !== undefined &&
+        typeof hardhatNetwork.throwOnTransactionFailures !== "boolean"
       ) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.throwOnTransactionFailures`,
-            buidlerNetwork.throwOnTransactionFailures,
+            hardhatNetwork.throwOnTransactionFailures,
             "boolean | undefined"
           )
         );
       }
 
       if (
-        buidlerNetwork.throwOnCallFailures !== undefined &&
-        typeof buidlerNetwork.throwOnCallFailures !== "boolean"
+        hardhatNetwork.throwOnCallFailures !== undefined &&
+        typeof hardhatNetwork.throwOnCallFailures !== "boolean"
       ) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.throwOnCallFailures`,
-            buidlerNetwork.throwOnCallFailures,
+            hardhatNetwork.throwOnCallFailures,
             "boolean | undefined"
           )
         );
       }
 
-      if (buidlerNetwork.url !== undefined) {
+      if (hardhatNetwork.url !== undefined) {
         errors.push(
           `HardhatConfig.networks.${HARDHAT_NETWORK_NAME} can't have an url`
         );
       }
 
       if (
-        buidlerNetwork.blockGasLimit !== undefined &&
-        typeof buidlerNetwork.blockGasLimit !== "number"
+        hardhatNetwork.blockGasLimit !== undefined &&
+        typeof hardhatNetwork.blockGasLimit !== "number"
       ) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.blockGasLimit`,
-            buidlerNetwork.blockGasLimit,
+            hardhatNetwork.blockGasLimit,
             "number | undefined"
           )
         );
       }
 
       if (
-        buidlerNetwork.chainId !== undefined &&
-        typeof buidlerNetwork.chainId !== "number"
+        hardhatNetwork.chainId !== undefined &&
+        typeof hardhatNetwork.chainId !== "number"
       ) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chainId`,
-            buidlerNetwork.chainId,
+            hardhatNetwork.chainId,
             "number | undefined"
           )
         );
       }
 
       if (
-        buidlerNetwork.loggingEnabled !== undefined &&
-        typeof buidlerNetwork.loggingEnabled !== "boolean"
+        hardhatNetwork.loggingEnabled !== undefined &&
+        typeof hardhatNetwork.loggingEnabled !== "boolean"
       ) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.loggingEnabled`,
-            buidlerNetwork.loggingEnabled,
+            hardhatNetwork.loggingEnabled,
             "boolean | undefined"
           )
         );
       }
 
-      if (Array.isArray(buidlerNetwork.accounts)) {
-        for (const account of buidlerNetwork.accounts) {
+      if (Array.isArray(hardhatNetwork.accounts)) {
+        for (const account of hardhatNetwork.accounts) {
           if (typeof account.privateKey !== "string") {
             errors.push(
               getErrorMessage(
@@ -330,24 +330,24 @@ export function getValidationErrors(config: any): string[] {
             );
           }
         }
-      } else if (typeof buidlerNetwork.accounts === "object") {
+      } else if (typeof hardhatNetwork.accounts === "object") {
         const hdConfigResult = HardhatNetworkHDAccountsConfig.decode(
-          buidlerNetwork.accounts
+          hardhatNetwork.accounts
         );
         if (hdConfigResult.isLeft()) {
           errors.push(
             getErrorMessage(
               `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts`,
-              buidlerNetwork.accounts,
+              hardhatNetwork.accounts,
               "[{privateKey: string, balance: string}] | HardhatNetworkHDAccountsConfig | undefined"
             )
           );
         }
-      } else if (buidlerNetwork.accounts !== undefined) {
+      } else if (hardhatNetwork.accounts !== undefined) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts`,
-            buidlerNetwork.accounts,
+            hardhatNetwork.accounts,
             "[{privateKey: string, balance: string}] | HardhatNetworkHDAccountsConfig | undefined"
           )
         );
