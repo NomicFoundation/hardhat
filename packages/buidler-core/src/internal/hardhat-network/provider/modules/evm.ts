@@ -3,13 +3,13 @@ import * as t from "io-ts";
 
 import { InvalidInputError, MethodNotFoundError } from "../errors";
 import { rpcQuantity, validateParams } from "../input";
-import { BuidlerNode } from "../node";
+import { HardhatNode } from "../node";
 import { numberToRpcQuantity } from "../output";
 
 // tslint:disable only-hardhat-error
 
 export class EvmModule {
-  constructor(private readonly _node: BuidlerNode) {}
+  constructor(private readonly _node: HardhatNode) {}
 
   public async processRequest(
     method: string,

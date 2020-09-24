@@ -32,7 +32,7 @@ import { EvmModule } from "./modules/evm";
 import { ModulesLogger } from "./modules/logger";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
-import { BuidlerNode } from "./node";
+import { HardhatNode } from "./node";
 import {
   ForkConfig,
   GenesisAccount,
@@ -50,7 +50,7 @@ const PRIVATE_RPC_METHODS = new Set(["hardhat_getStackTraceFailuresCount"]);
 export class HardhatNetworkProvider extends EventEmitter
   implements EIP1193Provider {
   private _common?: Common;
-  private _node?: BuidlerNode;
+  private _node?: HardhatNode;
   private _ethModule?: EthModule;
   private _netModule?: NetModule;
   private _web3Module?: Web3Module;
@@ -258,7 +258,7 @@ export class HardhatNetworkProvider extends EventEmitter
       };
     }
 
-    const [common, node] = await BuidlerNode.create(config);
+    const [common, node] = await HardhatNode.create(config);
 
     this._common = common;
     this._node = node;
@@ -324,11 +324,11 @@ export class HardhatNetworkProvider extends EventEmitter
     await this._init();
   }
 
-  private _forwardNodeEvents(node: BuidlerNode) {
+  private _forwardNodeEvents(node: HardhatNode) {
     node.addListener("ethEvent", this._ethEventListener);
   }
 
-  private _stopForwardingNodeEvents(node: BuidlerNode) {
+  private _stopForwardingNodeEvents(node: HardhatNode) {
     node.removeListener("ethEvent", this._ethEventListener);
   }
 

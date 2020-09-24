@@ -20,7 +20,7 @@ import {
 } from "ethereumjs-util";
 import EventEmitter from "events";
 
-import { BUIDLEREVM_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
+import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
@@ -86,10 +86,10 @@ export const COINBASE_ADDRESS = toBuffer(
 
 // tslint:disable only-hardhat-error
 
-export class BuidlerNode extends EventEmitter {
+export class HardhatNode extends EventEmitter {
   public static async create(
     config: NodeConfig
-  ): Promise<[Common, BuidlerNode]> {
+  ): Promise<[Common, HardhatNode]> {
     const {
       genesisAccounts,
       blockGasLimit,
@@ -139,7 +139,7 @@ export class BuidlerNode extends EventEmitter {
       allowUnlimitedContractSize,
     });
 
-    const node = new BuidlerNode(
+    const node = new HardhatNode(
       vm,
       asPStateManager(stateManager),
       blockchain,
@@ -539,7 +539,7 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async getGasPrice(): Promise<BN> {
-    return new BN(BUIDLEREVM_DEFAULT_GAS_PRICE);
+    return new BN(HARDHAT_NETWORK_DEFAULT_GAS_PRICE);
   }
 
   public async getCoinbaseAddress(): Promise<Buffer> {

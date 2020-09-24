@@ -57,7 +57,7 @@ import {
   rpcUnknown,
   validateParams,
 } from "../input";
-import { BuidlerNode } from "../node";
+import { HardhatNode } from "../node";
 import { CallParams, FilterParams, TransactionParams } from "../node-types";
 import {
   bufferToRpcData,
@@ -77,7 +77,7 @@ import { ModulesLogger } from "./logger";
 export class EthModule {
   constructor(
     private readonly _common: Common,
-    private readonly _node: BuidlerNode,
+    private readonly _node: HardhatNode,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _logger?: ModulesLogger,

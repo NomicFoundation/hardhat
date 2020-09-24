@@ -12,14 +12,14 @@ import {
   rpcForkConfig,
   validateParams,
 } from "../input";
-import { BuidlerNode } from "../node";
+import { HardhatNode } from "../node";
 import { ForkConfig } from "../node-types";
 
 // tslint:disable only-hardhat-error
 
 export class HardhatModule {
   constructor(
-    private readonly _node: BuidlerNode,
+    private readonly _node: HardhatNode,
     private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>
   ) {}
 
