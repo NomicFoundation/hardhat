@@ -11,7 +11,7 @@ import type { ContractJSON } from "ethereum-waffle/dist/esm/ContractJSON";
 import type { Contract, providers, Signer } from "ethers";
 
 declare module "@nomiclabs/buidler/types" {
-  interface BuidlerRuntimeEnvironment {
+  interface HardhatRuntimeEnvironment {
     waffle: {
       provider: MockProvider;
       deployContract: (

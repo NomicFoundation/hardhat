@@ -1,6 +1,6 @@
 import debug from "debug";
 
-import { BuidlerRuntimeEnvironment } from "../../types";
+import { HardhatRuntimeEnvironment } from "../../types";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { BuidlerError } from "../core/errors";
@@ -10,7 +10,7 @@ import { getEnvBuidlerArguments } from "../core/params/env-variables";
 import { Environment } from "../core/runtime-environment";
 
 let ctx: BuidlerContext;
-let env: BuidlerRuntimeEnvironment;
+let env: HardhatRuntimeEnvironment;
 
 if (BuidlerContext.isCreated()) {
   ctx = BuidlerContext.getBuidlerContext();

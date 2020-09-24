@@ -91,7 +91,7 @@ export interface ResolvedNetworks {
 /**
  * The project paths:
  * * root: the project's root.
- * * configFile: the buidler's config filepath.
+ * * configFile: the hardhat's config filepath.
  * * cache: project's cache directory.
  * * artifacts: artifact's directory.
  * * sources: project's sources directory.
@@ -160,10 +160,10 @@ export interface SolcInput {
 }
 
 /**
- * A function that receives a BuidlerRuntimeEnvironment and
+ * A function that receives a HardhatRuntimeEnvironment and
  * modify its properties or add new ones.
  */
-export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
+export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
 
 export type ConfigExtender = (
   config: ResolvedHardhatConfig,
@@ -173,7 +173,7 @@ export type ConfigExtender = (
 // NOTE: This is experimental and will be removed. Please contact our team
 // if you are planning to use it.
 export type ExperimentalBuidlerEVMMessageTraceHook = (
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   trace: MessageTrace,
   isMessageTraceFromACall: boolean
 ) => Promise<void>;
@@ -335,7 +335,7 @@ export interface RunSuperFunction<ArgT extends TaskArguments> {
 
 export type ActionType<ArgsT extends TaskArguments> = (
   taskArgs: ArgsT,
-  env: BuidlerRuntimeEnvironment,
+  env: HardhatRuntimeEnvironment,
   runSuper: RunSuperFunction<ArgsT>
 ) => Promise<any>;
 
@@ -463,7 +463,7 @@ export type RunTaskFunction = (
   taskArguments?: TaskArguments
 ) => Promise<any>;
 
-export interface BuidlerRuntimeEnvironment {
+export interface HardhatRuntimeEnvironment {
   readonly config: ResolvedHardhatConfig;
   readonly buidlerArguments: BuidlerArguments;
   readonly tasks: TasksMap;

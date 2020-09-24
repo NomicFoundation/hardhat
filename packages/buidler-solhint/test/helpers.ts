@@ -1,9 +1,9 @@
 import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 
 declare module "mocha" {
   interface Context {
-    env: BuidlerRuntimeEnvironment;
+    env: HardhatRuntimeEnvironment;
   }
 }
 

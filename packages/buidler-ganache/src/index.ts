@@ -5,7 +5,7 @@ import {
 import { extendConfig, task } from "@nomiclabs/buidler/config";
 import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
 import {
-  BuidlerRuntimeEnvironment,
+  HardhatRuntimeEnvironment,
   RunSuperFunction,
   TaskArguments,
 } from "@nomiclabs/buidler/types";
@@ -40,7 +40,7 @@ export default function () {
 
 async function handlePluginTask(
   args: string,
-  env: BuidlerRuntimeEnvironment,
+  env: HardhatRuntimeEnvironment,
   runSuper: RunSuperFunction<TaskArguments>
 ) {
   if (env.network.name !== "ganache") {

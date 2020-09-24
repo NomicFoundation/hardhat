@@ -27,7 +27,7 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugin adds the following elements to the `BuidlerRuntimeEnvironment`:
+This plugin adds the following elements to the `HardhatRuntimeEnvironment`:
 
 - `Web3`: The Web3.js module.
 - `web3`: An instantiated Web3.js object connected to the selected network.

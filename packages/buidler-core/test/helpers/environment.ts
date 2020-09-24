@@ -1,9 +1,9 @@
 import { resetBuidlerContext } from "../../src/internal/reset";
-import { BuidlerRuntimeEnvironment } from "../../src/types";
+import { HardhatRuntimeEnvironment } from "../../src/types";
 
 declare module "mocha" {
   interface Context {
-    env: BuidlerRuntimeEnvironment;
+    env: HardhatRuntimeEnvironment;
   }
 }
 

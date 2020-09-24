@@ -12,7 +12,7 @@ declare module "@nomiclabs/buidler/types" {
     signer?: ethers.Signer
   ): Promise<ethers.ContractFactory>;
 
-  interface BuidlerRuntimeEnvironment {
+  interface HardhatRuntimeEnvironment {
     ethers: {
       provider: ethers.providers.JsonRpcProvider;
 

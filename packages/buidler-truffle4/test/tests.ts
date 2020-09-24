@@ -138,7 +138,7 @@ function testArtifactsFunctionality() {
   });
 }
 
-describe("BuidlerRuntimeEnvironment extension", function () {
+describe("HardhatRuntimeEnvironment extension", function () {
   useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
 
   it("It should add the artifacts object", function () {

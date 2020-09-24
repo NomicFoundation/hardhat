@@ -10,7 +10,7 @@ import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
 import { resetBuidlerContext } from "../../../src/internal/reset";
 import {
   BuidlerArguments,
-  BuidlerRuntimeEnvironment,
+  HardhatRuntimeEnvironment,
   ParamDefinition,
   ResolvedHardhatConfig,
   TasksMap,
@@ -71,7 +71,7 @@ describe("Environment", () => {
   };
 
   let tasks: TasksMap;
-  let env: BuidlerRuntimeEnvironment;
+  let env: HardhatRuntimeEnvironment;
   let dsl: TasksDSL;
 
   beforeEach(() => {

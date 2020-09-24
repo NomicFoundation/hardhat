@@ -1,5 +1,5 @@
 import {
-  BuidlerRuntimeEnvironment,
+  HardhatRuntimeEnvironment,
   ConfigExtender,
   ExperimentalBuidlerEVMMessageTraceHook,
 } from "../types";
@@ -45,7 +45,7 @@ export class BuidlerContext {
 
   public readonly tasksDSL = new TasksDSL();
   public readonly extendersManager = new ExtenderManager();
-  public environment?: BuidlerRuntimeEnvironment;
+  public environment?: HardhatRuntimeEnvironment;
   public readonly loadedPlugins: string[] = [];
   public readonly configExtenders: ConfigExtender[] = [];
 
@@ -55,14 +55,14 @@ export class BuidlerContext {
 
   private _configPath?: string;
 
-  public setBuidlerRuntimeEnvironment(env: BuidlerRuntimeEnvironment) {
+  public setBuidlerRuntimeEnvironment(env: HardhatRuntimeEnvironment) {
     if (this.environment !== undefined) {
       throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
     }
     this.environment = env;
   }
 
-  public getBuidlerRuntimeEnvironment(): BuidlerRuntimeEnvironment {
+  public getBuidlerRuntimeEnvironment(): HardhatRuntimeEnvironment {
     if (this.environment === undefined) {
       throw new BuidlerError(ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED);
     }

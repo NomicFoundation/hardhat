@@ -1,11 +1,11 @@
 import { Artifacts } from "@nomiclabs/buidler/plugins";
 import {
-  BuidlerRuntimeEnvironment,
+  HardhatRuntimeEnvironment,
   NetworkConfig,
 } from "@nomiclabs/buidler/types";
 import { ethers } from "ethers";
 
-export async function getSigners(bre: BuidlerRuntimeEnvironment) {
+export async function getSigners(bre: HardhatRuntimeEnvironment) {
   const accounts = await bre.ethers.provider.listAccounts();
   return accounts.map((account: string) =>
     bre.ethers.provider.getSigner(account)
@@ -13,20 +13,20 @@ export async function getSigners(bre: BuidlerRuntimeEnvironment) {
 }
 
 export function getContractFactory(
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   name: string,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
 export function getContractFactory(
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
 export async function getContractFactory(
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   bytecodeOrSigner?: ethers.Signer | ethers.utils.BytesLike | string,
   signer?: ethers.Signer
@@ -48,7 +48,7 @@ export async function getContractFactory(
 }
 
 export async function getContractFactoryByName(
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   name: string,
   signer?: ethers.Signer
 ) {
@@ -63,7 +63,7 @@ export async function getContractFactoryByName(
 }
 
 export async function getContractFactoryByAbiAndBytecode(
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
@@ -82,7 +82,7 @@ export async function getContractFactoryByAbiAndBytecode(
 }
 
 export async function getContractAt(
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   address: string,
   signer?: ethers.Signer

@@ -1,6 +1,6 @@
 import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import {
-  BuidlerRuntimeEnvironment,
+  HardhatRuntimeEnvironment,
   ProjectPaths,
 } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
@@ -32,7 +32,7 @@ export async function hasMigrations(paths: ProjectPaths) {
 
 export async function getTruffleFixtureFunction(
   paths: ProjectPaths
-): Promise<(env: BuidlerRuntimeEnvironment) => Promise<void>> {
+): Promise<(env: HardhatRuntimeEnvironment) => Promise<void>> {
   const fixturePath = require.resolve(
     path.join(paths.tests, TRUFFLE_FIXTURE_NAME)
   );

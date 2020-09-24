@@ -1,13 +1,13 @@
 import { extendEnvironment } from "@nomiclabs/buidler/config";
 import { lazyObject } from "@nomiclabs/buidler/plugins";
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import EthersT from "ethers";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
 import "./type-extensions";
 
 export default function () {
-  extendEnvironment((env: BuidlerRuntimeEnvironment) => {
+  extendEnvironment((env: HardhatRuntimeEnvironment) => {
     env.ethers = lazyObject(() => {
       const { EthersProviderWrapper } = require("./ethers-provider-wrapper");
 

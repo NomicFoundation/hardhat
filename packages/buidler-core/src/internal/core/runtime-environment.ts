@@ -2,7 +2,7 @@ import debug from "debug";
 
 import {
   BuidlerArguments,
-  BuidlerRuntimeEnvironment,
+  HardhatRuntimeEnvironment,
   EnvironmentExtender,
   EthereumProvider,
   ExperimentalBuidlerEVMMessageTraceHook,
@@ -25,7 +25,7 @@ import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 
 const log = debug("buidler:core:bre");
 
-export class Environment implements BuidlerRuntimeEnvironment {
+export class Environment implements HardhatRuntimeEnvironment {
   private static readonly _BLACKLISTED_PROPERTIES: string[] = [
     "injectToGlobal",
     "_runTaskDefinition",
@@ -59,7 +59,7 @@ export class Environment implements BuidlerRuntimeEnvironment {
     extenders: EnvironmentExtender[] = [],
     experimentalBuidlerEVMMessageTraceHooks: ExperimentalBuidlerEVMMessageTraceHook[] = []
   ) {
-    log("Creating BuidlerRuntimeEnvironment");
+    log("Creating HardhatRuntimeEnvironment");
 
     const networkName =
       buidlerArguments.network !== undefined

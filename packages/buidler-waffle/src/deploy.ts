@@ -1,4 +1,4 @@
-import type { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import type { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import type { Contract, providers, Signer } from "ethers";
 import path from "path";
 
@@ -14,7 +14,7 @@ export function getDeployMockContract() {
 }
 
 export async function buidlerDeployContract(
-  bre: BuidlerRuntimeEnvironment,
+  bre: HardhatRuntimeEnvironment,
   signer: Signer,
   contractJSON: any,
   args: any[] = [],

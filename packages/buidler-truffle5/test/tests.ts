@@ -1,5 +1,5 @@
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import * as fs from "fs";
 import path from "path";
@@ -131,7 +131,7 @@ function testArtifactsFunctionality() {
   });
 }
 
-describe("BuidlerRuntimeEnvironment extension", function () {
+describe("HardhatRuntimeEnvironment extension", function () {
   useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
 
   it("It should add the artifacts object", function () {
@@ -258,7 +258,7 @@ describe.skip("Test contracts compilation", function () {
 
 describe("Gas multiplier", function () {
   async function assertItWorksForDeployments(
-    env: BuidlerRuntimeEnvironment,
+    env: HardhatRuntimeEnvironment,
     multiplier: number
   ) {
     const Greeter = env.artifacts.require("Greeter");
@@ -278,7 +278,7 @@ describe("Gas multiplier", function () {
   }
 
   async function assertItWorksForFunctions(
-    env: BuidlerRuntimeEnvironment,
+    env: HardhatRuntimeEnvironment,
     multiplier: number
   ) {
     const Greeter = env.artifacts.require("Greeter");
