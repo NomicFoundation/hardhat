@@ -1,28 +1,28 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-truffle5.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-truffle5)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-truffle5.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-truffle5
+# hardhat-truffle5
 
-[Buidler](http://getbuidler.com) plugin for integration with TruffleContract from Truffle 5. This allows tests and scripts written for Truffle to work with Buidler.
+[Hardhat](http://gethardhat.com) plugin for integration with TruffleContract from Truffle 5. This allows tests and scripts written for Truffle to work with Hardhat.
 
 ## What
 
-This plugin brings to Buidler TruffleContracts from Truffle 5. With it you can call [`contract()` and `artifacts.require()`](https://truffleframework.com/docs/truffle/testing/writing-tests-in-javascript) like you normally would with Truffle. Interact with your contracts with a familiar API from tasks, scripts and tests.
+This plugin brings to Hardhat TruffleContracts from Truffle 5. With it you can call [`contract()` and `artifacts.require()`](https://truffleframework.com/docs/truffle/testing/writing-tests-in-javascript) like you normally would with Truffle. Interact with your contracts with a familiar API from tasks, scripts and tests.
 
 ## Required plugins
 
-This plugin requires [buidler-web3](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-web3) as a prerequisite.
+This plugin requires [hardhat-web3](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3) as a prerequisite.
 
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
+npm install --save-dev @nomiclabs/hardhat-truffle5 @nomiclabs/hardhat-web3 web3
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-truffle5");
+usePlugin("@nomiclabs/hardhat-truffle5");
 ```
 
 ## Tasks
@@ -31,22 +31,22 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/buidler/blob/master/packages/buidler-truffle5/src/artifacts.ts) is injected into `env.artifacts` and the method `contract()` is injected into the global scope for using in tests.
+An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hardhat/blob/master/packages/hardhat-truffle5/src/artifacts.ts) is injected into `env.artifacts` and the method `contract()` is injected into the global scope for using in tests.
 
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.
-Install it, run `npx buidler test` and your Truffle tests should run with no need to make any modifications.
+Install it, run `npx hardhat test` and your Truffle tests should run with no need to make any modifications.
 
-Take a look at the [testing guide](https://buidler.dev/guides/testing) for a tutorial using it.
+Take a look at the [testing guide](https://usehardhat.com/guides/testing) for a tutorial using it.
 
 ## TypeScript support
 
-If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
 
 ``` typescript
-/// <reference types="@nomiclabs/buidler-truffle5" />
-/// <reference types="@nomiclabs/buidler-web3" />
+/// <reference types="@nomiclabs/hardhat-truffle5" />
+/// <reference types="@nomiclabs/hardhat-web3" />
 ```
 
 If you already have this file, just add those lines to it.
@@ -57,8 +57,8 @@ Then you have to include that file in the `files` array of your `tsconfig.json`:
 ```json
 {
   ...
-  "files": [..., "buidler-env.d.ts"]
+  "files": [..., "hardhat-env.d.ts"]
 }
 ```
 
-using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
+using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.

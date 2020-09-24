@@ -1,7 +1,7 @@
 # Running tests with Ganache
 
-We recommend using the built-in [Buidler EVM](../buidler-evm/README.md) network to test your
-smart contracts, as it generates [combined JavaScript and Solidity stack traces](../buidler-evm/README.md#solidity-stack-traces),
+We recommend using the built-in [Hardhat EVM](../hardhat-evm/README.md) network to test your
+smart contracts, as it generates [combined JavaScript and Solidity stack traces](../hardhat-evm/README.md#solidity-stack-traces),
 making debugging easier.
 
 If you still want to run your tests using Ganache, you can do it in two ways.
@@ -10,16 +10,16 @@ If you still want to run your tests using Ganache, you can do it in two ways.
 
 You don't need to do anything especial to use Ganache if you don't want to.
 
-Just start Ganache and run Buidler with
+Just start Ganache and run Hardhat with
 
 ```
-npx buidler --network localhost test
+npx hardhat --network localhost test
 ```
 
-## Using the `buidler-ganache` plugin
+## Using the `hardhat-ganache` plugin
 
 If you don't want to manually start and stop Ganache every time, you can use
-the `buidler-ganache` plugin.
+the `hardhat-ganache` plugin.
 
 This plugin creates a network called `ganache`, and automatically
 starts and stops Ganache before and after running your tests and scripts.
@@ -27,17 +27,17 @@ starts and stops Ganache before and after running your tests and scripts.
 To use it, you have to install it with `npm`
 
 ```
-npm install --save-dev @nomiclabs/buidler-ganache
+npm install --save-dev @nomiclabs/hardhat-ganache
 ```
 
 and add this line at the beginning of your `hardhat.config.js`
 
 ```js
-usePlugin("@nomiclabs/buidler-ganache");
+usePlugin("@nomiclabs/hardhat-ganache");
 ```
 
 Finally, you can run your tests with
  
 ```
-npx buidler --network ganache test
+npx hardhat --network ganache test
 ```

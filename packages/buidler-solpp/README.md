@@ -1,9 +1,9 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-solpp)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solpp)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-solpp
+# hardhat-solpp
 
-[Buidler](http://getbuidler.com) plugin for integration with the [solpp preprocessor](https://github.com/merklejerk/solpp).
+[Hardhat](http://gethardhat.com) plugin for integration with the [solpp preprocessor](https://github.com/merklejerk/solpp).
 
 ## What
 
@@ -12,13 +12,13 @@ This plugin hooks into the compilation pipeline and runs the solpp preprocessor.
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-solpp
+npm install --save-dev @nomiclabs/hardhat-solpp
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-solpp");
+usePlugin("@nomiclabs/hardhat-solpp");
 ```
 
 ## Environment extensions
@@ -29,7 +29,7 @@ This plugin does not extend the environment.
 
 There are no additional steps you need to take for this plugin to work.
 
-Install it, run `npx buidler compile` and solc will compile the solpp generated contracts, which will be in `cache/solpp-generated-contracts`.
+Install it, run `npx hardhat compile` and solc will compile the solpp generated contracts, which will be in `cache/solpp-generated-contracts`.
 
 ## Configuration
 
@@ -44,10 +44,10 @@ This plugin can by configured by setting a `solpp` entry in `hardhat.config.js`.
 
 ## TypeScript support
 
-If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
 
 ``` typescript
-/// <reference types="@nomiclabs/buidler-solpp" />
+/// <reference types="@nomiclabs/hardhat-solpp" />
 ```
 
 If you already have this file, just add that line to it.
@@ -58,8 +58,8 @@ Then you have to include that file in the `files` array of your `tsconfig.json`:
 ```json
 {
   ...
-  "files": [..., "buidler-env.d.ts"]
+  "files": [..., "hardhat-env.d.ts"]
 }
 ```
 
-using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
+using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.

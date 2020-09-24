@@ -1,8 +1,8 @@
-# Buidler Hackathon Boilerplate Project
+# Hardhat Hackathon Boilerplate Project
 
 If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use our hackathon boilerplate repo.
 
-[https://github.com/nomiclabs/buidler-hackathon-boilerplate](https://github.com/nomiclabs/buidler-hackathon-boilerplate)
+[https://github.com/nomiclabs/hardhat-hackathon-boilerplate](https://github.com/nomiclabs/hardhat-hackathon-boilerplate)
 
 ## What's included
 
@@ -12,7 +12,7 @@ If you want to get started with your dApp quickly or see what this whole project
 
 ### Solidity contract & tests
 
-In the root of the repo you'll find the **Buidler** project we put together through this tutorial with the `Token` contract. To refresh your memory on what it implements:
+In the root of the repo you'll find the **Hardhat** project we put together through this tutorial with the `Token` contract. To refresh your memory on what it implements:
 
 - There is a fixed total supply of tokens that can't be changed.
 - The entire supply is assigned to the address that deploys the contract.
@@ -40,18 +40,18 @@ It's a separate npm project and it was created using `create-react-app`, so this
 First clone the repository, and then to get the contracts deployed:
 
 ```
-cd buidler-hackathon-boilerplate/
+cd hardhat-hackathon-boilerplate/
 npm install
-npx buidler node
+npx hardhat node
 ```
 
-Here we just install the npm project's dependencies, and by running `npx buidler node` we spin up an instance of **Buidler EVM** that you can connect to using MetaMask. In a different terminal in the same directory, run:
+Here we just install the npm project's dependencies, and by running `npx hardhat node` we spin up an instance of **Hardhat EVM** that you can connect to using MetaMask. In a different terminal in the same directory, run:
 ```
-npx buidler --network localhost run scripts/deploy.js
+npx hardhat --network localhost run scripts/deploy.js
 ```
-This will deploy the contract to **Buidler EVM**. After this completes run:
+This will deploy the contract to **Hardhat EVM**. After this completes run:
 ```
-cd buidler-hackathon-boilerplate/frontend/
+cd hardhat-hackathon-boilerplate/frontend/
 npm install
 npm run start
 ```
@@ -65,19 +65,19 @@ Set your network in MetaMask to `localhost:8545`, and click the button. You shou
 
 What's happening here is that the frontend code to show the current wallet's balance is detecting that the balance is `0`, so you wouldn't be able to try the transfer functionality. By running:
 ```
-npx buidler --network localhost faucet <your address>
+npx hardhat --network localhost faucet <your address>
 ```
 
-You'll run a custom **Buidler** task we included that uses the balance of the deploying account to send 100 MBT and 1 ETH to your address. This will allow you to send tokens to another address.
+You'll run a custom **Hardhat** task we included that uses the balance of the deploying account to send 100 MBT and 1 ETH to your address. This will allow you to send tokens to another address.
 
-You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/nomiclabs/buidler-hackathon-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`. 
+You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/nomiclabs/hardhat-hackathon-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`. 
 
 ```
-$ npx buidler --network localhost faucet 0x0987a41e73e69f60c5071ce3c8f7e730f9a60f90
+$ npx hardhat --network localhost faucet 0x0987a41e73e69f60c5071ce3c8f7e730f9a60f90
 Transferred 1 ETH and 100 tokens to 0x0987a41e73e69f60c5071ce3c8f7e730f9a60f90
 ```
 
-In the terminal where you ran `npx buidler node` you should also see:
+In the terminal where you ran `npx hardhat node` you should also see:
 
 ```{10-11}
 eth_sendTransaction

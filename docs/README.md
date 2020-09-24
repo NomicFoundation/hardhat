@@ -41,18 +41,18 @@ footer: Copyright © 2018-2019 Nomic Labs LLC
 
   ```js
   // For unit tests
-  usePlugin("@nomiclabs/buidler-truffle5");
-  usePlugin("@nomiclabs/buidler-ganache");
-  usePlugin("buidler-gas-reporter");
+  usePlugin("@nomiclabs/hardhat-truffle5");
+  usePlugin("@nomiclabs/hardhat-ganache");
+  usePlugin("hardhat-gas-reporter");
 
   // Linting
-  usePlugin("@nomiclabs/buidler-solhint");
+  usePlugin("@nomiclabs/hardhat-solhint");
 
   // For scripts
-  usePlugin("@nomiclabs/buidler-ethers");
+  usePlugin("@nomiclabs/hardhat-ethers");
   
   // Faster compilation
-  usePlugin("@nomiclabs/buidler-docker-solc");
+  usePlugin("@nomiclabs/hardhat-docker-solc");
 
   module.exports = {
     hardhat: {
@@ -93,7 +93,7 @@ contract('ERC721', function () {
   <h3>4. Debug your code with Hardhat Network</h3>
 
   ```
-$ npx buidler test
+$ npx hardhat test
 
 Contract: DeathStar
     safeTransferFrom to a contract that does not implement the required function:

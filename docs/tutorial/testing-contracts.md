@@ -1,6 +1,6 @@
 # 5. Testing contracts
 
-Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Buidler EVM**, a local Ethereum network designed for development that is built-in and the default network in **Buidler**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
+Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Hardhat EVM**, a local Ethereum network designed for development that is built-in and the default network in **Hardhat**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
 
 ## Writing tests
 Create a new directory called `test` inside our project root directory and create a new file called `Token.js`. 
@@ -16,19 +16,19 @@ describe("Token contract", function() {
 
     const Token = await ethers.getContractFactory("Token");
 
-    const buidlerToken = await Token.deploy();
-    await buidlerToken.deployed();
+    const hardhatToken = await Token.deploy();
+    await hardhatToken.deployed();
 
-    const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
-    expect(await buidlerToken.totalSupply()).to.equal(ownerBalance);
+    const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
+    expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
   });
 });
 ````
 
-On your terminal run `npx buidler test`. You should see the following output:
+On your terminal run `npx hardhat test`. You should see the following output:
 
 ```
-$ npx buidler test
+$ npx hardhat test
 All contracts have already been compiled, skipping compilation.
 
 
@@ -46,11 +46,11 @@ This means the test passed. Let's now explain each line:
 const [owner] = await ethers.getSigners();
 ```
 
-A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Buidler EVM**, and only keeping the first one.
+A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat EVM**, and only keeping the first one.
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
 ```js
-const { ethers } = require("@nomiclabs/buidler");
+const { ethers } = require("@nomiclabs/hardhat");
 ```
 
 ::: tip
@@ -64,32 +64,32 @@ const Token = await ethers.getContractFactory("Token");
 A `ContractFactory` in ethers.js is an abstraction used to deploy new smart contracts, so `Token` here is a factory for instances of our token contract.
 
 ```js
-const buidlerToken = await Token.deploy();
+const hardhatToken = await Token.deploy();
 ```
 
 Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
 
 ```js
-await buidlerToken.deployed();
+await hardhatToken.deployed();
 ```
 
 When you call on `deploy()` the transaction is sent, but the contract isn't actually deployed until the transaction is mined. Calling `deployed()` will return a `Promise` that resolves once this happens, so this code is blocking until the deployment finishes.
 
 ```js
-const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
+const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
 ```
 
-Once the contract is deployed, we can call our contract methods on `buidlerToken` and use them to get the balance of the owner account by calling `balanceOf()`.
+Once the contract is deployed, we can call our contract methods on `hardhatToken` and use them to get the balance of the owner account by calling `balanceOf()`.
 
-Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `buidler-ethers` plugin  `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
+Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `hardhat-ethers` plugin  `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
-expect(await buidlerToken.totalSupply()).to.equal(ownerBalance);
+expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
 ```
 
 Here we're again using our `Contract` instance to call a smart contract function in our Solidity code. `totalSupply()` returns the token's supply amount and we're checking that it's equal to `ownerBalance`, as it should.
 
-To do this we're using [Chai](https://www.chaijs.com/) which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from [Waffle](https://getwaffle.io/). This is why we're using the `buidler-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
+To do this we're using [Chai](https://www.chaijs.com/) which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from [Waffle](https://getwaffle.io/). This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
 ### Using a different account
 
@@ -105,16 +105,16 @@ describe("Transactions", function () {
 
     const Token = await ethers.getContractFactory("Token");
 
-    const buidlerToken = await Token.deploy();
-    await buidlerToken.deployed();
+    const hardhatToken = await Token.deploy();
+    await hardhatToken.deployed();
    
     // Transfer 50 tokens from owner to addr1
-    await buidlerToken.transfer(await addr1.getAddress(), 50);
-    expect(await buidlerToken.balanceOf(await addr1.getAddress())).to.equal(50);
+    await hardhatToken.transfer(await addr1.getAddress(), 50);
+    expect(await hardhatToken.balanceOf(await addr1.getAddress())).to.equal(50);
     
     // Transfer 50 tokens from addr1 to addr2
-    await buidlerToken.connect(addr1).transfer(await addr2.getAddress(), 50);
-    expect(await buidlerToken.balanceOf(await addr2.getAddress())).to.equal(50);
+    await hardhatToken.connect(addr1).transfer(await addr2.getAddress(), 50);
+    expect(await hardhatToken.balanceOf(await addr2.getAddress())).to.equal(50);
   });
 });
 ```
@@ -145,7 +145,7 @@ describe("Token contract", function () {
   // `before` and `beforeEach` callbacks.
 
   let Token;
-  let buidlerToken;
+  let hardhatToken;
   let owner;
   let addr1;
   let addr2;
@@ -161,11 +161,11 @@ describe("Token contract", function () {
     // To deploy our contract, we just have to call Token.deploy() and await
     // for it to be deployed(), which happens onces its transaction has been
     // mined.
-    buidlerToken = await Token.deploy();
-    await buidlerToken.deployed();
+    hardhatToken = await Token.deploy();
+    await hardhatToken.deployed();
 
-    // We can interact with the contract by calling `buidlerToken.method()`
-    await buidlerToken.deployed();
+    // We can interact with the contract by calling `hardhatToken.method()`
+    await hardhatToken.deployed();
   });
 
   // You can nest describe calls to create subsections.
@@ -180,73 +180,73 @@ describe("Token contract", function () {
 
       // This test expects the owner variable stored in the contract to be equal
       // to our Signer's owner.
-      expect(await buidlerToken.owner()).to.equal(await owner.getAddress());
+      expect(await hardhatToken.owner()).to.equal(await owner.getAddress());
     });
 
     it("Should assign the total supply of tokens to the owner", async function () {
-      const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
-      expect(await buidlerToken.totalSupply()).to.equal(ownerBalance);
+      const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
+      expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
     });
   });
 
   describe("Transactions", function () {
     it("Should transfer tokens between accounts", async function () {
       // Transfer 50 tokens from owner to addr1
-      await buidlerToken.transfer(await addr1.getAddress(), 50);
-      const addr1Balance = await buidlerToken.balanceOf(
+      await hardhatToken.transfer(await addr1.getAddress(), 50);
+      const addr1Balance = await hardhatToken.balanceOf(
         await addr1.getAddress()
       );
       expect(addr1Balance).to.equal(50);
 
       // Transfer 50 tokens from addr1 to addr2
       // We use .connect(signer) to send a transaction from another account
-      await buidlerToken.connect(addr1).transfer(await addr2.getAddress(), 50);
-      const addr2Balance = await buidlerToken.balanceOf(
+      await hardhatToken.connect(addr1).transfer(await addr2.getAddress(), 50);
+      const addr2Balance = await hardhatToken.balanceOf(
         await addr2.getAddress()
       );
       expect(addr2Balance).to.equal(50);
     });
 
     it("Should fail if sender doesn’t have enough tokens", async function () {
-      const initialOwnerBalance = await buidlerToken.balanceOf(
+      const initialOwnerBalance = await hardhatToken.balanceOf(
         await owner.getAddress()
       );
 
       // Try to send 1 token from addr1 (0 tokens) to owner (1000 tokens).
       // `require` will evaluate false and revert the transaction.
       await expect(
-        buidlerToken.connect(addr1).transfer(await owner.getAddress(), 1)
+        hardhatToken.connect(addr1).transfer(await owner.getAddress(), 1)
       ).to.be.revertedWith("Not enough tokens");
 
       // Owner balance shouldn't have changed.
-      expect(await buidlerToken.balanceOf(await owner.getAddress())).to.equal(
+      expect(await hardhatToken.balanceOf(await owner.getAddress())).to.equal(
         initialOwnerBalance
       );
     });
 
     it("Should update balances after transfers", async function () {
-      const initialOwnerBalance = await buidlerToken.balanceOf(
+      const initialOwnerBalance = await hardhatToken.balanceOf(
         await owner.getAddress()
       );
 
       // Transfer 100 tokens from owner to addr1.
-      await buidlerToken.transfer(await addr1.getAddress(), 100);
+      await hardhatToken.transfer(await addr1.getAddress(), 100);
 
       // Transfer another 50 tokens from owner to addr2.
-      await buidlerToken.transfer(await addr2.getAddress(), 50);
+      await hardhatToken.transfer(await addr2.getAddress(), 50);
 
       // Check balances.
-      const finalOwnerBalance = await buidlerToken.balanceOf(
+      const finalOwnerBalance = await hardhatToken.balanceOf(
         await owner.getAddress()
       );
       expect(finalOwnerBalance).to.equal(initialOwnerBalance - 150);
 
-      const addr1Balance = await buidlerToken.balanceOf(
+      const addr1Balance = await hardhatToken.balanceOf(
         await addr1.getAddress()
       );
       expect(addr1Balance).to.equal(100);
 
-      const addr2Balance = await buidlerToken.balanceOf(
+      const addr2Balance = await hardhatToken.balanceOf(
         await addr2.getAddress()
       );
       expect(addr2Balance).to.equal(50);
@@ -254,9 +254,9 @@ describe("Token contract", function () {
   });
 });
 ````
-This is what the output of `npx buidler test` should look like against the full test suite:
+This is what the output of `npx hardhat test` should look like against the full test suite:
 ```
-$ npx buidler test
+$ npx hardhat test
 All contracts have already been compiled, skipping compilation.
 
   Token contract
@@ -272,4 +272,4 @@ All contracts have already been compiled, skipping compilation.
   5 passing (1s)
 ```
 
-Keep in mind that when you run `npx buidler test`, your contracts will be compiled if they've changed since the last time you ran your tests.
+Keep in mind that when you run `npx hardhat test`, your contracts will be compiled if they've changed since the last time you ran your tests.

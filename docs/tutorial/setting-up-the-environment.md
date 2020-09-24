@@ -4,7 +4,7 @@ prev: false
 
 # 1. Setting up the environment
 
-Most Ethereum libraries and tools are written in JavaScript, and so is **Buidler**. If you're not familiar with Node.js, it's a JavaScript runtime built on Chrome's V8 JavaScript engine. It's the most popular solution to run JavaScript outside of a web browser and **Buidler** is built on top of it.
+Most Ethereum libraries and tools are written in JavaScript, and so is **Hardhat**. If you're not familiar with Node.js, it's a JavaScript runtime built on Chrome's V8 JavaScript engine. It's the most popular solution to run JavaScript outside of a web browser and **Hardhat** is built on top of it.
 
 ## Installing Node.js
 
@@ -68,7 +68,7 @@ cd ethereum-hackathon-setup-checker
 npm install
 ```
 
-If this is succesful you should see a confirmation message meaning that your development environment is ready. Feel free to delete the repository directory and move on to [Creating a new Buidler project](creating-a-new-buidler-project.md).
+If this is succesful you should see a confirmation message meaning that your development environment is ready. Feel free to delete the repository directory and move on to [Creating a new Hardhat project](creating-a-new-hardhat-project.md).
 
 If any of them failed, your environment is not properly setup. Make sure you have `git` and Node.js `>=10.0` installed. If you're seeing errors mentioning "node-gyp", make sure you installed the build tools mentioned before.
 

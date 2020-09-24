@@ -1,15 +1,15 @@
-# Using the Buidler console
+# Using the Hardhat console
 
-Buidler comes built-in with an interactive JavaScript console. You can use it by running `npx buidler console`:
+Hardhat comes built-in with an interactive JavaScript console. You can use it by running `npx hardhat console`:
 ```
-$ npx buidler console
+$ npx hardhat console
 All contracts have already been compiled, skipping compilation.
 >
 ```
 
 The `compile` task will be called before opening the console prompt, but you can skip this with the `--no-compile` parameter.
 
-The execution environment for the console is the same as for tasks. This means the configuration has been processed, and the [Buidler Runtime Environment] initialized and injected into the global scope. For example, that you'll have access in the global scope to the `config` object:
+The execution environment for the console is the same as for tasks. This means the configuration has been processed, and the [Hardhat Runtime Environment] initialized and injected into the global scope. For example, that you'll have access in the global scope to the `config` object:
 ```
 > config
 { defaultNetwork: 'hardhat',
@@ -22,7 +22,7 @@ The execution environment for the console is the same as for tasks. This means t
 >
 ```
 
-And the initialized `ethers` object if you're using the `buidler-ethers` plugin:
+And the initialized `ethers` object if you're using the `hardhat-ethers` plugin:
 ```
 > ethers
 { provider:
@@ -36,24 +36,24 @@ And the initialized `ethers` object if you're using the `buidler-ethers` plugin:
 >
 ```
 
-And the `artifacts` object if you're using the `buidler-truffle5` plugin, and so on. 
+And the `artifacts` object if you're using the `hardhat-truffle5` plugin, and so on. 
 
-Anything that has been injected into the [Buidler Runtime Environment] will be magically available in the global scope, or if you're the more explicit kind of developer, you can also require the HRE explicitly and get autocomplete:
+Anything that has been injected into the [Hardhat Runtime Environment] will be magically available in the global scope, or if you're the more explicit kind of developer, you can also require the HRE explicitly and get autocomplete:
 
 TODO-HH: re-run this
 
 ```
-> const buidler = require("@nomiclabs/buidler")
+> const hardhat = require("@nomiclabs/hardhat")
 undefined
-> buidler.
-buidler.__defineGetter__      buidler.__defineSetter__      buidler.__lookupGetter__      buidler.__lookupSetter__      buidler.__proto__
-buidler.hasOwnProperty        buidler.isPrototypeOf         buidler.propertyIsEnumerable  buidler.toLocaleString        buidler.toString
-buidler.valueOf
+> hardhat.
+hardhat.__defineGetter__      hardhat.__defineSetter__      hardhat.__lookupGetter__      hardhat.__lookupSetter__      hardhat.__proto__
+hardhat.hasOwnProperty        hardhat.isPrototypeOf         hardhat.propertyIsEnumerable  hardhat.toLocaleString        hardhat.toString
+hardhat.valueOf
 
-buidler._runTaskDefinition    buidler.constructor           buidler.injectToGlobal
+hardhat._runTaskDefinition    hardhat.constructor           hardhat.injectToGlobal
 
-buidler._extenders            buidler.hardhatArguments      hardhat.config                buidler.ethereum              buidler.ethers
-buidler.network               buidler.run                   buidler.tasks
+hardhat._extenders            hardhat.hardhatArguments      hardhat.config                hardhat.ethereum              hardhat.ethers
+hardhat.network               hardhat.run                   hardhat.tasks
 
 >
 ```
@@ -65,8 +65,8 @@ You will also notice that the console has the handy history feature you expect o
 Interacting with the Ethereum network and your smart contracts are asynchronous operations, hence most APIs and libraries
 use JavaScript's `Promise` for returning values.   
 
-To make things easier, Buidler's console supports `await` top-level await (i.e. `console.log(await web3.eth.getBalance()`). To use this feature, you need to be using Node 10 or higher.
+To make things easier, Hardhat's console supports `await` top-level await (i.e. `console.log(await web3.eth.getBalance()`). To use this feature, you need to be using Node 10 or higher.
 
-For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Telegram group](http://t.me/HardhatSupport).
 
-[Buidler Runtime Environment]: ../advanced/buidler-runtime-environment.md
+[Hardhat Runtime Environment]: ../advanced/hardhat-runtime-environment.md

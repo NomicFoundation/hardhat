@@ -1,9 +1,9 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-etherscan.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-etherscan)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-etherscan.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-etherscan
+# hardhat-etherscan
 
-[Buidler](http://buidler.dev) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
+[Hardhat](http://hardhat.dev) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
 
 ## What
 
@@ -18,13 +18,13 @@ It's smart and it tries to do as much as possible to facilitate the process:
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-etherscan
+npm install --save-dev @nomiclabs/hardhat-etherscan
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-etherscan");
+usePlugin("@nomiclabs/hardhat-etherscan");
 ```
 
 ## Tasks
@@ -55,7 +55,7 @@ module.exports = {
 Lastly, run the `verify` task, passing the address of the contract, the network where it's deployed, and the constructor arguments that were used to deploy it (if any):
 
 ```bash
-npx buidler verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
+npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
 
 ### Complex arguments
@@ -93,7 +93,7 @@ Where the third argument represents the value for the `point` parameter.
 The module can then be loaded by the `verify` task when invoked like this:
 
 ```bash
-npx buidler verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
+npx hardhat verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
 ```
 
 ## How it works
@@ -103,14 +103,14 @@ The plugin works by fetching the bytecode in the given address and using it to c
 ## Known limitations
 
 - Cases where more than one contract correspond to the same bytecode aren’t supported.
-- Adding, removing, moving or renaming new contracts to the buidler project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
+- Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
 
 ## TypeScript support
 
-If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
 
 ``` typescript
-/// <reference types="@nomiclabs/buidler-etherscan" />
+/// <reference types="@nomiclabs/hardhat-etherscan" />
 ```
 
 If you already have this file, just add that line to it.
@@ -121,8 +121,8 @@ Then you have to include that file in the `files` array of your `tsconfig.json`:
 ```json
 {
   ...
-  "files": [..., "buidler-env.d.ts"]
+  "files": [..., "hardhat-env.d.ts"]
 }
 ```
 
-using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
+using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.

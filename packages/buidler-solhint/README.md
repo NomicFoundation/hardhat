@@ -1,9 +1,9 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-solhint.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-solhint)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solhint.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solhint)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-solhint
+# hardhat-solhint
 
-[Buidler](http://getbuidler.com) plugin for integration with [solhint linter](https://github.com/protofire/solhint).
+[Hardhat](http://gethardhat.com) plugin for integration with [solhint linter](https://github.com/protofire/solhint).
 
 ## What
 
@@ -12,13 +12,13 @@ This plugin runs solhint on the project's sources and prints the report.
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-solhint
+npm install --save-dev @nomiclabs/hardhat-solhint
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-solhint");
+usePlugin("@nomiclabs/hardhat-solhint");
 ```
 
 ## Tasks
@@ -33,6 +33,6 @@ This plugin does not extend the environment.
 
 There are no additional steps you need to take for this plugin to work.
 
-Install it, run `npx buidler check` and check the Solhint report.
+Install it, run `npx hardhat check` and check the Solhint report.
 
 You may want to add a [solhint configuration](https://github.com/protofire/solhint/blob/master/README.md) file to customize your rules or include a Solhint plugin.

@@ -1,31 +1,31 @@
 # Testing with Web3.js & Truffle
 
-Buidler allows you to use Truffle to test your smart contracts. This mainly means compatibility with the [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) package to interact with your smart contracts. 
+Hardhat allows you to use Truffle to test your smart contracts. This mainly means compatibility with the [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) package to interact with your smart contracts. 
 
-Truffle 4 and Truffle 5 are supported using the `@nomiclabs/buidler-truffle4` and `@nomiclabs/buidler-truffle5` plugins respectively. Both work with either Solidity 4+.
+Truffle 4 and Truffle 5 are supported using the `@nomiclabs/hardhat-truffle4` and `@nomiclabs/hardhat-truffle5` plugins respectively. Both work with either Solidity 4+.
 
-Let's see how to do this creating a new Buidler project.
+Let's see how to do this creating a new Hardhat project.
 
 Run these to start:
 ```
 mkdir my-project
 cd my-project
 npm init --yes
-npm install --save-dev @nomiclabs/buidler
+npm install --save-dev @nomiclabs/hardhat
 ```
 
-Now run npx buidler inside your project folder and select `Create an empty hardhat.config.js`.
+Now run npx hardhat inside your project folder and select `Create an empty hardhat.config.js`.
 
 Let's now install the `Truffle` and `Web3.js` plugins, as well as `web3.js` itself.
 
 ```
-npm install --save-dev @nomiclabs/buidler-truffle5 @nomiclabs/buidler-web3 web3
+npm install --save-dev @nomiclabs/hardhat-truffle5 @nomiclabs/hardhat-web3 web3
 ```
 
 Enable the Truffle 5 plugin on your Hardhat config file by adding
 
 ```js{1}
-usePlugin("@nomiclabs/buidler-truffle5");
+usePlugin("@nomiclabs/hardhat-truffle5");
 
 module.exports = {};
 ```
@@ -107,9 +107,9 @@ These examples show two approaches towards testing:
 
 Truffle runs its tests with Mocha, but a few tools that integrate Mocha don't expect `contract()` and don't always work well. We recommend using the `describe()` approach.
 
-You can run these tests by running `npx buidler test`:
+You can run these tests by running `npx hardhat test`:
 ```
-$ npx buidler test
+$ npx hardhat test
 All contracts have already been compiled, skipping compilation.
 
 
@@ -124,7 +124,7 @@ Contract: Greeter
   2 passing (398ms)
 ```
 
-If you want to use Truffle Migrations to initialize your tests and call `deployed()` on the contract abstractions, both `@nomiclabs/buidler-truffle4` and `@nomiclabs/buidler-truffle5` offer a fixtures feature to make this possible. Take a look at the [Truffle migration guide](./truffle-migration.md) to learn more.
+If you want to use Truffle Migrations to initialize your tests and call `deployed()` on the contract abstractions, both `@nomiclabs/hardhat-truffle4` and `@nomiclabs/hardhat-truffle5` offer a fixtures feature to make this possible. Take a look at the [Truffle migration guide](./truffle-migration.md) to learn more.
 
 ## Using Web3.js
 
@@ -165,8 +165,8 @@ describe("Greeter contract", function() {
 });
 ```
 
-Checkout the plugin's [README file](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle5) for more information about it.
+Checkout the plugin's [README file](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5) for more information about it.
 
 
-[Buidler Runtime Environment]: /documentation/#hardhat-runtime-environment-hre
+[Hardhat Runtime Environment]: /documentation/#hardhat-runtime-environment-hre
 

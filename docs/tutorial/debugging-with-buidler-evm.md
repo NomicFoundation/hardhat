@@ -1,15 +1,15 @@
 # 6. Debugging with Hardhat Network
-**Buidler** comes built-in with **Buidler EVM**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code. It's the default network **Hardhat** connects to, so you don't need to setup anything for it to work. Just run your tests.
+**Hardhat** comes built-in with **Hardhat EVM**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code. It's the default network **Hardhat** connects to, so you don't need to setup anything for it to work. Just run your tests.
 
 ## Solidity `console.log`
-When running your contracts and tests on **Buidler EVM** you can print logging messages and contract variables calling `console.log()` from your Solidity code. To use it you have to import **Buidler**'s`console.log` from your contract code.
+When running your contracts and tests on **Hardhat EVM** you can print logging messages and contract variables calling `console.log()` from your Solidity code. To use it you have to import **Hardhat**'s`console.log` from your contract code.
 
 This is what it looks like:
 
 ```solidity{3}
 pragma solidity ^0.6.0;
 
-import "@nomiclabs/buidler/console.sol";
+import "@nomiclabs/hardhat/console.sol";
 
 contract Token {
   //...
@@ -33,7 +33,7 @@ function transfer(address to, uint256 amount) external {
 The logging output will show when you run your tests:
 
 ```{11-14,17-20}
-$ npx buidler test
+$ npx hardhat test
 Compiling...
 Compiled 2 contracts successfully
 
@@ -58,4 +58,4 @@ Trying to send 100 tokens to 0xe5904695748fe4a84b40b3fc79de2277660bd1d3
 
   5 passing (2s)
 ```
-Check out the [documentation](/buidler-evm/#console-log) to learn more about this feature.
+Check out the [documentation](/hardhat-evm/#console-log) to learn more about this feature.

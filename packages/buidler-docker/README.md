@@ -1,3 +1,3 @@
-# `buidler-docker`
+# `hardhat-docker`
 
-A library to manage Docker from Buidler plugins.
+A library to manage Docker from Hardhat plugins.

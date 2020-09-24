@@ -1,9 +1,9 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-ethers)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-ganache
+# hardhat-ganache
 
-This Buidler plugin automatically starts and stops [Ganache](https://github.com/trufflesuite/ganache-core) when running tests or scripts.
+This Hardhat plugin automatically starts and stops [Ganache](https://github.com/trufflesuite/ganache-core) when running tests or scripts.
 
 ## What
 
@@ -13,13 +13,13 @@ automatically started before running tests and scripts, and stopped when finishe
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-ganache
+npm install --save-dev @nomiclabs/hardhat-ganache
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-ganache");
+usePlugin("@nomiclabs/hardhat-ganache");
 ```
 
 ## Tasks
@@ -29,7 +29,7 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugin doesn't extend the Buidler Runtime Environment.
+This plugin doesn't extend the Hardhat Runtime Environment.
 
 ## Usage
 

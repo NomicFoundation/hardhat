@@ -1,8 +1,8 @@
 # Setting up a project
 
-A Buidler project is any directory with a valid `hardhat.config.js` file in it. If you run `npx buidler` in a path without one you will be shown two options to facilitate project creation:
+A Hardhat project is any directory with a valid `hardhat.config.js` file in it. If you run `npx hardhat` in a path without one you will be shown two options to facilitate project creation:
 ```
-$ npx buidler
+$ npx hardhat
 888               d8b      888 888
 888               Y8P      888 888
 888                        888 888
@@ -12,7 +12,7 @@ $ npx buidler
 888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888
 88888P"   "Y88888 888  "Y88888 888  "Y8888  888
 
-👷 Welcome to Buidler v1.0.0 👷‍‍
+👷 Welcome to Hardhat v1.0.0 👷‍‍
 
 ? What do you want to do? …
 ❯ Create a sample project
@@ -20,13 +20,13 @@ $ npx buidler
   Quit
 ```
 
-If you select _Create an empty hardhat.config.js_, Buidler will create a `hardhat.config.js` with the following content:
+If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardhat.config.js` with the following content:
 ```js
 module.exports = {};
 ```
-And this is enough to run Buidler using a default project structure. 
+And this is enough to run Hardhat using a default project structure. 
 
-### Sample Buidler project
+### Sample Hardhat project
 
 If you select _Create a sample project_ a simple project creation wizard will ask you some questions and create a project with the following structure:
 ```
@@ -36,7 +36,7 @@ test/
 hardhat.config.js
 ```
 
-These are the default paths for a Buidler project. Except for `scripts/`, which is just a normal directory unrelated to your config. 
+These are the default paths for a Hardhat project. Except for `scripts/`, which is just a normal directory unrelated to your config. 
 
 - `contracts/` is where the source files for your contracts should be.
 - `test/` is where your tests should go.
@@ -45,11 +45,11 @@ If you need to change these paths, take a look at the [paths configuration secti
 
 ### Testing and Ethereum networks
 
-When it comes to testing your contracts, Buidler comes with some built-in defaults:
+When it comes to testing your contracts, Hardhat comes with some built-in defaults:
 - [Mocha](https://mochajs.org/) as the test runner
-- The built-in [Buidler EVM](../buidler-evm/README.md) as the development network to test on
+- The built-in [Hardhat EVM](../hardhat-evm/README.md) as the development network to test on
 
-If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Buidler projects manage settings. Make use of the `--network` CLI parameter to quickly change the network.
+If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Hardhat projects manage settings. Make use of the `--network` CLI parameter to quickly change the network.
 
 Take a look at the [networks configuration section](../config/README.md#networks-configuration) to learn more about setting up different networks.
 
@@ -59,23 +59,23 @@ You may have seen this notice when creating the sample project:
 
 ```
 You need to install these dependencies to run the sample project:
-  npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers
+  npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers
 ```
 
-This stems from the fact that **most of Buidler's functionality comes from plugins**, so check out the [plugins section](../plugins/README.md) for the official list and see if there are any other ones that look interesting.
+This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](../plugins/README.md) for the official list and see if there are any other ones that look interesting.
 
-The sample project uses the `@nomiclabs/buidler-waffle` plugin, which depends on the `@nomiclabs/buidler-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project. 
+The sample project uses the `@nomiclabs/hardhat-waffle` plugin, which depends on the `@nomiclabs/hardhat-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project. 
 
 To use a plugin, the first step is always to install it using `npm` or `yarn`, and then adding a call to `usePlugin(<npm package name>)` in your config file, like this:
 
 ```js
-usePlugin("@nomiclabs/buidler-waffle");
+usePlugin("@nomiclabs/hardhat-waffle");
 
 module.exports = {};
 ```
 
-Plugins are **essential** to Buidler projects, so make sure to check out all the available ones and also build your own ones!
+Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own ones!
 
-For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Telegram group](http://t.me/HardhatSupport).
 
 

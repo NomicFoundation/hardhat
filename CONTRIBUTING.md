@@ -1,4 +1,4 @@
-# How to contribute to Buidler
+# How to contribute to Hardhat
 
 This document contains some tips on how to collaborate in this project.
 
@@ -6,8 +6,8 @@ This document contains some tips on how to collaborate in this project.
 
 This repository is a monorepo handled with [Lerna](https://github.com/lerna/lerna).
 
-There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/buidler-core` which
-is the main project (i.e. the one that's published as [@nomiclabs/buidler](https://npmjs.com/package/@nomiclabs/buidler)).
+There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which
+is the main project (i.e. the one that's published as [@nomiclabs/hardhat](https://npmjs.com/package/@nomiclabs/hardhat)).
 
 ## Installing
 
@@ -17,7 +17,7 @@ To install this project you have to run:
 
 ## Building the projects
 
-Plugins require buidler-core to be built or tested. Our recommendation is to run `npm run watch` from the root folder.
+Plugins require hardhat-core to be built or tested. Our recommendation is to run `npm run watch` from the root folder.
 This will keep everything compiled, and these problems will be avoided.
 
 ## Testing
@@ -27,7 +27,7 @@ All tests are written using [mocha](https://mochajs.org) and [chai](https://www.
 ### Per-package
 You can run a package's tests by executing `npm test` inside its folder.
 
-_Note_: for package [buidler-vyper](./packages/buidler-vyper) case, a running instance of Docker Desktop is required, with `ethereum/vyper` image pulled. To install it, run:
+_Note_: for package [hardhat-vyper](./packages/hardhat-vyper) case, a running instance of Docker Desktop is required, with `ethereum/vyper` image pulled. To install it, run:
 ```
 docker pull ethereum/vyper:0.1.0b10
 ```
@@ -35,7 +35,7 @@ docker pull ethereum/vyper:0.1.0b10
 ### Entire project
 You can run all the tests at once by running `npm test` from the root folder.
 
-For the case of package [buidler-vyper](./packages/buidler-vyper), an `ethereum/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
+For the case of package [hardhat-vyper](./packages/hardhat-vyper), an `ethereum/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
 
 ## Code formatting
 
@@ -50,7 +50,7 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on the branch [`development`](https://github.com/nomiclabs/buidler/tree/development)
+We work on the branch [`development`](https://github.com/nomiclabs/hardhat/tree/development)
 and keep `master` in sync with the latest release.
 
 Please, branch from `development` when implementing a new feature or fixing a 
@@ -63,7 +63,7 @@ technical work that should be reflected in the documentation, the documentation
 change should be contained in the same branch and PR than the change.
 
 If you are working purely on the website or documentation, not as a result of
-a technical change, you should branch from [`website`](https://github.com/nomiclabs/buidler/tree/website)
+a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website)
 and use it as the base branch in your pull request. Anything merged into 
 `website` this way should also be merged into `development`.
 
@@ -79,7 +79,7 @@ of each dependency. It will print an error if the versions get out of sync.
 
 ## Performance and dependencies loading
 
-Buidler and its plugins are optimized for keeping startup time low.
+Hardhat and its plugins are optimized for keeping startup time low.
 
 This is done by selectively requiring dependencies when needed using `import` or `require` following this criteria:
 
@@ -112,12 +112,12 @@ All these tips assume you are running `npm run watch` from the root directory.
 ### Linking
 
 You can [link](https://docs.npmjs.com/cli/link) any package to test it locally. For example, if you are working on
-`buidler-core`, you can follow these steps:
+`hardhat-core`, you can follow these steps:
 
-1. Go to `packages/buidler-core` and run `npm link`
-2. Go to some buidler project and run `npm link @nomiclabs/buidler`
+1. Go to `packages/hardhat-core` and run `npm link`
+2. Go to some hardhat project and run `npm link @nomiclabs/hardhat`
 
-Alternatively, you can go to your buidler project and run `npm link /path/to/buidler/packages/buidler-core`.
+Alternatively, you can go to your hardhat project and run `npm link /path/to/hardhat/packages/hardhat-core`.
 
 Now any change you make in the code will be reflected in that project.
 
@@ -125,8 +125,8 @@ Now any change you make in the code will be reflected in that project.
 
 If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc).
 
-1. Go to `packages/buidler-core` and run `yalc publish`
-2. Go to some buidler project and run `yalc add @nomiclabs/buidler`
+1. Go to `packages/hardhat-core` and run `yalc publish`
+2. Go to some hardhat project and run `yalc add @nomiclabs/hardhat`
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 
@@ -134,25 +134,25 @@ Unlike linking, if you make a change in the code, you'll need to repeat the proc
 
 An even more realistic way of using your local changes in a project is to use [`npm pack`](https://docs.npmjs.com/cli-commands/pack.html):
 
-1. Go to `packages/buidler-core` and run `npm pack`. This will create a `nomiclabs-buidler-x.y.z.tgz` file in that directory.
-2. Go to some buidler project and run `npm install /path/to/buidler/packages/buidler-core/nomiclabs-buidler-x.y.z.tgz`.
+1. Go to `packages/hardhat-core` and run `npm pack`. This will create a `nomiclabs-hardhat-x.y.z.tgz` file in that directory.
+2. Go to some hardhat project and run `npm install /path/to/hardhat/packages/hardhat-core/nomiclabs-hardhat-x.y.z.tgz`.
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 
 ### ndb
 
 If you want to debug something, you can use [`ndb`](https://github.com/GoogleChromeLabs/ndb). First add a `debugger`
-statement wherever you want. Then link your project. Finally, run buidler as normally but prepend the command with
-`ndb`. For example, you can do `ndb npx buidler compile` to debug some part of the compile task.
+statement wherever you want. Then link your project. Finally, run hardhat as normally but prepend the command with
+`ndb`. For example, you can do `ndb npx hardhat compile` to debug some part of the compile task.
 
 ## Common errors
 
 ### Monkey-patching dependencies multiple times
 
 You should avoid monkey-patching whenever possible. But if it's necessary to do so, you should pay extra care when doing
-it in Buidler or your tests may fail in very hard to debug ways.
+it in Hardhat or your tests may fail in very hard to debug ways.
 
-When tests are run, Buidler gets initialized multiple times. That may lead to monkey-patching the same multiple times.
+When tests are run, Hardhat gets initialized multiple times. That may lead to monkey-patching the same multiple times.
 To avoid this, keep references to the original implementations. In order to do this, you need to get it just once:
 
 ```js
