@@ -7,7 +7,7 @@
   },
   "include": [
     "./**/*.ts",
-    "../buidler-env.d.ts"
+    "../hardhat-env.d.ts"
   ],
   "exclude": [],
   "references": [

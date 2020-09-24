@@ -4,7 +4,7 @@
     "outDir": "./build-test",
     "rootDirs": ["./test"]
   },
-  "include": ["./test/**/*.ts", "./src/type-extensions.ts", "./buidler-env.d.ts"],
+  "include": ["./test/**/*.ts", "./src/type-extensions.ts", "./hardhat-env.d.ts"],
   "exclude": ["./test/**/hardhat.config.ts"],
   "references": [
     {
