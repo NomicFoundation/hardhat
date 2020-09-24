@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import { Artifacts } from "hardhat/plugins";
-import { RunTaskFunction } from "hardhat/types";
+import { RunTaskFunction } from "hardhat/types/runtime";
 import path from "path";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";

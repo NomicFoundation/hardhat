@@ -1,5 +1,6 @@
 import { CompilationJob } from "../../../builtin-tasks/types";
-import { SolcInput, SolcOptimizerConfig } from "../../../types";
+import { SolcOptimizerConfig } from "../../../types/config";
+import { SolcInput } from "../../../types/solidity";
 import { DependencyGraph } from "../dependencyGraph";
 
 export function getInputFromCompilationJob(

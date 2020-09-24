@@ -1,7 +1,7 @@
 import debug from "debug";
 import path from "path";
 
-import { HardhatArguments } from "../../types";
+import { HardhatArguments } from "../../types/runtime";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
 

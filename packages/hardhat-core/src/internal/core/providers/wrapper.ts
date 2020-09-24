@@ -1,4 +1,4 @@
-import { EIP1193Provider, RequestArguments } from "../../../types";
+import { EIP1193Provider, RequestArguments } from "../../../types/network";
 import { EventEmitterWrapper } from "../../util/event-emitter";
 
 import { ProviderError } from "./errors";

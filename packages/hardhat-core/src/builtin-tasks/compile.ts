@@ -24,7 +24,7 @@ import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
-import { SolcInput } from "../types";
+import { SolcInput } from "../types/solidity";
 
 import {
   TASK_COMPILE,

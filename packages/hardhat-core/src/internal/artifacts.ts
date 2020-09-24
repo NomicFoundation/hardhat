@@ -3,7 +3,8 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
-import { Artifact, SolcInput } from "../types";
+import { Artifact } from "../types/artifact";
+import { SolcInput } from "../types/solidity";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
 import { assertHardhatInvariant, HardhatError } from "./core/errors";

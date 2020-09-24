@@ -1,5 +1,5 @@
 import type { Contract, providers, Signer } from "ethers";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
 import path from "path";
 
 export function getDeployMockContract() {

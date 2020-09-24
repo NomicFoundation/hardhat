@@ -12,7 +12,7 @@ import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 import util from "util";
 
-import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
+import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types/experimental";
 import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,

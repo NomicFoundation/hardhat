@@ -1,11 +1,10 @@
+import { ExperimentalHardhatNetworkMessageTraceHook } from "../../../types/experimental";
+import { ConfigExtender, EnvironmentExtender } from "../../../types/plugins";
 import {
   ActionType,
-  ConfigExtender,
   ConfigurableTaskDefinition,
-  EnvironmentExtender,
-  ExperimentalHardhatNetworkMessageTraceHook,
   TaskArguments,
-} from "../../../types";
+} from "../../../types/runtime";
 import { HardhatContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
 import { usePlugin as usePluginImplementation } from "../plugins";

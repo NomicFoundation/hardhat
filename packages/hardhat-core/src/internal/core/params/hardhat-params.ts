@@ -1,4 +1,4 @@
-import { HardhatParamDefinitions } from "../../../types";
+import { HardhatParamDefinitions } from "../../../types/runtime";
 
 import * as types from "./argumentTypes";
 

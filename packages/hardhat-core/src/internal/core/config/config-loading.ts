@@ -1,7 +1,8 @@
 import chalk from "chalk";
 import path from "path";
 
-import { HardhatArguments, ResolvedHardhatConfig } from "../../../types";
+import { ResolvedHardhatConfig } from "../../../types/config";
+import { HardhatArguments } from "../../../types/runtime";
 import { HardhatContext } from "../../context";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";

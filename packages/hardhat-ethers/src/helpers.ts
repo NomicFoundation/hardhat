@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { Artifacts } from "hardhat/plugins";
-import { HardhatRuntimeEnvironment, NetworkConfig } from "hardhat/types";
+import { NetworkConfig } from "hardhat/types/config";
+import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
 
 export async function getSigners(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.provider.listAccounts();

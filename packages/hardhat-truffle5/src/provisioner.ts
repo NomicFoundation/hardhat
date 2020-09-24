@@ -1,5 +1,5 @@
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
-import { NetworkConfig } from "hardhat/types";
+import { NetworkConfig } from "hardhat/types/config";
 
 import { DEFAULT_GAS_MULTIPLIER } from "./constants";
 import { Linker, TruffleContract } from "./types";

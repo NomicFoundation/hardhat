@@ -1,6 +1,9 @@
 import ProcessEnv = NodeJS.ProcessEnv;
 
-import { HardhatArguments, HardhatParamDefinitions } from "../../../types";
+import {
+  HardhatArguments,
+  HardhatParamDefinitions,
+} from "../../../types/runtime";
 import { ArgumentsParser } from "../../cli/ArgumentsParser";
 import { unsafeObjectKeys } from "../../util/unsafe";
 import { HardhatError } from "../errors";

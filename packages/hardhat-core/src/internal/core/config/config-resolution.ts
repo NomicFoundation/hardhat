@@ -4,14 +4,14 @@ import path from "path";
 
 import {
   AnalyticsConfig,
-  ConfigExtender,
   HardhatConfig,
   MultiSolcConfig,
   ProjectPaths,
   ResolvedHardhatConfig,
   SolcConfig,
   SolidityConfig,
-} from "../../../types";
+} from "../../../types/config";
+import { ConfigExtender } from "../../../types/plugins";
 import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";

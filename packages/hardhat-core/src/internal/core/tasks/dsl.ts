@@ -3,7 +3,7 @@ import {
   TaskArguments,
   TaskDefinition,
   TasksMap,
-} from "../../../types";
+} from "../../../types/runtime";
 
 import {
   OverriddenTaskDefinition,

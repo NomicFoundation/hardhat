@@ -5,7 +5,8 @@ import * as path from "path";
 
 import { BUILD_INFO_DIR_NAME } from "../../internal/constants";
 import { Reporter } from "../../internal/sentry/reporter";
-import { EIP1193Provider, ProjectPaths } from "../../types";
+import { ProjectPaths } from "../../types/config";
+import { EIP1193Provider } from "../../types/network";
 
 const log = debug("hardhat:core:compilation-watcher");
 

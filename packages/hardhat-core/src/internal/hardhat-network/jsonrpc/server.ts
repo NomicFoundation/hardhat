@@ -3,7 +3,7 @@ import http, { Server } from "http";
 import { AddressInfo } from "net";
 import { Server as WSServer } from "ws";
 
-import { EIP1193Provider } from "../../../types";
+import { EIP1193Provider } from "../../../types/network";
 import { HttpProvider } from "../../core/providers/http";
 
 import JsonRpcHandler from "./handler";

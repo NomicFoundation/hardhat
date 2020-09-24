@@ -6,7 +6,7 @@ import {
   ParamDefinitionsMap,
   TaskArguments,
   TaskDefinition,
-} from "../../../types";
+} from "../../../types/runtime";
 import { HardhatError } from "../errors";
 import { ErrorDescriptor, ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";

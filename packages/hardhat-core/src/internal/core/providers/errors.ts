@@ -1,4 +1,4 @@
-import { ProviderRpcError } from "../../../types";
+import { ProviderRpcError } from "../../../types/network";
 import { CustomError } from "../errors";
 
 export class ProviderError extends CustomError implements ProviderRpcError {

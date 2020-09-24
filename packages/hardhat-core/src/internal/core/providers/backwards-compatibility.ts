@@ -6,7 +6,7 @@ import {
   JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
-} from "../../../types";
+} from "../../../types/network";
 import { EventEmitterWrapper } from "../../util/event-emitter";
 
 export class BackwardsCompatibilityProviderAdapter extends EventEmitterWrapper

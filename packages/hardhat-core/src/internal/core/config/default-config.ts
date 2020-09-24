@@ -1,4 +1,4 @@
-import { HardhatConfig, HardhatNetworkConfig } from "../../../types";
+import { HardhatConfig, HardhatNetworkConfig } from "../../../types/config";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.5.15";

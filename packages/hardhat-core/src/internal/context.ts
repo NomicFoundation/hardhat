@@ -1,8 +1,6 @@
-import {
-  ConfigExtender,
-  ExperimentalHardhatNetworkMessageTraceHook,
-  HardhatRuntimeEnvironment,
-} from "../types";
+import { ExperimentalHardhatNetworkMessageTraceHook } from "../types/experimental";
+import { ConfigExtender } from "../types/plugins";
+import { HardhatRuntimeEnvironment } from "../types/runtime";
 
 import { ExtenderManager } from "./core/config/extenders";
 import { HardhatError } from "./core/errors";

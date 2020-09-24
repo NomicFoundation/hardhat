@@ -1,6 +1,6 @@
 import { Transaction as TransactionT } from "ethereumjs-tx";
 
-import { EIP1193Provider, RequestArguments } from "../../../types";
+import { EIP1193Provider, RequestArguments } from "../../../types/network";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 

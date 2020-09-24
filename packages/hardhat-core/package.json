@@ -34,7 +34,7 @@
     "coverage": "node ../../node_modules/nyc/bin/nyc.js ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",
     "build": "node ../../node_modules/typescript/bin/tsc --build src",
     "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
-    "clean": "node ../../node_modules/rimraf/bin.js builtin-tasks internal *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
+    "clean": "node ../../node_modules/rimraf/bin.js builtin-tasks internal types *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "builtin-tasks/",

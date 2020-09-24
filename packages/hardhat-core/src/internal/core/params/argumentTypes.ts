@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import fsExtra from "fs-extra";
 
-import { ArgumentType, CLIArgumentType } from "../../../types";
+import { ArgumentType, CLIArgumentType } from "../../../types/runtime";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 

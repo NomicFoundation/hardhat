@@ -15,7 +15,7 @@
 // -32002	Resource unavailable	Requested resource not available	  non-standard
 // -32003	Transaction rejected	Transaction creation failed	        non-standard
 
-import { ProviderRpcError } from "../../../types";
+import { ProviderRpcError } from "../../../types/network";
 import { CustomError } from "../../core/errors";
 
 export class HardhatNetworkProviderError extends CustomError

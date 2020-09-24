@@ -2,7 +2,7 @@ import { IncomingMessage, ServerResponse } from "http";
 import getRawBody from "raw-body";
 import WebSocket from "ws";
 
-import { EIP1193Provider } from "../../../types";
+import { EIP1193Provider } from "../../../types/network";
 import {
   isSuccessfulJsonResponse,
   isValidJsonRequest,

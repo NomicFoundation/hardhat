@@ -8,13 +8,13 @@ import fsExtra from "fs-extra";
 import semver from "semver";
 import util from "util";
 
+import type { ProjectPaths } from "../../../types/config";
+import type { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../types/experimental";
 import type {
-  BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthSubscription,
-  ProjectPaths,
   RequestArguments,
-} from "../../../types";
+} from "../../../types/network";
 import { Artifacts } from "../../artifacts";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";

@@ -1,7 +1,4 @@
 import type {
-  BoundExperimentalHardhatNetworkMessageTraceHook,
-  EIP1193Provider,
-  EthereumProvider,
   HDAccountsConfig,
   HttpNetworkConfig,
   NetworkConfigAccounts,
@@ -9,7 +6,9 @@ import type {
   ResolvedHardhatNetworkConfig,
   ResolvedHttpNetworkConfig,
   ResolvedNetworkConfig,
-} from "../../../types";
+} from "../../../types/config";
+import type { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../types/experimental";
+import type { EIP1193Provider, EthereumProvider } from "../../../types/network";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ForkConfig } from "../../hardhat-network/provider/node-types";
 import { parseDateString } from "../../util/date";

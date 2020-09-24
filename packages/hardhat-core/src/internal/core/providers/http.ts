@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import type { Response } from "node-fetch";
 
-import { EIP1193Provider, RequestArguments } from "../../../types";
+import { EIP1193Provider, RequestArguments } from "../../../types/network";
 import {
   FailedJsonRpcResponse,
   JsonRpcRequest,

@@ -14,10 +14,10 @@ import {
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
 import {
-  EthereumProvider,
   ResolvedHardhatConfig,
   ResolvedHardhatNetworkConfig,
-} from "../types";
+} from "../types/config";
+import { EthereumProvider } from "../types/network";
 
 import { TASK_NODE } from "./task-names";
 import { watchCompilerOutput } from "./utils/watch";

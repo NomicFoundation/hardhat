@@ -3,7 +3,7 @@ import {
   ParamDefinition,
   ParamDefinitionsMap,
   TasksMap,
-} from "../../types";
+} from "../../types/runtime";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 

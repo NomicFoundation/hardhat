@@ -1,5 +1,6 @@
 import { providers, Wallet } from "ethers";
-import { Network, ResolvedHardhatNetworkConfig } from "hardhat/types";
+import { ResolvedHardhatNetworkConfig } from "hardhat/types/config";
+import { Network } from "hardhat/types/network";
 
 // This class is an extension of hardhat-ethers' wrapper.
 // TODO: Export hardhat-ether's wrapper so this can be implemented like a normal

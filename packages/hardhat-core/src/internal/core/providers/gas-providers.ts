@@ -1,4 +1,4 @@
-import { EIP1193Provider, RequestArguments } from "../../../types";
+import { EIP1193Provider, RequestArguments } from "../../../types/network";
 
 import { numberToRpcQuantity, rpcQuantityToNumber } from "./provider-utils";
 import { ProviderWrapper } from "./wrapper";

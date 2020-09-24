@@ -5,7 +5,7 @@ import semver from "semver";
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
-import { TaskArguments } from "../../types";
+import { TaskArguments } from "../../types/runtime";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";

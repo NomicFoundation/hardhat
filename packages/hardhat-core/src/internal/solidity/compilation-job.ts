@@ -8,7 +8,7 @@ import {
   CompilationJobsCreationErrors,
   CompilationJobsCreationResult,
 } from "../../builtin-tasks/types";
-import { MultiSolcConfig, SolcConfig } from "../../types";
+import { MultiSolcConfig, SolcConfig } from "../../types/config";
 import { assertHardhatInvariant } from "../core/errors";
 
 import { ResolvedFile } from "./resolver";

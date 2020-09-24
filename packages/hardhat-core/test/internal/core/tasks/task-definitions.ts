@@ -11,7 +11,7 @@ import {
   HardhatArguments,
   ParamDefinition,
   TaskDefinition,
-} from "../../../../src/types";
+} from "../../../../src/types/runtime";
 import { expectHardhatError } from "../../../helpers/errors";
 
 function expectThrowParamAlreadyDefinedError(f: () => any) {
