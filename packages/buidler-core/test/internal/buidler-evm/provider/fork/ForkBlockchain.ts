@@ -21,6 +21,8 @@ import {
   TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";
 
+const REORGS_PROTECTION = 3;
+
 describe("ForkBlockchain", () => {
   let client: JsonRpcClient;
   let forkBlockNumber: BN;
@@ -45,14 +47,14 @@ describe("ForkBlockchain", () => {
       this.skip();
       return;
     }
-
-    client = JsonRpcClient.forUrl(INFURA_URL);
-    forkBlockNumber = await client.getLatestBlockNumber();
-    common = new Common("mainnet");
-    common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
   });
 
   beforeEach(async () => {
+    client = JsonRpcClient.forUrl(INFURA_URL!);
+    const latestBlockNumber = await client.getLatestBlockNumber();
+    forkBlockNumber = latestBlockNumber.subn(REORGS_PROTECTION);
+    common = new Common("mainnet");
+    common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
     fb = new ForkBlockchain(client, forkBlockNumber, common);
   });
 
