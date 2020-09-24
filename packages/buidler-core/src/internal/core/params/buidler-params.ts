@@ -1,8 +1,8 @@
-import { BuidlerParamDefinitions } from "../../../types";
+import { HardhatParamDefinitions } from "../../../types";
 
 import * as types from "./argumentTypes";
 
-export const BUIDLER_PARAM_DEFINITIONS: BuidlerParamDefinitions = {
+export const BUIDLER_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   network: {
     name: "network",
     defaultValue: undefined,

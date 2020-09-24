@@ -1,7 +1,7 @@
 import {
-  BuidlerParamDefinitions,
   CLIArgumentType,
   HardhatArguments,
+  HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
   TaskArguments,
@@ -42,7 +42,7 @@ export class ArgumentsParser {
   }
 
   public parseHardhatArguments(
-    buidlerParamDefinitions: BuidlerParamDefinitions,
+    hardhatParamDefinitions: HardhatParamDefinitions,
     envVariableArguments: HardhatArguments,
     rawCLAs: string[]
   ): {
@@ -63,7 +63,7 @@ export class ArgumentsParser {
           continue;
         }
 
-        if (!this._isCLAParamName(arg, buidlerParamDefinitions)) {
+        if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
           throw new BuidlerError(
             ERRORS.ARGUMENTS.UNRECOGNIZED_COMMAND_LINE_ARG,
             { argument: arg }
@@ -73,11 +73,11 @@ export class ArgumentsParser {
         i = this._parseArgumentAt(
           rawCLAs,
           i,
-          buidlerParamDefinitions,
+          hardhatParamDefinitions,
           hardhatArguments
         );
       } else {
-        if (!this._isCLAParamName(arg, buidlerParamDefinitions)) {
+        if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
           unparsedCLAs.push(arg);
           continue;
         }
@@ -85,7 +85,7 @@ export class ArgumentsParser {
         i = this._parseArgumentAt(
           rawCLAs,
           i,
-          buidlerParamDefinitions,
+          hardhatParamDefinitions,
           hardhatArguments
         );
       }
@@ -93,7 +93,7 @@ export class ArgumentsParser {
 
     return {
       hardhatArguments: this._addBuidlerDefaultArguments(
-        buidlerParamDefinitions,
+        hardhatParamDefinitions,
         envVariableArguments,
         hardhatArguments
       ),
@@ -154,7 +154,7 @@ export class ArgumentsParser {
   }
 
   private _addBuidlerDefaultArguments(
-    buidlerParamDefinitions: BuidlerParamDefinitions,
+    hardhatParamDefinitions: HardhatParamDefinitions,
     envVariableArguments: HardhatArguments,
     hardhatArguments: Partial<HardhatArguments>
   ): HardhatArguments {

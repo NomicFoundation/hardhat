@@ -1,5 +1,5 @@
 import {
-  BuidlerParamDefinitions,
+  HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
   TasksMap,
@@ -14,7 +14,7 @@ export class HelpPrinter {
     private readonly _programName: string,
     private readonly _executableName: string,
     private readonly _version: string,
-    private readonly _buidlerParamDefinitions: BuidlerParamDefinitions,
+    private readonly _hardhatParamDefinitions: HardhatParamDefinitions,
     private readonly _tasks: TasksMap
   ) {}
 
@@ -27,7 +27,7 @@ export class HelpPrinter {
 
     console.log("GLOBAL OPTIONS:\n");
 
-    this._printParamDetails(this._buidlerParamDefinitions);
+    this._printParamDetails(this._hardhatParamDefinitions);
 
     console.log("\n\nAVAILABLE TASKS:\n");
 

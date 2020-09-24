@@ -1,6 +1,6 @@
 import ProcessEnv = NodeJS.ProcessEnv;
 
-import { HardhatArguments, BuidlerParamDefinitions } from "../../../types";
+import { HardhatArguments, HardhatParamDefinitions } from "../../../types";
 import { ArgumentsParser } from "../../cli/ArgumentsParser";
 import { unsafeObjectKeys } from "../../util/unsafe";
 import { BuidlerError } from "../errors";
@@ -34,7 +34,7 @@ export function getEnvVariablesMap(
 }
 
 export function getEnvHardhatArguments(
-  paramDefinitions: BuidlerParamDefinitions,
+  paramDefinitions: HardhatParamDefinitions,
   envVariables: ProcessEnv
 ): HardhatArguments {
   const envArgs: any = {};

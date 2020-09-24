@@ -448,7 +448,7 @@ export interface HardhatArguments {
   maxMemory?: number;
 }
 
-export type BuidlerParamDefinitions = {
+export type HardhatParamDefinitions = {
   [param in keyof Required<HardhatArguments>]: CLIOptionalParamDefinition<
     HardhatArguments[param]
   >;

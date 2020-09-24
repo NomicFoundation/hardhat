@@ -78,7 +78,7 @@ export default function () {
       types.int
     )
     .setAction(
-      async ({ hostname, port }, { network, hardhatArguments: hardhatArguments, config }) => {
+      async ({ hostname, port }, { network, hardhatArguments, config }) => {
         if (
           network.name !== BUIDLEREVM_NETWORK_NAME &&
           // We normally set the default network as hardhatArguments.network,

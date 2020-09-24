@@ -676,7 +676,7 @@ const solidity07Compilers: CompilerOptions[] = [
   },
 ];
 
-describe.skip("Stack traces", function () {
+describe("Stack traces", function () {
   setCWD();
 
   // if a path to a solc file was specified, we only run these tests and use
