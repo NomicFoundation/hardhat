@@ -1,15 +1,15 @@
 {
   "name": "@nomiclabs/buidler-docker",
   "version": "0.1.2",
-  "description": "A library to manage Docker from Buidler plugins",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-docker",
-  "repository": "github:nomiclabs/buidler",
+  "description": "A library to manage Docker from Hardhat plugins",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-docker",
+  "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
-    "buidler",
+    "hardhat",
     "docker"
   ],
   "scripts": {

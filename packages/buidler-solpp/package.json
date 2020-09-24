@@ -1,9 +1,9 @@
 {
   "name": "@nomiclabs/buidler-solpp",
   "version": "1.3.3",
-  "description": "Buidler plugin for solpp",
-  "repository": "github:nomiclabs/buidler",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-solpp",
+  "description": "Hardhat plugin for solpp",
+  "repository": "github:nomiclabs/hardhat",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-solpp",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "buidler",
-    "buidler-plugin",
+    "hardhat",
+    "hardhat-plugin",
     "solidity",
     "solidity-preprocessor",
     "solpp"

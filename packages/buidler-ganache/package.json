@@ -1,9 +1,9 @@
 {
   "name": "@nomiclabs/buidler-ganache",
   "version": "1.3.3",
-  "description": "Buidler plugin for managing Ganache",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ganache",
-  "repository": "github:nomiclabs/buidler",
+  "description": "Hardhat plugin for managing Ganache",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ganache",
+  "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "buidler",
-    "buidler-plugin",
+    "hardhat",
+    "hardhat-plugin",
     "Ganache",
     "testing-network"
   ],

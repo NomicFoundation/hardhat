@@ -1,9 +1,9 @@
 {
   "name": "@nomiclabs/buidler-ethers",
   "version": "2.0.0",
-  "description": "Buidler plugin for ethers",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers",
-  "repository": "github:nomiclabs/buidler",
+  "description": "Hardhat plugin for ethers",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
+  "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "buidler",
-    "buidler-plugin",
+    "hardhat",
+    "hardhat-plugin",
     "ethers.js"
   ],
   "scripts": {

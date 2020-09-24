@@ -1,9 +1,9 @@
 {
   "name": "@nomiclabs/buidler-truffle4",
   "version": "1.3.3",
-  "description": "Truffle 4 Buidler compatibility plugin",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-truffle4",
-  "repository": "github:nomiclabs/buidler",
+  "description": "Truffle 4 Hardhat compatibility plugin",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle4",
+  "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "buidler",
-    "buidler-plugin",
+    "hardhat",
+    "hardhat-plugin",
     "truffle",
     "truffle-contract"
   ],

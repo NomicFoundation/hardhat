@@ -1,9 +1,9 @@
 {
   "name": "@nomiclabs/buidler-etherscan",
   "version": "2.1.0",
-  "description": "Buidler plugin for verifying contracts on etherscan",
-  "repository": "github:nomiclabs/buidler",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-etherscan",
+  "description": "Hardhat plugin for verifying contracts on etherscan",
+  "repository": "github:nomiclabs/hardhat",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
   "author": "Nomic Labs LLC",
   "contributors": [
     "Nomic Labs LLC",
@@ -15,8 +15,8 @@
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "buidler",
-    "buidler-plugin",
+    "hardhat",
+    "hardhat-plugin",
     "etherscan"
   ],
   "scripts": {
