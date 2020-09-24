@@ -1,6 +1,6 @@
 import {
-  BuidlerNetworkAccount,
-  BuidlerNetworkHDAccountsConfig,
+  HardhatNetworkAccount,
+  HardhatNetworkHDAccountsConfig,
 } from "../../../types";
 import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
 import { DEFAULT_BUIDLER_NETWORK_BALANCE } from "../config/default-config";
@@ -45,8 +45,8 @@ export function derivePrivateKeys(
 }
 
 export function normalizeBuidlerEVMAccountsConfig(
-  accountsConfig: BuidlerNetworkAccount[] | BuidlerNetworkHDAccountsConfig
-): BuidlerNetworkAccount[] {
+  accountsConfig: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig
+): HardhatNetworkAccount[] {
   if (Array.isArray(accountsConfig)) {
     return accountsConfig;
   }

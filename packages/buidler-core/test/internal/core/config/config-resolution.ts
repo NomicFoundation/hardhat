@@ -6,7 +6,7 @@ import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-
 import { resolveProjectPaths } from "../../../../src/internal/core/config/config-resolution";
 import { DEFAULT_SOLC_VERSION } from "../../../../src/internal/core/config/default-config";
 import { resetBuidlerContext } from "../../../../src/internal/reset";
-import { BuidlerNetworkConfig, HttpNetworkConfig } from "../../../../src/types";
+import { HardhatNetworkConfig, HttpNetworkConfig } from "../../../../src/types";
 import { useFixtureProject } from "../../../helpers/project";
 
 describe("Config resolution", () => {
@@ -33,8 +33,8 @@ describe("Config resolution", () => {
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
         assert.equal(config.defaultNetwork, "buidlerevm");
 
-        const buidlerEvmConfig: BuidlerNetworkConfig = config.networks
-          .buidlerevm as BuidlerNetworkConfig;
+        const buidlerEvmConfig: HardhatNetworkConfig = config.networks
+          .buidlerevm as HardhatNetworkConfig;
 
         assert.equal(buidlerEvmConfig.throwOnTransactionFailures, true);
         assert.equal(buidlerEvmConfig.throwOnCallFailures, true);

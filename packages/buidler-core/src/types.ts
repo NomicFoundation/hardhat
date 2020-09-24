@@ -15,13 +15,13 @@ export interface CommonNetworkConfig {
   gasMultiplier?: number;
 }
 
-export interface BuidlerNetworkAccount {
+export interface HardhatNetworkAccount {
   privateKey: string;
   balance: string;
 }
 
-export interface BuidlerNetworkConfig extends CommonNetworkConfig {
-  accounts?: BuidlerNetworkAccount[] | BuidlerNetworkHDAccountsConfig;
+export interface HardhatNetworkConfig extends CommonNetworkConfig {
+  accounts?: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig;
   blockGasLimit?: number;
   hardfork?: string;
   throwOnTransactionFailures?: boolean;
@@ -36,8 +36,8 @@ export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   };
 }
 
-export interface ResolvedBuidlerNetworkConfig extends BuidlerNetworkConfig {
-  accounts: BuidlerNetworkAccount[];
+export interface ResolvedHardhatNetworkConfig extends HardhatNetworkConfig {
+  accounts: HardhatNetworkAccount[];
 }
 
 export interface HDAccountsConfig {
@@ -47,7 +47,7 @@ export interface HDAccountsConfig {
   path?: string;
 }
 
-export interface BuidlerNetworkHDAccountsConfig extends HDAccountsConfig {
+export interface HardhatNetworkHDAccountsConfig extends HDAccountsConfig {
   accountsBalance?: string;
 }
 
@@ -72,19 +72,19 @@ export interface ResolvedHttpNetworkConfig extends HttpNetworkConfig {
   url: string;
 }
 
-export type NetworkConfig = BuidlerNetworkConfig | HttpNetworkConfig;
+export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
 
 export type ResolvedNetworkConfig =
-  | ResolvedBuidlerNetworkConfig
+  | ResolvedHardhatNetworkConfig
   | ResolvedHttpNetworkConfig;
 
 export interface Networks {
-  buidlerevm: BuidlerNetworkConfig;
+  buidlerevm: HardhatNetworkConfig;
   [networkName: string]: NetworkConfig;
 }
 
 export interface ResolvedNetworks {
-  buidlerevm: ResolvedBuidlerNetworkConfig;
+  buidlerevm: ResolvedHardhatNetworkConfig;
   [networkName: string]: ResolvedNetworkConfig;
 }
 

@@ -1,4 +1,4 @@
-import { HardhatConfig, BuidlerNetworkConfig } from "../../../types";
+import { HardhatConfig, HardhatNetworkConfig } from "../../../types";
 import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.5.15";
@@ -7,7 +7,7 @@ const BUIDLER_EVM_MNEMONIC =
   "test test test test test test test test test test test junk";
 export const DEFAULT_BUIDLER_NETWORK_BALANCE = "10000000000000000000000";
 
-const DEFAULT_BUIDLER_NETWORK_CONFIG: BuidlerNetworkConfig = {
+const DEFAULT_BUIDLER_NETWORK_CONFIG: HardhatNetworkConfig = {
   hardfork: "istanbul",
   blockGasLimit: 9500000,
   gas: 9500000,

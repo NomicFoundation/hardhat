@@ -6,7 +6,7 @@ import type {
   HttpNetworkConfig,
   NetworkConfigAccounts,
   ProjectPaths,
-  ResolvedBuidlerNetworkConfig,
+  ResolvedHardhatNetworkConfig,
   ResolvedHttpNetworkConfig,
   ResolvedNetworkConfig,
 } from "../../../types";
@@ -47,7 +47,7 @@ export function createProvider(
   let eip1193Provider: EIP1193Provider;
 
   if (networkName === BUIDLEREVM_NETWORK_NAME) {
-    const buidlerNetConfig = networkConfig as ResolvedBuidlerNetworkConfig;
+    const buidlerNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
 
     const BuidlerEVMProvider = importProvider<
       typeof import("../../buidler-evm/provider/provider"),

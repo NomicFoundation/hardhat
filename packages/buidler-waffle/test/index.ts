@@ -1,5 +1,5 @@
 import { BUIDLEREVM_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
-import { ResolvedBuidlerNetworkConfig } from "@nomiclabs/buidler/types";
+import { ResolvedHardhatNetworkConfig } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import path from "path";
 
@@ -16,7 +16,7 @@ describe("Waffle plugin plugin", function () {
             const wallets = this.env.waffle.provider.getWallets();
             assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
             const accounts = (this.env.network
-              .config as ResolvedBuidlerNetworkConfig).accounts;
+              .config as ResolvedHardhatNetworkConfig).accounts;
             assert.lengthOf(wallets, accounts.length);
 
             for (let i = 0; i < wallets.length; i++) {
@@ -73,7 +73,7 @@ describe("Waffle plugin plugin", function () {
               const wallets = this.env.waffle.provider.getWallets();
               assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
               const accounts = (this.env.network
-                .config as ResolvedBuidlerNetworkConfig).accounts!;
+                .config as ResolvedHardhatNetworkConfig).accounts!;
 
               assert.lengthOf(wallets, accounts.length);
 

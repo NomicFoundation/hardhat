@@ -75,7 +75,7 @@ function optional<TypeT, OutputT>(
 
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
-const BuidlerNetworkAccount = t.type({
+const HardhatNetworkAccount = t.type({
   privateKey: t.string,
   balance: t.string,
 });
@@ -87,7 +87,7 @@ const HDAccountsConfig = t.type({
   path: optional(t.string),
 });
 
-const BuidlerNetworkHDAccountsConfig = t.type({
+const HardhatNetworkHDAccountsConfig = t.type({
   mnemonic: t.string,
   initialIndex: optional(t.number),
   count: optional(t.number),
@@ -95,7 +95,7 @@ const BuidlerNetworkHDAccountsConfig = t.type({
   accountsBalance: optional(t.string),
 });
 
-const BuidlerNetworkConfig = t.type({
+const HardhatNetworkConfig = t.type({
   hardfork: optional(t.string),
   chainId: optional(t.number),
   from: optional(t.string),
@@ -103,7 +103,7 @@ const BuidlerNetworkConfig = t.type({
   gasPrice: optional(t.union([t.literal("auto"), t.number])),
   gasMultiplier: optional(t.number),
   accounts: optional(
-    t.union([t.array(BuidlerNetworkAccount), BuidlerNetworkHDAccountsConfig])
+    t.union([t.array(HardhatNetworkAccount), HardhatNetworkHDAccountsConfig])
   ),
   blockGasLimit: optional(t.number),
   throwOnTransactionFailures: optional(t.boolean),
@@ -137,7 +137,7 @@ const HttpNetworkConfig = t.type({
   httpHeaders: optional(HttpHeaders),
 });
 
-const NetworkConfig = t.union([BuidlerNetworkConfig, HttpNetworkConfig]);
+const NetworkConfig = t.union([HardhatNetworkConfig, HttpNetworkConfig]);
 
 const Networks = t.record(t.string, NetworkConfig);
 
@@ -331,7 +331,7 @@ export function getValidationErrors(config: any): string[] {
           }
         }
       } else if (typeof buidlerNetwork.accounts === "object") {
-        const hdConfigResult = BuidlerNetworkHDAccountsConfig.decode(
+        const hdConfigResult = HardhatNetworkHDAccountsConfig.decode(
           buidlerNetwork.accounts
         );
         if (hdConfigResult.isLeft()) {
@@ -339,7 +339,7 @@ export function getValidationErrors(config: any): string[] {
             getErrorMessage(
               `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
               buidlerNetwork.accounts,
-              "[{privateKey: string, balance: string}] | BuidlerNetworkHDAccountsConfig | undefined"
+              "[{privateKey: string, balance: string}] | HardhatNetworkHDAccountsConfig | undefined"
             )
           );
         }
@@ -348,7 +348,7 @@ export function getValidationErrors(config: any): string[] {
           getErrorMessage(
             `HardhatConfig.networks.${BUIDLEREVM_NETWORK_NAME}.accounts`,
             buidlerNetwork.accounts,
-            "[{privateKey: string, balance: string}] | BuidlerNetworkHDAccountsConfig | undefined"
+            "[{privateKey: string, balance: string}] | HardhatNetworkHDAccountsConfig | undefined"
           )
         );
       }

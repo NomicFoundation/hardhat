@@ -14,7 +14,7 @@ import {
   lazyObject,
   NomicLabsBuidlerPluginError,
 } from "@nomiclabs/buidler/plugins";
-import { ResolvedBuidlerNetworkConfig } from "@nomiclabs/buidler/types";
+import { ResolvedHardhatNetworkConfig } from "@nomiclabs/buidler/types";
 import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
@@ -58,7 +58,7 @@ export default function () {
         if (accounts === undefined) {
           const { privateToAddress, bufferToHex } = require("ethereumjs-util");
 
-          const netConfig = env.network.config as ResolvedBuidlerNetworkConfig;
+          const netConfig = env.network.config as ResolvedHardhatNetworkConfig;
 
           accounts = netConfig.accounts.map((acc) =>
             bufferToHex(privateToAddress(acc.privateKey))

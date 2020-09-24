@@ -1,6 +1,6 @@
 import {
   Network,
-  ResolvedBuidlerNetworkConfig,
+  ResolvedHardhatNetworkConfig,
 } from "@nomiclabs/buidler/types";
 import { providers, Wallet } from "ethers";
 
@@ -19,7 +19,7 @@ You can use \`await bre.ethers.signers()\` in other networks.`);
     }
 
     return (this._buidlerNetwork
-      .config as ResolvedBuidlerNetworkConfig).accounts!.map(
+      .config as ResolvedHardhatNetworkConfig).accounts!.map(
       (acc) => new Wallet(acc.privateKey, this)
     );
   }

@@ -5,7 +5,7 @@ import {
   dateToTimestampSeconds,
   parseDateString,
 } from "../../../../src/internal/util/date";
-import { BuidlerNetworkConfig } from "../../../../src/types";
+import { HardhatNetworkConfig } from "../../../../src/types";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
@@ -71,7 +71,7 @@ describe("Buidler EVM special options", function () {
       );
 
       const buidlerEvmConfig = this.env.config.networks
-        .buidlerevm as BuidlerNetworkConfig;
+        .buidlerevm as HardhatNetworkConfig;
       const initialDateString = buidlerEvmConfig.initialDate!;
       const initialDate = dateToTimestampSeconds(
         parseDateString(initialDateString)

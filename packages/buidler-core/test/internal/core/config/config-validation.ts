@@ -6,7 +6,7 @@ import {
   validateConfig,
 } from "../../../../src/internal/core/config/config-validation";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import { BuidlerNetworkHDAccountsConfig } from "../../../../src/types";
+import { HardhatNetworkHDAccountsConfig } from "../../../../src/types";
 import { expectBuidlerError } from "../../../helpers/errors";
 
 describe("Config validation", function () {
@@ -502,7 +502,7 @@ describe("Config validation", function () {
 
         describe("BuidlerNetworkHDAccounstConfig", function () {
           it("Should accept a valid HD config", function () {
-            let hdConfig: BuidlerNetworkHDAccountsConfig = {
+            let hdConfig: HardhatNetworkHDAccountsConfig = {
               mnemonic: "asd",
             };
 

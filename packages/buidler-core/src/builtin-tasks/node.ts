@@ -14,10 +14,10 @@ import { createProvider } from "../internal/core/providers/construction";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
 import {
-  BuidlerNetworkConfig,
+  HardhatNetworkConfig,
   EthereumProvider,
   ResolvedHardhatConfig,
-  ResolvedBuidlerNetworkConfig,
+  ResolvedHardhatNetworkConfig,
 } from "../types";
 
 import { TASK_NODE } from "./task-names";
@@ -43,7 +43,7 @@ function _createBuidlerEVMProvider(
   });
 }
 
-function logBuidlerEvmAccounts(networkConfig: ResolvedBuidlerNetworkConfig) {
+function logBuidlerEvmAccounts(networkConfig: ResolvedHardhatNetworkConfig) {
   if (networkConfig.accounts === undefined) {
     return;
   }
