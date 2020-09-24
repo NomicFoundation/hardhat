@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import debug from "debug";
 import path from "path";
+import semver from "semver";
 
 import {
   Artifacts,
@@ -22,7 +23,6 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
-import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
 import { SolcInput } from "../types";
 
@@ -355,12 +355,24 @@ export default function () {
           return { artifactsEmittedPerJob: [] };
         }
 
+        // sort compilation jobs by compiler version
+        const sortedCompilationJobs = compilationJobs.sort((job1, job2) => {
+          return semver.compare(
+            job1.getSolcConfig().version,
+            job2.getSolcConfig().version
+          );
+        });
+
         const artifactsEmittedPerJob: ArtifactsEmittedPerJob = [];
-        for (const compilationJob of compilationJobs) {
+        for (let i = 0; i < sortedCompilationJobs.length; i++) {
+          const compilationJob = sortedCompilationJobs[i];
+
           const { artifactsEmittedPerFile } = await run(
             TASK_COMPILE_SOLIDITY_COMPILE_JOB,
             {
               compilationJob,
+              compilationJobs: sortedCompilationJobs,
+              compilationJobIndex: i,
               quiet,
             }
           );
@@ -493,6 +505,8 @@ export default function () {
       if (output?.errors === undefined) {
         return;
       }
+
+      console.log(chalk.red("×"));
 
       for (const error of output.errors) {
         if (error.severity === "error") {
@@ -638,20 +652,54 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START)
     .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("compilationJobIndex", undefined, undefined, types.int)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async ({
-        compilationJob,
+        compilationJobs,
+        compilationJobIndex,
         quiet,
       }: {
         compilationJob: CompilationJob;
+        compilationJobs: CompilationJob[];
+        compilationJobIndex: number;
         quiet: boolean;
       }) => {
-        if (!quiet) {
-          console.log(
-            `Compiling with ${compilationJob.getSolcConfig().version}`
-          );
+        if (quiet) {
+          return;
         }
+
+        const solcVersion = compilationJobs[compilationJobIndex].getSolcConfig()
+          .version;
+
+        // we log if this is the first job, or if the previous job has a
+        // different solc version
+        const shouldLog =
+          compilationJobIndex === 0 ||
+          compilationJobs[compilationJobIndex - 1].getSolcConfig().version !==
+            solcVersion;
+
+        if (!shouldLog) {
+          return;
+        }
+
+        // count how many files emit artifacts for this version
+        let count = 0;
+        for (let i = compilationJobIndex; i < compilationJobs.length; i++) {
+          const job = compilationJobs[i];
+          if (job.getSolcConfig().version !== solcVersion) {
+            break;
+          }
+
+          count += job
+            .getResolvedFiles()
+            .filter((file) => job.emitsArtifacts(file)).length;
+        }
+
+        process.stdout.write(
+          `Compiling ${count} files with ${solcVersion}... `
+        );
       }
     );
 
@@ -660,28 +708,39 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END)
     .addParam("compilationJob", undefined, undefined, types.any)
-    .addParam("artifactsEmittedPerFile", undefined, undefined, types.any)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("compilationJobIndex", undefined, undefined, types.int)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async ({
-        artifactsEmittedPerFile,
+        compilationJobs,
+        compilationJobIndex,
         quiet,
       }: {
         compilationJob: CompilationJob;
-        artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+        compilationJobs: CompilationJob[];
+        compilationJobIndex: number;
         quiet: boolean;
       }) => {
         if (quiet) {
           return;
         }
 
-        const numberOfContracts = artifactsEmittedPerFile.length;
-        console.log(
-          "Compiled",
-          numberOfContracts,
-          pluralize(numberOfContracts, "contract"),
-          "successfully"
-        );
+        const solcVersion = compilationJobs[compilationJobIndex].getSolcConfig()
+          .version;
+
+        // we log if this is the last job, or if the next job has a
+        // different solc version
+        const shouldLog =
+          compilationJobIndex + 1 === compilationJobs.length ||
+          compilationJobs[compilationJobIndex + 1].getSolcConfig().version !==
+            solcVersion;
+
+        if (!shouldLog) {
+          return;
+        }
+
+        console.log(chalk.green("✓"));
       }
     );
 
@@ -691,14 +750,20 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
     .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("compilationJobIndex", undefined, undefined, types.int)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async (
         {
           compilationJob,
+          compilationJobs,
+          compilationJobIndex,
           quiet,
         }: {
           compilationJob: CompilationJob;
+          compilationJobs: CompilationJob[];
+          compilationJobIndex: number;
           quiet: boolean;
         },
         { run }
@@ -710,6 +775,8 @@ export default function () {
         );
         await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START, {
           compilationJob,
+          compilationJobs,
+          compilationJobIndex,
           quiet,
         });
 
@@ -738,7 +805,8 @@ export default function () {
 
         await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END, {
           compilationJob,
-          artifactsEmittedPerFile,
+          compilationJobs,
+          compilationJobIndex,
           quiet,
         });
 
