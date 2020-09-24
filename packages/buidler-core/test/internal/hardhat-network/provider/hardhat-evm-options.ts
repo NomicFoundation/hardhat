@@ -70,9 +70,9 @@ describe("Buidler EVM special options", function () {
         ["latest", false]
       );
 
-      const buidlerEvmConfig = this.env.config.networks
+      const hardhatNetworkConfig = this.env.config.networks
         .hardhat as HardhatNetworkConfig;
-      const initialDateString = buidlerEvmConfig.initialDate!;
+      const initialDateString = hardhatNetworkConfig.initialDate!;
       const initialDate = dateToTimestampSeconds(
         parseDateString(initialDateString)
       );

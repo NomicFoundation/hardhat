@@ -318,7 +318,7 @@ export class EthModule {
 
     if (trace !== undefined) {
       await this._logCallTrace(callParams, trace);
-      await this._runBuidlerEVMMessageTraceHooks(trace, true);
+      await this._runHardhatNetworkMessageTraceHooks(trace, true);
     }
 
     this._logConsoleLogMessages(consoleLogMessages);
@@ -1300,7 +1300,7 @@ export class EthModule {
 
     if (trace !== undefined) {
       await this._logTransactionTrace(tx, trace, block, blockResult);
-      await this._runBuidlerEVMMessageTraceHooks(trace, false);
+      await this._runHardhatNetworkMessageTraceHooks(trace, false);
     }
 
     this._logConsoleLogMessages(consoleLogMessages);
@@ -1331,7 +1331,7 @@ export class EthModule {
     this._logger.logWithTitle("To", bufferToHex(to));
   }
 
-  private async _runBuidlerEVMMessageTraceHooks(
+  private async _runHardhatNetworkMessageTraceHooks(
     trace: MessageTrace,
     isCall: boolean
   ) {

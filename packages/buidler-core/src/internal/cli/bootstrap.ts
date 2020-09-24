@@ -7,7 +7,7 @@ import { ArgumentsParser } from "./ArgumentsParser";
 
 const nodeArgs = [...process.execArgv];
 
-if (process.env.DISABLE_BUIDLEREVM_OPTIMIZATIONS === undefined) {
+if (process.env.DISABLE_HARDHAT_NETWORK_OPTIMIZATIONS === undefined) {
   nodeArgs.push("--max-semi-space-size=100");
 }
 

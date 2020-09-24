@@ -33,11 +33,11 @@ describe("Config resolution", () => {
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
         assert.equal(config.defaultNetwork, "hardhat");
 
-        const buidlerEvmConfig: HardhatNetworkConfig = config.networks
+        const hardhatNetworkConfig: HardhatNetworkConfig = config.networks
           .hardhat as HardhatNetworkConfig;
 
-        assert.equal(buidlerEvmConfig.throwOnTransactionFailures, true);
-        assert.equal(buidlerEvmConfig.throwOnCallFailures, true);
+        assert.equal(hardhatNetworkConfig.throwOnTransactionFailures, true);
+        assert.equal(hardhatNetworkConfig.throwOnCallFailures, true);
       });
     });
 

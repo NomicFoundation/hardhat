@@ -15,7 +15,7 @@ import {
 import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
-import { normalizeBuidlerEVMAccountsConfig } from "../providers/util";
+import { normalizeHardhatNetworkAccountsConfig } from "../providers/util";
 
 function mergeUserAndDefaultConfigs(
   defaultConfig: HardhatConfig,
@@ -87,7 +87,7 @@ export function resolveConfig(
       ...config.networks!,
       hardhat: {
         ...config.networks!.hardhat,
-        accounts: normalizeBuidlerEVMAccountsConfig(
+        accounts: normalizeHardhatNetworkAccountsConfig(
           config.networks!.hardhat.accounts!
         ),
       },

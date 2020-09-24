@@ -92,7 +92,7 @@ export function extendConfig(extender: ConfigExtender) {
 
 // NOTE: This is experimental and will be removed. Please contact our team
 // if you are planning to use it.
-export function experimentalAddBuidlerEVMMessageTraceHook(
+export function experimentalAddHardhatNetworkMessageTraceHook(
   hook: ExperimentalHardhatNetworkMessageTraceHook
 ) {
   const ctx = HardhatContext.getHardhatContext();

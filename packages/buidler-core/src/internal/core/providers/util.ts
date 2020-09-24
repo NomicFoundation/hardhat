@@ -44,7 +44,7 @@ export function derivePrivateKeys(
   return privateKeys;
 }
 
-export function normalizeBuidlerEVMAccountsConfig(
+export function normalizeHardhatNetworkAccountsConfig(
   accountsConfig: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig
 ): HardhatNetworkAccount[] {
   if (Array.isArray(accountsConfig)) {
