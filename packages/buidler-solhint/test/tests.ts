@@ -20,7 +20,7 @@ describe("Solhint plugin", function () {
   const SOLHINT_CONFIG_FILENAME = ".solhint.json";
 
   describe("Project with solhint config", function () {
-    useEnvironment(path.join(__dirname, "buidler-project"));
+    useEnvironment(path.join(__dirname, "hardhat-project"));
 
     it("should define solhint task", function () {
       assert.isDefined(this.env.tasks["buidler-solhint:run-solhint"]);

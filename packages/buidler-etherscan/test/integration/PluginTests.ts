@@ -23,7 +23,7 @@ describe("Plugin integration tests", function () {
   });
 
   describe("Using a normal Buidler project", function () {
-    useEnvironment(path.join(__dirname, "..", "buidler-project"), "testnet");
+    useEnvironment(path.join(__dirname, "..", "hardhat-project"), "testnet");
 
     let placeholder: string;
     this.beforeEach(function () {
@@ -107,7 +107,7 @@ describe("Plugin integration tests", function () {
       const modulePath = path.join(
         __dirname,
         "..",
-        "buidler-project",
+        "hardhat-project",
         "paramList"
       );
       const args = require(modulePath);
@@ -128,7 +128,7 @@ describe("Plugin integration tests", function () {
 const testContractPath = path.join(
   __dirname,
   "..",
-  "buidler-project",
+  "hardhat-project",
   "contracts",
   "TestContract1.sol"
 );

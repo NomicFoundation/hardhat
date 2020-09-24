@@ -57,8 +57,8 @@ describe.skip("Solpp plugin", async function () {
     });
   });
 
-  describe("buidler-project", async function () {
-    useEnvironment(join(__dirname, "buidler-project"));
+  describe("hardhat-project", async function () {
+    useEnvironment(join(__dirname, "hardhat-project"));
 
     it("should create processed contracts in the cache directory", async function () {
       const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);

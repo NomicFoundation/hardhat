@@ -126,7 +126,7 @@ function linkingShouldWorkCorrectly() {
 describe("Libraries linking", function () {
   describe("When using solc 0.4.x", function () {
     useEnvironment(
-      path.join(__dirname, "buidler-project-solc-0.4"),
+      path.join(__dirname, "hardhat-project-solc-0.4"),
       HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
@@ -134,7 +134,7 @@ describe("Libraries linking", function () {
 
   describe("When using solc 0.5.x", function () {
     useEnvironment(
-      path.join(__dirname, "buidler-project-solc-0.5"),
+      path.join(__dirname, "hardhat-project-solc-0.5"),
       HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
@@ -142,7 +142,7 @@ describe("Libraries linking", function () {
 
   describe("When using solc 0.6.x", function () {
     useEnvironment(
-      path.join(__dirname, "buidler-project-solc-0.6"),
+      path.join(__dirname, "hardhat-project-solc-0.6"),
       HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();

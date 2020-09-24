@@ -132,7 +132,7 @@ function testArtifactsFunctionality() {
 }
 
 describe("HardhatRuntimeEnvironment extension", function () {
-  useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
+  useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
 
   it("It should add the artifacts object", function () {
     assert.instanceOf(this.env.artifacts, TruffleEnvironmentArtifacts);
@@ -141,17 +141,17 @@ describe("HardhatRuntimeEnvironment extension", function () {
 
 describe("TruffleContracts loading and provisioning", function () {
   describe("When compiling with solc 0.5.x", function () {
-    useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
+    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.4.x", function () {
-    useEnvironment(path.join(__dirname, "buidler-project-solc-0.4"));
+    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.4"));
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.6.x", function () {
-    useEnvironment(path.join(__dirname, "buidler-project-solc-0.6"));
+    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.6"));
     testArtifactsFunctionality();
   });
 
@@ -173,7 +173,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
     describe("With solc 0.4.x", function () {
       useEnvironment(
-        path.join(__dirname, "buidler-project-solc-0.4"),
+        path.join(__dirname, "hardhat-project-solc-0.4"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -181,7 +181,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
     describe("With solc 0.5.x", function () {
       useEnvironment(
-        path.join(__dirname, "buidler-project-solc-0.5"),
+        path.join(__dirname, "hardhat-project-solc-0.5"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -189,7 +189,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
     describe("With solc 0.6.x", function () {
       useEnvironment(
-        path.join(__dirname, "buidler-project-solc-0.6"),
+        path.join(__dirname, "hardhat-project-solc-0.6"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -199,7 +199,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
 // TODO-HH re-enable after splitting the new compile stask in internal tasks
 describe.skip("Test contracts compilation", function () {
-  useEnvironment(path.join(__dirname, "buidler-project-with-test-contracts"));
+  useEnvironment(path.join(__dirname, "hardhat-project-with-test-contracts"));
 
   it("Should include sources from sources", async function () {
     const sources = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
@@ -209,7 +209,7 @@ describe.skip("Test contracts compilation", function () {
       fs.realpathSync(
         path.join(
           __dirname,
-          "buidler-project-with-test-contracts",
+          "hardhat-project-with-test-contracts",
           "contracts",
           "fromContracts.sol"
         )
@@ -225,7 +225,7 @@ describe.skip("Test contracts compilation", function () {
       fs.realpathSync(
         path.join(
           __dirname,
-          "buidler-project-with-test-contracts",
+          "hardhat-project-with-test-contracts",
           "test",
           "fromTest.sol"
         )
@@ -241,7 +241,7 @@ describe.skip("Test contracts compilation", function () {
       fs.realpathSync(
         path.join(
           __dirname,
-          "buidler-project-with-test-contracts",
+          "hardhat-project-with-test-contracts",
           "test",
           "shouldBeIgnored.txt"
         )
@@ -315,7 +315,7 @@ describe("Gas multiplier", function () {
 
   describe("When it's set in the network", function () {
     useEnvironment(
-      path.join(__dirname, "buidler-project-solc-0.4"),
+      path.join(__dirname, "hardhat-project-solc-0.4"),
       "withGasMultiplier"
     );
 
@@ -331,7 +331,7 @@ describe("Gas multiplier", function () {
   });
 
   describe("When it's not set in the network", function () {
-    useEnvironment(path.join(__dirname, "buidler-project-solc-0.4"));
+    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.4"));
 
     it("Should use the set one for deployments", async function () {
       await assertItWorksForDeployments(this.env, DEFAULT_GAS_MULTIPLIER);
