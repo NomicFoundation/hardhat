@@ -34,12 +34,11 @@ describe("ForkStateManager", () => {
       this.skip();
       return;
     }
-
-    client = JsonRpcClient.forUrl(INFURA_URL);
-    forkBlockNumber = await client.getLatestBlockNumber();
   });
 
   beforeEach(async () => {
+    client = JsonRpcClient.forUrl(INFURA_URL!);
+    forkBlockNumber = await client.getLatestBlockNumber();
     fsm = new ForkStateManager(client, forkBlockNumber);
   });
 
