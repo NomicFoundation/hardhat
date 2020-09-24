@@ -1,11 +1,6 @@
 import { BN } from "ethereumjs-util";
 
-import { ForkConfig } from "../../../types";
-import {
-  BuildInfo,
-  CompilerInput,
-  CompilerOutput,
-} from "../stack-traces/compiler-types";
+import { BuildInfo } from "../stack-traces/compiler-types";
 
 import { Block } from "./types/Block";
 
@@ -25,6 +20,11 @@ export interface LocalNodeConfig extends CommonConfig {
   chainId: number;
   networkId: number;
   initialDate?: Date;
+}
+
+export interface ForkConfig {
+  jsonRpcUrl: string;
+  blockNumber?: number;
 }
 
 export interface ForkedNodeConfig extends CommonConfig {

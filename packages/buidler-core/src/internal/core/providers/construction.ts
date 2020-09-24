@@ -9,6 +9,7 @@ import type {
   NetworkConfigAccounts,
   ProjectPaths,
 } from "../../../types";
+import { ForkConfig } from "../../buidler-evm/provider/node-types";
 import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
 import { parseDateString } from "../../util/date";
 
@@ -52,6 +53,18 @@ export function createProvider(
       "BuidlerEVMProvider"
     >("../../buidler-evm/provider/provider", "BuidlerEVMProvider");
 
+    let forkConfig: ForkConfig | undefined;
+
+    if (
+      buidlerNetConfig.forking?.enabled === true &&
+      buidlerNetConfig.forking?.url !== undefined
+    ) {
+      forkConfig = {
+        jsonRpcUrl: buidlerNetConfig.forking?.url,
+        blockNumber: buidlerNetConfig.forking?.blockNumber,
+      };
+    }
+
     eip1193Provider = new BuidlerEVMProvider(
       buidlerNetConfig.hardfork!,
       BUIDLEREVM_NETWORK_NAME,
@@ -67,7 +80,8 @@ export function createProvider(
       buidlerNetConfig.initialDate !== undefined
         ? parseDateString(buidlerNetConfig.initialDate)
         : undefined,
-      experimentalBuidlerEVMMessageTraceHooks
+      experimentalBuidlerEVMMessageTraceHooks,
+      forkConfig
     );
   } else {
     const HttpProvider = importProvider<
