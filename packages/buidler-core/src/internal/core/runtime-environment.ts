@@ -3,7 +3,7 @@ import debug from "debug";
 import {
   EnvironmentExtender,
   EthereumProvider,
-  ExperimentalBuidlerEVMMessageTraceHook,
+  ExperimentalHardhatEVMMessageTraceHook,
   HardhatArguments,
   HardhatRuntimeEnvironment,
   Network,
@@ -57,7 +57,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = [],
-    experimentalBuidlerEVMMessageTraceHooks: ExperimentalBuidlerEVMMessageTraceHook[] = []
+    experimentalHardhatEVMMessageTraceHooks: ExperimentalHardhatEVMMessageTraceHook[] = []
   ) {
     log("Creating HardhatRuntimeEnvironment");
 
@@ -80,7 +80,7 @@ export class Environment implements HardhatRuntimeEnvironment {
         networkName,
         networkConfig,
         config.paths,
-        experimentalBuidlerEVMMessageTraceHooks.map(
+        experimentalHardhatEVMMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
             hook(this, trace, isCallMessageTrace)
         )

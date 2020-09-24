@@ -39,7 +39,7 @@ if (!BuidlerContext.isCreated()) {
     hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.extendersManager.getExtenders(),
-    ctx.experimentalBuidlerEVMMessageTraceHooks
+    ctx.experimentalHardhatEVMMessageTraceHooks
   );
 
   ctx.setBuidlerRuntimeEnvironment(env);

@@ -9,7 +9,7 @@ import semver from "semver";
 import util from "util";
 
 import type {
-  BoundExperimentalBuidlerEVMMessageTraceHook,
+  BoundExperimentalHardhatEVMMessageTraceHook,
   EIP1193Provider,
   EthSubscription,
   ProjectPaths,
@@ -75,7 +75,7 @@ export class BuidlerEVMProvider extends EventEmitter
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
-    private readonly _experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = [],
+    private readonly _experimentalHardhatEVMMessageTraceHooks: BoundExperimentalHardhatEVMMessageTraceHook[] = [],
     private _forkConfig?: ForkConfig
   ) {
     super();
@@ -269,7 +269,7 @@ export class BuidlerEVMProvider extends EventEmitter
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
       this._loggingEnabled ? this._logger : undefined,
-      this._experimentalBuidlerEVMMessageTraceHooks
+      this._experimentalHardhatEVMMessageTraceHooks
     );
 
     this._netModule = new NetModule(common);

@@ -1,5 +1,5 @@
 import type {
-  BoundExperimentalBuidlerEVMMessageTraceHook,
+  BoundExperimentalHardhatEVMMessageTraceHook,
   EIP1193Provider,
   EthereumProvider,
   HDAccountsConfig,
@@ -42,7 +42,7 @@ export function createProvider(
   networkName: string,
   networkConfig: ResolvedNetworkConfig,
   paths?: ProjectPaths,
-  experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
+  experimentalHardhatEVMMessageTraceHooks: BoundExperimentalHardhatEVMMessageTraceHook[] = []
 ): EthereumProvider {
   let eip1193Provider: EIP1193Provider;
 
@@ -81,7 +81,7 @@ export function createProvider(
       buidlerNetConfig.initialDate !== undefined
         ? parseDateString(buidlerNetConfig.initialDate)
         : undefined,
-      experimentalBuidlerEVMMessageTraceHooks,
+      experimentalHardhatEVMMessageTraceHooks,
       forkConfig
     );
   } else {

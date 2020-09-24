@@ -5,7 +5,7 @@ import semver from "semver";
 import "source-map-support/register";
 
 import { TASK_HELP } from "../../builtin-tasks/task-names";
-import { ResolvedHardhatConfig, TaskArguments } from "../../types";
+import { TaskArguments } from "../../types";
 import { BUIDLER_NAME } from "../constants";
 import { BuidlerContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
@@ -148,7 +148,7 @@ async function main() {
       hardhatArguments,
       taskDefinitions,
       envExtenders,
-      ctx.experimentalBuidlerEVMMessageTraceHooks
+      ctx.experimentalHardhatEVMMessageTraceHooks
     );
 
     ctx.setBuidlerRuntimeEnvironment(env);
