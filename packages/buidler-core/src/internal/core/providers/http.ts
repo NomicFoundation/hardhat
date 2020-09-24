@@ -128,6 +128,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
           return await this._retry(request, seconds, retryNumber);
         }
+
+        const url = new URL(this._url);
+        throw new Error(
+          `Too Many Requests error received from ${url.hostname}`
+        );
       }
 
       return parseJsonResponse(await response.text());
