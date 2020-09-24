@@ -21,6 +21,8 @@ function isErrorResponse(response: any): response is FailedJsonRpcResponse {
 const MAX_RETRIES = 3;
 const MAX_RETRY_AWAIT_SECONDS = 2;
 
+const TOO_MANY_REQUEST_STATUS = 429;
+
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
 
@@ -181,7 +183,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   }
 
   private _isRateLimitResponse(response: Response) {
-    return response.status === 409;
+    return response.status === TOO_MANY_REQUEST_STATUS;
   }
 
   private _getRetryAfterSeconds(response: Response): number | undefined {
