@@ -8,14 +8,14 @@ This mode will print a lot of output that can be super useful for debugging. An 
 
 ```
 pato@pmbp:asd% npx hardhat --verbose
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/internal/core/tasks/builtin-tasks +0ms
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/builtin-tasks/clean +3ms
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/builtin-tasks/compile +2ms
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/builtin-tasks/console +53ms
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/builtin-tasks/flatten +3ms
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/builtin-tasks/help +1ms
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/builtin-tasks/run +2ms
-  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-core/builtin-tasks/test +1ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/internal/core/tasks/builtin-tasks +0ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/builtin-tasks/clean +3ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/builtin-tasks/compile +2ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/builtin-tasks/console +53ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/builtin-tasks/flatten +3ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/builtin-tasks/help +1ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/builtin-tasks/run +2ms
+  hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat/builtin-tasks/test +1ms
   hardhat:core:plugins Loading plugin @nomiclabs/hardhat-truffle5 +2ms
   hardhat:core:plugins Hardhat is linked, searching for plugin starting from CWD /private/tmp/asd +0ms
   hardhat:core:plugins Loading plugin file /Users/pato/projects/hardhat/hardhat/packages/hardhat-truffle5/dist/index.js +5ms

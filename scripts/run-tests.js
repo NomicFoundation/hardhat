@@ -16,10 +16,10 @@ const isWindows = os.type() === "Windows_NT";
 // only Build tests in local environment
 const shouldBuildTests = !isGithubActions;
 
-shell.exec("npm run build");
+shell.exec("yarn build");
 
 if (shouldBuildTests) {
-  shell.exec("npm run build-test");
+  shell.exec("yarn build-test");
 }
 
 // ** check for packages to be ignored ** //

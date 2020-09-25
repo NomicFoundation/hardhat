@@ -11,8 +11,8 @@ fi
 cd "$(git rev-parse --show-toplevel)"
 
 # install dependencies
-npm install
+yarn
 
 # run hardhat tests
 cd packages/buidler-core
-npm test
+yarn test

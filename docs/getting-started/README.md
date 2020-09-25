@@ -93,7 +93,7 @@ This is the list of built-in tasks, and the sample `accounts` task. Further ahea
 
 If you take a look at `hardhat.config.js`, you will find the definition of the task `accounts`:
 
-<<< @/../packages/hardhat-core/sample-project/hardhat.config.js{5-11}
+<<< @/../packages/hardhat/sample-project/hardhat.config.js{5-11}
 
 To run it, try `npx hardhat accounts`:
 
@@ -125,7 +125,7 @@ $ npx hardhat accounts
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
 
-<<< @/../packages/hardhat-core/sample-project/contracts/Greeter.sol
+<<< @/../packages/hardhat/sample-project/contracts/Greeter.sol
 
 To compile it, simply run:
 
@@ -137,7 +137,7 @@ npx hardhat compile
 
 The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want, check the integrations described in our guides.
 
-<<< @/../packages/hardhat-core/sample-project/test/sample-test.js
+<<< @/../packages/hardhat/sample-project/test/sample-test.js
 
 You can run your tests with `npx hardhat test`
 
@@ -158,7 +158,7 @@ Compiled 2 contracts successfully
 Next, to deploy the contract we will use a Hardhat script.
 Inside `scripts/` you will find `sample-script.js` with the following code:
 
-<<< @/../packages/hardhat-core/sample-project/scripts/sample-script.js
+<<< @/../packages/hardhat/sample-project/scripts/sample-script.js
 
 Run it with `npx hardhat run scripts/sample-script.js`:
 

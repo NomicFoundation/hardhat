@@ -23,7 +23,7 @@ import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 import "./type-extensions";
 
-// See hardhat-core's CONTRIBUTING.md
+// See hardhat's CONTRIBUTING.md
 let originalFormatter: any;
 let originalGetGasEstimate: any;
 let originalPrepareCall: any;

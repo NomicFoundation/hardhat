@@ -39,7 +39,7 @@ Hardhat will let you know how, but in case you missed it you can install them wi
 
 Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is enabled:
 
-<<< @/../packages/hardhat-core/sample-project/hardhat.config.js{1}
+<<< @/../packages/hardhat/sample-project/hardhat.config.js{1}
 
 ::: tip 
 There's no need for `usePlugin("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
@@ -49,7 +49,7 @@ There's no need for `usePlugin("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle
 
 Inside `test` folder you'll find  `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
-<<< @/../packages/hardhat-core/sample-project/test/sample-test.js
+<<< @/../packages/hardhat/sample-project/test/sample-test.js
 
 On your terminal run `npx hardhat test`. You should see the following output:
 

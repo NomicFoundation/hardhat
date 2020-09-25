@@ -6,18 +6,18 @@ This document contains some tips on how to collaborate in this project.
 
 This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
-There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which
+There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat` which
 is the main project (i.e. the one that's published as [@nomiclabs/hardhat](https://npmjs.com/package/@nomiclabs/hardhat)).
 
 ## Installing
 
 To install this project you have to run:
 
-1. `npm install`
+1. `yarn`
 
 ## Building the projects
 
-Plugins require hardhat-core to be built or tested. Our recommendation is to run `npm run watch` from the root folder.
+Plugins require hardhat to be built or tested. Our recommendation is to run `yarn watch` from the root folder.
 This will keep everything compiled, and these problems will be avoided.
 
 ## Testing
@@ -25,7 +25,7 @@ This will keep everything compiled, and these problems will be avoided.
 All tests are written using [mocha](https://mochajs.org) and [chai](https://www.chaijs.com).
 
 ### Per-package
-You can run a package's tests by executing `npm test` inside its folder.
+You can run a package's tests by executing `yarn test` inside its folder.
 
 _Note_: for package [hardhat-vyper](./packages/hardhat-vyper) case, a running instance of Docker Desktop is required, with `ethereum/vyper` image pulled. To install it, run:
 ```
@@ -33,7 +33,7 @@ docker pull ethereum/vyper:0.1.0b10
 ```
 
 ### Entire project
-You can run all the tests at once by running `npm test` from the root folder.
+You can run all the tests at once by running `yarn test` from the root folder.
 
 For the case of package [hardhat-vyper](./packages/hardhat-vyper), an `ethereum/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
 
@@ -45,8 +45,8 @@ is considered The Right Thing. It's completely fine to commit non-prettied code 
 We also have [tslint](https://palantir.github.io/tslint/) installed in all the projects. It checks that you have run
 Prettier and forbids some dangerous patterns.
 
-The linter is always run in the CI, so make sure it passes before pushing code. You can use `npm run lint` and
-`npm run lint:fix` inside the packages' folders.
+The linter is always run in the CI, so make sure it passes before pushing code. You can use `yarn lint` and
+`yarn lint:fix` inside the packages' folders.
 
 ## Branching
 
@@ -107,17 +107,15 @@ This is a list of the modules that always get loaded during startup:
 
 ## Developing locally
 
-All these tips assume you are running `npm run watch` from the root directory.
+All these tips assume you are running `yarn watch` from the root directory.
 
 ### Linking
 
-You can [link](https://docs.npmjs.com/cli/link) any package to test it locally. For example, if you are working on
-`hardhat-core`, you can follow these steps:
+You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to test it locally. For example, if you are working on
+`hardhat`, you can follow these steps:
 
-1. Go to `packages/hardhat-core` and run `npm link`
-2. Go to some hardhat project and run `npm link @nomiclabs/hardhat`
-
-Alternatively, you can go to your hardhat project and run `npm link /path/to/hardhat/packages/hardhat-core`.
+1. Go to `packages/hardhat` and run `yarn link`
+2. Go to some hardhat project and run `yarn link @nomiclabs/hardhat`
 
 Now any change you make in the code will be reflected in that project.
 
@@ -125,17 +123,17 @@ Now any change you make in the code will be reflected in that project.
 
 If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc).
 
-1. Go to `packages/hardhat-core` and run `yalc publish`
+1. Go to `packages/hardhat` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add @nomiclabs/hardhat`
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 
-### npm pack
+### yarn pack
 
-An even more realistic way of using your local changes in a project is to use [`npm pack`](https://docs.npmjs.com/cli-commands/pack.html):
+An even more realistic way of using your local changes in a project is to use [`yarn pack`](https://classic.yarnpkg.com/en/docs/cli/pack/):
 
-1. Go to `packages/hardhat-core` and run `npm pack`. This will create a `nomiclabs-hardhat-x.y.z.tgz` file in that directory.
-2. Go to some hardhat project and run `npm install /path/to/hardhat/packages/hardhat-core/nomiclabs-hardhat-x.y.z.tgz`.
+1. Go to `packages/hardhat` and run `yarn pack`. This will create a `nomiclabs-hardhat-x.y.z.tgz` file in that directory.
+2. Go to some hardhat project and run `yarn add /path/to/hardhat/packages/hardhat/nomiclabs-hardhat-x.y.z.tgz`.
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 

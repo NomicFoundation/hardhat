@@ -16,8 +16,8 @@
     "ethers.js"
   ],
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && npm run lint-src -- --fix && npm run lint-tests -- --fix",
-    "lint": "npm run lint-src && npm run lint-tests",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src -- --fix && yarn lint-tests -- --fix",
+    "lint": "yarn lint-src && yarn lint-tests",
     "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",

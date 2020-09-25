@@ -24,7 +24,7 @@ export function getExecutionMode(): ExecutionMode {
 
   if (!isInstalled) {
     // When running the tests with ts-node we set the CWD to the root of
-    // hardhat-core. We could check if the __filename ends with .ts
+    // hardhat. We could check if the __filename ends with .ts
     if (__dirname.startsWith(workingDirectoryOnLoad)) {
       return ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS;
     }

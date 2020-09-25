@@ -39,7 +39,7 @@ describe("Anonymizer", () => {
     const hardhatFilePath = path.join(
       "node_modules",
       "@nomiclabs",
-      "hardhat-core",
+      "hardhat",
       "someHardhatFile.js"
     );
     const anonymizationResult = anonymizer.anonymizeFilename(
