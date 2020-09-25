@@ -1111,9 +1111,14 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_getFilterLogs", async function () {
+      describe.only("eth_getFilterLogs", async function () {
+        let firstBlock: number;
+
+        beforeEach(async function () {
+          firstBlock = await getFirstBlock();
+        });
+
         it("Supports get filter logs", async function () {
-          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1305,7 +1310,7 @@ describe("Eth module", function () {
 
           const filterId = await this.provider.send("eth_newFilter", [
             {
-              fromBlock: "0x0",
+              fromBlock: numberToRpcQuantity(firstBlock),
               address: exampleContract,
               topics: [
                 [
@@ -1334,7 +1339,6 @@ describe("Eth module", function () {
         });
 
         it("Supports get filter logs with toBlock", async function () {
-          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1383,9 +1387,14 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_getLogs", async function () {
+      describe.only("eth_getLogs", async function () {
+        let firstBlock: number;
+
+        beforeEach(async function () {
+          firstBlock = await getFirstBlock();
+        });
+
         it("Supports get logs", async function () {
-          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1561,7 +1570,7 @@ describe("Eth module", function () {
           assert.lengthOf(
             await this.provider.send("eth_getLogs", [
               {
-                fromBlock: "0x2",
+                fromBlock: numberToRpcQuantity(firstBlock + 2),
                 topics: [
                   [
                     "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d",
@@ -1578,7 +1587,6 @@ describe("Eth module", function () {
         });
 
         it("Supports get logs with fromBlock", async function () {
-          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1614,7 +1622,6 @@ describe("Eth module", function () {
         });
 
         it("Supports get logs with toBlock", async function () {
-          const firstBlock = await getFirstBlock();
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1654,7 +1661,7 @@ describe("Eth module", function () {
           const logs = await this.provider.send("eth_getLogs", [
             {
               address: "0x0000000000000000000000000000000000000000",
-              fromBlock: "0x1111",
+              fromBlock: numberToRpcQuantity(firstBlock + 10000000),
             },
           ]);
           assert.lengthOf(logs, 0);
@@ -1662,7 +1669,8 @@ describe("Eth module", function () {
           const logs2 = await this.provider.send("eth_getLogs", [
             {
               address: "0x0000000000000000000000000000000000000000",
-              toBlock: "0x1111",
+              fromBlock: numberToRpcQuantity(firstBlock),
+              toBlock: numberToRpcQuantity(firstBlock + 1000000),
             },
           ]);
           assert.lengthOf(logs2, 0);
