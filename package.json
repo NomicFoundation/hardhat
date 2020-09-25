@@ -4,13 +4,15 @@
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.17.24",
     "@types/shelljs": "^0.8.6",
     "chai": "^4.2.0",
     "ganache-cli": "^6.4.3",
-    "lerna": "^3.13.4",
     "mocha": "^7.1.2",
     "nyc": "^14.1.0",
     "prettier": "2.0.5",
@@ -25,7 +27,6 @@
     "typescript": "~3.8.3"
   },
   "scripts": {
-    "postinstall": "node scripts/install.js",
     "build": "lerna exec -- npm run build",
     "build-test": "lerna exec -- npm run build-test",
     "watch": "tsc --build --watch packages/*/src",
