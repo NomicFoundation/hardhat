@@ -31,7 +31,6 @@
     "**/internal/util/console.ts",
     "**/internal/util/lang.ts",
     "**/internal/util/packageInfo.ts",
-    "**/internal/cli/cli-with-a-typo.ts",
     "**/internal/cli/ArgumentsParser.ts",
     "**/internal/cli/project-creation.ts",
     "**/internal/cli/cli.ts",

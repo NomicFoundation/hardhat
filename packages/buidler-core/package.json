@@ -20,8 +20,7 @@
     "solidity"
   ],
   "bin": {
-    "buidler": "internal/cli/cli.js",
-    "builder": "internal/cli/cli-with-a-typo.js"
+    "buidler": "internal/cli/cli.js"
   },
   "engines": {
     "node": ">=8.2.0"
