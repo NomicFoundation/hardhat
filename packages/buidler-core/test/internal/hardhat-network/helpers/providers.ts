@@ -61,6 +61,16 @@ export const FORKED_PROVIDERS: Array<{
 if (ALCHEMY_URL !== undefined) {
   const url = ALCHEMY_URL;
 
+  PROVIDERS.push({
+    name: "Alchemy Forked",
+    isFork: true,
+    networkId: REMOTE_NETWORK_ID,
+    chainId: REMOTE_CHAIN_ID,
+    useProvider: () => {
+      useProvider(false, { jsonRpcUrl: url });
+    },
+  });
+
   FORKED_PROVIDERS.push({
     rpcProvider: "Alchemy",
     jsonRpcUrl: url,
@@ -72,16 +82,6 @@ if (ALCHEMY_URL !== undefined) {
 
 if (INFURA_URL !== undefined) {
   const url = INFURA_URL;
-
-  PROVIDERS.push({
-    name: "Forked",
-    isFork: true,
-    networkId: REMOTE_NETWORK_ID,
-    chainId: REMOTE_CHAIN_ID,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: url });
-    },
-  });
 
   FORKED_PROVIDERS.push({
     rpcProvider: "Infura",
