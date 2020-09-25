@@ -1,4 +1,3 @@
-import { isHexPrefixed } from "../../../../src/internal/buidler-evm/provider/utils/isHexPrefixed";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { ALCHEMY_URL } from "../../../setup";
 
