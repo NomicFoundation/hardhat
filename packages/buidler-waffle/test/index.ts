@@ -59,7 +59,7 @@ describe("Waffle plugin plugin", function () {
         it("Should throw an error", function () {
           assert.throws(
             () => this.env.waffle.provider.getWallets(),
-            "This method only works with Hardhat EVM"
+            "This method only works with Hardhat Network"
           );
         });
       });

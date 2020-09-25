@@ -47,7 +47,7 @@ If you need to change these paths, take a look at the [paths configuration secti
 
 When it comes to testing your contracts, Hardhat comes with some built-in defaults:
 - [Mocha](https://mochajs.org/) as the test runner
-- The built-in [Hardhat EVM](../hardhat-evm/README.md) as the development network to test on
+- The built-in [Hardhat Network](../hardhat-network/README.md) as the development network to test on
 
 If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Hardhat projects manage settings. Make use of the `--network` CLI parameter to quickly change the network.
 

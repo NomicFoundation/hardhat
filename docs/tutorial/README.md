@@ -8,7 +8,7 @@ Welcome to our beginners guide to Ethereum contracts and dApp development. This 
 
 To orchestrate this process we're going to use **Hardhat**, which is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-**Hardhat** also comes built-in with **Hardhat EVM**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
+**Hardhat** also comes built-in with **Hardhat Network**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
 
 In this tutorial we'll guide you through:
 - Setting up your Node.js environment for Ethereum development
@@ -16,7 +16,7 @@ In this tutorial we'll guide you through:
 - The basics of a Solidity smart contract that implements a token
 - Writing automated tests for your contract using [Ethers.js](https://docs.ethers.io/ethers.js/html/) and [Waffle](https://getwaffle.io/)
 - Debugging Solidity with `console.log()` using **Hardhat Network**
-- Deploying your contract to **Hardhat EVM** and Ethereum testnets
+- Deploying your contract to **Hardhat Network** and Ethereum testnets
 
  To follow this tutorial you should be able to:
 

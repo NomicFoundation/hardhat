@@ -1,6 +1,6 @@
-# Hardhat EVM
+# Hardhat Network
 
-Hardhat comes built-in with Hardhat EVM, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
+Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
 
 ## How does it work?
 
@@ -20,15 +20,15 @@ Hardhat comes built-in with Hardhat EVM, a local Ethereum network designed for d
 - There's no need to make any changes to your tests or scripts.
 - It's simply another network and it can be used with `--network`
 
-## Connecting to Hardhat EVM from wallets and other software
+## Connecting to Hardhat Network from wallets and other software
 
-Hardhat EVM can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat EVM in this way, run:
+Hardhat Network can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
 
 ```
 npx hardhat node
 ```
 
-It will start Hardhat EVM, and expose it as a JSON-RPC and WebSocket server.
+It will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
@@ -36,15 +36,15 @@ If you want to connect Hardhat to this node, you only need to run it using `--ne
 
 ## Solidity stack traces
 
-Hardhat EVM has first-class Solidity support. It always knows which
+Hardhat Network has first-class Solidity support. It always knows which
 smart contracts are being run, what they do exactly and why they fail.
 
-If a transaction or call fails, Hardhat EVM will throw an exception.
+If a transaction or call fails, Hardhat Network will throw an exception.
 This exception will have a combined JavaScript and Solidity stack
 trace: stack traces that start in JavaScript/TypeScript up to your
 call to the contract, and continue with the full Solidity call stack.
 
-This is an example of a Hardhat EVM exception using `TruffleContract`:
+This is an example of a Hardhat Network exception using `TruffleContract`:
 
 ```
 Error: Transaction reverted: function selector was not recognized and there's no fallback function
@@ -63,10 +63,10 @@ This way you know exactly why your tests aren't passing.
 
 ## Automatic error messages
 
-Hardhat EVM always knows why your transaction or call failed, and uses this
+Hardhat Network always knows why your transaction or call failed, and uses this
 information to make debugging your contracts easier.
 
-When a transaction fails without a reason, Hardhat EVM will create a clear
+When a transaction fails without a reason, Hardhat Network will create a clear
 error message in the following cases:
 
 - Calling a non-payable function with ETH
@@ -91,7 +91,7 @@ error message in the following cases:
 
 ## `console.log`
 
-Hardhat EVM allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/#quick-start) to try it out.
+Hardhat Network allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/#quick-start) to try it out.
 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
@@ -116,12 +116,12 @@ Hardhat EVM allows you to print logging messages and contract variables calling 
 - `console.log` implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args).
   - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
 - It works with any library: ethers.js, web3.js, waffle, truffle-contract, etc.
-- `console.log` is implemented in standard Solidity and then detected in Hardhat EVM. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
+- `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
 - `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but spend a minimal amount of gas.
 
 ## Logging
 
-Hardhat EVM uses its tracing infrastructure to offer rich logging that will help
+Hardhat Network uses its tracing infrastructure to offer rich logging that will help
 you develop and debug smart contracts.
 
 For example, a successful transaction and a failed call would look like this:
@@ -148,12 +148,12 @@ eth_call
       at process._tickCallback (internal/process/next_tick.js:68:7)
 ```
 
-This logging is enabled by default when using Hardhat EVM's node (i.e. `npx hardhat node`), but disabled when using
-the in-process Hardhat EVM provider. See [Hardhat EVM's config](../config/README.md#hardhat-evm-network) enabled it in both.
+This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using
+the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) enabled it in both.
 
-## Hardhat EVM initial state
+## Hardhat Network initial state
 
-Hardhat EVM is initialized by default in this state:
+Hardhat Network is initialized by default in this state:
 
 - A brand new blockchain, just with the genesis block.
 - 20 accounts with 10000 ETH each
@@ -178,7 +178,7 @@ Hardhat EVM is initialized by default in this state:
   - `0x68dfc526037e9030c8f813d014919cc89e7d4d74`
   - `0x26c43a1d431a4e5ee86cd55ed7ef9edf3641e901`
 
-To customise it, take a look at [the configuration section](/config/#hardhat-evm-network).
+To customise it, take a look at [the configuration section](/config/#hardhat-network).
 
 ## JSON-RPC methods support
 
@@ -255,14 +255,14 @@ To customise it, take a look at [the configuration section](/config/#hardhat-evm
 
 ### Supported Solidity versions
 
-Hardhat EVM can run any smart contract, but it only understands Solidity 0.5.1 and newer.
+Hardhat Network can run any smart contract, but it only understands Solidity 0.5.1 and newer.
 
-If you are compiling with an older version of Solidity, or using another language, you can use Hardhat EVM, but
+If you are compiling with an older version of Solidity, or using another language, you can use Hardhat Network, but
 Solidity stack traces won't be generated.
 
 ### Solidity optimizer support
 
-Hardhat EVM can work with smart contracts compiled with optimizations,
+Hardhat Network can work with smart contracts compiled with optimizations,
 but this may lead to your stack traces' line numbers being a little off.
 
 We recommend compiling without optimizations when testing and debugging
@@ -270,10 +270,10 @@ your contracts.
 
 ### Contracts reloading after recompilation
 
-If you start Hardhat EVM's node and change your contract afterwards, you won't
+If you start Hardhat Network's node and change your contract afterwards, you won't
 get Solidity stack traces for those, and the logging functionality will be more limited.
 
-As a temporal workaround, you need to restart Hardhat EVM's node, after recompiling
+As a temporal workaround, you need to restart Hardhat Network's node, after recompiling
 your contracts.
 
 This limitation will be removed in a future update.

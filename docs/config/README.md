@@ -43,24 +43,24 @@ module.exports = {
 The `networks` config field is an optional object where network names map to their configuration.
 
 There are two kinds of networks in Hardhat: [JSON-RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) based networks,
-and the built-in Hardhat EVM network.
+and the built-in Hardhat Network network.
 
 You can customize which network is used by default when running Hardhat by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"hardhat"`.
 
-### Hardhat EVM network
+### Hardhat Network
 
 Hardhat comes built-in with a special network called `hardhat`. When using this network,
-an instance of [Hardhat EVM](../hardhat-evm) will be automatically created when your run a task, script or test your smart contracts
+an instance of [Hardhat Network](../hardhat-network) will be automatically created when your run a task, script or test your smart contracts
 
-Hardhat EVM has first-class support of Solidity. It always knows which
+Hardhat Network has first-class support of Solidity. It always knows which
 smart contracts are being run and knows exactly what they do and why
-they fail. Learn more about it [here](../hardhat-evm).
+they fail. Learn more about it [here](../hardhat-network).
 
 You can set the following fields on the `hardhat` config:
 
-- `chainId`: The chan id number used by Hardhat EVM's blockchain. Default value: `31337`.
+- `chainId`: The chan id number used by Hardhat Network's blockchain. Default value: `31337`.
 
-- `from`: The address to use as default sender. If not present the first account of the Hardhat EVM is used.
+- `from`: The address to use as default sender. If not present the first account of the Hardhat Network is used.
 
 - `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: `9500000`.
 
@@ -68,23 +68,23 @@ You can set the following fields on the `hardhat` config:
 
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 
-- `accounts`: An array of the initial accounts that Hardhat EVM will create. Each of them must be an object with `privateKey` and `balance` fields. Both of them `0x`-prefixed strings. By default, it has 20 accounts with 10000 ETH each.
+- `accounts`: An array of the initial accounts that Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields. Both of them `0x`-prefixed strings. By default, it has 20 accounts with 10000 ETH each.
 
-- `blockGasLimit`: The block gas limit to use in Hardhat EVM's blockchain. Default value: `9500000`
+- `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `9500000`
 
-- `hardfork`: This setting changes how Hardhat EVM works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, and `"istanbul"`. Default value: `"istanbul"`
+- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, and `"istanbul"`. Default value: `"istanbul"`
 
-- `throwOnTransactionFailures`: A boolean that controls if Hardhat EVM throws on transaction failures.
-  If this value is `true`, Hardhat EVM will throw [combined JavaScript and Soldity stack traces](../hardhat-evm/README.md#solidity-stack-traces)
+- `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures.
+  If this value is `true`, Hardhat Network will throw [combined JavaScript and Soldity stack traces](../hardhat-network/README.md#solidity-stack-traces)
   on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases
   the transactions are added into the blockchain. Default value: `true`
-- `throwOnCallFailures`: A boolean that controls if Hardhat EVM throws on call failures.
-  If this value is `true`, Hardhat EVM will throw [combined JavaScript and Soldity stack traces](../hardhat-evm/README.md#solidity-stack-traces)
+- `throwOnCallFailures`: A boolean that controls if Hardhat Network throws on call failures.
+  If this value is `true`, Hardhat Network will throw [combined JavaScript and Soldity stack traces](../hardhat-network/README.md#solidity-stack-traces)
   when a call fails. If it is `false`, it will return the call's `return data`, which can contain
   a revert reason. Default value: `true`
 
-- `loggingEnabled`: A boolean that controls if Hardhat EVM logs every request or not. Default value: `false` for the
-  in-process Hardhat EVM provider, `true` for the Hardhat EVM backed JSON-RPC server (i.e. the `node` task).
+- `loggingEnabled`: A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the
+  in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
 
 - `intialDate`: An optional string setting the date of the blockchain. If no option is set, the current date is used. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format).
 

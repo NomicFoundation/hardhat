@@ -1,7 +1,7 @@
 # Running tests with Ganache
 
-We recommend using the built-in [Hardhat EVM](../hardhat-evm/README.md) network to test your
-smart contracts, as it generates [combined JavaScript and Solidity stack traces](../hardhat-evm/README.md#solidity-stack-traces),
+We recommend using the built-in [Hardhat Network](../hardhat-network/README.md) network to test your
+smart contracts, as it generates [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces),
 making debugging easier.
 
 If you still want to run your tests using Ganache, you can do it in two ways.

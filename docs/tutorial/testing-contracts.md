@@ -1,6 +1,6 @@
 # 5. Testing contracts
 
-Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Hardhat EVM**, a local Ethereum network designed for development that is built-in and the default network in **Hardhat**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
+Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Hardhat Network**, a local Ethereum network designed for development that is built-in and the default network in **Hardhat**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
 
 ## Writing tests
 Create a new directory called `test` inside our project root directory and create a new file called `Token.js`. 
@@ -46,7 +46,7 @@ This means the test passed. Let's now explain each line:
 const [owner] = await ethers.getSigners();
 ```
 
-A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat EVM**, and only keeping the first one.
+A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first one.
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
 ```js

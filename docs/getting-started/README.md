@@ -6,7 +6,7 @@ Hardhat is designed around the concepts of **tasks** and **plugins**. Every time
 
 The bulk of Hardhat's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Hardhat is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
-Hardhat comes built-in with Hardhat EVM, a local Ethereum network designed for development.
+Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development.
 
 ## Installation
 
@@ -20,7 +20,7 @@ npm install --save-dev @nomiclabs/hardhat
 
 This guide will explore the basics of creating a Hardhat project.
 
-A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run a local development network you can deploy your contracts to (Hardhat EVM).
+A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run a local development network you can deploy your contracts to (Hardhat Network).
 
 To create your Hardhat project run `npx hardhat` in your project folder:
 
@@ -81,7 +81,7 @@ AVAILABLE TASKS:
   console   Opens a hardhat console
   flatten   Flattens and prints all contracts and their dependencies
   help      Prints this message
-  node      Starts a JSON-RPC server on top of Hardhat EVM
+  node      Starts a JSON-RPC server on top of Hardhat Network
   run       Runs a user-defined script after compiling the project
   test      Runs mocha tests
 
@@ -168,17 +168,17 @@ Deploying a Greeter with greeting: Hello, Hardhat!
 Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-### Connecting a wallet or Dapp to Hardhat EVM
-Hardhat will always spin up an in-memory instance of Hardhat EVM on startup by default, but it's also possible to run Hardhat EVM in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
+### Connecting a wallet or Dapp to Hardhat Network
+Hardhat will always spin up an in-memory instance of Hardhat Network on startup by default, but it's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
 
-To run Hardhat EVM in this way, run `npx hardhat node`:
+To run Hardhat Network in this way, run `npx hardhat node`:
 
 ```
 $ npx hardhat node
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 ```
 
-This will expose a JSON-RPC interface to Hardhat EVM. To use it connect your wallet or application to `http://localhost:8545`.
+This will expose a JSON-RPC interface to Hardhat Network. To use it connect your wallet or application to `http://localhost:8545`.
 
 If you want to connect Hardhat to this node to, for example, run a deployment script against it, you simply need to run it using `--network localhost`.
 

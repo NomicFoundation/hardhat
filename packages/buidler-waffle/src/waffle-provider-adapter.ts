@@ -14,7 +14,7 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
 
   public getWallets() {
     if (this._hardhatNetwork.name !== "hardhat") {
-      throw new Error(`This method only works with Hardhat EVM.
+      throw new Error(`This method only works with Hardhat Network.
 You can use \`await hre.ethers.signers()\` in other networks.`);
     }
 

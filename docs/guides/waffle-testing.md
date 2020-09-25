@@ -80,7 +80,7 @@ describe("Greeter", function() {
 });
 ```
 
-This wrapper just follows Mocha's proposed structure for tests, but you might have noticed the use of `async` in `it`'s callback function. Interacting with the Ethereum network and smart contracts are asynchronous operations, hence most APIs and libraries use JavaScript's `Promise` for returning values. This use of `async` will allow us to `await` the calls to our contract and the Hardhat EVM node.
+This wrapper just follows Mocha's proposed structure for tests, but you might have noticed the use of `async` in `it`'s callback function. Interacting with the Ethereum network and smart contracts are asynchronous operations, hence most APIs and libraries use JavaScript's `Promise` for returning values. This use of `async` will allow us to `await` the calls to our contract and the Hardhat Network node.
 
 ```js
 const Greeter = await ethers.getContractFactory("Greeter");
@@ -123,7 +123,7 @@ The first step to do so is to get the `Signers` object from `ethers`:
 ```js
 const [owner, addr1] = await ethers.getSigners();
 ```
-A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat EVM**, and only keeping the first and second ones.
+A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first and second ones.
 
 ::: tip
 To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
@@ -228,7 +228,7 @@ const provider = waffle.provider;
 
 Run your tests with `npx hardhat test` and you should get stack traces when a transaction fails.
 
-[hardhat evm]: ../hardhat-evm/README.md
+[hardhat network]: ../hardhat-network/README.md
 
 
 [Hardhat Runtime Environment]: /documentation/#hardhat-runtime-environment-hre

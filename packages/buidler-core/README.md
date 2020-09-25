@@ -21,7 +21,7 @@ The recommended way of using Hardhat is through a local installation in your pro
 On [Hardhat's website](https://usehardhat.com) you will find:
 
 - [Guides to get started](https://usehardhat.com/getting-started/)
-- [Hardhat EVM](https://usehardhat.com/hardhat-evm/)
+- [Hardhat Network](https://usehardhat.com/hardhat-network/)
 - [Plugin list](https://usehardhat.com/plugins/)
 - [API docs](https://usehardhat.com/api/)
 
