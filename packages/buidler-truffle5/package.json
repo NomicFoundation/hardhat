@@ -33,7 +33,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@nomiclabs/truffle-contract": "^4.1.2",
+    "@nomiclabs/truffle-contract": "^4.2.23",
     "@types/chai": "^4.2.0",
     "chai": "^4.2.0",
     "ethereumjs-util": "^6.1.0",
