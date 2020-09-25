@@ -47,7 +47,13 @@ If you are still in doubt, these can be helpful:
 
 - **Rule of thumb #4:** Every `peerDependency` should also be a `devDependency`.
 
-Also, if you depend on a Hardhat plugin written in TypeScript, you should add it's type extensions' `.d.ts` file to the `files` array of `tsconfig.json`.
+Also, if you depend on a Hardhat plugin written in TypeScript, you should add a `hardhat-env.d.ts` file with triple-slash references to its types, like this:
+
+```
+/// <reference types="@nomiclabs/buidler-ethers" />
+```
+
+Then include it in the `files` array of `tsconfig.json`.
 
 ## Hooking into the user's workflow
 
