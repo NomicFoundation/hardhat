@@ -4,7 +4,7 @@ This document contains some tips on how to collaborate in this project.
 
 ## Project structure
 
-This repository is a monorepo handled with [Lerna](https://github.com/lerna/lerna).
+This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which
 is the main project (i.e. the one that's published as [@nomiclabs/hardhat](https://npmjs.com/package/@nomiclabs/hardhat)).
