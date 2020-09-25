@@ -7,7 +7,7 @@ import { BUILD_INFO_DIR_NAME } from "../../internal/constants";
 import { Reporter } from "../../internal/sentry/reporter";
 import { EIP1193Provider, ProjectPaths } from "../../types";
 
-const log = debug("buidler:core:compilation-watcher");
+const log = debug("hardhat:core:compilation-watcher");
 
 export async function watchCompilerOutput(
   provider: EIP1193Provider,
@@ -26,18 +26,18 @@ export async function watchCompilerOutput(
       });
 
       await provider.request({
-        method: "buidler_addCompilationResult",
+        method: "hardhat_addCompilationResult",
         params: [solcVersion, input, output],
       });
     } catch (error) {
       console.warn(
         chalk.yellow(
-          "There was a problem adding the new compiler result. Run Buidler with --verbose to learn more."
+          "There was a problem adding the new compiler result. Run Hardhat with --verbose to learn more."
         )
       );
 
       log(
-        "Last compilation result couldn't be added. Please report this to help us improve Buidler.\n",
+        "Last compilation result couldn't be added. Please report this to help us improve Hardhat.\n",
         error
       );
 

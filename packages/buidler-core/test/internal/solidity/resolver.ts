@@ -10,7 +10,7 @@ import {
   ResolvedFile,
   Resolver,
 } from "../../../src/internal/solidity/resolver";
-import { expectBuidlerErrorAsync } from "../../helpers/errors";
+import { expectHardhatErrorAsync } from "../../helpers/errors";
 import {
   getFixtureProjectPath,
   useFixtureProject,
@@ -131,12 +131,12 @@ describe("Resolver", function () {
 
   describe("resolveSourceName", function () {
     it("Should validate the source name format", async function () {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => resolver.resolveSourceName("asd\\asd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_BACKSLASHES
       );
 
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => resolver.resolveSourceName(slash(__dirname)),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH
       );
@@ -152,14 +152,14 @@ describe("Resolver", function () {
       });
 
       it("Should be a library if it starts with node_modules", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("node_modules/lib/l.sol"),
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         );
       });
 
       it("Should be local if its first directory exists in the project, even it it doesn't exist", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("contracts/non-existent.sol"),
           ERRORS.RESOLVER.FILE_NOT_FOUND
         );
@@ -191,31 +191,31 @@ describe("Resolver", function () {
       });
 
       it("Should fail if the casing is incorrect", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("contracts/C.sol"),
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("contracts/c.Sol"),
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("contractS/c.sol"),
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         );
       });
 
       it("Should fail with FILE_NOT_FOUND if the first directory exists but the file doesn't", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("contracts/non-existent.sol"),
           ERRORS.RESOLVER.FILE_NOT_FOUND
         );
       });
 
       it("Should fail with FILE_NOT_FOUND if the first directory exists but the file doesn't, even if the casing of the first dir is wrong", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("contractS/non-existent.sol"),
           ERRORS.RESOLVER.FILE_NOT_FOUND
         );
@@ -233,12 +233,12 @@ describe("Resolver", function () {
       });
 
       it("Should fail if the casing is incorrect", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("lib/L.sol"),
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("lib/l.Sol"),
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
         );
@@ -247,12 +247,12 @@ describe("Resolver", function () {
         // we use node's resolution algorithm, and it's case-sensitive or not
         // depending on the platform.
         if (process.platform === "win32" || process.platform === "darwin") {
-          await expectBuidlerErrorAsync(
+          await expectHardhatErrorAsync(
             () => resolver.resolveSourceName("liB/l.sol"),
             ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
           );
         } else {
-          await expectBuidlerErrorAsync(
+          await expectHardhatErrorAsync(
             () => resolver.resolveSourceName("liB/l.sol"),
             ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
           );
@@ -260,14 +260,14 @@ describe("Resolver", function () {
       });
 
       it("Should fail if the library is not installed", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("not-installed/l.sol"),
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
         );
       });
 
       it("Should fail if the library is installed byt the file not found", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("lib/l2.sol"),
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         );
@@ -307,31 +307,31 @@ describe("Resolver", function () {
 
     describe("Invalid imports", function () {
       it("shouldn't let you import something using http or other protocols", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "http://google.com"),
           ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(libraryFrom, "https://google.com"),
           ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL
         );
       });
 
       it("shouldn't let you import something using backslashes", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "sub\\a.sol"),
           ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(libraryFrom, "sub\\a.sol"),
           ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH
         );
       });
 
       it("shouldn't let you import something using an absolute path", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "/asd"),
           ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
         );
@@ -372,31 +372,31 @@ describe("Resolver", function () {
       });
 
       it("shouldn't let you import something from an uninstalled library", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "non-installed/asd.sol"),
           ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED
         );
       });
 
       it("should fail if importing a missing file", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "lib/asd.sol"),
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "contracts/asd.sol"),
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
         );
       });
 
       it("should fail if importing a file with the incorrect casing", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "lib/L.sol"),
           ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "contracts/C.sol"),
           ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
         );
@@ -470,14 +470,14 @@ describe("Resolver", function () {
 
     describe("Relative imports", function () {
       it("shouldn't let you import something outside of the project from a local file", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "../../asd.sol"),
           ERRORS.RESOLVER.INVALID_IMPORT_OUTSIDE_OF_PROJECT
         );
       });
 
       it("shouldn't let you import something from a library that is outside of it", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(libraryFrom, "../asd.sol"),
           ERRORS.RESOLVER.ILLEGAL_IMPORT
         );
@@ -492,31 +492,31 @@ describe("Resolver", function () {
       });
 
       it("should fail if importing a missing file", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(libraryFrom, "./asd.sol"),
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "../other/asd.sol"),
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
         );
       });
 
       it("should fail if importing a file with the incorrect casing", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(libraryFrom, "./sub/A.sol"),
           ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
         );
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "./sub/A.sol"),
           ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING
         );
       });
 
       it("Should always treat relative imports from local files as local", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () => resolver.resolveImport(localFrom, "../not-a-library/A.sol"),
           ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND
         );

@@ -1,5 +1,5 @@
-import { BUIDLEREVM_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 import path from "path";
 
 import { useEnvironment } from "./helpers";
@@ -66,7 +66,7 @@ function linkingShouldWorkCorrectly() {
 
       assert.throws(
         () => UsesLib.link("Lib", "0x1111111111111111111111111111111111111111"),
-        "Linking contracts by name is not supported by Buidler. Please use UsesLib.link(libraryInstance) instead."
+        "Linking contracts by name is not supported by Hardhat. Please use UsesLib.link(libraryInstance) instead."
       );
     });
   });
@@ -78,7 +78,7 @@ function linkingShouldWorkCorrectly() {
       assert.throws(
         () =>
           UsesLib.link({ Lib: "0x1111111111111111111111111111111111111111" }),
-        "Linking contracts with a map of addresses is not supported by Buidler. Please use UsesLib.link(libraryInstance) instead"
+        "Linking contracts with a map of addresses is not supported by Hardhat. Please use UsesLib.link(libraryInstance) instead"
       );
     });
   });
@@ -129,24 +129,24 @@ function linkingShouldWorkCorrectly() {
 describe("Libraries linking", function () {
   describe("When using solc 0.4.x", function () {
     useEnvironment(
-      path.join(__dirname, "buidler-project-solc-0.4"),
-      BUIDLEREVM_NETWORK_NAME
+      path.join(__dirname, "hardhat-project-solc-0.4"),
+      HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
   });
 
   describe("When using solc 0.5.x", function () {
     useEnvironment(
-      path.join(__dirname, "buidler-project-solc-0.5"),
-      BUIDLEREVM_NETWORK_NAME
+      path.join(__dirname, "hardhat-project-solc-0.5"),
+      HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
   });
 
   describe("When using solc 0.6.x", function () {
     useEnvironment(
-      path.join(__dirname, "buidler-project-solc-0.6"),
-      BUIDLEREVM_NETWORK_NAME
+      path.join(__dirname, "hardhat-project-solc-0.6"),
+      HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
   });

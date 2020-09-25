@@ -1,19 +1,16 @@
 import {
-  BuidlerDocker,
   DockerBadGatewayError,
   DockerHubConnectionError,
   DockerNotRunningError,
   DockerServerError,
+  HardhatDocker,
   Image,
   ImageDoesntExistError,
   ProcessResult,
-} from "@nomiclabs/buidler-docker";
-import {
-  Artifacts,
-  NomicLabsBuidlerPluginError,
-} from "@nomiclabs/buidler/plugins";
-import { ProjectPaths } from "@nomiclabs/buidler/types";
+} from "@nomiclabs/hardhat-docker";
 import fsExtra from "fs-extra";
+import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { ProjectPaths } from "hardhat/types";
 import path from "path";
 
 import { VyperConfig } from "./types";
@@ -35,7 +32,7 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
 
   await validateDockerIsInstalled();
 
-  const docker = await handleCommonErrors(BuidlerDocker.create());
+  const docker = await handleCommonErrors(HardhatDocker.create());
 
   await handleCommonErrors(
     pullImageIfNecessary(docker, dockerImage, paths.cache)
@@ -83,8 +80,8 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
   }
 
   if (someContractFailed) {
-    throw new NomicLabsBuidlerPluginError(
-      "@nomiclabs/buidler-vyper",
+    throw new NomicLabsHardhatPluginError(
+      "@nomiclabs/hardhat-vyper",
       "Compilation failed"
     );
   }
@@ -171,9 +168,9 @@ async function saveLastVyperVersionUsed(version: string, paths: ProjectPaths) {
 }
 
 async function validateDockerIsInstalled() {
-  if (!(await BuidlerDocker.isInstalled())) {
-    throw new NomicLabsBuidlerPluginError(
-      "@nomiclabs/buidler-vyper",
+  if (!(await HardhatDocker.isInstalled())) {
+    throw new NomicLabsHardhatPluginError(
+      "@nomiclabs/hardhat-vyper",
       `Docker Desktop is not installed.
 Please install it by following the instructions on https://www.docker.com/get-started`
     );
@@ -181,13 +178,13 @@ Please install it by following the instructions on https://www.docker.com/get-st
 }
 
 async function pullImageIfNecessary(
-  docker: BuidlerDocker,
+  docker: HardhatDocker,
   image: Image,
   cachePath: string
 ) {
   if (!(await docker.hasPulledImage(image))) {
     console.log(
-      `Pulling Docker image ${BuidlerDocker.imageToRepoTag(image)}...`
+      `Pulling Docker image ${HardhatDocker.imageToRepoTag(image)}...`
     );
 
     await docker.pullImage(image);
@@ -199,7 +196,7 @@ async function pullImageIfNecessary(
 }
 
 async function checkForImageUpdates(
-  docker: BuidlerDocker,
+  docker: HardhatDocker,
   image: Image,
   cachePath: string
 ) {
@@ -209,7 +206,7 @@ async function checkForImageUpdates(
 
   if (!(await docker.isImageUpToDate(image))) {
     console.log(
-      `Updating Docker image ${BuidlerDocker.imageToRepoTag(image)}...`
+      `Updating Docker image ${HardhatDocker.imageToRepoTag(image)}...`
     );
 
     await docker.pullImage(image);
@@ -239,7 +236,7 @@ async function getLastUpdateCheckDate(
   }
 
   const updates = await fsExtra.readJSON(file);
-  return updates[BuidlerDocker.imageToRepoTag(image)];
+  return updates[HardhatDocker.imageToRepoTag(image)];
 }
 
 async function saveLastUpdateCheckDate(image: Image, cachePath: string) {
@@ -252,7 +249,7 @@ async function saveLastUpdateCheckDate(image: Image, cachePath: string) {
     updates = await fsExtra.readJSON(file);
   }
 
-  updates[BuidlerDocker.imageToRepoTag(image)] = +new Date();
+  updates[HardhatDocker.imageToRepoTag(image)] = +new Date();
 
   await fsExtra.ensureDir(path.dirname(file));
   await fsExtra.writeJSON(file, updates);
@@ -260,7 +257,7 @@ async function saveLastUpdateCheckDate(image: Image, cachePath: string) {
 
 async function compileWithDocker(
   filePath: string,
-  docker: BuidlerDocker,
+  docker: HardhatDocker,
   dockerImage: Image,
   paths: ProjectPaths
 ): Promise<ProcessResult> {
@@ -286,16 +283,16 @@ async function handleCommonErrors<T>(promise: Promise<T>): Promise<T> {
       error instanceof DockerNotRunningError ||
       error instanceof DockerBadGatewayError
     ) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-vyper",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-vyper",
         "Docker Desktop is not running.\nPlease open it and wait until it finishes booting.",
         error
       );
     }
 
     if (error instanceof DockerHubConnectionError) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-vyper",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-vyper",
         `Error connecting to Docker Hub.
 Please check your internet connection.`,
         error
@@ -303,17 +300,17 @@ Please check your internet connection.`,
     }
 
     if (error instanceof DockerServerError) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-vyper",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-vyper",
         "Docker error",
         error
       );
     }
 
     if (error instanceof ImageDoesntExistError) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-vyper",
-        `Docker image ${BuidlerDocker.imageToRepoTag(
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-vyper",
+        `Docker image ${HardhatDocker.imageToRepoTag(
           error.image
         )} doesn't exist.
 Make sure you chose a valid Vyper version.`

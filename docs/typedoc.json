@@ -20,7 +20,7 @@
     "**/internal/core/providers/construction.ts",
     "**/internal/core/providers/accounts.ts",
     "**/internal/core/providers/wrapper.ts",
-    "**/internal/core/params/buidler-params.ts",
+    "**/internal/core/params/hardhat-params.ts",
     "**/internal/core/params/env-variables.ts",
     "**/internal/core/project-structure.ts",
     "**/internal/util/lazy.ts",
@@ -31,7 +31,6 @@
     "**/internal/util/console.ts",
     "**/internal/util/lang.ts",
     "**/internal/util/packageInfo.ts",
-    "**/internal/cli/cli-with-a-typo.ts",
     "**/internal/cli/ArgumentsParser.ts",
     "**/internal/cli/project-creation.ts",
     "**/internal/cli/cli.ts",
@@ -43,7 +42,7 @@
     "**/internal/solidity/compiler/downloader.ts",
     "**/internal/solidity/dependencyGraph.ts",
     "**/internal/constants.ts",
-    "**/internal/lib/buidler-lib.ts",
+    "**/internal/lib/hardhat-lib.ts",
     "**/builtin-tasks/help.ts",
     "**/builtin-tasks/compile.ts",
     "**/builtin-tasks/utils/cache.ts",
@@ -56,6 +55,6 @@
     "**/builtin-tasks/run.ts",
     "**/register.ts",
     "**/internal/core/config/config-validation.ts",
-    "**/internal/buidler-evm/**/*.ts"
+    "**/internal/hardhat-network/**/*.ts"
   ]
 }

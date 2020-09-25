@@ -6,7 +6,7 @@ import * as path from "path";
 import { Artifact, SolcInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
-import { assertBuidlerInvariant, BuidlerError } from "./core/errors";
+import { assertHardhatInvariant, HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { replaceBackslashes } from "./solidity/source-names";
 import { glob, globSync } from "./util/glob";
@@ -15,7 +15,7 @@ const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
 const DBG_FORMAT_VERSION = "hh-sol-dbg-1";
 const BUILD_INFO_FORMAT_VERSION = "hh-sol-build-info-1";
 
-const log = debug("buidler:core:artifacts");
+const log = debug("hardhat:core:artifacts");
 
 export class Artifacts {
   private _buildInfosGlob: string;
@@ -118,7 +118,7 @@ export class Artifacts {
       );
 
       if (artifactPath !== trueCaseArtifactPath) {
-        throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
           correct: trueCaseArtifactPath,
           incorrect: artifactPath,
         });
@@ -130,13 +130,13 @@ export class Artifacts {
         typeof error.message === "string" &&
         error.message.includes("no matching file exists")
       ) {
-        throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+        throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
           contractName: name,
           artifactPath,
         });
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }
@@ -157,7 +157,7 @@ export class Artifacts {
       );
 
       if (artifactPath !== trueCaseArtifactPath) {
-        throw new BuidlerError(ERRORS.ARTIFACTS.WRONG_CASING, {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
           correct: trueCaseArtifactPath,
           incorrect: artifactPath,
         });
@@ -169,13 +169,13 @@ export class Artifacts {
         typeof error.message === "string" &&
         error.message.includes("no matching file exists")
       ) {
-        throw new BuidlerError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
+        throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
           contractName: name,
           artifactPath,
         });
       }
 
-      // tslint:disable-next-line only-buidler-error
+      // tslint:disable-next-line only-hardhat-error
       throw error;
     }
   }
@@ -338,7 +338,7 @@ export class Artifacts {
 
   private _getArtifactPathFromFullyQualifiedName(name: string): string {
     const parts = name.split(":");
-    assertBuidlerInvariant(
+    assertHardhatInvariant(
       parts.length === 2,
       "A fully qualified contract name should have exactly one colon"
     );
@@ -352,7 +352,7 @@ export class Artifacts {
     });
 
     if (matchingFiles.length === 0) {
-      throw new BuidlerError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
         contractName: name,
       });
     }
@@ -362,7 +362,7 @@ export class Artifacts {
         .map((file) => this._getFullyQualifiedNameFromPath(file))
         .map(path.normalize);
 
-      throw new BuidlerError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
+      throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
         contractName: name,
         candidates: candidates.join(os.EOL),
       });

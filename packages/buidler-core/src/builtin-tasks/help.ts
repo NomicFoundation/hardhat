@@ -1,7 +1,7 @@
 import { HelpPrinter } from "../internal/cli/HelpPrinter";
-import { BUIDLER_EXECUTABLE_NAME, BUIDLER_NAME } from "../internal/constants";
+import { HARDHAT_EXECUTABLE_NAME, HARDHAT_NAME } from "../internal/constants";
 import { task } from "../internal/core/config/config-env";
-import { BUIDLER_PARAM_DEFINITIONS } from "../internal/core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../internal/core/params/hardhat-params";
 import { getPackageJson } from "../internal/util/packageInfo";
 
 import { TASK_HELP } from "./task-names";
@@ -16,10 +16,10 @@ export default function () {
       const packageJson = await getPackageJson();
 
       const helpPrinter = new HelpPrinter(
-        BUIDLER_NAME,
-        BUIDLER_EXECUTABLE_NAME,
+        HARDHAT_NAME,
+        HARDHAT_EXECUTABLE_NAME,
         packageJson.version,
-        BUIDLER_PARAM_DEFINITIONS,
+        HARDHAT_PARAM_DEFINITIONS,
         tasks
       );
 

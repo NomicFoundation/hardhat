@@ -1,20 +1,16 @@
 import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
+} from "hardhat/builtin-tasks/task-names";
+import { extendEnvironment, internalTask, usePlugin } from "hardhat/config";
+import { glob } from "hardhat/internal/util/glob";
 import {
-  extendEnvironment,
-  internalTask,
-  usePlugin,
-} from "@nomiclabs/buidler/config";
-import { glob } from "@nomiclabs/buidler/internal/util/glob";
-import {
-  BUIDLEREVM_NETWORK_NAME,
+  HARDHAT_NETWORK_NAME,
   lazyFunction,
   lazyObject,
-  NomicLabsBuidlerPluginError,
-} from "@nomiclabs/buidler/plugins";
-import { ResolvedBuidlerNetworkConfig } from "@nomiclabs/buidler/types";
+  NomicLabsHardhatPluginError,
+} from "hardhat/plugins";
+import { ResolvedHardhatNetworkConfig } from "hardhat/types";
 import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
@@ -28,7 +24,7 @@ import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 import "./type-extensions";
 
 export default function () {
-  usePlugin("@nomiclabs/buidler-web3-legacy");
+  usePlugin("@nomiclabs/hardhat-web3-legacy");
 
   let accounts: string[] | undefined;
 
@@ -54,20 +50,20 @@ export default function () {
       description: string,
       definition: (accounts: string[]) => any
     ) => {
-      if (env.network.name === BUIDLEREVM_NETWORK_NAME) {
+      if (env.network.name === HARDHAT_NETWORK_NAME) {
         if (accounts === undefined) {
           const { privateToAddress, bufferToHex } = require("ethereumjs-util");
 
-          const netConfig = env.network.config as ResolvedBuidlerNetworkConfig;
+          const netConfig = env.network.config as ResolvedHardhatNetworkConfig;
 
           accounts = netConfig.accounts.map((acc) =>
             bufferToHex(privateToAddress(acc.privateKey))
           );
         }
       } else if (accounts === undefined) {
-        throw new NomicLabsBuidlerPluginError(
-          "@nomiclabs/buidler-truffle4",
-          `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Buidler's CLI`
+        throw new NomicLabsHardhatPluginError(
+          "@nomiclabs/hardhat-truffle4",
+          `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Hardhat's CLI`
         );
       }
 
@@ -84,7 +80,7 @@ export default function () {
   internalTask(
     TASK_TEST_SETUP_TEST_ENVIRONMENT,
     async (_, { pweb3, network }) => {
-      if (network.name !== BUIDLEREVM_NETWORK_NAME) {
+      if (network.name !== HARDHAT_NETWORK_NAME) {
         accounts = await pweb3.eth.getAccounts();
       }
     }
@@ -107,7 +103,7 @@ export default function () {
     if (!wasWarningShown) {
       if ((await hasMigrations(paths)) && !hasFixture) {
         console.warn(
-          "Your project has Truffle migrations, which have to be turn into a fixture to run your tests with Buidler"
+          "Your project has Truffle migrations, which have to be turn into a fixture to run your tests with Hardhat"
         );
 
         wasWarningShown = true;

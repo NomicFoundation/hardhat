@@ -7,7 +7,7 @@ import {
 } from "../../../../src/internal/core/providers/chainId";
 import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { RequestArguments } from "../../../../src/types";
-import { expectBuidlerErrorAsync } from "../../../helpers/errors";
+import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
 
@@ -17,7 +17,7 @@ describe("ChainIdValidatorProvider", () => {
     mock.setReturnValue("eth_chainId", "0xabcabc");
 
     const wrapper = new ChainIdValidatorProvider(mock, 66666);
-    await expectBuidlerErrorAsync(
+    await expectHardhatErrorAsync(
       () => wrapper.request({ method: "eth_getAccounts", params: [] }),
       ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID
     );

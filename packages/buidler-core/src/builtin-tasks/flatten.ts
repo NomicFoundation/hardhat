@@ -1,5 +1,5 @@
 import { internalTask, task } from "../internal/core/config/config-env";
-import { BuidlerError } from "../internal/core/errors";
+import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
@@ -38,10 +38,10 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     return sortedNames.map((n) => filesMap[n]);
   } catch (error) {
     if (error.toString().includes("Error: There is a cycle in the graph.")) {
-      throw new BuidlerError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
+      throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw error;
   }
 }
@@ -69,7 +69,7 @@ export default function () {
       }
 
       const packageJson = await getPackageJson();
-      flattened += `// Sources flattened with buidler v${packageJson.version} https://buidler.dev`;
+      flattened += `// Sources flattened with hardhat v${packageJson.version} https://usehardhat.com`;
 
       const sortedFiles = getSortedFiles(graph);
 

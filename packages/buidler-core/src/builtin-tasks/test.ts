@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import path from "path";
 
-import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
+import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { internalTask, task } from "../internal/core/config/config-env";
 import { isTypescriptSupported } from "../internal/core/typescript-support";
 import { glob } from "../internal/util/glob";
@@ -84,12 +84,12 @@ export default function () {
         await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
         await run(TASK_TEST_RUN_MOCHA_TESTS, { testFiles: files });
 
-        if (network.name !== BUIDLEREVM_NETWORK_NAME) {
+        if (network.name !== HARDHAT_NETWORK_NAME) {
           return;
         }
 
         const failures = await network.provider.send(
-          "buidler_getStackTraceFailuresCount"
+          "hardhat_getStackTraceFailuresCount"
         );
 
         if (failures === 0) {
@@ -101,7 +101,7 @@ export default function () {
             `Failed to generate ${failures} ${pluralize(
               failures,
               "stack trace"
-            )}. Run Buidler with --verbose to learn more.`
+            )}. Run Hardhat with --verbose to learn more.`
           )
         );
       }

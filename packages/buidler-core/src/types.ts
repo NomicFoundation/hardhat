@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { DeepReadonly, Omit } from "ts-essentials";
 
-import { MessageTrace } from "./internal/buidler-evm/stack-traces/message-trace";
+import { MessageTrace } from "./internal/hardhat-network/stack-traces/message-trace";
 
 // Begin config types
 
@@ -15,13 +15,13 @@ export interface CommonNetworkConfig {
   gasMultiplier?: number;
 }
 
-export interface BuidlerNetworkAccount {
+export interface HardhatNetworkAccount {
   privateKey: string;
   balance: string;
 }
 
-export interface BuidlerNetworkConfig extends CommonNetworkConfig {
-  accounts?: BuidlerNetworkAccount[] | BuidlerNetworkHDAccountsConfig;
+export interface HardhatNetworkConfig extends CommonNetworkConfig {
+  accounts?: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig;
   blockGasLimit?: number;
   hardfork?: string;
   throwOnTransactionFailures?: boolean;
@@ -36,8 +36,8 @@ export interface BuidlerNetworkConfig extends CommonNetworkConfig {
   };
 }
 
-export interface ResolvedBuidlerNetworkConfig extends BuidlerNetworkConfig {
-  accounts: BuidlerNetworkAccount[];
+export interface ResolvedHardhatNetworkConfig extends HardhatNetworkConfig {
+  accounts: HardhatNetworkAccount[];
 }
 
 export interface HDAccountsConfig {
@@ -47,7 +47,7 @@ export interface HDAccountsConfig {
   path?: string;
 }
 
-export interface BuidlerNetworkHDAccountsConfig extends HDAccountsConfig {
+export interface HardhatNetworkHDAccountsConfig extends HDAccountsConfig {
   accountsBalance?: string;
 }
 
@@ -72,26 +72,26 @@ export interface ResolvedHttpNetworkConfig extends HttpNetworkConfig {
   url: string;
 }
 
-export type NetworkConfig = BuidlerNetworkConfig | HttpNetworkConfig;
+export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
 
 export type ResolvedNetworkConfig =
-  | ResolvedBuidlerNetworkConfig
+  | ResolvedHardhatNetworkConfig
   | ResolvedHttpNetworkConfig;
 
 export interface Networks {
-  buidlerevm: BuidlerNetworkConfig;
+  hardhat: HardhatNetworkConfig;
   [networkName: string]: NetworkConfig;
 }
 
 export interface ResolvedNetworks {
-  buidlerevm: ResolvedBuidlerNetworkConfig;
+  hardhat: ResolvedHardhatNetworkConfig;
   [networkName: string]: ResolvedNetworkConfig;
 }
 
 /**
  * The project paths:
  * * root: the project's root.
- * * configFile: the buidler's config filepath.
+ * * configFile: the hardhat's config filepath.
  * * cache: project's cache directory.
  * * artifacts: artifact's directory.
  * * sources: project's sources directory.
@@ -127,7 +127,7 @@ export interface AnalyticsConfig {
   enabled: boolean;
 }
 
-export interface BuidlerConfig {
+export interface HardhatConfig {
   defaultNetwork?: string;
   networks?: Networks;
   paths?: Omit<Partial<ProjectPaths>, "configFile">;
@@ -136,7 +136,7 @@ export interface BuidlerConfig {
   analytics?: Partial<AnalyticsConfig>;
 }
 
-export interface ResolvedBuidlerConfig extends BuidlerConfig {
+export interface ResolvedHardhatConfig extends HardhatConfig {
   defaultNetwork: string;
   paths: ProjectPaths;
   networks: ResolvedNetworks;
@@ -160,27 +160,27 @@ export interface SolcInput {
 }
 
 /**
- * A function that receives a BuidlerRuntimeEnvironment and
+ * A function that receives a HardhatRuntimeEnvironment and
  * modify its properties or add new ones.
  */
-export type EnvironmentExtender = (env: BuidlerRuntimeEnvironment) => void;
+export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
 
 export type ConfigExtender = (
-  config: ResolvedBuidlerConfig,
-  userConfig: DeepReadonly<BuidlerConfig>
+  config: ResolvedHardhatConfig,
+  userConfig: DeepReadonly<HardhatConfig>
 ) => void;
 
 // NOTE: This is experimental and will be removed. Please contact our team
 // if you are planning to use it.
-export type ExperimentalBuidlerEVMMessageTraceHook = (
-  bre: BuidlerRuntimeEnvironment,
+export type ExperimentalHardhatNetworkMessageTraceHook = (
+  hre: HardhatRuntimeEnvironment,
   trace: MessageTrace,
   isMessageTraceFromACall: boolean
 ) => Promise<void>;
 
 // NOTE: This is experimental and will be removed. Please contact our team
 // if you are planning to use it.
-export type BoundExperimentalBuidlerEVMMessageTraceHook = (
+export type BoundExperimentalHardhatNetworkMessageTraceHook = (
   trace: MessageTrace,
   isMessageTraceFromACall: boolean
 ) => Promise<void>;
@@ -335,7 +335,7 @@ export interface RunSuperFunction<ArgT extends TaskArguments> {
 
 export type ActionType<ArgsT extends TaskArguments> = (
   taskArgs: ArgsT,
-  env: BuidlerRuntimeEnvironment,
+  env: HardhatRuntimeEnvironment,
   runSuper: RunSuperFunction<ArgsT>
 ) => Promise<any>;
 
@@ -426,18 +426,18 @@ export interface LinkReferences {
   };
 }
 
-// Buidler Runtime Environment types
+// Hardhat Runtime Environment types
 
 /**
- * Buidler arguments:
+ * Hardhat arguments:
  * * network: the network to be used.
  * * showStackTraces: flag to show stack traces.
- * * version: flag to show buidler's version.
- * * help: flag to show buidler's help message.
+ * * version: flag to show hardhat's version.
+ * * help: flag to show hardhat's help message.
  * * emoji:
- * * config: used to specify buidler's config file.
+ * * config: used to specify hardhat's config file.
  */
-export interface BuidlerArguments {
+export interface HardhatArguments {
   network?: string;
   showStackTraces: boolean;
   version: boolean;
@@ -448,9 +448,9 @@ export interface BuidlerArguments {
   maxMemory?: number;
 }
 
-export type BuidlerParamDefinitions = {
-  [param in keyof Required<BuidlerArguments>]: CLIOptionalParamDefinition<
-    BuidlerArguments[param]
+export type HardhatParamDefinitions = {
+  [param in keyof Required<HardhatArguments>]: CLIOptionalParamDefinition<
+    HardhatArguments[param]
   >;
 };
 
@@ -463,9 +463,9 @@ export type RunTaskFunction = (
   taskArguments?: TaskArguments
 ) => Promise<any>;
 
-export interface BuidlerRuntimeEnvironment {
-  readonly config: ResolvedBuidlerConfig;
-  readonly buidlerArguments: BuidlerArguments;
+export interface HardhatRuntimeEnvironment {
+  readonly config: ResolvedHardhatConfig;
+  readonly hardhatArguments: HardhatArguments;
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
   readonly network: Network;

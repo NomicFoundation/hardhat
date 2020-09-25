@@ -1,5 +1,5 @@
 node_modules
 
-#Buidler files
+#Hardhat files
 cache
 artifacts

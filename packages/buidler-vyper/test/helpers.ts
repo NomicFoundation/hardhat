@@ -1,26 +1,26 @@
-import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
+import { resetHardhatContext } from "hardhat/plugins-testing";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 declare module "mocha" {
   interface Context {
-    env: BuidlerRuntimeEnvironment;
+    env: HardhatRuntimeEnvironment;
   }
 }
 
 export function useEnvironment(projectPath: string) {
-  beforeEach("Loading buidler environment", async function () {
+  beforeEach("Loading hardhat environment", async function () {
     process.chdir(projectPath);
 
     await fsExtra.remove("cache");
     await fsExtra.remove("artifacts");
 
-    process.env.BUIDLER_NETWORK = "localhost";
+    process.env.HARDHAT_NETWORK = "localhost";
 
-    this.env = require("@nomiclabs/buidler");
+    this.env = require("hardhat");
   });
 
-  afterEach("Resetting buidler", function () {
-    resetBuidlerContext();
+  afterEach("Resetting hardhat", function () {
+    resetHardhatContext();
   });
 }

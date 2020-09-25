@@ -38,7 +38,7 @@ export const ERROR_RANGES: {
   BUILTIN_TASKS: { min: 600, max: 699, title: "Built-in tasks errors" },
   ARTIFACTS: { min: 700, max: 799, title: "Artifacts related errors" },
   PLUGINS: { min: 800, max: 899, title: "Plugin system errors" },
-  INTERNAL: { min: 900, max: 999, title: "Internal Buidler errors" },
+  INTERNAL: { min: 900, max: 999, title: "Internal Hardhat errors" },
   SOURCE_NAMES: { min: 1000, max: 1100, title: "Source name errors" },
 };
 
@@ -46,70 +46,70 @@ export const ERRORS = {
   GENERAL: {
     NOT_INSIDE_PROJECT: {
       number: 1,
-      message: "You are not inside a Buidler project.",
-      title: "You are not inside a Buidler project",
-      description: `You are trying to run Buidler outside of a Buidler project.
+      message: "You are not inside a Hardhat project.",
+      title: "You are not inside a Hardhat project",
+      description: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn hoy to use Buidler by reading the [Getting Started guide](./README.md).`,
+You can learn hoy to use Hardhat by reading the [Getting Started guide](./README.md).`,
       shouldBeReported: false,
     },
     INVALID_NODE_VERSION: {
       number: 2,
       message:
-        "Buidler doesn't support your Node.js version. It should be %requirement%.",
+        "Hardhat doesn't support your Node.js version. It should be %requirement%.",
       title: "Unsupported Node.js",
-      description: `Buidler doesn't support your Node.js version. 
+      description: `Hardhat doesn't support your Node.js version. 
 
 Please upgrade your version of Node.js and try again.`,
       shouldBeReported: false,
     },
     UNSUPPORTED_OPERATION: {
       number: 3,
-      message: "%operation% is not supported in Buidler.",
+      message: "%operation% is not supported in Hardhat.",
       title: "Unsupported operation",
       description: `You are tying to perform an unsupported operation. 
 
 Unless you are creating a task or plugin, this is probably a bug. 
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     CONTEXT_ALREADY_CREATED: {
       number: 4,
-      message: "BuidlerContext is already created.",
-      title: "Buidler was already initialized",
-      description: `Buidler initialization was executed twice. This is a bug.
+      message: "HardhatContext is already created.",
+      title: "Hardhat was already initialized",
+      description: `Hardhat initialization was executed twice. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     CONTEXT_NOT_CREATED: {
       number: 5,
-      message: "BuidlerContext is not created.",
-      title: "Buidler wasn't initialized",
-      description: `Buidler initialization failed. This is a bug.
+      message: "HardhatContext is not created.",
+      title: "Hardhat wasn't initialized",
+      description: `Hardhat initialization failed. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     CONTEXT_BRE_NOT_DEFINED: {
       number: 6,
       message:
-        "Buidler Runtime Environment is not defined in the BuidlerContext.",
-      title: "Buidler Runtime Environment not created",
-      description: `Buidler initialization failed. This is a bug.
+        "Hardhat Runtime Environment is not defined in the HardhatContext.",
+      title: "Hardhat Runtime Environment not created",
+      description: `Hardhat initialization failed. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     CONTEXT_BRE_ALREADY_DEFINED: {
       number: 7,
       message:
-        "Buidler Runtime Environment is already defined in the BuidlerContext",
-      title: "Tried to create the Buidler Runtime Environment twice",
-      description: `The Buidler initialization process was executed twice. This is a bug.
+        "Hardhat Runtime Environment is already defined in the HardhatContext",
+      title: "Tried to create the Hardhat Runtime Environment twice",
+      description: `The Hardhat initialization process was executed twice. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     INVALID_CONFIG: {
@@ -118,45 +118,45 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
 
 %errors%
   
-To learn more about Buidler's configuration, please go to https://buidler.dev/config/`,
-      title: "Invalid Buidler config",
+To learn more about Hardhat's configuration, please go to https://usehardhat.com/config/`,
+      title: "Invalid Hardhat config",
       description: `You have one or more errors in your config file. 
       
-Check the error message for details, or go to [documentation](https://buidler.dev/config/) to learn more.`,
+Check the error message for details, or go to [documentation](https://usehardhat.com/config/) to learn more.`,
       shouldBeReported: false,
     },
     LIB_IMPORTED_FROM_THE_CONFIG: {
       number: 9,
-      message: `Error while loading Buidler's configuration.
-You probably imported @nomiclabs/buidler instead of @nomiclabs/buidler/config`,
+      message: `Error while loading Hardhat's configuration.
+You probably imported @nomiclabs/hardhat instead of @nomiclabs/hardhat/config`,
       title: "Failed to load config file",
       description: `There was an error while loading your config file. 
 
-The most common source of errors is trying to import \`@nomiclabs/buidler\` instead of \`@nomiclabs/buidler/config\`.
+The most common source of errors is trying to import \`@nomiclabs/hardhat\` instead of \`@nomiclabs/hardhat/config\`.
 
 Please make sure your config file is correct.`,
       shouldBeReported: false,
     },
     USER_CONFIG_MODIFIED: {
       number: 10,
-      message: `Error while loading Buidler's configuration.
+      message: `Error while loading Hardhat's configuration.
 You or one of your plugins is trying to modify the userConfig.%path% value from a config extender`,
       title: "Attempted to modify the user's config",
       description: `An attempt to modify the user's config was made.
 
 This is probably a bug in one of your plugins.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     CONTEXT_CONFIG_PATH_NOT_SET: {
       number: 11,
       message:
-        "Trying to access the BuidlerContext's config path field but it wasn't set",
-      title: "BuidlerContext's config path not defined",
-      description: `The Buidler initialization process was incomplete. This is a bug.
+        "Trying to access the HardhatContext's config path field but it wasn't set",
+      title: "HardhatContext's config path not defined",
+      description: `The Hardhat initialization process was incomplete. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     ASSERTION_ERROR: {
@@ -164,9 +164,9 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       message: "An internal invariant was violated: %message%",
       title: "Invariant violation",
       description: `An internal invariant was violated.
-This is probably caused by a programming error in buidler or in one of the used plugins.
+This is probably caused by a programming error in hardhat or in one of the used plugins.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
   },
@@ -175,30 +175,30 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       number: 100,
       message: "Network %network% doesn't exist",
       title: "Selected network doesn't exist",
-      description: `You are trying to run Buidler with a non-existent network. 
+      description: `You are trying to run Hardhat with a non-existent network. 
 
-Read the [documentation](https://buidler.dev/config/#networks-configuration) to learn how to define custom networks.`,
+Read the [documentation](https://usehardhat.com/config/#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
     },
     INVALID_GLOBAL_CHAIN_ID: {
       number: 101,
       message:
-        "Buidler was set to use chain id %configChainId%, but connected to a chain with id %connectionChainId%.",
+        "Hardhat was set to use chain id %configChainId%, but connected to a chain with id %connectionChainId%.",
       title: "Connected to the wrong network",
-      description: `Your config specifies a chain id for the network you are trying to used, but Buidler detected anotherone. 
+      description: `Your config specifies a chain id for the network you are trying to used, but Hardhat detected anotherone. 
 
 Please make sure you are setting your config correctly.`,
       shouldBeReported: false,
     },
-    /* DEPRECATED: This error only happened because of a misconception in Buidler */
+    /* DEPRECATED: This error only happened because of a misconception in Hardhat */
     DEPRECATED_INVALID_TX_CHAIN_ID: {
       number: 102,
       message:
-        "Trying to send a tx with chain id %txChainId%, but Buidler is connected to a chain with id %chainId%.",
+        "Trying to send a tx with chain id %txChainId%, but Hardhat is connected to a chain with id %chainId%.",
       title: "Incorrectly send chainId in a transaction",
-      description: `Buidler sent the \`chainId\` field in a transaction. 
+      description: `Hardhat sent the \`chainId\` field in a transaction. 
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: false,
     },
     ETHSIGN_MISSING_DATA_PARAM: {
@@ -216,7 +216,7 @@ Please check that you are sending a \`data\` parameter.`,
         "Account %account% is not managed by the node you are connected to.",
       title: "Unrecognized account",
       description: `You are trying to send a transaction or sign some data with an 
-account not managed by your Ethereum node nor Buidler.  
+account not managed by your Ethereum node nor Hardhat.  
 
 Please double check your accounts and the \`from\` parameter in your RPC calls.`,
       shouldBeReported: false,
@@ -248,7 +248,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Read the [documentation](https://buidler.dev/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://usehardhat.com/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {
@@ -324,12 +324,12 @@ Please double check your task definitions.`,
 Please double check your task definitions.`,
       shouldBeReported: false,
     },
-    PARAM_CLASHES_WITH_BUIDLER_PARAM: {
+    PARAM_CLASHES_WITH_HARDHAT_PARAM: {
       number: 202,
       message:
-        "Could not set param %paramName% for task %taskName% because its name is used as a param for Buidler.",
-      title: "Buidler and task param names clash",
-      description: `Could not add a param to your task because its name is used as a param for Buidler.
+        "Could not set param %paramName% for task %taskName% because its name is used as a param for Hardhat.",
+      title: "Hardhat and task param names clash",
+      description: `Could not add a param to your task because its name is used as a param for Hardhat.
       
 Please double check your task definitions.`,
       shouldBeReported: false,
@@ -455,7 +455,7 @@ What makes these types special is that they can be represented as strings, so yo
       number: 300,
       message: "Invalid environment variable %varName%'s value: %value%",
       title: "Invalid environment variable value",
-      description: `You are setting one of Buidler arguments using an environment variable, but it has an incorrect value. 
+      description: `You are setting one of Hardhat arguments using an environment variable, but it has an incorrect value. 
 
 Please double check your environment variables.`,
       shouldBeReported: false,
@@ -464,7 +464,7 @@ Please double check your environment variables.`,
       number: 301,
       message: "Invalid value %value% for argument %name% of type %type%",
       title: "Invalid argument type",
-      description: `One of your Buidler or task's arguments has an invalid type. 
+      description: `One of your Hardhat or task's arguments has an invalid type. 
 
 Please double check your arguments.`,
       shouldBeReported: false,
@@ -494,20 +494,20 @@ Please double check the name of the task you are trying to run.`,
       message:
         "Unrecognised command line argument %argument%.\nNote that task arguments must come after the task name.",
       title: "Unrecognized command line argument",
-      description: `Buidler couldn't recognize one of your command line arguments.
+      description: `Hardhat couldn't recognize one of your command line arguments.
        
 This may be because you are writing it before the task name. It should come after it.
 
-Please double check how you invoked Buidler.`,
+Please double check how you invoked Hardhat.`,
       shouldBeReported: false,
     },
     UNRECOGNIZED_PARAM_NAME: {
       number: 305,
       message: "Unrecognized param %param%",
       title: "Unrecognized param",
-      description: `Buidler couldn't recognize one of your tasks' parameters.
+      description: `Hardhat couldn't recognize one of your tasks' parameters.
        
-Please double check how you invoked Buidler or run your task.`,
+Please double check how you invoked Hardhat or run your task.`,
       shouldBeReported: false,
     },
     MISSING_TASK_ARGUMENT: {
@@ -516,7 +516,7 @@ Please double check how you invoked Buidler or run your task.`,
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
-Please double check how you invoked Buidler or run your task.`,
+Please double check how you invoked Hardhat or run your task.`,
       shouldBeReported: false,
     },
     MISSING_POSITIONAL_ARG: {
@@ -525,7 +525,7 @@ Please double check how you invoked Buidler or run your task.`,
       title: "Missing task positional argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
-Please double check how you invoked Buidler or run your task.`,
+Please double check how you invoked Hardhat or run your task.`,
       shouldBeReported: false,
     },
     UNRECOGNIZED_POSITIONAL_ARG: {
@@ -534,7 +534,7 @@ Please double check how you invoked Buidler or run your task.`,
       title: "Unrecognized task positional argument",
       description: `You tried to run a task with more positional arguments than needed. 
 
-Please double check how you invoked Buidler or run your task.`,
+Please double check how you invoked Hardhat or run your task.`,
       shouldBeReported: false,
     },
     REPEATED_PARAM: {
@@ -543,16 +543,16 @@ Please double check how you invoked Buidler or run your task.`,
       title: "Repeated task parameter",
       description: `You tried to run a task with a repeated parameter. 
 
-Please double check how you invoked Buidler or run your task.`,
+Please double check how you invoked Hardhat or run your task.`,
       shouldBeReported: false,
     },
     PARAM_NAME_INVALID_CASING: {
       number: 310,
       message: "Invalid param %param%. Command line params must be lowercase.",
       title: "Invalid casing in command line parameter",
-      description: `You tried to run buidler with a parameter with invalid casing. They must be lowercase. 
+      description: `You tried to run hardhat with a parameter with invalid casing. They must be lowercase. 
 
-Please double check how you invoked Buidler.`,
+Please double check how you invoked Hardhat.`,
       shouldBeReported: false,
     },
     INVALID_JSON_ARGUMENT: {
@@ -561,7 +561,7 @@ Please double check how you invoked Buidler.`,
       title: "Invalid JSON parameter",
       description: `You tried to run a task with an invalid JSON parameter. 
 
-Please double check how you invoked Buidler or run your task.`,
+Please double check how you invoked Hardhat or run your task.`,
       shouldBeReported: false,
     },
     RUNNING_INTERNAL_TASK_FROM_CLI: {
@@ -587,7 +587,7 @@ This is not supported. Please run the help task to see the available options.`,
       number: 401,
       message: "File %file% is outside the project.",
       title: "Tried to import file outside your project",
-      description: `One of your projects tried to import a file that it's outside your Buidler project. 
+      description: `One of your projects tried to import a file that it's outside your Hardhat project. 
 
 This is disabled for security reasons.`,
       shouldBeReported: false,
@@ -600,7 +600,7 @@ This is disabled for security reasons.`,
       title: "Resolved library file as a local one",
       description: `One of your libraries' files was treated as a local file. This is a bug. 
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     LIBRARY_NOT_INSTALLED: {
@@ -663,7 +663,7 @@ You must always use slashes (/) in Solidity imports.`,
     INVALID_IMPORT_PROTOCOL: {
       number: 409,
       message:
-        "Invalid import %imported% from %from%. Buidler doesn't support imports via %protocol%.",
+        "Invalid import %imported% from %from%. Hardhat doesn't support imports via %protocol%.",
       title: "Invalid import: trying to use an unsupported protocol",
       description: `A Solidity file is trying to import another one using an unsupported protocol, like http.
       
@@ -673,7 +673,7 @@ You can only import files thar are available locally or installed through npm.`,
     INVALID_IMPORT_ABSOLUTE_PATH: {
       number: 410,
       message:
-        "Invalid import %imported% from %from%. Buidler doesn't support imports with absolute paths.",
+        "Invalid import %imported% from %from%. Hardhat doesn't support imports with absolute paths.",
       title: "Invalid import: absolute paths unsupported",
       description: `A Solidity file is trying to import another one using its absolute path.
       
@@ -687,7 +687,7 @@ This is not supported, as it would lead to hard to reproduce compilations.`,
       title: "Invalid import: file outside of the project",
       description: `A Solidity file is trying to import another one that is outside of the project.
       
-This is not supported by Buidler.`,
+This is not supported by Hardhat.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_WRONG_CASING: {
@@ -697,7 +697,7 @@ This is not supported by Buidler.`,
       title: "Invalid import: wrong file casing",
       description: `A Solidity file is trying to import another one but its source name casing was wrong.
       
-Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
       shouldBeReported: false,
     },
     WRONG_SOURCE_NAME_CASING: {
@@ -707,7 +707,7 @@ Buidler's compiler is case sensitive to ensure projects are portable across diff
       title: "Incorrect source name casing",
       description: `You tried to resolve a Solidity file with an incorrect casing.
       
-Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
       shouldBeReported: false,
     },
     IMPORTED_LIBRARY_NOT_INSTALLED: {
@@ -770,14 +770,14 @@ Please check your Internet connection.`,
       title: "Compilation failed",
       description: `Your smart contracts failed to compile.
       
-Please check Buidler's output for more details.`,
+Please check Hardhat's output for more details.`,
       shouldBeReported: false,
     },
     RUN_FILE_NOT_FOUND: {
       number: 601,
       message: "Script %script% doesn't exist.",
       title: "Script doesn't exist",
-      description: `Tried to use \`buidler run\` to execut a non-existing script.
+      description: `Tried to use \`hardhat run\` to execut a non-existing script.
       
 Please double check your script's path`,
       shouldBeReported: false,
@@ -788,14 +788,14 @@ Please double check your script's path`,
       title: "Error running script",
       description: `Running a script resulted in an error. 
 
-Please check Buidler's output for more details.`,
+Please check Hardhat's output for more details.`,
       shouldBeReported: false,
     },
     FLATTEN_CYCLE: {
       number: 603,
-      message: "Buidler flatten doesn't support cyclic dependencies.",
+      message: "Hardhat flatten doesn't support cyclic dependencies.",
       title: "Flatten detected cyclic dependencies",
-      description: `Buidler flatten doesn't support cyclic dependencies. 
+      description: `Hardhat flatten doesn't support cyclic dependencies. 
 
 We recommend not using this kind of dependencies.`,
       shouldBeReported: false,
@@ -817,9 +817,9 @@ We recommend not using this kind of dependencies.`,
     JSONRPC_UNSUPPORTED_NETWORK: {
       number: 606,
       message:
-        "Unsupported network for JSON-RPC server. Only buidlerevm is currently supported.",
+        "Unsupported network for JSON-RPC server. Only hardhat is currently supported.",
       title: "Unsupported network for JSON-RPC server.",
-      description: `JSON-RPC server can only be started when running the BuidlerEVM network.
+      description: `JSON-RPC server can only be started when running the Hardhat Network.
       
 To start the JSON-RPC server, retry the command without the --network parameter.`,
       shouldBeReported: false,
@@ -856,7 +856,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
       title: "Incorrect artifact path casing",
       description: `You tried to get an artifact file with an incorrect casing.
       
-Buidler's artifact resolution is case sensitive to ensure projects are portable across different operating systems.`,
+Hardhat's artifact resolution is case sensitive to ensure projects are portable across different operating systems.`,
       shouldBeReported: true,
     },
   },
@@ -868,7 +868,7 @@ Buidler's artifact resolution is case sensitive to ensure projects are portable 
       title: "Plugin not installed",
       description: `You are trying to use a plugin that hasn't been installed. 
 
-Please follow Buidler's instructions to resolve this.`,
+Please follow Hardhat's instructions to resolve this.`,
       shouldBeReported: false,
     },
     MISSING_DEPENDENCY: {
@@ -878,7 +878,7 @@ Please follow Buidler's instructions to resolve this.`,
       title: "Plugin dependencies not installed",
       description: `You are trying to use a plugin with unmet dependencies. 
 
-Please follow Buidler's instructions to resolve this.`,
+Please follow Hardhat's instructions to resolve this.`,
       shouldBeReported: false,
     },
     DEPENDENCY_VERSION_MISMATCH: {
@@ -889,7 +889,7 @@ If you have installed %dependency% yourself, please reinstall it with a valid ve
       title: "Plugin dependencies's version mismatch",
       description: `You are trying to use a plugin that requires a different version of one of its dependencies. 
 
-Please follow Buidler's instructions to resolve this.`,
+Please follow Hardhat's instructions to resolve this.`,
       shouldBeReported: false,
     },
     OLD_STYLE_IMPORT_DETECTED: {
@@ -911,7 +911,7 @@ Please use \`usePlugin(npm-plugin-package)\` instead.`,
       title: "Invalid error message template",
       description: `An error message template contains an invalid variable name. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG: {
@@ -921,7 +921,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Invalid error message replacement",
       description: `Tried to replace an error message variable with a value that contains another variable name. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     TEMPLATE_VARIABLE_TAG_MISSING: {
@@ -930,7 +930,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Missing replacement value from error message template",
       description: `An error message template is missing a replacement value. This is a bug.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
     WRONG_ARTIFACT_PATH: {
@@ -940,7 +940,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
       title: "Inferred artifact path doesn't exist",
       description: `The inferred artifact path doesn't exist.
 
-Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us improve Buidler.`,
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
   },
@@ -991,7 +991,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
       title: "Incorrect source name casing",
       description: `You tried to resolve a Solidity file with an incorrect casing.
       
-Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
       shouldBeReported: true,
     },
     FILE_NOT_FOUND: {
@@ -1000,7 +1000,7 @@ Buidler's compiler is case sensitive to ensure projects are portable across diff
       title: "Solidity source file not found",
       description: `A source name should correspond to an existing Solidity file but it doesn't.
       
-Buidler's compiler is case sensitive to ensure projects are portable across different operating systems.`,
+Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
       shouldBeReported: true,
     },
     NODE_MODULES_AS_LOCAL: {

@@ -31,7 +31,7 @@ pragma solidity ^0.6.0;
 // This is the main building block for smart contracts.
 contract Token {
     // Some string type variables to identify the token.
-    string public name = "My Buidler Token";
+    string public name = "My Hardhat Token";
     string public symbol = "MBT";
 
     // The fixed amount of tokens stored in an unsigned integer type variable.
@@ -91,10 +91,10 @@ contract Token {
 
 ## Compiling contracts
 
-To compile the contract run `npx buidler compile` in your terminal. The `compile` task is one of the built-in tasks.
+To compile the contract run `npx hardhat compile` in your terminal. The `compile` task is one of the built-in tasks.
 
 ```
-$ npx buidler compile
+$ npx hardhat compile
 Compiling...
 Compiled 1 contract successfully
 ```

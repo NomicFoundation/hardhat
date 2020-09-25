@@ -1,9 +1,9 @@
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 export function rpcQuantityToNumber(quantity?: string) {
   if (quantity === undefined) {
-    throw new BuidlerError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
+    throw new HardhatError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
       value: quantity,
     });
   }
@@ -12,7 +12,7 @@ export function rpcQuantityToNumber(quantity?: string) {
     typeof quantity !== "string" ||
     quantity.match(/^0x(?:0|(?:[1-9a-fA-F][0-9a-fA-F]*))$/) === null
   ) {
-    throw new BuidlerError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
+    throw new HardhatError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
       value: quantity,
     });
   }

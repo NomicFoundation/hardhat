@@ -1,5 +1,5 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
-import { NetworkConfig } from "@nomiclabs/buidler/types";
+import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
+import { NetworkConfig } from "hardhat/types";
 
 import { DEFAULT_GAS_MULTIPLIER } from "./constants";
 import { Linker, TruffleContract } from "./types";
@@ -30,8 +30,8 @@ export class LazyTruffleContractProvisioner {
         const libName = args[0].constructor.contractName;
 
         if (alreadyLinkedLibs[libName]) {
-          throw new NomicLabsBuidlerPluginError(
-            "@nomiclabs/buidler-truffle5",
+          throw new NomicLabsHardhatPluginError(
+            "@nomiclabs/hardhat-truffle5",
             `Contract ${Contract.contractName} has already been linked to ${libName}.`
           );
         }
@@ -46,15 +46,15 @@ export class LazyTruffleContractProvisioner {
 
       if (!linkingByInstance) {
         if (typeof args[0] === "string") {
-          throw new NomicLabsBuidlerPluginError(
-            "@nomiclabs/buidler-truffle5",
-            `Linking contracts by name is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+          throw new NomicLabsHardhatPluginError(
+            "@nomiclabs/hardhat-truffle5",
+            `Linking contracts by name is not supported by Hardhat. Please use ${Contract.contractName}.link(libraryInstance) instead.`
           );
         }
 
-        throw new NomicLabsBuidlerPluginError(
-          "@nomiclabs/buidler-truffle5",
-          `Linking contracts with a map of addresses is not supported by Buidler. Please use ${Contract.contractName}.link(libraryInstance) instead.`
+        throw new NomicLabsHardhatPluginError(
+          "@nomiclabs/hardhat-truffle5",
+          `Linking contracts with a map of addresses is not supported by Hardhat. Please use ${Contract.contractName}.link(libraryInstance) instead.`
         );
       }
 
@@ -65,8 +65,8 @@ export class LazyTruffleContractProvisioner {
       const address = this._deploymentAddresses[Contract.contractName];
 
       if (address === undefined) {
-        throw new NomicLabsBuidlerPluginError(
-          "@nomiclabs/buidler-truffle5",
+        throw new NomicLabsHardhatPluginError(
+          "@nomiclabs/hardhat-truffle5",
           `Trying to get deployed instance of ${Contract.contractName}, but none was set.`
         );
       }

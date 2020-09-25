@@ -4,23 +4,23 @@ import path from "path";
 
 import {
   AnalyticsConfig,
-  BuidlerConfig,
   ConfigExtender,
+  HardhatConfig,
   MultiSolcConfig,
   ProjectPaths,
-  ResolvedBuidlerConfig,
+  ResolvedHardhatConfig,
   SolcConfig,
   SolidityConfig,
 } from "../../../types";
 import { fromEntries } from "../../util/lang";
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
-import { normalizeBuidlerEVMAccountsConfig } from "../providers/util";
+import { normalizeHardhatNetworkAccountsConfig } from "../providers/util";
 
 function mergeUserAndDefaultConfigs(
-  defaultConfig: BuidlerConfig,
-  userConfig: BuidlerConfig
-): Partial<BuidlerConfig> {
+  defaultConfig: HardhatConfig,
+  userConfig: HardhatConfig
+): Partial<HardhatConfig> {
   return deepmerge(defaultConfig, userConfig, {
     arrayMerge: (destination: any[], source: any[]) => deepmerge([], source), // this "unproxies" the arrays
     customMerge: (key) => {
@@ -57,11 +57,11 @@ function normalizeSolidityConfig(
 }
 
 /**
- * This functions resolves the buidler config by merging the user provided config
- * and the buidler default config.
+ * This functions resolves the hardhat config by merging the user provided config
+ * and the hardhat default config.
  *
  * @param userConfigPath the user config filepath
- * @param defaultConfig  the buidler's default config object
+ * @param defaultConfig  the hardhat's default config object
  * @param userConfig     the user config object
  * @param configExtenders An array of ConfigExtenders
  *
@@ -69,10 +69,10 @@ function normalizeSolidityConfig(
  */
 export function resolveConfig(
   userConfigPath: string,
-  defaultConfig: BuidlerConfig,
-  userConfig: BuidlerConfig,
+  defaultConfig: HardhatConfig,
+  userConfig: HardhatConfig,
   configExtenders: ConfigExtender[]
-): ResolvedBuidlerConfig {
+): ResolvedHardhatConfig {
   userConfig = deepFreezeUserConfig(userConfig);
 
   const config = mergeUserAndDefaultConfigs(defaultConfig, userConfig);
@@ -85,10 +85,10 @@ export function resolveConfig(
     solidity: normalizeSolidityConfig(config.solidity!),
     networks: {
       ...config.networks!,
-      buidlerevm: {
-        ...config.networks!.buidlerevm,
-        accounts: normalizeBuidlerEVMAccountsConfig(
-          config.networks!.buidlerevm.accounts!
+      hardhat: {
+        ...config.networks!.hardhat,
+        accounts: normalizeHardhatNetworkAccountsConfig(
+          config.networks!.hardhat.accounts!
         ),
       },
     },
@@ -174,7 +174,7 @@ function deepFreezeUserConfig(
       value: any,
       receiver: any
     ): boolean {
-      throw new BuidlerError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
+      throw new HardhatError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
         path: [...propertyPath, property]
           .map((pathPart) => pathPart.toString())
           .join("."),

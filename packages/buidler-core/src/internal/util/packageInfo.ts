@@ -29,7 +29,7 @@ export async function getPackageJson(): Promise<PackageJson> {
   return fsExtra.readJSON(path.join(root, "package.json"));
 }
 
-export function getBuidlerVersion(): string | null {
+export function getHardhatVersion(): string | null {
   const packageJsonPath = findClosestPackageJson(__filename);
 
   if (packageJsonPath === null) {

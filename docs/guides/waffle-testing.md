@@ -2,18 +2,18 @@
 
 [Waffle](https://getwaffle.io/) is a simple smart contract testing library built on top of [Ethers.js](https://docs.ethers.io/ethers.js/html/). Tests in Waffle are written using [Mocha](https://mochajs.org/) alongside with [Chai](https://www.chaijs.com/). It's our recommended choice for testing.
 
-Let's see how to use it going through Buidler's sample project.
+Let's see how to use it going through Hardhat's sample project.
 
 ::: tip
-Waffle supports TypeScript. Learn how to set up Buidler with TypeScript [here](./typescript.md).
+Waffle supports TypeScript. Learn how to set up Hardhat with TypeScript [here](./typescript.md).
 :::
 
 ## Setting up
 
-[Install Buidler](/getting-started/#local-installation-recommended) on an empty directory. When done, run `npx buidler`.  
+[Install Hardhat](/getting-started/#local-installation-recommended) on an empty directory. When done, run `npx hardhat`.  
 
 ```
-$ npx buidler
+$ npx hardhat
 888               d8b      888 888
 888               Y8P      888 888
 888                        888 888
@@ -23,38 +23,38 @@ $ npx buidler
 888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888
 88888P"   "Y88888 888  "Y88888 888  "Y8888  888
 
-👷 Welcome to Buidler v1.0.0 👷‍‍
+👷 Welcome to Hardhat v1.0.0 👷‍‍
 
 ? What do you want to do? …
 ❯ Create a sample project
-  Create an empty buidler.config.js
+  Create an empty hardhat.config.js
   Quit
 ```
 
 Select `Create a sample project`. This will create some files but also install the necessary packages.
 
 ::: tip
-Buidler will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
+Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
 :::
 
-Look at the `buidler.config.js` file and you'll see that the Waffle plugin is enabled:
+Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is enabled:
 
-<<< @/../packages/buidler-core/sample-project/buidler.config.js{1}
+<<< @/../packages/hardhat/sample-project/hardhat.config.js{1}
 
 ::: tip 
-There's no need for `usePlugin("@nomiclabs/buidler-ethers")`, as `buidler-waffle` already does it.
+There's no need for `usePlugin("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
 :::
 
 ## Testing
 
 Inside `test` folder you'll find  `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
-<<< @/../packages/buidler-core/sample-project/test/sample-test.js
+<<< @/../packages/hardhat/sample-project/test/sample-test.js
 
-On your terminal run `npx buidler test`. You should see the following output:
+On your terminal run `npx hardhat test`. You should see the following output:
 
 ```
-$ npx buidler test
+$ npx hardhat test
 Compiling...
 Compiled 1 contract successfully
 
@@ -70,7 +70,7 @@ This means the test passed. Let's now explain each line:
 ```js
 const { expect } = require("chai");
 ```
-We are requiring `Chai` which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from Waffle. This is why we're using the `buidler-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
+We are requiring `Chai` which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from Waffle. This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
 ```js
 describe("Greeter", function() {
@@ -80,7 +80,7 @@ describe("Greeter", function() {
 });
 ```
 
-This wrapper just follows Mocha's proposed structure for tests, but you might have noticed the use of `async` in `it`'s callback function. Interacting with the Ethereum network and smart contracts are asynchronous operations, hence most APIs and libraries use JavaScript's `Promise` for returning values. This use of `async` will allow us to `await` the calls to our contract and the Buidler EVM node.
+This wrapper just follows Mocha's proposed structure for tests, but you might have noticed the use of `async` in `it`'s callback function. Interacting with the Ethereum network and smart contracts are asynchronous operations, hence most APIs and libraries use JavaScript's `Promise` for returning values. This use of `async` will allow us to `await` the calls to our contract and the Hardhat Network node.
 
 ```js
 const Greeter = await ethers.getContractFactory("Greeter");
@@ -123,7 +123,7 @@ The first step to do so is to get the `Signers` object from `ethers`:
 ```js
 const [owner, addr1] = await ethers.getSigners();
 ```
-A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Buidler EVM**, and only keeping the first and second ones.
+A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first and second ones.
 
 ::: tip
 To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
@@ -131,7 +131,7 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
 ```js
-const { ethers } = require("@nomiclabs/buidler");
+const { ethers } = require("@nomiclabs/hardhat");
 ```
 
 Finally, to execute a contract's method from another account, all you need to do is `connect` the `Contract` with the method being executed:
@@ -142,8 +142,8 @@ await greeter.connect(addr1).setGreeting("Hallo, Erde!");
 
 ## Migrating an existing Waffle project
 
-If you're starting a project from scratch and looking to use Waffle, you can skip this section. If you're setting up an existing Waffle project to use Buidler you'll need to migrate the [configuration options](https://ethereum-waffle.readthedocs.io/en/latest/configuration.html) Waffle offers. The following table maps Waffle configurations to their Buidler equivalents:
-|Waffle|Buidler|
+If you're starting a project from scratch and looking to use Waffle, you can skip this section. If you're setting up an existing Waffle project to use Hardhat you'll need to migrate the [configuration options](https://ethereum-waffle.readthedocs.io/en/latest/configuration.html) Waffle offers. The following table maps Waffle configurations to their Hardhat equivalents:
+|Waffle|Hardhat|
 |---|---|
 |`sourcesPath`|`paths.sources`|
 |`targetPath`|`paths.artifacts`|
@@ -168,7 +168,7 @@ As an example, this Waffle configuration file:
 }
 ```
 
-Would translate into this Buidler config:
+Would translate into this Hardhat config:
 
 ```js
 module.exports = {
@@ -187,10 +187,10 @@ module.exports = {
 };
 ```
 
-If you're migrating an existing Waffle project to Buidler, then the minimum configuration you'll need is changing Buidler's compilation output path, since Waffle uses a different one by default:
+If you're migrating an existing Waffle project to Hardhat, then the minimum configuration you'll need is changing Hardhat's compilation output path, since Waffle uses a different one by default:
 
 ```js
-usePlugin("@nomiclabs/buidler-waffle");
+usePlugin("@nomiclabs/hardhat-waffle");
 
 module.exports = {
   paths: {
@@ -201,7 +201,7 @@ module.exports = {
 
 ### Adapting the tests
 
-Now, when testing using a standalone Waffle setup, you should use the different parts of Waffle from Buidler.
+Now, when testing using a standalone Waffle setup, you should use the different parts of Waffle from Hardhat.
 
 For example, instead of doing:
 
@@ -220,15 +220,15 @@ const { deployContract } = waffle;
 Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions. If you're fighting a "Transaction run out of gas" error, double-check the size of your contract and bump the gas limit if needed.
 :::
 
-Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/buidler-waffle`. Just be sure to include `usePlugin("@nomiclabs/buidler-waffle");` in your Buidler config and use the plugin's provider like this
+Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `usePlugin("@nomiclabs/hardhat-waffle");` in your Hardhat config and use the plugin's provider like this
 
 ```js
 const provider = waffle.provider;
 ```
 
-Run your tests with `npx buidler test` and you should get stack traces when a transaction fails.
+Run your tests with `npx hardhat test` and you should get stack traces when a transaction fails.
 
-[buidler evm]: ../buidler-evm/README.md
+[hardhat network]: ../hardhat-network/README.md
 
 
-[Buidler Runtime Environment]: /documentation/#buidler-runtime-environment-bre
+[Hardhat Runtime Environment]: /documentation/#hardhat-runtime-environment-hre

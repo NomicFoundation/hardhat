@@ -3,7 +3,7 @@ import fsExtra from "fs-extra";
 import os from "os";
 import path from "path";
 
-import { BUIDLER_NAME } from "../constants";
+import { HARDHAT_NAME } from "../constants";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
@@ -11,14 +11,14 @@ import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 import { emoji } from "./emoji";
 
 const CREATE_SAMPLE_PROJECT_ACTION = "Create a sample project";
-const CREATE_EMPTY_BUIDLER_CONFIG_ACTION = "Create an empty buidler.config.js";
+const CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js";
 const QUIT_ACTION = "Quit";
 
 const SAMPLE_PROJECT_DEPENDENCIES = {
-  "@nomiclabs/buidler-waffle": "^2.0.0",
+  "@nomiclabs/hardhat-waffle": "^2.0.0",
   "ethereum-waffle": "^3.0.0",
   chai: "^4.2.0",
-  "@nomiclabs/buidler-ethers": "^2.0.0",
+  "@nomiclabs/hardhat-ethers": "^2.0.0",
   ethers: "^5.0.0",
 };
 
@@ -34,17 +34,32 @@ async function removeTempFilesIfPresent(projectRoot: string) {
   await removeProjectDirIfPresent(projectRoot, "artifacts");
 }
 
+// generated with the "colossal" font
 function printAsciiLogo() {
-  console.log(chalk.blue(`888               d8b      888 888`));
-  console.log(chalk.blue(`888               Y8P      888 888`));
-  console.log(chalk.blue("888                        888 888"));
   console.log(
-    chalk.blue("88888b.  888  888 888  .d88888 888  .d88b.  888d888")
+    chalk.blue("888    888                      888 888               888")
   );
-  console.log(chalk.blue('888 "88b 888  888 888 d88" 888 888 d8P  Y8b 888P"'));
-  console.log(chalk.blue("888  888 888  888 888 888  888 888 88888888 888"));
-  console.log(chalk.blue("888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888"));
-  console.log(chalk.blue(`88888P"   "Y88888 888  "Y88888 888  "Y8888  888`));
+  console.log(
+    chalk.blue("888    888                      888 888               888")
+  );
+  console.log(
+    chalk.blue("888    888                      888 888               888")
+  );
+  console.log(
+    chalk.blue("8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888")
+  );
+  console.log(
+    chalk.blue('888    888     "88b 888P"  d88" 888 888 "88b     "88b 888')
+  );
+  console.log(
+    chalk.blue("888    888 .d888888 888    888  888 888  888 .d888888 888")
+  );
+  console.log(
+    chalk.blue("888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.")
+  );
+  console.log(
+    chalk.blue('888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888')
+  );
   console.log("");
 }
 
@@ -53,7 +68,7 @@ async function printWelcomeMessage() {
 
   console.log(
     chalk.cyan(
-      `${emoji("👷 ")}Welcome to ${BUIDLER_NAME} v${packageJson.version}${emoji(
+      `${emoji("👷 ")}Welcome to ${HARDHAT_NAME} v${packageJson.version}${emoji(
         " 👷‍"
       )}‍\n`
     )
@@ -111,12 +126,12 @@ function printSuggestedCommands() {
       : "npx ";
 
   console.log(`Try running some of the following tasks:`);
-  console.log(`  ${npx}buidler accounts`);
-  console.log(`  ${npx}buidler compile`);
-  console.log(`  ${npx}buidler test`);
-  console.log(`  ${npx}buidler node`);
+  console.log(`  ${npx}hardhat accounts`);
+  console.log(`  ${npx}hardhat compile`);
+  console.log(`  ${npx}hardhat test`);
+  console.log(`  ${npx}hardhat node`);
   console.log(`  node scripts/sample-script.js`);
-  console.log(`  ${npx}buidler help`);
+  console.log(`  ${npx}hardhat help`);
 }
 
 async function printRecommendedDepsInstallationInstructions() {
@@ -129,9 +144,9 @@ async function printRecommendedDepsInstallationInstructions() {
   console.log(`  ${cmd.join(" ")}`);
 }
 
-async function writeEmptyBuidlerConfig() {
+async function writeEmptyHardhatConfig() {
   return fsExtra.writeFile(
-    "buidler.config.js",
+    "hardhat.config.js",
     "module.exports = {};\n",
     "utf-8"
   );
@@ -153,9 +168,9 @@ async function getAction() {
             value: CREATE_SAMPLE_PROJECT_ACTION,
           },
           {
-            name: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
-            message: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
-            value: CREATE_EMPTY_BUIDLER_CONFIG_ACTION,
+            name: CREATE_EMPTY_HARDHAT_CONFIG_ACTION,
+            message: CREATE_EMPTY_HARDHAT_CONFIG_ACTION,
+            value: CREATE_EMPTY_HARDHAT_CONFIG_ACTION,
           },
           { name: QUIT_ACTION, message: QUIT_ACTION, value: QUIT_ACTION },
         ],
@@ -168,7 +183,7 @@ async function getAction() {
       return QUIT_ACTION;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw e;
   }
 }
@@ -185,8 +200,8 @@ export async function createProject() {
     return;
   }
 
-  if (action === CREATE_EMPTY_BUIDLER_CONFIG_ACTION) {
-    await writeEmptyBuidlerConfig();
+  if (action === CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
+    await writeEmptyHardhatConfig();
     console.log(
       `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`
     );
@@ -205,7 +220,7 @@ export async function createProject() {
         name: "projectRoot",
         type: "input",
         initial: process.cwd(),
-        message: "Buidler project root:",
+        message: "Hardhat project root:",
       },
       createConfirmationPrompt(
         "shouldAddGitIgnore",
@@ -221,7 +236,7 @@ export async function createProject() {
       return;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw e;
   }
 
@@ -364,7 +379,7 @@ async function confirmRecommendedDepsInstallation(): Promise<boolean> {
       return false;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw e;
   }
 

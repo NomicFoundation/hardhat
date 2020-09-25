@@ -1,24 +1,24 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-web3-legacy.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-web3-legacy)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3-legacy.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3-legacy)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-web3-legacy
+# hardhat-web3-legacy
 
-This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `0.20x` into [Buidler](http://getbuidler.com).
+This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `0.20x` into [Hardhat](http://gethardhat.com).
 
 ## What
 
-This plugin brings to Buidler the Web3 module and an initialized instance of Web3.
+This plugin brings to Hardhat the Web3 module and an initialized instance of Web3.
 
 # Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-web3-legacy web3@^0.20.7
+npm install --save-dev @nomiclabs/hardhat-web3-legacy web3@^0.20.7
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-web3-legacy");
+usePlugin("@nomiclabs/hardhat-web3-legacy");
 ```
 
 ## Tasks
@@ -27,7 +27,7 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugin adds the following elements to the `BuidlerRuntimeEnvironment`:
+This plugin adds the following elements to the `HardhatRuntimeEnvironment`:
 
 - `Web3`: The Web3.js module.
 - `web3`: An instantiated Web3.js object connected to the selected network.
@@ -39,10 +39,10 @@ In Web3 0.20x some features are synchronous and some are asynchronous. For examp
 
 ## TypeScript support
 
-If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
 
 ``` typescript
-/// <reference types="@nomiclabs/buidler-web3-legacy" />
+/// <reference types="@nomiclabs/hardhat-web3-legacy" />
 ```
 
 If you already have this file, just add that line to it.
@@ -53,8 +53,8 @@ Then you have to include that file in the `files` array of your `tsconfig.json`:
 ```json
 {
   ...
-  "files": [..., "buidler-env.d.ts"]
+  "files": [..., "hardhat-env.d.ts"]
 }
 ```
 
-using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
+using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.

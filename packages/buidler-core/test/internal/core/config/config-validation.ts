@@ -1,18 +1,18 @@
 import { assert } from "chai";
 
-import { BUIDLEREVM_NETWORK_NAME } from "../../../../src/internal/constants";
+import { HARDHAT_NETWORK_NAME } from "../../../../src/internal/constants";
 import {
   getValidationErrors,
   validateConfig,
 } from "../../../../src/internal/core/config/config-validation";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import { BuidlerNetworkHDAccountsConfig } from "../../../../src/types";
-import { expectBuidlerError } from "../../../helpers/errors";
+import { HardhatNetworkHDAccountsConfig } from "../../../../src/types";
+import { expectHardhatError } from "../../../helpers/errors";
 
 describe("Config validation", function () {
   describe("default network config", function () {
     it("Should fail if the wrong type is used", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig({ defaultNetwork: 123 }),
         ERRORS.GENERAL.INVALID_CONFIG
       );
@@ -59,32 +59,32 @@ describe("Config validation", function () {
     };
 
     it("Should fail with invalid types", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidSolidityType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidVersionType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidOptimizerType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidOptimizerEnabledType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidOptimizerRunsType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidEvmVersionType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
@@ -166,32 +166,32 @@ describe("Config validation", function () {
     };
 
     it("Should fail with invalid types", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidPathsType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidCacheType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidArtifactsType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidRootType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidSourcesType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateConfig(invalidTestsType),
         ERRORS.GENERAL.INVALID_CONFIG
       );
@@ -240,12 +240,12 @@ describe("Config validation", function () {
     describe("Invalid types", function () {
       describe("Networks object", function () {
         it("Should fail with invalid types", function () {
-          expectBuidlerError(
+          expectHardhatError(
             () => validateConfig({ networks: 123 }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
@@ -257,23 +257,23 @@ describe("Config validation", function () {
         });
       });
 
-      describe("BuidlerEVM network config", function () {
+      describe("Hardhat Network config", function () {
         it("Should fail with invalid types", function () {
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: 123,
+                  [HARDHAT_NETWORK_NAME]: 123,
                 },
               }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     chainId: "asd",
                   },
                 },
@@ -281,11 +281,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     hardfork: "not-supported",
                   },
                 },
@@ -293,11 +293,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     throwOnCallFailures: "a",
                   },
                 },
@@ -305,11 +305,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     throwOnTransactionFailures: "a",
                   },
                 },
@@ -317,11 +317,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     from: 123,
                   },
                 },
@@ -329,11 +329,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     gas: "asdasd",
                   },
                 },
@@ -341,11 +341,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     gasPrice: "6789",
                   },
                 },
@@ -353,11 +353,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     gasMultiplier: "123",
                   },
                 },
@@ -365,11 +365,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     blockGasLimit: "asd",
                   },
                 },
@@ -377,11 +377,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     accounts: 123,
                   },
                 },
@@ -389,11 +389,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     accounts: [{}],
                   },
                 },
@@ -401,11 +401,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     accounts: [{ privateKey: "" }],
                   },
                 },
@@ -413,11 +413,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     accounts: [{ balance: "" }],
                   },
                 },
@@ -425,11 +425,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     accounts: [{ privateKey: 123 }],
                   },
                 },
@@ -437,11 +437,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     accounts: [{ balance: 213 }],
                   },
                 },
@@ -449,11 +449,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     loggingEnabled: 123,
                   },
                 },
@@ -461,11 +461,11 @@ describe("Config validation", function () {
             ERRORS.GENERAL.INVALID_CONFIG
           );
 
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     loggingEnabled: "a",
                   },
                 },
@@ -474,11 +474,11 @@ describe("Config validation", function () {
           );
 
           // Non boolean allowUnlimitedContractSize
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     allowUnlimitedContractSize: "a",
                   },
                 },
@@ -487,11 +487,11 @@ describe("Config validation", function () {
           );
 
           // Non string initialDate
-          expectBuidlerError(
+          expectHardhatError(
             () =>
               validateConfig({
                 networks: {
-                  [BUIDLEREVM_NETWORK_NAME]: {
+                  [HARDHAT_NETWORK_NAME]: {
                     initialDate: 123,
                   },
                 },
@@ -500,15 +500,15 @@ describe("Config validation", function () {
           );
         });
 
-        describe("BuidlerNetworkHDAccounstConfig", function () {
+        describe("HardhatNetworkHDAccounstConfig", function () {
           it("Should accept a valid HD config", function () {
-            let hdConfig: BuidlerNetworkHDAccountsConfig = {
+            let hdConfig: HardhatNetworkHDAccountsConfig = {
               mnemonic: "asd",
             };
 
             validateConfig({
               networks: {
-                [BUIDLEREVM_NETWORK_NAME]: {
+                [HARDHAT_NETWORK_NAME]: {
                   accounts: hdConfig,
                 },
               },
@@ -524,7 +524,7 @@ describe("Config validation", function () {
 
             validateConfig({
               networks: {
-                [BUIDLEREVM_NETWORK_NAME]: {
+                [HARDHAT_NETWORK_NAME]: {
                   accounts: hdConfig,
                 },
               },
@@ -532,11 +532,11 @@ describe("Config validation", function () {
           });
 
           it("Should fail with invalid types", function () {
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
-                    [BUIDLEREVM_NETWORK_NAME]: {
+                    [HARDHAT_NETWORK_NAME]: {
                       accounts: {
                         mnemonic: 123,
                       },
@@ -546,11 +546,11 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
-                    [BUIDLEREVM_NETWORK_NAME]: {
+                    [HARDHAT_NETWORK_NAME]: {
                       accounts: {
                         initialIndex: "asd",
                       },
@@ -560,11 +560,11 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
-                    [BUIDLEREVM_NETWORK_NAME]: {
+                    [HARDHAT_NETWORK_NAME]: {
                       accounts: {
                         count: "asd",
                       },
@@ -574,11 +574,11 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
-                    [BUIDLEREVM_NETWORK_NAME]: {
+                    [HARDHAT_NETWORK_NAME]: {
                       accounts: {
                         path: 123,
                       },
@@ -588,11 +588,11 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
-                    [BUIDLEREVM_NETWORK_NAME]: {
+                    [HARDHAT_NETWORK_NAME]: {
                       accounts: {
                         mnemonic: "asd",
                         accountsBalance: {},
@@ -609,7 +609,7 @@ describe("Config validation", function () {
       describe("HTTP network config", function () {
         describe("Url field", function () {
           it("Should fail if no url is set for custom networks", function () {
-            expectBuidlerError(
+            expectHardhatError(
               () => validateConfig({ networks: { custom: {} } }),
               ERRORS.GENERAL.INVALID_CONFIG
             );
@@ -620,9 +620,9 @@ describe("Config validation", function () {
             assert.isEmpty(errors);
           });
 
-          it("Shouldn't fail if no url is set for buidler network", function () {
+          it("Shouldn't fail if no url is set for hardhat network", function () {
             const errors = getValidationErrors({
-              networks: { [BUIDLEREVM_NETWORK_NAME]: {} },
+              networks: { [HARDHAT_NETWORK_NAME]: {} },
             });
             assert.isEmpty(errors);
           });
@@ -656,7 +656,7 @@ describe("Config validation", function () {
           });
 
           it("Should reject other types", function () {
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -669,7 +669,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -684,7 +684,7 @@ describe("Config validation", function () {
           });
 
           it("Should reject non-string values", function () {
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -700,7 +700,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -720,7 +720,7 @@ describe("Config validation", function () {
 
         describe("Accounts field", function () {
           it("Shouldn't work with invalid types", function () {
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -733,7 +733,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -746,7 +746,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -762,7 +762,7 @@ describe("Config validation", function () {
 
           describe("HDAccounstConfig", function () {
             it("Should fail with invalid types", function () {
-              expectBuidlerError(
+              expectHardhatError(
                 () =>
                   validateConfig({
                     networks: {
@@ -777,7 +777,7 @@ describe("Config validation", function () {
                 ERRORS.GENERAL.INVALID_CONFIG
               );
 
-              expectBuidlerError(
+              expectHardhatError(
                 () =>
                   validateConfig({
                     networks: {
@@ -792,7 +792,7 @@ describe("Config validation", function () {
                 ERRORS.GENERAL.INVALID_CONFIG
               );
 
-              expectBuidlerError(
+              expectHardhatError(
                 () =>
                   validateConfig({
                     networks: {
@@ -807,7 +807,7 @@ describe("Config validation", function () {
                 ERRORS.GENERAL.INVALID_CONFIG
               );
 
-              expectBuidlerError(
+              expectHardhatError(
                 () =>
                   validateConfig({
                     networks: {
@@ -826,7 +826,7 @@ describe("Config validation", function () {
 
           describe("OtherAccountsConfig", function () {
             it("Should fail with invalid types", function () {
-              expectBuidlerError(
+              expectHardhatError(
                 () =>
                   validateConfig({
                     networks: {
@@ -845,7 +845,7 @@ describe("Config validation", function () {
 
           describe("List of private keys", function () {
             it("Shouldn't work with invalid types", function () {
-              expectBuidlerError(
+              expectHardhatError(
                 () =>
                   validateConfig({
                     networks: {
@@ -875,7 +875,7 @@ describe("Config validation", function () {
             });
 
             it("Shouldn't work with other strings", function () {
-              expectBuidlerError(
+              expectHardhatError(
                 () =>
                   validateConfig({
                     networks: {
@@ -893,7 +893,7 @@ describe("Config validation", function () {
 
         describe("Other fields", function () {
           it("Shouldn't accept invalid types", function () {
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -906,7 +906,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -919,7 +919,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -932,7 +932,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -945,7 +945,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -958,7 +958,7 @@ describe("Config validation", function () {
               ERRORS.GENERAL.INVALID_CONFIG
             );
 
-            expectBuidlerError(
+            expectHardhatError(
               () =>
                 validateConfig({
                   networks: {
@@ -999,7 +999,7 @@ describe("Config validation", function () {
             gasMultiplier: 123,
             url: "",
           },
-          [BUIDLEREVM_NETWORK_NAME]: {
+          [HARDHAT_NETWORK_NAME]: {
             gas: 678,
             gasPrice: 123,
             blockGasLimit: 8000,
@@ -1066,7 +1066,7 @@ describe("Config validation", function () {
           localhost: {
             asd: 1232,
           },
-          [BUIDLEREVM_NETWORK_NAME]: {
+          [HARDHAT_NETWORK_NAME]: {
             asdasd: "123",
           },
         },

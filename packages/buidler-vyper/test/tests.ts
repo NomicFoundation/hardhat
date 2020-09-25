@@ -1,9 +1,6 @@
-import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import {
-  Artifacts,
-  NomicLabsBuidlerPluginError,
-} from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 import { useEnvironment } from "./helpers";
@@ -26,7 +23,7 @@ describe("Vyper plugin", async function () {
       try {
         await this.env.run(TASK_COMPILE);
       } catch (error) {
-        assert.instanceOf(error, NomicLabsBuidlerPluginError);
+        assert.instanceOf(error, NomicLabsHardhatPluginError);
         assert.include("compilation failed", error.message.toLowerCase());
 
         const artifacts = new Artifacts(this.env.config.paths.artifacts);

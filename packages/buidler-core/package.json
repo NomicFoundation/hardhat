@@ -1,17 +1,17 @@
 {
-  "name": "@nomiclabs/buidler",
+  "name": "hardhat",
   "version": "1.4.7",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://buidler.dev",
-  "repository": "github:nomiclabs/buidler",
-  "main": "internal/lib/buidler-lib.js",
-  "types": "internal/lib/buidler-lib.d.ts",
-  "description": "Buidler is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
+  "homepage": "https://usehardhat.com",
+  "repository": "github:nomiclabs/hardhat",
+  "main": "internal/lib/hardhat-lib.js",
+  "types": "internal/lib/hardhat-lib.d.ts",
+  "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "buidler",
+    "hardhat",
     "blockchain",
     "dapps",
     "javascript",
@@ -20,15 +20,14 @@
     "solidity"
   ],
   "bin": {
-    "buidler": "internal/cli/cli.js",
-    "builder": "internal/cli/cli-with-a-typo.js"
+    "hardhat": "internal/cli/cli.js"
   },
   "engines": {
     "node": ">=8.2.0"
   },
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && npm run lint-src -- --fix && npm run lint-tests -- --fix",
-    "lint": "npm run lint-src && npm run lint-tests",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src -- --fix && yarn lint-tests -- --fix",
+    "lint": "yarn lint-src && yarn lint-tests",
     "lint-tests": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",

@@ -1,1 +1,1 @@
-export const pluginName = "@nomiclabs/buidler-etherscan";
+export const pluginName = "@nomiclabs/hardhat-etherscan";

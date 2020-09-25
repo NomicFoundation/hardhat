@@ -1,7 +1,7 @@
-import "@nomiclabs/buidler/types";
+import "hardhat/types";
 
-declare module "@nomiclabs/buidler/types" {
-  interface BuidlerRuntimeEnvironment {
+declare module "hardhat/types" {
+  interface HardhatRuntimeEnvironment {
     Web3: any;
     web3: any;
   }

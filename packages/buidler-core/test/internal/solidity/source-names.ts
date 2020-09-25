@@ -13,57 +13,57 @@ import {
   validateSourceNameFormat,
 } from "../../../src/internal/solidity/source-names";
 import {
-  expectBuidlerError,
-  expectBuidlerErrorAsync,
+  expectHardhatError,
+  expectHardhatErrorAsync,
 } from "../../helpers/errors";
 
 describe("Source names utilities", function () {
   describe("validateSourceNameFormat", function () {
     it("Should fail with absolute paths", async function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat(normalizeSourceName(__dirname)),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH
       );
     });
 
     it("Should fail with slash-based absolute paths, even on windows", async function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat("/asd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH
       );
     });
 
     it("Should fail if it is a relative path", async function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat("./asd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_RELATIVE_PATH
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat("../asd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_RELATIVE_PATH
       );
     });
 
     it("Should fail if it uses backslash", async function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat("asd\\sd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_BACKSLASHES
       );
     });
 
     it("Should fail if is not normalized", async function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat("asd/./asd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NOT_NORMALIZED
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat("asd/../asd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NOT_NORMALIZED
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => validateSourceNameFormat("asd//asd"),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NOT_NORMALIZED
       );
@@ -104,14 +104,14 @@ describe("Source names utilities", function () {
 
   describe("validateSourceNameExistenceAndCasing", function () {
     it("Should throw if the file doesn't exist", async function () {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => validateSourceNameExistenceAndCasing(__dirname, `asd`),
         ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
       );
     });
 
     it("Should throw if the casing is incorrect", async function () {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () =>
           validateSourceNameExistenceAndCasing(__dirname, `source-Names.ts`),
         ERRORS.SOURCE_NAMES.WRONG_CASING
@@ -121,7 +121,7 @@ describe("Source names utilities", function () {
 
   describe("localPathToSourceName", function () {
     it("Shouldn't accept files outside the project", async function () {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () =>
           localPathToSourceName(
             __dirname,
@@ -132,14 +132,14 @@ describe("Source names utilities", function () {
     });
 
     it("Shouldn't accept files from node_modules", async function () {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => localPathToSourceName(__dirname, `${__dirname}/node_modules/asd`),
         ERRORS.SOURCE_NAMES.NODE_MODULES_AS_LOCAL
       );
     });
 
     it("Should throw if the file doesn't exist", async function () {
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => localPathToSourceName(__dirname, `${__dirname}/asd`),
         ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
       );

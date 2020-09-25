@@ -1,8 +1,8 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import debug from "debug";
+import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { URL } from "url";
 
-const log = debug("buidler:plugin:ganache-service");
+const log = debug("hardhat:plugin:ganache-service");
 
 declare interface GanacheOptions {
   url: string;
@@ -91,8 +91,8 @@ export class GanacheService {
       // Verify the expected error or throw it again
       if (e.name === "TypeError") {
         if (GanacheService.error === undefined) {
-          const error = new NomicLabsBuidlerPluginError(
-            "@nomiclabs/buidler-ganache",
+          const error = new NomicLabsHardhatPluginError(
+            "@nomiclabs/hardhat-ganache",
             `Ganache plugin config is invalid: ${e.message}`,
             e
           );
@@ -101,8 +101,8 @@ export class GanacheService {
           GanacheService.error = error;
         }
       } else {
-        throw new NomicLabsBuidlerPluginError(
-          "@nomiclabs/buidler-ganache",
+        throw new NomicLabsHardhatPluginError(
+          "@nomiclabs/hardhat-ganache",
           `Failed to initialize GanacheService: ${e.message}`,
           e
         );
@@ -140,8 +140,8 @@ export class GanacheService {
         this._server.listen(port, hostname);
       });
     } catch (e) {
-      const error = new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-ganache",
+      const error = new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-ganache",
         `Failed to start GanacheService: ${e.message}`,
         e
       );
@@ -174,8 +174,8 @@ export class GanacheService {
         });
       });
     } catch (e) {
-      const error = new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-ganache",
+      const error = new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-ganache",
         `Failed to stop GanacheService: ${e.message}`,
         e
       );
@@ -195,8 +195,8 @@ export class GanacheService {
     // Validate and parse hostname and port from URL (this validation is priority)
     const url = new URL(options.url);
     if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-ganache",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-ganache",
         "Ganache network only works with localhost"
       );
     }
@@ -205,8 +205,8 @@ export class GanacheService {
     try {
       GanacheService.optionValidator.check(options);
     } catch (e) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-ganache",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-ganache",
         `Ganache network config is invalid: ${e.message}`,
         e
       );
@@ -214,8 +214,8 @@ export class GanacheService {
 
     // Test for unsupported commands
     if (options.accounts !== undefined) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-ganache",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-ganache",
         "Config: ganache.accounts unsupported for this network"
       );
     }
@@ -267,8 +267,8 @@ export class GanacheService {
         this._server.close();
       }
 
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-ganache",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-ganache",
         `An error occurred in GanacheService: ${GanacheService.error.message}`,
         GanacheService.error
       );

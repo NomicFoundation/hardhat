@@ -10,7 +10,7 @@ import { InferralType } from "../../../src/solc/version";
 
 describe("Compiler bytecode and deployed bytecode matching", () => {
   describe("with a simple standalone contract", () => {
-    // v0.4.12 is the minimum solc version that can be run with buidler out of the box.
+    // v0.4.12 is the minimum solc version that can be run with hardhat out of the box.
     it("matches bytecode emitted by solc v0.4.12", async () => {
       const contract = {
         contractName: "TestContract",
@@ -141,7 +141,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
   });
 
   describe("with a contract that has one library link", () => {
-    // v0.4.12 is the minimum solc version that can be run with buidler out of the box.
+    // v0.4.12 is the minimum solc version that can be run with hardhat out of the box.
     it("matches bytecode emitted by solc v0.4.12", async () => {
       const contract: any = {
         contractName: "TestContractLib",

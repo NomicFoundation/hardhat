@@ -6,10 +6,10 @@ import * as path from "path";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import * as types from "../../../../src/internal/core/params/argumentTypes";
 import { ArgumentType } from "../../../../src/types";
-import { expectBuidlerError } from "../../../helpers/errors";
+import { expectHardhatError } from "../../../helpers/errors";
 
 function a(f: () => any) {
-  expectBuidlerError(f, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);
+  expectHardhatError(f, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);
 }
 
 describe("argumentTypes", () => {
@@ -39,27 +39,27 @@ describe("argumentTypes", () => {
     });
 
     it("should throw the right error on invalid values", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => types.boolean.parse("arg", "asd1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.boolean.parse("arg", "f"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.boolean.parse("arg", "t"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.boolean.parse("arg", "1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.boolean.parse("arg", "0"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.boolean.parse("arg", ""),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
@@ -91,39 +91,39 @@ describe("argumentTypes", () => {
     });
 
     it("should fail with incorrect values", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", ""),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", "1."),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", ".1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", "0.1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", "asdas"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", "a1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", "1a"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", "1 1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.int.parse("arg", "x123"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
@@ -165,47 +165,47 @@ describe("argumentTypes", () => {
     });
 
     it("should fail with incorrect values", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", ""),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "."),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", ".."),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "1..1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "1.asd"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "asd.123"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "asdas"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "a1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "1a"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "1 1"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
-      expectBuidlerError(
+      expectHardhatError(
         () => types.float.parse("arg", "x123"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
@@ -231,7 +231,7 @@ describe("argumentTypes", () => {
     });
 
     it("Should throw if the file doesnt exist", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => types.inputFile.parse("A file", "NON_EXISTENT_FILE"),
         ERRORS.ARGUMENTS.INVALID_INPUT_FILE
       );
@@ -244,7 +244,7 @@ describe("argumentTypes", () => {
       await fsExtra.createFile("A");
       await fsExtra.chmod("A", 0);
 
-      expectBuidlerError(
+      expectHardhatError(
         () => types.inputFile.parse("A file", "A"),
         ERRORS.ARGUMENTS.INVALID_INPUT_FILE
       );
@@ -253,7 +253,7 @@ describe("argumentTypes", () => {
     });
 
     it("Should throw if a directory is given", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => types.inputFile.parse("A file", __dirname),
         ERRORS.ARGUMENTS.INVALID_INPUT_FILE
       );
@@ -262,17 +262,17 @@ describe("argumentTypes", () => {
 
   describe("JSON type", () => {
     it("Should fail if the argument isn't JSON", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => types.json.parse("j", "a"),
         ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => types.json.parse("j", "{a:1"),
         ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT
       );
 
-      expectBuidlerError(
+      expectHardhatError(
         () => types.json.parse("j", "[1],"),
         ERRORS.ARGUMENTS.INVALID_JSON_ARGUMENT
       );

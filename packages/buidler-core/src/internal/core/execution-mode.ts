@@ -2,10 +2,10 @@ import debug from "debug";
 import findUp from "find-up";
 import path from "path";
 
-const log = debug("buidler:core:execution-mode");
+const log = debug("hardhat:core:execution-mode");
 
 /**
- * This module defines different Buidler execution modes and autodetects them.
+ * This module defines different Hardhat execution modes and autodetects them.
  *
  * IMPORTANT: This will have to be revisited once Yarn PnP and npm's tink get
  * widely adopted.
@@ -24,7 +24,7 @@ export function getExecutionMode(): ExecutionMode {
 
   if (!isInstalled) {
     // When running the tests with ts-node we set the CWD to the root of
-    // buidler-core. We could check if the __filename ends with .ts
+    // hardhat. We could check if the __filename ends with .ts
     if (__dirname.startsWith(workingDirectoryOnLoad)) {
       return ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS;
     }
@@ -51,7 +51,7 @@ export function getExecutionMode(): ExecutionMode {
 }
 
 /**
- * Checks whether we're using Buidler in development mode (that is, we're working _on_ Buidler).
+ * Checks whether we're using Hardhat in development mode (that is, we're working _on_ Hardhat).
  */
 export function isLocalDev(): boolean {
   const executionMode = getExecutionMode();
@@ -66,7 +66,7 @@ export function isLocalDev(): boolean {
  * This is a somewhat more limited detection, but we use it if
  * is-installed-globally fails.
  *
- * If a user installs buidler locally, and executes it from outside the
+ * If a user installs hardhat locally, and executes it from outside the
  * directory that contains the `node_module` with the installation, this will
  * fail and return `false`.
  */

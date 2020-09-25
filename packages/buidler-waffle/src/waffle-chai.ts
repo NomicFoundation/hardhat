@@ -49,7 +49,7 @@ function supportCalledOnContract(Assertion: Chai.AssertionStatic) {
   const Chai = require("chai");
   Assertion.addMethod("calledOnContract", function (contract: any) {
     throw new Chai.AssertionError(
-      "Waffle's calledOnContract is not supported by Buidler"
+      "Waffle's calledOnContract is not supported by Hardhat"
     );
   });
 }
@@ -58,7 +58,7 @@ function supportCalledOnContractWith(Assertion: Chai.AssertionStatic) {
   const Chai = require("chai");
   Assertion.addMethod("calledOnContractWith", function (contract: any) {
     throw new Chai.AssertionError(
-      "Waffle's calledOnContractWith is not supported by Buidler"
+      "Waffle's calledOnContractWith is not supported by Hardhat"
     );
   });
 }

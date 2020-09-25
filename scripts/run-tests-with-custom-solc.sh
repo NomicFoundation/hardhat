@@ -2,8 +2,8 @@
 
 set -e
 
-if [ -z "${BUIDLER_TESTS_SOLC_PATH}" ] || [ -z "${BUIDLER_TESTS_SOLC_VERSION}" ]; then
-  echo "You have to set the BUIDLER_TESTS_SOLC_PATH and BUIDLER_TESTS_SOLC_VERSION environment variables"
+if [ -z "${HARDHAT_TESTS_SOLC_PATH}" ] || [ -z "${HARDHAT_TESTS_SOLC_VERSION}" ]; then
+  echo "You have to set the HARDHAT_TESTS_SOLC_PATH and HARDHAT_TESTS_SOLC_VERSION environment variables"
   exit 1
 fi
 
@@ -11,8 +11,8 @@ fi
 cd "$(git rev-parse --show-toplevel)"
 
 # install dependencies
-npm install
+yarn
 
-# run buidler-core tests
+# run hardhat tests
 cd packages/buidler-core
-npm test
+yarn test

@@ -1,9 +1,6 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
-import {
-  BuidlerRuntimeEnvironment,
-  ProjectPaths,
-} from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
+import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
+import { HardhatRuntimeEnvironment, ProjectPaths } from "hardhat/types";
 import path from "path";
 
 export const TRUFFLE_FIXTURE_NAME = "truffle-fixture";
@@ -32,7 +29,7 @@ export async function hasMigrations(paths: ProjectPaths) {
 
 export async function getTruffleFixtureFunction(
   paths: ProjectPaths
-): Promise<(env: BuidlerRuntimeEnvironment) => Promise<void>> {
+): Promise<(env: HardhatRuntimeEnvironment) => Promise<void>> {
   const fixturePath = require.resolve(
     path.join(paths.tests, TRUFFLE_FIXTURE_NAME)
   );
@@ -43,8 +40,8 @@ export async function getTruffleFixtureFunction(
   }
 
   if (!(fixture instanceof Function)) {
-    throw new NomicLabsBuidlerPluginError(
-      "@nomiclabs/buidler-truffle5",
+    throw new NomicLabsHardhatPluginError(
+      "@nomiclabs/hardhat-truffle5",
       `Truffle fixture file ${fixturePath} must return a function`
     );
   }

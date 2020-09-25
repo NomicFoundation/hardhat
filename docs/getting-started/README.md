@@ -1,31 +1,32 @@
 ## Overview
 
-Buidler is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
+Hardhat is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-Buidler is designed around the concepts of **tasks** and **plugins**. Every time you're running Buidler from the CLI you're running a task. E.g. `npx buidler compile` is running the `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable. 
+Hardhat is designed around the concepts of **tasks** and **plugins**. Every time you're running Hardhat from the CLI you're running a task. E.g. `npx hardhat compile` is running the `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable. 
 
-The bulk of Buidler's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Buidler is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
+The bulk of Hardhat's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. Hardhat is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
-Buidler comes built-in with Buidler EVM, a local Ethereum network designed for development.
+Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development.
 
 ## Installation
 
-The recommended way of using Buidler is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx buidler`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
+The recommended way of using Hardhat is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx hardhat`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
 
 ```
-npm install --save-dev @nomiclabs/buidler
+npm install --save-dev @nomiclabs/hardhat
 ```
 
 ## Quick Start
 
-This guide will explore the basics of creating a Buidler project.
+This guide will explore the basics of creating a Hardhat project.
 
-A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run a local development network you can deploy your contracts to (Buidler EVM).
+A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run a local development network you can deploy your contracts to (Hardhat Network).
 
-To create your Buidler project run `npx buidler` in your project folder:
+To create your Hardhat project run `npx hardhat` in your project folder:
 
+<!--TODO-HH: update this and all the stdouts in this file-->
 ```
-$ npx buidler
+$ npx hardhat
 888               d8b      888 888
 888               Y8P      888 888
 888                        888 888
@@ -35,42 +36,42 @@ $ npx buidler
 888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888
 88888P"   "Y88888 888  "Y88888 888  "Y8888  888
 
-👷 Welcome to Buidler v1.3.3 👷‍‍
+👷 Welcome to Hardhat v1.3.3 👷‍‍
 
 ? What do you want to do? …
 ❯ Create a sample project
-  Create an empty buidler.config.js
+  Create an empty hardhat.config.js
   Quit
 ```
 
 Let’s create the sample project and go through the steps to try out the sample task and compile, test and deploy the sample contract. 
 
-The sample project will ask you to install `buidler-waffle` and `buidler-ethers`, which makes Buidler compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
+The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
 
 ::: tip
-Buidler will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/buidler-waffle ethereum-waffle chai @nomiclabs/buidler-ethers ethers`
+Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
 :::
 
 ### Running tasks
 
-To first get a quick sense of what's available and what's going on, run `npx buidler` in your project folder:
+To first get a quick sense of what's available and what's going on, run `npx hardhat` in your project folder:
 
 ```
-$ npx buidler
-Buidler version 1.3.3
+$ npx hardhat
+Hardhat version 1.3.3
 
-Usage: buidler [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
+Usage: hardhat [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config            A Buidler config file. 
+  --config            A Hardhat config file. 
   --emoji             Use emoji in messages. 
   --help              Shows this message, or a task's help if its name is provided 
-  --max-memory        The maximum amount of memory that Buidler can use. 
+  --max-memory        The maximum amount of memory that Hardhat can use. 
   --network           The network to connect to. 
   --show-stack-traces Show stack traces. 
-  --verbose           Enables Buidler verbose logging 
-  --version           Shows buidler's version. 
+  --verbose           Enables Hardhat verbose logging 
+  --version           Shows hardhat's version. 
 
 
 AVAILABLE TASKS:
@@ -78,26 +79,26 @@ AVAILABLE TASKS:
   accounts  Prints the list of accounts
   clean     Clears the cache and deletes all artifacts
   compile   Compiles the entire project, building all artifacts
-  console   Opens a buidler console
+  console   Opens a hardhat console
   flatten   Flattens and prints all contracts and their dependencies
   help      Prints this message
-  node      Starts a JSON-RPC server on top of Buidler EVM
+  node      Starts a JSON-RPC server on top of Hardhat Network
   run       Runs a user-defined script after compiling the project
   test      Runs mocha tests
 
-To get help for a specific task run: npx buidler help [task]
+To get help for a specific task run: npx hardhat help [task]
 ```
 
 This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 
 
-If you take a look at `buidler.config.js`, you will find the definition of the task `accounts`:
+If you take a look at `hardhat.config.js`, you will find the definition of the task `accounts`:
 
-<<< @/../packages/buidler-core/sample-project/buidler.config.js{5-11}
+<<< @/../packages/hardhat/sample-project/hardhat.config.js{5-11}
 
-To run it, try `npx buidler accounts`:
+To run it, try `npx hardhat accounts`:
 
 ```
-$ npx buidler accounts
+$ npx hardhat accounts
 0xc783df8a850f42e7F7e57013759C285caa701eB6
 0xeAD9C93b79Ae7C1591b1FB5323BD777E86e150d4
 0xE5904695748fe4A84b40b3fc79De2277660BD1D3
@@ -124,24 +125,24 @@ $ npx buidler accounts
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
 
-<<< @/../packages/buidler-core/sample-project/contracts/Greeter.sol
+<<< @/../packages/hardhat/sample-project/contracts/Greeter.sol
 
 To compile it, simply run:
 
 ```
-npx buidler compile
+npx hardhat compile
 ```
 
 ### Testing your contracts
 
 The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want, check the integrations described in our guides.
 
-<<< @/../packages/buidler-core/sample-project/test/sample-test.js
+<<< @/../packages/hardhat/sample-project/test/sample-test.js
 
-You can run your tests with `npx buidler test`
+You can run your tests with `npx hardhat test`
 
 ```
-$ npx buidler test
+$ npx hardhat test
 Compiling...
 Compiled 2 contracts successfully
 
@@ -154,44 +155,45 @@ Compiled 2 contracts successfully
 
 ### Deploying your contracts
 
-Next, to deploy the contract we will use a Buidler script.
+Next, to deploy the contract we will use a Hardhat script.
 Inside `scripts/` you will find `sample-script.js` with the following code:
 
-<<< @/../packages/buidler-core/sample-project/scripts/sample-script.js
+<<< @/../packages/hardhat/sample-project/scripts/sample-script.js
 
-Run it with `npx buidler run scripts/sample-script.js`:
+Run it with `npx hardhat run scripts/sample-script.js`:
 
 ```
-$ npx buidler run scripts/sample-script.js
+$ npx hardhat run scripts/sample-script.js
 All contracts have already been compiled, skipping compilation.
-Deploying a Greeter with greeting: Hello, Buidler!
+Deploying a Greeter with greeting: Hello, Hardhat!
 Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 
-### Connecting a wallet or Dapp to Buidler EVM
-Buidler will always spin up an in-memory instance of Buidler EVM on startup by default, but it's also possible to run Buidler EVM in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
+### Connecting a wallet or Dapp to Hardhat Network
+Hardhat will always spin up an in-memory instance of Hardhat Network on startup by default, but it's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
 
-To run Buidler EVM in this way, run `npx buidler node`:
+To run Hardhat Network in this way, run `npx hardhat node`:
 
 ```
-$ npx buidler node
+$ npx hardhat node
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 ```
 
-This will expose a JSON-RPC interface to Buidler EVM. To use it connect your wallet or application to `http://localhost:8545`.
+This will expose a JSON-RPC interface to Hardhat Network. To use it connect your wallet or application to `http://localhost:8545`.
 
-If you want to connect Buidler to this node to, for example, run a deployment script against it, you simply need to run it using `--network localhost`.
+If you want to connect Hardhat to this node to, for example, run a deployment script against it, you simply need to run it using `--network localhost`.
 
-To try this, start a node with `npx buidler node` and re-run the sample script using the `network` option:
+To try this, start a node with `npx hardhat node` and re-run the sample script using the `network` option:
 
 ```
-npx buidler run scripts/sample-script.js --network localhost
+npx hardhat run scripts/sample-script.js --network localhost
 ```
 
 
 ---
 
 
-Congrats! You have created a project, ran a Buidler task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
+Congrats! You have created a project, ran a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
-For any questions or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+For any questions or feedback you may have, you can find us in the [Hardhat Discord
+server](https://invite.gg/HardhatSupport).

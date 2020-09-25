@@ -7,7 +7,7 @@ import {
   getArtifactFromContractOutput,
 } from "../internal/artifacts";
 import { internalTask, task, types } from "../internal/core/config/config-env";
-import { assertBuidlerInvariant, BuidlerError } from "../internal/core/errors";
+import { assertHardhatInvariant, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
   createCompilationJobFromFile,
@@ -85,7 +85,7 @@ function isConsoleLogError(error: any): boolean {
   );
 }
 
-const log = debug("buidler:core:tasks:compile");
+const log = debug("hardhat:core:tasks:compile");
 
 export default function () {
   /**
@@ -283,7 +283,7 @@ export default function () {
         force: boolean;
         solidityFilesCache?: SolidityFilesCache;
       }): Promise<CompilationJob[]> => {
-        assertBuidlerInvariant(
+        assertHardhatInvariant(
           solidityFilesCache !== undefined,
           "The implementation of this task needs a defined solidityFilesCache"
         );
@@ -506,7 +506,7 @@ export default function () {
       if (hasConsoleErrors) {
         console.error(
           chalk.red(
-            `The console.log call you made isn’t supported. See https://buidler.dev/console-log for the list of supported methods.`
+            `The console.log call you made isn’t supported. See https://usehardhat.com/console-log for the list of supported methods.`
           )
         );
         console.log();
@@ -538,7 +538,7 @@ export default function () {
           log(
             `Compilation failure. hasErrors='${hasErrors}' output.contracts='${!!output.contracts}'`
           );
-          throw new BuidlerError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+          throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
         }
       }
     );
@@ -775,8 +775,8 @@ export default function () {
             { compilationJobsCreationErrors }
           );
 
-          // TODO-HH throw a BuidlerError and show a better error message
-          // tslint:disable only-buidler-error
+          // TODO-HH throw a HardhatError and show a better error message
+          // tslint:disable only-hardhat-error
           throw new Error(errorMessage);
         }
       }

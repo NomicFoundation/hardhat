@@ -1,18 +1,18 @@
-import { resetBuidlerContext } from "../../src/internal/reset";
-import { BuidlerRuntimeEnvironment } from "../../src/types";
+import { resetHardhatContext } from "../../src/internal/reset";
+import { HardhatRuntimeEnvironment } from "../../src/types";
 
 declare module "mocha" {
   interface Context {
-    env: BuidlerRuntimeEnvironment;
+    env: HardhatRuntimeEnvironment;
   }
 }
 
 export function useEnvironment() {
   beforeEach("Load environment", function () {
-    this.env = require("../../src/internal/lib/buidler-lib");
+    this.env = require("../../src/internal/lib/hardhat-lib");
   });
 
-  afterEach("reset buidler context", function () {
-    resetBuidlerContext();
+  afterEach("reset hardhat context", function () {
+    resetHardhatContext();
   });
 }

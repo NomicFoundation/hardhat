@@ -1,10 +1,10 @@
 import {
-  BuidlerNetworkAccount,
-  BuidlerNetworkHDAccountsConfig,
+  HardhatNetworkAccount,
+  HardhatNetworkHDAccountsConfig,
 } from "../../../types";
 import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
-import { DEFAULT_BUIDLER_NETWORK_BALANCE } from "../config/default-config";
-import { BuidlerError } from "../errors";
+import { DEFAULT_HARDHAT_NETWORK_BALANCE } from "../config/default-config";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
@@ -16,7 +16,7 @@ export function derivePrivateKeys(
   count: number = 10
 ): Buffer[] {
   if (hdpath.match(HD_PATH_REGEX) === null) {
-    throw new BuidlerError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
+    throw new HardhatError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
   }
 
   if (!hdpath.endsWith("/")) {
@@ -32,7 +32,7 @@ export function derivePrivateKeys(
     );
 
     if (privateKey === undefined) {
-      throw new BuidlerError(ERRORS.NETWORK.CANT_DERIVE_KEY, {
+      throw new HardhatError(ERRORS.NETWORK.CANT_DERIVE_KEY, {
         mnemonic,
         path: hdpath,
       });
@@ -44,9 +44,9 @@ export function derivePrivateKeys(
   return privateKeys;
 }
 
-export function normalizeBuidlerEVMAccountsConfig(
-  accountsConfig: BuidlerNetworkAccount[] | BuidlerNetworkHDAccountsConfig
-): BuidlerNetworkAccount[] {
+export function normalizeHardhatNetworkAccountsConfig(
+  accountsConfig: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig
+): HardhatNetworkAccount[] {
   if (Array.isArray(accountsConfig)) {
     return accountsConfig;
   }
@@ -60,6 +60,6 @@ export function normalizeBuidlerEVMAccountsConfig(
     accountsConfig.count
   ).map((pk) => ({
     privateKey: bufferToHex(pk),
-    balance: accountsConfig.accountsBalance ?? DEFAULT_BUIDLER_NETWORK_BALANCE,
+    balance: accountsConfig.accountsBalance ?? DEFAULT_HARDHAT_NETWORK_BALANCE,
   }));
 }

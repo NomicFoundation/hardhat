@@ -1,7 +1,7 @@
-import "@nomiclabs/buidler/types";
 import * as ethers from "ethers";
+import "hardhat/types";
 
-declare module "@nomiclabs/buidler/types" {
+declare module "hardhat/types" {
   function getContractFactory(
     name: string,
     signer?: ethers.Signer
@@ -12,7 +12,7 @@ declare module "@nomiclabs/buidler/types" {
     signer?: ethers.Signer
   ): Promise<ethers.ContractFactory>;
 
-  interface BuidlerRuntimeEnvironment {
+  interface HardhatRuntimeEnvironment {
     ethers: {
       provider: ethers.providers.JsonRpcProvider;
 

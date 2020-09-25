@@ -1,12 +1,12 @@
 import {
-  BuidlerError,
-  BuidlerPluginError,
-  NomicLabsBuidlerPluginError,
+  HardhatError,
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
 } from "../core/errors";
 import { isLocalDev } from "../core/execution-mode";
 import { ProviderError } from "../core/providers/errors";
 import { isRunningOnCiServer } from "../util/ci-detection";
-import { getBuidlerVersion } from "../util/packageInfo";
+import { getHardhatVersion } from "../util/packageInfo";
 
 import { getSubprocessTransport } from "./transport";
 
@@ -35,8 +35,8 @@ export class Reporter {
     Sentry.setExtra("configPath", instance.configPath);
     Sentry.setExtra("nodeVersion", process.version);
 
-    const buidlerVersion = getBuidlerVersion();
-    Sentry.setExtra("buidlerVersion", buidlerVersion);
+    const hardhatVersion = getHardhatVersion();
+    Sentry.setExtra("hardhatVersion", hardhatVersion);
 
     Sentry.captureException(error);
 
@@ -62,8 +62,8 @@ export class Reporter {
   }
 
   /**
-   * The path to the buidler config file. We use this when files are anonymized,
-   * since the buidler config is the only file in the user's project that is not
+   * The path to the hardhat config file. We use this when files are anonymized,
+   * since the hardhat config is the only file in the user's project that is not
    * anonymized.
    */
   public static setConfigPath(configPath: string) {
@@ -90,14 +90,14 @@ export class Reporter {
 
   public static shouldReport(error: Error): boolean {
     if (
-      BuidlerError.isBuidlerError(error) &&
+      HardhatError.isHardhatError(error) &&
       !error.errorDescriptor.shouldBeReported
     ) {
       return false;
     }
 
-    if (BuidlerPluginError.isBuidlerPluginError(error)) {
-      if (NomicLabsBuidlerPluginError.isNomicLabsBuidlerPluginError(error)) {
+    if (HardhatPluginError.isHardhatPluginError(error)) {
+      if (NomicLabsHardhatPluginError.isNomicLabsHardhatPluginError(error)) {
         return error.shouldBeReported;
       }
 
@@ -134,8 +134,8 @@ export class Reporter {
       this.enabled = false;
     }
 
-    // set BUIDLER_ENABLE_SENTRY=true to enable sentry during development (for local testing)
-    if (isLocalDev() && process.env.BUIDLER_ENABLE_SENTRY === undefined) {
+    // set HARDHAT_ENABLE_SENTRY=true to enable sentry during development (for local testing)
+    if (isLocalDev() && process.env.HARDHAT_ENABLE_SENTRY === undefined) {
       this.enabled = false;
     }
   }

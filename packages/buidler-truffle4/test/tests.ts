@@ -1,6 +1,6 @@
-import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
 import { assert } from "chai";
 import * as fs from "fs";
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 import path from "path";
 
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
@@ -138,8 +138,8 @@ function testArtifactsFunctionality() {
   });
 }
 
-describe("BuidlerRuntimeEnvironment extension", function () {
-  useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
+describe("HardhatRuntimeEnvironment extension", function () {
+  useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
 
   it("It should add the artifacts object", function () {
     assert.instanceOf(this.env.artifacts, TruffleEnvironmentArtifacts);
@@ -148,17 +148,17 @@ describe("BuidlerRuntimeEnvironment extension", function () {
 
 describe("TruffleContracts loading and provisioning", function () {
   describe("When compiling with solc 0.5.x", function () {
-    useEnvironment(path.join(__dirname, "buidler-project-solc-0.5"));
+    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.4.x", function () {
-    useEnvironment(path.join(__dirname, "buidler-project-solc-0.4"));
+    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.4"));
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.6.x", function () {
-    useEnvironment(path.join(__dirname, "buidler-project-solc-0.6"));
+    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.6"));
     testArtifactsFunctionality();
   });
 
@@ -180,7 +180,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
     describe("With solc 0.4.x", function () {
       useEnvironment(
-        path.join(__dirname, "buidler-project-solc-0.4"),
+        path.join(__dirname, "hardhat-project-solc-0.4"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -188,7 +188,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
     describe("With solc 0.5.x", function () {
       useEnvironment(
-        path.join(__dirname, "buidler-project-solc-0.5"),
+        path.join(__dirname, "hardhat-project-solc-0.5"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -196,7 +196,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
     describe("With solc 0.6.x", function () {
       useEnvironment(
-        path.join(__dirname, "buidler-project-solc-0.6"),
+        path.join(__dirname, "hardhat-project-solc-0.6"),
         "withoutAccounts"
       );
       shouldWorkWithoutAccounts();
@@ -206,7 +206,7 @@ describe("TruffleContracts loading and provisioning", function () {
 
 // TODO-HH re-enable after splitting the new compile stask in internal tasks
 describe.skip("Test contracts compilation", function () {
-  useEnvironment(path.join(__dirname, "buidler-project-with-test-contracts"));
+  useEnvironment(path.join(__dirname, "hardhat-project-with-test-contracts"));
 
   it("Should include sources from sources", async function () {
     const sources = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
@@ -216,7 +216,7 @@ describe.skip("Test contracts compilation", function () {
       fs.realpathSync(
         path.join(
           __dirname,
-          "buidler-project-with-test-contracts",
+          "hardhat-project-with-test-contracts",
           "contracts",
           "fromContracts.sol"
         )
@@ -232,7 +232,7 @@ describe.skip("Test contracts compilation", function () {
       fs.realpathSync(
         path.join(
           __dirname,
-          "buidler-project-with-test-contracts",
+          "hardhat-project-with-test-contracts",
           "test",
           "fromTest.sol"
         )
@@ -248,7 +248,7 @@ describe.skip("Test contracts compilation", function () {
       fs.realpathSync(
         path.join(
           __dirname,
-          "buidler-project-with-test-contracts",
+          "hardhat-project-with-test-contracts",
           "test",
           "shouldBeIgnored.txt"
         )

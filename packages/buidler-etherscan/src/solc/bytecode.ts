@@ -1,4 +1,4 @@
-import { RunTaskFunction } from "@nomiclabs/buidler/types";
+import { RunTaskFunction } from "hardhat/types";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./version";
@@ -224,7 +224,7 @@ export function zeroOutSlices(
   return code;
 }
 
-/* Taken from stack trace buidlerevm internals
+/* Taken from stack trace hardhat internals
  *  This is not an exhaustive interface for compiler input nor output.
  */
 
@@ -272,7 +272,7 @@ export async function compile(taskRun: RunTaskFunction) {
   const {
     TASK_COMPILE_SOLIDITY_COMPILE,
     TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
-  } = await import("@nomiclabs/buidler/builtin-tasks/task-names");
+  } = await import("hardhat/builtin-tasks/task-names");
 
   const compilerInput = (await taskRun(
     TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT

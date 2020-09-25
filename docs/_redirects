@@ -1,5 +1,5 @@
 # Manual redirects
 
 /links/stack-traces / 302
-/reportbug https://github.com/nomiclabs/buidler/issues/new 302
-/console-log /buidler-evm/#console-log 302
+/reportbug https://github.com/nomiclabs/hardhat/issues/new 302
+/console-log /hardhat-network/#console-log 302

@@ -1,16 +1,16 @@
 /**
- * This function resets the buidler context.
+ * This function resets the hardhat context.
  *
- * This doesn't unload any loaded Buidler plugin, so those have to be unloaded
+ * This doesn't unload any loaded Hardhat plugin, so those have to be unloaded
  * manually with `unloadModule`.
  */
-import { BuidlerContext } from "./context";
+import { HardhatContext } from "./context";
 import { getUserConfigPath } from "./core/project-structure";
 import { globSync } from "./util/glob";
 
-export function resetBuidlerContext() {
-  if (BuidlerContext.isCreated()) {
-    const ctx = BuidlerContext.getBuidlerContext();
+export function resetHardhatContext() {
+  if (HardhatContext.isCreated()) {
+    const ctx = HardhatContext.getHardhatContext();
     const globalAsAny = global as any;
     if (ctx.environment !== undefined) {
       for (const key of Object.keys(ctx.environment)) {
@@ -25,20 +25,20 @@ export function resetBuidlerContext() {
       try {
         configPath = getUserConfigPath();
       } catch (error) {
-        // We weren't in a buidler project
+        // We weren't in a hardhat project
       }
 
       if (configPath !== undefined) {
         unloadModule(configPath);
       }
     }
-    BuidlerContext.deleteBuidlerContext();
+    HardhatContext.deleteHardhatContext();
   }
 
-  // Unload all the buidler's entry-points.
+  // Unload all the hardhat's entry-points.
   unloadModule("../register");
   unloadModule("./cli/cli");
-  unloadModule("./lib/buidler-lib");
+  unloadModule("./lib/hardhat-lib");
 }
 
 function unloadModule(path: string) {

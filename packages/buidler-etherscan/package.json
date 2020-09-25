@@ -1,9 +1,9 @@
 {
-  "name": "@nomiclabs/buidler-etherscan",
+  "name": "@nomiclabs/hardhat-etherscan",
   "version": "2.1.0",
-  "description": "Buidler plugin for verifying contracts on etherscan",
-  "repository": "github:nomiclabs/buidler",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-etherscan",
+  "description": "Hardhat plugin for verifying contracts on etherscan",
+  "repository": "github:nomiclabs/hardhat",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
   "author": "Nomic Labs LLC",
   "contributors": [
     "Nomic Labs LLC",
@@ -15,13 +15,13 @@
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "buidler",
-    "buidler-plugin",
+    "hardhat",
+    "hardhat-plugin",
     "etherscan"
   ],
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && npm run lint-src -- --fix && npm run lint-tests -- --fix",
-    "lint": "npm run lint-src && npm run lint-tests",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src -- --fix && yarn lint-tests -- --fix",
+    "lint": "yarn lint-src && yarn lint-tests",
     "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
@@ -44,20 +44,19 @@
     "semver": "^6.3.0"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.4.3",
-    "@nomiclabs/buidler-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/cbor": "^5.0.1",
     "@types/chai": "^4.2.0",
-    "@types/ethereumjs-abi": "^0.6.3",
     "@types/nock": "^9.3.1",
     "@types/node-fetch": "^2.3.7",
     "@types/semver": "^6.0.2",
     "chai": "^4.2.0",
     "ethers": "^5.0.8",
+    "hardhat": "^1.4.3",
     "nock": "^10.0.6",
     "solc": "0.6.8"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.4.3"
+    "hardhat": "^1.4.3"
   }
 }

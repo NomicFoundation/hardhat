@@ -1,21 +1,21 @@
-import { resetBuidlerContext } from "@nomiclabs/buidler/plugins-testing";
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import { resetHardhatContext } from "hardhat/plugins-testing";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 declare module "mocha" {
   interface Context {
-    env: BuidlerRuntimeEnvironment;
+    env: HardhatRuntimeEnvironment;
   }
 }
 
 export function useEnvironment(projectPath: string) {
-  beforeEach("Loading buidler environment", function () {
+  beforeEach("Loading hardhat environment", function () {
     process.chdir(projectPath);
-    process.env.BUIDLER_NETWORK = "ganache";
+    process.env.HARDHAT_NETWORK = "ganache";
 
-    this.env = require("@nomiclabs/buidler");
+    this.env = require("hardhat");
   });
 
-  afterEach("Resetting buidler", function () {
-    resetBuidlerContext();
+  afterEach("Resetting hardhat", function () {
+    resetHardhatContext();
   });
 }

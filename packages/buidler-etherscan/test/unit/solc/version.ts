@@ -1,5 +1,5 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import { HardhatPluginError } from "hardhat/plugins";
 // tslint:disable: no-implicit-dependencies
 import nock from "nock";
 import semver from "semver";
@@ -31,7 +31,7 @@ describe("solc version retrieval tests", () => {
       .reply(404);
 
     return getLongVersion("0.5.1").catch((e) =>
-      assert.isTrue(e instanceof BuidlerPluginError)
+      assert.isTrue(e instanceof HardhatPluginError)
     );
   });
 
@@ -49,7 +49,7 @@ describe("solc version retrieval tests", () => {
         assert.fail();
       })
       .catch((e) => {
-        assert.isTrue(e instanceof BuidlerPluginError);
+        assert.isTrue(e instanceof HardhatPluginError);
       });
   });
 });
@@ -58,7 +58,7 @@ describe("solc version inferral tests", () => {
   describe("very old compiler inferral; these don't emit metadata", () => {
     /**
      * These tests require compiling a contract with solc v0.4.6 or earlier.
-     * This is not currently possible with buidler out of the box.
+     * This is not currently possible with hardhat out of the box.
      */
     it.skip("bytecode emitted by solc v0.4.6; the last version to feature no metadata", () => {});
 
@@ -94,7 +94,7 @@ describe("solc version inferral tests", () => {
   describe("old compiler inferral; these embed metadata without solc version", () => {
     it.skip("bytecode emitted by solc v0.4.7; the first version to feature metadata", () => {});
 
-    // The minimum solc version that can be run with buidler out of the box.
+    // The minimum solc version that can be run with hardhat out of the box.
     it("bytecode emitted by solc v0.4.12", async () => {
       const contract = {
         contractName: "TestContract",

@@ -9,7 +9,7 @@ export class CustomError extends Error {
   constructor(message: string, public readonly parent?: Error) {
     // WARNING: Using super when extending a builtin class doesn't work well
     // with TS if you are compiling to a version of JavaScript that doesn't have
-    // native classes. We don't do that in Buidler.
+    // native classes. We don't do that in Hardhat.
     //
     // For more info about this, take a look at: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
     super(message);
@@ -44,19 +44,19 @@ export class CustomError extends Error {
   }
 }
 
-export class BuidlerError extends CustomError {
-  public static isBuidlerError(other: any): other is BuidlerError {
+export class HardhatError extends CustomError {
+  public static isHardhatError(other: any): other is HardhatError {
     return (
-      other !== undefined && other !== null && other._isBuidlerError === true
+      other !== undefined && other !== null && other._isHardhatError === true
     );
   }
 
-  public static isBuidlerErrorType(
+  public static isHardhatErrorType(
     other: any,
     descriptor: ErrorDescriptor
-  ): other is BuidlerError {
+  ): other is HardhatError {
     return (
-      BuidlerError.isBuidlerError(other) &&
+      HardhatError.isHardhatError(other) &&
       other.errorDescriptor.number === descriptor.number
     );
   }
@@ -65,7 +65,7 @@ export class BuidlerError extends CustomError {
   public readonly number: number;
   public readonly messageArguments: Record<string, any>;
 
-  private readonly _isBuidlerError: boolean;
+  private readonly _isHardhatError: boolean;
 
   constructor(
     errorDescriptor: ErrorDescriptor,
@@ -85,29 +85,29 @@ export class BuidlerError extends CustomError {
     this.number = errorDescriptor.number;
     this.messageArguments = messageArguments;
 
-    this._isBuidlerError = true;
-    Object.setPrototypeOf(this, BuidlerError.prototype);
+    this._isHardhatError = true;
+    Object.setPrototypeOf(this, HardhatError.prototype);
   }
 }
 
 /**
- * This class is used to throw errors from buidler plugins made by third parties.
+ * This class is used to throw errors from hardhat plugins made by third parties.
  */
-export class BuidlerPluginError extends CustomError {
-  public static isBuidlerPluginError(other: any): other is BuidlerPluginError {
+export class HardhatPluginError extends CustomError {
+  public static isHardhatPluginError(other: any): other is HardhatPluginError {
     return (
       other !== undefined &&
       other !== null &&
-      other._isBuidlerPluginError === true
+      other._isHardhatPluginError === true
     );
   }
 
   public readonly pluginName: string;
 
-  private readonly _isBuidlerPluginError: boolean;
+  private readonly _isHardhatPluginError: boolean;
 
   /**
-   * Creates a BuidlerPluginError.
+   * Creates a HardhatPluginError.
    *
    * @param pluginName The name of the plugin.
    * @param message An error message that will be shown to the user.
@@ -139,27 +139,27 @@ export class BuidlerPluginError extends CustomError {
       this.pluginName = getClosestCallerPackage()!;
     }
 
-    this._isBuidlerPluginError = true;
-    Object.setPrototypeOf(this, BuidlerPluginError.prototype);
+    this._isHardhatPluginError = true;
+    Object.setPrototypeOf(this, HardhatPluginError.prototype);
   }
 }
 
-export class NomicLabsBuidlerPluginError extends BuidlerPluginError {
-  public static isNomicLabsBuidlerPluginError(
+export class NomicLabsHardhatPluginError extends HardhatPluginError {
+  public static isNomicLabsHardhatPluginError(
     other: any
-  ): other is NomicLabsBuidlerPluginError {
+  ): other is NomicLabsHardhatPluginError {
     return (
       other !== undefined &&
       other !== null &&
-      other._isNomicLabsBuidlerPluginError === true
+      other._isNomicLabsHardhatPluginError === true
     );
   }
 
-  private readonly _isNomicLabsBuidlerPluginError: boolean;
+  private readonly _isNomicLabsHardhatPluginError: boolean;
 
   /**
-   * This class is used to throw errors from *core* buidler plugins. If you are
-   * developing a third-party plugin, use BuidlerPluginError instead.
+   * This class is used to throw errors from *core* hardhat plugins. If you are
+   * developing a third-party plugin, use HardhatPluginError instead.
    */
   public constructor(
     pluginName: string,
@@ -169,8 +169,8 @@ export class NomicLabsBuidlerPluginError extends BuidlerPluginError {
   ) {
     super(pluginName, message, parent);
 
-    this._isNomicLabsBuidlerPluginError = true;
-    Object.setPrototypeOf(this, NomicLabsBuidlerPluginError.prototype);
+    this._isNomicLabsHardhatPluginError = true;
+    Object.setPrototypeOf(this, NomicLabsHardhatPluginError.prototype);
   }
 }
 
@@ -204,7 +204,7 @@ function _applyErrorMessageTemplate(
   if (!isRecursiveCall) {
     for (const variableName of Object.keys(values)) {
       if (variableName.match(/^[a-zA-Z][a-zA-Z0-9]*$/) === null) {
-        throw new BuidlerError(ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME, {
+        throw new HardhatError(ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME, {
           variable: variableName,
         });
       }
@@ -212,7 +212,7 @@ function _applyErrorMessageTemplate(
       const variableTag = `%${variableName}%`;
 
       if (!template.includes(variableTag)) {
-        throw new BuidlerError(ERRORS.INTERNAL.TEMPLATE_VARIABLE_TAG_MISSING, {
+        throw new HardhatError(ERRORS.INTERNAL.TEMPLATE_VARIABLE_TAG_MISSING, {
           variable: variableName,
         });
       }
@@ -244,7 +244,7 @@ function _applyErrorMessageTemplate(
     const variableTag = `%${variableName}%`;
 
     if (value.match(/%([a-zA-Z][a-zA-Z0-9]*)?%/) !== null) {
-      throw new BuidlerError(
+      throw new HardhatError(
         ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG,
         { variable: variableName }
       );
@@ -256,11 +256,11 @@ function _applyErrorMessageTemplate(
   return template;
 }
 
-export function assertBuidlerInvariant(
+export function assertHardhatInvariant(
   invariant: boolean,
   message: string
 ): asserts invariant {
   if (!invariant) {
-    throw new BuidlerError(ERRORS.GENERAL.ASSERTION_ERROR, { message });
+    throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, { message });
   }
 }

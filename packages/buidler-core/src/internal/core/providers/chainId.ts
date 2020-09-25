@@ -1,5 +1,5 @@
 import { EIP1193Provider, RequestArguments } from "../../../types";
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 import { rpcQuantityToNumber } from "./provider-utils";
@@ -53,7 +53,7 @@ export class ChainIdValidatorProvider extends ProviderWrapperWithChainId {
     if (!this._alreadyValidated) {
       const actualChainId = await this._getChainId();
       if (actualChainId !== this._expectedChainId) {
-        throw new BuidlerError(ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID, {
+        throw new HardhatError(ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID, {
           configChainId: this._expectedChainId,
           connectionChainId: actualChainId,
         });

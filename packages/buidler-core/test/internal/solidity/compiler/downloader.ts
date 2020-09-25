@@ -8,7 +8,7 @@ import {
   CompilerDownloader,
   CompilersList,
 } from "../../../../src/internal/solidity/compiler/downloader";
-import { expectBuidlerErrorAsync } from "../../../helpers/errors";
+import { expectHardhatErrorAsync } from "../../../helpers/errors";
 import { useTmpDir } from "../../../helpers/fs";
 
 // The CompilerDownloader's logic is complex and has/depends on lots of
@@ -64,7 +64,7 @@ describe("Compiler downloader", function () {
         throw new Error("Expected");
       });
 
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => downloader.verifyCompiler(localCompilerBuild, corruptCompilerBin),
         ERRORS.SOLC.INVALID_DOWNLOAD
       );
@@ -107,7 +107,7 @@ describe("Compiler downloader", function () {
         }
       );
 
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => downloader.downloadCompiler(localCompilerBuild, downloadPath),
         ERRORS.SOLC.DOWNLOAD_FAILED
       );
@@ -144,7 +144,7 @@ describe("Compiler downloader", function () {
         }
       );
 
-      await expectBuidlerErrorAsync(
+      await expectHardhatErrorAsync(
         () => downloader.downloadCompilersList(),
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED
       );
@@ -236,7 +236,7 @@ describe("Compiler downloader", function () {
           });
 
           it("Throws the right error if the build is not included in the new list", async function () {
-            await expectBuidlerErrorAsync(
+            await expectHardhatErrorAsync(
               () => mockDownloader.getCompilerBuild("non-existent"),
               ERRORS.SOLC.INVALID_VERSION
             );
@@ -300,7 +300,7 @@ describe("Compiler downloader", function () {
       it("Should throw and delete it if it doesn't", async function () {
         await fsExtra.createFile(downloadedPath);
 
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () =>
             mockDownloader.getDownloadedCompilerPath(
               localCompilerBuild.version
@@ -314,7 +314,7 @@ describe("Compiler downloader", function () {
 
     describe("If the compiler didn't exist", function () {
       it("should download and verify it", async function () {
-        await expectBuidlerErrorAsync(
+        await expectHardhatErrorAsync(
           () =>
             mockDownloader.getDownloadedCompilerPath(
               localCompilerBuild.version

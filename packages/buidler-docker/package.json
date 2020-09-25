@@ -1,20 +1,20 @@
 {
-  "name": "@nomiclabs/buidler-docker",
+  "name": "@nomiclabs/hardhat-docker",
   "version": "0.1.2",
-  "description": "A library to manage Docker from Buidler plugins",
-  "homepage": "https://github.com/nomiclabs/buidler/tree/master/packages/buidler-docker",
-  "repository": "github:nomiclabs/buidler",
+  "description": "A library to manage Docker from Hardhat plugins",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-docker",
+  "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
-    "buidler",
+    "hardhat",
     "docker"
   ],
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && npm run lint-src -- --fix && npm run lint-tests -- --fix",
-    "lint": "npm run lint-src && npm run lint-tests",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src -- --fix && yarn lint-tests -- --fix",
+    "lint": "yarn lint-src && yarn lint-tests",
     "lint-tests": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "watch": "node ../../node_modules/typescript/bin/tsc -w",
     "lint-src": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",

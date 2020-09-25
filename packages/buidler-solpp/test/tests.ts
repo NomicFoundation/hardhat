@@ -1,10 +1,10 @@
+import { assert } from "chai";
+import { readFileSync } from "fs";
 import {
   TASK_COMPILE_SOLIDITY_COMPILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { assert } from "chai";
-import { readFileSync } from "fs";
+} from "hardhat/builtin-tasks/task-names";
 import { join } from "path";
 
 import { useEnvironment } from "./helpers";
@@ -57,8 +57,8 @@ describe.skip("Solpp plugin", async function () {
     });
   });
 
-  describe("buidler-project", async function () {
-    useEnvironment(join(__dirname, "buidler-project"));
+  describe("hardhat-project", async function () {
+    useEnvironment(join(__dirname, "hardhat-project"));
 
     it("should create processed contracts in the cache directory", async function () {
       const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
@@ -76,7 +76,7 @@ describe.skip("Solpp plugin", async function () {
         collapseEmptyLines: true,
         noPreprocessor: false,
       };
-      const paths = await this.env.run("buidler-solpp:run-solpp", {
+      const paths = await this.env.run("hardhat-solpp:run-solpp", {
         files,
         opts,
       });
@@ -115,7 +115,7 @@ describe.skip("Solpp plugin", async function () {
         const opts = {};
 
         await expectErrorAsync(async () =>
-          this.env.run("buidler-solpp:run-solpp", {
+          this.env.run("hardhat-solpp:run-solpp", {
             files,
             opts,
           })

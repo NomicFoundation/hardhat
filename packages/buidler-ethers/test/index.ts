@@ -1,16 +1,16 @@
-import { Artifacts } from "@nomiclabs/buidler/plugins";
-import { Artifact } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import { ethers } from "ethers";
+import { Artifacts } from "hardhat/plugins";
+import { Artifact } from "hardhat/types";
 import path from "path";
 
 import { useEnvironment } from "./helpers";
 
 describe("Ethers plugin", function () {
-  useEnvironment(path.join(__dirname, "buidler-project"));
+  useEnvironment(path.join(__dirname, "hardhat-project"));
 
-  describe("BRE extensions", function () {
-    it("should extend buidler runtime environment", function () {
+  describe("HRE extensions", function () {
+    it("should extend hardhat runtime environment", function () {
       assert.isDefined(this.env.ethers);
       assert.containsAllKeys(this.env.ethers, [
         "provider",

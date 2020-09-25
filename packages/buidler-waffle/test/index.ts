@@ -1,22 +1,22 @@
-import { BUIDLEREVM_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
-import { ResolvedBuidlerNetworkConfig } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
+import { ResolvedHardhatNetworkConfig } from "hardhat/types";
 import path from "path";
 
 import { useEnvironment } from "./helpers";
 
 describe("Waffle plugin plugin", function () {
-  describe("Buidler's Waffle provider adapter", function () {
+  describe("Hardhat's Waffle provider adapter", function () {
     describe("provider.getWallets", function () {
-      describe("With buidlerevm", function () {
-        describe("With the default buidlerevm accounts", function () {
-          useEnvironment(path.join(__dirname, "buidler-project"));
+      describe("With hardhat", function () {
+        describe("With the default hardhat accounts", function () {
+          useEnvironment(path.join(__dirname, "hardhat-project"));
 
           it("Should return a wallet for each of the default accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
-            assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
+            assert.equal(this.env.network.name, HARDHAT_NETWORK_NAME);
             const accounts = (this.env.network
-              .config as ResolvedBuidlerNetworkConfig).accounts;
+              .config as ResolvedHardhatNetworkConfig).accounts;
             assert.lengthOf(wallets, accounts.length);
 
             for (let i = 0; i < wallets.length; i++) {
@@ -28,18 +28,18 @@ describe("Waffle plugin plugin", function () {
           });
         });
 
-        describe("With customized buidlerevm accounts", function () {
+        describe("With customized hardhat accounts", function () {
           useEnvironment(
-            path.join(__dirname, "buidler-project-custom-accounts")
+            path.join(__dirname, "hardhat-project-custom-accounts")
           );
 
           it("Should return a wallet for each of the custom accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
             const accounts = require(path.join(
               __dirname,
-              "buidler-project-custom-accounts",
-              "buidler.config.js"
-            )).networks.buidlerevm.accounts;
+              "hardhat-project-custom-accounts",
+              "hardhat.config.js"
+            )).networks.hardhat.accounts;
 
             assert.lengthOf(wallets, accounts.length);
 
@@ -54,26 +54,26 @@ describe("Waffle plugin plugin", function () {
       });
 
       describe("Using other network", function () {
-        useEnvironment(path.join(__dirname, "buidler-project"), "localhost");
+        useEnvironment(path.join(__dirname, "hardhat-project"), "localhost");
 
         it("Should throw an error", function () {
           assert.throws(
             () => this.env.waffle.provider.getWallets(),
-            "This method only works with Buidler EVM"
+            "This method only works with Hardhat Network"
           );
         });
       });
 
       describe("Deprecated getWallets", function () {
-        describe("With buidlerevm", function () {
-          describe("With the default buidlerevm accounts", function () {
-            useEnvironment(path.join(__dirname, "buidler-project"));
+        describe("With hardhat", function () {
+          describe("With the default hardhat accounts", function () {
+            useEnvironment(path.join(__dirname, "hardhat-project"));
 
             it("Should return a wallet for each of the default accounts", function () {
               const wallets = this.env.waffle.provider.getWallets();
-              assert.equal(this.env.network.name, BUIDLEREVM_NETWORK_NAME);
+              assert.equal(this.env.network.name, HARDHAT_NETWORK_NAME);
               const accounts = (this.env.network
-                .config as ResolvedBuidlerNetworkConfig).accounts!;
+                .config as ResolvedHardhatNetworkConfig).accounts!;
 
               assert.lengthOf(wallets, accounts.length);
 
@@ -91,7 +91,7 @@ describe("Waffle plugin plugin", function () {
   });
 
   describe("Test environment initialization", function () {
-    useEnvironment(path.join(__dirname, "buidler-project"));
+    useEnvironment(path.join(__dirname, "hardhat-project"));
 
     it("Should load the Waffle chai matchers", async function () {
       await this.env.run("test", { testFiles: [] });

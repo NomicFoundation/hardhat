@@ -1,9 +1,9 @@
-import "@nomiclabs/buidler/types";
+import "hardhat/types";
 
 import { VyperConfig } from "./types";
 
-declare module "@nomiclabs/buidler/types" {
-  interface BuidlerConfig {
+declare module "hardhat/types" {
+  interface HardhatConfig {
     vyper?: Partial<VyperConfig>;
   }
 }

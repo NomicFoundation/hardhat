@@ -58,7 +58,7 @@ describe("Metadata decoder tests", () => {
     { solc: Buffer.from([0, 7, 0]), ipfs: "the hash" },
   ];
   const initialPadding = Buffer.from(
-    "buidler-etherscan test padding with numbers 1234567890"
+    "hardhat-etherscan test padding with numbers 1234567890"
   );
 
   for (const mockSolcMetadataMapping of mockSolcMetadataMappings) {

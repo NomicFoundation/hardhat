@@ -2,13 +2,13 @@ import debug from "debug";
 import * as path from "path";
 import * as semver from "semver";
 
-import { BuidlerContext } from "../context";
+import { HardhatContext } from "../context";
 
-import { BuidlerError } from "./errors";
+import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { ExecutionMode, getExecutionMode } from "./execution-mode";
 
-const log = debug("buidler:core:plugins");
+const log = debug("hardhat:core:plugins");
 
 interface PackageJson {
   name: string;
@@ -21,12 +21,12 @@ interface PackageJson {
 /**
  * Validates a plugin dependencies and loads it.
  * @param pluginName - The plugin name
- * @param buidlerContext - The BuidlerContext
+ * @param hardhatContext - The HardhatContext
  * @param from - Where to resolve plugins and dependencies from. Only for
  * testing purposes.
  */
 export function usePlugin(
-  buidlerContext: BuidlerContext,
+  hardhatContext: HardhatContext,
   pluginName: string,
   from?: string
 ) {
@@ -37,29 +37,29 @@ export function usePlugin(
   if (from === undefined) {
     // We have two different ways to search for plugins.
     //
-    // If Buidler is installed globally, we want to force the plugins to also be
+    // If Hardhat is installed globally, we want to force the plugins to also be
     // installed globally, otherwise we can end up in a very chaotic situation.
-    // The way we enforce this is by setting `from` to something inside Buidler
+    // The way we enforce this is by setting `from` to something inside Hardhat
     // itself, as it will be placed in the global node_modules.
     //
-    // If Buidler is not installed globally, we want the plugins to be
-    // accessible from the project's root, not from the Buidler installation.
-    // The reason for this is that yarn workspaces can easily hoist Buidler and
+    // If Hardhat is not installed globally, we want the plugins to be
+    // accessible from the project's root, not from the Hardhat installation.
+    // The reason for this is that yarn workspaces can easily hoist Hardhat and
     // not the plugins, leaving you with something like this:
     //
     //    root/
     //      node_modules/
-    //        buidler
+    //        hardhat
     //      subpackage1/
     //        node_modules/
     //          plugin@v1/
-    //        buidler.config.js
+    //        hardhat.config.js
     //      subpackage2/
     //        node_modules/
     //          plugin@v2/
-    //        buidler.config.js
+    //        hardhat.config.js
     //
-    // If we were to load the plugins from the Buidler installation in this
+    // If we were to load the plugins from the Hardhat installation in this
     // situation, they wouldn't be found. Instead, we should load them from the
     // project's root.
     //
@@ -70,7 +70,7 @@ export function usePlugin(
     if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
       from = __dirname;
     } else {
-      from = buidlerContext.getConfigPath();
+      from = hardhatContext.getConfigPath();
     }
   }
 
@@ -79,7 +79,7 @@ export function usePlugin(
   if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
     globalFlag = " --global";
     globalWarning =
-      "You are using a global installation of Buidler. Plugins and their dependencies must also be global.\n";
+      "You are using a global installation of Hardhat. Plugins and their dependencies must also be global.\n";
   }
 
   const pluginPackageJson = readPackageJson(pluginName, from);
@@ -87,7 +87,7 @@ export function usePlugin(
   if (pluginPackageJson === undefined) {
     const installExtraFlags = globalFlag;
 
-    throw new BuidlerError(ERRORS.PLUGINS.NOT_INSTALLED, {
+    throw new HardhatError(ERRORS.PLUGINS.NOT_INSTALLED, {
       plugin: pluginName,
       extraMessage: globalWarning,
       extraFlags: installExtraFlags,
@@ -97,7 +97,7 @@ export function usePlugin(
   // We use the package.json's version of the name, as it is normalized.
   pluginName = pluginPackageJson.name;
 
-  if (buidlerContext.loadedPlugins.includes(pluginName)) {
+  if (hardhatContext.loadedPlugins.includes(pluginName)) {
     return;
   }
 
@@ -114,7 +114,7 @@ export function usePlugin(
       }
 
       if (dependencyPackageJson === undefined) {
-        throw new BuidlerError(ERRORS.PLUGINS.MISSING_DEPENDENCY, {
+        throw new HardhatError(ERRORS.PLUGINS.MISSING_DEPENDENCY, {
           plugin: pluginName,
           dependency: dependencyName,
           extraMessage: globalWarning,
@@ -130,7 +130,7 @@ export function usePlugin(
           includePrerelease: true,
         })
       ) {
-        throw new BuidlerError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
+        throw new HardhatError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
           plugin: pluginName,
           dependency: dependencyName,
           extraMessage: globalWarning,
@@ -146,7 +146,7 @@ export function usePlugin(
   const pluginPath = require.resolve(pluginName, options);
   loadPluginFile(pluginPath);
 
-  buidlerContext.setPluginAsLoaded(pluginName);
+  hardhatContext.setPluginAsLoaded(pluginName);
 }
 
 export function loadPluginFile(absolutePluginFilePath: string) {

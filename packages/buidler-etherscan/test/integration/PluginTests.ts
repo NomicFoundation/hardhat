@@ -1,7 +1,7 @@
-import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import { readFileSync, writeFileSync } from "fs";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 import { useEnvironment } from "../helpers";
@@ -22,8 +22,8 @@ describe("Plugin integration tests", function () {
     }
   });
 
-  describe("Using a normal Buidler project", function () {
-    useEnvironment(path.join(__dirname, "..", "buidler-project"), "testnet");
+  describe("Using a normal Hardhat project", function () {
+    useEnvironment(path.join(__dirname, "..", "hardhat-project"), "testnet");
 
     let placeholder: string;
     this.beforeEach(function () {
@@ -95,7 +95,7 @@ describe("Plugin integration tests", function () {
           console.log(reason);
           assert.instanceOf(
             reason,
-            NomicLabsBuidlerPluginError,
+            NomicLabsHardhatPluginError,
             "Ambiguous inferences need to be reported since they are not handled well yet"
           );
         });
@@ -107,7 +107,7 @@ describe("Plugin integration tests", function () {
       const modulePath = path.join(
         __dirname,
         "..",
-        "buidler-project",
+        "hardhat-project",
         "paramList"
       );
       const args = require(modulePath);
@@ -128,7 +128,7 @@ describe("Plugin integration tests", function () {
 const testContractPath = path.join(
   __dirname,
   "..",
-  "buidler-project",
+  "hardhat-project",
   "contracts",
   "TestContract1.sol"
 );

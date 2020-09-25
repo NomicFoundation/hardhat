@@ -1,17 +1,14 @@
+import debug from "debug";
+import { TASK_RUN, TASK_TEST } from "hardhat/builtin-tasks/task-names";
+import { extendConfig, task } from "hardhat/config";
+import { ensurePluginLoadedWithUsePlugin } from "hardhat/plugins";
 import {
-  TASK_RUN,
-  TASK_TEST,
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { extendConfig, task } from "@nomiclabs/buidler/config";
-import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
-import {
-  BuidlerRuntimeEnvironment,
+  HardhatRuntimeEnvironment,
   RunSuperFunction,
   TaskArguments,
-} from "@nomiclabs/buidler/types";
-import debug from "debug";
+} from "hardhat/types";
 
-const log = debug("buidler:plugin:ganache");
+const log = debug("hardhat:plugin:ganache");
 
 import { GanacheService } from "./ganache-service";
 
@@ -40,7 +37,7 @@ export default function () {
 
 async function handlePluginTask(
   args: string,
-  env: BuidlerRuntimeEnvironment,
+  env: HardhatRuntimeEnvironment,
   runSuper: RunSuperFunction<TaskArguments>
 ) {
   if (env.network.name !== "ganache") {

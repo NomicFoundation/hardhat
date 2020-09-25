@@ -1,4 +1,4 @@
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../pluginContext";
 
@@ -30,7 +30,7 @@ export async function verifyContract(
     if (!response.ok) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
       const responseText = await response.text();
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         pluginName,
         `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`
       );
@@ -38,7 +38,7 @@ export async function verifyContract(
 
     const etherscanResponse = new EtherscanResponse(await response.json());
     if (!etherscanResponse.isOk()) {
-      throw new NomicLabsBuidlerPluginError(
+      throw new NomicLabsHardhatPluginError(
         pluginName,
         etherscanResponse.message
       );
@@ -46,7 +46,7 @@ export async function verifyContract(
 
     return etherscanResponse;
   } catch (error) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `Failed to send contract verification request.
 Endpoint URL: ${url}
@@ -74,10 +74,10 @@ export async function getVerificationStatus(
       const responseText = await response.text();
       const message = `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`;
 
-      throw new NomicLabsBuidlerPluginError(pluginName, message);
+      throw new NomicLabsHardhatPluginError(pluginName, message);
     }
   } catch (error) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `Failure during etherscan status polling. The verification may still succeed but
 should be checked manually.
@@ -96,7 +96,7 @@ Reason: ${error.message}`,
   }
 
   if (etherscanResponse.isVerificationFailure()) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `The contract verification failed.
 Reason: ${etherscanResponse.message}`
@@ -104,7 +104,7 @@ Reason: ${etherscanResponse.message}`
   }
 
   if (!etherscanResponse.isOk()) {
-    throw new NomicLabsBuidlerPluginError(
+    throw new NomicLabsHardhatPluginError(
       pluginName,
       `The Etherscan API responded with a failure status.
 The verification may still succeed but should be checked manually.

@@ -1,7 +1,4 @@
-import {
-  Artifacts,
-  NomicLabsBuidlerPluginError,
-} from "@nomiclabs/buidler/plugins";
+import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 import { LazyTruffleContractProvisioner } from "./provisioner";
@@ -63,8 +60,8 @@ export class TruffleEnvironmentArtifacts {
         library.address === undefined ||
         library.constructor.network_id === undefined
       ) {
-        throw new NomicLabsBuidlerPluginError(
-          "@nomiclabs/buidler-truffle5",
+        throw new NomicLabsHardhatPluginError(
+          "@nomiclabs/hardhat-truffle5",
           `Error while linking library ${library._json.contractName} into contract ${destination.contractName}: library not deployed.`
         );
       }
@@ -146,15 +143,15 @@ export class TruffleEnvironmentArtifacts {
     for (const lib of libraries) {
       const libName = lib.constructor.contractName;
       if (libs.length === 0) {
-        throw new NomicLabsBuidlerPluginError(
-          "@nomiclabs/buidler-truffle5",
+        throw new NomicLabsHardhatPluginError(
+          "@nomiclabs/hardhat-truffle5",
           `Tried to link contract ${destination.contractName} with library ${libName}, but it uses no libraries.`
         );
       }
 
       if (!libs.includes(libName)) {
-        throw new NomicLabsBuidlerPluginError(
-          "@nomiclabs/buidler-truffle5",
+        throw new NomicLabsHardhatPluginError(
+          "@nomiclabs/hardhat-truffle5",
           `Tried to link contract ${
             destination.contractName
           } with library ${libName}, but it's not one of its libraries. ${

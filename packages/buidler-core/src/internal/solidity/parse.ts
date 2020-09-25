@@ -2,7 +2,7 @@ import debug from "debug";
 
 import type { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 
-const log = debug("buidler:core:solidity:imports");
+const log = debug("hardhat:core:solidity:imports");
 
 interface ParsedData {
   imports: string[];

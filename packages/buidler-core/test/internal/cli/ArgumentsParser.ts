@@ -8,21 +8,21 @@ import {
   int,
   string,
 } from "../../../src/internal/core/params/argumentTypes";
-import { BUIDLER_PARAM_DEFINITIONS } from "../../../src/internal/core/params/buidler-params";
+import { HARDHAT_PARAM_DEFINITIONS } from "../../../src/internal/core/params/hardhat-params";
 import {
   OverriddenTaskDefinition,
   SimpleTaskDefinition,
 } from "../../../src/internal/core/tasks/task-definitions";
 import {
-  BuidlerArguments,
+  HardhatArguments,
   TaskArguments,
   TaskDefinition,
 } from "../../../src/types";
-import { expectBuidlerError } from "../../helpers/errors";
+import { expectHardhatError } from "../../helpers/errors";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
-  let envArgs: BuidlerArguments;
+  let envArgs: HardhatArguments;
   let taskDefinition: TaskDefinition;
   let overridenTaskDefinition: OverriddenTaskDefinition;
 
@@ -58,17 +58,17 @@ describe("ArgumentsParser", () => {
   });
 
   it("Should throw if a param name CLA isn't all lowercase", () => {
-    expectBuidlerError(
+    expectHardhatError(
       () => ArgumentsParser.cLAToParamName("--showStackTraces"),
       ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
 
-    expectBuidlerError(
+    expectHardhatError(
       () => ArgumentsParser.cLAToParamName("--showstackTraces"),
       ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
 
-    expectBuidlerError(
+    expectHardhatError(
       () => ArgumentsParser.cLAToParamName("--show-stack-Traces"),
       ERRORS.ARGUMENTS.PARAM_NAME_INVALID_CASING
     );
@@ -92,19 +92,19 @@ describe("ArgumentsParser", () => {
     assert.isTrue(
       argumentsParser["_isCLAParamName"](
         "--show-stack-traces",
-        BUIDLER_PARAM_DEFINITIONS
+        HARDHAT_PARAM_DEFINITIONS
       )
     );
     assert.isFalse(
-      argumentsParser["_isCLAParamName"]("sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser["_isCLAParamName"]("sarasa", HARDHAT_PARAM_DEFINITIONS)
     );
     assert.isFalse(
-      argumentsParser["_isCLAParamName"]("--sarasa", BUIDLER_PARAM_DEFINITIONS)
+      argumentsParser["_isCLAParamName"]("--sarasa", HARDHAT_PARAM_DEFINITIONS)
     );
   });
 
-  describe("buidler arguments", () => {
-    it("should parse buidler arguments with task", () => {
+  describe("hardhat arguments", () => {
+    it("should parse hardhat arguments with task", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
@@ -114,23 +114,23 @@ describe("ArgumentsParser", () => {
       ];
 
       const {
-        buidlerArguments,
+        hardhatArguments,
         taskName,
         unparsedCLAs,
-      } = argumentsParser.parseBuidlerArguments(
-        BUIDLER_PARAM_DEFINITIONS,
+      } = argumentsParser.parseHardhatArguments(
+        HARDHAT_PARAM_DEFINITIONS,
         envArgs,
         rawCLAs
       );
       assert.equal(taskName, "compile");
-      assert.equal(buidlerArguments.showStackTraces, true);
-      assert.equal(buidlerArguments.network, "local");
-      assert.equal(buidlerArguments.emoji, false);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
       assert.equal(unparsedCLAs.length, 1);
       assert.equal("--task-param", unparsedCLAs[0]);
     });
 
-    it("should parse buidler arguments after taskname", () => {
+    it("should parse hardhat arguments after taskname", () => {
       const rawCLAs: string[] = [
         "compile",
         "--task-param",
@@ -140,18 +140,18 @@ describe("ArgumentsParser", () => {
       ];
 
       const {
-        buidlerArguments,
+        hardhatArguments,
         taskName,
         unparsedCLAs,
-      } = argumentsParser.parseBuidlerArguments(
-        BUIDLER_PARAM_DEFINITIONS,
+      } = argumentsParser.parseHardhatArguments(
+        HARDHAT_PARAM_DEFINITIONS,
         envArgs,
         rawCLAs
       );
       assert.equal(taskName, "compile");
-      assert.equal(buidlerArguments.showStackTraces, true);
-      assert.equal(buidlerArguments.network, "local");
-      assert.equal(buidlerArguments.emoji, false);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
       assert.equal(unparsedCLAs.length, 1);
       assert.equal("--task-param", unparsedCLAs[0]);
     });
@@ -165,10 +165,10 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      expectBuidlerError(
+      expectHardhatError(
         () =>
-          argumentsParser.parseBuidlerArguments(
-            BUIDLER_PARAM_DEFINITIONS,
+          argumentsParser.parseHardhatArguments(
+            HARDHAT_PARAM_DEFINITIONS,
             envArgs,
             rawCLAs
           ),
@@ -176,7 +176,7 @@ describe("ArgumentsParser", () => {
       );
     });
 
-    it("should parse a buidler argument", () => {
+    it("should parse a hardhat argument", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
@@ -184,40 +184,40 @@ describe("ArgumentsParser", () => {
         "compile",
       ];
 
-      const buidlerArguments: TaskArguments = {};
+      const hardhatArguments: TaskArguments = {};
       assert.equal(
         0,
         argumentsParser["_parseArgumentAt"](
           rawCLAs,
           0,
-          BUIDLER_PARAM_DEFINITIONS,
-          buidlerArguments
+          HARDHAT_PARAM_DEFINITIONS,
+          hardhatArguments
         )
       );
-      assert.equal(buidlerArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(
         2,
         argumentsParser["_parseArgumentAt"](
           rawCLAs,
           1,
-          BUIDLER_PARAM_DEFINITIONS,
-          buidlerArguments
+          HARDHAT_PARAM_DEFINITIONS,
+          hardhatArguments
         )
       );
-      assert.equal(buidlerArguments.network, "local");
+      assert.equal(hardhatArguments.network, "local");
     });
 
-    it("should fail trying to parse buidler with invalid argument", () => {
+    it("should fail trying to parse hardhat with invalid argument", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
         "local",
         "--invalid-param",
       ];
-      expectBuidlerError(
+      expectHardhatError(
         () =>
-          argumentsParser.parseBuidlerArguments(
-            BUIDLER_PARAM_DEFINITIONS,
+          argumentsParser.parseHardhatArguments(
+            HARDHAT_PARAM_DEFINITIONS,
             envArgs,
             rawCLAs
           ),
@@ -234,10 +234,10 @@ describe("ArgumentsParser", () => {
         "local",
         "compile",
       ];
-      expectBuidlerError(
+      expectHardhatError(
         () =>
-          argumentsParser.parseBuidlerArguments(
-            BUIDLER_PARAM_DEFINITIONS,
+          argumentsParser.parseHardhatArguments(
+            HARDHAT_PARAM_DEFINITIONS,
             envArgs,
             rawCLAs
           ),
@@ -246,16 +246,16 @@ describe("ArgumentsParser", () => {
     });
 
     it("should only add non-present arguments", () => {
-      const buidlerArguments = argumentsParser["_addBuidlerDefaultArguments"](
-        BUIDLER_PARAM_DEFINITIONS,
+      const hardhatArguments = argumentsParser["_addHardhatDefaultArguments"](
+        HARDHAT_PARAM_DEFINITIONS,
         envArgs,
         {
           showStackTraces: true,
         }
       );
 
-      assert.isTrue(buidlerArguments.showStackTraces);
-      assert.isFalse(buidlerArguments.emoji);
+      assert.isTrue(hardhatArguments.showStackTraces);
+      assert.isFalse(hardhatArguments.emoji);
     });
   });
 
@@ -327,7 +327,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail when passing invalid parameter", () => {
       const rawCLAs: string[] = ["--invalid-parameter", "not_valid"];
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENTS.UNRECOGNIZED_PARAM_NAME);
     });
@@ -339,7 +339,7 @@ describe("ArgumentsParser", () => {
         "a variadic params"
       );
 
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENTS.MISSING_POSITIONAL_ARG);
     });
@@ -349,7 +349,7 @@ describe("ArgumentsParser", () => {
       const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(definition, rawCLAs);
       }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
     });
@@ -359,14 +359,14 @@ describe("ArgumentsParser", () => {
       const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(definition, rawCLAs);
       }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
     });
 
     it("should fail when passing unneeded arguments", () => {
       const rawCLAs: string[] = ["more", "arguments"];
-      expectBuidlerError(() => {
+      expectHardhatError(() => {
         argumentsParser.parseTaskArguments(taskDefinition, rawCLAs);
       }, ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG);
     });
@@ -396,7 +396,7 @@ describe("ArgumentsParser", () => {
         .addOptionalParam("b", "A boolean", true, boolean)
         .setAction(async () => {});
 
-      expectBuidlerError(
+      expectHardhatError(
         () => argumentsParser.parseTaskArguments(taskDefinition, rawCLAs),
         ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT
       );

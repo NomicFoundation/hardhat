@@ -1,22 +1,22 @@
 ---
 prev: false
 ---
-![Teacher Buidler](/buidler_tutorial.svg)
-# Buidler's tutorial for beginners
+![Teacher Hardhat](/hardhat_tutorial.svg)
+# Hardhat's tutorial for beginners
 
 Welcome to our beginners guide to Ethereum contracts and dApp development. This tutorial is aimed at hackathon participants who are getting setup to quickly build something from scratch.
 
-To orchestrate this process we're going to use **Buidler**, which is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
+To orchestrate this process we're going to use **Hardhat**, which is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-**Buidler** also comes built-in with **Buidler EVM**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
+**Hardhat** also comes built-in with **Hardhat Network**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
 
 In this tutorial we'll guide you through:
 - Setting up your Node.js environment for Ethereum development
-- Creating and configuring a **Buidler** project
+- Creating and configuring a **Hardhat** project
 - The basics of a Solidity smart contract that implements a token
 - Writing automated tests for your contract using [Ethers.js](https://docs.ethers.io/ethers.js/html/) and [Waffle](https://getwaffle.io/)
-- Debugging Solidity with `console.log()` using **Buidler EVM**
-- Deploying your contract to **Buidler EVM** and Ethereum testnets
+- Debugging Solidity with `console.log()` using **Hardhat Network**
+- Deploying your contract to **Hardhat Network** and Ethereum testnets
 
  To follow this tutorial you should be able to:
 

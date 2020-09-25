@@ -1,13 +1,13 @@
-import { extendEnvironment } from "@nomiclabs/buidler/config";
-import { lazyObject } from "@nomiclabs/buidler/plugins";
-import { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import EthersT from "ethers";
+import { extendEnvironment } from "hardhat/config";
+import { lazyObject } from "hardhat/plugins";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
 import "./type-extensions";
 
 export default function () {
-  extendEnvironment((env: BuidlerRuntimeEnvironment) => {
+  extendEnvironment((env: HardhatRuntimeEnvironment) => {
     env.ethers = lazyObject(() => {
       const { EthersProviderWrapper } = require("./ethers-provider-wrapper");
 
@@ -17,7 +17,7 @@ export default function () {
         ...ethers,
 
         // The provider wrapper should be removed once this is released
-        // https://github.com/nomiclabs/buidler/pull/608
+        // https://github.com/nomiclabs/hardhat/pull/608
         provider: new EthersProviderWrapper(env.network.provider),
 
         getSigners: async () => getSigners(env),

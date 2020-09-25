@@ -16,10 +16,10 @@ const isWindows = os.type() === "Windows_NT";
 // only Build tests in local environment
 const shouldBuildTests = !isGithubActions;
 
-shell.exec("npm run build");
+shell.exec("yarn build");
 
 if (shouldBuildTests) {
-  shell.exec("npm run build-test");
+  shell.exec("yarn build-test");
 }
 
 // ** check for packages to be ignored ** //
@@ -31,24 +31,17 @@ const shouldIgnoreVyperTests = (isGithubActions && !isLinux) || isWindows;
 // Solpp tests don't work in Windows
 const shouldIgnoreSolppTests = isWindows;
 
-const ignoredPackages = [];
+const ignoredPackagesList = [];
 
 if (shouldIgnoreVyperTests) {
-  ignoredPackages.push("@nomiclabs/buidler-vyper");
+  ignoredPackagesList.push("--exclude @nomiclabs/hardhat-vyper");
 }
 
 if (shouldIgnoreSolppTests) {
-  ignoredPackages.push("@nomiclabs/buidler-solpp");
+  ignoredPackagesList.push("--exclude @nomiclabs/hardhat-solpp");
 }
 
-function packagesToGlobStr(packages) {
-  return packages.length === 1 ? packages[0] : `{${packages.join(",")}}`;
-}
-
-const ignoredPackagesFilter =
-  Array.isArray(ignoredPackages) && ignoredPackages.length > 0
-    ? `--ignore "${packagesToGlobStr(ignoredPackages)}"`
-    : "";
+const ignoredPackages = ignoredPackagesList.join(" ");
 
 const {
   cleanup,
@@ -69,7 +62,7 @@ function runTests() {
 
   try {
     shell.exec(
-      `npx lerna exec --concurrency 1 ${ignoredPackagesFilter} -- npm test`
+      `yarn wsrun --serial --fast-exit --exclude-missing ${ignoredPackages} test`
     );
   } finally {
     console.timeEnd("Total test time");

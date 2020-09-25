@@ -1,46 +1,43 @@
-import { Artifacts } from "@nomiclabs/buidler/plugins";
-import {
-  BuidlerRuntimeEnvironment,
-  NetworkConfig,
-} from "@nomiclabs/buidler/types";
 import { ethers } from "ethers";
+import { Artifacts } from "hardhat/plugins";
+import { HardhatRuntimeEnvironment, NetworkConfig } from "hardhat/types";
 
-export async function getSigners(bre: BuidlerRuntimeEnvironment) {
-  const accounts = await bre.ethers.provider.listAccounts();
+export async function getSigners(hre: HardhatRuntimeEnvironment) {
+  const accounts = await hre.ethers.provider.listAccounts();
   return accounts.map((account: string) =>
-    bre.ethers.provider.getSigner(account)
+    hre.ethers.provider.getSigner(account)
   );
 }
 
 export function getContractFactory(
-  bre: BuidlerRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   name: string,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
 export function getContractFactory(
-  bre: BuidlerRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
 export async function getContractFactory(
-  bre: BuidlerRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   bytecodeOrSigner?: ethers.Signer | ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
     return getContractFactoryByName(
-      bre,
+      hre,
       nameOrAbi,
       bytecodeOrSigner as ethers.Signer | undefined
     );
   }
 
   return getContractFactoryByAbiAndBytecode(
-    bre,
+    hre,
     nameOrAbi,
     bytecodeOrSigner as ethers.utils.BytesLike | string,
     signer
@@ -48,14 +45,14 @@ export async function getContractFactory(
 }
 
 export async function getContractFactoryByName(
-  bre: BuidlerRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   name: string,
   signer?: ethers.Signer
 ) {
-  const artifacts = new Artifacts(bre.config.paths.artifacts);
+  const artifacts = new Artifacts(hre.config.paths.artifacts);
   const artifact = await artifacts.readArtifact(name);
   return getContractFactoryByAbiAndBytecode(
-    bre,
+    hre,
     artifact.abi,
     artifact.bytecode,
     signer
@@ -63,46 +60,46 @@ export async function getContractFactoryByName(
 }
 
 export async function getContractFactoryByAbiAndBytecode(
-  bre: BuidlerRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike | string,
   signer?: ethers.Signer
 ) {
   if (signer === undefined) {
-    const signers = await bre.ethers.getSigners();
+    const signers = await hre.ethers.getSigners();
     signer = signers[0];
   }
 
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
-    bre.network.config,
+    hre.network.config,
     abi
   );
 
-  return new bre.ethers.ContractFactory(abiWithAddedGas, bytecode, signer);
+  return new hre.ethers.ContractFactory(abiWithAddedGas, bytecode, signer);
 }
 
 export async function getContractAt(
-  bre: BuidlerRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   address: string,
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
-    const factory = await getContractFactoryByName(bre, nameOrAbi, signer);
+    const factory = await getContractFactoryByName(hre, nameOrAbi, signer);
     return factory.attach(address);
   }
 
   if (signer === undefined) {
-    const signers = await bre.ethers.getSigners();
+    const signers = await hre.ethers.getSigners();
     signer = signers[0];
   }
 
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
-    bre.network.config,
+    hre.network.config,
     nameOrAbi
   );
 
-  return new bre.ethers.Contract(address, abiWithAddedGas, signer);
+  return new hre.ethers.Contract(address, abiWithAddedGas, signer);
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network
@@ -119,7 +116,7 @@ function addGasToAbiMethodsIfNecessary(
 
   // ethers adds 21000 to whatever the abi `gas` field has. This may lead to
   // OOG errors, as people may set the default gas to the same value as the
-  // block gas limit, especially on Buidler EVM.
+  // block gas limit, especially on Hardhat Network.
   // To avoid this, we substract 21000.
   const gasLimit = ethers.BigNumber.from(networkConfig.gas)
     .sub(21000)

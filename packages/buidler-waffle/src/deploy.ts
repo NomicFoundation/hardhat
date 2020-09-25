@@ -1,5 +1,5 @@
-import type { BuidlerRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import type { Contract, providers, Signer } from "ethers";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
 export function getDeployMockContract() {
@@ -13,8 +13,8 @@ export function getDeployMockContract() {
   return waffleMockContract.deployMockContract;
 }
 
-export async function buidlerDeployContract(
-  bre: BuidlerRuntimeEnvironment,
+export async function hardhatDeployContract(
+  hre: HardhatRuntimeEnvironment,
   signer: Signer,
   contractJSON: any,
   args: any[] = [],
@@ -24,9 +24,9 @@ export async function buidlerDeployContract(
 
   if (
     overrideOptions.gasLimit === undefined &&
-    typeof bre.network.config.gas === "number"
+    typeof hre.network.config.gas === "number"
   ) {
-    overrideOptions.gasLimit = bre.network.config.gas;
+    overrideOptions.gasLimit = hre.network.config.gas;
   }
 
   return deployContract(signer, contractJSON, args, overrideOptions);

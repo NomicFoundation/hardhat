@@ -3,32 +3,32 @@ import path from "path";
 import sinon from "sinon";
 
 import { types } from "../../../src/config";
-import { BuidlerContext } from "../../../src/internal/context";
+import { HardhatContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
-import { resetBuidlerContext } from "../../../src/internal/reset";
+import { resetHardhatContext } from "../../../src/internal/reset";
 import {
-  BuidlerArguments,
-  BuidlerRuntimeEnvironment,
+  HardhatArguments,
+  HardhatRuntimeEnvironment,
   ParamDefinition,
-  ResolvedBuidlerConfig,
+  ResolvedHardhatConfig,
   TasksMap,
 } from "../../../src/types";
 import {
-  expectBuidlerError,
-  expectBuidlerErrorAsync,
+  expectHardhatError,
+  expectHardhatErrorAsync,
 } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
-  const config: ResolvedBuidlerConfig = {
+  const config: ResolvedHardhatConfig = {
     defaultNetwork: "default",
     networks: {
       local: {
         url: "http://localhost:8545",
       },
-      buidlerevm: {
+      hardhat: {
         accounts: [],
       },
       default: {
@@ -61,7 +61,7 @@ describe("Environment", () => {
     analytics: { enabled: true },
   };
 
-  const args: BuidlerArguments = {
+  const args: HardhatArguments = {
     network: "local",
     showStackTraces: false,
     version: false,
@@ -71,11 +71,11 @@ describe("Environment", () => {
   };
 
   let tasks: TasksMap;
-  let env: BuidlerRuntimeEnvironment;
+  let env: HardhatRuntimeEnvironment;
   let dsl: TasksDSL;
 
   beforeEach(() => {
-    const ctx = BuidlerContext.createBuidlerContext();
+    const ctx = HardhatContext.createHardhatContext();
     dsl = ctx.tasksDSL;
     dsl.task("example", async (ret) => {
       return 27;
@@ -126,10 +126,10 @@ describe("Environment", () => {
     tasks = ctx.tasksDSL.getTaskDefinitions();
 
     env = new Environment(config, args, tasks);
-    ctx.setBuidlerRuntimeEnvironment(env);
+    ctx.setHardhatRuntimeEnvironment(env);
   });
 
-  afterEach(() => resetBuidlerContext());
+  afterEach(() => resetHardhatContext());
 
   describe("Environment", () => {
     it("should create an environment", () => {
@@ -161,7 +161,7 @@ describe("Environment", () => {
         assert.isDefined(taskResult);
 
         // same task throws with required param missing
-        await expectBuidlerErrorAsync(async () => {
+        await expectHardhatErrorAsync(async () => {
           await env.run("complexExampleTask", {});
         }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
       });
@@ -252,7 +252,7 @@ describe("Environment", () => {
           taskNameToRun: string,
           taskArguments: any
         ) => {
-          await expectBuidlerErrorAsync(async () => {
+          await expectHardhatErrorAsync(async () => {
             await env.run(taskNameToRun, taskArguments);
             console.error(
               `should have thrown task run: '${taskNameToRun}' with arguments: `,
@@ -327,8 +327,8 @@ describe("Environment", () => {
     });
 
     it("Should throw if the chosen network doesn't exist", () => {
-      expectBuidlerError(() => {
-        const ctx = BuidlerContext.getBuidlerContext();
+      expectHardhatError(() => {
+        const ctx = HardhatContext.getHardhatContext();
         env = new Environment(
           config,
           { ...args, network: "NOPE" },
@@ -339,7 +339,7 @@ describe("Environment", () => {
     });
 
     it("Should choose the default network if none is selected", () => {
-      const ctx = BuidlerContext.getBuidlerContext();
+      const ctx = HardhatContext.getHardhatContext();
       env = new Environment(
         config,
         { ...args, network: undefined },
@@ -357,7 +357,7 @@ describe("Environment", () => {
 
     it("environment should contains plugin extensions", async () => {
       require(path.join(process.cwd(), "plugins", "example"));
-      const ctx = BuidlerContext.getBuidlerContext();
+      const ctx = HardhatContext.getHardhatContext();
       env = new Environment(
         config,
         args,

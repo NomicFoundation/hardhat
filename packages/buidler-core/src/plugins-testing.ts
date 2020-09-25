@@ -1,2 +1,2 @@
-export { resetBuidlerContext } from "./internal/reset";
+export { resetHardhatContext } from "./internal/reset";
 export { loadPluginFile } from "./internal/core/plugins";

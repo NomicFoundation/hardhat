@@ -1,6 +1,6 @@
 import path from "path";
 
-import { BuidlerError } from "../core/errors";
+import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
 const NODE_MODULES = "node_modules";
@@ -13,7 +13,7 @@ const NODE_MODULES = "node_modules";
  */
 export function validateSourceNameFormat(sourceName: string) {
   if (isAbsolutePathSourceName(sourceName)) {
-    throw new BuidlerError(
+    throw new HardhatError(
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH,
       {
         name: sourceName,
@@ -22,7 +22,7 @@ export function validateSourceNameFormat(sourceName: string) {
   }
 
   if (sourceName.startsWith(".")) {
-    throw new BuidlerError(
+    throw new HardhatError(
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_RELATIVE_PATH,
       {
         name: sourceName,
@@ -33,7 +33,7 @@ export function validateSourceNameFormat(sourceName: string) {
   // We check this before normalizing so we are sure that the difference
   // comes from slash vs backslash
   if (replaceBackslashes(sourceName) !== sourceName) {
-    throw new BuidlerError(
+    throw new HardhatError(
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_BACKSLASHES,
       {
         name: sourceName,
@@ -42,7 +42,7 @@ export function validateSourceNameFormat(sourceName: string) {
   }
 
   if (normalizeSourceName(sourceName) !== sourceName) {
-    throw new BuidlerError(ERRORS.SOURCE_NAMES.INVALID_SOURCE_NOT_NORMALIZED, {
+    throw new HardhatError(ERRORS.SOURCE_NAMES.INVALID_SOURCE_NOT_NORMALIZED, {
       name: sourceName,
     });
   }
@@ -70,12 +70,12 @@ export async function isLocalSourceName(
     await getPathTrueCase(projectRoot, firstDirOrFileName);
   } catch (error) {
     if (
-      BuidlerError.isBuidlerErrorType(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
+      HardhatError.isHardhatErrorType(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
     ) {
       return false;
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw error;
   }
 
@@ -95,7 +95,7 @@ export async function validateSourceNameExistenceAndCasing(
   const trueCaseSourceName = await getPathTrueCase(fromDir, sourceName);
 
   if (trueCaseSourceName !== sourceName) {
-    throw new BuidlerError(ERRORS.SOURCE_NAMES.WRONG_CASING, {
+    throw new HardhatError(ERRORS.SOURCE_NAMES.WRONG_CASING, {
       incorrect: sourceName,
       correct: trueCaseSourceName,
     });
@@ -116,13 +116,13 @@ export async function localPathToSourceName(
   const normalized = normalizeSourceName(relativePath);
 
   if (normalized.startsWith("..")) {
-    throw new BuidlerError(ERRORS.SOURCE_NAMES.EXTERNAL_AS_LOCAL, {
+    throw new HardhatError(ERRORS.SOURCE_NAMES.EXTERNAL_AS_LOCAL, {
       path: localFileAbsolutePath,
     });
   }
 
   if (normalized.includes(NODE_MODULES)) {
-    throw new BuidlerError(ERRORS.SOURCE_NAMES.NODE_MODULES_AS_LOCAL, {
+    throw new HardhatError(ERRORS.SOURCE_NAMES.NODE_MODULES_AS_LOCAL, {
       path: localFileAbsolutePath,
     });
   }
@@ -187,7 +187,7 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
       typeof error.message === "string" &&
       error.message.includes("no matching file exists")
     ) {
-      throw new BuidlerError(
+      throw new HardhatError(
         ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
         {
           name: p,
@@ -196,7 +196,7 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
       );
     }
 
-    // tslint:disable-next-line only-buidler-error
+    // tslint:disable-next-line only-hardhat-error
     throw error;
   }
 }

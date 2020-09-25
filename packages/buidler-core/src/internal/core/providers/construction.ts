@@ -1,17 +1,17 @@
 import type {
-  BoundExperimentalBuidlerEVMMessageTraceHook,
+  BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthereumProvider,
   HDAccountsConfig,
   HttpNetworkConfig,
   NetworkConfigAccounts,
   ProjectPaths,
-  ResolvedBuidlerNetworkConfig,
+  ResolvedHardhatNetworkConfig,
   ResolvedHttpNetworkConfig,
   ResolvedNetworkConfig,
 } from "../../../types";
-import { ForkConfig } from "../../buidler-evm/provider/node-types";
-import { BUIDLEREVM_NETWORK_NAME } from "../../constants";
+import { HARDHAT_NETWORK_NAME } from "../../constants";
+import { ForkConfig } from "../../hardhat-network/provider/node-types";
 import { parseDateString } from "../../util/date";
 
 export function isHDAccountsConfig(
@@ -42,46 +42,46 @@ export function createProvider(
   networkName: string,
   networkConfig: ResolvedNetworkConfig,
   paths?: ProjectPaths,
-  experimentalBuidlerEVMMessageTraceHooks: BoundExperimentalBuidlerEVMMessageTraceHook[] = []
+  experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
 ): EthereumProvider {
   let eip1193Provider: EIP1193Provider;
 
-  if (networkName === BUIDLEREVM_NETWORK_NAME) {
-    const buidlerNetConfig = networkConfig as ResolvedBuidlerNetworkConfig;
+  if (networkName === HARDHAT_NETWORK_NAME) {
+    const hardhatNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
 
-    const BuidlerEVMProvider = importProvider<
-      typeof import("../../buidler-evm/provider/provider"),
-      "BuidlerEVMProvider"
-    >("../../buidler-evm/provider/provider", "BuidlerEVMProvider");
+    const HardhatNetworkProvider = importProvider<
+      typeof import("../../hardhat-network/provider/provider"),
+      "HardhatNetworkProvider"
+    >("../../hardhat-network/provider/provider", "HardhatNetworkProvider");
 
     let forkConfig: ForkConfig | undefined;
 
     if (
-      buidlerNetConfig.forking?.enabled === true &&
-      buidlerNetConfig.forking?.url !== undefined
+      hardhatNetConfig.forking?.enabled === true &&
+      hardhatNetConfig.forking?.url !== undefined
     ) {
       forkConfig = {
-        jsonRpcUrl: buidlerNetConfig.forking?.url,
-        blockNumber: buidlerNetConfig.forking?.blockNumber,
+        jsonRpcUrl: hardhatNetConfig.forking?.url,
+        blockNumber: hardhatNetConfig.forking?.blockNumber,
       };
     }
 
-    eip1193Provider = new BuidlerEVMProvider(
-      buidlerNetConfig.hardfork!,
-      BUIDLEREVM_NETWORK_NAME,
-      buidlerNetConfig.chainId!,
-      buidlerNetConfig.chainId!,
-      buidlerNetConfig.blockGasLimit!,
-      buidlerNetConfig.throwOnTransactionFailures!,
-      buidlerNetConfig.throwOnCallFailures!,
-      buidlerNetConfig.accounts,
+    eip1193Provider = new HardhatNetworkProvider(
+      hardhatNetConfig.hardfork!,
+      HARDHAT_NETWORK_NAME,
+      hardhatNetConfig.chainId!,
+      hardhatNetConfig.chainId!,
+      hardhatNetConfig.blockGasLimit!,
+      hardhatNetConfig.throwOnTransactionFailures!,
+      hardhatNetConfig.throwOnCallFailures!,
+      hardhatNetConfig.accounts,
       paths,
-      buidlerNetConfig.loggingEnabled,
-      buidlerNetConfig.allowUnlimitedContractSize,
-      buidlerNetConfig.initialDate !== undefined
-        ? parseDateString(buidlerNetConfig.initialDate)
+      hardhatNetConfig.loggingEnabled,
+      hardhatNetConfig.allowUnlimitedContractSize,
+      hardhatNetConfig.initialDate !== undefined
+        ? parseDateString(hardhatNetConfig.initialDate)
         : undefined,
-      experimentalBuidlerEVMMessageTraceHooks,
+      experimentalHardhatNetworkMessageTraceHooks,
       forkConfig
     );
   } else {

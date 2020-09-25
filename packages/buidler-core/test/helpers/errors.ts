@@ -1,6 +1,6 @@
 import { assert, AssertionError, expect } from "chai";
 
-import { BuidlerError } from "../../src/internal/core/errors";
+import { HardhatError } from "../../src/internal/core/errors";
 import { ErrorDescriptor } from "../../src/internal/core/errors-list";
 
 export async function expectErrorAsync(
@@ -41,7 +41,7 @@ export async function expectErrorAsync(
   throw noError;
 }
 
-export function expectBuidlerError(
+export function expectHardhatError(
   f: () => any,
   errorDescriptor: ErrorDescriptor,
   errorMessage?: string | RegExp
@@ -49,17 +49,17 @@ export function expectBuidlerError(
   try {
     f();
   } catch (error) {
-    assert.instanceOf(error, BuidlerError);
+    assert.instanceOf(error, HardhatError);
     assert.equal(error.number, errorDescriptor.number);
     assert.notInclude(
       error.message,
       "%s",
-      "BuidlerError has old-style format tag"
+      "HardhatError has old-style format tag"
     );
     assert.notMatch(
       error.message,
       /%[a-zA-Z][a-zA-Z0-9]*%/,
-      "BuidlerError has an non-replaced variable tag"
+      "HardhatError has an non-replaced variable tag"
     );
 
     if (typeof errorMessage === "string") {
@@ -72,11 +72,11 @@ export function expectBuidlerError(
   }
 
   throw new AssertionError(
-    `BuidlerError number ${errorDescriptor.number} expected, but no Error was thrown`
+    `HardhatError number ${errorDescriptor.number} expected, but no Error was thrown`
   );
 }
 
-export async function expectBuidlerErrorAsync(
+export async function expectHardhatErrorAsync(
   f: () => Promise<any>,
   errorDescriptor: ErrorDescriptor,
   errorMessage?: string | RegExp
@@ -85,31 +85,31 @@ export async function expectBuidlerErrorAsync(
   // This makes things easier, at least as long as we don't have async stack
   // traces. This may change in the near-ish future.
   const error = new AssertionError(
-    `BuidlerError number ${errorDescriptor.number} expected, but no Error was thrown`
+    `HardhatError number ${errorDescriptor.number} expected, but no Error was thrown`
   );
 
   const notExactMatch = new AssertionError(
-    `BuidlerError was correct, but should have include "${errorMessage}" but got "`
+    `HardhatError was correct, but should have include "${errorMessage}" but got "`
   );
 
   const notRegexpMatch = new AssertionError(
-    `BuidlerError was correct, but should have matched regex ${errorMessage} but got "`
+    `HardhatError was correct, but should have matched regex ${errorMessage} but got "`
   );
 
   try {
     await f();
   } catch (error) {
-    assert.instanceOf(error, BuidlerError);
+    assert.instanceOf(error, HardhatError);
     assert.equal(error.number, errorDescriptor.number);
     assert.notInclude(
       error.message,
       "%s",
-      "BuidlerError has old-style format tag"
+      "HardhatError has old-style format tag"
     );
     assert.notMatch(
       error.message,
       /%[a-zA-Z][a-zA-Z0-9]*%/,
-      "BuidlerError has an non-replaced variable tag"
+      "HardhatError has an non-replaced variable tag"
     );
 
     if (errorMessage !== undefined) {

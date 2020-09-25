@@ -1,6 +1,6 @@
-import { internalTask, task } from "@nomiclabs/buidler/config";
-import { NomicLabsBuidlerPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import * as fs from "fs";
+import { internalTask, task } from "hardhat/config";
+import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { join } from "path";
 
 function getDefaultConfig() {
@@ -18,8 +18,8 @@ function getFormatter(formatterName = "stylish") {
     );
     return require(formatterPath);
   } catch (ex) {
-    throw new NomicLabsBuidlerPluginError(
-      "@nomiclabs/buidler-solhint",
+    throw new NomicLabsHardhatPluginError(
+      "@nomiclabs/hardhat-solhint",
       `An error occurred loading the solhint formatter ${formatterName}`,
       ex
     );
@@ -54,8 +54,8 @@ async function getSolhintConfig(rootDirectory: string) {
     try {
       solhintConfig = await loadConfig();
     } catch (err) {
-      throw new NomicLabsBuidlerPluginError(
-        "@nomiclabs/buidler-solhint",
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-solhint",
         "An error occurred when loading your solhint config.",
         err
       );
@@ -67,8 +67,8 @@ async function getSolhintConfig(rootDirectory: string) {
   try {
     solhintConfig = applyExtends(solhintConfig);
   } catch (err) {
-    throw new NomicLabsBuidlerPluginError(
-      "@nomiclabs/buidler-solhint",
+    throw new NomicLabsHardhatPluginError(
+      "@nomiclabs/hardhat-solhint",
       "An error occurred when processing your solhint config.",
       err
     );
@@ -83,7 +83,7 @@ function printReport(reports: any) {
 }
 
 export default function () {
-  internalTask("buidler-solhint:run-solhint", async (_, { config }) => {
+  internalTask("hardhat-solhint:run-solhint", async (_, { config }) => {
     const { processPath } = await import("solhint/lib/index");
     return processPath(
       join(config.paths.sources, "**", "*.sol"),
@@ -96,7 +96,7 @@ export default function () {
       await runSuper();
     }
 
-    const reports = await run("buidler-solhint:run-solhint");
+    const reports = await run("hardhat-solhint:run-solhint");
 
     printReport(reports);
   });

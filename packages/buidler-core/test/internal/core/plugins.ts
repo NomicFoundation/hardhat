@@ -1,14 +1,14 @@
 import { assert } from "chai";
 import path from "path";
 
-import { BuidlerContext } from "../../../src/internal/context";
+import { HardhatContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import {
   loadPluginFile,
   readPackageJson,
   usePlugin,
 } from "../../../src/internal/core/plugins";
-import { expectBuidlerError } from "../../helpers/errors";
+import { expectHardhatError } from "../../helpers/errors";
 
 describe("plugin system", function () {
   const FIXTURE_PROJECT_PATH = path.join(
@@ -96,14 +96,14 @@ describe("plugin system", function () {
       FIXTURE_PROJECT_PATH,
       "doesnt-need-to-exist-config.js"
     );
-    let ctx: BuidlerContext;
+    let ctx: HardhatContext;
 
     beforeEach(function () {
-      ctx = BuidlerContext.createBuidlerContext();
+      ctx = HardhatContext.createHardhatContext();
     });
 
     afterEach(function () {
-      BuidlerContext.deleteBuidlerContext();
+      HardhatContext.deleteHardhatContext();
       delete globalAsAny.loaded;
     });
 
@@ -133,21 +133,21 @@ describe("plugin system", function () {
     });
 
     it("Should fail if a peer dependency is missing", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => usePlugin(ctx, "requires-missing-pack", projectPath),
         ERRORS.PLUGINS.MISSING_DEPENDENCY
       );
     });
 
     it("Should fail if a peer dependency has an incompatible version", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => usePlugin(ctx, "requires-other-version-pack1", projectPath),
         ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH
       );
     });
 
     it("Should fail if the plugin isn't installed", function () {
-      expectBuidlerError(
+      expectHardhatError(
         () => usePlugin(ctx, "not-installed", projectPath),
         ERRORS.PLUGINS.NOT_INSTALLED
       );

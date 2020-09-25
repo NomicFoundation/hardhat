@@ -11,7 +11,7 @@ import {
 } from "./task-definitions";
 
 /**
- * This class defines the DSL used in Buidler config files
+ * This class defines the DSL used in Hardhat config files
  * for creating and overriding tasks.
  */
 export class TasksDSL {

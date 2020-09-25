@@ -1,31 +1,31 @@
 import { fork } from "child_process";
 
-import { BUIDLER_PARAM_DEFINITIONS } from "../core/params/buidler-params";
-import { getEnvBuidlerArguments } from "../core/params/env-variables";
+import { getEnvHardhatArguments } from "../core/params/env-variables";
+import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 
 import { ArgumentsParser } from "./ArgumentsParser";
 
 const nodeArgs = [...process.execArgv];
 
-if (process.env.DISABLE_BUIDLEREVM_OPTIMIZATIONS === undefined) {
+if (process.env.DISABLE_HARDHAT_NETWORK_OPTIMIZATIONS === undefined) {
   nodeArgs.push("--max-semi-space-size=100");
 }
 
-const envVariableArguments = getEnvBuidlerArguments(
-  BUIDLER_PARAM_DEFINITIONS,
+const envVariableArguments = getEnvHardhatArguments(
+  HARDHAT_PARAM_DEFINITIONS,
   process.env
 );
 
 const argumentsParser = new ArgumentsParser();
 
-const { buidlerArguments } = argumentsParser.parseBuidlerArguments(
-  BUIDLER_PARAM_DEFINITIONS,
+const { hardhatArguments } = argumentsParser.parseHardhatArguments(
+  HARDHAT_PARAM_DEFINITIONS,
   envVariableArguments,
   process.argv.slice(2)
 );
 
-if (buidlerArguments.maxMemory !== undefined) {
-  nodeArgs.push(`--max-old-space-size=${buidlerArguments.maxMemory}`);
+if (hardhatArguments.maxMemory !== undefined) {
+  nodeArgs.push(`--max-old-space-size=${hardhatArguments.maxMemory}`);
 }
 
 const childProcess = fork(`${__dirname}/cli`, process.argv.slice(2), {

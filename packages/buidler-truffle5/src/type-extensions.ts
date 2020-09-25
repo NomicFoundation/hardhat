@@ -1,10 +1,10 @@
-import "@nomiclabs/buidler/types";
 import { assert, expect } from "chai";
+import "hardhat/types";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 
-declare module "@nomiclabs/buidler/types" {
-  export interface BuidlerRuntimeEnvironment {
+declare module "hardhat/types" {
+  export interface HardhatRuntimeEnvironment {
     artifacts: TruffleEnvironmentArtifacts;
 
     assert: typeof assert;

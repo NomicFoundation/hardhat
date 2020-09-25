@@ -4,9 +4,9 @@ Congratulations on finishing the tutorial!
 
 Here are some links you might find useful throughout your journey:
 
-- [Buidler's Hackathon Boilerplate](https://github.com/nomiclabs/buidler-hackathon-boilerplate)
-- [Buidler's documentation site](https://buidler.dev/getting-started/)
-- [Telegram Buidler Support Group](https://t.me/BuidlerSupport)
+- [Hardhat's Hackathon Boilerplate](https://github.com/nomiclabs/hardhat-hackathon-boilerplate)
+- [Hardhat's documentation site](https://usehardhat.com/getting-started/)
+- [Hardhat Support Discord server](https://invite.gg/HardhatSupport)
 - [Ethers.js Documentation](https://docs.ethers.io/ethers.js/html/)
 - [Waffle Documentation](https://getwaffle.io/)
 - [Mocha Documentation](https://mochajs.org/)
@@ -15,4 +15,4 @@ Here are some links you might find useful throughout your journey:
 Happy hacking!
 
 
-![](/cool-buidler.svg)
+![](/cool-hardhat.svg)

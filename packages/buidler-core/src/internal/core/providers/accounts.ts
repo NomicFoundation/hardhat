@@ -1,7 +1,7 @@
 import { Transaction as TransactionT } from "ethereumjs-tx";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
-import { BuidlerError } from "../errors";
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 import { ProviderWrapperWithChainId } from "./chainId";
@@ -59,7 +59,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
       if (address !== undefined) {
         if (data === undefined) {
-          throw new BuidlerError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+          throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
         }
 
         const privateKey = this._getPrivateKeyForAddress(address);
@@ -74,7 +74,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
       if (address !== undefined) {
         if (data === undefined) {
-          throw new BuidlerError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+          throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
         }
 
         const privateKey = this._getPrivateKeyForAddress(address);
@@ -88,21 +88,21 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       const tx: JsonRpcTransactionData = params[0];
 
       if (tx.gas === undefined) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "gas" }
         );
       }
 
       if (tx.from === undefined) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "from" }
         );
       }
 
       if (tx.gasPrice === undefined) {
-        throw new BuidlerError(
+        throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "gasPrice" }
         );
@@ -151,7 +151,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   private _getPrivateKeyForAddress(address: string): Buffer {
     const pk = this._addressToPrivateKey.get(address.toLowerCase());
     if (pk === undefined) {
-      throw new BuidlerError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
+      throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
         account: address,
       });
     }
@@ -238,7 +238,7 @@ abstract class SenderProvider extends ProviderWrapper {
         if (senderAccount !== undefined) {
           tx.from = senderAccount;
         } else if (method === "eth_sendTransaction") {
-          throw new BuidlerError(ERRORS.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE);
+          throw new HardhatError(ERRORS.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE);
         }
       }
     }

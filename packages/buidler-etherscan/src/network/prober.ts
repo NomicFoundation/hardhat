@@ -1,5 +1,5 @@
-import { BuidlerPluginError } from "@nomiclabs/buidler/plugins";
-import { EthereumProvider } from "@nomiclabs/buidler/types";
+import { HardhatPluginError } from "hardhat/plugins";
+import { EthereumProvider } from "hardhat/types";
 
 import { pluginName } from "../pluginContext";
 
@@ -24,7 +24,7 @@ const networkIDtoEndpoint: NetworkMap = {
   [NetworkID.KOVAN]: "https://api-kovan.etherscan.io/api",
 };
 
-export class NetworkProberError extends BuidlerPluginError {
+export class NetworkProberError extends HardhatPluginError {
   constructor(message: string) {
     super(pluginName, message);
   }

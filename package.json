@@ -4,13 +4,15 @@
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.17.24",
     "@types/shelljs": "^0.8.6",
     "chai": "^4.2.0",
     "ganache-cli": "^6.4.3",
-    "lerna": "^3.13.4",
     "mocha": "^7.1.2",
     "nyc": "^14.1.0",
     "prettier": "2.0.5",
@@ -22,17 +24,17 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-consistent-codestyle": "^1.15.1",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.8.3"
+    "typescript": "~3.8.3",
+    "wsrun": "^5.2.2"
   },
   "scripts": {
-    "postinstall": "node scripts/install.js",
-    "build": "lerna exec -- npm run build",
-    "build-test": "lerna exec -- npm run build-test",
+    "build": "wsrun --serial build",
+    "build-test": "wsrun --serial build-test",
     "watch": "tsc --build --watch packages/*/src",
-    "clean": "lerna exec -- npm run clean",
+    "clean": "wsrun clean",
     "test": "node scripts/run-tests.js",
-    "lint": "lerna exec --no-bail -- npm run lint",
-    "lint:fix": "lerna exec -- npm run lint:fix"
+    "lint": "wsrun --serial lint",
+    "lint:fix": "wsrun lint:fix"
   },
   "dependencies": {}
 }

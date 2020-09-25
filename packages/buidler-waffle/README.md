@@ -1,28 +1,28 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-waffle.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-waffle)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-waffle.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-waffle)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-waffle
+# hardhat-waffle
 
-[Buidler](http://getbuidler.com) plugin for integration with [Waffle](https://getwaffle.io/).
+[Hardhat](http://gethardhat.com) plugin for integration with [Waffle](https://getwaffle.io/).
 
 ## What
 
-You can use this plugin to build smart contract tests using Waffle in Buidler,
+You can use this plugin to build smart contract tests using Waffle in Hardhat,
 taking advantage of both.
 
-This plugin adds a Buidler-ready version of Waffle to the Buidler Runtime Environment,
+This plugin adds a Hardhat-ready version of Waffle to the Hardhat Runtime Environment,
 and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-waffle 'ethereum-waffle@^3.0.0' @nomiclabs/buidler-ethers 'ethers@^5.0.0'
+npm install --save-dev @nomiclabs/hardhat-waffle 'ethereum-waffle@^3.0.0' @nomiclabs/hardhat-ethers 'ethers@^5.0.0'
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-waffle");
+usePlugin("@nomiclabs/hardhat-waffle");
 ```
 
 ## Tasks
@@ -31,7 +31,7 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugin adds a `waffle` object to the Buidler Runtime Environment. This object has all the Waffle functionality, already adapted to work with Buidler.
+This plugin adds a `waffle` object to the Hardhat Runtime Environment. This object has all the Waffle functionality, already adapted to work with Hardhat.
 
 The `waffle` object has these properties:
 
@@ -43,14 +43,14 @@ The `waffle` object has these properties:
 - `createFixtureLoader`
 - `loadFixture`
 
-This plugin depends on [`@nomiclabs/buidler-ethers`](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers),
-so it also injects an `ethers` object into the BRE, which is documented [here](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-ethers#environment-extensions).
+This plugin depends on [`@nomiclabs/hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers),
+so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers#environment-extensions).
 
 ## Usage
 
 Once installed, you can build your tests almost like in Waffle.
 
-Instead of importing things from `ethereum-waffle`, you access them from the `waffle` property of the Buidler Runtime Environment.
+Instead of importing things from `ethereum-waffle`, you access them from the `waffle` property of the Hardhat Runtime Environment.
 
 For example, instead of doing
 
@@ -61,24 +61,24 @@ import { deployContract } from "ethereum-waffle";
 you should do
 
 ```typescript
-import { waffle } from "@nomiclabs/buidler";
+import { waffle } from "@nomiclabs/hardhat";
 const { deployContract } = waffle;
 ```
 
 Also, you don't need to call `chai.use`.
 
-Note that by default, Buidler save its compilation output into `artifacts/` instead of `build/`. You can either use
-that directory in your tests, or [customize your Buidler config](https://buidler.dev/config/#path-configuration).
+Note that by default, Hardhat save its compilation output into `artifacts/` instead of `build/`. You can either use
+that directory in your tests, or [customize your Hardhat config](https://usehardhat.com/config/#path-configuration).
 
 ## TypeScript support
 
 This plugin supports TypeScript by following these steps:
 
-1. Create a `buidler-env.d.ts` file like this:
+1. Create a `hardhat-env.d.ts` file like this:
 
     ``` typescript
-    /// <reference types="@nomiclabs/buidler-waffle" />
-    /// <reference types="@nomiclabs/buidler-ethers" />
+    /// <reference types="@nomiclabs/hardhat-waffle" />
+    /// <reference types="@nomiclabs/hardhat-ethers" />
     ```
 
     If you already have this file, just add those lines to it.
@@ -88,11 +88,11 @@ This plugin supports TypeScript by following these steps:
     ```
     {
       ...
-      "files": [..., "buidler-env.d.ts"]
+      "files": [..., "hardhat-env.d.ts"]
     }
     ```
 
-    using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
+    using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.
 
 2. Install these packages: `npm install --save-dev @types/mocha @types/chai`
 

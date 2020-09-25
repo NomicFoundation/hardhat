@@ -1,5 +1,5 @@
-import { extendEnvironment } from "@nomiclabs/buidler/config";
-import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
+import { extendEnvironment } from "hardhat/config";
+import { lazyFunction, lazyObject } from "hardhat/plugins";
 
 import { promisifyWeb3 } from "./pweb3";
 import "./type-extensions";

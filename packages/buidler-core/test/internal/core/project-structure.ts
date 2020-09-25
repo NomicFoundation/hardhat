@@ -8,7 +8,7 @@ import {
   getUserConfigPath,
   isCwdInsideProject,
 } from "../../../src/internal/core/project-structure";
-import { expectBuidlerError } from "../../helpers/errors";
+import { expectHardhatError } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("project structure", () => {
@@ -33,7 +33,7 @@ describe("project structure", () => {
 
   describe("getUserConfigPath", () => {
     it("should throw if cwd is not inside a project", () => {
-      expectBuidlerError(
+      expectHardhatError(
         () => getUserConfigPath(),
         ERRORS.GENERAL.NOT_INSIDE_PROJECT
       );
@@ -56,7 +56,7 @@ describe("project structure", () => {
         );
 
         configPath = await fsExtra.realpath(
-          path.join(pathToFixtureRoot, "buidler.config.js")
+          path.join(pathToFixtureRoot, "hardhat.config.js")
         );
       });
 

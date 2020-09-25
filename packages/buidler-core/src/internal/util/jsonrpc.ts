@@ -1,4 +1,4 @@
-import { BuidlerError } from "../core/errors";
+import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
 export interface JsonRpcRequest {
@@ -37,14 +37,14 @@ export function parseJsonResponse(
       if (!isValidJsonResponse(response)) {
         // We are sending the proper error inside the catch part of the statement.
         // We just need to raise anything here.
-        // tslint:disable-next-line only-buidler-error
+        // tslint:disable-next-line only-hardhat-error
         throw new Error();
       }
     }
 
     return json;
   } catch (error) {
-    throw new BuidlerError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
+    throw new HardhatError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
       response: text,
     });
   }

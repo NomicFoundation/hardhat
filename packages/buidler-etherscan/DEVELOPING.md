@@ -1,4 +1,4 @@
-# buidler-etherscan
+# hardhat-etherscan
 
 ## Testing
 

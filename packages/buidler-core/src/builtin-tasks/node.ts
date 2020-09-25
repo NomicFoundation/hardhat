@@ -2,39 +2,38 @@ import chalk from "chalk";
 import debug from "debug";
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
+import { HARDHAT_NETWORK_NAME } from "../internal/constants";
+import { task, types } from "../internal/core/config/config-env";
+import { HardhatError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
+import { createProvider } from "../internal/core/providers/construction";
 import {
   JsonRpcServer,
   JsonRpcServerConfig,
-} from "../internal/buidler-evm/jsonrpc/server";
-import { BUIDLEREVM_NETWORK_NAME } from "../internal/constants";
-import { task, types } from "../internal/core/config/config-env";
-import { BuidlerError } from "../internal/core/errors";
-import { ERRORS } from "../internal/core/errors-list";
-import { createProvider } from "../internal/core/providers/construction";
+} from "../internal/hardhat-network/jsonrpc/server";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
 import {
-  BuidlerNetworkConfig,
   EthereumProvider,
-  ResolvedBuidlerConfig,
-  ResolvedBuidlerNetworkConfig,
+  ResolvedHardhatConfig,
+  ResolvedHardhatNetworkConfig,
 } from "../types";
 
 import { TASK_NODE } from "./task-names";
 import { watchCompilerOutput } from "./utils/watch";
 
-const log = debug("buidler:core:tasks:node");
+const log = debug("hardhat:core:tasks:node");
 
-function _createBuidlerEVMProvider(
-  config: ResolvedBuidlerConfig
+function _createHardhatNetworkProvider(
+  config: ResolvedHardhatConfig
 ): EthereumProvider {
-  log("Creating BuidlerEVM Provider");
+  log("Creating HardhatNetworkProvider");
 
-  const networkName = BUIDLEREVM_NETWORK_NAME;
-  const networkConfig = config.networks[BUIDLEREVM_NETWORK_NAME];
+  const networkName = HARDHAT_NETWORK_NAME;
+  const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
   return lazyObject(() => {
-    log(`Creating buidlerevm provider for JSON-RPC sever`);
+    log(`Creating hardhat provider for JSON-RPC sever`);
     return createProvider(
       networkName,
       { loggingEnabled: true, ...networkConfig },
@@ -43,7 +42,9 @@ function _createBuidlerEVMProvider(
   });
 }
 
-function logBuidlerEvmAccounts(networkConfig: ResolvedBuidlerNetworkConfig) {
+function logHardhatNetworkAccounts(
+  networkConfig: ResolvedHardhatNetworkConfig
+) {
   if (networkConfig.accounts === undefined) {
     return;
   }
@@ -65,7 +66,7 @@ Private Key: ${privateKey}
 }
 
 export default function () {
-  task(TASK_NODE, "Starts a JSON-RPC server on top of Buidler EVM")
+  task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     .addOptionalParam(
       "hostname",
       "The host to which to bind to for new connections",
@@ -79,17 +80,17 @@ export default function () {
       types.int
     )
     .setAction(
-      async ({ hostname, port }, { network, buidlerArguments, config }) => {
+      async ({ hostname, port }, { network, hardhatArguments, config }) => {
         if (
-          network.name !== BUIDLEREVM_NETWORK_NAME &&
-          // We normally set the default network as buidlerArguments.network,
+          network.name !== HARDHAT_NETWORK_NAME &&
+          // We normally set the default network as hardhatArguments.network,
           // so this check isn't enough, and we add the next one. This has the
           // effect of `--network <defaultNetwork>` being a false negative, but
           // not a big deal.
-          buidlerArguments.network !== undefined &&
-          buidlerArguments.network !== config.defaultNetwork
+          hardhatArguments.network !== undefined &&
+          hardhatArguments.network !== config.defaultNetwork
         ) {
-          throw new BuidlerError(
+          throw new HardhatError(
             ERRORS.BUILTIN_TASKS.JSONRPC_UNSUPPORTED_NETWORK
           );
         }
@@ -98,7 +99,7 @@ export default function () {
           const serverConfig: JsonRpcServerConfig = {
             hostname,
             port,
-            provider: _createBuidlerEVMProvider(config),
+            provider: _createHardhatNetworkProvider(config),
           };
 
           const server = new JsonRpcServer(serverConfig);
@@ -118,28 +119,28 @@ export default function () {
           } catch (error) {
             console.warn(
               chalk.yellow(
-                "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Buidler EVM. Run Buidler with --verbose to learn more."
+                "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Hardhat Network. Run Hardhat with --verbose to learn more."
               )
             );
 
             log(
-              "Compilation output can't be watched. Please report this to help us improve Buidler.\n",
+              "Compilation output can't be watched. Please report this to help us improve Hardhat.\n",
               error
             );
 
             Reporter.reportError(error);
           }
 
-          const networkConfig = config.networks[BUIDLEREVM_NETWORK_NAME];
-          logBuidlerEvmAccounts(networkConfig);
+          const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
+          logHardhatNetworkAccounts(networkConfig);
 
           await server.waitUntilClosed();
         } catch (error) {
-          if (BuidlerError.isBuidlerError(error)) {
+          if (HardhatError.isHardhatError(error)) {
             throw error;
           }
 
-          throw new BuidlerError(
+          throw new HardhatError(
             ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
             {
               error: error.message,

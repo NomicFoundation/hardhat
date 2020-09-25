@@ -16,7 +16,7 @@ import {
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
 
-const log = debug("buidler:core:analytics");
+const log = debug("hardhat:core:analytics");
 
 // VERY IMPORTANT:
 // The documentation doesn't say so, but the user-agent parameter is required (ua).
@@ -58,7 +58,7 @@ export class Analytics {
   private readonly _clientId: string;
   private readonly _enabled: boolean;
   private readonly _userType: string;
-  // Buidler's tracking id. I guess there's no other choice than keeping it here.
+  // Hardhat's tracking id. I guess there's no other choice than keeping it here.
   private readonly _trackingId: string = "UA-117668706-3";
 
   private constructor({
@@ -81,8 +81,8 @@ export class Analytics {
   /**
    * Attempt to send a hit to Google Analytics using the Measurement Protocol.
    * This function returns immediately after starting the request, returning a function for aborting it.
-   * The idea is that we don't want Buidler tasks to be slowed down by a slow network request, so
-   * Buidler can abort the request if it takes too much time.
+   * The idea is that we don't want Hardhat tasks to be slowed down by a slow network request, so
+   * Hardhat can abort the request if it takes too much time.
    *
    * Trying to abort a successfully completed request is a no-op, so it's always safe to call it.
    *
@@ -118,7 +118,7 @@ export class Analytics {
       // Hit type, we're only using pageviews for now.
       t: "pageview",
 
-      // Buidler's tracking Id.
+      // Hardhat's tracking Id.
       tid: this._trackingId,
 
       // Client Id.
@@ -155,9 +155,9 @@ export class Analytics {
       // Custom dimension 2: User type
       //   Possible values: "CI", "Developer".
       cd2: this._userType,
-      // Custom dimension 3: Buidler Version
-      //   Example: "Buidler 1.0.0".
-      cd3: await getBuidlerVersion(),
+      // Custom dimension 3: Hardhat Version
+      //   Example: "Hardhat 1.0.0".
+      cd3: await getHardhatVersion(),
     };
   }
 
@@ -244,8 +244,8 @@ function getUserAgent(): string {
   return `Node/${process.version} ${getOperatingSystem()}`;
 }
 
-async function getBuidlerVersion(): Promise<string> {
+async function getHardhatVersion(): Promise<string> {
   const { version } = await getPackageJson();
 
-  return `Buidler ${version}`;
+  return `Hardhat ${version}`;
 }

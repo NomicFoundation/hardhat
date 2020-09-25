@@ -1,24 +1,24 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/buidler-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/buidler-ethers)
-[![buidler](https://buidler.dev/buidler-plugin-badge.svg?1)](https://buidler.dev)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
+[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
 
-# buidler-ethers
+# hardhat-ethers
 
-[Buidler](http://getbuidler.com) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
+[Hardhat](http://gethardhat.com) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
 
 ## What
 
-This plugin brings to Buidler the Ethereum library `ethers.js`, which allows you to interact with the Ethereum blockchain in a simple way.
+This plugin brings to Hardhat the Ethereum library `ethers.js`, which allows you to interact with the Ethereum blockchain in a simple way.
 
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/buidler-ethers 'ethers@^5.0.0'
+npm install --save-dev @nomiclabs/hardhat-ethers 'ethers@^5.0.0'
 ```
 
-And add the following statement to your `buidler.config.js`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-ethers");
+usePlugin("@nomiclabs/hardhat-ethers");
 ```
 
 ## Tasks
@@ -27,9 +27,9 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugins adds an `ethers` object to the Buidler Runtime Environment.
+This plugins adds an `ethers` object to the Hardhat Runtime Environment.
 
-This object has the same API than `ethers.js`, with some extra Buidler-specific
+This object has the same API than `ethers.js`, with some extra Hardhat-specific
 functionality.
 
 ### Provider object
@@ -56,12 +56,12 @@ The `Contract`s and `ContractFactory`s returned by these helpers are connected t
 
 There are no additional steps you need to take for this plugin to work.
 
-Install it and access ethers through the Buidler Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `buidler.config.js`:
+Install it and access ethers through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/buidler-ethers");
+usePlugin("@nomiclabs/hardhat-ethers");
 
-// task action function receives the Buidler Runtime Environment as second argument
+// task action function receives the Hardhat Runtime Environment as second argument
 task(
   "blockNumber",
   "Prints the current block number",
@@ -75,16 +75,16 @@ task(
 module.exports = {};
 ```
 
-And then run `npx buidler blockNumber` to try it.
+And then run `npx hardhat blockNumber` to try it.
 
-Read the documentation on the [Buidler Runtime Environment](https://buidler.dev/advanced/buidler-runtime-environment.html) to learn how to access the BRE in different ways to use ethers.js from anywhere the BRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://usehardhat.com/advanced/hardhat-runtime-environment.html) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
 
 ## TypeScript support
 
-If your project uses TypeScript, you need to create a `buidler-env.d.ts` file like this:
+If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
 
 ``` typescript
-/// <reference types="@nomiclabs/buidler-ethers" />
+/// <reference types="@nomiclabs/hardhat-ethers" />
 ```
 
 If you already have this file, just add that line to it.
@@ -95,8 +95,8 @@ Then you have to include that file in the `files` array of your `tsconfig.json`:
 ```json
 {
   ...
-  "files": [..., "buidler-env.d.ts"]
+  "files": [..., "hardhat-env.d.ts"]
 }
 ```
 
-using the relative path from the `tsconfig.json` to your `buidler-env.d.ts`.
+using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.

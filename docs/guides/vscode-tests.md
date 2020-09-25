@@ -8,7 +8,7 @@ install it and create a file named `.mocharc.json` in your project's root direct
 
 ```json
 {
-  "require": ["@nomiclabs/buidler/register"],
+  "require": ["@nomiclabs/hardhat/register"],
   "timeout": 20000,
   "recursive": "test"
 }
@@ -31,4 +31,4 @@ First, you have to add this property to your `.mocharc.json`: `"extension": ["ts
 
 Then, you have to set the vscode option `"mochaExplorer.files"` to `"test/**/*.{j,t}s"`.
 
-For any help or feedback you may have, you can find us in the [Buidler Support Telegram group](http://t.me/BuidlerSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).
