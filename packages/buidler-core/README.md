@@ -34,7 +34,7 @@ Go to [CONTRIBUTING.md](./CONTRIBUTING.md) to learn about how to set up Hardhat'
 
 ## Feedback, help and news
 
-[Hardhat Support Telegram group](http://t.me/HardhatSupport): for questions and feedback.
+[Hardhat Support Discord server](https://invite.gg/HardhatSupport): for questions and feedback.
 
 [Follow Nomic Labs on Twitter.](https://twitter.com/nomiclabs)
 

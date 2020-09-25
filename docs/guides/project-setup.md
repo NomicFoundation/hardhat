@@ -76,6 +76,6 @@ module.exports = {};
 
 Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own ones!
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Telegram group](http://t.me/HardhatSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).
 
 

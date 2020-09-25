@@ -194,4 +194,5 @@ npx hardhat run scripts/sample-script.js --network localhost
 
 Congrats! You have created a project, ran a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
-For any questions or feedback you may have, you can find us in the [Hardhat Support Telegram group](http://t.me/HardhatSupport).
+For any questions or feedback you may have, you can find us in the [Hardhat Discord
+server](https://invite.gg/HardhatSupport).

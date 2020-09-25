@@ -6,7 +6,7 @@ Here are some links you might find useful throughout your journey:
 
 - [Hardhat's Hackathon Boilerplate](https://github.com/nomiclabs/hardhat-hackathon-boilerplate)
 - [Hardhat's documentation site](https://usehardhat.com/getting-started/)
-- [Telegram Hardhat Support Group](https://t.me/HardhatSupport)
+- [Hardhat Support Discord server](https://invite.gg/HardhatSupport)
 - [Ethers.js Documentation](https://docs.ethers.io/ethers.js/html/)
 - [Waffle Documentation](https://getwaffle.io/)
 - [Mocha Documentation](https://mochajs.org/)

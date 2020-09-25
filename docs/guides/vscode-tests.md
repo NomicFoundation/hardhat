@@ -31,4 +31,4 @@ First, you have to add this property to your `.mocharc.json`: `"extension": ["ts
 
 Then, you have to set the vscode option `"mochaExplorer.files"` to `"test/**/*.{j,t}s"`.
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Telegram group](http://t.me/HardhatSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).

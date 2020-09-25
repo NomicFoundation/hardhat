@@ -88,4 +88,4 @@ Then run at least once `npx hardhat compile --config hardhat.config.5.js`, and u
 
 Note that this section isn't exclusively for Solidity `5` and `6`, but also works with Solidity `4`.
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Telegram group](http://t.me/HardhatSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).

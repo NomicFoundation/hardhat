@@ -87,4 +87,4 @@ console.log(await pweb3.eth.getAccounts())
 
 
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Telegram group](http://t.me/HardhatSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).
