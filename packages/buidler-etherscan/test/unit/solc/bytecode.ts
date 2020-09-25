@@ -24,6 +24,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         // immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -50,6 +52,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -101,6 +105,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: bytecodeWithNewMetadata,
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
 
@@ -128,6 +134,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -159,6 +167,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         // immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -188,6 +198,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         // immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -218,6 +230,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -246,6 +260,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -272,6 +288,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);
@@ -300,6 +318,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const contractSymbols = {
         object: contract.runtimeBytecode.slice(2),
         linkReferences: contract.linkReferences,
+        opcodes: "",
+        sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
       const deployedBytecode = contract.deployedBytecode.slice(2);

@@ -1,48 +1,10 @@
+import fs from "fs-extra";
+import { Artifacts } from "hardhat/plugins";
 import { RunTaskFunction } from "hardhat/types";
+import path from "path";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./version";
-
-export async function lookupMatchingBytecode(
-  contractFiles: CompilerOutput["contracts"],
-  deployedBytecode: string,
-  inferralType: InferralType
-) {
-  const contractMatches = [];
-  for (const [contractFilename, contracts] of Object.entries(contractFiles)) {
-    for (const [contractName, contract] of Object.entries(contracts)) {
-      // Normalize deployed bytecode according to this contract.
-      const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
-
-      const comparison = await compareBytecode(
-        deployedBytecode,
-        runtimeBytecodeSymbols,
-        inferralType
-      );
-
-      if (comparison.match) {
-        const {
-          contractInformation: {
-            immutableValues,
-            libraryLinks,
-            normalizedBytecode,
-          },
-        } = comparison;
-        // The bytecode matches
-        contractMatches.push({
-          immutableValues,
-          libraryLinks,
-          normalizedBytecode,
-          contractFilename,
-          contractName,
-          contract,
-        });
-      }
-    }
-  }
-
-  return contractMatches;
-}
 
 type BytecodeComparison =
   | { match: false }
@@ -52,6 +14,135 @@ interface BytecodeExtractedData {
   immutableValues: ImmutableValues;
   libraryLinks: ResolvedLinks;
   normalizedBytecode: string;
+}
+
+interface ResolvedLinks {
+  [sourceName: string]: {
+    [libraryName: string]: string;
+  };
+}
+
+interface ImmutableValues {
+  [key: string]: string;
+}
+
+interface BytecodeSlice {
+  start: number;
+  length: number;
+}
+
+type LinkReferences = CompilerOutputBytecode["linkReferences"][string][string];
+type NestedSliceReferences = BytecodeSlice[][];
+
+/* Taken from stack trace hardhat network internals
+ *  This is not an exhaustive interface for compiler input nor output.
+ */
+
+interface CompilerInput {
+  language: "Solidity";
+  sources: { [sourceName: string]: { content: string } };
+  settings: {
+    optimizer: { runs: number; enabled: boolean };
+    evmVersion?: string;
+    libraries?: ResolvedLinks;
+  };
+}
+
+interface CompilerOutput {
+  sources: CompilerOutputSources;
+  contracts: {
+    [sourceName: string]: {
+      [contractName: string]: {
+        abi: any;
+        evm: {
+          bytecode: CompilerOutputBytecode;
+          deployedBytecode: CompilerOutputBytecode;
+          methodIdentifiers: {
+            [methodSignature: string]: string;
+          };
+        };
+      };
+    };
+  };
+}
+
+interface CompilerOutputSource {
+  id: number;
+  ast: any;
+}
+
+interface CompilerOutputSources {
+  [sourceName: string]: CompilerOutputSource;
+}
+
+interface CompilerOutputBytecode {
+  object: string;
+  opcodes: string;
+  sourceMap: string;
+  linkReferences: {
+    [sourceName: string]: {
+      [libraryName: string]: Array<{ start: 0; length: 20 }>;
+    };
+  };
+  immutableReferences?: {
+    [key: string]: Array<{ start: number; length: number }>;
+  };
+}
+
+interface BuildInfo {
+  input: CompilerInput;
+  output: CompilerOutput;
+  solcVersion: string;
+}
+
+interface ContractBuildInfo {
+  contractName: string;
+  sourceName: string;
+  buildInfo: BuildInfo;
+}
+
+/**/
+
+export async function lookupMatchingBytecode(
+  contractBuilds: ContractBuildInfo[],
+  deployedBytecode: string,
+  inferralType: InferralType
+) {
+  const contractMatches = [];
+  for (const { contractName, sourceName, buildInfo } of contractBuilds) {
+    const contract = buildInfo.output.contracts[sourceName][contractName];
+    // Normalize deployed bytecode according to this contract.
+    const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
+
+    const comparison = await compareBytecode(
+      deployedBytecode,
+      runtimeBytecodeSymbols,
+      inferralType
+    );
+
+    if (comparison.match) {
+      const {
+        contractInformation: {
+          immutableValues,
+          libraryLinks,
+          normalizedBytecode,
+        },
+      } = comparison;
+      // The bytecode matches
+      contractMatches.push({
+        compilerInput: buildInfo.input,
+        solcVersion: buildInfo.solcVersion,
+        immutableValues,
+        libraryLinks,
+        normalizedBytecode,
+        sourceName,
+        contractName,
+        contract,
+      });
+    }
+  }
+
+  return contractMatches;
 }
 
 export async function compareBytecode(
@@ -125,31 +216,15 @@ export async function compareBytecode(
   return { match: false };
 }
 
-interface ResolvedLinks {
-  [sourceName: string]: {
-    [libraryName: string]: string;
-  };
-}
-
-interface ImmutableValues {
-  [key: string]: string;
-}
-
-interface BytecodeSlice {
-  start: number;
-  length: number;
-}
-
-type LinkReferences = CompilerOutputBytecode["linkReferences"][string][string];
-type NestedSliceReferences = BytecodeSlice[][];
-
 export async function normalizeBytecode(
   bytecode: string,
   symbols: CompilerOutputBytecode
 ) {
   const nestedSliceReferences: NestedSliceReferences = [];
   const libraryLinks: ResolvedLinks = {};
-  for (const [filename, libraries] of Object.entries(symbols.linkReferences)) {
+  for (const [sourceName, libraries] of Object.entries(
+    symbols.linkReferences
+  )) {
     for (const [libraryName, linkReferences] of Object.entries(libraries)) {
       // Is this even a possibility?
       if (linkReferences.length === 0) {
@@ -157,11 +232,11 @@ export async function normalizeBytecode(
       }
 
       const { start, length } = linkReferences[0];
-      if (libraryLinks[filename] === undefined) {
-        libraryLinks[filename] = {};
+      if (libraryLinks[sourceName] === undefined) {
+        libraryLinks[sourceName] = {};
       }
       // We have the bytecode encoded as a hex string
-      libraryLinks[filename][libraryName] = `0x${bytecode.slice(
+      libraryLinks[sourceName][libraryName] = `0x${bytecode.slice(
         start * 2,
         (start + length) * 2
       )}`;
@@ -224,61 +299,45 @@ export function zeroOutSlices(
   return code;
 }
 
-/* Taken from stack trace hardhat internals
- *  This is not an exhaustive interface for compiler input nor output.
- */
+export async function compile(
+  taskRun: RunTaskFunction,
+  matchingVersions: string[],
+  artifactsPath: string
+): Promise<ContractBuildInfo[]> {
+  const { TASK_COMPILE } = await import("hardhat/builtin-tasks/task-names");
 
-export interface CompilerInput {
-  language: "Solidity";
-  sources: { [sourceName: string]: { content: string } };
-  settings: {
-    optimizer: { runs: number; enabled: boolean };
-    evmVersion?: string;
-    libraries?: ResolvedLinks;
-  };
-}
+  await taskRun(TASK_COMPILE);
 
-export interface CompilerOutput {
-  contracts: {
-    [sourceName: string]: {
-      [contractName: string]: {
-        abi: any;
-        evm: {
-          bytecode: CompilerOutputBytecode;
-          deployedBytecode: CompilerOutputBytecode;
-        };
-      };
-    };
-  };
-}
+  const artifacts = new Artifacts(artifactsPath);
+  const buildInfoFiles = await artifacts.getBuildInfoFiles();
 
-export interface CompilerOutputBytecode {
-  object: string;
-  linkReferences: {
-    [sourceName: string]: {
-      [libraryName: string]: Array<{ start: number; length: 20 }>;
-    };
-  };
-  immutableReferences?: {
-    [key: string]: Array<{ start: number; length: number }>;
-  };
-}
+  // TODO: Here would be an ideal place to separate builds into several compilation jobs
+  // to address https://github.com/nomiclabs/buidler/issues/804 if possible.
+  const builds: { [buildHash: string]: BuildInfo } = {};
+  for (const buildInfoFile of buildInfoFiles) {
+    const buildInfo: BuildInfo = await fs.readJSON(buildInfoFile);
+    if (matchingVersions.includes(buildInfo.solcVersion)) {
+      builds[path.basename(buildInfoFile)] = buildInfo;
+    }
+  }
 
-/**/
+  const contracts = [];
+  const artifactFiles = await artifacts.getArtifacts();
+  for (const artifactFile of artifactFiles) {
+    const contractName = path.basename(artifactFile.replace(".json", ""));
+    const sourceName = path.relative(artifactsPath, path.dirname(artifactFile));
+    const dbgFile = path.join(
+      artifactsPath,
+      sourceName,
+      `${contractName}.dbg.json`
+    );
+    const dbgInfo: { buildInfo: string } = await fs.readJSON(dbgFile);
+    contracts.push({
+      contractName,
+      sourceName,
+      buildInfo: builds[path.basename(dbgInfo.buildInfo)],
+    });
+  }
 
-// TODO: This is extremely ugly and should be replaced with better build primitives when possible.
-// Ideally, we would access the input and output through some sort of artifact.
-export async function compile(taskRun: RunTaskFunction) {
-  const {
-    TASK_COMPILE_SOLIDITY_COMPILE,
-    TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
-  } = await import("hardhat/builtin-tasks/task-names");
-
-  const compilerInput = (await taskRun(
-    TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT
-  )) as CompilerInput;
-  const compilerOutput = (await taskRun(
-    TASK_COMPILE_SOLIDITY_COMPILE
-  )) as CompilerOutput;
-  return { compilerInput, compilerOutput };
+  return contracts;
 }

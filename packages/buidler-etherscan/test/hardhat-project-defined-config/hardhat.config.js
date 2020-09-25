@@ -6,7 +6,7 @@ module.exports = {
   etherscan: {
     apiKey: "testtoken",
   },
-  solc: {
+  solidity: {
     version: "0.5.15",
   },
 };
