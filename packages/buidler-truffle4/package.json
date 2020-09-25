@@ -40,15 +40,15 @@
     "fs-extra": "^7.0.1"
   },
   "devDependencies": {
-    "hardhat": "^1.3.3",
     "@nomiclabs/hardhat-web3-legacy": "^1.3.3",
     "@types/fs-extra": "^5.1.0",
     "@types/glob": "^7.1.1",
+    "hardhat": "^1.3.3",
     "web3": "^0.20.0"
   },
   "peerDependencies": {
-    "hardhat": "^1.3.3",
     "@nomiclabs/hardhat-web3-legacy": "^1.3.3",
+    "hardhat": "^1.3.3",
     "web3": "^0.20.0"
   }
 }
