@@ -3,7 +3,7 @@
 
 # hardhat-etherscan
 
-[Hardhat](http://hardhat.dev) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
+[Hardhat](http://usehardhat.com) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
 
 ## What
 
