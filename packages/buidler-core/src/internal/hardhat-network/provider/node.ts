@@ -226,10 +226,6 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  get isForked(): boolean {
-    return this._blockchain instanceof ForkBlockchain;
-  }
-
   public async getSignedTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {

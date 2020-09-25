@@ -1,12 +1,8 @@
 import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
 
-import { MethodNotSupportedError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { INFURA_URL } from "../../../../setup";
-import {
-  assertHardhatNetworkProviderError,
-  assertInvalidArgumentsError,
-} from "../../helpers/assertions";
+import { assertInvalidArgumentsError } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
@@ -18,12 +14,7 @@ describe("Hardhat module", function () {
       setCWD();
       useProvider();
 
-      describe(
-        "hardhat_impersonate",
-        isFork ? testHardhatImpersonateFork : testHardhatImpersonate
-      );
-
-      function testHardhatImpersonateFork() {
+      describe("hardhat_impersonate", function () {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
@@ -44,26 +35,9 @@ describe("Hardhat module", function () {
           ]);
           assert.isTrue(result);
         });
-      }
+      });
 
-      function testHardhatImpersonate() {
-        it("is not supported", async function () {
-          await assertHardhatNetworkProviderError(
-            this.provider,
-            "hardhat_impersonate",
-            [],
-            `Method hardhat_impersonate is only supported in forked provider`,
-            MethodNotSupportedError.CODE
-          );
-        });
-      }
-
-      describe(
-        "hardhat_stopImpersonating",
-        isFork ? testHardhatStopImpersonatingFork : testHardhatStopImpersonating
-      );
-
-      function testHardhatStopImpersonatingFork() {
+      describe("hardhat_stopImpersonating", function () {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
@@ -94,19 +68,7 @@ describe("Hardhat module", function () {
           ]);
           assert.isFalse(result);
         });
-      }
-
-      function testHardhatStopImpersonating() {
-        it("is not supported", async function () {
-          await assertHardhatNetworkProviderError(
-            this.provider,
-            "hardhat_stopImpersonating",
-            [],
-            `Method hardhat_stopImpersonating is only supported in forked provider`,
-            MethodNotSupportedError.CODE
-          );
-        });
-      }
+      });
 
       describe("hardhat_reset", function () {
         before(function () {

@@ -107,11 +107,7 @@ export class TransactionExecutionError extends HardhatNetworkProviderError {
 export class MethodNotSupportedError extends HardhatNetworkProviderError {
   public static readonly CODE = -32004;
 
-  constructor(method: string, onlyForked = false) {
-    const message = onlyForked
-      ? `Method ${method} is only supported in forked provider`
-      : `Method ${method} is not supported`;
-
-    super(message, MethodNotSupportedError.CODE);
+  constructor(method: string) {
+    super(`Method ${method} is not supported`, MethodNotSupportedError.CODE);
   }
 }
