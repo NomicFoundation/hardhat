@@ -47,7 +47,6 @@
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/cbor": "^5.0.1",
     "@types/chai": "^4.2.0",
-    "@types/ethereumjs-abi": "^0.6.3",
     "@types/nock": "^9.3.1",
     "@types/node-fetch": "^2.3.7",
     "@types/semver": "^6.0.2",
