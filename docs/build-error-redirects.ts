@@ -3,7 +3,7 @@ import {
   ErrorDescriptor,
   ERRORS,
   getErrorCode
-} from "../packages/buidler-core/src/internal/core/errors-list";
+} from "../packages/hardhat-core/src/internal/core/errors-list";
 
 let content = `# Hardhat errors redirects
 `;
