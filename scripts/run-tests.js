@@ -31,15 +31,17 @@ const shouldIgnoreVyperTests = (isGithubActions && !isLinux) || isWindows;
 // Solpp tests don't work in Windows
 const shouldIgnoreSolppTests = isWindows;
 
-let ignoredPackages = "";
+const ignoredPackagesList = [];
 
 if (shouldIgnoreVyperTests) {
-  ignoredPackages += "--exclude @nomiclabs/hardhat-vyper";
+  ignoredPackagesList.push("--exclude @nomiclabs/hardhat-vyper");
 }
 
 if (shouldIgnoreSolppTests) {
-  ignoredPackages += "--exclude @nomiclabs/hardhat-solpp";
+  ignoredPackagesList.push("--exclude @nomiclabs/hardhat-solpp");
 }
+
+const ignoredPackages = ignoredPackagesList.join(" ");
 
 const {
   cleanup,
