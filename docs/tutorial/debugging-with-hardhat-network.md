@@ -9,7 +9,7 @@ This is what it looks like:
 ```solidity{3}
 pragma solidity ^0.6.0;
 
-import "@nomiclabs/hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract Token {
   //...

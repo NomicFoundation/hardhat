@@ -95,7 +95,7 @@ Hardhat Network allows you to print logging messages and contract variables call
 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
-- To use it you need to import `@nomiclabs/hardhat/console.sol`.
+- To use it you need to import `hardhat/console.sol`.
 - You can call `console.log` with up to 4 parameters in any order of following types:
   - `uint`
   - `string`
