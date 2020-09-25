@@ -24,16 +24,17 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-consistent-codestyle": "^1.15.1",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.8.3"
+    "typescript": "~3.8.3",
+    "wsrun": "^5.2.2"
   },
   "scripts": {
-    "build": "lerna exec -- npm run build",
-    "build-test": "lerna exec -- npm run build-test",
+    "build": "wsrun build",
+    "build-test": "wsrun build-test",
     "watch": "tsc --build --watch packages/*/src",
-    "clean": "lerna exec -- npm run clean",
+    "clean": "wsrun clean",
     "test": "node scripts/run-tests.js",
-    "lint": "lerna exec --no-bail -- npm run lint",
-    "lint:fix": "lerna exec -- npm run lint:fix"
+    "lint": "wsrun --serial lint",
+    "lint:fix": "wsrun lint:fix"
   },
   "dependencies": {}
 }

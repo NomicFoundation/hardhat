@@ -47,7 +47,7 @@ function packagesToGlobStr(packages) {
 
 const ignoredPackagesFilter =
   Array.isArray(ignoredPackages) && ignoredPackages.length > 0
-    ? `--ignore "${packagesToGlobStr(ignoredPackages)}"`
+    ? `--exclude "${packagesToGlobStr(ignoredPackages)}"`
     : "";
 
 const {
@@ -69,7 +69,7 @@ function runTests() {
 
   try {
     shell.exec(
-      `npx lerna exec --concurrency 1 ${ignoredPackagesFilter} -- npm test`
+      `yarn wsrun --serial --fast-exit --exclude-missing ${ignoredPackagesFilter} test`
     );
   } finally {
     console.timeEnd("Total test time");
