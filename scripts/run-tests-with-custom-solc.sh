@@ -14,5 +14,5 @@ cd "$(git rev-parse --show-toplevel)"
 yarn
 
 # run hardhat tests
-cd packages/buidler-core
+cd packages/hardhat-core
 yarn test

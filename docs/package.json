@@ -2,7 +2,7 @@
   "scripts": {
     "dev": "vuepress dev .",
     "build": "NODE_ENV=production vuepress build .",
-    "apidocs": "typedoc --tsconfig ../packages/buidler-core/src/tsconfig.json"
+    "apidocs": "typedoc --tsconfig ../packages/hardhat-core/src/tsconfig.json"
   },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.12.5",
