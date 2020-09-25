@@ -1,3 +1,4 @@
+import debug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -20,6 +21,8 @@ export interface CompilersList {
   };
   latestRelease: string;
 }
+
+const log = debug("buidler:core:solidity:downloader");
 
 const COMPILER_FILES_DIR_URL = "https://solc-bin.ethereum.org/bin/";
 
@@ -116,7 +119,7 @@ export class CompilerDownloader {
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
-    console.debug(`Downloading compiler version ${compilerBuild.version}`);
+    log(`Downloading compiler version ${compilerBuild.version}`);
 
     const compilerUrl = COMPILER_FILES_DIR_URL + compilerBuild.path;
 
