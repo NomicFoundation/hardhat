@@ -1111,7 +1111,7 @@ describe("Eth module", function () {
         });
       });
 
-      describe.only("eth_getFilterLogs", async function () {
+      describe("eth_getFilterLogs", async function () {
         let firstBlock: number;
 
         beforeEach(async function () {
@@ -1387,7 +1387,7 @@ describe("Eth module", function () {
         });
       });
 
-      describe.only("eth_getLogs", async function () {
+      describe("eth_getLogs", async function () {
         let firstBlock: number;
 
         beforeEach(async function () {
