@@ -24,6 +24,7 @@ A barebones installation with no plugins allows you to create your own tasks, co
 
 To create your Hardhat project run `npx hardhat` in your project folder:
 
+<!--TODO-HH: update this and all the stdouts in this file-->
 ```
 $ npx hardhat
 888               d8b      888 888
