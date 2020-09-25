@@ -31,24 +31,15 @@ const shouldIgnoreVyperTests = (isGithubActions && !isLinux) || isWindows;
 // Solpp tests don't work in Windows
 const shouldIgnoreSolppTests = isWindows;
 
-const ignoredPackages = [];
+let ignoredPackages = "";
 
 if (shouldIgnoreVyperTests) {
-  ignoredPackages.push("@nomiclabs/hardhat-vyper");
+  ignoredPackages += "--exclude @nomiclabs/hardhat-vyper";
 }
 
 if (shouldIgnoreSolppTests) {
-  ignoredPackages.push("@nomiclabs/hardhat-solpp");
+  ignoredPackages += "--exclude @nomiclabs/hardhat-solpp";
 }
-
-function packagesToGlobStr(packages) {
-  return packages.length === 1 ? packages[0] : `{${packages.join(",")}}`;
-}
-
-const ignoredPackagesFilter =
-  Array.isArray(ignoredPackages) && ignoredPackages.length > 0
-    ? `--exclude "${packagesToGlobStr(ignoredPackages)}"`
-    : "";
 
 const {
   cleanup,
@@ -69,7 +60,7 @@ function runTests() {
 
   try {
     shell.exec(
-      `yarn wsrun --serial --fast-exit --exclude-missing ${ignoredPackagesFilter} test`
+      `yarn wsrun --serial --fast-exit --exclude-missing ${ignoredPackages} test`
     );
   } finally {
     console.timeEnd("Total test time");
