@@ -13,6 +13,6 @@ cd "$(git rev-parse --show-toplevel)"
 # install dependencies
 npm install
 
-# run buidler-core tests
+# run hardhat tests
 cd packages/buidler-core
 npm test

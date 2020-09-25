@@ -20,7 +20,7 @@
     "**/internal/core/providers/construction.ts",
     "**/internal/core/providers/accounts.ts",
     "**/internal/core/providers/wrapper.ts",
-    "**/internal/core/params/buidler-params.ts",
+    "**/internal/core/params/hardhat-params.ts",
     "**/internal/core/params/env-variables.ts",
     "**/internal/core/project-structure.ts",
     "**/internal/util/lazy.ts",

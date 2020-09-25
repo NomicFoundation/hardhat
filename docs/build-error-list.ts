@@ -5,10 +5,10 @@ import {
   getErrorCode
 } from "../packages/buidler-core/src/internal/core/errors-list";
 
-let content = `# Buidler errors
+let content = `# Hardhat errors
 
 This section contains a list of all the possible errors you may encounter when
-using Buidler and an explanation of each of them.`;
+using Hardhat and an explanation of each of them.`;
 
 for (const [rangeName, range] of Object.entries(ERROR_RANGES)) {
   content += `
