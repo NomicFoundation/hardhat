@@ -1,4 +1,4 @@
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../pluginContext";
 

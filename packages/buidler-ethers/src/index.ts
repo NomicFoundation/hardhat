@@ -1,7 +1,7 @@
-import { extendEnvironment } from "@nomiclabs/buidler/config";
-import { lazyObject } from "@nomiclabs/buidler/plugins";
-import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import EthersT from "ethers";
+import { extendEnvironment } from "hardhat/config";
+import { lazyObject } from "hardhat/plugins";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
 import "./type-extensions";

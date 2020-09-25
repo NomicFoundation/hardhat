@@ -1,5 +1,5 @@
 {
-  "name": "@nomiclabs/buidler-docker",
+  "name": "@nomiclabs/hardhat-docker",
   "version": "0.1.2",
   "description": "A library to manage Docker from Hardhat plugins",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-docker",

@@ -1,5 +1,5 @@
-import { extendEnvironment, usePlugin } from "@nomiclabs/buidler/config";
-import { lazyObject } from "@nomiclabs/buidler/plugins";
+import { extendEnvironment, usePlugin } from "hardhat/config";
+import { lazyObject } from "hardhat/plugins";
 
 import { getDeployMockContract, hardhatDeployContract } from "./deploy";
 import { getLinkFunction } from "./link";
@@ -38,5 +38,5 @@ export default function () {
     initializeWaffleMatchers(hre.config.paths.root);
   });
 
-  usePlugin("@nomiclabs/buidler-ethers");
+  usePlugin("@nomiclabs/hardhat-ethers");
 }

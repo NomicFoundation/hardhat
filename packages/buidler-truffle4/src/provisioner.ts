@@ -1,6 +1,6 @@
-import { wrapWithSolidityErrorsCorrection } from "@nomiclabs/buidler/internal/hardhat-network/stack-traces/solidity-errors";
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
-import { NetworkConfig } from "@nomiclabs/buidler/types";
+import { wrapWithSolidityErrorsCorrection } from "hardhat/internal/hardhat-network/stack-traces/solidity-errors";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NetworkConfig } from "hardhat/types";
 import util from "util";
 
 import { Linker, TruffleContract, TruffleContractInstance } from "./types";

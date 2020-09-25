@@ -1,5 +1,5 @@
-import { wrapWithSolidityErrorsCorrection } from "@nomiclabs/buidler/internal/hardhat-network/stack-traces/solidity-errors";
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
+import { wrapWithSolidityErrorsCorrection } from "hardhat/internal/hardhat-network/stack-traces/solidity-errors";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { promisify } from "util";
 
 export function promisifyWeb3(web3: any) {

@@ -1,6 +1,6 @@
-import { internalTask, task } from "@nomiclabs/buidler/config";
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import * as fs from "fs";
+import { internalTask, task } from "hardhat/config";
+import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { join } from "path";
 
 function getDefaultConfig() {

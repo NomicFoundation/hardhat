@@ -1,5 +1,5 @@
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { DecoderOptions } from "cbor";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../pluginContext";
 

@@ -1,1 +1,1 @@
-/// <reference types="@nomiclabs/buidler-ethers" />
+/// <reference types="@nomiclabs/hardhat-ethers" />

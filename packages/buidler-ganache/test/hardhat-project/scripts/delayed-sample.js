@@ -1,4 +1,4 @@
-const env = require("@nomiclabs/buidler");
+const env = require("hardhat");
 
 async function main() {
   const accounts = await env.network.provider.send("eth_accounts");

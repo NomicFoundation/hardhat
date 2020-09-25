@@ -1,6 +1,6 @@
-import { HARDHAT_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
-import { ResolvedHardhatNetworkConfig } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
+import { ResolvedHardhatNetworkConfig } from "hardhat/types";
 import path from "path";
 
 import { useEnvironment } from "./helpers";

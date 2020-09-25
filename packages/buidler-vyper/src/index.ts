@@ -1,6 +1,6 @@
-import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { task } from "@nomiclabs/buidler/internal/core/config/config-env";
-import { ResolvedHardhatConfig } from "@nomiclabs/buidler/types";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { task } from "hardhat/internal/core/config/config-env";
+import { ResolvedHardhatConfig } from "hardhat/types";
 
 import "./type-extensions";
 import { VyperConfig } from "./types";

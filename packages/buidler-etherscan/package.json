@@ -1,5 +1,5 @@
 {
-  "name": "@nomiclabs/buidler-etherscan",
+  "name": "@nomiclabs/hardhat-etherscan",
   "version": "2.1.0",
   "description": "Hardhat plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/hardhat",
@@ -44,8 +44,8 @@
     "semver": "^6.3.0"
   },
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.4.3",
-    "@nomiclabs/buidler-ethers": "^2.0.0",
+    "hardhat": "^1.4.3",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/cbor": "^5.0.0",
     "@types/chai": "^4.2.0",
     "@types/ethereumjs-abi": "^0.6.3",
@@ -58,6 +58,6 @@
     "solc": "0.6.8"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.4.3"
+    "hardhat": "^1.4.3"
   }
 }

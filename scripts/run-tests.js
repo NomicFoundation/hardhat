@@ -34,11 +34,11 @@ const shouldIgnoreSolppTests = isWindows;
 const ignoredPackages = [];
 
 if (shouldIgnoreVyperTests) {
-  ignoredPackages.push("@nomiclabs/buidler-vyper");
+  ignoredPackages.push("@nomiclabs/hardhat-vyper");
 }
 
 if (shouldIgnoreSolppTests) {
-  ignoredPackages.push("@nomiclabs/buidler-solpp");
+  ignoredPackages.push("@nomiclabs/hardhat-solpp");
 }
 
 function packagesToGlobStr(packages) {

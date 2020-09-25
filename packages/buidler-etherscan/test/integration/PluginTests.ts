@@ -1,7 +1,7 @@
-import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
 import { readFileSync, writeFileSync } from "fs";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 import { useEnvironment } from "../helpers";

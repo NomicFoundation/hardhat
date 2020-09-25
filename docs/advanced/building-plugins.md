@@ -50,7 +50,7 @@ If you are still in doubt, these can be helpful:
 Also, if you depend on a Hardhat plugin written in TypeScript, you should add a `hardhat-env.d.ts` file with triple-slash references to its types, like this:
 
 ```
-/// <reference types="@nomiclabs/buidler-ethers" />
+/// <reference types="@nomiclabs/hardhat-ethers" />
 ```
 
 Then include it in the `files` array of `tsconfig.json`.

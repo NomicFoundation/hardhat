@@ -1,5 +1,5 @@
 {
-  "name": "@nomiclabs/buidler",
+  "name": "hardhat",
   "version": "1.4.7",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
@@ -20,7 +20,7 @@
     "solidity"
   ],
   "bin": {
-    "buidler": "internal/cli/cli.js"
+    "hardhat": "internal/cli/cli.js"
   },
   "engines": {
     "node": ">=8.2.0"

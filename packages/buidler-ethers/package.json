@@ -1,5 +1,5 @@
 {
-  "name": "@nomiclabs/buidler-ethers",
+  "name": "@nomiclabs/hardhat-ethers",
   "version": "2.0.0",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
@@ -32,14 +32,14 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.3.3",
+    "hardhat": "^1.3.3",
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "ethers": "^5.0.0"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.3.3",
+    "hardhat": "^1.3.3",
     "ethers": "^5.0.0"
   }
 }

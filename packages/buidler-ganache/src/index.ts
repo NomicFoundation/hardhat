@@ -1,15 +1,12 @@
-import {
-  TASK_RUN,
-  TASK_TEST,
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { extendConfig, task } from "@nomiclabs/buidler/config";
-import { ensurePluginLoadedWithUsePlugin } from "@nomiclabs/buidler/plugins";
+import debug from "debug";
+import { TASK_RUN, TASK_TEST } from "hardhat/builtin-tasks/task-names";
+import { extendConfig, task } from "hardhat/config";
+import { ensurePluginLoadedWithUsePlugin } from "hardhat/plugins";
 import {
   HardhatRuntimeEnvironment,
   RunSuperFunction,
   TaskArguments,
-} from "@nomiclabs/buidler/types";
-import debug from "debug";
+} from "hardhat/types";
 
 const log = debug("hardhat:plugin:ganache");
 

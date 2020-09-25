@@ -1,5 +1,5 @@
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { encodeArguments } from "../../src/ABIEncoder";
 

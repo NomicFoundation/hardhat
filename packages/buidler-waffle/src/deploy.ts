@@ -1,5 +1,5 @@
-import type { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import type { Contract, providers, Signer } from "ethers";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
 export function getDeployMockContract() {

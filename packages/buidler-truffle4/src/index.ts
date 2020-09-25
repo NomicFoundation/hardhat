@@ -1,20 +1,16 @@
 import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
-import {
-  extendEnvironment,
-  internalTask,
-  usePlugin,
-} from "@nomiclabs/buidler/config";
-import { glob } from "@nomiclabs/buidler/internal/util/glob";
+} from "hardhat/builtin-tasks/task-names";
+import { extendEnvironment, internalTask, usePlugin } from "hardhat/config";
+import { glob } from "hardhat/internal/util/glob";
 import {
   HARDHAT_NETWORK_NAME,
   lazyFunction,
   lazyObject,
   NomicLabsHardhatPluginError,
-} from "@nomiclabs/buidler/plugins";
-import { ResolvedHardhatNetworkConfig } from "@nomiclabs/buidler/types";
+} from "hardhat/plugins";
+import { ResolvedHardhatNetworkConfig } from "hardhat/types";
 import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
@@ -28,7 +24,7 @@ import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 import "./type-extensions";
 
 export default function () {
-  usePlugin("@nomiclabs/buidler-web3-legacy");
+  usePlugin("@nomiclabs/hardhat-web3-legacy");
 
   let accounts: string[] | undefined;
 

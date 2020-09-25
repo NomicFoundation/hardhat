@@ -1,5 +1,5 @@
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/internal/core/errors";
 import debug from "debug";
+import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { URL } from "url";
 
 const log = debug("hardhat:plugin:ganache-service");

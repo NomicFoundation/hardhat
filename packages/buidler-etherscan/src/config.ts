@@ -1,4 +1,4 @@
-import { ConfigExtender } from "@nomiclabs/buidler/types";
+import { ConfigExtender } from "hardhat/types";
 
 export const defaultEtherscanConfig: ConfigExtender = (
   resolvedConfig,

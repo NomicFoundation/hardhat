@@ -3,17 +3,17 @@ const path = require("path");
 
 // An array of dependencies whose version checks are ignored for all the
 // packages
-const IGNORE_FROM_ALL = ["web3", "@nomiclabs/buidler"];
+const IGNORE_FROM_ALL = ["web3", "hardhat"];
 
 // A map from dependencies to package names where it should be ignored
 const IGNORE_FOR_PACKAGES = {
-  chai: ["@nomiclabs/buidler-truffle4", "@nomiclabs/buidler-truffle5"],
-  "@types/chai": ["@nomiclabs/buidler-truffle4", "@nomiclabs/buidler-truffle5"],
+  chai: ["@nomiclabs/hardhat-truffle4", "@nomiclabs/hardhat-truffle5"],
+  "@types/chai": ["@nomiclabs/hardhat-truffle4", "@nomiclabs/hardhat-truffle5"],
   "truffle-contract": [
-    "@nomiclabs/buidler-truffle4",
-    "@nomiclabs/buidler-truffle5",
+    "@nomiclabs/hardhat-truffle4",
+    "@nomiclabs/hardhat-truffle5",
   ],
-  ethers: ["@nomiclabs/buidler-etherscan"],
+  ethers: ["@nomiclabs/hardhat-etherscan"],
 };
 
 function checkPeerDepedencies(packageJson) {

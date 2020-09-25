@@ -1,5 +1,5 @@
-import { HARDHAT_NETWORK_NAME } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 import path from "path";
 
 import { useEnvironment } from "./helpers";

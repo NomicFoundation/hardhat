@@ -1,5 +1,5 @@
-import { extendEnvironment } from "@nomiclabs/buidler/config";
-import { lazyFunction, lazyObject } from "@nomiclabs/buidler/plugins";
+import { extendEnvironment } from "hardhat/config";
+import { lazyFunction, lazyObject } from "hardhat/plugins";
 
 import "./type-extensions";
 import { Web3HTTPProviderAdapter } from "./web3-provider-adapter";

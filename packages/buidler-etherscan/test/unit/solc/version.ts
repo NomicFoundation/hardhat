@@ -1,5 +1,5 @@
-import { HardhatPluginError } from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import { HardhatPluginError } from "hardhat/plugins";
 // tslint:disable: no-implicit-dependencies
 import nock from "nock";
 import semver from "semver";

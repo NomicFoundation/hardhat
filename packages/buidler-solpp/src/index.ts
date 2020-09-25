@@ -1,7 +1,7 @@
-import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { internalTask } from "@nomiclabs/buidler/config";
-import { ResolvedHardhatConfig } from "@nomiclabs/buidler/types";
 import fsExtra from "fs-extra";
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
+import { internalTask } from "hardhat/config";
+import { ResolvedHardhatConfig } from "hardhat/types";
 import path from "path";
 
 import "./type-extensions";

@@ -1,7 +1,4 @@
-import {
-  Artifacts,
-  NomicLabsHardhatPluginError,
-} from "@nomiclabs/buidler/plugins";
+import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 import { LazyTruffleContractProvisioner } from "./provisioner";

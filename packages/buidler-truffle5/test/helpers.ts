@@ -1,5 +1,5 @@
-import { resetHardhatContext } from "@nomiclabs/buidler/plugins-testing";
-import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
+import { resetHardhatContext } from "hardhat/plugins-testing";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 declare module "mocha" {
   interface Context {
@@ -12,7 +12,7 @@ export function useEnvironment(projectPath: string, networkName = "localhost") {
     process.chdir(projectPath);
     process.env.HARDHAT_NETWORK = networkName;
 
-    this.env = require("@nomiclabs/buidler");
+    this.env = require("hardhat");
   });
 
   beforeEach("Compile", async function () {

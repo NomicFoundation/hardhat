@@ -1,5 +1,5 @@
-import { IEthereumProvider } from "@nomiclabs/buidler/types";
 import { ethers } from "ethers";
+import { IEthereumProvider } from "hardhat/types";
 
 export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
   private readonly _hardhatProvider: IEthereumProvider;

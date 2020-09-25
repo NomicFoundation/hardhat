@@ -1,4 +1,3 @@
-import "@nomiclabs/buidler/types";
 import type {
   createFixtureLoader,
   link,
@@ -9,8 +8,9 @@ import type {
 } from "ethereum-waffle";
 import type { ContractJSON } from "ethereum-waffle/dist/esm/ContractJSON";
 import type { Contract, providers, Signer } from "ethers";
+import "hardhat/types";
 
-declare module "@nomiclabs/buidler/types" {
+declare module "hardhat/types" {
   interface HardhatRuntimeEnvironment {
     waffle: {
       provider: MockProvider;

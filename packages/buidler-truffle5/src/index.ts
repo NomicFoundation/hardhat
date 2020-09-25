@@ -1,20 +1,16 @@
 import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
-} from "@nomiclabs/buidler/builtin-tasks/task-names";
-import {
-  extendEnvironment,
-  internalTask,
-  usePlugin,
-} from "@nomiclabs/buidler/config";
-import { glob } from "@nomiclabs/buidler/internal/util/glob";
+} from "hardhat/builtin-tasks/task-names";
+import { extendEnvironment, internalTask, usePlugin } from "hardhat/config";
+import { glob } from "hardhat/internal/util/glob";
 import {
   HARDHAT_NETWORK_NAME,
   lazyFunction,
   lazyObject,
   NomicLabsHardhatPluginError,
-} from "@nomiclabs/buidler/plugins";
-import { ResolvedHardhatNetworkConfig } from "@nomiclabs/buidler/types";
+} from "hardhat/plugins";
+import { ResolvedHardhatNetworkConfig } from "hardhat/types";
 import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
@@ -33,7 +29,7 @@ let originalGetGasEstimate: any;
 let originalPrepareCall: any;
 
 export default function () {
-  usePlugin("@nomiclabs/buidler-web3");
+  usePlugin("@nomiclabs/hardhat-web3");
 
   let accounts: string[] | undefined;
 

@@ -1,7 +1,7 @@
-import { Artifacts } from "@nomiclabs/buidler/plugins";
-import { Artifact } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import { ethers } from "ethers";
+import { Artifacts } from "hardhat/plugins";
+import { Artifact } from "hardhat/types";
 import path from "path";
 
 import { useEnvironment } from "./helpers";

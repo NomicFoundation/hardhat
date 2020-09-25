@@ -1,5 +1,5 @@
-import { NomicLabsHardhatPluginError } from "@nomiclabs/buidler/plugins";
-import { IEthereumProvider } from "@nomiclabs/buidler/types";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { IEthereumProvider } from "hardhat/types";
 import util from "util";
 
 export interface JsonRpcRequest {

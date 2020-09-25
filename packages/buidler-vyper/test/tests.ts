@@ -1,9 +1,6 @@
-import { TASK_COMPILE } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import {
-  Artifacts,
-  NomicLabsHardhatPluginError,
-} from "@nomiclabs/buidler/plugins";
 import { assert } from "chai";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 import { useEnvironment } from "./helpers";

@@ -1,1 +1,1 @@
-/// <reference types="@nomiclabs/buidler-web3-legacy" />
+/// <reference types="@nomiclabs/hardhat-web3-legacy" />

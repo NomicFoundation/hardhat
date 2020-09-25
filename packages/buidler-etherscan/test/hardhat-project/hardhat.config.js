@@ -1,6 +1,6 @@
-const { loadPluginFile } = require("@nomiclabs/buidler/plugins-testing");
+const { loadPluginFile } = require("hardhat/plugins-testing");
 
-usePlugin("@nomiclabs/buidler-ethers");
+usePlugin("@nomiclabs/hardhat-ethers");
 
 loadPluginFile(__dirname + "/../../src/index");
 

@@ -1,7 +1,7 @@
-import "@nomiclabs/buidler/types";
 import * as ethers from "ethers";
+import "hardhat/types";
 
-declare module "@nomiclabs/buidler/types" {
+declare module "hardhat/types" {
   function getContractFactory(
     name: string,
     signer?: ethers.Signer

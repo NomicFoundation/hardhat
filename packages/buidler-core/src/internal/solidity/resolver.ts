@@ -209,7 +209,7 @@ export class Resolver {
       // if the project is using a dependency from hardhat itself but it can't
       // be found, this means that a global installation is being used, so we
       // resolve the dependency relative to this file
-      if (libraryName === "@nomiclabs/buidler") {
+      if (libraryName === "hardhat") {
         const hardhatCoreDir = path.join(__dirname, "..", "..");
         packageJsonPath = path.join(hardhatCoreDir, "package.json");
       } else {

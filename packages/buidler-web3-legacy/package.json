@@ -1,5 +1,5 @@
 {
-  "name": "@nomiclabs/buidler-web3-legacy",
+  "name": "@nomiclabs/hardhat-web3-legacy",
   "version": "1.3.3",
   "author": "Nomic Labs LLC",
   "license": "MIT",
@@ -33,13 +33,13 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomiclabs/buidler": "^1.3.3",
+    "hardhat": "^1.3.3",
     "@types/chai": "^4.2.0",
     "chai": "^4.2.0",
     "web3": "^0.20.0"
   },
   "peerDependencies": {
-    "@nomiclabs/buidler": "^1.3.3",
+    "hardhat": "^1.3.3",
     "web3": "^0.20.0"
   }
 }

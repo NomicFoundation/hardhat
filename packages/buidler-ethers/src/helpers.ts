@@ -1,9 +1,6 @@
-import { Artifacts } from "@nomiclabs/buidler/plugins";
-import {
-  HardhatRuntimeEnvironment,
-  NetworkConfig,
-} from "@nomiclabs/buidler/types";
 import { ethers } from "ethers";
+import { Artifacts } from "hardhat/plugins";
+import { HardhatRuntimeEnvironment, NetworkConfig } from "hardhat/types";
 
 export async function getSigners(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.provider.listAccounts();

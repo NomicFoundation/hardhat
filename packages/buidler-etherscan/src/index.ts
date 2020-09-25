@@ -1,9 +1,9 @@
-import { extendConfig, task } from "@nomiclabs/buidler/config";
+import { extendConfig, task } from "hardhat/config";
 import {
   HARDHAT_NETWORK_NAME,
   NomicLabsHardhatPluginError,
-} from "@nomiclabs/buidler/plugins";
-import { ActionType } from "@nomiclabs/buidler/types";
+} from "hardhat/plugins";
+import { ActionType } from "hardhat/types";
 import path from "path";
 import semver from "semver";
 

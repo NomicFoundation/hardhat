@@ -1,7 +1,7 @@
-import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "@nomiclabs/buidler/builtin-tasks/task-names";
-import { HardhatRuntimeEnvironment } from "@nomiclabs/buidler/types";
 import { assert } from "chai";
 import * as fs from "fs";
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
 import { TruffleEnvironmentArtifacts } from "../src/artifacts";
