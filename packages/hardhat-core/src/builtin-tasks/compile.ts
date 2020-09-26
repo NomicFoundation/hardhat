@@ -995,21 +995,24 @@ export default function () {
         let errorMessage =
           "The project couldn't be compiled, see reasons below.\n\n";
         if (incompatibleOverridenSolc.length > 0) {
-          errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
+          errorMessage += `The compiler version for the following files is fixed through an override in your
+config file to a version that is incompatible with their version pragmas.
 
 ${incompatibleOverridenSolc.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
         if (noCompatibleSolc.length > 0) {
-          errorMessage += `These files don't match any compiler in your config:
+          errorMessage += `The pragma statement in these files don't match any of the configured compilers
+in your config. Change the pragma or configure additional compiler versions in
+your hardhat config.
 
 ${noCompatibleSolc.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
         if (importsIncompatibleFile.length > 0) {
-          errorMessage += `These files have imports with incompatible pragmas:
+          errorMessage += `These files import other files that use a different and incompatible version of Solidity:
 
 ${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
 
@@ -1022,6 +1025,9 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
+
+        errorMessage += `Learn more about compiler configuration at https://usehardhat.com/configuration
+`;
 
         return errorMessage;
       }
