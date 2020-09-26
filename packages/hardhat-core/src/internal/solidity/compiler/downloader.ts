@@ -68,6 +68,16 @@ export class CompilerDownloader {
     return downloadedFilePath;
   }
 
+  public async isCompilerDownloaded(version: string): Promise<boolean> {
+    const compilerBuild = await this.getCompilerBuild(version);
+    const downloadedFilePath = path.join(
+      this._compilersDir,
+      compilerBuild.path
+    );
+
+    return this._fileExists(downloadedFilePath);
+  }
+
   public async getCompilerBuild(version: string): Promise<CompilerBuild> {
     const compilersListExisted = await this.compilersListExists();
 
