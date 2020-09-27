@@ -69,22 +69,33 @@ function loadCompilerSources(compilerPath: string) {
 }
 
 async function getSolc(compilerPath: string): Promise<any> {
+  console.log("getSolc 1");
   if (path.isAbsolute(compilerPath)) {
     return solcWrapper(loadCompilerSources(compilerPath));
   }
 
+  console.log("getSolc 2");
+
   const compilersDir = path.join(__dirname, "compilers");
   const absoluteCompilerPath = path.join(compilersDir, compilerPath);
 
+  console.log("getSolc 3");
+
   // download if necessary
   if (!fs.existsSync(absoluteCompilerPath)) {
+    console.log("getSolc -- download 1");
     const compilerUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${compilerPath}`;
     await download(compilerUrl, compilersDir, {
       filename: path.basename(compilerPath),
     });
+    console.log("getSolc -- download 2");
   }
 
+  console.log("getSolc 4");
+
   const solc = solcWrapper(loadCompilerSources(absoluteCompilerPath));
+
+  console.log("getSolc 5");
 
   return solc;
 }
@@ -93,12 +104,16 @@ export async function compile(
   sources: string[],
   compilerOptions: CompilerOptions
 ): Promise<[CompilerInput, CompilerOutput]> {
+  console.log("compile 1");
   const input = getSolcInput(sources, compilerOptions);
 
+  console.log("compile 2");
   const solc = await getSolc(compilerOptions.compilerPath);
 
+  console.log("compile 3");
   const output = JSON.parse(solc.compile(JSON.stringify(input)));
 
+  console.log("compile 4");
   if (output.errors) {
     for (const error of output.errors) {
       if (error.severity === "error") {
@@ -106,6 +121,8 @@ export async function compile(
       }
     }
   }
+
+  console.log("compile 5");
 
   return [input, output];
 }

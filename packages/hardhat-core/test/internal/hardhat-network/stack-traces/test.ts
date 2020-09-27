@@ -122,10 +122,15 @@ function defineTest(
   const func = async function (this: Mocha.Context) {
     this.timeout(TEST_TIMEOUT_MILLIS);
 
-    await runTest(dirPath, testDefinition, sources, {
-      ...compilerOptions,
-      runs,
-    });
+    try {
+      await runTest(dirPath, testDefinition, sources, {
+        ...compilerOptions,
+        runs,
+      });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
   };
 
   if (
@@ -355,12 +360,14 @@ async function runTest(
   sources: string[],
   compilerOptions: CompilerOptions
 ) {
+  console.log("runTest 1");
   const [compilerInput, compilerOutput] = await compileIfNecessary(
     testDir,
     sources,
     compilerOptions
   );
 
+  console.log("runTest 2");
   const bytecodes = createModelsAndDecodeBytecodes(
     compilerOptions.solidityVersion,
     compilerInput,
@@ -369,6 +376,7 @@ async function runTest(
 
   const contractsIdentifier = new ContractsIdentifier();
 
+  console.log("runTest 3");
   for (const bytecode of bytecodes) {
     if (bytecode.contract.name.startsWith("Ignored")) {
       continue;
@@ -376,6 +384,8 @@ async function runTest(
 
     contractsIdentifier.addBytecode(bytecode);
   }
+
+  console.log("runTest 4");
 
   const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
   const tracer = new SolidityTracer();
@@ -385,6 +395,7 @@ async function runTest(
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 
+  console.log("runTest 5");
   for (
     let txIndex = 0;
     txIndex < testDefinition.transactions.length;
@@ -471,6 +482,7 @@ async function runTest(
       }
     }
   }
+  console.log("runTest 6");
 }
 
 function linkBytecode(
