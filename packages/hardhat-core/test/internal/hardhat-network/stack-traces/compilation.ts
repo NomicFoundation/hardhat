@@ -85,8 +85,8 @@ async function getSolc(compilerPath: string): Promise<any> {
 
   // download if necessary
   if (!fs.existsSync(absoluteCompilerPath)) {
-    console.log("getSolc -- download 1");
     const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
+    console.log("getSolc -- download 1", compilerUrl);
     await download(compilerUrl, compilersDir, {
       filename: path.basename(compilerPath),
       timeout: COMPILER_DOWNLOAD_TIMEOUT,
