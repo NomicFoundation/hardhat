@@ -28,6 +28,8 @@ const COMPILER_FILES_DIR_URL = "https://solc-bin.ethereum.org/bin/";
 
 const COMPILERS_LIST_URL = `${COMPILER_FILES_DIR_URL}list.json`;
 
+const COMPILER_DOWNLOAD_TIMEOUT = 10000;
+
 async function downloadFile(
   url: string,
   destinationFile: string
@@ -37,6 +39,7 @@ async function downloadFile(
   const { default: download } = await import("download");
   await download(url, path.dirname(destinationFile), {
     filename: path.basename(destinationFile),
+    timeout: COMPILER_DOWNLOAD_TIMEOUT,
   });
 }
 

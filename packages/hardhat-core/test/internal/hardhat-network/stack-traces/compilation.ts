@@ -68,6 +68,8 @@ function loadCompilerSources(compilerPath: string) {
   return loadedSolc;
 }
 
+const COMPILER_DOWNLOAD_TIMEOUT = 10000;
+
 async function getSolc(compilerPath: string): Promise<any> {
   console.log("getSolc 1");
   if (path.isAbsolute(compilerPath)) {
@@ -87,6 +89,7 @@ async function getSolc(compilerPath: string): Promise<any> {
     const compilerUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${compilerPath}`;
     await download(compilerUrl, compilersDir, {
       filename: path.basename(compilerPath),
+      timeout: COMPILER_DOWNLOAD_TIMEOUT,
     });
     console.log("getSolc -- download 2");
   }
