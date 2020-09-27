@@ -78,6 +78,11 @@ export class HardhatDocker {
     try {
       const { default: fetch } = await import("node-fetch");
       const res = await fetch(imageEndpoint);
+
+      // Consume the response stream and discard its result
+      // See: https://github.com/node-fetch/node-fetch/issues/83
+      const _discarded = await res.text();
+
       return res.ok;
     } catch (error) {
       throw new DockerHubConnectionError(error);
