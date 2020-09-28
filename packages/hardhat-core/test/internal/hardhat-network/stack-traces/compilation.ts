@@ -68,37 +68,50 @@ function loadCompilerSources(compilerPath: string) {
   return loadedSolc;
 }
 
-const COMPILER_DOWNLOAD_TIMEOUT = 10000;
+export const COMPILER_DOWNLOAD_TIMEOUT = 10000;
 
-async function getSolc(compilerPath: string): Promise<any> {
-  console.log("getSolc 1");
-  if (path.isAbsolute(compilerPath)) {
-    return solcWrapper(loadCompilerSources(compilerPath));
-  }
-
-  console.log("getSolc 2");
+export async function downloadSolc(compilerPath: string): Promise<void> {
+  console.log("downloadSolc 1");
 
   const compilersDir = path.join(__dirname, "compilers");
   const absoluteCompilerPath = path.join(compilersDir, compilerPath);
 
-  console.log("getSolc 3");
+  console.log("downloadSolc 2");
 
-  // download if necessary
-  if (!fs.existsSync(absoluteCompilerPath)) {
-    const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
-    console.log("getSolc -- download 1", compilerUrl);
-    await download(compilerUrl, compilersDir, {
-      filename: path.basename(compilerPath),
-      timeout: COMPILER_DOWNLOAD_TIMEOUT,
-    });
-    console.log("getSolc -- download 2");
+  if (fs.existsSync(absoluteCompilerPath)) {
+    return;
   }
 
-  console.log("getSolc 4");
+  console.log("downloadSolc 3");
+
+  const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
+
+  console.log({ compilerPath });
+
+  await download(compilerUrl, compilersDir, {
+    filename: path.basename(compilerPath),
+    timeout: COMPILER_DOWNLOAD_TIMEOUT,
+  });
+
+  console.log("downloadSolc 4");
+}
+
+async function getSolc(compilerPath: string): Promise<any> {
+  console.log("getSolc 1");
+
+  let absoluteCompilerPath = compilerPath;
+  if (!path.isAbsolute(absoluteCompilerPath)) {
+    console.log("getSolc 2");
+
+    const compilersDir = path.join(__dirname, "compilers");
+    absoluteCompilerPath = path.join(compilersDir, compilerPath);
+  }
+
+  console.log("getSolc 3");
 
   const solc = solcWrapper(loadCompilerSources(absoluteCompilerPath));
 
-  console.log("getSolc 5");
+  console.log("getSolc 4");
 
   return solc;
 }

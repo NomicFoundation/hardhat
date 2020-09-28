@@ -35,7 +35,12 @@ import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-t
 import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
 import { setCWD } from "../helpers/cwd";
 
-import { compile, CompilerOptions } from "./compilation";
+import {
+  compile,
+  COMPILER_DOWNLOAD_TIMEOUT,
+  CompilerOptions,
+  downloadSolc,
+} from "./compilation";
 import {
   encodeCall,
   encodeConstructorParams,
@@ -736,6 +741,20 @@ describe("Stack traces", function () {
 
     return;
   }
+
+  before("Download solcjs binaries", async function () {
+    const paths = new Set([
+      ...solidity05Compilers.map((c) => c.compilerPath),
+      ...solidity05Compilers.map((c) => c.compilerPath),
+      ...solidity05Compilers.map((c) => c.compilerPath),
+    ]);
+
+    this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
+
+    for (const p of paths) {
+      await downloadSolc(p);
+    }
+  });
 
   defineTestForSolidityMajorVersion(solidity05Compilers, "0_5");
   defineTestForSolidityMajorVersion(solidity06Compilers, "0_6");
