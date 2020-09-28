@@ -738,8 +738,8 @@ describe("Stack traces", function () {
   before("Download solcjs binaries", async function () {
     const paths = new Set([
       ...solidity05Compilers.map((c) => c.compilerPath),
-      ...solidity05Compilers.map((c) => c.compilerPath),
-      ...solidity05Compilers.map((c) => c.compilerPath),
+      ...solidity06Compilers.map((c) => c.compilerPath),
+      ...solidity07Compilers.map((c) => c.compilerPath),
     ]);
 
     this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
