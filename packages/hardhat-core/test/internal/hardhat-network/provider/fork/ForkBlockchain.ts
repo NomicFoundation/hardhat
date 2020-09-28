@@ -7,7 +7,7 @@ import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonr
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { Block } from "../../../../../src/internal/hardhat-network/provider/types/Block";
-import { INFURA_URL } from "../../../../setup";
+import { ALCHEMY_URL } from "../../../../setup";
 import {
   createTestLog,
   createTestReceipt,
@@ -43,14 +43,14 @@ describe("ForkBlockchain", () => {
   }
 
   before(async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
   });
 
   beforeEach(async () => {
-    client = JsonRpcClient.forUrl(INFURA_URL!);
+    client = JsonRpcClient.forUrl(ALCHEMY_URL!);
     const latestBlockNumber = await client.getLatestBlockNumber();
     forkBlockNumber = latestBlockNumber.subn(REORGS_PROTECTION);
     common = new Common("mainnet");
