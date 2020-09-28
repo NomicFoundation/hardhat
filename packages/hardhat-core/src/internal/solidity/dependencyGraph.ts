@@ -1,4 +1,4 @@
-import * as taskTypes from "../../builtin-tasks/types";
+import * as taskTypes from "../../types/builtin-tasks";
 
 import { ResolvedFile, Resolver } from "./resolver";
 
