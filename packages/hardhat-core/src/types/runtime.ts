@@ -1,5 +1,5 @@
-import { ResolvedHardhatConfig } from "./config";
-import { EthereumProvider, Network } from "./network";
+import { ResolvedHardhatConfig, ResolvedNetworkConfig } from "./config";
+import { EthereumProvider } from "./network";
 
 /**
  * This class is used to dynamically validate task's argument types.
@@ -198,4 +198,10 @@ export interface HardhatRuntimeEnvironment {
   readonly network: Network;
   // TODO-HH: Remove this deprectaed field
   readonly ethereum: EthereumProvider; // DEPRECATED: Use network.provider
+}
+
+export interface Network {
+  name: string;
+  config: ResolvedNetworkConfig;
+  provider: EthereumProvider;
 }
