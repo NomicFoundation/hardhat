@@ -1,4 +1,4 @@
-export const ERROR_PREFIX = "BDLR";
+export const ERROR_PREFIX = "HH";
 
 export interface ErrorDescriptor {
   number: number;
