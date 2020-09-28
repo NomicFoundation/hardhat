@@ -80,25 +80,17 @@ function getCompilerDownloadPath(compilerPath: string) {
 }
 
 export async function downloadSolc(compilerPath: string): Promise<void> {
-  console.log("downloadSolc ", compilerPath);
-
   const absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
-
-  if (fs.existsSync(absoluteCompilerPath)) {
-    console.log("downloadSolc: already existed");
-    return;
-  }
-
   const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
 
-  console.log("downloadSolc: starting download from", compilerUrl);
+  if (fs.existsSync(absoluteCompilerPath)) {
+    return;
+  }
 
   await download(compilerUrl, getCompilersDownloadDir(), {
     filename: path.basename(compilerPath),
     timeout: COMPILER_DOWNLOAD_TIMEOUT,
   });
-
-  console.log("downloadSolc: download complete");
 }
 
 async function getSolc(compilerPath: string): Promise<any> {
