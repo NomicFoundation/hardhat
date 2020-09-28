@@ -902,6 +902,16 @@ Please replace it with a call to usePlugin("%pluginNameCode%").`,
 Please use \`usePlugin(npm-plugin-package)\` instead.`,
       shouldBeReported: false,
     },
+    BUIDLER_PLUGIN: {
+      number: 804,
+      message: `You are using %plugin%, which is a buidler plugin. Use the equivalent
+Hardhat plugin instead.`,
+      title: "Using a buidler plugin",
+      description: `You are trying to use a buidler plugin in Hardhat. This is not supported.
+
+Please use the equivalent Hardhat plugin instead.`,
+      shouldBeReported: false,
+    },
   },
   INTERNAL: {
     TEMPLATE_INVALID_VARIABLE_NAME: {

@@ -152,5 +152,12 @@ describe("plugin system", function () {
         ERRORS.PLUGINS.NOT_INSTALLED
       );
     });
+
+    it("Should fail if it's a buidler plugin", function () {
+      expectHardhatError(
+        () => usePlugin(ctx, "buidler-plugin", projectPath),
+        ERRORS.PLUGINS.BUIDLER_PLUGIN
+      );
+    });
   });
 });
