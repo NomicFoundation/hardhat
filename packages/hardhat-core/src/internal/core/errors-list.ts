@@ -904,7 +904,7 @@ Please use \`usePlugin(npm-plugin-package)\` instead.`,
     },
     BUIDLER_PLUGIN: {
       number: 804,
-      message: `You are using %plugin%, which is a buidler plugin. Use the equivalent
+      message: `You are using %plugin%, which is a Buidler plugin. Use the equivalent
 Hardhat plugin instead.`,
       title: "Using a buidler plugin",
       description: `You are trying to use a Buidler plugin in Hardhat. This is not supported.
