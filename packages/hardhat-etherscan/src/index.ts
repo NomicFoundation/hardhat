@@ -3,7 +3,7 @@ import {
   HARDHAT_NETWORK_NAME,
   NomicLabsHardhatPluginError,
 } from "hardhat/plugins";
-import { ActionType } from "hardhat/types/runtime";
+import { ActionType } from "hardhat/types";
 import path from "path";
 import semver from "semver";
 

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { EthereumProvider } from "hardhat/types/network";
+import { EthereumProvider } from "hardhat/types";
 
 export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
   private readonly _hardhatProvider: EthereumProvider;

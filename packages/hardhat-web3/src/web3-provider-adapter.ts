@@ -1,4 +1,4 @@
-import { EthereumProvider } from "hardhat/types/network";
+import { EthereumProvider } from "hardhat/types";
 import util from "util";
 
 export interface JsonRpcRequest {

@@ -1,4 +1,4 @@
-import { ConfigExtender } from "hardhat/types/plugins";
+import { ConfigExtender } from "hardhat/types";
 
 export const defaultEtherscanConfig: ConfigExtender = (
   resolvedConfig,

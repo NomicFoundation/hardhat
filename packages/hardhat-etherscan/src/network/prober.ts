@@ -1,5 +1,5 @@
 import { HardhatPluginError } from "hardhat/plugins";
-import { EthereumProvider } from "hardhat/types/network";
+import { EthereumProvider } from "hardhat/types";
 
 import { pluginName } from "../pluginContext";
 

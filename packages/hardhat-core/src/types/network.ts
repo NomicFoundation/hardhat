@@ -59,12 +59,3 @@ export interface EthereumProvider extends EIP1193Provider {
     callback: (error: any, response: JsonRpcResponse) => void
   ): void;
 }
-
-// This alias is here for backwards compatibility
-export type IEthereumProvider = EthereumProvider;
-
-export interface Network {
-  name: string;
-  config: ResolvedNetworkConfig;
-  provider: EthereumProvider;
-}

@@ -1,7 +1,7 @@
 import EthersT from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
-import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
 import "./type-extensions";

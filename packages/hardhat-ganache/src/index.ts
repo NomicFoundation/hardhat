@@ -5,7 +5,7 @@ import {
   HardhatRuntimeEnvironment,
   RunSuperFunction,
   TaskArguments,
-} from "hardhat/types/runtime";
+} from "hardhat/types";
 
 const log = debug("hardhat:plugin:ganache");
 

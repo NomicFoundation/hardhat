@@ -1,7 +1,6 @@
 import fsExtra from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
-import { ProjectPaths } from "hardhat/types/config";
-import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
+import { HardhatRuntimeEnvironment, ProjectPaths } from "hardhat/types";
 import path from "path";
 
 export const TRUFFLE_FIXTURE_NAME = "truffle-fixture";

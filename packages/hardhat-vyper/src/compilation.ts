@@ -10,7 +10,7 @@ import {
 } from "@nomiclabs/hardhat-docker";
 import fsExtra from "fs-extra";
 import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { ProjectPaths } from "hardhat/types/config";
+import { ProjectPaths } from "hardhat/types";
 import path from "path";
 
 import { VyperConfig } from "./types";

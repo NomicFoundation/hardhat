@@ -10,7 +10,7 @@ import {
   lazyObject,
   NomicLabsHardhatPluginError,
 } from "hardhat/plugins";
-import { ResolvedHardhatNetworkConfig } from "hardhat/types/config";
+import { ResolvedHardhatNetworkConfig } from "hardhat/types";
 import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";

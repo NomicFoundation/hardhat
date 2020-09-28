@@ -1,19 +1,20 @@
 import debug from "debug";
 
-import { ResolvedHardhatConfig } from "../../types/config";
-import { ExperimentalHardhatNetworkMessageTraceHook } from "../../types/experimental";
-import { EthereumProvider, Network } from "../../types/network";
-import { EnvironmentExtender } from "../../types/plugins";
 import {
+  EnvironmentExtender,
+  EthereumProvider,
+  ExperimentalHardhatNetworkMessageTraceHook,
   HardhatArguments,
   HardhatRuntimeEnvironment,
+  Network,
   ParamDefinition,
+  ResolvedHardhatConfig,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
   TaskDefinition,
   TasksMap,
-} from "../../types/runtime";
+} from "../../types";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
