@@ -13,7 +13,7 @@ const log = debug("hardhat:core:plugins");
 interface PackageJson {
   name: string;
   version: string;
-  peerDependencies: {
+  peerDependencies?: {
     [name: string]: string;
   };
 }
@@ -99,6 +99,14 @@ export function usePlugin(
 
   if (hardhatContext.loadedPlugins.includes(pluginName)) {
     return;
+  }
+
+  if (
+    pluginPackageJson.peerDependencies?.["@nomiclabs/buidler"] !== undefined
+  ) {
+    throw new HardhatError(ERRORS.PLUGINS.BUIDLER_PLUGIN, {
+      plugin: pluginName,
+    });
   }
 
   if (pluginPackageJson.peerDependencies !== undefined) {
