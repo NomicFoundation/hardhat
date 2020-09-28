@@ -29,7 +29,7 @@ export default function () {
         }
 
         if (!noCompile) {
-          await run(TASK_COMPILE);
+          await run(TASK_COMPILE, { quiet: true });
         }
 
         log(

@@ -6,7 +6,7 @@ import * as semver from "semver";
 import { task } from "../internal/core/config/config-env";
 import { runScriptWithHardhat } from "../internal/util/scripts-runner";
 
-import { TASK_CONSOLE } from "./task-names";
+import { TASK_COMPILE, TASK_CONSOLE } from "./task-names";
 
 export default function () {
   const log = debug("hardhat:core:tasks:console");
@@ -19,7 +19,7 @@ export default function () {
         { config, run, hardhatArguments }
       ) => {
         if (!noCompile) {
-          await run("compile");
+          await run(TASK_COMPILE, { quiet: true });
         }
 
         await fsExtra.ensureDir(config.paths.cache);
