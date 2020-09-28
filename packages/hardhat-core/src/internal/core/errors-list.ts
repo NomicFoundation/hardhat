@@ -907,7 +907,7 @@ Please use \`usePlugin(npm-plugin-package)\` instead.`,
       message: `You are using %plugin%, which is a buidler plugin. Use the equivalent
 Hardhat plugin instead.`,
       title: "Using a buidler plugin",
-      description: `You are trying to use a buidler plugin in Hardhat. This is not supported.
+      description: `You are trying to use a Buidler plugin in Hardhat. This is not supported.
 
 Please use the equivalent Hardhat plugin instead.`,
       shouldBeReported: false,
