@@ -1,5 +1,6 @@
 import { keccak256 } from "ethereumjs-util";
 
+import { getPackageJson } from "../../../util/packageInfo";
 import { MethodNotFoundError } from "../errors";
 import { rpcData, validateParams } from "../input";
 import { bufferToRpcData } from "../output";
@@ -29,12 +30,9 @@ export class Web3Module {
   }
 
   private async _clientVersionAction(): Promise<string> {
-    // TODO: This is a temporal fix because of https://github.com/OpenZeppelin/openzeppelin-test-helpers/pull/73
-    return "EthereumJS TestRPC/v2.8.0/ethereum-js";
-
-    // const hardhatPackage = await getPackageJson();
-    // const ethereumjsVMPackage = require("@nomiclabs/ethereumjs-vm/package.json");
-    // return `HardhatNetwork/${hardhatPackage.version}/ethereumjs-vm/${ethereumjsVMPackage.version}`;
+    const hardhatPackage = await getPackageJson();
+    const ethereumjsVMPackage = require("@nomiclabs/ethereumjs-vm/package.json");
+    return `HardhatNetwork/${hardhatPackage.version}/ethereumjs-vm/${ethereumjsVMPackage.version}`;
   }
 
   // web3_sha3

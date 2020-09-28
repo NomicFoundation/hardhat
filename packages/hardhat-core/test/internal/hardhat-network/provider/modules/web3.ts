@@ -12,13 +12,9 @@ describe("Web3 module", function () {
       useProvider();
 
       describe("web3_clientVersion", async function () {
-        // TODO: We skip this test for now. See the note in this call's
-        //  implementation
-        it.skip("Should return the right value", async function () {
+        it("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
-          assert.isTrue(
-            res.startsWith("HardhatNetwork/1.0.0-beta.13/ethereumjs-vm/4")
-          );
+          assert.match(res, /^HardhatNetwork\/.*\/ethereumjs-vm/);
         });
       });
 
