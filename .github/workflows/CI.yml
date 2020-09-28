@@ -25,6 +25,7 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
           key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}
       - name: Install node-gyp-cache
         run: |
@@ -51,6 +52,7 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
           key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}}
       - name: Install node-gyp-cache
         run: |
@@ -91,6 +93,7 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
           key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}}
       - name: Install node-gyp-cache
         run: |
@@ -123,6 +126,7 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
           key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}}
       - name: Install node-gyp-cache
         run: |
