@@ -70,66 +70,56 @@ function loadCompilerSources(compilerPath: string) {
 
 export const COMPILER_DOWNLOAD_TIMEOUT = 10000;
 
+function getCompilersDownloadDir() {
+  return path.join(__dirname, "compilers");
+}
+
+function getCompilerDownloadPath(compilerPath: string) {
+  const compilersDir = getCompilersDownloadDir();
+  return path.join(compilersDir, compilerPath);
+}
+
 export async function downloadSolc(compilerPath: string): Promise<void> {
-  console.log("downloadSolc 1");
+  console.log("downloadSolc ", compilerPath);
 
-  const compilersDir = path.join(__dirname, "compilers");
-  const absoluteCompilerPath = path.join(compilersDir, compilerPath);
-
-  console.log("downloadSolc 2");
+  const absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
 
   if (fs.existsSync(absoluteCompilerPath)) {
+    console.log("downloadSolc: already existed");
     return;
   }
 
-  console.log("downloadSolc 3");
-
   const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
 
-  console.log({ compilerPath });
+  console.log("downloadSolc: starting download from", compilerUrl);
 
-  await download(compilerUrl, compilersDir, {
+  await download(compilerUrl, getCompilersDownloadDir(), {
     filename: path.basename(compilerPath),
     timeout: COMPILER_DOWNLOAD_TIMEOUT,
   });
 
-  console.log("downloadSolc 4");
+  console.log("downloadSolc: download complete");
 }
 
 async function getSolc(compilerPath: string): Promise<any> {
-  console.log("getSolc 1");
-
   let absoluteCompilerPath = compilerPath;
   if (!path.isAbsolute(absoluteCompilerPath)) {
-    console.log("getSolc 2");
-
-    const compilersDir = path.join(__dirname, "compilers");
-    absoluteCompilerPath = path.join(compilersDir, compilerPath);
+    absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
   }
 
-  console.log("getSolc 3");
-
-  const solc = solcWrapper(loadCompilerSources(absoluteCompilerPath));
-
-  console.log("getSolc 4");
-
-  return solc;
+  return solcWrapper(loadCompilerSources(absoluteCompilerPath));
 }
 
 export async function compile(
   sources: string[],
   compilerOptions: CompilerOptions
 ): Promise<[CompilerInput, CompilerOutput]> {
-  console.log("compile 1");
   const input = getSolcInput(sources, compilerOptions);
 
-  console.log("compile 2");
   const solc = await getSolc(compilerOptions.compilerPath);
 
-  console.log("compile 3");
   const output = JSON.parse(solc.compile(JSON.stringify(input)));
 
-  console.log("compile 4");
   if (output.errors) {
     for (const error of output.errors) {
       if (error.severity === "error") {
@@ -137,8 +127,6 @@ export async function compile(
       }
     }
   }
-
-  console.log("compile 5");
 
   return [input, output];
 }
