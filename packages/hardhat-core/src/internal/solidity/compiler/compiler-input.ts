@@ -1,4 +1,4 @@
-import { CompilationJob } from "../../../builtin-tasks/types";
+import { CompilationJob } from "../../../types/builtin-tasks";
 import { SolcOptimizerConfig } from "../../../types/config";
 import { SolcInput } from "../../../types/solidity";
 import { DependencyGraph } from "../dependencyGraph";

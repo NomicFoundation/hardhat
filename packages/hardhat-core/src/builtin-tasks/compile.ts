@@ -24,6 +24,13 @@ import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
+import * as taskTypes from "../types/builtin-tasks";
+import {
+  CompilationJob,
+  CompilationJobCreationError,
+  CompilationJobsCreationErrors,
+  CompilationJobsCreationResult,
+} from "../types/builtin-tasks";
 import { SolcInput } from "../types/solidity";
 
 import {
@@ -56,13 +63,6 @@ import {
   TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
 } from "./task-names";
-import * as taskTypes from "./types";
-import {
-  CompilationJob,
-  CompilationJobCreationError,
-  CompilationJobsCreationErrors,
-  CompilationJobsCreationResult,
-} from "./types";
 import {
   getSolidityFilesCachePath,
   SolidityFilesCache,

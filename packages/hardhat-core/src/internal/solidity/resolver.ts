@@ -6,7 +6,7 @@ import {
   FileContent,
   LibraryInfo,
   ResolvedFile as IResolvedFile,
-} from "../../builtin-tasks/types";
+} from "../../types/builtin-tasks";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
