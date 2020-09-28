@@ -18,8 +18,8 @@ function isErrorResponse(response: any): response is FailedJsonRpcResponse {
   return typeof response.error !== "undefined";
 }
 
-const MAX_RETRIES = 3;
-const MAX_RETRY_AWAIT_SECONDS = 2;
+const MAX_RETRIES = 6;
+const MAX_RETRY_AWAIT_SECONDS = 5;
 
 const TOO_MANY_REQUEST_STATUS = 429;
 
