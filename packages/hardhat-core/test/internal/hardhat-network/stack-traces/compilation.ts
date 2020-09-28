@@ -1,4 +1,3 @@
-import download from "download";
 import fs from "fs";
 import path from "path";
 import solcWrapper from "solc/wrapper";
@@ -7,6 +6,7 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../src/internal/hardhat-network/stack-traces/compiler-types";
+import { download } from "../../../../src/internal/util/download";
 
 export interface CompilerOptions {
   solidityVersion: string;
@@ -87,10 +87,7 @@ export async function downloadSolc(compilerPath: string): Promise<void> {
     return;
   }
 
-  await download(compilerUrl, getCompilersDownloadDir(), {
-    filename: path.basename(compilerPath),
-    timeout: COMPILER_DOWNLOAD_TIMEOUT,
-  });
+  await download(compilerUrl, absoluteCompilerPath, COMPILER_DOWNLOAD_TIMEOUT);
 }
 
 async function getSolc(compilerPath: string): Promise<any> {
