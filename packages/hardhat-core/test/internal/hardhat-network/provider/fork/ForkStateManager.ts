@@ -15,7 +15,7 @@ import {
   randomAddressBuffer,
   randomHashBuffer,
 } from "../../../../../src/internal/hardhat-network/provider/fork/random";
-import { INFURA_URL } from "../../../../setup";
+import { ALCHEMY_URL } from "../../../../setup";
 import {
   DAI_ADDRESS,
   DAI_TOTAL_SUPPLY_STORAGE_POSITION,
@@ -30,14 +30,14 @@ describe("ForkStateManager", () => {
   let fsm: ForkStateManager;
 
   before(async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
   });
 
   beforeEach(async () => {
-    client = JsonRpcClient.forUrl(INFURA_URL!);
+    client = JsonRpcClient.forUrl(ALCHEMY_URL!);
     forkBlockNumber = await client.getLatestBlockNumber();
     fsm = new ForkStateManager(client, forkBlockNumber);
   });

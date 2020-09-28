@@ -28,7 +28,8 @@ describe("Scripts runner", function () {
 
   it("Should run the script to completion", async function () {
     const before = new Date();
-    await runScript("./async-script.js");
+    const status = await runScript("./async-script.js");
+    assert.equal(status, 123);
     const after = new Date();
 
     assert.isAtLeast(after.getTime() - before.getTime(), 100);

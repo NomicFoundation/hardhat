@@ -1,3 +1,4 @@
+import debug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -21,6 +22,8 @@ export interface CompilersList {
   latestRelease: string;
 }
 
+const log = debug("buidler:core:solidity:downloader");
+
 const COMPILER_FILES_DIR_URL = "https://solc-bin.ethereum.org/bin/";
 
 const COMPILERS_LIST_URL = `${COMPILER_FILES_DIR_URL}list.json`;
@@ -29,12 +32,8 @@ async function downloadFile(
   url: string,
   destinationFile: string
 ): Promise<void> {
-  // This library indirectly validates the TLS certs, if it didn't this
-  // would be MITM-able.
-  const { default: download } = await import("download");
-  await download(url, path.dirname(destinationFile), {
-    filename: path.basename(destinationFile),
-  });
+  const { download } = await import("../../util/download");
+  await download(url, destinationFile);
 }
 
 export class CompilerDownloader {
@@ -63,6 +62,16 @@ export class CompilerDownloader {
     await this.verifyCompiler(compilerBuild, downloadedFilePath);
 
     return downloadedFilePath;
+  }
+
+  public async isCompilerDownloaded(version: string): Promise<boolean> {
+    const compilerBuild = await this.getCompilerBuild(version);
+    const downloadedFilePath = path.join(
+      this._compilersDir,
+      compilerBuild.path
+    );
+
+    return this._fileExists(downloadedFilePath);
   }
 
   public async getCompilerBuild(version: string): Promise<CompilerBuild> {
@@ -116,7 +125,7 @@ export class CompilerDownloader {
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
-    console.debug(`Downloading compiler version ${compilerBuild.version}`);
+    log(`Downloading compiler version ${compilerBuild.version}`);
 
     const compilerUrl = COMPILER_FILES_DIR_URL + compilerBuild.path;
 

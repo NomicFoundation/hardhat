@@ -1,4 +1,3 @@
-import download from "download";
 import fs from "fs";
 import path from "path";
 import solcWrapper from "solc/wrapper";
@@ -7,6 +6,7 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../src/internal/hardhat-network/stack-traces/compiler-types";
+import { download } from "../../../../src/internal/util/download";
 
 export interface CompilerOptions {
   solidityVersion: string;
@@ -68,25 +68,35 @@ function loadCompilerSources(compilerPath: string) {
   return loadedSolc;
 }
 
+export const COMPILER_DOWNLOAD_TIMEOUT = 10000;
+
+function getCompilersDownloadDir() {
+  return path.join(__dirname, "compilers");
+}
+
+function getCompilerDownloadPath(compilerPath: string) {
+  const compilersDir = getCompilersDownloadDir();
+  return path.join(compilersDir, compilerPath);
+}
+
+export async function downloadSolc(compilerPath: string): Promise<void> {
+  const absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
+  const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
+
+  if (fs.existsSync(absoluteCompilerPath)) {
+    return;
+  }
+
+  await download(compilerUrl, absoluteCompilerPath, COMPILER_DOWNLOAD_TIMEOUT);
+}
+
 async function getSolc(compilerPath: string): Promise<any> {
-  if (path.isAbsolute(compilerPath)) {
-    return solcWrapper(loadCompilerSources(compilerPath));
+  let absoluteCompilerPath = compilerPath;
+  if (!path.isAbsolute(absoluteCompilerPath)) {
+    absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
   }
 
-  const compilersDir = path.join(__dirname, "compilers");
-  const absoluteCompilerPath = path.join(compilersDir, compilerPath);
-
-  // download if necessary
-  if (!fs.existsSync(absoluteCompilerPath)) {
-    const compilerUrl = `https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/${compilerPath}`;
-    await download(compilerUrl, compilersDir, {
-      filename: path.basename(compilerPath),
-    });
-  }
-
-  const solc = solcWrapper(loadCompilerSources(absoluteCompilerPath));
-
-  return solc;
+  return solcWrapper(loadCompilerSources(absoluteCompilerPath));
 }
 
 export async function compile(

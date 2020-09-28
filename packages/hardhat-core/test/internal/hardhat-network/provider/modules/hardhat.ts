@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
 
-import { INFURA_URL } from "../../../../setup";
+import { ALCHEMY_URL } from "../../../../setup";
 import { assertInvalidArgumentsError } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { quantityToNumber } from "../../helpers/conversions";
@@ -72,7 +72,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_reset", function () {
         before(function () {
-          if (INFURA_URL === undefined) {
+          if (ALCHEMY_URL === undefined) {
             this.skip();
           }
         });
@@ -93,7 +93,7 @@ describe("Hardhat module", function () {
           ]);
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
-              jsonRpcUrl: INFURA_URL,
+              jsonRpcUrl: ALCHEMY_URL,
               blockNumber: "0",
             },
           ]);
@@ -101,7 +101,7 @@ describe("Hardhat module", function () {
 
         it("returns true", async function () {
           const result = await this.provider.send("hardhat_reset", [
-            { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+            { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
           ]);
           assert.isTrue(result);
         });
@@ -121,7 +121,7 @@ describe("Hardhat module", function () {
         function testForkedProviderBehaviour() {
           it("can reset the forked provider to a given forkBlockNumber", async function () {
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
           });
@@ -129,10 +129,10 @@ describe("Hardhat module", function () {
           it("can reset the forked provider to the latest block number", async function () {
             const initialBlock = await getLatestBlockNumber();
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
             ]);
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: INFURA_URL },
+              { jsonRpcUrl: ALCHEMY_URL },
             ]);
 
             // This condition is rather loose as Infura can sometimes return
@@ -156,14 +156,14 @@ describe("Hardhat module", function () {
 
           it("can reset the provider with a fork config", async function () {
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
           });
 
           it("can reset the provider with fork config back to normal config", async function () {
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: INFURA_URL, blockNumber: 123 },
+              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
             ]);
             await this.provider.send("hardhat_reset", []);
             assert.equal(await getLatestBlockNumber(), 0);

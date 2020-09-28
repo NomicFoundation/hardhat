@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import debug from "debug";
 import path from "path";
+import semver from "semver";
 
 import {
   Artifacts,
@@ -22,7 +23,6 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
-import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
 import { SolcInput } from "../types";
 
@@ -48,9 +48,11 @@ import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES,
   TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS,
-  TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END,
-  TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START,
+  TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_END,
+  TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_START,
   TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE,
+  TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_END,
+  TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_START,
   TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
 } from "./task-names";
@@ -355,12 +357,26 @@ export default function () {
           return { artifactsEmittedPerJob: [] };
         }
 
+        // sort compilation jobs by compiler version
+        const sortedCompilationJobs = compilationJobs
+          .slice()
+          .sort((job1, job2) => {
+            return semver.compare(
+              job1.getSolcConfig().version,
+              job2.getSolcConfig().version
+            );
+          });
+
         const artifactsEmittedPerJob: ArtifactsEmittedPerJob = [];
-        for (const compilationJob of compilationJobs) {
+        for (let i = 0; i < sortedCompilationJobs.length; i++) {
+          const compilationJob = sortedCompilationJobs[i];
+
           const { artifactsEmittedPerFile } = await run(
             TASK_COMPILE_SOLIDITY_COMPILE_JOB,
             {
               compilationJob,
+              compilationJobs: sortedCompilationJobs,
+              compilationJobIndex: i,
               quiet,
             }
           );
@@ -394,14 +410,67 @@ export default function () {
       }
     );
 
+  internalTask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_START)
+    .addParam("isCompilerDownloaded", undefined, undefined, types.boolean)
+    .addParam("quiet", undefined, undefined, types.boolean)
+    .addParam("solcVersion", undefined, undefined, types.string)
+    .setAction(
+      async ({
+        isCompilerDownloaded,
+        quiet,
+        solcVersion,
+      }: {
+        isCompilerDownloaded: boolean;
+        quiet: boolean;
+        solcVersion: string;
+      }) => {
+        if (quiet || isCompilerDownloaded) {
+          return;
+        }
+
+        process.stdout.write(`Downloading solcjs ${solcVersion}... `);
+      }
+    );
+
+  internalTask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_END)
+    .addParam("isCompilerDownloaded", undefined, undefined, types.boolean)
+    .addParam("quiet", undefined, undefined, types.boolean)
+    .addParam("solcVersion", undefined, undefined, types.string)
+    .setAction(
+      async ({
+        isCompilerDownloaded,
+        quiet,
+      }: {
+        isCompilerDownloaded: boolean;
+        quiet: boolean;
+        solcVersion: string;
+      }) => {
+        if (quiet || isCompilerDownloaded) {
+          return;
+        }
+
+        console.log(chalk.green("✓"));
+      }
+    );
+
   /**
    * Receives a solc version and returns an absolute path to a solcjs module
    * for that version.
    */
   internalTask(TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH)
+    .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
     .setAction(
-      async ({ solcVersion }: { solcVersion: string }): Promise<string> => {
+      async (
+        {
+          quiet,
+          solcVersion,
+        }: {
+          quiet: boolean;
+          solcVersion: string;
+        },
+        { run }
+      ): Promise<string> => {
         const { CompilerDownloader } = await import(
           "../internal/solidity/compiler/downloader"
         );
@@ -409,9 +478,25 @@ export default function () {
         const compilersCache = await getCompilersDir();
         const downloader = new CompilerDownloader(compilersCache);
 
+        const isCompilerDownloaded = await downloader.isCompilerDownloaded(
+          solcVersion
+        );
+
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_START, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
+
         const solcJsPath = await downloader.getDownloadedCompilerPath(
           solcVersion
         );
+
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_END, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
 
         return solcJsPath;
       }
@@ -448,22 +533,56 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_COMPILE_SOLCJS)
     .addParam("input", undefined, undefined, types.any)
+    .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
+    .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("compilationJobIndex", undefined, undefined, types.int)
     .setAction(
       async (
-        { input, solcVersion }: { input: SolcInput; solcVersion: string },
+        {
+          input,
+          quiet,
+          solcVersion,
+          compilationJob,
+          compilationJobs,
+          compilationJobIndex,
+        }: {
+          input: SolcInput;
+          quiet: boolean;
+          solcVersion: string;
+          compilationJob: CompilationJob;
+          compilationJobs: CompilationJob[];
+          compilationJobIndex: number;
+        },
         { run }
       ) => {
         const solcJsPath: string = await run(
           TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH,
           {
+            quiet,
             solcVersion,
           }
         );
 
+        await run(TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_START, {
+          compilationJob,
+          compilationJobs,
+          compilationJobIndex,
+          quiet,
+        });
+
         const output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLCJS, {
           input,
           solcJsPath,
+        });
+
+        await run(TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_END, {
+          compilationJob,
+          compilationJobs,
+          compilationJobIndex,
+          output,
+          quiet,
         });
 
         return output;
@@ -492,6 +611,10 @@ export default function () {
     .setAction(async ({ output }: { output: any; quiet: boolean }) => {
       if (output?.errors === undefined) {
         return;
+      }
+
+      if (hasCompilationErrors(output)) {
+        console.log(chalk.red("×"));
       }
 
       for (const error of output.errors) {
@@ -530,10 +653,7 @@ export default function () {
           quiet,
         });
 
-        const hasErrors =
-          output.errors &&
-          output.errors.some((x: any) => x.severity === "error");
-
+        const hasErrors = hasCompilationErrors(output);
         if (hasErrors || !output.contracts) {
           log(
             `Compilation failure. hasErrors='${hasErrors}' output.contracts='${!!output.contracts}'`
@@ -634,54 +754,102 @@ export default function () {
     );
 
   /**
-   * Prints a message before starting the compilation of a job.
+   * Prints a message before running soljs with some input.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START)
+  internalTask(TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_START)
     .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("compilationJobIndex", undefined, undefined, types.int)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async ({
-        compilationJob,
+        compilationJobs,
+        compilationJobIndex,
         quiet,
       }: {
         compilationJob: CompilationJob;
-        quiet: boolean;
-      }) => {
-        if (!quiet) {
-          console.log(
-            `Compiling with ${compilationJob.getSolcConfig().version}`
-          );
-        }
-      }
-    );
-
-  /**
-   * Prints a message after compiling a job.
-   */
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END)
-    .addParam("compilationJob", undefined, undefined, types.any)
-    .addParam("artifactsEmittedPerFile", undefined, undefined, types.any)
-    .addParam("quiet", undefined, undefined, types.boolean)
-    .setAction(
-      async ({
-        artifactsEmittedPerFile,
-        quiet,
-      }: {
-        compilationJob: CompilationJob;
-        artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+        compilationJobs: CompilationJob[];
+        compilationJobIndex: number;
         quiet: boolean;
       }) => {
         if (quiet) {
           return;
         }
 
-        const numberOfContracts = artifactsEmittedPerFile.length;
-        console.log(
-          "Compiled",
-          numberOfContracts,
-          pluralize(numberOfContracts, "contract"),
-          "successfully"
+        const solcVersion = compilationJobs[compilationJobIndex].getSolcConfig()
+          .version;
+
+        // we log if this is the first job, or if the previous job has a
+        // different solc version
+        const shouldLog =
+          compilationJobIndex === 0 ||
+          compilationJobs[compilationJobIndex - 1].getSolcConfig().version !==
+            solcVersion;
+
+        if (!shouldLog) {
+          return;
+        }
+
+        // count how many files emit artifacts for this version
+        let count = 0;
+        for (let i = compilationJobIndex; i < compilationJobs.length; i++) {
+          const job = compilationJobs[i];
+          if (job.getSolcConfig().version !== solcVersion) {
+            break;
+          }
+
+          count += job
+            .getResolvedFiles()
+            .filter((file) => job.emitsArtifacts(file)).length;
+        }
+
+        process.stdout.write(
+          `Compiling ${count} files with ${solcVersion}... `
         );
+      }
+    );
+
+  /**
+   * Prints a message after compiling some input
+   */
+  internalTask(TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_END)
+    .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("compilationJobIndex", undefined, undefined, types.int)
+    .addParam("output", undefined, undefined, types.any)
+    .addParam("quiet", undefined, undefined, types.boolean)
+    .setAction(
+      async ({
+        compilationJobs,
+        compilationJobIndex,
+        output,
+        quiet,
+      }: {
+        compilationJob: CompilationJob;
+        compilationJobs: CompilationJob[];
+        compilationJobIndex: number;
+        output: any;
+        quiet: boolean;
+      }) => {
+        if (quiet || hasCompilationErrors(output)) {
+          return;
+        }
+
+        const solcVersion = compilationJobs[compilationJobIndex].getSolcConfig()
+          .version;
+
+        // we log if this is the last job, or if the next job has a
+        // different solc version
+        const shouldLog =
+          compilationJobIndex + 1 === compilationJobs.length ||
+          compilationJobs[compilationJobIndex + 1].getSolcConfig().version !==
+            solcVersion;
+
+        if (!shouldLog) {
+          return;
+        }
+
+        console.log(chalk.green("✓"));
       }
     );
 
@@ -691,14 +859,20 @@ export default function () {
    */
   internalTask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
     .addParam("compilationJob", undefined, undefined, types.any)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("compilationJobIndex", undefined, undefined, types.int)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async (
         {
           compilationJob,
+          compilationJobs,
+          compilationJobIndex,
           quiet,
         }: {
           compilationJob: CompilationJob;
+          compilationJobs: CompilationJob[];
+          compilationJobIndex: number;
           quiet: boolean;
         },
         { run }
@@ -708,11 +882,6 @@ export default function () {
             compilationJob.getSolcConfig().version
           }'`
         );
-        await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_START, {
-          compilationJob,
-          quiet,
-        });
-
         const input: SolcInput = await run(
           TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
           {
@@ -723,6 +892,10 @@ export default function () {
         const output = await run(TASK_COMPILE_SOLIDITY_COMPILE, {
           solcVersion: compilationJob.getSolcConfig().version,
           input,
+          quiet,
+          compilationJob,
+          compilationJobs,
+          compilationJobIndex,
         });
 
         await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
@@ -735,12 +908,6 @@ export default function () {
             output,
           }
         );
-
-        await run(TASK_COMPILE_SOLIDITY_LOG_COMPILE_JOB_END, {
-          compilationJob,
-          artifactsEmittedPerFile,
-          quiet,
-        });
 
         return { artifactsEmittedPerFile };
       }
@@ -831,21 +998,24 @@ export default function () {
         let errorMessage =
           "The project couldn't be compiled, see reasons below.\n\n";
         if (incompatibleOverridenSolc.length > 0) {
-          errorMessage += `These files have overriden compilations that are incompatible with their version pragmas:
+          errorMessage += `The compiler version for the following files is fixed through an override in your
+config file to a version that is incompatible with their version pragmas.
 
 ${incompatibleOverridenSolc.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
         if (noCompatibleSolc.length > 0) {
-          errorMessage += `These files don't match any compiler in your config:
+          errorMessage += `The pragma statement in these files don't match any of the configured compilers
+in your config. Change the pragma or configure additional compiler versions in
+your hardhat config.
 
 ${noCompatibleSolc.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
         if (importsIncompatibleFile.length > 0) {
-          errorMessage += `These files have imports with incompatible pragmas:
+          errorMessage += `These files import other files that use a different and incompatible version of Solidity:
 
 ${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
 
@@ -858,6 +1028,9 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
+
+        errorMessage += `Learn more about compiler configuration at https://usehardhat.com/configuration
+`;
 
         return errorMessage;
       }
@@ -1057,4 +1230,10 @@ function needsCompilation(
   }
 
   return false;
+}
+
+function hasCompilationErrors(output: any): boolean {
+  return (
+    output.errors && output.errors.some((x: any) => x.severity === "error")
+  );
 }

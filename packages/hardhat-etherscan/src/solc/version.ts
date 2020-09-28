@@ -8,8 +8,7 @@ import {
   VersionNotFoundError,
 } from "./metadata";
 
-const COMPILERS_LIST_URL =
-  "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json";
+const COMPILERS_LIST_URL = "https://solc-bin.ethereum.org/bin/list.json";
 
 // Non-exhaustive interface for the official compiler list.
 export interface CompilersList {

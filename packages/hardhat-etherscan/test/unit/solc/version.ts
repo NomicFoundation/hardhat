@@ -13,8 +13,8 @@ import {
 
 describe("solc version retrieval tests", () => {
   it("solc version with commit is returned", async () => {
-    nock("https://raw.githubusercontent.com")
-      .get("/ethereum/solc-bin/gh-pages/bin/list.json")
+    nock("https://solc-bin.ethereum.org")
+      .get("/bin/list.json")
       .reply(200, {
         releases: {
           "0.5.1": "soljson-v0.5.1-commitsomething.js",
@@ -26,9 +26,7 @@ describe("solc version retrieval tests", () => {
   });
 
   it("an exception is thrown if there was an error sending request", async () => {
-    nock("https://raw.githubusercontent.com")
-      .get("/ethereum/solc-bin/gh-pages/bin/list.json")
-      .reply(404);
+    nock("https://solc-bin.ethereum.org").get("/bin/list.json").reply(404);
 
     return getLongVersion("0.5.1").catch((e) =>
       assert.isTrue(e instanceof HardhatPluginError)
@@ -36,8 +34,8 @@ describe("solc version retrieval tests", () => {
   });
 
   it("an exception is thrown if the specified version doesn't exist", async () => {
-    nock("https://raw.githubusercontent.com")
-      .get("/ethereum/solc-bin/gh-pages/bin/list.json")
+    nock("https://solc-bin.ethereum.org")
+      .get("/bin/list.json")
       .reply(200, {
         releases: {
           "0.5.2": "soljson-v0.5.2-commitsomething.js",
