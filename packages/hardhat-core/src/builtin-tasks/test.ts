@@ -77,7 +77,7 @@ export default function () {
         { run, network }
       ) => {
         if (!noCompile) {
-          await run(TASK_COMPILE);
+          await run(TASK_COMPILE, { quiet: true });
         }
 
         const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
