@@ -489,7 +489,7 @@ export default function () {
   internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     .addParam("output", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
-    .setAction(async ({ output }: { output: any; quiet: boolean }) => {
+    .setAction(async ({ output, quiet }: { output: any; quiet: boolean }) => {
       if (output?.errors === undefined) {
         return;
       }
@@ -498,7 +498,9 @@ export default function () {
         if (error.severity === "error") {
           console.error(chalk.red(error.formattedMessage));
         } else {
-          console.warn(chalk.yellow(error.formattedMessage));
+          if (!quiet) {
+            console.warn(chalk.yellow(error.formattedMessage));
+          }
         }
       }
 
