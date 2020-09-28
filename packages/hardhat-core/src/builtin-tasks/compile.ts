@@ -581,6 +581,7 @@ export default function () {
           compilationJob,
           compilationJobs,
           compilationJobIndex,
+          output,
           quiet,
         });
 
@@ -612,7 +613,9 @@ export default function () {
         return;
       }
 
-      console.log(chalk.red("×"));
+      if (hasCompilationErrors(output)) {
+        console.log(chalk.red("×"));
+      }
 
       for (const error of output.errors) {
         if (error.severity === "error") {
@@ -650,10 +653,7 @@ export default function () {
           quiet,
         });
 
-        const hasErrors =
-          output.errors &&
-          output.errors.some((x: any) => x.severity === "error");
-
+        const hasErrors = hasCompilationErrors(output);
         if (hasErrors || !output.contracts) {
           log(
             `Compilation failure. hasErrors='${hasErrors}' output.contracts='${!!output.contracts}'`
@@ -816,19 +816,22 @@ export default function () {
     .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("compilationJobs", undefined, undefined, types.any)
     .addParam("compilationJobIndex", undefined, undefined, types.int)
+    .addParam("output", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
       async ({
         compilationJobs,
         compilationJobIndex,
+        output,
         quiet,
       }: {
         compilationJob: CompilationJob;
         compilationJobs: CompilationJob[];
         compilationJobIndex: number;
+        output: any;
         quiet: boolean;
       }) => {
-        if (quiet) {
+        if (quiet || hasCompilationErrors(output)) {
           return;
         }
 
@@ -1227,4 +1230,10 @@ function needsCompilation(
   }
 
   return false;
+}
+
+function hasCompilationErrors(output: any): boolean {
+  return (
+    output.errors && output.errors.some((x: any) => x.severity === "error")
+  );
 }
