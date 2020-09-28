@@ -358,6 +358,15 @@ describe("Evm module", function () {
         });
 
         describe("evm_revert", async function () {
+          let sinonClock: sinon.SinonFakeTimers | undefined;
+
+          afterEach(function () {
+            if (sinonClock !== undefined) {
+              sinonClock.restore();
+              sinonClock = undefined;
+            }
+          });
+
           it("Returns false for non-existing ids", async function () {
             const reverted1: boolean = await this.provider.send("evm_revert", [
               "0x1",
@@ -595,7 +604,11 @@ describe("Evm module", function () {
                 false,
               ]);
             };
-            const clock = sinon.useFakeTimers(Date.now());
+
+            sinonClock = sinon.useFakeTimers({
+              now: Date.now(),
+              toFake: ["Date"],
+            });
 
             await this.provider.send("evm_increaseTime", [100]);
             const snapshotBlock = await mineEmptyBlock();
@@ -606,7 +619,7 @@ describe("Evm module", function () {
               getCurrentTimestamp() + 100
             );
 
-            clock.tick(20 * 1000);
+            sinonClock.tick(20 * 1000);
 
             await this.provider.send("evm_revert", [snapshotId]);
             const afterRevertBlock = await mineEmptyBlock();
@@ -617,8 +630,6 @@ describe("Evm module", function () {
               quantityToNumber(afterRevertBlock.timestamp),
               quantityToNumber(snapshotBlock.timestamp) + 1
             );
-
-            clock.restore();
           });
 
           it("Restores the previous state", async function () {
