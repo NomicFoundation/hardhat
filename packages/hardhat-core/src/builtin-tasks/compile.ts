@@ -428,7 +428,7 @@ export default function () {
           return;
         }
 
-        process.stdout.write(`Downloading compiler ${solcVersion}... `);
+        process.stdout.write(`Downloading solcjs ${solcVersion}... `);
       }
     );
 
