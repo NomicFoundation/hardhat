@@ -40,7 +40,10 @@ export class Parser {
 
       result = { imports, versionPragmas };
     } catch (error) {
-      log("Failed to parse Solidity file to extract its imports\n", error);
+      log(
+        "Failed to parse Solidity file to extract its imports, using regex fallback\n",
+        error
+      );
       result = {
         imports: findImportsWithRegexps(fileContent),
         versionPragmas: findVersionPragmasWithRegexps(fileContent),
