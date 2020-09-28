@@ -127,15 +127,10 @@ function defineTest(
   const func = async function (this: Mocha.Context) {
     this.timeout(TEST_TIMEOUT_MILLIS);
 
-    try {
-      await runTest(dirPath, testDefinition, sources, {
-        ...compilerOptions,
-        runs,
-      });
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
+    await runTest(dirPath, testDefinition, sources, {
+      ...compilerOptions,
+      runs,
+    });
   };
 
   if (
