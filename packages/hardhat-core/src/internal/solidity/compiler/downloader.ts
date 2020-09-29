@@ -39,8 +39,6 @@ export interface CompilersList {
 const log = debug("buidler:core:solidity:downloader");
 
 const COMPILER_FILES_DIR_URL_SOLC = "https://solc-bin.ethereum.org/";
-const COMPILER_FILES_DIR_URL_SOLC_MAC =
-  "https://raw.githubusercontent.com/cameel/solc-bin/macosx-static-binaries";
 
 async function downloadFile(
   url: string,
@@ -282,9 +280,6 @@ export class CompilerDownloader {
 }
 
 function getCompilerURL(platform: CompilerPlatform, filePath: string) {
-  if (platform === CompilerPlatform.MACOS) {
-    return `${COMPILER_FILES_DIR_URL_SOLC_MAC}${platform}/${filePath}`;
-  }
   return `${COMPILER_FILES_DIR_URL_SOLC}${platform}/${filePath}`;
 }
 
