@@ -79,6 +79,7 @@
     "@types/bn.js": "^4.11.5",
     "@types/lru-cache": "^5.1.0",
     "abort-controller": "^3.0.0",
+    "adm-zip": "^0.4.16",
     "ansi-escapes": "^4.3.0",
     "chalk": "^2.4.2",
     "chokidar": "^3.4.0",

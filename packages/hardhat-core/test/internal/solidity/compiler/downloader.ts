@@ -6,6 +6,7 @@ import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   CompilerBuild,
   CompilerDownloader,
+  CompilerPlatform,
   CompilersList,
 } from "../../../../src/internal/solidity/compiler/downloader";
 import { expectHardhatErrorAsync } from "../../../helpers/errors";
@@ -35,6 +36,7 @@ describe("Compiler downloader", function () {
       urls: [
         "bzzr://130bff47eed9546c6a4d019c6281896186cf2368b766b16bc49b3d489b6cdb92",
       ],
+      platform: CompilerPlatform.DEFAULT,
     };
 
     mockCompilerList = {
@@ -48,8 +50,10 @@ describe("Compiler downloader", function () {
 
   describe("Downloaded compiler verification", function () {
     it("Shouldn't do anything if the compiler is fine", async function () {
-      const downloader = new CompilerDownloader(this.tmpDir, async () => {
-        throw new Error("This shouldn't be called");
+      const downloader = new CompilerDownloader(this.tmpDir, {
+        download: async () => {
+          throw new Error("This shouldn't be called");
+        },
       });
       const compilerBin = require.resolve("solc/soljson.js");
       await downloader.verifyCompiler(localCompilerBuild, compilerBin);
@@ -60,8 +64,10 @@ describe("Compiler downloader", function () {
       const corruptCompilerBin = path.join(compilersDir, "asd");
       await fsExtra.createFile(corruptCompilerBin);
 
-      const downloader = new CompilerDownloader(compilersDir, async () => {
-        throw new Error("Expected");
+      const downloader = new CompilerDownloader(compilersDir, {
+        download: async () => {
+          throw new Error("Expected");
+        },
       });
 
       await expectHardhatErrorAsync(
@@ -82,13 +88,12 @@ describe("Compiler downloader", function () {
       let urlUsed: string | undefined;
       let pathUsed: string | undefined;
 
-      const downloader = new CompilerDownloader(
-        compilersDir,
-        async (url, compilerPath) => {
+      const downloader = new CompilerDownloader(compilersDir, {
+        download: async (url, compilerPath) => {
           urlUsed = url;
           pathUsed = compilerPath;
-        }
-      );
+        },
+      });
 
       await downloader.downloadCompiler(localCompilerBuild, downloadPath);
 
@@ -100,12 +105,11 @@ describe("Compiler downloader", function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompiler");
 
-      const downloader = new CompilerDownloader(
-        compilersDir,
-        async (url, compilerPath) => {
+      const downloader = new CompilerDownloader(compilersDir, {
+        download: async (url, compilerPath) => {
           throw new Error("Expected");
-        }
-      );
+        },
+      });
 
       await expectHardhatErrorAsync(
         () => downloader.downloadCompiler(localCompilerBuild, downloadPath),
@@ -122,30 +126,31 @@ describe("Compiler downloader", function () {
       let urlUsed: string | undefined;
       let pathUsed: string | undefined;
 
-      const downloader = new CompilerDownloader(
-        compilersDir,
-        async (url, compilerPath) => {
+      const downloader = new CompilerDownloader(compilersDir, {
+        download: async (url, compilerPath) => {
           urlUsed = url;
           pathUsed = compilerPath;
-        }
-      );
+        },
+      });
 
-      await downloader.downloadCompilersList();
+      await downloader.downloadCompilersList(CompilerPlatform.DEFAULT);
 
       assert.equal(urlUsed, expectedUrl);
-      assert.equal(pathUsed, path.join(compilersDir, "list.json"));
+      assert.equal(
+        pathUsed,
+        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json")
+      );
     });
 
     it("Should throw the right error if the download fails", async function () {
-      const downloader = new CompilerDownloader(
-        this.tmpDir,
-        async (url, compilerPath) => {
+      const downloader = new CompilerDownloader(this.tmpDir, {
+        download: async (url, compilerPath) => {
           throw new Error("Expected");
-        }
-      );
+        },
+      });
 
       await expectHardhatErrorAsync(
-        () => downloader.downloadCompilersList(),
+        () => downloader.downloadCompilersList(CompilerPlatform.DEFAULT),
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED
       );
     });
@@ -154,19 +159,29 @@ describe("Compiler downloader", function () {
   describe("Compilers list exists", function () {
     it("Should return true if it does", async function () {
       const compilersDir = this.tmpDir;
-      await fsExtra.createFile(path.join(compilersDir, "list.json"));
+      await fsExtra.createFile(
+        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json")
+      );
 
-      const downloader = new CompilerDownloader(compilersDir, async () => {
-        throw new Error("This shouldn't be called");
+      const downloader = new CompilerDownloader(compilersDir, {
+        download: async () => {
+          throw new Error("This shouldn't be called");
+        },
       });
-      assert.isTrue(await downloader.compilersListExists());
+      assert.isTrue(
+        await downloader.compilersListExists(CompilerPlatform.DEFAULT)
+      );
     });
 
     it("should return false if it doesn't", async function () {
-      const downloader = new CompilerDownloader(this.tmpDir, async () => {
-        throw new Error("This shouldn't be called");
+      const downloader = new CompilerDownloader(this.tmpDir, {
+        download: async () => {
+          throw new Error("This shouldn't be called");
+        },
       });
-      assert.isFalse(await downloader.compilersListExists());
+      assert.isFalse(
+        await downloader.compilersListExists(CompilerPlatform.DEFAULT)
+      );
     });
   });
 
@@ -180,15 +195,18 @@ describe("Compiler downloader", function () {
 
       downloadCalled = false;
 
-      mockDownloader = new CompilerDownloader(compilersDir, async () => {
-        downloadCalled = true;
-        await saveMockCompilersList();
+      mockDownloader = new CompilerDownloader(compilersDir, {
+        download: async () => {
+          downloadCalled = true;
+          await saveMockCompilersList();
+        },
+        forceSolcJs: true,
       });
     });
 
     async function saveMockCompilersList() {
       await fsExtra.outputJSON(
-        path.join(compilersDir, "list.json"),
+        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json"),
         mockCompilerList
       );
     }
@@ -200,12 +218,14 @@ describe("Compiler downloader", function () {
 
       describe("getCompilersList", function () {
         it("Doesn't download the list again", async function () {
-          await mockDownloader.getCompilersList();
+          await mockDownloader.getCompilersList(CompilerPlatform.DEFAULT);
           assert.isFalse(downloadCalled);
         });
 
         it("Returns the right list", async function () {
-          const list = await mockDownloader.getCompilersList();
+          const list = await mockDownloader.getCompilersList(
+            CompilerPlatform.DEFAULT
+          );
           assert.deepEqual(list, mockCompilerList);
         });
       });
@@ -248,7 +268,7 @@ describe("Compiler downloader", function () {
     describe("When there isn't", function () {
       describe("getCompilersList", function () {
         it("Downloads the compilers list", async function () {
-          await mockDownloader.getCompilersList();
+          await mockDownloader.getCompilersList(CompilerPlatform.DEFAULT);
           assert.isTrue(downloadCalled);
         });
       });
@@ -271,18 +291,25 @@ describe("Compiler downloader", function () {
     beforeEach(async function () {
       compilersDir = this.tmpDir;
 
-      downloadedPath = path.join(compilersDir, localCompilerBuild.path);
+      downloadedPath = path.join(
+        compilersDir,
+        CompilerPlatform.DEFAULT,
+        localCompilerBuild.path
+      );
 
       downloadCalled = false;
       await fsExtra.outputJSON(
-        path.join(compilersDir, "list.json"),
+        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json"),
         mockCompilerList
       );
 
-      mockDownloader = new CompilerDownloader(compilersDir, async () => {
-        downloadCalled = true;
-        // Just create an empty file
-        await fsExtra.createFile(downloadedPath);
+      mockDownloader = new CompilerDownloader(compilersDir, {
+        download: async () => {
+          downloadCalled = true;
+          // Just create an empty file
+          await fsExtra.createFile(downloadedPath);
+        },
+        forceSolcJs: true,
       });
     });
 
@@ -291,7 +318,7 @@ describe("Compiler downloader", function () {
         const compilerBin = require.resolve("solc/soljson.js");
         await fsExtra.copy(compilerBin, downloadedPath);
 
-        const compilerPath = await mockDownloader.getDownloadedCompilerPath(
+        const { compilerPath } = await mockDownloader.getDownloadedCompilerPath(
           localCompilerBuild.version
         );
         assert.equal(compilerPath, downloadedPath);

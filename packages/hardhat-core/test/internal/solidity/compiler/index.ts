@@ -12,7 +12,7 @@ describe("Compiler", () => {
 
   let downloader: CompilerDownloader;
   let optimizerConfig: SolcOptimizerConfig;
-  let solcJsPath: string;
+  let solcPath: string;
 
   before(function () {
     optimizerConfig = {
@@ -22,8 +22,13 @@ describe("Compiler", () => {
   });
 
   beforeEach(async function () {
-    downloader = new CompilerDownloader(this.tmpDir);
-    solcJsPath = await downloader.getDownloadedCompilerPath(solcVersion);
+    downloader = new CompilerDownloader(this.tmpDir, {
+      forceSolcJs: true,
+    });
+    const { compilerPath } = await downloader.getDownloadedCompilerPath(
+      solcVersion
+    );
+    solcPath = compilerPath;
   });
 
   it("Should compile contracts correctly", async () => {
@@ -52,7 +57,7 @@ contract A {}
       },
     };
 
-    const compiler = new Compiler(solcJsPath);
+    const compiler = new Compiler(solcPath);
 
     compiler
       .compile(input)
@@ -96,7 +101,7 @@ contract A {}
       },
     };
 
-    const compiler = new Compiler(solcJsPath);
+    const compiler = new Compiler(solcPath);
 
     const output = await compiler.compile(input);
     assert.isDefined(output.errors);
