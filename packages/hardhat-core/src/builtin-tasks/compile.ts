@@ -434,7 +434,7 @@ export default function () {
           return;
         }
 
-        process.stdout.write(`Downloading compiler ${solcVersion}... `);
+        console.log(`Downloading compiler ${solcVersion}`);
       }
     );
 
@@ -443,20 +443,11 @@ export default function () {
     .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
     .setAction(
-      async ({
-        isCompilerDownloaded,
-        quiet,
-      }: {
+      async ({}: {
         isCompilerDownloaded: boolean;
         quiet: boolean;
         solcVersion: string;
-      }) => {
-        if (quiet || isCompilerDownloaded) {
-          return;
-        }
-
-        console.log(chalk.green("✓"));
-      }
+      }) => {}
     );
 
   /**
@@ -683,10 +674,6 @@ export default function () {
         return;
       }
 
-      if (hasCompilationErrors(output)) {
-        console.log(chalk.red("×"));
-      }
-
       for (const error of output.errors) {
         if (error.severity === "error") {
           console.error(chalk.red(error.formattedMessage));
@@ -871,9 +858,7 @@ export default function () {
             .filter((file) => job.emitsArtifacts(file)).length;
         }
 
-        process.stdout.write(
-          `Compiling ${count} files with ${solcVersion}... `
-        );
+        console.log(`Compiling ${count} files with ${solcVersion}`);
       }
     );
 
@@ -887,38 +872,13 @@ export default function () {
     .addParam("output", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
-      async ({
-        compilationJobs,
-        compilationJobIndex,
-        output,
-        quiet,
-      }: {
+      async ({}: {
         compilationJob: CompilationJob;
         compilationJobs: CompilationJob[];
         compilationJobIndex: number;
         output: any;
         quiet: boolean;
-      }) => {
-        if (quiet || hasCompilationErrors(output)) {
-          return;
-        }
-
-        const solcVersion = compilationJobs[compilationJobIndex].getSolcConfig()
-          .version;
-
-        // we log if this is the last job, or if the next job has a
-        // different solc version
-        const shouldLog =
-          compilationJobIndex + 1 === compilationJobs.length ||
-          compilationJobs[compilationJobIndex + 1].getSolcConfig().version !==
-            solcVersion;
-
-        if (!shouldLog) {
-          return;
-        }
-
-        console.log(chalk.green("✓"));
-      }
+      }) => {}
     );
 
   /**
