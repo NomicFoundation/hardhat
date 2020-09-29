@@ -4,6 +4,8 @@ import path from "path";
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { internalTask, task } from "../internal/core/config/config-env";
 import { isTypescriptSupported } from "../internal/core/typescript-support";
+import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/disk-cache";
+import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
 
@@ -12,6 +14,7 @@ import {
   TASK_TEST,
   TASK_TEST_GET_TEST_FILES,
   TASK_TEST_RUN_MOCHA_TESTS,
+  TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS,
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "./task-names";
 
@@ -58,6 +61,17 @@ export default function () {
       process.exitCode = await runPromise;
     });
 
+  internalTask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
+    async (_, { config, network }) => {
+      if (network.name !== HARDHAT_NETWORK_NAME) {
+        return;
+      }
+
+      const forkCache = getForkCacheDirPath(config.paths);
+      await showForkRecommendationsBannerIfNecessary(network.config, forkCache);
+    }
+  );
+
   task(TASK_TEST, "Runs mocha tests")
     .addOptionalVariadicPositionalParam(
       "testFiles",
@@ -81,7 +95,11 @@ export default function () {
         }
 
         const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
+
         await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
+
+        await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS);
+
         await run(TASK_TEST_RUN_MOCHA_TESTS, { testFiles: files });
 
         if (network.name !== HARDHAT_NETWORK_NAME) {

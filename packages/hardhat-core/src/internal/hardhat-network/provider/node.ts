@@ -104,7 +104,8 @@ export class HardhatNode extends EventEmitter {
 
     if (config.type === "forked") {
       const { forkClient, forkBlockNumber } = await makeForkClient(
-        config.forkConfig
+        config.forkConfig,
+        config.forkCachePath
       );
       common = await makeForkCommon(forkClient, forkBlockNumber);
 

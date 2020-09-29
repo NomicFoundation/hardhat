@@ -17,13 +17,19 @@ import {
 } from "./types";
 
 export class JsonRpcClient {
-  public static forUrl(url: string) {
-    return new JsonRpcClient(new HttpProvider(url, "external network"));
+  public static forUrl(url: string, forkCachePath?: string) {
+    return new JsonRpcClient(
+      new HttpProvider(url, "external network"),
+      forkCachePath
+    );
   }
 
   private _cache: Map<string, any> = new Map();
 
-  constructor(private _httpProvider: HttpProvider) {}
+  constructor(
+    private _httpProvider: HttpProvider,
+    private _forkCachePath?: string
+  ) {}
 
   public async getLatestBlockNumber(): Promise<BN> {
     return this._perform("eth_blockNumber", [], rpcQuantity);

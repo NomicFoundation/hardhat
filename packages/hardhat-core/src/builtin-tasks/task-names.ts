@@ -68,6 +68,8 @@ export const TASK_NODE = "node";
 
 export const TASK_TEST = "test";
 
+export const TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS =
+  "test:show-fork-recommendations";
 export const TASK_TEST_RUN_MOCHA_TESTS = "test:run-mocha-tests";
 export const TASK_TEST_GET_TEST_FILES = "test:get-test-files";
 export const TASK_TEST_SETUP_TEST_ENVIRONMENT = "test:setup-test-environment";

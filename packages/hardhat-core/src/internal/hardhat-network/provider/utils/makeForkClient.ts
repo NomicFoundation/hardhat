@@ -3,8 +3,12 @@ import { BN } from "ethereumjs-util";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { ForkConfig } from "../node-types";
 
-export async function makeForkClient(forkConfig: ForkConfig) {
-  const forkClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl);
+export async function makeForkClient(
+  forkConfig: ForkConfig,
+  forkCachePath?: string
+) {
+  const forkClient = JsonRpcClient.forUrl(forkConfig.jsonRpcUrl, forkCachePath);
+
   let forkBlockNumber;
   if (forkConfig.blockNumber !== undefined) {
     forkBlockNumber = new BN(forkConfig.blockNumber);
