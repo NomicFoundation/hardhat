@@ -316,8 +316,9 @@ export class EthModule {
       consoleLogMessages,
     } = await this._node.runCall(callParams, blockNumber);
 
+    await this._logCallTrace(callParams, trace);
+
     if (trace !== undefined) {
-      await this._logCallTrace(callParams, trace);
       await this._runHardhatNetworkMessageTraceHooks(trace, true);
     }
 
@@ -389,10 +390,7 @@ export class EthModule {
     } = await this._node.estimateGas(txParams, blockNumber);
 
     if (error !== undefined) {
-      if (trace !== undefined) {
-        await this._logEstimateGasTrace(txParams, trace);
-      }
-
+      await this._logEstimateGasTrace(txParams, trace);
       this._logConsoleLogMessages(consoleLogMessages);
 
       throw error;
@@ -1117,17 +1115,20 @@ export class EthModule {
 
   private async _logEstimateGasTrace(
     txParams: TransactionParams,
-    trace: MessageTrace
+    trace?: MessageTrace
   ) {
-    await this._logContractAndFunctionName(trace, true);
+    if (trace !== undefined) {
+      await this._logContractAndFunctionName(trace, true);
+    }
+
     this._logFrom(txParams.from);
-    this._logTo(trace, txParams.to);
+    this._logTo(txParams.to, trace);
     this._logValue(new BN(txParams.value));
   }
 
   private async _logTransactionTrace(
     tx: Transaction,
-    trace: MessageTrace,
+    trace: MessageTrace | undefined,
     block: Block,
     blockResult: RunBlockResult
   ) {
@@ -1135,10 +1136,13 @@ export class EthModule {
       return;
     }
 
-    await this._logContractAndFunctionName(trace, false);
+    if (trace !== undefined) {
+      await this._logContractAndFunctionName(trace, false);
+    }
+
     this._logger.logWithTitle("Transaction", bufferToHex(tx.hash(true)));
     this._logFrom(tx.getSenderAddress());
-    this._logTo(trace, tx.to);
+    this._logTo(tx.to, trace);
     this._logValue(new BN(tx.value));
     this._logger.logWithTitle(
       "Gas used",
@@ -1176,14 +1180,17 @@ export class EthModule {
     }
   }
 
-  private async _logCallTrace(callParams: CallParams, trace: MessageTrace) {
+  private async _logCallTrace(callParams: CallParams, trace?: MessageTrace) {
     if (this._logger === undefined) {
       return;
     }
 
-    await this._logContractAndFunctionName(trace, true);
+    if (trace !== undefined) {
+      await this._logContractAndFunctionName(trace, true);
+    }
+
     this._logFrom(callParams.from);
-    this._logTo(trace, callParams.to);
+    this._logTo(callParams.to, trace);
     if (callParams.value.gtn(0)) {
       this._logValue(callParams.value);
     }
@@ -1298,8 +1305,9 @@ export class EthModule {
       error,
     } = await this._node.runTransactionInNewBlock(tx);
 
+    await this._logTransactionTrace(tx, trace, block, blockResult);
+
     if (trace !== undefined) {
-      await this._logTransactionTrace(tx, trace, block, blockResult);
       await this._runHardhatNetworkMessageTraceHooks(trace, false);
     }
 
@@ -1319,12 +1327,12 @@ export class EthModule {
     return bufferToRpcData(tx.hash(true));
   }
 
-  private _logTo(trace: MessageTrace, to: Buffer) {
+  private _logTo(to: Buffer, trace?: MessageTrace) {
     if (this._logger === undefined) {
       return;
     }
 
-    if (isCreateTrace(trace)) {
+    if (trace !== undefined && isCreateTrace(trace)) {
       return;
     }
 
