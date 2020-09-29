@@ -1,6 +1,6 @@
 import { BN } from "ethereumjs-util";
 
-import { BuildInfo } from "../stack-traces/compiler-types";
+import { BuildInfo } from "../../../types";
 
 import { Block } from "./types/Block";
 

@@ -1,9 +1,6 @@
 import * as t from "io-ts";
 
-import {
-  CompilerInput,
-  CompilerOutput,
-} from "../../stack-traces/compiler-types";
+import { CompilerInput, CompilerOutput } from "../../../../types";
 import { MethodNotFoundError } from "../errors";
 import {
   rpcAddress,

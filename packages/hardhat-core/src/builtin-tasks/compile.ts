@@ -24,6 +24,7 @@ import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
+import { CompilerInput } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
 import {
   CompilationJob,
@@ -31,7 +32,6 @@ import {
   CompilationJobsCreationErrors,
   CompilationJobsCreationResult,
 } from "../types/builtin-tasks";
-import { SolcInput } from "../types/solidity";
 
 import {
   TASK_COMPILE,
@@ -392,7 +392,7 @@ export default function () {
     );
 
   /**
-   * Receives a compilation job and returns a SolcInput.
+   * Receives a compilation job and returns a CompilerInput.
    *
    * It's not recommended to override this task to modify the solc
    * configuration, override
@@ -405,7 +405,7 @@ export default function () {
         compilationJob,
       }: {
         compilationJob: CompilationJob;
-      }): Promise<SolcInput> => {
+      }): Promise<CompilerInput> => {
         return getInputFromCompilationJob(compilationJob);
       }
     );
@@ -514,7 +514,7 @@ export default function () {
         input,
         solcJsPath,
       }: {
-        input: SolcInput;
+        input: CompilerInput;
         solcJsPath: string;
       }) => {
         const compiler = new Compiler(solcJsPath);
@@ -526,7 +526,7 @@ export default function () {
     );
 
   /**
-   * Receives a SolcInput and a solc version, compiles the input using solcjs,
+   * Receives a CompilerInput and a solc version, compiles the input using solcjs,
    * and returns the generated output.
    *
    * This task can be overriden to change how solcjs is obtained or used.
@@ -548,7 +548,7 @@ export default function () {
           compilationJobs,
           compilationJobIndex,
         }: {
-          input: SolcInput;
+          input: CompilerInput;
           quiet: boolean;
           solcVersion: string;
           compilationJob: CompilationJob;
@@ -681,7 +681,7 @@ export default function () {
           output,
         }: {
           compilationJob: CompilationJob;
-          input: SolcInput;
+          input: CompilerInput;
           output: any;
         },
         { config, run }
@@ -884,7 +884,7 @@ export default function () {
             compilationJob.getSolcConfig().version
           }'`
         );
-        const input: SolcInput = await run(
+        const input: CompilerInput = await run(
           TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
           {
             compilationJob,
