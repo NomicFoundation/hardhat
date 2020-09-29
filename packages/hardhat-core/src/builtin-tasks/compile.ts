@@ -373,6 +373,8 @@ export default function () {
             );
           });
 
+        log(`Compiling ${sortedCompilationJobs.length} jobs`);
+
         const artifactsEmittedPerJob: ArtifactsEmittedPerJob = [];
         for (let i = 0; i < sortedCompilationJobs.length; i++) {
           const compilationJob = sortedCompilationJobs[i];
@@ -556,7 +558,7 @@ export default function () {
           const process = exec(
             `${solcPath} --standard-json`,
             {
-              maxBuffer: 1024 * 1024 * 10,
+              maxBuffer: 1024 * 1024 * 500,
             },
             (err, stdout) => {
               if (err !== null) {
