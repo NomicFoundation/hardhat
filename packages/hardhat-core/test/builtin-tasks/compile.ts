@@ -3,12 +3,12 @@ import * as fsExtra from "fs-extra";
 import * as path from "path";
 
 import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS } from "../../src/builtin-tasks/task-names";
+import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
+import { globSync } from "../../src/internal/util/glob";
 import {
   CompilationJobCreationError,
   CompilationJobsCreationErrors,
-} from "../../src/builtin-tasks/types";
-import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
-import { globSync } from "../../src/internal/util/glob";
+} from "../../src/types/builtin-tasks";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
