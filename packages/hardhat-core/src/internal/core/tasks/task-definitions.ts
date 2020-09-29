@@ -41,7 +41,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Creates an empty task definition.
    *
-   * This definition will have no params, and will throw a BDLR205 if executed.
+   * This definition will have no params, and will throw a HH205 if executed.
    *
    * @param name The task's name.
    * @param isInternal `true` if the task is internal, `false` otherwise.
@@ -417,7 +417,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   /**
    * Validates if the given param's name is after a variadic parameter.
    * @param name the param's name.
-   * @throws BDLR200
+   * @throws HH200
    */
   private _validateNotAfterVariadicParam(name: string) {
     if (this._hasVariadicParam) {
@@ -432,8 +432,8 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Validates if the param's name is already used.
    * @param name the param's name.
    *
-   * @throws BDLR201 if `name` is already used as a param.
-   * @throws BDLR202 if `name` is already used as a param by Hardhat
+   * @throws HH201 if `name` is already used as a param.
+   * @throws HH202 if `name` is already used as a param by Hardhat
    */
   private _validateNameNotUsed(name: string) {
     if (this._hasParamDefined(name)) {
@@ -471,7 +471,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * @param name the param's name to be added.
    * @param isOptional true if the new param is optional, false otherwise.
    *
-   * @throws BDLR203 if validation fail
+   * @throws HH203 if validation fail
    */
   private _validateNoMandatoryParamAfterOptionalOnes(
     name: string,
@@ -716,8 +716,8 @@ export class OverriddenTaskDefinition implements TaskDefinition {
 
   /**
    * Add a flag param to the overridden task.
-   * @throws BDLR201 if param name was already defined in any parent task.
-   * @throws BDLR209 if param name is not in camelCase.
+   * @throws HH201 if param name was already defined in any parent task.
+   * @throws HH209 if param name is not in camelCase.
    */
   public addFlag(name: string, description?: string): this {
     this.parentTaskDefinition.addFlag(name, description);

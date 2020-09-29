@@ -105,7 +105,7 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param name The task's name.
    * @param taskArguments A map of task's arguments.
    *
-   * @throws a BDLR303 if there aren't any defined tasks with the given name.
+   * @throws a HH303 if there aren't any defined tasks with the given name.
    * @returns a promise with the task's execution result.
    */
   public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
@@ -308,7 +308,7 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param paramDefinition {ParamDefinition} - the param definition for validation
    * @param argumentValue - the value to be validated
    * @private
-   * @throws BDLR301 if value is not valid for the param type
+   * @throws HH301 if value is not valid for the param type
    */
   private _checkTypeValidation(
     paramDefinition: ParamDefinition<any>,

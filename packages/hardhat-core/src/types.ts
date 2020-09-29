@@ -200,7 +200,7 @@ export interface ArgumentType<T> {
    * @param argName {string} argument's name - used for context in case of error.
    * @param argumentValue - value to be validated
    *
-   * @throws BDLR301 if value is not of type <t>
+   * @throws HH301 if value is not of type <t>
    */
   validate(argName: string, argumentValue: any): void;
 }
@@ -213,7 +213,7 @@ export interface ArgumentType<T> {
  */
 export interface CLIArgumentType<T> extends ArgumentType<T> {
   /**
-   * Parses strValue into T. This function MUST throw BDLR301 if it
+   * Parses strValue into T. This function MUST throw HH301 if it
    * can parse the given value.
    *
    * @param argName argument's name - used for context in case of error.

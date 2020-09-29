@@ -53,7 +53,7 @@ describe("HardhatError", () => {
 
     it("should format the error code to 4 digits", () => {
       const error = new HardhatError(mockErrorDescriptor);
-      assert.equal(error.message.substr(0, 9), "BDLR123: ");
+      assert.equal(error.message.substr(0, 7), "HH123: ");
 
       assert.equal(
         new HardhatError({
@@ -63,14 +63,13 @@ describe("HardhatError", () => {
           description: "Description",
           shouldBeReported: false,
         }).message.substr(0, 7),
-
-        "BDLR1: "
+        "HH1: "
       );
     });
 
     it("should have the right error message", () => {
       const error = new HardhatError(mockErrorDescriptor);
-      assert.equal(error.message, `BDLR123: ${mockErrorDescriptor.message}`);
+      assert.equal(error.message, `HH123: ${mockErrorDescriptor.message}`);
     });
 
     it("should format the error message with the template params", () => {
@@ -84,7 +83,7 @@ describe("HardhatError", () => {
         },
         { a: "a", b: "b", c: 123 }
       );
-      assert.equal(error.message, "BDLR12: a b 123");
+      assert.equal(error.message, "HH12: a b 123");
     });
 
     it("shouldn't have a parent", () => {
@@ -116,7 +115,7 @@ describe("HardhatError", () => {
         { a: "a", b: "b", c: 123 },
         new Error()
       );
-      assert.equal(error.message, "BDLR12: a b 123");
+      assert.equal(error.message, "HH12: a b 123");
     });
 
     it("Should work with instanceof", () => {
