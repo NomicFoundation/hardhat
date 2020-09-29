@@ -53,7 +53,7 @@ describe("HardhatError", () => {
 
     it("should format the error code to 4 digits", () => {
       const error = new HardhatError(mockErrorDescriptor);
-      assert.equal(error.message.substr(0, 9), "HH123: ");
+      assert.equal(error.message.substr(0, 7), "HH123: ");
 
       assert.equal(
         new HardhatError({
