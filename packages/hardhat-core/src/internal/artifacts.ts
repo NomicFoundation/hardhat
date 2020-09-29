@@ -3,7 +3,7 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
-import { Artifact, SolcInput } from "../types";
+import { Artifact, CompilerInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
 import { assertHardhatInvariant, HardhatError } from "./core/errors";
@@ -225,7 +225,7 @@ export class Artifacts {
    * to the written file.
    */
   public async saveBuildInfo(
-    input: SolcInput,
+    input: CompilerInput,
     output: any,
     solcVersion: string
   ): Promise<string> {
