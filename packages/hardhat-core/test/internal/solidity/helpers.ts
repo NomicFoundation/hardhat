@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import path from "path";
 
-import * as taskTypes from "../../../src/builtin-tasks/types";
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
 import { Parser } from "../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
 } from "../../../src/internal/solidity/resolver";
+import * as taskTypes from "../../../src/types/builtin-tasks";
 
 const projectRoot = fs.realpathSync(".");
 

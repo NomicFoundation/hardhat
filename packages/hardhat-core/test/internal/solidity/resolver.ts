@@ -3,13 +3,13 @@ import * as fsExtra from "fs-extra";
 import path from "path";
 import slash from "slash";
 
-import { LibraryInfo } from "../../../src/builtin-tasks/types";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Parser } from "../../../src/internal/solidity/parse";
 import {
   ResolvedFile,
   Resolver,
 } from "../../../src/internal/solidity/resolver";
+import { LibraryInfo } from "../../../src/types/builtin-tasks";
 import { expectHardhatErrorAsync } from "../../helpers/errors";
 import {
   getFixtureProjectPath,
