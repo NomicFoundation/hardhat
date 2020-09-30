@@ -13,6 +13,7 @@ import {
 } from "../internal/hardhat-network/jsonrpc/server";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
+import { Artifacts } from "../types";
 import {
   ResolvedHardhatConfig,
   ResolvedHardhatNetworkConfig,
@@ -25,7 +26,8 @@ import { watchCompilerOutput } from "./utils/watch";
 const log = debug("hardhat:core:tasks:node");
 
 function _createHardhatNetworkProvider(
-  config: ResolvedHardhatConfig
+  config: ResolvedHardhatConfig,
+  artifacts: Artifacts
 ): EthereumProvider {
   log("Creating HardhatNetworkProvider");
 
@@ -37,7 +39,7 @@ function _createHardhatNetworkProvider(
     return createProvider(
       networkName,
       { loggingEnabled: true, ...networkConfig },
-      config.paths
+      artifacts
     );
   });
 }
@@ -80,7 +82,10 @@ export default function () {
       types.int
     )
     .setAction(
-      async ({ hostname, port }, { network, hardhatArguments, config }) => {
+      async (
+        { hostname, port },
+        { artifacts, network, hardhatArguments, config }
+      ) => {
         if (
           network.name !== HARDHAT_NETWORK_NAME &&
           // We normally set the default network as hardhatArguments.network,
@@ -99,7 +104,7 @@ export default function () {
           const serverConfig: JsonRpcServerConfig = {
             hostname,
             port,
-            provider: _createHardhatNetworkProvider(config),
+            provider: _createHardhatNetworkProvider(config, artifacts),
           };
 
           const server = new JsonRpcServer(serverConfig);
