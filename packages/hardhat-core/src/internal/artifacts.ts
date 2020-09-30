@@ -3,7 +3,7 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
-import { Artifact, CompilerInput } from "../types";
+import { Artifact, Artifacts as IArtifacts, CompilerInput } from "../types";
 
 import { BUILD_INFO_DIR_NAME } from "./constants";
 import { assertHardhatInvariant, HardhatError } from "./core/errors";
@@ -17,7 +17,7 @@ const BUILD_INFO_FORMAT_VERSION = "hh-sol-build-info-1";
 
 const log = debug("hardhat:core:artifacts");
 
-export class Artifacts {
+export class Artifacts implements IArtifacts {
   private _buildInfosGlob: string;
   private _dbgsGlob: string;
 
