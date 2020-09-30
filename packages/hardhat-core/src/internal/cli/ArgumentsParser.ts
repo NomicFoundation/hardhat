@@ -225,7 +225,7 @@ export class ArgumentsParser {
         });
       }
 
-      // We only parse the arguments of non-internal tasks, and those only
+      // We only parse the arguments of non-subtasks, and those only
       // accept CLIArgumentTypes.
       const type = definition.type as CLIArgumentType<any>;
       parsedArguments[paramName] = type.parse(paramName, value);
@@ -242,7 +242,7 @@ export class ArgumentsParser {
 
     for (let i = 0; i < positionalParamDefinitions.length; i++) {
       const definition = positionalParamDefinitions[i];
-      // We only parse the arguments of non-internal tasks, and those only
+      // We only parse the arguments of non-subtasks, and those only
       // accept CLIArgumentTypes.
       const type = definition.type as CLIArgumentType<any>;
 

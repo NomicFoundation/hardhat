@@ -44,11 +44,11 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * This definition will have no params, and will throw a HH205 if executed.
    *
    * @param name The task's name.
-   * @param isInternal `true` if the task is internal, `false` otherwise.
+   * @param isSubtask `true` if the task is a subtask, `false` otherwise.
    */
   constructor(
     public readonly name: string,
-    public readonly isInternal: boolean = false
+    public readonly isSubtask: boolean = false
   ) {
     this._positionalParamNames = new Set();
     this._hasVariadicParam = false;
@@ -523,7 +523,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   private _validateCLIArgumentTypesForExternalTasks(type: ArgumentType<any>) {
-    if (this.isInternal) {
+    if (this.isSubtask) {
       return;
     }
 
@@ -543,7 +543,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
  * Allows you to override a previously defined task.
  *
  * When overriding a task you can:
- *  * flag it as internal
+ *  * flag it as a subtask
  *  * set a new description
  *  * set a new action
  *
@@ -554,9 +554,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
 
   constructor(
     public readonly parentTaskDefinition: TaskDefinition,
-    public readonly isInternal: boolean = false
+    public readonly isSubtask: boolean = false
   ) {
-    this.isInternal = isInternal;
+    this.isSubtask = isSubtask;
     this.parentTaskDefinition = parentTaskDefinition;
   }
 

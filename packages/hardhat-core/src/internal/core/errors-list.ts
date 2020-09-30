@@ -443,7 +443,7 @@ Please, double check your task definitions.`,
       number: 213,
       title: "Invalid argument type",
       message:
-        "Task %task% is not internal but one of its arguments uses the type %type%, which is not parseable.",
+        "Task %task% is not a subtask but one of its arguments uses the type %type%, which is not parseable.",
       description: `Tasks that can be invoked from the command line require CLIArgumentType types for their arguments.
       
 What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
@@ -564,11 +564,11 @@ Please double check how you invoked Hardhat.`,
 Please double check how you invoked Hardhat or run your task.`,
       shouldBeReported: false,
     },
-    RUNNING_INTERNAL_TASK_FROM_CLI: {
+    RUNNING_SUBTASK_FROM_CLI: {
       number: 312,
-      title: "Internal task run from the command line",
-      message: "Trying to run the %name% internal task from the CLI",
-      description: `You tried to run an internal task from the command line.
+      title: "Subtask run from the command line",
+      message: "Trying to run the %name% subtask from the CLI",
+      description: `You tried to run an subtask from the command line.
       
 This is not supported. Please run the help task to see the available options.`,
       shouldBeReported: false,

@@ -61,8 +61,8 @@ To integrate into your users' existing workflow, we recommend plugin authors to 
 
 Examples of suggested overrides are:
 
-- Preprocessing smart contracts should override one of the `compile` internal tasks.
+- Preprocessing smart contracts should override one of the `compile` subtasks.
 - Linter integrations should override the `check` task.
 - Plugins generating intermediate files should override the `clean` task.
 
-For a list of all the built-in tasks and internal tasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/hardhat/blob/master/packages/hardhat/src/builtin-tasks/task-names.ts)
+For a list of all the built-in tasks and subtasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/hardhat/blob/master/packages/hardhat/src/builtin-tasks/task-names.ts)

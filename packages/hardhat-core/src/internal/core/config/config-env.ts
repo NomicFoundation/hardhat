@@ -40,18 +40,18 @@ export function task<ArgsT extends TaskArguments>(
   return dsl.task(name, descriptionOrAction, action);
 }
 
-export function internalTask<ArgsT extends TaskArguments>(
+export function subtask<ArgsT extends TaskArguments>(
   name: string,
   description?: string,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
 
-export function internalTask<ArgsT extends TaskArguments>(
+export function subtask<ArgsT extends TaskArguments>(
   name: string,
   action: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
 
-export function internalTask<ArgsT extends TaskArguments>(
+export function subtask<ArgsT extends TaskArguments>(
   name: string,
   descriptionOrAction?: string | ActionType<ArgsT>,
   action?: ActionType<ArgsT>
@@ -60,14 +60,14 @@ export function internalTask<ArgsT extends TaskArguments>(
   const dsl = ctx.tasksDSL;
 
   if (descriptionOrAction === undefined) {
-    return dsl.internalTask(name);
+    return dsl.subtask(name);
   }
 
   if (typeof descriptionOrAction !== "string") {
-    return dsl.internalTask(name, descriptionOrAction);
+    return dsl.subtask(name, descriptionOrAction);
   }
 
-  return dsl.internalTask(name, descriptionOrAction, action);
+  return dsl.subtask(name, descriptionOrAction, action);
 }
 
 export const types = argumentTypes;

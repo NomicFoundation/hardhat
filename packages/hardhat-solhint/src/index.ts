@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { internalTask, task } from "hardhat/config";
+import { subtask, task } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { join } from "path";
 
@@ -83,7 +83,7 @@ function printReport(reports: any) {
 }
 
 export default function () {
-  internalTask("hardhat-solhint:run-solhint", async (_, { config }) => {
+  subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
     const { processPath } = await import("solhint/lib/index");
     return processPath(
       join(config.paths.sources, "**", "*.sol"),

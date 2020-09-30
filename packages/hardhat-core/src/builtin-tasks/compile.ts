@@ -8,7 +8,7 @@ import {
   Artifacts,
   getArtifactFromContractOutput,
 } from "../internal/artifacts";
-import { internalTask, task, types } from "../internal/core/config/config-env";
+import { subtask, task, types } from "../internal/core/config/config-env";
 import { assertHardhatInvariant, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import {
@@ -104,7 +104,7 @@ export default function () {
    * This is the right task to override to change how the solidity files of the
    * project are obtained.
    */
-  internalTask(
+  subtask(
     TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
     async (_, { config }): Promise<string[]> => {
       const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
@@ -120,7 +120,7 @@ export default function () {
    * ["contracts/Foo.sol"]. These source names will be used when the solc input
    * is generated.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES)
+  subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES)
     .addParam("sourcePaths", undefined, undefined, types.any)
     .setAction(
       async (
@@ -140,7 +140,7 @@ export default function () {
    * is responsible for both resolving dependencies (like getting files from
    * node_modules) and generating the graph.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
+  subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
     .addParam("sourceNames", undefined, undefined, types.any)
     .addOptionalParam("solidityFilesCache", undefined, undefined, types.any)
     .setAction(
@@ -186,7 +186,7 @@ export default function () {
    *   return compilationJob;
    *
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE)
+  subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE)
     .addParam("dependencyGraph", undefined, undefined, types.any)
     .addParam("file", undefined, undefined, types.any)
     .addOptionalParam("solidityFilesCache", undefined, undefined, types.any)
@@ -217,7 +217,7 @@ export default function () {
    * where each item has a list of files that couldn't be compiled, grouped by
    * the reason for the failure.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
+  subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
     .addParam("dependencyGraph", undefined, undefined, types.any)
     .addOptionalParam("solidityFilesCache", undefined, undefined, types.any)
     .setAction(
@@ -277,7 +277,7 @@ export default function () {
    * This task can be overriden to change the way the cache is used, or to use
    * a different approach to filtering out compilation jobs.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS)
+  subtask(TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS)
     .addParam("compilationJobs", undefined, undefined, types.any)
     .addParam("force", undefined, undefined, types.boolean)
     .addOptionalParam("solidityFilesCache", undefined, undefined, types.any)
@@ -317,7 +317,7 @@ export default function () {
    * Receives a list of compilation jobs and returns a new list where some of
    * the jobs might've been merged.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS)
+  subtask(TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS)
     .addParam("compilationJobs", undefined, undefined, types.any)
     .setAction(
       async ({
@@ -332,7 +332,7 @@ export default function () {
   /**
    * Prints a message when there's nothing to compile.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE)
+  subtask(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(async ({ quiet }: { quiet: boolean }) => {
       if (!quiet) {
@@ -343,7 +343,7 @@ export default function () {
   /**
    * Receives a list of compilation jobs and sends each one to be compiled.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
+  subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
     .addParam("compilationJobs", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
@@ -406,7 +406,7 @@ export default function () {
    * configuration, override
    * TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE instead.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT)
+  subtask(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT)
     .addParam("compilationJob", undefined, undefined, types.any)
     .setAction(
       async ({
@@ -418,7 +418,7 @@ export default function () {
       }
     );
 
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START)
+  subtask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START)
     .addParam("isCompilerDownloaded", undefined, undefined, types.boolean)
     .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
@@ -440,7 +440,7 @@ export default function () {
       }
     );
 
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END)
+  subtask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END)
     .addParam("isCompilerDownloaded", undefined, undefined, types.boolean)
     .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
@@ -457,7 +457,7 @@ export default function () {
    * downloaded solcjs module. It also returns a flag indicating if the returned
    * path corresponds to solc or solcjs.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_SOLC_PATH)
+  subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_PATH)
     .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
     .setAction(
@@ -526,7 +526,7 @@ export default function () {
    * Receives an absolute path to a solcjs module and the input to be compiled,
    * and returns the generated output
    */
-  internalTask(TASK_COMPILE_SOLIDITY_RUN_SOLCJS)
+  subtask(TASK_COMPILE_SOLIDITY_RUN_SOLCJS)
     .addParam("input", undefined, undefined, types.any)
     .addParam("solcJsPath", undefined, undefined, types.string)
     .setAction(
@@ -549,7 +549,7 @@ export default function () {
    * Receives an absolute path to a solc binary and the input to be compiled,
    * and returns the generated output
    */
-  internalTask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
+  subtask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
     .addParam("input", undefined, undefined, types.any)
     .addParam("solcPath", undefined, undefined, types.string)
     .setAction(
@@ -575,7 +575,7 @@ export default function () {
    *
    * This task can be overriden to change how solc is obtained or used.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
+  subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
     .addParam("input", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
@@ -649,18 +649,15 @@ export default function () {
    *
    * Override this to use a different task to compile a job.
    */
-  internalTask(
-    TASK_COMPILE_SOLIDITY_COMPILE,
-    async (taskArgs: any, { run }) => {
-      return run(TASK_COMPILE_SOLIDITY_COMPILE_SOLC, taskArgs);
-    }
-  );
+  subtask(TASK_COMPILE_SOLIDITY_COMPILE, async (taskArgs: any, { run }) => {
+    return run(TASK_COMPILE_SOLIDITY_COMPILE_SOLC, taskArgs);
+  });
 
   /**
    * Receives a compilation output and prints its errors and any other
    * information useful to the user.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
+  subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     .addParam("output", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(async ({ output, quiet }: { output: any; quiet: boolean }) => {
@@ -696,7 +693,7 @@ export default function () {
    * Override this task to avoid interrupting the compilation process if some
    * job has compilation errors.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_CHECK_ERRORS)
+  subtask(TASK_COMPILE_SOLIDITY_CHECK_ERRORS)
     .addParam("output", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
@@ -716,7 +713,7 @@ export default function () {
    * Saves to disk the artifacts for a compilation job. These artifacts
    * include the main artifacts, the dbg files, and the build info.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
+  subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
     .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("input", undefined, undefined, types.any)
     .addParam("output", undefined, undefined, types.any)
@@ -787,7 +784,7 @@ export default function () {
    * Generates the artifact for contract `contractName` given its compilation
    * output.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT)
+  subtask(TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT)
     .addParam("contractName", undefined, undefined, types.string)
     .addParam("contractOutput", undefined, undefined, types.any)
     .setAction(
@@ -805,7 +802,7 @@ export default function () {
   /**
    * Prints a message before running soljs with some input.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START)
+  subtask(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START)
     .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("compilationJobs", undefined, undefined, types.any)
     .addParam("compilationJobIndex", undefined, undefined, types.int)
@@ -859,7 +856,7 @@ export default function () {
   /**
    * Prints a message after compiling some input
    */
-  internalTask(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_END)
+  subtask(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_END)
     .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("compilationJobs", undefined, undefined, types.any)
     .addParam("compilationJobIndex", undefined, undefined, types.int)
@@ -876,10 +873,10 @@ export default function () {
     );
 
   /**
-   * This is an orchestrator task that uses other internal tasks to compile a
+   * This is an orchestrator task that uses other subtasks to compile a
    * compilation job.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
+  subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
     .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("compilationJobs", undefined, undefined, types.any)
     .addParam("compilationJobIndex", undefined, undefined, types.int)
@@ -942,7 +939,7 @@ export default function () {
    * This task could be overriden to avoid interrupting the compilation if
    * there's some part of the project that can't be compiled.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES)
+  subtask(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES)
     .addParam("compilationJobsCreationErrors", undefined, undefined, types.any)
     .setAction(
       async (
@@ -978,7 +975,7 @@ export default function () {
    * Receives a list of CompilationJobsFailure and returns an error message
    * that describes the failure.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
+  subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
     .addParam("compilationJobsCreationErrors", undefined, undefined, types.any)
     .setAction(
       async ({
@@ -1064,9 +1061,9 @@ ${other.map((x) => `* ${x}`).join("\n")}
    * Main task for compiling the solidity files in the project.
    *
    * The main responsibility of this task is to orchestrate and connect most of
-   * the internal tasks related to compiling solidity.
+   * the subtasks related to compiling solidity.
    */
-  internalTask(TASK_COMPILE_SOLIDITY)
+  subtask(TASK_COMPILE_SOLIDITY)
     .addParam("force", undefined, undefined, types.boolean)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
@@ -1167,7 +1164,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
    *
    * This is the task to override to add support for other languages.
    */
-  internalTask(
+  subtask(
     TASK_COMPILE_GET_COMPILATION_TASKS,
     async (): Promise<string[]> => {
       return [TASK_COMPILE_SOLIDITY];

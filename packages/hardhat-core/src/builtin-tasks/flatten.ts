@@ -1,4 +1,4 @@
-import { internalTask, task } from "../internal/core/config/config-env";
+import { subtask, task } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
@@ -55,7 +55,7 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
 }
 
 export default function () {
-  internalTask(
+  subtask(
     TASK_FLATTEN_GET_FLATTENED_SOURCE,
     "Returns all contracts and their dependencies flattened",
     async (_, { run }) => {
