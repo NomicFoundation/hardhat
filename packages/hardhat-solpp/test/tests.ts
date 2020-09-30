@@ -4,6 +4,7 @@ import {
   TASK_COMPILE_SOLIDITY_COMPILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+  TASK_COMPILE,
 } from "hardhat/builtin-tasks/task-names";
 import { join } from "path";
 
@@ -20,8 +21,7 @@ export async function expectErrorAsync(
   }
 }
 
-// TODO-HH: Re-enable after having internal tasks for the compilation
-describe.skip("Solpp plugin", async function () {
+describe("Solpp plugin", async function () {
   describe("js-config-project", async function () {
     useEnvironment(join(__dirname, "js-config-project"));
 
@@ -32,10 +32,9 @@ describe.skip("Solpp plugin", async function () {
     });
 
     it("should compile without errors", async function () {
-      const input = this.env.run(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT);
-      assert.doesNotThrow(() =>
-        this.env.run(TASK_COMPILE_SOLIDITY_COMPILE, { input })
-      );
+      assert.doesNotThrow(async () => {
+        await this.env.run(TASK_COMPILE);
+      });
     });
   });
 
