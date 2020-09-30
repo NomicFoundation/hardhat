@@ -3,7 +3,6 @@ import * as fs from "fs";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 import path from "path";
 
-import { TruffleEnvironmentArtifacts } from "../src/artifacts";
 import { TruffleContract, TruffleContractInstance } from "../src/types";
 
 import { useEnvironment } from "./helpers";
@@ -141,8 +140,8 @@ function testArtifactsFunctionality() {
 describe("HardhatRuntimeEnvironment extension", function () {
   useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
 
-  it("It should add the artifacts object", function () {
-    assert.instanceOf(this.env.artifacts, TruffleEnvironmentArtifacts);
+  it("It should add a require function to artifacts", function () {
+    assert.isFunction(this.env.artifacts.require);
   });
 });
 
