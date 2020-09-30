@@ -1,3 +1,7 @@
+export interface Artifacts {
+  getArtifacts(): Promise<string[]>;
+}
+
 export interface Artifact {
   _format: string;
   contractName: string;

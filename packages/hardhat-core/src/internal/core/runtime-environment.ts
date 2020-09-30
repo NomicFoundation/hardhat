@@ -1,8 +1,8 @@
 import debug from "debug";
 
 import {
+  Artifacts as IArtifacts,
   EnvironmentExtender,
-  EthereumProvider,
   ExperimentalHardhatNetworkMessageTraceHook,
   HardhatArguments,
   HardhatRuntimeEnvironment,
@@ -15,6 +15,7 @@ import {
   TaskDefinition,
   TasksMap,
 } from "../../types";
+import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
@@ -31,12 +32,9 @@ export class Environment implements HardhatRuntimeEnvironment {
     "_runTaskDefinition",
   ];
 
-  /**
-   * An EIP1193 Ethereum provider.
-   */
-  public ethereum: EthereumProvider;
-
   public network: Network;
+
+  public artifacts: IArtifacts;
 
   private readonly _extenders: EnvironmentExtender[];
 
@@ -93,7 +91,8 @@ export class Environment implements HardhatRuntimeEnvironment {
       provider,
     };
 
-    this.ethereum = provider;
+    this.artifacts = new Artifacts(config.paths.artifacts);
+
     this._extenders = extenders;
 
     extenders.forEach((extender) => extender(this));

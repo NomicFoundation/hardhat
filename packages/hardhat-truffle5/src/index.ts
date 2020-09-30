@@ -34,7 +34,7 @@ export default function () {
   let accounts: string[] | undefined;
 
   extendEnvironment((env) => {
-    env.artifacts = lazyObject(() => {
+    (env.artifacts as any).require = lazyObject(() => {
       const networkConfig = env.network.config;
 
       const provisioner = new LazyTruffleContractProvisioner(
@@ -117,7 +117,7 @@ export default function () {
         return ret;
       };
 
-      return artifacts;
+      return artifacts.require;
     });
 
     env.assert = lazyFunction(() => require("chai").assert);
