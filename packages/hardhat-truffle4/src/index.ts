@@ -31,17 +31,20 @@ export default function () {
   extendEnvironment((env) => {
     accounts = undefined;
 
-    env.artifacts = lazyObject(() => {
+    env.artifacts.require = lazyFunction(() => {
       const provisioner = new LazyTruffleContractProvisioner(
         env.web3,
         env.network.config,
         env.network.config.from
       );
 
-      return new TruffleEnvironmentArtifacts(
+      const ta = new TruffleEnvironmentArtifacts(
         env.config.paths.artifacts,
-        provisioner
+        provisioner,
+        env.artifacts
       );
+
+      return ta.require.bind(ta);
     });
 
     env.assert = lazyFunction(() => require("chai").assert);

@@ -11,13 +11,13 @@ function getConfig(config: ResolvedHardhatConfig): VyperConfig {
 }
 
 export default function () {
-  task(TASK_COMPILE, async (_, { config }) => {
+  task(TASK_COMPILE, async (_, { config, artifacts }) => {
     const { compile } = await import("./compilation");
 
     const vyperConfig = getConfig(config);
 
     // This plugin is experimental, so this task isn't split into multiple
     // internal tasks yet.
-    await compile(vyperConfig, config.paths);
+    await compile(vyperConfig, config.paths, artifacts);
   });
 }

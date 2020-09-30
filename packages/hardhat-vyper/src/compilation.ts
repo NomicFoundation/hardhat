@@ -9,8 +9,8 @@ import {
   ProcessResult,
 } from "@nomiclabs/hardhat-docker";
 import fsExtra from "fs-extra";
-import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { ProjectPaths } from "hardhat/types";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { Artifacts, ProjectPaths } from "hardhat/types";
 import path from "path";
 
 import { VyperConfig } from "./types";
@@ -22,7 +22,11 @@ const CHECK_UPDATES_INTERVAL = 3600000;
 
 const ARTIFACT_FORMAT_VERSION = "hh-vyper-artifact-1";
 
-export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
+export async function compile(
+  vyperConfig: VyperConfig,
+  paths: ProjectPaths,
+  artifacts: Artifacts
+) {
   const vyperVersion = vyperConfig.version;
 
   const dockerImage = {
@@ -70,7 +74,6 @@ export async function compile(vyperConfig: VyperConfig, paths: ProjectPaths) {
       const sourceName = path.relative(paths.sources, file);
 
       // TODO-HH what should we do instead of this empty string?
-      const artifacts = new Artifacts(paths.artifacts);
       await artifacts.saveArtifactFiles(sourceName, artifact, "");
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");

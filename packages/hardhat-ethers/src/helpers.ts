@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import { Artifacts } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment, NetworkConfig } from "hardhat/types";
 
 export async function getSigners(hre: HardhatRuntimeEnvironment) {
@@ -49,8 +48,7 @@ export async function getContractFactoryByName(
   name: string,
   signer?: ethers.Signer
 ) {
-  const artifacts = new Artifacts(hre.config.paths.artifacts);
-  const artifact = await artifacts.readArtifact(name);
+  const artifact = await hre.artifacts.readArtifact(name);
   return getContractFactoryByAbiAndBytecode(
     hre,
     artifact.abi,

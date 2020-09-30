@@ -1,5 +1,31 @@
+// TODO-HH: Review this interface
 export interface Artifacts {
   getArtifacts(): Promise<string[]>;
+  getArtifactsSync(): string[];
+  getBuildInfoFiles(): Promise<string[]>;
+  getBuildInfoFilesSync(): string[];
+  getDbgFiles(): Promise<string[]>;
+  artifactExists(sourceName: string, contractName: string): Promise<boolean>;
+  artifactExistsSync(sourceName: string, contractName: string): boolean;
+  readArtifact(name: string): Promise<Artifact>;
+  readArtifactSync(name: string): Artifact;
+  saveArtifactFiles(
+    sourceName: string,
+    artifact: Artifact,
+    pathToBuildInfo: string
+  ): Promise<void>;
+  saveBuildInfo(
+    input: CompilerInput,
+    output: any,
+    solcVersion: string
+  ): Promise<string>;
+  removeObsoleteArtifacts(
+    artifactsEmittedPerFile: Array<{
+      sourceName: string;
+      artifacts: string[];
+    }>
+  ): Promise<void>;
+  removeObsoleteBuildInfos(): Promise<void>;
 }
 
 export interface Artifact {
