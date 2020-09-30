@@ -16,7 +16,8 @@ function importCsjOrEsModule(filePath: string): any {
 }
 
 export function loadConfigAndTasks(
-  hardhatArguments?: Partial<HardhatArguments>
+  hardhatArguments?: Partial<HardhatArguments>,
+  { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: true }
 ): ResolvedHardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
@@ -49,7 +50,7 @@ export function loadConfigAndTasks(
   const userConfig = importCsjOrEsModule(configPath);
   validateConfig(userConfig);
 
-  if (userConfig.solidity === undefined) {
+  if (userConfig.solidity === undefined && showWarningIfNoSolidityConfig) {
     console.warn(
       chalk.yellow(
         `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.
