@@ -38,11 +38,7 @@ export default function () {
         env.network.config.from
       );
 
-      const ta = new TruffleEnvironmentArtifacts(
-        env.config.paths.artifacts,
-        provisioner,
-        env.artifacts
-      );
+      const ta = new TruffleEnvironmentArtifacts(provisioner, env.artifacts);
 
       return ta.require.bind(ta);
     });
