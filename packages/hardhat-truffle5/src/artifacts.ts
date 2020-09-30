@@ -1,19 +1,19 @@
-import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { Artifacts } from "hardhat/src/types";
 import path from "path";
 
 import { LazyTruffleContractProvisioner } from "./provisioner";
 import { TruffleContract, TruffleContractInstance } from "./types";
 
 export class TruffleEnvironmentArtifacts {
-  private readonly _artifacts: Artifacts;
   private readonly _provisioner: LazyTruffleContractProvisioner;
 
   constructor(
     artifactsPath: string,
-    provisioner: LazyTruffleContractProvisioner
+    provisioner: LazyTruffleContractProvisioner,
+    private readonly _artifacts: Artifacts
   ) {
     this._provisioner = provisioner;
-    this._artifacts = new Artifacts(artifactsPath);
   }
 
   public require(contractPath: string): any {

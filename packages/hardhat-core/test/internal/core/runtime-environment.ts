@@ -135,7 +135,6 @@ describe("Environment", () => {
     it("should create an environment", () => {
       assert.deepEqual(env.config, config);
       assert.isDefined(env.tasks);
-      assert.isDefined(env.ethereum);
       assert.isDefined(env.network);
     });
 
@@ -326,7 +325,6 @@ describe("Environment", () => {
       assert.isDefined(env.network);
       assert.equal(env.network.name, "local");
       assert.equal(env.network.config, config.networks.local);
-      assert.equal(env.network.provider, env.ethereum);
     });
 
     it("Should throw if the chosen network doesn't exist", () => {

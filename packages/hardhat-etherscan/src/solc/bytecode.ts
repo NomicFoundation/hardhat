@@ -1,6 +1,5 @@
 import fs from "fs-extra";
-import { Artifacts } from "hardhat/plugins";
-import { RunTaskFunction } from "hardhat/types";
+import { Artifacts, RunTaskFunction } from "hardhat/types";
 import path from "path";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
@@ -302,13 +301,13 @@ export function zeroOutSlices(
 export async function compile(
   taskRun: RunTaskFunction,
   matchingVersions: string[],
-  artifactsPath: string
+  artifactsPath: string,
+  artifacts: Artifacts
 ): Promise<ContractBuildInfo[]> {
   const { TASK_COMPILE } = await import("hardhat/builtin-tasks/task-names");
 
   await taskRun(TASK_COMPILE);
 
-  const artifacts = new Artifacts(artifactsPath);
   const buildInfoFiles = await artifacts.getBuildInfoFiles();
 
   // TODO: Here would be an ideal place to separate builds into several compilation jobs

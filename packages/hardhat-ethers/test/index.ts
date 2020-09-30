@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
-import { Artifacts } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 import path from "path";
 
@@ -37,10 +36,9 @@ describe("Ethers plugin", function () {
     beforeEach(async function () {
       signers = await this.env.ethers.getSigners();
       await this.env.run("compile");
-      const artifacts = new Artifacts(this.env.config.paths.artifacts);
-      greeterArtifact = await artifacts.readArtifact("Greeter");
+      greeterArtifact = await this.env.artifacts.readArtifact("Greeter");
 
-      iGreeterArtifact = await artifacts.readArtifact("IGreeter");
+      iGreeterArtifact = await this.env.artifacts.readArtifact("IGreeter");
     });
 
     describe("getSigners", function () {
