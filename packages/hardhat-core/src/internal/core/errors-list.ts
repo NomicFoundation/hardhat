@@ -824,6 +824,15 @@ We recommend not using this kind of dependencies.`,
 To start the JSON-RPC server, retry the command without the --network parameter.`,
       shouldBeReported: false,
     },
+    COMPILATION_JOBS_CREATION_FAILURE: {
+      number: 607,
+      message: `The project cannot be compiled, see reasons below.
+
+%reasons%`,
+      title: "The project cannot be compiled",
+      description: `The project cannot be compiled with the current settings.`,
+      shouldBeReported: false,
+    },
   },
   ARTIFACTS: {
     NOT_FOUND: {

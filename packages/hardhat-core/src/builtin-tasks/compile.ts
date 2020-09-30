@@ -40,7 +40,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS,
-  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
   TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH,
@@ -939,14 +939,17 @@ export default function () {
 
         if (hasErrors) {
           log(`There were errors creating the compilation jobs, throwing`);
-          const errorMessage: string = await run(
-            TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+          const reasons: string = await run(
+            TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
             { compilationJobsCreationErrors }
           );
 
-          // TODO-HH throw a HardhatError and show a better error message
-          // tslint:disable only-hardhat-error
-          throw new Error(errorMessage);
+          throw new HardhatError(
+            ERRORS.BUILTIN_TASKS.COMPILATION_JOBS_CREATION_FAILURE,
+            {
+              reasons,
+            }
+          );
         }
       }
     );
@@ -955,7 +958,7 @@ export default function () {
    * Receives a list of CompilationJobsFailure and returns an error message
    * that describes the failure.
    */
-  internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE)
+  internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
     .addParam("compilationJobsCreationErrors", undefined, undefined, types.any)
     .setAction(
       async ({
@@ -997,10 +1000,9 @@ export default function () {
           }
         }
 
-        let errorMessage =
-          "The project couldn't be compiled, see reasons below.\n\n";
+        let reasons = "";
         if (incompatibleOverridenSolc.length > 0) {
-          errorMessage += `The compiler version for the following files is fixed through an override in your
+          reasons += `The compiler version for the following files is fixed through an override in your
 config file to a version that is incompatible with their version pragmas.
 
 ${incompatibleOverridenSolc.map((x) => `* ${x}`).join("\n")}
@@ -1008,7 +1010,7 @@ ${incompatibleOverridenSolc.map((x) => `* ${x}`).join("\n")}
 `;
         }
         if (noCompatibleSolc.length > 0) {
-          errorMessage += `The pragma statement in these files don't match any of the configured compilers
+          reasons += `The pragma statement in these files don't match any of the configured compilers
 in your config. Change the pragma or configure additional compiler versions in
 your hardhat config.
 
@@ -1017,24 +1019,24 @@ ${noCompatibleSolc.map((x) => `* ${x}`).join("\n")}
 `;
         }
         if (importsIncompatibleFile.length > 0) {
-          errorMessage += `These files import other files that use a different and incompatible version of Solidity:
+          reasons += `These files import other files that use a different and incompatible version of Solidity:
 
 ${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
         if (other.length > 0) {
-          errorMessage += `These files and its dependencies cannot be compiled with your config:
+          reasons += `These files and its dependencies cannot be compiled with your config:
 
 ${other.map((x) => `* ${x}`).join("\n")}
 
 `;
         }
 
-        errorMessage += `Learn more about compiler configuration at https://usehardhat.com/configuration
+        reasons += `Learn more about compiler configuration at https://usehardhat.com/configuration
 `;
 
-        return errorMessage;
+        return reasons;
       }
     );
 
