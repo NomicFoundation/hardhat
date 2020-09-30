@@ -1,5 +1,3 @@
-import path from "path";
-
 import type {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
@@ -7,7 +5,6 @@ import type {
   HDAccountsConfig,
   HttpNetworkConfig,
   NetworkConfigAccounts,
-  ProjectPaths,
   ResolvedHardhatNetworkConfig,
   ResolvedHttpNetworkConfig,
   ResolvedNetworkConfig,
@@ -44,7 +41,7 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
 export function createProvider(
   networkName: string,
   networkConfig: ResolvedNetworkConfig,
-  paths?: ProjectPaths,
+  artifacts?: Artifacts,
   experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
 ): EthereumProvider {
   let eip1193Provider: EIP1193Provider;
@@ -78,7 +75,7 @@ export function createProvider(
       hardhatNetConfig.throwOnTransactionFailures!,
       hardhatNetConfig.throwOnCallFailures!,
       hardhatNetConfig.accounts,
-      paths,
+      artifacts,
       hardhatNetConfig.loggingEnabled,
       hardhatNetConfig.allowUnlimitedContractSize,
       hardhatNetConfig.initialDate !== undefined

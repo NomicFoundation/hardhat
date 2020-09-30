@@ -4,10 +4,7 @@ import debug from "debug";
 import path from "path";
 import semver from "semver";
 
-import {
-  Artifacts,
-  getArtifactFromContractOutput,
-} from "../internal/artifacts";
+import { getArtifactFromContractOutput } from "../internal/artifacts";
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { assertHardhatInvariant, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -30,7 +27,7 @@ import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
-import { CompilerInput } from "../types";
+import { Artifacts, CompilerInput } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
 import {
   CompilationJob,
@@ -729,12 +726,10 @@ export default function () {
           input: CompilerInput;
           output: any;
         },
-        { config, run }
+        { artifacts, config, run }
       ): Promise<{
         artifactsEmittedPerFile: ArtifactsEmittedPerFile;
       }> => {
-        const artifacts = new Artifacts(config.paths.artifacts);
-
         const pathToBuildInfo = await artifacts.saveBuildInfo(
           input,
           output,
@@ -1072,7 +1067,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
     .setAction(
       async (
         { force, quiet }: { force: boolean; quiet: boolean },
-        { config, run }
+        { artifacts, config, run }
       ) => {
         const sourcePaths: string[] = await run(
           TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS
@@ -1097,7 +1092,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
         solidityFilesCache = await invalidateCacheMissingArtifacts(
           solidityFilesCache,
-          config.paths.artifacts,
+          artifacts,
           dependencyGraph.getResolvedFiles()
         );
 
@@ -1154,7 +1149,6 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
         const allArtifactsEmittedPerFile = solidityFilesCache.getEntries();
 
-        const artifacts = new Artifacts(config.paths.artifacts);
         await artifacts.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
         await artifacts.removeObsoleteBuildInfos();
 
@@ -1200,12 +1194,10 @@ ${other.map((x) => `* ${x}`).join("\n")}
  */
 async function invalidateCacheMissingArtifacts(
   solidityFilesCache: SolidityFilesCache,
-  artifactsPath: string,
+  artifacts: Artifacts,
   resolvedFiles: ResolvedFile[]
 ): Promise<SolidityFilesCache> {
   for (const file of resolvedFiles) {
-    const artifacts = new Artifacts(artifactsPath);
-
     const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
 
     if (cacheEntry === undefined) {

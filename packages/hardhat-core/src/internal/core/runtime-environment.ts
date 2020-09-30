@@ -72,12 +72,14 @@ export class Environment implements HardhatRuntimeEnvironment {
       });
     }
 
+    this.artifacts = new Artifacts(config.paths.artifacts);
+
     const provider = lazyObject(() => {
       log(`Creating provider for network ${networkName}`);
       return createProvider(
         networkName,
         networkConfig,
-        config.paths,
+        this.artifacts,
         experimentalHardhatNetworkMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
             hook(this, trace, isCallMessageTrace)
@@ -90,8 +92,6 @@ export class Environment implements HardhatRuntimeEnvironment {
       config: config.networks[networkName],
       provider,
     };
-
-    this.artifacts = new Artifacts(config.paths.artifacts);
 
     this._extenders = extenders;
 
