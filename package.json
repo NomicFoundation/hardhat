@@ -34,7 +34,7 @@
     "clean": "wsrun clean",
     "test": "node scripts/run-tests.js",
     "lint": "wsrun --serial lint",
-    "lint:fix": "wsrun lint:fix"
+    "lint:fix": "wsrun --serial lint:fix"
   },
   "dependencies": {}
 }
