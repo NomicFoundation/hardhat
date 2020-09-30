@@ -96,8 +96,10 @@ async function main() {
 
     loadTsNodeIfPresent();
 
+    let taskName = parsedTaskName ?? "help";
+
     const ctx = HardhatContext.createHardhatContext();
-    const config = loadConfigAndTasks(hardhatArguments);
+    const config = loadConfigAndTasks(hardhatArguments, taskName);
 
     const analytics = await Analytics.getInstance(
       config.paths.root,
@@ -109,8 +111,6 @@ async function main() {
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
-
-    let taskName = parsedTaskName !== undefined ? parsedTaskName : "help";
 
     // tslint:disable-next-line: prefer-const
     let [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
