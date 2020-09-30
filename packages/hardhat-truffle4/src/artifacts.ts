@@ -6,15 +6,10 @@ import { LazyTruffleContractProvisioner } from "./provisioner";
 import { TruffleContract, TruffleContractInstance } from "./types";
 
 export class TruffleEnvironmentArtifacts {
-  private readonly _provisioner: LazyTruffleContractProvisioner;
-
   constructor(
-    artifactsPath: string,
-    provisioner: LazyTruffleContractProvisioner,
+    private readonly _provisioner: LazyTruffleContractProvisioner,
     private readonly _artifacts: Artifacts
-  ) {
-    this._provisioner = provisioner;
-  }
+  ) {}
 
   public require(contractPath: string): any {
     const name = this._getContractNameFromPath(contractPath);

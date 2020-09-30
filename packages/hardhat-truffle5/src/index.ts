@@ -41,11 +41,7 @@ export default function () {
         networkConfig
       );
 
-      const ta = new TruffleEnvironmentArtifacts(
-        env.config.paths.artifacts,
-        provisioner,
-        env.artifacts
-      );
+      const ta = new TruffleEnvironmentArtifacts(provisioner, env.artifacts);
 
       const execute = require("@nomiclabs/truffle-contract/lib/execute");
 
