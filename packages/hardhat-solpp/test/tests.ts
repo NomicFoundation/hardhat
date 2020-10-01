@@ -1,10 +1,8 @@
 import { assert } from "chai";
 import { readFileSync } from "fs";
 import {
-  TASK_COMPILE_SOLIDITY_COMPILE,
-  TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
-  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_COMPILE,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
 } from "hardhat/builtin-tasks/task-names";
 import { join } from "path";
 
