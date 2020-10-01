@@ -4,10 +4,10 @@ import { task } from "../internal/core/config/config-env";
 import { HARDHAT_PARAM_DEFINITIONS } from "../internal/core/params/hardhat-params";
 import { getPackageJson } from "../internal/util/packageInfo";
 
-import { TASK_HELP } from "./task-names";
+import { TASKS } from "./task-names";
 
 export default function () {
-  task(TASK_HELP, "Prints this message")
+  task(TASKS.HELP.MAIN, "Prints this message")
     .addOptionalPositionalParam(
       "task",
       "An optional task to print more info about"

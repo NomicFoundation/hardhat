@@ -9,17 +9,10 @@ import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-ne
 import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
 
-import {
-  TASK_COMPILE,
-  TASK_TEST,
-  TASK_TEST_GET_TEST_FILES,
-  TASK_TEST_RUN_MOCHA_TESTS,
-  TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS,
-  TASK_TEST_SETUP_TEST_ENVIRONMENT,
-} from "./task-names";
+import { TASKS } from "./task-names";
 
 export default function () {
-  internalTask(TASK_TEST_GET_TEST_FILES)
+  internalTask(TASKS.TEST.GET_TEST_FILES)
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
@@ -41,9 +34,9 @@ export default function () {
       return [...jsFiles, ...tsFiles];
     });
 
-  internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
+  internalTask(TASKS.TEST.SETUP_TEST_ENVIRONMENT, async () => {});
 
-  internalTask(TASK_TEST_RUN_MOCHA_TESTS)
+  internalTask(TASKS.TEST.RUN_MOCHA_TESTS)
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
@@ -61,7 +54,7 @@ export default function () {
       process.exitCode = await runPromise;
     });
 
-  internalTask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
+  internalTask(TASKS.TEST.SHOW_FORK_RECOMMENDATIONS).setAction(
     async (_, { config, network }) => {
       if (network.name !== HARDHAT_NETWORK_NAME) {
         return;
@@ -72,7 +65,7 @@ export default function () {
     }
   );
 
-  task(TASK_TEST, "Runs mocha tests")
+  task(TASKS.TEST.MAIN, "Runs mocha tests")
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
@@ -91,16 +84,16 @@ export default function () {
         { run, network }
       ) => {
         if (!noCompile) {
-          await run(TASK_COMPILE, { quiet: true });
+          await run(TASKS.COMPILE.MAIN, { quiet: true });
         }
 
-        const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
+        const files = await run(TASKS.TEST.GET_TEST_FILES, { testFiles });
 
-        await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
+        await run(TASKS.TEST.SETUP_TEST_ENVIRONMENT);
 
-        await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS);
+        await run(TASKS.TEST.SETUP_TEST_ENVIRONMENT);
 
-        await run(TASK_TEST_RUN_MOCHA_TESTS, { testFiles: files });
+        await run(TASKS.TEST.RUN_MOCHA_TESTS, { testFiles: files });
 
         if (network.name !== HARDHAT_NETWORK_NAME) {
           return;

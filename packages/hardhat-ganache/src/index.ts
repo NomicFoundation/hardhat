@@ -1,5 +1,5 @@
 import debug from "debug";
-import { TASK_RUN, TASK_TEST } from "hardhat/builtin-tasks/task-names";
+import { TASKS } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, task } from "hardhat/config";
 import { ensurePluginLoadedWithUsePlugin } from "hardhat/plugins";
 import {
@@ -15,11 +15,11 @@ import { GanacheService } from "./ganache-service";
 ensurePluginLoadedWithUsePlugin();
 
 export default function () {
-  task(TASK_TEST, async (args, env, runSuper) => {
+  task(TASKS.TEST.MAIN, async (args, env, runSuper) => {
     return handlePluginTask(args, env, runSuper);
   });
 
-  task(TASK_RUN, async (args, env, runSuper) => {
+  task(TASKS.RUN.MAIN, async (args, env, runSuper) => {
     return handlePluginTask(args, env, runSuper);
   });
 

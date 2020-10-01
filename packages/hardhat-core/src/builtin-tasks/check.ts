@@ -1,7 +1,7 @@
 import { task } from "../internal/core/config/config-env";
 
-import { TASK_CHECK } from "./task-names";
+import { TASKS } from "./task-names";
 
 export default function () {
-  task(TASK_CHECK, "Check whatever you need", async () => {});
+  task(TASKS.CHECK.MAIN, "Check whatever you need", async () => {});
 }

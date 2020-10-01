@@ -6,12 +6,12 @@ import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { runScriptWithHardhat } from "../internal/util/scripts-runner";
 
-import { TASK_COMPILE, TASK_RUN } from "./task-names";
+import { TASKS } from "./task-names";
 
 export default function () {
   const log = debug("hardhat:core:tasks:run");
 
-  task(TASK_RUN, "Runs a user-defined script after compiling the project")
+  task(TASKS.RUN.MAIN, "Runs a user-defined script after compiling the project")
     .addPositionalParam(
       "script",
       "A js file to be run within hardhat's environment"
@@ -29,7 +29,7 @@ export default function () {
         }
 
         if (!noCompile) {
-          await run(TASK_COMPILE, { quiet: true });
+          await run(TASKS.COMPILE.MAIN, { quiet: true });
         }
 
         log(

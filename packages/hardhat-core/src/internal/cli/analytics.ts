@@ -6,7 +6,7 @@ import os from "os";
 import qs from "qs";
 import uuid from "uuid/v4";
 
-import * as builtinTaskNames from "../../builtin-tasks/task-names";
+import { isABuiltinTaskName } from "../../builtin-tasks/task-names";
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
@@ -93,7 +93,7 @@ export class Analytics {
   public async sendTaskHit(
     taskName: string
   ): Promise<[AbortAnalytics, Promise<void>]> {
-    if (this._isABuiltinTaskName(taskName)) {
+    if (isABuiltinTaskName(taskName)) {
       taskName = "builtin";
     } else {
       taskName = "custom";
@@ -104,10 +104,6 @@ export class Analytics {
     }
 
     return this._sendHit(await this._taskHit(taskName));
-  }
-
-  private _isABuiltinTaskName(taskName: string) {
-    return Object.values<string>(builtinTaskNames).includes(taskName);
   }
 
   private async _taskHit(taskName: string): Promise<RawAnalytics> {

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "../../src/builtin-tasks/task-names";
+import { TASKS } from "../../src/builtin-tasks/task-names";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
@@ -19,7 +19,7 @@ describe.skip("Flatten task", () => {
 
     it("should return empty string", async function () {
       const flattenedFiles = await this.env.run(
-        TASK_FLATTEN_GET_FLATTENED_SOURCE
+        TASKS.FLATTEN.GET_FLATTENED_SOURCES
       );
 
       assert.equal(flattenedFiles.length, 0);
@@ -31,7 +31,7 @@ describe.skip("Flatten task", () => {
 
     it("should flatten files sorted correctly", async function () {
       const flattenedFiles = await this.env.run(
-        TASK_FLATTEN_GET_FLATTENED_SOURCE
+        TASKS.FLATTEN.GET_FLATTENED_SOURCES
       );
       assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A"]);
     });
@@ -42,7 +42,7 @@ describe.skip("Flatten task", () => {
 
     it("should flatten files sorted correctly with repetition", async function () {
       const flattenedFiles = await this.env.run(
-        TASK_FLATTEN_GET_FLATTENED_SOURCE
+        TASKS.FLATTEN.GET_FLATTENED_SOURCES
       );
       assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A", "C"]);
     });

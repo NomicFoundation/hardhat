@@ -1,75 +1,90 @@
-export const TASK_CHECK = "check";
+export const TASKS = {
+  CHECK: {
+    MAIN: "check",
+  },
+  CLEAN: {
+    MAIN: "clean",
+  },
+  COMPILE: {
+    MAIN: "compile",
+    GET_COMPILATION_TASKS: "compile:get-compilation-tasks",
+    SOLIDITY: {
+      MAIN: "compile:solidity",
+      GET_SOURCE_PATHS: "compile:solidity:get-source-paths",
+      GET_SOURCE_NAMES: "compile:solidity:get-source-names",
+      GET_DEPENDENCY_GRAPH: "compile:solidity:get-dependency-graph",
+      GET_COMPILATION_JOBS: "compile:solidity:get-compilation-jobs",
+      GET_COMPILATION_JOB_FOR_FILE:
+        "compile:solidity:get-compilation-job-for-file",
+      FILTER_COMPILATION_JOBS: "compile:solidity:filter-compilation-jobs",
+      MERGE_COMPILATION_JOBS: "compile:solidity:merge-compilation-jobs",
+      COMPILE_JOB: "compile:solidity:compile-job",
+      COMPILE_JOBS: "compile:solidity:compile-jobs",
+      GET_COMPILER_INPUT: "compile:solidity:get-compiler-input",
+      COMPILE: "compile:solidity:compile",
+      CHECK_ERRORS: "compile:solidity:check-errors",
+      EMIT_ARTIFACTS: "compile:solidity:emit-artifacts",
+      GET_ARTIFACT_FROM_COMPILATION_OUTPUT:
+        "compile:solidity:get-artifact-from-compilation-output",
+      HANDLE_COMPILATION_JOBS_FAILURES:
+        "compile:solidity:handle-compilation-jobs-failures",
+      GET_COMPILATION_JOBS_FAILURES_MESSAGE:
+        "compile:solidity:get-compilation-jobs-failures-message",
+      SOLCJS: {
+        MAIN: "compile:solidity:solcjs",
+        GET_PATH: "compile:solidity:solcjs:get_path",
+        RUN: "compile:solidity:solcjs:run",
+      },
+      LOG: {
+        NOTHING_TO_COMPILE: "compile:solidity:log:nothing-to-compile",
+        RUN_SOLCJS_START: "compile:solidity:log:run-solcjs-start",
+        RUN_SOLCJS_END: "compile:solidity:log:run-soljs-end",
+        DOWNLOAD_SOLCJS_START: "compile:solidity:log:download-solc-js-start",
+        DOWNLOAD_SOLCJS_END: "compile:solidity:log:download-solc-js-end",
+        COMPILATION_ERRORS: "compile:solidity:log:compilation-errors",
+      },
+    },
+  },
+  CONSOLE: {
+    MAIN: "console",
+  },
+  FLATTEN: {
+    MAIN: "flatten",
+    GET_FLATTENED_SOURCES: "flatten:get-flattened-sources",
+  },
+  HELP: {
+    MAIN: "help",
+  },
+  RUN: {
+    MAIN: "run",
+  },
+  NODE: {
+    MAIN: "node",
+  },
+  TEST: {
+    MAIN: "test",
+    GET_TEST_FILES: "test:get-test-files",
+    RUN_MOCHA_TESTS: "test:run-mocha-tests",
+    SETUP_TEST_ENVIRONMENT: "test:setup-test-environment",
+    SHOW_FORK_RECOMMENDATIONS: "test:show-fork-recommendations",
+  },
+};
 
-export const TASK_CLEAN = "clean";
+export function isABuiltinTaskName(
+  taskName: string,
+  tasks: object = TASKS
+): boolean {
+  for (const value of Object.values(tasks)) {
+    if (value === taskName) {
+      return true;
+    }
 
-export const TASK_COMPILE = "compile";
-export const TASK_COMPILE_GET_COMPILATION_TASKS =
-  "compile:get-compilation-tasks";
-export const TASK_COMPILE_SOLIDITY = "compile:solidity";
-export const TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS =
-  "compile:solidity:get-source-paths";
-export const TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES =
-  "compile:solidity:get-source-names";
-export const TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH =
-  "compile:solidity:get-dependency-graph";
-export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS =
-  "compile:solidity:get-compilation-jobs";
-export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE =
-  "compile:solidity:get-compilation-job-for-file";
-export const TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS =
-  "compile:solidity:filter-compilation-jobs";
-export const TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS =
-  "compile:solidity:merge-compilation-jobs";
-export const TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE =
-  "compile:solidity:log:nothing-to-compile";
-export const TASK_COMPILE_SOLIDITY_COMPILE_JOB = "compile:solidity:compile-job";
-export const TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_START =
-  "compile:solidity:log:run-solcjs-start";
-export const TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_END =
-  "compile:solidity:log:run-soljs-end";
-export const TASK_COMPILE_SOLIDITY_COMPILE_JOBS =
-  "compile:solidity:compile-jobs";
-export const TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT =
-  "compile:solidity:get-compiler-input";
-export const TASK_COMPILE_SOLIDITY_COMPILE = "compile:solidity:compile";
-export const TASK_COMPILE_SOLIDITY_COMPILE_SOLCJS =
-  "compile:solidity:solcjs:compile";
-export const TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH =
-  "compile:solidity:solcjs:get_path";
-export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_START =
-  "compile:solidity:log:download-solc-js-start";
-export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_END =
-  "compile:solidity:log:download-solc-js-end";
-export const TASK_COMPILE_SOLIDITY_RUN_SOLCJS = "compile:solidity:solcjs:run";
-export const TASK_COMPILE_SOLIDITY_CHECK_ERRORS =
-  "compile:solidity:check-errors";
-export const TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS =
-  "compile:solidity:log:compilation-errors";
-export const TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS =
-  "compile:solidity:emit-artifacts";
-export const TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT =
-  "compile:solidity:get-artifact-from-compilation-output";
-export const TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES =
-  "compile:solidity:handle-compilation-jobs-failures";
-export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE =
-  "compile:solidity:get-compilation-jobs-failures-message";
+    if (typeof value !== "string") {
+      if (isABuiltinTaskName(taskName, value)) {
+        return true;
+      }
+    }
+  }
 
-export const TASK_CONSOLE = "console";
-
-export const TASK_FLATTEN = "flatten";
-export const TASK_FLATTEN_GET_FLATTENED_SOURCE =
-  "flatten:get-flattened-sources";
-
-export const TASK_HELP = "help";
-
-export const TASK_RUN = "run";
-
-export const TASK_NODE = "node";
-
-export const TASK_TEST = "test";
-
-export const TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS =
-  "test:show-fork-recommendations";
-export const TASK_TEST_RUN_MOCHA_TESTS = "test:run-mocha-tests";
-export const TASK_TEST_GET_TEST_FILES = "test:get-test-files";
-export const TASK_TEST_SETUP_TEST_ENVIRONMENT = "test:setup-test-environment";
+  return false;
+}

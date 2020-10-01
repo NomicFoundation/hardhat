@@ -1,4 +1,4 @@
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { TASKS } from "hardhat/builtin-tasks/task-names";
 import { task } from "hardhat/internal/core/config/config-env";
 import { ResolvedHardhatConfig } from "hardhat/types";
 
@@ -11,7 +11,7 @@ function getConfig(config: ResolvedHardhatConfig): VyperConfig {
 }
 
 export default function () {
-  task(TASK_COMPILE, async (_, { config }) => {
+  task(TASKS.COMPILE.MAIN, async (_, { config }) => {
     const { compile } = await import("./compilation");
 
     const vyperConfig = getConfig(config);

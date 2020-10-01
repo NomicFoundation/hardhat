@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { readFileSync, writeFileSync } from "fs";
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { TASKS } from "hardhat/builtin-tasks/task-names";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
@@ -34,7 +34,7 @@ describe("Plugin integration tests", function () {
     this.afterEach(() => restoreContract(placeholder));
 
     it("Should verify deployed inner contract on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASKS.COMPILE.MAIN, { force: false });
 
       const deployedAddress = await deployContract(
         "InnerContract",
@@ -49,7 +49,7 @@ describe("Plugin integration tests", function () {
     });
 
     it("Should verify deployed contract with name clash on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASKS.COMPILE.MAIN, { force: false });
 
       const deployedAddress = await deployContract(
         "TestReentrancyGuardLocal",
@@ -64,7 +64,7 @@ describe("Plugin integration tests", function () {
     });
 
     it("Should verify deployed library on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASKS.COMPILE.MAIN, { force: false });
 
       const deployedAddress = await deployContract("TestLibrary", [], this.env);
 
@@ -76,7 +76,7 @@ describe("Plugin integration tests", function () {
 
     // The plugin doesn't look at deployment bytecode while inferring the contract
     it("fail when the contract can only be singled out by its deploy bytecode", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASKS.COMPILE.MAIN, { force: false });
 
       const amount = "20";
 
@@ -102,7 +102,7 @@ describe("Plugin integration tests", function () {
     });
 
     it("Should verify deployed contract with a complex parameter list on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASKS.COMPILE.MAIN, { force: false });
 
       const modulePath = path.join(
         __dirname,

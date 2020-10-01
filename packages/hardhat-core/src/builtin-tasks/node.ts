@@ -19,7 +19,7 @@ import {
   ResolvedHardhatNetworkConfig,
 } from "../types";
 
-import { TASK_NODE } from "./task-names";
+import { TASKS } from "./task-names";
 import { watchCompilerOutput } from "./utils/watch";
 
 const log = debug("hardhat:core:tasks:node");
@@ -66,7 +66,7 @@ Private Key: ${privateKey}
 }
 
 export default function () {
-  task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
+  task(TASKS.NODE.MAIN, "Starts a JSON-RPC server on top of Hardhat Network")
     .addOptionalParam(
       "hostname",
       "The host to which to bind to for new connections",

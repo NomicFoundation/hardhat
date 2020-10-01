@@ -304,9 +304,9 @@ export async function compile(
   matchingVersions: string[],
   artifactsPath: string
 ): Promise<ContractBuildInfo[]> {
-  const { TASK_COMPILE } = await import("hardhat/builtin-tasks/task-names");
+  const { TASKS } = await import("hardhat/builtin-tasks/task-names");
 
-  await taskRun(TASK_COMPILE);
+  await taskRun(TASKS.COMPILE.MAIN);
 
   const artifacts = new Artifacts(artifactsPath);
   const buildInfoFiles = await artifacts.getBuildInfoFiles();

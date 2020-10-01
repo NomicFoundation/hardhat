@@ -4,7 +4,7 @@ import debug from "debug";
 import semver from "semver";
 import "source-map-support/register";
 
-import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
+import { TASKS } from "../../builtin-tasks/task-names";
 import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
@@ -98,7 +98,7 @@ async function main() {
 
     let taskName = parsedTaskName ?? "help";
 
-    const showWarningIfNoSolidityConfig = taskName === TASK_COMPILE;
+    const showWarningIfNoSolidityConfig = taskName === TASKS.COMPILE.MAIN;
 
     const ctx = HardhatContext.createHardhatContext();
     const config = loadConfigAndTasks(hardhatArguments, {
@@ -122,9 +122,9 @@ async function main() {
     let taskArguments: TaskArguments;
 
     // --help is a also special case
-    if (hardhatArguments.help && taskName !== TASK_HELP) {
+    if (hardhatArguments.help && taskName !== TASKS.HELP.MAIN) {
       taskArguments = { task: taskName };
-      taskName = TASK_HELP;
+      taskName = TASKS.HELP.MAIN;
     } else {
       const taskDefinition = taskDefinitions[taskName];
 

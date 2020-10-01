@@ -2,11 +2,11 @@ import fsExtra from "fs-extra";
 
 import { task } from "../internal/core/config/config-env";
 
-import { TASK_CLEAN } from "./task-names";
+import { TASKS } from "./task-names";
 
 export default function () {
   task(
-    TASK_CLEAN,
+    TASKS.CLEAN.MAIN,
     "Clears the cache and deletes all artifacts",
     async (_, { config }) => {
       await fsExtra.emptyDir(config.paths.cache);

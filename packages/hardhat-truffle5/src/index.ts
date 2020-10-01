@@ -1,6 +1,6 @@
 import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
-  TASK_TEST_SETUP_TEST_ENVIRONMENT,
+  TASKS,
 } from "hardhat/builtin-tasks/task-names";
 import { extendEnvironment, internalTask, usePlugin } from "hardhat/config";
 import { glob } from "hardhat/internal/util/glob";
@@ -158,7 +158,7 @@ export default function () {
   });
 
   internalTask(
-    TASK_TEST_SETUP_TEST_ENVIRONMENT,
+    TASKS.TEST.SETUP_TEST_ENVIRONMENT,
     async (_, { web3, network }) => {
       if (network.name !== HARDHAT_NETWORK_NAME) {
         accounts = await web3.eth.getAccounts();

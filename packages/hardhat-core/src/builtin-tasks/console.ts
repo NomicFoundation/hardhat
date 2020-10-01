@@ -6,12 +6,12 @@ import * as semver from "semver";
 import { task } from "../internal/core/config/config-env";
 import { runScriptWithHardhat } from "../internal/util/scripts-runner";
 
-import { TASK_COMPILE, TASK_CONSOLE } from "./task-names";
+import { TASKS } from "./task-names";
 
 export default function () {
   const log = debug("hardhat:core:tasks:console");
 
-  task(TASK_CONSOLE, "Opens a hardhat console")
+  task(TASKS.CONSOLE.MAIN, "Opens a hardhat console")
     .addFlag("noCompile", "Don't compile before running this task")
     .setAction(
       async (
@@ -19,7 +19,7 @@ export default function () {
         { config, run, hardhatArguments }
       ) => {
         if (!noCompile) {
-          await run(TASK_COMPILE, { quiet: true });
+          await run(TASKS.COMPILE.MAIN, { quiet: true });
         }
 
         await fsExtra.ensureDir(config.paths.cache);

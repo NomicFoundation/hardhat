@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import path from "path";
 
-import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
+import { TASKS } from "../../../../src/builtin-tasks/task-names";
 import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
@@ -86,7 +86,7 @@ describe("config loading", function () {
 
     it("Should define the default tasks", function () {
       assert.containsAllKeys(this.env.tasks, [
-        TASK_CLEAN,
+        TASKS.CLEAN.MAIN,
         "flatten",
         "compile",
         "help",

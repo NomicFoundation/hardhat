@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { TASKS } from "hardhat/builtin-tasks/task-names";
 import { Artifacts, NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
@@ -10,7 +10,7 @@ describe("Vyper plugin", async function () {
     useEnvironment(path.join(__dirname, "projects", "successful-compilation"));
 
     it("Should successfully compile the contract", async function () {
-      await this.env.run(TASK_COMPILE);
+      await this.env.run(TASKS.COMPILE.MAIN);
       const artifacts = new Artifacts(this.env.config.paths.artifacts);
       assert.equal(artifacts.readArtifactSync("test").contractName, "test");
     });
@@ -21,7 +21,7 @@ describe("Vyper plugin", async function () {
 
     it("Should successfully compile the contract", async function () {
       try {
-        await this.env.run(TASK_COMPILE);
+        await this.env.run(TASKS.COMPILE.MAIN);
       } catch (error) {
         assert.instanceOf(error, NomicLabsHardhatPluginError);
         assert.include("compilation failed", error.message.toLowerCase());

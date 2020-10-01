@@ -5,11 +5,7 @@ import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
 import { getPackageJson } from "../internal/util/packageInfo";
 
-import {
-  TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
-  TASK_FLATTEN,
-  TASK_FLATTEN_GET_FLATTENED_SOURCE,
-} from "./task-names";
+import { TASKS } from "./task-names";
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
@@ -56,13 +52,13 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
 
 export default function () {
   internalTask(
-    TASK_FLATTEN_GET_FLATTENED_SOURCE,
+    TASKS.FLATTEN.GET_FLATTENED_SOURCES,
     "Returns all contracts and their dependencies flattened",
     async (_, { run }) => {
       let flattened = "";
 
       const graph: DependencyGraph = await run(
-        TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH
+        TASKS.COMPILE.SOLIDITY.GET_DEPENDENCY_GRAPH
       );
       if (graph.getResolvedFiles().length === 0) {
         return flattened;
@@ -83,10 +79,10 @@ export default function () {
   );
 
   task(
-    TASK_FLATTEN,
+    TASKS.FLATTEN.MAIN,
     "Flattens and prints all contracts and their dependencies",
     async (_, { run }) => {
-      console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE));
+      console.log(await run(TASKS.FLATTEN.GET_FLATTENED_SOURCES));
     }
   );
 }
