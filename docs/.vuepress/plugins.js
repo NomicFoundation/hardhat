@@ -224,4 +224,48 @@ module.exports = [
       "Remove Buidler console.log imports and calls from Solidity source files",
     tags: ["Logging", "Console", "Deployment"],
   },
+  {
+    name: "buidler-local-networks-config-plugin",
+    author: "Facu Spagnuolo",
+    authorUrl: "https://twitter.com/facuspagnuolo",
+    version: "1.0.0",
+    url:
+      "https://github.com/facuspagnuolo/buidler-local-networks-config-plugin/tree/master",
+    description:
+      "Allow loading network configs for Buidler projects in home file",
+    tags: ["Networks", "Config"],
+  },
+  {
+    name: "@eth-optimisim/smock",
+    author: "Optimism",
+    authorUrl: "https://github.com/ethereum-optimism",
+    version: "1.0.0",
+    url:
+      "https://github.com/ethereum-optimism/smock/tree/master",
+    description:
+      "smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
+    tags: ["Testing", "Mocking"],
+  },
+  {
+    name: "buidler-ovm-compiler",
+    author: "Optimism",
+    authorUrl: "https://github.com/ethereum-optimism",
+    version: "1.0.0",
+    url:
+      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
+    description:
+      "Allows users to specify a custom compiler path. This makes it possible to compile your contracts with the custom Optimism Solidity compiler.",
+    tags: ["Optimism", "Compiler", "OVM"],
+  },
+    {
+    name: "buidler-ovm-node",
+    author: "Optimism",
+    authorUrl: "https://github.com/ethereum-optimism",
+    version: "1.0.0",
+    url:
+      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
+    description:
+      "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
+    tags: ["Optimism", "Buidler EVM", "OVM"],
+  },
 ];
