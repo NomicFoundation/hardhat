@@ -24,6 +24,18 @@ type FakeProvider = Pick<HttpProvider, "url" | "sendBatch"> & {
   request: sinon.SinonStub | HttpProvider["request"];
 };
 
+function assertBufferContents(buff: Buffer, hexEncodedContents: string) {
+  assert.isTrue(
+    hexEncodedContents.startsWith("0x"),
+    "The contents should be 0x-prefixed hex encoded"
+  );
+
+  assert.equal(
+    buff.toString("hex").toLowerCase(),
+    hexEncodedContents.substring(2).toLowerCase()
+  );
+}
+
 describe("JsonRpcClient", () => {
   describe("Using fake providers", function () {
     describe("Caching", () => {
@@ -45,7 +57,12 @@ describe("JsonRpcClient", () => {
 
       beforeEach(async function () {
         fakeProvider = {
-          request: sinon.stub().resolves(response1),
+          request: sinon
+            .stub()
+            .onFirstCall()
+            .resolves(response1)
+            .onSecondCall()
+            .resolves(response2),
           url: "fake",
           sendBatch: () => Promise.resolve([]),
         };
@@ -59,11 +76,10 @@ describe("JsonRpcClient", () => {
           3
         );
 
-        const value = await getStorageAt(121);
-        await getStorageAt(121);
+        assertBufferContents(await getStorageAt(121), response1);
+        assertBufferContents(await getStorageAt(121), response2);
 
         assert.isTrue((fakeProvider.request as sinon.SinonStub).calledTwice);
-        assert.isTrue(value.equals(toBuffer(response1)));
       });
 
       it("caches fetched data when its safe", async () => {
@@ -74,25 +90,13 @@ describe("JsonRpcClient", () => {
           3
         );
 
-        const value = await getStorageAt(120);
-        await getStorageAt(120);
+        assertBufferContents(await getStorageAt(120), response1);
+        assertBufferContents(await getStorageAt(120), response1);
 
         assert.isTrue((fakeProvider.request as sinon.SinonStub).calledOnce);
-        assert.isTrue(value.equals(toBuffer(response1)));
       });
 
       it("is parameter aware", async () => {
-        fakeProvider = {
-          request: sinon
-            .stub()
-            .onFirstCall()
-            .resolves(response1)
-            .onSecondCall()
-            .resolves(response2),
-          url: "fake",
-          sendBatch: () => Promise.resolve([]),
-        };
-
         clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
@@ -100,19 +104,13 @@ describe("JsonRpcClient", () => {
           3
         );
 
-        const firstResponse110 = await getStorageAt(110);
+        assertBufferContents(await getStorageAt(110), response1);
+        assertBufferContents(await getStorageAt(120), response2);
 
-        const firstResponse120 = await getStorageAt(120);
+        assertBufferContents(await getStorageAt(110), response1);
+        assertBufferContents(await getStorageAt(120), response2);
 
-        const secondResponse120 = await getStorageAt(120);
-
-        const secondResponse110 = await getStorageAt(110);
-
-        assert.isTrue(firstResponse110.equals(secondResponse110));
-        assert.isTrue(firstResponse120.equals(secondResponse120));
-
-        assert.isTrue(firstResponse110.equals(toBuffer(response1)));
-        assert.isTrue(firstResponse120.equals(toBuffer(response2)));
+        assert.isTrue((fakeProvider.request as sinon.SinonStub).calledTwice);
       });
 
       describe("Disk caching", () => {
@@ -129,11 +127,8 @@ describe("JsonRpcClient", () => {
         });
 
         async function makeCall() {
-          const value = await getStorageAt(120);
-          await getStorageAt(120);
-
+          assertBufferContents(await getStorageAt(120), response1);
           assert.isTrue((fakeProvider.request as sinon.SinonStub).calledOnce);
-          assert.isTrue(value.equals(toBuffer(response1)));
         }
 
         it("Stores to disk after a request", async function () {
@@ -142,9 +137,13 @@ describe("JsonRpcClient", () => {
         });
 
         it("Reads from disk if available, not making any request a request", async function () {
+          // We make a first call with the disk caching enabled, this will populate the disk
+          // cache, and also the in-memory one
           await makeCall();
           assert.isTrue((fakeProvider.request as sinon.SinonStub).calledOnce);
 
+          // We create a new client, using the same cache dir, but with an empty in-memory cache.
+          // It should read from the disk, instead of making a new request.
           clientWithFakeProvider = new JsonRpcClient(
             fakeProvider as any,
             1,
@@ -154,6 +153,8 @@ describe("JsonRpcClient", () => {
           );
 
           await makeCall();
+
+          // We created a new client, but used the same provider, so it was already called once.
           assert.isTrue((fakeProvider.request as sinon.SinonStub).calledOnce);
         });
       });
@@ -183,6 +184,7 @@ describe("JsonRpcClient", () => {
           123,
           3
         );
+
         const value = await clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
           DAI_TOTAL_SUPPLY_STORAGE_POSITION,
@@ -201,7 +203,7 @@ describe("JsonRpcClient", () => {
             .rejects(new Error("header not found"))
             .onSecondCall()
             .rejects(new Error("header not found"))
-            .onCall(4)
+            .onThirdCall()
             .resolves(response),
           sendBatch: () => Promise.resolve([]),
         };

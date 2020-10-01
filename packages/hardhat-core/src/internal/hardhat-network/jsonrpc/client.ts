@@ -214,10 +214,16 @@ export class JsonRpcClient {
       return cachedResult;
     }
 
-    const diskCachedResult = await this._getFromDiskCache(cacheKey, tType);
-    if (diskCachedResult !== undefined) {
-      this._storeInCache(cacheKey, diskCachedResult);
-      return diskCachedResult;
+    if (this._forkCachePath !== undefined) {
+      const diskCachedResult = await this._getFromDiskCache(
+        this._forkCachePath,
+        cacheKey,
+        tType
+      );
+      if (diskCachedResult !== undefined) {
+        this._storeInCache(cacheKey, diskCachedResult);
+        return diskCachedResult;
+      }
     }
 
     const rawResult = await this._send(method, params);
@@ -227,8 +233,8 @@ export class JsonRpcClient {
     if (this._canBeCached(blockNumber)) {
       this._storeInCache(cacheKey, decodedResult);
 
-      if (this._isCacheToDiskEnabled()) {
-        await this._storeInDiskCache(cacheKey, rawResult);
+      if (this._forkCachePath !== undefined) {
+        await this._storeInDiskCache(this._forkCachePath, cacheKey, rawResult);
       }
     }
 
@@ -254,14 +260,17 @@ export class JsonRpcClient {
       return cachedResult;
     }
 
-    const diskCachedResult = await this._getBatchFromDiskCache(
-      cacheKey,
-      batch.map((b) => b.tType)
-    );
+    if (this._forkCachePath !== undefined) {
+      const diskCachedResult = await this._getBatchFromDiskCache(
+        this._forkCachePath,
+        cacheKey,
+        batch.map((b) => b.tType)
+      );
 
-    if (diskCachedResult !== undefined) {
-      this._storeInCache(cacheKey, diskCachedResult);
-      return diskCachedResult;
+      if (diskCachedResult !== undefined) {
+        this._storeInCache(cacheKey, diskCachedResult);
+        return diskCachedResult;
+      }
     }
 
     const rawResults = await this._sendBatch(batch);
@@ -273,8 +282,8 @@ export class JsonRpcClient {
     if (this._canBeCached(blockNumber)) {
       this._storeInCache(cacheKey, decodedResults);
 
-      if (this._isCacheToDiskEnabled()) {
-        await this._storeInDiskCache(cacheKey, rawResults);
+      if (this._forkCachePath !== undefined) {
+        await this._storeInDiskCache(this._forkCachePath, cacheKey, rawResults);
       }
     }
 
@@ -353,10 +362,11 @@ export class JsonRpcClient {
   }
 
   private async _getFromDiskCache(
+    forkCachePath: string,
     cacheKey: string,
     tType: t.Type<any>
   ): Promise<any | undefined> {
-    const rawResult = await this._getRawFromDiskCache(cacheKey);
+    const rawResult = await this._getRawFromDiskCache(forkCachePath, cacheKey);
 
     if (rawResult !== undefined) {
       return decode(rawResult, tType);
@@ -364,10 +374,11 @@ export class JsonRpcClient {
   }
 
   private async _getBatchFromDiskCache(
+    forkCachePath: string,
     cacheKey: string,
     tTypes: Array<t.Type<any>>
   ): Promise<any[] | undefined> {
-    const rawResults = await this._getRawFromDiskCache(cacheKey);
+    const rawResults = await this._getRawFromDiskCache(forkCachePath, cacheKey);
 
     if (!Array.isArray(rawResults)) {
       return undefined;
@@ -377,12 +388,16 @@ export class JsonRpcClient {
   }
 
   private async _getRawFromDiskCache(
+    forkCachePath: string,
     cacheKey: string
   ): Promise<unknown | undefined> {
     try {
-      return await fsExtra.readJSON(this._getDiskCachePathForKey(cacheKey), {
-        encoding: "utf8",
-      });
+      return await fsExtra.readJSON(
+        this._getDiskCachePathForKey(forkCachePath, cacheKey),
+        {
+          encoding: "utf8",
+        }
+      );
     } catch (error) {
       if (error.code === "ENOENT") {
         return undefined;
@@ -393,8 +408,12 @@ export class JsonRpcClient {
     }
   }
 
-  private async _storeInDiskCache(cacheKey: string, rawResult: any) {
-    const requestPath = this._getDiskCachePathForKey(cacheKey);
+  private async _storeInDiskCache(
+    forkCachePath: string,
+    cacheKey: string,
+    rawResult: any
+  ) {
+    const requestPath = this._getDiskCachePathForKey(forkCachePath, cacheKey);
 
     if (this._scopedForkCacheFolderCreated !== true) {
       this._scopedForkCacheFolderCreated = true;
@@ -406,16 +425,12 @@ export class JsonRpcClient {
     });
   }
 
-  private _getDiskCachePathForKey(key: string): string {
+  private _getDiskCachePathForKey(forkCachePath: string, key: string): string {
     return path.join(
-      this._forkCachePath!,
+      forkCachePath,
       `network-${this._networkId!}`,
       `request-${key}.json`
     );
-  }
-
-  private _isCacheToDiskEnabled() {
-    return this._forkCachePath !== undefined;
   }
 
   private _canBeCached(blockNumber: BN | undefined) {
