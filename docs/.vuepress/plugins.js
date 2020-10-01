@@ -252,7 +252,7 @@ module.exports = [
     authorUrl: "https://github.com/ethereum-optimism",
     version: "1.0.0",
     url:
-      "https://github.com/ethereum-optimism/optimism-monorepo/blob/master/packages/ovm-toolchain",
+      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
     description:
       "Allows users to specify a custom compiler path. This makes it possible to compile your contracts with the custom Optimism Solidity compiler.",
     tags: ["Optimism", "Compiler", "OVM"],
@@ -263,7 +263,7 @@ module.exports = [
     authorUrl: "https://github.com/ethereum-optimism",
     version: "1.0.0",
     url:
-      "https://github.com/ethereum-optimism/optimism-monorepo/blob/master/packages/ovm-toolchain",
+      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
     description:
       "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
     tags: ["Optimism", "Buidler EVM", "OVM"],
