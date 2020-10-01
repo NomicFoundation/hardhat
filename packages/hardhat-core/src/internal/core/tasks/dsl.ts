@@ -15,6 +15,8 @@ import {
  * for creating and overriding tasks.
  */
 export class TasksDSL {
+  public readonly internalTask = this.subtask;
+
   private readonly _tasks: TasksMap = {};
 
   /**

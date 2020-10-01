@@ -10,12 +10,33 @@ import { HardhatContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
 import { usePlugin as usePluginImplementation } from "../plugins";
 
+/**
+ * Creates a task, overriding any previous task with the same name.
+ *
+ * @remarks The action must await every async call made within it.
+ *
+ * @param name The task's name.
+ * @param description The task's description.
+ * @param action The task's action.
+ * @returns A task definition.
+ */
 export function task<ArgsT extends TaskArguments>(
   name: string,
   description?: string,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
 
+/**
+ * Creates a task without description, overriding any previous task
+ * with the same name.
+ *
+ * @remarks The action must await every async call made within it.
+ *
+ * @param name The task's name.
+ * @param action The task's action.
+ *
+ * @returns A task definition.
+ */
 export function task<ArgsT extends TaskArguments>(
   name: string,
   action: ActionType<ArgsT>
@@ -40,12 +61,34 @@ export function task<ArgsT extends TaskArguments>(
   return dsl.task(name, descriptionOrAction, action);
 }
 
+/**
+ * Creates a subtask, overriding any previous task with the same name.
+ *
+ * @remarks The subtasks won't be displayed in the CLI help messages.
+ * @remarks The action must await every async call made within it.
+ *
+ * @param name The task's name.
+ * @param description The task's description.
+ * @param action The task's action.
+ * @returns A task definition.
+ */
 export function subtask<ArgsT extends TaskArguments>(
   name: string,
   description?: string,
   action?: ActionType<ArgsT>
 ): ConfigurableTaskDefinition;
 
+/**
+ * Creates a subtask without description, overriding any previous
+ * task with the same name.
+ *
+ * @remarks The subtasks won't be displayed in the CLI help messages.
+ * @remarks The action must await every async call made within it.
+ *
+ * @param name The task's name.
+ * @param action The task's action.
+ * @returns A task definition.
+ */
 export function subtask<ArgsT extends TaskArguments>(
   name: string,
   action: ActionType<ArgsT>
@@ -69,6 +112,9 @@ export function subtask<ArgsT extends TaskArguments>(
 
   return dsl.subtask(name, descriptionOrAction, action);
 }
+
+// Backwards compatibility alias
+export const internalTask = subtask;
 
 export const types = argumentTypes;
 
