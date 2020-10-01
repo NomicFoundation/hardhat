@@ -427,6 +427,8 @@ export class JsonRpcClient {
   }
 
   private _canBeReorgedOut(blockNumber: number) {
-    return blockNumber > this._latestBlockNumberOnCreation - this._maxReorg;
+    const maxSafeBlockNumber =
+      this._latestBlockNumberOnCreation - this._maxReorg;
+    return blockNumber > maxSafeBlockNumber;
   }
 }
