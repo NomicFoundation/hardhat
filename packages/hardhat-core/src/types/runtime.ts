@@ -1,5 +1,5 @@
 import { ResolvedHardhatConfig, ResolvedNetworkConfig } from "./config";
-import { EthereumProvider } from "./network";
+import { EthereumProvider } from "./provider";
 
 /**
  * This class is used to dynamically validate task's argument types.
