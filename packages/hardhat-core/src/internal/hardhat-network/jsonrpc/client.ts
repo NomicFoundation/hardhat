@@ -378,7 +378,7 @@ export class JsonRpcClient {
 
   private async _getRawFromDiskCache(
     cacheKey: string
-  ): Promise<any | undefined> {
+  ): Promise<unknown | undefined> {
     try {
       return await fsExtra.readJSON(this._getDiskCachePathForKey(cacheKey), {
         encoding: "utf8",
