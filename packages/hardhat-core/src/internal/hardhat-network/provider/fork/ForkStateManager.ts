@@ -138,7 +138,13 @@ export class ForkStateManager implements PStateManager {
     if (localCode !== undefined) {
       return toBuffer(localCode);
     }
-    return this._jsonRpcClient.getCode(address, this._contextBlockNumber);
+
+    const accountData = await this._jsonRpcClient.getAccountData(
+      address,
+      this._contextBlockNumber
+    );
+
+    return accountData.code;
   }
 
   public async getContractStorage(

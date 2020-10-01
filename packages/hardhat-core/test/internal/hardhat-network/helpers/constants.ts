@@ -7,6 +7,9 @@ export const REMOTE_CHAIN_ID = 1;
 export const DAI_ADDRESS = toBuffer(
   "0x6b175474e89094c44da98b954eedeac495271d0f"
 );
+
+export const DAI_CONTRACT_LENGTH = 7904;
+
 export const WETH_ADDRESS = toBuffer(
   "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 );

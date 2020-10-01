@@ -1,3 +1,5 @@
+import path from "path";
+
 import type {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
@@ -12,6 +14,7 @@ import type {
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ForkConfig } from "../../hardhat-network/provider/node-types";
+import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
 import { parseDateString } from "../../util/date";
 
 export function isHDAccountsConfig(
@@ -82,7 +85,8 @@ export function createProvider(
         ? parseDateString(hardhatNetConfig.initialDate)
         : undefined,
       experimentalHardhatNetworkMessageTraceHooks,
-      forkConfig
+      forkConfig,
+      paths !== undefined ? getForkCacheDirPath(paths) : undefined
     );
   } else {
     const HttpProvider = importProvider<

@@ -30,6 +30,7 @@ export interface ForkConfig {
 export interface ForkedNodeConfig extends CommonConfig {
   type: "forked";
   forkConfig: ForkConfig;
+  forkCachePath?: string;
 }
 
 export interface TracingConfig {

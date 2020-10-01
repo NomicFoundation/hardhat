@@ -98,7 +98,7 @@ describe("Eth module", function () {
           assertQuantity(blockNumber, firstBlock + 3);
         });
 
-        it("Shouldn't increase if a transaction gets to execute and fails", async function () {
+        it("Should increase if a transaction gets to execute and fails", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
           assertQuantity(blockNumber, firstBlock);
 

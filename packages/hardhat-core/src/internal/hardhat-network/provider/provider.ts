@@ -76,7 +76,8 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
-    private _forkConfig?: ForkConfig
+    private _forkConfig?: ForkConfig,
+    private readonly _forkCachePath?: string
   ) {
     super();
   }
@@ -254,6 +255,7 @@ export class HardhatNetworkProvider extends EventEmitter
       config = {
         type: "forked",
         forkConfig: this._forkConfig,
+        forkCachePath: this._forkCachePath,
         ...commonConfig,
       };
     }
