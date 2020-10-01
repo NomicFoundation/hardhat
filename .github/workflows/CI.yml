@@ -75,18 +75,8 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        id: cache
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
-          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}
       - name: Install
         run: yarn --frozen-lockfile
-      - name: Clean
-        run: yarn clean
       - name: Run tests
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
