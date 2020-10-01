@@ -655,11 +655,7 @@ export default function () {
           quiet,
         });
 
-        const hasErrors = hasCompilationErrors(output);
-        if (hasErrors || !output.contracts) {
-          log(
-            `Compilation failure. hasErrors='${hasErrors}' output.contracts='${!!output.contracts}'`
-          );
+        if (hasCompilationErrors(output)) {
           throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
         }
       }
