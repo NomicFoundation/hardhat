@@ -7,6 +7,7 @@ import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonr
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { Block } from "../../../../../src/internal/hardhat-network/provider/types/Block";
+import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
   createTestLog,
@@ -20,8 +21,6 @@ import {
   LAST_TX_HASH_OF_10496585,
   TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";
-
-const REORGS_PROTECTION = 3;
 
 describe("ForkBlockchain", () => {
   let client: JsonRpcClient;
@@ -50,9 +49,10 @@ describe("ForkBlockchain", () => {
   });
 
   beforeEach(async () => {
-    client = JsonRpcClient.forUrl(ALCHEMY_URL!);
-    const latestBlockNumber = await client.getLatestBlockNumber();
-    forkBlockNumber = latestBlockNumber.subn(REORGS_PROTECTION);
+    const clientResult = await makeForkClient({ jsonRpcUrl: ALCHEMY_URL! });
+    client = clientResult.forkClient;
+    forkBlockNumber = clientResult.forkBlockNumber;
+
     common = new Common("mainnet");
     common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
     fb = new ForkBlockchain(client, forkBlockNumber, common);

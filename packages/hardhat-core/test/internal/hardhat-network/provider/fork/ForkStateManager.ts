@@ -15,6 +15,7 @@ import {
   randomAddressBuffer,
   randomHashBuffer,
 } from "../../../../../src/internal/hardhat-network/provider/fork/random";
+import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
   DAI_ADDRESS,
@@ -37,8 +38,10 @@ describe("ForkStateManager", () => {
   });
 
   beforeEach(async () => {
-    client = JsonRpcClient.forUrl(ALCHEMY_URL!);
-    forkBlockNumber = await client.getLatestBlockNumber();
+    const clientResult = await makeForkClient({ jsonRpcUrl: ALCHEMY_URL! });
+    client = clientResult.forkClient;
+    forkBlockNumber = clientResult.forkBlockNumber;
+
     fsm = new ForkStateManager(client, forkBlockNumber);
   });
 
@@ -62,7 +65,10 @@ describe("ForkStateManager", () => {
 
   describe("getAccount", () => {
     it("can get account object", async () => {
-      const code = await client.getCode(WETH_ADDRESS, "latest");
+      const { code } = await client.getAccountData(
+        WETH_ADDRESS,
+        forkBlockNumber
+      );
       const codeHash = keccak256(code);
       const account = await fsm.getAccount(WETH_ADDRESS);
 
@@ -180,10 +186,13 @@ describe("ForkStateManager", () => {
 
   describe("getContractCode", () => {
     it("can get contract code", async () => {
-      const remoteCode = await client.getCode(DAI_ADDRESS, forkBlockNumber);
+      const { code } = await client.getAccountData(
+        DAI_ADDRESS,
+        forkBlockNumber
+      );
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
-      assert.isTrue(fsmCode.equals(remoteCode));
+      assert.isTrue(fsmCode.equals(code));
     });
 
     it("can get code of an account modified locally", async () => {
@@ -192,10 +201,13 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
         toBuffer([69, 4, 20])
       );
-      const remoteCode = await client.getCode(DAI_ADDRESS, forkBlockNumber);
+      const { code } = await client.getAccountData(
+        DAI_ADDRESS,
+        forkBlockNumber
+      );
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
-      assert.isTrue(fsmCode.equals(remoteCode));
+      assert.isTrue(fsmCode.equals(code));
     });
   });
 

@@ -7,8 +7,7 @@ export async function makeForkCommon(
   forkClient: JsonRpcClient,
   forkBlockNumber: BN
 ) {
-  const networkId = await forkClient.getNetworkId();
-  const common = new Common(parseInt(networkId, 10));
+  const common = new Common(forkClient.getNetworkId());
   common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
   return common;
 }
