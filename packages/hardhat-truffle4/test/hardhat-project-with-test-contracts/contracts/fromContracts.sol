@@ -1,1 +1,1 @@
-contract A {}
+
