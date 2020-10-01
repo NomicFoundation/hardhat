@@ -384,7 +384,12 @@ export class JsonRpcClient {
         encoding: "utf8",
       });
     } catch (error) {
-      return undefined;
+      if (error.code === "ENOENT") {
+        return undefined;
+      }
+
+      // tslint:disable-next-line only-hardhat-error
+      throw error;
     }
   }
 
