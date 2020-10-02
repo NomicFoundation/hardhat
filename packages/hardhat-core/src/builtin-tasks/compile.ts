@@ -28,6 +28,7 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
+import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
 import { CompilerInput } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
@@ -852,7 +853,9 @@ export default function () {
             .filter((file) => job.emitsArtifacts(file)).length;
         }
 
-        console.log(`Compiling ${count} files with ${solcVersion}`);
+        console.log(
+          `Compiling ${count} ${pluralize(count, "file")} with ${solcVersion}`
+        );
       }
     );
 
