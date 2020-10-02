@@ -197,8 +197,7 @@ describe("TruffleContracts loading and provisioning", function () {
   });
 });
 
-// TODO-HH re-enable after splitting the new compile stask in internal tasks
-describe.skip("Test contracts compilation", function () {
+describe("Test contracts compilation", function () {
   useEnvironment(path.join(__dirname, "hardhat-project-with-test-contracts"));
 
   it("Should include sources from sources", async function () {

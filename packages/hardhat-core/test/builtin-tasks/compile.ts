@@ -2,7 +2,7 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
 
-import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE } from "../../src/builtin-tasks/task-names";
+import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS } from "../../src/builtin-tasks/task-names";
 import {
   CompilationJobCreationError,
   CompilationJobsCreationErrors,
@@ -75,18 +75,16 @@ describe("compile task", function () {
           "contracts/Foo.sol",
         ],
       };
-      const message = await this.env.run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+      const reasons = await this.env.run(
+        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
         {
           compilationJobsCreationErrors,
         }
       );
 
       assert.equal(
-        message,
-        `The project couldn't be compiled, see reasons below.
-
-The pragma statement in these files don't match any of the configured compilers
+        reasons,
+        `The pragma statement in these files don't match any of the configured compilers
 in your config. Change the pragma or configure additional compiler versions in
 your hardhat config.
 
@@ -104,18 +102,16 @@ Learn more about compiler configuration at https://usehardhat.com/configuration
           "contracts/Bar.sol",
         ],
       };
-      const message = await this.env.run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+      const reasons = await this.env.run(
+        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
         {
           compilationJobsCreationErrors,
         }
       );
 
       assert.equal(
-        message,
-        `The project couldn't be compiled, see reasons below.
-
-The pragma statement in these files don't match any of the configured compilers
+        reasons,
+        `The pragma statement in these files don't match any of the configured compilers
 in your config. Change the pragma or configure additional compiler versions in
 your hardhat config.
 
@@ -133,18 +129,16 @@ Learn more about compiler configuration at https://usehardhat.com/configuration
           "contracts/Foo.sol",
         ],
       };
-      const message = await this.env.run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+      const reasons = await this.env.run(
+        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
         {
           compilationJobsCreationErrors,
         }
       );
 
       assert.equal(
-        message,
-        `The project couldn't be compiled, see reasons below.
-
-The compiler version for the following files is fixed through an override in your
+        reasons,
+        `The compiler version for the following files is fixed through an override in your
 config file to a version that is incompatible with their version pragmas.
 
 * contracts/Foo.sol
@@ -160,18 +154,16 @@ Learn more about compiler configuration at https://usehardhat.com/configuration
           "contracts/Foo.sol",
         ],
       };
-      const message = await this.env.run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+      const reasons = await this.env.run(
+        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
         {
           compilationJobsCreationErrors,
         }
       );
 
       assert.equal(
-        message,
-        `The project couldn't be compiled, see reasons below.
-
-These files import other files that use a different and incompatible version of Solidity:
+        reasons,
+        `These files import other files that use a different and incompatible version of Solidity:
 
 * contracts/Foo.sol
 
@@ -184,18 +176,16 @@ Learn more about compiler configuration at https://usehardhat.com/configuration
       const compilationJobsCreationErrors: CompilationJobsCreationErrors = {
         [CompilationJobCreationError.OTHER_ERROR]: ["contracts/Foo.sol"],
       };
-      const message = await this.env.run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+      const reasons = await this.env.run(
+        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
         {
           compilationJobsCreationErrors,
         }
       );
 
       assert.equal(
-        message,
-        `The project couldn't be compiled, see reasons below.
-
-These files and its dependencies cannot be compiled with your config:
+        reasons,
+        `These files and its dependencies cannot be compiled with your config:
 
 * contracts/Foo.sol
 
@@ -208,18 +198,16 @@ Learn more about compiler configuration at https://usehardhat.com/configuration
       const compilationJobsCreationErrors: any = {
         unknown: ["contracts/Foo.sol"],
       };
-      const message = await this.env.run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+      const reasons = await this.env.run(
+        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
         {
           compilationJobsCreationErrors,
         }
       );
 
       assert.equal(
-        message,
-        `The project couldn't be compiled, see reasons below.
-
-These files and its dependencies cannot be compiled with your config:
+        reasons,
+        `These files and its dependencies cannot be compiled with your config:
 
 * contracts/Foo.sol
 
@@ -241,18 +229,16 @@ Learn more about compiler configuration at https://usehardhat.com/configuration
           "contracts/Foo1.sol",
         ],
       };
-      const message = await this.env.run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE,
+      const reasons = await this.env.run(
+        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
         {
           compilationJobsCreationErrors,
         }
       );
 
       assert.equal(
-        message,
-        `The project couldn't be compiled, see reasons below.
-
-The compiler version for the following files is fixed through an override in your
+        reasons,
+        `The compiler version for the following files is fixed through an override in your
 config file to a version that is incompatible with their version pragmas.
 
 * contracts/Foo1.sol

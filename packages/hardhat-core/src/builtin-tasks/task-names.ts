@@ -51,8 +51,8 @@ export const TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT =
   "compile:solidity:get-artifact-from-compilation-output";
 export const TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES =
   "compile:solidity:handle-compilation-jobs-failures";
-export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURES_MESSAGE =
-  "compile:solidity:get-compilation-jobs-failures-message";
+export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS =
+  "compile:solidity:get-compilation-jobs-failure-reasons";
 
 export const TASK_CONSOLE = "console";
 
