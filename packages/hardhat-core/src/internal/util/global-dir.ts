@@ -22,7 +22,7 @@ async function getDataDir(): Promise<string> {
   return data;
 }
 
-async function getCacheDir(): Promise<string> {
+export async function getCacheDir(): Promise<string> {
   const { cache } = await generatePaths();
   await fs.ensureDir(cache);
   return cache;
