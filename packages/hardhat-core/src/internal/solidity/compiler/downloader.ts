@@ -36,7 +36,7 @@ export interface CompilersList {
   latestRelease: string;
 }
 
-const log = debug("buidler:core:solidity:downloader");
+const log = debug("hardhat:core:solidity:downloader");
 
 const COMPILER_FILES_DIR_URL_SOLC = "https://solc-bin.ethereum.org/";
 
