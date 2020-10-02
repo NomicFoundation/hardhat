@@ -61,23 +61,17 @@ contract A {}
 
       const compiler = new NativeCompiler(solcPath);
 
-      compiler
-        .compile(input)
-        .then((output) => {
-          // We just check some properties
-          assert.isDefined(output.contracts);
-          assert.isDefined(output.contracts["A.sol"]);
-          assert.isDefined(output.contracts["A.sol"].A);
+      const output = await compiler.compile(input);
 
-          assert.isDefined(output.sources);
-          assert.isDefined(output.sources["A.sol"]);
-          assert.isDefined(output.sources["A.sol"].ast);
-          assert.equal(output.sources["A.sol"].id, 0);
-        })
-        .catch((err) => {
-          console.log(err);
-          assert.fail(err);
-        });
+      // We just check some properties
+      assert.isDefined(output.contracts);
+      assert.isDefined(output.contracts["A.sol"]);
+      assert.isDefined(output.contracts["A.sol"].A);
+
+      assert.isDefined(output.sources);
+      assert.isDefined(output.sources["A.sol"]);
+      assert.isDefined(output.sources["A.sol"].ast);
+      assert.equal(output.sources["A.sol"].id, 0);
     });
 
     it("Shouldn't throw if there's a syntax error", async () => {
@@ -163,23 +157,17 @@ contract A {}
 
       const compiler = new Compiler(solcPath);
 
-      compiler
-        .compile(input)
-        .then((output) => {
-          // We just check some properties
-          assert.isDefined(output.contracts);
-          assert.isDefined(output.contracts["A.sol"]);
-          assert.isDefined(output.contracts["A.sol"].A);
+      const output = await compiler.compile(input);
 
-          assert.isDefined(output.sources);
-          assert.isDefined(output.sources["A.sol"]);
-          assert.isDefined(output.sources["A.sol"].ast);
-          assert.equal(output.sources["A.sol"].id, 0);
-        })
-        .catch((err) => {
-          console.log(err);
-          assert.fail(err);
-        });
+      // We just check some properties
+      assert.isDefined(output.contracts);
+      assert.isDefined(output.contracts["A.sol"]);
+      assert.isDefined(output.contracts["A.sol"].A);
+
+      assert.isDefined(output.sources);
+      assert.isDefined(output.sources["A.sol"]);
+      assert.isDefined(output.sources["A.sol"].ast);
+      assert.equal(output.sources["A.sol"].id, 0);
     });
 
     it("Shouldn't throw if there's a syntax error", async () => {
