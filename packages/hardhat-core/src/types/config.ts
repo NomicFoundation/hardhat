@@ -1,4 +1,4 @@
-import { Omit } from "ts-essentials";
+import { DeepReadonly, Omit } from "ts-essentials";
 
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
@@ -138,3 +138,8 @@ export interface ResolvedHardhatConfig extends HardhatConfig {
   analytics: AnalyticsConfig;
   solidity: MultiSolcConfig;
 }
+
+export type ConfigExtender = (
+  config: ResolvedHardhatConfig,
+  userConfig: DeepReadonly<HardhatConfig>
+) => void;

@@ -205,3 +205,9 @@ export interface Network {
   config: ResolvedNetworkConfig;
   provider: EthereumProvider;
 }
+
+/**
+ * A function that receives a HardhatRuntimeEnvironment and
+ * modify its properties or add new ones.
+ */
+export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
