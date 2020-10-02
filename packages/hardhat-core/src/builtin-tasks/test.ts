@@ -61,7 +61,7 @@ export default function () {
       process.exitCode = await runPromise;
     });
 
-  internalTask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
+  subtask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
     async (_, { config, network }) => {
       if (network.name !== HARDHAT_NETWORK_NAME) {
         return;
