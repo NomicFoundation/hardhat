@@ -1,5 +1,6 @@
 import debug from "debug";
 import fsExtra from "fs-extra";
+import os from "os";
 import path from "path";
 
 import { HardhatError } from "../../core/errors";
@@ -12,6 +13,19 @@ export interface CompilerBuild {
   longVersion: string;
   keccak256: string;
   urls: string[];
+  platform: CompilerPlatform;
+}
+
+export enum CompilerPlatform {
+  LINUX = "linux-amd64",
+  WINDOWS = "windows-amd64",
+  MACOS = "macosx-amd64",
+  WASM = "wasm",
+}
+
+interface CompilerPath {
+  compilerPath: string; // absolute path
+  platform: CompilerPlatform;
 }
 
 export interface CompilersList {
@@ -22,124 +36,44 @@ export interface CompilersList {
   latestRelease: string;
 }
 
-const log = debug("buidler:core:solidity:downloader");
+const log = debug("hardhat:core:solidity:downloader");
 
-const COMPILER_FILES_DIR_URL = "https://solc-bin.ethereum.org/bin/";
-
-const COMPILERS_LIST_URL = `${COMPILER_FILES_DIR_URL}list.json`;
+const COMPILER_FILES_DIR_URL_SOLC = "https://solc-bin.ethereum.org/";
 
 async function downloadFile(
   url: string,
   destinationFile: string
 ): Promise<void> {
   const { download } = await import("../../util/download");
+  log(`Downloading from ${url} to ${destinationFile}`);
   await download(url, destinationFile);
 }
 
+type CompilerDownloaderOptions = Partial<{
+  download: (url: string, destinationFile: string) => Promise<void>;
+  forceSolcJs: boolean;
+}>;
+
 export class CompilerDownloader {
-  private readonly _compilersDir: string;
   private readonly _download: (
     url: string,
     destinationFile: string
   ) => Promise<void>;
+  private readonly _forceSolcJs: boolean;
 
-  constructor(readonly compilersDir: string, readonly download = downloadFile) {
-    this._compilersDir = compilersDir;
-    this._download = download;
-  }
-
-  public async getDownloadedCompilerPath(version: string): Promise<string> {
-    const compilerBuild = await this.getCompilerBuild(version);
-    const downloadedFilePath = path.join(
-      this._compilersDir,
-      compilerBuild.path
-    );
-
-    if (!(await this._fileExists(downloadedFilePath))) {
-      await this.downloadCompiler(compilerBuild, downloadedFilePath);
-    }
-
-    await this.verifyCompiler(compilerBuild, downloadedFilePath);
-
-    return downloadedFilePath;
+  constructor(
+    private readonly _compilersDir: string,
+    options: CompilerDownloaderOptions = {}
+  ) {
+    this._download = options.download ?? downloadFile;
+    this._forceSolcJs = options.forceSolcJs ?? false;
   }
 
   public async isCompilerDownloaded(version: string): Promise<boolean> {
     const compilerBuild = await this.getCompilerBuild(version);
-    const downloadedFilePath = path.join(
-      this._compilersDir,
-      compilerBuild.path
-    );
+    const downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
 
     return this._fileExists(downloadedFilePath);
-  }
-
-  public async getCompilerBuild(version: string): Promise<CompilerBuild> {
-    const compilersListExisted = await this.compilersListExists();
-
-    let list = await this.getCompilersList();
-    let compilerBuildPath = list.releases[version];
-
-    // We may need to re-download the compilers list.
-    if (compilerBuildPath === undefined && compilersListExisted) {
-      await fsExtra.unlink(this.getCompilersListPath());
-
-      list = await this.getCompilersList();
-      compilerBuildPath = list.releases[version];
-    }
-
-    const compilerBuild = list.builds.find((b) => b.path === compilerBuildPath);
-
-    if (compilerBuild === undefined) {
-      throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
-    }
-
-    return compilerBuild;
-  }
-
-  public async getCompilersList(): Promise<CompilersList> {
-    if (!(await this.compilersListExists())) {
-      await this.downloadCompilersList();
-    }
-
-    return fsExtra.readJson(this.getCompilersListPath());
-  }
-
-  public getCompilersListPath() {
-    return path.join(this._compilersDir, "list.json");
-  }
-
-  public async compilersListExists() {
-    return fsExtra.pathExists(this.getCompilersListPath());
-  }
-
-  public async downloadCompilersList() {
-    try {
-      await this._download(COMPILERS_LIST_URL, this.getCompilersListPath());
-    } catch (error) {
-      throw new HardhatError(ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED, error);
-    }
-  }
-
-  public async downloadCompiler(
-    compilerBuild: CompilerBuild,
-    downloadedFilePath: string
-  ) {
-    log(`Downloading compiler version ${compilerBuild.version}`);
-
-    const compilerUrl = COMPILER_FILES_DIR_URL + compilerBuild.path;
-
-    try {
-      await this._download(compilerUrl, downloadedFilePath);
-    } catch (error) {
-      throw new HardhatError(
-        ERRORS.SOLC.DOWNLOAD_FAILED,
-        {
-          remoteVersion: compilerBuild.version,
-        },
-        error
-      );
-    }
   }
 
   public async verifyCompiler(
@@ -164,7 +98,192 @@ export class CompilerDownloader {
     }
   }
 
+  public async getDownloadedCompilerPath(
+    version: string
+  ): Promise<CompilerPath> {
+    const { default: AdmZip } = await import("adm-zip");
+
+    const compilerBuild = await this.getCompilerBuild(version);
+    let downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
+
+    if (!(await this._fileExists(downloadedFilePath))) {
+      await this.downloadCompiler(compilerBuild, downloadedFilePath);
+    }
+
+    await this.verifyCompiler(compilerBuild, downloadedFilePath);
+
+    switch (compilerBuild.platform) {
+      case CompilerPlatform.LINUX:
+      case CompilerPlatform.MACOS:
+        fsExtra.chmodSync(downloadedFilePath, 0o755);
+        break;
+      case CompilerPlatform.WINDOWS:
+        const zip = new AdmZip(downloadedFilePath);
+        zip.extractAllTo(path.join(this._compilersDir, compilerBuild.version));
+        downloadedFilePath = path.join(
+          this._compilersDir,
+          compilerBuild.version,
+          "solc.exe"
+        );
+        break;
+    }
+
+    return {
+      compilerPath: downloadedFilePath,
+      platform: compilerBuild.platform,
+    };
+  }
+
+  public async getCompilersList(
+    platform: CompilerPlatform
+  ): Promise<CompilersList> {
+    if (!(await this.compilersListExists(platform))) {
+      await this.downloadCompilersList(platform);
+    }
+
+    return fsExtra.readJson(this._getCompilersListPath(platform));
+  }
+
+  public async getCompilerBuild(version: string): Promise<CompilerBuild> {
+    const platform = this._getCurrentPlarform();
+
+    if (await this._versionExists(version, platform)) {
+      try {
+        return this._getCompilerBuildByPlatform(version, platform);
+      } catch (e) {
+        log("Could'nt download native compiler, using solcjs instead");
+      }
+    }
+
+    return this._getCompilerBuildByPlatform(version, CompilerPlatform.WASM);
+  }
+
+  public async downloadCompilersList(platform: CompilerPlatform) {
+    try {
+      await this._download(
+        getCompilerListURL(platform),
+        this._getCompilersListPath(platform)
+      );
+    } catch (error) {
+      throw new HardhatError(
+        ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
+        {},
+        error
+      );
+    }
+  }
+
+  public async downloadCompiler(
+    compilerBuild: CompilerBuild,
+    downloadedFilePath: string
+  ) {
+    log(
+      `Downloading compiler version ${compilerBuild.version} platform ${compilerBuild.platform}`
+    );
+
+    const compilerUrl = getCompilerURL(
+      compilerBuild.platform,
+      compilerBuild.path
+    );
+
+    try {
+      await this._download(compilerUrl, downloadedFilePath);
+    } catch (error) {
+      throw new HardhatError(
+        ERRORS.SOLC.DOWNLOAD_FAILED,
+        {
+          remoteVersion: compilerBuild.version,
+        },
+        error
+      );
+    }
+  }
+
+  public async compilersListExists(platform: CompilerPlatform) {
+    return fsExtra.pathExists(this._getCompilersListPath(platform));
+  }
+
+  private _getDownloadedFilePath(compilerBuild: CompilerBuild): string {
+    return path.join(
+      this._compilersDir,
+      compilerBuild.platform,
+      compilerBuild.path
+    );
+  }
+
+  private async _fetchVersionPath(
+    version: string,
+    platform: CompilerPlatform
+  ): Promise<string | undefined> {
+    const compilersListExisted = await this.compilersListExists(platform);
+    let list = await this.getCompilersList(platform);
+    let compilerBuildPath = list.releases[version];
+
+    // We may need to re-download the compilers list.
+    if (compilerBuildPath === undefined && compilersListExisted) {
+      await fsExtra.unlink(this._getCompilersListPath(platform));
+
+      list = await this.getCompilersList(platform);
+      compilerBuildPath = list.releases[version];
+    }
+
+    return compilerBuildPath;
+  }
+
+  private async _versionExists(
+    version: string,
+    platform: CompilerPlatform
+  ): Promise<boolean> {
+    const versionPath = await this._fetchVersionPath(version, platform);
+    return versionPath !== undefined;
+  }
+
+  private async _getCompilerBuildByPlatform(
+    version: string,
+    platform: CompilerPlatform
+  ): Promise<CompilerBuild> {
+    const compilerBuildPath = await this._fetchVersionPath(version, platform);
+    const list = await this.getCompilersList(platform);
+    const compilerBuild = list.builds.find((b) => b.path === compilerBuildPath);
+
+    if (compilerBuild === undefined) {
+      throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
+    }
+
+    compilerBuild.platform = platform;
+    return compilerBuild;
+  }
+
+  private _getCompilersListPath(platform: CompilerPlatform) {
+    return path.join(this._compilersDir, platform, "list.json");
+  }
+
   private async _fileExists(filePath: string) {
     return fsExtra.pathExists(filePath);
   }
+
+  private _getCurrentPlarform(): CompilerPlatform {
+    if (this._forceSolcJs) {
+      return CompilerPlatform.WASM;
+    }
+
+    switch (os.platform()) {
+      case "win32":
+        return CompilerPlatform.WINDOWS;
+      case "linux":
+        return CompilerPlatform.LINUX;
+      case "darwin":
+        return CompilerPlatform.MACOS;
+      default:
+        return CompilerPlatform.WASM;
+    }
+  }
+}
+
+function getCompilerURL(platform: CompilerPlatform, filePath: string) {
+  return `${COMPILER_FILES_DIR_URL_SOLC}${platform}/${filePath}`;
+}
+
+function getCompilerListURL(platform: CompilerPlatform) {
+  return getCompilerURL(platform, "list.json");
 }

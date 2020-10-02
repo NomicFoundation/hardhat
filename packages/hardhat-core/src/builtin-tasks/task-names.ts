@@ -23,24 +23,25 @@ export const TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS =
 export const TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE =
   "compile:solidity:log:nothing-to-compile";
 export const TASK_COMPILE_SOLIDITY_COMPILE_JOB = "compile:solidity:compile-job";
-export const TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_START =
-  "compile:solidity:log:run-solcjs-start";
-export const TASK_COMPILE_SOLIDITY_LOG_RUN_SOLCJS_END =
-  "compile:solidity:log:run-soljs-end";
+export const TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START =
+  "compile:solidity:log:run-compiler-start";
+export const TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_END =
+  "compile:solidity:log:run-compiler-end";
 export const TASK_COMPILE_SOLIDITY_COMPILE_JOBS =
   "compile:solidity:compile-jobs";
 export const TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT =
   "compile:solidity:get-compiler-input";
 export const TASK_COMPILE_SOLIDITY_COMPILE = "compile:solidity:compile";
-export const TASK_COMPILE_SOLIDITY_COMPILE_SOLCJS =
-  "compile:solidity:solcjs:compile";
-export const TASK_COMPILE_SOLIDITY_GET_SOLCJS_PATH =
-  "compile:solidity:solcjs:get_path";
-export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_START =
-  "compile:solidity:log:download-solc-js-start";
-export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_SOLCJS_END =
-  "compile:solidity:log:download-solc-js-end";
+export const TASK_COMPILE_SOLIDITY_COMPILE_SOLC =
+  "compile:solidity:solc:compile";
+export const TASK_COMPILE_SOLIDITY_GET_SOLC_PATH =
+  "compile:solidity:solc:get_path";
+export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START =
+  "compile:solidity:log:download-compiler-start";
+export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END =
+  "compile:solidity:log:download-compiler-end";
 export const TASK_COMPILE_SOLIDITY_RUN_SOLCJS = "compile:solidity:solcjs:run";
+export const TASK_COMPILE_SOLIDITY_RUN_SOLC = "compile:solidity:solc:run";
 export const TASK_COMPILE_SOLIDITY_CHECK_ERRORS =
   "compile:solidity:check-errors";
 export const TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS =
