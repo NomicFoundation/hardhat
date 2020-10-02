@@ -284,6 +284,7 @@ describe("Environment", () => {
     it("should clean global state after task execution", async () => {
       assert.equal(await env.run("example"), 27);
       const globalAsAny = global as any;
+      assert.isUndefined(globalAsAny.hre);
       assert.isUndefined(globalAsAny.runSuper);
       assert.isUndefined(globalAsAny.env);
     });
@@ -301,8 +302,10 @@ describe("Environment", () => {
       dsl.task(
         "with-subtask",
         "description",
-        async ({}, { run, config: theConfig, network }, runSuper: any) => {
+        async ({}, hre, runSuper: any) => {
+          const { run, config: theConfig, network } = hre;
           const globalAsAny = global as any;
+          assert.equal(globalAsAny.hre, hre);
           assert.equal(globalAsAny.config, theConfig);
           assert.isDefined(globalAsAny.config);
           assert.equal(globalAsAny.runSuper, runSuper);

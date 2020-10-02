@@ -141,6 +141,8 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     const previousValues: { [name: string]: any } = {};
 
+    globalAsAny.hre = this;
+
     for (const [key, value] of Object.entries(this)) {
       if (blacklist.includes(key)) {
         continue;
@@ -156,6 +158,7 @@ export class Environment implements HardhatRuntimeEnvironment {
           continue;
         }
 
+        globalAsAny.hre = previousValues.hre;
         globalAsAny[key] = previousValues[key];
       }
     };
