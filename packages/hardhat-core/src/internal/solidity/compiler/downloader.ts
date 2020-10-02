@@ -20,7 +20,7 @@ export enum CompilerPlatform {
   LINUX = "linux-amd64",
   WINDOWS = "windows-amd64",
   MACOS = "macosx-amd64",
-  DEFAULT = "bin",
+  WASM = "wasm",
 }
 
 interface CompilerPath {
@@ -45,6 +45,7 @@ async function downloadFile(
   destinationFile: string
 ): Promise<void> {
   const { download } = await import("../../util/download");
+  log(`Downloading from ${url} to ${destinationFile}`);
   await download(url, destinationFile);
 }
 
@@ -154,7 +155,7 @@ export class CompilerDownloader {
       }
     }
 
-    return this._getCompilerBuildByPlatform(version, CompilerPlatform.DEFAULT);
+    return this._getCompilerBuildByPlatform(version, CompilerPlatform.WASM);
   }
 
   public async downloadCompilersList(platform: CompilerPlatform) {
@@ -263,7 +264,7 @@ export class CompilerDownloader {
 
   private _getCurrentPlarform(): CompilerPlatform {
     if (this._forceSolcJs) {
-      return CompilerPlatform.DEFAULT;
+      return CompilerPlatform.WASM;
     }
 
     switch (os.platform()) {
@@ -274,7 +275,7 @@ export class CompilerDownloader {
       case "darwin":
         return CompilerPlatform.MACOS;
       default:
-        return CompilerPlatform.DEFAULT;
+        return CompilerPlatform.WASM;
     }
   }
 }

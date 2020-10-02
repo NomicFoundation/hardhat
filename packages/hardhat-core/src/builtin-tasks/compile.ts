@@ -491,7 +491,7 @@ export default function () {
 
         // when using a native binary, check that it works correctly
         // it it doesn't, force the downloader to use solcjs
-        if (platform !== CompilerPlatform.DEFAULT) {
+        if (platform !== CompilerPlatform.WASM) {
           log("Checking native solc binary");
 
           const solcBinaryWorks = await checkSolcBinary(compilerPath);
@@ -506,7 +506,7 @@ export default function () {
               compilerPath: solcJsCompilerPath,
             } = await solcJsDownloader.getDownloadedCompilerPath(solcVersion);
             compilerPath = solcJsCompilerPath;
-            platform = CompilerPlatform.DEFAULT;
+            platform = CompilerPlatform.WASM;
           }
         }
 
@@ -516,7 +516,7 @@ export default function () {
           quiet,
         });
 
-        const isSolcJs = platform === CompilerPlatform.DEFAULT;
+        const isSolcJs = platform === CompilerPlatform.WASM;
 
         return { compilerPath, isSolcJs };
       }
