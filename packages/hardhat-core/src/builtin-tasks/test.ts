@@ -2,7 +2,7 @@ import chalk from "chalk";
 import path from "path";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
-import { internalTask, task } from "../internal/core/config/config-env";
+import { subtask, task } from "../internal/core/config/config-env";
 import { isTypescriptSupported } from "../internal/core/typescript-support";
 import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/disk-cache";
 import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
@@ -19,7 +19,7 @@ import {
 } from "./task-names";
 
 export default function () {
-  internalTask(TASK_TEST_GET_TEST_FILES)
+  subtask(TASK_TEST_GET_TEST_FILES)
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
@@ -41,9 +41,9 @@ export default function () {
       return [...jsFiles, ...tsFiles];
     });
 
-  internalTask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
+  subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
 
-  internalTask(TASK_TEST_RUN_MOCHA_TESTS)
+  subtask(TASK_TEST_RUN_MOCHA_TESTS)
     .addOptionalVariadicPositionalParam(
       "testFiles",
       "An optional list of files to test",
@@ -61,7 +61,7 @@ export default function () {
       process.exitCode = await runPromise;
     });
 
-  internalTask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
+  subtask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
     async (_, { config, network }) => {
       if (network.name !== HARDHAT_NETWORK_NAME) {
         return;

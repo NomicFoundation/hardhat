@@ -17,7 +17,7 @@ export default function () {
     const vyperConfig = getConfig(config);
 
     // This plugin is experimental, so this task isn't split into multiple
-    // internal tasks yet.
+    // subtasks yet.
     await compile(vyperConfig, config.paths);
   });
 }

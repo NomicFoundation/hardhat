@@ -281,17 +281,17 @@ If the task isn't overriding a previous task definition calling `runSuper` will 
 
 The `runSuper` function receives a single optional argument: an object with the task arguments. If this argument isn't provided, the same task arguments received by the action calling it will be used.
 
-### Internal tasks
+### Subtasks
 
-Creating tasks with lots of logic makes it hard to extend or customize them. Making multiple small and focused tasks that call each other is better to allow for extension. If you design your tasks in this way, users that want to change only a small aspect of them can override one of your internal tasks.
+Creating tasks with lots of logic makes it hard to extend or customize them. Making multiple small and focused tasks that call each other is better to allow for extension. If you design your tasks in this way, users that want to change only a small aspect of them can override one of your subtasks.
 
-For example, the `compile` task is implemented as a pipeline of several tasks. It just calls internal tasks like `compile:get-source-paths`, `compile:get-dependency-graph`, and `compile:build-artifacts`. We recommend prefixing intermediate tasks with their main task and a colon.
+For example, the `compile` task is implemented as a pipeline of several tasks. It just calls subtasks like `compile:get-source-paths`, `compile:get-dependency-graph`, and `compile:build-artifacts`. We recommend prefixing intermediate tasks with their main task and a colon.
 
-To avoid help messages getting cluttered with lots of intermediate tasks, you can define those using the `internalTask` config DSL function. The `internalTask` function works almost exactly like `task`. The only difference is that tasks defined with it won't be included in help messages.
+To avoid help messages getting cluttered with lots of intermediate tasks, you can define those using the `subtask` config DSL function. The `subtask` function works almost exactly like `task`. The only difference is that tasks defined with it won't be included in help messages.
 
-To run an internal task, or any task whatsoever, you can use the `run` function. It takes two arguments: the name of the task to be run, and an object with its arguments.
+To run a subtask, or any task whatsoever, you can use the `run` function. It takes two arguments: the name of the task to be run, and an object with its arguments.
 
-This is an example of a task running an internal task:
+This is an example of a task running a subtask:
 
 ```js
 task("hello-world", "Prints a hello world message")
@@ -299,7 +299,7 @@ task("hello-world", "Prints a hello world message")
     await run("print", {message: "Hello, World!"})
   });
 
-internalTask("print", "Prints a message")
+subtask("print", "Prints a message")
   .addParam("message", "The message to print")
   .setAction(async (taskArgs) => {
     console.log(taskArgs.message)

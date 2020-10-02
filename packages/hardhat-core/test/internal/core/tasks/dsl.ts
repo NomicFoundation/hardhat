@@ -20,17 +20,23 @@ describe("TasksDSL", () => {
     assert.equal(task.name, taskName);
     assert.equal(task.description, description);
     assert.equal(task.action, action);
-    assert.isFalse(task.isInternal);
+    assert.isFalse(task.isSubtask);
   });
 
-  it("should add an internal task", () => {
+  it("should add a subtask", () => {
+    const action = async () => {};
+    const task = dsl.subtask("compile", "compiler task description", action);
+    assert.isTrue(task.isSubtask);
+  });
+
+  it("should add a subtask through the internalTask alias", () => {
     const action = async () => {};
     const task = dsl.internalTask(
       "compile",
       "compiler task description",
       action
     );
-    assert.isTrue(task.isInternal);
+    assert.isTrue(task.isSubtask);
   });
 
   it("should add a task without description", () => {

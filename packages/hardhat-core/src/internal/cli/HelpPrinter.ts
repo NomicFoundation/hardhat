@@ -18,7 +18,7 @@ export class HelpPrinter {
     private readonly _tasks: TasksMap
   ) {}
 
-  public printGlobalHelp(includeInternalTasks = false) {
+  public printGlobalHelp(includeSubtasks = false) {
     console.log(`${this._programName} version ${this._version}\n`);
 
     console.log(
@@ -33,7 +33,7 @@ export class HelpPrinter {
 
     const tasksToShow: TasksMap = {};
     for (const [taskName, taskDefinition] of Object.entries(this._tasks)) {
-      if (includeInternalTasks || !taskDefinition.isInternal) {
+      if (includeSubtasks || !taskDefinition.isSubtask) {
         tasksToShow[taskName] = taskDefinition;
       }
     }

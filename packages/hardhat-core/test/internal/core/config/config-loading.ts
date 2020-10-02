@@ -113,7 +113,7 @@ describe("config loading", function () {
       HardhatContext.createHardhatContext();
       loadConfigAndTasks();
 
-      assert.isUndefined(globalAsAny.internalTask);
+      assert.isUndefined(globalAsAny.subtask);
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
@@ -124,7 +124,7 @@ describe("config loading", function () {
       HardhatContext.createHardhatContext();
       loadConfigAndTasks();
 
-      assert.isUndefined(globalAsAny.internalTask);
+      assert.isUndefined(globalAsAny.subtask);
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);

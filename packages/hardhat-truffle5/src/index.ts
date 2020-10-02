@@ -2,7 +2,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "hardhat/builtin-tasks/task-names";
-import { extendEnvironment, internalTask, usePlugin } from "hardhat/config";
+import { extendEnvironment, subtask, usePlugin } from "hardhat/config";
 import { glob } from "hardhat/internal/util/glob";
 import {
   HARDHAT_NETWORK_NAME,
@@ -157,16 +157,13 @@ export default function () {
     };
   });
 
-  internalTask(
-    TASK_TEST_SETUP_TEST_ENVIRONMENT,
-    async (_, { web3, network }) => {
-      if (network.name !== HARDHAT_NETWORK_NAME) {
-        accounts = await web3.eth.getAccounts();
-      }
+  subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { web3, network }) => {
+    if (network.name !== HARDHAT_NETWORK_NAME) {
+      accounts = await web3.eth.getAccounts();
     }
-  );
+  });
 
-  internalTask(
+  subtask(
     TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
     async (_, { config }, runSuper) => {
       const sources = await runSuper();
@@ -176,7 +173,7 @@ export default function () {
   );
 
   let wasWarningShown = false;
-  internalTask(RUN_TRUFFLE_FIXTURE_TASK, async (_, env) => {
+  subtask(RUN_TRUFFLE_FIXTURE_TASK, async (_, env) => {
     const paths = env.config.paths;
     const hasFixture = await hasTruffleFixture(paths);
 

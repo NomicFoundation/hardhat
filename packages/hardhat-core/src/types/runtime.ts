@@ -119,7 +119,7 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
   readonly name: string;
   readonly description?: string;
   readonly action: ActionType<TaskArguments>;
-  readonly isInternal: boolean;
+  readonly isSubtask: boolean;
 
   // TODO: Rename this to something better. It doesn't include the positional
   // params, and that's not clear.

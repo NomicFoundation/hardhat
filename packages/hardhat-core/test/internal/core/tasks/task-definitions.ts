@@ -51,8 +51,8 @@ describe("SimpleTaskDefinition", () => {
       assert.equal(taskDefinition.name, "name");
     });
 
-    it("gets the right isInternal flag", () => {
-      assert.isTrue(taskDefinition.isInternal);
+    it("gets the right isSubtask flag", () => {
+      assert.isTrue(taskDefinition.isSubtask);
     });
 
     it("starts without any param defined", () => {
@@ -776,7 +776,7 @@ describe("SimpleTaskDefinition", () => {
     });
 
     describe("CLI argument types", () => {
-      describe("non-internal tasks", () => {
+      describe("tasks", () => {
         let task: SimpleTaskDefinition;
         beforeEach(() => {
           task = new SimpleTaskDefinition("t", false);
@@ -834,7 +834,7 @@ describe("SimpleTaskDefinition", () => {
         });
       });
 
-      describe("internal tasks", () => {
+      describe("subtasks", () => {
         describe("When using non-cli argument types", () => {
           let task: SimpleTaskDefinition;
           beforeEach(() => {
@@ -894,8 +894,8 @@ describe("OverriddenTaskDefinition", () => {
       assert.equal(overriddenTask.name, "t");
     });
 
-    it("should set isInternal", () => {
-      assert.isTrue(overriddenTask.isInternal);
+    it("should set isSubtask", () => {
+      assert.isTrue(overriddenTask.isSubtask);
     });
 
     it("should set the parent task", () => {
@@ -935,7 +935,7 @@ describe("OverriddenTaskDefinition", () => {
         overriddenTask,
         false
       );
-      assert.equal(overriddenAgain.isInternal, false);
+      assert.equal(overriddenAgain.isSubtask, false);
       assert.equal(overriddenAgain.name, parentTask.name);
       assert.equal(overriddenAgain.action, parentTask.action);
       assert.equal(overriddenAgain.description, parentTask.description);

@@ -134,11 +134,10 @@ async function main() {
         });
       }
 
-      if (taskDefinition.isInternal) {
-        throw new HardhatError(
-          ERRORS.ARGUMENTS.RUNNING_INTERNAL_TASK_FROM_CLI,
-          { name: taskDefinition.name }
-        );
+      if (taskDefinition.isSubtask) {
+        throw new HardhatError(ERRORS.ARGUMENTS.RUNNING_SUBTASK_FROM_CLI, {
+          name: taskDefinition.name,
+        });
       }
 
       taskArguments = argumentsParser.parseTaskArguments(

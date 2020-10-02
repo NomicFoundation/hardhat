@@ -1,6 +1,6 @@
 import fsExtra from "fs-extra";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
-import { internalTask } from "hardhat/config";
+import { subtask } from "hardhat/config";
 import { ResolvedHardhatConfig } from "hardhat/types";
 import path from "path";
 
@@ -35,7 +35,7 @@ async function readFiles(filePaths: string[]): Promise<string[][]> {
 }
 
 export default function () {
-  internalTask(
+  subtask(
     "hardhat-solpp:run-solpp",
     async (
       { files, opts }: { files: string[][]; opts: SolppConfig },
@@ -63,7 +63,7 @@ export default function () {
     }
   );
 
-  internalTask(
+  subtask(
     TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
     async (_, { config, run }, runSuper) => {
       const filePaths: string[] = await runSuper();
