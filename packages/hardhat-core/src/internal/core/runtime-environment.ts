@@ -79,6 +79,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       return createProvider(
         networkName,
         networkConfig,
+        this.config.paths,
         this.artifacts,
         experimentalHardhatNetworkMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>

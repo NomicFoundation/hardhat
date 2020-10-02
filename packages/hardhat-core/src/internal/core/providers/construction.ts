@@ -6,6 +6,7 @@ import type {
   HDAccountsConfig,
   HttpNetworkConfig,
   NetworkConfigAccounts,
+  ProjectPaths,
   ResolvedHardhatNetworkConfig,
   ResolvedHttpNetworkConfig,
   ResolvedNetworkConfig,
@@ -42,6 +43,7 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
 export function createProvider(
   networkName: string,
   networkConfig: ResolvedNetworkConfig,
+  paths?: ProjectPaths,
   artifacts?: Artifacts,
   experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
 ): EthereumProvider {
@@ -83,7 +85,8 @@ export function createProvider(
         ? parseDateString(hardhatNetConfig.initialDate)
         : undefined,
       experimentalHardhatNetworkMessageTraceHooks,
-      forkConfig
+      forkConfig,
+      paths !== undefined ? getForkCacheDirPath(paths) : undefined
     );
   } else {
     const HttpProvider = importProvider<

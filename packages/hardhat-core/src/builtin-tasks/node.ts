@@ -39,6 +39,7 @@ function _createHardhatNetworkProvider(
     return createProvider(
       networkName,
       { loggingEnabled: true, ...networkConfig },
+      config.paths,
       artifacts
     );
   });
