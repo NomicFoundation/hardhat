@@ -1,3 +1,4 @@
+import { exec } from "child_process";
 import * as fs from "fs";
 
 export class Compiler {
@@ -48,5 +49,31 @@ export class Compiler {
     Module._extensions[".js"] = previousHook;
 
     return loadedSolc;
+  }
+}
+
+export class NativeCompiler {
+  constructor(private _pathToSolc: string) {}
+
+  public async compile(input: any) {
+    const output: string = await new Promise((resolve, reject) => {
+      const process = exec(
+        `${this._pathToSolc} --standard-json`,
+        {
+          maxBuffer: 1024 * 1024 * 500,
+        },
+        (err, stdout) => {
+          if (err !== null) {
+            return reject(err);
+          }
+          resolve(stdout);
+        }
+      );
+
+      process.stdin!.write(JSON.stringify(input));
+      process.stdin!.end();
+    });
+
+    return JSON.parse(output);
   }
 }

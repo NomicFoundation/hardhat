@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import { exec } from "child_process";
 import debug from "debug";
 import path from "path";
 import semver from "semver";
@@ -16,7 +15,7 @@ import {
   createCompilationJobsFromConnectedComponent,
   mergeCompilationJobsWithoutBug,
 } from "../internal/solidity/compilation-job";
-import { Compiler } from "../internal/solidity/compiler";
+import { Compiler, NativeCompiler } from "../internal/solidity/compiler";
 import { getInputFromCompilationJob } from "../internal/solidity/compiler/compiler-input";
 import {
   CompilerDownloader,
@@ -554,25 +553,11 @@ export default function () {
     .addParam("solcPath", undefined, undefined, types.string)
     .setAction(
       async ({ input, solcPath }: { input: SolcInput; solcPath: string }) => {
-        const output: string = await new Promise((resolve, reject) => {
-          const process = exec(
-            `${solcPath} --standard-json`,
-            {
-              maxBuffer: 1024 * 1024 * 500,
-            },
-            (err, stdout) => {
-              if (err !== null) {
-                return reject(err);
-              }
-              resolve(stdout);
-            }
-          );
+        const compiler = new NativeCompiler(solcPath);
 
-          process.stdin!.write(JSON.stringify(input));
-          process.stdin!.end();
-        });
+        const output = await compiler.compile(input);
 
-        return JSON.parse(output);
+        return output;
       }
     );
 
