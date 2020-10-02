@@ -83,7 +83,7 @@ describe("Compiler downloader", function () {
     it("should call the download function with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompiler");
-      const expectedUrl = `https://solc-bin.ethereum.org/bin/${localCompilerBuild.path}`;
+      const expectedUrl = `https://solc-bin.ethereum.org/wasm/${localCompilerBuild.path}`;
 
       let urlUsed: string | undefined;
       let pathUsed: string | undefined;
@@ -121,7 +121,7 @@ describe("Compiler downloader", function () {
   describe("Compilers list download", function () {
     it("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
-      const expectedUrl = `https://solc-bin.ethereum.org/bin/list.json`;
+      const expectedUrl = `https://solc-bin.ethereum.org/wasm/list.json`;
 
       let urlUsed: string | undefined;
       let pathUsed: string | undefined;

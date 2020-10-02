@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { exec } from "child_process";
 import debug from "debug";
 import path from "path";
 import semver from "semver";
