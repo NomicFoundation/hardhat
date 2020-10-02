@@ -1,0 +1,14 @@
+{
+  "require": [
+    "./test/mocha.env",
+    "ts-node/register",
+    "source-map-support/register"
+  ],
+  "file": "./test/setup.ts",
+  "exclude": [
+    "test/fixture-projects/**/*.ts",
+    "test/fixture-projects/**/*.js",
+    "test/helpers/**/*.ts"
+  ],
+  "timeout": 25000
+}
