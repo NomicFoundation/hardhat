@@ -13,8 +13,8 @@ import {
 } from "../internal/hardhat-network/jsonrpc/server";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
-import { Artifacts } from "../types";
 import {
+  Artifacts,
   EthereumProvider,
   ResolvedHardhatConfig,
   ResolvedHardhatNetworkConfig,

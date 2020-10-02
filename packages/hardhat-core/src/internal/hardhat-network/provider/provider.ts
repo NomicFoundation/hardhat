@@ -9,6 +9,7 @@ import semver from "semver";
 import util from "util";
 
 import type {
+  Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthSubscription,

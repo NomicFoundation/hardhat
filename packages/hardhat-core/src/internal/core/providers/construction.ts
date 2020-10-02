@@ -1,4 +1,5 @@
 import type {
+  Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthereumProvider,
@@ -82,8 +83,7 @@ export function createProvider(
         ? parseDateString(hardhatNetConfig.initialDate)
         : undefined,
       experimentalHardhatNetworkMessageTraceHooks,
-      forkConfig,
-      paths !== undefined ? getForkCacheDirPath(paths) : undefined
+      forkConfig
     );
   } else {
     const HttpProvider = importProvider<
