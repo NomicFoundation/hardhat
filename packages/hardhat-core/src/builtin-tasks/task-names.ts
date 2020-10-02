@@ -1,6 +1,7 @@
 export const TASK_CHECK = "check";
 
 export const TASK_CLEAN = "clean";
+export const TASK_CLEAN_GLOBAL = "clean:global";
 
 export const TASK_COMPILE = "compile";
 export const TASK_COMPILE_GET_COMPILATION_TASKS =
