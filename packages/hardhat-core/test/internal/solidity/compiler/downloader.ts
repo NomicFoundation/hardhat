@@ -36,7 +36,7 @@ describe("Compiler downloader", function () {
       urls: [
         "bzzr://130bff47eed9546c6a4d019c6281896186cf2368b766b16bc49b3d489b6cdb92",
       ],
-      platform: CompilerPlatform.DEFAULT,
+      platform: CompilerPlatform.WASM,
     };
 
     mockCompilerList = {
@@ -133,12 +133,12 @@ describe("Compiler downloader", function () {
         },
       });
 
-      await downloader.downloadCompilersList(CompilerPlatform.DEFAULT);
+      await downloader.downloadCompilersList(CompilerPlatform.WASM);
 
       assert.equal(urlUsed, expectedUrl);
       assert.equal(
         pathUsed,
-        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json")
+        path.join(compilersDir, CompilerPlatform.WASM, "list.json")
       );
     });
 
@@ -150,7 +150,7 @@ describe("Compiler downloader", function () {
       });
 
       await expectHardhatErrorAsync(
-        () => downloader.downloadCompilersList(CompilerPlatform.DEFAULT),
+        () => downloader.downloadCompilersList(CompilerPlatform.WASM),
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED
       );
     });
@@ -160,7 +160,7 @@ describe("Compiler downloader", function () {
     it("Should return true if it does", async function () {
       const compilersDir = this.tmpDir;
       await fsExtra.createFile(
-        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json")
+        path.join(compilersDir, CompilerPlatform.WASM, "list.json")
       );
 
       const downloader = new CompilerDownloader(compilersDir, {
@@ -169,7 +169,7 @@ describe("Compiler downloader", function () {
         },
       });
       assert.isTrue(
-        await downloader.compilersListExists(CompilerPlatform.DEFAULT)
+        await downloader.compilersListExists(CompilerPlatform.WASM)
       );
     });
 
@@ -180,7 +180,7 @@ describe("Compiler downloader", function () {
         },
       });
       assert.isFalse(
-        await downloader.compilersListExists(CompilerPlatform.DEFAULT)
+        await downloader.compilersListExists(CompilerPlatform.WASM)
       );
     });
   });
@@ -206,7 +206,7 @@ describe("Compiler downloader", function () {
 
     async function saveMockCompilersList() {
       await fsExtra.outputJSON(
-        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json"),
+        path.join(compilersDir, CompilerPlatform.WASM, "list.json"),
         mockCompilerList
       );
     }
@@ -218,13 +218,13 @@ describe("Compiler downloader", function () {
 
       describe("getCompilersList", function () {
         it("Doesn't download the list again", async function () {
-          await mockDownloader.getCompilersList(CompilerPlatform.DEFAULT);
+          await mockDownloader.getCompilersList(CompilerPlatform.WASM);
           assert.isFalse(downloadCalled);
         });
 
         it("Returns the right list", async function () {
           const list = await mockDownloader.getCompilersList(
-            CompilerPlatform.DEFAULT
+            CompilerPlatform.WASM
           );
           assert.deepEqual(list, mockCompilerList);
         });
@@ -268,7 +268,7 @@ describe("Compiler downloader", function () {
     describe("When there isn't", function () {
       describe("getCompilersList", function () {
         it("Downloads the compilers list", async function () {
-          await mockDownloader.getCompilersList(CompilerPlatform.DEFAULT);
+          await mockDownloader.getCompilersList(CompilerPlatform.WASM);
           assert.isTrue(downloadCalled);
         });
       });
@@ -293,13 +293,13 @@ describe("Compiler downloader", function () {
 
       downloadedPath = path.join(
         compilersDir,
-        CompilerPlatform.DEFAULT,
+        CompilerPlatform.WASM,
         localCompilerBuild.path
       );
 
       downloadCalled = false;
       await fsExtra.outputJSON(
-        path.join(compilersDir, CompilerPlatform.DEFAULT, "list.json"),
+        path.join(compilersDir, CompilerPlatform.WASM, "list.json"),
         mockCompilerList
       );
 
