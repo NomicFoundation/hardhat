@@ -7,7 +7,6 @@ import { glob } from "hardhat/internal/util/glob";
 import {
   HARDHAT_NETWORK_NAME,
   lazyFunction,
-  lazyObject,
   NomicLabsHardhatPluginError,
 } from "hardhat/plugins";
 import { ResolvedHardhatNetworkConfig } from "hardhat/types";
@@ -34,7 +33,7 @@ export default function () {
   let accounts: string[] | undefined;
 
   extendEnvironment((env) => {
-    env.artifacts = lazyObject(() => {
+    env.artifacts.require = lazyFunction(() => {
       const networkConfig = env.network.config;
 
       const provisioner = new LazyTruffleContractProvisioner(
@@ -42,10 +41,7 @@ export default function () {
         networkConfig
       );
 
-      const artifacts = new TruffleEnvironmentArtifacts(
-        env.config.paths.artifacts,
-        provisioner
-      );
+      const ta = new TruffleEnvironmentArtifacts(provisioner, env.artifacts);
 
       const execute = require("@nomiclabs/truffle-contract/lib/execute");
 
@@ -117,7 +113,7 @@ export default function () {
         return ret;
       };
 
-      return artifacts;
+      return ta.require.bind(ta);
     });
 
     env.assert = lazyFunction(() => require("chai").assert);

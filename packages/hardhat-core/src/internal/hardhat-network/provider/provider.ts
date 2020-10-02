@@ -9,13 +9,12 @@ import semver from "semver";
 import util from "util";
 
 import type {
+  Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthSubscription,
-  ProjectPaths,
   RequestArguments,
 } from "../../../types";
-import { Artifacts } from "../../artifacts";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -71,7 +70,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _genesisAccounts: GenesisAccount[] = [],
-    private readonly _paths?: ProjectPaths,
+    private readonly _artifacts?: Artifacts,
     private readonly _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
@@ -283,11 +282,10 @@ export class HardhatNetworkProvider extends EventEmitter
   }
 
   private async _makeTracingConfig(): Promise<TracingConfig | undefined> {
-    if (this._paths !== undefined) {
+    if (this._artifacts !== undefined) {
       const buildInfos = [];
 
-      const artifacts = new Artifacts(this._paths.artifacts);
-      const buildInfoFiles = await artifacts.getBuildInfoFiles();
+      const buildInfoFiles = await this._artifacts.getBuildInfoFiles();
 
       try {
         for (const buildInfoFile of buildInfoFiles) {

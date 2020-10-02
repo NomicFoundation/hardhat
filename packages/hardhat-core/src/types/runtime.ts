@@ -1,3 +1,4 @@
+import { Artifacts } from "./artifact";
 import { ResolvedHardhatConfig, ResolvedNetworkConfig } from "./config";
 import { EthereumProvider } from "./provider";
 
@@ -196,8 +197,7 @@ export interface HardhatRuntimeEnvironment {
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
   readonly network: Network;
-  // TODO-HH: Remove this deprectaed field
-  readonly ethereum: EthereumProvider; // DEPRECATED: Use network.provider
+  readonly artifacts: Artifacts;
 }
 
 export interface Network {

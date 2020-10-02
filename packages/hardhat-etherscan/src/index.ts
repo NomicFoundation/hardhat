@@ -26,7 +26,7 @@ const verify: ActionType<VerificationArgs> = async (
     constructorArguments: constructorArgsList,
     constructorArgs: constructorArgsModule,
   },
-  { config, network, run }
+  { config, network, run, artifacts }
 ) => {
   const { etherscan } = config;
 
@@ -182,7 +182,12 @@ Possible causes are:
   }
 
   const { lookupMatchingBytecode, compile } = await import("./solc/bytecode");
-  const builds = await compile(run, matchingVersions, config.paths.artifacts);
+  const builds = await compile(
+    run,
+    matchingVersions,
+    config.paths.artifacts,
+    artifacts
+  );
 
   const contractMatches = await lookupMatchingBytecode(
     builds,
