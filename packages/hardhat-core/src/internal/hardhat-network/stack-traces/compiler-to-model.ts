@@ -1,12 +1,12 @@
 import abi from "ethereumjs-abi";
 
-import { TracingConfig } from "../provider/node-types";
-
 import {
   CompilerInput,
   CompilerOutput,
   CompilerOutputBytecode,
-} from "./compiler-types";
+} from "../../../types";
+import { TracingConfig } from "../provider/node-types";
+
 import {
   getLibraryAddressPositions,
   normalizeCompilerOutputBytecode,

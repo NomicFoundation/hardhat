@@ -1,10 +1,13 @@
-import { CompilationJob } from "../../../builtin-tasks/types";
-import { SolcInput, SolcOptimizerConfig } from "../../../types";
+import {
+  CompilationJob,
+  CompilerInput,
+  SolcOptimizerConfig,
+} from "../../../types";
 import { DependencyGraph } from "../dependencyGraph";
 
 export function getInputFromCompilationJob(
   compilationJob: CompilationJob
-): SolcInput {
+): CompilerInput {
   const sources: { [sourceName: string]: { content: string } } = {};
   for (const file of compilationJob.getResolvedFiles()) {
     sources[file.sourceName] = {
@@ -14,7 +17,7 @@ export function getInputFromCompilationJob(
 
   const { settings } = compilationJob.getSolcConfig();
 
-  const input: SolcInput = {
+  const input: CompilerInput = {
     language: "Solidity",
     sources,
     settings: {

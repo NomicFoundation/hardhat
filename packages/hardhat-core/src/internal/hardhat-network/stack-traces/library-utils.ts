@@ -1,4 +1,5 @@
-import { CompilerOutputBytecode } from "./compiler-types";
+import { CompilerOutputBytecode } from "../../../types";
+
 import { Opcode } from "./opcodes";
 
 export function getLibraryAddressPositions(

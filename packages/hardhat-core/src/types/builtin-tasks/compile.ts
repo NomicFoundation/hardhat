@@ -1,4 +1,4 @@
-import { SolcConfig } from "../types";
+import { SolcConfig } from "../config";
 
 /**
  * A Solidity file.

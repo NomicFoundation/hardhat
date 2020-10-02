@@ -29,7 +29,14 @@ import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
-import { SolcInput } from "../types";
+import { CompilerInput } from "../types";
+import * as taskTypes from "../types/builtin-tasks";
+import {
+  CompilationJob,
+  CompilationJobCreationError,
+  CompilationJobsCreationErrors,
+  CompilationJobsCreationResult,
+} from "../types/builtin-tasks";
 
 import {
   TASK_COMPILE,
@@ -62,13 +69,6 @@ import {
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
 } from "./task-names";
-import * as taskTypes from "./types";
-import {
-  CompilationJob,
-  CompilationJobCreationError,
-  CompilationJobsCreationErrors,
-  CompilationJobsCreationResult,
-} from "./types";
 import {
   getSolidityFilesCachePath,
   SolidityFilesCache,
@@ -400,7 +400,7 @@ export default function () {
     );
 
   /**
-   * Receives a compilation job and returns a SolcInput.
+   * Receives a compilation job and returns a CompilerInput.
    *
    * It's not recommended to override this task to modify the solc
    * configuration, override
@@ -413,7 +413,7 @@ export default function () {
         compilationJob,
       }: {
         compilationJob: CompilationJob;
-      }): Promise<SolcInput> => {
+      }): Promise<CompilerInput> => {
         return getInputFromCompilationJob(compilationJob);
       }
     );
@@ -534,7 +534,7 @@ export default function () {
         input,
         solcJsPath,
       }: {
-        input: SolcInput;
+        input: CompilerInput;
         solcJsPath: string;
       }) => {
         const compiler = new Compiler(solcJsPath);
@@ -553,7 +553,13 @@ export default function () {
     .addParam("input", undefined, undefined, types.any)
     .addParam("solcPath", undefined, undefined, types.string)
     .setAction(
-      async ({ input, solcPath }: { input: SolcInput; solcPath: string }) => {
+      async ({
+        input,
+        solcPath,
+      }: {
+        input: CompilerInput;
+        solcPath: string;
+      }) => {
         const compiler = new NativeCompiler(solcPath);
 
         const output = await compiler.compile(input);
@@ -563,7 +569,7 @@ export default function () {
     );
 
   /**
-   * Receives a SolcInput and a solc version, compiles the input using a native
+   * Receives a CompilerInput and a solc version, compiles the input using a native
    * solc binary or, if that's not possible, using solcjs. Returns the generated
    * output.
    *
@@ -586,7 +592,7 @@ export default function () {
           compilationJobs,
           compilationJobIndex,
         }: {
-          input: SolcInput;
+          input: CompilerInput;
           quiet: boolean;
           solcVersion: string;
           compilationJob: CompilationJob;
@@ -722,7 +728,7 @@ export default function () {
           output,
         }: {
           compilationJob: CompilationJob;
-          input: SolcInput;
+          input: CompilerInput;
           output: any;
         },
         { config, run }
@@ -898,7 +904,7 @@ export default function () {
             compilationJob.getSolcConfig().version
           }'`
         );
-        const input: SolcInput = await run(
+        const input: CompilerInput = await run(
           TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
           {
             compilationJob,

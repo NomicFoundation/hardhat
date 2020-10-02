@@ -1,5 +1,5 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { IEthereumProvider } from "hardhat/types";
+import { EthereumProvider } from "hardhat/types";
 import util from "util";
 
 export interface JsonRpcRequest {
@@ -21,9 +21,9 @@ export interface JsonRpcResponse {
 }
 
 export class Web3HTTPProviderAdapter {
-  private readonly _provider: IEthereumProvider;
+  private readonly _provider: EthereumProvider;
 
-  constructor(provider: IEthereumProvider) {
+  constructor(provider: EthereumProvider) {
     this._provider = provider;
 
     // We bind everything here because some test suits break otherwise

@@ -7,11 +7,6 @@ import semver from "semver";
 
 import { createModelsAndDecodeBytecodes } from "../../../../src/internal/hardhat-network/stack-traces/compiler-to-model";
 import {
-  CompilerInput,
-  CompilerOutput,
-  CompilerOutputBytecode,
-} from "../../../../src/internal/hardhat-network/stack-traces/compiler-types";
-import {
   ConsoleLogger,
   ConsoleLogs,
 } from "../../../../src/internal/hardhat-network/stack-traces/consoleLogger";
@@ -33,6 +28,11 @@ import {
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
+import {
+  CompilerInput,
+  CompilerOutput,
+  CompilerOutputBytecode,
+} from "../../../../src/types";
 import { setCWD } from "../helpers/cwd";
 
 import {

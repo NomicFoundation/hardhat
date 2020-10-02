@@ -1,14 +1,14 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import { ethers } from "ethers";
 
-import { IEthereumProvider } from "../../../../src/types";
+import { EthereumProvider } from "../../../../src/types";
 
 // This class has been copied from @nomiclabs/hardhat-ethers package to avoid circular dependency
 
 export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
-  private readonly _hardhatProvider: IEthereumProvider;
+  private readonly _hardhatProvider: EthereumProvider;
 
-  constructor(hardhatProvider: IEthereumProvider) {
+  constructor(hardhatProvider: EthereumProvider) {
     super();
     this._hardhatProvider = hardhatProvider;
   }

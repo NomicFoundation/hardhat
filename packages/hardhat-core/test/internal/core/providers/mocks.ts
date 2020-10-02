@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 
 import {
   EIP1193Provider,
-  IEthereumProvider,
+  EthereumProvider,
   RequestArguments,
 } from "../../../../src/types";
 

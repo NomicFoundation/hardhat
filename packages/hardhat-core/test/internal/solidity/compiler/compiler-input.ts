@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { CompilationJob } from "../../../../src/internal/solidity/compilation-job";
 import { getInputFromCompilationJob } from "../../../../src/internal/solidity/compiler/compiler-input";
 import { ResolvedFile } from "../../../../src/internal/solidity/resolver";
-import { SolcInput } from "../../../../src/types";
+import { CompilerInput } from "../../../../src/types";
 
 describe("compiler-input module", function () {
   it("Should construct the right input for a compilation job", async () => {
@@ -20,7 +20,7 @@ describe("compiler-input module", function () {
     const path2 = "/fake/absolute/path2";
     const content2 = "THE CONTENT2";
 
-    const expectedInput: SolcInput = {
+    const expectedInput: CompilerInput = {
       language: "Solidity",
       sources: {
         [sourceName1]: { content: content1 },

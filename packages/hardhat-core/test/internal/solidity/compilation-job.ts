@@ -1,12 +1,12 @@
 import { assert } from "chai";
 
-import * as taskTypes from "../../../src/builtin-tasks/types";
-import { CompilationJobCreationError } from "../../../src/builtin-tasks/types";
 import {
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,
 } from "../../../src/internal/solidity/compilation-job";
 import { ResolvedFile } from "../../../src/internal/solidity/resolver";
+import * as taskTypes from "../../../src/types/builtin-tasks";
+import { CompilationJobCreationError } from "../../../src/types/builtin-tasks";
 
 import { createMockData, MockFile } from "./helpers";
 

@@ -1,8 +1,25 @@
+export interface Artifact {
+  _format: string;
+  contractName: string;
+  abi: any;
+  bytecode: string; // "0x"-prefixed hex string
+  deployedBytecode: string; // "0x"-prefixed hex string
+  linkReferences: LinkReferences;
+  deployedLinkReferences: LinkReferences;
+}
+
+export interface LinkReferences {
+  [libraryFileName: string]: {
+    [libraryName: string]: Array<{ length: number; start: number }>;
+  };
+}
+
 export interface CompilerInput {
-  language: "Solidity";
+  language: string;
   sources: { [sourceName: string]: { content: string } };
   settings: {
     optimizer: { runs: number; enabled: boolean };
+    metadata?: { useLiteralContent: boolean };
     outputSelection: {
       "*": {
         "*": string[];

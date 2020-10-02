@@ -1,7 +1,7 @@
 import * as ethers from "ethers";
-import "hardhat/types";
+import "hardhat/types/runtime";
 
-declare module "hardhat/types" {
+declare module "hardhat/types/runtime" {
   function getContractFactory(
     name: string,
     signer?: ethers.Signer

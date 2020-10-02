@@ -2,11 +2,8 @@ import fs from "fs";
 import path from "path";
 import solcWrapper from "solc/wrapper";
 
-import {
-  CompilerInput,
-  CompilerOutput,
-} from "../../../../src/internal/hardhat-network/stack-traces/compiler-types";
 import { download } from "../../../../src/internal/util/download";
+import { CompilerInput, CompilerOutput } from "../../../../src/types";
 
 export interface CompilerOptions {
   solidityVersion: string;
