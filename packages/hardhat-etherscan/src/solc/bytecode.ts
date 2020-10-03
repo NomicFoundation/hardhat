@@ -1,6 +1,4 @@
-import fs from "fs-extra";
-import { Artifacts, RunTaskFunction } from "hardhat/types";
-import path from "path";
+import { Artifacts, BuildInfo, RunTaskFunction } from "hardhat/types";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./version";
@@ -86,12 +84,6 @@ interface CompilerOutputBytecode {
   immutableReferences?: {
     [key: string]: Array<{ start: number; length: number }>;
   };
-}
-
-interface BuildInfo {
-  input: CompilerInput;
-  output: CompilerOutput;
-  solcVersion: string;
 }
 
 interface ContractBuildInfo {
@@ -308,35 +300,27 @@ export async function compile(
 
   await taskRun(TASK_COMPILE);
 
-  const buildInfoFiles = await artifacts.getBuildInfoFiles();
+  const contractBuildInfos: ContractBuildInfo[] = [];
 
-  // TODO: Here would be an ideal place to separate builds into several compilation jobs
-  // to address https://github.com/nomiclabs/buidler/issues/804 if possible.
-  const builds: { [buildHash: string]: BuildInfo } = {};
-  for (const buildInfoFile of buildInfoFiles) {
-    const buildInfo: BuildInfo = await fs.readJSON(buildInfoFile);
-    if (matchingVersions.includes(buildInfo.solcVersion)) {
-      builds[path.basename(buildInfoFile)] = buildInfo;
+  const fqns = await artifacts.getAllFullyQualifiedNames();
+  for (const name of fqns) {
+    const buildInfo = await artifacts.getBuildInfo(name);
+
+    if (buildInfo === undefined) {
+      continue;
     }
-  }
 
-  const contracts = [];
-  const artifactFiles = await artifacts.getArtifacts();
-  for (const artifactFile of artifactFiles) {
-    const contractName = path.basename(artifactFile.replace(".json", ""));
-    const sourceName = path.relative(artifactsPath, path.dirname(artifactFile));
-    const dbgFile = path.join(
-      artifactsPath,
-      sourceName,
-      `${contractName}.dbg.json`
-    );
-    const dbgInfo: { buildInfo: string } = await fs.readJSON(dbgFile);
-    contracts.push({
-      contractName,
-      sourceName,
-      buildInfo: builds[path.basename(dbgInfo.buildInfo)],
+    if (!matchingVersions.includes(buildInfo.solcVersion)) {
+      continue;
+    }
+
+    const artifact = await artifacts.readArtifact(name);
+    contractBuildInfos.push({
+      contractName: artifact.contractName,
+      sourceName: artifact.sourceName,
+      buildInfo,
     });
   }
 
-  return contracts;
+  return contractBuildInfos;
 }
