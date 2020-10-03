@@ -120,8 +120,9 @@ function addGasToAbiMethodsIfNecessary(
   // OOG errors, as people may set the default gas to the same value as the
   // block gas limit, especially on Buidler EVM.
   // To avoid this, we substract 21000.
+  // HOTFIX: We substract 1M for now. See: https://github.com/ethers-io/ethers.js/issues/1058#issuecomment-703175279
   const gasLimit = ethers.BigNumber.from(networkConfig.gas)
-    .sub(21000)
+    .sub(1000000)
     .toHexString();
 
   const modifiedAbi: any[] = [];
