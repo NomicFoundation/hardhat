@@ -285,7 +285,7 @@ export class HardhatNetworkProvider extends EventEmitter
     if (this._artifacts !== undefined) {
       const buildInfos = [];
 
-      const buildInfoFiles = await this._artifacts.getBuildInfoFiles();
+      const buildInfoFiles = await this._artifacts.getBuildInfoPaths();
 
       try {
         for (const buildInfoFile of buildInfoFiles) {

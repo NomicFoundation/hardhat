@@ -46,7 +46,7 @@ describe("run task", function () {
     (process as any).exitCode = undefined;
 
     const artifacts = new Artifacts(path.join(process.cwd(), "artifacts"));
-    const files = await artifacts.getArtifacts();
+    const files = await artifacts.getArtifactPaths();
     const expectedFile = path.join(
       process.cwd(),
       "artifacts/contracts/a.sol/A.json"

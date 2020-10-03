@@ -4,7 +4,10 @@ import debug from "debug";
 import path from "path";
 import semver from "semver";
 
-import { getArtifactFromContractOutput } from "../internal/artifacts";
+import {
+  Artifacts as ArtifactsImpl,
+  getArtifactFromContractOutput,
+} from "../internal/artifacts";
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { assertHardhatInvariant, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -19,6 +22,7 @@ import {
   CompilerDownloader,
   CompilerPlatform,
 } from "../internal/solidity/compiler/downloader";
+import { getFullyQualifiedName } from "../internal/solidity/contract-names";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
@@ -27,7 +31,7 @@ import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
-import { Artifacts, CompilerInput } from "../types";
+import { Artifacts, CompilerInput, CompilerOutput } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
 import {
   CompilationJob,
@@ -709,7 +713,7 @@ export default function () {
 
   /**
    * Saves to disk the artifacts for a compilation job. These artifacts
-   * include the main artifacts, the dbg files, and the build info.
+   * include the main artifacts, the debug files, and the build info.
    */
   subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
     .addParam("compilationJob", undefined, undefined, types.any)
@@ -724,16 +728,17 @@ export default function () {
         }: {
           compilationJob: CompilationJob;
           input: CompilerInput;
-          output: any;
+          output: CompilerOutput;
         },
         { artifacts, config, run }
       ): Promise<{
         artifactsEmittedPerFile: ArtifactsEmittedPerFile;
       }> => {
         const pathToBuildInfo = await artifacts.saveBuildInfo(
+          compilationJob.getSolcConfig().version,
+          "long version", // TODO-HH: Get the long version
           input,
-          output,
-          compilationJob.getSolcConfig().version
+          output
         );
 
         const artifactsEmittedPerFile: ArtifactsEmittedPerFile = [];
@@ -752,16 +757,13 @@ export default function () {
             const artifact = await run(
               TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
               {
+                sourceName: file.sourceName,
                 contractName,
                 contractOutput,
               }
             );
 
-            await artifacts.saveArtifactFiles(
-              file.sourceName,
-              artifact,
-              pathToBuildInfo
-            );
+            await artifacts.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
 
             artifactsEmitted.push(artifact.contractName);
           }
@@ -781,17 +783,24 @@ export default function () {
    * output.
    */
   subtask(TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT)
+    .addParam("sourceName", undefined, undefined, types.string)
     .addParam("contractName", undefined, undefined, types.string)
     .addParam("contractOutput", undefined, undefined, types.any)
     .setAction(
       async ({
+        sourceName,
         contractName,
         contractOutput,
       }: {
+        sourceName: string;
         contractName: string;
         contractOutput: any;
       }): Promise<any> => {
-        return getArtifactFromContractOutput(contractName, contractOutput);
+        return getArtifactFromContractOutput(
+          sourceName,
+          contractName,
+          contractOutput
+        );
       }
     );
 
@@ -1149,8 +1158,11 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
         const allArtifactsEmittedPerFile = solidityFilesCache.getEntries();
 
-        await artifacts.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
-        await artifacts.removeObsoleteBuildInfos();
+        // We know this is the actual implementation, so we use some
+        // non-public methods here.
+        const artifactsImpl = artifacts as ArtifactsImpl;
+        await artifactsImpl.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
+        await artifactsImpl.removeObsoleteBuildInfos();
 
         await solidityFilesCache.writeToFile(solidityFilesCachePath);
       }
@@ -1204,16 +1216,15 @@ async function invalidateCacheMissingArtifacts(
       continue;
     }
 
-    const { artifacts: artifactsEmitted } = cacheEntry;
+    const { artifacts: emittedArtifacts } = cacheEntry;
 
-    for (const artifactEmitted of artifactsEmitted) {
+    for (const emittedArtifact of emittedArtifacts) {
       const artifactExists = await artifacts.artifactExists(
-        file.sourceName,
-        artifactEmitted
+        getFullyQualifiedName(file.sourceName, emittedArtifact)
       );
       if (!artifactExists) {
         log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${artifactEmitted}' doesn't exist`
+          `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
         );
         solidityFilesCache.removeEntry(file.absolutePath);
         break;
