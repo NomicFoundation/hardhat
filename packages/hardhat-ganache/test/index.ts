@@ -24,7 +24,12 @@ describe("Ganache plugin with empty configs", function () {
   });
 
   it("Should run Hardhat TEST task using Ganache", async function () {
-    await this.env.run("test", { noCompile: true, testFiles: [] });
+    const failures = await this.env.run("test", {
+      noCompile: true,
+      testFiles: [],
+    });
+
+    assert.equal(failures, 0);
   });
 
   it("Should run Hardhat RUN task 'accounts-sample.js' using Ganache", async function () {

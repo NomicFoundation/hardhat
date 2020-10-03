@@ -54,11 +54,11 @@ export default function () {
       const mocha = new Mocha(config.mocha);
       testFiles.forEach((file) => mocha.addFile(file));
 
-      const runPromise = new Promise<number>((resolve, _) => {
+      const testFailures: number = await new Promise<number>((resolve, _) => {
         mocha.run(resolve);
       });
 
-      process.exitCode = await runPromise;
+      return testFailures;
     });
 
   subtask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
@@ -100,28 +100,29 @@ export default function () {
 
         await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS);
 
-        await run(TASK_TEST_RUN_MOCHA_TESTS, { testFiles: files });
+        const testFailures = await run(TASK_TEST_RUN_MOCHA_TESTS, {
+          testFiles: files,
+        });
 
-        if (network.name !== HARDHAT_NETWORK_NAME) {
-          return;
+        if (network.name === HARDHAT_NETWORK_NAME) {
+          const stackTracesFailures = await network.provider.send(
+            "hardhat_getStackTraceFailuresCount"
+          );
+
+          if (stackTracesFailures !== 0) {
+            console.warn(
+              chalk.yellow(
+                `Failed to generate ${stackTracesFailures} ${pluralize(
+                  stackTracesFailures,
+                  "stack trace"
+                )}. Run Hardhat with --verbose to learn more.`
+              )
+            );
+          }
         }
 
-        const failures = await network.provider.send(
-          "hardhat_getStackTraceFailuresCount"
-        );
-
-        if (failures === 0) {
-          return;
-        }
-
-        console.warn(
-          chalk.yellow(
-            `Failed to generate ${failures} ${pluralize(
-              failures,
-              "stack trace"
-            )}. Run Hardhat with --verbose to learn more.`
-          )
-        );
+        process.exitCode = testFailures;
+        return testFailures;
       }
     );
 }
