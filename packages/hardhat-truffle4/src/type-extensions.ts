@@ -1,8 +1,8 @@
 import { assert, expect } from "chai";
-import "hardhat/types/artifact";
+import "hardhat/types/artifacts";
 import "hardhat/types/runtime";
 
-declare module "hardhat/types/artifact" {
+declare module "hardhat/types/artifacts" {
   export interface Artifacts {
     require: (name: string) => any;
   }
