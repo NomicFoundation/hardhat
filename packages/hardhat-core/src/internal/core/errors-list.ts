@@ -848,12 +848,12 @@ Please double check that your contracts have been compiled and your artifact's n
       number: 701,
       message: `There are multiple artifacts for contract "%contractName%", please use a fully qualified name.
 
-Candidates for this contract name are:
+Please replace %contractName% for one of these options wherever you are trying to read its artifact:
 
 %candidates%
 `,
       title: "Multiple artifacts found",
-      description: `There are multiple artifacts that match the given contract name. 
+      description: `There are multiple artifacts that match the given contract name, and Hardhat doesn't know which one to use. 
 
 Please use the fully qualified name of the contract to disambiguate it.`,
       shouldBeReported: false,
