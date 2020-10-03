@@ -10,7 +10,7 @@ import {
 } from "@nomiclabs/hardhat-docker";
 import fsExtra from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { Artifacts, ProjectPaths } from "hardhat/types";
+import { Artifact, Artifacts, ProjectPaths } from "hardhat/types";
 import path from "path";
 
 import { VyperConfig } from "./types";
@@ -73,8 +73,7 @@ export async function compile(
       // TODO this might not work on windows, maybe we should use `slash` here
       const sourceName = path.relative(paths.sources, file);
 
-      // TODO-HH what should we do instead of this empty string?
-      await artifacts.saveArtifactFiles(sourceName, artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact);
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");
 
@@ -131,12 +130,13 @@ function pathToContractName(file: string) {
   return sourceName.substring(0, sourceName.indexOf("."));
 }
 
-function getArtifactFromVyperOutput(sourceFile: string, output: any) {
+function getArtifactFromVyperOutput(sourceFile: string, output: any): Artifact {
   const contractName = pathToContractName(sourceFile);
 
   return {
     _format: ARTIFACT_FORMAT_VERSION,
     contractName,
+    sourceName: sourceFile,
     abi: output.abi,
     bytecode: add0xPrefixIfNecessary(output.bytecode),
     deployedBytecode: add0xPrefixIfNecessary(output.bytecode_runtime),
