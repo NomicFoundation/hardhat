@@ -1045,7 +1045,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
   },
   CONTRACT_NAMES: {
     INVALID_FULLY_QUALIFIED_NAME: {
-      number: 1007,
+      number: 1100,
       message: "Invalid fully qualified contract name %name%.",
       title: "Invalid fully qualified contract name",
       description: `A contract name was expected to be in fully qualified form, but it's not.
