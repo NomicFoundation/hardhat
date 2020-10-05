@@ -11,6 +11,12 @@ import {
   CompilerOutput,
   DebugFile,
 } from "../types";
+import {
+  getFullyQualifiedName,
+  isFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "../utils/contract-names";
+import { replaceBackslashes } from "../utils/source-names";
 
 import {
   ARTIFACT_FORMAT_VERSION,
@@ -20,12 +26,6 @@ import {
 } from "./constants";
 import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
-import {
-  getFullyQualifiedName,
-  isFullyQualifiedName,
-  parseFullyQualifiedName,
-} from "../utils/contract-names";
-import { replaceBackslashes } from "../utils/source-names";
 import { glob, globSync } from "./util/glob";
 
 const log = debug("hardhat:core:artifacts");

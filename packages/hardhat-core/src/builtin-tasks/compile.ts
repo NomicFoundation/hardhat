@@ -22,11 +22,9 @@ import {
   CompilerDownloader,
   CompilerPlatform,
 } from "../internal/solidity/compiler/downloader";
-import { getFullyQualifiedName } from "../utils/contract-names";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
-import { localPathToSourceName } from "../utils/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
@@ -39,6 +37,8 @@ import {
   CompilationJobsCreationErrors,
   CompilationJobsCreationResult,
 } from "../types/builtin-tasks";
+import { getFullyQualifiedName } from "../utils/contract-names";
+import { localPathToSourceName } from "../utils/source-names";
 
 import {
   TASK_COMPILE,
