@@ -5,9 +5,9 @@ import path from "path";
 import { useEnvironment } from "./helpers";
 
 function linkingShouldWorkCorrectly(isAmbiguous = false) {
-  const greeterName = isAmbiguous ? "contracts/Greeter.sol:Greeter" : "Greeter"
-  const libName = isAmbiguous ? "contracts/Greeter.sol:Lib" : "Lib"
-  const usesLibName = isAmbiguous ? "contracts/Greeter.sol:UsesLib" : "UsesLib"
+  const greeterName = isAmbiguous ? "contracts/Greeter.sol:Greeter" : "Greeter";
+  const libName = isAmbiguous ? "contracts/Greeter.sol:Lib" : "Lib";
+  const usesLibName = isAmbiguous ? "contracts/Greeter.sol:UsesLib" : "UsesLib";
 
   describe("Linking with an instance", function () {
     it("Should link correctly", async function () {
@@ -66,7 +66,8 @@ function linkingShouldWorkCorrectly(isAmbiguous = false) {
       const UsesLib = this.env.artifacts.require(usesLibName);
 
       assert.throws(
-        () => UsesLib.link(libName, "0x1111111111111111111111111111111111111111"),
+        () =>
+          UsesLib.link(libName, "0x1111111111111111111111111111111111111111"),
         "Linking contracts by name is not supported by Hardhat. Please use UsesLib.link(libraryInstance) instead."
       );
     });
