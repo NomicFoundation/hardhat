@@ -1,5 +1,6 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifacts } from "hardhat/src/types";
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import path from "path";
 
 import { LazyTruffleContractProvisioner } from "./provisioner";
@@ -165,7 +166,7 @@ export class TruffleEnvironmentArtifacts {
   private _getContractNameFromPath(contractPath: string) {
     // if the given argument has a colon, we interpret it as a
     // fully qualified name and pass it verbatim to `readArtifactSync`
-    if (contractPath.indexOf(":") !== -1) {
+    if (isFullyQualifiedName(contractPath)) {
       return contractPath;
     }
 
