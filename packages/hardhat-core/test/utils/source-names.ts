@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import path from "path";
 
-import { ERRORS } from "../../../src/internal/core/errors-list";
+import { ERRORS } from "../../src/internal/core/errors-list";
 import {
   isAbsolutePathSourceName,
   isLocalSourceName,
@@ -11,11 +11,8 @@ import {
   replaceBackslashes,
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
-} from "../../../src/utils/source-names";
-import {
-  expectHardhatError,
-  expectHardhatErrorAsync,
-} from "../../helpers/errors";
+} from "../../src/utils/source-names";
+import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 
 describe("Source names utilities", function () {
   describe("validateSourceNameFormat", function () {
@@ -77,22 +74,18 @@ describe("Source names utilities", function () {
 
     it("Should return true if the first part/dir of the source name exists", async function () {
       assert.isTrue(
-        await isLocalSourceName(path.dirname(__dirname), "solidity/asd")
+        await isLocalSourceName(path.dirname(__dirname), "utils/asd")
       );
 
-      assert.isTrue(
-        await isLocalSourceName(path.dirname(__dirname), "solidity")
-      );
+      assert.isTrue(await isLocalSourceName(path.dirname(__dirname), "utils"));
     });
 
     it("Should return true if the first part/dir of the source name exists with a different casing", async function () {
       assert.isTrue(
-        await isLocalSourceName(path.dirname(__dirname), "soliditY/asd")
+        await isLocalSourceName(path.dirname(__dirname), "utilS/asd")
       );
 
-      assert.isTrue(
-        await isLocalSourceName(path.dirname(__dirname), "soliditY")
-      );
+      assert.isTrue(await isLocalSourceName(path.dirname(__dirname), "uTils"));
     });
 
     it("Should return false if the first part/dir of the source name doesn't exist", async function () {

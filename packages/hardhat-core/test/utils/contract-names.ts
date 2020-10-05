@@ -1,13 +1,13 @@
 import { assert } from "chai";
 
-import { ERRORS } from "../../../src/internal/core/errors-list";
+import { ERRORS } from "../../src/internal/core/errors-list";
 import {
   getFullyQualifiedName,
   isFullyQualifiedName,
   parseFullyQualifiedName,
   parseName,
-} from "../../../src/utils/contract-names";
-import { expectHardhatError } from "../../helpers/errors";
+} from "../../src/utils/contract-names";
+import { expectHardhatError } from "../helpers/errors";
 
 describe("Solidity contract names utilities", function () {
   describe("getFullyQualifiedName", function () {
@@ -68,17 +68,17 @@ describe("Solidity contract names utilities", function () {
     it("Throws if not a valid FQN", function () {
       expectHardhatError(
         () => parseFullyQualifiedName("C"),
-        ERRORS.GENERAL.ASSERTION_ERROR
+        ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME
       );
 
       expectHardhatError(
         () => parseFullyQualifiedName("contract.sol"),
-        ERRORS.GENERAL.ASSERTION_ERROR
+        ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME
       );
 
       expectHardhatError(
         () => parseFullyQualifiedName("folder/contract.sol"),
-        ERRORS.GENERAL.ASSERTION_ERROR
+        ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME
       );
     });
   });
