@@ -187,7 +187,7 @@ export class TruffleEnvironmentArtifacts {
 
     const truffleContract = this._provisioner.provision(Contract, this);
 
-    // we add the artifact so that it's available when the contract it's linked
+    // we add the artifact so that it's available when the contract is linked
     // otherwise the contract name is used to get the artifact and that could be
     // ambiguous
     truffleContract._hArtifact = artifact;
