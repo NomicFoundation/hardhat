@@ -39,7 +39,8 @@ export const ERROR_RANGES: {
   ARTIFACTS: { min: 700, max: 799, title: "Artifacts related errors" },
   PLUGINS: { min: 800, max: 899, title: "Plugin system errors" },
   INTERNAL: { min: 900, max: 999, title: "Internal Hardhat errors" },
-  SOURCE_NAMES: { min: 1000, max: 1100, title: "Source name errors" },
+  SOURCE_NAMES: { min: 1000, max: 1099, title: "Source name errors" },
+  CONTRACT_NAMES: { min: 1100, max: 1199, title: "Contract name errors" },
 };
 
 export const ERRORS = {
@@ -1040,6 +1041,17 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
       
 If you aren't overriding compilation-related tasks, please report this as a bug.`,
       shouldBeReported: true,
+    },
+  },
+  CONTRACT_NAMES: {
+    INVALID_FULLY_QUALIFIED_NAME: {
+      number: 1007,
+      message: "Invalid fully qualified contract name %name%.",
+      title: "Invalid fully qualified contract name",
+      description: `A contract name was expected to be in fully qualified form, but it's not.
+
+A fully qualified name should look like file.sol:Contract`,
+      shouldBeReported: false,
     },
   },
 };

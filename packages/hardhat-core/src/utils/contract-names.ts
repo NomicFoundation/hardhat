@@ -1,4 +1,5 @@
-import { assertHardhatInvariant } from "../internal/core/errors";
+import { HardhatError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
 
 /**
  * Returns a fully qualified name from a sourceName and contractName.
@@ -27,10 +28,11 @@ export function parseFullyQualifiedName(
 ): { sourceName: string; contractName: string } {
   const { sourceName, contractName } = parseName(fullyQualifiedName);
 
-  assertHardhatInvariant(
-    sourceName !== undefined,
-    `Invalid fully qualified name ${fullyQualifiedName}`
-  );
+  if (sourceName === undefined) {
+    throw new HardhatError(ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME, {
+      name: fullyQualifiedName,
+    });
+  }
 
   return { sourceName, contractName };
 }
