@@ -1,5 +1,6 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifacts } from "hardhat/src/types";
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import path from "path";
 
 import { LazyTruffleContractProvisioner } from "./provisioner";
@@ -62,9 +63,9 @@ export class TruffleEnvironmentArtifacts {
       }
     }
 
-    const destinationArtifact = this._artifacts.readArtifactSync(
-      destination.contractName
-    );
+    const destinationArtifact =
+      destination._hArtifact ??
+      this._artifacts.readArtifactSync(destination.contractName);
 
     const libraryAddresses: { [libraryName: string]: string } = {};
 
@@ -165,7 +166,7 @@ export class TruffleEnvironmentArtifacts {
   private _getContractNameFromPath(contractPath: string) {
     // if the given argument has a colon, we interpret it as a
     // fully qualified name and pass it verbatim to `readArtifactSync`
-    if (contractPath.indexOf(":") !== -1) {
+    if (isFullyQualifiedName(contractPath)) {
       return contractPath;
     }
 
@@ -184,6 +185,13 @@ export class TruffleEnvironmentArtifacts {
     const TruffleContractFactory = require("@nomiclabs/truffle-contract");
     const Contract = TruffleContractFactory(artifact);
 
-    return this._provisioner.provision(Contract, this);
+    const truffleContract = this._provisioner.provision(Contract, this);
+
+    // we add the artifact so that it's available when the contract is linked
+    // otherwise the contract name is used to get the artifact and that could be
+    // ambiguous
+    truffleContract._hArtifact = artifact;
+
+    return truffleContract;
   }
 }

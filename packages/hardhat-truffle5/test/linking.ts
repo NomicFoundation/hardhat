@@ -4,11 +4,15 @@ import path from "path";
 
 import { useEnvironment } from "./helpers";
 
-function linkingShouldWorkCorrectly() {
+function linkingShouldWorkCorrectly(isAmbiguous = false) {
+  const greeterName = isAmbiguous ? "contracts/Greeter.sol:Greeter" : "Greeter";
+  const libName = isAmbiguous ? "contracts/Greeter.sol:Lib" : "Lib";
+  const usesLibName = isAmbiguous ? "contracts/Greeter.sol:UsesLib" : "UsesLib";
+
   describe("Linking with an instance", function () {
     it("Should link correctly", async function () {
-      const Lib = this.env.artifacts.require("Lib");
-      const UsesLib = this.env.artifacts.require("UsesLib");
+      const Lib = this.env.artifacts.require(libName);
+      const UsesLib = this.env.artifacts.require(usesLibName);
       const lib = await Lib.new();
 
       UsesLib.link(lib);
@@ -23,8 +27,8 @@ function linkingShouldWorkCorrectly() {
 
   describe("Linking with an instance created with .at", function () {
     it("Should link correctly", async function () {
-      const Lib = this.env.artifacts.require("Lib");
-      const UsesLib = this.env.artifacts.require("UsesLib");
+      const Lib = this.env.artifacts.require(libName);
+      const UsesLib = this.env.artifacts.require(usesLibName);
       const lib = await Lib.new();
 
       const lib2 = await Lib.at(lib.address);
@@ -41,8 +45,8 @@ function linkingShouldWorkCorrectly() {
 
   describe("Linking with an instance created with new", function () {
     it("Should link correctly", async function () {
-      const Lib = this.env.artifacts.require("Lib");
-      const UsesLib = this.env.artifacts.require("UsesLib");
+      const Lib = this.env.artifacts.require(libName);
+      const UsesLib = this.env.artifacts.require(usesLibName);
       const lib = await Lib.new();
 
       const lib2 = new Lib(lib.address);
@@ -59,10 +63,11 @@ function linkingShouldWorkCorrectly() {
 
   describe("Linking with name and address", function () {
     it("Should throw the right error", async function () {
-      const UsesLib = this.env.artifacts.require("UsesLib");
+      const UsesLib = this.env.artifacts.require(usesLibName);
 
       assert.throws(
-        () => UsesLib.link("Lib", "0x1111111111111111111111111111111111111111"),
+        () =>
+          UsesLib.link(libName, "0x1111111111111111111111111111111111111111"),
         "Linking contracts by name is not supported by Hardhat. Please use UsesLib.link(libraryInstance) instead."
       );
     });
@@ -70,7 +75,7 @@ function linkingShouldWorkCorrectly() {
 
   describe("Linking with a map from name to address", function () {
     it("Should throw the right error", async function () {
-      const UsesLib = this.env.artifacts.require("UsesLib");
+      const UsesLib = this.env.artifacts.require(usesLibName);
 
       assert.throws(
         () =>
@@ -82,8 +87,8 @@ function linkingShouldWorkCorrectly() {
 
   describe("Linking a library more than once", function () {
     it("Should throw the right error", async function () {
-      const Lib = this.env.artifacts.require("Lib");
-      const UsesLib = this.env.artifacts.require("UsesLib");
+      const Lib = this.env.artifacts.require(libName);
+      const UsesLib = this.env.artifacts.require(usesLibName);
       const lib = await Lib.new();
       const lib2 = await Lib.new();
 
@@ -97,8 +102,8 @@ function linkingShouldWorkCorrectly() {
 
   describe("Linking when not necessary", function () {
     it("Should throw the right error", async function () {
-      const Lib = this.env.artifacts.require("Lib");
-      const Greeter = this.env.artifacts.require("Greeter");
+      const Lib = this.env.artifacts.require(libName);
+      const Greeter = this.env.artifacts.require(greeterName);
       const lib = await Lib.new();
 
       assert.throws(
@@ -110,8 +115,8 @@ function linkingShouldWorkCorrectly() {
 
   describe("Linking an incorrect library", function () {
     it("Should throw the right error", async function () {
-      const UsesLib = this.env.artifacts.require("UsesLib");
-      const Greeter = this.env.artifacts.require("Greeter");
+      const UsesLib = this.env.artifacts.require(usesLibName);
+      const Greeter = this.env.artifacts.require(greeterName);
 
       const greeter = await Greeter.new();
 
@@ -146,5 +151,13 @@ describe("Libraries linking", function () {
       HARDHAT_NETWORK_NAME
     );
     linkingShouldWorkCorrectly();
+  });
+
+  describe("When the contract and the library have ambiguous names", function () {
+    useEnvironment(
+      path.join(__dirname, "hardhat-project-ambiguous-names"),
+      HARDHAT_NETWORK_NAME
+    );
+    linkingShouldWorkCorrectly(true);
   });
 });
