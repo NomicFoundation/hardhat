@@ -11,6 +11,7 @@ import {
 import fsExtra from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact, Artifacts, ProjectPaths } from "hardhat/types";
+import { localPathToSourceName } from "hardhat/utils/source-names";
 import path from "path";
 
 import { VyperConfig } from "./types";
@@ -66,10 +67,9 @@ export async function compile(
         pathFromSources
       ];
 
-      // TODO this might not work on windows, maybe we should use `slash` here
-      const sourceName = path.relative(paths.sources, file);
-
+      const sourceName = await localPathToSourceName(paths.root, file);
       const artifact = getArtifactFromVyperOutput(sourceName, vyperOutput);
+
       await artifacts.saveArtifactAndDebugFile(artifact);
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");

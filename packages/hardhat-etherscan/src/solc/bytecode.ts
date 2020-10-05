@@ -1,4 +1,6 @@
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { Artifacts, BuildInfo, RunTaskFunction } from "hardhat/types";
+import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./version";
@@ -28,7 +30,6 @@ interface BytecodeSlice {
   length: number;
 }
 
-type LinkReferences = CompilerOutputBytecode["linkReferences"][string][string];
 type NestedSliceReferences = BytecodeSlice[][];
 
 /* Taken from stack trace hardhat network internals
@@ -296,8 +297,6 @@ export async function compile(
   artifactsPath: string,
   artifacts: Artifacts
 ): Promise<ContractBuildInfo[]> {
-  const { TASK_COMPILE } = await import("hardhat/builtin-tasks/task-names");
-
   await taskRun(TASK_COMPILE);
 
   const contractBuildInfos: ContractBuildInfo[] = [];
@@ -314,10 +313,11 @@ export async function compile(
       continue;
     }
 
-    const artifact = await artifacts.readArtifact(name);
+    const { sourceName, contractName } = parseFullyQualifiedName(name);
+
     contractBuildInfos.push({
-      contractName: artifact.contractName,
-      sourceName: artifact.sourceName,
+      contractName,
+      sourceName,
       buildInfo,
     });
   }
