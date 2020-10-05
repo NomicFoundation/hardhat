@@ -77,3 +77,10 @@ export enum CompilationJobCreationError {
   INCOMPATIBLE_OVERRIDEN_SOLC_VERSION = "incompatible-overriden-solc-version",
   IMPORTS_INCOMPATIBLE_FILE = "imports-incompatible-file",
 }
+
+export interface SolcBuild {
+  version: string;
+  longVersion: string;
+  compilerPath: string;
+  isSolcJs: boolean;
+}

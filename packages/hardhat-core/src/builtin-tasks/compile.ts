@@ -31,7 +31,7 @@ import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
-import { Artifacts, CompilerInput, CompilerOutput } from "../types";
+import { Artifacts, CompilerInput, CompilerOutput, SolcBuild } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
 import {
   CompilationJob,
@@ -57,7 +57,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
-  TASK_COMPILE_SOLIDITY_GET_SOLC_PATH,
+  TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES,
@@ -459,7 +459,7 @@ export default function () {
    * downloaded solcjs module. It also returns a flag indicating if the returned
    * path corresponds to solc or solcjs.
    */
-  subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_PATH)
+  subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
     .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
     .setAction(
@@ -472,13 +472,15 @@ export default function () {
           solcVersion: string;
         },
         { run }
-      ): Promise<{ compilerPath: string; isSolcJs: boolean }> => {
+      ): Promise<SolcBuild> => {
         const compilersCache = await getCompilersDir();
         const downloader = new CompilerDownloader(compilersCache);
 
         const isCompilerDownloaded = await downloader.isCompilerDownloaded(
           solcVersion
         );
+
+        const { longVersion } = await downloader.getCompilerBuild(solcVersion);
 
         await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
           solcVersion,
@@ -520,7 +522,7 @@ export default function () {
 
         const isSolcJs = platform === CompilerPlatform.WASM;
 
-        return { compilerPath, isSolcJs };
+        return { compilerPath, isSolcJs, version: solcVersion, longVersion };
       }
     );
 
@@ -602,17 +604,14 @@ export default function () {
           compilationJobIndex: number;
         },
         { run }
-      ) => {
-        const {
-          compilerPath,
-          isSolcJs,
-        }: {
-          compilerPath: string;
-          isSolcJs: boolean;
-        } = await run(TASK_COMPILE_SOLIDITY_GET_SOLC_PATH, {
-          quiet,
-          solcVersion,
-        });
+      ): Promise<{ output: CompilerOutput; solcBuild: SolcBuild }> => {
+        const solcBuild: SolcBuild = await run(
+          TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
+          {
+            quiet,
+            solcVersion,
+          }
+        );
 
         await run(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START, {
           compilationJob,
@@ -622,15 +621,15 @@ export default function () {
         });
 
         let output;
-        if (isSolcJs) {
+        if (solcBuild.isSolcJs) {
           output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLCJS, {
             input,
-            solcJsPath: compilerPath,
+            solcJsPath: solcBuild.compilerPath,
           });
         } else {
           output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLC, {
             input,
-            solcPath: compilerPath,
+            solcPath: solcBuild.compilerPath,
           });
         }
 
@@ -642,7 +641,7 @@ export default function () {
           quiet,
         });
 
-        return output;
+        return { output, solcBuild };
       }
     );
 
@@ -719,16 +718,19 @@ export default function () {
     .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("input", undefined, undefined, types.any)
     .addParam("output", undefined, undefined, types.any)
+    .addParam("solcBuild", undefined, undefined, types.any)
     .setAction(
       async (
         {
           compilationJob,
           input,
           output,
+          solcBuild,
         }: {
           compilationJob: CompilationJob;
           input: CompilerInput;
           output: CompilerOutput;
+          solcBuild: SolcBuild;
         },
         { artifacts, config, run }
       ): Promise<{
@@ -736,7 +738,7 @@ export default function () {
       }> => {
         const pathToBuildInfo = await artifacts.saveBuildInfo(
           compilationJob.getSolcConfig().version,
-          "long version", // TODO-HH: Get the long version
+          solcBuild.longVersion,
           input,
           output
         );
@@ -915,7 +917,7 @@ export default function () {
           }
         );
 
-        const output = await run(TASK_COMPILE_SOLIDITY_COMPILE, {
+        const { output, solcBuild } = await run(TASK_COMPILE_SOLIDITY_COMPILE, {
           solcVersion: compilationJob.getSolcConfig().version,
           input,
           quiet,
@@ -932,6 +934,7 @@ export default function () {
             compilationJob,
             input,
             output,
+            solcBuild,
           }
         );
 
