@@ -3,17 +3,30 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
-import { Artifact, Artifacts as IArtifacts, CompilerInput } from "../types";
+import {
+  Artifact,
+  Artifacts as IArtifacts,
+  BuildInfo,
+  CompilerInput,
+  CompilerOutput,
+  DebugFile,
+} from "../types";
+import {
+  getFullyQualifiedName,
+  isFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "../utils/contract-names";
+import { replaceBackslashes } from "../utils/source-names";
 
-import { BUILD_INFO_DIR_NAME } from "./constants";
-import { assertHardhatInvariant, HardhatError } from "./core/errors";
+import {
+  ARTIFACT_FORMAT_VERSION,
+  BUILD_INFO_DIR_NAME,
+  BUILD_INFO_FORMAT_VERSION,
+  DEBUG_FILE_FORMAT_VERSION,
+} from "./constants";
+import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
-import { replaceBackslashes } from "./solidity/source-names";
 import { glob, globSync } from "./util/glob";
-
-const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
-const DBG_FORMAT_VERSION = "hh-sol-dbg-1";
-const BUILD_INFO_FORMAT_VERSION = "hh-sol-build-info-1";
 
 const log = debug("hardhat:core:artifacts");
 
@@ -30,83 +43,6 @@ export class Artifacts implements IArtifacts {
     this._dbgsGlob = path.join(this._artifactsPath, "**/*.dbg.json");
   }
 
-  /**
-   * Return a list with the absolute paths of all the existing artifacts.
-   */
-  public async getArtifacts(): Promise<string[]> {
-    const artifactFiles = await glob(
-      path.join(this._artifactsPath, "**/*.json"),
-      {
-        ignore: [this._buildInfosGlob, this._dbgsGlob],
-      }
-    );
-
-    return artifactFiles;
-  }
-
-  public getArtifactsSync(): string[] {
-    const artifactFiles = globSync(
-      path.join(this._artifactsPath, "**/*.json"),
-      {
-        ignore: [this._buildInfosGlob, this._dbgsGlob],
-      }
-    );
-
-    return artifactFiles;
-  }
-
-  /**
-   * Return a list with the absolute paths of all the existing build info files.
-   */
-  public async getBuildInfoFiles(): Promise<string[]> {
-    return glob(this._buildInfosGlob);
-  }
-
-  public getBuildInfoFilesSync(): string[] {
-    return globSync(this._buildInfosGlob);
-  }
-
-  /**
-   * Return a list with the absolute paths of all the existing dbg files.
-   */
-  public async getDbgFiles(): Promise<string[]> {
-    return glob(this._dbgsGlob);
-  }
-
-  /**
-   * Checks if the artifact that corresponds to the given source name and
-   * contract name exists.
-   */
-  public async artifactExists(
-    sourceName: string,
-    contractName: string
-  ): Promise<boolean> {
-    try {
-      await this.readArtifact(
-        this._getFullyQualifiedName(sourceName, contractName)
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  public artifactExistsSync(sourceName: string, contractName: string): boolean {
-    try {
-      this.readArtifactSync(
-        this._getFullyQualifiedName(sourceName, contractName)
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /**
-   * Asynchronically reads an artifact with the given `contractName` from the given `artifactPath`.
-   *
-   * @param name  either the contract's name or the fully qualified name
-   */
   public async readArtifact(name: string): Promise<Artifact> {
     const { trueCasePath } = await import("true-case-path");
     const artifactPath = await this._getArtifactPath(name);
@@ -141,11 +77,6 @@ export class Artifacts implements IArtifacts {
     }
   }
 
-  /**
-   * Synchronically reads an artifact with the given `contractName` from the given `artifactPath`.
-   *
-   * @param name          either the contract's name or the fully qualified name
-   */
   public readArtifactSync(name: string): Artifact {
     const { trueCasePathSync } = require("true-case-path");
     const artifactPath = this._getArtifactPathSync(name);
@@ -180,54 +111,96 @@ export class Artifacts implements IArtifacts {
     }
   }
 
-  /**
-   * Stores an artifact and its dbg file.
-   *
-   * @param sourceName the source name of the file that emitted the artifact.
-   * @param artifact the artifact to be stored.
-   * @param pathToBuildInfo the relative path to the buildInfo for this artifact
-   */
-  public async saveArtifactFiles(
-    sourceName: string,
+  public async artifactExists(name: string): Promise<boolean> {
+    try {
+      await this.readArtifact(name);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  public async getAllFullyQualifiedNames(): Promise<string[]> {
+    const paths = await this.getArtifactPaths();
+    return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
+  }
+
+  public async getBuildInfo(
+    fullyQualifiedName: string
+  ): Promise<BuildInfo | undefined> {
+    const artifactPath = this._getArtifactPathFromFullyQualifiedName(
+      fullyQualifiedName
+    );
+
+    const debugFilePath = this._getDebugFilePath(artifactPath);
+    const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
+
+    if (buildInfoPath === undefined) {
+      return undefined;
+    }
+
+    return fsExtra.readJSON(buildInfoPath);
+  }
+
+  public async getArtifactPaths(): Promise<string[]> {
+    const paths = await glob(path.join(this._artifactsPath, "**/*.json"), {
+      ignore: [this._buildInfosGlob, this._dbgsGlob],
+    });
+
+    return paths.sort();
+  }
+
+  public async getBuildInfoPaths(): Promise<string[]> {
+    const paths = await glob(this._buildInfosGlob);
+
+    return paths.sort();
+  }
+
+  public async getDebugFilePaths(): Promise<string[]> {
+    const paths = await glob(this._dbgsGlob);
+
+    return paths.sort();
+  }
+
+  public async saveArtifactAndDebugFile(
     artifact: Artifact,
-    pathToBuildInfo: string
+    pathToBuildInfo?: string
   ) {
     // artifact
-    const fullyQualifiedName = `${sourceName}:${artifact.contractName}`;
+    const fullyQualifiedName = getFullyQualifiedName(
+      artifact.sourceName,
+      artifact.contractName
+    );
+
     const artifactPath = this._getArtifactPathFromFullyQualifiedName(
       fullyQualifiedName
     );
 
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
-    // dbg
-    const relativePathToBuildInfo = path.relative(
-      path.dirname(artifactPath),
-      pathToBuildInfo
-    );
-    const dbgPath = artifactPath.replace(/\.json$/, ".dbg.json");
-
-    // write artifact and dbg
+    // write artifact
     await fsExtra.writeJSON(artifactPath, artifact, {
       spaces: 2,
     });
-    await fsExtra.writeJSON(
-      dbgPath,
-      { _format: DBG_FORMAT_VERSION, buildInfo: relativePathToBuildInfo },
-      {
-        spaces: 2,
-      }
-    );
+
+    if (pathToBuildInfo === undefined) {
+      return;
+    }
+
+    // save debug file
+    const debugFilePath = this._getDebugFilePath(artifactPath);
+    const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
+
+    await fsExtra.writeJSON(debugFilePath, debugFile, {
+      spaces: 2,
+    });
   }
 
-  /**
-   * Saves a build info file using the given data, and returns the absolute path
-   * to the written file.
-   */
   public async saveBuildInfo(
+    solcVersion: string,
+    solcLongVersion: string,
     input: CompilerInput,
-    output: any,
-    solcVersion: string
+    output: CompilerOutput
   ): Promise<string> {
     const { default: uuid } = await import("uuid/v4");
 
@@ -235,13 +208,16 @@ export class Artifacts implements IArtifacts {
     await fsExtra.ensureDir(buildInfoDir);
 
     const buildInfoName = uuid();
-    const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
-    await fsExtra.writeJson(buildInfoPath, {
-      _format: BUILD_INFO_FORMAT_VERSION,
-      input,
-      output,
+
+    const buildInfo = this._createBuildInfo(
       solcVersion,
-    });
+      solcLongVersion,
+      input,
+      output
+    );
+
+    const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
+    await fsExtra.writeJson(buildInfoPath, buildInfo);
 
     return buildInfoPath;
   }
@@ -258,14 +234,16 @@ export class Artifacts implements IArtifacts {
     const validArtifactsPaths = new Set<string>();
 
     for (const { sourceName, artifacts } of artifactsEmittedPerFile) {
-      for (const artifact of artifacts) {
+      for (const artifactName of artifacts) {
         validArtifactsPaths.add(
-          this._getArtifactPathSync(sourceName, artifact)
+          this._getArtifactPathSync(
+            getFullyQualifiedName(sourceName, artifactName)
+          )
         );
       }
     }
 
-    const existingArtifactsPaths = await this.getArtifacts();
+    const existingArtifactsPaths = await this.getArtifactPaths();
 
     for (const artifactPath of existingArtifactsPaths) {
       if (!validArtifactsPaths.has(artifactPath)) {
@@ -275,20 +253,22 @@ export class Artifacts implements IArtifacts {
   }
 
   /**
-   * Remove all build infos that aren't used by any dbg file
+   * Remove all build infos that aren't used by any debug file
    */
   public async removeObsoleteBuildInfos() {
-    const dbgFiles = await this.getDbgFiles();
+    const debugFiles = await this.getDebugFilePaths();
 
     const validBuildInfos = new Set<string>();
-    for (const dbgFile of dbgFiles) {
-      const buildInfoFile = await this._getBuildInfoFromDbg(dbgFile);
+    for (const debugFile of debugFiles) {
+      const buildInfoFile = await this._getBuildInfoFromDebugFile(debugFile);
       if (buildInfoFile !== undefined) {
-        validBuildInfos.add(path.resolve(path.dirname(dbgFile), buildInfoFile));
+        validBuildInfos.add(
+          path.resolve(path.dirname(debugFile), buildInfoFile)
+        );
       }
     }
 
-    const buildInfoFiles = await this.getBuildInfoFiles();
+    const buildInfoFiles = await this.getBuildInfoPaths();
 
     for (const buildInfoFile of buildInfoFiles) {
       if (!validBuildInfos.has(buildInfoFile)) {
@@ -307,53 +287,86 @@ export class Artifacts implements IArtifacts {
    * If there is an ambiguity, an error is thrown.
    */
   private async _getArtifactPath(name: string): Promise<string> {
-    if (this._isFullyQualified(name)) {
+    if (isFullyQualifiedName(name)) {
       return this._getArtifactPathFromFullyQualifiedName(name);
     }
 
-    const files = await this.getArtifacts();
+    const files = await this.getArtifactPaths();
     return this._getArtifactPathFromFiles(name, files);
   }
 
-  private _getArtifactPathSync(
-    sourceName: string,
-    contractName?: string
-  ): string {
-    if (contractName === undefined) {
-      if (this._isFullyQualified(sourceName)) {
-        return this._getArtifactPathFromFullyQualifiedName(sourceName);
-      }
+  private _createBuildInfo(
+    solcVersion: string,
+    solcLongVersion: string,
+    input: CompilerInput,
+    output: CompilerOutput
+  ): BuildInfo {
+    return {
+      _format: BUILD_INFO_FORMAT_VERSION,
+      solcVersion,
+      solcLongVersion,
+      input,
+      output,
+    };
+  }
 
-      const files = this.getArtifactsSync();
-      return this._getArtifactPathFromFiles(sourceName, files);
+  private _createDebugFile(artifactPath: string, pathToBuildInfo: string) {
+    const relativePathToBuildInfo = path.relative(
+      path.dirname(artifactPath),
+      pathToBuildInfo
+    );
+
+    const debugFile: DebugFile = {
+      _format: DEBUG_FILE_FORMAT_VERSION,
+      buildInfo: relativePathToBuildInfo,
+    };
+
+    return debugFile;
+  }
+
+  private _getArtifactPathsSync(): string[] {
+    return globSync(path.join(this._artifactsPath, "**/*.json"), {
+      ignore: [this._buildInfosGlob, this._dbgsGlob],
+    });
+  }
+
+  /**
+   * Sync version of _getArtifactPath
+   */
+  private _getArtifactPathSync(name: string): string {
+    if (isFullyQualifiedName(name)) {
+      return this._getArtifactPathFromFullyQualifiedName(name);
     }
 
-    const fullyQualifiedName = `${sourceName}:${contractName}`;
-    const artifactPath = this._getArtifactPathFromFullyQualifiedName(
+    const files = this._getArtifactPathsSync();
+    return this._getArtifactPathFromFiles(name, files);
+  }
+
+  private _getArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } = parseFullyQualifiedName(
       fullyQualifiedName
     );
 
-    return artifactPath;
-  }
-
-  private _getArtifactPathFromFullyQualifiedName(name: string): string {
-    const parts = name.split(":");
-    assertHardhatInvariant(
-      parts.length === 2,
-      "A fully qualified contract name should have exactly one colon"
-    );
-    const [sourceName, contractName] = parts;
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
-  private _getArtifactPathFromFiles(name: string, files: string[]): string {
+  private _getDebugFilePath(artifactPath: string): string {
+    return artifactPath.replace(/\.json$/, ".dbg.json");
+  }
+
+  private _getArtifactPathFromFiles(
+    contractName: string,
+    files: string[]
+  ): string {
     const matchingFiles = files.filter((file) => {
-      return path.basename(file) === `${name}.json`;
+      return path.basename(file) === `${contractName}.json`;
     });
 
     if (matchingFiles.length === 0) {
       throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-        contractName: name,
+        contractName,
       });
     }
 
@@ -363,23 +376,12 @@ export class Artifacts implements IArtifacts {
         .map(path.normalize);
 
       throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
-        contractName: name,
+        contractName,
         candidates: candidates.join(os.EOL),
       });
     }
 
     return matchingFiles[0];
-  }
-
-  /**
-   * Returns the FQN of a contract giving its source name of its file and its
-   * contract name.
-   */
-  private _getFullyQualifiedName(
-    sourceName: string,
-    contractName: string
-  ): string {
-    return `${sourceName}:${contractName}`;
   }
 
   /**
@@ -393,41 +395,39 @@ export class Artifacts implements IArtifacts {
     const sourceName = replaceBackslashes(
       path.relative(this._artifactsPath, path.dirname(absolutePath))
     );
+
     const contractName = path.basename(absolutePath).replace(".json", "");
 
-    return this._getFullyQualifiedName(sourceName, contractName);
-  }
-
-  private _isFullyQualified(name: string) {
-    return name.includes(":");
+    return getFullyQualifiedName(sourceName, contractName);
   }
 
   /**
-   * Remove the artifact file, its companion dbg and, if it exists, its build
+   * Remove the artifact file, its debug file and, if it exists, its build
    * info file.
    */
   private async _removeArtifactFiles(artifactPath: string) {
     await fsExtra.remove(artifactPath);
 
-    const dbgPath = artifactPath.replace(/\.json$/, ".dbg.json");
-    const buildInfoPath = await this._getBuildInfoFromDbg(dbgPath);
+    const debugFilePath = this._getDebugFilePath(artifactPath);
+    const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
 
-    await fsExtra.remove(dbgPath);
+    await fsExtra.remove(debugFilePath);
+
     if (buildInfoPath !== undefined) {
       await fsExtra.remove(buildInfoPath);
     }
   }
 
   /**
-   * Given the path to a dbg file, returns the absolute path to its
+   * Given the path to a debug file, returns the absolute path to its
    * corresponding build info file if it exists, or undefined otherwise.
    */
-  private async _getBuildInfoFromDbg(
-    dbgPath: string
+  private async _getBuildInfoFromDebugFile(
+    debugFilePath: string
   ): Promise<string | undefined> {
-    if (await fsExtra.pathExists(dbgPath)) {
-      const { buildInfo } = await fsExtra.readJson(dbgPath);
-      return path.resolve(path.dirname(dbgPath), buildInfo);
+    if (await fsExtra.pathExists(debugFilePath)) {
+      const { buildInfo } = await fsExtra.readJson(debugFilePath);
+      return path.resolve(path.dirname(debugFilePath), buildInfo);
     }
 
     return undefined;
@@ -437,10 +437,12 @@ export class Artifacts implements IArtifacts {
 /**
  * Retrieves an artifact for the given `contractName` from the compilation output.
  *
+ * @param sourceName The contract's source name.
  * @param contractName the contract's name.
  * @param contractOutput the contract's compilation output as emitted by `solc`.
  */
 export function getArtifactFromContractOutput(
+  sourceName: string,
   contractName: string,
   contractOutput: any
 ): Artifact {
@@ -473,6 +475,7 @@ export function getArtifactFromContractOutput(
   return {
     _format: ARTIFACT_FORMAT_VERSION,
     contractName,
+    sourceName,
     abi: contractOutput.abi,
     bytecode,
     deployedBytecode,

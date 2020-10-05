@@ -4,7 +4,10 @@ import debug from "debug";
 import path from "path";
 import semver from "semver";
 
-import { getArtifactFromContractOutput } from "../internal/artifacts";
+import {
+  Artifacts as ArtifactsImpl,
+  getArtifactFromContractOutput,
+} from "../internal/artifacts";
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { assertHardhatInvariant, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -22,12 +25,11 @@ import {
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
-import { localPathToSourceName } from "../internal/solidity/source-names";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
-import { Artifacts, CompilerInput } from "../types";
+import { Artifacts, CompilerInput, CompilerOutput, SolcBuild } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
 import {
   CompilationJob,
@@ -35,6 +37,8 @@ import {
   CompilationJobsCreationErrors,
   CompilationJobsCreationResult,
 } from "../types/builtin-tasks";
+import { getFullyQualifiedName } from "../utils/contract-names";
+import { localPathToSourceName } from "../utils/source-names";
 
 import {
   TASK_COMPILE,
@@ -53,7 +57,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
-  TASK_COMPILE_SOLIDITY_GET_SOLC_PATH,
+  TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES,
@@ -455,7 +459,7 @@ export default function () {
    * downloaded solcjs module. It also returns a flag indicating if the returned
    * path corresponds to solc or solcjs.
    */
-  subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_PATH)
+  subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
     .addParam("quiet", undefined, undefined, types.boolean)
     .addParam("solcVersion", undefined, undefined, types.string)
     .setAction(
@@ -468,13 +472,15 @@ export default function () {
           solcVersion: string;
         },
         { run }
-      ): Promise<{ compilerPath: string; isSolcJs: boolean }> => {
+      ): Promise<SolcBuild> => {
         const compilersCache = await getCompilersDir();
         const downloader = new CompilerDownloader(compilersCache);
 
         const isCompilerDownloaded = await downloader.isCompilerDownloaded(
           solcVersion
         );
+
+        const { longVersion } = await downloader.getCompilerBuild(solcVersion);
 
         await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
           solcVersion,
@@ -516,7 +522,7 @@ export default function () {
 
         const isSolcJs = platform === CompilerPlatform.WASM;
 
-        return { compilerPath, isSolcJs };
+        return { compilerPath, isSolcJs, version: solcVersion, longVersion };
       }
     );
 
@@ -598,17 +604,14 @@ export default function () {
           compilationJobIndex: number;
         },
         { run }
-      ) => {
-        const {
-          compilerPath,
-          isSolcJs,
-        }: {
-          compilerPath: string;
-          isSolcJs: boolean;
-        } = await run(TASK_COMPILE_SOLIDITY_GET_SOLC_PATH, {
-          quiet,
-          solcVersion,
-        });
+      ): Promise<{ output: CompilerOutput; solcBuild: SolcBuild }> => {
+        const solcBuild: SolcBuild = await run(
+          TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
+          {
+            quiet,
+            solcVersion,
+          }
+        );
 
         await run(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START, {
           compilationJob,
@@ -618,15 +621,15 @@ export default function () {
         });
 
         let output;
-        if (isSolcJs) {
+        if (solcBuild.isSolcJs) {
           output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLCJS, {
             input,
-            solcJsPath: compilerPath,
+            solcJsPath: solcBuild.compilerPath,
           });
         } else {
           output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLC, {
             input,
-            solcPath: compilerPath,
+            solcPath: solcBuild.compilerPath,
           });
         }
 
@@ -638,7 +641,7 @@ export default function () {
           quiet,
         });
 
-        return output;
+        return { output, solcBuild };
       }
     );
 
@@ -709,31 +712,35 @@ export default function () {
 
   /**
    * Saves to disk the artifacts for a compilation job. These artifacts
-   * include the main artifacts, the dbg files, and the build info.
+   * include the main artifacts, the debug files, and the build info.
    */
   subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
     .addParam("compilationJob", undefined, undefined, types.any)
     .addParam("input", undefined, undefined, types.any)
     .addParam("output", undefined, undefined, types.any)
+    .addParam("solcBuild", undefined, undefined, types.any)
     .setAction(
       async (
         {
           compilationJob,
           input,
           output,
+          solcBuild,
         }: {
           compilationJob: CompilationJob;
           input: CompilerInput;
-          output: any;
+          output: CompilerOutput;
+          solcBuild: SolcBuild;
         },
         { artifacts, config, run }
       ): Promise<{
         artifactsEmittedPerFile: ArtifactsEmittedPerFile;
       }> => {
         const pathToBuildInfo = await artifacts.saveBuildInfo(
+          compilationJob.getSolcConfig().version,
+          solcBuild.longVersion,
           input,
-          output,
-          compilationJob.getSolcConfig().version
+          output
         );
 
         const artifactsEmittedPerFile: ArtifactsEmittedPerFile = [];
@@ -752,16 +759,13 @@ export default function () {
             const artifact = await run(
               TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
               {
+                sourceName: file.sourceName,
                 contractName,
                 contractOutput,
               }
             );
 
-            await artifacts.saveArtifactFiles(
-              file.sourceName,
-              artifact,
-              pathToBuildInfo
-            );
+            await artifacts.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
 
             artifactsEmitted.push(artifact.contractName);
           }
@@ -781,17 +785,24 @@ export default function () {
    * output.
    */
   subtask(TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT)
+    .addParam("sourceName", undefined, undefined, types.string)
     .addParam("contractName", undefined, undefined, types.string)
     .addParam("contractOutput", undefined, undefined, types.any)
     .setAction(
       async ({
+        sourceName,
         contractName,
         contractOutput,
       }: {
+        sourceName: string;
         contractName: string;
         contractOutput: any;
       }): Promise<any> => {
-        return getArtifactFromContractOutput(contractName, contractOutput);
+        return getArtifactFromContractOutput(
+          sourceName,
+          contractName,
+          contractOutput
+        );
       }
     );
 
@@ -906,7 +917,7 @@ export default function () {
           }
         );
 
-        const output = await run(TASK_COMPILE_SOLIDITY_COMPILE, {
+        const { output, solcBuild } = await run(TASK_COMPILE_SOLIDITY_COMPILE, {
           solcVersion: compilationJob.getSolcConfig().version,
           input,
           quiet,
@@ -923,6 +934,7 @@ export default function () {
             compilationJob,
             input,
             output,
+            solcBuild,
           }
         );
 
@@ -1149,8 +1161,11 @@ ${other.map((x) => `* ${x}`).join("\n")}
 
         const allArtifactsEmittedPerFile = solidityFilesCache.getEntries();
 
-        await artifacts.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
-        await artifacts.removeObsoleteBuildInfos();
+        // We know this is the actual implementation, so we use some
+        // non-public methods here.
+        const artifactsImpl = artifacts as ArtifactsImpl;
+        await artifactsImpl.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
+        await artifactsImpl.removeObsoleteBuildInfos();
 
         await solidityFilesCache.writeToFile(solidityFilesCachePath);
       }
@@ -1204,16 +1219,15 @@ async function invalidateCacheMissingArtifacts(
       continue;
     }
 
-    const { artifacts: artifactsEmitted } = cacheEntry;
+    const { artifacts: emittedArtifacts } = cacheEntry;
 
-    for (const artifactEmitted of artifactsEmitted) {
+    for (const emittedArtifact of emittedArtifacts) {
       const artifactExists = await artifacts.artifactExists(
-        file.sourceName,
-        artifactEmitted
+        getFullyQualifiedName(file.sourceName, emittedArtifact)
       );
       if (!artifactExists) {
         log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${artifactEmitted}' doesn't exist`
+          `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
         );
         solidityFilesCache.removeEntry(file.absolutePath);
         break;

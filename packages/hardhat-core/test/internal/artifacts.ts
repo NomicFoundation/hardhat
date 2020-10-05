@@ -1,4 +1,5 @@
-import * as assert from "assert";
+import { assert } from "chai";
+import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
@@ -8,20 +9,45 @@ import {
 } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { Artifact } from "../../src/types";
+import { getFullyQualifiedName } from "../../src/utils/contract-names";
 import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";
 
-describe("Artifacts utils", function () {
+async function storeAllArtifacts(sourceName: string, artifacts: Artifacts) {
+  const solcVersion = "0.5.6";
+  const solcLongVersion = "0.5.6+12321";
+  const solcInput = { input: true } as any;
+  const solcOutput = { output: true } as any;
+
+  const buildInfoPath = await artifacts.saveBuildInfo(
+    solcVersion,
+    solcLongVersion,
+    solcInput,
+    solcOutput
+  );
+
+  for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
+    const artifact = getArtifactFromContractOutput(sourceName, name, output);
+    await artifacts.saveArtifactAndDebugFile(artifact, buildInfoPath);
+  }
+}
+
+describe("Artifacts class", function () {
   describe("getArtifactFromContractOutput", function () {
     it("Should always return a bytecode, linkReference, deployedBytecode and deployedLinkReferences", function () {
-      const artifact = getArtifactFromContractOutput("Interface", {
-        ...COMPILER_OUTPUTS.Interface,
-        evm: undefined,
-      });
+      const artifact = getArtifactFromContractOutput(
+        "source.sol",
+        "Interface",
+        {
+          ...COMPILER_OUTPUTS.Interface,
+          evm: undefined,
+        }
+      );
 
       const expectedArtifact: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "Interface",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
         linkReferences: {},
@@ -31,14 +57,19 @@ describe("Artifacts utils", function () {
 
       assert.deepEqual(artifact, expectedArtifact);
 
-      const artifact2 = getArtifactFromContractOutput("Interface", {
-        ...COMPILER_OUTPUTS.Interface,
-        evm: {},
-      });
+      const artifact2 = getArtifactFromContractOutput(
+        "source.sol",
+        "Interface",
+        {
+          ...COMPILER_OUTPUTS.Interface,
+          evm: {},
+        }
+      );
 
       const expectedArtifact2: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "Interface",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
         linkReferences: {},
@@ -48,14 +79,19 @@ describe("Artifacts utils", function () {
 
       assert.deepEqual(artifact2, expectedArtifact2);
 
-      const artifact3 = getArtifactFromContractOutput("Interface", {
-        ...COMPILER_OUTPUTS.Interface,
-        evm: { bytecode: {} },
-      });
+      const artifact3 = getArtifactFromContractOutput(
+        "source.sol",
+        "Interface",
+        {
+          ...COMPILER_OUTPUTS.Interface,
+          evm: { bytecode: {} },
+        }
+      );
 
       const expectedArtifact3: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "Interface",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
         linkReferences: {},
@@ -68,6 +104,7 @@ describe("Artifacts utils", function () {
 
     it("Should return the right artifact for an interface", function () {
       const artifact = getArtifactFromContractOutput(
+        "source.sol",
         "Interface",
         COMPILER_OUTPUTS.Interface
       );
@@ -75,6 +112,7 @@ describe("Artifacts utils", function () {
       const expectedArtifact: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "Interface",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.Interface.abi,
         bytecode: "0x",
         linkReferences: {},
@@ -87,6 +125,7 @@ describe("Artifacts utils", function () {
 
     it("Should return the right artifact for a library", function () {
       const artifact = getArtifactFromContractOutput(
+        "source.sol",
         "Lib",
         COMPILER_OUTPUTS.Lib
       );
@@ -94,6 +133,7 @@ describe("Artifacts utils", function () {
       const expectedArtifact: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "Lib",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.Lib.abi,
         bytecode: `0x${COMPILER_OUTPUTS.Lib.evm.bytecode.object}`,
         linkReferences: {},
@@ -106,6 +146,7 @@ describe("Artifacts utils", function () {
 
     it("Should return the right artifact for a contract without libs", function () {
       const artifact = getArtifactFromContractOutput(
+        "source.sol",
         "WithBytecodeNoLibs",
         COMPILER_OUTPUTS.WithBytecodeNoLibs
       );
@@ -113,6 +154,7 @@ describe("Artifacts utils", function () {
       const expectedArtifact: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "WithBytecodeNoLibs",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.WithBytecodeNoLibs.abi,
         bytecode: `0x${COMPILER_OUTPUTS.WithBytecodeNoLibs.evm.bytecode.object}`,
         linkReferences: {},
@@ -125,6 +167,7 @@ describe("Artifacts utils", function () {
 
     it("Should return the right artifact for a contract with libs", function () {
       const artifact = getArtifactFromContractOutput(
+        "source.sol",
         "WithBytecodeAndLibs",
         COMPILER_OUTPUTS.WithBytecodeAndLibs
       );
@@ -132,6 +175,7 @@ describe("Artifacts utils", function () {
       const expectedArtifact: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "WithBytecodeAndLibs",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.WithBytecodeAndLibs.abi,
         bytecode: `0x${COMPILER_OUTPUTS.WithBytecodeAndLibs.evm.bytecode.object}`,
         linkReferences:
@@ -147,6 +191,7 @@ describe("Artifacts utils", function () {
 
     it("Should return the right artifact for an abstract contract without libs", function () {
       const artifact = getArtifactFromContractOutput(
+        "source.sol",
         "WithoutBytecodeNoLibs",
         COMPILER_OUTPUTS.WithoutBytecodeNoLibs
       );
@@ -154,6 +199,7 @@ describe("Artifacts utils", function () {
       const expectedArtifact: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "WithoutBytecodeNoLibs",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.WithoutBytecodeNoLibs.abi,
         bytecode: `0x${COMPILER_OUTPUTS.WithoutBytecodeNoLibs.evm.bytecode.object}`,
         linkReferences: {},
@@ -166,6 +212,7 @@ describe("Artifacts utils", function () {
 
     it("Should return the right artifact for an abstract contract with libs", function () {
       const artifact = getArtifactFromContractOutput(
+        "source.sol",
         "WithoutBytecodeWithLibs",
         COMPILER_OUTPUTS.WithoutBytecodeWithLibs
       );
@@ -173,6 +220,7 @@ describe("Artifacts utils", function () {
       const expectedArtifact: Artifact = {
         _format: "hh-sol-artifact-1",
         contractName: "WithoutBytecodeWithLibs",
+        sourceName: "source.sol",
         abi: COMPILER_OUTPUTS.WithoutBytecodeWithLibs.abi,
         bytecode: "0x",
         linkReferences:
@@ -192,14 +240,14 @@ describe("Artifacts utils", function () {
 
     it("It should write and read (async) the right artifacts", async function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
-        const artifact = getArtifactFromContractOutput(name, output);
+        const artifact = getArtifactFromContractOutput(
+          "source.sol",
+          name,
+          output
+        );
 
         const artifacts = new Artifacts(this.tmpDir);
-        await artifacts.saveArtifactFiles(
-          `${artifact.contractName}.sol`,
-          artifact,
-          ""
-        );
+        await artifacts.saveArtifactAndDebugFile(artifact, "");
         const storedArtifact = await artifacts.readArtifact(
           artifact.contractName
         );
@@ -208,19 +256,79 @@ describe("Artifacts utils", function () {
       }
     });
 
+    it("Should save the debug file if a build info is provided", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "buildInfo");
+      const storedArtifact = await artifacts.readArtifact(
+        artifact.contractName
+      );
+
+      assert.deepEqual(storedArtifact, artifact);
+
+      // tslint:disable-next-line no-string-literal
+      const artifactPath = await artifacts["_getArtifactPath"](
+        artifact.contractName
+      );
+
+      // tslint:disable-next-line no-string-literal
+      const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
+
+      assert.isTrue(await fsExtra.pathExists(debugFilePath));
+    });
+
+    it("Should not save the debug file if a build info is not provided", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact);
+      const storedArtifact = await artifacts.readArtifact(
+        artifact.contractName
+      );
+
+      assert.deepEqual(storedArtifact, artifact);
+
+      // tslint:disable-next-line no-string-literal
+      const artifactPath = await artifacts["_getArtifactPath"](
+        artifact.contractName
+      );
+
+      // tslint:disable-next-line no-string-literal
+      const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
+
+      assert.isFalse(await fsExtra.pathExists(debugFilePath));
+    });
+
     it("Should save the artifact even if the artifacts directory doesn't exist", async function () {
       const nonexistentPath = path.join(this.tmpDir, "I-DONT-EXIST");
       const name = "Lib";
       const output = COMPILER_OUTPUTS.Lib;
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput(
+        "source.sol",
+        name,
+        output
+      );
 
       const artifacts = new Artifacts(nonexistentPath);
-      await artifacts.saveArtifactFiles(
-        `${artifact.contractName}.sol`,
-        artifact,
-        ""
-      );
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
       const storedArtifact = await artifacts.readArtifact(name);
 
       assert.deepEqual(storedArtifact, artifact);
@@ -228,14 +336,14 @@ describe("Artifacts utils", function () {
 
     it("It should write and read (sync) the right artifacts", async function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
-        const artifact = getArtifactFromContractOutput(name, output);
+        const artifact = getArtifactFromContractOutput(
+          "source.sol",
+          name,
+          output
+        );
 
         const artifacts = new Artifacts(this.tmpDir);
-        await artifacts.saveArtifactFiles(
-          `${artifact.contractName}.sol`,
-          artifact,
-          ""
-        );
+        await artifacts.saveArtifactAndDebugFile(artifact, "");
         const storedArtifact = artifacts.readArtifactSync(name);
 
         assert.deepEqual(storedArtifact, artifact);
@@ -246,10 +354,14 @@ describe("Artifacts utils", function () {
       const output = COMPILER_OUTPUTS.Lib;
       const name = "Lib";
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput(
+        "folder/source.sol",
+        name,
+        output
+      );
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactFiles("contracts/Lib.sol", artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
 
       const storedArtifact = await artifacts.readArtifact(name);
 
@@ -258,12 +370,13 @@ describe("Artifacts utils", function () {
 
     it("Should find the right artifact even if the source name is different", async function () {
       const output = COMPILER_OUTPUTS.Lib;
+      const sourceName = "source.sol";
       const name = "Lib";
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput(sourceName, name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactFiles("MyLib.sol", artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
 
       const storedArtifact = await artifacts.readArtifact(name);
 
@@ -272,12 +385,13 @@ describe("Artifacts utils", function () {
 
     it("Should find the right artifact when using the fully qualified name", async function () {
       const output = COMPILER_OUTPUTS.Lib;
+      const sourceName = "MyLib.sol";
       const name = "Lib";
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput(sourceName, name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactFiles("MyLib.sol", artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
 
       const storedArtifact = await artifacts.readArtifact("MyLib.sol:Lib");
 
@@ -286,12 +400,13 @@ describe("Artifacts utils", function () {
 
     it("Should find the right artifact when using the fully qualified name (sync)", async function () {
       const output = COMPILER_OUTPUTS.Lib;
+      const sourceName = "MyLib.sol";
       const name = "Lib";
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput(sourceName, name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactFiles("MyLib.sol", artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
 
       const storedArtifact = artifacts.readArtifactSync("MyLib.sol:Lib");
 
@@ -300,12 +415,13 @@ describe("Artifacts utils", function () {
 
     it("Should find the right artifact when using the fully qualified with slashes", async function () {
       const output = COMPILER_OUTPUTS.Lib;
+      const sourceName = "contracts/MyLib.sol";
       const name = "Lib";
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput(sourceName, name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactFiles("contracts/MyLib.sol", artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
 
       const storedArtifact = await artifacts.readArtifact(
         "contracts/MyLib.sol:Lib"
@@ -334,11 +450,12 @@ describe("Artifacts utils", function () {
       const output = COMPILER_OUTPUTS.Lib;
       const name = "Lib";
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+      const artifact2 = getArtifactFromContractOutput("Lib2.sol", name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactFiles("Lib.sol", artifact, "");
-      await artifacts.saveArtifactFiles("Lib2.sol", artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact2, "");
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(name),
@@ -349,19 +466,122 @@ describe("Artifacts utils", function () {
 
     it("Should throw when multiple artifacts match a given name (sync)", async function () {
       const output = COMPILER_OUTPUTS.Lib;
+
       const name = "Lib";
 
-      const artifact = getArtifactFromContractOutput(name, output);
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+      const artifact2 = getArtifactFromContractOutput("Lib2.sol", name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactFiles("Lib.sol", artifact, "");
-      await artifacts.saveArtifactFiles("Lib2.sol", artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact2, "");
 
       expectHardhatError(
         () => artifacts.readArtifactSync(name),
         ERRORS.ARTIFACTS.MULTIPLE_FOUND,
         `Lib.sol:Lib${os.EOL}Lib2.sol:Lib`
       );
+    });
+
+    it("Should be possible to get all the fully qualified names of the artifacts", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+      await storeAllArtifacts("source.sol", artifacts);
+
+      const names = await artifacts.getAllFullyQualifiedNames();
+      assert.equal(names.length, Object.keys(COMPILER_OUTPUTS).length);
+
+      const expected = [
+        "source.sol:Interface",
+        "source.sol:Lib",
+        "source.sol:WithBytecodeAndLibs",
+        "source.sol:WithBytecodeNoLibs",
+        "source.sol:WithoutBytecodeNoLibs",
+        "source.sol:WithoutBytecodeWithLibs",
+      ];
+
+      expected.sort();
+
+      assert.deepEqual(names, expected);
+    });
+
+    it("Should be possible to get a build info from a fully qualified name", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const solcVersion = "0.5.6";
+      const solcLongVersion = "0.5.6+12321";
+      const solcInput = { input: true } as any;
+      const solcOutput = { output: true } as any;
+
+      const buildInfoPath = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        solcInput,
+        solcOutput
+      );
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      await artifacts.saveArtifactAndDebugFile(artifact, buildInfoPath);
+
+      const storedBuildInfo = await artifacts.getBuildInfo(
+        getFullyQualifiedName(sourceName, contractName)
+      );
+
+      assert.equal(storedBuildInfo?.solcVersion, solcVersion);
+      assert.equal(storedBuildInfo?.solcLongVersion, solcLongVersion);
+      assert.deepEqual(storedBuildInfo?.input, solcInput);
+      assert.deepEqual(storedBuildInfo?.output, solcOutput);
+    });
+
+    it("Trying to get a build info of an artifact that doesn't have one should just return undefined", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      await artifacts.saveArtifactAndDebugFile(artifact);
+
+      const storedBuildInfo = await artifacts.getBuildInfo(
+        getFullyQualifiedName(sourceName, contractName)
+      );
+
+      assert.isUndefined(storedBuildInfo);
+    });
+
+    it("Should be possible to get the paths to all the artifacts, debug files and build infos", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+      await storeAllArtifacts("source.sol", artifacts);
+
+      const artifactPaths = await artifacts.getArtifactPaths();
+      const debugFilePaths = await artifacts.getDebugFilePaths();
+      const buildInfoPaths = await artifacts.getBuildInfoPaths();
+
+      assert.lengthOf(artifactPaths, Object.keys(COMPILER_OUTPUTS).length);
+      assert.isTrue(artifactPaths.every((p) => p.startsWith(this.tmpDir)));
+      assert.isTrue(artifactPaths.every((p) => p.endsWith(".json")));
+
+      assert.lengthOf(debugFilePaths, Object.keys(COMPILER_OUTPUTS).length);
+      assert.isTrue(debugFilePaths.every((p) => p.startsWith(this.tmpDir)));
+      assert.isTrue(debugFilePaths.every((p) => p.endsWith(".dbg.json")));
+
+      assert.lengthOf(buildInfoPaths, 1);
+      assert.isTrue(buildInfoPaths.every((p) => p.startsWith(this.tmpDir)));
+      assert.isTrue(buildInfoPaths.every((p) => p.endsWith(".json")));
     });
   });
 });

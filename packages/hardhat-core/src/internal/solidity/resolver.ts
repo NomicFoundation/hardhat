@@ -7,10 +7,6 @@ import {
   LibraryInfo,
   ResolvedFile as IResolvedFile,
 } from "../../types/builtin-tasks";
-import { HardhatError } from "../core/errors";
-import { ERRORS } from "../core/errors-list";
-
-import { Parser } from "./parse";
 import {
   isAbsolutePathSourceName,
   isLocalSourceName,
@@ -18,7 +14,11 @@ import {
   replaceBackslashes,
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
-} from "./source-names";
+} from "../../utils/source-names";
+import { HardhatError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
+
+import { Parser } from "./parse";
 
 export interface ResolvedFilesMap {
   [sourceName: string]: ResolvedFile;

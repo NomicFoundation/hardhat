@@ -35,8 +35,8 @@ export const TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT =
 export const TASK_COMPILE_SOLIDITY_COMPILE = "compile:solidity:compile";
 export const TASK_COMPILE_SOLIDITY_COMPILE_SOLC =
   "compile:solidity:solc:compile";
-export const TASK_COMPILE_SOLIDITY_GET_SOLC_PATH =
-  "compile:solidity:solc:get_path";
+export const TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD =
+  "compile:solidity:solc:get-build";
 export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START =
   "compile:solidity:log:download-compiler-start";
 export const TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END =

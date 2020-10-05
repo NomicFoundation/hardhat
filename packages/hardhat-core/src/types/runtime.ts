@@ -1,4 +1,4 @@
-import { Artifacts } from "./artifact";
+import { Artifacts } from "./artifacts";
 import { ResolvedHardhatConfig, ResolvedNetworkConfig } from "./config";
 import { EthereumProvider } from "./provider";
 
