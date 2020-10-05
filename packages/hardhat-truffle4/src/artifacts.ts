@@ -163,6 +163,12 @@ export class TruffleEnvironmentArtifacts {
   }
 
   private _getContractNameFromPath(contractPath: string) {
+    // if the given argument has a colon, we interpret it as a
+    // fully qualified name and pass it verbatim to `readArtifactSync`
+    if (contractPath.indexOf(":") !== -1) {
+      return contractPath;
+    }
+
     const basename = path.basename(contractPath);
 
     const lastDotIndex = basename.lastIndexOf(".");
