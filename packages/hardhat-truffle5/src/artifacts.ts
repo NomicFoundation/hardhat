@@ -62,9 +62,9 @@ export class TruffleEnvironmentArtifacts {
       }
     }
 
-    const destinationArtifact = this._artifacts.readArtifactSync(
-      destination.contractName
-    );
+    const destinationArtifact =
+      destination._hArtifact ??
+      this._artifacts.readArtifactSync(destination.contractName);
 
     const libraryAddresses: { [libraryName: string]: string } = {};
 
@@ -184,6 +184,13 @@ export class TruffleEnvironmentArtifacts {
     const TruffleContractFactory = require("@nomiclabs/truffle-contract");
     const Contract = TruffleContractFactory(artifact);
 
-    return this._provisioner.provision(Contract, this);
+    const truffleContract = this._provisioner.provision(Contract, this);
+
+    // we add the artifact so that it's available when the contract it's linked
+    // otherwise the contract name is used to get the artifact and that could be
+    // ambiguous
+    truffleContract._hArtifact = artifact;
+
+    return truffleContract;
   }
 }
