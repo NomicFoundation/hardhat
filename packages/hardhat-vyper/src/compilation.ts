@@ -66,13 +66,10 @@ export async function compile(
         pathFromSources
       ];
 
-      const artifact = getArtifactFromVyperOutput(file, vyperOutput);
-
-      await fsExtra.ensureDir(paths.artifacts);
-
       // TODO this might not work on windows, maybe we should use `slash` here
       const sourceName = path.relative(paths.sources, file);
 
+      const artifact = getArtifactFromVyperOutput(sourceName, vyperOutput);
       await artifacts.saveArtifactAndDebugFile(artifact);
     } else {
       console.error(processResult.stderr.toString("utf8").trim(), "\n");
@@ -130,13 +127,13 @@ function pathToContractName(file: string) {
   return sourceName.substring(0, sourceName.indexOf("."));
 }
 
-function getArtifactFromVyperOutput(sourceFile: string, output: any): Artifact {
-  const contractName = pathToContractName(sourceFile);
+function getArtifactFromVyperOutput(sourceName: string, output: any): Artifact {
+  const contractName = pathToContractName(sourceName);
 
   return {
     _format: ARTIFACT_FORMAT_VERSION,
     contractName,
-    sourceName: sourceFile,
+    sourceName,
     abi: output.abi,
     bytecode: add0xPrefixIfNecessary(output.bytecode),
     deployedBytecode: add0xPrefixIfNecessary(output.bytecode_runtime),
