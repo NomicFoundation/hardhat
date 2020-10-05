@@ -18,7 +18,7 @@ import {
   replaceBackslashes,
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
-} from "./source-names";
+} from "../../utils/source-names";
 
 export interface ResolvedFilesMap {
   [sourceName: string]: ResolvedFile;

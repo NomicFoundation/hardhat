@@ -24,8 +24,8 @@ import {
   getFullyQualifiedName,
   isFullyQualifiedName,
   parseFullyQualifiedName,
-} from "./solidity/contract-names";
-import { replaceBackslashes } from "./solidity/source-names";
+} from "../utils/contract-names";
+import { replaceBackslashes } from "../utils/source-names";
 import { glob, globSync } from "./util/glob";
 
 const log = debug("hardhat:core:artifacts");

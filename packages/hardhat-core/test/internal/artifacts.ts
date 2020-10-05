@@ -8,7 +8,7 @@ import {
   getArtifactFromContractOutput,
 } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
-import { getFullyQualifiedName } from "../../src/internal/solidity/contract-names";
+import { getFullyQualifiedName } from "../../src/utils/contract-names";
 import { Artifact } from "../../src/types";
 import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";

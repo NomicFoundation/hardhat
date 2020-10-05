@@ -20,6 +20,7 @@
 /builtin-tasks
 /internal
 /types
+/utils
 
 # Below is Github's node gitignore template,
 # ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing

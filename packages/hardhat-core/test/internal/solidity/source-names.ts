@@ -11,7 +11,7 @@ import {
   replaceBackslashes,
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
-} from "../../../src/internal/solidity/source-names";
+} from "../../../src/utils/source-names";
 import {
   expectHardhatError,
   expectHardhatErrorAsync,

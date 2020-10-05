@@ -6,7 +6,7 @@ import {
   isFullyQualifiedName,
   parseFullyQualifiedName,
   parseName,
-} from "../../../src/internal/solidity/contract-names";
+} from "../../../src/utils/contract-names";
 import { expectHardhatError } from "../../helpers/errors";
 
 describe("Solidity contract names utilities", function () {

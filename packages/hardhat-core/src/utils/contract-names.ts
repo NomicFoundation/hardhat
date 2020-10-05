@@ -1,4 +1,4 @@
-import { assertHardhatInvariant } from "../core/errors";
+import { assertHardhatInvariant } from "../internal/core/errors";
 
 /**
  * Returns a fully qualified name from a sourceName and contractName.

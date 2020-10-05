@@ -1,7 +1,7 @@
 import path from "path";
 
-import { HardhatError } from "../core/errors";
-import { ERRORS } from "../core/errors-list";
+import { HardhatError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
 
 const NODE_MODULES = "node_modules";
 
