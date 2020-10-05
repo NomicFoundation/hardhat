@@ -54,7 +54,7 @@ export default function () {
       const mocha = new Mocha(config.mocha);
       testFiles.forEach((file) => mocha.addFile(file));
 
-      const testFailures: number = await new Promise<number>((resolve, _) => {
+      const testFailures = await new Promise<number>((resolve, _) => {
         mocha.run(resolve);
       });
 
