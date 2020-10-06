@@ -41,6 +41,7 @@
     "internal/",
     "sample-project/",
     "src/",
+    "utils/",
     "*.d.ts",
     "*.d.ts.map",
     "*.js",
