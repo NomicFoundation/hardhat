@@ -1,3 +1,12 @@
+# Domain redirects
+
+https://buidler.netlify.app/* https://buidler.dev/:splat 302!
+https://www.buidler.dev/* https://buidler.dev/:splat 302!
+https://usehardhat.com/* https://buidler.dev/:splat 302!
+https://www.usehardhat.com/* https://buidler.dev/:splat 302!
+https://getbuidler.com/* https://buidler.dev/:splat 302!
+https://www.getbuidler.com/* https://buidler.dev/:splat 302!
+
 # Manual redirects
 
 /links/stack-traces / 302

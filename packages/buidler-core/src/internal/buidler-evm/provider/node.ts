@@ -491,7 +491,7 @@ export class BuidlerNode extends EventEmitter {
 
   public async runCall(
     call: CallParams,
-    runOnNewBlock: boolean
+    blockNumber: BN | null
   ): Promise<{
     result: Buffer;
     trace: MessageTrace;
@@ -500,10 +500,12 @@ export class BuidlerNode extends EventEmitter {
   }> {
     const tx = await this._getFakeTransaction({
       ...call,
-      nonce: await this.getAccountNonce(call.from),
+      nonce: await this.getAccountNonce(call.from, null),
     });
 
-    const result = await this._runTxAndRevertMutations(tx, runOnNewBlock);
+    const result = await this._runOnBlockContext(blockNumber, () =>
+      this._runTxAndRevertMutations(tx, blockNumber === null)
+    );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
@@ -530,13 +532,25 @@ export class BuidlerNode extends EventEmitter {
     };
   }
 
-  public async getAccountBalance(address: Buffer): Promise<BN> {
-    const account = await this._stateManager.getAccount(address);
+  public async getAccountBalance(
+    address: Buffer,
+    blockNumber: BN | null
+  ): Promise<BN> {
+    const account = await this._runOnBlockContext(blockNumber, () =>
+      this._stateManager.getAccount(address)
+    );
+
     return new BN(account.balance);
   }
 
-  public async getAccountNonce(address: Buffer): Promise<BN> {
-    const account = await this._stateManager.getAccount(address);
+  public async getAccountNonce(
+    address: Buffer,
+    blockNumber: BN | null
+  ): Promise<BN> {
+    const account = await this._runOnBlockContext(blockNumber, () =>
+      this._stateManager.getAccount(address)
+    );
+
     return new BN(account.nonce);
   }
 
@@ -568,7 +582,8 @@ export class BuidlerNode extends EventEmitter {
   }
 
   public async estimateGas(
-    txParams: TransactionParams
+    txParams: TransactionParams,
+    blockNumber: BN | null
   ): Promise<{
     estimation: BN;
     trace: MessageTrace;
@@ -580,7 +595,9 @@ export class BuidlerNode extends EventEmitter {
       gasLimit: await this.getBlockGasLimit(),
     });
 
-    const result = await this._runTxAndRevertMutations(tx);
+    const result = await this._runOnBlockContext(blockNumber, () =>
+      this._runTxAndRevertMutations(tx)
+    );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
@@ -628,10 +645,17 @@ export class BuidlerNode extends EventEmitter {
     return COINBASE_ADDRESS;
   }
 
-  public async getStorageAt(address: Buffer, slot: BN): Promise<Buffer> {
+  public async getStorageAt(
+    address: Buffer,
+    slot: BN,
+    blockNumber: BN | null
+  ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
-    const data = await this._stateManager.getContractStorage(address, key);
 
+    let data: Promise<Buffer>;
+    data = this._runOnBlockContext(blockNumber, () =>
+      this._stateManager.getContractStorage(address, key)
+    );
     // TODO: The state manager returns the data as it was saved, it doesn't
     //  pad it. Technically, the storage consists of 32-byte slots, so we should
     //  always return 32 bytes. The problem is that Ganache doesn't handle them
@@ -687,8 +711,13 @@ export class BuidlerNode extends EventEmitter {
     return this._computeTotalDifficulty(block);
   }
 
-  public async getCode(address: Buffer): Promise<Buffer> {
-    return this._stateManager.getContractCode(address);
+  public async getCode(
+    address: Buffer,
+    blockNumber: BN | null
+  ): Promise<Buffer> {
+    return this._runOnBlockContext(blockNumber, () =>
+      this._stateManager.getContractCode(address)
+    );
   }
 
   public async setNextBlockTimestamp(timestamp: BN) {
@@ -1388,7 +1417,10 @@ export class BuidlerNode extends EventEmitter {
       );
     }
 
-    const expectedNonce = await this.getAccountNonce(tx.getSenderAddress());
+    const expectedNonce = await this.getAccountNonce(
+      tx.getSenderAddress(),
+      null
+    );
     const actualNonce = new BN(tx.nonce);
     if (!expectedNonce.eq(actualNonce)) {
       throw new InvalidInputError(
@@ -1435,6 +1467,27 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     }
 
     return parentTd.add(difficulty);
+  }
+
+  private async _runOnBlockContext<T>(
+    blockNumber: BN | null,
+    action: () => Promise<T>
+  ): Promise<T> {
+    let block: Block;
+    if (blockNumber == null) {
+      block = await this.getLatestBlock();
+    } else {
+      block = await this.getBlockByNumber(blockNumber);
+    }
+
+    const currentStateRoot = await this._stateManager.getStateRoot();
+    await this._stateManager.setStateRoot(block.header.stateRoot);
+
+    try {
+      return await action();
+    } finally {
+      await this._stateManager.setStateRoot(currentStateRoot);
+    }
   }
 
   private async _correctInitialEstimation(

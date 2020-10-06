@@ -1,7 +1,7 @@
-import { VmError } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
-import { BN } from "ethereumjs-util";
+import type { VmError } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
+import type { BN } from "ethereumjs-util";
 
-import { Bytecode } from "./model";
+import type { Bytecode } from "./model";
 
 export type MessageTrace =
   | CreateMessageTrace
@@ -18,6 +18,7 @@ export interface BaseMessageTrace {
   value: BN;
   returnData: Buffer;
   error?: VmError;
+  gasUsed: BN;
   depth: number;
 }
 

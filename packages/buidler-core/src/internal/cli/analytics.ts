@@ -11,6 +11,11 @@ import uuid from "uuid/v4";
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
+import {
+  readAnalyticsId,
+  readLegacyAnalyticsId,
+  writeAnalyticsId,
+} from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("buidler:core:analytics");
@@ -191,39 +196,15 @@ export class Analytics {
 }
 
 async function getClientId() {
-  // TODO: Check Windows support for this approach
-  const globalBuidlerConfigFile = path.join(
-    os.homedir(),
-    ".buidler",
-    "config.json"
-  );
+  let clientId = await readAnalyticsId();
 
-  await fs.ensureFile(globalBuidlerConfigFile);
-
-  let clientId;
-
-  log(`Looking up Client Id at ${globalBuidlerConfigFile}`);
-  try {
-    const data = JSON.parse(await fs.readFile(globalBuidlerConfigFile, "utf8"));
-
-    clientId = data.analytics.clientId;
-
-    log(`Client Id found: ${clientId}`);
-  } catch (e) {
-    log("Client Id not found, generating a new one");
-    clientId = uuid();
-
-    await fs.writeFile(
-      globalBuidlerConfigFile,
-      JSON.stringify({
-        analytics: {
-          clientId,
-        },
-      }),
-      "utf-8"
-    );
-
-    log(`Successfully generated clientId ${clientId}`);
+  if (clientId === null) {
+    clientId = await readLegacyAnalyticsId();
+    if (clientId === null) {
+      log("Client Id not found, generating a new one");
+      clientId = uuid();
+    }
+    await writeAnalyticsId(clientId);
   }
 
   return clientId;

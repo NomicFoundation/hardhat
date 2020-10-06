@@ -6,7 +6,7 @@ Buidler is a task runner for Ethereum smart contract developers. It facilitates 
 
 Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
-Join our [Buidler Discord server](https://discord.gg/ADQjyW8) to stay up to date on new releases, plugins and tutorials.
+Join our [Buidler Support Discord server](https://invite.gg/BuidlerSupport) to stay up to date on new releases, plugins and tutorials.
 
 🚧 **For the most recently published code, look at the [`master`](https://github.com/nomiclabs/buidler/tree/master) branch** 🚧
 
