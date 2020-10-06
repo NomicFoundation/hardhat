@@ -1,3 +1,8 @@
+# Domain redirects
+
+http://buidler.netlify.app/*  https://buidler.dev/:splat 301!
+https://buidler.netlify.app/* https://buidler.dev/:splat 301!
+
 # Manual redirects
 
 /links/stack-traces / 302

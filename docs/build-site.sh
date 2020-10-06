@@ -13,3 +13,7 @@ bash wget-readmes.sh
 bash error-list.sh
 yarn build
 bash error-list.sh
+
+if [ "$CONTEXT" = "branch-deploy"  ]; then 
+  bash prevent-indexing.sh 
+fi
