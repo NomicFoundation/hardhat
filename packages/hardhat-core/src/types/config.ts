@@ -1,6 +1,4 @@
-import { DeepReadonly, Omit } from "ts-essentials";
-
-// IMPORTANT: This t.types MUST be kept in sync with the actual types.
+import { DeepReadonly } from "ts-essentials";
 
 export interface CommonNetworkConfig {
   chainId?: number;
