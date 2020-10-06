@@ -1,18 +1,12 @@
 {
   "scripts": {
     "dev": "vuepress dev .",
-    "build": "NODE_ENV=production vuepress build .",
-    "apidocs": "typedoc --tsconfig ../packages/hardhat-core/src/tsconfig.json"
+    "build": "NODE_ENV=production vuepress build ."
   },
   "devDependencies": {
-    "@microsoft/tsdoc": "^0.12.5",
     "dotenv": "^6.2.0",
-    "typedoc": "^0.14.2",
-    "typedoc-plugin-markdown": "^1.1.27",
-    "typedoc-plugin-no-inherit": "^1.1.6",
     "vuepress": "^1.4.1",
     "vuepress-plugin-container": "^2.1.3",
-    "webpack": "^4.28.4",
     "@vuepress/plugin-google-analytics": "^1.4.1",
     "vue-carousel": "^0.18.0"
   },

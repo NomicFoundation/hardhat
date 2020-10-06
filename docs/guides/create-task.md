@@ -159,7 +159,7 @@ And there you have it. Your first fully functional Hardhat task, allowing you to
 
 You can create your own tasks in your `hardhat.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("@nomiclabs/hardhat/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
 
-Creating a task is done by calling the [`task` function](/api/#task). It will return a [`TaskDefinition`](/api/interfaces/taskdefinition.html) object, which can be used to define the task's parameters. There are multiple ways of calling `task`, take a look at [its API documentation](/api/#task).
+Creating a task is done by calling the `task` function. It will return a `TaskDefinition` object, which can be used to define the task's parameters.
 
 The simplest task you can define is
 
@@ -229,8 +229,6 @@ task("hello", "Prints a greeting'")
 ```
 
 And would be run with `npx hardhat hello --greeting Hola`.
-
-You can read the full documentation of these methods and their possible parameters in the [TaskDefinition API doc](/api/interfaces/taskdefinition.html#methods).
 
 #### Positional parameters restrictions
 

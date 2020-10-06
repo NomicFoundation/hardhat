@@ -23,7 +23,7 @@ Note that all config extension's have to be optional.
 
 ### Throwing errors from your plugins
 
-To show better stack traces to your users, please consider throwing [`HardhatPluginError`](/api/classes/hardhatpluginerror.html#constructors) errors, which can be found in `@nomiclabs/hardhat/plugins`.
+To show better stack traces to your users, please consider throwing `HardhatPluginError` errors, which can be found in `@nomiclabs/hardhat/plugins`.
 
 If your error originated in your user's code, like a test or script calling one of your functions, you shouldn't use `HardhatPluginError`.
 

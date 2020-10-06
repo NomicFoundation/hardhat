@@ -20,8 +20,7 @@ module.exports = {
       { text: "Buidler EVM", link: "/buidler-evm/" },
       { text: "Plugins", link: "/plugins/" },
       { text: "Documentation", link: "/getting-started/" },
-      { text: "Tutorial", link: "/tutorial/" },
-      { text: "API", link: "/api/" }
+      { text: "Tutorial", link: "/tutorial/" }
     ],
     lastUpdated: true,
     repo: "nomiclabs/buidler",
