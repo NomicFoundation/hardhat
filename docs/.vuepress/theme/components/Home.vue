@@ -15,7 +15,7 @@
       <div class="copy">
         <div class="text">
           <h2>
-            <span class="buidler">Buidler</span> is a task runner for Ethereum
+            <span class="hardhat">Hardhat</span> is a task runner for Ethereum
             smart contract developers.
           </h2>
           <p>

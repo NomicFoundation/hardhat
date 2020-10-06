@@ -3,8 +3,8 @@
     <template slot="page-top">
       <div class="content">
         <h1>Plugins</h1>
-        <p>Plugins are the backbone of Buidler. Buidler's plugins and built-in tasks are built using the same API that you use in your Buidler configuration!</p>
-        <p>Extend Buidler's functionality with the plugins below.</p>
+        <p>Plugins are the backbone of Hardhat. Hardhat's plugins and built-in tasks are built using the same API that you use in your Hardhat configuration!</p>
+        <p>Extend Hardhat's functionality with the plugins below.</p>
         <!-- Check out the [Using Plugins Guide]() to learn more.</p> -->
         <div class="plugins">
           <div class="plugin" v-for="plugin in plugins">
