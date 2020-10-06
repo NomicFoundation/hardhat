@@ -62,6 +62,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES,
   TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS,
+  TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT,
   TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END,
   TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START,
   TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE,
@@ -1067,6 +1068,23 @@ ${other.map((x) => `* ${x}`).join("\n")}
       }
     );
 
+  subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
+    .addParam("compilationJobs", undefined, undefined, types.any)
+    .addParam("quiet", undefined, undefined, types.boolean)
+    .setAction(
+      async ({
+        compilationJobs,
+        quiet,
+      }: {
+        compilationJobs: CompilationJob[];
+        quiet: boolean;
+      }) => {
+        if (compilationJobs.length > 0 && !quiet) {
+          console.log("Compilation finished successfully");
+        }
+      }
+    );
+
   /**
    * Main task for compiling the solidity files in the project.
    *
@@ -1168,6 +1186,11 @@ ${other.map((x) => `* ${x}`).join("\n")}
         await artifactsImpl.removeObsoleteBuildInfos();
 
         await solidityFilesCache.writeToFile(solidityFilesCachePath);
+
+        await run(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT, {
+          compilationJobs: mergedCompilationJobs,
+          quiet,
+        });
       }
     );
 
