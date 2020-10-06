@@ -1,4 +1,4 @@
-import { Transaction } from "ethereumjs-tx";
+import { FakeTransaction, FakeTxData, Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
@@ -10,6 +10,15 @@ import {
 
 export function createTestTransaction() {
   return new Transaction({ to: randomAddressBuffer() });
+}
+
+export function createTestFakeTransaction(data: FakeTxData = {}) {
+  return new FakeTransaction({
+    to: randomAddressBuffer(),
+    from: randomAddressBuffer(),
+    nonce: 1,
+    ...data,
+  });
 }
 
 export function createTestReceipt(
