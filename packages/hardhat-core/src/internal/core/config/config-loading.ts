@@ -3,6 +3,8 @@ import path from "path";
 
 import { HardhatArguments, ResolvedHardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
+import { HardhatError } from "../errors";
+import { ERRORS } from "../errors-list";
 import { loadPluginFile } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
@@ -46,7 +48,6 @@ export function loadConfigAndTasks(
 
   loadPluginFile(path.join(__dirname, "..", "tasks", "builtin-tasks"));
 
-  const defaultConfig = importCsjOrEsModule("./default-config");
   const userConfig = importCsjOrEsModule(configPath);
   validateConfig(userConfig);
 
@@ -64,12 +65,45 @@ Learn more about compiler configuration at https://usehardhat.com/configuration"
   // To avoid bad practices we remove the previously exported stuff
   Object.keys(configEnv).forEach((key) => (globalAsAny[key] = undefined));
 
-  const resolved = resolveConfig(
-    configPath,
-    defaultConfig,
-    userConfig,
-    HardhatContext.getHardhatContext().configExtenders
-  );
+  const frozenUserConfig = deepFreezeUserConfig(userConfig);
+
+  // Deep clone?
+  const resolved = resolveConfig(configPath, frozenUserConfig);
+
+  for (const extender of HardhatContext.getHardhatContext().configExtenders) {
+    extender(resolved, frozenUserConfig);
+  }
 
   return resolved;
+}
+
+function deepFreezeUserConfig(
+  config: any,
+  propertyPath: Array<string | number | symbol> = []
+) {
+  if (typeof config !== "object" || config === null) {
+    return config;
+  }
+
+  return new Proxy(config, {
+    get(target: any, property: string | number | symbol, receiver: any): any {
+      return deepFreezeUserConfig(Reflect.get(target, property, receiver), [
+        ...propertyPath,
+        property,
+      ]);
+    },
+
+    set(
+      target: any,
+      property: string | number | symbol,
+      value: any,
+      receiver: any
+    ): boolean {
+      throw new HardhatError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
+        path: [...propertyPath, property]
+          .map((pathPart) => pathPart.toString())
+          .join("."),
+      });
+    },
+  });
 }

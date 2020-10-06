@@ -5,13 +5,13 @@ import * as path from "path";
 
 import { BUILD_INFO_DIR_NAME } from "../../internal/constants";
 import { Reporter } from "../../internal/sentry/reporter";
-import { EIP1193Provider, ProjectPaths } from "../../types";
+import { EIP1193Provider, ResolvedProjectPaths } from "../../types";
 
 const log = debug("hardhat:core:compilation-watcher");
 
 export async function watchCompilerOutput(
   provider: EIP1193Provider,
-  paths: ProjectPaths
+  paths: ResolvedProjectPaths
 ) {
   const chokidar = await import("chokidar");
 

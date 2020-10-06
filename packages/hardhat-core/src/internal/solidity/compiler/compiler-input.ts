@@ -1,9 +1,4 @@
-import {
-  CompilationJob,
-  CompilerInput,
-  SolcOptimizerConfig,
-} from "../../../types";
-import { DependencyGraph } from "../dependencyGraph";
+import { CompilationJob, CompilerInput } from "../../../types";
 
 export function getInputFromCompilationJob(
   compilationJob: CompilationJob
@@ -21,20 +16,6 @@ export function getInputFromCompilationJob(
     language: "Solidity",
     sources,
     settings: {
-      metadata: {
-        useLiteralContent: true,
-      },
-      outputSelection: {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-          ],
-          "": ["id", "ast"],
-        },
-      },
       ...settings,
     },
   };

@@ -33,15 +33,19 @@ const solc066 = { version: "0.6.6", settings: defaultSettings };
 
 const solcConfig055 = {
   compilers: [solc055],
+  overrides: {},
 };
 const solcConfig055Optimized = {
   compilers: [solc055Optimized],
+  overrides: {},
 };
 const solcConfig055and066 = {
   compilers: [solc055, solc066],
+  overrides: {},
 };
 const solcConfig066 = {
   compilers: [solc066],
+  overrides: {},
 };
 
 function assertIsJob(

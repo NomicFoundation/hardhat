@@ -11,9 +11,9 @@ const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
 export function derivePrivateKeys(
   mnemonic: string,
-  hdpath: string = "m/44'/60'/0'/0/",
-  initialIndex: number = 0,
-  count: number = 10
+  hdpath: string,
+  initialIndex: number,
+  count: number
 ): Buffer[] {
   if (hdpath.match(HD_PATH_REGEX) === null) {
     throw new HardhatError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
@@ -45,7 +45,7 @@ export function derivePrivateKeys(
 }
 
 export function normalizeHardhatNetworkAccountsConfig(
-  accountsConfig: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig
+  accountsConfig: Required<HardhatNetworkHDAccountsConfig>
 ): HardhatNetworkAccount[] {
   if (Array.isArray(accountsConfig)) {
     return accountsConfig;

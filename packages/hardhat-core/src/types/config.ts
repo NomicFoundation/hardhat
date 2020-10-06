@@ -1,5 +1,30 @@
 import { DeepReadonly } from "ts-essentials";
 
+// Networks config
+
+export interface Networks {
+  hardhat?: HardhatNetworkConfig;
+  localhost?: LocalhostNetworkConfig;
+  [networkName: string]: NetworkConfig | undefined;
+}
+
+export type NetworkConfig =
+  | HardhatNetworkConfig
+  | LocalhostNetworkConfig
+  | HttpNetworkConfig;
+
+export interface HardhatNetworkConfig extends CommonNetworkConfig {
+  accounts?: HardhatNetworkConfigAccounts;
+  blockGasLimit?: number;
+  hardfork?: string;
+  throwOnTransactionFailures?: boolean;
+  throwOnCallFailures?: boolean;
+  allowUnlimitedContractSize?: boolean;
+  forking?: HardhatNetworkForkingConfig;
+  loggingEnabled?: boolean;
+  initialDate?: string;
+}
+
 export interface CommonNetworkConfig {
   chainId?: number;
   from?: string;
@@ -8,29 +33,18 @@ export interface CommonNetworkConfig {
   gasMultiplier?: number;
 }
 
+export type HardhatNetworkConfigAccounts =
+  | HardhatNetworkAccount[]
+  | HardhatNetworkHDAccountsConfig;
+
 export interface HardhatNetworkAccount {
   privateKey: string;
   balance: string;
 }
 
-export interface HardhatNetworkConfig extends CommonNetworkConfig {
-  accounts?: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig;
-  blockGasLimit?: number;
-  hardfork?: string;
-  throwOnTransactionFailures?: boolean;
-  throwOnCallFailures?: boolean;
-  loggingEnabled?: boolean;
-  allowUnlimitedContractSize?: boolean;
-  initialDate?: string;
-  forking?: {
-    enabled?: boolean;
-    url?: string;
-    blockNumber?: number;
-  };
-}
-
-export interface ResolvedHardhatNetworkConfig extends HardhatNetworkConfig {
-  accounts: HardhatNetworkAccount[];
+export interface HardhatNetworkHDAccountsConfig
+  extends Partial<HDAccountsConfig> {
+  accountsBalance?: string;
 }
 
 export interface HDAccountsConfig {
@@ -40,64 +54,90 @@ export interface HDAccountsConfig {
   path?: string;
 }
 
-export interface HardhatNetworkHDAccountsConfig extends HDAccountsConfig {
-  accountsBalance?: string;
+export interface HardhatNetworkForkingConfig {
+  enabled?: boolean;
+  url: string;
+  blockNumber?: number;
 }
 
-export interface OtherAccountsConfig {
-  type: string;
-}
-
-export type NetworkConfigAccounts =
-  | "remote"
-  | string[]
-  | HDAccountsConfig
-  | OtherAccountsConfig;
-
-export interface HttpNetworkConfig extends CommonNetworkConfig {
+export interface LocalhostNetworkConfig extends BaseHttpNetworkConfig {
   url?: string;
+}
+
+export interface BaseHttpNetworkConfig extends CommonNetworkConfig {
   timeout?: number;
   httpHeaders?: { [name: string]: string };
-  accounts?: NetworkConfigAccounts;
+  accounts?: HttpNetworkConfigAccounts;
 }
 
-export interface ResolvedHttpNetworkConfig extends HttpNetworkConfig {
+export type HttpNetworkConfigAccounts = "remote" | string[] | HDAccountsConfig;
+
+export interface HttpNetworkConfig extends BaseHttpNetworkConfig {
   url: string;
-}
-
-export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
-
-export type ResolvedNetworkConfig =
-  | ResolvedHardhatNetworkConfig
-  | ResolvedHttpNetworkConfig;
-
-export interface Networks {
-  hardhat: HardhatNetworkConfig;
-  [networkName: string]: NetworkConfig;
 }
 
 export interface ResolvedNetworks {
   hardhat: ResolvedHardhatNetworkConfig;
+  localhost: ResolvedLocalhostNetworkConfig;
   [networkName: string]: ResolvedNetworkConfig;
 }
 
-/**
- * The project paths:
- * * root: the project's root.
- * * configFile: the hardhat's config filepath.
- * * cache: project's cache directory.
- * * artifacts: artifact's directory.
- * * sources: project's sources directory.
- * * tests: project's tests directory.
- */
-export interface ProjectPaths {
-  root: string;
-  configFile: string;
-  cache: string;
-  artifacts: string;
-  sources: string;
-  tests: string;
+export type ResolvedNetworkConfig =
+  | ResolvedHardhatNetworkConfig
+  | ResolvedLocalhostNetworkConfig
+  | ResolvedHttpNetworkConfig;
+
+export interface ResolvedHardhatNetworkConfig
+  extends Omit<
+      Required<HardhatNetworkConfig>,
+      "from" | "initialDate" | "forking"
+    >,
+    Pick<HardhatNetworkConfig, "from" | "initialDate" | "forking"> {
+  accounts: ResolvedHardhatNetworkConfigAccounts;
+  forking?: ResolvedHardhatNetworkForkingConfig;
 }
+
+export type ResolvedHardhatNetworkConfigAccounts = HardhatNetworkAccount[];
+
+export interface ResolvedHardhatNetworkForkingConfig
+  extends HardhatNetworkForkingConfig {
+  enabled: boolean;
+}
+
+// tslint:disable-next-line:no-empty-interface
+export interface ResolvedLocalhostNetworkConfig
+  extends ResolvedHttpNetworkConfig {}
+
+export interface ResolvedHttpNetworkConfig
+  extends Omit<Required<HttpNetworkConfig>, "from" | "chainId">,
+    Pick<HttpNetworkConfig, "from" | "chainId"> {
+  accounts: ResolvedHttpNetworkConfigAccounts;
+}
+
+export type ResolvedHttpNetworkConfigAccounts =
+  | "remote"
+  | string[]
+  | ResolvedHDAccountsConfig;
+
+export interface ResolvedHDAccountsConfig extends Required<HDAccountsConfig> {}
+
+// Project paths config
+
+export interface ProjectPaths {
+  root?: string;
+  cache?: string;
+  artifacts?: string;
+  sources?: string;
+  tests?: string;
+}
+
+export interface ResolvedProjectPaths extends Required<ProjectPaths> {
+  configFile: string;
+}
+
+// Solidity config
+
+export type SolidityConfig = string | SolcConfig | MultiSolcConfig;
 
 export interface SolcConfig {
   version: string;
@@ -109,33 +149,30 @@ export interface MultiSolcConfig {
   overrides?: Record<string, SolcConfig>;
 }
 
-export type SolidityConfig = string | SolcConfig | MultiSolcConfig;
+export interface ResolvedSolcConfig extends Required<SolcConfig> {}
 
-export interface SolcOptimizerConfig {
-  enabled: boolean;
-  runs: number;
+export interface ResolvedSolidityConfig extends Required<MultiSolcConfig> {
+  compilers: ResolvedSolcConfig[];
+  overrides: Record<string, ResolvedSolcConfig>;
 }
 
-export interface AnalyticsConfig {
-  enabled: boolean;
-}
+// Hardhat config
 
 export interface HardhatConfig {
   defaultNetwork?: string;
+  paths?: ProjectPaths;
   networks?: Networks;
-  paths?: Omit<Partial<ProjectPaths>, "configFile">;
   solidity?: SolidityConfig;
   mocha?: Mocha.MochaOptions;
-  analytics?: Partial<AnalyticsConfig>;
 }
 
-export interface ResolvedHardhatConfig extends HardhatConfig {
-  defaultNetwork: string;
-  paths: ProjectPaths;
+export interface ResolvedHardhatConfig extends Required<HardhatConfig> {
+  paths: ResolvedProjectPaths;
   networks: ResolvedNetworks;
-  analytics: AnalyticsConfig;
-  solidity: MultiSolcConfig;
+  solidity: ResolvedSolidityConfig;
 }
+
+// Plugins config functionality
 
 export type ConfigExtender = (
   config: ResolvedHardhatConfig,

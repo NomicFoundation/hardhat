@@ -1,7 +1,7 @@
 import path from "path";
 
-import { ProjectPaths } from "../../../../types";
+import { ResolvedProjectPaths } from "../../../../types";
 
-export function getForkCacheDirPath(paths: ProjectPaths): string {
+export function getForkCacheDirPath(paths: ResolvedProjectPaths): string {
   return path.join(paths.cache, "hardhat-network-fork");
 }

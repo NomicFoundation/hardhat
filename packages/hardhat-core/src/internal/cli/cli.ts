@@ -105,13 +105,12 @@ async function main() {
       showWarningIfNoSolidityConfig,
     });
 
-    const analytics = await Analytics.getInstance(
-      config.paths.root,
-      config.analytics.enabled
-    );
+    // TODO-HH: Enabled/disable this depending on the opt-out feature
+    const analytics = await Analytics.getInstance(config.paths.root, true);
 
     Reporter.setConfigPath(config.paths.configFile);
-    Reporter.setEnabled(config.analytics.enabled);
+    // TODO-HH: Enabled/disable this depending on the opt-out feature
+    Reporter.setEnabled(true);
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();

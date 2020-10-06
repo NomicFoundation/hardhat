@@ -85,7 +85,6 @@
     "chokidar": "^3.4.0",
     "ci-info": "^2.0.0",
     "debug": "^4.1.1",
-    "deepmerge": "^4.2.2",
     "enquirer": "^2.3.0",
     "env-paths": "^2.2.0",
     "eth-sig-util": "^2.5.2",

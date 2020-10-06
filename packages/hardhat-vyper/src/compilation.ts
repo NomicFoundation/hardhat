@@ -10,7 +10,7 @@ import {
 } from "@nomiclabs/hardhat-docker";
 import fsExtra from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { Artifact, Artifacts, ProjectPaths } from "hardhat/types";
+import { Artifact, Artifacts, ResolvedProjectPaths } from "hardhat/types";
 import { localPathToSourceName } from "hardhat/utils/source-names";
 import path from "path";
 
@@ -25,7 +25,7 @@ const ARTIFACT_FORMAT_VERSION = "hh-vyper-artifact-1";
 
 export async function compile(
   vyperConfig: VyperConfig,
-  paths: ProjectPaths,
+  paths: ResolvedProjectPaths,
   artifacts: Artifacts
 ) {
   const vyperVersion = vyperConfig.version;
@@ -90,7 +90,7 @@ export async function compile(
 
 async function isAlreadyCompiled(
   sourceFile: string,
-  paths: ProjectPaths,
+  paths: ResolvedProjectPaths,
   vyperVersion: string,
   sources: string[]
 ) {
@@ -114,7 +114,7 @@ async function isAlreadyCompiled(
   return lastSourcesCtime < artifactCtime;
 }
 
-async function getVyperSources(paths: ProjectPaths) {
+async function getVyperSources(paths: ResolvedProjectPaths) {
   const glob = await import("glob");
   const vyFiles = glob.sync(path.join(paths.sources, "**", "*.vy"));
   const vpyFiles = glob.sync(path.join(paths.sources, "**", "*.v.py"));
@@ -152,7 +152,7 @@ function add0xPrefixIfNecessary(hex: string): string {
   return `0x${hex}`;
 }
 
-async function getLastVyperVersionUsed(paths: ProjectPaths) {
+async function getLastVyperVersionUsed(paths: ResolvedProjectPaths) {
   const filePath = path.join(paths.cache, LAST_VYPER_VERSION_USED_FILENAME);
   if (!(await fsExtra.pathExists(filePath))) {
     return undefined;
@@ -161,7 +161,10 @@ async function getLastVyperVersionUsed(paths: ProjectPaths) {
   return fsExtra.readFile(filePath, "utf8");
 }
 
-async function saveLastVyperVersionUsed(version: string, paths: ProjectPaths) {
+async function saveLastVyperVersionUsed(
+  version: string,
+  paths: ResolvedProjectPaths
+) {
   const filePath = path.join(paths.cache, LAST_VYPER_VERSION_USED_FILENAME);
   await fsExtra.ensureDir(path.dirname(filePath));
   return fsExtra.writeFile(filePath, version, "utf8");
@@ -259,7 +262,7 @@ async function compileWithDocker(
   filePath: string,
   docker: HardhatDocker,
   dockerImage: Image,
-  paths: ProjectPaths
+  paths: ResolvedProjectPaths
 ): Promise<ProcessResult> {
   const pathFromSources = path.relative(paths.sources, filePath);
 

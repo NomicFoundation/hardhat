@@ -1,11 +1,11 @@
 import fsExtra from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
-import { HardhatRuntimeEnvironment, ProjectPaths } from "hardhat/types";
+import { HardhatRuntimeEnvironment, ResolvedProjectPaths } from "hardhat/types";
 import path from "path";
 
 export const TRUFFLE_FIXTURE_NAME = "truffle-fixture";
 
-export async function hasTruffleFixture(paths: ProjectPaths) {
+export async function hasTruffleFixture(paths: ResolvedProjectPaths) {
   try {
     require.resolve(path.join(paths.tests, TRUFFLE_FIXTURE_NAME));
     return true;
@@ -14,7 +14,7 @@ export async function hasTruffleFixture(paths: ProjectPaths) {
   }
 }
 
-export async function hasMigrations(paths: ProjectPaths) {
+export async function hasMigrations(paths: ResolvedProjectPaths) {
   const migrationsDir = path.join(paths.root, "migrations");
 
   if (!(await fsExtra.pathExists(migrationsDir))) {
@@ -28,7 +28,7 @@ export async function hasMigrations(paths: ProjectPaths) {
 }
 
 export async function getTruffleFixtureFunction(
-  paths: ProjectPaths
+  paths: ResolvedProjectPaths
 ): Promise<(env: HardhatRuntimeEnvironment) => Promise<void>> {
   const fixturePath = require.resolve(
     path.join(paths.tests, TRUFFLE_FIXTURE_NAME)
