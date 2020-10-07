@@ -115,6 +115,7 @@
     "slash": "^3.0.0",
     "solc": "0.7.3",
     "source-map-support": "^0.5.13",
+    "stacktrace-parser": "^0.1.10",
     "true-case-path": "^2.2.1",
     "tsort": "0.0.1",
     "uuid": "^3.3.2",

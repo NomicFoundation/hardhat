@@ -1,11 +1,14 @@
 import chalk from "chalk";
+import findUp from "find-up";
+import fsExtra from "fs-extra";
 import path from "path";
+import * as stackTraceParser from "stacktrace-parser";
 
 import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
-import { loadPluginFile } from "../plugins";
+import { loadPluginFile, readPackageJson } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
 import { resolveConfig } from "./config-resolution";
@@ -48,7 +51,18 @@ export function loadConfigAndTasks(
 
   loadPluginFile(path.join(__dirname, "..", "tasks", "builtin-tasks"));
 
-  const userConfig = importCsjOrEsModule(configPath);
+  let userConfig;
+  try {
+    userConfig = importCsjOrEsModule(configPath);
+  } catch (e) {
+    if (e.code === "MODULE_NOT_FOUND") {
+      const stackTrace = stackTraceParser.parse(e.stack);
+      analyzeModuleNotFoundStackTrace(stackTrace, configPath);
+    }
+
+    // tslint:disable-next-line only-hardhat-error
+    throw e;
+  }
   validateConfig(userConfig);
 
   if (userConfig.solidity === undefined && showWarningIfNoSolidityConfig) {
@@ -106,4 +120,66 @@ function deepFreezeUserConfig(
       });
     },
   });
+}
+
+/**
+ * Receives a parsed stack trace of a MODULE_NOT_FOUND error and checks
+ * if the error comes from a missing peer dependency from a hardhat plugin.
+ *
+ * If that's the case, it throws an error. Otherwise it does nothing.
+ */
+export function analyzeModuleNotFoundStackTrace(
+  stackTrace: stackTraceParser.StackFrame[],
+  configPath: string
+) {
+  const throwingFile = stackTrace
+    .filter((x) => x.file !== null)
+    .map((x) => x.file!)
+    .find((x) => path.isAbsolute(x));
+
+  if (throwingFile === null || throwingFile === undefined) {
+    return;
+  }
+
+  // if the error comes from the config file, we ignore it because we know it's
+  // a direct import that's missing
+  if (throwingFile === configPath) {
+    return;
+  }
+
+  const packageJsonPath = findUp.sync("package.json", {
+    cwd: path.dirname(throwingFile),
+  });
+
+  if (packageJsonPath === null) {
+    return;
+  }
+
+  const packageJson = fsExtra.readJsonSync(packageJsonPath);
+  const peerDependencies: { [name: string]: string } =
+    packageJson.peerDependencies ?? {};
+
+  // if the problem doesn't come from a hardhat plugin, we ignore it
+  if (peerDependencies.hardhat === undefined) {
+    return;
+  }
+
+  const missingPeerDependencies: { [name: string]: string } = {};
+  for (const [peerDependency, version] of Object.entries(peerDependencies)) {
+    const peerDependencyPackageJson = readPackageJson(peerDependency);
+    if (peerDependencyPackageJson === undefined) {
+      missingPeerDependencies[peerDependency] = version;
+    }
+  }
+
+  const missingPeerDependenciesNames = Object.keys(missingPeerDependencies);
+  if (missingPeerDependenciesNames.length > 0) {
+    throw new HardhatError(ERRORS.PLUGINS.MISSING_DEPENDENCIES, {
+      plugin: packageJson.name,
+      missingDependencies: missingPeerDependenciesNames.join(", "),
+      missingDependenciesVersions: Object.entries(missingPeerDependencies)
+        .map(([name, version]) => `"${name}@${version}"`)
+        .join(" "),
+    });
+  }
 }

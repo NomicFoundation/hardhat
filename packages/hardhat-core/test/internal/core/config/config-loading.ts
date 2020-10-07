@@ -7,7 +7,10 @@ import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetHardhatContext } from "../../../../src/internal/reset";
 import { useEnvironment } from "../../../helpers/environment";
-import { expectHardhatError, expectHardhatErrorAsync } from "../../../helpers/errors";
+import {
+  expectHardhatError,
+  expectHardhatErrorAsync,
+} from "../../../helpers/errors";
 import {
   getFixtureProjectPath,
   useFixtureProject,
