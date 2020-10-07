@@ -1,17 +1,34 @@
+// This file defines the different config types.
+//
+// For each possible kind of config value, we have two type:
+//
+// One that starts with User, which represent the config as written in the
+// user config.
+//
+// The other one, with the same name except for the User prefix, represents
+// the resolved value as used during the hardhat execution.
+//
+// Note that while many declarations are repeated here (i.e. network types'
+// fields), we don't use `extends` as that can interfere with plugin authors
+// trying to augment the config types.
+
 // Networks config
 
 export interface UserNetworksConfig {
   hardhat?: UserHardhatNetworkConfig;
-  localhost?: UserLocalhostNetworkConfig;
   [networkName: string]: UserNetworkConfig | undefined;
 }
 
 export type UserNetworkConfig =
   | UserHardhatNetworkConfig
-  | UserLocalhostNetworkConfig
   | UserHttpNetworkConfig;
 
-export interface UserHardhatNetworkConfig extends CommonUserNetworkConfig {
+export interface UserHardhatNetworkConfig {
+  chainId?: number;
+  from?: string;
+  gas?: "auto" | number;
+  gasPrice?: "auto" | number;
+  gasMultiplier?: number;
   hardfork?: string;
   accounts?: UserHardhatNetworkAccountsConfig;
   blockGasLimit?: number;
@@ -23,14 +40,6 @@ export interface UserHardhatNetworkConfig extends CommonUserNetworkConfig {
   forking?: UserHardhatNetworkForkingConfig;
 }
 
-export interface CommonUserNetworkConfig {
-  chainId?: number;
-  from?: string;
-  gas?: "auto" | number;
-  gasPrice?: "auto" | number;
-  gasMultiplier?: number;
-}
-
 export type UserHardhatNetworkAccountsConfig =
   | UserHardhatNetworkAccountConfig[]
   | UserHardhatNetworkHDAccountsConfig;
@@ -40,8 +49,11 @@ export interface UserHardhatNetworkAccountConfig {
   balance: string;
 }
 
-export interface UserHardhatNetworkHDAccountsConfig
-  extends Partial<UserHDAccountsConfig> {
+export interface UserHardhatNetworkHDAccountsConfig {
+  mnemonic?: string;
+  initialIndex?: number;
+  count?: number;
+  path?: string;
   accountsBalance?: string;
 }
 
@@ -58,69 +70,85 @@ export interface UserHardhatNetworkForkingConfig {
   blockNumber?: number;
 }
 
-export interface UserLocalhostNetworkConfig extends BaseUserHttpNetworkConfig {
-  url?: string;
-}
-
-export interface BaseUserHttpNetworkConfig extends CommonUserNetworkConfig {
-  timeout?: number;
-  httpHeaders?: { [name: string]: string };
-  accounts?: UserHttpNetworkAccountsConfig;
-}
-
 export type UserHttpNetworkAccountsConfig =
   | "remote"
   | string[]
   | UserHDAccountsConfig;
 
-export interface UserHttpNetworkConfig extends BaseUserHttpNetworkConfig {
-  url: string;
+export interface UserHttpNetworkConfig {
+  chainId?: number;
+  from?: string;
+  gas?: "auto" | number;
+  gasPrice?: "auto" | number;
+  gasMultiplier?: number;
+  url?: string;
+  timeout?: number;
+  httpHeaders?: { [name: string]: string };
+  accounts?: UserHttpNetworkAccountsConfig;
 }
 
 export interface NetworksConfig {
   hardhat: HardhatNetworkConfig;
-  localhost: LocalhostNetworkConfig;
+  localhost: HttpNetworkConfig;
   [networkName: string]: NetworkConfig;
 }
 
-export type NetworkConfig =
-  | HardhatNetworkConfig
-  | LocalhostNetworkConfig
-  | HttpNetworkConfig;
+export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
 
-export interface HardhatNetworkConfig
-  extends Omit<
-      Required<UserHardhatNetworkConfig>,
-      "from" | "initialDate" | "forking"
-    >,
-    Pick<UserHardhatNetworkConfig, "from" | "initialDate" | "forking"> {
+export interface HardhatNetworkConfig {
+  chainId: number;
+  from?: string;
+  gas: "auto" | number;
+  gasPrice: "auto" | number;
+  gasMultiplier: number;
+  hardfork: string;
   accounts: HardhatNetworkAccountsConfig;
+  blockGasLimit: number;
+  throwOnTransactionFailures: boolean;
+  throwOnCallFailures: boolean;
+  allowUnlimitedContractSize: boolean;
+  initialDate?: string;
+  loggingEnabled: boolean;
   forking?: HardhatNetworkForkingConfig;
 }
 
 export type HardhatNetworkAccountsConfig = HardhatNetworkAccountConfig[];
 
 // tslint:disable-next-line:no-empty-interface
-export interface HardhatNetworkAccountConfig
-  extends UserHardhatNetworkAccountConfig {}
-
-export interface HardhatNetworkForkingConfig
-  extends UserHardhatNetworkForkingConfig {
-  enabled: boolean;
+export interface HardhatNetworkAccountConfig {
+  privateKey: string;
+  balance: string;
 }
 
-// tslint:disable-next-line:no-empty-interface
-export interface LocalhostNetworkConfig extends HttpNetworkConfig {}
+export interface HardhatNetworkForkingConfig {
+  enabled: boolean;
+  url: string;
+  blockNumber?: number;
+}
 
-export interface HttpNetworkConfig
-  extends Omit<Required<UserHttpNetworkConfig>, "from" | "chainId">,
-    Pick<UserHttpNetworkConfig, "from" | "chainId"> {
+export interface HttpNetworkConfig {
+  chainId?: number;
+  from?: string;
+  gas: "auto" | number;
+  gasPrice: "auto" | number;
+  gasMultiplier: number;
+  url: string;
+  timeout: number;
+  httpHeaders: { [name: string]: string };
   accounts: HttpNetworkAccountsConfig;
 }
 
-export type HttpNetworkAccountsConfig = "remote" | string[] | HDAccountsConfig;
+export type HttpNetworkAccountsConfig =
+  | "remote"
+  | string[]
+  | HttpNetworkHDAccountsConfig;
 
-export interface HDAccountsConfig extends Required<UserHDAccountsConfig> {}
+export interface HttpNetworkHDAccountsConfig {
+  mnemonic: string;
+  initialIndex: number;
+  count: number;
+  path: string;
+}
 
 // Project paths config
 
@@ -132,8 +160,13 @@ export interface UserProjectPaths {
   tests?: string;
 }
 
-export interface ProjectPaths extends Required<UserProjectPaths> {
+export interface ProjectPaths {
+  root: string;
   configFile: string;
+  cache: string;
+  artifacts: string;
+  sources: string;
+  tests: string;
 }
 
 // Solidity config
@@ -150,9 +183,12 @@ export interface UserMultiSolcConfig {
   overrides?: Record<string, UserSolcConfig>;
 }
 
-export interface SolcConfig extends Required<UserSolcConfig> {}
+export interface SolcConfig {
+  version: string;
+  settings: any;
+}
 
-export interface SolidityConfig extends Required<UserMultiSolcConfig> {
+export interface SolidityConfig {
   compilers: SolcConfig[];
   overrides: Record<string, SolcConfig>;
 }
@@ -167,10 +203,12 @@ export interface UserHardhatConfig {
   mocha?: Mocha.MochaOptions;
 }
 
-export interface HardhatConfig extends Required<UserHardhatConfig> {
+export interface HardhatConfig {
+  defaultNetwork: string;
   paths: ProjectPaths;
   networks: NetworksConfig;
   solidity: SolidityConfig;
+  mocha: Mocha.MochaOptions;
 }
 
 // Plugins config functionality

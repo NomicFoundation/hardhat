@@ -26,6 +26,7 @@ import {
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { fromEntries } from "../../util/lang";
+import { assertHardhatInvariant } from "../errors";
 import { normalizeHardhatNetworkAccountsConfig } from "../providers/util";
 
 import {
@@ -73,7 +74,7 @@ function resolveNetworksConfig(userConfig: UserHardhatConfig): NetworksConfig {
 
   const localhostNetworkConfig =
     userConfig.networks !== undefined
-      ? userConfig.networks.localhost
+      ? (userConfig.networks.localhost as UserHttpNetworkConfig)
       : undefined;
 
   const hardhat = resolveHardhatNetworkConfig(hardhatNetworkConfig);
@@ -198,10 +199,18 @@ function resolveHttpNetworkConfig(
       ? networkConfig.accounts.map(normalizeHexString)
       : "remote";
 
+  const url = networkConfig.url;
+
+  assertHardhatInvariant(
+    url !== undefined,
+    "Invalid http network config provided. URL missing."
+  );
+
   return {
     ...cloneDeep(defaultHttpNetworkParams),
     ...networkConfig,
     accounts,
+    url,
   };
 }
 

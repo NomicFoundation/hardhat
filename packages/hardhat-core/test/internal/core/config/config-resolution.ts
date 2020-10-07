@@ -16,8 +16,8 @@ import {
 import {
   HardhatConfig,
   HardhatNetworkConfig,
-  HDAccountsConfig,
   HttpNetworkConfig,
+  HttpNetworkHDAccountsConfig,
   UserHardhatNetworkConfig,
   UserHttpNetworkConfig,
 } from "../../../../src/types";
@@ -537,7 +537,7 @@ describe("Config resolution", () => {
 
           const httpNetConfig = config.networks.other as HttpNetworkConfig;
 
-          const accounts = httpNetConfig.accounts as HDAccountsConfig;
+          const accounts = httpNetConfig.accounts as HttpNetworkHDAccountsConfig;
           assert.deepEqual(accounts, {
             mnemonic: "mmmmm",
             ...defaultHdAccountsConfigParams,
