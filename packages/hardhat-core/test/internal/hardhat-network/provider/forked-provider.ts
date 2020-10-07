@@ -116,7 +116,7 @@ describe("Forked provider", () => {
           describe("when the block number is less or equal to the fork block number", () => {
             it("does not affect previously added storage data", async function () {
               const forkBlockNumber = await getForkBlockNumber();
-              await this.provider.send("hardhat_impersonate", [
+              await this.provider.send("hardhat_impersonateAccount", [
                 bufferToHex(BITFINEX_WALLET_ADDRESS),
               ]);
 
@@ -158,7 +158,7 @@ describe("Forked provider", () => {
 
             it("does not affect previously added balance data", async function () {
               const forkBlockNumber = await getForkBlockNumber();
-              await this.provider.send("hardhat_impersonate", [
+              await this.provider.send("hardhat_impersonateAccount", [
                 bufferToHex(BITFINEX_WALLET_ADDRESS),
               ]);
 
@@ -375,13 +375,13 @@ describe("Forked provider", () => {
         });
       });
 
-      describe("hardhat_impersonate", () => {
+      describe("hardhat_impersonateAccount", () => {
         const oneEtherQuantity = numberToRpcQuantity(
           new BN(10).pow(new BN(18))
         );
 
         it("allows to impersonate a remote EOA", async function () {
-          await this.provider.send("hardhat_impersonate", [
+          await this.provider.send("hardhat_impersonateAccount", [
             bufferToHex(BITFINEX_WALLET_ADDRESS),
           ]);
 
@@ -412,7 +412,9 @@ describe("Forked provider", () => {
           const daiExchangeAddress = hexStripZeros(result);
 
           // Impersonate the DAI exchange contract
-          await this.provider.send("hardhat_impersonate", [daiExchangeAddress]);
+          await this.provider.send("hardhat_impersonateAccount", [
+            daiExchangeAddress,
+          ]);
 
           // Transfer 10^18 DAI from the exchange contract to the EMPTY_ACCOUNT_ADDRESS
           const transferRawData = `0xa9059cbb${leftPad32(
@@ -442,12 +444,12 @@ describe("Forked provider", () => {
         });
       });
 
-      describe("hardhat_stopImpersonating", () => {
+      describe("hardhat_stopImpersonatingAccount", () => {
         it("disables account impersonating", async function () {
-          await this.provider.send("hardhat_impersonate", [
+          await this.provider.send("hardhat_impersonateAccount", [
             bufferToHex(BITFINEX_WALLET_ADDRESS),
           ]);
-          await this.provider.send("hardhat_stopImpersonating", [
+          await this.provider.send("hardhat_stopImpersonatingAccount", [
             bufferToHex(BITFINEX_WALLET_ADDRESS),
           ]);
 

@@ -3,10 +3,11 @@ import * as t from "io-ts";
 import { CompilerInput, CompilerOutput } from "../../../../types";
 import { MethodNotFoundError } from "../errors";
 import {
+  optionalRpcHardhatNetworkConfig,
   rpcAddress,
   rpcCompilerInput,
   rpcCompilerOutput,
-  rpcForkConfig,
+  RpcHardhatNetworkConfig,
   validateParams,
 } from "../input";
 import { HardhatNode } from "../node";
@@ -35,10 +36,10 @@ export class HardhatModule {
           ...this._addCompilationResultParams(params)
         );
 
-      case "hardhat_impersonate":
+      case "hardhat_impersonateAccount":
         return this._impersonateAction(...this._impersonateParams(params));
 
-      case "hardhat_stopImpersonating":
+      case "hardhat_stopImpersonatingAccount":
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
         );
@@ -85,7 +86,7 @@ export class HardhatModule {
     );
   }
 
-  // hardhat_impersonate
+  // hardhat_impersonateAccount
 
   private _impersonateParams(params: any[]): [Buffer] {
     return validateParams(params, rpcAddress);
@@ -95,7 +96,7 @@ export class HardhatModule {
     return this._node.addImpersonatedAccount(address);
   }
 
-  // hardhat_stopImpersonating
+  // hardhat_stopImpersonatingAccount
 
   private _stopImpersonatingParams(params: any[]): [Buffer] {
     return validateParams(params, rpcAddress);
@@ -107,12 +108,14 @@ export class HardhatModule {
 
   // hardhat_reset
 
-  private _resetParams(params: any[]): [ForkConfig | undefined] {
-    return validateParams(params, rpcForkConfig);
+  private _resetParams(params: any[]): [RpcHardhatNetworkConfig | undefined] {
+    return validateParams(params, optionalRpcHardhatNetworkConfig);
   }
 
-  private async _resetAction(forkConfig?: ForkConfig): Promise<true> {
-    await this._resetCallback(forkConfig);
+  private async _resetAction(
+    networkConfig?: RpcHardhatNetworkConfig
+  ): Promise<true> {
+    await this._resetCallback(networkConfig?.forking);
     return true;
   }
 }
