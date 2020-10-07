@@ -1,0 +1,1 @@
+require("invalid-import");

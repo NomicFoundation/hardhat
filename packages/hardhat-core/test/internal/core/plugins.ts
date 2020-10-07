@@ -132,27 +132,6 @@ describe("plugin system", function () {
       assert.isTrue(globalAsAny.loaded);
     });
 
-    it("Should fail if a peer dependency is missing", function () {
-      expectHardhatError(
-        () => usePlugin(ctx, "requires-missing-pack", projectPath),
-        ERRORS.PLUGINS.MISSING_DEPENDENCY
-      );
-    });
-
-    it("Should fail if a peer dependency has an incompatible version", function () {
-      expectHardhatError(
-        () => usePlugin(ctx, "requires-other-version-pack1", projectPath),
-        ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH
-      );
-    });
-
-    it("Should fail if the plugin isn't installed", function () {
-      expectHardhatError(
-        () => usePlugin(ctx, "not-installed", projectPath),
-        ERRORS.PLUGINS.NOT_INSTALLED
-      );
-    });
-
     it("Should fail if it's a buidler plugin", function () {
       expectHardhatError(
         () => usePlugin(ctx, "buidler-plugin", projectPath),
