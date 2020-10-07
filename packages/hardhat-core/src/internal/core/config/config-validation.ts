@@ -6,6 +6,7 @@ import {
   HARDHAT_NETWORK_NAME,
   HARDHAT_NETWORK_SUPPORTED_HARDFORKS,
 } from "../../constants";
+import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
@@ -73,68 +74,96 @@ function optional<TypeT, OutputT>(
   );
 }
 
+const HEX_STRING_REGEX = /^(0x)?([0-9a-f]{2})+$/gi;
+
+const HEX_PREFIX = "0x";
+
+function isHexString(v: unknown): v is string {
+  if (typeof v !== "string") {
+    return false;
+  }
+
+  return v.trim().match(HEX_STRING_REGEX) !== null;
+}
+
+export const hexString = new t.Type<string>(
+  "hex string",
+  isHexString,
+  (u, c) => (isHexString(u) ? t.success(u) : t.failure(u, c)),
+  t.identity
+);
+
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
 const HardhatNetworkAccount = t.type({
-  privateKey: t.string,
+  privateKey: hexString,
   balance: t.string,
 });
 
-const HDAccountsConfig = t.type({
-  mnemonic: t.string,
+const commonHDAccountsFields = {
   initialIndex: optional(t.number),
   count: optional(t.number),
   path: optional(t.string),
-});
+};
 
 const HardhatNetworkHDAccountsConfig = t.type({
-  mnemonic: t.string,
-  initialIndex: optional(t.number),
-  count: optional(t.number),
-  path: optional(t.string),
+  mnemonic: optional(t.string),
   accountsBalance: optional(t.string),
+  ...commonHDAccountsFields,
 });
 
-const HardhatNetworkConfig = t.type({
-  hardfork: optional(t.string),
+const HardhatNetworkForkingConfig = t.type({
+  enabled: optional(t.boolean),
+  url: t.string,
+  blockNumber: optional(t.number),
+});
+
+const commonNetworkConfigFields = {
   chainId: optional(t.number),
   from: optional(t.string),
   gas: optional(t.union([t.literal("auto"), t.number])),
   gasPrice: optional(t.union([t.literal("auto"), t.number])),
   gasMultiplier: optional(t.number),
+};
+
+const HardhatNetworkConfig = t.type({
+  ...commonNetworkConfigFields,
+  hardfork: optional(
+    t.keyof(
+      fromEntries(HARDHAT_NETWORK_SUPPORTED_HARDFORKS.map((hf) => [hf, null]))
+    )
+  ),
   accounts: optional(
     t.union([t.array(HardhatNetworkAccount), HardhatNetworkHDAccountsConfig])
   ),
   blockGasLimit: optional(t.number),
   throwOnTransactionFailures: optional(t.boolean),
   throwOnCallFailures: optional(t.boolean),
-  loggingEnabled: optional(t.boolean),
   allowUnlimitedContractSize: optional(t.boolean),
   initialDate: optional(t.string),
+  loggingEnabled: optional(t.boolean),
+  forking: optional(HardhatNetworkForkingConfig),
 });
 
-const OtherAccountsConfig = t.type({
-  type: t.string,
+const HDAccountsConfig = t.type({
+  mnemonic: t.string,
+  ...commonHDAccountsFields,
 });
 
 const NetworkConfigAccounts = t.union([
   t.literal("remote"),
-  t.array(t.string),
+  t.array(hexString),
   HDAccountsConfig,
-  OtherAccountsConfig,
 ]);
 
 const HttpHeaders = t.record(t.string, t.string, "httpHeaders");
 
 const HttpNetworkConfig = t.type({
-  chainId: optional(t.number),
-  from: optional(t.string),
-  gas: optional(t.union([t.literal("auto"), t.number])),
-  gasPrice: optional(t.union([t.literal("auto"), t.number])),
-  gasMultiplier: optional(t.number),
+  ...commonNetworkConfigFields,
   url: optional(t.string),
   accounts: optional(NetworkConfigAccounts),
   httpHeaders: optional(HttpHeaders),
+  timeout: optional(t.number),
 });
 
 const NetworkConfig = t.union([HardhatNetworkConfig, HttpNetworkConfig]);
@@ -161,17 +190,12 @@ const MultiSolcConfig = t.type({
 
 const SolidityConfig = t.union([t.string, SingleSolcConfig, MultiSolcConfig]);
 
-const AnalyticsConfig = t.type({
-  enabled: optional(t.boolean),
-});
-
 const HardhatConfig = t.type(
   {
     defaultNetwork: optional(t.string),
     networks: optional(Networks),
     paths: optional(ProjectPaths),
     solidity: optional(SolidityConfig),
-    analytics: optional(AnalyticsConfig),
   },
   "HardhatConfig"
 );
@@ -200,110 +224,23 @@ export function getValidationErrors(config: any): string[] {
   if (config !== undefined && typeof config.networks === "object") {
     const hardhatNetwork = config.networks[HARDHAT_NETWORK_NAME];
     if (hardhatNetwork !== undefined) {
-      if (
-        hardhatNetwork.hardfork !== undefined &&
-        !HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardhatNetwork.hardfork)
-      ) {
-        errors.push(
-          `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.hardfork is not supported. Use one of ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
-            ", "
-          )}`
-        );
-      }
-
-      if (
-        hardhatNetwork.allowUnlimitedContractSize !== undefined &&
-        typeof hardhatNetwork.allowUnlimitedContractSize !== "boolean"
-      ) {
-        errors.push(
-          getErrorMessage(
-            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.allowUnlimitedContractSize`,
-            hardhatNetwork.allowUnlimitedContractSize,
-            "boolean | undefined"
-          )
-        );
-      }
-
-      if (
-        hardhatNetwork.initialDate !== undefined &&
-        typeof hardhatNetwork.initialDate !== "string"
-      ) {
-        errors.push(
-          getErrorMessage(
-            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.initialDate`,
-            hardhatNetwork.initialDate,
-            "string | undefined"
-          )
-        );
-      }
-
-      if (
-        hardhatNetwork.throwOnTransactionFailures !== undefined &&
-        typeof hardhatNetwork.throwOnTransactionFailures !== "boolean"
-      ) {
-        errors.push(
-          getErrorMessage(
-            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.throwOnTransactionFailures`,
-            hardhatNetwork.throwOnTransactionFailures,
-            "boolean | undefined"
-          )
-        );
-      }
-
-      if (
-        hardhatNetwork.throwOnCallFailures !== undefined &&
-        typeof hardhatNetwork.throwOnCallFailures !== "boolean"
-      ) {
-        errors.push(
-          getErrorMessage(
-            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.throwOnCallFailures`,
-            hardhatNetwork.throwOnCallFailures,
-            "boolean | undefined"
-          )
-        );
-      }
-
       if (hardhatNetwork.url !== undefined) {
         errors.push(
           `HardhatConfig.networks.${HARDHAT_NETWORK_NAME} can't have an url`
         );
       }
 
-      if (
-        hardhatNetwork.blockGasLimit !== undefined &&
-        typeof hardhatNetwork.blockGasLimit !== "number"
-      ) {
-        errors.push(
-          getErrorMessage(
-            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.blockGasLimit`,
-            hardhatNetwork.blockGasLimit,
-            "number | undefined"
-          )
-        );
-      }
+      // Validating the accounts with io-ts leads to very confusing errors messages
+      const configExceptAccounts = { ...hardhatNetwork };
+      delete configExceptAccounts.accounts;
 
-      if (
-        hardhatNetwork.chainId !== undefined &&
-        typeof hardhatNetwork.chainId !== "number"
-      ) {
+      const netConfigResult = HardhatNetworkConfig.decode(configExceptAccounts);
+      if (netConfigResult.isLeft()) {
         errors.push(
           getErrorMessage(
-            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chainId`,
-            hardhatNetwork.chainId,
-            "number | undefined"
-          )
-        );
-      }
-
-      if (
-        hardhatNetwork.loggingEnabled !== undefined &&
-        typeof hardhatNetwork.loggingEnabled !== "boolean"
-      ) {
-        errors.push(
-          getErrorMessage(
-            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.loggingEnabled`,
-            hardhatNetwork.loggingEnabled,
-            "boolean | undefined"
+            `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}`,
+            hardhatNetwork,
+            "HardhatNetworkConfig"
           )
         );
       }
@@ -361,18 +298,16 @@ export function getValidationErrors(config: any): string[] {
         continue;
       }
 
-      if (networkName === "localhost" && netConfig.url === undefined) {
-        continue;
-      }
-
-      if (typeof netConfig.url !== "string") {
-        errors.push(
-          getErrorMessage(
-            `HardhatConfig.networks.${networkName}.url`,
-            netConfig.url,
-            "string"
-          )
-        );
+      if (networkName !== "localhost" || netConfig.url !== undefined) {
+        if (typeof netConfig.url !== "string") {
+          errors.push(
+            getErrorMessage(
+              `HardhatConfig.networks.${networkName}.url`,
+              netConfig.url,
+              "string"
+            )
+          );
+        }
       }
 
       const netConfigResult = HttpNetworkConfig.decode(netConfig);

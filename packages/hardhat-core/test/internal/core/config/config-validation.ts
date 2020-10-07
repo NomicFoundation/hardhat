@@ -498,6 +498,67 @@ describe("Config validation", function () {
               }),
             ERRORS.GENERAL.INVALID_CONFIG
           );
+
+          // Invalid forking settings
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    forking: 123,
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    forking: {},
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    forking: { url: 123 },
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    forking: { url: "asd", blockNumber: "asd" },
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    forking: { url: "asd", blockNumber: 123, enabled: 123 },
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
         });
 
         describe("HardhatNetworkHDAccounstConfig", function () {
@@ -526,6 +587,14 @@ describe("Config validation", function () {
               networks: {
                 [HARDHAT_NETWORK_NAME]: {
                   accounts: hdConfig,
+                },
+              },
+            });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  accounts: {},
                 },
               },
             });
@@ -898,6 +967,19 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     asd: {
+                      url: "",
+                      timeout: "asd",
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    asd: {
                       chainId: "",
                       url: "",
                     },
@@ -1003,7 +1085,11 @@ describe("Config validation", function () {
             gas: 678,
             gasPrice: 123,
             blockGasLimit: 8000,
-            accounts: [{ privateKey: "asd", balance: "123" }],
+            accounts: [{ privateKey: "0xaaaa", balance: "123" }],
+            forking: {
+              url: "asd",
+              blockNumber: 123,
+            },
           },
           localhost: {
             gas: 678,
@@ -1015,7 +1101,7 @@ describe("Config validation", function () {
             url: "",
           },
           withPrivateKeys: {
-            accounts: ["0x0", "0x1"],
+            accounts: ["0x00", "0x11"],
             url: "",
           },
           withHdKeys: {
@@ -1024,13 +1110,6 @@ describe("Config validation", function () {
               initialIndex: 0,
               count: 123,
               path: "m/123",
-            },
-            url: "",
-          },
-          withOtherTypeOfAccounts: {
-            accounts: {
-              type: "ledger",
-              asd: 12,
             },
             url: "",
           },
