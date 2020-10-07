@@ -6,4 +6,8 @@ declare module "hardhat/types/config" {
   interface UserHardhatConfig {
     solpp?: Partial<SolppConfig>;
   }
+
+  interface HardhatConfig {
+    solpp: SolppConfig;
+  }
 }
