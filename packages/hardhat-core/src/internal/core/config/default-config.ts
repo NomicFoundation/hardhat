@@ -1,4 +1,4 @@
-import { HardhatNetworkAccount } from "../../../types";
+import { HardhatNetworkAccountConfig } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.5.15";
@@ -31,7 +31,7 @@ export const defaultHardhatNetworkHdAccountsConfigParams = {
 // using the derivation paths m/44'/60'/0'/0/0, m/44'/60'/0'/0/1, ...
 //
 // Each of them has an initial balance of DEFAULT_HARDHAT_NETWORK_BALANCE wei
-const defaultHardhatNetworkAccounts: HardhatNetworkAccount[] = [
+const defaultHardhatNetworkAccounts: HardhatNetworkAccountConfig[] = [
   {
     privateKey:
       "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",

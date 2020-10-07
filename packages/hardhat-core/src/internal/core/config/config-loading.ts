@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import path from "path";
 
-import { HardhatArguments, ResolvedHardhatConfig } from "../../../types";
+import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -20,7 +20,7 @@ function importCsjOrEsModule(filePath: string): any {
 export function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
   { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: true }
-): ResolvedHardhatConfig {
+): HardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 

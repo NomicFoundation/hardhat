@@ -4,7 +4,7 @@ import { LoDashStatic } from "lodash";
 import * as path from "path";
 
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
-import type { ResolvedProjectPaths, ResolvedSolcConfig } from "../../types";
+import type { ProjectPaths, SolcConfig } from "../../types";
 
 const FORMAT_VERSION = "hh-sol-cache-1";
 
@@ -25,7 +25,7 @@ const CacheCodec = t.type({
 export interface CacheEntry {
   lastModificationDate: number;
   sourceName: string;
-  solcConfig: ResolvedSolcConfig;
+  solcConfig: SolcConfig;
   imports: string[];
   versionPragmas: string[];
   artifacts: string[];
@@ -104,7 +104,7 @@ export class SolidityFilesCache {
   public hasFileChanged(
     absolutePath: string,
     lastModificationDate: Date,
-    solcConfig?: ResolvedSolcConfig
+    solcConfig?: SolcConfig
   ): boolean {
     const { isEqual }: LoDashStatic = require("lodash");
 
@@ -130,6 +130,6 @@ export class SolidityFilesCache {
   }
 }
 
-export function getSolidityFilesCachePath(paths: ResolvedProjectPaths): string {
+export function getSolidityFilesCachePath(paths: ProjectPaths): string {
   return path.join(paths.cache, SOLIDITY_FILES_CACHE_FILENAME);
 }

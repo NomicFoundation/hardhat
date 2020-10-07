@@ -6,7 +6,7 @@ import {
   validateConfig,
 } from "../../../../src/internal/core/config/config-validation";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import { HardhatNetworkHDAccountsConfig } from "../../../../src/types";
+import { UserHardhatNetworkHDAccountsConfig } from "../../../../src/types";
 import { expectHardhatError } from "../../../helpers/errors";
 
 describe("Config validation", function () {
@@ -563,7 +563,7 @@ describe("Config validation", function () {
 
         describe("HardhatNetworkHDAccounstConfig", function () {
           it("Should accept a valid HD config", function () {
-            let hdConfig: HardhatNetworkHDAccountsConfig = {
+            let hdConfig: UserHardhatNetworkHDAccountsConfig = {
               mnemonic: "asd",
             };
 

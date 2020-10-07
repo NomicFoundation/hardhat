@@ -1,4 +1,4 @@
-import { ResolvedSolcConfig } from "../config";
+import { SolcConfig } from "../config";
 
 /**
  * A Solidity file.
@@ -42,7 +42,7 @@ export interface CompilationJob {
   hasSolc9573Bug(): boolean;
   merge(other: CompilationJob): CompilationJob;
   getResolvedFiles(): ResolvedFile[];
-  getSolcConfig(): ResolvedSolcConfig;
+  getSolcConfig(): SolcConfig;
 }
 
 /**

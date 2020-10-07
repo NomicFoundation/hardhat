@@ -2,10 +2,7 @@ import chalk from "chalk";
 import fsExtra from "fs-extra";
 import path from "path";
 
-import {
-  ResolvedHttpNetworkConfig,
-  ResolvedNetworkConfig,
-} from "../../../../types";
+import { HttpNetworkConfig, NetworkConfig } from "../../../../types";
 
 function getAlreadyShownFilePath(forkCachePath: string) {
   return path.join(forkCachePath, "recommendations-already-shown.json");
@@ -23,7 +20,7 @@ blockNumber to a fixed value to increase performance with a local cache.`
 }
 
 export async function showForkRecommendationsBannerIfNecessary(
-  currentNetworkConfig: ResolvedNetworkConfig,
+  currentNetworkConfig: NetworkConfig,
   forkCachePath: string
 ) {
   if (!("forking" in currentNetworkConfig)) {

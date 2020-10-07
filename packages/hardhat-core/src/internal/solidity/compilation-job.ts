@@ -2,7 +2,7 @@ import debug from "debug";
 import type { LoDashStatic } from "lodash";
 import semver from "semver";
 
-import { ResolvedSolcConfig, ResolvedSolidityConfig } from "../../types";
+import { SolcConfig, SolidityConfig } from "../../types";
 import * as taskTypes from "../../types/builtin-tasks";
 import {
   CompilationJobCreationError,
@@ -30,7 +30,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
     { file: ResolvedFile; emitsArtifacts: boolean }
   > = new Map();
 
-  constructor(public solidityConfig: ResolvedSolcConfig) {}
+  constructor(public solidityConfig: SolcConfig) {}
 
   public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
     const fileToCompile = this._filesToCompile.get(file.sourceName);
@@ -66,7 +66,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
     return mergedJobs;
   }
 
-  public getSolcConfig(): ResolvedSolcConfig {
+  public getSolcConfig(): SolcConfig {
     return this.solidityConfig;
   }
 
@@ -101,10 +101,7 @@ function mergeCompilationJobs(
 ): taskTypes.CompilationJob[] {
   const { flatten }: LoDashStatic = require("lodash");
 
-  const jobsMap: Map<
-    ResolvedSolcConfig,
-    taskTypes.CompilationJob[]
-  > = new Map();
+  const jobsMap: Map<SolcConfig, taskTypes.CompilationJob[]> = new Map();
 
   for (const job of jobs) {
     const mergedJobs = jobsMap.get(job.getSolcConfig());
@@ -170,7 +167,7 @@ export async function createCompilationJobsFromConnectedComponent(
 export async function createCompilationJobFromFile(
   dependencyGraph: taskTypes.DependencyGraph,
   file: ResolvedFile,
-  solidityConfig: ResolvedSolidityConfig
+  solidityConfig: SolidityConfig
 ): Promise<CompilationJob | CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
@@ -231,8 +228,8 @@ function getCompilerConfigForFile(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
   transitiveDependencies: ResolvedFile[],
-  solidityConfig: ResolvedSolidityConfig
-): ResolvedSolcConfig | CompilationJobCreationError {
+  solidityConfig: SolidityConfig
+): SolcConfig | CompilationJobCreationError {
   const { uniq }: LoDashStatic = require("lodash");
 
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(

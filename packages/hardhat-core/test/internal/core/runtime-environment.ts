@@ -14,9 +14,9 @@ import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
 import { resetHardhatContext } from "../../../src/internal/reset";
 import {
   HardhatArguments,
+  HardhatConfig,
   HardhatRuntimeEnvironment,
   ParamDefinition,
-  ResolvedHardhatConfig,
   TasksMap,
 } from "../../../src/types";
 import {
@@ -26,7 +26,7 @@ import {
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
-  const config: ResolvedHardhatConfig = {
+  const config: HardhatConfig = {
     defaultNetwork: "default",
     networks: {
       localhost: {

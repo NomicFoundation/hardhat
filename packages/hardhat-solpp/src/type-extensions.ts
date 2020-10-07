@@ -3,7 +3,7 @@ import "hardhat/types/config";
 import { SolppConfig } from "./types";
 
 declare module "hardhat/types/config" {
-  interface HardhatConfig {
+  interface UserHardhatConfig {
     solpp?: Partial<SolppConfig>;
   }
 }

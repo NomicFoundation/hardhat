@@ -3,11 +3,11 @@ import "hardhat/types/config";
 import { EtherscanConfig } from "./types";
 
 declare module "hardhat/types/config" {
-  interface HardhatConfig {
+  interface UserHardhatConfig {
     etherscan?: EtherscanConfig;
   }
 
-  interface ResolvedHardhatConfig {
+  interface HardhatConfig {
     etherscan: EtherscanConfig;
   }
 }

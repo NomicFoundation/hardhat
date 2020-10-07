@@ -4,25 +4,25 @@ import path from "path";
 
 import {
   HardhatConfig,
-  HardhatNetworkAccount,
+  HardhatNetworkAccountConfig,
   HardhatNetworkConfig,
-  HDAccountsConfig,
+  HardhatNetworkForkingConfig,
+  HttpNetworkAccountsConfig,
   HttpNetworkConfig,
-  HttpNetworkConfigAccounts,
-  MultiSolcConfig,
-  NetworkConfig,
+  NetworksConfig,
   ProjectPaths,
-  ResolvedHardhatConfig,
-  ResolvedHardhatNetworkConfig,
-  ResolvedHardhatNetworkForkingConfig,
-  ResolvedHttpNetworkConfig,
-  ResolvedHttpNetworkConfigAccounts,
-  ResolvedNetworks,
-  ResolvedProjectPaths,
-  ResolvedSolcConfig,
-  ResolvedSolidityConfig,
   SolcConfig,
   SolidityConfig,
+  UserHardhatConfig,
+  UserHardhatNetworkConfig,
+  UserHDAccountsConfig,
+  UserHttpNetworkAccountsConfig,
+  UserHttpNetworkConfig,
+  UserMultiSolcConfig,
+  UserNetworkConfig,
+  UserProjectPaths,
+  UserSolcConfig,
+  UserSolidityConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { fromEntries } from "../../util/lang";
@@ -51,8 +51,8 @@ import {
  */
 export function resolveConfig(
   userConfigPath: string,
-  userConfig: HardhatConfig
-): ResolvedHardhatConfig {
+  userConfig: UserHardhatConfig
+): HardhatConfig {
   userConfig = cloneDeep(userConfig);
 
   return {
@@ -65,7 +65,7 @@ export function resolveConfig(
   };
 }
 
-function resolveNetworksConfig(userConfig: HardhatConfig): ResolvedNetworks {
+function resolveNetworksConfig(userConfig: UserHardhatConfig): NetworksConfig {
   const hardhatNetworkConfig =
     userConfig.networks !== undefined
       ? userConfig.networks[HARDHAT_NETWORK_NAME]
@@ -82,7 +82,7 @@ function resolveNetworksConfig(userConfig: HardhatConfig): ResolvedNetworks {
     ...localhostNetworkConfig,
   });
 
-  const otherNetworks: { [name: string]: ResolvedHttpNetworkConfig } =
+  const otherNetworks: { [name: string]: HttpNetworkConfig } =
     userConfig.networks !== undefined
       ? fromEntries(
           Object.entries(userConfig.networks)
@@ -95,7 +95,7 @@ function resolveNetworksConfig(userConfig: HardhatConfig): ResolvedNetworks {
             )
             .map(([name, config]) => [
               name,
-              resolveHttpNetworkConfig(config as HttpNetworkConfig),
+              resolveHttpNetworkConfig(config as UserHttpNetworkConfig),
             ])
         )
       : {};
@@ -108,8 +108,8 @@ function resolveNetworksConfig(userConfig: HardhatConfig): ResolvedNetworks {
 }
 
 function isHttpNetworkConfig(
-  config: NetworkConfig
-): config is HttpNetworkConfig {
+  config: UserNetworkConfig
+): config is UserHttpNetworkConfig {
   return "url" in config;
 }
 
@@ -123,8 +123,8 @@ function normalizeHexString(str: string): string {
 }
 
 function resolveHardhatNetworkConfig(
-  hardhatNetworkConfig?: HardhatNetworkConfig
-): ResolvedHardhatNetworkConfig {
+  hardhatNetworkConfig?: UserHardhatNetworkConfig
+): HardhatNetworkConfig {
   if (hardhatNetworkConfig === undefined) {
     hardhatNetworkConfig = {};
   }
@@ -133,7 +133,7 @@ function resolveHardhatNetworkConfig(
     defaultHardhatNetworkParams
   );
 
-  const accounts: HardhatNetworkAccount[] =
+  const accounts: HardhatNetworkAccountConfig[] =
     hardhatNetworkConfig.accounts === undefined
       ? clonedDefaultHardhatNetworkParams.accounts
       : Array.isArray(hardhatNetworkConfig.accounts)
@@ -149,7 +149,7 @@ function resolveHardhatNetworkConfig(
             defaultHardhatNetworkHdAccountsConfigParams.menmonic,
         });
 
-  const forking: ResolvedHardhatNetworkForkingConfig | undefined =
+  const forking: HardhatNetworkForkingConfig | undefined =
     hardhatNetworkConfig.forking !== undefined
       ? {
           url: hardhatNetworkConfig.forking.url,
@@ -178,15 +178,15 @@ function resolveHardhatNetworkConfig(
 }
 
 function isHdAccountsConfig(
-  accounts: HttpNetworkConfigAccounts
-): accounts is HDAccountsConfig {
+  accounts: UserHttpNetworkAccountsConfig
+): accounts is UserHDAccountsConfig {
   return typeof accounts === "object" && !Array.isArray(accounts);
 }
 
 function resolveHttpNetworkConfig(
-  networkConfig: HttpNetworkConfig
-): ResolvedHttpNetworkConfig {
-  const accounts: ResolvedHttpNetworkConfigAccounts =
+  networkConfig: UserHttpNetworkConfig
+): HttpNetworkConfig {
+  const accounts: HttpNetworkAccountsConfig =
     networkConfig.accounts === undefined
       ? defaultHttpNetworkParams.accounts
       : isHdAccountsConfig(networkConfig.accounts)
@@ -205,12 +205,10 @@ function resolveHttpNetworkConfig(
   };
 }
 
-function resolveSolidityConfig(
-  userConfig: HardhatConfig
-): ResolvedSolidityConfig {
+function resolveSolidityConfig(userConfig: UserHardhatConfig): SolidityConfig {
   const userSolidityConfig = userConfig.solidity ?? DEFAULT_SOLC_VERSION;
 
-  const multiSolcConfig: MultiSolcConfig = normalizeSolidityConfig(
+  const multiSolcConfig: UserMultiSolcConfig = normalizeSolidityConfig(
     userSolidityConfig
   );
 
@@ -228,8 +226,8 @@ function resolveSolidityConfig(
 }
 
 function normalizeSolidityConfig(
-  solidityConfig: SolidityConfig
-): MultiSolcConfig {
+  solidityConfig: UserSolidityConfig
+): UserMultiSolcConfig {
   if (typeof solidityConfig === "string") {
     return {
       compilers: [
@@ -247,8 +245,8 @@ function normalizeSolidityConfig(
   return solidityConfig;
 }
 
-function resolveCompiler(compiler: SolcConfig): ResolvedSolcConfig {
-  const resolved: ResolvedSolcConfig = {
+function resolveCompiler(compiler: UserSolcConfig): SolcConfig {
+  const resolved: SolcConfig = {
     version: compiler.version,
     settings: compiler.settings ?? {},
   };
@@ -288,7 +286,7 @@ function resolveCompiler(compiler: SolcConfig): ResolvedSolcConfig {
   return resolved;
 }
 
-function resolveMochaConfig(userConfig: HardhatConfig): Mocha.MochaOptions {
+function resolveMochaConfig(userConfig: UserHardhatConfig): Mocha.MochaOptions {
   return {
     ...cloneDeep(defaultMochaOptions),
     ...userConfig.mocha,
@@ -309,8 +307,8 @@ function resolveMochaConfig(userConfig: HardhatConfig): Mocha.MochaOptions {
  */
 export function resolveProjectPaths(
   userConfigPath: string,
-  userPaths: ProjectPaths = {}
-): ResolvedProjectPaths {
+  userPaths: UserProjectPaths = {}
+): ProjectPaths {
   const configFile = fs.realpathSync(userConfigPath);
   const configDir = path.dirname(configFile);
 

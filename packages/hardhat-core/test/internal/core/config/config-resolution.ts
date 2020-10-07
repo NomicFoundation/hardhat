@@ -14,12 +14,12 @@ import {
   defaultSolcOutputSelection,
 } from "../../../../src/internal/core/config/default-config";
 import {
+  HardhatConfig,
   HardhatNetworkConfig,
+  HDAccountsConfig,
   HttpNetworkConfig,
-  ResolvedHardhatConfig,
-  ResolvedHardhatNetworkConfig,
-  ResolvedHDAccountsConfig,
-  ResolvedHttpNetworkConfig,
+  UserHardhatNetworkConfig,
+  UserHttpNetworkConfig,
 } from "../../../../src/types";
 
 describe("Config resolution", () => {
@@ -36,8 +36,8 @@ describe("Config resolution", () => {
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
         assert.equal(config.defaultNetwork, "hardhat");
 
-        const hardhatNetworkConfig: HardhatNetworkConfig = config.networks
-          .hardhat as HardhatNetworkConfig;
+        const hardhatNetworkConfig: UserHardhatNetworkConfig = config.networks
+          .hardhat as UserHardhatNetworkConfig;
 
         assert.equal(hardhatNetworkConfig.throwOnTransactionFailures, true);
         assert.equal(hardhatNetworkConfig.throwOnCallFailures, true);
@@ -45,7 +45,7 @@ describe("Config resolution", () => {
     });
 
     describe("With custom config", () => {
-      let config: ResolvedHardhatConfig;
+      let config: HardhatConfig;
 
       beforeEach(() => {
         config = resolveConfig(__filename, {
@@ -85,7 +85,7 @@ describe("Config resolution", () => {
         );
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(
-          (config.networks.localhost as HttpNetworkConfig).url,
+          (config.networks.localhost as UserHttpNetworkConfig).url,
           "http://127.0.0.1:8545"
         );
         assert.deepEqual(config.networks.localhost.accounts, [
@@ -99,7 +99,7 @@ describe("Config resolution", () => {
     });
 
     describe("With custom solidity", () => {
-      let config: ResolvedHardhatConfig;
+      let config: HardhatConfig;
 
       beforeEach(() => {
         const optimizer = {
@@ -429,7 +429,7 @@ describe("Config resolution", () => {
       });
 
       it("Should let you configure everything", function () {
-        const networkConfig: ResolvedHardhatNetworkConfig = {
+        const networkConfig: HardhatNetworkConfig = {
           accounts: [{ privateKey: "0x00000", balance: "123" }],
           chainId: 123,
           from: "from",
@@ -509,7 +509,7 @@ describe("Config resolution", () => {
         });
 
         it("Should let you override everything", function () {
-          const otherNetworkConfig: ResolvedHttpNetworkConfig = {
+          const otherNetworkConfig: HttpNetworkConfig = {
             url: "asd",
             timeout: 1,
             accounts: ["0x00000"],
@@ -535,10 +535,9 @@ describe("Config resolution", () => {
             networks: { other: { url: "a", accounts: { mnemonic: "mmmmm" } } },
           });
 
-          const httpNetConfig = config.networks
-            .other as ResolvedHttpNetworkConfig;
+          const httpNetConfig = config.networks.other as HttpNetworkConfig;
 
-          const accounts = httpNetConfig.accounts as ResolvedHDAccountsConfig;
+          const accounts = httpNetConfig.accounts as HDAccountsConfig;
           assert.deepEqual(accounts, {
             mnemonic: "mmmmm",
             ...defaultHdAccountsConfigParams,

@@ -1,11 +1,11 @@
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { task } from "hardhat/internal/core/config/config-env";
-import { ResolvedHardhatConfig } from "hardhat/types";
+import { HardhatConfig } from "hardhat/types";
 
 import "./type-extensions";
 import { VyperConfig } from "./types";
 
-function getConfig(config: ResolvedHardhatConfig): VyperConfig {
+function getConfig(config: HardhatConfig): VyperConfig {
   const defaultConfig = { version: "latest" };
   return { ...defaultConfig, ...config.vyper };
 }

@@ -1,7 +1,7 @@
 import fsExtra from "fs-extra";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 import { subtask } from "hardhat/config";
-import { ResolvedHardhatConfig } from "hardhat/types";
+import { HardhatConfig } from "hardhat/types";
 import path from "path";
 
 import "./type-extensions";
@@ -9,7 +9,7 @@ import { SolppConfig } from "./types";
 
 export const PROCESSED_CACHE_DIRNAME = "solpp-generated-contracts";
 
-function getDefaultConfig(config: ResolvedHardhatConfig): SolppConfig {
+function getDefaultConfig(config: HardhatConfig): SolppConfig {
   return {
     defs: {},
     cwd: config.paths.sources,
@@ -21,7 +21,7 @@ function getDefaultConfig(config: ResolvedHardhatConfig): SolppConfig {
   };
 }
 
-function getConfig(config: ResolvedHardhatConfig): SolppConfig {
+function getConfig(config: HardhatConfig): SolppConfig {
   const defaultConfig = getDefaultConfig(config);
   return { ...defaultConfig, ...config.solpp };
 }
@@ -39,7 +39,7 @@ export default function () {
     "hardhat-solpp:run-solpp",
     async (
       { files, opts }: { files: string[][]; opts: SolppConfig },
-      { config }: { config: ResolvedHardhatConfig }
+      { config }: { config: HardhatConfig }
     ) => {
       const processedPaths: string[] = [];
       const solpp = await import("solpp");

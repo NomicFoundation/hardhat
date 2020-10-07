@@ -1,5 +1,5 @@
 import { Artifacts } from "./artifacts";
-import { ResolvedHardhatConfig, ResolvedNetworkConfig } from "./config";
+import { HardhatConfig, NetworkConfig } from "./config";
 import { EthereumProvider } from "./provider";
 
 /**
@@ -192,7 +192,7 @@ export type RunTaskFunction = (
 ) => Promise<any>;
 
 export interface HardhatRuntimeEnvironment {
-  readonly config: ResolvedHardhatConfig;
+  readonly config: HardhatConfig;
   readonly hardhatArguments: HardhatArguments;
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;
@@ -202,7 +202,7 @@ export interface HardhatRuntimeEnvironment {
 
 export interface Network {
   name: string;
-  config: ResolvedNetworkConfig;
+  config: NetworkConfig;
   provider: EthereumProvider;
 }
 

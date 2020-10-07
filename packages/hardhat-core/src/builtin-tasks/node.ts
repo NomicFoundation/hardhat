@@ -16,8 +16,8 @@ import { lazyObject } from "../internal/util/lazy";
 import {
   Artifacts,
   EthereumProvider,
-  ResolvedHardhatConfig,
-  ResolvedHardhatNetworkConfig,
+  HardhatConfig,
+  HardhatNetworkConfig,
 } from "../types";
 
 import { TASK_NODE } from "./task-names";
@@ -26,7 +26,7 @@ import { watchCompilerOutput } from "./utils/watch";
 const log = debug("hardhat:core:tasks:node");
 
 function _createHardhatNetworkProvider(
-  config: ResolvedHardhatConfig,
+  config: HardhatConfig,
   artifacts: Artifacts
 ): EthereumProvider {
   log("Creating HardhatNetworkProvider");
@@ -45,9 +45,7 @@ function _createHardhatNetworkProvider(
   });
 }
 
-function logHardhatNetworkAccounts(
-  networkConfig: ResolvedHardhatNetworkConfig
-) {
+function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
   if (networkConfig.accounts === undefined) {
     return;
   }
