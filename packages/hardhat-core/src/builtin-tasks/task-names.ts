@@ -55,6 +55,8 @@ export const TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES =
   "compile:solidity:handle-compilation-jobs-failures";
 export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS =
   "compile:solidity:get-compilation-jobs-failure-reasons";
+export const TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT =
+  "compile:solidity:log:compilation-result";
 
 export const TASK_CONSOLE = "console";
 
