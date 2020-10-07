@@ -12,15 +12,15 @@ export type NetworkConfig =
   | HttpNetworkConfig;
 
 export interface HardhatNetworkConfig extends CommonNetworkConfig {
+  hardfork?: string;
   accounts?: HardhatNetworkConfigAccounts;
   blockGasLimit?: number;
-  hardfork?: string;
   throwOnTransactionFailures?: boolean;
   throwOnCallFailures?: boolean;
   allowUnlimitedContractSize?: boolean;
-  forking?: HardhatNetworkForkingConfig;
-  loggingEnabled?: boolean;
   initialDate?: string;
+  loggingEnabled?: boolean;
+  forking?: HardhatNetworkForkingConfig;
 }
 
 export interface CommonNetworkConfig {
