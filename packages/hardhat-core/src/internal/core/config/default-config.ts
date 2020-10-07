@@ -135,7 +135,7 @@ const defaultHardhatNetworkAccounts: HardhatNetworkAccount[] = [
 ];
 
 export const defaultHardhatNetworkParams = {
-  hardfork: "istanbul",
+  hardfork: "muirGlacier",
   blockGasLimit: 9500000,
   gas: 9500000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
