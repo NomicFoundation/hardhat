@@ -288,6 +288,25 @@ describe("Config resolution", () => {
         });
       });
 
+      it("Should normalize the accounts' private keys", function () {
+        const config = resolveConfig(__filename, {
+          networks: {
+            hardhat: {
+              accounts: [
+                { privateKey: "  aa00 ", balance: "1" },
+                { privateKey: "  0XaA00 ", balance: "1" },
+              ],
+            },
+          },
+        });
+
+        const privateKeys = config.networks.hardhat.accounts.map(
+          (a) => a.privateKey
+        );
+
+        assert.deepEqual(privateKeys, ["0xaa00", "0xaa00"]);
+      });
+
       describe("Forking config", function () {
         it("Should enable it if there's an url and no enabled setting", function () {
           const config = resolveConfig(__filename, {
@@ -472,6 +491,21 @@ describe("Config resolution", () => {
             ...defaultHttpNetworkParams,
             url: "asd",
           });
+        });
+
+        it("Should normalize the accounts' private keys", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              other: {
+                url: "asd",
+                accounts: ["  aa00 ", "  0XaA00 "],
+              },
+            },
+          });
+
+          const privateKeys = config.networks.other.accounts;
+
+          assert.deepEqual(privateKeys, ["0xaa00", "0xaa00"]);
         });
 
         it("Should let you override everything", function () {

@@ -113,6 +113,15 @@ function isHttpNetworkConfig(
   return "url" in config;
 }
 
+function normalizeHexString(str: string): string {
+  const normalized = str.trim().toLowerCase();
+  if (normalized.startsWith("0x")) {
+    return normalized;
+  }
+
+  return `0x${normalized}`;
+}
+
 function resolveHardhatNetworkConfig(
   hardhatNetworkConfig?: HardhatNetworkConfig
 ): ResolvedHardhatNetworkConfig {
@@ -128,7 +137,10 @@ function resolveHardhatNetworkConfig(
     hardhatNetworkConfig.accounts === undefined
       ? clonedDefaultHardhatNetworkParams.accounts
       : Array.isArray(hardhatNetworkConfig.accounts)
-      ? hardhatNetworkConfig.accounts
+      ? hardhatNetworkConfig.accounts.map(({ privateKey, balance }) => ({
+          privateKey: normalizeHexString(privateKey),
+          balance,
+        }))
       : normalizeHardhatNetworkAccountsConfig({
           ...defaultHardhatNetworkHdAccountsConfigParams,
           ...hardhatNetworkConfig.accounts,
@@ -182,7 +194,9 @@ function resolveHttpNetworkConfig(
           ...defaultHdAccountsConfigParams,
           ...networkConfig.accounts,
         }
-      : networkConfig.accounts;
+      : Array.isArray(networkConfig.accounts)
+      ? networkConfig.accounts.map(normalizeHexString)
+      : "remote";
 
   return {
     ...cloneDeep(defaultHttpNetworkParams),
