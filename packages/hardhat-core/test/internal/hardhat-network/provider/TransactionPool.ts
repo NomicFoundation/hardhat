@@ -20,15 +20,21 @@ describe("Transaction Pool", () => {
 
   describe("addTransaction", () => {
     it("can save transaction", async () => {
-      const tx = createTestFakeTransaction();
+      const address = randomAddressBuffer();
+      const toPut = new Account({ nonce: new BN(0) });
+      await stateManager.putAccount(address, toPut);
+      const tx = createTestFakeTransaction({ from: address, nonce: 0 });
       await txPool.addTransaction(tx);
 
       assert.include(txPool.getPendingTransactions(), tx);
     });
 
     it("can add multiple transactions", async () => {
-      const tx1 = createTestFakeTransaction();
-      const tx2 = createTestFakeTransaction();
+      const address = randomAddressBuffer();
+      const toPut = new Account({ nonce: new BN(0) });
+      await stateManager.putAccount(address, toPut);
+      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+      const tx2 = createTestFakeTransaction({ from: address, nonce: 1 });
 
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
@@ -38,7 +44,7 @@ describe("Transaction Pool", () => {
 
     it("throws error on attempt to add a transaction with a nonce too low", async () => {
       const address = randomAddressBuffer();
-      const toPut = new Account({ nonce: new BN(1) });
+      const toPut = new Account({ nonce: new BN(2) });
       await stateManager.putAccount(address, toPut);
 
       assert.isRejected(
@@ -48,6 +54,38 @@ describe("Transaction Pool", () => {
         Error,
         "Nonce too low"
       );
+    });
+
+    it("can track account's nonce", async () => {
+      const address = randomAddressBuffer();
+      const toPut = new Account({ nonce: new BN(0) });
+      await stateManager.putAccount(address, toPut);
+
+      await txPool.addTransaction(
+        createTestFakeTransaction({ from: address, nonce: 0 })
+      );
+      assert.equal(await txPool.getAccountNonce(address), 1);
+
+      await txPool.addTransaction(
+        createTestFakeTransaction({ from: address, nonce: 1 })
+      );
+      assert.equal(await txPool.getAccountNonce(address), 2);
+    });
+
+    it("can add transactions to pending and queued", async () => {
+      const address = randomAddressBuffer();
+      const toPut = new Account({ nonce: new BN(0) });
+      await stateManager.putAccount(address, toPut);
+      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+      const tx2 = createTestFakeTransaction({ from: address, nonce: 4 });
+
+      await txPool.addTransaction(tx1);
+      assert.equal(await txPool.getAccountNonce(address), 1);
+      assert.include(txPool.getPendingTransactions(), tx1);
+
+      await txPool.addTransaction(tx2);
+      assert.equal(await txPool.getAccountNonce(address), 1);
+      assert.equal(txPool.getPendingTransactions().length, 1);
     });
   });
 });
