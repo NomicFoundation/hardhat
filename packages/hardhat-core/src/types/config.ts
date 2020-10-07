@@ -1,5 +1,3 @@
-import { DeepReadonly } from "ts-essentials";
-
 // Networks config
 
 export interface Networks {
@@ -176,5 +174,5 @@ export interface ResolvedHardhatConfig extends Required<HardhatConfig> {
 
 export type ConfigExtender = (
   config: ResolvedHardhatConfig,
-  userConfig: DeepReadonly<HardhatConfig>
+  userConfig: Readonly<HardhatConfig>
 ) => void;

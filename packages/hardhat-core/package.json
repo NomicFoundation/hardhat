@@ -114,7 +114,6 @@
     "solc": "0.6.8",
     "source-map-support": "^0.5.13",
     "true-case-path": "^2.2.1",
-    "ts-essentials": "^7.0.0",
     "tsort": "0.0.1",
     "uuid": "^3.3.2",
     "ws": "^7.2.1"
