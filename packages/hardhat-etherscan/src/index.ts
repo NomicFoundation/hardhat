@@ -18,8 +18,6 @@ interface VerificationArgs {
   constructorArgs?: string;
 }
 
-extendConfig(defaultEtherscanConfig);
-
 const verify: ActionType<VerificationArgs> = async (
   {
     address,
@@ -298,18 +296,22 @@ Message: ${verificationStatus.message}`,
   }
 };
 
-task("verify", "Verifies contract on etherscan")
-  .addPositionalParam(
-    "address",
-    "Address of the smart contract that will be verified"
-  )
-  .addOptionalParam(
-    "constructorArgs",
-    "File path to a javascript module that exports the list of arguments."
-  )
-  .addOptionalVariadicPositionalParam(
-    "constructorArguments",
-    "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
-    []
-  )
-  .setAction(verify);
+export default function () {
+  extendConfig(defaultEtherscanConfig);
+
+  task("verify", "Verifies contract on etherscan")
+    .addPositionalParam(
+      "address",
+      "Address of the smart contract that will be verified"
+    )
+    .addOptionalParam(
+      "constructorArgs",
+      "File path to a javascript module that exports the list of arguments."
+    )
+    .addOptionalVariadicPositionalParam(
+      "constructorArguments",
+      "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
+      []
+    )
+    .setAction(verify);
+}
