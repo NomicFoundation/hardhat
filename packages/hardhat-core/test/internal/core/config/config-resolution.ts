@@ -48,10 +48,7 @@ describe("Config resolution", () => {
         const config = loadConfigAndTasks();
 
         assert.lengthOf(config.solidity.compilers, 1);
-        assert.equal(
-          config.solidity.compilers[0].version,
-          DEFAULT_SOLC_VERSION
-        );
+        assert.equal(config.solidity.compilers[0].version, "0.5.15");
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(config.defaultNetwork, "custom");
       });
@@ -59,10 +56,7 @@ describe("Config resolution", () => {
       it("should return the config merged ", () => {
         const config = loadConfigAndTasks();
         assert.lengthOf(config.solidity.compilers, 1);
-        assert.equal(
-          config.solidity.compilers[0].version,
-          DEFAULT_SOLC_VERSION
-        );
+        assert.equal(config.solidity.compilers[0].version, "0.5.15");
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(
           (config.networks.localhost as HttpNetworkConfig).url,

@@ -1,3 +1,1 @@
-module.exports = {
-  solidity: "0.5.15",
-};
+module.exports = {};

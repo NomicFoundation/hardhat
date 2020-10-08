@@ -27,14 +27,15 @@ describe("Compiler downloader", function () {
 
   before(function () {
     localCompilerBuild = {
-      path: "soljson-v0.6.8+commit.0bbfe453.js",
-      version: "0.6.8",
-      build: "commit.0bbfe453",
-      longVersion: "0.6.8+commit.0bbfe453",
+      path: "soljson-v0.7.3+commit.9bfce1f6.js",
+      version: "0.7.3",
+      build: "commit.9bfce1f6",
+      longVersion: "0.7.3+commit.9bfce1f6",
       keccak256:
-        "0x537cefc0579dd9631ec952cae951b3df0a50a3e557b5638107a67275f7aacc07",
+        "0xcf099e7057d6c3d5acac1f4e349798ad5a581b6cb7ffcebdf5b37b86eac4872d",
       urls: [
-        "bzzr://130bff47eed9546c6a4d019c6281896186cf2368b766b16bc49b3d489b6cdb92",
+        "bzzr://2f8ec45d2d7298ab1fa49f3568ada6c6e030c7dd7f490a1505ed9d4713d86dc8",
+        "dweb:/ipfs/QmQMH2o7Nz3DaQ31hNYyHVAgejqTyZouvA35Zzzwe2UBPt",
       ],
       platform: CompilerPlatform.WASM,
     };
