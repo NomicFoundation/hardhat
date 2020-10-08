@@ -377,7 +377,7 @@ async function confirmRecommendedDepsInstallation(): Promise<boolean> {
   return responses.shouldInstallPlugin === true;
 }
 
-async function confirmTelemetryConsent(): Promise<boolean> {
+export async function confirmTelemetryConsent(): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
   const { telemetryConsent } = await enquirer.prompt<{

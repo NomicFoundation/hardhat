@@ -17,13 +17,16 @@ import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
-import { hasConsentedTelemetry } from "../util/global-dir";
+import {
+  hasConsentedTelemetry,
+  writeTelemetryConsent,
+} from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { createProject } from "./project-creation";
+import { confirmTelemetryConsent, createProject } from "./project-creation";
 
 const log = debug("hardhat:core:cli");
 
@@ -97,7 +100,7 @@ async function main() {
 
     loadTsNodeIfPresent();
 
-    let taskName = parsedTaskName ?? "help";
+    let taskName = parsedTaskName ?? TASK_HELP;
 
     const showWarningIfNoSolidityConfig = taskName === TASK_COMPILE;
 
@@ -106,7 +109,14 @@ async function main() {
       showWarningIfNoSolidityConfig,
     });
 
-    const telemetryConsent = hasConsentedTelemetry();
+    let telemetryConsent = hasConsentedTelemetry();
+
+    const isHelpCommand = hardhatArguments.help || taskName === TASK_HELP;
+    if (telemetryConsent === undefined && !isHelpCommand) {
+      telemetryConsent = await confirmTelemetryConsent();
+      writeTelemetryConsent(telemetryConsent);
+    }
+
     const analytics = await Analytics.getInstance(
       config.paths.root,
       telemetryConsent
