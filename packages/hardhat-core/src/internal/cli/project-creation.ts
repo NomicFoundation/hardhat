@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
+import { DEFAULT_SOLC_VERSION } from "../core/config/default-config";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
@@ -129,7 +130,13 @@ async function printRecommendedDepsInstallationInstructions() {
 async function writeEmptyHardhatConfig() {
   return fsExtra.writeFile(
     "hardhat.config.js",
-    "module.exports = {};\n",
+    `/**
+ * @type import('hardhat/config').HardhatConfig
+ */
+module.exports = {
+  solidity: "${DEFAULT_SOLC_VERSION}",
+};
+`,
     "utf-8"
   );
 }
