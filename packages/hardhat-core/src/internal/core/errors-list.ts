@@ -925,7 +925,7 @@ Please use the equivalent Hardhat plugin instead.`,
     MISSING_DEPENDENCIES: {
       number: 805,
       message: `Plugin %plugin% requires the following dependencies to be installed: %missingDependencies%.
-Please run: npm install --save-dev %missingDependenciesVersions%`,
+%extraMessage%Please run: npm install --save-dev%extraFlags% %missingDependenciesVersions%`,
       title: "Plugin dependencies not installed",
       description: `You are trying to use a plugin with unmet dependencies.
 

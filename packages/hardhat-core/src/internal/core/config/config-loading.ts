@@ -8,6 +8,7 @@ import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+import { ExecutionMode, getExecutionMode } from "../execution-mode";
 import { loadPluginFile, readPackageJson } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
@@ -171,6 +172,15 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
     }
   }
 
+  const executionMode = getExecutionMode();
+  let globalFlag = "";
+  let globalWarning = "";
+  if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
+    globalFlag = " --global";
+    globalWarning =
+      "You are using a global installation of Hardhat. Plugins and their dependencies must also be global.\n";
+  }
+
   const missingPeerDependenciesNames = Object.keys(missingPeerDependencies);
   if (missingPeerDependenciesNames.length > 0) {
     throw new HardhatError(ERRORS.PLUGINS.MISSING_DEPENDENCIES, {
@@ -179,6 +189,8 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
       missingDependenciesVersions: Object.entries(missingPeerDependencies)
         .map(([name, version]) => `"${name}@${version}"`)
         .join(" "),
+      extraMessage: globalWarning,
+      extraFlags: globalFlag,
     });
   }
 }
