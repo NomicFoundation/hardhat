@@ -5,7 +5,7 @@ import {
   NativeCompiler,
 } from "../../../../src/internal/solidity/compiler";
 import { CompilerDownloader } from "../../../../src/internal/solidity/compiler/downloader";
-import { SolcOptimizerConfig } from "../../../../src/types";
+import { CompilerInput } from "../../../../src/types";
 import { useTmpDir } from "../../../helpers/fs";
 
 const solcVersion = "0.6.6";
@@ -15,7 +15,7 @@ describe("Compiler", () => {
     useTmpDir("native-compiler-execution");
 
     let downloader: CompilerDownloader;
-    let optimizerConfig: SolcOptimizerConfig;
+    let optimizerConfig: any;
     let solcPath: string;
 
     before(function () {
@@ -34,7 +34,7 @@ describe("Compiler", () => {
     });
 
     it("Should compile contracts correctly", async () => {
-      const input = {
+      const input: CompilerInput = {
         language: "Solidity",
         sources: {
           "A.sol": {
@@ -75,7 +75,7 @@ contract A {}
     });
 
     it("Shouldn't throw if there's a syntax error", async () => {
-      const input = {
+      const input: CompilerInput = {
         language: "Solidity",
         sources: {
           "A.sol": {
@@ -109,7 +109,7 @@ contract A {}
     useTmpDir("solcjs-compiler-execution");
 
     let downloader: CompilerDownloader;
-    let optimizerConfig: SolcOptimizerConfig;
+    let optimizerConfig: any;
     let solcPath: string;
 
     before(function () {
@@ -130,7 +130,7 @@ contract A {}
     });
 
     it("Should compile contracts correctly", async () => {
-      const input = {
+      const input: CompilerInput = {
         language: "Solidity",
         sources: {
           "A.sol": {
@@ -171,7 +171,7 @@ contract A {}
     });
 
     it("Shouldn't throw if there's a syntax error", async () => {
-      const input = {
+      const input: CompilerInput = {
         language: "Solidity",
         sources: {
           "A.sol": {

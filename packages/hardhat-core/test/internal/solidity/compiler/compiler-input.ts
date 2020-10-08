@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { defaultSolcOutputSelection } from "../../../../src/internal/core/config/default-config";
 import { CompilationJob } from "../../../../src/internal/solidity/compilation-job";
 import { getInputFromCompilationJob } from "../../../../src/internal/solidity/compiler/compiler-input";
 import { ResolvedFile } from "../../../../src/internal/solidity/resolver";
@@ -27,9 +28,6 @@ describe("compiler-input module", function () {
         [sourceName2]: { content: content2 },
       },
       settings: {
-        metadata: {
-          useLiteralContent: true,
-        },
         optimizer: optimizerConfig,
         outputSelection: {
           "*": {
@@ -39,7 +37,7 @@ describe("compiler-input module", function () {
               "evm.deployedBytecode",
               "evm.methodIdentifiers",
             ],
-            "": ["id", "ast"],
+            "": ["ast"],
           },
         },
       },
@@ -64,6 +62,7 @@ describe("compiler-input module", function () {
       version: "0.5.5",
       settings: {
         optimizer: optimizerConfig,
+        outputSelection: defaultSolcOutputSelection,
       },
     });
     job.addFileToCompile(files[0], true);
@@ -78,6 +77,7 @@ describe("compiler-input module", function () {
       settings: {
         optimizer: optimizerConfig,
         evmVersion: "byzantium",
+        outputSelection: defaultSolcOutputSelection,
       },
     });
     jobWithEvmVersion.addFileToCompile(files[0], true);

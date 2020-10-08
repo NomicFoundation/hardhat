@@ -1,11 +1,22 @@
-import { mnemonicToSeedSync } from "ethereum-cryptography/bip39";
-import { HDKey } from "ethereum-cryptography/hdkey";
+import type { mnemonicToSeedSync as mnemonicToSeedSyncT } from "ethereum-cryptography/bip39";
+import type { HDKey as HDKeyT } from "ethereum-cryptography/hdkey";
 
 export function deriveKeyFromMnemonicAndPath(
   mnemonic: string,
   hdPath: string
 ): Buffer | undefined {
+  const {
+    mnemonicToSeedSync,
+  }: {
+    mnemonicToSeedSync: typeof mnemonicToSeedSyncT;
+  } = require("ethereum-cryptography/bip39");
   const seed = mnemonicToSeedSync(mnemonic);
+
+  const {
+    HDKey,
+  }: {
+    HDKey: typeof HDKeyT;
+  } = require("ethereum-cryptography/hdkey");
 
   const masterKey = HDKey.fromMasterSeed(seed);
   const derived = masterKey.derive(hdPath);

@@ -2,7 +2,7 @@ import debug from "debug";
 import type { LoDashStatic } from "lodash";
 import semver from "semver";
 
-import { MultiSolcConfig, SolcConfig } from "../../types";
+import { SolcConfig, SolidityConfig } from "../../types";
 import * as taskTypes from "../../types/builtin-tasks";
 import {
   CompilationJobCreationError,
@@ -167,7 +167,7 @@ export async function createCompilationJobsFromConnectedComponent(
 export async function createCompilationJobFromFile(
   dependencyGraph: taskTypes.DependencyGraph,
   file: ResolvedFile,
-  solidityConfig: MultiSolcConfig
+  solidityConfig: SolidityConfig
 ): Promise<CompilationJob | CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
@@ -228,7 +228,7 @@ function getCompilerConfigForFile(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
   transitiveDependencies: ResolvedFile[],
-  solidityConfig: MultiSolcConfig
+  solidityConfig: SolidityConfig
 ): SolcConfig | CompilationJobCreationError {
   const { uniq }: LoDashStatic = require("lodash");
 

@@ -1,7 +1,7 @@
 import fsExtra from "fs-extra";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
-import { subtask } from "hardhat/config";
-import { ResolvedHardhatConfig } from "hardhat/types";
+import { extendConfig, subtask } from "hardhat/config";
+import { HardhatConfig } from "hardhat/types";
 import path from "path";
 
 import "./type-extensions";
@@ -9,7 +9,7 @@ import { SolppConfig } from "./types";
 
 export const PROCESSED_CACHE_DIRNAME = "solpp-generated-contracts";
 
-function getDefaultConfig(config: ResolvedHardhatConfig): SolppConfig {
+function getDefaultConfig(config: HardhatConfig): SolppConfig {
   return {
     defs: {},
     cwd: config.paths.sources,
@@ -21,11 +21,6 @@ function getDefaultConfig(config: ResolvedHardhatConfig): SolppConfig {
   };
 }
 
-function getConfig(config: ResolvedHardhatConfig): SolppConfig {
-  const defaultConfig = getDefaultConfig(config);
-  return { ...defaultConfig, ...config.solpp };
-}
-
 async function readFiles(filePaths: string[]): Promise<string[][]> {
   return Promise.all(
     filePaths.map((filePath) =>
@@ -35,11 +30,16 @@ async function readFiles(filePaths: string[]): Promise<string[][]> {
 }
 
 export default function () {
+  extendConfig((config) => {
+    const defaultConfig = getDefaultConfig(config);
+    config.solpp = { ...defaultConfig, ...config.solpp };
+  });
+
   subtask(
     "hardhat-solpp:run-solpp",
     async (
       { files, opts }: { files: string[][]; opts: SolppConfig },
-      { config }: { config: ResolvedHardhatConfig }
+      { config }: { config: HardhatConfig }
     ) => {
       const processedPaths: string[] = [];
       const solpp = await import("solpp");
@@ -68,7 +68,7 @@ export default function () {
     async (_, { config, run }, runSuper) => {
       const filePaths: string[] = await runSuper();
       const files = await readFiles(filePaths);
-      const opts = getConfig(config);
+      const opts = config.solpp;
       return run("hardhat-solpp:run-solpp", { files, opts });
     }
   );

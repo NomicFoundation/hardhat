@@ -10,6 +10,7 @@ export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
   "constantinople",
   "petersburg",
   "istanbul",
+  "muirGlacier",
 ];
 
 export const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";

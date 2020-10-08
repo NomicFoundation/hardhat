@@ -4,15 +4,19 @@ import sinon from "sinon";
 
 import { types } from "../../../src/config";
 import { HardhatContext } from "../../../src/internal/context";
+import {
+  defaultHardhatNetworkParams,
+  defaultHttpNetworkParams,
+} from "../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
 import { resetHardhatContext } from "../../../src/internal/reset";
 import {
   HardhatArguments,
+  HardhatConfig,
   HardhatRuntimeEnvironment,
   ParamDefinition,
-  ResolvedHardhatConfig,
   TasksMap,
 } from "../../../src/types";
 import {
@@ -22,17 +26,20 @@ import {
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Environment", () => {
-  const config: ResolvedHardhatConfig = {
+  const config: HardhatConfig = {
     defaultNetwork: "default",
     networks: {
-      local: {
-        url: "http://localhost:8545",
+      localhost: {
+        url: "http://localhosthost:8545",
+        ...defaultHttpNetworkParams,
       },
       hardhat: {
+        ...defaultHardhatNetworkParams,
         accounts: [],
       },
       default: {
         url: "http://localhost:8545",
+        ...defaultHttpNetworkParams,
       },
     },
     paths: {
@@ -56,13 +63,13 @@ describe("Environment", () => {
           },
         },
       ],
+      overrides: {},
     },
     mocha: {},
-    analytics: { enabled: true },
   };
 
   const args: HardhatArguments = {
-    network: "local",
+    network: "localhost",
     showStackTraces: false,
     version: false,
     help: false,
@@ -323,8 +330,8 @@ describe("Environment", () => {
 
     it("Should define the network field correctly", () => {
       assert.isDefined(env.network);
-      assert.equal(env.network.name, "local");
-      assert.equal(env.network.config, config.networks.local);
+      assert.equal(env.network.name, "localhost");
+      assert.equal(env.network.config, config.networks.localhost);
     });
 
     it("Should throw if the chosen network doesn't exist", () => {

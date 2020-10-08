@@ -5,10 +5,11 @@ import {
   EnvironmentExtender,
   ExperimentalHardhatNetworkMessageTraceHook,
   HardhatArguments,
+  HardhatConfig,
   HardhatRuntimeEnvironment,
   Network,
+  NetworkConfig,
   ParamDefinition,
-  ResolvedHardhatConfig,
   RunSuperFunction,
   RunTaskFunction,
   TaskArguments,
@@ -51,7 +52,7 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param extenders A list of extenders.
    */
   constructor(
-    public readonly config: ResolvedHardhatConfig,
+    public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = [],

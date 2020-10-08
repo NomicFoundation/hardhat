@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import Common from "ethereumjs-common";
 
-import { DEFAULT_GAS_MULTIPLIER } from "../../../../../hardhat-truffle5/src/constants";
+import {
+  defaultHdAccountsConfigParams,
+  defaultHttpNetworkParams,
+} from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import {
@@ -28,7 +31,10 @@ describe("Network config typeguards", async () => {
 
 describe("Base provider creation", () => {
   it("Should create a valid HTTP provider and wrap it", () => {
-    const provider = createProvider("net", { url: "http://localhost:8545" });
+    const provider = createProvider("net", {
+      url: "http://localhost:8545",
+      ...defaultHttpNetworkParams,
+    });
 
     assert.instanceOf(provider, BackwardsCompatibilityProviderAdapter);
   });
@@ -78,6 +84,7 @@ describe("Base providers wrapping", () => {
             "hurdle method ceiling design federal record unfair cloud end midnight corn oval",
           initialIndex: 3,
           count: 2,
+          path: defaultHdAccountsConfigParams.path,
         },
         url: "",
       });
@@ -182,10 +189,7 @@ describe("Base providers wrapping", () => {
         params: [{ from: "0x0" }],
       });
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(
-        tx.gas,
-        numberToRpcQuantity(Math.floor(123 * DEFAULT_GAS_MULTIPLIER))
-      );
+      assert.equal(tx.gas, numberToRpcQuantity(123));
     });
 
     it("Should use the gasMultiplier", async () => {

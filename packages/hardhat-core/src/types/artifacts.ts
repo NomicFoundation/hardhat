@@ -148,12 +148,11 @@ export interface CompilerInput {
   language: string;
   sources: { [sourceName: string]: { content: string } };
   settings: {
-    optimizer: { runs: number; enabled: boolean };
+    optimizer: { runs?: number; enabled?: boolean };
     metadata?: { useLiteralContent: boolean };
     outputSelection: {
-      "*": {
-        "*": string[];
-        "": ["id", "ast"];
+      [sourceName: string]: {
+        [contractName: string]: string[];
       };
     };
     evmVersion?: string;

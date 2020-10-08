@@ -3,13 +3,14 @@ import type {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthereumProvider,
-  HDAccountsConfig,
+  HardhatNetworkConfig,
   HttpNetworkConfig,
-  NetworkConfigAccounts,
+  NetworkConfig,
   ProjectPaths,
-  ResolvedHardhatNetworkConfig,
-  ResolvedHttpNetworkConfig,
-  ResolvedNetworkConfig,
+  UserHDAccountsConfig,
+  UserHttpNetworkAccountsConfig,
+  UserHttpNetworkConfig,
+  UserProjectPaths,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ForkConfig } from "../../hardhat-network/provider/node-types";
@@ -17,14 +18,14 @@ import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-c
 import { parseDateString } from "../../util/date";
 
 export function isHDAccountsConfig(
-  accounts?: NetworkConfigAccounts
-): accounts is HDAccountsConfig {
+  accounts?: UserHttpNetworkAccountsConfig
+): accounts is UserHDAccountsConfig {
   return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }
 
 function isResolvedHttpNetworkConfig(
-  netConfig: Partial<ResolvedNetworkConfig>
-): netConfig is ResolvedHttpNetworkConfig {
+  netConfig: Partial<NetworkConfig>
+): netConfig is HttpNetworkConfig {
   return "url" in netConfig;
 }
 
@@ -42,7 +43,7 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
 
 export function createProvider(
   networkName: string,
-  networkConfig: ResolvedNetworkConfig,
+  networkConfig: NetworkConfig,
   paths?: ProjectPaths,
   artifacts?: Artifacts,
   experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
@@ -50,7 +51,7 @@ export function createProvider(
   let eip1193Provider: EIP1193Provider;
 
   if (networkName === HARDHAT_NETWORK_NAME) {
-    const hardhatNetConfig = networkConfig as ResolvedHardhatNetworkConfig;
+    const hardhatNetConfig = networkConfig as HardhatNetworkConfig;
 
     const HardhatNetworkProvider = importProvider<
       typeof import("../../hardhat-network/provider/provider"),
@@ -93,7 +94,7 @@ export function createProvider(
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    const httpNetConfig = networkConfig as HttpNetworkConfig;
+    const httpNetConfig = networkConfig as UserHttpNetworkConfig;
 
     eip1193Provider = new HttpProvider(
       httpNetConfig.url!,
@@ -115,7 +116,7 @@ export function createProvider(
 
 export function applyProviderWrappers(
   provider: EIP1193Provider,
-  netConfig: Partial<ResolvedNetworkConfig>
+  netConfig: Partial<NetworkConfig>
 ): EIP1193Provider {
   // These dependencies are lazy-loaded because they are really big.
   const LocalAccountsProvider = importProvider<

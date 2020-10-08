@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
-import { ResolvedHardhatNetworkConfig } from "hardhat/types";
+import { HardhatNetworkConfig } from "hardhat/types";
 import path from "path";
 
 import { useEnvironment } from "./helpers";
@@ -15,8 +15,8 @@ describe("Waffle plugin plugin", function () {
           it("Should return a wallet for each of the default accounts", function () {
             const wallets = this.env.waffle.provider.getWallets();
             assert.equal(this.env.network.name, HARDHAT_NETWORK_NAME);
-            const accounts = (this.env.network
-              .config as ResolvedHardhatNetworkConfig).accounts;
+            const accounts = (this.env.network.config as HardhatNetworkConfig)
+              .accounts;
             assert.lengthOf(wallets, accounts.length);
 
             for (let i = 0; i < wallets.length; i++) {
@@ -72,8 +72,8 @@ describe("Waffle plugin plugin", function () {
             it("Should return a wallet for each of the default accounts", function () {
               const wallets = this.env.waffle.provider.getWallets();
               assert.equal(this.env.network.name, HARDHAT_NETWORK_NAME);
-              const accounts = (this.env.network
-                .config as ResolvedHardhatNetworkConfig).accounts!;
+              const accounts = (this.env.network.config as HardhatNetworkConfig)
+                .accounts!;
 
               assert.lengthOf(wallets, accounts.length);
 

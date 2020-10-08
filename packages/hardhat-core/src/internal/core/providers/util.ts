@@ -1,6 +1,6 @@
 import {
-  HardhatNetworkAccount,
-  HardhatNetworkHDAccountsConfig,
+  HardhatNetworkAccountConfig,
+  UserHardhatNetworkHDAccountsConfig,
 } from "../../../types";
 import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
 import { DEFAULT_HARDHAT_NETWORK_BALANCE } from "../config/default-config";
@@ -11,9 +11,9 @@ const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
 export function derivePrivateKeys(
   mnemonic: string,
-  hdpath: string = "m/44'/60'/0'/0/",
-  initialIndex: number = 0,
-  count: number = 10
+  hdpath: string,
+  initialIndex: number,
+  count: number
 ): Buffer[] {
   if (hdpath.match(HD_PATH_REGEX) === null) {
     throw new HardhatError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
@@ -45,8 +45,8 @@ export function derivePrivateKeys(
 }
 
 export function normalizeHardhatNetworkAccountsConfig(
-  accountsConfig: HardhatNetworkAccount[] | HardhatNetworkHDAccountsConfig
-): HardhatNetworkAccount[] {
+  accountsConfig: Required<UserHardhatNetworkHDAccountsConfig>
+): HardhatNetworkAccountConfig[] {
   if (Array.isArray(accountsConfig)) {
     return accountsConfig;
   }

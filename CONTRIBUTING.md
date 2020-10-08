@@ -102,7 +102,6 @@ This is a list of the modules that always get loaded during startup:
 - `fs-extra`
 - `chalk`
 - `semver`
-- `deepmerge`
 - `source-map-support/register`
 
 ## Developing locally

@@ -87,7 +87,6 @@
     "chokidar": "^3.4.0",
     "ci-info": "^2.0.0",
     "debug": "^4.1.1",
-    "deepmerge": "^4.2.2",
     "enquirer": "^2.3.0",
     "env-paths": "^2.2.0",
     "eth-sig-util": "^2.5.2",
@@ -117,7 +116,6 @@
     "solc": "0.7.3",
     "source-map-support": "^0.5.13",
     "true-case-path": "^2.2.1",
-    "ts-essentials": "^2.0.7",
     "tsort": "0.0.1",
     "uuid": "^3.3.2",
     "ws": "^7.2.1"

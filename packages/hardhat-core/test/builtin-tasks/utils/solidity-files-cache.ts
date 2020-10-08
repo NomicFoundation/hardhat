@@ -4,7 +4,6 @@ import {
   CacheEntry,
   SolidityFilesCache,
 } from "../../../src/builtin-tasks/utils/solidity-files-cache";
-import { ResolvedFile } from "../../../src/internal/solidity/resolver";
 
 function mockCachedFile(
   sourceName: string,
@@ -13,7 +12,7 @@ function mockCachedFile(
   return {
     sourceName,
     lastModificationDate: new Date().valueOf(),
-    solcConfig: { version: "0.6.6" },
+    solcConfig: { version: "0.6.6", settings: {} },
     imports: [],
     versionPragmas: [],
     artifacts: [],
@@ -53,7 +52,7 @@ describe("SolidityFilesCache", function () {
   });
 
   it("should mark a file as not changed if it was not modified", async function () {
-    const solcConfig = { version: "0.6.6" };
+    const solcConfig = { version: "0.6.6", settings: {} };
     const cache = {
       _format: "",
       files: {
@@ -75,7 +74,7 @@ describe("SolidityFilesCache", function () {
   });
 
   it("should mark a file as changed if it was modified", async function () {
-    const solcConfig = { version: "0.6.6" };
+    const solcConfig = { version: "0.6.6", settings: {} };
     const cache = {
       _format: "",
       files: {
@@ -97,7 +96,7 @@ describe("SolidityFilesCache", function () {
   });
 
   it("should mark a file as changed if it doesn't exist in the cache", async function () {
-    const solcConfig = { version: "0.6.6" };
+    const solcConfig = { version: "0.6.6", settings: {} };
     const cache = {
       _format: "",
       files: {
@@ -119,7 +118,7 @@ describe("SolidityFilesCache", function () {
   });
 
   it("should mark a file as changed if the last solc version used is different", async function () {
-    const solcConfig = { version: "0.6.6" };
+    const solcConfig = { version: "0.6.6", settings: {} };
     const cache = {
       _format: "",
       files: {
@@ -134,7 +133,7 @@ describe("SolidityFilesCache", function () {
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
       oneHourAgo,
-      { version: "0.6.7" }
+      { version: "0.6.7", settings: {} }
     );
 
     assert.isTrue(hasChanged);
@@ -163,7 +162,7 @@ describe("SolidityFilesCache", function () {
   });
 
   it("should work if the solc config is not the same reference", async function () {
-    const solcConfig = { version: "0.6.6" };
+    const solcConfig = { version: "0.6.6", settings: {} };
     const cache = {
       _format: "",
       files: {
@@ -178,14 +177,14 @@ describe("SolidityFilesCache", function () {
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
       oneHourAgo,
-      { version: "0.6.6" }
+      { version: "0.6.6", settings: {} }
     );
 
     assert.isFalse(hasChanged);
   });
 
   it("should ignore the solc config if it's not passed (unchanged file)", async function () {
-    const solcConfig = { version: "0.6.6" };
+    const solcConfig = { version: "0.6.6", settings: {} };
     const cache = {
       _format: "",
       files: {
@@ -206,7 +205,7 @@ describe("SolidityFilesCache", function () {
   });
 
   it("should ignore the solc config if it's not passed (changed file)", async function () {
-    const solcConfig = { version: "0.6.6" };
+    const solcConfig = { version: "0.6.6", settings: {} };
     const cache = {
       _format: "",
       files: {

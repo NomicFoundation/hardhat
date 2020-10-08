@@ -9,7 +9,7 @@ import {
   lazyFunction,
   NomicLabsHardhatPluginError,
 } from "hardhat/plugins";
-import { ResolvedHardhatNetworkConfig } from "hardhat/types";
+import { HardhatNetworkConfig } from "hardhat/types";
 import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
@@ -130,7 +130,7 @@ export default function () {
             bufferToHex,
           } = require("ethereumjs-util");
 
-          const netConfig = env.network.config as ResolvedHardhatNetworkConfig;
+          const netConfig = env.network.config as HardhatNetworkConfig;
 
           accounts = netConfig.accounts.map((acc) =>
             toChecksumAddress(bufferToHex(privateToAddress(acc.privateKey)))

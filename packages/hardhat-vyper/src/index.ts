@@ -1,23 +1,19 @@
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { task } from "hardhat/internal/core/config/config-env";
-import { ResolvedHardhatConfig } from "hardhat/types";
+import { extendConfig, task } from "hardhat/internal/core/config/config-env";
 
 import "./type-extensions";
-import { VyperConfig } from "./types";
-
-function getConfig(config: ResolvedHardhatConfig): VyperConfig {
-  const defaultConfig = { version: "latest" };
-  return { ...defaultConfig, ...config.vyper };
-}
 
 export default function () {
+  extendConfig((config) => {
+    const defaultConfig = { version: "latest" };
+    config.vyper = { ...defaultConfig, ...config.vyper };
+  });
+
   task(TASK_COMPILE, async (_, { config, artifacts }) => {
     const { compile } = await import("./compilation");
 
-    const vyperConfig = getConfig(config);
-
     // This plugin is experimental, so this task isn't split into multiple
     // subtasks yet.
-    await compile(vyperConfig, config.paths, artifacts);
+    await compile(config.vyper, config.paths, artifacts);
   });
 }

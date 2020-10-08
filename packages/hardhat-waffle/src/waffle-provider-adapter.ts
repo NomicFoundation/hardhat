@@ -1,5 +1,5 @@
 import { providers, Wallet } from "ethers";
-import { Network, ResolvedHardhatNetworkConfig } from "hardhat/types";
+import { HardhatNetworkConfig, Network } from "hardhat/types";
 
 // This class is an extension of hardhat-ethers' wrapper.
 // TODO: Export hardhat-ether's wrapper so this can be implemented like a normal
@@ -15,8 +15,7 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
 You can use \`await hre.ethers.signers()\` in other networks.`);
     }
 
-    return (this._hardhatNetwork
-      .config as ResolvedHardhatNetworkConfig).accounts!.map(
+    return (this._hardhatNetwork.config as HardhatNetworkConfig).accounts!.map(
       (acc) => new Wallet(acc.privateKey, this)
     );
   }
