@@ -26,7 +26,9 @@ describe("Transaction Pool", () => {
       const tx = createTestFakeTransaction({ from: address, nonce: 0 });
       await txPool.addTransaction(tx);
 
-      assert.deepEqual(txPool.getPendingTransactions(), [tx]);
+      const pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(pendingTxs, 1);
+      assert.deepEqual(pendingTxs[0].raw, tx.raw);
     });
 
     it("can add multiple transactions", async () => {
@@ -39,9 +41,11 @@ describe("Transaction Pool", () => {
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
 
-      const pendingTransactions = txPool.getPendingTransactions();
-      assert.lengthOf(pendingTransactions, 2);
-      assert.includeMembers(pendingTransactions, [tx1, tx2]);
+      const pendingTxs = txPool.getPendingTransactions();
+      assert.sameDeepMembers(
+        pendingTxs.map((tx) => tx.raw),
+        [tx1, tx2].map((tx) => tx.raw)
+      );
     });
 
     it("throws as error when transaction nonce is too low", async () => {
@@ -83,11 +87,13 @@ describe("Transaction Pool", () => {
 
       await txPool.addTransaction(tx1);
       assert.equal((await txPool.getExecutableNonce(address)).toNumber(), 1);
-      assert.include(txPool.getPendingTransactions(), tx1);
+      const pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(pendingTxs, 1);
+      assert.deepEqual(pendingTxs[0].raw, tx1.raw);
 
       await txPool.addTransaction(tx2);
       assert.equal((await txPool.getExecutableNonce(address)).toNumber(), 1);
-      assert.equal(txPool.getPendingTransactions().length, 1);
+      assert.lengthOf(txPool.getPendingTransactions(), 1);
     });
   });
 });
