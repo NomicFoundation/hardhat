@@ -12,13 +12,9 @@ export function getInputFromCompilationJob(
 
   const { settings } = compilationJob.getSolcConfig();
 
-  const input: CompilerInput = {
+  return {
     language: "Solidity",
     sources,
-    settings: {
-      ...settings,
-    },
+    settings,
   };
-
-  return input;
 }
