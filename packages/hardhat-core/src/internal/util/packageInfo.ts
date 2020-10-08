@@ -20,7 +20,7 @@ export interface PackageJson {
   };
 }
 
-function findClosestPackageJson(file: string): string | null {
+export function findClosestPackageJson(file: string): string | null {
   return findup.sync("package.json", { cwd: path.dirname(file) });
 }
 

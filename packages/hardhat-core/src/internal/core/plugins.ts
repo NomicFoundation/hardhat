@@ -1,6 +1,5 @@
 import debug from "debug";
 import * as path from "path";
-import * as semver from "semver";
 
 import { HardhatContext } from "../context";
 
@@ -74,80 +73,17 @@ export function usePlugin(
     }
   }
 
-  let globalFlag = "";
-  let globalWarning = "";
-  if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
-    globalFlag = " --global";
-    globalWarning =
-      "You are using a global installation of Hardhat. Plugins and their dependencies must also be global.\n";
-  }
-
-  const pluginPackageJson = readPackageJson(pluginName, from);
-
-  if (pluginPackageJson === undefined) {
-    const installExtraFlags = globalFlag;
-
-    throw new HardhatError(ERRORS.PLUGINS.NOT_INSTALLED, {
-      plugin: pluginName,
-      extraMessage: globalWarning,
-      extraFlags: installExtraFlags,
-    });
-  }
-
-  // We use the package.json's version of the name, as it is normalized.
-  pluginName = pluginPackageJson.name;
-
   if (hardhatContext.loadedPlugins.includes(pluginName)) {
     return;
   }
 
+  const pluginPackageJson = readPackageJson(pluginName, from);
   if (
-    pluginPackageJson.peerDependencies?.["@nomiclabs/buidler"] !== undefined
+    pluginPackageJson?.peerDependencies?.["@nomiclabs/buidler"] !== undefined
   ) {
     throw new HardhatError(ERRORS.PLUGINS.BUIDLER_PLUGIN, {
       plugin: pluginName,
     });
-  }
-
-  if (pluginPackageJson.peerDependencies !== undefined) {
-    for (const [dependencyName, versionSpec] of Object.entries(
-      pluginPackageJson.peerDependencies
-    )) {
-      const dependencyPackageJson = readPackageJson(dependencyName, from);
-
-      let installExtraFlags = globalFlag;
-
-      if (versionSpec.match(/^[0-9]/) !== null) {
-        installExtraFlags += " --save-exact";
-      }
-
-      if (dependencyPackageJson === undefined) {
-        throw new HardhatError(ERRORS.PLUGINS.MISSING_DEPENDENCY, {
-          plugin: pluginName,
-          dependency: dependencyName,
-          extraMessage: globalWarning,
-          extraFlags: installExtraFlags,
-          versionSpec,
-        });
-      }
-
-      const installedVersion = dependencyPackageJson.version;
-
-      if (
-        !semver.satisfies(installedVersion, versionSpec, {
-          includePrerelease: true,
-        })
-      ) {
-        throw new HardhatError(ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH, {
-          plugin: pluginName,
-          dependency: dependencyName,
-          extraMessage: globalWarning,
-          extraFlags: installExtraFlags,
-          versionSpec,
-          installedVersion,
-        });
-      }
-    }
   }
 
   const options = from !== undefined ? { paths: [from] } : undefined;

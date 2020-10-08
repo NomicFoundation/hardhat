@@ -922,6 +922,16 @@ Hardhat plugin instead.`,
 Please use the equivalent Hardhat plugin instead.`,
       shouldBeReported: false,
     },
+    MISSING_DEPENDENCIES: {
+      number: 805,
+      message: `Plugin %plugin% requires the following dependencies to be installed: %missingDependencies%.
+%extraMessage%Please run: npm install --save-dev%extraFlags% %missingDependenciesVersions%`,
+      title: "Plugin dependencies not installed",
+      description: `You are trying to use a plugin with unmet dependencies.
+
+Please follow Hardhat's instructions to resolve this.`,
+      shouldBeReported: false,
+    },
   },
   INTERNAL: {
     TEMPLATE_INVALID_VARIABLE_NAME: {
