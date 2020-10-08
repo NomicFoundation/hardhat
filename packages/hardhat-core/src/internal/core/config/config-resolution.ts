@@ -20,6 +20,7 @@ import {
   UserHttpNetworkConfig,
   UserMultiSolcConfig,
   UserNetworkConfig,
+  UserNetworksConfig,
   UserProjectPaths,
   UserSolcConfig,
   UserSolidityConfig,
@@ -60,22 +61,19 @@ export function resolveConfig(
     ...userConfig,
     defaultNetwork: userConfig.defaultNetwork ?? defaultDefaultNetwork,
     paths: resolveProjectPaths(userConfigPath, userConfig.paths),
-    networks: resolveNetworksConfig(userConfig),
+    networks: resolveNetworksConfig(userConfig.networks),
     solidity: resolveSolidityConfig(userConfig),
     mocha: resolveMochaConfig(userConfig),
   };
 }
 
-function resolveNetworksConfig(userConfig: UserHardhatConfig): NetworksConfig {
-  const hardhatNetworkConfig =
-    userConfig.networks !== undefined
-      ? userConfig.networks[HARDHAT_NETWORK_NAME]
-      : undefined;
+function resolveNetworksConfig(
+  networksConfig: UserNetworksConfig = {}
+): NetworksConfig {
+  const hardhatNetworkConfig = networksConfig[HARDHAT_NETWORK_NAME];
 
   const localhostNetworkConfig =
-    userConfig.networks !== undefined
-      ? (userConfig.networks.localhost as UserHttpNetworkConfig)
-      : undefined;
+    (networksConfig.localhost as UserHttpNetworkConfig) ?? undefined;
 
   const hardhat = resolveHardhatNetworkConfig(hardhatNetworkConfig);
   const localhost = resolveHttpNetworkConfig({
@@ -83,23 +81,20 @@ function resolveNetworksConfig(userConfig: UserHardhatConfig): NetworksConfig {
     ...localhostNetworkConfig,
   });
 
-  const otherNetworks: { [name: string]: HttpNetworkConfig } =
-    userConfig.networks !== undefined
-      ? fromEntries(
-          Object.entries(userConfig.networks)
-            .filter(
-              ([name, config]) =>
-                name !== "localhost" &&
-                name !== "hardhat" &&
-                config !== undefined &&
-                isHttpNetworkConfig(config)
-            )
-            .map(([name, config]) => [
-              name,
-              resolveHttpNetworkConfig(config as UserHttpNetworkConfig),
-            ])
-        )
-      : {};
+  const otherNetworks: { [name: string]: HttpNetworkConfig } = fromEntries(
+    Object.entries(networksConfig)
+      .filter(
+        ([name, config]) =>
+          name !== "localhost" &&
+          name !== "hardhat" &&
+          config !== undefined &&
+          isHttpNetworkConfig(config)
+      )
+      .map(([name, config]) => [
+        name,
+        resolveHttpNetworkConfig(config as UserHttpNetworkConfig),
+      ])
+  );
 
   return {
     hardhat,
@@ -124,12 +119,8 @@ function normalizeHexString(str: string): string {
 }
 
 function resolveHardhatNetworkConfig(
-  hardhatNetworkConfig?: UserHardhatNetworkConfig
+  hardhatNetworkConfig: UserHardhatNetworkConfig = {}
 ): HardhatNetworkConfig {
-  if (hardhatNetworkConfig === undefined) {
-    hardhatNetworkConfig = {};
-  }
-
   const clonedDefaultHardhatNetworkParams = cloneDeep(
     defaultHardhatNetworkParams
   );
