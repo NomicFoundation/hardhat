@@ -159,6 +159,12 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
   const peerDependencies: { [name: string]: string } =
     packageJson.peerDependencies ?? {};
 
+  if (peerDependencies["@nomiclabs/buidler"] !== undefined) {
+    throw new HardhatError(ERRORS.PLUGINS.BUIDLER_PLUGIN, {
+      plugin: packageJson.name,
+    });
+  }
+
   // if the problem doesn't come from a hardhat plugin, we ignore it
   if (peerDependencies.hardhat === undefined) {
     return;

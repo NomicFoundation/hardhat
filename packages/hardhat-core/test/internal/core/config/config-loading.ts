@@ -276,6 +276,27 @@ describe("config loading", function () {
     });
   });
 
+  describe("buidler plugin", function () {
+    useFixtureProject("buidler-plugin");
+
+    beforeEach(function () {
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("should indicate the buidler plugin", function () {
+      expectHardhatError(
+        () => loadConfigAndTasks(),
+        ERRORS.PLUGINS.BUIDLER_PLUGIN,
+        `You are using some-buidler-plugin, which is a Buidler plugin. Use the equivalent
+Hardhat plugin instead.`
+      );
+    });
+  });
+
   describe("dynamic import of missing dependency in task", function () {
     useFixtureProject("plugin-dynamic-import-not-installed");
     useEnvironment();
