@@ -435,7 +435,7 @@ export default function () {
         quiet: boolean;
         solcVersion: string;
       }) => {
-        if (quiet || isCompilerDownloaded) {
+        if (isCompilerDownloaded) {
           return;
         }
 
@@ -671,9 +671,7 @@ export default function () {
         if (error.severity === "error") {
           console.error(chalk.red(error.formattedMessage));
         } else {
-          if (!quiet) {
-            console.warn(chalk.yellow(error.formattedMessage));
-          }
+          console.warn(chalk.yellow(error.formattedMessage));
         }
       }
 
@@ -819,17 +817,11 @@ export default function () {
       async ({
         compilationJobs,
         compilationJobIndex,
-        quiet,
       }: {
         compilationJob: CompilationJob;
         compilationJobs: CompilationJob[];
         compilationJobIndex: number;
-        quiet: boolean;
       }) => {
-        if (quiet) {
-          return;
-        }
-
         const solcVersion = compilationJobs[compilationJobIndex].getSolcConfig()
           .version;
 
@@ -1072,14 +1064,8 @@ ${other.map((x) => `* ${x}`).join("\n")}
     .addParam("compilationJobs", undefined, undefined, types.any)
     .addParam("quiet", undefined, undefined, types.boolean)
     .setAction(
-      async ({
-        compilationJobs,
-        quiet,
-      }: {
-        compilationJobs: CompilationJob[];
-        quiet: boolean;
-      }) => {
-        if (compilationJobs.length > 0 && !quiet) {
+      async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
+        if (compilationJobs.length > 0) {
           console.log("Compilation finished successfully");
         }
       }
@@ -1214,7 +1200,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
    */
   task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     .addFlag("force", "Force compilation ignoring cache")
-    .addFlag("quiet", "Suppress all console output")
+    .addFlag("quiet", "Makes the compilation process less verbose")
     .setAction(async (compilationArgs: any, { run }) => {
       const compilationTasks: string[] = await run(
         TASK_COMPILE_GET_COMPILATION_TASKS
