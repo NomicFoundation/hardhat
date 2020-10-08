@@ -54,8 +54,7 @@
     "chai": "^4.2.0",
     "ethers": "^5.0.8",
     "hardhat": "^0.1.0-rc.0",
-    "nock": "^10.0.6",
-    "solc": "0.6.8"
+    "nock": "^10.0.6"
   },
   "peerDependencies": {
     "hardhat": "^0.1.0-rc.0"

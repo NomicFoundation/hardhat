@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
+import { DEFAULT_SOLC_VERSION } from "../core/config/default-config";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
@@ -101,24 +102,6 @@ ${content}`;
   await fsExtra.writeFile(gitIgnorePath, content);
 }
 
-async function addGitAttributes(projectRoot: string) {
-  const gitAttributesPath = path.join(projectRoot, ".gitattributes");
-  let content = "*.sol linguist-language=Solidity";
-
-  if (await fsExtra.pathExists(gitAttributesPath)) {
-    const existingContent = await fsExtra.readFile(gitAttributesPath, "utf-8");
-
-    if (existingContent.includes(content)) {
-      return;
-    }
-
-    content = `${existingContent}
-${content}`;
-  }
-
-  await fsExtra.writeFile(gitAttributesPath, content);
-}
-
 function printSuggestedCommands() {
   const npx =
     getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION
@@ -147,7 +130,13 @@ async function printRecommendedDepsInstallationInstructions() {
 async function writeEmptyHardhatConfig() {
   return fsExtra.writeFile(
     "hardhat.config.js",
-    "module.exports = {};\n",
+    `/**
+ * @type import('hardhat/config').HardhatConfig
+ */
+module.exports = {
+  solidity: "${DEFAULT_SOLC_VERSION}",
+};
+`,
     "utf-8"
   );
 }
@@ -226,10 +215,6 @@ export async function createProject() {
         "shouldAddGitIgnore",
         "Do you want to add a .gitignore?"
       ),
-      createConfirmationPrompt(
-        "shouldAddGitAttributes",
-        "Do you want to add a .gitattributes to enable Soldity highlighting on GitHub?"
-      ),
     ]);
   } catch (e) {
     if (e === "") {
@@ -240,16 +225,12 @@ export async function createProject() {
     throw e;
   }
 
-  const { projectRoot, shouldAddGitIgnore, shouldAddGitAttributes } = responses;
+  const { projectRoot, shouldAddGitIgnore } = responses;
 
   await copySampleProject(projectRoot);
 
   if (shouldAddGitIgnore) {
     await addGitIgnore(projectRoot);
-  }
-
-  if (shouldAddGitAttributes) {
-    await addGitAttributes(projectRoot);
   }
 
   let shouldShowInstallationInstructions = true;

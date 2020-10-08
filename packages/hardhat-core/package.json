@@ -114,7 +114,7 @@
     "resolve": "^1.17.0",
     "semver": "^6.3.0",
     "slash": "^3.0.0",
-    "solc": "0.6.8",
+    "solc": "0.7.3",
     "source-map-support": "^0.5.13",
     "true-case-path": "^2.2.1",
     "ts-essentials": "^2.0.7",
