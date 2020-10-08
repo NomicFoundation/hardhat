@@ -4,11 +4,13 @@ import { List as ImmutableList, Map as ImmutableMap } from "immutable";
 
 import { PStateManager } from "./types/PStateManager";
 
+type SerialisedTransaction = ImmutableList<string>;
+
 export class TransactionPool {
   // TODO: change this later to ImmutableMap<string, ImmutableList>
-  private _pendingTransactions: ImmutableList<Transaction> = ImmutableList();
-  private _queuedTransactions: ImmutableList<Transaction> = ImmutableList();
-  private _executableNonces: ImmutableMap<string, string> = ImmutableMap(); // account address => nonce (hex)
+  private _pendingTransactions = ImmutableList<SerialisedTransaction>(); // list of serialized pending Transactions
+  private _queuedTransactions = ImmutableList<SerialisedTransaction>(); // list of serialized queued Transactions
+  private _executableNonces = ImmutableMap<string, string>(); // account address => nonce (hex)
 
   constructor(private readonly _stateManager: PStateManager) {}
 
@@ -22,14 +24,17 @@ export class TransactionPool {
 
     if (txNonce.eq(senderNonce)) {
       this._setExecutableNonce(tx.getSenderAddress(), txNonce.addn(1));
-      this._pendingTransactions = this._pendingTransactions.push(tx);
+      this._addPendingTransaction(tx);
     } else {
-      this._queuedTransactions = this._queuedTransactions.push(tx);
+      this._addQueuedTransaction(tx);
     }
   }
 
   public getPendingTransactions(): Transaction[] {
-    return this._pendingTransactions.toArray();
+    const pendingTransactions = this._pendingTransactions.map((tx) =>
+      this._deserialiseTransaction(tx)
+    );
+    return pendingTransactions.toArray();
   }
 
   public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
@@ -46,5 +51,26 @@ export class TransactionPool {
       bufferToHex(accountAddress),
       bufferToHex(toBuffer(nonce))
     );
+  }
+
+  private _addPendingTransaction(tx: Transaction) {
+    this._pendingTransactions = this._pendingTransactions.push(
+      this._serialiseTransaction(tx)
+    );
+  }
+
+  private _addQueuedTransaction(tx: Transaction) {
+    const serialisedTx = this._serialiseTransaction(tx);
+    this._queuedTransactions = this._queuedTransactions.push(serialisedTx);
+  }
+
+  private _serialiseTransaction(tx: Transaction): SerialisedTransaction {
+    const serialisedFields = tx.raw.map((field) => bufferToHex(field));
+    return ImmutableList(serialisedFields);
+  }
+
+  private _deserialiseTransaction(tx: SerialisedTransaction): Transaction {
+    const fields = tx.toArray().map((field) => toBuffer(field));
+    return new Transaction(fields);
   }
 }
