@@ -19,14 +19,14 @@ describe("Transaction Pool", () => {
   });
 
   describe("addTransaction", () => {
-    it("can save transaction", async () => {
+    it("can add a transaction", async () => {
       const address = randomAddressBuffer();
       const toPut = new Account({ nonce: new BN(0) });
       await stateManager.putAccount(address, toPut);
       const tx = createTestFakeTransaction({ from: address, nonce: 0 });
       await txPool.addTransaction(tx);
 
-      assert.include(txPool.getPendingTransactions(), tx);
+      assert.deepEqual(txPool.getPendingTransactions(), [tx]);
     });
 
     it("can add multiple transactions", async () => {
@@ -39,17 +39,19 @@ describe("Transaction Pool", () => {
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
 
-      assert.includeMembers(txPool.getPendingTransactions(), [tx1, tx2]);
+      const pendingTransactions = txPool.getPendingTransactions();
+      assert.lengthOf(pendingTransactions, 2);
+      assert.includeMembers(pendingTransactions, [tx1, tx2]);
     });
 
     it("throws error on attempt to add a transaction with a nonce too low", async () => {
       const address = randomAddressBuffer();
-      const toPut = new Account({ nonce: new BN(2) });
+      const toPut = new Account({ nonce: new BN(1) });
       await stateManager.putAccount(address, toPut);
 
-      assert.isRejected(
+      await assert.isRejected(
         txPool.addTransaction(
-          createTestFakeTransaction({ from: address, nonce: 1 })
+          createTestFakeTransaction({ from: address, nonce: 0 })
         ),
         Error,
         "Nonce too low"
