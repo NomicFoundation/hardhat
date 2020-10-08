@@ -7,6 +7,7 @@
 import { HardhatContext } from "./context";
 import { getUserConfigPath } from "./core/project-structure";
 import { globSync } from "./util/glob";
+import { getRequireCachedFiles } from "./util/platform";
 
 export function resetHardhatContext() {
   if (HardhatContext.isCreated()) {
@@ -32,6 +33,18 @@ export function resetHardhatContext() {
         unloadModule(configPath);
       }
     }
+
+    const configLoadedFiles = ctx.getFilesLoadedFromTheConfig();
+    // If we didn't get to store the files, maybe the config loading failed,
+    // but we still loaded some files. We are conservative here and unload
+    // everything.
+    const filesToUnload =
+      configLoadedFiles.length === 0
+        ? getRequireCachedFiles()
+        : configLoadedFiles;
+
+    filesToUnload.forEach(unloadModule);
+
     HardhatContext.deleteHardhatContext();
   }
 

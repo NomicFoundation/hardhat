@@ -54,6 +54,7 @@ export class HardhatContext {
   public readonly experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [];
 
   private _configPath?: string;
+  private readonly _filesLoadedFromTheConfig: string[] = [];
 
   public setHardhatRuntimeEnvironment(env: HardhatRuntimeEnvironment) {
     if (this.environment !== undefined) {
@@ -83,5 +84,13 @@ export class HardhatContext {
     }
 
     return this._configPath;
+  }
+
+  public addFilesLoadedFromTheConfig(paths: string[]) {
+    this._filesLoadedFromTheConfig.push(...paths);
+  }
+
+  public getFilesLoadedFromTheConfig(): string[] {
+    return [...this._filesLoadedFromTheConfig];
   }
 }

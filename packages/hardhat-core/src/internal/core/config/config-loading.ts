@@ -7,6 +7,7 @@ import * as stackTraceParser from "stacktrace-parser";
 import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
 import { findClosestPackageJson } from "../../util/packageInfo";
+import { getRequireCachedFiles } from "../../util/platform";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { ExecutionMode, getExecutionMode } from "../execution-mode";
@@ -51,6 +52,8 @@ export function loadConfigAndTasks(
   const ctx = HardhatContext.getHardhatContext();
   ctx.setConfigPath(configPath);
 
+  const filesLoadedBeforeConfig = getRequireCachedFiles();
+
   loadPluginFile(path.join(__dirname, "..", "tasks", "builtin-tasks"));
 
   let userConfig;
@@ -62,6 +65,12 @@ export function loadConfigAndTasks(
     // tslint:disable-next-line only-hardhat-error
     throw e;
   }
+
+  const filesLoadedAfterConfig = getRequireCachedFiles();
+  ctx.addFilesLoadedFromTheConfig(
+    arraysDifference(filesLoadedAfterConfig, filesLoadedBeforeConfig)
+  );
+
   validateConfig(userConfig);
 
   if (userConfig.solidity === undefined && showWarningIfNoSolidityConfig) {
@@ -197,4 +206,8 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
       extraFlags: globalFlag,
     });
   }
+}
+
+function arraysDifference<T>(a: T[], b: T[]): T[] {
+  return a.filter((e) => !b.includes(e));
 }
