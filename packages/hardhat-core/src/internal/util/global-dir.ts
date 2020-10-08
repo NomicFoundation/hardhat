@@ -106,3 +106,10 @@ export function hasConsentedTelemetry(): boolean | undefined {
   const { consent } = fs.readJSONSync(telemetryConsentPath);
   return consent;
 }
+
+export function writeTelemetryConsent(consent: boolean) {
+  const configDir = getConfigDirSync();
+  const telemetryConsentPath = path.join(configDir, "telemetry-consent.json");
+
+  fs.writeJSONSync(telemetryConsentPath, { consent });
+}

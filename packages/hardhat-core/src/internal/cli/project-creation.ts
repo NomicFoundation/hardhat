@@ -7,6 +7,10 @@ import { HARDHAT_NAME } from "../constants";
 import { DEFAULT_SOLC_VERSION } from "../core/config/default-config";
 import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getRecommendedGitIgnore } from "../core/project-structure";
+import {
+  hasConsentedTelemetry,
+  writeTelemetryConsent,
+} from "../util/global-dir";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
 import { emoji } from "./emoji";
@@ -235,6 +239,12 @@ export async function createProject() {
 
   let shouldShowInstallationInstructions = true;
 
+  if (hasConsentedTelemetry() === undefined) {
+    const telemetryConsent = await confirmTelemetryConsent();
+
+    writeTelemetryConsent(telemetryConsent);
+  }
+
   if (await canInstallRecommendedDeps()) {
     const recommendedDeps = Object.keys(SAMPLE_PROJECT_DEPENDENCIES);
     const installedRecommendedDeps = recommendedDeps.filter(isInstalled);
@@ -365,6 +375,23 @@ async function confirmRecommendedDepsInstallation(): Promise<boolean> {
   }
 
   return responses.shouldInstallPlugin === true;
+}
+
+async function confirmTelemetryConsent(): Promise<boolean> {
+  const { default: enquirer } = await import("enquirer");
+
+  const { telemetryConsent } = await enquirer.prompt<{
+    telemetryConsent: boolean;
+  }>([
+    {
+      name: "telemetryConsent",
+      type: "confirm",
+      initial: true,
+      message: "Can Hardhat send anonymous data to improve the product?",
+    },
+  ]);
+
+  return telemetryConsent;
 }
 
 async function installDependencies(
