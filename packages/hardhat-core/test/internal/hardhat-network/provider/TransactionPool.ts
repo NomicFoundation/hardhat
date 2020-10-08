@@ -44,7 +44,7 @@ describe("Transaction Pool", () => {
       assert.includeMembers(pendingTransactions, [tx1, tx2]);
     });
 
-    it("throws error on attempt to add a transaction with a nonce too low", async () => {
+    it("throws as error when transaction nonce is too low", async () => {
       const address = randomAddressBuffer();
       const toPut = new Account({ nonce: new BN(1) });
       await stateManager.putAccount(address, toPut);
@@ -66,12 +66,12 @@ describe("Transaction Pool", () => {
       await txPool.addTransaction(
         createTestFakeTransaction({ from: address, nonce: 0 })
       );
-      assert.equal(await txPool.getAccountNonce(address), 1);
+      assert.equal((await txPool.getExecutableNonce(address)).toNumber(), 1);
 
       await txPool.addTransaction(
         createTestFakeTransaction({ from: address, nonce: 1 })
       );
-      assert.equal(await txPool.getAccountNonce(address), 2);
+      assert.equal((await txPool.getExecutableNonce(address)).toNumber(), 2);
     });
 
     it("can add transactions to pending and queued", async () => {
@@ -82,11 +82,11 @@ describe("Transaction Pool", () => {
       const tx2 = createTestFakeTransaction({ from: address, nonce: 4 });
 
       await txPool.addTransaction(tx1);
-      assert.equal(await txPool.getAccountNonce(address), 1);
+      assert.equal((await txPool.getExecutableNonce(address)).toNumber(), 1);
       assert.include(txPool.getPendingTransactions(), tx1);
 
       await txPool.addTransaction(tx2);
-      assert.equal(await txPool.getAccountNonce(address), 1);
+      assert.equal((await txPool.getExecutableNonce(address)).toNumber(), 1);
       assert.equal(txPool.getPendingTransactions().length, 1);
     });
   });
