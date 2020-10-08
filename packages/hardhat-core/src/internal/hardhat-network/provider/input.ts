@@ -210,6 +210,19 @@ export const rpcForkConfig = optional(
 
 export type RpcForkConfig = t.TypeOf<typeof rpcForkConfig>;
 
+export const rpcHardhatNetworkConfig = t.type(
+  {
+    forking: optional(rpcForkConfig),
+  },
+  "HardhatNetworkConfig"
+);
+
+export type RpcHardhatNetworkConfig = t.TypeOf<typeof rpcHardhatNetworkConfig>;
+
+export const optionalRpcHardhatNetworkConfig = optional(
+  rpcHardhatNetworkConfig
+);
+
 export function validateParams(params: any[]): [];
 
 export function validateParams(
@@ -321,8 +334,8 @@ export function validateParams(
 
 export function validateParams(
   params: any[],
-  forkConfig: typeof rpcForkConfig
-): [RpcForkConfig];
+  forkConfig: typeof optionalRpcHardhatNetworkConfig
+): [RpcHardhatNetworkConfig | undefined];
 
 // tslint:disable only-hardhat-error
 

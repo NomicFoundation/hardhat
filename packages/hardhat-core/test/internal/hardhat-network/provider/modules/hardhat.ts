@@ -14,58 +14,61 @@ describe("Hardhat module", function () {
       setCWD();
       useProvider();
 
-      describe("hardhat_impersonate", function () {
+      describe("hardhat_impersonateAccount", function () {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
-            "hardhat_impersonate",
+            "hardhat_impersonateAccount",
             ["0x1234"]
           );
 
           await assertInvalidArgumentsError(
             this.provider,
-            "hardhat_impersonate",
+            "hardhat_impersonateAccount",
             ["1234567890abcdef1234567890abcdef12345678"]
           );
         });
 
         it("returns true", async function () {
-          const result = await this.provider.send("hardhat_impersonate", [
-            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
-          ]);
+          const result = await this.provider.send(
+            "hardhat_impersonateAccount",
+            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+          );
           assert.isTrue(result);
         });
       });
 
-      describe("hardhat_stopImpersonating", function () {
+      describe("hardhat_stopImpersonatingAccount", function () {
         it("validates input parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
-            "hardhat_stopImpersonating",
+            "hardhat_stopImpersonatingAccount",
             ["0x1234"]
           );
 
           await assertInvalidArgumentsError(
             this.provider,
-            "hardhat_stopImpersonating",
+            "hardhat_stopImpersonatingAccount",
             ["1234567890abcdef1234567890abcdef12345678"]
           );
         });
 
         it("returns true if the account was impersonated before", async function () {
-          await this.provider.send("hardhat_impersonate", [
+          await this.provider.send("hardhat_impersonateAccount", [
             bufferToHex(EMPTY_ACCOUNT_ADDRESS),
           ]);
-          const result = await this.provider.send("hardhat_stopImpersonating", [
-            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
-          ]);
+          const result = await this.provider.send(
+            "hardhat_stopImpersonatingAccount",
+            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+          );
           assert.isTrue(result);
         });
 
         it("returns false if the account wasn't impersonated before", async function () {
-          const result = await this.provider.send("hardhat_stopImpersonating", [
-            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
-          ]);
+          const result = await this.provider.send(
+            "hardhat_stopImpersonatingAccount",
+            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+          );
           assert.isFalse(result);
         });
       });
@@ -79,29 +82,38 @@ describe("Hardhat module", function () {
 
         it("validates input parameters", async function () {
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
-            {},
+            { forking: {} },
           ]);
+
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
-              jsonRpcUrl: 123,
+              forking: {
+                jsonRpcUrl: 123,
+              },
             },
           ]);
+
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
-              blockNumber: 0,
+              forking: {
+                blockNumber: 0,
+              },
             },
           ]);
+
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
-              jsonRpcUrl: ALCHEMY_URL,
-              blockNumber: "0",
+              forking: {
+                jsonRpcUrl: ALCHEMY_URL,
+                blockNumber: "0",
+              },
             },
           ]);
         });
 
         it("returns true", async function () {
           const result = await this.provider.send("hardhat_reset", [
-            { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
+            { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
           ]);
           assert.isTrue(result);
         });
@@ -121,7 +133,7 @@ describe("Hardhat module", function () {
         function testForkedProviderBehaviour() {
           it("can reset the forked provider to a given forkBlockNumber", async function () {
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
+              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
           });
@@ -129,10 +141,10 @@ describe("Hardhat module", function () {
           it("can reset the forked provider to the latest block number", async function () {
             const initialBlock = await getLatestBlockNumber();
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
+              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
             ]);
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: ALCHEMY_URL },
+              { forking: { jsonRpcUrl: ALCHEMY_URL } },
             ]);
 
             // This condition is rather loose as Infura can sometimes return
@@ -142,6 +154,9 @@ describe("Hardhat module", function () {
 
           it("can reset the forked provider to a normal provider", async function () {
             await this.provider.send("hardhat_reset", []);
+            assert.equal(await getLatestBlockNumber(), 0);
+
+            await this.provider.send("hardhat_reset", [{}]);
             assert.equal(await getLatestBlockNumber(), 0);
           });
         }
@@ -156,14 +171,14 @@ describe("Hardhat module", function () {
 
           it("can reset the provider with a fork config", async function () {
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
+              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
           });
 
           it("can reset the provider with fork config back to normal config", async function () {
             await this.provider.send("hardhat_reset", [
-              { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 },
+              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
             ]);
             await this.provider.send("hardhat_reset", []);
             assert.equal(await getLatestBlockNumber(), 0);
