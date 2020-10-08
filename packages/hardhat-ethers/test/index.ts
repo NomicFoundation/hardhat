@@ -115,16 +115,15 @@ describe("Ethers plugin", function () {
 
         it("should fail to link when passing in an ambiguous library link", async function () {
           const libraryFactory = await this.env.ethers.getContractFactory(
-            "contracts/AmbiguousLibrary.sol:AmbiguousLibrary"
+            "contracts/TestContractLib.sol:TestLibrary"
           );
           const library = await libraryFactory.deploy();
 
           try {
-            await this.env.ethers.getContractFactory("TestAmbiguousLib", {
+            await this.env.ethers.getContractFactory("TestContractLib", {
               libraryLinks: {
-                AmbiguousLibrary: library.address,
-                "contracts/AmbiguousLibrary.sol:AmbiguousLibrary":
-                  library.address,
+                TestLibrary: library.address,
+                "contracts/TestContractLib.sol:TestLibrary": library.address,
               },
             });
           } catch (reason) {
@@ -140,7 +139,7 @@ describe("Ethers plugin", function () {
               "getContractFactory should report the ambiguous link as the cause"
             );
             assert.isTrue(
-              reason.message.includes("AmbiguousLibrary.sol:AmbiguousLibrary"),
+              reason.message.includes("TestContractLib.sol:TestLibrary"),
               "getContractFactory should display the ambiguous library link"
             );
             return;
@@ -149,6 +148,52 @@ describe("Ethers plugin", function () {
           // The test shouldn't reach this point
           assert.fail(
             "getContractFactory should fail when the link for one library is ambiguous"
+          );
+        });
+
+        it("should fail to link an ambiguous library", async function () {
+          const libraryFactory = await this.env.ethers.getContractFactory(
+            "contracts/AmbiguousLibrary.sol:AmbiguousLibrary"
+          );
+          const library = await libraryFactory.deploy();
+          const library2Factory = await this.env.ethers.getContractFactory(
+            "contracts/AmbiguousLibrary2.sol:AmbiguousLibrary"
+          );
+          const library2 = await libraryFactory.deploy();
+
+          try {
+            await this.env.ethers.getContractFactory("TestAmbiguousLib", {
+              libraryLinks: {
+                AmbiguousLibrary: library.address,
+                "contracts/AmbiguousLibrary2.sol:AmbiguousLibrary":
+                  library2.address,
+              },
+            });
+          } catch (reason) {
+            assert.instanceOf(
+              reason,
+              NomicLabsHardhatPluginError,
+              "getContractFactory should fail with a hardhat plugin error"
+            );
+            assert.isTrue(
+              reason.message.includes("is ambiguous for the contract"),
+              "getContractFactory should report the ambiguous name resolution as the cause"
+            );
+            assert.isTrue(
+              reason.message.includes(
+                "AmbiguousLibrary.sol:AmbiguousLibrary"
+              ) &&
+                reason.message.includes(
+                  "AmbiguousLibrary2.sol:AmbiguousLibrary"
+                ),
+              "getContractFactory should enumerate both available library name candidates"
+            );
+            return;
+          }
+
+          // The test shouldn't reach this point
+          assert.fail(
+            "getContractFactory should fail to retrieve an ambiguous library name"
           );
         });
 

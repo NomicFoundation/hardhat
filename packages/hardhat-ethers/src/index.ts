@@ -1,13 +1,12 @@
 import EthersT from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
 import "./type-extensions";
 
 export default function () {
-  extendEnvironment((hre: HardhatRuntimeEnvironment) => {
+  extendEnvironment((hre) => {
     hre.ethers = lazyObject(() => {
       const { EthersProviderWrapper } = require("./ethers-provider-wrapper");
 

@@ -79,6 +79,7 @@ export async function getContractFactoryByName(
 function isFactoryOptions(argument: any): argument is FactoryOptions {
   return (
     typeof argument === "object" &&
+    !(argument instanceof ethers.Signer) &&
     (!("signer" in argument) || argument.signer instanceof ethers.Signer) &&
     (!("libraryLinks" in argument) || typeof argument.libraryLinks === "object")
   );
@@ -129,7 +130,7 @@ Contract factories need non-abstract contracts to work.`
     signer = signerOrOptions.signer;
     if (
       signerOrOptions.libraryLinks !== undefined &&
-      Object.keys(artifact.linkReferences).length > 0
+      neededLibraries.length > 0
     ) {
       const links: Map<string, Link> = new Map();
       for (const [libraryName, address] of Object.entries(
@@ -141,7 +142,20 @@ Contract factories need non-abstract contracts to work.`
             `${lib.sourceName}:${lib.libName}` === libraryName
           );
         });
-        if (libCandidates.length > 0) {
+        if (libCandidates.length > 1) {
+          const fullyQualifiedNames = libCandidates.map(
+            ({ sourceName, libName }) => `${sourceName}:${libName}`
+          );
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ethers",
+            `The library name ${libraryName} is ambiguous for the contract ${name}.
+It may resolve to one of the following libraries:
+${fullyQualifiedNames.join("\n")}
+
+To fix this, choose one of these fully qualified library names and replace where appropriate.`
+          );
+        }
+        if (libCandidates.length === 1) {
           const [lib] = libCandidates;
           const fullyQualifiedName = `${lib.sourceName}:${lib.libName}`;
           if (links.has(fullyQualifiedName)) {
