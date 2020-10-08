@@ -1,4 +1,5 @@
 import debug from "debug";
+import type envPathsT from "env-paths";
 import fs from "fs-extra";
 import os from "os";
 import path from "path";
@@ -10,9 +11,20 @@ async function generatePaths() {
   return envPaths("hardhat");
 }
 
+function generatePathsSync() {
+  const envPaths: typeof envPathsT = require("env-paths");
+  return envPaths("hardhat");
+}
+
 async function getConfigDir(): Promise<string> {
   const { config } = await generatePaths();
   await fs.ensureDir(config);
+  return config;
+}
+
+function getConfigDirSync(): string {
+  const { config } = generatePathsSync();
+  fs.ensureDirSync(config);
   return config;
 }
 
@@ -74,4 +86,23 @@ export async function getCompilersDir() {
   const compilersCache = path.join(cache, "compilers");
   await fs.ensureDir(compilersCache);
   return compilersCache;
+}
+
+/**
+ * Checks if the user has given (or refused) consent for telemetry.
+ *
+ * Returns undefined if it can't be determined.
+ */
+export function hasConsentedTelemetry(): boolean | undefined {
+  const configDir = getConfigDirSync();
+  const telemetryConsentPath = path.join(configDir, "telemetry-consent.json");
+
+  const fileExists = fs.pathExistsSync(telemetryConsentPath);
+
+  if (!fileExists) {
+    return undefined;
+  }
+
+  const { consent } = fs.readJSONSync(telemetryConsentPath);
+  return consent;
 }

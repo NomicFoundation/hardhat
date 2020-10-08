@@ -6,6 +6,7 @@ import {
 import { isLocalDev } from "../core/execution-mode";
 import { ProviderError } from "../core/providers/errors";
 import { isRunningOnCiServer } from "../util/ci-detection";
+import { hasConsentedTelemetry } from "../util/global-dir";
 import { getHardhatVersion } from "../util/packageInfo";
 
 import { getSubprocessTransport } from "./transport";
@@ -107,6 +108,11 @@ export class Reporter {
 
     // We don't report network related errors
     if (error instanceof ProviderError) {
+      return false;
+    }
+
+    const telemetryConsent = hasConsentedTelemetry();
+    if (telemetryConsent === undefined || telemetryConsent === false) {
       return false;
     }
 

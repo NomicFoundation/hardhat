@@ -17,6 +17,7 @@ import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
+import { hasConsentedTelemetry } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { Analytics } from "./analytics";
@@ -105,8 +106,11 @@ async function main() {
       showWarningIfNoSolidityConfig,
     });
 
-    // TODO-HH: Enabled/disable this depending on the opt-out feature
-    const analytics = await Analytics.getInstance(config.paths.root, true);
+    const telemetryConsent = hasConsentedTelemetry();
+    const analytics = await Analytics.getInstance(
+      config.paths.root,
+      telemetryConsent
+    );
 
     Reporter.setConfigPath(config.paths.configFile);
     // TODO-HH: Enabled/disable this depending on the opt-out feature

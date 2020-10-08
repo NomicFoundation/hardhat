@@ -43,11 +43,14 @@ type AbortAnalytics = () => void;
 const googleAnalyticsUrl = "https://www.google-analytics.com/collect";
 
 export class Analytics {
-  public static async getInstance(rootPath: string, enabled: boolean) {
+  public static async getInstance(
+    rootPath: string,
+    telemetryConsent: boolean | undefined
+  ) {
     const analytics: Analytics = new Analytics({
       projectId: getProjectId(rootPath),
       clientId: await getClientId(),
-      enabled,
+      telemetryConsent,
       userType: getUserType(),
     });
 
@@ -64,17 +67,18 @@ export class Analytics {
   private constructor({
     projectId,
     clientId,
-    enabled,
+    telemetryConsent,
     userType,
   }: {
     projectId: string;
     clientId: string;
-    enabled: boolean;
+    telemetryConsent: boolean | undefined;
     userType: string;
   }) {
     this._projectId = projectId;
     this._clientId = clientId;
-    this._enabled = enabled && !isLocalDev() && !isRunningOnCiServer();
+    this._enabled =
+      !isLocalDev() && !isRunningOnCiServer() && telemetryConsent === true;
     this._userType = userType;
   }
 
