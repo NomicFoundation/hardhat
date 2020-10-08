@@ -4,10 +4,10 @@ import Account from "ethereumjs-account";
 import { BN } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { TransactionPool } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
 import { createTestFakeTransaction } from "../helpers/blockchain";
-import { TransactionPool } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 
 describe("Transaction Pool", () => {
   let stateManager: PStateManager;
