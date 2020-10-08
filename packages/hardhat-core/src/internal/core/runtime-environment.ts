@@ -1,5 +1,4 @@
 import debug from "debug";
-import * as stackTraceParser from "stacktrace-parser";
 
 import {
   Artifacts as IArtifacts,
@@ -21,7 +20,7 @@ import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
-import { analyzeModuleNotFoundStackTrace } from "./config/config-loading";
+import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
@@ -133,13 +132,7 @@ export class Environment implements HardhatRuntimeEnvironment {
         resolvedTaskArguments
       );
     } catch (e) {
-      if (e.code === "MODULE_NOT_FOUND") {
-        const stackTrace = stackTraceParser.parse(e.stack);
-        analyzeModuleNotFoundStackTrace(
-          stackTrace,
-          this.config.paths.configFile
-        );
-      }
+      analyzeModuleNotFoundError(e, this.config.paths.configFile);
 
       // tslint:disable-next-line only-hardhat-error
       throw e;

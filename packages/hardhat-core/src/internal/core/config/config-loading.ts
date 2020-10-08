@@ -55,10 +55,7 @@ export function loadConfigAndTasks(
   try {
     userConfig = importCsjOrEsModule(configPath);
   } catch (e) {
-    if (e.code === "MODULE_NOT_FOUND") {
-      const stackTrace = stackTraceParser.parse(e.stack);
-      analyzeModuleNotFoundStackTrace(stackTrace, configPath);
-    }
+    analyzeModuleNotFoundError(e, configPath);
 
     // tslint:disable-next-line only-hardhat-error
     throw e;
@@ -123,15 +120,17 @@ function deepFreezeUserConfig(
 }
 
 /**
- * Receives a parsed stack trace of a MODULE_NOT_FOUND error and checks
- * if the error comes from a missing peer dependency from a hardhat plugin.
+ * Receives an Error and checks if it's a MODULE_NOT_FOUND and the reason that
+ * caused it.
  *
- * If that's the case, it throws an error. Otherwise it does nothing.
+ * If it can infer the reason, it throws an appropiate error. Otherwise it does
+ * nothing.
  */
-export function analyzeModuleNotFoundStackTrace(
-  stackTrace: stackTraceParser.StackFrame[],
-  configPath: string
-) {
+export function analyzeModuleNotFoundError(error: any, configPath: string) {
+  if (error.code !== "MODULE_NOT_FOUND") {
+    return;
+  }
+  const stackTrace = stackTraceParser.parse(error.stack);
   const throwingFile = stackTrace
     .filter((x) => x.file !== null)
     .map((x) => x.file!)
