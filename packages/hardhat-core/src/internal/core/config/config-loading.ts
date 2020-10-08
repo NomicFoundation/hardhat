@@ -80,8 +80,7 @@ Learn more about compiler configuration at https://usehardhat.com/configuration"
 
   const frozenUserConfig = deepFreezeUserConfig(userConfig);
 
-  // Deep clone?
-  const resolved = resolveConfig(configPath, frozenUserConfig);
+  const resolved = resolveConfig(configPath, userConfig);
 
   for (const extender of HardhatContext.getHardhatContext().configExtenders) {
     extender(resolved, frozenUserConfig);
