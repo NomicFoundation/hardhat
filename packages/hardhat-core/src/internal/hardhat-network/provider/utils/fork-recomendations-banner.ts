@@ -2,7 +2,7 @@ import chalk from "chalk";
 import fsExtra from "fs-extra";
 import path from "path";
 
-import { HttpNetworkConfig, NetworkConfig } from "../../../../types";
+import { NetworkConfig } from "../../../../types";
 
 function getAlreadyShownFilePath(forkCachePath: string) {
   return path.join(forkCachePath, "recommendations-already-shown.json");

@@ -4,7 +4,7 @@ import { extendConfig, task } from "hardhat/internal/core/config/config-env";
 import "./type-extensions";
 
 export default function () {
-  extendConfig((config, userConfig) => {
+  extendConfig((config) => {
     const defaultConfig = { version: "latest" };
     config.vyper = { ...defaultConfig, ...config.vyper };
   });

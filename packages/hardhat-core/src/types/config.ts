@@ -114,7 +114,6 @@ export interface HardhatNetworkConfig {
 
 export type HardhatNetworkAccountsConfig = HardhatNetworkAccountConfig[];
 
-// tslint:disable-next-line:no-empty-interface
 export interface HardhatNetworkAccountConfig {
   privateKey: string;
   balance: string;
