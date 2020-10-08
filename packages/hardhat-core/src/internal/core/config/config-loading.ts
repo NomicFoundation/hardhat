@@ -6,6 +6,7 @@ import * as stackTraceParser from "stacktrace-parser";
 
 import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
+import { findClosestPackageJson } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { ExecutionMode, getExecutionMode } from "../execution-mode";
@@ -147,9 +148,7 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
     return;
   }
 
-  const packageJsonPath = findUp.sync("package.json", {
-    cwd: path.dirname(throwingFile),
-  });
+  const packageJsonPath = findClosestPackageJson(throwingFile);
 
   if (packageJsonPath === null) {
     return;
