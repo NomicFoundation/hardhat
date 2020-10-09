@@ -7,7 +7,7 @@
   "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts"],
   "references": [
     {
-      "path": "../../hardhat-core/src"
+      "path": "../hardhat-core/src"
     }
   ]
 }

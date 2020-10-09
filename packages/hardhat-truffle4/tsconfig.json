@@ -9,7 +9,7 @@
       "path": "../hardhat-core/src"
     },
     {
-      "path": "../hardhat-web3-legacy/src"
+      "path": "../hardhat-web3-legacy"
     }
   ]
 }
