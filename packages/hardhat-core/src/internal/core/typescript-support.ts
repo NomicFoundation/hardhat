@@ -1,34 +1,16 @@
 import chalk from "chalk";
 
-import { ExecutionMode, getExecutionMode } from "./execution-mode";
-
 let cachedIsTypescriptSupported: boolean | undefined;
 
 export function isTypescriptSupported() {
   if (cachedIsTypescriptSupported === undefined) {
-    const executionMode = getExecutionMode();
-    if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
-      cachedIsTypescriptSupported = false;
-    } else if (
-      executionMode === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION
-    ) {
-      try {
-        // We resolve these from Hardhat's installation.
-        require.resolve("typescript");
-        require.resolve("ts-node");
-        cachedIsTypescriptSupported = true;
-      } catch {
-        cachedIsTypescriptSupported = false;
-      }
-    } else {
-      // We are inside this project (e.g. running tests), or Hardhat is
-      // linked and we can't get the Hardhat project's node_modules, so we
-      // return true.
-      //
-      // This is safe because Hardhat will use this project's installation of
-      // TypeScript and ts-node. We need them for compilation and testing, so
-      // they'll always be installed.
+    try {
+      // We resolve these from Hardhat's installation.
+      require.resolve("typescript");
+      require.resolve("ts-node");
       cachedIsTypescriptSupported = true;
+    } catch {
+      cachedIsTypescriptSupported = false;
     }
   }
 
