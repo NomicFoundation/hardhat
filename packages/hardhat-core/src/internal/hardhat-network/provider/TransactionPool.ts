@@ -4,11 +4,9 @@ import { List as ImmutableList, Map as ImmutableMap } from "immutable";
 
 import { PStateManager } from "./types/PStateManager";
 
-type SerializedTransaction = ImmutableList<string>;
-type SenderTransactions = ImmutableMap<
-  string,
-  ImmutableList<SerializedTransaction>
->;
+export type SerializedTransaction = ImmutableList<string>;
+export type SenderTransactions = ImmutableList<SerializedTransaction>;
+type AddressToTransactions = ImmutableMap<string, SenderTransactions>;
 
 /* TODO: */
 class SortedImmutableList {
@@ -24,9 +22,19 @@ class SortedImmutableList {
   }
 }
 
+export function serializeTransaction(tx: Transaction): SerializedTransaction {
+  const serializedFields = tx.raw.map((field) => bufferToHex(field));
+  return ImmutableList(serializedFields);
+}
+
+export function deserializeTransaction(tx: SerializedTransaction): Transaction {
+  const fields = tx.toArray().map((field) => toBuffer(field));
+  return new Transaction(fields);
+}
+
 export class TransactionPool {
-  private _pendingTransactions: SenderTransactions = ImmutableMap(); // address => list of serialized pending Transactions
-  private _queuedTransactions: SenderTransactions = ImmutableMap(); // address => list of serialized queued Transactions
+  private _pendingTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized pending Transactions
+  private _queuedTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized queued Transactions
   private _executableNonces = ImmutableMap<string, string>(); // address => nonce (hex)
 
   constructor(private readonly _stateManager: PStateManager) {}
@@ -50,7 +58,7 @@ export class TransactionPool {
   public getPendingTransactions(): Transaction[] {
     const list = this._pendingTransactions
       .toList()
-      .map((txs) => txs.map((tx) => this._deserializeTransaction(tx)))
+      .map((txs) => txs.map((tx) => deserializeTransaction(tx)))
       .flatten() as ImmutableList<Transaction>;
     return list.toArray();
   }
@@ -78,7 +86,7 @@ export class TransactionPool {
       ImmutableList<SerializedTransaction>();
     this._pendingTransactions = this._pendingTransactions.set(
       hexAccountAddress,
-      accountTransactions.push(this._serializeTransaction(tx))
+      accountTransactions.push(serializeTransaction(tx))
     );
   }
 
@@ -89,12 +97,12 @@ export class TransactionPool {
       ImmutableList<SerializedTransaction>();
     this._queuedTransactions = this._queuedTransactions.set(
       hexAccountAddress,
-      accountTransactions.push(this._serializeTransaction(tx))
+      accountTransactions.push(serializeTransaction(tx))
     );
   }
 
   private _moveQueuedTransactionToPending(tx: Transaction) {
-    const serializedTransaction = this._serializeTransaction(tx);
+    const serializedTransaction = serializeTransaction(tx);
     const senderAddress = bufferToHex(tx.getSenderAddress());
     const senderTransactions = this._queuedTransactions.get(
       bufferToHex(tx.getSenderAddress())
@@ -109,22 +117,12 @@ export class TransactionPool {
     this._addPendingTransaction(tx);
   }
 
-  private _serializeTransaction(tx: Transaction): SerializedTransaction {
-    const serializedFields = tx.raw.map((field) => bufferToHex(field));
-    return ImmutableList(serializedFields);
-  }
-
-  private _deserializeTransaction(tx: SerializedTransaction): Transaction {
-    const fields = tx.toArray().map((field) => toBuffer(field));
-    return new Transaction(fields);
-  }
-
   private _moveQueuedTransactions() {
     const pendingTransactions = this._pendingTransactions.map((transactions) =>
-      transactions.map((tx) => this._deserializeTransaction(tx))
+      transactions.map((tx) => deserializeTransaction(tx))
     );
     const queuedTransactions = this._queuedTransactions.map((transactions) =>
-      transactions.map((tx) => this._deserializeTransaction(tx))
+      transactions.map((tx) => deserializeTransaction(tx))
     );
 
     for (const address in queuedTransactions) {
