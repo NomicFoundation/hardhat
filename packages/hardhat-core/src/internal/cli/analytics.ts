@@ -1,6 +1,5 @@
 import AbortController from "abort-controller";
 import debug from "debug";
-import { keccak256 } from "ethereumjs-util";
 import fetch from "node-fetch";
 import os from "os";
 import qs from "qs";
@@ -48,7 +47,6 @@ export class Analytics {
     telemetryConsent: boolean | undefined
   ) {
     const analytics: Analytics = new Analytics({
-      projectId: getProjectId(rootPath),
       clientId: await getClientId(),
       telemetryConsent,
       userType: getUserType(),
@@ -57,7 +55,6 @@ export class Analytics {
     return analytics;
   }
 
-  private readonly _projectId: string;
   private readonly _clientId: string;
   private readonly _enabled: boolean;
   private readonly _userType: string;
@@ -65,17 +62,14 @@ export class Analytics {
   private readonly _trackingId: string = "UA-117668706-3";
 
   private constructor({
-    projectId,
     clientId,
     telemetryConsent,
     userType,
   }: {
-    projectId: string;
     clientId: string;
     telemetryConsent: boolean | undefined;
     userType: string;
   }) {
-    this._projectId = projectId;
     this._clientId = clientId;
     this._enabled =
       !isLocalDev() && !isRunningOnCiServer() && telemetryConsent === true;
@@ -154,8 +148,8 @@ export class Analytics {
       // https://support.google.com/tagmanager/answer/6164990
       //
       // Custom dimension 1: Project Id
-      // This is computed as the keccak256 hash of the project's absolute path.
-      cd1: this._projectId,
+      // TODO-HH: Can we remove this?
+      cd1: "project",
       // Custom dimension 2: User type
       //   Possible values: "CI", "Developer".
       cd2: this._userType,
@@ -210,15 +204,6 @@ async function getClientId() {
   }
 
   return clientId;
-}
-
-function getProjectId(rootPath: string) {
-  log(`Computing Project Id for ${rootPath}`);
-
-  const projectId = keccak256(rootPath).toString("hex");
-
-  log(`Project Id set to ${projectId}`);
-  return projectId;
 }
 
 function getUserType(): string {
