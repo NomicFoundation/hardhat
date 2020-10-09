@@ -3,7 +3,6 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import {
   Artifact,
   HardhatRuntimeEnvironment,
-  LinkReferences,
   NetworkConfig,
 } from "hardhat/types";
 
@@ -46,62 +45,56 @@ export async function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   bytecodeOrFactoryOptions?:
-    | ethers.Signer
-    | FactoryOptions
-    | ethers.utils.BytesLike
-    | string,
-  signerOrLibraryLinks?: ethers.Signer
+    | (ethers.Signer | FactoryOptions)
+    | (ethers.utils.BytesLike | string),
+  signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
-    return getContractFactoryByName(
+    const contractFactory = await getContractFactoryByName(
       hre,
       nameOrAbi,
       bytecodeOrFactoryOptions as ethers.Signer | FactoryOptions | undefined
     );
+
+    if (contractFactory.bytecode === "0x") {
+      throw new NomicLabsHardhatPluginError(
+        "hardhat-ethers",
+        `The requested contract, ${nameOrAbi}, is an abstract contract.
+Contract factories need non-abstract contracts to work.`
+      );
+    }
+
+    return contractFactory;
   }
 
   return getContractFactoryByAbiAndBytecode(
     hre,
     nameOrAbi,
     bytecodeOrFactoryOptions as ethers.utils.BytesLike | string,
-    signerOrLibraryLinks as ethers.Signer
+    signer
   );
 }
 
-export async function getContractFactoryByName(
-  hre: HardhatRuntimeEnvironment,
-  name: string,
+function isFactoryOptions(
   signerOrOptions?: ethers.Signer | FactoryOptions
-) {
-  return internalGetContractFactoryByName(hre, name, true, signerOrOptions);
-}
-
-function isFactoryOptions(argument: any): argument is FactoryOptions {
-  return (
-    typeof argument === "object" &&
-    !(argument instanceof ethers.Signer) &&
-    (!("signer" in argument) || argument.signer instanceof ethers.Signer) &&
-    (!("libraryLinks" in argument) || typeof argument.libraryLinks === "object")
-  );
-}
-
-async function internalGetContractFactoryByName(
-  hre: HardhatRuntimeEnvironment,
-  name: string,
-  shouldThrowOnAbstract: boolean,
-  signerOrOptions?: ethers.Signer | FactoryOptions
-) {
-  const artifact = await hre.artifacts.readArtifact(name);
-  let { bytecode } = artifact;
-  if (shouldThrowOnAbstract && bytecode === "0x") {
-    throw new NomicLabsHardhatPluginError(
-      "hardhat-ethers",
-      `The requested contract, ${name}, is an abstract contract.
-Contract factories need non-abstract contracts to work.`
-    );
+): signerOrOptions is FactoryOptions {
+  if (
+    signerOrOptions === undefined ||
+    signerOrOptions instanceof ethers.Signer
+  ) {
+    return false;
   }
 
-  let signer;
+  return true;
+}
+
+async function getContractFactoryByName(
+  hre: HardhatRuntimeEnvironment,
+  contractName: string,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+) {
+  const artifact = await hre.artifacts.readArtifact(contractName);
+
   const neededLibraries: Array<{
     sourceName: string;
     libName: string;
@@ -113,90 +106,94 @@ Contract factories need non-abstract contracts to work.`
       neededLibraries.push({ sourceName, libName });
     }
   }
-  if (!isFactoryOptions(signerOrOptions)) {
-    if (neededLibraries.length > 0) {
-      const missingLibraries = neededLibraries.map(
-        (lib) => `${lib.sourceName}:${lib.libName}`
+
+  let signer: ethers.Signer | undefined;
+  let libraryLinks: LibraryLinks = {};
+  if (isFactoryOptions(signerOrOptions)) {
+    signer = signerOrOptions.signer;
+    libraryLinks = signerOrOptions.libraryLinks ?? {};
+  } else {
+    signer = signerOrOptions;
+  }
+
+  const linksToApply: Map<string, Link> = new Map();
+  for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(
+    libraryLinks
+  )) {
+    if (!ethers.utils.isAddress(linkedLibraryAddress)) {
+      throw new NomicLabsHardhatPluginError(
+        "hardhat-ethers",
+        `The library name ${linkedLibraryName} has an invalid address: ${linkedLibraryAddress}.`
+      );
+    }
+
+    const matchingNeededLibraries = neededLibraries.filter((neededLibrary) => {
+      return (
+        neededLibrary.libName === linkedLibraryName ||
+        `${neededLibrary.sourceName}:${neededLibrary.libName}` ===
+          linkedLibraryName
+      );
+    });
+
+    if (matchingNeededLibraries.length > 1) {
+      const matchingNeededLibrariesFQNs = matchingNeededLibraries.map(
+        ({ sourceName, libName }) => `${sourceName}:${libName}`
       );
       throw new NomicLabsHardhatPluginError(
         "hardhat-ethers",
-        `The contract ${name} is missing links for the following libraries: ${missingLibraries.join(
-          ", "
-        )}`
-      );
-    }
-    signer = signerOrOptions;
-  } else {
-    signer = signerOrOptions.signer;
-    if (
-      signerOrOptions.libraryLinks !== undefined &&
-      neededLibraries.length > 0
-    ) {
-      const links: Map<string, Link> = new Map();
-      for (const [libraryName, address] of Object.entries(
-        signerOrOptions.libraryLinks
-      )) {
-        const libCandidates = neededLibraries.filter((lib) => {
-          return (
-            lib.libName === libraryName ||
-            `${lib.sourceName}:${lib.libName}` === libraryName
-          );
-        });
-        if (libCandidates.length > 1) {
-          const fullyQualifiedNames = libCandidates.map(
-            ({ sourceName, libName }) => `${sourceName}:${libName}`
-          );
-          throw new NomicLabsHardhatPluginError(
-            "hardhat-ethers",
-            `The library name ${libraryName} is ambiguous for the contract ${name}.
+        `The library name ${linkedLibraryName} is ambiguous for the contract ${contractName}.
 It may resolve to one of the following libraries:
-${fullyQualifiedNames.join("\n")}
+${matchingNeededLibrariesFQNs.join("\n")}
 
 To fix this, choose one of these fully qualified library names and replace where appropriate.`
-          );
-        }
-        if (libCandidates.length === 1) {
-          const [lib] = libCandidates;
-          const fullyQualifiedName = `${lib.sourceName}:${lib.libName}`;
-          if (links.has(fullyQualifiedName)) {
-            throw new NomicLabsHardhatPluginError(
-              "hardhat-ethers",
-              `The library names ${libraryName} and ${fullyQualifiedName} refer to the same library and were given as two separate library links.
-Remove one of them and review your library links before proceeding.`
-            );
-          }
+      );
+    }
 
-          if (!hre.ethers.utils.isAddress(address)) {
-            throw new NomicLabsHardhatPluginError(
-              "hardhat-ethers",
-              `The library name ${libraryName} has an invalid address: ${address}.`
-            );
-          }
-          links.set(fullyQualifiedName, {
-            sourceName: lib.sourceName,
-            libraryName: lib.libName,
-            address,
-          });
-        }
-      }
-      if (links.size < neededLibraries.length) {
-        const missingLibraries = neededLibraries
-          .map((lib) => `${lib.sourceName}:${lib.libName}`)
-          .filter((libFQName) => !links.has(libFQName));
+    if (matchingNeededLibraries.length === 1) {
+      const [neededLibrary] = matchingNeededLibraries;
+
+      const neededLibraryFQN = `${neededLibrary.sourceName}:${neededLibrary.libName}`;
+
+      if (linksToApply.has(neededLibraryFQN)) {
         throw new NomicLabsHardhatPluginError(
           "hardhat-ethers",
-          `The contract ${name} is missing links for the following libraries: ${missingLibraries.join(
-            ", "
-          )}`
+          `The library names ${linkedLibraryName} and ${neededLibraryFQN} refer to the same library and were given as two separate library links.
+Remove one of them and review your library links before proceeding.`
         );
       }
-      bytecode = linkBytecode(artifact, [...links.values()]);
+
+      linksToApply.set(neededLibraryFQN, {
+        sourceName: neededLibrary.sourceName,
+        libraryName: neededLibrary.libName,
+        address: linkedLibraryAddress,
+      });
     }
   }
+
+  // TODO-HH: what happens if linksToApply.size > neededLibraries.length? warning, throw, nothing?
+  if (linksToApply.size < neededLibraries.length) {
+    const missingLibrariesFQNs = neededLibraries
+      .map((lib) => `${lib.sourceName}:${lib.libName}`)
+      .filter((libFQName) => !linksToApply.has(libFQName));
+
+    const missingLibraries = missingLibrariesFQNs
+      .map((x) => `* ${x}`)
+      .join("\n");
+
+    throw new NomicLabsHardhatPluginError(
+      "hardhat-ethers",
+      `The contract ${contractName} is missing links for the following libraries:
+
+${missingLibraries}`
+    );
+  }
+
+  const linkedBytecode = linkBytecode(artifact, [...linksToApply.values()]);
+
   return getContractFactoryByAbiAndBytecode(
     hre,
     artifact.abi,
-    bytecode,
+    linkedBytecode,
     signer
   );
 }
@@ -217,7 +214,7 @@ export async function getContractFactoryByAbiAndBytecode(
     abi
   );
 
-  return new hre.ethers.ContractFactory(abiWithAddedGas, bytecode, signer);
+  return new ethers.ContractFactory(abiWithAddedGas, bytecode, signer);
 }
 
 export async function getContractAt(
@@ -227,12 +224,7 @@ export async function getContractAt(
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
-    const factory = await internalGetContractFactoryByName(
-      hre,
-      nameOrAbi,
-      false,
-      signer
-    );
+    const factory = await getContractFactoryByName(hre, nameOrAbi, signer);
     return factory.attach(address);
   }
 
@@ -246,7 +238,7 @@ export async function getContractAt(
     nameOrAbi
   );
 
-  return new hre.ethers.Contract(address, abiWithAddedGas, signer);
+  return new ethers.Contract(address, abiWithAddedGas, signer);
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network
