@@ -1,4 +1,9 @@
-import { FakeTransaction, FakeTxData, Transaction } from "ethereumjs-tx";
+import {
+  FakeTransaction,
+  FakeTxData,
+  Transaction,
+  TxData,
+} from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
@@ -7,9 +12,10 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
+import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 
-export function createTestTransaction() {
-  return new Transaction({ to: randomAddressBuffer() });
+export function createTestTransaction(data: TxData = {}) {
+  return new Transaction({ to: randomAddressBuffer(), ...data });
 }
 
 export function createTestFakeTransaction(data: FakeTxData = {}) {
@@ -19,6 +25,11 @@ export function createTestFakeTransaction(data: FakeTxData = {}) {
     nonce: 1,
     ...data,
   });
+}
+
+export function createTestSerializedTransaction(data?: TxData) {
+  const tx = createTestTransaction(data);
+  return serializeTransaction(tx);
 }
 
 export function createTestReceipt(
