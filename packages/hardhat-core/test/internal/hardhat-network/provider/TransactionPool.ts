@@ -90,6 +90,22 @@ describe("Transaction Pool", () => {
               [tx1, tx2].map((tx) => tx.raw)
             );
           });
+
+          xit("moves queued transactions with subsequent nonces to pending", async () => {
+            const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+            const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+            const tx3 = createTestFakeTransaction({ from: address, nonce: 1 });
+
+            await txPool.addTransaction(tx1);
+            await txPool.addTransaction(tx2);
+            await txPool.addTransaction(tx3);
+
+            const pendingTxs = txPool.getPendingTransactions();
+            assert.sameDeepMembers(
+              pendingTxs.map((tx) => tx.raw),
+              [tx1, tx2, tx3].map((tx) => tx.raw)
+            );
+          });
         });
 
         describe("when transaction nonce is higher than account executable nonce", () => {
@@ -120,6 +136,48 @@ describe("Transaction Pool", () => {
             );
           });
         });
+      });
+    });
+
+    describe("for multiple transaction senders", () => {
+      const address1 = randomAddressBuffer();
+      const address2 = randomAddressBuffer();
+
+      it("can add transactions from many senders", async () => {
+        const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
+        const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
+
+        await txPool.addTransaction(tx1);
+        await txPool.addTransaction(tx2);
+
+        const pendingTxs = txPool.getPendingTransactions();
+
+        assert.sameDeepMembers(
+          pendingTxs.map((tx) => tx.raw),
+          [tx1, tx2].map((tx) => tx.raw)
+        );
+      });
+
+      xit("does not mix up queued transactions from different senders", async () => {
+        // A. as S1 add tx.n=0
+        // B. as S2 add tx.n=0
+        // C. as S1 add tx.n=2
+        // D. as S2 add tx.n=1
+        // getPendingTxs => A, B, D
+      });
+
+      xit("TODO", async () => {
+        // A. as S1 add tx.n=0
+        // B. as S2 add tx.n=0
+        // C. as S1 add tx.n=2
+        // D. as S2 add tx.n=1
+        // E. as S1 add tx.n=1
+        // getPendingTxs => A, B, C, D, E
+      });
+
+      xit("TODO", async () => {
+        // executableNonce = 3
+        // queued = [5, 4, 6];
       });
     });
   });

@@ -4,13 +4,30 @@ import { List as ImmutableList, Map as ImmutableMap } from "immutable";
 
 import { PStateManager } from "./types/PStateManager";
 
-type SerialisedTransaction = ImmutableList<string>;
+type SerializedTransaction = ImmutableList<string>;
+type SenderTransactions = ImmutableMap<
+  string,
+  ImmutableList<SerializedTransaction>
+>;
+
+/* TODO: */
+class SortedImmutableList {
+  private _data: ImmutableList<Transaction> = ImmutableList();
+
+  public push(element: Transaction) {
+    // TODO
+  }
+
+  public toArray(): Transaction[] {
+    // TODO
+    return [];
+  }
+}
 
 export class TransactionPool {
-  // TODO: change this later to ImmutableMap<string, ImmutableList>
-  private _pendingTransactions = ImmutableList<SerialisedTransaction>(); // list of serialized pending Transactions
-  private _queuedTransactions = ImmutableList<SerialisedTransaction>(); // list of serialized queued Transactions
-  private _executableNonces = ImmutableMap<string, string>(); // account address => nonce (hex)
+  private _pendingTransactions: SenderTransactions = ImmutableMap(); // address => list of serialized pending Transactions
+  private _queuedTransactions: SenderTransactions = ImmutableMap(); // address => list of serialized queued Transactions
+  private _executableNonces = ImmutableMap<string, string>(); // address => nonce (hex)
 
   constructor(private readonly _stateManager: PStateManager) {}
 
@@ -31,10 +48,11 @@ export class TransactionPool {
   }
 
   public getPendingTransactions(): Transaction[] {
-    const pendingTransactions = this._pendingTransactions.map((tx) =>
-      this._deserialiseTransaction(tx)
-    );
-    return pendingTransactions.toArray();
+    const list = this._pendingTransactions
+      .toList()
+      .map((txs) => txs.map((tx) => this._deserializeTransaction(tx)))
+      .flatten() as ImmutableList<Transaction>;
+    return list.toArray();
   }
 
   public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
@@ -54,23 +72,78 @@ export class TransactionPool {
   }
 
   private _addPendingTransaction(tx: Transaction) {
-    this._pendingTransactions = this._pendingTransactions.push(
-      this._serialiseTransaction(tx)
+    const hexAccountAddress = bufferToHex(tx.getSenderAddress());
+    const accountTransactions =
+      this._pendingTransactions.get(hexAccountAddress) ??
+      ImmutableList<SerializedTransaction>();
+    this._pendingTransactions = this._pendingTransactions.set(
+      hexAccountAddress,
+      accountTransactions.push(this._serializeTransaction(tx))
     );
   }
 
   private _addQueuedTransaction(tx: Transaction) {
-    const serialisedTx = this._serialiseTransaction(tx);
-    this._queuedTransactions = this._queuedTransactions.push(serialisedTx);
+    const hexAccountAddress = bufferToHex(tx.getSenderAddress());
+    const accountTransactions =
+      this._queuedTransactions.get(hexAccountAddress) ??
+      ImmutableList<SerializedTransaction>();
+    this._queuedTransactions = this._queuedTransactions.set(
+      hexAccountAddress,
+      accountTransactions.push(this._serializeTransaction(tx))
+    );
   }
 
-  private _serialiseTransaction(tx: Transaction): SerialisedTransaction {
-    const serialisedFields = tx.raw.map((field) => bufferToHex(field));
-    return ImmutableList(serialisedFields);
+  private _moveQueuedTransactionToPending(tx: Transaction) {
+    const serializedTransaction = this._serializeTransaction(tx);
+    const senderAddress = bufferToHex(tx.getSenderAddress());
+    const senderTransactions = this._queuedTransactions.get(
+      bufferToHex(tx.getSenderAddress())
+    );
+    if (senderTransactions === undefined) {
+      throw new Error("TODO, this should never happen");
+    }
+    this._queuedTransactions = this._queuedTransactions.set(
+      senderAddress,
+      senderTransactions.filter((tx) => tx !== serializedTransaction)
+    );
+    this._addPendingTransaction(tx);
   }
 
-  private _deserialiseTransaction(tx: SerialisedTransaction): Transaction {
+  private _serializeTransaction(tx: Transaction): SerializedTransaction {
+    const serializedFields = tx.raw.map((field) => bufferToHex(field));
+    return ImmutableList(serializedFields);
+  }
+
+  private _deserializeTransaction(tx: SerializedTransaction): Transaction {
     const fields = tx.toArray().map((field) => toBuffer(field));
     return new Transaction(fields);
+  }
+
+  private _moveQueuedTransactions() {
+    const pendingTransactions = this._pendingTransactions.map((transactions) =>
+      transactions.map((tx) => this._deserializeTransaction(tx))
+    );
+    const queuedTransactions = this._queuedTransactions.map((transactions) =>
+      transactions.map((tx) => this._deserializeTransaction(tx))
+    );
+
+    for (const address in queuedTransactions) {
+      if (queuedTransactions.has(address)) {
+        const transactions = queuedTransactions.get(address);
+        if (transactions !== undefined) {
+          transactions.forEach((queued) => {
+            const txNonce = new BN(queued.nonce);
+
+            // TODO: Move this to a while loop
+            pendingTransactions.get(address)?.forEach((pending) => {
+              const pendingNonce = new BN(pending.nonce);
+              if (txNonce.addn(1).eq(pendingNonce)) {
+                this._moveQueuedTransactionToPending(queued);
+              }
+            });
+          });
+        }
+      }
+    }
   }
 }
