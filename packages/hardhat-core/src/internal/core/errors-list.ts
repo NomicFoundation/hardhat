@@ -191,19 +191,8 @@ Read the [documentation](https://usehardhat.com/config/#networks-configuration) 
 Please make sure you are setting your config correctly.`,
       shouldBeReported: false,
     },
-    /* DEPRECATED: This error only happened because of a misconception in Hardhat */
-    DEPRECATED_INVALID_TX_CHAIN_ID: {
-      number: 102,
-      message:
-        "Trying to send a tx with chain id %txChainId%, but Hardhat is connected to a chain with id %chainId%.",
-      title: "Incorrectly send chainId in a transaction",
-      description: `Hardhat sent the \`chainId\` field in a transaction. 
-
-Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
-      shouldBeReported: false,
-    },
     ETHSIGN_MISSING_DATA_PARAM: {
-      number: 103,
+      number: 102,
       message: 'Missing "data" param when calling eth_sign.',
       title: "Missing `data` param when calling eth_sign.",
       description: `You called \`eth_sign\` with incorrect parameters.
@@ -212,7 +201,7 @@ Please check that you are sending a \`data\` parameter.`,
       shouldBeReported: false,
     },
     NOT_LOCAL_ACCOUNT: {
-      number: 104,
+      number: 103,
       message:
         "Account %account% is not managed by the node you are connected to.",
       title: "Unrecognized account",
@@ -223,7 +212,7 @@ Please double check your accounts and the \`from\` parameter in your RPC calls.`
       shouldBeReported: false,
     },
     MISSING_TX_PARAM_TO_SIGN_LOCALLY: {
-      number: 105,
+      number: 104,
       message: "Missing param %param% from a tx being signed locally.",
       title: "Missing transaction parameter",
       description: `You are trying to send a transaction with a locally managed 
@@ -233,7 +222,7 @@ Please double check your transactions' parameters.`,
       shouldBeReported: false,
     },
     NO_REMOTE_ACCOUNT_AVAILABLE: {
-      number: 106,
+      number: 105,
       message:
         "No local account was set and there are accounts in the remote node.",
       title: "No remote accounts available",
@@ -243,7 +232,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       shouldBeReported: false,
     },
     INVALID_HD_PATH: {
-      number: 107,
+      number: 106,
       message:
         "HD path %path% is invalid. Read about BIP32 to know about the valid forms.",
       title: "Invalid HD path",
@@ -253,7 +242,7 @@ Read the [documentation](https://usehardhat.com/config/#hd-wallet-config) to lea
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {
-      number: 108,
+      number: 107,
       message:
         "Received invalid value `%value%` from/to the node's JSON-RPC, but a Quantity was expected.",
       title: "Invalid JSON-RPC value",
@@ -263,7 +252,7 @@ Please double check your calls' parameters and keep your Ethereum node up to dat
       shouldBeReported: false,
     },
     NODE_IS_NOT_RUNNING: {
-      number: 109,
+      number: 108,
       message: `Cannot connect to the network %network%.
 Please make sure your node is running, and check your internet connection and networks config`,
       title: "Cannot connect to the network",
@@ -273,7 +262,7 @@ Please make sure your node is running, and check your internet connection and ne
       shouldBeReported: false,
     },
     NETWORK_TIMEOUT: {
-      number: 110,
+      number: 109,
       message: `Network connection timed-out.
 Please check your internet connection and networks config`,
       title: "Network timeout",
@@ -283,7 +272,7 @@ Please make sure your node is running, and check your internet connection and ne
       shouldBeReported: false,
     },
     INVALID_JSON_RESPONSE: {
-      number: 111,
+      number: 110,
       message: "Invalid JSON-RPC response received: %response%",
       title: "Invalid JSON-RPC response",
       description: `One of your JSON-RPC requests received an invalid response. 
@@ -292,7 +281,7 @@ Please make sure your node is running, and check your internet connection and ne
       shouldBeReported: false,
     },
     CANT_DERIVE_KEY: {
-      number: 112,
+      number: 111,
       message:
         "Cannot derive key %path% from mnemonic '%mnemonic%.\nTry using another mnemonic or deriving less keys.",
       title: "Could not derive an HD key",
@@ -583,29 +572,8 @@ This is not supported. Please run the help task to see the available options.`,
       description: `Tried to resolve a non-existing Solidity file as an entry-point.`,
       shouldBeReported: false,
     },
-    // Deprecated: This error was replaced by one that includes more context
-    FILE_OUTSIDE_PROJECT: {
-      number: 401,
-      message: "File %file% is outside the project.",
-      title: "Tried to import file outside your project",
-      description: `One of your projects tried to import a file that it's outside your Hardhat project. 
-
-This is disabled for security reasons.`,
-      shouldBeReported: false,
-    },
-    // Deprecated: This error was replaced by one that includes more context
-    LIBRARY_FILE_NOT_LOCAL: {
-      number: 402,
-      message:
-        "File %file% belongs to a library but was treated as a local one.",
-      title: "Resolved library file as a local one",
-      description: `One of your libraries' files was treated as a local file. This is a bug. 
-
-Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
-      shouldBeReported: true,
-    },
     LIBRARY_NOT_INSTALLED: {
-      number: 403,
+      number: 401,
       message: "Library %library% is not installed.",
       title: "Solidity library not installed",
       description: `One of your Solidity sources imports a library that is not installed.
@@ -614,7 +582,7 @@ Please double check your imports or install the missing dependency.`,
       shouldBeReported: false,
     },
     LIBRARY_FILE_NOT_FOUND: {
-      number: 404,
+      number: 402,
       message: "File %file% doesn't exist.",
       title: "Missing library file",
       description: `One of your libraries' files was imported but doesn't exist. 
@@ -623,7 +591,7 @@ Please double check your imports or update your libraries.`,
       shouldBeReported: false,
     },
     ILLEGAL_IMPORT: {
-      number: 405,
+      number: 403,
       message: "Illegal import %imported% from %from%",
       title: "Illegal Solidity import",
       description: `One of your libraries tried to use a relative import to import a file outside of its scope. 
@@ -631,19 +599,8 @@ Please double check your imports or update your libraries.`,
 This is disabled for security reasons.`,
       shouldBeReported: false,
     },
-    // Deprecated:  This error was replaced by one with more context
-    FILE_OUTSIDE_LIB: {
-      number: 406,
-      message:
-        "File %file% from %library% is resolved to a path outside of its library.",
-      title: "Illegal Solidity import",
-      description: `One of your libraries tried to use a relative import to import a file outside of its scope. 
-
-This is disabled for security reasons.`,
-      shouldBeReported: false,
-    },
     IMPORTED_FILE_NOT_FOUND: {
-      number: 407,
+      number: 404,
       message: "File %imported%, imported from %from%, not found.",
       title: "Imported file not found",
       description: `One of your source files imported a non-existing one. 
@@ -652,7 +609,7 @@ Please double check your imports.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_BACKSLASH: {
-      number: 408,
+      number: 405,
       message:
         "Invalid import %imported% from %from%. Imports must use / instead of \\, even in Windows",
       title: "Invalid import: use / instead of \\",
@@ -662,7 +619,7 @@ You must always use slashes (/) in Solidity imports.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_PROTOCOL: {
-      number: 409,
+      number: 406,
       message:
         "Invalid import %imported% from %from%. Hardhat doesn't support imports via %protocol%.",
       title: "Invalid import: trying to use an unsupported protocol",
@@ -672,7 +629,7 @@ You can only import files thar are available locally or installed through npm.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_ABSOLUTE_PATH: {
-      number: 410,
+      number: 407,
       message:
         "Invalid import %imported% from %from%. Hardhat doesn't support imports with absolute paths.",
       title: "Invalid import: absolute paths unsupported",
@@ -682,7 +639,7 @@ This is not supported, as it would lead to hard to reproduce compilations.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_OUTSIDE_OF_PROJECT: {
-      number: 411,
+      number: 408,
       message:
         "Invalid import %imported% from %from%. The file being imported is outside of the project",
       title: "Invalid import: file outside of the project",
@@ -692,7 +649,7 @@ This is not supported by Hardhat.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_WRONG_CASING: {
-      number: 412,
+      number: 409,
       message:
         "Trying to import %imported% from %from%, but it has an incorrect casing.",
       title: "Invalid import: wrong file casing",
@@ -702,7 +659,7 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
       shouldBeReported: false,
     },
     WRONG_SOURCE_NAME_CASING: {
-      number: 413,
+      number: 410,
       message:
         "Trying to resolve the file %incorrect% but its correct case-sensitive name is %correct%",
       title: "Incorrect source name casing",
@@ -712,7 +669,7 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
       shouldBeReported: false,
     },
     IMPORTED_LIBRARY_NOT_INSTALLED: {
-      number: 414,
+      number: 411,
       message:
         "The library %library%, imported from %from%, is not installed. Try installing it using npm.",
       title: "Invalid import: library not installed",
@@ -808,15 +765,8 @@ We recommend not using this kind of dependencies.`,
       description: `There was error while starting the JSON-RPC HTTP server.`,
       shouldBeReported: false,
     },
-    JSONRPC_HANDLER_ERROR: {
-      number: 605,
-      message: "Error handling JSON-RPC request: %error%",
-      title: "Error handling JSON-RPC request",
-      description: `Handling an incoming JSON-RPC request resulted in an error.`,
-      shouldBeReported: false,
-    },
     JSONRPC_UNSUPPORTED_NETWORK: {
-      number: 606,
+      number: 605,
       message:
         "Unsupported network for JSON-RPC server. Only hardhat is currently supported.",
       title: "Unsupported network for JSON-RPC server.",
@@ -826,7 +776,7 @@ To start the JSON-RPC server, retry the command without the --network parameter.
       shouldBeReported: false,
     },
     COMPILATION_JOBS_CREATION_FAILURE: {
-      number: 607,
+      number: 606,
       message: `The project cannot be compiled, see reasons below.
 
 %reasons%`,
@@ -871,49 +821,8 @@ Hardhat's artifact resolution is case sensitive to ensure projects are portable 
     },
   },
   PLUGINS: {
-    NOT_INSTALLED: {
-      number: 800,
-      message: `Plugin %plugin% is not installed.
-%extraMessage%Please run: npm install --save-dev%extraFlags% %plugin%`,
-      title: "Plugin not installed",
-      description: `You are trying to use a plugin that hasn't been installed. 
-
-Please follow Hardhat's instructions to resolve this.`,
-      shouldBeReported: false,
-    },
-    MISSING_DEPENDENCY: {
-      number: 801,
-      message: `Plugin %plugin% requires %dependency% to be installed.
-%extraMessage%Please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"`,
-      title: "Plugin dependencies not installed",
-      description: `You are trying to use a plugin with unmet dependencies. 
-
-Please follow Hardhat's instructions to resolve this.`,
-      shouldBeReported: false,
-    },
-    DEPENDENCY_VERSION_MISMATCH: {
-      number: 802,
-      message: `Plugin %plugin% requires %dependency% version %versionSpec% but got %installedVersion%.
-%extraMessage%If you haven't installed %dependency% manually, please run: npm install --save-dev%extraFlags% "%dependency%@%versionSpec%"
-If you have installed %dependency% yourself, please reinstall it with a valid version.`,
-      title: "Plugin dependencies's version mismatch",
-      description: `You are trying to use a plugin that requires a different version of one of its dependencies. 
-
-Please follow Hardhat's instructions to resolve this.`,
-      shouldBeReported: false,
-    },
-    OLD_STYLE_IMPORT_DETECTED: {
-      number: 803,
-      message: `You are trying to load %pluginNameText% with a require or import statement.
-Please replace it with a call to usePlugin("%pluginNameCode%").`,
-      title: "Importing a plugin with `require`",
-      description: `You are trying to load a plugin with a call to \`require\`. 
-
-Please use \`usePlugin(npm-plugin-package)\` instead.`,
-      shouldBeReported: false,
-    },
     BUIDLER_PLUGIN: {
-      number: 804,
+      number: 800,
       message: `You are using %plugin%, which is a Buidler plugin. Use the equivalent
 Hardhat plugin instead.`,
       title: "Using a buidler plugin",
@@ -923,7 +832,7 @@ Please use the equivalent Hardhat plugin instead.`,
       shouldBeReported: false,
     },
     MISSING_DEPENDENCIES: {
-      number: 805,
+      number: 801,
       message: `Plugin %plugin% requires the following dependencies to be installed: %missingDependencies%.
 %extraMessage%Please run: npm install --save-dev%extraFlags% %missingDependenciesVersions%`,
       title: "Plugin dependencies not installed",
