@@ -1,8 +1,6 @@
-const { loadPluginFile } = require("hardhat/plugins-testing");
+require("@nomiclabs/hardhat-ethers");
 
-usePlugin("@nomiclabs/hardhat-ethers");
-
-loadPluginFile(__dirname + "/../../src/index");
+require(__dirname + "/../../src/index");
 
 module.exports = {
   etherscan: {
