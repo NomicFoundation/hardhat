@@ -54,39 +54,37 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
     .trim();
 }
 
-export default function () {
-  subtask(
-    TASK_FLATTEN_GET_FLATTENED_SOURCE,
-    "Returns all contracts and their dependencies flattened",
-    async (_, { run }) => {
-      let flattened = "";
+subtask(
+  TASK_FLATTEN_GET_FLATTENED_SOURCE,
+  "Returns all contracts and their dependencies flattened",
+  async (_, { run }) => {
+    let flattened = "";
 
-      const graph: DependencyGraph = await run(
-        TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH
-      );
-      if (graph.getResolvedFiles().length === 0) {
-        return flattened;
-      }
-
-      const packageJson = await getPackageJson();
-      flattened += `// Sources flattened with hardhat v${packageJson.version} https://usehardhat.com`;
-
-      const sortedFiles = getSortedFiles(graph);
-
-      for (const file of sortedFiles) {
-        flattened += `\n\n// File ${file.getVersionedName()}\n`;
-        flattened += `\n${getFileWithoutImports(file)}\n`;
-      }
-
-      return flattened.trim();
+    const graph: DependencyGraph = await run(
+      TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH
+    );
+    if (graph.getResolvedFiles().length === 0) {
+      return flattened;
     }
-  );
 
-  task(
-    TASK_FLATTEN,
-    "Flattens and prints all contracts and their dependencies",
-    async (_, { run }) => {
-      console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE));
+    const packageJson = await getPackageJson();
+    flattened += `// Sources flattened with hardhat v${packageJson.version} https://usehardhat.com`;
+
+    const sortedFiles = getSortedFiles(graph);
+
+    for (const file of sortedFiles) {
+      flattened += `\n\n// File ${file.getVersionedName()}\n`;
+      flattened += `\n${getFileWithoutImports(file)}\n`;
     }
-  );
-}
+
+    return flattened.trim();
+  }
+);
+
+task(
+  TASK_FLATTEN,
+  "Flattens and prints all contracts and their dependencies",
+  async (_, { run }) => {
+    console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE));
+  }
+);
