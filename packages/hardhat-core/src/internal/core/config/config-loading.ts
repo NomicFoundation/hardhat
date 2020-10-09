@@ -50,26 +50,22 @@ export function loadConfigAndTasks(
   );
 
   const ctx = HardhatContext.getHardhatContext();
-  ctx.setConfigPath(configPath);
 
-  const filesLoadedBeforeConfig = getRequireCachedFiles();
-
-  loadPluginFile(path.join(__dirname, "..", "tasks", "builtin-tasks"));
+  ctx.setConfigLoadingAsStarted();
 
   let userConfig;
+
   try {
+    require("../tasks/builtin-tasks");
     userConfig = importCsjOrEsModule(configPath);
   } catch (e) {
     analyzeModuleNotFoundError(e, configPath);
 
     // tslint:disable-next-line only-hardhat-error
     throw e;
+  } finally {
+    ctx.setConfigLoadingAsFinished();
   }
-
-  const filesLoadedAfterConfig = getRequireCachedFiles();
-  ctx.addFilesLoadedFromTheConfig(
-    arraysDifference(filesLoadedAfterConfig, filesLoadedBeforeConfig)
-  );
 
   validateConfig(userConfig);
 
@@ -202,12 +198,26 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
       missingDependenciesVersions: Object.entries(missingPeerDependencies)
         .map(([name, version]) => `"${name}@${version}"`)
         .join(" "),
-      extraMessage: globalWarning,
-      extraFlags: globalFlag,
     });
   }
 }
 
-function arraysDifference<T>(a: T[], b: T[]): T[] {
-  return a.filter((e) => !b.includes(e));
+interface PackageJson {
+  name: string;
+  version: string;
+  peerDependencies?: {
+    [name: string]: string;
+  };
+}
+
+function readPackageJson(packageName: string): PackageJson | undefined {
+  try {
+    const packageJsonPath = require.resolve(
+      path.join(packageName, "package.json")
+    );
+
+    return require(packageJsonPath);
+  } catch (error) {
+    return undefined;
+  }
 }

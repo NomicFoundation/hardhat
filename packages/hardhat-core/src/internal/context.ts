@@ -5,9 +5,10 @@ import {
 } from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";
-import { HardhatError } from "./core/errors";
+import { assertHardhatInvariant, HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { TasksDSL } from "./core/tasks/dsl";
+import { getRequireCachedFiles } from "./util/platform";
 
 export type GlobalWithHardhatContext = NodeJS.Global & {
   __hardhatContext: HardhatContext;
@@ -46,15 +47,13 @@ export class HardhatContext {
   public readonly tasksDSL = new TasksDSL();
   public readonly extendersManager = new ExtenderManager();
   public environment?: HardhatRuntimeEnvironment;
-  public readonly loadedPlugins: string[] = [];
   public readonly configExtenders: ConfigExtender[] = [];
 
   // NOTE: This is experimental and will be removed. Please contact our team if
   // you are planning to use it.
   public readonly experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [];
-
-  private _configPath?: string;
-  private readonly _filesLoadedFromTheConfig: string[] = [];
+  private _filesLoadedBeforeConfig?: string[];
+  private _filesLoadedAfterConfig?: string[];
 
   public setHardhatRuntimeEnvironment(env: HardhatRuntimeEnvironment) {
     if (this.environment !== undefined) {
@@ -70,27 +69,32 @@ export class HardhatContext {
     return this.environment;
   }
 
-  public setPluginAsLoaded(pluginName: string) {
-    this.loadedPlugins.push(pluginName);
+  public setConfigLoadingAsStarted() {
+    this._filesLoadedBeforeConfig = getRequireCachedFiles();
   }
 
-  public setConfigPath(configPath: string) {
-    this._configPath = configPath;
+  public setConfigLoadingAsFinished() {
+    this._filesLoadedAfterConfig = getRequireCachedFiles();
   }
 
-  public getConfigPath(): string {
-    if (this._configPath === undefined) {
-      throw new HardhatError(ERRORS.GENERAL.CONTEXT_CONFIG_PATH_NOT_SET);
+  public getFilesLoadedDuringConfig(): string[] {
+    // No config was loaded
+    if (this._filesLoadedBeforeConfig === undefined) {
+      return [];
     }
 
-    return this._configPath;
-  }
+    assertHardhatInvariant(
+      this._filesLoadedAfterConfig !== undefined,
+      "Config loading was set as started and not finished"
+    );
 
-  public addFilesLoadedFromTheConfig(paths: string[]) {
-    this._filesLoadedFromTheConfig.push(...paths);
+    return arraysDifference(
+      this._filesLoadedAfterConfig,
+      this._filesLoadedBeforeConfig
+    );
   }
+}
 
-  public getFilesLoadedFromTheConfig(): string[] {
-    return [...this._filesLoadedFromTheConfig];
-  }
+function arraysDifference<T>(a: T[], b: T[]): T[] {
+  return a.filter((e) => !b.includes(e));
 }

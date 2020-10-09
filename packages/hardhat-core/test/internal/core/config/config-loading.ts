@@ -122,7 +122,6 @@ describe("config loading", function () {
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
-      assert.isUndefined(globalAsAny.usePlugin);
 
       resetHardhatContext();
 
@@ -133,7 +132,6 @@ describe("config loading", function () {
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
-      assert.isUndefined(globalAsAny.usePlugin);
       resetHardhatContext();
     });
   });
@@ -328,7 +326,7 @@ Hardhat plugin instead.`
         loadConfigAndTasks();
         const ctx = HardhatContext.getHardhatContext();
 
-        const files = ctx.getFilesLoadedFromTheConfig();
+        const files = ctx.getFilesLoadedDuringConfig();
 
         for (const file of builtinTasksFiles) {
           // The task names may have been loaded before, so we ignore it.
