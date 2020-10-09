@@ -82,22 +82,20 @@ function printReport(reports: any) {
   console.log(formatter(reports));
 }
 
-export default function () {
-  subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
-    const { processPath } = await import("solhint/lib/index");
-    return processPath(
-      join(config.paths.sources, "**", "*.sol"),
-      await getSolhintConfig(config.paths.root)
-    );
-  });
+subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
+  const { processPath } = await import("solhint/lib/index");
+  return processPath(
+    join(config.paths.sources, "**", "*.sol"),
+    await getSolhintConfig(config.paths.root)
+  );
+});
 
-  task("check", async (_, { run }, runSuper) => {
-    if (runSuper.isDefined) {
-      await runSuper();
-    }
+task("check", async (_, { run }, runSuper) => {
+  if (runSuper.isDefined) {
+    await runSuper();
+  }
 
-    const reports = await run("hardhat-solhint:run-solhint");
+  const reports = await run("hardhat-solhint:run-solhint");
 
-    printReport(reports);
-  });
-}
+  printReport(reports);
+});
