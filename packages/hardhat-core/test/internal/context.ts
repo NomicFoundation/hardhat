@@ -58,7 +58,7 @@ describe("Hardhat context", async function () {
       const ctx = HardhatContext.createHardhatContext();
       expectHardhatError(
         () => ctx.getHardhatRuntimeEnvironment(),
-        ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED
+        ERRORS.GENERAL.CONTEXT_HRE_NOT_DEFINED
       );
     });
   });
@@ -78,7 +78,7 @@ describe("Hardhat context", async function () {
           HardhatContext.getHardhatContext().setHardhatRuntimeEnvironment(
             this.env
           ),
-        ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED
+        ERRORS.GENERAL.CONTEXT_HRE_ALREADY_DEFINED
       );
     });
   });

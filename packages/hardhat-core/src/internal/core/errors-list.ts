@@ -93,7 +93,7 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
-    CONTEXT_BRE_NOT_DEFINED: {
+    CONTEXT_HRE_NOT_DEFINED: {
       number: 6,
       message:
         "Hardhat Runtime Environment is not defined in the HardhatContext.",
@@ -103,7 +103,7 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
-    CONTEXT_BRE_ALREADY_DEFINED: {
+    CONTEXT_HRE_ALREADY_DEFINED: {
       number: 7,
       message:
         "Hardhat Runtime Environment is already defined in the HardhatContext",
