@@ -138,7 +138,7 @@ function testArtifactsFunctionality() {
 }
 
 describe("HardhatRuntimeEnvironment extension", function () {
-  useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
+  useEnvironment("hardhat-project-solc-0.5");
 
   it("It should add a require function to artifacts", function () {
     assert.isFunction(this.env.artifacts.require);
@@ -147,17 +147,17 @@ describe("HardhatRuntimeEnvironment extension", function () {
 
 describe("TruffleContracts loading and provisioning", function () {
   describe("When compiling with solc 0.5.x", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
+    useEnvironment("hardhat-project-solc-0.5");
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.4.x", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.4"));
+    useEnvironment("hardhat-project-solc-0.4");
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.6.x", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.6"));
+    useEnvironment("hardhat-project-solc-0.6");
     testArtifactsFunctionality();
   });
 
@@ -178,64 +178,38 @@ describe("TruffleContracts loading and provisioning", function () {
     }
 
     describe("With solc 0.4.x", function () {
-      useEnvironment(
-        path.join(__dirname, "hardhat-project-solc-0.4"),
-        "withoutAccounts"
-      );
+      useEnvironment("hardhat-project-solc-0.4", "withoutAccounts");
       shouldWorkWithoutAccounts();
     });
 
     describe("With solc 0.5.x", function () {
-      useEnvironment(
-        path.join(__dirname, "hardhat-project-solc-0.5"),
-        "withoutAccounts"
-      );
+      useEnvironment("hardhat-project-solc-0.5", "withoutAccounts");
       shouldWorkWithoutAccounts();
     });
 
     describe("With solc 0.6.x", function () {
-      useEnvironment(
-        path.join(__dirname, "hardhat-project-solc-0.6"),
-        "withoutAccounts"
-      );
+      useEnvironment("hardhat-project-solc-0.6", "withoutAccounts");
       shouldWorkWithoutAccounts();
     });
   });
 });
 
 describe("Test contracts compilation", function () {
-  useEnvironment(path.join(__dirname, "hardhat-project-with-test-contracts"));
+  useEnvironment("hardhat-project-with-test-contracts");
 
   it("Should include sources from sources", async function () {
     const sources = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
 
     assert.include(
       sources,
-      fs.realpathSync(
-        path.join(
-          __dirname,
-          "hardhat-project-with-test-contracts",
-          "contracts",
-          "fromContracts.sol"
-        )
-      )
+      fs.realpathSync(path.join("contracts", "fromContracts.sol"))
     );
   });
 
   it("Should include sources from test", async function () {
     const sources = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
 
-    assert.include(
-      sources,
-      fs.realpathSync(
-        path.join(
-          __dirname,
-          "hardhat-project-with-test-contracts",
-          "test",
-          "fromTest.sol"
-        )
-      )
-    );
+    assert.include(sources, fs.realpathSync(path.join("test", "fromTest.sol")));
   });
 
   it("Should ignore non-source files from test", async function () {
@@ -243,14 +217,7 @@ describe("Test contracts compilation", function () {
 
     assert.notInclude(
       sources,
-      fs.realpathSync(
-        path.join(
-          __dirname,
-          "hardhat-project-with-test-contracts",
-          "test",
-          "shouldBeIgnored.txt"
-        )
-      )
+      fs.realpathSync(path.join("test", "shouldBeIgnored.txt"))
     );
   });
 

@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
-import path from "path";
 
 import { useEnvironment } from "./helpers";
 
@@ -133,34 +132,22 @@ function linkingShouldWorkCorrectly(isAmbiguous = false) {
 
 describe("Libraries linking", function () {
   describe("When using solc 0.4.x", function () {
-    useEnvironment(
-      path.join(__dirname, "hardhat-project-solc-0.4"),
-      HARDHAT_NETWORK_NAME
-    );
+    useEnvironment("hardhat-project-solc-0.4", HARDHAT_NETWORK_NAME);
     linkingShouldWorkCorrectly();
   });
 
   describe("When using solc 0.5.x", function () {
-    useEnvironment(
-      path.join(__dirname, "hardhat-project-solc-0.5"),
-      HARDHAT_NETWORK_NAME
-    );
+    useEnvironment("hardhat-project-solc-0.5", HARDHAT_NETWORK_NAME);
     linkingShouldWorkCorrectly();
   });
 
   describe("When using solc 0.6.x", function () {
-    useEnvironment(
-      path.join(__dirname, "hardhat-project-solc-0.6"),
-      HARDHAT_NETWORK_NAME
-    );
+    useEnvironment("hardhat-project-solc-0.6", HARDHAT_NETWORK_NAME);
     linkingShouldWorkCorrectly();
   });
 
   describe("When the contract and the library have ambiguous names", function () {
-    useEnvironment(
-      path.join(__dirname, "hardhat-project-ambiguous-names"),
-      HARDHAT_NETWORK_NAME
-    );
+    useEnvironment("hardhat-project-ambiguous-names", HARDHAT_NETWORK_NAME);
     linkingShouldWorkCorrectly(true);
   });
 });

@@ -1,4 +1,4 @@
-require(__dirname + "/../../src/index");
+require("../../../src/index");
 
 module.exports = {
   networks: {
@@ -7,5 +7,5 @@ module.exports = {
       accounts: [],
     },
   },
-  solidity: "0.5.1",
+  solidity: "0.6.1",
 };
