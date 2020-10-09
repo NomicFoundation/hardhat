@@ -1,7 +1,6 @@
 import { assert } from "chai";
 
 import {
-  resolveHardhatRegisterPath,
   runScript,
   runScriptWithHardhat,
 } from "../../../src/internal/util/scripts-runner";
@@ -36,48 +35,7 @@ describe("Scripts runner", function () {
   });
 
   it("Should resolve to the status code of the script run", async function () {
-    const hardhatRegisterPath = resolveHardhatRegisterPath();
-
-    const extraNodeArgs = ["--require", hardhatRegisterPath];
-    const scriptArgs: string[] = [];
-
-    const runScriptCases = [
-      {
-        scriptPath: "./async-script.js",
-        extraNodeArgs,
-        expectedStatusCode: 0,
-      },
-      {
-        scriptPath: "./failing-script.js",
-        expectedStatusCode: 123,
-      },
-      {
-        scriptPath: "./successful-script.js",
-        extraNodeArgs,
-        expectedStatusCode: 0,
-      },
-    ];
-
-    const runScriptTestResults = await Promise.all(
-      runScriptCases.map(
-        async ({ scriptPath, extraNodeArgs: _extraNodeArgs }) => {
-          const statusCode =
-            _extraNodeArgs === undefined
-              ? await runScript(scriptPath)
-              : await runScript(scriptPath, scriptArgs, _extraNodeArgs);
-          return { scriptPath, statusCode };
-        }
-      )
-    );
-
-    const expectedResults = runScriptCases.map(
-      ({ expectedStatusCode, scriptPath }) => ({
-        scriptPath,
-        statusCode: expectedStatusCode,
-      })
-    );
-
-    assert.deepEqual(runScriptTestResults, expectedResults);
+    assert.deepEqual(await runScript("./failing-script.js"), 123);
   });
 
   it("Should pass env variables to the script", async function () {
