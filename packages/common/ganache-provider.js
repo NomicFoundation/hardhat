@@ -1,18 +1,18 @@
-import { ChildProcess, spawn } from "child_process";
-import detect from "detect-port";
+const { spawn } = require("child_process");
+const detect = require("detect-port");
 
 const { GANACHE_PORT } = process.env;
 
 const port = GANACHE_PORT !== undefined ? Number(GANACHE_PORT) : 8545;
 
-export function cleanup(ganacheChild: ChildProcess) {
+function cleanup(ganacheChild) {
   if (ganacheChild === undefined || ganacheChild === null) {
     return;
   }
   ganacheChild.kill();
 }
 
-async function startGanache(args: string[] = []): Promise<ChildProcess> {
+async function startGanache(args = []) {
   const ganacheCliPath = require.resolve("ganache-cli/cli.js");
 
   const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
@@ -23,7 +23,7 @@ async function startGanache(args: string[] = []): Promise<ChildProcess> {
     ganacheChild.stdout.setEncoding("utf8");
     ganacheChild.stderr.setEncoding("utf8");
 
-    function checkIsRunning(data: string | Buffer) {
+    function checkIsRunning(data) {
       const log = data.toString();
 
       const logLower = log.toLowerCase();
@@ -49,14 +49,10 @@ async function startGanache(args: string[] = []): Promise<ChildProcess> {
  */
 async function isGanacheRunning() {
   const suggestedFreePort = await detect(port);
-  const isPortInUse = suggestedFreePort !== port;
-
-  return isPortInUse;
+  return suggestedFreePort !== port;
 }
 
-export async function ganacheSetup(
-  args: string[] = []
-): Promise<ChildProcess | null> {
+async function ganacheSetup(args = []) {
   if (await isGanacheRunning()) {
     // if ganache is already running, we just reuse the instance
     return null;
@@ -64,3 +60,6 @@ export async function ganacheSetup(
 
   return startGanache(args);
 }
+
+module.exports.ganacheSetup = ganacheSetup;
+module.exports.cleanup = cleanup;

@@ -1,6 +1,4 @@
-import { ChildProcess } from "child_process";
-
-import { cleanup, ganacheSetup } from "../src/helper/ganache-provider";
+const { cleanup, ganacheSetup } = require("./ganache-provider");
 
 const { GANACHE_CLI_ARGS } = process.env;
 
@@ -8,7 +6,7 @@ const ganacheCliArgs = (GANACHE_CLI_ARGS !== undefined ? GANACHE_CLI_ARGS : "")
   .split(/[\s,]+/)
   .filter((arg) => arg.length > 0);
 
-let ganacheInstance: ChildProcess | null;
+let ganacheInstance;
 
 /**
  * Ensure ganache is running, for tests that require it.
