@@ -8,7 +8,6 @@ import {
 } from "../../../types";
 import { HardhatContext } from "../../context";
 import * as argumentTypes from "../params/argumentTypes";
-import { usePlugin as usePluginImplementation } from "../plugins";
 
 /**
  * Creates a task, overriding any previous task with the same name.
@@ -143,13 +142,4 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 ) {
   const ctx = HardhatContext.getHardhatContext();
   ctx.experimentalHardhatNetworkMessageTraceHooks.push(hook);
-}
-
-/**
- * Loads a Hardhat plugin
- * @param pluginName The plugin name.
- */
-export function usePlugin(pluginName: string) {
-  const ctx = HardhatContext.getHardhatContext();
-  usePluginImplementation(ctx, pluginName);
 }

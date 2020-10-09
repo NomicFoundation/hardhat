@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import findUp from "find-up";
 import fsExtra from "fs-extra";
 import path from "path";
 import * as stackTraceParser from "stacktrace-parser";
@@ -10,8 +9,6 @@ import { findClosestPackageJson } from "../../util/packageInfo";
 import { getRequireCachedFiles } from "../../util/platform";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
-import { ExecutionMode, getExecutionMode } from "../execution-mode";
-import { loadPluginFile, readPackageJson } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
 import { resolveConfig } from "./config-resolution";
@@ -179,15 +176,6 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
     if (peerDependencyPackageJson === undefined) {
       missingPeerDependencies[peerDependency] = version;
     }
-  }
-
-  const executionMode = getExecutionMode();
-  let globalFlag = "";
-  let globalWarning = "";
-  if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
-    globalFlag = " --global";
-    globalWarning =
-      "You are using a global installation of Hardhat. Plugins and their dependencies must also be global.\n";
   }
 
   const missingPeerDependenciesNames = Object.keys(missingPeerDependencies);
