@@ -14,8 +14,9 @@ export function useEnvironment(projectPath: string, networkName = "localhost") {
 
     this.env = require("hardhat");
   });
+
   beforeEach("Loading hardhat environment", async function () {
-    await this.env.run("compile");
+    await this.env.run("compile", { quiet: true });
   });
 
   afterEach("Resetting hardhat", function () {
