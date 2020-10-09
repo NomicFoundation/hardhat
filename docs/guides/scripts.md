@@ -20,7 +20,7 @@ This makes it easy to port scripts that were developed for other tools that inje
 The second option leverages Hardhat's architecture to allow for more flexibility. Hardhat has been designed as a library, allowing you to get creative and build standalone CLI tools that access your development environment. This means that by simply requiring it:
 
 ```js
-const hre = require("@nomiclabs/hardhat");
+const hre = require("hardhat");
 ```
 
 You can get access to all your tasks and plugins. To run these scripts you simply go through node: `node script.js`.
@@ -46,7 +46,7 @@ Inside `scripts/` you will find `sample-script.js`. Read through its comments to
 Done? Before running the script with `node` you need to declare `ethers`. This is needed because Hardhat won't be injecting it on the global scope as it does when calling the `run` task.
 
 ```js{2}
-const hre = require("@nomiclabs/hardhat");
+const hre = require("hardhat");
 const ethers = hre.ethers;
 
 async function main() {

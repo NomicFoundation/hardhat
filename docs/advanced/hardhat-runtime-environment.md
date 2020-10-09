@@ -4,7 +4,7 @@
 
 The Hardhat Runtime Environment, or HRE for short, is an object containing all the functionality that Hardhat exposes when running a task, test or script. In reality, Hardhat _is_ the HRE.
 
-When you require Hardhat (`const hardhat = require("@nomiclabs/hardhat")`) you're getting an instance of the HRE.
+When you require Hardhat (`const hardhat = require("hardhat")`) you're getting an instance of the HRE.
 
 During initialization, the Hardhat configuration file essentially constructs a list of things to be added to the HRE. This includes tasks, configs and plugins. Then when tasks, tests or scripts run, the HRE is always present and available to access anything that is contained in it.
 
@@ -24,18 +24,18 @@ Before running a task, test or script, Hardhat injects the HRE into the global s
 
 Not everyone likes magic global variables, and Hardhat doesn't force you to use them. Everything can be done explicitly in tasks, tests and scripts.
 
-When writing tests or scripts, you can use `require("@nomiclabs/hardhat")` to import the HRE. You can read more about this in [Accessing the HRE from outside a task](#accessing-the-hre-from-outside-a-task).
+When writing tests or scripts, you can use `require("hardhat")` to import the HRE. You can read more about this in [Accessing the HRE from outside a task](#accessing-the-hre-from-outside-a-task).
 
 You can import the config DSL explicitly when defining your tasks, and receive the HRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](https://usehardhat.com/guides/create-task.html).
 
 ## Accessing the HRE from outside a task
 
-The HRE can be used from any JavaScript or TypeScript file. To do so, you only have to import it with `require("@nomiclabs/hardhat")`. You can do this to keep more control over your development workflow, create your own tools, or to use Hardhat with other dev tools from the node.js ecosystem.
+The HRE can be used from any JavaScript or TypeScript file. To do so, you only have to import it with `require("hardhat")`. You can do this to keep more control over your development workflow, create your own tools, or to use Hardhat with other dev tools from the node.js ecosystem.
 
 Running test directly with [Mocha](https://www.npmjs.com/package/mocha) instead of `npx hardhat test` can be done by explicitly importing the HRE in them like this:
 
 ```js
-const hre = require("@nomiclabs/hardhat");
+const hre = require("hardhat");
 const assert = require("assert");
 
 describe("Hardhat Runtime Environment", function() {

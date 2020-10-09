@@ -8,7 +8,7 @@ Open a new terminal and run these commands:
 mkdir hardhat-tutorial 
 cd hardhat-tutorial 
 npm init --yes 
-npm install --save-dev @nomiclabs/hardhat 
+npm install --save-dev hardhat 
 ```
 
 ::: tip

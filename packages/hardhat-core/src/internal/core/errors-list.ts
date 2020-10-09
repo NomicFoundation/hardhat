@@ -129,11 +129,11 @@ Check the error message for details, or go to [documentation](https://usehardhat
     LIB_IMPORTED_FROM_THE_CONFIG: {
       number: 9,
       message: `Error while loading Hardhat's configuration.
-You probably imported @nomiclabs/hardhat instead of @nomiclabs/hardhat/config`,
+You probably imported hardhat instead of hardhat/config`,
       title: "Failed to load config file",
       description: `There was an error while loading your config file. 
 
-The most common source of errors is trying to import \`@nomiclabs/hardhat\` instead of \`@nomiclabs/hardhat/config\`.
+The most common source of errors is trying to import \`hardhat\` instead of \`hardhat/config\`.
 
 Please make sure your config file is correct.`,
       shouldBeReported: false,
