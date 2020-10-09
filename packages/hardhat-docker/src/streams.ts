@@ -5,7 +5,7 @@ import { Writable } from "stream";
  * keeps it in its [[buffer]] field.
  */
 export class WritableBufferStream extends Writable {
-  public buffer: Buffer = new Buffer([]);
+  public buffer: Buffer = Buffer.from([]);
 
   constructor() {
     super({
