@@ -16,7 +16,7 @@ export function useEnvironment(projectPath: string, networkName = "localhost") {
   });
 
   beforeEach("Compile", async function () {
-    await this.env.run("compile");
+    await this.env.run("compile", { quiet: true });
   });
 
   afterEach("Resetting hardhat", function () {

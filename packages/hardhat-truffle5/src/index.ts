@@ -1,8 +1,9 @@
+import "@nomiclabs/hardhat-web3";
 import {
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "hardhat/builtin-tasks/task-names";
-import { extendEnvironment, subtask, usePlugin } from "hardhat/config";
+import { extendEnvironment, subtask } from "hardhat/config";
 import { glob } from "hardhat/internal/util/glob";
 import {
   HARDHAT_NETWORK_NAME,
@@ -22,170 +23,187 @@ import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 import "./type-extensions";
 
-// See hardhat's CONTRIBUTING.md
-let originalFormatter: any;
-let originalGetGasEstimate: any;
-let originalPrepareCall: any;
+let accounts: string[] | undefined;
 
-export default function () {
-  usePlugin("@nomiclabs/hardhat-web3");
+extendEnvironment((env) => {
+  env.artifacts.require = lazyFunction(() => {
+    const networkConfig = env.network.config;
 
-  let accounts: string[] | undefined;
+    const provisioner = new LazyTruffleContractProvisioner(
+      env.web3,
+      networkConfig
+    );
 
-  extendEnvironment((env) => {
-    env.artifacts.require = lazyFunction(() => {
-      const networkConfig = env.network.config;
+    const ta = new TruffleEnvironmentArtifacts(provisioner, env.artifacts);
 
-      const provisioner = new LazyTruffleContractProvisioner(
-        env.web3,
-        networkConfig
-      );
+    const execute = require("@nomiclabs/truffle-contract/lib/execute");
 
-      const ta = new TruffleEnvironmentArtifacts(provisioner, env.artifacts);
+    let noDefaultAccounts = false;
+    let defaultAccount: string | undefined = networkConfig.from;
 
-      const execute = require("@nomiclabs/truffle-contract/lib/execute");
+    async function addFromIfNeededAndAvailable(params: any) {
+      if (noDefaultAccounts) {
+        return;
+      }
 
-      let noDefaultAccounts = false;
-      let defaultAccount: string | undefined = networkConfig.from;
+      if (params.from === undefined) {
+        if (defaultAccount === undefined) {
+          accounts = await env.web3.eth.getAccounts();
 
-      async function addFromIfNeededAndAvailable(params: any) {
-        if (noDefaultAccounts) {
-          return;
-        }
-
-        if (params.from === undefined) {
-          if (defaultAccount === undefined) {
-            accounts = await env.web3.eth.getAccounts();
-
-            if (accounts!.length === 0) {
-              noDefaultAccounts = true;
-              return;
-            }
-
-            defaultAccount = accounts![0];
+          if (accounts!.length === 0) {
+            noDefaultAccounts = true;
+            return;
           }
 
-          params.from = defaultAccount;
-        }
-      }
-
-      const web3Path = require.resolve("web3");
-      const formattersPath = require.resolve(
-        "web3-core-helpers/src/formatters",
-        {
-          paths: [web3Path],
-        }
-      );
-
-      const formatters = require(formattersPath);
-
-      if (originalFormatter === undefined) {
-        originalFormatter = formatters.inputTransactionFormatter;
-      }
-
-      formatters.inputTransactionFormatter = function (options: any) {
-        if (options.from === undefined) {
-          throw new NomicLabsHardhatPluginError(
-            "@nomiclabs/hardhat-truffle5",
-            "There's no account available in the selected network."
-          );
+          defaultAccount = accounts![0];
         }
 
-        return originalFormatter(options);
-      };
-
-      if (originalGetGasEstimate === undefined) {
-        originalGetGasEstimate = execute.getGasEstimate;
+        params.from = defaultAccount;
       }
+    }
 
-      execute.getGasEstimate = async function (params: any, ...others: any[]) {
-        await addFromIfNeededAndAvailable(params);
-        return originalGetGasEstimate.call(this, params, ...others);
-      };
-
-      if (originalPrepareCall === undefined) {
-        originalPrepareCall = execute.prepareCall;
-      }
-      execute.prepareCall = async function (...args: any[]) {
-        const ret = await originalPrepareCall.apply(this, args);
-        await addFromIfNeededAndAvailable(ret.params);
-
-        return ret;
-      };
-
-      return ta.require.bind(ta);
+    const web3Path = require.resolve("web3");
+    const formattersPath = require.resolve("web3-core-helpers/src/formatters", {
+      paths: [web3Path],
     });
 
-    env.assert = lazyFunction(() => require("chai").assert);
-    env.expect = lazyFunction(() => require("chai").expect);
-    env.contract = (
-      description: string,
-      definition: (accounts: string[]) => any
-    ) => {
-      if (env.network.name === HARDHAT_NETWORK_NAME) {
-        if (accounts === undefined) {
-          const {
-            privateToAddress,
-            toChecksumAddress,
-            bufferToHex,
-          } = require("ethereumjs-util");
+    const formatters = require(formattersPath);
 
-          const netConfig = env.network.config as HardhatNetworkConfig;
+    monkeyPatchMethod(
+      formatters,
+      "inputTransactionFormatter",
+      (og) =>
+        function (options: any) {
+          if (options.from === undefined) {
+            throw new NomicLabsHardhatPluginError(
+              "@nomiclabs/hardhat-truffle5",
+              "There's no account available in the selected network."
+            );
+          }
 
-          accounts = netConfig.accounts.map((acc) =>
-            toChecksumAddress(bufferToHex(privateToAddress(acc.privateKey)))
-          );
+          return og.call(formatters, options);
         }
-      } else if (accounts === undefined) {
-        throw new NomicLabsHardhatPluginError(
-          "@nomiclabs/hardhat-truffle5",
-          `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Hardhat's CLI`
+    );
+
+    monkeyPatchMethod(
+      execute,
+      "originalGetGasEstimate",
+      (og) =>
+        async function (params: any, ...others: any[]) {
+          await addFromIfNeededAndAvailable(params);
+          return og.call(execute, params, ...others);
+        }
+    );
+
+    monkeyPatchMethod(
+      execute,
+      "prepareCall",
+      (og) =>
+        async function (...args: any[]) {
+          const ret = await og.apply(execute, args);
+          await addFromIfNeededAndAvailable(ret.params);
+
+          return ret;
+        }
+    );
+
+    return ta.require.bind(ta);
+  });
+
+  env.assert = lazyFunction(() => require("chai").assert);
+  env.expect = lazyFunction(() => require("chai").expect);
+  env.contract = (
+    description: string,
+    definition: (accounts: string[]) => any
+  ) => {
+    if (env.network.name === HARDHAT_NETWORK_NAME) {
+      if (accounts === undefined) {
+        const {
+          privateToAddress,
+          toChecksumAddress,
+          bufferToHex,
+        } = require("ethereumjs-util");
+
+        const netConfig = env.network.config as HardhatNetworkConfig;
+
+        accounts = netConfig.accounts.map((acc) =>
+          toChecksumAddress(bufferToHex(privateToAddress(acc.privateKey)))
         );
       }
+    } else if (accounts === undefined) {
+      throw new NomicLabsHardhatPluginError(
+        "@nomiclabs/hardhat-truffle5",
+        `To run your tests that use Truffle's "contract()" function with the network "${env.network.name}", you need to use Hardhat's CLI`
+      );
+    }
 
-      describe(`Contract: ${description}`, () => {
-        before("Running truffle fixture if available", async function () {
-          await env.run(RUN_TRUFFLE_FIXTURE_TASK);
-        });
-
-        definition(accounts!);
+    describe(`Contract: ${description}`, () => {
+      before("Running truffle fixture if available", async function () {
+        await env.run(RUN_TRUFFLE_FIXTURE_TASK);
       });
-    };
-  });
 
-  subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { web3, network }) => {
-    if (network.name !== HARDHAT_NETWORK_NAME) {
-      accounts = await web3.eth.getAccounts();
+      definition(accounts!);
+    });
+  };
+});
+
+subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { web3, network }) => {
+  if (network.name !== HARDHAT_NETWORK_NAME) {
+    accounts = await web3.eth.getAccounts();
+  }
+});
+
+subtask(
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+  async (_, { config }, runSuper) => {
+    const sources = await runSuper();
+    const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
+    return [...sources, ...testSources];
+  }
+);
+
+let wasWarningShown = false;
+subtask(RUN_TRUFFLE_FIXTURE_TASK, async (_, env) => {
+  const paths = env.config.paths;
+  const hasFixture = await hasTruffleFixture(paths);
+
+  if (!wasWarningShown) {
+    if ((await hasMigrations(paths)) && !hasFixture) {
+      console.warn(
+        "Your project has Truffle migrations, which have to be turned into a fixture to run your tests with Hardhat"
+      );
+
+      wasWarningShown = true;
     }
-  });
+  }
 
-  subtask(
-    TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
-    async (_, { config }, runSuper) => {
-      const sources = await runSuper();
-      const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
-      return [...sources, ...testSources];
-    }
-  );
+  if (hasFixture) {
+    const fixture = await getTruffleFixtureFunction(paths);
+    await fixture(env);
+  }
+});
 
-  let wasWarningShown = false;
-  subtask(RUN_TRUFFLE_FIXTURE_TASK, async (_, env) => {
-    const paths = env.config.paths;
-    const hasFixture = await hasTruffleFixture(paths);
+function monkeyPatchMethod(
+  object: any,
+  property: string,
+  newImplementationCreator: (originalImplementation: any) => any
+) {
+  const originalImplementationProperty = Symbol.for(`__${property}`);
 
-    if (!wasWarningShown) {
-      if ((await hasMigrations(paths)) && !hasFixture) {
-        console.warn(
-          "Your project has Truffle migrations, which have to be turned into a fixture to run your tests with Hardhat"
-        );
+  let originalImplementation: any;
 
-        wasWarningShown = true;
-      }
-    }
+  if (object[originalImplementationProperty] !== undefined) {
+    originalImplementation = object[originalImplementationProperty];
+  } else {
+    Object.defineProperty(object, originalImplementationProperty, {
+      configurable: true,
+      writable: true,
+      enumerable: false,
+      value: object[property],
+    });
 
-    if (hasFixture) {
-      const fixture = await getTruffleFixtureFunction(paths);
-      await fixture(env);
-    }
-  });
+    originalImplementation = object[property];
+  }
+
+  object[property] = newImplementationCreator(originalImplementation);
 }
