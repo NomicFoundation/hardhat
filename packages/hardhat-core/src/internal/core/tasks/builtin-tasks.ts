@@ -1,7 +1,9 @@
-import path from "path";
-
-import { globSync } from "../../util/glob";
-
-globSync(path.join(__dirname, "../../../builtin-tasks/*"))
-  .filter((p) => p.endsWith(".ts") || p.endsWith(".js"))
-  .forEach(require);
+import "../../../builtin-tasks/check";
+import "../../../builtin-tasks/clean";
+import "../../../builtin-tasks/compile";
+import "../../../builtin-tasks/console";
+import "../../../builtin-tasks/flatten";
+import "../../../builtin-tasks/help";
+import "../../../builtin-tasks/node";
+import "../../../builtin-tasks/run";
+import "../../../builtin-tasks/test";
