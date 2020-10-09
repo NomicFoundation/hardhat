@@ -54,12 +54,8 @@ export function getExecutionMode(): ExecutionMode {
  * Checks whether we're using Hardhat in development mode (that is, we're working _on_ Hardhat).
  */
 export function isLocalDev(): boolean {
-  const executionMode = getExecutionMode();
-
-  return (
-    executionMode === ExecutionMode.EXECUTION_MODE_LINKED ||
-    executionMode === ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS
-  );
+  // TODO: This may give a false positive under yarn PnP
+  return __filename.endsWith(".ts") || !__filename.includes("node_modules");
 }
 
 /**
