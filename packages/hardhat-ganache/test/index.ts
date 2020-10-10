@@ -1,12 +1,11 @@
 import { assert } from "chai";
-import path from "path";
 
 import { GanacheService } from "../src/ganache-service";
 
 import { useEnvironment } from "./helpers";
 
 describe("Ganache plugin with empty configs", function () {
-  useEnvironment(path.join(__dirname, "hardhat-project"));
+  useEnvironment("hardhat-project", "ganache");
 
   it("Should add ganache network to the config", function () {
     assert.isDefined(this.env.config.networks.ganache);
@@ -52,7 +51,7 @@ describe("Ganache plugin with empty configs", function () {
 });
 
 describe("Ganache plugin with custom configs", function () {
-  useEnvironment(path.join(__dirname, "hardhat-project-with-configs"));
+  useEnvironment("hardhat-project-with-configs", "ganache");
 
   it("Should add ganache network to hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
@@ -60,7 +59,7 @@ describe("Ganache plugin with custom configs", function () {
 
   it("Should load custom configs in hardhat's config'", function () {
     assert.isDefined(this.env.config.networks.ganache);
-    const customConfigs = require("./hardhat-project-with-configs/hardhat.config.js");
+    const customConfigs = require("./fixture-projects/hardhat-project-with-configs/hardhat.config.js");
 
     assert.isDefined(customConfigs.networks.ganache);
     const customOptions = customConfigs.networks.ganache;
@@ -75,7 +74,7 @@ describe("Ganache plugin with custom configs", function () {
 
   it("Should expose merged (custom + defaults) configs in hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
-    const customConfigs = require("./hardhat-project-with-configs/hardhat.config.js");
+    const customConfigs = require("./fixture-projects/hardhat-project-with-configs/hardhat.config.js");
     const defaultOptions = GanacheService.getDefaultOptions() as any;
 
     assert.isDefined(customConfigs.networks.ganache);

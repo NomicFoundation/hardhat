@@ -2,7 +2,7 @@
 const env = require("hardhat");
 
 async function main() {
-  const customConfigs = require("../../hardhat-project-with-configs/hardhat.config.js");
+  const customConfigs = require("../hardhat.config.js");
   const customOptions = customConfigs.networks.ganache;
 
   const accounts = await env.network.provider.send("eth_accounts");
