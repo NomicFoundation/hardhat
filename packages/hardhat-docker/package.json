@@ -20,7 +20,7 @@
     "clean": "node ../../node_modules/rimraf/bin.js dist"
   },
   "files": [
-    "dist/",
+    "dist/src/",
     "src/",
     "LICENSE",
     "README.md"
