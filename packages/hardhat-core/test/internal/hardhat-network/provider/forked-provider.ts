@@ -37,7 +37,7 @@ import {
 import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../helpers/transactions";
 
-const ERC20Abi = fsExtra.readJsonSync(`${__dirname}../abi/ERC20/ERC20.json`);
+const ERC20Abi = fsExtra.readJsonSync(`${__dirname}/../abi/ERC20/ERC20.json`);
 const UniswapExchangeAbi = fsExtra.readJsonSync(
   `${__dirname}/../abi/Uniswap/Exchange.json`
 );
