@@ -6,6 +6,8 @@
   "devDependencies": {
     "@vuepress/plugin-google-analytics": "^1.4.1",
     "dotenv": "^6.2.0",
+    "pug": "^3.0.0",
+    "pug-plain-loader": "^1.0.0",
     "ts-node": "^8.1.0",
     "typescript": "~3.8.3",
     "vue-carousel": "^0.18.0",
