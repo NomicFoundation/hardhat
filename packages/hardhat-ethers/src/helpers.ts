@@ -21,6 +21,8 @@ export interface FactoryOptions {
   libraryLinks?: LibraryLinks;
 }
 
+const pluginName = "hardhat-ethers";
+
 export async function getSigners(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.provider.listAccounts();
   return accounts.map((account: string) =>
@@ -58,7 +60,7 @@ export async function getContractFactory(
 
     if (contractFactory.bytecode === "0x") {
       throw new NomicLabsHardhatPluginError(
-        "hardhat-ethers",
+        pluginName,
         `The requested contract, ${nameOrAbi}, is an abstract contract.
 Contract factories need non-abstract contracts to work.`
       );
@@ -122,68 +124,84 @@ async function getContractFactoryByName(
   )) {
     if (!ethers.utils.isAddress(linkedLibraryAddress)) {
       throw new NomicLabsHardhatPluginError(
-        "hardhat-ethers",
+        pluginName,
         `The library name ${linkedLibraryName} has an invalid address: ${linkedLibraryAddress}.`
       );
     }
 
-    const matchingNeededLibraries = neededLibraries.filter((neededLibrary) => {
+    const matchingNeededLibraries = neededLibraries.filter((lib) => {
       return (
-        neededLibrary.libName === linkedLibraryName ||
-        `${neededLibrary.sourceName}:${neededLibrary.libName}` ===
-          linkedLibraryName
+        lib.libName === linkedLibraryName ||
+        `${lib.sourceName}:${lib.libName}` === linkedLibraryName
       );
     });
 
-    if (matchingNeededLibraries.length > 1) {
-      const matchingNeededLibrariesFQNs = matchingNeededLibraries.map(
-        ({ sourceName, libName }) => `${sourceName}:${libName}`
-      );
+    if (matchingNeededLibraries.length === 0) {
+      let detailedMessage: string;
+      if (neededLibraries.length > 0) {
+        const libraryFQNames = neededLibraries
+          .map((lib) => `${lib.sourceName}:${lib.libName}`)
+          .map((x) => `* ${x}`)
+          .join("\n");
+        detailedMessage = `The libraries needed are:
+${libraryFQNames}`;
+      } else {
+        detailedMessage = "This contract doesn't need linking any libraries.";
+      }
       throw new NomicLabsHardhatPluginError(
-        "hardhat-ethers",
+        pluginName,
+        `The library name ${linkedLibraryName} does not correspond to any of the libraries needed by the contract ${contractName}.
+${detailedMessage}`
+      );
+    }
+
+    if (matchingNeededLibraries.length > 1) {
+      const matchingNeededLibrariesFQNs = matchingNeededLibraries
+        .map(({ sourceName, libName }) => `${sourceName}:${libName}`)
+        .map((x) => `* ${x}`)
+        .join("\n");
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
         `The library name ${linkedLibraryName} is ambiguous for the contract ${contractName}.
 It may resolve to one of the following libraries:
-${matchingNeededLibrariesFQNs.join("\n")}
+${matchingNeededLibrariesFQNs}
 
 To fix this, choose one of these fully qualified library names and replace where appropriate.`
       );
     }
 
-    if (matchingNeededLibraries.length === 1) {
-      const [neededLibrary] = matchingNeededLibraries;
+    const [neededLibrary] = matchingNeededLibraries;
 
-      const neededLibraryFQN = `${neededLibrary.sourceName}:${neededLibrary.libName}`;
+    const neededLibraryFQN = `${neededLibrary.sourceName}:${neededLibrary.libName}`;
 
-      if (linksToApply.has(neededLibraryFQN)) {
-        throw new NomicLabsHardhatPluginError(
-          "hardhat-ethers",
-          `The library names ${linkedLibraryName} and ${neededLibraryFQN} refer to the same library and were given as two separate library links.
+    // The only way for this library to be already mapped is
+    // for it to be given twice in the libraryLinks user input:
+    // once as a library name and another as a fully qualified library name.
+    if (linksToApply.has(neededLibraryFQN)) {
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `The library names ${neededLibrary.libName} and ${neededLibraryFQN} refer to the same library and were given as two separate library links.
 Remove one of them and review your library links before proceeding.`
-        );
-      }
-
-      linksToApply.set(neededLibraryFQN, {
-        sourceName: neededLibrary.sourceName,
-        libraryName: neededLibrary.libName,
-        address: linkedLibraryAddress,
-      });
+      );
     }
+
+    linksToApply.set(neededLibraryFQN, {
+      sourceName: neededLibrary.sourceName,
+      libraryName: neededLibrary.libName,
+      address: linkedLibraryAddress,
+    });
   }
 
-  // TODO-HH: what happens if linksToApply.size > neededLibraries.length? warning, throw, nothing?
   if (linksToApply.size < neededLibraries.length) {
-    const missingLibrariesFQNs = neededLibraries
+    const missingLibraries = neededLibraries
       .map((lib) => `${lib.sourceName}:${lib.libName}`)
-      .filter((libFQName) => !linksToApply.has(libFQName));
-
-    const missingLibraries = missingLibrariesFQNs
+      .filter((libFQName) => !linksToApply.has(libFQName))
       .map((x) => `* ${x}`)
       .join("\n");
 
     throw new NomicLabsHardhatPluginError(
-      "hardhat-ethers",
+      pluginName,
       `The contract ${contractName} is missing links for the following libraries:
-
 ${missingLibraries}`
     );
   }

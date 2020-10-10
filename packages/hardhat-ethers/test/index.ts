@@ -139,8 +139,10 @@ describe("Ethers plugin", function () {
               "getContractFactory should report the ambiguous link as the cause"
             );
             assert.isTrue(
-              reason.message.includes("TestContractLib.sol:TestLibrary"),
-              "getContractFactory should display the ambiguous library link"
+              reason.message.includes(
+                "TestLibrary and contracts/TestContractLib.sol:TestLibrary"
+              ),
+              "getContractFactory should display the ambiguous library links"
             );
             return;
           }
@@ -148,6 +150,22 @@ describe("Ethers plugin", function () {
           // The test shouldn't reach this point
           assert.fail(
             "getContractFactory should fail when the link for one library is ambiguous"
+          );
+        });
+
+        it("should link a library even if there's an identically named library in the project", async function () {
+          const libraryFactory = await this.env.ethers.getContractFactory(
+            "contracts/TestNonUniqueLib.sol:NonUniqueLibrary"
+          );
+          const library = await libraryFactory.deploy();
+
+          const contractFactory = await this.env.ethers.getContractFactory(
+            "TestNonUniqueLib",
+            { libraryLinks: { NonUniqueLibrary: library.address } }
+          );
+          assert.equal(
+            await contractFactory.signer.getAddress(),
+            await signers[0].getAddress()
           );
         });
 
