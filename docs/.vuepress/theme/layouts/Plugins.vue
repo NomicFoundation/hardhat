@@ -10,7 +10,7 @@
           <div class="plugin" v-for="plugin in plugins">
             <div>
               <span class="name">
-                <a :href="plugin.url">{{ plugin.name }}</a>
+                <a :href="plugin.normalizedName + '.html'">{{ plugin.name }}</a>
               </span>
               <span class="separator"> | </span>
               <span class="author">

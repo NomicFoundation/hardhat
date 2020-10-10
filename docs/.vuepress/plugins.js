@@ -1,4 +1,4 @@
-module.exports = [
+const plugins = [
   {
     name: "@nomiclabs/hardhat-ethers",
     author: "Nomic Labs",
@@ -214,3 +214,5 @@ module.exports = [
     tags: ["Compiling", "Bytecode"],
   },
 ];
+
+module.exports = plugins.map(p => ({...p, normalizedName: p.name.replace("/", "-").replace(/^@/, "")}))
