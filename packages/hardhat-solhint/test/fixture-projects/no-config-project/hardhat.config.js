@@ -1,4 +1,4 @@
-require(__dirname + "/../../src/index");
+require(  "../../../src/index");
 
 module.exports = {
   solidity: "0.5.15",
