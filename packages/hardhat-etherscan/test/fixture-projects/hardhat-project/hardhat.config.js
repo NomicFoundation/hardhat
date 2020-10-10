@@ -1,6 +1,6 @@
 require("@nomiclabs/hardhat-ethers");
 
-require(__dirname + "/../../src/index");
+require("../../../src/index");
 
 module.exports = {
   etherscan: {
