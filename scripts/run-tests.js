@@ -46,7 +46,7 @@ const ignoredPackages = ignoredPackagesList.join(" ");
 const {
   cleanup,
   ganacheSetup,
-} = require("../packages/common/dist/helper/ganache-provider");
+} = require("../packages/common/ganache-provider");
 
 async function useGanacheInstance() {
   try {
