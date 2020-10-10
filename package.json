@@ -34,7 +34,7 @@
     "clean": "wsrun --exclude-missing clean",
     "test": "node scripts/run-tests.js",
     "lint": "wsrun --serial lint",
-    "lint:fix": "wsrun --serial lint:fix"
+    "lint:fix": "wsrun --exclude-missing --stages lint:fix"
   },
   "dependencies": {}
 }
