@@ -2,12 +2,10 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 // tslint:disable-next-line:no-implicit-dependencies
 import { Contract, utils, Wallet } from "ethers";
+import fsExtra from "fs-extra";
 
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
-import ERC20Abi from "../abi/ERC20/ERC20.json";
-import UniswapExchangeAbi from "../abi/Uniswap/Exchange.json";
-import UniswapFactoryAbi from "../abi/Uniswap/Factory.json";
 import {
   assertQuantity,
   assertTransactionFailure,
@@ -38,6 +36,14 @@ import {
 } from "../helpers/providers";
 import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../helpers/transactions";
+
+const ERC20Abi = fsExtra.readJsonSync(`${__dirname}../abi/ERC20/ERC20.json`);
+const UniswapExchangeAbi = fsExtra.readJsonSync(
+  `${__dirname}/../abi/Uniswap/Exchange.json`
+);
+const UniswapFactoryAbi = fsExtra.readJsonSync(
+  `${__dirname}/../abi/Uniswap/Factory.json`
+);
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
