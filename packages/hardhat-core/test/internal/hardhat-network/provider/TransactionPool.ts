@@ -173,6 +173,17 @@ describe("Transaction Pool", () => {
       const address1 = randomAddressBuffer();
       const address2 = randomAddressBuffer();
 
+      beforeEach(async () => {
+        await stateManager.putAccount(
+          address1,
+          new Account({ nonce: new BN(0) })
+        );
+        await stateManager.putAccount(
+          address2,
+          new Account({ nonce: new BN(0) })
+        );
+      });
+
       it("can add transactions from many senders", async () => {
         const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
         const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
@@ -188,55 +199,158 @@ describe("Transaction Pool", () => {
         );
       });
 
-      xit("does not mix up queued transactions from different senders", async () => {
-        // A. as S1 add tx.n=0
-        // B. as S2 add tx.n=0
-        // C. as S1 add tx.n=2
-        // D. as S2 add tx.n=1
-        // getPendingTxs => A, B, D
-      });
+      describe("does not mix up queued transactions from different senders", () => {
+        it("missing transaction", async () => {
+          // A. as S1 add tx.n=0
+          // B. as S2 add tx.n=0
+          // C. as S1 add tx.n=2
+          // D. as S2 add tx.n=1
+          // getPendingTxs => A, B, D
 
-      xit("TODO", async () => {
-        // A. as S1 add tx.n=0
-        // B. as S2 add tx.n=0
-        // C. as S1 add tx.n=2
-        // D. as S2 add tx.n=1
-        // E. as S1 add tx.n=1
-        // getPendingTxs => A, B, C, D, E
-      });
+          const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
+          const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
+          const tx3 = createTestFakeTransaction({ from: address1, nonce: 2 });
+          const tx4 = createTestFakeTransaction({ from: address2, nonce: 1 });
 
-      xit("TODO", async () => {
-        // executableNonce = 3
-        // queued = [5, 4, 6];
+          await txPool.addTransaction(tx1);
+          await txPool.addTransaction(tx2);
+          await txPool.addTransaction(tx3);
+          await txPool.addTransaction(tx4);
+
+          const pendingTxs = txPool.getPendingTransactions();
+
+          assert.sameDeepMembers(
+            pendingTxs.map((tx) => tx.raw),
+            [tx1, tx2, tx4].map((tx) => tx.raw)
+          );
+        });
+
+        it("all transactions are present", async () => {
+          // A. as S1 add tx.n=0
+          // B. as S2 add tx.n=0
+          // C. as S1 add tx.n=2
+          // D. as S2 add tx.n=1
+          // E. as S1 add tx.n=1
+          // getPendingTxs => A, B, C, D, E
+
+          const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
+          const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
+          const tx3 = createTestFakeTransaction({ from: address1, nonce: 2 });
+          const tx4 = createTestFakeTransaction({ from: address2, nonce: 1 });
+          const tx5 = createTestFakeTransaction({ from: address1, nonce: 1 });
+
+          await txPool.addTransaction(tx1);
+          await txPool.addTransaction(tx2);
+          await txPool.addTransaction(tx3);
+          await txPool.addTransaction(tx4);
+          await txPool.addTransaction(tx5);
+
+          const pendingTxs = txPool.getPendingTransactions();
+
+          assert.sameDeepMembers(
+            pendingTxs.map((tx) => tx.raw),
+            [tx1, tx2, tx3, tx4, tx5].map((tx) => tx.raw)
+          );
+        });
+
+        it("some transactions are present", async () => {
+          // executableNonce = 1
+          // queued = [2, 3];
+
+          const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
+          const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
+          const tx3 = createTestFakeTransaction({ from: address1, nonce: 2 });
+          const tx4 = createTestFakeTransaction({ from: address2, nonce: 2 });
+          const tx5 = createTestFakeTransaction({ from: address1, nonce: 3 });
+          const tx6 = createTestFakeTransaction({ from: address2, nonce: 3 });
+          const tx7 = createTestFakeTransaction({ from: address2, nonce: 1 });
+
+          await txPool.addTransaction(tx1);
+          await txPool.addTransaction(tx2);
+          await txPool.addTransaction(tx3);
+          await txPool.addTransaction(tx4);
+          await txPool.addTransaction(tx5);
+          await txPool.addTransaction(tx6);
+          await txPool.addTransaction(tx7);
+
+          const pendingTxs = txPool.getPendingTransactions();
+
+          assert.sameDeepMembers(
+            pendingTxs.map((tx) => tx.raw),
+            [tx1, tx2, tx4, tx6, tx7].map((tx) => tx.raw)
+          );
+        });
       });
     });
   });
 
   describe("getExecutableNonce", () => {
-    xit("returns current executable nonce", async () => {
+    const address = randomAddressBuffer();
+
+    beforeEach(async () => {
+      await stateManager.putAccount(address, new Account({ nonce: new BN(0) }));
+    });
+
+    it("returns current executable nonce", async () => {
       // add one transaction to pending
       // p: [1]
+
+      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+
+      await txPool.addTransaction(tx1);
+
+      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(1)));
     });
 
-    xit("is not affected by queued transactions", async () => {
+    it("is not affected by queued transactions", async () => {
       // p: [1]
       // q: [3]
+
+      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+      const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+
+      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(1)));
     });
 
-    xit("returns correct nonce after queued transactions are moved to pending", async () => {
+    it("returns correct nonce after queued transactions are moved to pending", async () => {
       // p: [1]
       // q: [3]
       // later 2 is added:
       // p: [1, 2, 3]
       // q: []
+
+      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+      const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+      const tx3 = createTestFakeTransaction({ from: address, nonce: 1 });
+
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+      await txPool.addTransaction(tx3);
+
+      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
     });
 
-    xit("TODO", async () => {
+    it("returns correct nonce after moving some queued transactions", async () => {
       // p: [1]
       // q: [3, 5]
       // later 2 is added:
       // p: [1, 2, 3]
       // q: [5]
+
+      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+      const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+      const tx3 = createTestFakeTransaction({ from: address, nonce: 5 });
+      const tx4 = createTestFakeTransaction({ from: address, nonce: 1 });
+
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+      await txPool.addTransaction(tx3);
+      await txPool.addTransaction(tx4);
+
+      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
     });
   });
 });
