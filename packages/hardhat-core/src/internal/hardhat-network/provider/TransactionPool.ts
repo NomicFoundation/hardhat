@@ -1,5 +1,5 @@
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Map as ImmutableMap } from "immutable";
 
 import { PStateManager } from "./types/PStateManager";
@@ -39,18 +39,16 @@ export class TransactionPool {
   private _pendingTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized pending Transactions
   private _queuedTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized queued Transactions
   private _executableNonces = ImmutableMap<string, string>(); // address => nonce (hex)
+  private _blockGasLimit = new BN(10000000);
 
   constructor(private readonly _stateManager: PStateManager) {}
 
   public async addTransaction(tx: Transaction) {
+    await this._validateTransaction(tx);
+
     const txNonce = new BN(tx.nonce);
     const senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
-    const hexedSenderAddress = bufferToHex(senderAddress);
     const senderNonce = await this.getExecutableNonce(senderAddress);
-
-    if (txNonce.lt(senderNonce)) {
-      throw new Error("Nonce too low");
-    }
 
     if (txNonce.eq(senderNonce)) {
       this._addPendingTransaction(tx);
@@ -104,6 +102,44 @@ export class TransactionPool {
       hexSenderAddress,
       accountTransactions.push(serializeTransaction(tx))
     );
+  }
+
+  private async _validateTransaction(tx: Transaction) {
+    const txNonce = new BN(tx.nonce);
+    const senderNonce = await this.getExecutableNonce(tx.getSenderAddress());
+
+    // Geth returns this error if trying to create a contract and no data is provided
+    if (tx.to.length === 0 && tx.data.length === 0) {
+      throw new Error("contract creation without any data provided");
+    }
+
+    const senderAccount = await this._stateManager.getAccount(
+      tx.getSenderAddress()
+    );
+    const senderBalance = new BN(senderAccount.balance);
+
+    if (tx.getUpfrontCost().gt(senderBalance)) {
+      throw new Error("Account balance too low to make the transaction");
+    }
+
+    if (txNonce.lt(senderNonce)) {
+      throw new Error("Nonce too low");
+    }
+
+    const baseFee = tx.getBaseFee();
+    const gasLimit = new BN(tx.gasLimit);
+
+    if (baseFee.gt(gasLimit)) {
+      throw new Error(
+        `Transaction requires at least ${baseFee} gas but got ${gasLimit}`
+      );
+    }
+
+    if (gasLimit.gt(this._blockGasLimit)) {
+      throw new Error(
+        `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${this._blockGasLimit}`
+      );
+    }
   }
 
   private _setExecutableNonce(accountAddress: string, nonce: BN): void {
