@@ -5,6 +5,8 @@ import { List as ImmutableList, Map as ImmutableMap } from "immutable";
 import { PStateManager } from "./types/PStateManager";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
+// tslint:disable only-hardhat-error
+
 export type SerializedTransaction = ImmutableList<string>;
 export type SenderTransactions = ImmutableList<SerializedTransaction>;
 type AddressToTransactions = ImmutableMap<string, SenderTransactions>;

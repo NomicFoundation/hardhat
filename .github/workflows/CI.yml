@@ -6,6 +6,7 @@ on:
       - master
       - development
       - 2.0
+      - tx-pool
   pull_request:
     branches:
       - "*"
