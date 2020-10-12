@@ -67,7 +67,8 @@ npm install --save-dev @nomiclabs/buidler-ethers ethers @nomiclabs/buidler-waffl
 
 Add the highlighted lines to your `buidler.config.js` so that it looks like this:
 
-```js {1,4-6}
+```js
+usePlugin("@nomiclabs/buidler-ethers");
 usePlugin("@nomiclabs/buidler-waffle");
 
 module.exports = {
@@ -77,4 +78,5 @@ module.exports = {
 };
 ```
 
-We're only invoking `buidler-waffle` here because it depends on `buidler-ethers` so adding both isn't necessary.
+We could just invoke `buidler-waffle` here because it depends on `buidler-ethers` so adding both isn't necessary. However, when people read your code
+they'll have an easier time if you're more explicit.
