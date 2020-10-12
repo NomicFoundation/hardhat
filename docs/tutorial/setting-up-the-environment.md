@@ -19,10 +19,10 @@ Copy and paste these commands in a terminal:
 
 ```
 sudo apt update
-sudo apt install curl git
-sudo apt install build-essential # We need this to build native dependencies
+sudo apt install -y curl git
+sudo apt install -y build-essential # We need this to build native dependencies
 curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-sudo apt install nodejs
+sudo apt install -y nodejs
 ```
 
 ### MacOS
