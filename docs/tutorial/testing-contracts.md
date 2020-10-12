@@ -1,6 +1,6 @@
 # 5. Testing contracts
 
-Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Buidler EVM**, a local Ethereum network designed for development that is built-in and the default network in **Buidler**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
+Writing automated tests when building smart contracts is of crucial importance, as your users' money is at stake. For this we're going to use **Buidler EVM**, a local Ethereum network designed for development that is built-in and the default network in **Buidler**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
 
 ## Writing tests
 Create a new directory called `test` inside our project root directory and create a new file called `Token.js`. 
