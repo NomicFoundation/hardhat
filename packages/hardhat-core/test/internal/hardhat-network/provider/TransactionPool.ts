@@ -7,7 +7,10 @@ import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/pr
 import { TransactionPool } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
-import { createTestFakeTransaction } from "../helpers/blockchain";
+import {
+  createTestFakeTransaction,
+  createTestTransaction,
+} from "../helpers/blockchain";
 
 describe("Transaction Pool", () => {
   let stateManager: PStateManager;
@@ -35,6 +38,15 @@ describe("Transaction Pool", () => {
             const pendingTxs = txPool.getPendingTransactions();
             assert.lengthOf(pendingTxs, 1);
             assert.deepEqual(pendingTxs[0].raw, tx.raw);
+          });
+
+          it("throws an error if transaction is not signed", async () => {
+            const tx = createTestTransaction();
+            assert.isRejected(
+              txPool.addTransaction(tx),
+              Error,
+              "Invalid Signature"
+            );
           });
         });
 
