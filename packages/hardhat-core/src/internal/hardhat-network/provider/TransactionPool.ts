@@ -42,7 +42,7 @@ export class TransactionPool {
 
   public async addTransaction(tx: Transaction) {
     const txNonce = new BN(tx.nonce);
-    const senderAddress = tx.getSenderAddress();
+    const senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
     const hexedSenderAddress = bufferToHex(senderAddress);
     const senderNonce = await this.getExecutableNonce(senderAddress);
 
