@@ -1,4 +1,5 @@
 import { BN, toBuffer } from "ethereumjs-util";
+
 import { SerializedTransaction } from "../TransactionPool";
 
 export function retrieveNonce(tx: SerializedTransaction) {
