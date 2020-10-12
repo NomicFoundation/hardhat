@@ -1,9 +1,12 @@
 import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
-import { BN } from "ethereumjs-util";
+import { BN, toBuffer } from "ethereumjs-util";
 
-import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import {
+  randomAddress,
+  randomAddressBuffer,
+} from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { TransactionPool } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
@@ -32,21 +35,16 @@ describe("Transaction Pool", () => {
               address,
               new Account({ nonce: new BN(0) })
             );
-            const tx = createTestFakeTransaction({ from: address, nonce: 0 });
+            const tx = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
             await txPool.addTransaction(tx);
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.lengthOf(pendingTxs, 1);
             assert.deepEqual(pendingTxs[0].raw, tx.raw);
-          });
-
-          it("throws an error if transaction is not signed", async () => {
-            const tx = createTestTransaction();
-            assert.isRejected(
-              txPool.addTransaction(tx),
-              Error,
-              "Invalid Signature"
-            );
           });
         });
 
@@ -56,7 +54,11 @@ describe("Transaction Pool", () => {
               address,
               new Account({ nonce: new BN(0) })
             );
-            const tx = createTestFakeTransaction({ from: address, nonce: 3 });
+            const tx = createTestFakeTransaction({
+              from: address,
+              nonce: 3,
+              gasLimit: 30000,
+            });
             await txPool.addTransaction(tx);
 
             const pendingTxs = txPool.getPendingTransactions();
@@ -70,7 +72,11 @@ describe("Transaction Pool", () => {
               address,
               new Account({ nonce: new BN(1) })
             );
-            const tx = createTestFakeTransaction({ from: address, nonce: 0 });
+            const tx = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
 
             await assert.isRejected(
               txPool.addTransaction(tx),
@@ -91,8 +97,16 @@ describe("Transaction Pool", () => {
 
         describe("when transaction nonce is equal to account executable nonce", () => {
           it("adds the transaction to pending", async () => {
-            const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-            const tx2 = createTestFakeTransaction({ from: address, nonce: 1 });
+            const tx1 = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
+            const tx2 = createTestFakeTransaction({
+              from: address,
+              nonce: 1,
+              gasLimit: 30000,
+            });
             await txPool.addTransaction(tx1);
             await txPool.addTransaction(tx2);
 
@@ -104,9 +118,21 @@ describe("Transaction Pool", () => {
           });
 
           it("moves queued transactions with subsequent nonces to pending", async () => {
-            const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-            const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
-            const tx3 = createTestFakeTransaction({ from: address, nonce: 1 });
+            const tx1 = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
+            const tx2 = createTestFakeTransaction({
+              from: address,
+              nonce: 2,
+              gasLimit: 30000,
+            });
+            const tx3 = createTestFakeTransaction({
+              from: address,
+              nonce: 1,
+              gasLimit: 30000,
+            });
 
             await txPool.addTransaction(tx1);
             await txPool.addTransaction(tx2);
@@ -120,10 +146,26 @@ describe("Transaction Pool", () => {
           });
 
           it("does not move queued transactions to pending which have too high nonces", async () => {
-            const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-            const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
-            const tx3 = createTestFakeTransaction({ from: address, nonce: 4 });
-            const tx4 = createTestFakeTransaction({ from: address, nonce: 1 });
+            const tx1 = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
+            const tx2 = createTestFakeTransaction({
+              from: address,
+              nonce: 2,
+              gasLimit: 30000,
+            });
+            const tx3 = createTestFakeTransaction({
+              from: address,
+              nonce: 4,
+              gasLimit: 30000,
+            });
+            const tx4 = createTestFakeTransaction({
+              from: address,
+              nonce: 1,
+              gasLimit: 30000,
+            });
 
             await txPool.addTransaction(tx1);
             await txPool.addTransaction(tx2);
@@ -140,8 +182,16 @@ describe("Transaction Pool", () => {
 
         describe("when transaction nonce is higher than account executable nonce", () => {
           it("queues the transaction", async () => {
-            const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-            const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+            const tx1 = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
+            const tx2 = createTestFakeTransaction({
+              from: address,
+              nonce: 2,
+              gasLimit: 30000,
+            });
             await txPool.addTransaction(tx1);
             await txPool.addTransaction(tx2);
 
@@ -155,8 +205,16 @@ describe("Transaction Pool", () => {
 
         describe("when transaction nonce is lower than account executable nonce", () => {
           it("throws an error", async () => {
-            const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-            const tx2 = createTestFakeTransaction({ from: address, nonce: 0 });
+            const tx1 = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
+            const tx2 = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasLimit: 30000,
+            });
             await txPool.addTransaction(tx1);
 
             await assert.isRejected(
@@ -185,8 +243,16 @@ describe("Transaction Pool", () => {
       });
 
       it("can add transactions from many senders", async () => {
-        const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
-        const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
+        const tx1 = createTestFakeTransaction({
+          from: address1,
+          nonce: 0,
+          gasLimit: 30000,
+        });
+        const tx2 = createTestFakeTransaction({
+          from: address2,
+          nonce: 0,
+          gasLimit: 30000,
+        });
 
         await txPool.addTransaction(tx1);
         await txPool.addTransaction(tx2);
@@ -207,10 +273,26 @@ describe("Transaction Pool", () => {
           // D. as S2 add tx.n=1
           // getPendingTxs => A, B, D
 
-          const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
-          const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
-          const tx3 = createTestFakeTransaction({ from: address1, nonce: 2 });
-          const tx4 = createTestFakeTransaction({ from: address2, nonce: 1 });
+          const tx1 = createTestFakeTransaction({
+            from: address1,
+            nonce: 0,
+            gasLimit: 30000,
+          });
+          const tx2 = createTestFakeTransaction({
+            from: address2,
+            nonce: 0,
+            gasLimit: 30000,
+          });
+          const tx3 = createTestFakeTransaction({
+            from: address1,
+            nonce: 2,
+            gasLimit: 30000,
+          });
+          const tx4 = createTestFakeTransaction({
+            from: address2,
+            nonce: 1,
+            gasLimit: 30000,
+          });
 
           await txPool.addTransaction(tx1);
           await txPool.addTransaction(tx2);
@@ -233,11 +315,31 @@ describe("Transaction Pool", () => {
           // E. as S1 add tx.n=1
           // getPendingTxs => A, B, C, D, E
 
-          const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
-          const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
-          const tx3 = createTestFakeTransaction({ from: address1, nonce: 2 });
-          const tx4 = createTestFakeTransaction({ from: address2, nonce: 1 });
-          const tx5 = createTestFakeTransaction({ from: address1, nonce: 1 });
+          const tx1 = createTestFakeTransaction({
+            from: address1,
+            nonce: 0,
+            gasLimit: 30000,
+          });
+          const tx2 = createTestFakeTransaction({
+            from: address2,
+            nonce: 0,
+            gasLimit: 30000,
+          });
+          const tx3 = createTestFakeTransaction({
+            from: address1,
+            nonce: 2,
+            gasLimit: 30000,
+          });
+          const tx4 = createTestFakeTransaction({
+            from: address2,
+            nonce: 1,
+            gasLimit: 30000,
+          });
+          const tx5 = createTestFakeTransaction({
+            from: address1,
+            nonce: 1,
+            gasLimit: 30000,
+          });
 
           await txPool.addTransaction(tx1);
           await txPool.addTransaction(tx2);
@@ -257,13 +359,41 @@ describe("Transaction Pool", () => {
           // executableNonce = 1
           // queued = [2, 3];
 
-          const tx1 = createTestFakeTransaction({ from: address1, nonce: 0 });
-          const tx2 = createTestFakeTransaction({ from: address2, nonce: 0 });
-          const tx3 = createTestFakeTransaction({ from: address1, nonce: 2 });
-          const tx4 = createTestFakeTransaction({ from: address2, nonce: 2 });
-          const tx5 = createTestFakeTransaction({ from: address1, nonce: 3 });
-          const tx6 = createTestFakeTransaction({ from: address2, nonce: 3 });
-          const tx7 = createTestFakeTransaction({ from: address2, nonce: 1 });
+          const tx1 = createTestFakeTransaction({
+            from: address1,
+            nonce: 0,
+            gasLimit: 30000,
+          });
+          const tx2 = createTestFakeTransaction({
+            from: address2,
+            nonce: 0,
+            gasLimit: 30000,
+          });
+          const tx3 = createTestFakeTransaction({
+            from: address1,
+            nonce: 2,
+            gasLimit: 30000,
+          });
+          const tx4 = createTestFakeTransaction({
+            from: address2,
+            nonce: 2,
+            gasLimit: 30000,
+          });
+          const tx5 = createTestFakeTransaction({
+            from: address1,
+            nonce: 3,
+            gasLimit: 30000,
+          });
+          const tx6 = createTestFakeTransaction({
+            from: address2,
+            nonce: 3,
+            gasLimit: 30000,
+          });
+          const tx7 = createTestFakeTransaction({
+            from: address2,
+            nonce: 1,
+            gasLimit: 30000,
+          });
 
           await txPool.addTransaction(tx1);
           await txPool.addTransaction(tx2);
@@ -282,6 +412,87 @@ describe("Transaction Pool", () => {
         });
       });
     });
+
+    describe("validation", () => {
+      it("throws an error if transaction's gas limit exceeds block gas limit", () => {
+        const tx = createTestFakeTransaction({ gasLimit: 15000000 });
+        assert.isRejected(
+          txPool.addTransaction(tx),
+          Error,
+          "Transaction gas limit"
+        );
+      });
+
+      it("throws an error if transaction is not signed", async () => {
+        const tx = createTestTransaction();
+        assert.isRejected(
+          txPool.addTransaction(tx),
+          Error,
+          "Invalid Signature"
+        );
+      });
+
+      it("throws and error if transaction's nonce is too low", async () => {
+        const address = randomAddress();
+        const tx1 = createTestFakeTransaction({
+          from: address,
+          nonce: 0,
+          gasLimit: 30000,
+        });
+        const tx2 = createTestFakeTransaction({
+          from: address,
+          nonce: 0,
+          gasLimit: 30000,
+        });
+        await txPool.addTransaction(tx1);
+
+        await assert.isRejected(
+          txPool.addTransaction(tx2),
+          Error,
+          "Nonce too low"
+        );
+      });
+
+      it("throws an error if transaction's gas limit is greater than transaction's base fee", () => {
+        const tx = createTestFakeTransaction({ gasLimit: 100 });
+        assert.isRejected(
+          txPool.addTransaction(tx),
+          Error,
+          "Transaction requires at least"
+        );
+      });
+
+      it("throws an error if creating a contract and no data is provided", () => {
+        const tx = createTestFakeTransaction({
+          to: undefined,
+          gasLimit: 30000,
+        });
+        assert.isRejected(
+          txPool.addTransaction(tx),
+          Error,
+          "contract creation without any data provided"
+        );
+      });
+
+      it("throws an error if sender doesn't have enough ether on their balance", async () => {
+        const address = randomAddressBuffer();
+        await stateManager.putAccount(
+          address,
+          new Account({ nonce: new BN(0), balance: toBuffer(0) })
+        );
+
+        const tx = createTestFakeTransaction({
+          gasLimit: 30000,
+          gasPrice: 900,
+          value: 5,
+        });
+        assert.isRejected(
+          txPool.addTransaction(tx),
+          Error,
+          "Account balance too low to make the transaction"
+        );
+      });
+    });
   });
 
   describe("getExecutableNonce", () => {
@@ -295,7 +506,11 @@ describe("Transaction Pool", () => {
       // add one transaction to pending
       // p: [1]
 
-      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+      const tx1 = createTestFakeTransaction({
+        from: address,
+        nonce: 0,
+        gasLimit: 30000,
+      });
 
       await txPool.addTransaction(tx1);
 
@@ -306,8 +521,16 @@ describe("Transaction Pool", () => {
       // p: [1]
       // q: [3]
 
-      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-      const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+      const tx1 = createTestFakeTransaction({
+        from: address,
+        nonce: 0,
+        gasLimit: 30000,
+      });
+      const tx2 = createTestFakeTransaction({
+        from: address,
+        nonce: 2,
+        gasLimit: 30000,
+      });
 
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
@@ -322,9 +545,21 @@ describe("Transaction Pool", () => {
       // p: [1, 2, 3]
       // q: []
 
-      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-      const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
-      const tx3 = createTestFakeTransaction({ from: address, nonce: 1 });
+      const tx1 = createTestFakeTransaction({
+        from: address,
+        nonce: 0,
+        gasLimit: 30000,
+      });
+      const tx2 = createTestFakeTransaction({
+        from: address,
+        nonce: 2,
+        gasLimit: 30000,
+      });
+      const tx3 = createTestFakeTransaction({
+        from: address,
+        nonce: 1,
+        gasLimit: 30000,
+      });
 
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
@@ -340,10 +575,26 @@ describe("Transaction Pool", () => {
       // p: [1, 2, 3]
       // q: [5]
 
-      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
-      const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
-      const tx3 = createTestFakeTransaction({ from: address, nonce: 5 });
-      const tx4 = createTestFakeTransaction({ from: address, nonce: 1 });
+      const tx1 = createTestFakeTransaction({
+        from: address,
+        nonce: 0,
+        gasLimit: 30000,
+      });
+      const tx2 = createTestFakeTransaction({
+        from: address,
+        nonce: 2,
+        gasLimit: 30000,
+      });
+      const tx3 = createTestFakeTransaction({
+        from: address,
+        nonce: 5,
+        gasLimit: 30000,
+      });
+      const tx4 = createTestFakeTransaction({
+        from: address,
+        nonce: 1,
+        gasLimit: 30000,
+      });
 
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
