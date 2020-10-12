@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - tx-pool
   pull_request:
     branches:
       - "*"
