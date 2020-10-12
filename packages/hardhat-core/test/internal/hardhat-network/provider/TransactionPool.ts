@@ -44,7 +44,7 @@ describe("Transaction Pool", () => {
               address,
               new Account({ nonce: new BN(0) })
             );
-            const tx = createTestFakeTransaction({ from: address, nonce: 1 });
+            const tx = createTestFakeTransaction({ from: address, nonce: 3 });
             await txPool.addTransaction(tx);
 
             const pendingTxs = txPool.getPendingTransactions();
@@ -91,7 +91,7 @@ describe("Transaction Pool", () => {
             );
           });
 
-          xit("moves queued transactions with subsequent nonces to pending", async () => {
+          it("moves queued transactions with subsequent nonces to pending", async () => {
             const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
             const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
             const tx3 = createTestFakeTransaction({ from: address, nonce: 1 });
@@ -104,6 +104,24 @@ describe("Transaction Pool", () => {
             assert.sameDeepMembers(
               pendingTxs.map((tx) => tx.raw),
               [tx1, tx2, tx3].map((tx) => tx.raw)
+            );
+          });
+
+          it("does not move queued transactions to pending which have too high nonces", async () => {
+            const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+            const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+            const tx3 = createTestFakeTransaction({ from: address, nonce: 4 });
+            const tx4 = createTestFakeTransaction({ from: address, nonce: 1 });
+
+            await txPool.addTransaction(tx1);
+            await txPool.addTransaction(tx2);
+            await txPool.addTransaction(tx3);
+            await txPool.addTransaction(tx4);
+
+            const pendingTxs = txPool.getPendingTransactions();
+            assert.sameDeepMembers(
+              pendingTxs.map((tx) => tx.raw),
+              [tx1, tx2, tx4].map((tx) => tx.raw)
             );
           });
         });
@@ -179,6 +197,34 @@ describe("Transaction Pool", () => {
         // executableNonce = 3
         // queued = [5, 4, 6];
       });
+    });
+  });
+
+  describe("getExecutableNonce", () => {
+    xit("returns current executable nonce", async () => {
+      // add one transaction to pending
+      // p: [1]
+    });
+
+    xit("is not affected by queued transactions", async () => {
+      // p: [1]
+      // q: [3]
+    });
+
+    xit("returns correct nonce after queued transactions are moved to pending", async () => {
+      // p: [1]
+      // q: [3]
+      // later 2 is added:
+      // p: [1, 2, 3]
+      // q: []
+    });
+
+    xit("TODO", async () => {
+      // p: [1]
+      // q: [3, 5]
+      // later 2 is added:
+      // p: [1, 2, 3]
+      // q: [5]
     });
   });
 });

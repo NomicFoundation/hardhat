@@ -1,4 +1,7 @@
+import { BN } from "ethereumjs-util";
+
 import { SenderTransactions } from "../TransactionPool";
+
 import { retrieveNonce } from "./retrieveNonce";
 
 export function reorganizeTransactionsLists(
@@ -8,7 +11,14 @@ export function reorganizeTransactionsLists(
   let newPending = pending;
   let newQueued = queued.sortBy(retrieveNonce, (l, r) => l.cmp(r));
 
-  const executableNonce = retrieveNonce(pending.last()).addn(1);
+  let executableNonce: BN;
+
+  if (pending.last() === undefined) {
+    executableNonce = new BN(0);
+  } else {
+    executableNonce = retrieveNonce(pending.last()).addn(1);
+  }
+
   let i = 0;
   for (; i < newQueued.size; i++) {
     const queuedTx = newQueued.get(i)!;
