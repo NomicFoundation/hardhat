@@ -27,6 +27,7 @@ To get syntax highlighting you should add Solidity support to your text editor. 
 // It will be used by the Solidity compiler to validate its version.
 pragma solidity ^0.6.0;
 
+/* SPDX-License-Identifier: AFL-1.1 */
 
 // This is the main building block for smart contracts.
 contract Token {
