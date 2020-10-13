@@ -204,6 +204,25 @@ describe("Error descriptors", () => {
       }
     }
   });
+
+  it("Should keep the numbers in order, without gaps", () => {
+    for (const errorGroup of unsafeObjectKeys(ERRORS)) {
+      const range = ERROR_RANGES[errorGroup];
+      let expectedErrorNumber = range.min;
+
+      for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
+        ERRORS[errorGroup]
+      )) {
+        assert.equal(
+          errorDescriptor.number,
+          expectedErrorNumber,
+          `ERRORS.${errorGroup}.${name}'s number is out of range`
+        );
+
+        expectedErrorNumber += 1;
+      }
+    }
+  });
 });
 
 describe("HardhatPluginError", () => {
