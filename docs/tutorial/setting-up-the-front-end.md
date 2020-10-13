@@ -1,22 +1,22 @@
 # 7. Setting up the front-end
 
 With the backend contract written and tested, the next step is to have a front end for users to interact with it. Typically this front end is a web page executing
-JavaScript. This way the user can interact with the Ethereum blockchain without having to rely on the web server. For this tutorial we chose to use Facebook's
-[React Framework](https://reactjs.org/tutorial/tutorial.html).
+JavaScript. This way the user can interact with the decentralized application (dapp) and the Ethereum blockchain without having to rely on the web server. For this tutorial 
+we chose to use Facebook's [React Framework](https://reactjs.org/tutorial/tutorial.html).
 
+Browsers don't have native support for Ethereum yet. To use a dapp users need to install a wallet browser extension, such as [MetaMask]. This extension injects an 
+Ethereum provider object into the browser.
 
-
-
-
-- A Dapp is just a normal App that interacts with an Ethereum network 
-
-
-- For interacting with our Dapp we're going to need Dapp browser
-- A Dapp browser is just any browser that supports an Ethereum wallet
-- These wallets inject an Ethereum provider into the browser (we're going to see more about this provider on the upcoming sections). In this section we are just going to set up the React App and install Metamask. 
 
 ## Setting up a React App
 
+To create a React application that will serve the code to talk to the Ethereum blockchain we need to create a React project:
+
+1. Open a terminal and change to the project root directory.
+1. Create the project
+```bash
+npx create-react-app frontend
+```
 - Let's start by setting up the project
 - Open a terminal on your project root directory and run `npx create-react-app frontend`. This command will create a new React app inside a folder named `frontend` (you should see this folder alongside `contracts` and `test`).
 - After installation ends, run `cd frontend and npm install --save bootstrap`. This will install Bootstrap for some basic styling with. 
