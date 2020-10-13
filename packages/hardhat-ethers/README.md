@@ -42,7 +42,16 @@ automatically connected to the selected network.
 These helpers are added to the `ethers` object:
 
 ```typescript
-function getContractFactory(name: string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
+interface LibraryLinks {
+  [libraryName: string]: string;
+}
+
+interface FactoryOptions {
+  signer?: ethers.Signer;
+  libraryLinks?: LibraryLinks;
+}
+
+function getContractFactory(name: string, signerOrFactoryOptions?: ethers.Signer | FactoryOptions): Promise<ethers.ContractFactory>;
 
 
 function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
@@ -78,6 +87,25 @@ module.exports = {};
 And then run `npx hardhat blockNumber` to try it.
 
 Read the documentation on the [Hardhat Runtime Environment](https://usehardhat.com/advanced/hardhat-runtime-environment.html) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
+
+### Library linking
+
+Some contracts need to be linked with libraries before they are deployed. You can pass these library links to the `getContractFactory` function with an object like this:
+
+```js
+const contractFactory = await this.env.ethers.getContractFactory(
+  "Example",
+  {
+    libraryLinks: {
+      ExampleLib: "0x..."
+    }
+  }
+);
+```
+
+This allows you to create a contract factory for the `Example` contract and link its `ExampleLib` library references to the address `"0x..."`.
+
+To create a contract factory, all libraries must be linked. An error will be thrown informing you of any missing library links.
 
 ## TypeScript support
 
