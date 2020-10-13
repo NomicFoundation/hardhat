@@ -313,6 +313,10 @@ Hardhat plugin instead.`
   describe("Required files recording", function () {
     useFixtureProject("files-required-by-config-tracking-example");
 
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
     it("Should keep track of all the files imported when loading the config", async function () {
       const builtinTasksFiles = await glob(
         "../../../../src/builtin-tasks/*.ts"
@@ -348,10 +352,6 @@ Hardhat plugin instead.`
 
         resetHardhatContext();
       }
-    });
-
-    afterEach(function () {
-      resetHardhatContext();
     });
   });
 });
