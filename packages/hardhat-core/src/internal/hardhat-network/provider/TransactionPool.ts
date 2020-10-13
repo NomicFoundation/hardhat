@@ -56,12 +56,11 @@ export class TransactionPool {
     }
   }
 
-  public getPendingTransactions(): Transaction[] {
-    const list = this._pendingTransactions
-      .toList()
-      .map((txs) => txs.map((tx) => deserializeTransaction(tx)))
-      .flatten() as ImmutableList<Transaction>;
-    return list.toArray();
+  public getPendingTransactions(): Map<string, Transaction[]> {
+    const deserializedImmutableMap = this._pendingTransactions.map((txs) =>
+      txs.map((tx) => deserializeTransaction(tx)).toJS()
+    );
+    return new Map(deserializedImmutableMap.entries());
   }
 
   public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
