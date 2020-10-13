@@ -1,5 +1,7 @@
 import { HardhatContext } from "./context";
 
+// This function isn't meant to be used during the Hardhat execution,
+// but rather to reset Hardhat in between tests.
 export function resetHardhatContext() {
   if (HardhatContext.isCreated()) {
     const ctx = HardhatContext.getHardhatContext();
