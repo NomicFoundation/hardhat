@@ -21,7 +21,7 @@ export const ERROR_RANGES: {
     title: string;
   };
 } = {
-  GENERAL: { min: 0, max: 99, title: "General errors" },
+  GENERAL: { min: 1, max: 99, title: "General errors" },
   NETWORK: { min: 100, max: 199, title: "Network related errors" },
   TASK_DEFINITIONS: {
     min: 200,
