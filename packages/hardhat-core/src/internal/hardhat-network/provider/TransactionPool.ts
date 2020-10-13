@@ -119,7 +119,12 @@ export class TransactionPool {
     const senderBalance = new BN(senderAccount.balance);
 
     if (tx.getUpfrontCost().gt(senderBalance)) {
-      throw new Error("Account balance too low to make the transaction");
+      throw new Error(
+        `sender doesn't have enough funds to send tx. The upfront cost is: ${tx
+          .getUpfrontCost()
+          .toString()}` +
+          ` and the sender's account only has: ${senderBalance.toString()}`
+      );
     }
 
     if (txNonce.lt(senderNonce)) {
