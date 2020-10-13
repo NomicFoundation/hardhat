@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 import path from "path";
 
@@ -35,7 +36,7 @@ describe("Ethers plugin", function () {
 
     beforeEach(async function () {
       signers = await this.env.ethers.getSigners();
-      await this.env.run("compile");
+      await this.env.run("compile", { quiet: true });
       greeterArtifact = await this.env.artifacts.readArtifact("Greeter");
 
       iGreeterArtifact = await this.env.artifacts.readArtifact("IGreeter");
@@ -68,14 +69,206 @@ describe("Ethers plugin", function () {
           );
         });
 
-        it("should return a contract factory for an interface", async function () {
-          const contract = await this.env.ethers.getContractFactory("IGreeter");
-          assert.equal(contract.bytecode, "0x");
-          assert.containsAllKeys(contract.interface.functions, ["greet()"]);
+        it("should fail to return a contract factory for an interface", async function () {
+          try {
+            await this.env.ethers.getContractFactory("IGreeter");
+          } catch (reason) {
+            assert.instanceOf(
+              reason,
+              NomicLabsHardhatPluginError,
+              "getContractFactory should fail with a hardhat plugin error"
+            );
+            assert.isTrue(
+              reason.message.includes("is abstract and can't be deployed"),
+              "getContractFactory should report the abstract contract as the cause"
+            );
+            return;
+          }
 
+          // The test shouldn't reach this point.
+          assert.fail(
+            "getContractFactory should fail with an abstract contract"
+          );
+        });
+
+        it("should link a library", async function () {
+          const libraryFactory = await this.env.ethers.getContractFactory(
+            "TestLibrary"
+          );
+          const library = await libraryFactory.deploy();
+
+          const contractFactory = await this.env.ethers.getContractFactory(
+            "TestContractLib",
+            { libraries: { TestLibrary: library.address } }
+          );
           assert.equal(
-            await contract.signer.getAddress(),
+            await contractFactory.signer.getAddress(),
             await signers[0].getAddress()
+          );
+          const numberPrinter = await contractFactory.deploy();
+          const someNumber = 50;
+          assert.equal(
+            await numberPrinter.callStatic.printNumber(someNumber),
+            someNumber * 2
+          );
+        });
+
+        it("should fail to link when passing in an ambiguous library link", async function () {
+          const libraryFactory = await this.env.ethers.getContractFactory(
+            "contracts/TestContractLib.sol:TestLibrary"
+          );
+          const library = await libraryFactory.deploy();
+
+          try {
+            await this.env.ethers.getContractFactory("TestContractLib", {
+              libraries: {
+                TestLibrary: library.address,
+                "contracts/TestContractLib.sol:TestLibrary": library.address,
+              },
+            });
+          } catch (reason) {
+            assert.instanceOf(
+              reason,
+              NomicLabsHardhatPluginError,
+              "getContractFactory should fail with a hardhat plugin error"
+            );
+            assert.isTrue(
+              reason.message.includes(
+                "refer to the same library and were given as two separate library links"
+              ),
+              "getContractFactory should report the ambiguous link as the cause"
+            );
+            assert.isTrue(
+              reason.message.includes(
+                "TestLibrary and contracts/TestContractLib.sol:TestLibrary"
+              ),
+              "getContractFactory should display the ambiguous library links"
+            );
+            return;
+          }
+
+          // The test shouldn't reach this point
+          assert.fail(
+            "getContractFactory should fail when the link for one library is ambiguous"
+          );
+        });
+
+        it("should link a library even if there's an identically named library in the project", async function () {
+          const libraryFactory = await this.env.ethers.getContractFactory(
+            "contracts/TestNonUniqueLib.sol:NonUniqueLibrary"
+          );
+          const library = await libraryFactory.deploy();
+
+          const contractFactory = await this.env.ethers.getContractFactory(
+            "TestNonUniqueLib",
+            { libraries: { NonUniqueLibrary: library.address } }
+          );
+          assert.equal(
+            await contractFactory.signer.getAddress(),
+            await signers[0].getAddress()
+          );
+        });
+
+        it("should fail to link an ambiguous library", async function () {
+          const libraryFactory = await this.env.ethers.getContractFactory(
+            "contracts/AmbiguousLibrary.sol:AmbiguousLibrary"
+          );
+          const library = await libraryFactory.deploy();
+          const library2Factory = await this.env.ethers.getContractFactory(
+            "contracts/AmbiguousLibrary2.sol:AmbiguousLibrary"
+          );
+          const library2 = await libraryFactory.deploy();
+
+          try {
+            await this.env.ethers.getContractFactory("TestAmbiguousLib", {
+              libraries: {
+                AmbiguousLibrary: library.address,
+                "contracts/AmbiguousLibrary2.sol:AmbiguousLibrary":
+                  library2.address,
+              },
+            });
+          } catch (reason) {
+            assert.instanceOf(
+              reason,
+              NomicLabsHardhatPluginError,
+              "getContractFactory should fail with a hardhat plugin error"
+            );
+            assert.isTrue(
+              reason.message.includes("is ambiguous for the contract"),
+              "getContractFactory should report the ambiguous name resolution as the cause"
+            );
+            assert.isTrue(
+              reason.message.includes(
+                "AmbiguousLibrary.sol:AmbiguousLibrary"
+              ) &&
+                reason.message.includes(
+                  "AmbiguousLibrary2.sol:AmbiguousLibrary"
+                ),
+              "getContractFactory should enumerate both available library name candidates"
+            );
+            return;
+          }
+
+          // The test shouldn't reach this point
+          assert.fail(
+            "getContractFactory should fail to retrieve an ambiguous library name"
+          );
+        });
+
+        it("should fail to create a contract factory with missing libraries", async function () {
+          try {
+            await this.env.ethers.getContractFactory("TestContractLib");
+          } catch (reason) {
+            assert.instanceOf(
+              reason,
+              NomicLabsHardhatPluginError,
+              "getContractFactory should fail with a hardhat plugin error"
+            );
+            assert.isTrue(
+              reason.message.includes(
+                "missing links for the following libraries"
+              ),
+              "getContractFactory should report the missing libraries as the cause"
+            );
+            assert.isTrue(
+              reason.message.includes("TestContractLib.sol:TestLibrary"),
+              "getContractFactory should enumerate missing library names"
+            );
+            return;
+          }
+
+          // The test shouldn't reach this point
+          assert.fail(
+            "getContractFactory should fail to create a contract factory if there are missing libraries"
+          );
+        });
+
+        it("should fail to create a contract factory with an invalid address", async function () {
+          const notAnAddress = "definitely not an address";
+          try {
+            await this.env.ethers.getContractFactory("TestContractLib", {
+              libraries: { TestLibrary: notAnAddress },
+            });
+          } catch (reason) {
+            assert.instanceOf(
+              reason,
+              NomicLabsHardhatPluginError,
+              "getContractFactory should fail with a hardhat plugin error"
+            );
+            assert.isTrue(
+              reason.message.includes("invalid address"),
+              "getContractFactory should report the invalid address as the cause"
+            );
+            assert.isTrue(
+              reason.message.includes(notAnAddress),
+              "getContractFactory should display the invalid address"
+            );
+            return;
+          }
+
+          // The test shouldn't reach this point
+          assert.fail(
+            "getContractFactory should fail to create a contract factory if there is an invalid address"
           );
         });
 

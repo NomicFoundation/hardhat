@@ -11,26 +11,24 @@ const log = debug("hardhat:plugin:ganache");
 
 import { GanacheService } from "./ganache-service";
 
-export default function () {
-  task(TASK_TEST, async (args, env, runSuper) => {
-    return handlePluginTask(args, env, runSuper);
-  });
+task(TASK_TEST, async (args, env, runSuper) => {
+  return handlePluginTask(args, env, runSuper);
+});
 
-  task(TASK_RUN, async (args, env, runSuper) => {
-    return handlePluginTask(args, env, runSuper);
-  });
+task(TASK_RUN, async (args, env, runSuper) => {
+  return handlePluginTask(args, env, runSuper);
+});
 
-  extendConfig((resolvedConfig: any, config: any) => {
-    const defaultOptions = GanacheService.getDefaultOptions();
+extendConfig((resolvedConfig: any, config: any) => {
+  const defaultOptions = GanacheService.getDefaultOptions();
 
-    if (config.networks && config.networks.ganache) {
-      const customOptions = config.networks.ganache;
-      resolvedConfig.networks.ganache = { ...defaultOptions, ...customOptions };
-    } else {
-      resolvedConfig.networks.ganache = defaultOptions;
-    }
-  });
-}
+  if (config.networks && config.networks.ganache) {
+    const customOptions = config.networks.ganache;
+    resolvedConfig.networks.ganache = { ...defaultOptions, ...customOptions };
+  } else {
+    resolvedConfig.networks.ganache = defaultOptions;
+  }
+});
 
 async function handlePluginTask(
   args: string,

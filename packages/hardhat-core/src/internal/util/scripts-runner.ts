@@ -2,7 +2,6 @@ import debug from "debug";
 import path from "path";
 
 import { HardhatArguments } from "../../types";
-import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
 
 const log = debug("hardhat:core:scripts-runner");
@@ -24,10 +23,12 @@ export async function runScript(
       ...extraNodeArgs,
     ];
 
+    const envVars = { ...process.env, ...extraEnvVars };
+
     const childProcess = fork(scriptPath, scriptArgs, {
-      stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
+      stdio: "inherit",
       execArgv: nodeArgs,
-      env: { ...process.env, ...extraEnvVars },
+      env: envVars,
     });
 
     childProcess.once("close", (status) => {
@@ -48,12 +49,14 @@ export async function runScriptWithHardhat(
 ): Promise<number> {
   log(`Creating Hardhat subprocess to run ${scriptPath}`);
 
-  const hardhatRegisterPath = resolveHardhatRegisterPath();
-
   return runScript(
     scriptPath,
     scriptArgs,
-    [...extraNodeArgs, "--require", hardhatRegisterPath],
+    [
+      ...extraNodeArgs,
+      "--require",
+      path.join(__dirname, "..", "..", "register"),
+    ],
     {
       ...getEnvVariablesMap(hardhatArguments),
       ...extraEnvVars,
@@ -86,47 +89,16 @@ function withFixedInspectArg(argv: string[]) {
   return argv.map(fixIfInspectArg);
 }
 
-/**
- * Ensure hardhat/register source file path is resolved to compiled JS file
- * instead of TS source file, so we don't need to run ts-node unnecessarily.
- */
-export function resolveHardhatRegisterPath() {
-  const executionMode = getExecutionMode();
-  const isCompiledInstallation = [
-    ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION,
-    ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION,
-    ExecutionMode.EXECUTION_MODE_LINKED,
-  ].includes(executionMode);
-
-  const hardhatCoreBaseDir = path.join(__dirname, "..", "..");
-
-  const hardhatCoreCompiledDir = isCompiledInstallation
-    ? hardhatCoreBaseDir
-    : path.join(hardhatCoreBaseDir, "..");
-
-  const hardhatCoreRegisterCompiledPath = path.join(
-    hardhatCoreCompiledDir,
-    "register"
-  );
-
-  return hardhatCoreRegisterCompiledPath;
-}
-
-function getTsNodeArgsIfNeeded(scriptPath: string) {
-  if (getExecutionMode() !== ExecutionMode.EXECUTION_MODE_TS_NODE_TESTS) {
+function getTsNodeArgsIfNeeded(scriptPath: string): string[] {
+  if (process.execArgv.includes("ts-node/register")) {
     return [];
   }
 
-  if (!/\.tsx?$/i.test(scriptPath)) {
-    return [];
+  // If we are running the tests (i.e. hardhat/register is in ts) or the
+  // script itself is in ts
+  if (/\.tsx?$/i.test(scriptPath) || __filename.endsWith(".ts")) {
+    return ["--require", "ts-node/register"];
   }
 
-  const extraNodeArgs = [];
-
-  if (!process.execArgv.includes("ts-node/register")) {
-    extraNodeArgs.push("--require");
-    extraNodeArgs.push("ts-node/register");
-  }
-
-  return extraNodeArgs;
+  return [];
 }

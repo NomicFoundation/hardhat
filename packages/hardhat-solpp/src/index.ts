@@ -29,47 +29,45 @@ async function readFiles(filePaths: string[]): Promise<string[][]> {
   );
 }
 
-export default function () {
-  extendConfig((config) => {
-    const defaultConfig = getDefaultConfig(config);
-    config.solpp = { ...defaultConfig, ...config.solpp };
-  });
+extendConfig((config) => {
+  const defaultConfig = getDefaultConfig(config);
+  config.solpp = { ...defaultConfig, ...config.solpp };
+});
 
-  subtask(
-    "hardhat-solpp:run-solpp",
-    async (
-      { files, opts }: { files: string[][]; opts: SolppConfig },
-      { config }: { config: HardhatConfig }
-    ) => {
-      const processedPaths: string[] = [];
-      const solpp = await import("solpp");
-      for (const [filePath, content] of files) {
-        const processedFilePath = path.join(
-          config.paths.cache,
-          PROCESSED_CACHE_DIRNAME,
-          path.relative(config.paths.sources, filePath)
-        );
+subtask(
+  "hardhat-solpp:run-solpp",
+  async (
+    { files, opts }: { files: string[][]; opts: SolppConfig },
+    { config }: { config: HardhatConfig }
+  ) => {
+    const processedPaths: string[] = [];
+    const solpp = await import("solpp");
+    for (const [filePath, content] of files) {
+      const processedFilePath = path.join(
+        config.paths.cache,
+        PROCESSED_CACHE_DIRNAME,
+        path.relative(config.paths.sources, filePath)
+      );
 
-        await fsExtra.ensureDir(path.dirname(processedFilePath));
+      await fsExtra.ensureDir(path.dirname(processedFilePath));
 
-        const processedCode = await solpp.processCode(content, opts);
+      const processedCode = await solpp.processCode(content, opts);
 
-        await fsExtra.writeFile(processedFilePath, processedCode, "utf-8");
+      await fsExtra.writeFile(processedFilePath, processedCode, "utf-8");
 
-        processedPaths.push(processedFilePath);
-      }
-
-      return processedPaths;
+      processedPaths.push(processedFilePath);
     }
-  );
 
-  subtask(
-    TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
-    async (_, { config, run }, runSuper) => {
-      const filePaths: string[] = await runSuper();
-      const files = await readFiles(filePaths);
-      const opts = config.solpp;
-      return run("hardhat-solpp:run-solpp", { files, opts });
-    }
-  );
-}
+    return processedPaths;
+  }
+);
+
+subtask(
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+  async (_, { config, run }, runSuper) => {
+    const filePaths: string[] = await runSuper();
+    const files = await readFiles(filePaths);
+    const opts = config.solpp;
+    return run("hardhat-solpp:run-solpp", { files, opts });
+  }
+);

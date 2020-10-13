@@ -1,37 +1,21 @@
-/**
- * This function resets the hardhat context.
- *
- * This doesn't unload any loaded Hardhat plugin, so those have to be unloaded
- * manually with `unloadModule`.
- */
 import { HardhatContext } from "./context";
-import { getUserConfigPath } from "./core/project-structure";
-import { globSync } from "./util/glob";
 
+// This function isn't meant to be used during the Hardhat execution,
+// but rather to reset Hardhat in between tests.
 export function resetHardhatContext() {
   if (HardhatContext.isCreated()) {
     const ctx = HardhatContext.getHardhatContext();
-    const globalAsAny = global as any;
+
     if (ctx.environment !== undefined) {
+      const globalAsAny = global as any;
       for (const key of Object.keys(ctx.environment)) {
         globalAsAny[key] = undefined;
       }
-      // unload config file too.
-      unloadModule(ctx.environment.config.paths.configFile);
-    } else {
-      // We may get here if loading the config has thrown, so be unload it
-      let configPath: string | undefined;
-
-      try {
-        configPath = getUserConfigPath();
-      } catch (error) {
-        // We weren't in a hardhat project
-      }
-
-      if (configPath !== undefined) {
-        unloadModule(configPath);
-      }
     }
+
+    const filesLoadedDuringConfig = ctx.getFilesLoadedDuringConfig();
+    filesLoadedDuringConfig.forEach(unloadModule);
+
     HardhatContext.deleteHardhatContext();
   }
 

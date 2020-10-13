@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
@@ -6,6 +7,7 @@ import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetHardhatContext } from "../../../../src/internal/reset";
+import { glob } from "../../../../src/internal/util/glob";
 import { useEnvironment } from "../../../helpers/environment";
 import {
   expectHardhatError,
@@ -120,7 +122,6 @@ describe("config loading", function () {
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
-      assert.isUndefined(globalAsAny.usePlugin);
 
       resetHardhatContext();
 
@@ -131,7 +132,6 @@ describe("config loading", function () {
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
-      assert.isUndefined(globalAsAny.usePlugin);
       resetHardhatContext();
     });
   });
@@ -307,6 +307,51 @@ Hardhat plugin instead.`
         ERRORS.PLUGINS.MISSING_DEPENDENCIES,
         "Plugin some-plugin requires the following dependencies to be installed: some-dependency"
       );
+    });
+  });
+
+  describe("Required files recording", function () {
+    useFixtureProject("files-required-by-config-tracking-example");
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("Should keep track of all the files imported when loading the config", async function () {
+      const builtinTasksFiles = await glob(
+        "../../../../src/builtin-tasks/*.ts"
+      );
+
+      const projectPath = await fsExtra.realpath(".");
+
+      // We run this twice to make sure that the cache is cleaned properly
+      for (let i = 0; i < 2; i++) {
+        HardhatContext.createHardhatContext();
+        loadConfigAndTasks();
+        const ctx = HardhatContext.getHardhatContext();
+
+        const files = ctx.getFilesLoadedDuringConfig();
+
+        for (const file of builtinTasksFiles) {
+          // The task names may have been loaded before, so we ignore it.
+          if (file.endsWith("task-names.ts")) {
+            continue;
+          }
+
+          assert.include(files, file);
+        }
+
+        // Must include the config file and the files directly and
+        // indirectly imported by it.
+        assert.include(files, path.join(projectPath, "hardhat.config.js"));
+        assert.include(files, path.join(projectPath, "a.js"));
+        assert.include(files, path.join(projectPath, "b.js"));
+
+        // Must not include unrelated files.
+        assert.notInclude(files, path.join(projectPath, "not-imported.js"));
+
+        resetHardhatContext();
+      }
     });
   });
 });

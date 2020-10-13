@@ -1,5 +1,4 @@
-const { loadPluginFile } = require("hardhat/plugins-testing");
-loadPluginFile(__dirname + "/../../src/index");
+require(__dirname + "/../../src/index");
 
 module.exports = {
   networks: {

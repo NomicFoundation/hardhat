@@ -144,28 +144,16 @@ statement wherever you want. Then link your project. Finally, run hardhat as nor
 
 ## Common errors
 
-### Monkey-patching dependencies multiple times
+### Monkey-patching dependencies within plugins
 
 You should avoid monkey-patching whenever possible. But if it's necessary to do so, you should pay extra care when doing
-it in Hardhat or your tests may fail in very hard to debug ways.
+it in a Hardhat plugin or your tests may fail in very hard to debug ways.
 
-When tests are run, Hardhat gets initialized multiple times. That may lead to monkey-patching the same multiple times.
-To avoid this, keep references to the original implementations. In order to do this, you need to get it just once:
+When tests are run, Hardhat gets initialized multiple times, and that means unloading and reloading config and plugin
+modules. This unloading process may or may not lead to your dependencies being reloaded. This makes monkey-patching 
+harder, as you may apply the same patch multiple times to the same module.
 
-```js
-let originalImpl; // May be a global
+This problem is normally not present if you are monkey-patching an object that you initialized, but it is when 
+monkey-patching a class, its prototype, or a singleton object initialized by the library itself.
 
-// ...
-
-if (originalImpl === undefined) {
-  originalImpl = lib.func;
-}
-
-lib.func = function(...args) {
-  // Do something;
-  return originalImpl.apply(this, args);
-};
-```
-
-This isn't normally a problem if you are monkey-patching an object's methods. But it is when monkey-patching a class
-or its prototype.
+For an example on how to do it properly, please take a look at the `hardhat-truffle5` plugin.
