@@ -19,18 +19,18 @@ export function reorganizeTransactionsLists(
     executableNonce = retrieveNonce(pending.last()).addn(1);
   }
 
-  let i = 0;
-  for (; i < newQueued.size; i++) {
-    const queuedTx = newQueued.get(i)!;
-    const txNonce = retrieveNonce(queuedTx);
-    if (executableNonce.eq(txNonce)) {
+  let movedCount = 0;
+  newQueued.forEach((queuedTx) => {
+    const queuedTxNonce = retrieveNonce(queuedTx);
+    if (executableNonce.eq(queuedTxNonce)) {
       newPending = newPending.push(queuedTx);
       executableNonce.iaddn(1);
+      movedCount++;
     } else {
-      break;
+      return false; // stops iteration
     }
-  }
-  newQueued = newQueued.slice(i);
+  });
+  newQueued = newQueued.skip(movedCount);
 
   return {
     executableNonce,
