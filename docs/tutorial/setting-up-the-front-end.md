@@ -49,9 +49,15 @@ This list only includes the most important files.
 
 ## Connecting to the browser
 
-- We're going to use Metamask, the most popular browser wallet. 
-- Follow [this guide](https://metamask.zendesk.com/hc/en-us/articles/360015489531-Getting-Started-With-MetaMask-Part-1-) to install Metamask 
-- When installation completes, open Metamask and follow the instructions to create a new wallet.
+In this tutorial we use Metamask[https://metamask.io/], which is the most popular browser wallet. Follow [this guide](https://metamask.zendesk.com/hc/en-us/articles/360015489531-Getting-Started-With-MetaMask-Part-1-) to install Metamask, and then open Metamask and follow the instructions to create a new wallet
+
+::: note
+In Ethereum the term **wallet** has two separate meanings:
+
+- The software that stores user's private and public keys and export Ethereum functions. For example the Metamask software you just installed which provides
+  JavaScript running inside the web page with Ethereum functionality.
+- The twelve word passphrase that is used to derive private keys, public keys, and accounts.
+:::
 
 ### Connecting Metamask to Buidler EVM
 - Besides the Main Ethereum Network (known as mainnet), Metamask allows the user to connect its provider to test networks such as Rinkeby, Ropsten and Goerli.
