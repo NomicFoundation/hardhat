@@ -71,6 +71,8 @@ export const TASK_RUN = "run";
 export const TASK_NODE = "node";
 export const TASK_NODE_GET_PROVIDER = "node:get-provider";
 export const TASK_NODE_CREATE_SERVER = "node:create-server";
+export const TASK_NODE_SERVER_CREATED = "node:server-created";
+export const TASK_NODE_SERVER_READY = "node:server-ready";
 
 export const TASK_TEST = "test";
 

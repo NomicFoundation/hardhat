@@ -19,6 +19,8 @@ import {
   TASK_NODE,
   TASK_NODE_CREATE_SERVER,
   TASK_NODE_GET_PROVIDER,
+  TASK_NODE_SERVER_CREATED,
+  TASK_NODE_SERVER_READY,
 } from "./task-names";
 import { watchCompilerOutput } from "./utils/watch";
 
@@ -100,6 +102,31 @@ export default function () {
       }
     );
 
+  /**
+   * This task will be called when the server was successfully created, but it's
+   * not ready for receiving requests yet.
+   */
+  subtask(TASK_NODE_SERVER_CREATED)
+    .addParam("provider", undefined, undefined, types.any)
+    .addParam("server", undefined, undefined, types.any)
+    .setAction(
+      async ({}: { provider: EthereumProvider; server: JsonRpcServer }) => {
+        // this task is meant to be overriden by plugin writers
+      }
+    );
+
+  /**
+   * This subtask will be run when the server is ready to accept requests
+   */
+  subtask(TASK_NODE_SERVER_READY)
+    .addParam("provider", undefined, undefined, types.any)
+    .addParam("server", undefined, undefined, types.any)
+    .setAction(
+      async ({}: { provider: EthereumProvider; server: JsonRpcServer }) => {
+        // this task is meant to be overriden by plugin writers
+      }
+    );
+
   task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     .addOptionalParam(
       "hostname",
@@ -141,6 +168,8 @@ export default function () {
             provider,
           });
 
+          await run(TASK_NODE_SERVER_CREATED, { provider, server });
+
           const { port: actualPort, address } = await server.listen();
 
           console.log(
@@ -170,6 +199,8 @@ export default function () {
 
           const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
           logHardhatNetworkAccounts(networkConfig);
+
+          await run(TASK_NODE_SERVER_READY, { provider, server });
 
           await server.waitUntilClosed();
         } catch (error) {
