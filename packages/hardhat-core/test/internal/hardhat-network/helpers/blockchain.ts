@@ -23,6 +23,7 @@ export function createTestFakeTransaction(data: FakeTxData = {}) {
     to: randomAddressBuffer(),
     from: randomAddressBuffer(),
     nonce: 1,
+    gasLimit: 30000,
     ...data,
   });
 }
