@@ -3,7 +3,7 @@ import debug from "debug";
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
-import { task, types } from "../internal/core/config/config-env";
+import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
@@ -13,37 +13,16 @@ import {
 } from "../internal/hardhat-network/jsonrpc/server";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
-import {
-  Artifacts,
-  EthereumProvider,
-  HardhatConfig,
-  HardhatNetworkConfig,
-} from "../types";
+import { EthereumProvider, HardhatNetworkConfig } from "../types";
 
-import { TASK_NODE } from "./task-names";
+import {
+  TASK_NODE,
+  TASK_NODE_CREATE_SERVER,
+  TASK_NODE_GET_PROVIDER,
+} from "./task-names";
 import { watchCompilerOutput } from "./utils/watch";
 
 const log = debug("hardhat:core:tasks:node");
-
-function _createHardhatNetworkProvider(
-  config: HardhatConfig,
-  artifacts: Artifacts
-): EthereumProvider {
-  log("Creating HardhatNetworkProvider");
-
-  const networkName = HARDHAT_NETWORK_NAME;
-  const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
-
-  return lazyObject(() => {
-    log(`Creating hardhat provider for JSON-RPC sever`);
-    return createProvider(
-      networkName,
-      { loggingEnabled: true, ...networkConfig },
-      config.paths,
-      artifacts
-    );
-  });
-}
 
 function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
   if (networkConfig.accounts === undefined) {
@@ -67,6 +46,51 @@ Private Key: ${privateKey}
 }
 
 export default function () {
+  subtask(TASK_NODE_GET_PROVIDER).setAction(
+    async (_, { config, artifacts }): Promise<EthereumProvider> => {
+      log("Creating HardhatNetworkProvider");
+
+      const networkName = HARDHAT_NETWORK_NAME;
+      const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
+
+      return lazyObject(() => {
+        log(`Creating hardhat provider for JSON-RPC sever`);
+        return createProvider(
+          networkName,
+          { loggingEnabled: true, ...networkConfig },
+          config.paths,
+          artifacts
+        );
+      });
+    }
+  );
+
+  subtask(TASK_NODE_CREATE_SERVER)
+    .addParam("hostname", undefined, undefined, types.string)
+    .addParam("port", undefined, undefined, types.int)
+    .addParam("provider", undefined, undefined, types.any)
+    .setAction(
+      async ({
+        hostname,
+        port,
+        provider,
+      }: {
+        hostname: string;
+        port: number;
+        provider: EthereumProvider;
+      }): Promise<JsonRpcServer> => {
+        const serverConfig: JsonRpcServerConfig = {
+          hostname,
+          port,
+          provider,
+        };
+
+        const server = new JsonRpcServer(serverConfig);
+
+        return server;
+      }
+    );
+
   task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     .addOptionalParam(
       "hostname",
@@ -83,7 +107,7 @@ export default function () {
     .setAction(
       async (
         { hostname, port },
-        { artifacts, network, hardhatArguments, config }
+        { config, hardhatArguments, network, run }
       ) => {
         if (
           network.name !== HARDHAT_NETWORK_NAME &&
@@ -100,13 +124,13 @@ export default function () {
         }
 
         try {
-          const serverConfig: JsonRpcServerConfig = {
+          const provider: EthereumProvider = await run(TASK_NODE_GET_PROVIDER);
+
+          const server: JsonRpcServer = await run(TASK_NODE_CREATE_SERVER, {
             hostname,
             port,
-            provider: _createHardhatNetworkProvider(config, artifacts),
-          };
-
-          const server = new JsonRpcServer(serverConfig);
+            provider,
+          });
 
           const { port: actualPort, address } = await server.listen();
 
