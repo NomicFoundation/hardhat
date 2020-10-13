@@ -1,7 +1,8 @@
 import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
-import { BN, toBuffer } from "ethereumjs-util";
+import { Transaction } from "ethereumjs-tx";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
   randomAddress,
@@ -14,6 +15,10 @@ import {
   createTestFakeTransaction,
   createTestTransaction,
 } from "../helpers/blockchain";
+
+function getAllTxs(pendingTxs: Map<string, Transaction[]>) {
+  return Array.from(pendingTxs.values()).flat();
+}
 
 describe("Transaction Pool", () => {
   const blockGasLimit = new BN(10000000);
@@ -43,8 +48,8 @@ describe("Transaction Pool", () => {
             await txPool.addTransaction(tx);
 
             const pendingTxs = txPool.getPendingTransactions();
-            assert.lengthOf(pendingTxs, 1);
-            assert.deepEqual(pendingTxs[0].raw, tx.raw);
+            assert.lengthOf(getAllTxs(pendingTxs), 1);
+            assert.deepEqual(getAllTxs(pendingTxs)[0].raw, tx.raw);
           });
         });
 
@@ -61,7 +66,7 @@ describe("Transaction Pool", () => {
             await txPool.addTransaction(tx);
 
             const pendingTxs = txPool.getPendingTransactions();
-            assert.lengthOf(pendingTxs, 0);
+            assert.lengthOf(getAllTxs(pendingTxs), 0);
           });
         });
 
@@ -108,7 +113,7 @@ describe("Transaction Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              pendingTxs.map((tx) => tx.raw),
+              getAllTxs(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2].map((tx) => tx.raw)
             );
           });
@@ -133,7 +138,7 @@ describe("Transaction Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              pendingTxs.map((tx) => tx.raw),
+              getAllTxs(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2, tx3].map((tx) => tx.raw)
             );
           });
@@ -163,7 +168,7 @@ describe("Transaction Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              pendingTxs.map((tx) => tx.raw),
+              getAllTxs(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2, tx4].map((tx) => tx.raw)
             );
           });
@@ -184,7 +189,7 @@ describe("Transaction Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              pendingTxs.map((tx) => tx.raw),
+              getAllTxs(pendingTxs).map((tx) => tx.raw),
               [tx1].map((tx) => tx.raw)
             );
           });
@@ -243,7 +248,7 @@ describe("Transaction Pool", () => {
         const pendingTxs = txPool.getPendingTransactions();
 
         assert.sameDeepMembers(
-          pendingTxs.map((tx) => tx.raw),
+          getAllTxs(pendingTxs).map((tx) => tx.raw),
           [tx1, tx2].map((tx) => tx.raw)
         );
       });
@@ -275,7 +280,7 @@ describe("Transaction Pool", () => {
           const pendingTxs = txPool.getPendingTransactions();
 
           assert.sameDeepMembers(
-            pendingTxs.map((tx) => tx.raw),
+            getAllTxs(pendingTxs).map((tx) => tx.raw),
             [tx1, tx2, tx4].map((tx) => tx.raw)
           );
         });
@@ -311,7 +316,7 @@ describe("Transaction Pool", () => {
           const pendingTxs = txPool.getPendingTransactions();
 
           assert.sameDeepMembers(
-            pendingTxs.map((tx) => tx.raw),
+            getAllTxs(pendingTxs).map((tx) => tx.raw),
             [tx1, tx2, tx3, tx4, tx5].map((tx) => tx.raw)
           );
         });
@@ -357,7 +362,7 @@ describe("Transaction Pool", () => {
           const pendingTxs = txPool.getPendingTransactions();
 
           assert.sameDeepMembers(
-            pendingTxs.map((tx) => tx.raw),
+            getAllTxs(pendingTxs).map((tx) => tx.raw),
             [tx1, tx2, tx4, tx6, tx7].map((tx) => tx.raw)
           );
         });
