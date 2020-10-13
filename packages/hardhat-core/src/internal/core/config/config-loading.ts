@@ -6,7 +6,6 @@ import * as stackTraceParser from "stacktrace-parser";
 import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
 import { findClosestPackageJson } from "../../util/packageInfo";
-import { getRequireCachedFiles } from "../../util/platform";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { getUserConfigPath } from "../project-structure";
