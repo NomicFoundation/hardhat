@@ -24,26 +24,28 @@ npm install --save bootstrap
 ```
 4. Start the HTTP server to serve the React app:
 ```bash
-npm start
+npm start 
 ```
-5. View the React application. If you built it on your own machine, go to [https://localhost:3000](https://localhost:3000). 
+5. View the React application. If you built it on your own machine, go to [http://localhost:3000](http://localhost:3000). 
+   This application updates automatically when you edit the relevant files.
 
-### Folder structure
+### React directories
 
 ::: tip
 If you're already familiar with React Apps, skip to the next section.
 :::
 
-The React application 
-- Create React App will generate 3 different folders:
-  - `public/` for static assets
-  - `src/` the code of the app
-  - `src/components` contains the react components
+The React application contains these directories and files:
 
-- It'll also generate `index.js` which will be responsible of initializing the app
-- Take a moment or so to inspect the files
-- To initialize the project run `npm start`. If everything went well, your app should be available on `http://localhost:3000`.
-- It'll also automatically reload when your code changes   
+::: note
+This list only includes the most important files.
+:::
+
+- `public/` - static assets
+  - `public/index.html` - the home page of the application
+- `src/` - the application code
+  - `src/App.js` - the `App` component, which is at the top level of the application 
+
 
 ## Connecting to the browser
 
