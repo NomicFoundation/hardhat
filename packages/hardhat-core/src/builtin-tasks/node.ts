@@ -49,6 +49,11 @@ export default function () {
   subtask(TASK_NODE_GET_PROVIDER).setAction(
     async (_, { artifacts, config, network }): Promise<EthereumProvider> => {
       if (network.name === HARDHAT_NETWORK_NAME) {
+        // enable logging for in-memory hardhat network provider
+        await network.provider.request({
+          method: "hardhat_setLoggingEnabled",
+          params: [true],
+        });
         return network.provider;
       }
 

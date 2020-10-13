@@ -337,6 +337,11 @@ export function validateParams(
   forkConfig: typeof optionalRpcHardhatNetworkConfig
 ): [RpcHardhatNetworkConfig | undefined];
 
+export function validateParams(
+  params: any[],
+  loggingEnabled: typeof t.boolean
+): [boolean];
+
 // tslint:disable only-hardhat-error
 
 export function validateParams(params: any[], ...types: Array<t.Type<any>>) {

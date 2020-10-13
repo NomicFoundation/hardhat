@@ -18,7 +18,10 @@ import { ForkConfig } from "../node-types";
 export class HardhatModule {
   constructor(
     private readonly _node: HardhatNode,
-    private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>
+    private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>,
+    private readonly _setLoggingEnabledCallback: (
+      loggingEnabled: boolean
+    ) => void
   ) {}
 
   public async processRequest(
@@ -46,6 +49,11 @@ export class HardhatModule {
 
       case "hardhat_reset":
         return this._resetAction(...this._resetParams(params));
+
+      case "hardhat_setLoggingEnabled":
+        return this._setLoggingEnabledAction(
+          ...this._setLoggingEnabledParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -116,6 +124,19 @@ export class HardhatModule {
     networkConfig?: RpcHardhatNetworkConfig
   ): Promise<true> {
     await this._resetCallback(networkConfig?.forking);
+    return true;
+  }
+
+  // hardhat_setLoggingEnabled
+
+  private _setLoggingEnabledParams(params: any[]): [boolean] {
+    return validateParams(params, t.boolean);
+  }
+
+  private async _setLoggingEnabledAction(
+    loggingEnabled: boolean
+  ): Promise<true> {
+    this._setLoggingEnabledCallback(loggingEnabled);
     return true;
   }
 }
