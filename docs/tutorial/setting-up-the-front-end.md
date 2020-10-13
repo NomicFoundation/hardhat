@@ -8,7 +8,7 @@ Browsers don't have native support for Ethereum yet. To use a dapp users need to
 This kind of extension injects an Ethereum provider object into the browse that can be accessed from JavaScript code running in a web page.
 
 
-## Setting up a React App
+## Setting up a React application
 
 To create a React application that will serve the code to talk to the Ethereum blockchain we need to create a React project:
 
@@ -29,37 +29,27 @@ npm start
 5. View the React application. If you built it on your own machine, go to [http://localhost:3000](http://localhost:3000). 
    This application updates automatically when you edit the relevant files.
 
-### React directories
-
-::: tip
-If you're already familiar with React Apps, skip to the next section.
-:::
-
-The React application contains these directories and files:
-
-::: note
-This list only includes the most important files.
-:::
-
-- `public/` - static assets
-  - `public/index.html` - the home page of the application
-- `src/` - the application code
-  - `src/App.js` - the `App` component, which is at the top level of the application 
-
 
 ## Connecting to the browser
 
-In this tutorial we use Metamask[https://metamask.io/], which is the most popular browser wallet. Follow [this guide](https://metamask.zendesk.com/hc/en-us/articles/360015489531-Getting-Started-With-MetaMask-Part-1-) to install Metamask, and then open Metamask and follow the instructions to create a new wallet
+In this tutorial we use [Metamask](https://metamask.io/), which is the most popular browser wallet. Follow 
+[this guide](https://metamask.zendesk.com/hc/en-us/articles/360015489531-Getting-Started-With-MetaMask-Part-1-) to install Metamask, and then open 
+Metamask and follow the instructions to create a new wallet.
 
 ::: note
 In Ethereum the term **wallet** has two separate meanings:
 
-- The software that stores user's private and public keys and export Ethereum functions. For example the Metamask software you just installed which provides
+- The software that stores a user's private and public keys and export Ethereum functions. For example the Metamask software you just installed which provides
   JavaScript running inside the web page with Ethereum functionality.
 - The twelve word passphrase that is used to derive private keys, public keys, and accounts.
 :::
 
 ### Connecting Metamask to Buidler EVM
+
+By default Metamask connects to the main Ethereum network. However, for testing and development purposes we want the wallet to connect to EVM. 
+
+GOON
+
 - Besides the Main Ethereum Network (known as mainnet), Metamask allows the user to connect its provider to test networks such as Rinkeby, Ropsten and Goerli.
 - Metamask also allows the user to connect to development networks which normally run on localhost.
 - We will take advantage of this feature and connect Metamask to Buidler EVM
