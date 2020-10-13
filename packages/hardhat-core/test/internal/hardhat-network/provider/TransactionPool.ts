@@ -267,12 +267,6 @@ describe("Transaction Pool", () => {
 
       describe("does not mix up queued transactions from different senders", () => {
         it("missing transaction", async () => {
-          // A. as S1 add tx.n=0
-          // B. as S2 add tx.n=0
-          // C. as S1 add tx.n=2
-          // D. as S2 add tx.n=1
-          // getPendingTxs => A, B, D
-
           const tx1 = createTestFakeTransaction({
             from: address1,
             nonce: 0,
@@ -308,13 +302,6 @@ describe("Transaction Pool", () => {
         });
 
         it("all transactions are present", async () => {
-          // A. as S1 add tx.n=0
-          // B. as S2 add tx.n=0
-          // C. as S1 add tx.n=2
-          // D. as S2 add tx.n=1
-          // E. as S1 add tx.n=1
-          // getPendingTxs => A, B, C, D, E
-
           const tx1 = createTestFakeTransaction({
             from: address1,
             nonce: 0,
@@ -356,9 +343,6 @@ describe("Transaction Pool", () => {
         });
 
         it("some transactions are present", async () => {
-          // executableNonce = 1
-          // queued = [2, 3];
-
           const tx1 = createTestFakeTransaction({
             from: address1,
             nonce: 0,
@@ -502,10 +486,7 @@ describe("Transaction Pool", () => {
       await stateManager.putAccount(address, new Account({ nonce: new BN(0) }));
     });
 
-    it("returns current executable nonce", async () => {
-      // add one transaction to pending
-      // p: [1]
-
+    it("returns the current executable nonce", async () => {
       const tx1 = createTestFakeTransaction({
         from: address,
         nonce: 0,
@@ -518,9 +499,6 @@ describe("Transaction Pool", () => {
     });
 
     it("is not affected by queued transactions", async () => {
-      // p: [1]
-      // q: [3]
-
       const tx1 = createTestFakeTransaction({
         from: address,
         nonce: 0,
@@ -538,13 +516,7 @@ describe("Transaction Pool", () => {
       assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(1)));
     });
 
-    it("returns correct nonce after queued transactions are moved to pending", async () => {
-      // p: [1]
-      // q: [3]
-      // later 2 is added:
-      // p: [1, 2, 3]
-      // q: []
-
+    it("returns correct nonce after all queued transactions are moved to pending", async () => {
       const tx1 = createTestFakeTransaction({
         from: address,
         nonce: 0,
@@ -568,13 +540,7 @@ describe("Transaction Pool", () => {
       assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
     });
 
-    it("returns correct nonce after moving some queued transactions", async () => {
-      // p: [1]
-      // q: [3, 5]
-      // later 2 is added:
-      // p: [1, 2, 3]
-      // q: [5]
-
+    it("returns correct nonce after some queued transactions are moved to pending", async () => {
       const tx1 = createTestFakeTransaction({
         from: address,
         nonce: 0,
