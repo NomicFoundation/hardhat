@@ -4,8 +4,8 @@ With the backend contract written and tested, the next step is to have a front e
 JavaScript. This way the user can interact with the decentralized application (dapp) and the Ethereum blockchain without having to rely on the web server. For this tutorial 
 we chose to use Facebook's [React Framework](https://reactjs.org/tutorial/tutorial.html).
 
-Browsers don't have native support for Ethereum yet. To use a dapp users need to install a wallet browser extension, such as [MetaMask]. This extension injects an 
-Ethereum provider object into the browser.
+Browsers don't have native support for Ethereum yet. To use a dapp users need to install a wallet browser extension, such as [MetaMask](https://metamask.io/). 
+This kind of extension injects an Ethereum provider object into the browse that can be accessed from JavaScript code running in a web page.
 
 
 ## Setting up a React App
@@ -13,13 +13,20 @@ Ethereum provider object into the browser.
 To create a React application that will serve the code to talk to the Ethereum blockchain we need to create a React project:
 
 1. Open a terminal and change to the project root directory.
-1. Create the project
+1. Create the project:
 ```bash
 npx create-react-app frontend
+cd frontend
 ```
-- Let's start by setting up the project
-- Open a terminal on your project root directory and run `npx create-react-app frontend`. This command will create a new React app inside a folder named `frontend` (you should see this folder alongside `contracts` and `test`).
-- After installation ends, run `cd frontend and npm install --save bootstrap`. This will install Bootstrap for some basic styling with. 
+3. Install the [Bootstrap](https://www.w3schools.com/bootstrap4/default.asp) theme for the graphic style:
+```bash
+npm install --save bootstrap
+```
+4. Start the HTTP server to serve the React app:
+```bash
+npm start
+```
+5. View the React application. If you built it on your own machine, go to [https://localhost:3000](https://localhost:3000). 
 
 ### Folder structure
 
@@ -27,6 +34,7 @@ npx create-react-app frontend
 If you're already familiar with React Apps, skip to the next section.
 :::
 
+The React application 
 - Create React App will generate 3 different folders:
   - `public/` for static assets
   - `src/` the code of the app
