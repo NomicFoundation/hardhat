@@ -46,11 +46,8 @@ export class TransactionPool {
   ) {}
 
   public async addTransaction(tx: Transaction) {
-    await this._validateTransaction(tx);
-
+    const senderNonce = await this._validateTransaction(tx);
     const txNonce = new BN(tx.nonce);
-    const senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
-    const senderNonce = await this.getExecutableNonce(senderAddress);
 
     if (txNonce.eq(senderNonce)) {
       this._addPendingTransaction(tx);
@@ -106,9 +103,10 @@ export class TransactionPool {
     );
   }
 
-  private async _validateTransaction(tx: Transaction) {
+  private async _validateTransaction(tx: Transaction): Promise<BN> {
     const txNonce = new BN(tx.nonce);
-    const senderNonce = await this.getExecutableNonce(tx.getSenderAddress());
+    const senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
+    const senderNonce = await this.getExecutableNonce(senderAddress);
 
     // Geth returns this error if trying to create a contract and no data is provided
     if (tx.to.length === 0 && tx.data.length === 0) {
@@ -147,6 +145,8 @@ export class TransactionPool {
         `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${this._blockGasLimit}`
       );
     }
+
+    return senderNonce;
   }
 
   private _setExecutableNonce(accountAddress: string, nonce: BN): void {
