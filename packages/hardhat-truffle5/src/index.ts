@@ -87,7 +87,7 @@ extendEnvironment((env) => {
 
     monkeyPatchMethod(
       execute,
-      "originalGetGasEstimate",
+      "getGasEstimate",
       (og) =>
         async function (params: any, ...others: any[]) {
           await addFromIfNeededAndAvailable(params);
