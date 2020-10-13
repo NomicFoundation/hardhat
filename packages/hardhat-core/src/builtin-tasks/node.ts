@@ -143,7 +143,7 @@ export default function () {
           console.log();
 
           try {
-            await watchCompilerOutput(server.getProvider(), config.paths);
+            await watchCompilerOutput(provider, config.paths);
           } catch (error) {
             console.warn(
               chalk.yellow(
