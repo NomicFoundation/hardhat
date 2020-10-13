@@ -1,11 +1,11 @@
 import fsExtra from "fs-extra";
 
-import { internalTask, task } from "../internal/core/config/config-env";
+import { subtask, task } from "../internal/core/config/config-env";
 import { getCacheDir } from "../internal/util/global-dir";
 
 import { TASK_CLEAN, TASK_CLEAN_GLOBAL } from "./task-names";
 
-internalTask(TASK_CLEAN_GLOBAL, async () => {
+subtask(TASK_CLEAN_GLOBAL, async () => {
   const globalCacheDir = await getCacheDir();
   await fsExtra.emptyDir(globalCacheDir);
 });
