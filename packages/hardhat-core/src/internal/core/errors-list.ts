@@ -150,6 +150,7 @@ This is probably a bug in one of your plugins.
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
+    // TODO-HH: Remove this error
     CONTEXT_CONFIG_PATH_NOT_SET: {
       number: 11,
       message:
