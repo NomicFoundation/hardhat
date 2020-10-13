@@ -39,9 +39,11 @@ export class TransactionPool {
   private _pendingTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized pending Transactions
   private _queuedTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized queued Transactions
   private _executableNonces = ImmutableMap<string, string>(); // address => nonce (hex)
-  private _blockGasLimit = new BN(10000000);
 
-  constructor(private readonly _stateManager: PStateManager) {}
+  constructor(
+    private readonly _stateManager: PStateManager,
+    private readonly _blockGasLimit: BN
+  ) {}
 
   public async addTransaction(tx: Transaction) {
     await this._validateTransaction(tx);
