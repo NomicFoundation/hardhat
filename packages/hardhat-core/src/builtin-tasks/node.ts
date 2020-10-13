@@ -47,7 +47,11 @@ Private Key: ${privateKey}
 
 export default function () {
   subtask(TASK_NODE_GET_PROVIDER).setAction(
-    async (_, { config, artifacts }): Promise<EthereumProvider> => {
+    async (_, { artifacts, config, network }): Promise<EthereumProvider> => {
+      if (network.name === HARDHAT_NETWORK_NAME) {
+        return network.provider;
+      }
+
       log("Creating HardhatNetworkProvider");
 
       const networkName = HARDHAT_NETWORK_NAME;
@@ -57,7 +61,7 @@ export default function () {
         log(`Creating hardhat provider for JSON-RPC sever`);
         return createProvider(
           networkName,
-          { loggingEnabled: true, ...networkConfig },
+          { ...networkConfig, loggingEnabled: true },
           config.paths,
           artifacts
         );
