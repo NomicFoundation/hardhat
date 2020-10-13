@@ -103,7 +103,6 @@
     "glob": "^7.1.3",
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
-    "is-installed-globally": "^0.2.0",
     "lodash": "^4.17.11",
     "merkle-patricia-tree": "^3.0.0",
     "mocha": "^7.1.2",
