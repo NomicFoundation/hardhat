@@ -11,7 +11,7 @@ function linkingShouldWorkCorrectly(isAmbiguous = false) {
 
   describe("Linking with an instance", function () {
     beforeEach(async function () {
-      await this.env.run("compile");
+      await this.env.run("compile", { quiet: true });
     });
     it("Should link correctly", async function () {
       const Lib = this.env.artifacts.require(libName);

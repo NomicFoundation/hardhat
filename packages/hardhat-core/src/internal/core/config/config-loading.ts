@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import findUp from "find-up";
 import fsExtra from "fs-extra";
 import path from "path";
 import * as stackTraceParser from "stacktrace-parser";
@@ -9,8 +8,6 @@ import { HardhatContext } from "../../context";
 import { findClosestPackageJson } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
-import { ExecutionMode, getExecutionMode } from "../execution-mode";
-import { loadPluginFile, readPackageJson } from "../plugins";
 import { getUserConfigPath } from "../project-structure";
 
 import { resolveConfig } from "./config-resolution";
@@ -49,19 +46,23 @@ export function loadConfigAndTasks(
   );
 
   const ctx = HardhatContext.getHardhatContext();
-  ctx.setConfigPath(configPath);
 
-  loadPluginFile(path.join(__dirname, "..", "tasks", "builtin-tasks"));
+  ctx.setConfigLoadingAsStarted();
 
   let userConfig;
+
   try {
+    require("../tasks/builtin-tasks");
     userConfig = importCsjOrEsModule(configPath);
   } catch (e) {
     analyzeModuleNotFoundError(e, configPath);
 
     // tslint:disable-next-line only-hardhat-error
     throw e;
+  } finally {
+    ctx.setConfigLoadingAsFinished();
   }
+
   validateConfig(userConfig);
 
   if (userConfig.solidity === undefined && showWarningIfNoSolidityConfig) {
@@ -176,15 +177,6 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
     }
   }
 
-  const executionMode = getExecutionMode();
-  let globalFlag = "";
-  let globalWarning = "";
-  if (executionMode === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION) {
-    globalFlag = " --global";
-    globalWarning =
-      "You are using a global installation of Hardhat. Plugins and their dependencies must also be global.\n";
-  }
-
   const missingPeerDependenciesNames = Object.keys(missingPeerDependencies);
   if (missingPeerDependenciesNames.length > 0) {
     throw new HardhatError(ERRORS.PLUGINS.MISSING_DEPENDENCIES, {
@@ -193,8 +185,26 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
       missingDependenciesVersions: Object.entries(missingPeerDependencies)
         .map(([name, version]) => `"${name}@${version}"`)
         .join(" "),
-      extraMessage: globalWarning,
-      extraFlags: globalFlag,
     });
+  }
+}
+
+interface PackageJson {
+  name: string;
+  version: string;
+  peerDependencies?: {
+    [name: string]: string;
+  };
+}
+
+function readPackageJson(packageName: string): PackageJson | undefined {
+  try {
+    const packageJsonPath = require.resolve(
+      path.join(packageName, "package.json")
+    );
+
+    return require(packageJsonPath);
+  } catch (error) {
+    return undefined;
   }
 }

@@ -18,111 +18,109 @@ import {
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "./task-names";
 
-export default function () {
-  subtask(TASK_TEST_GET_TEST_FILES)
-    .addOptionalVariadicPositionalParam(
-      "testFiles",
-      "An optional list of files to test",
-      []
-    )
-    .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
-      if (testFiles.length !== 0) {
-        return testFiles;
-      }
+subtask(TASK_TEST_GET_TEST_FILES)
+  .addOptionalVariadicPositionalParam(
+    "testFiles",
+    "An optional list of files to test",
+    []
+  )
+  .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
+    if (testFiles.length !== 0) {
+      return testFiles;
+    }
 
-      const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
+    const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
 
-      if (!isTypescriptSupported()) {
-        return jsFiles;
-      }
+    if (!isTypescriptSupported()) {
+      return jsFiles;
+    }
 
-      const tsFiles = await glob(path.join(config.paths.tests, "**/*.ts"));
+    const tsFiles = await glob(path.join(config.paths.tests, "**/*.ts"));
 
-      return [...jsFiles, ...tsFiles];
+    return [...jsFiles, ...tsFiles];
+  });
+
+subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
+
+subtask(TASK_TEST_RUN_MOCHA_TESTS)
+  .addOptionalVariadicPositionalParam(
+    "testFiles",
+    "An optional list of files to test",
+    []
+  )
+  .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
+    const { default: Mocha } = await import("mocha");
+    const mocha = new Mocha(config.mocha);
+    testFiles.forEach((file) => mocha.addFile(file));
+
+    const testFailures = await new Promise<number>((resolve, _) => {
+      mocha.run(resolve);
     });
 
-  subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
+    return testFailures;
+  });
 
-  subtask(TASK_TEST_RUN_MOCHA_TESTS)
-    .addOptionalVariadicPositionalParam(
-      "testFiles",
-      "An optional list of files to test",
-      []
-    )
-    .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
-      const { default: Mocha } = await import("mocha");
-      const mocha = new Mocha(config.mocha);
-      testFiles.forEach((file) => mocha.addFile(file));
+subtask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
+  async (_, { config, network }) => {
+    if (network.name !== HARDHAT_NETWORK_NAME) {
+      return;
+    }
 
-      const testFailures = await new Promise<number>((resolve, _) => {
-        mocha.run(resolve);
+    const forkCache = getForkCacheDirPath(config.paths);
+    await showForkRecommendationsBannerIfNecessary(network.config, forkCache);
+  }
+);
+
+task(TASK_TEST, "Runs mocha tests")
+  .addOptionalVariadicPositionalParam(
+    "testFiles",
+    "An optional list of files to test",
+    []
+  )
+  .addFlag("noCompile", "Don't compile before running this task")
+  .setAction(
+    async (
+      {
+        testFiles,
+        noCompile,
+      }: {
+        testFiles: string[];
+        noCompile: boolean;
+      },
+      { run, network }
+    ) => {
+      if (!noCompile) {
+        await run(TASK_COMPILE, { quiet: true });
+      }
+
+      const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
+
+      await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
+
+      await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS);
+
+      const testFailures = await run(TASK_TEST_RUN_MOCHA_TESTS, {
+        testFiles: files,
       });
 
-      return testFailures;
-    });
+      if (network.name === HARDHAT_NETWORK_NAME) {
+        const stackTracesFailures = await network.provider.send(
+          "hardhat_getStackTraceFailuresCount"
+        );
 
-  subtask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
-    async (_, { config, network }) => {
-      if (network.name !== HARDHAT_NETWORK_NAME) {
-        return;
+        if (stackTracesFailures !== 0) {
+          console.warn(
+            chalk.yellow(
+              `Failed to generate ${stackTracesFailures} ${pluralize(
+                stackTracesFailures,
+                "stack trace"
+              )}. Run Hardhat with --verbose to learn more.`
+            )
+          );
+        }
       }
 
-      const forkCache = getForkCacheDirPath(config.paths);
-      await showForkRecommendationsBannerIfNecessary(network.config, forkCache);
+      process.exitCode = testFailures;
+      return testFailures;
     }
   );
-
-  task(TASK_TEST, "Runs mocha tests")
-    .addOptionalVariadicPositionalParam(
-      "testFiles",
-      "An optional list of files to test",
-      []
-    )
-    .addFlag("noCompile", "Don't compile before running this task")
-    .setAction(
-      async (
-        {
-          testFiles,
-          noCompile,
-        }: {
-          testFiles: string[];
-          noCompile: boolean;
-        },
-        { run, network }
-      ) => {
-        if (!noCompile) {
-          await run(TASK_COMPILE, { quiet: true });
-        }
-
-        const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
-
-        await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
-
-        await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS);
-
-        const testFailures = await run(TASK_TEST_RUN_MOCHA_TESTS, {
-          testFiles: files,
-        });
-
-        if (network.name === HARDHAT_NETWORK_NAME) {
-          const stackTracesFailures = await network.provider.send(
-            "hardhat_getStackTraceFailuresCount"
-          );
-
-          if (stackTracesFailures !== 0) {
-            console.warn(
-              chalk.yellow(
-                `Failed to generate ${stackTracesFailures} ${pluralize(
-                  stackTracesFailures,
-                  "stack trace"
-                )}. Run Hardhat with --verbose to learn more.`
-              )
-            );
-          }
-        }
-
-        process.exitCode = testFailures;
-        return testFailures;
-      }
-    );
-}

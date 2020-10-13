@@ -5,7 +5,6 @@ import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
 import { DEFAULT_SOLC_VERSION } from "../core/config/default-config";
-import { ExecutionMode, getExecutionMode } from "../core/execution-mode";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
@@ -103,18 +102,13 @@ ${content}`;
 }
 
 function printSuggestedCommands() {
-  const npx =
-    getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION
-      ? ""
-      : "npx ";
-
   console.log(`Try running some of the following tasks:`);
-  console.log(`  ${npx}hardhat accounts`);
-  console.log(`  ${npx}hardhat compile`);
-  console.log(`  ${npx}hardhat test`);
-  console.log(`  ${npx}hardhat node`);
+  console.log(`  npx hardhat accounts`);
+  console.log(`  npx hardhat compile`);
+  console.log(`  npx hardhat test`);
+  console.log(`  npx hardhat node`);
   console.log(`  node scripts/sample-script.js`);
-  console.log(`  ${npx}hardhat help`);
+  console.log(`  npx hardhat help`);
 }
 
 async function printRecommendedDepsInstallationInstructions() {
@@ -235,6 +229,8 @@ export async function createProject() {
 
   let shouldShowInstallationInstructions = true;
 
+  // TODO-HH: This should be updated because now hardhat needs to
+  //  be installed locally
   if (await canInstallRecommendedDeps()) {
     const recommendedDeps = Object.keys(SAMPLE_PROJECT_DEPENDENCIES);
     const installedRecommendedDeps = recommendedDeps.filter(isInstalled);
@@ -308,8 +304,6 @@ function createConfirmationPrompt(name: string, message: string) {
 async function canInstallRecommendedDeps() {
   return (
     (await fsExtra.pathExists("package.json")) &&
-    (getExecutionMode() === ExecutionMode.EXECUTION_MODE_LOCAL_INSTALLATION ||
-      getExecutionMode() === ExecutionMode.EXECUTION_MODE_LINKED) &&
     // TODO: Figure out why this doesn't work on Win
     os.type() !== "Windows_NT"
   );
@@ -401,22 +395,15 @@ async function installDependencies(
 async function getRecommendedDependenciesInstallationCommand(): Promise<
   string[]
 > {
-  const isGlobal =
-    getExecutionMode() === ExecutionMode.EXECUTION_MODE_GLOBAL_INSTALLATION;
-
   const deps = Object.entries(SAMPLE_PROJECT_DEPENDENCIES).map(
     ([name, version]) => `${name}@${version}`
   );
 
-  if (!isGlobal && (await isYarnProject())) {
+  if (await isYarnProject()) {
     return ["yarn", "add", "--dev", ...deps];
   }
 
   const npmInstall = ["npm", "install"];
-
-  if (isGlobal) {
-    npmInstall.push("--global");
-  }
 
   return [...npmInstall, "--save-dev", ...deps];
 }
