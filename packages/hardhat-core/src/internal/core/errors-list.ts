@@ -170,6 +170,16 @@ This is probably caused by a programming error in hardhat or in one of the used 
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
+    NON_LOCAL_INSTALLATION: {
+      number: 13,
+      message:
+        "Trying to use a non-local installation of Hardhat, which is not supported.\nPlease install Hardhat locally using npm or Yarn, and try again.",
+      title: "Hardhat is not installed or installed globally",
+      description: `You tried to run Hardhat from a global installation or not installing it at all. This is not supported.
+
+Please install Hardhat locally using npm or Yarn, and try again.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
