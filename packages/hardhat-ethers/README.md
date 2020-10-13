@@ -42,16 +42,20 @@ automatically connected to the selected network.
 These helpers are added to the `ethers` object:
 
 ```typescript
-interface LibraryLinks {
+interface Libraries {
   [libraryName: string]: string;
 }
 
 interface FactoryOptions {
   signer?: ethers.Signer;
-  libraryLinks?: LibraryLinks;
+  libraries?: Libraries;
 }
 
-function getContractFactory(name: string, signerOrFactoryOptions?: ethers.Signer | FactoryOptions): Promise<ethers.ContractFactory>;
+function getContractFactory(name: string): Promise<ethers.ContractFactory>;
+
+function getContractFactory(name: string, signer: ethers.Signer): Promise<ethers.ContractFactory>;
+
+function getContractFactory(name: string, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
 
 
 function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
@@ -90,13 +94,13 @@ Read the documentation on the [Hardhat Runtime Environment](https://usehardhat.c
 
 ### Library linking
 
-Some contracts need to be linked with libraries before they are deployed. You can pass these library links to the `getContractFactory` function with an object like this:
+Some contracts need to be linked with libraries before they are deployed. You can pass the addresses of their libraries to the `getContractFactory` function with an object like this:
 
 ```js
 const contractFactory = await this.env.ethers.getContractFactory(
   "Example",
   {
-    libraryLinks: {
+    libraries: {
       ExampleLib: "0x..."
     }
   }
@@ -105,7 +109,7 @@ const contractFactory = await this.env.ethers.getContractFactory(
 
 This allows you to create a contract factory for the `Example` contract and link its `ExampleLib` library references to the address `"0x..."`.
 
-To create a contract factory, all libraries must be linked. An error will be thrown informing you of any missing library links.
+To create a contract factory, all libraries must be linked. An error will be thrown informing you of any missing library.
 
 ## TypeScript support
 

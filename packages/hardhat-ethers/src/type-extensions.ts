@@ -3,11 +3,11 @@ import "hardhat/types/runtime";
 
 import type {
   FactoryOptions as FactoryOptionsT,
-  LibraryLinks as LibraryLinksT,
+  Libraries as LibrariesT,
 } from "./helpers";
 
 declare module "hardhat/types/runtime" {
-  type LibraryLinks = LibraryLinksT;
+  type Libraries = LibrariesT;
   type FactoryOptions = FactoryOptionsT;
 
   function getContractFactory(

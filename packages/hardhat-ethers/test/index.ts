@@ -79,7 +79,7 @@ describe("Ethers plugin", function () {
               "getContractFactory should fail with a hardhat plugin error"
             );
             assert.isTrue(
-              reason.message.includes("abstract contract"),
+              reason.message.includes("is abstract and can't be deployed"),
               "getContractFactory should report the abstract contract as the cause"
             );
             return;
@@ -99,7 +99,7 @@ describe("Ethers plugin", function () {
 
           const contractFactory = await this.env.ethers.getContractFactory(
             "TestContractLib",
-            { libraryLinks: { TestLibrary: library.address } }
+            { libraries: { TestLibrary: library.address } }
           );
           assert.equal(
             await contractFactory.signer.getAddress(),
@@ -121,7 +121,7 @@ describe("Ethers plugin", function () {
 
           try {
             await this.env.ethers.getContractFactory("TestContractLib", {
-              libraryLinks: {
+              libraries: {
                 TestLibrary: library.address,
                 "contracts/TestContractLib.sol:TestLibrary": library.address,
               },
@@ -161,7 +161,7 @@ describe("Ethers plugin", function () {
 
           const contractFactory = await this.env.ethers.getContractFactory(
             "TestNonUniqueLib",
-            { libraryLinks: { NonUniqueLibrary: library.address } }
+            { libraries: { NonUniqueLibrary: library.address } }
           );
           assert.equal(
             await contractFactory.signer.getAddress(),
@@ -181,7 +181,7 @@ describe("Ethers plugin", function () {
 
           try {
             await this.env.ethers.getContractFactory("TestAmbiguousLib", {
-              libraryLinks: {
+              libraries: {
                 AmbiguousLibrary: library.address,
                 "contracts/AmbiguousLibrary2.sol:AmbiguousLibrary":
                   library2.address,
@@ -247,7 +247,7 @@ describe("Ethers plugin", function () {
           const notAnAddress = "definitely not an address";
           try {
             await this.env.ethers.getContractFactory("TestContractLib", {
-              libraryLinks: { TestLibrary: notAnAddress },
+              libraries: { TestLibrary: notAnAddress },
             });
           } catch (reason) {
             assert.instanceOf(

@@ -12,13 +12,13 @@ interface Link {
   address: string;
 }
 
-export interface LibraryLinks {
+export interface Libraries {
   [libraryName: string]: string;
 }
 
 export interface FactoryOptions {
   signer?: ethers.Signer;
-  libraryLinks?: LibraryLinks;
+  libraries?: Libraries;
 }
 
 const pluginName = "hardhat-ethers";
@@ -61,8 +61,8 @@ export async function getContractFactory(
     if (contractFactory.bytecode === "0x") {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The requested contract, ${nameOrAbi}, is an abstract contract.
-Contract factories need non-abstract contracts to work.`
+        `You are trying to create a contract factory for the contract ${nameOrAbi}, which is abstract and can't be deployed.
+If you want to call a contract using ${nameOrAbi} as its interface use the "getContractAt" function instead.`
       );
     }
 
@@ -110,22 +110,22 @@ async function getContractFactoryByName(
   }
 
   let signer: ethers.Signer | undefined;
-  let libraryLinks: LibraryLinks = {};
+  let libraries: Libraries = {};
   if (isFactoryOptions(signerOrOptions)) {
     signer = signerOrOptions.signer;
-    libraryLinks = signerOrOptions.libraryLinks ?? {};
+    libraries = signerOrOptions.libraries ?? {};
   } else {
     signer = signerOrOptions;
   }
 
   const linksToApply: Map<string, Link> = new Map();
   for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(
-    libraryLinks
+    libraries
   )) {
     if (!ethers.utils.isAddress(linkedLibraryAddress)) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The library name ${linkedLibraryName} has an invalid address: ${linkedLibraryAddress}.`
+        `You tried to link the contract ${contractName} with the library ${linkedLibraryName}, but provided this invalid address: ${linkedLibraryAddress}`
       );
     }
 
@@ -150,7 +150,7 @@ ${libraryFQNames}`;
       }
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The library name ${linkedLibraryName} does not correspond to any of the libraries needed by the contract ${contractName}.
+        `You tried to link the contract ${contractName} with ${linkedLibraryName}, which is not one of its libraries.
 ${detailedMessage}`
       );
     }
@@ -175,7 +175,7 @@ To fix this, choose one of these fully qualified library names and replace where
     const neededLibraryFQN = `${neededLibrary.sourceName}:${neededLibrary.libName}`;
 
     // The only way for this library to be already mapped is
-    // for it to be given twice in the libraryLinks user input:
+    // for it to be given twice in the libraries user input:
     // once as a library name and another as a fully qualified library name.
     if (linksToApply.has(neededLibraryFQN)) {
       throw new NomicLabsHardhatPluginError(
@@ -296,11 +296,11 @@ function addGasToAbiMethodsIfNecessary(
   return modifiedAbi;
 }
 
-function linkBytecode(artifact: Artifact, libraryLinks: Link[]): string {
+function linkBytecode(artifact: Artifact, libraries: Link[]): string {
   let bytecode = artifact.bytecode;
 
   // TODO: measure performance impact
-  for (const { sourceName, libraryName, address } of libraryLinks) {
+  for (const { sourceName, libraryName, address } of libraries) {
     const linkReferences = artifact.linkReferences[sourceName][libraryName];
     for (const { start, length } of linkReferences) {
       bytecode =
