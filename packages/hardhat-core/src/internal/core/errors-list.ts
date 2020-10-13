@@ -335,18 +335,8 @@ Please double check your task definitions.`,
 Please double check your task definitions.`,
       shouldBeReported: false,
     },
-    OVERRIDE_NO_PARAMS: {
-      number: 204,
-      message:
-        "Redefinition of task %taskName% failed. You can't change param definitions in an overridden task.",
-      title: "Attempted to add params to an overridden task",
-      description: `You can't change param definitions in an overridden task.
-
-Please, double check your task definitions.`,
-      shouldBeReported: false,
-    },
     ACTION_NOT_SET: {
-      number: 205,
+      number: 204,
       message: "No action set for task %taskName%.",
       title: "Tried to run task without an action",
       description: `A task was run, but it has no action set.  
@@ -355,7 +345,7 @@ Please double check your task definitions.`,
       shouldBeReported: false,
     },
     RUNSUPER_NOT_AVAILABLE: {
-      number: 206,
+      number: 205,
       message:
         "Tried to call runSuper from a non-overridden definition of task %taskName%",
       title: "`runSuper` not available",
@@ -365,7 +355,7 @@ Please use \`runSuper.isDefined\` to make sure that you can call it.`,
       shouldBeReported: false,
     },
     DEFAULT_VALUE_WRONG_TYPE: {
-      number: 207,
+      number: 206,
       message:
         "Default value for param %paramName% of task %taskName% doesn't match the default one, try specifying it.",
       title: "Default value has incorrect type",
@@ -375,7 +365,7 @@ Please double check your task definitions.`,
       shouldBeReported: false,
     },
     DEFAULT_IN_MANDATORY_PARAM: {
-      number: 208,
+      number: 207,
       message:
         "Default value for param %paramName% of task %taskName% shouldn't be set.",
       title: "Required parameter has a default value",
@@ -385,7 +375,7 @@ Please double check your task definitions.`,
       shouldBeReported: false,
     },
     INVALID_PARAM_NAME_CASING: {
-      number: 209,
+      number: 208,
       message:
         "Invalid param name %paramName% in task %taskName%. Param names must be camelCase.",
       title: "Invalid casing in parameter name",
@@ -395,7 +385,7 @@ Please double check your task definitions.`,
       shouldBeReported: false,
     },
     OVERRIDE_NO_MANDATORY_PARAMS: {
-      number: 210,
+      number: 209,
       message:
         "Redefinition of task %taskName% failed. Unsupported operation adding mandatory (non optional) param definitions in an overridden task.",
       title: "Attempted to add mandatory params to an overridden task",
@@ -407,7 +397,7 @@ Please, double check your task definitions.`,
       shouldBeReported: false,
     },
     OVERRIDE_NO_POSITIONAL_PARAMS: {
-      number: 211,
+      number: 210,
       message:
         "Redefinition of task %taskName% failed. Unsupported operation adding positional param definitions in an overridden task.",
       title: "Attempted to add positional params to an overridden task",
@@ -419,7 +409,7 @@ Please, double check your task definitions.`,
       shouldBeReported: false,
     },
     OVERRIDE_NO_VARIADIC_PARAMS: {
-      number: 212,
+      number: 211,
       message:
         "Redefinition of task %taskName% failed. Unsupported operation adding variadic param definitions in an overridden task.",
       title: "Attempted to add variadic params to an overridden task",
@@ -431,7 +421,7 @@ Please, double check your task definitions.`,
       shouldBeReported: false,
     },
     CLI_ARGUMENT_TYPE_REQUIRED: {
-      number: 213,
+      number: 212,
       title: "Invalid argument type",
       message:
         "Task %task% is not a subtask but one of its arguments uses the type %type%, which is not parseable.",
