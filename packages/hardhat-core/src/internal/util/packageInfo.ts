@@ -2,12 +2,12 @@ import findup from "find-up";
 import fsExtra from "fs-extra";
 import path from "path";
 
-async function getPackageJsonPath(): Promise<string> {
+export function getPackageJsonPath(): string {
   return findClosestPackageJson(__filename)!;
 }
 
 export async function getPackageRoot(): Promise<string> {
-  const packageJsonPath = await getPackageJsonPath();
+  const packageJsonPath = getPackageJsonPath();
 
   return path.dirname(packageJsonPath);
 }

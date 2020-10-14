@@ -1,3 +1,5 @@
+import { getPackageJsonPath } from "../util/packageInfo";
+
 /**
  * Returns true if Hardhat is installed locally, by looking for it using the
  * node module resolution logic.
@@ -7,8 +9,13 @@
  */
 export function isHardhatInstalledLocally(configPath?: string) {
   try {
-    require.resolve("hardhat", { paths: [configPath ?? process.cwd()] });
-    return true;
+    const resolvedPackageJson = require.resolve("hardhat/package.json", {
+      paths: [configPath ?? process.cwd()],
+    });
+
+    const thisPackageJson = getPackageJsonPath();
+
+    return resolvedPackageJson === thisPackageJson;
   } catch (_) {
     return false;
   }
