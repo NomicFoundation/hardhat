@@ -63,7 +63,7 @@ module.exports = {};
 into this
 
 ```typescript{1,7,8,15}
-import { task, usePlugin } from "@nomiclabs/hardhat/config";
+import { task, usePlugin } from "hardhat/config";
 
 usePlugin("@nomiclabs/hardhat-waffle");
 
@@ -108,7 +108,7 @@ One of the advantages of using TypeScript, is that you can have an type-safe con
 To do that, you have to write your config in TypeScript in this way:
 
 ```ts
-import { HardhatConfig } from "@nomiclabs/hardhat/config";
+import { HardhatConfig } from "hardhat/config";
 
 const config: HardhatConfig = {
   // Your type-safe config goes here
@@ -148,7 +148,7 @@ When using JavaScript, all the properties in the HRE are injected into the globa
 An example for tests:
 
 ```typescript
-import { ethers } from "@nomiclabs/hardhat";
+import { ethers } from "hardhat";
 import { Signer } from "ethers";
 
 describe("Token", function() {
@@ -168,7 +168,7 @@ describe("Token", function() {
 An example for scripts:
 
 ```typescript
-import { run, ethers } from "@nomiclabs/hardhat";
+import { run, ethers } from "hardhat";
 
 async function main() {
   await run("compile");

@@ -43,7 +43,7 @@ Anything that has been injected into the [Hardhat Runtime Environment] will be m
 TODO-HH: re-run this
 
 ```
-> const hardhat = require("@nomiclabs/hardhat")
+> const hardhat = require("hardhat")
 undefined
 > hardhat.
 hardhat.__defineGetter__      hardhat.__defineSetter__      hardhat.__lookupGetter__      hardhat.__lookupSetter__      hardhat.__proto__
