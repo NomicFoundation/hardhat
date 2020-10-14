@@ -111,8 +111,7 @@ export class Reporter {
       return false;
     }
 
-    const telemetryConsent = hasConsentedTelemetry();
-    if (telemetryConsent === undefined || telemetryConsent === false) {
+    if (!Reporter._hasTelemetryConsent()) {
       return false;
     }
 
@@ -127,6 +126,12 @@ export class Reporter {
     }
 
     return this._instance;
+  }
+
+  private static _hasTelemetryConsent(): boolean {
+    const telemetryConsent = hasConsentedTelemetry();
+
+    return telemetryConsent === true;
   }
 
   public enabled: boolean;
