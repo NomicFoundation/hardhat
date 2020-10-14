@@ -786,7 +786,7 @@ To start the JSON-RPC server, retry the command without the --network parameter.
       shouldBeReported: false,
     },
     NODE_FORK_BLOCK_NUMBER_WITHOUT_URL: {
-      number: 608,
+      number: 607,
       message: `You specified a fork block number but not an URL.`,
       title: "Missing fork URL",
       description: `You passed a block number to fork from, but not URL. Hardhat cannot fork

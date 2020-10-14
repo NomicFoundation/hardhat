@@ -1,7 +1,7 @@
 import chalk from "chalk";
-import fsExtra from "fs-extra";
 import debug from "debug";
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
+import fsExtra from "fs-extra";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { subtask, task, types } from "../internal/core/config/config-env";
