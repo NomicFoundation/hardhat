@@ -381,7 +381,7 @@ export async function confirmTelemetryConsent(): Promise<boolean> {
       name: "telemetryConsent",
       type: "confirm",
       initial: true,
-      message: "Can Hardhat send anonymous data to improve the product?",
+      message: "Help us improve Hardhat with anonymous crash reports & basic usage data?",
     },
   ]);
 
