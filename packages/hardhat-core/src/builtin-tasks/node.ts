@@ -203,14 +203,10 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
       },
       { config, hardhatArguments, network, run }
     ) => {
+      // we throw if the user specified a network argument and it's not hardhat
       if (
         network.name !== HARDHAT_NETWORK_NAME &&
-        // We normally set the default network as hardhatArguments.network,
-        // so this check isn't enough, and we add the next one. This has the
-        // effect of `--network <defaultNetwork>` being a false negative, but
-        // not a big deal.
-        hardhatArguments.network !== undefined &&
-        hardhatArguments.network !== config.defaultNetwork
+        hardhatArguments.network !== undefined
       ) {
         throw new HardhatError(
           ERRORS.BUILTIN_TASKS.JSONRPC_UNSUPPORTED_NETWORK
