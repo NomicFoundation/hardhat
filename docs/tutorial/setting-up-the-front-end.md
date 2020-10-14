@@ -14,18 +14,18 @@ The first step to create the React application that will serve the code to talk 
 
 1. Open a terminal and change to the project root directory.
 1. Create the project:
-```bash
-npx create-react-app frontend
-cd frontend
-```
+   ```bash
+   npx create-react-app frontend
+   cd frontend
+   ```
 3. Install the [Bootstrap](https://www.w3schools.com/bootstrap4/default.asp) theme for the graphic style:
-```bash
-npm install --save bootstrap
-```
+   ```bash
+   npm install --save bootstrap
+   ```
 4. Start the HTTP server to serve the React app:
-```bash
-npm start 
-```
+   ```bash
+   npm start 
+   ```
 5. View the React application. If you built it on your own machine, go to [http://localhost:3000](http://localhost:3000). 
    This application updates automatically when you edit the relevant files.
 
@@ -50,12 +50,12 @@ By default Metamask connects to the main Ethereum network. However, for developm
 application.
 
 1. Start the Buidler EVM in standalone mode, rather than on a temporary basis for a specific test: 
-```bash
-npx buidler node
-```
-This starts the Buidler EVM listening on [http://localhost:8545](http://localhost:8545). You can browse there to get the message:
-```
-{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error: Unexpected end of JSON input"}}
-```
+   ```bash
+   npx buidler node
+   ```
+   This starts the Buidler EVM listening on [http://localhost:8545](http://localhost:8545). You can browse there to get the message:
+   ```
+   {"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error: Unexpected end of JSON input"}}
+   ```
 2. Click the Metamask icon (![Metamask icon](https://raw.githubusercontent.com/qbzzt/qbzzt.github.io/master/metamask-logo.png)) in the top right corner of the browser.
 3. Click the currently selected network (by default **Main Ethereum Network** and select **Localhost 8545**.
