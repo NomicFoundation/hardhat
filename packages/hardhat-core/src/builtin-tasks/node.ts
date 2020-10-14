@@ -47,67 +47,70 @@ Private Key: ${privateKey}
   }
 }
 
-subtask(TASK_NODE_GET_PROVIDER).setAction(
-  async (
-    {
-      forkBlockNumber: forkBlockNumberParam,
-      forkUrl: forkUrlParam,
-    }: {
-      forkBlockNumber?: number;
-      forkUrl?: string;
-    },
-    { artifacts, config, network }
-  ): Promise<EthereumProvider> => {
-    if (network.name !== HARDHAT_NETWORK_NAME) {
-      const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
+subtask(TASK_NODE_GET_PROVIDER)
+  .addParam("forkUrl", undefined, undefined, types.string)
+  .addParam("forkBlockNumber", undefined, undefined, types.int)
+  .setAction(
+    async (
+      {
+        forkBlockNumber: forkBlockNumberParam,
+        forkUrl: forkUrlParam,
+      }: {
+        forkBlockNumber?: number;
+        forkUrl?: string;
+      },
+      { artifacts, config, network }
+    ): Promise<EthereumProvider> => {
+      if (network.name !== HARDHAT_NETWORK_NAME) {
+        const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
-      return lazyObject(() => {
-        log(`Creating hardhat provider for JSON-RPC sever`);
-        return createProvider(
-          network.name,
-          { ...networkConfig, loggingEnabled: true },
-          config.paths,
-          artifacts
-        );
-      });
-    }
+        return lazyObject(() => {
+          log(`Creating hardhat provider for JSON-RPC sever`);
+          return createProvider(
+            network.name,
+            { ...networkConfig, loggingEnabled: true },
+            config.paths,
+            artifacts
+          );
+        });
+      }
 
-    // enable logging for in-memory hardhat network provider
-    await network.provider.request({
-      method: "hardhat_setLoggingEnabled",
-      params: [true],
-    });
-
-    const hardhatNetworkConfig = config.networks[HARDHAT_NETWORK_NAME];
-
-    const forkUrl = forkUrlParam ?? hardhatNetworkConfig.forking?.url;
-    const forkBlockNumber =
-      forkBlockNumberParam ?? hardhatNetworkConfig.forking?.blockNumber;
-
-    // we use the hardhat_reset RPC method to enable the fork
-    if (forkUrl !== undefined) {
+      // enable logging for in-memory hardhat network provider
       await network.provider.request({
-        method: "hardhat_reset",
-        params: [
-          {
-            forking: {
-              jsonRpcUrl: forkUrl,
-              blockNumber: forkBlockNumber,
-            },
-          },
-        ],
+        method: "hardhat_setLoggingEnabled",
+        params: [true],
       });
-    } else if (forkBlockNumber !== undefined) {
-      // we throw an error if the user specified a forkBlockNumber but not a
-      // forkUrl
-      throw new HardhatError(
-        ERRORS.BUILTIN_TASKS.NODE_FORK_BLOCK_NUMBER_WITHOUT_URL
-      );
-    }
 
-    return network.provider;
-  }
-);
+      const hardhatNetworkConfig = config.networks[HARDHAT_NETWORK_NAME];
+
+      const forkUrl = forkUrlParam ?? hardhatNetworkConfig.forking?.url;
+      const forkBlockNumber =
+        forkBlockNumberParam ?? hardhatNetworkConfig.forking?.blockNumber;
+
+      // we use the hardhat_reset RPC method to enable the fork
+      if (forkUrl !== undefined) {
+        await network.provider.request({
+          method: "hardhat_reset",
+          params: [
+            {
+              forking: {
+                jsonRpcUrl: forkUrl,
+                blockNumber: forkBlockNumber,
+              },
+            },
+          ],
+        });
+      } else if (forkBlockNumber !== undefined) {
+        // we throw an error if the user specified a forkBlockNumber but not a
+        // forkUrl
+        throw new HardhatError(
+          ERRORS.BUILTIN_TASKS.NODE_FORK_BLOCK_NUMBER_WITHOUT_URL
+        );
+      }
+
+      return network.provider;
+    }
+  );
 
 subtask(TASK_NODE_CREATE_SERVER)
   .addParam("hostname", undefined, undefined, types.string)
