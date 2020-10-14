@@ -16,7 +16,7 @@ declare module "hardhat/types/runtime" {
   ): Promise<ethers.ContractFactory>;
   function getContractFactory(
     abi: any[],
-    bytecode: ethers.utils.BytesLike | string,
+    bytecode: ethers.utils.BytesLike,
     signer?: ethers.Signer
   ): Promise<ethers.ContractFactory>;
 
