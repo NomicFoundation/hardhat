@@ -65,18 +65,18 @@ subtask(TASK_NODE_GET_PROVIDER)
       },
       { artifacts, config, network }
     ): Promise<EthereumProvider> => {
+      let provider = network.provider;
+
       if (network.name !== HARDHAT_NETWORK_NAME) {
         const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
-        return lazyObject(() => {
-          log(`Creating hardhat provider for JSON-RPC sever`);
-          return createProvider(
-            network.name,
-            { ...networkConfig, loggingEnabled: true },
-            config.paths,
-            artifacts
-          );
-        });
+        log(`Creating hardhat provider for JSON-RPC server`);
+        provider = createProvider(
+          network.name,
+          networkConfig,
+          config.paths,
+          artifacts
+        );
       }
 
       const hardhatNetworkConfig = config.networks[HARDHAT_NETWORK_NAME];
@@ -87,7 +87,7 @@ subtask(TASK_NODE_GET_PROVIDER)
 
       // we use the hardhat_reset RPC method to enable the fork
       if (forkUrl !== undefined) {
-        await network.provider.request({
+        await provider.request({
           method: "hardhat_reset",
           params: [
             {
@@ -106,13 +106,13 @@ subtask(TASK_NODE_GET_PROVIDER)
         );
       }
 
-      // enable logging for in-memory hardhat network provider
-      await network.provider.request({
+      // enable logging
+      await provider.request({
         method: "hardhat_setLoggingEnabled",
         params: [true],
       });
 
-      return network.provider;
+      return provider;
     }
   );
 
