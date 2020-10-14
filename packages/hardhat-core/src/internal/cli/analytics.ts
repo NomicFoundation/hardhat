@@ -148,8 +148,7 @@ export class Analytics {
       // https://support.google.com/tagmanager/answer/6164990
       //
       // Custom dimension 1: Project Id
-      // TODO-HH: Can we remove this?
-      cd1: "project",
+      cd1: "hardhat-project",
       // Custom dimension 2: User type
       //   Possible values: "CI", "Developer".
       cd2: this._userType,
