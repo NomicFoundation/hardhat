@@ -75,12 +75,6 @@ subtask(TASK_NODE_GET_PROVIDER)
         });
       }
 
-      // enable logging for in-memory hardhat network provider
-      await network.provider.request({
-        method: "hardhat_setLoggingEnabled",
-        params: [true],
-      });
-
       const hardhatNetworkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
       const forkUrl = forkUrlParam ?? hardhatNetworkConfig.forking?.url;
@@ -107,6 +101,12 @@ subtask(TASK_NODE_GET_PROVIDER)
           ERRORS.BUILTIN_TASKS.NODE_FORK_BLOCK_NUMBER_WITHOUT_URL
         );
       }
+
+      // enable logging for in-memory hardhat network provider
+      await network.provider.request({
+        method: "hardhat_setLoggingEnabled",
+        params: [true],
+      });
 
       return network.provider;
     }
