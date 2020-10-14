@@ -7,7 +7,7 @@ import { getPackageJsonPath } from "../util/packageInfo";
  * If a config file is provided, we start looking for it from it. Otherwise,
  * we use the current working directory.
  */
-export function isHardhatInstalledLocally(configPath?: string) {
+export function isHardhatInstalledLocallyOrLinked(configPath?: string) {
   try {
     const resolvedPackageJson = require.resolve("hardhat/package.json", {
       paths: [configPath ?? process.cwd()],

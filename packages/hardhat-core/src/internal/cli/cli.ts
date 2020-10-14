@@ -11,7 +11,7 @@ import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { HardhatError, HardhatPluginError } from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
-import { isHardhatInstalledLocally } from "../core/execution-mode";
+import { isHardhatInstalledLocallyOrLinked } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import { isCwdInsideProject } from "../core/project-structure";
@@ -99,7 +99,7 @@ async function main() {
       return;
     }
 
-    if (!isHardhatInstalledLocally()) {
+    if (!isHardhatInstalledLocallyOrLinked()) {
       throw new HardhatError(ERRORS.GENERAL.NON_LOCAL_INSTALLATION);
     }
 
