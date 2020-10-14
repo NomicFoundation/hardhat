@@ -17,6 +17,17 @@ const mockErrorDescriptor: ErrorDescriptor = {
 };
 
 describe("Reporter", () => {
+  let originalHasTelemetryConsent: any;
+
+  beforeEach(() => {
+    originalHasTelemetryConsent = (Reporter as any)._hasTelemetryConsent;
+    (Reporter as any)._hasTelemetryConsent = () => true;
+  });
+
+  afterEach(() => {
+    (Reporter as any)._hasTelemetryConsent = originalHasTelemetryConsent;
+  });
+
   describe("shouldReport", () => {
     it("should report plain errors", () => {
       const result = Reporter.shouldReport(new Error("some message"));
@@ -74,6 +85,14 @@ describe("Reporter", () => {
           false
         )
       );
+
+      assert.isFalse(result);
+    });
+
+    it("should not report if the user hasn't given telemetry consent", () => {
+      (Reporter as any)._hasTelemetryConsent = () => false;
+
+      const result = Reporter.shouldReport(new Error("some message"));
 
       assert.isFalse(result);
     });
