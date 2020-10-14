@@ -56,12 +56,74 @@ export class TransactionPool {
     }
   }
 
+  public async clean() {
+    const removeTx = (
+      map: AddressToTransactions,
+      tx: Transaction,
+      address: string
+    ) => {
+      const addressTxs = map.get(address)!;
+      const indexOfTx = addressTxs.indexOf(serializeTransaction(tx));
+
+      return map.set(address, addressTxs.remove(indexOfTx));
+    };
+
+    let newPending = this._pendingTransactions;
+    for (const [address, txs] of this._pendingTransactions) {
+      for (const tx of txs) {
+        const deserializedTx = deserializeTransaction(tx);
+        const txNonce = new BN(deserializedTx.nonce);
+        const txGasLimit = new BN(deserializedTx.gasLimit);
+        const senderAccount = await this._stateManager.getAccount(
+          toBuffer(address)
+        );
+        const senderNonce = new BN(senderAccount.nonce);
+        const senderBalance = new BN(senderAccount.balance);
+
+        if (
+          txGasLimit.gt(this._blockGasLimit) ||
+          txNonce.lt(senderNonce) ||
+          deserializedTx.getUpfrontCost().gt(senderBalance)
+        ) {
+          newPending = removeTx(newPending, deserializedTx, address);
+        }
+      }
+    }
+
+    let newQueued = this._queuedTransactions;
+    this._queuedTransactions.map((txs, address) => {
+      txs.forEach(async (tx) => {
+        const deserializedTx = deserializeTransaction(tx);
+        const txNonce = new BN(deserializedTx.nonce);
+        const txGasLimit = new BN(deserializedTx.gasLimit);
+        const senderAccount = await this._stateManager.getAccount(
+          deserializeTransaction(tx).getSenderAddress()
+        );
+        const senderNonce = new BN(senderAccount.nonce);
+        const senderBalance = new BN(senderAccount.balance);
+
+        if (
+          txGasLimit.gt(this._blockGasLimit) ||
+          txNonce.lt(senderNonce) ||
+          deserializedTx.getUpfrontCost().gt(senderBalance)
+        ) {
+          newQueued = removeTx(newQueued, deserializedTx, address);
+        }
+      });
+    });
+
+    this._pendingTransactions = newPending;
+    this._queuedTransactions = newQueued;
+  }
+
   public getPendingTransactions(): Map<string, Transaction[]> {
     const deserializedImmutableMap = this._pendingTransactions.map((txs) =>
       txs.map((tx) => deserializeTransaction(tx)).toJS()
     );
     return new Map(deserializedImmutableMap.entries());
   }
+
+  public getQueuedTransactions() {}
 
   public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
     const nonce = this._executableNonces.get(bufferToHex(accountAddress));
