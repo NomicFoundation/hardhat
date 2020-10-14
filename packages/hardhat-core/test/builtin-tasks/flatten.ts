@@ -11,7 +11,7 @@ function getContractsOrder(flattenedFiles: string) {
   return matches!.map((m: string) => m.replace("contract", "").trim());
 }
 
-describe.skip("Flatten task", () => {
+describe("Flatten task", () => {
   useEnvironment();
 
   describe("When there no contracts", function () {
@@ -45,6 +45,33 @@ describe.skip("Flatten task", () => {
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
       assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A", "C"]);
+    });
+  });
+
+  describe("Flattening only some files", function () {
+    useFixtureProject("contracts-project");
+
+    it("Should accept a list of files, and only flatten those and their dependencies", async function () {
+      const cFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/C.sol"],
+      });
+
+      assert.deepEqual(getContractsOrder(cFlattened), ["C"]);
+
+      const bFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/b.sol"],
+      });
+
+      assert.deepEqual(getContractsOrder(bFlattened), ["C", "B"]);
+
+      const baFlattened = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE,
+        {
+          files: ["contracts/b.sol", "contracts/a.sol"],
+        }
+      );
+
+      assert.deepEqual(getContractsOrder(baFlattened), ["C", "B", "A"]);
     });
   });
 });
