@@ -2,7 +2,7 @@ import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
 
 import {
   randomAddress,
@@ -12,12 +12,32 @@ import { TransactionPool } from "../../../../src/internal/hardhat-network/provid
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
 import {
+  assertEqualTransactionLists,
+  assertEqualTransactionMaps,
+} from "../helpers/assertEqualTransactionMaps";
+import {
   createTestFakeTransaction,
   createTestTransaction,
 } from "../helpers/blockchain";
+import {
+  DEFAULT_ACCOUNTS,
+  DEFAULT_ACCOUNTS_ADDRESSES,
+} from "../helpers/providers";
 
+/* Change this so this function transforms map into arrays on the EXPECTED part - not the ACTUAL part in the assert function */
 function getAllTxs(pendingTxs: Map<string, Transaction[]>) {
   return Array.from(pendingTxs.values()).flat();
+}
+
+function makeTxMap(txs: Transaction[]): Map<string, Transaction[]> {
+  const map: Map<string, Transaction[]> = new Map();
+  txs.forEach((tx) => {
+    const address = bufferToHex(tx.getSenderAddress());
+    const txList = map.get(address) ?? [];
+    txList.push(tx);
+    map.set(address, txList);
+  });
+  return map;
 }
 
 describe("Transaction Pool", () => {
@@ -505,22 +525,10 @@ describe("Transaction Pool", () => {
     });
 
     it("returns correct nonce after some queued transactions are moved to pending", async () => {
-      const tx1 = createTestFakeTransaction({
-        from: address,
-        nonce: 0,
-      });
-      const tx2 = createTestFakeTransaction({
-        from: address,
-        nonce: 2,
-      });
-      const tx3 = createTestFakeTransaction({
-        from: address,
-        nonce: 5,
-      });
-      const tx4 = createTestFakeTransaction({
-        from: address,
-        nonce: 1,
-      });
+      const tx1 = createTestFakeTransaction({ from: address, nonce: 0 });
+      const tx2 = createTestFakeTransaction({ from: address, nonce: 2 });
+      const tx3 = createTestFakeTransaction({ from: address, nonce: 5 });
+      const tx4 = createTestFakeTransaction({ from: address, nonce: 1 });
 
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
@@ -528,6 +536,78 @@ describe("Transaction Pool", () => {
       await txPool.addTransaction(tx4);
 
       assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
+    });
+  });
+
+  describe("clean", () => {
+    const address1 = toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]);
+    const address2 = toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]);
+    beforeEach(async () => {
+      await stateManager.putAccount(
+        address1,
+        new Account({ nonce: 0, balance: new BN(10).pow(new BN(18)) })
+      );
+      await stateManager.putAccount(
+        address2,
+        new Account({ nonce: 0, balance: new BN(10).pow(new BN(18)) })
+      );
+    });
+
+    xit("throws an error if transaction's gas limit exceeds block gas limit", () => {
+      /* 
+      TODO: How to exactly do that?
+      How miners can change block gas limit?   
+      */
+    });
+
+    it.only("removes pending transactions with too low nonces", async () => {
+      const tx1 = createTestTransaction({ nonce: 0, gasLimit: 30000 });
+      const tx2 = createTestTransaction({ nonce: 1, gasLimit: 30000 });
+      const tx3 = createTestTransaction({ nonce: 0, gasLimit: 30000 });
+      const tx4 = createTestTransaction({ nonce: 1, gasLimit: 30000 });
+      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      tx3.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+      tx4.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+      await txPool.addTransaction(tx3);
+      await txPool.addTransaction(tx4);
+
+      await stateManager.putAccount(
+        address1,
+        new Account({ nonce: 1, balance: new BN(10).pow(new BN(18)) })
+      );
+      await stateManager.putAccount(
+        address2,
+        new Account({ nonce: 1, balance: new BN(10).pow(new BN(18)) })
+      );
+
+      await txPool.clean();
+      const pendingTransactions = txPool.getPendingTransactions();
+
+      assertEqualTransactionMaps(pendingTransactions, makeTxMap([tx2, tx4]));
+    });
+
+    it("throws an error if sender doesn't have enough ether on their balance", async () => {
+      const tx = createTestFakeTransaction({
+        gasPrice: 900,
+        value: 5,
+      });
+
+      const tx1 = createTestFakeTransaction({
+        from: address1,
+        nonce: 0,
+      });
+
+      await txPool.addTransaction(tx1);
+
+      assert.isRejected(
+        // txPool.addTransaction(tx),
+        txPool.clean(),
+        Error,
+        "sender doesn't have enough funds to send tx"
+      );
     });
   });
 });
