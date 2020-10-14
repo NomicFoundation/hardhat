@@ -10,7 +10,7 @@ This kind of extension injects an Ethereum provider object into the browse that 
 
 ## Setting up a React application
 
-To create a React application that will serve the code to talk to the Ethereum blockchain we need to create a React project:
+The first step to create the React application that will serve the code to talk to the Ethereum blockchain we need to create a React project:
 
 1. Open a terminal and change to the project root directory.
 1. Create the project:
@@ -46,20 +46,16 @@ In Ethereum the term **wallet** has two separate meanings:
 
 ### Connecting Metamask to Buidler EVM
 
-By default Metamask connects to the main Ethereum network. However, for testing and development purposes we want the wallet to connect to EVM. 
+By default Metamask connects to the main Ethereum network. However, for development and testing purposes we want to connect to the Buidler EVM that runs our
+application.
 
-GOON
-
-- Besides the Main Ethereum Network (known as mainnet), Metamask allows the user to connect its provider to test networks such as Rinkeby, Ropsten and Goerli.
-- Metamask also allows the user to connect to development networks which normally run on localhost.
-- We will take advantage of this feature and connect Metamask to Buidler EVM
-- We already learned that Buidler will always spin up an in-memory instance of Buidler EVM on startup by default (e.g: when running a task), but it's also possible to run Buidler EVM in a standalone fashion so that external clients can connect to it through localhost. This could be MetaMask, your Dapp front-end, or a script.
-- To run Buidler EVM in this way, run `npx buidler node`:
+1. Start the Buidler EVM in standalone mode, rather than on a temporary basis for a specific test: 
+```bash
+npx buidler node
 ```
-$ npx buidler node
-Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
+This starts the Buidler EVM listening on [http://localhost:8545](http://localhost:8545). You can browse there to get the message:
 ```
-- This will expose a JSON-RPC interface to Buidler EVM. To use it connect your wallet or application to `http://localhost:8545`.
-- Open Metamask and click on Main Ethereum Network, a list of networks should be displayed. Select Localhost 8545, it should connect to the local node of Buidler EVM.
-
-
+{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error: Unexpected end of JSON input"}}
+```
+2. Click the Metamask icon (the fox) in the top right corner of the browser.
+3. Click the currently selected network (by default **Main Ethereum Network** and select **Localhost 8545**.
