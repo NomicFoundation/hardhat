@@ -57,5 +57,5 @@ This starts the Buidler EVM listening on [http://localhost:8545](http://localhos
 ```
 {"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error: Unexpected end of JSON input"}}
 ```
-2. Click the Metamask icon (the fox) in the top right corner of the browser.
+2. Click the Metamask icon (![Metamask icon](https://www.trufflesuite.com/img/docs/truffle/truffle-with-metamask/metamask.png)) in the top right corner of the browser.
 3. Click the currently selected network (by default **Main Ethereum Network** and select **Localhost 8545**.
