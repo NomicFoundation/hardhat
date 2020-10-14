@@ -8,12 +8,16 @@ import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
 import {
-  JsonRpcServer,
+  JsonRpcServer as JsonRpcServerImpl,
   JsonRpcServerConfig,
 } from "../internal/hardhat-network/jsonrpc/server";
 import { Reporter } from "../internal/sentry/reporter";
 import { lazyObject } from "../internal/util/lazy";
-import { EthereumProvider, HardhatNetworkConfig } from "../types";
+import {
+  EthereumProvider,
+  HardhatNetworkConfig,
+  JsonRpcServer,
+} from "../types";
 
 import {
   TASK_NODE,
@@ -132,7 +136,7 @@ subtask(TASK_NODE_CREATE_SERVER)
         provider,
       };
 
-      const server = new JsonRpcServer(serverConfig);
+      const server = new JsonRpcServerImpl(serverConfig);
 
       return server;
     }
