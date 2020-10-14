@@ -4,7 +4,7 @@ import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { subtask, task, types } from "../internal/core/config/config-env";
-import { assertHardhatInvariant, HardhatError } from "../internal/core/errors";
+import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
 import {
@@ -56,24 +56,33 @@ subtask(TASK_NODE_GET_PROVIDER).setAction(
       forkBlockNumber?: number;
       forkUrl?: string;
     },
-    { config, network }
+    { artifacts, config, network }
   ): Promise<EthereumProvider> => {
+    if (network.name !== HARDHAT_NETWORK_NAME) {
+      const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
+
+      return lazyObject(() => {
+        log(`Creating hardhat provider for JSON-RPC sever`);
+        return createProvider(
+          network.name,
+          { ...networkConfig, loggingEnabled: true },
+          config.paths,
+          artifacts
+        );
+      });
+    }
+
     // enable logging for in-memory hardhat network provider
     await network.provider.request({
       method: "hardhat_setLoggingEnabled",
       params: [true],
     });
 
-    assertHardhatInvariant(
-      network.name === HARDHAT_NETWORK_NAME,
-      "Hardhat node can only be used with hardhat network"
-    );
+    const hardhatNetworkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
-    const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
-
-    const forkUrl = forkUrlParam ?? networkConfig.forking?.url;
+    const forkUrl = forkUrlParam ?? hardhatNetworkConfig.forking?.url;
     const forkBlockNumber =
-      forkBlockNumberParam ?? networkConfig.forking?.blockNumber;
+      forkBlockNumberParam ?? hardhatNetworkConfig.forking?.blockNumber;
 
     // we use the hardhat_reset RPC method to enable the fork
     if (forkUrl !== undefined) {
