@@ -59,7 +59,7 @@ describe("Flatten task", () => {
       assert.deepEqual(getContractsOrder(cFlattened), ["C"]);
 
       const bFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/b.sol"],
+        files: ["contracts/B.sol"],
       });
 
       assert.deepEqual(getContractsOrder(bFlattened), ["C", "B"]);
@@ -67,7 +67,7 @@ describe("Flatten task", () => {
       const baFlattened = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
-          files: ["contracts/b.sol", "contracts/a.sol"],
+          files: ["contracts/B.sol", "contracts/A.sol"],
         }
       );
 
