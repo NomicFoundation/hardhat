@@ -2,11 +2,11 @@
   "extends": "../../config/typescript/tsconfig.json",
   "compilerOptions": {
     "outDir": "./build-test",
-    "resolveJsonModule": true,
-    "rootDirs": ["./test"]
+    "rootDirs": ["./test"],
+    "composite": true
   },
   "include": ["./test/**/*.ts"],
-  "exclude": ["./test/**/hardhat.config.ts"],
+  "exclude": ["./test/**/hardhat.config.ts", "./node_modules", "./test/internal/hardhat-network/stack-traces/test-files"],
   "references": [
     {
       "path": "./src"

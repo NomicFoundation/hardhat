@@ -23,7 +23,7 @@ describe("Plugin integration tests", function () {
   });
 
   describe("Using a normal Hardhat project", function () {
-    useEnvironment(path.join(__dirname, "..", "hardhat-project"), "testnet");
+    useEnvironment("hardhat-project", "testnet");
 
     let placeholder: string;
     this.beforeEach(function () {
@@ -104,12 +104,7 @@ describe("Plugin integration tests", function () {
     it("Should verify deployed contract with a complex parameter list on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: false });
 
-      const modulePath = path.join(
-        __dirname,
-        "..",
-        "hardhat-project",
-        "paramList"
-      );
+      const modulePath = path.join(process.cwd(), "paramList");
       const args = require(modulePath);
       const deployedAddress = await deployContract(
         "TestParamList",
@@ -128,6 +123,7 @@ describe("Plugin integration tests", function () {
 const testContractPath = path.join(
   __dirname,
   "..",
+  "fixture-projects",
   "hardhat-project",
   "contracts",
   "TestContract1.sol"

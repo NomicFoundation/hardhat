@@ -2,6 +2,7 @@ import debug from "debug";
 import path from "path";
 
 import { HardhatArguments } from "../../types";
+import { isRunningTests } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
 
 const log = debug("hardhat:core:scripts-runner");
@@ -94,9 +95,14 @@ function getTsNodeArgsIfNeeded(scriptPath: string): string[] {
     return [];
   }
 
-  // If we are running the tests (i.e. hardhat/register is in ts) or the
-  // script itself is in ts
-  if (/\.tsx?$/i.test(scriptPath) || __filename.endsWith(".ts")) {
+  // if we are running the tests we only want to transpile, or these tests
+  // take forever
+  if (isRunningTests()) {
+    return ["--require", "ts-node/register/transpile-only"];
+  }
+
+  // If the script we are going to run is .ts we need ts-node
+  if (/\.tsx?$/i.test(scriptPath)) {
     return ["--require", "ts-node/register"];
   }
 

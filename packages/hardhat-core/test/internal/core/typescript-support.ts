@@ -16,9 +16,7 @@ describe("Typescript support", function () {
     useFixtureProject("broken-typescript-config-project");
     it("Should fail if an implicit any is used and the tsconfig forbids them", function () {
       // If we run this test in transpilation only mode, it will fail
-      if (process.env.TS_NODE_TRANSPILE_ONLY === "true") {
-        this.skip();
-      }
+      this.skip();
 
       assert.throws(
         () => require("../../../src/internal/lib/hardhat-lib"),

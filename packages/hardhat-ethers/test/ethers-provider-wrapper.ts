@@ -9,7 +9,7 @@ describe("Ethers provider wrapper", function () {
   let realProvider: ethers.providers.JsonRpcProvider;
   let wrapper: EthersProviderWrapper;
 
-  useEnvironment(__dirname);
+  useEnvironment("hardhat-project");
 
   beforeEach(function () {
     realProvider = new ethers.providers.JsonRpcProvider();

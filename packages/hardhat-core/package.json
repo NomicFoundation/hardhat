@@ -26,10 +26,10 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src -- --fix && yarn lint-tests -- --fix",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src --fix && yarn lint-tests --fix",
     "lint": "yarn lint-src && yarn lint-tests",
-    "lint-tests": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "node -r ts-node/register ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
+    "lint-tests": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",
     "coverage": "node ../../node_modules/nyc/bin/nyc.js ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",
     "build": "node ../../node_modules/typescript/bin/tsc --build src",

@@ -2,12 +2,11 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
-import path from "path";
 
 import { useEnvironment } from "./helpers";
 
 describe("Ethers plugin", function () {
-  useEnvironment(path.join(__dirname, "hardhat-project"));
+  useEnvironment("hardhat-project");
 
   describe("HRE extensions", function () {
     it("should extend hardhat runtime environment", function () {

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { DEFAULT_GAS_MULTIPLIER } from "../../../../../hardhat-truffle5/src/constants";
+import { DEFAULT_GAS_MULTIPLIER } from "../../../../src/internal/core/config/default-config";
 import {
   AutomaticGasPriceProvider,
   AutomaticGasProvider,

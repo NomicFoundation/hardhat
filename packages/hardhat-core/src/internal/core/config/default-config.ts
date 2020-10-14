@@ -134,6 +134,8 @@ const defaultHardhatNetworkAccounts: HardhatNetworkAccountConfig[] = [
   },
 ];
 
+export const DEFAULT_GAS_MULTIPLIER = 1;
+
 export const defaultHardhatNetworkParams = {
   hardfork: "muirGlacier",
   blockGasLimit: 9500000,
@@ -145,14 +147,14 @@ export const defaultHardhatNetworkParams = {
   allowUnlimitedContractSize: false,
   accounts: defaultHardhatNetworkAccounts,
   loggingEnabled: false,
-  gasMultiplier: 1,
+  gasMultiplier: DEFAULT_GAS_MULTIPLIER,
 };
 
 export const defaultHttpNetworkParams = {
   accounts: "remote" as "remote",
   gas: "auto" as "auto",
   gasPrice: "auto" as "auto",
-  gasMultiplier: 1,
+  gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   httpHeaders: {},
   timeout: 20000,
 };

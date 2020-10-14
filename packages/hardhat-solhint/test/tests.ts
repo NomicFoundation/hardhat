@@ -1,7 +1,6 @@
 import { assert } from "chai";
 // tslint:disable-next-line no-implicit-dependencies
 import { unlink, writeFile, writeJson } from "fs-extra";
-import path from "path";
 
 import { useEnvironment } from "./helpers";
 
@@ -20,7 +19,7 @@ describe("Solhint plugin", function () {
   const SOLHINT_CONFIG_FILENAME = ".solhint.json";
 
   describe("Project with solhint config", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project"));
+    useEnvironment("hardhat-project");
 
     it("should define solhint task", function () {
       assert.isDefined(this.env.tasks["hardhat-solhint:run-solhint"]);
@@ -39,7 +38,7 @@ describe("Solhint plugin", function () {
   });
 
   describe("Project with no solhint config", function () {
-    useEnvironment(path.join(__dirname, "no-config-project"));
+    useEnvironment("no-config-project");
 
     it("return a report", async function () {
       const reports = await this.env.run("hardhat-solhint:run-solhint");
@@ -49,7 +48,7 @@ describe("Solhint plugin", function () {
   });
 
   describe("Project with invalid solhint configs", function () {
-    useEnvironment(path.join(__dirname, "invalid-config-project"));
+    useEnvironment("invalid-config-project");
 
     it("should throw when using invalid extensions", async function () {
       const invalidExtensionConfig = {
