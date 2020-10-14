@@ -181,6 +181,28 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 Please install Hardhat locally using npm or Yarn, and try again.`,
       shouldBeReported: false,
     },
+    TS_NODE_NOT_INSTALLED: {
+      number: 14,
+      message: `Your Hardhat project uses typescript, but ts-node is not installed.
+      
+Please run: npm install --save-dev ts-node`,
+      title: "ts-node not installed",
+      description: `You are running a Hardhat project that uses typescript, but you haven't installed ts-node.
+
+Please run this and try again: npm install --save-dev ts-node`,
+      shouldBeReported: false,
+    },
+    TYPESCRIPT_NOT_INSTALLED: {
+      number: 15,
+      message: `Your Hardhat project uses typescript, but it's not installed.
+      
+Please run: npm install --save-dev typescript`,
+      title: "typescript not installed",
+      description: `You are running a Hardhat project that uses typescript, but it's not installed.
+
+Please run this and try again: npm install --save-dev typescript`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
