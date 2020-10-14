@@ -150,19 +150,8 @@ This is probably a bug in one of your plugins.
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
-    // TODO-HH: Remove this error
-    CONTEXT_CONFIG_PATH_NOT_SET: {
-      number: 11,
-      message:
-        "Trying to access the HardhatContext's config path field but it wasn't set",
-      title: "HardhatContext's config path not defined",
-      description: `The Hardhat initialization process was incomplete. This is a bug.
-
-Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
-      shouldBeReported: true,
-    },
     ASSERTION_ERROR: {
-      number: 12,
+      number: 11,
       message: "An internal invariant was violated: %message%",
       title: "Invariant violation",
       description: `An internal invariant was violated.
@@ -172,7 +161,7 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
       shouldBeReported: true,
     },
     NON_LOCAL_INSTALLATION: {
-      number: 13,
+      number: 12,
       message:
         "Trying to use a non-local installation of Hardhat, which is not supported.\nPlease install Hardhat locally using npm or Yarn, and try again.",
       title: "Hardhat is not installed or installed globally",
