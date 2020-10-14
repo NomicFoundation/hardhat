@@ -72,7 +72,7 @@ subtask(TASK_NODE_GET_PROVIDER)
 
         log(`Creating hardhat provider for JSON-RPC server`);
         provider = createProvider(
-          network.name,
+          HARDHAT_NETWORK_NAME,
           networkConfig,
           config.paths,
           artifacts
