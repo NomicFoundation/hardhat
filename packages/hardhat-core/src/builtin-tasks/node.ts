@@ -52,8 +52,8 @@ Private Key: ${privateKey}
 }
 
 subtask(TASK_NODE_GET_PROVIDER)
-  .addParam("forkUrl", undefined, undefined, types.string)
-  .addParam("forkBlockNumber", undefined, undefined, types.int)
+  .addOptionalParam("forkUrl", undefined, undefined, types.string)
+  .addOptionalParam("forkBlockNumber", undefined, undefined, types.int)
   .setAction(
     async (
       {
