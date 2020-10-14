@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import fsExtra from "fs-extra";
 import debug from "debug";
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
@@ -171,7 +172,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
   .addOptionalParam(
     "hostname",
     "The host to which to bind to for new connections",
-    "localhost",
+    undefined,
     types.string
   )
   .addOptionalParam(
@@ -197,12 +198,12 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
       {
         forkBlockNumber,
         forkUrl,
-        hostname,
+        hostname: hostnameParam,
         port,
       }: {
         forkBlockNumber?: number;
         forkUrl?: string;
-        hostname: string;
+        hostname?: string;
         port: number;
       },
       { config, hardhatArguments, network, run }
@@ -222,6 +223,20 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           forkBlockNumber,
           forkUrl,
         });
+
+        // the default hostname is "localhost" unless we are inside a docker
+        // container, in that case we use "0.0.0.0"
+        let hostname: string;
+        if (hostnameParam !== undefined) {
+          hostname = hostnameParam;
+        } else {
+          const insideDocker = fsExtra.existsSync("/.dockerenv");
+          if (insideDocker) {
+            hostname = "0.0.0.0";
+          } else {
+            hostname = "localhost";
+          }
+        }
 
         const server: JsonRpcServer = await run(TASK_NODE_CREATE_SERVER, {
           hostname,
