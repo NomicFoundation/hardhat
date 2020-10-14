@@ -20,6 +20,7 @@ import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
+import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
@@ -125,7 +126,17 @@ export class Environment implements HardhatRuntimeEnvironment {
       taskArguments
     );
 
-    return this._runTaskDefinition(taskDefinition, resolvedTaskArguments);
+    try {
+      return await this._runTaskDefinition(
+        taskDefinition,
+        resolvedTaskArguments
+      );
+    } catch (e) {
+      analyzeModuleNotFoundError(e, this.config.paths.configFile);
+
+      // tslint:disable-next-line only-hardhat-error
+      throw e;
+    }
   };
 
   /**

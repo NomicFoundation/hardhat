@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
@@ -6,8 +7,12 @@ import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetHardhatContext } from "../../../../src/internal/reset";
+import { glob } from "../../../../src/internal/util/glob";
 import { useEnvironment } from "../../../helpers/environment";
-import { expectHardhatError } from "../../../helpers/errors";
+import {
+  expectHardhatError,
+  expectHardhatErrorAsync,
+} from "../../../helpers/errors";
 import {
   getFixtureProjectPath,
   useFixtureProject,
@@ -117,7 +122,6 @@ describe("config loading", function () {
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
-      assert.isUndefined(globalAsAny.usePlugin);
 
       resetHardhatContext();
 
@@ -128,7 +132,6 @@ describe("config loading", function () {
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
-      assert.isUndefined(globalAsAny.usePlugin);
       resetHardhatContext();
     });
   });
@@ -149,6 +152,206 @@ describe("config loading", function () {
         () => loadConfigAndTasks(),
         ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG
       );
+    });
+  });
+
+  describe("missing package", function () {
+    useFixtureProject("import-missing-package");
+
+    beforeEach(function () {
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("should re-throw the error", function () {
+      let errorThrown;
+      try {
+        loadConfigAndTasks();
+      } catch (e) {
+        errorThrown = e;
+      }
+
+      if (errorThrown === undefined) {
+        assert.fail("No error was thrown");
+      }
+
+      assert(errorThrown.code === "MODULE_NOT_FOUND");
+    });
+  });
+
+  describe("dependency not installed", function () {
+    useFixtureProject("import-dependency-not-installed");
+
+    beforeEach(function () {
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("should re-throw the error", function () {
+      let errorThrown;
+      try {
+        loadConfigAndTasks();
+      } catch (e) {
+        errorThrown = e;
+      }
+
+      if (errorThrown === undefined) {
+        assert.fail("No error was thrown");
+      }
+
+      assert(errorThrown.code === "MODULE_NOT_FOUND");
+    });
+  });
+
+  describe("devDependency not installed", function () {
+    useFixtureProject("import-dev-dependency-not-installed");
+
+    beforeEach(function () {
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("should re-throw the error", function () {
+      let errorThrown;
+      try {
+        loadConfigAndTasks();
+      } catch (e) {
+        errorThrown = e;
+      }
+
+      if (errorThrown === undefined) {
+        assert.fail("No error was thrown");
+      }
+
+      assert(errorThrown.code === "MODULE_NOT_FOUND");
+    });
+  });
+
+  describe("plugin peer dependency not installed", function () {
+    useFixtureProject("plugin-peer-dependency-not-installed");
+
+    beforeEach(function () {
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("should indicate the plugin and the missing dependency", function () {
+      expectHardhatError(
+        () => loadConfigAndTasks(),
+        ERRORS.PLUGINS.MISSING_DEPENDENCIES,
+        "Plugin some-plugin requires the following dependencies to be installed: some-dependency"
+      );
+    });
+  });
+
+  describe("plugin multiple peer dependencies not installed", function () {
+    useFixtureProject("plugin-multiple-peer-dependencies-not-installed");
+
+    beforeEach(function () {
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("should indicate the plugin and the missing dependencies", function () {
+      expectHardhatError(
+        () => loadConfigAndTasks(),
+        ERRORS.PLUGINS.MISSING_DEPENDENCIES,
+        "Plugin some-plugin requires the following dependencies to be installed: some-dependency, some-other-dependency"
+      );
+    });
+  });
+
+  describe("buidler plugin", function () {
+    useFixtureProject("buidler-plugin");
+
+    beforeEach(function () {
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("should indicate the buidler plugin", function () {
+      expectHardhatError(
+        () => loadConfigAndTasks(),
+        ERRORS.PLUGINS.BUIDLER_PLUGIN,
+        `You are using some-buidler-plugin, which is a Buidler plugin. Use the equivalent
+Hardhat plugin instead.`
+      );
+    });
+  });
+
+  describe("dynamic import of missing dependency in task", function () {
+    useFixtureProject("plugin-dynamic-import-not-installed");
+    useEnvironment();
+
+    it("should indicate the plugin and the missing dependencies", async function () {
+      await expectHardhatErrorAsync(
+        () => this.env.run("some-task"),
+        ERRORS.PLUGINS.MISSING_DEPENDENCIES,
+        "Plugin some-plugin requires the following dependencies to be installed: some-dependency"
+      );
+    });
+  });
+
+  describe("Required files recording", function () {
+    useFixtureProject("files-required-by-config-tracking-example");
+
+    afterEach(function () {
+      resetHardhatContext();
+    });
+
+    it("Should keep track of all the files imported when loading the config", async function () {
+      const builtinTasksFiles = await glob(
+        "../../../../src/builtin-tasks/*.ts"
+      );
+
+      const projectPath = await fsExtra.realpath(".");
+
+      // We run this twice to make sure that the cache is cleaned properly
+      for (let i = 0; i < 2; i++) {
+        HardhatContext.createHardhatContext();
+        loadConfigAndTasks();
+        const ctx = HardhatContext.getHardhatContext();
+
+        const files = ctx.getFilesLoadedDuringConfig();
+
+        for (const file of builtinTasksFiles) {
+          // The task names may have been loaded before, so we ignore it.
+          if (file.endsWith("task-names.ts")) {
+            continue;
+          }
+
+          assert.include(files, file);
+        }
+
+        // Must include the config file and the files directly and
+        // indirectly imported by it.
+        assert.include(files, path.join(projectPath, "hardhat.config.js"));
+        assert.include(files, path.join(projectPath, "a.js"));
+        assert.include(files, path.join(projectPath, "b.js"));
+
+        // Must not include unrelated files.
+        assert.notInclude(files, path.join(projectPath, "not-imported.js"));
+
+        resetHardhatContext();
+      }
     });
   });
 });

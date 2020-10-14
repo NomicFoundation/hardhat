@@ -29,7 +29,7 @@
   },
   "scripts": {
     "build": "wsrun --serial build",
-    "build-test": "wsrun --serial build-test",
+    "build-test": "wsrun --serial --exclude-missing build-test",
     "watch": "tsc --build --watch packages/*/src",
     "clean": "wsrun clean",
     "test": "node scripts/run-tests.js",

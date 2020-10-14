@@ -1,10 +1,18 @@
 import * as ethers from "ethers";
 import "hardhat/types/runtime";
 
+import type {
+  FactoryOptions as FactoryOptionsT,
+  Libraries as LibrariesT,
+} from "./helpers";
+
 declare module "hardhat/types/runtime" {
+  type Libraries = LibrariesT;
+  type FactoryOptions = FactoryOptionsT;
+
   function getContractFactory(
     name: string,
-    signer?: ethers.Signer
+    signerOrOptions?: ethers.Signer | FactoryOptions
   ): Promise<ethers.ContractFactory>;
   function getContractFactory(
     abi: any[],

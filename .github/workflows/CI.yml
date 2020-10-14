@@ -35,6 +35,8 @@ jobs:
         run: yarn --frozen-lockfile
       - name: Clean
         run: yarn clean
+      - name: Build
+        run: yarn build
       - name: lint
         run: yarn lint
       - name: Check dependency versions
