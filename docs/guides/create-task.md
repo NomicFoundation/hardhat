@@ -157,7 +157,7 @@ And there you have it. Your first fully functional Hardhat task, allowing you to
 
 ## Advanced usage
 
-You can create your own tasks in your `hardhat.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("@nomiclabs/hardhat/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
+You can create your own tasks in your `hardhat.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("hardhat/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
 
 Creating a task is done by calling the `task` function. It will return a `TaskDefinition` object, which can be used to define the task's parameters.
 
@@ -243,7 +243,7 @@ Failing to follow these restrictions will result in an exception being thrown wh
 
 Hardhat takes care of validating and parsing the values provided for each parameter. You can declare the type of a parameter, and Hardhat will get the CLI strings and convert them into your desired type. If this conversion fails, it will print an error message explaining why.
 
-A number of types are available in the Config DSL through a `types` object. This object is injected into the global scope before processing your `hardhat.config.js`, but you can also import it explicitly with `const { types } = require("@nomiclabs/hardhat/config")` and take advantage of your editor's autocomplete.
+A number of types are available in the Config DSL through a `types` object. This object is injected into the global scope before processing your `hardhat.config.js`, but you can also import it explicitly with `const { types } = require("hardhat/config")` and take advantage of your editor's autocomplete.
 
 An example of a task defining a type for one of its parameters is
 

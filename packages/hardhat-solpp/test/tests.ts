@@ -21,7 +21,7 @@ export async function expectErrorAsync(
 
 describe("Solpp plugin", async function () {
   describe("js-config-project", async function () {
-    useEnvironment(join(__dirname, "js-config-project"));
+    useEnvironment("js-config-project");
 
     it("should evaluate symbols as javascript functions", async function () {
       const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
@@ -37,7 +37,7 @@ describe("Solpp plugin", async function () {
   });
 
   describe("json-config-project", async function () {
-    useEnvironment(join(__dirname, "json-config-project"));
+    useEnvironment("json-config-project");
 
     it("should load definitions from json", async function () {
       const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
@@ -55,7 +55,7 @@ describe("Solpp plugin", async function () {
   });
 
   describe("hardhat-project", async function () {
-    useEnvironment(join(__dirname, "hardhat-project"));
+    useEnvironment("hardhat-project");
 
     it("should create processed contracts in the cache directory", async function () {
       const paths = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
@@ -103,7 +103,7 @@ describe("Solpp plugin", async function () {
 
     // This test skipped because solpp won't fail if a contract has an non-defined symbol.
     describe.skip("fail-project", async function () {
-      useEnvironment(join(__dirname, "fail-project"));
+      useEnvironment("fail-project");
 
       it("should fail when symbol does not exist", async function () {
         const contractPath = join(this.env.config.paths.sources, "A.sol");

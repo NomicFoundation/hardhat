@@ -50,7 +50,7 @@ A `Signer` in ethers.js is an object that represents an Ethereum account. It's u
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
 ```js
-const { ethers } = require("@nomiclabs/hardhat");
+const { ethers } = require("hardhat");
 ```
 
 ::: tip

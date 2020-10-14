@@ -11,18 +11,23 @@ import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { HardhatError, HardhatPluginError } from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
+import { isHardhatInstalledLocally } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNodeIfPresent } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
+import {
+  hasConsentedTelemetry,
+  writeTelemetryConsent,
+} from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { createProject } from "./project-creation";
+import { confirmTelemetryConsent, createProject } from "./project-creation";
 
 const log = debug("hardhat:core:cli");
 
@@ -94,9 +99,13 @@ async function main() {
       return;
     }
 
+    if (!isHardhatInstalledLocally()) {
+      throw new HardhatError(ERRORS.GENERAL.NON_LOCAL_INSTALLATION);
+    }
+
     loadTsNodeIfPresent();
 
-    let taskName = parsedTaskName ?? "help";
+    let taskName = parsedTaskName ?? TASK_HELP;
 
     const showWarningIfNoSolidityConfig = taskName === TASK_COMPILE;
 
@@ -105,8 +114,18 @@ async function main() {
       showWarningIfNoSolidityConfig,
     });
 
-    // TODO-HH: Enabled/disable this depending on the opt-out feature
-    const analytics = await Analytics.getInstance(config.paths.root, true);
+    let telemetryConsent = hasConsentedTelemetry();
+
+    const isHelpCommand = hardhatArguments.help || taskName === TASK_HELP;
+    if (telemetryConsent === undefined && !isHelpCommand) {
+      telemetryConsent = await confirmTelemetryConsent();
+      writeTelemetryConsent(telemetryConsent);
+    }
+
+    const analytics = await Analytics.getInstance(
+      config.paths.root,
+      telemetryConsent
+    );
 
     Reporter.setConfigPath(config.paths.configFile);
     // TODO-HH: Enabled/disable this depending on the opt-out feature

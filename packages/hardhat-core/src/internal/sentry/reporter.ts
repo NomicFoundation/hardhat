@@ -6,6 +6,7 @@ import {
 import { isLocalDev } from "../core/execution-mode";
 import { ProviderError } from "../core/providers/errors";
 import { isRunningOnCiServer } from "../util/ci-detection";
+import { hasConsentedTelemetry } from "../util/global-dir";
 import { getHardhatVersion } from "../util/packageInfo";
 
 import { getSubprocessTransport } from "./transport";
@@ -110,6 +111,10 @@ export class Reporter {
       return false;
     }
 
+    if (!Reporter._hasTelemetryConsent()) {
+      return false;
+    }
+
     return true;
   }
 
@@ -121,6 +126,12 @@ export class Reporter {
     }
 
     return this._instance;
+  }
+
+  private static _hasTelemetryConsent(): boolean {
+    const telemetryConsent = hasConsentedTelemetry();
+
+    return telemetryConsent === true;
   }
 
   public enabled: boolean;

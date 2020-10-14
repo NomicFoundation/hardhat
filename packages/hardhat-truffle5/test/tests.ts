@@ -131,7 +131,7 @@ function testArtifactsFunctionality() {
 }
 
 describe("HardhatRuntimeEnvironment extension", function () {
-  useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
+  useEnvironment("hardhat-project-solc-0.5");
 
   it("It should add a require function to artifacts", function () {
     assert.isFunction(this.env.artifacts.require);
@@ -140,17 +140,17 @@ describe("HardhatRuntimeEnvironment extension", function () {
 
 describe("TruffleContracts loading and provisioning", function () {
   describe("When compiling with solc 0.5.x", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.5"));
+    useEnvironment("hardhat-project-solc-0.5");
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.4.x", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.4"));
+    useEnvironment("hardhat-project-solc-0.4");
     testArtifactsFunctionality();
   });
 
   describe("When compiling with solc 0.6.x", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.6"));
+    useEnvironment("hardhat-project-solc-0.6");
     testArtifactsFunctionality();
   });
 
@@ -171,33 +171,24 @@ describe("TruffleContracts loading and provisioning", function () {
     }
 
     describe("With solc 0.4.x", function () {
-      useEnvironment(
-        path.join(__dirname, "hardhat-project-solc-0.4"),
-        "withoutAccounts"
-      );
+      useEnvironment("hardhat-project-solc-0.4", "withoutAccounts");
       shouldWorkWithoutAccounts();
     });
 
     describe("With solc 0.5.x", function () {
-      useEnvironment(
-        path.join(__dirname, "hardhat-project-solc-0.5"),
-        "withoutAccounts"
-      );
+      useEnvironment("hardhat-project-solc-0.5", "withoutAccounts");
       shouldWorkWithoutAccounts();
     });
 
     describe("With solc 0.6.x", function () {
-      useEnvironment(
-        path.join(__dirname, "hardhat-project-solc-0.6"),
-        "withoutAccounts"
-      );
+      useEnvironment("hardhat-project-solc-0.6", "withoutAccounts");
       shouldWorkWithoutAccounts();
     });
   });
 });
 
 describe("Test contracts compilation", function () {
-  useEnvironment(path.join(__dirname, "hardhat-project-with-test-contracts"));
+  useEnvironment("hardhat-project-with-test-contracts");
 
   it("Should include sources from sources", async function () {
     const sources = await this.env.run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS);
@@ -205,12 +196,7 @@ describe("Test contracts compilation", function () {
     assert.include(
       sources,
       fs.realpathSync(
-        path.join(
-          __dirname,
-          "hardhat-project-with-test-contracts",
-          "contracts",
-          "fromContracts.sol"
-        )
+        path.join(process.cwd(), "contracts", "fromContracts.sol")
       )
     );
   });
@@ -220,14 +206,7 @@ describe("Test contracts compilation", function () {
 
     assert.include(
       sources,
-      fs.realpathSync(
-        path.join(
-          __dirname,
-          "hardhat-project-with-test-contracts",
-          "test",
-          "fromTest.sol"
-        )
-      )
+      fs.realpathSync(path.join(process.cwd(), "test", "fromTest.sol"))
     );
   });
 
@@ -236,14 +215,7 @@ describe("Test contracts compilation", function () {
 
     assert.notInclude(
       sources,
-      fs.realpathSync(
-        path.join(
-          __dirname,
-          "hardhat-project-with-test-contracts",
-          "test",
-          "shouldBeIgnored.txt"
-        )
-      )
+      fs.realpathSync(path.join(process.cwd(), "test", "shouldBeIgnored.txt"))
     );
   });
 
@@ -312,10 +284,7 @@ describe("Gas multiplier", function () {
   }
 
   describe("When it's set in the network", function () {
-    useEnvironment(
-      path.join(__dirname, "hardhat-project-solc-0.4"),
-      "withGasMultiplier"
-    );
+    useEnvironment("hardhat-project-solc-0.4", "withGasMultiplier");
 
     it("Should use the set one for deployments", async function () {
       const multiplier = this.env.network.config.gasMultiplier!;
@@ -329,7 +298,7 @@ describe("Gas multiplier", function () {
   });
 
   describe("When it's not set in the network", function () {
-    useEnvironment(path.join(__dirname, "hardhat-project-solc-0.4"));
+    useEnvironment("hardhat-project-solc-0.4");
 
     it("Should use the set one for deployments", async function () {
       await assertItWorksForDeployments(this.env, DEFAULT_GAS_MULTIPLIER);

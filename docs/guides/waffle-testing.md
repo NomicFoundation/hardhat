@@ -131,7 +131,7 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
 ```js
-const { ethers } = require("@nomiclabs/hardhat");
+const { ethers } = require("hardhat");
 ```
 
 Finally, to execute a contract's method from another account, all you need to do is `connect` the `Contract` with the method being executed:

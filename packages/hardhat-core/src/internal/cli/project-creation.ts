@@ -6,6 +6,10 @@ import path from "path";
 import { HARDHAT_NAME } from "../constants";
 import { DEFAULT_SOLC_VERSION } from "../core/config/default-config";
 import { getRecommendedGitIgnore } from "../core/project-structure";
+import {
+  hasConsentedTelemetry,
+  writeTelemetryConsent,
+} from "../util/global-dir";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
 import { emoji } from "./emoji";
@@ -227,6 +231,12 @@ export async function createProject() {
     await addGitIgnore(projectRoot);
   }
 
+  if (hasConsentedTelemetry() === undefined) {
+    const telemetryConsent = await confirmTelemetryConsent();
+
+    writeTelemetryConsent(telemetryConsent);
+  }
+
   let shouldShowInstallationInstructions = true;
 
   // TODO-HH: This should be updated because now hardhat needs to
@@ -359,6 +369,24 @@ async function confirmRecommendedDepsInstallation(): Promise<boolean> {
   }
 
   return responses.shouldInstallPlugin === true;
+}
+
+export async function confirmTelemetryConsent(): Promise<boolean> {
+  const { default: enquirer } = await import("enquirer");
+
+  const { telemetryConsent } = await enquirer.prompt<{
+    telemetryConsent: boolean;
+  }>([
+    {
+      name: "telemetryConsent",
+      type: "confirm",
+      initial: true,
+      message:
+        "Help us improve Hardhat with anonymous crash reports & basic usage data?",
+    },
+  ]);
+
+  return telemetryConsent;
 }
 
 async function installDependencies(

@@ -57,14 +57,14 @@ export class HardhatContext {
 
   public setHardhatRuntimeEnvironment(env: HardhatRuntimeEnvironment) {
     if (this.environment !== undefined) {
-      throw new HardhatError(ERRORS.GENERAL.CONTEXT_BRE_ALREADY_DEFINED);
+      throw new HardhatError(ERRORS.GENERAL.CONTEXT_HRE_ALREADY_DEFINED);
     }
     this.environment = env;
   }
 
   public getHardhatRuntimeEnvironment(): HardhatRuntimeEnvironment {
     if (this.environment === undefined) {
-      throw new HardhatError(ERRORS.GENERAL.CONTEXT_BRE_NOT_DEFINED);
+      throw new HardhatError(ERRORS.GENERAL.CONTEXT_HRE_NOT_DEFINED);
     }
     return this.environment;
   }

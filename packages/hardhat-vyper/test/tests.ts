@@ -1,13 +1,12 @@
 import { assert } from "chai";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import path from "path";
 
 import { useEnvironment } from "./helpers";
 
 describe("Vyper plugin", async function () {
   describe("Successful compilation", async function () {
-    useEnvironment(path.join(__dirname, "projects", "successful-compilation"));
+    useEnvironment("successful-compilation");
 
     it("Should successfully compile the contract", async function () {
       await this.env.run(TASK_COMPILE);
@@ -19,7 +18,7 @@ describe("Vyper plugin", async function () {
   });
 
   describe("Partial compilation", async function () {
-    useEnvironment(path.join(__dirname, "projects", "partial-compilation"));
+    useEnvironment("partial-compilation");
 
     it("Should successfully compile the contract", async function () {
       try {

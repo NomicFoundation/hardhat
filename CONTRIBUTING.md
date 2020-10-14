@@ -7,7 +7,7 @@ This document contains some tips on how to collaborate in this project.
 This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat` which
-is the main project (i.e. the one that's published as [@nomiclabs/hardhat](https://npmjs.com/package/@nomiclabs/hardhat)).
+is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat)).
 
 ## Installing
 
@@ -114,16 +114,18 @@ You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to tes
 `hardhat`, you can follow these steps:
 
 1. Go to `packages/hardhat` and run `yarn link`
-2. Go to some hardhat project and run `yarn link @nomiclabs/hardhat`
+2. Go to some hardhat project and run `yarn link hardhat`
 
 Now any change you make in the code will be reflected in that project.
+
+<!-- TODO-HH this doesn't link the binary though -->
 
 ### Yalc
 
 If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc).
 
 1. Go to `packages/hardhat` and run `yalc publish`
-2. Go to some hardhat project and run `yalc add @nomiclabs/hardhat`
+2. Go to some hardhat project and run `yalc add hardhat`
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 

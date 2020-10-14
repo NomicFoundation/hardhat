@@ -27,7 +27,7 @@ describe("Web3 provider adapter", function () {
   let realWeb3Provider: any;
   let adaptedProvider: Web3HTTPProviderAdapter;
 
-  useEnvironment(__dirname);
+  useEnvironment("hardhat-project");
 
   beforeEach(function () {
     realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");

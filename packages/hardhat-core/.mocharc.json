@@ -1,9 +1,5 @@
 {
-  "require": [
-    "./test/mocha.env",
-    "ts-node/register",
-    "source-map-support/register"
-  ],
+  "require": "ts-node/register/transpile-only",
   "file": "./test/setup.ts",
   "exclude": [
     "test/fixture-projects/**/*.ts",

@@ -23,13 +23,13 @@ Note that all config extension's have to be optional.
 
 ### Throwing errors from your plugins
 
-To show better stack traces to your users, please consider throwing `HardhatPluginError` errors, which can be found in `@nomiclabs/hardhat/plugins`.
+To show better stack traces to your users, please consider throwing `HardhatPluginError` errors, which can be found in `hardhat/plugins`.
 
 If your error originated in your user's code, like a test or script calling one of your functions, you shouldn't use `HardhatPluginError`.
 
 ### Optimizing your plugin for better startup time
 
-Keeping startup time short is vital to give a good user experience. To do so, Hardhat and its plugins delay any slow import or initialization until the very last moment. To do so, you can use `lazyObject`, and `lazyFunction` from `@nomiclabs/hardhat/plugins`.
+Keeping startup time short is vital to give a good user experience. To do so, Hardhat and its plugins delay any slow import or initialization until the very last moment. To do so, you can use `lazyObject`, and `lazyFunction` from `hardhat/plugins`.
 
 An example on how to use them is present in [`src/index.ts`](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
 

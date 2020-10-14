@@ -1,10 +1,9 @@
 import { assert } from "chai";
-import path from "path";
 
 import { useEnvironment } from "../helpers";
 
 describe("hardhat-etherscan configuration extension", function () {
-  useEnvironment(path.join(__dirname, "..", "hardhat-project-defined-config"));
+  useEnvironment("hardhat-project-defined-config", "hardhat");
 
   it("the etherscan field should be present", function () {
     assert.isDefined(this.env.config.etherscan);
@@ -18,9 +17,7 @@ describe("hardhat-etherscan configuration extension", function () {
 });
 
 describe("hardhat-etherscan configuration defaults in an empty project", function () {
-  useEnvironment(
-    path.join(__dirname, "..", "hardhat-project-undefined-config")
-  );
+  useEnvironment("hardhat-project-undefined-config", "hardhat");
 
   it("the etherscan field should be present", function () {
     assert.isDefined(this.env.config.etherscan);
