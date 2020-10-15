@@ -662,7 +662,11 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
 
     for (const error of output.errors) {
       if (error.severity === "error") {
-        console.error(chalk.red(error.formattedMessage));
+        const errorMessage =
+          getFormattedInternalCompilerErrorMessage(error) ??
+          error.formattedMessage;
+
+        console.error(chalk.red(errorMessage));
       } else {
         console.warn(chalk.yellow(error.formattedMessage));
       }
@@ -1273,4 +1277,25 @@ async function checkSolcBinary(solcPath: string): Promise<boolean> {
       resolve(code === 0);
     });
   });
+}
+
+/**
+ * This function returns a properly formatted Internal Compiler Error message.
+ *
+ * This is present due to a bug in Solidity. See: https://github.com/ethereum/solidity/issues/9926
+ *
+ * If the error is not an ICE, or if it's properly formatted, this function returns undefined.
+ */
+function getFormattedInternalCompilerErrorMessage(error: {
+  formattedMessage: string;
+  message: string;
+  type: string;
+}): string | undefined {
+  if (error.formattedMessage.trim() !== "InternalCompilerError:") {
+    return;
+  }
+
+  // We trim any final `:`, as we found some at the end of the error messages,
+  // and then trim just in case a blank space was left
+  return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
 }
