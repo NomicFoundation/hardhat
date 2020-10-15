@@ -3,19 +3,17 @@
 To test the contracts it's enough to start a Buidler EVM, run the test, and then stop it. But now that we are communicating with a user interface we need to simulate 
 the real blockchain more faithfully by leaving the EVM running. This means we need to deploy the contract we're developing for with a script, rather than as part of a test.
 
-To allow our Dapp to interact with the contract we need to deploy it to a live Buidler EVM instance. 
-
-- When we tested our contracts, we're deploying the contracts to a different Buidler EVM instance each time. 
-- This instance was created on startup and destroyed when the test task completed its execution.
-- To allow our Dapp to interact with the contract, we need to deploy it to a live instance of Buidler EVM, the one we started on the previous step with `npx buidler node`.
 
 ## Creating a deploy script
+
+<!--
 
 - Let's look into what the code to deploy your contracts using ethers.js would look like.
 - The main concepts used are `Signer`, `ContractFactory` and `Contract` which we explained back in the [testing](testing-contracts.md) section. There's nothing new that needs to be done when compared to testing, given that when you're testing your contracts you're *actually* making a deployment to your development network. This makes the code very similar, or the same.
 
+-->
 
-- Let's create a new directory `scripts` inside the project root's directory, and paste the following into a `deploy.js` file:
+Create a new directory inside the project's root directory, `scripts`, and paste this file as `deploy.js`:
 
 ```js
 // This is a script for deploying your contracts. You can adapt it to deploy
