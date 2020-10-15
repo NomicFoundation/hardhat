@@ -87,7 +87,7 @@ async function printWelcomeMessage() {
 }
 
 async function copySampleProject(projectRoot: string) {
-  const packageRoot = await getPackageRoot();
+  const packageRoot = getPackageRoot();
 
   await fsExtra.ensureDir(projectRoot);
   await fsExtra.copy(path.join(packageRoot, "sample-project"), projectRoot);

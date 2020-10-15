@@ -31,7 +31,7 @@ export function getUserConfigPath() {
 }
 
 export async function getRecommendedGitIgnore() {
-  const packageRoot = await getPackageRoot();
+  const packageRoot = getPackageRoot();
   const gitIgnorePath = path.join(packageRoot, "recommended-gitignore.txt");
 
   return fsExtra.readFile(gitIgnorePath, "utf-8");
