@@ -1,8 +1,8 @@
 import { getPackageJsonPath } from "../util/packageInfo";
 
 /**
- * Returns true if Hardhat is installed locally, by looking for it using the
- * node module resolution logic.
+ * Returns true if Hardhat is installed locally or linked from its repository,
+ * by looking for it using the node module resolution logic.
  *
  * If a config file is provided, we start looking for it from it. Otherwise,
  * we use the current working directory.
