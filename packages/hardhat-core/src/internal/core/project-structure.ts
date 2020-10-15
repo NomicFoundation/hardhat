@@ -6,23 +6,20 @@ import { getPackageRoot } from "../util/packageInfo";
 
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
-import { isTypescriptSupported } from "./typescript-support";
 const JS_CONFIG_FILENAME = "hardhat.config.js";
 const TS_CONFIG_FILENAME = "hardhat.config.ts";
 
 export function isCwdInsideProject() {
   return (
-    findUp.sync(JS_CONFIG_FILENAME) !== null ||
-    (isTypescriptSupported() && findUp.sync(TS_CONFIG_FILENAME) !== null)
+    findUp.sync(TS_CONFIG_FILENAME) !== null ||
+    findUp.sync(JS_CONFIG_FILENAME) !== null
   );
 }
 
 export function getUserConfigPath() {
-  if (isTypescriptSupported()) {
-    const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
-    if (tsConfigPath !== null) {
-      return tsConfigPath;
-    }
+  const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
+  if (tsConfigPath !== null) {
+    return tsConfigPath;
   }
 
   const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);

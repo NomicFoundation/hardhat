@@ -2,7 +2,7 @@ import debug from "debug";
 import path from "path";
 
 import { HardhatArguments } from "../../types";
-import { isRunningTests } from "../core/execution-mode";
+import { isRunningHardhatCoreTests } from "../core/execution-mode";
 import { getEnvVariablesMap } from "../core/params/env-variables";
 
 const log = debug("hardhat:core:scripts-runner");
@@ -97,7 +97,7 @@ function getTsNodeArgsIfNeeded(scriptPath: string): string[] {
 
   // if we are running the tests we only want to transpile, or these tests
   // take forever
-  if (isRunningTests()) {
+  if (isRunningHardhatCoreTests()) {
     return ["--require", "ts-node/register/transpile-only"];
   }
 

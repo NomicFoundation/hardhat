@@ -19,9 +19,9 @@ export function isHardhatInstalledLocally(configPath?: string) {
  */
 export function isLocalDev(): boolean {
   // TODO: This may give a false positive under yarn PnP
-  return isRunningTests() || !__filename.includes("node_modules");
+  return isRunningHardhatCoreTests() || !__filename.includes("node_modules");
 }
 
-export function isRunningTests(): boolean {
+export function isRunningHardhatCoreTests(): boolean {
   return __filename.endsWith(".ts");
 }

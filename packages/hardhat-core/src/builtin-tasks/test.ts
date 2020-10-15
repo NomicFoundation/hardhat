@@ -3,7 +3,7 @@ import path from "path";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { subtask, task } from "../internal/core/config/config-env";
-import { isTypescriptSupported } from "../internal/core/typescript-support";
+import { isRunningWithTypescript } from "../internal/core/typescript-support";
 import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/disk-cache";
 import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
 import { glob } from "../internal/util/glob";
@@ -31,7 +31,7 @@ subtask(TASK_TEST_GET_TEST_FILES)
 
     const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
 
-    if (!isTypescriptSupported()) {
+    if (!isRunningWithTypescript(config)) {
       return jsFiles;
     }
 

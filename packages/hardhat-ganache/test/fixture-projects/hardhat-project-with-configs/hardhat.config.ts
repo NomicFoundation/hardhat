@@ -1,6 +1,6 @@
-require("../../../src/index");
+import "../../../src/index";
 
-module.exports = {
+export default {
   defaultNetwork: "ganache",
   networks: {
     ganache: {

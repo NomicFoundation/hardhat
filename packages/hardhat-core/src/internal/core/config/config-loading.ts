@@ -19,13 +19,7 @@ function importCsjOrEsModule(filePath: string): any {
   return imported.default !== undefined ? imported.default : imported;
 }
 
-export function loadConfigAndTasks(
-  hardhatArguments?: Partial<HardhatArguments>,
-  { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: true }
-): HardhatConfig {
-  let configPath =
-    hardhatArguments !== undefined ? hardhatArguments.config : undefined;
-
+export function resolveConfigPath(configPath: string | undefined) {
   if (configPath === undefined) {
     configPath = getUserConfigPath();
   } else {
@@ -34,6 +28,17 @@ export function loadConfigAndTasks(
       configPath = path.normalize(configPath);
     }
   }
+  return configPath;
+}
+
+export function loadConfigAndTasks(
+  hardhatArguments?: Partial<HardhatArguments>,
+  { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: true }
+): HardhatConfig {
+  let configPath =
+    hardhatArguments !== undefined ? hardhatArguments.config : undefined;
+
+  configPath = resolveConfigPath(configPath);
 
   // Before loading the builtin tasks, the default and user's config we expose
   // the config env in the global object.

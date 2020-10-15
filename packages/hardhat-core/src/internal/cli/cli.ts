@@ -16,7 +16,7 @@ import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
-import { loadTsNodeIfPresent } from "../core/typescript-support";
+import { loadTsNode, willRunWithTypescript } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
 import {
   hasConsentedTelemetry,
@@ -103,7 +103,9 @@ async function main() {
       throw new HardhatError(ERRORS.GENERAL.NON_LOCAL_INSTALLATION);
     }
 
-    loadTsNodeIfPresent();
+    if (willRunWithTypescript(hardhatArguments.config)) {
+      loadTsNode();
+    }
 
     let taskName = parsedTaskName ?? TASK_HELP;
 
