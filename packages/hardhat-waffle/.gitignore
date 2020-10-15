@@ -92,5 +92,3 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
-
-test/buidler-project/cache

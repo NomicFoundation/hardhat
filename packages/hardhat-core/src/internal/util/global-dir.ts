@@ -6,14 +6,14 @@ import path from "path";
 
 const log = debug("hardhat:core:global-dir");
 
-async function generatePaths() {
+async function generatePaths(packageName = "hardhat") {
   const { default: envPaths } = await import("env-paths");
-  return envPaths("hardhat");
+  return envPaths(packageName);
 }
 
-function generatePathsSync() {
+function generatePathsSync(packageName = "hardhat") {
   const envPaths: typeof envPathsT = require("env-paths");
-  return envPaths("hardhat");
+  return envPaths(packageName);
 }
 
 async function getConfigDir(): Promise<string> {
@@ -28,8 +28,8 @@ function getConfigDirSync(): string {
   return config;
 }
 
-async function getDataDir(): Promise<string> {
-  const { data } = await generatePaths();
+async function getDataDir(packageName?: string): Promise<string> {
+  const { data } = await generatePaths(packageName);
   await fs.ensureDir(data);
   return data;
 }
@@ -46,20 +46,32 @@ export async function readAnalyticsId() {
   return readId(idFile);
 }
 
-// TODO-HH: we have two "legacies" now
-export function readLegacyAnalyticsId() {
+/**
+ * This is the first way that the analytics id was saved.
+ */
+export function readFirstLegacyAnalyticsId() {
   const oldIdFile = path.join(os.homedir(), ".buidler", "config.json");
   return readId(oldIdFile);
 }
 
-async function readId(idFile: string) {
+/**
+ * This is the same way the analytics id is saved now, but using buidler as the
+ * name of the project for env-paths
+ */
+export async function readSecondLegacyAnalyticsId() {
+  const globalDataDir = await getDataDir("buidler");
+  const idFile = path.join(globalDataDir, "analytics.json");
+  return readId(idFile);
+}
+
+async function readId(idFile: string): Promise<string | undefined> {
   log(`Looking up Client Id at ${idFile}`);
   let clientId: string;
   try {
     const data = await fs.readJSON(idFile, { encoding: "utf8" });
     clientId = data.analytics.clientId;
   } catch (error) {
-    return null;
+    return undefined;
   }
 
   log(`Client Id found: ${clientId}`);

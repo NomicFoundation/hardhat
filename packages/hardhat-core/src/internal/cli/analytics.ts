@@ -10,7 +10,8 @@ import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   readAnalyticsId,
-  readLegacyAnalyticsId,
+  readFirstLegacyAnalyticsId,
+  readSecondLegacyAnalyticsId,
   writeAnalyticsId,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
@@ -42,10 +43,7 @@ type AbortAnalytics = () => void;
 const googleAnalyticsUrl = "https://www.google-analytics.com/collect";
 
 export class Analytics {
-  public static async getInstance(
-    rootPath: string,
-    telemetryConsent: boolean | undefined
-  ) {
+  public static async getInstance(telemetryConsent: boolean | undefined) {
     const analytics: Analytics = new Analytics({
       clientId: await getClientId(),
       telemetryConsent,
@@ -126,7 +124,7 @@ export class Analytics {
       dp: `/task/${taskName}`,
 
       // Host name.
-      dh: "cli.buidler.dev",
+      dh: "cli.usehardhat.com",
 
       // User agent, must be present.
       // We use it to inform Node version used and OS.
@@ -193,12 +191,16 @@ export class Analytics {
 async function getClientId() {
   let clientId = await readAnalyticsId();
 
-  if (clientId === null) {
-    clientId = await readLegacyAnalyticsId();
-    if (clientId === null) {
+  if (clientId === undefined) {
+    clientId =
+      (await readSecondLegacyAnalyticsId()) ??
+      (await readFirstLegacyAnalyticsId());
+
+    if (clientId === undefined) {
       log("Client Id not found, generating a new one");
       clientId = uuid();
     }
+
     await writeAnalyticsId(clientId);
   }
 
