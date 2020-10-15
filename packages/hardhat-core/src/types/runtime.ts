@@ -174,6 +174,7 @@ export interface HardhatArguments {
   config?: string;
   verbose: boolean;
   maxMemory?: number;
+  tsconfig?: number;
 }
 
 export type HardhatParamDefinitions = {

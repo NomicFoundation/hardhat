@@ -75,4 +75,13 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
     isFlag: false,
     isVariadic: false,
   },
+  tsconfig: {
+    name: "tsconfig",
+    defaultValue: undefined,
+    description: "Reserved hardhat argument -- Has no effect.",
+    type: types.string,
+    isOptional: true,
+    isFlag: false,
+    isVariadic: false,
+  },
 };
