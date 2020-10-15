@@ -1,5 +1,10 @@
 # 8. Deploying to localhost
 
+To test the contracts it's enough to start a Buidler EVM, run the test, and then stop it. But now that we are communicating with a user interface we need to simulate 
+the real blockchain more faithfully by leaving the EVM running. This means we need to deploy the contract we're testing with a script, rather than as part of a test.
+
+To allow our Dapp to interact with the contract we need to deploy it to a live Buidler EVM instance. 
+
 - When we tested our contracts, we're deploying the contracts to a different Buidler EVM instance each time. 
 - This instance was created on startup and destroyed when the test task completed its execution.
 - To allow our Dapp to interact with the contract, we need to deploy it to a live instance of Buidler EVM, the one we started on the previous step with `npx buidler node`.
