@@ -39,7 +39,7 @@ export function getContractFactory(
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
-  bytecode: ethers.utils.BytesLike | string,
+  bytecode: ethers.utils.BytesLike,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
@@ -48,7 +48,7 @@ export async function getContractFactory(
   nameOrAbi: string | any[],
   bytecodeOrFactoryOptions?:
     | (ethers.Signer | FactoryOptions)
-    | (ethers.utils.BytesLike | string),
+    | ethers.utils.BytesLike,
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
@@ -72,7 +72,7 @@ If you want to call a contract using ${nameOrAbi} as its interface use the "getC
   return getContractFactoryByAbiAndBytecode(
     hre,
     nameOrAbi,
-    bytecodeOrFactoryOptions as ethers.utils.BytesLike | string,
+    bytecodeOrFactoryOptions as ethers.utils.BytesLike,
     signer
   );
 }
@@ -219,7 +219,7 @@ ${missingLibraries}`
 export async function getContractFactoryByAbiAndBytecode(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
-  bytecode: ethers.utils.BytesLike | string,
+  bytecode: ethers.utils.BytesLike,
   signer?: ethers.Signer
 ) {
   if (signer === undefined) {

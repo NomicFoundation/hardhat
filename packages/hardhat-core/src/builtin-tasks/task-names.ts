@@ -63,6 +63,7 @@ export const TASK_CONSOLE = "console";
 export const TASK_FLATTEN = "flatten";
 export const TASK_FLATTEN_GET_FLATTENED_SOURCE =
   "flatten:get-flattened-sources";
+export const TASK_FLATTEN_GET_DEPENDENCY_GRAPH = "flatten:get-dependency-graph";
 
 export const TASK_HELP = "help";
 

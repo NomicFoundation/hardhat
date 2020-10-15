@@ -2,16 +2,11 @@ import { assert } from "chai";
 import fsExtra from "fs-extra";
 
 import { TASK_TEST_GET_TEST_FILES } from "../../../src/builtin-tasks/task-names";
-import { isTypescriptSupported } from "../../../src/internal/core/typescript-support";
 import { resetHardhatContext } from "../../../src/internal/reset";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
 
 describe("Typescript support", function () {
-  describe("helpers", function () {
-    assert.isTrue(isTypescriptSupported());
-  });
-
   describe("strict typescript config", function () {
     useFixtureProject("broken-typescript-config-project");
     it("Should fail if an implicit any is used and the tsconfig forbids them", function () {
