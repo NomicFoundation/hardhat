@@ -381,6 +381,10 @@ async function isYarnProject() {
 
 async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
+
+  // The reason we don't quote the dependencies here is because they are going
+  // to be used in child_process.sapwn, which doesn't require escaping string,
+  // and can actually fail if you do.
   const installCmd = await getRecommendedDependenciesInstallationCommand(
     dependencies,
     false
