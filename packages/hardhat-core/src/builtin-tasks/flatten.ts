@@ -92,7 +92,7 @@ subtask(
 subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
   .addOptionalParam("files", undefined, undefined, types.any)
   .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
-    const sourcePaths =
+    const sourcePaths: string[] =
       files === undefined
         ? await run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
         : files.map((f) => fs.realpathSync(f));
