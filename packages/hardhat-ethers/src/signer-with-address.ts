@@ -17,23 +17,13 @@ export class SignerWithAddress extends ethers.Signer {
     return this.address;
   }
 
-  public signMessage(message: string | ethers.utils.Bytes): Promise<string> {
+  public signMessage(message: ethers.utils.Arrayish): Promise<string> {
     return this._signer.signMessage(message);
   }
 
-  public signTransaction(
-    transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
-  ): Promise<string> {
-    return this._signer.signTransaction(transaction);
-  }
-
   public sendTransaction(
-    transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
+    transaction: ethers.providers.TransactionRequest
   ): Promise<ethers.providers.TransactionResponse> {
     return this._signer.sendTransaction(transaction);
-  }
-
-  public connect(provider: ethers.providers.Provider): SignerWithAddress {
-    return new SignerWithAddress(this.address, this._signer.connect(provider));
   }
 }

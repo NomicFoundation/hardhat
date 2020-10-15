@@ -53,7 +53,7 @@ export function getContractFactory(
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
-  bytecode: ethers.utils.BytesLike,
+  bytecode: ethers.utils.Arrayish,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
@@ -62,7 +62,7 @@ export async function getContractFactory(
   nameOrAbi: string | any[],
   bytecodeOrFactoryOptions?:
     | (ethers.Signer | FactoryOptions)
-    | ethers.utils.BytesLike,
+    | ethers.utils.Arrayish,
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
@@ -86,7 +86,7 @@ If you want to call a contract using ${nameOrAbi} as its interface use the "getC
   return getContractFactoryByAbiAndBytecode(
     hre,
     nameOrAbi,
-    bytecodeOrFactoryOptions as ethers.utils.BytesLike,
+    bytecodeOrFactoryOptions as ethers.utils.Arrayish,
     signer
   );
 }
@@ -107,8 +107,6 @@ async function getContractFactoryByName(
   contractName: string,
   signerOrOptions?: ethers.Signer | FactoryOptions
 ) {
-  const { utils } = require("ethers") as typeof ethers;
-
   const artifact = await hre.artifacts.readArtifact(contractName);
 
   const neededLibraries: Array<{
@@ -136,7 +134,7 @@ async function getContractFactoryByName(
   for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(
     libraries
   )) {
-    if (!utils.isAddress(linkedLibraryAddress)) {
+    if (!isAddress(linkedLibraryAddress)) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
         `You tried to link the contract ${contractName} with the library ${linkedLibraryName}, but provided this invalid address: ${linkedLibraryAddress}`
@@ -233,7 +231,7 @@ ${missingLibraries}`
 export async function getContractFactoryByAbiAndBytecode(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
-  bytecode: ethers.utils.BytesLike,
+  bytecode: ethers.utils.Arrayish,
   signer?: ethers.Signer
 ) {
   const { ContractFactory } = require("ethers") as typeof ethers;
@@ -285,7 +283,7 @@ function addGasToAbiMethodsIfNecessary(
   networkConfig: NetworkConfig,
   abi: any[]
 ): any[] {
-  const { BigNumber } = require("ethers") as typeof ethers;
+  const { bigNumberify } = (require("ethers") as typeof ethers).utils;
 
   if (networkConfig.gas === "auto" || networkConfig.gas === undefined) {
     return abi;
@@ -296,7 +294,7 @@ function addGasToAbiMethodsIfNecessary(
   // block gas limit, especially on Hardhat Network.
   // To avoid this, we substract 21000.
   // HOTFIX: We substract 1M for now. See: https://github.com/ethers-io/ethers.js/issues/1058#issuecomment-703175279
-  const gasLimit = BigNumber.from(networkConfig.gas).sub(1000000).toHexString();
+  const gasLimit = bigNumberify(networkConfig.gas).sub(1000000).toHexString();
 
   const modifiedAbi: any[] = [];
 
@@ -330,4 +328,16 @@ function linkBytecode(artifact: Artifact, libraries: Link[]): string {
   }
 
   return bytecode;
+}
+
+function isAddress(address: string): boolean {
+  const { utils } = require("ethers") as typeof ethers;
+
+  try {
+    utils.getAddress(address);
+  } catch (error) {
+    return false;
+  }
+
+  return true;
 }

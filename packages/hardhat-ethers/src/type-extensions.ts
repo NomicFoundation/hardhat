@@ -17,7 +17,7 @@ declare module "hardhat/types/runtime" {
   ): Promise<ethers.ContractFactory>;
   function getContractFactory(
     abi: any[],
-    bytecode: ethers.utils.BytesLike,
+    bytecode: ethers.utils.Arrayish | string,
     signer?: ethers.Signer
   ): Promise<ethers.ContractFactory>;
 
@@ -41,15 +41,11 @@ declare module "hardhat/types/runtime" {
       providers: typeof ethers.providers;
       Contract: typeof ethers.Contract;
       ContractFactory: typeof ethers.ContractFactory;
-      BigNumber: typeof ethers.BigNumber;
-      FixedNumber: typeof ethers.FixedNumber;
       constants: typeof ethers.constants;
       errors: typeof ethers.errors;
-      logger: typeof ethers.logger;
       utils: typeof ethers.utils;
       wordlists: typeof ethers.wordlists;
       version: typeof ethers.version;
-      Wordlist: typeof ethers.Wordlist;
     };
   }
 }

@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
+import { TransactionRequest } from "ethers/providers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 
@@ -71,50 +72,6 @@ describe("Ethers plugin", function () {
         );
       });
 
-      it("should throw when sign a transaction", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-
-        const Greeter = await this.env.ethers.getContractFactory("Greeter");
-        const tx = Greeter.getDeployTransaction();
-
-        assert.throws(() => sig.signTransaction(tx));
-      });
-
-      it("should return the balance of the account", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-        assert.equal(
-          (await sig.getBalance()).toString(),
-          "100000000000000000000"
-        );
-      });
-
-      it("should return the transaction count of the account", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-        assert.equal((await sig.getTransactionCount()).toString(), "0");
-      });
-
-      it("should allow to use the estimateGas method", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-
-        const Greeter = await this.env.ethers.getContractFactory("Greeter");
-        const tx = Greeter.getDeployTransaction();
-
-        const result = await sig.estimateGas(tx);
-
-        assert.isTrue(result.gt(0));
-      });
-
-      it("should allow to use the call method", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-
-        const Greeter = await this.env.ethers.getContractFactory("Greeter");
-        const tx = Greeter.getDeployTransaction();
-
-        const result = await sig.call(tx);
-
-        assert.isString(result);
-      });
-
       it("should send a transaction", async function () {
         const [sig] = await this.env.ethers.getSigners();
 
@@ -126,39 +83,6 @@ describe("Ethers plugin", function () {
         const receipt = await response.wait();
 
         assert.equal(receipt.status, 1);
-      });
-
-      it("should get the chainId", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-
-        const chainId = await sig.getChainId();
-
-        assert.equal(chainId, 1337);
-      });
-
-      it("should get the gas price", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-
-        const gasPrice = await sig.getGasPrice();
-
-        assert.equal(gasPrice.toString(), "20000000000");
-      });
-
-      it("should check and populate a transaction", async function () {
-        const [sig] = await this.env.ethers.getSigners();
-
-        const Greeter = await this.env.ethers.getContractFactory("Greeter");
-        const tx = Greeter.getDeployTransaction();
-
-        const checkedTransaction = sig.checkTransaction(tx);
-
-        assert.equal(await checkedTransaction.from, sig.address);
-
-        const populatedTransaction = await sig.populateTransaction(
-          checkedTransaction
-        );
-
-        assert.equal(populatedTransaction.from, sig.address);
       });
     });
 
@@ -217,10 +141,19 @@ describe("Ethers plugin", function () {
           );
           const numberPrinter = await contractFactory.deploy();
           const someNumber = 50;
-          assert.equal(
-            await numberPrinter.callStatic.printNumber(someNumber),
-            someNumber * 2
+
+          const request: TransactionRequest = {
+            to: numberPrinter.address,
+            data: numberPrinter.interface.functions.printNumber.encode([
+              someNumber,
+            ]),
+          };
+
+          const printedNumber = ethers.utils.bigNumberify(
+            await this.env.ethers.provider.call(request)
           );
+
+          assert.isTrue(printedNumber.eq(someNumber * 2));
         });
 
         it("should fail to link when passing in an ambiguous library link", async function () {
