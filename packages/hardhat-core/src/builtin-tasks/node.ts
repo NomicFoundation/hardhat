@@ -148,10 +148,17 @@ subtask(TASK_NODE_CREATE_SERVER)
  * not ready for receiving requests yet.
  */
 subtask(TASK_NODE_SERVER_CREATED)
+  .addParam("hostname", undefined, undefined, types.string)
+  .addParam("port", undefined, undefined, types.int)
   .addParam("provider", undefined, undefined, types.any)
   .addParam("server", undefined, undefined, types.any)
   .setAction(
-    async ({}: { provider: EthereumProvider; server: JsonRpcServer }) => {
+    async ({}: {
+      hostname: string;
+      port: number;
+      provider: EthereumProvider;
+      server: JsonRpcServer;
+    }) => {
       // this task is meant to be overriden by plugin writers
     }
   );
@@ -266,7 +273,12 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           provider,
         });
 
-        await run(TASK_NODE_SERVER_CREATED, { provider, server });
+        await run(TASK_NODE_SERVER_CREATED, {
+          hostname,
+          port,
+          provider,
+          server,
+        });
 
         const { port: actualPort, address } = await server.listen();
 
