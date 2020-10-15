@@ -10,6 +10,7 @@ import {
   hasConsentedTelemetry,
   writeTelemetryConsent,
 } from "../util/global-dir";
+import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
 import { emoji } from "./emoji";
@@ -18,7 +19,13 @@ const CREATE_SAMPLE_PROJECT_ACTION = "Create a sample project";
 const CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js";
 const QUIT_ACTION = "Quit";
 
-const SAMPLE_PROJECT_DEPENDENCIES = {
+interface Dependencies {
+  [name: string]: string;
+}
+
+const HARDHAT_PACKAGE_NAME = "hardhat";
+
+const SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
   "@nomiclabs/hardhat-waffle": "^2.0.0",
   "ethereum-waffle": "^3.0.0",
   chai: "^4.2.0",
@@ -74,13 +81,13 @@ async function printWelcomeMessage() {
     chalk.cyan(
       `${emoji("👷 ")}Welcome to ${HARDHAT_NAME} v${packageJson.version}${emoji(
         " 👷‍"
-      )}‍\n`
+      )}\n`
     )
   );
 }
 
 async function copySampleProject(projectRoot: string) {
-  const packageRoot = await getPackageRoot();
+  const packageRoot = getPackageRoot();
 
   await fsExtra.ensureDir(projectRoot);
   await fsExtra.copy(path.join(packageRoot, "sample-project"), projectRoot);
@@ -120,7 +127,9 @@ async function printRecommendedDepsInstallationInstructions() {
     `You need to install these dependencies to run the sample project:`
   );
 
-  const cmd = await getRecommendedDependenciesInstallationCommand();
+  const cmd = await getRecommendedDependenciesInstallationCommand(
+    await getDependencies()
+  );
 
   console.log(`  ${cmd.join(" ")}`);
 }
@@ -175,6 +184,12 @@ async function getAction() {
   }
 }
 
+async function createPackageJson() {
+  await fsExtra.writeJson("package.json", {
+    name: "hardhat-project",
+  });
+}
+
 export async function createProject() {
   const { default: enquirer } = await import("enquirer");
   printAsciiLogo();
@@ -187,11 +202,28 @@ export async function createProject() {
     return;
   }
 
+  if (!(await fsExtra.pathExists("package.json"))) {
+    await createPackageJson();
+  }
+
   if (action === CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
     await writeEmptyHardhatConfig();
     console.log(
       `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`
     );
+
+    if (!isInstalled(HARDHAT_PACKAGE_NAME)) {
+      console.log("");
+      console.log(`You need to install hardhat locally to use it. Please run:`);
+      const cmd = await getRecommendedDependenciesInstallationCommand({
+        [HARDHAT_PACKAGE_NAME]: `^${(await getPackageJson()).version}`,
+      });
+
+      console.log("");
+      console.log(cmd.join(" "));
+      console.log("");
+    }
+
     return;
   }
 
@@ -239,18 +271,30 @@ export async function createProject() {
 
   let shouldShowInstallationInstructions = true;
 
-  // TODO-HH: This should be updated because now hardhat needs to
-  //  be installed locally
   if (await canInstallRecommendedDeps()) {
-    const recommendedDeps = Object.keys(SAMPLE_PROJECT_DEPENDENCIES);
+    const dependencies = await getDependencies();
+
+    const recommendedDeps = Object.keys(dependencies);
+
+    const dependenciesToInstall = fromEntries(
+      Object.entries(dependencies).filter(([name]) => !isInstalled(name))
+    );
+
     const installedRecommendedDeps = recommendedDeps.filter(isInstalled);
+    const installedExceptHardhat = installedRecommendedDeps.filter(
+      (name) => name !== HARDHAT_PACKAGE_NAME
+    );
 
     if (installedRecommendedDeps.length === recommendedDeps.length) {
       shouldShowInstallationInstructions = false;
-    } else if (installedRecommendedDeps.length === 0) {
-      const shouldInstall = await confirmRecommendedDepsInstallation();
+    } else if (installedExceptHardhat.length === 0) {
+      const shouldInstall = await confirmRecommendedDepsInstallation(
+        dependenciesToInstall
+      );
       if (shouldInstall) {
-        const installed = await installRecommendedDependencies();
+        const installed = await installRecommendedDependencies(
+          dependenciesToInstall
+        );
 
         if (!installed) {
           console.warn(
@@ -335,13 +379,22 @@ async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
 }
 
-async function installRecommendedDependencies() {
+async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
-  const installCmd = await getRecommendedDependenciesInstallationCommand();
+
+  // The reason we don't quote the dependencies here is because they are going
+  // to be used in child_process.sapwn, which doesn't require escaping string,
+  // and can actually fail if you do.
+  const installCmd = await getRecommendedDependenciesInstallationCommand(
+    dependencies,
+    false
+  );
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
 
-async function confirmRecommendedDepsInstallation(): Promise<boolean> {
+async function confirmRecommendedDepsInstallation(
+  depsToInstall: Dependencies
+): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
   let responses: {
@@ -355,7 +408,7 @@ async function confirmRecommendedDepsInstallation(): Promise<boolean> {
       createConfirmationPrompt(
         "shouldInstallPlugin",
         `Do you want to install the sample project's dependencies with ${packageManager} (${Object.keys(
-          SAMPLE_PROJECT_DEPENDENCIES
+          depsToInstall
         ).join(" ")})?`
       ),
     ]);
@@ -368,7 +421,7 @@ async function confirmRecommendedDepsInstallation(): Promise<boolean> {
     throw e;
   }
 
-  return responses.shouldInstallPlugin === true;
+  return responses.shouldInstallPlugin;
 }
 
 export async function confirmTelemetryConsent(): Promise<boolean> {
@@ -420,18 +473,24 @@ async function installDependencies(
   });
 }
 
-async function getRecommendedDependenciesInstallationCommand(): Promise<
-  string[]
-> {
-  const deps = Object.entries(SAMPLE_PROJECT_DEPENDENCIES).map(
-    ([name, version]) => `${name}@${version}`
+async function getRecommendedDependenciesInstallationCommand(
+  dependencies: Dependencies,
+  quoteDependencies = true
+): Promise<string[]> {
+  const deps = Object.entries(dependencies).map(([name, version]) =>
+    quoteDependencies ? `"${name}@${version}"` : `${name}@${version}`
   );
 
   if (await isYarnProject()) {
     return ["yarn", "add", "--dev", ...deps];
   }
 
-  const npmInstall = ["npm", "install"];
+  return ["npm", "install", "--save-dev", ...deps];
+}
 
-  return [...npmInstall, "--save-dev", ...deps];
+async function getDependencies() {
+  return {
+    [HARDHAT_PACKAGE_NAME]: `^${(await getPackageJson()).version}`,
+    ...SAMPLE_PROJECT_DEPENDENCIES,
+  };
 }
