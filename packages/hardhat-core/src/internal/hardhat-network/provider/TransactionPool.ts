@@ -1,5 +1,5 @@
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Map as ImmutableMap } from "immutable";
 
 import { PStateManager } from "./types/PStateManager";
@@ -35,6 +35,20 @@ export function deserializeTransaction(tx: SerializedTransaction): Transaction {
   return new Transaction(fields);
 }
 
+// export interface PoolState {
+//   pendingTransactions
+//   queuedTransactions
+//   executableNonces
+//   blockGasLimit
+// }
+
+// export const makePoolState = ImmutableRecord<PoolState>({
+//   pendingTransactions: ImmutableMap()
+//   queuedTransactions: ImmutableMap()
+//   executableNonces: ImmutableMap()
+//   blockGasLimit: blockGasLimit from constuctor param
+// });
+
 export class TransactionPool {
   private _pendingTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized pending Transactions
   private _queuedTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized queued Transactions
@@ -54,56 +68,6 @@ export class TransactionPool {
     } else {
       this._addQueuedTransaction(tx);
     }
-  }
-
-  public async clean() {
-    const removeTx = (
-      map: AddressToTransactions,
-      tx: Transaction,
-      address: string
-    ) => {
-      const addressTxs = map.get(address)!;
-      const indexOfTx = addressTxs.indexOf(serializeTransaction(tx));
-
-      return map.set(address, addressTxs.remove(indexOfTx));
-    };
-
-    interface CleanMapOptions {
-      checkNonce?: boolean;
-    }
-
-    const cleanMap = async (
-      map: AddressToTransactions,
-      options: CleanMapOptions = {}
-    ) => {
-      let newMap = map;
-      for (const [address, txs] of map) {
-        for (const tx of txs) {
-          const deserializedTx = deserializeTransaction(tx);
-          const txNonce = new BN(deserializedTx.nonce);
-          const txGasLimit = new BN(deserializedTx.gasLimit);
-          const senderAccount = await this._stateManager.getAccount(
-            toBuffer(address)
-          );
-          const senderNonce = new BN(senderAccount.nonce);
-          const senderBalance = new BN(senderAccount.balance);
-
-          if (
-            txGasLimit.gt(this._blockGasLimit) ||
-            (options.checkNonce === true ? txNonce.lt(senderNonce) : false) ||
-            deserializedTx.getUpfrontCost().gt(senderBalance)
-          ) {
-            newMap = removeTx(newMap, deserializedTx, address);
-          }
-        }
-      }
-      return newMap;
-    };
-
-    this._pendingTransactions = await cleanMap(this._pendingTransactions, {
-      checkNonce: true,
-    });
-    this._queuedTransactions = await cleanMap(this._queuedTransactions);
   }
 
   public getPendingTransactions(): Map<string, Transaction[]> {
@@ -139,6 +103,52 @@ export class TransactionPool {
     }
 
     this._blockGasLimit = newLimit;
+  }
+
+  public async clean() {
+    this._pendingTransactions = await this._cleanMap(this._pendingTransactions);
+    this._queuedTransactions = await this._cleanMap(this._queuedTransactions);
+  }
+
+  private async _cleanMap(map: AddressToTransactions) {
+    let newMap = map;
+    for (const [address, txs] of map) {
+      for (const tx of txs) {
+        const deserializedTx = deserializeTransaction(tx);
+        const txNonce = new BN(deserializedTx.nonce);
+        const txGasLimit = new BN(deserializedTx.gasLimit);
+        const senderAccount = await this._stateManager.getAccount(
+          toBuffer(address)
+        );
+        const senderNonce = new BN(senderAccount.nonce);
+        const senderBalance = new BN(senderAccount.balance);
+
+        if (
+          txGasLimit.gt(this._blockGasLimit) ||
+          txNonce.lt(senderNonce) ||
+          deserializedTx.getUpfrontCost().gt(senderBalance)
+        ) {
+          newMap = this._removeTx(newMap, address, deserializedTx);
+        }
+      }
+    }
+    return newMap;
+  }
+
+  private _removeTx(
+    map: AddressToTransactions,
+    address: string,
+    tx: Transaction
+  ) {
+    const addressTxs = map.get(address);
+    if (addressTxs === undefined) {
+      throw new Error(
+        "Trying to remove a transaction from list that doesn't exist, this should never happen"
+      );
+    }
+    const indexOfTx = addressTxs.indexOf(serializeTransaction(tx));
+
+    return map.set(address, addressTxs.remove(indexOfTx));
   }
 
   private _addPendingTransaction(tx: Transaction) {
