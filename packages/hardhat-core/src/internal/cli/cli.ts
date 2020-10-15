@@ -124,10 +124,7 @@ async function main() {
       writeTelemetryConsent(telemetryConsent);
     }
 
-    const analytics = await Analytics.getInstance(
-      config.paths.root,
-      telemetryConsent
-    );
+    const analytics = await Analytics.getInstance(telemetryConsent);
 
     Reporter.setConfigPath(config.paths.configFile);
     // TODO-HH: Enabled/disable this depending on the opt-out feature

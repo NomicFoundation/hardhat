@@ -43,10 +43,7 @@ type AbortAnalytics = () => void;
 const googleAnalyticsUrl = "https://www.google-analytics.com/collect";
 
 export class Analytics {
-  public static async getInstance(
-    rootPath: string,
-    telemetryConsent: boolean | undefined
-  ) {
+  public static async getInstance(telemetryConsent: boolean | undefined) {
     const analytics: Analytics = new Analytics({
       clientId: await getClientId(),
       telemetryConsent,
