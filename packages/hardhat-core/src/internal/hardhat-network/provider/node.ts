@@ -246,12 +246,6 @@ export class HardhatNode extends EventEmitter {
     throw new InvalidInputError(`unknown account ${senderAddress}`);
   }
 
-  public async _getFakeTransaction(
-    txParams: TransactionParams
-  ): Promise<Transaction> {
-    return new FakeTransaction(txParams, { common: this._vm._common });
-  }
-
   public async runTransactionInNewBlock(
     tx: Transaction
   ): Promise<{
@@ -873,6 +867,12 @@ export class HardhatNode extends EventEmitter {
 
   public removeImpersonatedAccount(address: Buffer): boolean {
     return this._impersonatedAccounts.delete(bufferToHex(address));
+  }
+
+  private async _getFakeTransaction(
+    txParams: TransactionParams
+  ): Promise<Transaction> {
+    return new FakeTransaction(txParams, { common: this._vm._common });
   }
 
   private _getSnapshotIndex(id: number): number | undefined {
