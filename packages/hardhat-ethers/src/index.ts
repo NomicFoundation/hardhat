@@ -1,4 +1,4 @@
-import EthersT from "ethers";
+import type EthersT from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 

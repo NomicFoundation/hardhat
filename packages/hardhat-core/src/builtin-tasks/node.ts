@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
-import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
+import type EthereumjsUtilT from "ethereumjs-util";
 import fsExtra from "fs-extra";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
@@ -34,6 +34,13 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
   if (networkConfig.accounts === undefined) {
     return;
   }
+
+  const {
+    BN,
+    bufferToHex,
+    privateToAddress,
+    toBuffer,
+  } = require("ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");

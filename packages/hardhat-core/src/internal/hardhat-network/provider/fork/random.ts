@@ -1,9 +1,14 @@
-import { bufferToHex, keccak256 } from "ethereumjs-util";
+import type EthereumjsUtilT from "ethereumjs-util";
 
-export const randomHash = () => bufferToHex(randomHashBuffer());
+export const randomHash = () => {
+  const { bufferToHex } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+  return bufferToHex(randomHashBuffer());
+};
 
 let next: Buffer | undefined;
 export const randomHashBuffer = () => {
+  const { keccak256 } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+
   if (next === undefined) {
     next = keccak256("seed");
   }
@@ -14,6 +19,9 @@ export const randomHashBuffer = () => {
   return result;
 };
 
-export const randomAddress = () => bufferToHex(randomAddressBuffer());
+export const randomAddress = () => {
+  const { bufferToHex } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+  return bufferToHex(randomAddressBuffer());
+};
 
 export const randomAddressBuffer = () => randomHashBuffer().slice(0, 20);
