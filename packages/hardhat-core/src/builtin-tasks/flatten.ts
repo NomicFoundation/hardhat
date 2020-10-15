@@ -1,4 +1,6 @@
-import { subtask, task } from "../internal/core/config/config-env";
+import * as fs from "fs";
+
+import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
@@ -7,7 +9,10 @@ import { getPackageJson } from "../internal/util/packageInfo";
 
 import {
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   TASK_FLATTEN,
+  TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names";
 
@@ -47,7 +52,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 }
 
 function getFileWithoutImports(resolvedFile: ResolvedFile) {
-  const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+).*$/gm;
+  const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+)[\s\S]*?;\s*$/gm;
 
   return resolvedFile.content.rawContent
     .replace(IMPORT_SOLIDITY_REGEX, "")
@@ -56,21 +61,25 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
 
 subtask(
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
-  "Returns all contracts and their dependencies flattened",
-  async (_, { run }) => {
+  "Returns all contracts and their dependencies flattened"
+)
+  .addOptionalParam("files", undefined, undefined, types.any)
+  .setAction(async ({ files }: { files?: string[] }, { run }) => {
+    const dependencyGraph: DependencyGraph = await run(
+      TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
+      { files }
+    );
+
     let flattened = "";
 
-    const graph: DependencyGraph = await run(
-      TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH
-    );
-    if (graph.getResolvedFiles().length === 0) {
+    if (dependencyGraph.getResolvedFiles().length === 0) {
       return flattened;
     }
 
     const packageJson = await getPackageJson();
     flattened += `// Sources flattened with hardhat v${packageJson.version} https://usehardhat.com`;
 
-    const sortedFiles = getSortedFiles(graph);
+    const sortedFiles = getSortedFiles(dependencyGraph);
 
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
@@ -78,13 +87,38 @@ subtask(
     }
 
     return flattened.trim();
-  }
-);
+  });
 
-task(
-  TASK_FLATTEN,
-  "Flattens and prints all contracts and their dependencies",
-  async (_, { run }) => {
-    console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE));
-  }
-);
+subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
+  .addOptionalParam("files", undefined, undefined, types.any)
+  .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
+    const sourcePaths: string[] =
+      files === undefined
+        ? await run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
+        : files.map((f) => fs.realpathSync(f));
+
+    const sourceNames: string[] = await run(
+      TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
+      {
+        sourcePaths,
+      }
+    );
+
+    const dependencyGraph: DependencyGraph = await run(
+      TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+      { sourceNames }
+    );
+
+    return dependencyGraph;
+  });
+
+task(TASK_FLATTEN, "Flattens and prints contracts and their dependencies")
+  .addOptionalVariadicPositionalParam(
+    "files",
+    "The files to flatten",
+    undefined,
+    types.inputFile
+  )
+  .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
+    console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE, { files }));
+  });
