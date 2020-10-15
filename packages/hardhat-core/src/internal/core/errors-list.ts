@@ -171,7 +171,7 @@ Please install Hardhat locally using npm or Yarn, and try again.`,
       shouldBeReported: false,
     },
     TS_NODE_NOT_INSTALLED: {
-      number: 14,
+      number: 13,
       message: `Your Hardhat project uses typescript, but ts-node is not installed.
       
 Please run: npm install --save-dev ts-node`,
@@ -182,7 +182,7 @@ Please run this and try again: npm install --save-dev ts-node`,
       shouldBeReported: false,
     },
     TYPESCRIPT_NOT_INSTALLED: {
-      number: 15,
+      number: 14,
       message: `Your Hardhat project uses typescript, but it's not installed.
       
 Please run: npm install --save-dev typescript`,
@@ -794,6 +794,14 @@ To start the JSON-RPC server, retry the command without the --network parameter.
 %reasons%`,
       title: "The project cannot be compiled",
       description: `The project cannot be compiled with the current settings.`,
+      shouldBeReported: false,
+    },
+    NODE_FORK_BLOCK_NUMBER_WITHOUT_URL: {
+      number: 607,
+      message: `You specified a fork block number but not an URL.`,
+      title: "Missing fork URL",
+      description: `You passed a block number to fork from, but not URL. Hardhat cannot fork
+if the URL of the JSON-RPC weren't set.`,
       shouldBeReported: false,
     },
   },

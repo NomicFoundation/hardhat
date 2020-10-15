@@ -42,7 +42,10 @@ import {
 const log = debug("hardhat:core:hardhat-network:provider");
 
 // Set of methods that are never logged
-const PRIVATE_RPC_METHODS = new Set(["hardhat_getStackTraceFailuresCount"]);
+const PRIVATE_RPC_METHODS = new Set([
+  "hardhat_getStackTraceFailuresCount",
+  "hardhat_setLoggingEnabled",
+]);
 
 // tslint:disable only-hardhat-error
 
@@ -71,7 +74,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _throwOnCallFailures: boolean,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
-    private readonly _loggingEnabled = false,
+    private _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
@@ -276,7 +279,13 @@ export class HardhatNetworkProvider extends EventEmitter
     this._netModule = new NetModule(common);
     this._web3Module = new Web3Module();
     this._evmModule = new EvmModule(node);
-    this._hardhatModule = new HardhatModule(node, this._reset.bind(this));
+    this._hardhatModule = new HardhatModule(
+      node,
+      this._reset.bind(this),
+      (loggingEnabled: boolean) => {
+        this._loggingEnabled = loggingEnabled;
+      }
+    );
 
     this._forwardNodeEvents(node);
   }

@@ -3,7 +3,10 @@ import http, { Server } from "http";
 import { AddressInfo } from "net";
 import { Server as WSServer } from "ws";
 
-import { EIP1193Provider } from "../../../types";
+import {
+  EIP1193Provider,
+  JsonRpcServer as IJsonRpcServer,
+} from "../../../types";
 import { HttpProvider } from "../../core/providers/http";
 
 import JsonRpcHandler from "./handler";
@@ -17,7 +20,7 @@ export interface JsonRpcServerConfig {
   provider: EIP1193Provider;
 }
 
-export class JsonRpcServer {
+export class JsonRpcServer implements IJsonRpcServer {
   private _config: JsonRpcServerConfig;
   private _httpServer: Server;
   private _wsServer: WSServer;
@@ -62,11 +65,11 @@ export class JsonRpcServer {
       this._wsServer.once("close", resolve);
     });
 
-    return Promise.all([httpServerClosed, wsServerClosed]);
+    await Promise.all([httpServerClosed, wsServerClosed]);
   };
 
   public close = async () => {
-    return Promise.all([
+    await Promise.all([
       new Promise((resolve, reject) => {
         log("Closing JSON-RPC server");
         this._httpServer.close((err) => {
