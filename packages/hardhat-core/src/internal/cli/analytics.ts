@@ -10,7 +10,8 @@ import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   readAnalyticsId,
-  readLegacyAnalyticsId,
+  readFirstLegacyAnalyticsId,
+  readSecondLegacyAnalyticsId,
   writeAnalyticsId,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
@@ -193,12 +194,16 @@ export class Analytics {
 async function getClientId() {
   let clientId = await readAnalyticsId();
 
-  if (clientId === null) {
-    clientId = await readLegacyAnalyticsId();
-    if (clientId === null) {
+  if (clientId === undefined) {
+    clientId =
+      (await readSecondLegacyAnalyticsId()) ??
+      (await readFirstLegacyAnalyticsId());
+
+    if (clientId === undefined) {
       log("Client Id not found, generating a new one");
       clientId = uuid();
     }
+
     await writeAnalyticsId(clientId);
   }
 
