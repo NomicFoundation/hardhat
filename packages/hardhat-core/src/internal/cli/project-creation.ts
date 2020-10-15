@@ -214,7 +214,7 @@ export async function createProject() {
 
     if (!isInstalled(HARDHAT_PACKAGE_NAME)) {
       console.log("");
-      console.log(`You need to install ${HARDHAT_NAME} to use it. Please run:`);
+      console.log(`You need to install hardhat locally to use it. Please run:`);
       const cmd = await getRecommendedDependenciesInstallationCommand({
         [HARDHAT_PACKAGE_NAME]: `^${(await getPackageJson()).version}`,
       });
