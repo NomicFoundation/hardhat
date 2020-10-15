@@ -13,7 +13,6 @@ import {
   JsonRpcServerConfig,
 } from "../internal/hardhat-network/jsonrpc/server";
 import { Reporter } from "../internal/sentry/reporter";
-import { lazyObject } from "../internal/util/lazy";
 import {
   EthereumProvider,
   HardhatNetworkConfig,
