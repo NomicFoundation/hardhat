@@ -74,4 +74,15 @@ describe("Flatten task", () => {
       assert.deepEqual(getContractsOrder(baFlattened), ["C", "B", "A"]);
     });
   });
+
+  describe("When project has multiline imports", function () {
+    useFixtureProject("multiline-import-project");
+
+    it("should not include multiline imports", async function () {
+      const flattenedFiles = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE
+      );
+      assert.isFalse(flattenedFiles.includes("} from"));
+    });
+  });
 });
