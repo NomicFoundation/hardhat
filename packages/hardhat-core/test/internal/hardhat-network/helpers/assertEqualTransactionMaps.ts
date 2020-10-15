@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { Transaction } from "ethereumjs-tx";
 import { bufferToHex, toBuffer } from "ethereumjs-util";
 
-import { randomAddressBuffer } from "../../../../internal/hardhat-network/provider/fork/random";
+import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 
 import { createTestTransaction } from "./blockchain";
 import { DEFAULT_ACCOUNTS } from "./providers";
@@ -14,8 +14,7 @@ export function assertEqualTransactionMaps(
   assert.equal(actual.size, expected.size, "Map sizes do not match");
   actual.forEach((actualList, key) => {
     const expectedList = expected.get(key);
-    // assert.exists(expectedList, `Expected map doesn't have ${key} value`);
-    assert.isOk(expectedList);
+    assert.exists(expectedList, `Expected map doesn't have ${key} value`);
     assertEqualTransactionLists(actualList, expectedList!);
   });
 }
