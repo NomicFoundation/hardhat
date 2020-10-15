@@ -160,11 +160,33 @@ subtask(TASK_NODE_SERVER_CREATED)
  * This subtask will be run when the server is ready to accept requests
  */
 subtask(TASK_NODE_SERVER_READY)
+  .addParam("address", undefined, undefined, types.string)
+  .addParam("port", undefined, undefined, types.int)
   .addParam("provider", undefined, undefined, types.any)
   .addParam("server", undefined, undefined, types.any)
   .setAction(
-    async ({}: { provider: EthereumProvider; server: JsonRpcServer }) => {
-      // this task is meant to be overriden by plugin writers
+    async (
+      {
+        address,
+        port,
+      }: {
+        address: string;
+        port: number;
+        provider: EthereumProvider;
+        server: JsonRpcServer;
+      },
+      { config }
+    ) => {
+      console.log(
+        chalk.green(
+          `Started HTTP and WebSocket JSON-RPC server at http://${address}:${port}/`
+        )
+      );
+
+      console.log();
+
+      const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
+      logHardhatNetworkAccounts(networkConfig);
     }
   );
 
@@ -248,14 +270,6 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
 
         const { port: actualPort, address } = await server.listen();
 
-        console.log(
-          chalk.green(
-            `Started HTTP and WebSocket JSON-RPC server at http://${address}:${actualPort}/`
-          )
-        );
-
-        console.log();
-
         try {
           await watchCompilerOutput(provider, config.paths);
         } catch (error) {
@@ -273,10 +287,12 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           Reporter.reportError(error);
         }
 
-        const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
-        logHardhatNetworkAccounts(networkConfig);
-
-        await run(TASK_NODE_SERVER_READY, { provider, server });
+        await run(TASK_NODE_SERVER_READY, {
+          address,
+          port: actualPort,
+          provider,
+          server,
+        });
 
         await server.waitUntilClosed();
       } catch (error) {
