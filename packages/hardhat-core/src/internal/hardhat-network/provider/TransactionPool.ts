@@ -42,7 +42,7 @@ export class TransactionPool {
 
   constructor(
     private readonly _stateManager: PStateManager,
-    private readonly _blockGasLimit: BN
+    private _blockGasLimit: BN
   ) {}
 
   public async addTransaction(tx: Transaction) {
@@ -68,52 +68,42 @@ export class TransactionPool {
       return map.set(address, addressTxs.remove(indexOfTx));
     };
 
-    let newPending = this._pendingTransactions;
-    for (const [address, txs] of this._pendingTransactions) {
-      for (const tx of txs) {
-        const deserializedTx = deserializeTransaction(tx);
-        const txNonce = new BN(deserializedTx.nonce);
-        const txGasLimit = new BN(deserializedTx.gasLimit);
-        const senderAccount = await this._stateManager.getAccount(
-          toBuffer(address)
-        );
-        const senderNonce = new BN(senderAccount.nonce);
-        const senderBalance = new BN(senderAccount.balance);
-
-        if (
-          txGasLimit.gt(this._blockGasLimit) ||
-          txNonce.lt(senderNonce) ||
-          deserializedTx.getUpfrontCost().gt(senderBalance)
-        ) {
-          newPending = removeTx(newPending, deserializedTx, address);
-        }
-      }
+    interface CleanMapOptions {
+      checkNonce?: boolean;
     }
 
-    let newQueued = this._queuedTransactions;
-    this._queuedTransactions.map((txs, address) => {
-      txs.forEach(async (tx) => {
-        const deserializedTx = deserializeTransaction(tx);
-        const txNonce = new BN(deserializedTx.nonce);
-        const txGasLimit = new BN(deserializedTx.gasLimit);
-        const senderAccount = await this._stateManager.getAccount(
-          deserializeTransaction(tx).getSenderAddress()
-        );
-        const senderNonce = new BN(senderAccount.nonce);
-        const senderBalance = new BN(senderAccount.balance);
+    const cleanMap = async (
+      map: AddressToTransactions,
+      options: CleanMapOptions = {}
+    ) => {
+      let newMap = map;
+      for (const [address, txs] of map) {
+        for (const tx of txs) {
+          const deserializedTx = deserializeTransaction(tx);
+          const txNonce = new BN(deserializedTx.nonce);
+          const txGasLimit = new BN(deserializedTx.gasLimit);
+          const senderAccount = await this._stateManager.getAccount(
+            toBuffer(address)
+          );
+          const senderNonce = new BN(senderAccount.nonce);
+          const senderBalance = new BN(senderAccount.balance);
 
-        if (
-          txGasLimit.gt(this._blockGasLimit) ||
-          txNonce.lt(senderNonce) ||
-          deserializedTx.getUpfrontCost().gt(senderBalance)
-        ) {
-          newQueued = removeTx(newQueued, deserializedTx, address);
+          if (
+            txGasLimit.gt(this._blockGasLimit) ||
+            (options.checkNonce === true ? txNonce.lt(senderNonce) : false) ||
+            deserializedTx.getUpfrontCost().gt(senderBalance)
+          ) {
+            newMap = removeTx(newMap, deserializedTx, address);
+          }
         }
-      });
-    });
+      }
+      return newMap;
+    };
 
-    this._pendingTransactions = newPending;
-    this._queuedTransactions = newQueued;
+    this._pendingTransactions = await cleanMap(this._pendingTransactions, {
+      checkNonce: true,
+    });
+    this._queuedTransactions = await cleanMap(this._queuedTransactions);
   }
 
   public getPendingTransactions(): Map<string, Transaction[]> {
@@ -123,7 +113,12 @@ export class TransactionPool {
     return new Map(deserializedImmutableMap.entries());
   }
 
-  public getQueuedTransactions() {}
+  public getQueuedTransactions(): Map<string, Transaction[]> {
+    const deserializedImmutableMap = this._queuedTransactions.map((txs) =>
+      txs.map((tx) => deserializeTransaction(tx)).toJS()
+    );
+    return new Map(deserializedImmutableMap.entries());
+  }
 
   public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
     const nonce = this._executableNonces.get(bufferToHex(accountAddress));
@@ -132,6 +127,18 @@ export class TransactionPool {
       return new BN(account.nonce);
     }
     return new BN(toBuffer(nonce));
+  }
+
+  public getBlockGasLimit() {
+    return this._blockGasLimit;
+  }
+
+  public setBlockGasLimit(newLimit: BN | number) {
+    if (typeof newLimit === "number") {
+      newLimit = new BN(newLimit);
+    }
+
+    this._blockGasLimit = newLimit;
   }
 
   private _addPendingTransaction(tx: Transaction) {
