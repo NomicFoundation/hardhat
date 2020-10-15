@@ -171,7 +171,7 @@ subtask(TASK_NODE_SERVER_READY)
 task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
   .addOptionalParam(
     "hostname",
-    "The host to which to bind to for new connections",
+    "The host to which to bind to for new connections (Defaults to 127.0.0.1 running locally, and 0.0.0.0 in Docker)",
     undefined,
     types.string
   )
