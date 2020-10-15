@@ -9,7 +9,9 @@ export function getSubprocessTransport(): any {
 
   class SubprocessTransport extends Transports.BaseTransport {
     public async sendEvent(event: Event): Promise<Response> {
-      const { verbose = false, configPath } = event.extra ?? {};
+      const extra: { verbose?: boolean; configPath?: string } =
+        event.extra ?? {};
+      const { verbose = false, configPath } = extra;
 
       // don't send user's full config path for privacy reasons
       delete event.extra?.configPath;
