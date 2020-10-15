@@ -42,7 +42,10 @@ import {
 const log = debug("hardhat:core:hardhat-network:provider");
 
 // Set of methods that are never logged
-const PRIVATE_RPC_METHODS = new Set(["hardhat_getStackTraceFailuresCount"]);
+const PRIVATE_RPC_METHODS = new Set([
+  "hardhat_getStackTraceFailuresCount",
+  "hardhat_setLoggingEnabled",
+]);
 
 // tslint:disable only-hardhat-error
 
