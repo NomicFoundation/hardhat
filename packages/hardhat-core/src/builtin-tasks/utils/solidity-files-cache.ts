@@ -4,7 +4,7 @@ import { LoDashStatic } from "lodash";
 import * as path from "path";
 
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
-import type { ProjectPaths, SolcConfig } from "../../types";
+import type { ProjectPathsConfig, SolcConfig } from "../../types";
 
 const FORMAT_VERSION = "hh-sol-cache-1";
 
@@ -130,6 +130,6 @@ export class SolidityFilesCache {
   }
 }
 
-export function getSolidityFilesCachePath(paths: ProjectPaths): string {
+export function getSolidityFilesCachePath(paths: ProjectPathsConfig): string {
   return path.join(paths.cache, SOLIDITY_FILES_CACHE_FILENAME);
 }

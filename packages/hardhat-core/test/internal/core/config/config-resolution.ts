@@ -16,10 +16,10 @@ import {
 import {
   HardhatConfig,
   HardhatNetworkConfig,
+  HardhatNetworkUserConfig,
   HttpNetworkConfig,
   HttpNetworkHDAccountsConfig,
-  UserHardhatNetworkConfig,
-  UserHttpNetworkConfig,
+  HttpNetworkUserConfig,
 } from "../../../../src/types";
 
 describe("Config resolution", () => {
@@ -36,8 +36,8 @@ describe("Config resolution", () => {
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
         assert.equal(config.defaultNetwork, "hardhat");
 
-        const hardhatNetworkConfig: UserHardhatNetworkConfig = config.networks
-          .hardhat as UserHardhatNetworkConfig;
+        const hardhatNetworkConfig: HardhatNetworkUserConfig = config.networks
+          .hardhat as HardhatNetworkUserConfig;
 
         assert.equal(hardhatNetworkConfig.throwOnTransactionFailures, true);
         assert.equal(hardhatNetworkConfig.throwOnCallFailures, true);
@@ -79,7 +79,7 @@ describe("Config resolution", () => {
         assert.equal(config.solidity.compilers[0].version, "0.5.15");
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(
-          (config.networks.localhost as UserHttpNetworkConfig).url,
+          (config.networks.localhost as HttpNetworkUserConfig).url,
           "http://127.0.0.1:8545"
         );
         assert.deepEqual(config.networks.localhost.accounts, [

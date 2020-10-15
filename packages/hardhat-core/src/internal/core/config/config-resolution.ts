@@ -7,23 +7,23 @@ import {
   HardhatNetworkAccountConfig,
   HardhatNetworkConfig,
   HardhatNetworkForkingConfig,
+  HardhatNetworkUserConfig,
+  HardhatUserConfig,
+  HDAccountsUserConfig,
   HttpNetworkAccountsConfig,
+  HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
+  HttpNetworkUserConfig,
+  MultiSolcUserConfig,
   NetworksConfig,
-  ProjectPaths,
+  NetworksUserConfig,
+  NetworkUserConfig,
+  ProjectPathsConfig,
+  ProjectPathsUserConfig,
   SolcConfig,
+  SolcUserConfig,
   SolidityConfig,
-  UserHardhatConfig,
-  UserHardhatNetworkConfig,
-  UserHDAccountsConfig,
-  UserHttpNetworkAccountsConfig,
-  UserHttpNetworkConfig,
-  UserMultiSolcConfig,
-  UserNetworkConfig,
-  UserNetworksConfig,
-  UserProjectPaths,
-  UserSolcConfig,
-  UserSolidityConfig,
+  SolidityUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { fromEntries } from "../../util/lang";
@@ -53,7 +53,7 @@ import {
  */
 export function resolveConfig(
   userConfigPath: string,
-  userConfig: UserHardhatConfig
+  userConfig: HardhatUserConfig
 ): HardhatConfig {
   userConfig = cloneDeep(userConfig);
 
@@ -68,12 +68,12 @@ export function resolveConfig(
 }
 
 function resolveNetworksConfig(
-  networksConfig: UserNetworksConfig = {}
+  networksConfig: NetworksUserConfig = {}
 ): NetworksConfig {
   const hardhatNetworkConfig = networksConfig[HARDHAT_NETWORK_NAME];
 
   const localhostNetworkConfig =
-    (networksConfig.localhost as UserHttpNetworkConfig) ?? undefined;
+    (networksConfig.localhost as HttpNetworkUserConfig) ?? undefined;
 
   const hardhat = resolveHardhatNetworkConfig(hardhatNetworkConfig);
   const localhost = resolveHttpNetworkConfig({
@@ -92,7 +92,7 @@ function resolveNetworksConfig(
       )
       .map(([name, config]) => [
         name,
-        resolveHttpNetworkConfig(config as UserHttpNetworkConfig),
+        resolveHttpNetworkConfig(config as HttpNetworkUserConfig),
       ])
   );
 
@@ -104,8 +104,8 @@ function resolveNetworksConfig(
 }
 
 function isHttpNetworkConfig(
-  config: UserNetworkConfig
-): config is UserHttpNetworkConfig {
+  config: NetworkUserConfig
+): config is HttpNetworkUserConfig {
   return "url" in config;
 }
 
@@ -119,7 +119,7 @@ function normalizeHexString(str: string): string {
 }
 
 function resolveHardhatNetworkConfig(
-  hardhatNetworkConfig: UserHardhatNetworkConfig = {}
+  hardhatNetworkConfig: HardhatNetworkUserConfig = {}
 ): HardhatNetworkConfig {
   const clonedDefaultHardhatNetworkParams = cloneDeep(
     defaultHardhatNetworkParams
@@ -170,13 +170,13 @@ function resolveHardhatNetworkConfig(
 }
 
 function isHdAccountsConfig(
-  accounts: UserHttpNetworkAccountsConfig
-): accounts is UserHDAccountsConfig {
+  accounts: HttpNetworkAccountsUserConfig
+): accounts is HDAccountsUserConfig {
   return typeof accounts === "object" && !Array.isArray(accounts);
 }
 
 function resolveHttpNetworkConfig(
-  networkConfig: UserHttpNetworkConfig
+  networkConfig: HttpNetworkUserConfig
 ): HttpNetworkConfig {
   const accounts: HttpNetworkAccountsConfig =
     networkConfig.accounts === undefined
@@ -205,10 +205,10 @@ function resolveHttpNetworkConfig(
   };
 }
 
-function resolveSolidityConfig(userConfig: UserHardhatConfig): SolidityConfig {
+function resolveSolidityConfig(userConfig: HardhatUserConfig): SolidityConfig {
   const userSolidityConfig = userConfig.solidity ?? DEFAULT_SOLC_VERSION;
 
-  const multiSolcConfig: UserMultiSolcConfig = normalizeSolidityConfig(
+  const multiSolcConfig: MultiSolcUserConfig = normalizeSolidityConfig(
     userSolidityConfig
   );
 
@@ -226,8 +226,8 @@ function resolveSolidityConfig(userConfig: UserHardhatConfig): SolidityConfig {
 }
 
 function normalizeSolidityConfig(
-  solidityConfig: UserSolidityConfig
-): UserMultiSolcConfig {
+  solidityConfig: SolidityUserConfig
+): MultiSolcUserConfig {
   if (typeof solidityConfig === "string") {
     return {
       compilers: [
@@ -245,7 +245,7 @@ function normalizeSolidityConfig(
   return solidityConfig;
 }
 
-function resolveCompiler(compiler: UserSolcConfig): SolcConfig {
+function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
   const resolved: SolcConfig = {
     version: compiler.version,
     settings: compiler.settings ?? {},
@@ -286,7 +286,7 @@ function resolveCompiler(compiler: UserSolcConfig): SolcConfig {
   return resolved;
 }
 
-function resolveMochaConfig(userConfig: UserHardhatConfig): Mocha.MochaOptions {
+function resolveMochaConfig(userConfig: HardhatUserConfig): Mocha.MochaOptions {
   return {
     ...cloneDeep(defaultMochaOptions),
     ...userConfig.mocha,
@@ -294,7 +294,7 @@ function resolveMochaConfig(userConfig: UserHardhatConfig): Mocha.MochaOptions {
 }
 
 /**
- * This function resolves the ProjectPaths object from the user-provided config
+ * This function resolves the ProjectPathsConfig object from the user-provided config
  * and its path. The logic of this is not obvious and should well be document.
  * The good thing is that most users will never use this.
  *
@@ -307,8 +307,8 @@ function resolveMochaConfig(userConfig: UserHardhatConfig): Mocha.MochaOptions {
  */
 export function resolveProjectPaths(
   userConfigPath: string,
-  userPaths: UserProjectPaths = {}
-): ProjectPaths {
+  userPaths: ProjectPathsUserConfig = {}
+): ProjectPathsConfig {
   const configFile = fs.realpathSync(userConfigPath);
   const configDir = path.dirname(configFile);
 

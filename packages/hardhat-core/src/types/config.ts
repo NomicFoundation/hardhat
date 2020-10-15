@@ -2,10 +2,10 @@
 //
 // For each possible kind of config value, we have two type:
 //
-// One that starts with User, which represent the config as written in the
-// user config.
+// One that ends with UserConfig, which represent the config as
+// written in the user's config file.
 //
-// The other one, with the same name except for the User prefix, represents
+// The other one, with the same name except without the User part, represents
 // the resolved value as used during the hardhat execution.
 //
 // Note that while many declarations are repeated here (i.e. network types'
@@ -14,42 +14,42 @@
 
 // Networks config
 
-export interface UserNetworksConfig {
-  hardhat?: UserHardhatNetworkConfig;
-  [networkName: string]: UserNetworkConfig | undefined;
+export interface NetworksUserConfig {
+  hardhat?: HardhatNetworkUserConfig;
+  [networkName: string]: NetworkUserConfig | undefined;
 }
 
-export type UserNetworkConfig =
-  | UserHardhatNetworkConfig
-  | UserHttpNetworkConfig;
+export type NetworkUserConfig =
+  | HardhatNetworkUserConfig
+  | HttpNetworkUserConfig;
 
-export interface UserHardhatNetworkConfig {
+export interface HardhatNetworkUserConfig {
   chainId?: number;
   from?: string;
   gas?: "auto" | number;
   gasPrice?: "auto" | number;
   gasMultiplier?: number;
   hardfork?: string;
-  accounts?: UserHardhatNetworkAccountsConfig;
+  accounts?: HardhatNetworkAccountsUserConfig;
   blockGasLimit?: number;
   throwOnTransactionFailures?: boolean;
   throwOnCallFailures?: boolean;
   allowUnlimitedContractSize?: boolean;
   initialDate?: string;
   loggingEnabled?: boolean;
-  forking?: UserHardhatNetworkForkingConfig;
+  forking?: HardhatNetworkForkingUserConfig;
 }
 
-export type UserHardhatNetworkAccountsConfig =
-  | UserHardhatNetworkAccountConfig[]
-  | UserHardhatNetworkHDAccountsConfig;
+export type HardhatNetworkAccountsUserConfig =
+  | HardhatNetworkAccountUserConfig[]
+  | HardhatNetworkHDAccountsUserConfig;
 
-export interface UserHardhatNetworkAccountConfig {
+export interface HardhatNetworkAccountUserConfig {
   privateKey: string;
   balance: string;
 }
 
-export interface UserHardhatNetworkHDAccountsConfig {
+export interface HardhatNetworkHDAccountsUserConfig {
   mnemonic?: string;
   initialIndex?: number;
   count?: number;
@@ -57,25 +57,25 @@ export interface UserHardhatNetworkHDAccountsConfig {
   accountsBalance?: string;
 }
 
-export interface UserHDAccountsConfig {
+export interface HDAccountsUserConfig {
   mnemonic: string;
   initialIndex?: number;
   count?: number;
   path?: string;
 }
 
-export interface UserHardhatNetworkForkingConfig {
+export interface HardhatNetworkForkingUserConfig {
   enabled?: boolean;
   url: string;
   blockNumber?: number;
 }
 
-export type UserHttpNetworkAccountsConfig =
+export type HttpNetworkAccountsUserConfig =
   | "remote"
   | string[]
-  | UserHDAccountsConfig;
+  | HDAccountsUserConfig;
 
-export interface UserHttpNetworkConfig {
+export interface HttpNetworkUserConfig {
   chainId?: number;
   from?: string;
   gas?: "auto" | number;
@@ -84,7 +84,7 @@ export interface UserHttpNetworkConfig {
   url?: string;
   timeout?: number;
   httpHeaders?: { [name: string]: string };
-  accounts?: UserHttpNetworkAccountsConfig;
+  accounts?: HttpNetworkAccountsUserConfig;
 }
 
 export interface NetworksConfig {
@@ -151,7 +151,7 @@ export interface HttpNetworkHDAccountsConfig {
 
 // Project paths config
 
-export interface UserProjectPaths {
+export interface ProjectPathsUserConfig {
   root?: string;
   cache?: string;
   artifacts?: string;
@@ -159,7 +159,7 @@ export interface UserProjectPaths {
   tests?: string;
 }
 
-export interface ProjectPaths {
+export interface ProjectPathsConfig {
   root: string;
   configFile: string;
   cache: string;
@@ -170,16 +170,16 @@ export interface ProjectPaths {
 
 // Solidity config
 
-export type UserSolidityConfig = string | UserSolcConfig | UserMultiSolcConfig;
+export type SolidityUserConfig = string | SolcUserConfig | MultiSolcUserConfig;
 
-export interface UserSolcConfig {
+export interface SolcUserConfig {
   version: string;
   settings?: any;
 }
 
-export interface UserMultiSolcConfig {
-  compilers: UserSolcConfig[];
-  overrides?: Record<string, UserSolcConfig>;
+export interface MultiSolcUserConfig {
+  compilers: SolcUserConfig[];
+  overrides?: Record<string, SolcUserConfig>;
 }
 
 export interface SolcConfig {
@@ -194,17 +194,17 @@ export interface SolidityConfig {
 
 // Hardhat config
 
-export interface UserHardhatConfig {
+export interface HardhatUserConfig {
   defaultNetwork?: string;
-  paths?: UserProjectPaths;
-  networks?: UserNetworksConfig;
-  solidity?: UserSolidityConfig;
+  paths?: ProjectPathsUserConfig;
+  networks?: NetworksUserConfig;
+  solidity?: SolidityUserConfig;
   mocha?: Mocha.MochaOptions;
 }
 
 export interface HardhatConfig {
   defaultNetwork: string;
-  paths: ProjectPaths;
+  paths: ProjectPathsConfig;
   networks: NetworksConfig;
   solidity: SolidityConfig;
   mocha: Mocha.MochaOptions;
@@ -214,5 +214,5 @@ export interface HardhatConfig {
 
 export type ConfigExtender = (
   config: HardhatConfig,
-  userConfig: Readonly<UserHardhatConfig>
+  userConfig: Readonly<HardhatUserConfig>
 ) => void;
