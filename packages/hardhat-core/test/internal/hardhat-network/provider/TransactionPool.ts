@@ -553,22 +553,51 @@ describe("Transaction Pool", () => {
       );
     });
 
-    xit("throws an error if transaction's gas limit exceeds block gas limit", () => {
-      /* 
-      TODO: How to exactly do that?
-      How miners can change block gas limit?   
-      */
+    it("removes pending transaction when it's gas limit exceeds block gas limit", async () => {
+      const tx1 = createTestTransaction({ nonce: 0, gasLimit: 9500000 });
+      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+      await txPool.addTransaction(tx1);
+
+      txPool.setBlockGasLimit(5000000);
+
+      await txPool.clean();
+      const pendingTransactions = txPool.getPendingTransactions();
+
+      assertEqualTransactionLists(
+        pendingTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
+        []
+      );
     });
 
-    it.only("removes pending transactions with too low nonces", async () => {
+    it("removes queued transaction when it's gas limit exceeds block gas limit", async () => {
+      const tx1 = createTestTransaction({ nonce: 1, gasLimit: 9500000 });
+      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+      await txPool.addTransaction(tx1);
+
+      txPool.setBlockGasLimit(5000000);
+
+      await txPool.clean();
+      const queuedTransactions = txPool.getQueuedTransactions();
+
+      assertEqualTransactionLists(
+        queuedTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
+        []
+      );
+    });
+
+    it("removes pending transactions with too low nonces", async () => {
       const tx1 = createTestTransaction({ nonce: 0, gasLimit: 30000 });
       const tx2 = createTestTransaction({ nonce: 1, gasLimit: 30000 });
       const tx3 = createTestTransaction({ nonce: 0, gasLimit: 30000 });
       const tx4 = createTestTransaction({ nonce: 1, gasLimit: 30000 });
+
       tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
       tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
       tx3.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
       tx4.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
       await txPool.addTransaction(tx3);
@@ -589,25 +618,66 @@ describe("Transaction Pool", () => {
       assertEqualTransactionMaps(pendingTransactions, makeTxMap([tx2, tx4]));
     });
 
-    it("throws an error if sender doesn't have enough ether on their balance", async () => {
-      const tx = createTestFakeTransaction({
-        gasPrice: 900,
-        value: 5,
-      });
-
-      const tx1 = createTestFakeTransaction({
-        from: address1,
+    it("removes pending transaction when sender doesn't have enough ether to make the transaction", async () => {
+      const tx1 = createTestTransaction({
         nonce: 0,
+        gasLimit: 30000,
+        gasPrice: 500,
       });
+      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
       await txPool.addTransaction(tx1);
 
-      assert.isRejected(
-        // txPool.addTransaction(tx),
-        txPool.clean(),
-        Error,
-        "sender doesn't have enough funds to send tx"
+      await stateManager.putAccount(
+        address1,
+        new Account({ nonce: 0, balance: new BN(0) })
       );
+
+      await txPool.clean();
+      const pendingTransactions = txPool.getPendingTransactions();
+
+      assertEqualTransactionLists(
+        pendingTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
+        []
+      );
+    });
+
+    it("removes queued transaction when sender doesn't have enough ether to make the transaction", async () => {
+      const tx1 = createTestTransaction({
+        nonce: 2,
+        gasLimit: 30000,
+        gasPrice: 500,
+      });
+      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+      await txPool.addTransaction(tx1);
+
+      await stateManager.putAccount(
+        address1,
+        new Account({ nonce: 0, balance: new BN(0) })
+      );
+
+      await txPool.clean();
+      const queuedTransactions = txPool.getQueuedTransactions();
+
+      assertEqualTransactionLists(
+        queuedTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
+        []
+      );
+    });
+  });
+
+  describe("setBlockGasLimit", () => {
+    it("sets a new block gas limit when new limit is a number", () => {
+      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(10000000)));
+      txPool.setBlockGasLimit(15000000);
+      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(15000000)));
+    });
+
+    it("sets a new block gas limit when new limit is a BN", () => {
+      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(10000000)));
+      txPool.setBlockGasLimit(new BN(15000000));
+      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(15000000)));
     });
   });
 });
