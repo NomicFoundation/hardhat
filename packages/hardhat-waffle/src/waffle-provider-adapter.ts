@@ -16,8 +16,8 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
 You can use \`await hre.ethers.signers()\` in other networks.`);
     }
 
-    const networkConstant = this._hardhatNetwork.config as HardhatNetworkConfig;
-    return normalizeHardhatNetworkAccountsConfig(networkConstant.accounts).map(
+    const networkConfig = this._hardhatNetwork.config as HardhatNetworkConfig;
+    return normalizeHardhatNetworkAccountsConfig(networkConfig.accounts).map(
       (acc) => new Wallet(acc.privateKey, this)
     );
   }
