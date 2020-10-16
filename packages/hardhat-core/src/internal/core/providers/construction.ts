@@ -4,13 +4,13 @@ import type {
   EIP1193Provider,
   EthereumProvider,
   HardhatNetworkConfig,
+  HDAccountsUserConfig,
+  HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
+  HttpNetworkUserConfig,
   NetworkConfig,
-  ProjectPaths,
-  UserHDAccountsConfig,
-  UserHttpNetworkAccountsConfig,
-  UserHttpNetworkConfig,
-  UserProjectPaths,
+  ProjectPathsConfig,
+  ProjectPathsUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ForkConfig } from "../../hardhat-network/provider/node-types";
@@ -18,8 +18,8 @@ import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-c
 import { parseDateString } from "../../util/date";
 
 export function isHDAccountsConfig(
-  accounts?: UserHttpNetworkAccountsConfig
-): accounts is UserHDAccountsConfig {
+  accounts?: HttpNetworkAccountsUserConfig
+): accounts is HDAccountsUserConfig {
   return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }
 
@@ -44,7 +44,7 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
 export function createProvider(
   networkName: string,
   networkConfig: NetworkConfig,
-  paths?: ProjectPaths,
+  paths?: ProjectPathsConfig,
   artifacts?: Artifacts,
   experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
 ): EthereumProvider {
@@ -94,7 +94,7 @@ export function createProvider(
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    const httpNetConfig = networkConfig as UserHttpNetworkConfig;
+    const httpNetConfig = networkConfig as HttpNetworkUserConfig;
 
     eip1193Provider = new HttpProvider(
       httpNetConfig.url!,

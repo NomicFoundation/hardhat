@@ -138,7 +138,7 @@ async function writeEmptyHardhatConfig() {
   return fsExtra.writeFile(
     "hardhat.config.js",
     `/**
- * @type import('hardhat/config').HardhatConfig
+ * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
   solidity: "${DEFAULT_SOLC_VERSION}",
