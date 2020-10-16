@@ -8,6 +8,7 @@ import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { createProvider } from "../internal/core/providers/construction";
+import { normalizeHardhatNetworkAccountsConfig } from "../internal/core/providers/util";
 import {
   JsonRpcServer as JsonRpcServerImpl,
   JsonRpcServerConfig,
@@ -45,7 +46,11 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
   console.log("Accounts");
   console.log("========");
 
-  for (const [index, account] of networkConfig.accounts.entries()) {
+  const accounts = normalizeHardhatNetworkAccountsConfig(
+    networkConfig.accounts
+  );
+
+  for (const [index, account] of accounts.entries()) {
     const address = bufferToHex(privateToAddress(toBuffer(account.privateKey)));
     const privateKey = bufferToHex(toBuffer(account.privateKey));
     const balance = new BN(account.balance)

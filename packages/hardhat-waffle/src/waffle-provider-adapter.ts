@@ -1,4 +1,5 @@
 import { providers, Wallet } from "ethers";
+import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 import { HardhatNetworkConfig, Network } from "hardhat/types";
 
 // This class is an extension of hardhat-ethers' wrapper.
@@ -15,7 +16,8 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
 You can use \`await hre.ethers.signers()\` in other networks.`);
     }
 
-    return (this._hardhatNetwork.config as HardhatNetworkConfig).accounts!.map(
+    const networkConstant = this._hardhatNetwork.config as HardhatNetworkConfig;
+    return normalizeHardhatNetworkAccountsConfig(networkConstant.accounts).map(
       (acc) => new Wallet(acc.privateKey, this)
     );
   }

@@ -112,11 +112,21 @@ export interface HardhatNetworkConfig {
   forking?: HardhatNetworkForkingConfig;
 }
 
-export type HardhatNetworkAccountsConfig = HardhatNetworkAccountConfig[];
+export type HardhatNetworkAccountsConfig =
+  | HardhatNetworkHDAccountsConfig
+  | HardhatNetworkAccountConfig[];
 
 export interface HardhatNetworkAccountConfig {
   privateKey: string;
   balance: string;
+}
+
+export interface HardhatNetworkHDAccountsConfig {
+  mnemonic: string;
+  initialIndex: number;
+  count: number;
+  path: string;
+  accountsBalance: string;
 }
 
 export interface HardhatNetworkForkingConfig {

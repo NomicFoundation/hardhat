@@ -15,6 +15,7 @@ import {
 } from "../../../../src/internal/core/config/default-config";
 import {
   HardhatConfig,
+  HardhatNetworkAccountConfig,
   HardhatNetworkConfig,
   HardhatNetworkUserConfig,
   HttpNetworkConfig,
@@ -294,9 +295,10 @@ describe("Config resolution", () => {
           },
         });
 
-        const privateKeys = config.networks.hardhat.accounts.map(
-          (a) => a.privateKey
-        );
+        const accounts = config.networks.hardhat
+          .accounts as HardhatNetworkAccountConfig[];
+
+        const privateKeys = accounts.map((a) => a.privateKey);
 
         assert.deepEqual(privateKeys, ["0xaa00", "0xaa00"]);
       });
@@ -371,7 +373,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.accounts, accounts);
         });
 
-        it("Should accept an hd account with balance and turn it into an array of accounts", function () {
+        it("Should accept an hd account with balance", function () {
           const config = resolveConfig(__filename, {
             networks: {
               hardhat: {
@@ -387,13 +389,14 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.deepEqual(config.networks.hardhat.accounts, [
-            {
-              balance: "12312",
-              privateKey:
-                "0xbed059835163fc7214026e5e587903a9c096599fa5fd23b10e3861dcb7418177",
-            },
-          ]);
+          assert.deepEqual(config.networks.hardhat.accounts, {
+            mnemonic:
+              "magnet season because hope bind episode labor ready potato glove result modify",
+            path: "m/44'/60'/1'/1",
+            accountsBalance: "12312",
+            count: 1,
+            initialIndex: 2,
+          });
         });
 
         it("Should use default values for hd accounts", function () {
@@ -408,16 +411,10 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.lengthOf(
-            config.networks.hardhat.accounts,
-            defaultHardhatNetworkHdAccountsConfigParams.count
-          );
-
-          assert.deepEqual(config.networks.hardhat.accounts[0], {
-            balance:
-              defaultHardhatNetworkHdAccountsConfigParams.accountsBalance,
-            privateKey:
-              "0xe198d5cf807356aea17d1087d33f2d0e0009ace36d1061335aac22cfc235613b",
+          assert.deepEqual(config.networks.hardhat.accounts, {
+            ...defaultHardhatNetworkHdAccountsConfigParams,
+            mnemonic:
+              "magnet season because hope bind episode labor ready potato glove result modify",
           });
         });
       });

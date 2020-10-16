@@ -4,6 +4,7 @@ import {
   TASK_TEST_SETUP_TEST_ENVIRONMENT,
 } from "hardhat/builtin-tasks/task-names";
 import { extendEnvironment, subtask } from "hardhat/config";
+import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 import { glob } from "hardhat/internal/util/glob";
 import {
   HARDHAT_NETWORK_NAME,
@@ -126,7 +127,9 @@ extendEnvironment((env) => {
 
         const netConfig = env.network.config as HardhatNetworkConfig;
 
-        accounts = netConfig.accounts.map((acc) =>
+        accounts = normalizeHardhatNetworkAccountsConfig(
+          netConfig.accounts
+        ).map((acc) =>
           toChecksumAddress(bufferToHex(privateToAddress(acc.privateKey)))
         );
       }

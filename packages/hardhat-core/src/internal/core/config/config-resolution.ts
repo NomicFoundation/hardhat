@@ -4,7 +4,7 @@ import path from "path";
 
 import {
   HardhatConfig,
-  HardhatNetworkAccountConfig,
+  HardhatNetworkAccountsConfig,
   HardhatNetworkConfig,
   HardhatNetworkForkingConfig,
   HardhatNetworkUserConfig,
@@ -28,7 +28,6 @@ import {
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
-import { normalizeHardhatNetworkAccountsConfig } from "../providers/util";
 
 import {
   DEFAULT_SOLC_VERSION,
@@ -125,21 +124,18 @@ function resolveHardhatNetworkConfig(
     defaultHardhatNetworkParams
   );
 
-  const accounts: HardhatNetworkAccountConfig[] =
+  const accounts: HardhatNetworkAccountsConfig =
     hardhatNetworkConfig.accounts === undefined
-      ? clonedDefaultHardhatNetworkParams.accounts
+      ? defaultHardhatNetworkHdAccountsConfigParams
       : Array.isArray(hardhatNetworkConfig.accounts)
       ? hardhatNetworkConfig.accounts.map(({ privateKey, balance }) => ({
           privateKey: normalizeHexString(privateKey),
           balance,
         }))
-      : normalizeHardhatNetworkAccountsConfig({
+      : {
           ...defaultHardhatNetworkHdAccountsConfigParams,
           ...hardhatNetworkConfig.accounts,
-          mnemonic:
-            hardhatNetworkConfig.accounts.mnemonic ??
-            defaultHardhatNetworkHdAccountsConfigParams.menmonic,
-        });
+        };
 
   const forking: HardhatNetworkForkingConfig | undefined =
     hardhatNetworkConfig.forking !== undefined
