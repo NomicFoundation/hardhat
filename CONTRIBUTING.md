@@ -118,7 +118,12 @@ You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to tes
 
 Now any change you make in the code will be reflected in that project.
 
-<!-- TODO-HH this doesn't link the binary though -->
+Note that `yarn link` won't create an executable in `node_modules/.bin/hardhat`. To work around this we recommend
+having an alias like this:
+
+```bash
+alias lhh='node --preserve-symlinks $(node -e "console.log(require.resolve(\"hardhat/internal/cli/cli.js\"))")'
+```
 
 ### Yalc
 

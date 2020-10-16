@@ -27,7 +27,6 @@ export interface ProviderConnectInfo {
   readonly chainId: string;
 }
 
-// TODO-HH: Improve the types
 export interface EIP1193Provider extends EventEmitter {
   request(args: RequestArguments): Promise<unknown>;
 }
