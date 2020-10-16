@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import { getPackageJsonPath } from "../util/packageInfo";
 
 /**
@@ -15,7 +17,11 @@ export function isHardhatInstalledLocallyOrLinked(configPath?: string) {
 
     const thisPackageJson = getPackageJsonPath();
 
-    return resolvedPackageJson === thisPackageJson;
+    // We need to get the realpaths here, as hardhat may be linked and
+    // running with `node --preserve-symlinks`
+    return (
+      fs.realpathSync(resolvedPackageJson) === fs.realpathSync(thisPackageJson)
+    );
   } catch (_) {
     return false;
   }
