@@ -93,6 +93,7 @@ export const hexString = new t.Type<string>(
   t.identity
 );
 
+// TODO: These types have outdated name. They should match the UserConfig types.
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
 const HardhatNetworkAccount = t.type({
