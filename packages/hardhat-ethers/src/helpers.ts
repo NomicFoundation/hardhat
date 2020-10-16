@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import type { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import {
   Artifact,
@@ -94,10 +94,8 @@ If you want to call a contract using ${nameOrAbi} as its interface use the "getC
 function isFactoryOptions(
   signerOrOptions?: ethers.Signer | FactoryOptions
 ): signerOrOptions is FactoryOptions {
-  if (
-    signerOrOptions === undefined ||
-    signerOrOptions instanceof ethers.Signer
-  ) {
+  const { Signer } = require("ethers") as typeof ethers;
+  if (signerOrOptions === undefined || signerOrOptions instanceof Signer) {
     return false;
   }
 
@@ -109,6 +107,8 @@ async function getContractFactoryByName(
   contractName: string,
   signerOrOptions?: ethers.Signer | FactoryOptions
 ) {
+  const { utils } = require("ethers") as typeof ethers;
+
   const artifact = await hre.artifacts.readArtifact(contractName);
 
   const neededLibraries: Array<{
@@ -136,7 +136,7 @@ async function getContractFactoryByName(
   for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(
     libraries
   )) {
-    if (!ethers.utils.isAddress(linkedLibraryAddress)) {
+    if (!utils.isAddress(linkedLibraryAddress)) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
         `You tried to link the contract ${contractName} with the library ${linkedLibraryName}, but provided this invalid address: ${linkedLibraryAddress}`
@@ -236,6 +236,8 @@ export async function getContractFactoryByAbiAndBytecode(
   bytecode: ethers.utils.BytesLike,
   signer?: ethers.Signer
 ) {
+  const { ContractFactory } = require("ethers") as typeof ethers;
+
   if (signer === undefined) {
     const signers = await hre.ethers.getSigners();
     signer = signers[0];
@@ -246,7 +248,7 @@ export async function getContractFactoryByAbiAndBytecode(
     abi
   );
 
-  return new ethers.ContractFactory(abiWithAddedGas, bytecode, signer);
+  return new ContractFactory(abiWithAddedGas, bytecode, signer);
 }
 
 export async function getContractAt(
@@ -255,6 +257,8 @@ export async function getContractAt(
   address: string,
   signer?: ethers.Signer
 ) {
+  const { Contract } = require("ethers") as typeof ethers;
+
   if (typeof nameOrAbi === "string") {
     const factory = await getContractFactoryByName(hre, nameOrAbi, signer);
     return factory.attach(address);
@@ -270,7 +274,7 @@ export async function getContractAt(
     nameOrAbi
   );
 
-  return new ethers.Contract(address, abiWithAddedGas, signer);
+  return new Contract(address, abiWithAddedGas, signer);
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network
@@ -281,6 +285,8 @@ function addGasToAbiMethodsIfNecessary(
   networkConfig: NetworkConfig,
   abi: any[]
 ): any[] {
+  const { BigNumber } = require("ethers") as typeof ethers;
+
   if (networkConfig.gas === "auto" || networkConfig.gas === undefined) {
     return abi;
   }
@@ -290,9 +296,7 @@ function addGasToAbiMethodsIfNecessary(
   // block gas limit, especially on Hardhat Network.
   // To avoid this, we substract 21000.
   // HOTFIX: We substract 1M for now. See: https://github.com/ethers-io/ethers.js/issues/1058#issuecomment-703175279
-  const gasLimit = ethers.BigNumber.from(networkConfig.gas)
-    .sub(1000000)
-    .toHexString();
+  const gasLimit = BigNumber.from(networkConfig.gas).sub(1000000).toHexString();
 
   const modifiedAbi: any[] = [];
 

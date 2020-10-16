@@ -1,7 +1,7 @@
 import debug from "debug";
 import http, { Server } from "http";
 import { AddressInfo } from "net";
-import { Server as WSServer } from "ws";
+import type WsT from "ws";
 
 import {
   EIP1193Provider,
@@ -23,9 +23,11 @@ export interface JsonRpcServerConfig {
 export class JsonRpcServer implements IJsonRpcServer {
   private _config: JsonRpcServerConfig;
   private _httpServer: Server;
-  private _wsServer: WSServer;
+  private _wsServer: WsT.Server;
 
   constructor(config: JsonRpcServerConfig) {
+    const { Server: WSServer } = require("ws") as typeof WsT;
+
     this._config = config;
 
     const handler = new JsonRpcHandler(config.provider);

@@ -17,6 +17,8 @@ import { ForkConfig } from "../../hardhat-network/provider/node-types";
 import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
 import { parseDateString } from "../../util/date";
 
+import { normalizeHardhatNetworkAccountsConfig } from "./util";
+
 export function isHDAccountsConfig(
   accounts?: HttpNetworkAccountsUserConfig
 ): accounts is HDAccountsUserConfig {
@@ -70,6 +72,10 @@ export function createProvider(
       };
     }
 
+    const accounts = normalizeHardhatNetworkAccountsConfig(
+      hardhatNetConfig.accounts
+    );
+
     eip1193Provider = new HardhatNetworkProvider(
       hardhatNetConfig.hardfork!,
       HARDHAT_NETWORK_NAME,
@@ -78,7 +84,7 @@ export function createProvider(
       hardhatNetConfig.blockGasLimit!,
       hardhatNetConfig.throwOnTransactionFailures!,
       hardhatNetConfig.throwOnCallFailures!,
-      hardhatNetConfig.accounts,
+      accounts,
       artifacts,
       hardhatNetConfig.loggingEnabled,
       hardhatNetConfig.allowUnlimitedContractSize,

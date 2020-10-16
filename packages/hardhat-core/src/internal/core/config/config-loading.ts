@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
 import path from "path";
-import * as stackTraceParser from "stacktrace-parser";
+import type StackTraceParserT from "stacktrace-parser";
 
 import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
@@ -134,6 +134,8 @@ function deepFreezeUserConfig(
  * nothing.
  */
 export function analyzeModuleNotFoundError(error: any, configPath: string) {
+  const stackTraceParser = require("stacktrace-parser") as typeof StackTraceParserT;
+
   if (error.code !== "MODULE_NOT_FOUND") {
     return;
   }

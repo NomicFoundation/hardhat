@@ -1,6 +1,6 @@
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
-import { LoDashStatic } from "lodash";
+import type { LoDashStatic } from "lodash";
 import * as path from "path";
 
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";

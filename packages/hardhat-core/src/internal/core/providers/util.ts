@@ -1,6 +1,6 @@
 import {
   HardhatNetworkAccountConfig,
-  HardhatNetworkHDAccountsUserConfig,
+  HardhatNetworkAccountsConfig,
 } from "../../../types";
 import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
 import { DEFAULT_HARDHAT_NETWORK_BALANCE } from "../config/default-config";
@@ -45,7 +45,7 @@ export function derivePrivateKeys(
 }
 
 export function normalizeHardhatNetworkAccountsConfig(
-  accountsConfig: Required<HardhatNetworkHDAccountsUserConfig>
+  accountsConfig: HardhatNetworkAccountsConfig
 ): HardhatNetworkAccountConfig[] {
   if (Array.isArray(accountsConfig)) {
     return accountsConfig;
