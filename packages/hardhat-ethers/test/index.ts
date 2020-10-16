@@ -49,6 +49,117 @@ describe("Ethers plugin", function () {
           "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
         );
       });
+
+      it("should expose the address synchronously", async function () {
+        const sigs = await this.env.ethers.getSigners();
+        assert.equal(
+          sigs[0].address,
+          "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+        );
+      });
+    });
+
+    describe("signer", function () {
+      it("should sign a message", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const result = await sig.signMessage("hello");
+
+        assert.equal(
+          result,
+          "0x1845faa75f53acb0c3e7247dcf294ce045c139722418dc9638709b54bafffa093591aeaaa195e7dc53f7e774c80e9a7f1371f0647a100d1c9e81db83d8ddd47801"
+        );
+      });
+
+      it("should throw when sign a transaction", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const tx = Greeter.getDeployTransaction();
+
+        assert.throws(() => sig.signTransaction(tx));
+      });
+
+      it("should return the balance of the account", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+        assert.equal(
+          (await sig.getBalance()).toString(),
+          "100000000000000000000"
+        );
+      });
+
+      it("should return the transaction count of the account", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+        assert.equal((await sig.getTransactionCount()).toString(), "0");
+      });
+
+      it("should allow to use the estimateGas method", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const tx = Greeter.getDeployTransaction();
+
+        const result = await sig.estimateGas(tx);
+
+        assert.isTrue(result.gt(0));
+      });
+
+      it("should allow to use the call method", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const tx = Greeter.getDeployTransaction();
+
+        const result = await sig.call(tx);
+
+        assert.isString(result);
+      });
+
+      it("should send a transaction", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const tx = Greeter.getDeployTransaction();
+
+        const response = await sig.sendTransaction(tx);
+
+        const receipt = await response.wait();
+
+        assert.equal(receipt.status, 1);
+      });
+
+      it("should get the chainId", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const chainId = await sig.getChainId();
+
+        assert.equal(chainId, 1337);
+      });
+
+      it("should get the gas price", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const gasPrice = await sig.getGasPrice();
+
+        assert.equal(gasPrice.toString(), "20000000000");
+      });
+
+      it("should check and populate a transaction", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const tx = Greeter.getDeployTransaction();
+
+        const checkedTransaction = sig.checkTransaction(tx);
+
+        assert.equal(await checkedTransaction.from, sig.address);
+
+        const populatedTransaction = await sig.populateTransaction(
+          checkedTransaction
+        );
+
+        assert.equal(populatedTransaction.from, sig.address);
+      });
     });
 
     describe("getContractFactory", function () {

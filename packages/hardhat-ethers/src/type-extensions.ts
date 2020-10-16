@@ -5,6 +5,7 @@ import type {
   FactoryOptions as FactoryOptionsT,
   Libraries as LibrariesT,
 } from "./helpers";
+import type { SignerWithAddress } from "./signer-with-address";
 
 declare module "hardhat/types/runtime" {
   type Libraries = LibrariesT;
@@ -30,7 +31,7 @@ declare module "hardhat/types/runtime" {
         address: string,
         signer?: ethers.Signer
       ) => Promise<ethers.Contract>;
-      getSigners: () => Promise<ethers.Signer[]>;
+      getSigners: () => Promise<SignerWithAddress[]>;
 
       // Standard ethers properties
       Signer: typeof ethers.Signer;
