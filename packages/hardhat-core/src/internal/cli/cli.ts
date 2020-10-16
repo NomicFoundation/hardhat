@@ -127,7 +127,6 @@ async function main() {
     const analytics = await Analytics.getInstance(telemetryConsent);
 
     Reporter.setConfigPath(config.paths.configFile);
-    // TODO-HH: Enabled/disable this depending on the opt-out feature
     Reporter.setEnabled(true);
 
     const envExtenders = ctx.extendersManager.getExtenders();
