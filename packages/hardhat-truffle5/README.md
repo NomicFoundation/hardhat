@@ -1,5 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-truffle5.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-truffle5
 
@@ -38,7 +38,7 @@ An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hard
 There are no additional steps you need to take for this plugin to work.
 Install it, run `npx hardhat test` and your Truffle tests should run with no need to make any modifications.
 
-Take a look at the [testing guide](https://usehardhat.com/guides/testing) for a tutorial using it.
+Take a look at the [testing guide](https://hardhat.org/guides/testing) for a tutorial using it.
 
 ## TypeScript support
 

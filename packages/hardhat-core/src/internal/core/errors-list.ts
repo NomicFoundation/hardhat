@@ -119,11 +119,11 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 
 %errors%
   
-To learn more about Hardhat's configuration, please go to https://usehardhat.com/config/`,
+To learn more about Hardhat's configuration, please go to https://hardhat.org/config/`,
       title: "Invalid Hardhat config",
       description: `You have one or more errors in your config file. 
       
-Check the error message for details, or go to [documentation](https://usehardhat.com/config/) to learn more.`,
+Check the error message for details, or go to [documentation](https://hardhat.org/config/) to learn more.`,
       shouldBeReported: false,
     },
     LIB_IMPORTED_FROM_THE_CONFIG: {
@@ -200,7 +200,7 @@ Please run this and try again: npm install --save-dev typescript`,
       title: "Selected network doesn't exist",
       description: `You are trying to run Hardhat with a non-existent network. 
 
-Read the [documentation](https://usehardhat.com/config/#networks-configuration) to learn how to define custom networks.`,
+Read the [documentation](https://hardhat.org/config/#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
     },
     INVALID_GLOBAL_CHAIN_ID: {
@@ -260,7 +260,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Read the [documentation](https://usehardhat.com/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://hardhat.org/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {

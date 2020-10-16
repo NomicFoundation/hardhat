@@ -160,7 +160,7 @@ export class HardhatNetworkProvider extends EventEmitter
         this._logError(err, true);
         this._log("");
         this._log(
-          "If you think this is a bug in Hardhat, please report it here: https://usehardhat.com/reportbug",
+          "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug",
           true
         );
       }

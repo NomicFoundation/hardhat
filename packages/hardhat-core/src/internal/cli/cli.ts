@@ -218,12 +218,12 @@ async function main() {
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Hardhat, please report it here: https://usehardhat.com/reportbug`
+          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug`
         );
       }
 
       if (HardhatError.isHardhatError(error)) {
-        const link = `https://usehardhat.com/${getErrorCode(
+        const link = `https://hardhat.org/${getErrorCode(
           error.errorDescriptor
         )}`;
 

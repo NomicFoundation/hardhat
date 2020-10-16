@@ -1,11 +1,19 @@
 # Domain redirects
 
-https://buidler.netlify.app/* https://usehardhat.com/:splat 302!
-https://www.usehardhat.com/* https://usehardhat.com/:splat 302!
-https://buidler.dev/* https://usehardhat.com/:splat 302!
-https://www.buidler.dev/* https://usehardhat.com/:splat 302!
-https://getbuidler.com/* https://getbuidler.com/:splat 302!
-https://www.getbuidler.com/* https://getbuidler.com/:splat 302!
+https://buidler.netlify.app/* https://hardhat.org/:splat 301!
+
+https://www.hardhat.org/* https://hardhat.org/:splat 301!
+
+https://buidler.dev/* https://hardhat.org/:splat 301!
+https://www.buidler.dev/* https://hardhat.org/:splat 301!
+
+https://getbuidler.com/* https://hardhat.org/:splat 301!
+https://www.getbuidler.com/* https://hardhat.org/:splat 301!
+
+https://usehardhat.com/* https://hardhat.org/:splat 301!
+https://www.usehardhat.com/* https://hardhat.org/:splat 301!
+
+
 
 
 # Manual redirects

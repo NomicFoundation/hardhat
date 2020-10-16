@@ -124,7 +124,7 @@ export class Analytics {
       dp: `/task/${taskName}`,
 
       // Host name.
-      dh: "cli.usehardhat.com",
+      dh: "cli.hardhat.org",
 
       // User agent, must be present.
       // We use it to inform Node version used and OS.

@@ -1,5 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-waffle.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-waffle)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-waffle
 
@@ -68,7 +68,7 @@ const { deployContract } = waffle;
 Also, you don't need to call `chai.use`.
 
 Note that by default, Hardhat save its compilation output into `artifacts/` instead of `build/`. You can either use
-that directory in your tests, or [customize your Hardhat config](https://usehardhat.com/config/#path-configuration).
+that directory in your tests, or [customize your Hardhat config](https://hardhat.org/config/#path-configuration).
 
 ## TypeScript support
 

@@ -1,9 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-etherscan.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-etherscan
 
-[Hardhat](http://usehardhat.com) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
+[Hardhat](http://hardhat.org) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
 
 ## What
 

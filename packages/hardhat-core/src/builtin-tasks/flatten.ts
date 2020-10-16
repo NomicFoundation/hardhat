@@ -77,7 +77,7 @@ subtask(
     }
 
     const packageJson = await getPackageJson();
-    flattened += `// Sources flattened with hardhat v${packageJson.version} https://usehardhat.com`;
+    flattened += `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org`;
 
     const sortedFiles = getSortedFiles(dependencyGraph);
 
