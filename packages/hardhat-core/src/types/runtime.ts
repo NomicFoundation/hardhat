@@ -156,15 +156,6 @@ export type ActionType<ArgsT extends TaskArguments> = (
   runSuper: RunSuperFunction<ArgsT>
 ) => Promise<any>;
 
-/**
- * Hardhat arguments:
- * * network: the network to be used.
- * * showStackTraces: flag to show stack traces.
- * * version: flag to show hardhat's version.
- * * help: flag to show hardhat's help message.
- * * emoji:
- * * config: used to specify hardhat's config file.
- */
 export interface HardhatArguments {
   network?: string;
   showStackTraces: boolean;
@@ -174,6 +165,7 @@ export interface HardhatArguments {
   config?: string;
   verbose: boolean;
   maxMemory?: number;
+  tsconfig?: string;
 }
 
 export type HardhatParamDefinitions = {
