@@ -1,7 +1,6 @@
 import {
   HardhatNetworkAccountConfig,
   HardhatNetworkAccountsConfig,
-  HardhatNetworkHDAccountsConfig,
 } from "../../../types";
 import { deriveKeyFromMnemonicAndPath } from "../../util/keys-derivation";
 import { DEFAULT_HARDHAT_NETWORK_BALANCE } from "../config/default-config";
