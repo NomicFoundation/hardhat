@@ -16,7 +16,7 @@
             span <
               | 
               |
-          span.top-text Better Solidity debugging: stack traces and console.log are finally here
+          span.top-text Buidler is now Hardhat. Learn more about the latest release and rebrand.
           span.colored.reverse.animation-6chars
             span 
              | 

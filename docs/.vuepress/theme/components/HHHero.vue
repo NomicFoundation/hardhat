@@ -3,8 +3,8 @@ header
   section.hero.padded-container
     .hero-text-wrapper
       section.hero-text-container
-        span.top-hero-text Flexible. Composable. Fast
-        h1.hero-title The cutting-edge Ethereum development environment
+        span.top-hero-text Flexible. Extensible. Fast.
+        h1.hero-title Ethereum development environment for professionals
 
         HHCta.mb-hidden(text="Get started", link="/getting-started/")
 

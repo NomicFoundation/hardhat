@@ -5,8 +5,8 @@ section#start-building
     .sb-graphic.left-graphic.mb-hidden
     .sb-graphic.right-graphic.mb-hidden
   .cta-container
-    h2 Hardhat is next generation Ethereum tooling
-    p Experience the new way of building Ethereum software.
+    h2 Hardhat is next-generation Ethereum tooling
+    p Experience the new way of building Ethereum software
     HHCta(text="Get started", link="/getting-started/")
 </template>
 

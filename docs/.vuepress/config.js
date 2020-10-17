@@ -9,9 +9,9 @@ plugins.forEach((plugin) => {
 });
 
 module.exports = {
-  title: "Hardhat | The Cutting-edge Ethereum Development Environment",
+  title: "Hardhat | Ethereum development environment for professionals by Nomic Labs",
   description:
-    "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces & console.log.",
+    "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
   themeConfig: {
     logo: "/logo.svg",
     nav: [
