@@ -6,7 +6,7 @@ For a Dapp to be able to communicate with a contract on the blockchain it needs 
 - The ABI file that specifies how to communicate with it.
 
 To provide this information to our React Dapp we write it in the directory `frontend/src/contracts` as part of the deployment script
-(`scripts/deploy.js`). 
+(`scripts/deploy.js`). To do that we use [the `fs` module](https://nodejs.org/api/fs.html).
 
 
 ### Preparing our Dapp
