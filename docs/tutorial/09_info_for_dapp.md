@@ -1,4 +1,4 @@
-# 9. Providing Contract Information for our Dapp
+# 9. Providing Contract Information to the Dapp
 
 For a Dapp to be able to communicate with a contract on the blockchain it needs two pieces of information:
 
