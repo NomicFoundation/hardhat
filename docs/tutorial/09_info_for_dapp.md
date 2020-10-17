@@ -1,4 +1,13 @@
-# 9. Preparing the Dapp
+# 9. Providing Contract Information for our Dapp
+
+For a Dapp to be able to communicate with a contract on the blockchain it needs two pieces of information:
+
+- The address of the contract
+- The ABI file that specifies how to communicate with it.
+
+To provide this information to our React Dapp we write it in the directory `frontend/src/contracts` as part of the deployment script
+(`scripts/deploy.js`). 
+
 
 ### Preparing our Dapp
 
