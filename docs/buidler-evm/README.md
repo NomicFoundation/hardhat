@@ -251,6 +251,23 @@ To customise it, take a look at [the configuration section](/config/#buidler-evm
 - `eth_submitHashrate`
 - `eth_submitWork`
 
+### Example executing a method in Javascript
+
+Without params
+
+```
+await ethers.provider.send('evm_mine');
+```
+
+With params ([lookup apis here](https://eth.wiki/json-rpc/API))
+
+```
+await ethers.provider.send('eth_getBalance', [
+   '0x407d73d8a49eeb85d32cf465507dd71d507100c1',
+   'latest'
+]);
+```
+
 ## Limitations
 
 ### Supported Solidity versions
