@@ -6,7 +6,7 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 cd "$DIR"
-yarn
+yarn --frozen-lockfile
 yarn ts-node build-plugins-doc.ts
 bash wget-readmes.sh
 

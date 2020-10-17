@@ -15,4 +15,4 @@ Here are some links you might find useful throughout your journey:
 Happy hacking!
 
 
-![](/cool-hardhat.svg)
+![](/cool-buidler.svg)

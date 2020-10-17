@@ -3,7 +3,7 @@
     <div class="content">
       <h1>404</h1>
       <blockquote>{{ getMsg() }}</blockquote>
-      <router-link to="/">Take me home.</router-link>
+      <a href="/">Take me home.</a>
     </div>
   </div>
 </template>
@@ -13,14 +13,16 @@ const msgs = [
   `There's nothing here.`,
   `How did we get here?`,
   `That's a Four-Oh-Four.`,
-  `Looks like we've got some broken links.`
-]
+  `Looks like we've got some broken links.`,
+];
 
 export default {
   methods: {
-    getMsg () {
-      return msgs[Math.floor(Math.random() * msgs.length)]
-    }
-  }
-}
+    getMsg() {
+      return msgs[Math.floor(Math.random() * msgs.length)];
+    },
+  },
+};
 </script>
+
+<style lang="stylus" src="../styles/theme.styl" />

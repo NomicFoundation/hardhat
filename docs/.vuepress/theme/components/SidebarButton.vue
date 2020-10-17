@@ -15,10 +15,10 @@
   height 1.25rem
   position absolute
   padding 0.6rem
-  top 0.6rem
+  top 0.5rem
   left 1rem
   .icon
-    display block
+    display inline-block
     width 1.25rem
     height 1.25rem
 

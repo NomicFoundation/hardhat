@@ -157,14 +157,14 @@ export default {
 .search-box
   display inline-block
   position relative
-  margin-right 1rem
+  margin-right 2rem
   input
     cursor text
     width 10rem
     color lighten($textColor, 25%)
     display inline-block
     border 1px solid darken($borderColor, 10%)
-    border-radius 2rem
+    border-radius 4px
     font-size 0.9rem
     line-height 2rem
     padding 0 0.5rem 0 2rem
@@ -211,10 +211,12 @@ export default {
       width 0
       border-color transparent
       position relative
+      border-radius 2rem
       &:focus
         cursor text
         left 0
         width 10rem
+  
 
 @media (max-width: $MQNarrow) and (min-width: $MQMobile)
   .search-box
