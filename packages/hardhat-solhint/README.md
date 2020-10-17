@@ -1,9 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solhint.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solhint)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-solhint
 
-[Hardhat](http://gethardhat.com) plugin for integration with [solhint linter](https://github.com/protofire/solhint).
+[Hardhat](https://hardhat.org) plugin for integration with [solhint linter](https://github.com/protofire/solhint).
 
 ## What
 

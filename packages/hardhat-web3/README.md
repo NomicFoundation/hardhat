@@ -1,9 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-web3
 
-This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `1.x` into [Hardhat](http://gethardhat.com).
+This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `1.x` into [Hardhat](https://hardhat.org).
 
 ## What
 
@@ -48,7 +48,7 @@ module.exports = {};
 ```
 And then run `npx hardhat accounts` to try it.
 
-Read the documentation on the [Hardhat Runtime Environment](https://usehardhat.com/documentation/#hardhat-runtime-environment-hre) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/documentation/#hardhat-runtime-environment-hre) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.
 
 ## TypeScript support
 

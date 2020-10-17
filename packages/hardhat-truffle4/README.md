@@ -1,9 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-truffle4.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle4)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-truffle4
 
-[Hardhat](http://gethardhat.com) plugin for integration with TruffleContract from Truffle 4
+[Hardhat](https://hardhat.org) plugin for integration with TruffleContract from Truffle 4
 
 ## What
 

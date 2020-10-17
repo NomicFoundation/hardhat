@@ -2,7 +2,7 @@
 [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat)
 ![Build Status](https://github.com/nomiclabs/hardhat/workflows/CI/badge.svg)
 ---------
-Hardhat is a task runner for Ethereum smart contract developers. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://usehardhat.com/plugins/) to use it with your existing tools.
+Hardhat is a task runner for Ethereum smart contract developers. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://hardhat.org/plugins/) to use it with your existing tools.
 
 Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
@@ -18,12 +18,12 @@ The recommended way of using Hardhat is through a local installation in your pro
 
 ## Documentation
 
-On [Hardhat's website](https://usehardhat.com) you will find:
+On [Hardhat's website](https://hardhat.org) you will find:
 
-- [Guides to get started](https://usehardhat.com/getting-started/)
-- [Hardhat Network](https://usehardhat.com/hardhat-network/)
-- [Plugin list](https://usehardhat.com/plugins/)
-- [API docs](https://usehardhat.com/api/)
+- [Guides to get started](https://hardhat.org/getting-started/)
+- [Hardhat Network](https://hardhat.org/hardhat-network/)
+- [Plugin list](https://hardhat.org/plugins/)
+- [API docs](https://hardhat.org/api/)
 
 
 ## Contributing

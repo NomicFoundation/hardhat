@@ -48,7 +48,7 @@ For example, the sample project's config turns from this
 usePlugin("@nomiclabs/hardhat-waffle");
 
 // This is a sample Hardhat task. To learn how to create your own go to
-// https://usehardhat.com/guides/create-task.html
+// https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
   const accounts = await ethers.getSigners();
 
@@ -68,7 +68,7 @@ import { task, usePlugin } from "hardhat/config";
 usePlugin("@nomiclabs/hardhat-waffle");
 
 // This is a sample Hardhat task. To learn how to create your own go to
-// https://usehardhat.com/guides/create-task.html
+// https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 

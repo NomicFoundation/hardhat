@@ -676,7 +676,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     if (hasConsoleErrors) {
       console.error(
         chalk.red(
-          `The console.log call you made isn’t supported. See https://usehardhat.com/console-log for the list of supported methods.`
+          `The console.log call you made isn’t supported. See https://hardhat.org/console-log for the list of supported methods.`
         )
       );
       console.log();
@@ -1047,7 +1047,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
 `;
       }
 
-      reasons += `Learn more about compiler configuration at https://usehardhat.com/configuration
+      reasons += `Learn more about compiler configuration at https://hardhat.org/configuration
 `;
 
       return reasons;

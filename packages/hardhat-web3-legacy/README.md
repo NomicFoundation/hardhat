@@ -1,9 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3-legacy.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3-legacy)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-web3-legacy
 
-This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `0.20x` into [Hardhat](http://gethardhat.com).
+This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `0.20x` into [Hardhat](https://hardhat.org).
 
 ## What
 

@@ -3,7 +3,7 @@
   "version": "0.1.0-rc.0",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://usehardhat.com",
+  "homepage": "https://hardhat.org",
   "repository": "github:nomiclabs/hardhat",
   "main": "internal/lib/hardhat-lib.js",
   "types": "internal/lib/hardhat-lib.d.ts",

@@ -1,9 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solpp)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-solpp
 
-[Hardhat](http://gethardhat.com) plugin for integration with the [solpp preprocessor](https://github.com/merklejerk/solpp).
+[Hardhat](https://hardhat.org) plugin for integration with the [solpp preprocessor](https://github.com/merklejerk/solpp).
 
 ## What
 

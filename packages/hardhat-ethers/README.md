@@ -1,9 +1,9 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
-[![hardhat](https://usehardhat.com/hardhat-plugin-badge.svg?1)](https://usehardhat.com)
+[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ethers
 
-[Hardhat](http://gethardhat.com) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
+[Hardhat](https://hardhat.org) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
 
 ## What
 
@@ -90,7 +90,7 @@ module.exports = {};
 
 And then run `npx hardhat blockNumber` to try it.
 
-Read the documentation on the [Hardhat Runtime Environment](https://usehardhat.com/advanced/hardhat-runtime-environment.html) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/advanced/hardhat-runtime-environment.html) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
 
 ### Library linking
 

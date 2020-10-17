@@ -75,7 +75,7 @@ export function loadConfigAndTasks(
       chalk.yellow(
         `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.
 
-Learn more about compiler configuration at https://usehardhat.com/configuration"
+Learn more about compiler configuration at https://hardhat.org/configuration"
 `
       )
     );
