@@ -3,7 +3,7 @@
 
 # hardhat-waffle
 
-[Hardhat](http://gethardhat.com) plugin for integration with [Waffle](https://getwaffle.io/).
+[Hardhat](https://hardhat.org) plugin for integration with [Waffle](https://getwaffle.io/).
 
 ## What
 

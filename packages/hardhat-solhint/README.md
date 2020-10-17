@@ -3,7 +3,7 @@
 
 # hardhat-solhint
 
-[Hardhat](http://gethardhat.com) plugin for integration with [solhint linter](https://github.com/protofire/solhint).
+[Hardhat](https://hardhat.org) plugin for integration with [solhint linter](https://github.com/protofire/solhint).
 
 ## What
 

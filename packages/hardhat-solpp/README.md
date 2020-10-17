@@ -3,7 +3,7 @@
 
 # hardhat-solpp
 
-[Hardhat](http://gethardhat.com) plugin for integration with the [solpp preprocessor](https://github.com/merklejerk/solpp).
+[Hardhat](https://hardhat.org) plugin for integration with the [solpp preprocessor](https://github.com/merklejerk/solpp).
 
 ## What
 

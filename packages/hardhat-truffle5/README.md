@@ -3,7 +3,7 @@
 
 # hardhat-truffle5
 
-[Hardhat](http://gethardhat.com) plugin for integration with TruffleContract from Truffle 5. This allows tests and scripts written for Truffle to work with Hardhat.
+[Hardhat](https://hardhat.org) plugin for integration with TruffleContract from Truffle 5. This allows tests and scripts written for Truffle to work with Hardhat.
 
 ## What
 

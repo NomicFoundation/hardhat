@@ -3,7 +3,7 @@
 
 # hardhat-web3-legacy
 
-This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `0.20x` into [Hardhat](http://gethardhat.com).
+This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `0.20x` into [Hardhat](https://hardhat.org).
 
 ## What
 

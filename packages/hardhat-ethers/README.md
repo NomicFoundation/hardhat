@@ -3,7 +3,7 @@
 
 # hardhat-ethers
 
-[Hardhat](http://gethardhat.com) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
+[Hardhat](https://hardhat.org) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
 
 ## What
 

@@ -3,7 +3,7 @@
 
 # hardhat-truffle4
 
-[Hardhat](http://gethardhat.com) plugin for integration with TruffleContract from Truffle 4
+[Hardhat](https://hardhat.org) plugin for integration with TruffleContract from Truffle 4
 
 ## What
 
