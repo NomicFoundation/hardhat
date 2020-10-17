@@ -1,4 +1,4 @@
-# 10. Connecting the components
+# 11. Connecting the components
 
 - Let's transform the App into a Dapp.
 
