@@ -8,59 +8,39 @@ For a Dapp to be able to communicate with a contract on the blockchain it needs 
 To provide this information to our React Dapp we write it in the directory `frontend/src/contracts` as part of the deployment script
 (`scripts/deploy.js`). To do that we use [the `fs` module](https://nodejs.org/dist/latest-v12.x/docs/api/fs.html).
 
+These are the changes needed in the deployment script:
 
-### Preparing our Dapp
-
-- Our Dapp will use the contract's address and artifact to interact with it
-- We need to copy the generated artifact and save the address into our frontend folder
-- To do so, add a method `saveFrontendFiles` to the deploy script and paste the following code:
-
+1. Add this function:
 ```js
+const info4Dapp = async token => {
+  const fs = require("fs")
+  const fsP = fs.promises
+  const contractDir = __dirname + "/../frontend/src/contracts"
 
-//...
+  // If the contract directory does not exist, create it
+  try {
+    await fsP.stat(contractDir)
+  } catch (err) {
+    await fsP.mkdir(contractDir)                                                                                       }
 
-function saveFrontendFiles(token) {
-  const fs = require("fs");
-  const contractsDir = __dirname + "/../frontend/src/contracts";
+  // Provide the contract address
+  await fsP.writeFile(
+     contractDir + "/contract-address.json",
+     JSON.stringify({Token: token.address})
+  )
 
-  if (!fs.existsSync(contractsDir)) {
-    fs.mkdirSync(contractsDir);
-  }
-
-  fs.writeFileSync(
-    contractsDir + "/contract-address.json",
-    JSON.stringify({ Token: token.address }, undefined, 2)
-  );
-
-  fs.copyFileSync(
-    __dirname + "/../artifacts/Token.json",
-    contractsDir + "/Token.json"
-  );
-}
-
-//...
+  // Copy the contract artifact
+  await fsP.copyFile(
+        `${__dirname}/../artifacts/${contractName}.json`,
+        `${contractDir}/${contractName}.json`
+  )
+}  // info4Dapp
 ```
 
-- It will just move the contract address and the artifact into `frontend/src/contracts` directory
-
-- Add a call to the function after the contract is deployed:
-
-```js{9,10}
-async function main() {
-  
-  // ...
-
-  await token.deployed();
-
-  console.log("Token address:", token.address);
-
-  // We also save the contract's artifacts and address in the frontend directory
-  saveFrontendFiles(token);
-}
+2. Add this line at the end of the `main` function:
+```js
+ info4Dapp(deployedContract)   
 ```
-
-- Run the script again to generate the files
-
 
 ## Creating a token & ether faucet
 
