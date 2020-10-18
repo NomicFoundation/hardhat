@@ -39,5 +39,5 @@ const info4Dapp = async token => {
 
 2. Add this line at the end of the `main` function:
 ```js
- info4Dapp(deployedContract)   
+ await info4Dapp(deployedContract)   
 ```
