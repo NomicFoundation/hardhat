@@ -1,16 +1,13 @@
 # 10. Create a Faucet
 
+During the development and testing of contracts and dapps it is useful to modify the blockchain's state to account for previous history. For example,
+in production users have Ether, which they use to pay for transactions. But in the Buidler EVM and blockchain we use for development there are
+only twenty accounts that start out in Ether. We can either use those accounts (the output of `npx buidler node` includes their private keys), or transfer
+"Ether" to your own account.
 
-## Creating a token & ether faucet
+In this part of the tutorial we create a [Buidler task](../guides/create-task.html) that lets us transfer Ether from the Buidler console.
 
-- Buidler EVM comes with some accounts loaded with ETH
-- When working with Metamask and localhost, you either have two options to get ether:
-  - Import a development account through its private key (10000 ether by default)
-  - Use one of those accounts to send some of that Ether to your Metamask account
-
-- We'll create a faucet task that will send ether and tokens to your Metamask account.
-- We won't go in depth into Buidler tasks but you can learn more about them in [our documentation](../guides/create-task.html)
-- For now copy the code below and place it in a new file `faucet.js` inside a new directory called `tasks` alongside `contracts` and `test`.
+Create a `tasks` directory and within it a file `faucet.js`:
 
 ```js
 const fs = require("fs");
