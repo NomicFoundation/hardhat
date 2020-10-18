@@ -4,6 +4,7 @@ We're going to create a simple smart contract that implements a token that can b
 
 - There is a fixed total supply of tokens that can't be changed.
 - The entire supply is assigned to the address that deploys the contract.
+- The first user to ask for an initial stake receives a thousand tokens from the owner (this makes it easier to check the token software).
 - Anyone can receive tokens.
 - Anyone with at least one token can transfer tokens.
 - The token is non-divisible. You can transfer 1, 2, 3 or 37 tokens but not 2.5.
@@ -39,6 +40,10 @@ contract Token {
 
     // An address type variable is used to store ethereum accounts.
     address public owner;
+    
+    // Should we allow a user to ask for an initial stake?
+    // We only do this once.
+    bool initialStakeAvailable = true;
 
     // A mapping is a key/value map. Here we store each account balance.
     mapping(address => uint256) balances;
@@ -56,6 +61,8 @@ contract Token {
         owner = msg.sender;
     }
 
+
+
     /**
      * A function to transfer tokens.
      *
@@ -72,7 +79,34 @@ contract Token {
         balances[msg.sender] -= amount;
         balances[to] += amount;
     }
+    
+    
+    
+    
+    
+    /**
+     * A function to ask for an initial stake
+     *
+     */
+    function getInitialStake() external {
+        // Check if the transaction sender has enough tokens.
+        // If `require`'s first argument evaluates to `false` then the
+        // transaction will revert.
+        require(initialStakeAvailable); 
+        require(balances[owner] >= 1000, "Not enough tokens for initial stake");
 
+        // This is a one time function
+        initialStakeAvailable = false;
+
+        // Transfer the initial stake
+        balances[owner] -= 1000;
+        balances[msg.sender] += 1000;
+    }    
+    
+    
+    
+    
+    
     /**
      * Read only function to retrieve the token balance of a given account.
      *
