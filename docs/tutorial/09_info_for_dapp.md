@@ -24,11 +24,10 @@ const info4Dapp = async contract => {
     await fsP.mkdir(contractDir)
   }
 
-
   // Provide the contract address
   await fsP.writeFile(
      contractDir + "/contract-address.json",
-     `{ ${contractName}: ${contract.address} }`
+     `{ "${contractName}": "${contract.address}" }   \n`
   )    // fsP.writeFile
 
 
