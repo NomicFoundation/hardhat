@@ -10,7 +10,7 @@ the real blockchain more faithfully by leaving the EVM running. This means we ne
 Create a new directory inside the project's root directory, `scripts`, and paste this file as `scripts/deploy.js`:
 
 ```js
-const contractName = "Token";
+const contractName = "Token"
 
 // This is a script for deploying contracts. You can adapt it to deploy yours.
 const main = async () => {
@@ -42,7 +42,7 @@ main()
   .catch(error => {              // if there is an error
     console.error(error);
     process.exit(1);
-  });
+  })
 
 ```
 
@@ -54,4 +54,3 @@ npx buidler run scripts/deploy.js --network localhost
 The `--network` parameter specifies the blockchain to which buidler connects. If this parameter is absent then the `npx buidler` command starts a 
 **Buidler EVM** blockchain and connects to it. You can use this to test that the deployment code works, but any deployment is destroyed as soon
 as the script ends.
-
