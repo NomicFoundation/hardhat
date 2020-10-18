@@ -28,6 +28,10 @@ The first step to create the React application that will serve the code to talk 
    ```
 5. View the React application. If you built it on your own machine, go to [http://localhost:3000](http://localhost:3000). 
    This application updates automatically when you edit the relevant files.
+6. To actually apply the bootstrap theme, edit `frontend/src/index.js` to include this line, preferably somewhere near the top:
+   ```js
+   import 'bootstrap/dist/css/bootstrap.css'
+   ```
 
 
 ## Connecting to the browser
