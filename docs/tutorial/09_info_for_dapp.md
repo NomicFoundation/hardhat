@@ -46,7 +46,8 @@ const info4Dapp = async contract => {
  await info4Dapp(deployedContract)   
 ```
 
-3. Rerun the deployer (from the root directory of your Buidler project). It is not a problem to deploy the same contract multiple times.
+3. Rerun the deployer (from the root directory of your Buidler project). It is not a problem to deploy the same contract multiple times, it just gets deployed to
+a different address each time.
 ```bash
 npx buidler run scripts/deploy.js --network localhost
 ```
