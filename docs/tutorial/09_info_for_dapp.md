@@ -12,32 +12,42 @@ These are the changes needed in the deployment script:
 
 1. Add this function:
 ```js
-const info4Dapp = async token => {
-  const fs = require("fs")
-  const fsP = fs.promises
+const info4Dapp = async contract => {
+  const fsP = require("fs").promises
   const contractDir = __dirname + "/../frontend/src/contracts"
+
 
   // If the contract directory does not exist, create it
   try {
     await fsP.stat(contractDir)
   } catch (err) {
-    await fsP.mkdir(contractDir)                                                                                       }
+    await fsP.mkdir(contractDir)
+  }
+
 
   // Provide the contract address
   await fsP.writeFile(
      contractDir + "/contract-address.json",
-     JSON.stringify({Token: token.address})
-  )
+     `{ ${contractName}: ${contract.address} }`
+  )    // fsP.writeFile
+
 
   // Copy the contract artifact
   await fsP.copyFile(
-        `${__dirname}/../artifacts/${contractName}.json`,
-        `${contractDir}/${contractName}.json`
+      `${__dirname}/../artifacts/${contractName}.json`,
+      `${contractDir}/${contractName}.json`
   )
 }  // info4Dapp
+  
+  
 ```
 
 2. Add this line at the end of the `main` function:
 ```js
  await info4Dapp(deployedContract)   
+```
+
+3. Rerun the deployer (from the root directory of your Buidler project). It is not a problem to deploy the same contract multiple times.
+```bash
+npx buidler run scripts/deploy.js --network localhost
 ```
