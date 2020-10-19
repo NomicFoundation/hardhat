@@ -159,7 +159,7 @@ module.exports = {
     ["meta", { name: "theme-color", content: "#ffffff" }],
     ["link", { rel: "shortcut icon", href: "/favicon.ico" }],
     ["link", { rel: "icon", sizes: "16x16 32x32", href: "/favicon.ico" }],
-    ["meta", { name: "twitter:card", content: "summary" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
     ["meta", { name: "twitter:site", content: "@HardhatHQ" }],
     ["meta", { name: "twitter:creator", content: "@NomicLabs" }],
     [
