@@ -123,4 +123,49 @@ describe("TxPriorityHeap", () => {
       assert.equal(txHeap.peek(), txB1);
     });
   });
+
+  describe("shift", () => {
+    it("removes the best transaction from the heap", () => {
+      const tx1 = createTestOrderedTransaction({
+        orderId: 1,
+        gasPrice: parseGWei(3),
+      });
+      const tx2 = createTestOrderedTransaction({
+        orderId: 2,
+        gasPrice: parseGWei(3),
+      });
+      const tx3 = createTestOrderedTransaction({
+        orderId: 3,
+        gasPrice: parseGWei(3),
+      });
+
+      const txHeap = new TxPriorityHeap(makeOrderedTxMap([tx1, tx2, tx3]));
+      txHeap.shift();
+      assert.equal(txHeap.peek(), tx2);
+    });
+
+    it("pushes the next transaction from the same sender onto the heap", () => {
+      const accountA = randomAddressBuffer();
+      const accountB = randomAddressBuffer();
+      const txA1 = createTestTransaction({
+        from: accountA,
+        nonce: 1,
+        gasPrice: parseGWei(3),
+      });
+      const txA2 = createTestTransaction({
+        from: accountA,
+        nonce: 2,
+        gasPrice: parseGWei(2),
+      });
+      const txB1 = createTestTransaction({
+        from: accountB,
+        nonce: 1,
+        gasPrice: parseGWei(1),
+      });
+
+      const txHeap = new TxPriorityHeap(makeOrderedTxMap([txA1, txA2, txB1]));
+      txHeap.shift();
+      assert.equal(txHeap.peek(), txA2);
+    });
+  });
 });

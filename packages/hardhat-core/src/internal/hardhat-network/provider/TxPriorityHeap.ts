@@ -1,10 +1,10 @@
 import { Transaction } from "ethereumjs-tx";
-import { BN } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 import { MaxHeap } from "mnemonist/heap";
 
 export interface OrderedTransaction {
   orderId: number;
-  body: Transaction;
+  body: Transaction; // TODO rename to data
 }
 
 function compareTransactions(
@@ -16,13 +16,15 @@ function compareTransactions(
 }
 
 export class TxPriorityHeap {
-  private _heap = new MaxHeap<OrderedTransaction>(compareTransactions);
+  // tslint:disable-next-line
+  private readonly _pendingTransactions: Map<string, OrderedTransaction[]> = new Map();
+  private readonly _heap = new MaxHeap<OrderedTransaction>(compareTransactions);
 
-  constructor(
-    private readonly _pendingTransactions: Map<string, OrderedTransaction[]>
-  ) {
-    for (const [address, txList] of _pendingTransactions) {
-      this._heap.push(txList[0]);
+  constructor(pendingTransactions: Map<string, OrderedTransaction[]>) {
+    for (const [address, txList] of pendingTransactions) {
+      const [firstTx, ...remainingTxs] = txList;
+      this._heap.push(firstTx);
+      this._pendingTransactions.set(address, remainingTxs);
     }
   }
 
@@ -32,5 +34,20 @@ export class TxPriorityHeap {
 
   public pop() {
     this._heap.pop();
+  }
+
+  public shift() {
+    const bestTx = this.peek();
+    if (bestTx === undefined) {
+      return;
+    }
+    const bestTxSender = bufferToHex(bestTx.body.getSenderAddress());
+    const remainingTxs = this._pendingTransactions.get(bestTxSender) ?? [];
+    if (remainingTxs.length > 0) {
+      // @ts-ignore
+      this._heap.replace(remainingTxs[0]);
+    } else {
+      this._heap.pop();
+    }
   }
 }
