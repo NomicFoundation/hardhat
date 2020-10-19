@@ -342,7 +342,7 @@ address (otherwise we set it to an empty string).
   }
 ```
 
-
+These three functions implement the different actions that a user can perform on the contract.
 
 ```js
   getInitialStake = () => {
@@ -360,26 +360,52 @@ address (otherwise we set it to an empty string).
   }  // transferToken
 ```
 
-
+This function is called to render the component.
 
 ```js
   render = () => {
      // All the returned HTML needs to be packed in a single tag
+```
+
+Notice that this is not a string. The `render` function typically returns 
+[JSX](https://reactjs.org/docs/introducing-jsx.html), which is an extension
+to the JavaScript syntax that makes it easier to write React components.
+
+```js
      return (
          <>
          <h2>Ethereum Status</h2>
+```
+
+The tags are very similar to HTML tags, but you specify the class using `className` instead of class.
+The classes are defined in [Bootstrap](https://www.w3schools.com/bootstrap4/bootstrap_ref_all_classes.asp) 
+to identify 
+
+```js
          <table className="table table-bordered table-striped">
            <thead><tr>
               <th>Parameter</th>
               <th>Value</th>
            </tr></thead>
            <tbody>
+```
+
+JavaScript expressions in JSX are enclosed by curly brackets (`{ <code> }`).
+
+```js           
               <tr><td>Network</td><td>{this.state.network}</td></tr>
               <tr><td>User Address</td><td>{this.state.ourAddr}</td></tr>
               <tr><td>Token Contract Address</td><td>{this.state.tokenAddr}</td></tr>
               <tr><td>Ether Balance</td><td>{this.state.etherBalance}</td></tr>
               <tr><td>Token Balance</td><td>{this.state.tokenBalance}</td></tr>
               <tr><td>Transfer to:</td><td>
+```
+
+This is the way React handles input fields. A state variable is used to store the 
+value, and an `onChange` attribute has the function to call whenever the user changes
+the field's value.
+
+```js
                   <input type="text" value={this.state.transferToField}
                       onChange={this.handleTTFChange} />
               </td></tr>
@@ -388,11 +414,17 @@ address (otherwise we set it to an empty string).
                       onChange={this.handleTAChange} />
               </td></tr>
            </tbody>
-         </table>
+         </table>         
          <button className="btn btn-primary mr-2" onClick={this.getInitialStake}>
             Initial Stake
          </button>
-         <button className="btn btn-success mr-2"
+         <button className="btn btn-success mr-2"         
+```
+
+Notice that the event attributes (`onClick` here and `onChange` above) do not get arbitrary
+JavaScript code, but a function to call. 
+
+```js         
                  onClick={this.transferToken}>
             Transfer {this.state.transferAmt} tokens to {this.state.transferToAddr}
          </button>
@@ -405,9 +437,11 @@ address (otherwise we set it to an empty string).
 
 
 }        // class EthereumDisplay
+```
 
+The react 
 
-
+```js
 function App() {
   return (
     <div className="App">
