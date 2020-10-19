@@ -20,6 +20,9 @@ function getTestTransactionFactory() {
     createTestOrderedTransaction({ orderId: orderId++, ...data });
 }
 
+// TODO add tests for peek with pop/shift
+// TODO add tests for operations on empty set
+
 describe("TxPriorityHeap", () => {
   let createTestTransaction: (data: FakeTxData) => OrderedTransaction;
 
@@ -166,6 +169,38 @@ describe("TxPriorityHeap", () => {
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([txA1, txA2, txB1]));
       txHeap.shift();
       assert.equal(txHeap.peek(), txA2);
+    });
+
+    it("does not push the same next transaction twice", () => {
+      const accountA = randomAddressBuffer();
+      const accountB = randomAddressBuffer();
+      const txA1 = createTestTransaction({
+        from: accountA,
+        nonce: 1,
+        gasPrice: parseGWei(4),
+      });
+      const txA2 = createTestTransaction({
+        from: accountA,
+        nonce: 2,
+        gasPrice: parseGWei(3),
+      });
+      const txA3 = createTestTransaction({
+        from: accountA,
+        nonce: 3,
+        gasPrice: parseGWei(2),
+      });
+      const txB1 = createTestTransaction({
+        from: accountB,
+        nonce: 1,
+        gasPrice: parseGWei(1),
+      });
+
+      const txHeap = new TxPriorityHeap(
+        makeOrderedTxMap([txA1, txA2, txA3, txB1])
+      );
+      txHeap.shift();
+      txHeap.shift();
+      assert.equal(txHeap.peek(), txA3);
     });
   });
 });

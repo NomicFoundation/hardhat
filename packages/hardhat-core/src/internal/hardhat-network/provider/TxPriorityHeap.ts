@@ -17,14 +17,14 @@ function compareTransactions(
 
 export class TxPriorityHeap {
   // tslint:disable-next-line:prettier
-  private readonly _pendingTransactions: Map<string, OrderedTransaction[]> = new Map();
+  private readonly _queuedTransactions: Map<string, OrderedTransaction[]> = new Map();
   private readonly _heap = new MaxHeap<OrderedTransaction>(compareTransactions);
 
   constructor(pendingTransactions: Map<string, OrderedTransaction[]>) {
     for (const [address, txList] of pendingTransactions) {
       const [firstTx, ...remainingTxs] = txList;
       this._heap.push(firstTx);
-      this._pendingTransactions.set(address, remainingTxs);
+      this._queuedTransactions.set(address, remainingTxs);
     }
   }
 
@@ -42,9 +42,11 @@ export class TxPriorityHeap {
       return;
     }
     const bestTxSender = bufferToHex(bestTx.body.getSenderAddress());
-    const remainingTxs = this._pendingTransactions.get(bestTxSender) ?? [];
-    if (remainingTxs.length > 0) {
-      this._heap.replace(remainingTxs[0]);
+    const senderQueuedTxs = this._queuedTransactions.get(bestTxSender) ?? [];
+    if (senderQueuedTxs.length > 0) {
+      const [nextTx, ...remainingTxs] = senderQueuedTxs;
+      this._heap.replace(nextTx);
+      this._queuedTransactions.set(bestTxSender, remainingTxs);
     } else {
       this._heap.pop();
     }
