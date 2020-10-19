@@ -16,7 +16,7 @@ function compareTransactions(
 }
 
 export class TxPriorityHeap {
-  // tslint:disable-next-line
+  // tslint:disable-next-line:prettier
   private readonly _pendingTransactions: Map<string, OrderedTransaction[]> = new Map();
   private readonly _heap = new MaxHeap<OrderedTransaction>(compareTransactions);
 
@@ -44,7 +44,6 @@ export class TxPriorityHeap {
     const bestTxSender = bufferToHex(bestTx.body.getSenderAddress());
     const remainingTxs = this._pendingTransactions.get(bestTxSender) ?? [];
     if (remainingTxs.length > 0) {
-      // @ts-ignore
       this._heap.replace(remainingTxs[0]);
     } else {
       this._heap.pop();
