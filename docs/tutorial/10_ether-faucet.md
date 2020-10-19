@@ -10,10 +10,6 @@ In this part of the tutorial we create a [Buidler task](../guides/create-task.ht
 1. Create a `tasks` directory and within it a file `faucet.js`:
 
 ```js
-const contractName = "Token"
-const fsP = require("fs").promises
-
-
 task("faucet", "Sends ETH and tokens to an address")
   .addPositionalParam("receiver", "The address that will receive them")
   .setAction(async ({ receiver }) => {
@@ -23,9 +19,6 @@ task("faucet", "Sends ETH and tokens to an address")
       return
     }    // Require a specified network
 
-
-    const addressesFile =
-      __dirname + "/../frontend/src/contracts/contract-address.json"
 
     const [sender] = await ethers.getSigners();
 
@@ -67,4 +60,60 @@ eth_sendTransaction
 eth_chainId
 eth_getTransactionByHash
 eth_blockNumber
+```
+
+## Detailed explanation
+
+Create a task called `faucet` with this description
+
+```js
+task("faucet", "Sends ETH and tokens to an address")
+```
+
+Add the `receiver` parameter.
+
+```js
+  .addPositionalParam("receiver", "The address that will receive them")
+```
+
+Set the action of the task. The parameters are provided as an associative array. The syntax
+`({ receiver })` sets a variable called `receiver` to the value with that key.
+
+```js
+  .setAction(async ({ receiver }) => {
+```
+
+You can see what variables are available as part of the Buidler Runtime Environment 
+[here](https://buidler.dev/api/classes/environment.html).
+
+If `network.name` is `buidlerevm` it means this is an ephemeral EVM that is started just for this
+task and will be terminated when it ends. In that case there is no point adding Ether to an
+account on a blockchain that is going to be terminated as soon as it is done anyway.
+
+```js
+    if (network.name === "buidlerevm") {
+      console.warn("This task does not make sense without a --network parameter.\n" + 
+                   "Use --network localhost.")
+      return
+    }    // Require a specified network
+```
+
+The `ethers.getSigners()` function gives you an array of accounts. The syntax `[sender]` sets the variable `sender`
+to `ethers.getSigners()[0]`.
+
+```js
+    const [sender] = await ethers.getSigners();
+```
+
+Send the ether and wait for the blockchain to process the transaction.
+
+```js
+    const tx = await sender.sendTransaction({
+      to: receiver,
+      value: ethers.constants.WeiPerEther,
+    })
+    await tx.wait()
+
+    console.log(`Transferred 1 ETH to ${receiver}`)
+  })  // End of .setAction  
 ```
