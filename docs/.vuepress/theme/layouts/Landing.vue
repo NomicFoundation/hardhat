@@ -1,7 +1,6 @@
 <template lang="pug">
-.theme-container(
+.theme-container.landing-html(
   :class="pageClasses",
-  class="landing-html",
   @touchstart="onTouchStart",
   @touchend="onTouchEnd"
 )
@@ -11,7 +10,7 @@
 
   HHHero(v-if="this.$page.frontmatter.home")
 
-  div.sidebar-mask(@click="toggleSidebar(false)")
+  .sidebar-mask(@click="toggleSidebar(false)")
 
   HHSidebar(:items="sidebarItems", @toggle-sidebar="toggleSidebar")
     slot(name="sidebar-top", slot="top")

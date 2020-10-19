@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
-    <NavLinks :github="true"/>
-    <slot name="top"/>
+    <NavLinks :github="true" />
+    <slot name="top" />
     <ul class="sidebar-links" v-if="items.length">
       <li v-for="(item, i) in items" :key="i">
         <SidebarGroup
@@ -12,10 +12,10 @@
           :collapsable="item.collapsable || item.collapsible"
           @toggle="toggleGroup(i)"
         />
-        <SidebarLink v-else :item="item"/>
+        <SidebarLink v-else :item="item" />
       </li>
     </ul>
-    <slot name="bottom"/>
+    <slot name="bottom" />
   </div>
 </template>
 
@@ -23,10 +23,10 @@
 import SidebarGroup from "./SidebarGroup.vue";
 import SidebarLink from "./SidebarLink.vue";
 import NavLinks from "./NavLinks.vue";
-import {isActive} from "../util";
+import { isActive } from "../util";
 
 export default {
-  components: {SidebarGroup, SidebarLink, NavLinks},
+  components: { SidebarGroup, SidebarLink, NavLinks },
 
   props: ["items"],
 
@@ -164,5 +164,4 @@ function resolveOpenGroupIndex(route, items) {
 
     .sidebar-links
       padding 1rem 0
-
 </style>

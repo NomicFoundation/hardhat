@@ -2,8 +2,8 @@
   <nav class="nav-links" v-if="userLinks.length || repoLink">
     <!-- user links -->
     <div class="nav-item" v-for="item in userLinks" :key="item.link">
-      <DropdownLink v-if="item.type === 'links'" :item="item"/>
-      <NavLink v-else :item="item"/>
+      <DropdownLink v-if="item.type === 'links'" :item="item" />
+      <NavLink v-else :item="item" />
     </div>
 
     <!-- repo link -->
@@ -15,18 +15,18 @@
       rel="noopener noreferrer"
     >
       {{ repoLabel }}
-      <OutboundLink/>
+      <OutboundLink />
     </a>
   </nav>
 </template>
 
 <script>
 import DropdownLink from "./DropdownLink.vue";
-import {resolveNavLinkItem} from "../util";
+import { resolveNavLinkItem } from "../util";
 import NavLink from "./NavLink.vue";
 
 export default {
-  components: {NavLink, DropdownLink},
+  components: { NavLink, DropdownLink },
   props: ["github"],
 
   computed: {
@@ -35,7 +35,7 @@ export default {
     },
 
     nav() {
-      const {locales} = this.$site;
+      const { locales } = this.$site;
       if (locales && Object.keys(locales).length > 1) {
         const currentLink = this.$page.path;
         const routes = this.$router.options.routes;
@@ -58,7 +58,7 @@ export default {
                 link = path;
               }
             }
-            return {text, link};
+            return { text, link };
           }),
         };
         return [...this.userNav, languageDropdown];
@@ -75,7 +75,7 @@ export default {
     },
 
     repoLink() {
-      const {repo} = this.$site.themeConfig;
+      const { repo } = this.$site.themeConfig;
       if (repo) {
         return /^https?:/.test(repo) ? repo : `https://github.com/${repo}`;
       }
@@ -167,9 +167,9 @@ export default {
 @media (max-width: $MQMobileNarrow)
   .nav-item > a
     color $black
-  
+
   .nav-item > a:not(.external)
-    
+
     &:hover, &.router-link-active
       color: $accentColor !important
       border-bottom 2px solid $accentColor

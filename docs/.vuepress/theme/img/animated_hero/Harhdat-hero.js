@@ -7,11 +7,10 @@
 // You can search for the comments with the tag [MODIFIED] to find where
 // and how they took place.
 
-
 // [MODIFIED]: Added these imports
-import CachedBmp from "./CachedBmp_9.png"
-import HardhatHeroAtlas1 from "./Harhdat_hero_atlas_1.png"
-import HardhatHeroAtlas2 from "./Harhdat_hero_atlas_2.png"
+import CachedBmp from "./CachedBmp_9.png";
+import HardhatHeroAtlas1 from "./Harhdat_hero_atlas_1.png";
+import HardhatHeroAtlas2 from "./Harhdat_hero_atlas_2.png";
 
 // [MODIFIED]: Added this definition
 window.AdobeAn = window.AdobeAn || {};
@@ -2708,7 +2707,7 @@ window.AdobeAn = window.AdobeAn || {};
     color: "#FFFFFF",
     opacity: 1.0,
     manifest: [
-      // [MODIFIED]: Replaced the src properties. They used to have string, 
+      // [MODIFIED]: Replaced the src properties. They used to have string,
       // now they have the improted urls.
       { src: CachedBmp, id: "CachedBmp_9" },
       { src: HardhatHeroAtlas1, id: "Harhdat_hero_atlas_1" },
@@ -2840,7 +2839,7 @@ window.AdobeAn = window.AdobeAn || {};
     }
 
     // [MODIFIED]: Added this return statement
-    return resizeCanvas
+    return resizeCanvas;
   };
   an.handleSoundStreamOnTick = function (event) {
     if (!event.paused) {
@@ -2850,5 +2849,5 @@ window.AdobeAn = window.AdobeAn || {};
       }
     }
   };
-// [MODIFIED]: Changed the params
+  // [MODIFIED]: Changed the params
 })(window.createjs, window.AdobeAn);

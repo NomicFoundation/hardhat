@@ -3,9 +3,9 @@
     class="navbar"
     v-bind:class="{ notFixed: $page.frontmatter.home === true }"
   >
-    <div style="position: relative;">
+    <div style="position: relative">
       <HHTopBar />
-      <div style="position: relative;">
+      <div style="position: relative">
         <header>
           <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
@@ -21,7 +21,8 @@
               class="site-name"
               v-if="$siteTitle"
               :class="{ 'can-hide': $site.themeConfig.logo }"
-              >{{ $siteTitle }}</span>
+              >{{ $siteTitle }}</span
+            >
           </a>
 
           <div
