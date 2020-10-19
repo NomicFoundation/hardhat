@@ -681,7 +681,7 @@ describe("Transaction Pool", () => {
     });
   });
 
-  describe.only("snapshot", () => {
+  describe("snapshot", () => {
     it("increases tx pool's current snapshot id after a snapshot", () => {
       txPool.snapshot();
       assert.equal(txPool.getCurrentSnapshotId(), 1);
