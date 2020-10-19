@@ -13,7 +13,7 @@ This kind of extension injects an Ethereum provider object into the browse that 
 The first step to create the React application that will serve the code to talk to the Ethereum blockchain we need to create a React project:
 
 1. Open a terminal and change to the project root directory.
-1. Create the project:
+2. Create the project:
    ```bash
    npx create-react-app frontend
    cd frontend
@@ -62,4 +62,9 @@ application.
    {"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error: Unexpected end of JSON input"}}
    ```
 2. Click the Metamask icon (![Metamask icon](https://raw.githubusercontent.com/qbzzt/qbzzt.github.io/master/metamask-logo.png)) in the top right corner of the browser.
-3. Click the currently selected network (by default **Main Ethereum Network** and select **Localhost 8545**.
+3. Click the currently selected network (by default **Main Ethereum Network**) and select **Localhost 8545**.
+
+::: warning
+If you stop the Buidler EVM and then start it again, MetaMask may be unable to communicate with it until you connect 
+to another network and then return to **Localhost 8545**. Also, you may need [reset the nonce value](https://btcgeek.com/how-to-set-nonce-in-metamask/).
+:::
