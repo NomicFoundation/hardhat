@@ -31,27 +31,26 @@ class EthereumDisplay extends React.Component {
 
   }   // constructor
 
-  // Process a NewBalance event
-  processEvent = async evt => {
-    console.log(evt)
-    this.setState({
-        tokenBalance: parseInt((await this.state.tokenContract.balanceOf(evt))._hex)
-    })
-  }     // processEvent
 
+
+  // Process a NewBalance event
+  processEvent = async (addr, balance) => {
+    this.setState({tokenBalance: balance.toNumber())})
+  }     // processEvent  
+  
 
   // This function is called after the component is rendered.
   componentDidMount = async () => {
     await window.ethereum.enable()
-    var provider = new ethers.providers.Web3Provider(window.ethereum)
-    var signer = provider.getSigner()
-    var net = await provider.getNetwork()
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    const signer = provider.getSigner()
+    const net = await provider.getNetwork()
 
-    var ourAddr = await signer.getAddress()
-    var tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
+    const ourAddr = await signer.getAddress()
+    const tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
 
-    var etherBalance = parseInt((await provider.getBalance(ourAddr))._hex)
-    var tokenBalance = parseInt((await tokenContract.balanceOf(ourAddr))._hex)
+    const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
+    const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
 
     tokenContract.on(
         tokenContract.filters.NewBalance(ourAddr),
@@ -125,7 +124,7 @@ class EthereumDisplay extends React.Component {
               <tr><td>Network</td><td>{this.state.network}</td></tr>
               <tr><td>User Address</td><td>{this.state.ourAddr}</td></tr>
               <tr><td>Token Contract Address</td><td>{this.state.tokenAddr}</td></tr>
-              <tr><td>Ether Balance</td><td>{this.state.etherBalance / 1e18}</td></tr>
+              <tr><td>Ether Balance</td><td>{this.state.etherBalance}</td></tr>
               <tr><td>Token Balance</td><td>{this.state.tokenBalance}</td></tr>
               <tr><td>Transfer to:</td><td>
                   <input type="text" value={this.state.transferToField}
@@ -211,31 +210,38 @@ constructor you just assign values to this array.
 ```
 
 This function is called when the contract emits a `NewBalance` event for the user's address (we see how it is registered
-later). It receives 
+later). It receives as parameters the two values of that event, the address and its new balance.
 
 ```js
-
   // Process a NewBalance event
-  processEvent = async evt => {
-    console.log(evt)
-    this.setState({
-        tokenBalance: parseInt((await this.state.tokenContract.balanceOf(evt))._hex)
-    })
+  processEvent = async (addr, balance) => {
+  
+```  
+
+The method `this.setState` is used to update the state once component has been mounted. In addition to changing `this.state` it 
+triggers any needed updated and reruns `render`.
+
+The balance is provided in a type called [BigNumber](https://docs.ethers.io/v5/api/utils/bignumber/). 
+
+```js  
+    this.setState({tokenBalance: balance.toNumber())})
   }     // processEvent
+```
 
 
+```js
   // This function is called after the component is rendered.
   componentDidMount = async () => {
     await window.ethereum.enable()
-    var provider = new ethers.providers.Web3Provider(window.ethereum)
-    var signer = provider.getSigner()
-    var net = await provider.getNetwork()
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    const signer = provider.getSigner()
+    const net = await provider.getNetwork()
 
-    var ourAddr = await signer.getAddress()
-    var tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
+    const ourAddr = await signer.getAddress()
+    const tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
 
-    var etherBalance = parseInt((await provider.getBalance(ourAddr))._hex)
-    var tokenBalance = parseInt((await tokenContract.balanceOf(ourAddr))._hex)
+    const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
+    const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
 
     tokenContract.on(
         tokenContract.filters.NewBalance(ourAddr),
@@ -309,7 +315,7 @@ later). It receives
               <tr><td>Network</td><td>{this.state.network}</td></tr>
               <tr><td>User Address</td><td>{this.state.ourAddr}</td></tr>
               <tr><td>Token Contract Address</td><td>{this.state.tokenAddr}</td></tr>
-              <tr><td>Ether Balance</td><td>{this.state.etherBalance / 1e18}</td></tr>
+              <tr><td>Ether Balance</td><td>{this.state.etherBalance}</td></tr>
               <tr><td>Token Balance</td><td>{this.state.tokenBalance}</td></tr>
               <tr><td>Transfer to:</td><td>
                   <input type="text" value={this.state.transferToField}
