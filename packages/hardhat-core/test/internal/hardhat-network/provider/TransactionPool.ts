@@ -702,7 +702,7 @@ describe("Transaction Pool", () => {
     });
   });
 
-  describe.only("revert", () => {
+  describe("revert", () => {
     it("throws if snapshot with given ID doesn't exist", async () => {
       assert.throws(() => txPool.revert(5), "There's no snapshot with such ID");
     });
