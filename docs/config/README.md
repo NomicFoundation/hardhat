@@ -74,7 +74,7 @@ You can set the following fields on the `hardhat` config:
 
 - `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `9500000`
 
-- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, and `"istanbul"`. Default value: `"istanbul"`
+- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, and `"muirGlacier"`. Default value: `"muirGlacier"`
 
 - `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures.
   If this value is `true`, Hardhat Network will throw [combined JavaScript and Soldity stack traces](../hardhat-network/README.md#solidity-stack-traces)
