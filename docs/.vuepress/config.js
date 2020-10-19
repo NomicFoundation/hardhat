@@ -167,15 +167,14 @@ module.exports = {
       {
         name: "twitter:title",
         content:
-          "Ethereum development environment for professionals by Nomic Labs",
+          "Ethereum development environment for professionals",
       },
     ],
     [
       "meta",
       {
         name: "twitter:image",
-        content:
-          "https://deploy-preview-898--buidler.netlify.app/card.png",
+        content: "https://deploy-preview-898--buidler.netlify.app/card.png",
       },
     ],
     [
@@ -183,7 +182,7 @@ module.exports = {
       {
         property: "og:description",
         content:
-          "Hardhat is a development environment to compile, deploy, test and debug your Ethereum software. Get Solidity stack traces, console.log, mainnet forking and more.",
+          "Compile, deploy, test and debug your Ethereum software. Get Solidity stack traces, console.log, mainnet forking and more.",
       },
     ],
     [
