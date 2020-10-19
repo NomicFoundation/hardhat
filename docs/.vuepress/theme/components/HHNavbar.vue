@@ -47,12 +47,12 @@ export default {
         },
         {
           name: "Twitter",
-          link: "https://twitter.com/nomiclabs",
+          link: "https://twitter.com/HardhatHQ",
           img: TwitterLogo,
         },
         {
           name: "Discord",
-          link: "https://invite.gg/BuidlerSupport",
+          link: "https://invite.gg/HardhatSupport",
           img: DiscordLogo,
         },
       ];
