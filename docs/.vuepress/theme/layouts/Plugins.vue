@@ -3,8 +3,9 @@
     <template slot="page-top">
       <div class="content">
         <h1>Plugins</h1>
-        <p>Plugins are the backbone of Hardhat. Hardhat's plugins and built-in tasks are built using the same API that
-          you use in your Hardhat configuration!</p>
+        <p>Plugins are the backbone of Hardhat, and they're built using the same config DSL that
+          you use in your Hardhat configuration. Read the <a href="/advanced/building-plugins.html">Building plugins</a> guide to learn how to create your own, and <a href="https://github.com/nomiclabs/hardhat/blob/development/docs/.vuepress/plugins.js">send a pull request</a> to get it listed here.
+        </p>
         <p>Extend Hardhat's functionality with the plugins below.</p>
         <!-- Check out the [Using Plugins Guide]() to learn more.</p> -->
         <div class="plugins">
