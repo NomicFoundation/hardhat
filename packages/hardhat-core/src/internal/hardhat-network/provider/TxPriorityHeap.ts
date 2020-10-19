@@ -29,4 +29,8 @@ export class TxPriorityHeap {
   public peek() {
     return this._heap.peek();
   }
+
+  public pop() {
+    this._heap.pop();
+  }
 }
