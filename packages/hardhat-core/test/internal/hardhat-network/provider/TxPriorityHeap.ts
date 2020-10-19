@@ -28,7 +28,7 @@ describe("TxPriorityHeap", () => {
   });
 
   describe("peek", () => {
-    it("returns the transaction with the highest gas price", async () => {
+    it("returns the transaction with the highest gas price", () => {
       const tx1 = createTestTransaction({ gasPrice: parseGWei(1) });
       const tx2 = createTestTransaction({ gasPrice: parseGWei(3) });
       const tx3 = createTestTransaction({ gasPrice: parseGWei(2) });
@@ -37,7 +37,7 @@ describe("TxPriorityHeap", () => {
       assert.equal(txHeap.peek(), tx2);
     });
 
-    it("returns the transaction with the lowest orderId in case of gas price draw", async () => {
+    it("returns the transaction with the lowest orderId in case of gas price draw", () => {
       const tx1 = createTestOrderedTransaction({
         orderId: 1,
         gasPrice: parseGWei(3),
@@ -55,7 +55,7 @@ describe("TxPriorityHeap", () => {
       assert.equal(txHeap.peek(), tx1);
     });
 
-    it("returns only currently processable transactions", async () => {
+    it("returns only currently processable transactions", () => {
       const accountA = randomAddressBuffer();
       const accountB = randomAddressBuffer();
       const txA1 = createTestTransaction({
