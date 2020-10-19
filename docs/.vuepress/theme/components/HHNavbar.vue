@@ -52,7 +52,7 @@ export default {
         },
         {
           name: "Discord",
-          link: "https://invite.gg/HardhatSupport",
+          link: "https://hardhat.org/discord",
           img: DiscordLogo,
         },
       ];
@@ -60,27 +60,26 @@ export default {
     navLinks() {
       return this.$site.themeConfig.nav;
     },
-    
   },
   mounted() {
-    const menuToggler = this.$el.querySelector('#nav-icon3');
-    const mobileMenuContainer = this.$el.querySelector('.navbar-mobile');
-    const mobileMenuWrapper = this.$el.querySelector('.navbar-mobile-wrapper');
+    const menuToggler = this.$el.querySelector("#nav-icon3");
+    const mobileMenuContainer = this.$el.querySelector(".navbar-mobile");
+    const mobileMenuWrapper = this.$el.querySelector(".navbar-mobile-wrapper");
 
-    menuToggler.addEventListener('click', e => {
-      if (mobileMenuContainer.classList.contains('hidden')) {
+    menuToggler.addEventListener("click", (e) => {
+      if (mobileMenuContainer.classList.contains("hidden")) {
         mobileMenuWrapper.style.pointerEvents = "all";
-        mobileMenuContainer.classList.remove('hidden');
-        menuToggler.classList.add('open');
-        document.querySelector('html').style.overflowY = 'hidden';
+        mobileMenuContainer.classList.remove("hidden");
+        menuToggler.classList.add("open");
+        document.querySelector("html").style.overflowY = "hidden";
       } else {
-        menuToggler.classList.remove('open');
+        menuToggler.classList.remove("open");
         mobileMenuWrapper.style.pointerEvents = "none";
-        mobileMenuContainer.classList.add('hidden');
-        document.querySelector('html').style.overflowY = 'auto';
+        mobileMenuContainer.classList.add("hidden");
+        document.querySelector("html").style.overflowY = "auto";
       }
     });
-  }
+  },
 };
 </script>
 
@@ -90,13 +89,15 @@ export default {
 .navbar
   -webkit-font-smoothing antialiased
   -moz-osx-font-smoothing grayscale
-  
+  background transparent !important
   position relative
   z-index 1
+  height unset
+  color $black !important
   @media (max-width: 1000px)
     padding 15px 24px
     padding-top 0px
-    height 80px
+    height 80px !important
     margin-bottom 0
 
   .navbar-inner-container
@@ -104,7 +105,6 @@ export default {
 
     justify-content space-between
 
-    padding 1rem
     margin 0 auto
     @media (max-width: 1000px)
       padding 1rem 20px
@@ -117,6 +117,7 @@ export default {
       background-repeat no-repeat
       position relative
       top 0.4rem
+      margin-left 0 !important
       @media (max-width: 1000px)
         height 40px
       @media (max-width: 1000px) and (min-width: 720px)
@@ -126,14 +127,17 @@ export default {
       width 100%
       display flex
 
+
       ul.nav-links
         margin-left auto
         display flex
         list-style none
         justify-content space-between
+        background transparent !important
 
         li
           line-height 3rem
+
 
           a
             position relative
@@ -142,7 +146,8 @@ export default {
             letter-spacing 0.1rem
             color #0A0A0A
             font-size 15px
-            margin-left 40px
+            margin-left 40px !important
+            margin-right 0px !important
 
             &:after
               content ''
@@ -165,7 +170,7 @@ export default {
         justify-content space-evenly
         display flex
         align-items center
-        width 120px
+        width 150px
 
         li
           transition 0.2s ease-in-out opacity
@@ -214,6 +219,7 @@ export default {
               a
                 font-size 16px !important
                 margin-bottom 8px
+
 
           .social-links
             img
@@ -273,6 +279,7 @@ export default {
 
               a
                 font-size 24px
+                margin-left 0px !important
 
                 &:after
                   display none

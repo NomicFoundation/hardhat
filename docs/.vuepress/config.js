@@ -9,7 +9,8 @@ plugins.forEach((plugin) => {
 });
 
 module.exports = {
-  title: "Hardhat | Ethereum development environment for professionals by Nomic Labs",
+  title:
+    "Hardhat | Ethereum development environment for professionals by Nomic Labs",
   description:
     "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
   themeConfig: {
@@ -158,15 +159,36 @@ module.exports = {
     ["meta", { name: "theme-color", content: "#ffffff" }],
     ["link", { rel: "shortcut icon", href: "/favicon.ico" }],
     ["link", { rel: "icon", sizes: "16x16 32x32", href: "/favicon.ico" }],
+    ["meta", { name: "twitter:card", content: "summary" }],
+    ["meta", { name: "twitter:site", content: "@HardhatHQ" }],
+    ["meta", { name: "twitter:creator", content: "@NomicLabs" }],
+    [
+      "meta",
+      {
+        property: "og:description",
+        content:
+          "Hardhat is a development environment to compile, deploy, test and debug your Ethereum software. Get Solidity stack traces, console.log, mainnet forking and more.",
+      },
+    ],
+    ["meta", { property: "og:image", content: "/card.png" }],
+    ["meta", { property: "og:image:width", content: "2400" }],
+    ["meta", { property: "og:image:height", content: "1250" }],
   ],
   markdown: {
     slugify: (title) => {
-      const errorTitle = /(^BDLR\d+):/;
+      const buidlerErrorTitle = /(^BDLR\d+):/i;
+      const hardhatErrorTitle = /(^HH\d+):/i;
 
-      const match = errorTitle.exec(title);
+      const matchBuidler = buidlerErrorTitle.exec(title);
 
-      if (match !== null) {
-        return match[1];
+      if (matchBuidler !== null) {
+        return matchBuidler[1];
+      }
+
+      const matchHardhat = hardhatErrorTitle.exec(title);
+
+      if (matchHardhat !== null) {
+        return matchHardhat[1];
       }
 
       return defaultSlugify(title);

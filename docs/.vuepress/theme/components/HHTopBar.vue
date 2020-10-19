@@ -1,48 +1,48 @@
 <template lang="pug">
-  section.top-bar
-    a(
-      href="https://medium.com/nomic-labs-blog/better-solidity-debugging-console-log-is-finally-here-fc66c54f2c4a",
-      target="_blank",
-      rel="noopener noreferrer"
-    )
-      .top-bar-content.desktop-top-bar
-        span
-          span.colored.reverse.animation-6chars.animation-reversed
-            span <
-            span <
-            span <
-            span <
-            span <
-            span <
-              | 
-              |
-          span.top-text Buidler is now Hardhat. Learn more about the latest release and rebrand.
-          span.colored.reverse.animation-6chars
-            span 
-             | 
-             | >
-            span >
-            span >
-            span >
-            span >
-            span >
-      .top-bar-content.mobile-top-bar
-        span
-          span.colored.reverse.animation-4chars.animation-reversed
-            span <
-            span <
-            span <
-            span <
-              | 
-              |
-          span.top-text Stack traces and console.log are finally here
-          span.colored.reverse.animation-4chars
-            span 
-              |
-              | >
-            span >
-            span >
-            span >
+section.top-bar
+  a(
+    href="https://medium.com/nomic-labs-blog/better-solidity-debugging-console-log-is-finally-here-fc66c54f2c4a",
+    target="_blank",
+    rel="noopener noreferrer"
+  )
+    .top-bar-content.desktop-top-bar
+      span
+        span.colored.reverse.animation-6chars.animation-reversed
+          span <
+          span <
+          span <
+          span <
+          span <
+          span <
+            |
+            |
+        span.top-text Buidler is now Hardhat. Learn more about the latest release and rebrand.
+        span.colored.reverse.animation-6chars
+          span 
+            |
+            | >
+          span >
+          span >
+          span >
+          span >
+          span >
+    .top-bar-content.mobile-top-bar
+      span
+        span.colored.reverse.animation-4chars.animation-reversed
+          span <
+          span <
+          span <
+          span <
+            |
+            |
+        span.top-text Stack traces and console.log are finally here
+        span.colored.reverse.animation-4chars
+          span 
+            |
+            | >
+          span >
+          span >
+          span >
 </template>
 
 <script>
@@ -114,14 +114,14 @@ export default {
       animation-name char3of4
     &:nth-child(1)
       animation-name char4of4
-      
+
 .top-bar
   margin 0
   padding 0
   box-sizing border-box
-  font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif !important; 
+  font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif !important;
   color $black
-  
+
   *
     -webkit-font-smoothing antialiased  !important
     -moz-osx-font-smoothing grayscale !important
@@ -131,7 +131,7 @@ export default {
     box-sizing border-box
     font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
     color $black
-  
+
   background-color #0A0A0A
   text-align center
   font-weight 200
@@ -141,7 +141,7 @@ export default {
   @media screen and (max-width 1000px)
     padding 0.8rem 0
     white-space nowrap
-    
+
   a
     display block
 
@@ -176,7 +176,7 @@ export default {
   .mobile-top-bar
     @media screen and (min-width: 599px)
       display none
-      
+
 @keyframes char1of6 {
   0% {opacity: 0; }
   16.6% {opacity: 1; }
@@ -239,7 +239,7 @@ export default {
   25% {opacity: 1; }
   50% {opacity: 1; }
   75% {opacity: 1; }
-  100% {opacity: 0; } 
+  100% {opacity: 0; }
 }
 
 @keyframes char2of4 {
@@ -265,5 +265,4 @@ export default {
   75% {opacity: 0; }
   100% {opacity: 1; }
 }
-
 </style>

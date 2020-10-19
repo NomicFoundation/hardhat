@@ -1,6 +1,7 @@
 <template lang="pug">
 .theme-container(
   :class="pageClasses",
+  class="landing-html",
   @touchstart="onTouchStart",
   @touchend="onTouchEnd"
 )
@@ -125,6 +126,18 @@ export default {
     });
   },
 
+  created() {
+    if (typeof window !== "undefined") {
+      window.document.children[0].classList.add("landing-html");
+    }
+  },
+
+  destroyed() {
+    if (typeof window !== "undefined") {
+      window.document.children[0].classList.remove("landing-html");
+    }
+  },
+
   methods: {
     toggleSidebar(to) {
       this.isSidebarOpen = typeof to === "boolean" ? to : !this.isSidebarOpen;
@@ -154,5 +167,5 @@ export default {
 </script>
 
 <style src="prismjs/themes/prism-tomorrow.css"></style>
-<style lang="stylus" src="../styles/landing.styl"></style>
+<style lang="stylus" src="../styles/theme.styl"></style>
 <style lang="stylus" scoped></style>

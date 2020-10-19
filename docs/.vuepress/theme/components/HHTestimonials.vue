@@ -53,7 +53,7 @@ export default {
   name: "HHTestimonials",
   data() {
     return {
-      VueCarousel:null,
+      VueCarousel: null,
       CarrouselArrowImage,
       testimonials: [
         {
@@ -106,9 +106,9 @@ export default {
   },
   mounted() {
     import("vue-carousel").then((module) => {
-      this.VueCarousel = module
+      this.VueCarousel = module;
     });
-  }
+  },
 };
 </script>
 

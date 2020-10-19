@@ -34,7 +34,7 @@
             <SearchBox v-else-if="$page.frontmatter.search !== false" />
             <NavLinks class="can-hide" />
 
-            <ul class="social-links">
+            <ul class="social-links social-links-non-landing">
               <li v-for="socialLink of social">
                 <a
                   :href="socialLink.link"
@@ -121,12 +121,12 @@ export default {
         },
         {
           name: "Twitter",
-          link: "https://twitter.com/nomiclabs",
+          link: "https://twitter.com/HardhatHQ",
           img: TwitterLogo,
         },
         {
           name: "Discord",
-          link: "https://invite.gg/BuidlerSupport",
+          link: "https://hardhat.org/discord",
           img: DiscordLogo,
         },
       ];
@@ -206,7 +206,7 @@ $navbar-horizontal-padding = 2rem
 
 @media (max-width: 1240px)
   .navbar
-    .social-links
+    .social-links-non-landing
       display none !important
 
 @media (max-width: $MQMobile)

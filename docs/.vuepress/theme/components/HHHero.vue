@@ -42,9 +42,9 @@ export default {
 
 function preloadImage(url) {
   if (typeof window === "undefined") {
-    return
+    return;
   }
-  
+
   if (window.__preloadedImages === undefined) {
     window.__preloadedImages = [];
   }
