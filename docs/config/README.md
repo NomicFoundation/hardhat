@@ -45,7 +45,7 @@ module.exports = {
 The `networks` config field is an optional object where network names map to their configuration.
 
 There are two kinds of networks in Hardhat: [JSON-RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) based networks,
-and the built-in Hardhat Network network.
+and the built-in Hardhat Network.
 
 You can customize which network is used by default when running Hardhat by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"hardhat"`.
 
