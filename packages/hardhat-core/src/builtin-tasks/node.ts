@@ -222,7 +222,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     types.int
   )
   .addOptionalParam(
-    "forkUrl",
+    "fork",
     "The URL of the JSON-RPC server to fork from",
     undefined,
     types.string
@@ -237,12 +237,12 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     async (
       {
         forkBlockNumber,
-        forkUrl,
+        fork: forkUrl,
         hostname: hostnameParam,
         port,
       }: {
         forkBlockNumber?: number;
-        forkUrl?: string;
+        fork?: string;
         hostname?: string;
         port: number;
       },
