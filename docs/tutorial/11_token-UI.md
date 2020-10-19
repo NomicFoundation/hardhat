@@ -228,10 +228,22 @@ The balance is provided in a type called [BigNumber](https://docs.ethers.io/v5/a
   }     // processEvent
 ```
 
+Some Ethereum information takes time to obtain, so it needs to be set asynchronously. However, if we call the asynchronous function from the
+constructor, there are two possibilities:
+
+1. We receive the answer before the `EthereumDisplay` component is mounted, and to change the state we need to use `this.state[<key>] = <value>`.
+2. We receive the answer after the component is mounted, and to change the state we need to use `this.setState({<key>: <value>}`
+
+There is no way to know which to use. Instead, we run them from `componentDidMount`, which is always called after the component is mounted.
 
 ```js
   // This function is called after the component is rendered.
   componentDidMount = async () => {
+```  
+
+Connect the 
+  
+```js  
     await window.ethereum.enable()
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const signer = provider.getSigner()
