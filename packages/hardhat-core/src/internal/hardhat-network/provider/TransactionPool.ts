@@ -1,6 +1,10 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
-import { List as ImmutableList, Map as ImmutableMap } from "immutable";
+ import {
+  List as ImmutableList,
+  Map as ImmutableMap,
+  Record as ImmutableRecord,
+} from "immutable";
 
 import { PStateManager } from "./types/PStateManager";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
@@ -35,29 +39,29 @@ export function deserializeTransaction(tx: SerializedTransaction): Transaction {
   return new Transaction(fields);
 }
 
-// export interface PoolState {
-//   pendingTransactions
-//   queuedTransactions
-//   executableNonces
-//   blockGasLimit
-// }
+export interface PoolStateProps {
+  pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
+  queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
+  executableNonces: ImmutableMap<string, string>; // address => nonce (hex)
+  blockGasLimit: BN;
+}
 
-// export const makePoolState = ImmutableRecord<PoolState>({
-//   pendingTransactions: ImmutableMap()
-//   queuedTransactions: ImmutableMap()
-//   executableNonces: ImmutableMap()
-//   blockGasLimit: blockGasLimit from constuctor param
-// });
+export const poolState = ImmutableRecord<PoolStateProps>({
+  pendingTransactions: ImmutableMap(),
+  queuedTransactions: ImmutableMap(),
+  executableNonces: ImmutableMap(),
+  blockGasLimit: new BN(10000000),
+});
 
 export class TransactionPool {
-  private _pendingTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized pending Transactions
-  private _queuedTransactions: AddressToTransactions = ImmutableMap(); // address => list of serialized queued Transactions
-  private _executableNonces = ImmutableMap<string, string>(); // address => nonce (hex)
+  private _state: ImmutableRecord<PoolStateProps>;
 
   constructor(
     private readonly _stateManager: PStateManager,
     private _blockGasLimit: BN
-  ) {}
+  ) {
+    this._state = poolState({ blockGasLimit: this._blockGasLimit });
+  }
 
   public async addTransaction(tx: Transaction) {
     const senderNonce = await this._validateTransaction(tx);
@@ -71,21 +75,21 @@ export class TransactionPool {
   }
 
   public getPendingTransactions(): Map<string, Transaction[]> {
-    const deserializedImmutableMap = this._pendingTransactions.map((txs) =>
+    const deserializedImmutableMap = this._getPending().map((txs) =>
       txs.map((tx) => deserializeTransaction(tx)).toJS()
     );
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, Transaction[]> {
-    const deserializedImmutableMap = this._queuedTransactions.map((txs) =>
+    const deserializedImmutableMap = this._getPending().map((txs) =>
       txs.map((tx) => deserializeTransaction(tx)).toJS()
     );
     return new Map(deserializedImmutableMap.entries());
   }
 
   public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
-    const nonce = this._executableNonces.get(bufferToHex(accountAddress));
+    const nonce = this._getExecutableNonces().get(bufferToHex(accountAddress));
     if (nonce === undefined) {
       const account = await this._stateManager.getAccount(accountAddress);
       return new BN(account.nonce);
@@ -94,7 +98,7 @@ export class TransactionPool {
   }
 
   public getBlockGasLimit() {
-    return this._blockGasLimit;
+    return this._getBlockGasLimit();
   }
 
   public setBlockGasLimit(newLimit: BN | number) {
@@ -102,12 +106,12 @@ export class TransactionPool {
       newLimit = new BN(newLimit);
     }
 
-    this._blockGasLimit = newLimit;
+    this._setBlockGasLimit(newLimit);
   }
 
   public async clean() {
-    this._pendingTransactions = await this._cleanMap(this._pendingTransactions);
-    this._queuedTransactions = await this._cleanMap(this._queuedTransactions);
+    this._setPending(await this._cleanMap(this._getPending()));
+    this._setQueued(await this._cleanMap(this._getQueued()));
   }
 
   private async _cleanMap(map: AddressToTransactions) {
@@ -124,7 +128,7 @@ export class TransactionPool {
         const senderBalance = new BN(senderAccount.balance);
 
         if (
-          txGasLimit.gt(this._blockGasLimit) ||
+          txGasLimit.gt(this._getBlockGasLimit()) ||
           txNonce.lt(senderNonce) ||
           deserializedTx.getUpfrontCost().gt(senderBalance)
         ) {
@@ -154,7 +158,7 @@ export class TransactionPool {
   private _addPendingTransaction(tx: Transaction) {
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
     let accountTransactions =
-      this._pendingTransactions.get(hexSenderAddress) ?? ImmutableList();
+      this._getPending().get(hexSenderAddress) ?? ImmutableList();
     accountTransactions = accountTransactions.push(serializeTransaction(tx));
 
     const {
@@ -163,19 +167,19 @@ export class TransactionPool {
       newQueued,
     } = reorganizeTransactionsLists(
       accountTransactions,
-      this._queuedTransactions.get(hexSenderAddress) ?? ImmutableList()
+      this._getQueued().get(hexSenderAddress) ?? ImmutableList()
     );
 
     this._setExecutableNonce(hexSenderAddress, executableNonce);
-    this._setPending(hexSenderAddress, newPending);
-    this._setQueued(hexSenderAddress, newQueued);
+    this._setPendingToAddress(hexSenderAddress, newPending);
+    this._setQueuedToAddress(hexSenderAddress, newQueued);
   }
 
   private _addQueuedTransaction(tx: Transaction) {
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
     const accountTransactions =
-      this._queuedTransactions.get(hexSenderAddress) ?? ImmutableList();
-    this._setQueued(
+      this._getQueued().get(hexSenderAddress) ?? ImmutableList();
+    this._setQueuedToAddress(
       hexSenderAddress,
       accountTransactions.push(serializeTransaction(tx))
     );
@@ -227,24 +231,61 @@ export class TransactionPool {
     return senderNonce;
   }
 
+  private _getPending() {
+    return this._state.get("pendingTransactions");
+  }
+
+  private _getQueued() {
+    return this._state.get("queuedTransactions");
+  }
+
+  private _getExecutableNonces() {
+    return this._state.get("executableNonces");
+  }
+
+  private _getBlockGasLimit() {
+    return this._state.get("blockGasLimit");
+  }
+
+  private _setPending(transactions: AddressToTransactions) {
+    this._state = this._state.set("pendingTransactions", transactions);
+  }
+
+  private _setQueued(transactions: AddressToTransactions) {
+    this._state = this._state.set("queuedTransactions", transactions);
+  }
+
+  private _setPendingToAddress(
+    address: string,
+    transactions: SenderTransactions
+  ) {
+    this._state = this._state.set(
+      "pendingTransactions",
+      this._getPending().set(address, transactions)
+    );
+  }
+
+  private _setQueuedToAddress(
+    address: string,
+    transactions: SenderTransactions
+  ) {
+    this._state = this._state.set(
+      "queuedTransactions",
+      this._getQueued().set(address, transactions)
+    );
+  }
+
   private _setExecutableNonce(accountAddress: string, nonce: BN): void {
-    this._executableNonces = this._executableNonces.set(
-      accountAddress,
-      bufferToHex(toBuffer(nonce))
+    this._state = this._state.set(
+      "executableNonces",
+      this._getExecutableNonces().set(
+        accountAddress,
+        bufferToHex(toBuffer(nonce))
+      )
     );
   }
 
-  private _setPending(address: string, transactions: SenderTransactions) {
-    this._pendingTransactions = this._pendingTransactions.set(
-      address,
-      transactions
-    );
-  }
-
-  private _setQueued(address: string, transactions: SenderTransactions) {
-    this._queuedTransactions = this._queuedTransactions.set(
-      address,
-      transactions
-    );
+  private _setBlockGasLimit(newLimit: BN) {
+    this._state = this._state.set("blockGasLimit", newLimit);
   }
 }
