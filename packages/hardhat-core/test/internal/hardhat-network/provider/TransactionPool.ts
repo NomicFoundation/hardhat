@@ -680,4 +680,39 @@ describe("Transaction Pool", () => {
       assert.isTrue(txPool.getBlockGasLimit().eq(new BN(15000000)));
     });
   });
+
+  describe.only("snapshot", () => {
+    it("increases tx pool's current snapshot id after a snapshot", () => {
+      txPool.snapshot();
+      assert.equal(txPool.getCurrentSnapshotId(), 1);
+    });
+
+    it("adds snapshot to the snapshot map", () => {
+      assert.equal(txPool.getSnapshotIdToState().size, 0);
+      txPool.snapshot();
+      assert.equal(txPool.getSnapshotIdToState().size, 1);
+    });
+
+    it("can snapshot and then revert to previous state", () => {
+      const newBlockGasLimit = new BN(5000000);
+      const snapshotId = txPool.snapshot();
+      txPool.setBlockGasLimit(newBlockGasLimit);
+      txPool.revert(snapshotId);
+      assert.isNotTrue(txPool.getBlockGasLimit().eq(newBlockGasLimit));
+    });
+  });
+
+  describe.only("revert", () => {
+    it("throws if snapshot with given ID doesn't exist", async () => {
+      assert.throws(() => txPool.revert(5), "There's no snapshot with such ID");
+    });
+
+    it("can revert to previous state", () => {
+      const newBlockGasLimit = new BN(5000000);
+      const snapshotId = txPool.snapshot();
+      txPool.setBlockGasLimit(newBlockGasLimit);
+      txPool.revert(snapshotId);
+      assert.isNotTrue(txPool.getBlockGasLimit().eq(newBlockGasLimit));
+    });
+  });
 });

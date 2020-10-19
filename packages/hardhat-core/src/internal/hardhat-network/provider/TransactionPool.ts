@@ -1,6 +1,6 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
- import {
+import {
   List as ImmutableList,
   Map as ImmutableMap,
   Record as ImmutableRecord,
@@ -55,6 +55,11 @@ export const poolState = ImmutableRecord<PoolStateProps>({
 
 export class TransactionPool {
   private _state: ImmutableRecord<PoolStateProps>;
+  private _currentSnapshotId = 0;
+  private _snapshotIdToState: ImmutableMap<
+    number,
+    ImmutableRecord<PoolStateProps>
+  > = ImmutableMap();
 
   constructor(
     private readonly _stateManager: PStateManager,
@@ -72,6 +77,29 @@ export class TransactionPool {
     } else {
       this._addQueuedTransaction(tx);
     }
+  }
+
+  public snapshot(): number {
+    const snapshotId = this.getCurrentSnapshotId();
+    this._setSnapshotStateToId(this._currentSnapshotId, this._state);
+    this._currentSnapshotId++;
+    return snapshotId;
+  }
+
+  public revert(snapshotId: number) {
+    if (!this.getSnapshotIdToState().has(snapshotId)) {
+      throw new Error("There's no snapshot with such ID");
+    }
+
+    this._state = this.getSnapshotIdToState().get(snapshotId)!;
+  }
+
+  public getCurrentSnapshotId(): number {
+    return this._currentSnapshotId;
+  }
+
+  public getSnapshotIdToState() {
+    return this._snapshotIdToState;
   }
 
   public getPendingTransactions(): Map<string, Transaction[]> {
@@ -245,6 +273,13 @@ export class TransactionPool {
 
   private _getBlockGasLimit() {
     return this._state.get("blockGasLimit");
+  }
+
+  private _setSnapshotStateToId(
+    id: number,
+    state: ImmutableRecord<PoolStateProps>
+  ) {
+    this._snapshotIdToState = this._snapshotIdToState.set(id, state);
   }
 
   private _setPending(transactions: AddressToTransactions) {
