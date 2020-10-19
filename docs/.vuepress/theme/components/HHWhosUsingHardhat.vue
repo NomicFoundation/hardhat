@@ -386,6 +386,10 @@ function splitInChunks(arr, chunkSize) {
       .marquee
         animation-name marquee_reverse
 
+    :nth-child(3).marquee-container
+      .marquee
+        animation marquee 17s infinite linear
+        
   .marquee-container
     overflow hidden
     white-space nowrap
@@ -397,7 +401,9 @@ function splitInChunks(arr, chunkSize) {
       align-items center
       padding-left 0
       height 80px
-      animation marquee 30s infinite linear
+      animation marquee 25s infinite linear
+      
+      
       @keyframes marquee
         0%
           transform: translateX(calc(0))
