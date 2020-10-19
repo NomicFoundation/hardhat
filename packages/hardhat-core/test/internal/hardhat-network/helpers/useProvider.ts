@@ -70,8 +70,12 @@ export function useProvider(
   });
 
   afterEach("Remove provider", async function () {
-    delete this.provider;
-    delete this.hardhatNetworkProvider;
+    // These two deletes are unsafe, but we use this properties
+    // in very locally and are ok with the risk.
+    // To make this safe the properties should be optional, which
+    // would be really uncomfortable for testing.
+    delete (this as any).provider;
+    delete (this as any).hardhatNetworkProvider;
 
     if (this.server !== undefined) {
       await this.server.close();

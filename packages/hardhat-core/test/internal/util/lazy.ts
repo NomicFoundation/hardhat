@@ -46,7 +46,7 @@ describe("lazy module", () => {
 
       assert.equal(numberOfCalls, 1);
 
-      delete obj.a;
+      delete (obj as any).a;
 
       assert.equal(numberOfCalls, 1);
 
@@ -103,7 +103,7 @@ describe("lazy module", () => {
 
     it("should trap deleteProperty correctly", () => {
       const obj = lazyObject(() => ({ a: 1 }));
-      delete obj.a;
+      delete (obj as any).a;
 
       assert.isUndefined(obj.a);
     });

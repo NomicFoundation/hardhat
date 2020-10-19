@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-etherscan",
-  "version": "0.1.0-rc.0",
+  "version": "2.0.0-rc.0",
   "description": "Hardhat plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
@@ -41,7 +41,7 @@
     "semver": "^6.3.0"
   },
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^0.1.0-rc.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.0-rc.0",
     "@types/cbor": "^5.0.1",
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
@@ -50,10 +50,10 @@
     "@types/semver": "^6.0.2",
     "chai": "^4.2.0",
     "ethers": "^5.0.8",
-    "hardhat": "^0.1.0-rc.0",
+    "hardhat": "^2.0.0-rc.0",
     "nock": "^10.0.6"
   },
   "peerDependencies": {
-    "hardhat": "^0.1.0-rc.0"
+    "hardhat": "^2.0.0-rc.0"
   }
 }
