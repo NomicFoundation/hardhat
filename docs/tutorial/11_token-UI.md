@@ -166,3 +166,8 @@ function App() {
 
 export default App;
 ```
+
+If you have both your React and your Buidler EVM running, after you save this file you should be able to browse to http://localhost:3000, 
+see the application, request an initial state, and so on.
+
+## Detailed explanation
