@@ -4,14 +4,14 @@ import { MaxHeap } from "mnemonist/heap";
 
 export interface OrderedTransaction {
   orderId: number;
-  body: Transaction; // TODO rename to data
+  data: Transaction;
 }
 
 function compareTransactions(
   left: OrderedTransaction,
   right: OrderedTransaction
 ) {
-  const cmp = new BN(left.body.gasPrice).cmp(new BN(right.body.gasPrice));
+  const cmp = new BN(left.data.gasPrice).cmp(new BN(right.data.gasPrice));
   return cmp === 0 ? right.orderId - left.orderId : cmp;
 }
 
@@ -41,7 +41,7 @@ export class TxPriorityHeap {
     if (bestTx === undefined) {
       return;
     }
-    const bestTxSender = bufferToHex(bestTx.body.getSenderAddress());
+    const bestTxSender = bufferToHex(bestTx.data.getSenderAddress());
     const senderQueuedTxs = this._queuedTransactions.get(bestTxSender) ?? [];
     if (senderQueuedTxs.length > 0) {
       const [nextTx, ...remainingTxs] = senderQueuedTxs;
