@@ -37,8 +37,6 @@ const info4Dapp = async contract => {
       `${contractDir}/${contractName}.json`
   )
 }  // info4Dapp
-  
-  
 ```
 
 2. Add this line at the end of the `main` function:
@@ -50,4 +48,53 @@ const info4Dapp = async contract => {
 a different address each time.
 ```bash
 npx buidler run scripts/deploy.js --network localhost
+```
+
+
+## Detailed explanation
+
+This function gets the contract information from the `main` function.
+
+```js
+const info4Dapp = async contract => {
+```
+
+This is the API to [access the file system using promises](https://nodejs.org/dist/latest-v12.x/docs/api/fs.html#fs_fs_promises_api),
+which is the way to use `async` / `await`.
+
+```js
+  const fsP = require("fs").promises
+```
+
+This code runs in the `scripts` directory. But we want the contract information under `frontend/src` so we'll be able to 
+import it into the React code.
+
+```js
+  const contractDir = __dirname + "/../frontend/src/contracts"
+
+  // If the contract directory does not exist, create it
+  try {
+    await fsP.stat(contractDir)
+  } catch (err) {
+    await fsP.mkdir(contractDir)
+  }
+
+  // Provide the contract address
+  await fsP.writeFile(
+     contractDir + "/contract-address.json",
+     `{ "${contractName}": "${contract.address}" }   \n`
+  )    // fsP.writeFile
+```
+
+The compiled contract is in `artifacts/<contractName>.json`. In addition to several fields that are irrelevant to
+our purpose here, this file also contains the [Application Binary Interface (ABI)](https://solidity.readthedocs.io/en/v0.7.3/abi-spec.html)
+that is used to communicate with the contract on the blockchain.
+
+```js
+  // Copy the contract artifact
+  await fsP.copyFile(
+      `${__dirname}/../artifacts/${contractName}.json`,
+      `${contractDir}/${contractName}.json`
+  )
+}  // info4Dapp
 ```
