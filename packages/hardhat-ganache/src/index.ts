@@ -11,12 +11,12 @@ const log = debug("hardhat:plugin:ganache");
 
 import { GanacheService } from "./ganache-service";
 
-task(TASK_TEST, async (args, env, runSuper) => {
-  return handlePluginTask(args, env, runSuper);
+task(TASK_TEST, async (_args, env, runSuper) => {
+  return handlePluginTask(env, runSuper);
 });
 
-task(TASK_RUN, async (args, env, runSuper) => {
-  return handlePluginTask(args, env, runSuper);
+task(TASK_RUN, async (_args, env, runSuper) => {
+  return handlePluginTask(env, runSuper);
 });
 
 extendConfig((resolvedConfig: any, config: any) => {
@@ -31,7 +31,6 @@ extendConfig((resolvedConfig: any, config: any) => {
 });
 
 async function handlePluginTask(
-  args: string,
   env: HardhatRuntimeEnvironment,
   runSuper: RunSuperFunction<TaskArguments>
 ) {
