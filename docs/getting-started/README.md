@@ -146,7 +146,9 @@ Compiling...
 Compiled 2 contracts successfully
 
 
-  Contract: Greeter
+  Greeter
+Deploying a Greeter with greeting: Hello, world!
+Changing greeting from 'Hello, world!' to 'Hola, mundo!'
     ✓ Should return the new greeting once it's changed (762ms)
 
   1 passing (762ms)
