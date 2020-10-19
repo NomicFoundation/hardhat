@@ -207,6 +207,13 @@ constructor you just assign values to this array.
     } // this.state
 
   }   // constructor
+  
+```
+
+This function is called when the contract emits a `NewBalance` event for the user's address (we see how it is registered
+later). It receives 
+
+```js
 
   // Process a NewBalance event
   processEvent = async evt => {
