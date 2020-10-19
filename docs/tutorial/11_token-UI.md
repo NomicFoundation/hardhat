@@ -267,6 +267,11 @@ and [user address](https://docs.ethers.io/v5/api/signer/#Signer-getaddress). The
 
 Get the current balances (Ether and tokens). 
 
+::: note
+We have come to update the token balance, but there is nothing to update the ether balance. You can add that yourself
+if you are interested, or remove this information because MetaMask shows it anyway.
+:::
+
 ```js
     const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
     const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
@@ -439,7 +444,7 @@ JavaScript code, but a function to call.
 }        // class EthereumDisplay
 ```
 
-The react 
+This is the overall application, which includes just a single `EthereumDisplay` component.
 
 ```js
 function App() {
