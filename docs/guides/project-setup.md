@@ -1,6 +1,9 @@
 # Setting up a project
 
-A Hardhat project is any directory with a valid `hardhat.config.js` file in it. If you run `npx hardhat` in a path without one you will be shown two options to facilitate project creation:
+Hardhat project are `npm` projects with the `hardhat` package installed, and a `hardhat.config.js` file.
+
+If you run `npx hardhat` in a folder without those files you will be shown two options to facilitate project creation:
+
 ```
 $ npx hardhat
 888    888                      888 888               888
@@ -21,9 +24,22 @@ Welcome to Hardhat v2.0.0
 ```
 
 If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardhat.config.js` with the following content:
+
 ```js
-module.exports = {};
+/**
+ * @type import('hardhat/config').HardhatUserConfig
+ */
+module.exports = {
+  solidity: "0.7.3",
+};
 ```
+
+Then, you need to install Hardhat with:
+
+```
+npm install --save-dev hardhat
+```
+
 And this is enough to run Hardhat using a default project structure. 
 
 ### Sample Hardhat project
@@ -36,20 +52,24 @@ test/
 hardhat.config.js
 ```
 
-These are the default paths for a Hardhat project. Except for `scripts/`, which is just a normal directory unrelated to your config. 
+These are the default paths for a Hardhat project. 
 
 - `contracts/` is where the source files for your contracts should be.
 - `test/` is where your tests should go.
+- `scripts/` is where simple automation scripts go.
 
 If you need to change these paths, take a look at the [paths configuration section](../config/README.md#path-configuration).
 
 ### Testing and Ethereum networks
 
 When it comes to testing your contracts, Hardhat comes with some built-in defaults:
-- [Mocha](https://mochajs.org/) as the test runner
-- The built-in [Hardhat Network](../hardhat-network/README.md) as the development network to test on
 
-If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Hardhat projects manage settings. Make use of the `--network` CLI parameter to quickly change the network.
+- The built-in [Hardhat Network](../hardhat-network/README.md) as the development network to test on
+- [Mocha](https://mochajs.org/) as the test runner
+
+If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Hardhat projects manage settings. 
+
+You can use of the `--network` CLI parameter to quickly change the network.
 
 Take a look at the [networks configuration section](../config/README.md#networks-configuration) to learn more about setting up different networks.
 
