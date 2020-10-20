@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import os from "os";
@@ -100,38 +101,54 @@ export class CompilerDownloader {
 
   public async getDownloadedCompilerPath(
     version: string
-  ): Promise<CompilerPath> {
+  ): Promise<CompilerPath | undefined> {
     const { default: AdmZip } = await import("adm-zip");
 
-    const compilerBuild = await this.getCompilerBuild(version);
-    let downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
+    try {
+      const compilerBuild = await this.getCompilerBuild(version);
 
-    if (!(await this._fileExists(downloadedFilePath))) {
-      await this.downloadCompiler(compilerBuild, downloadedFilePath);
-    }
+      let downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
 
-    await this.verifyCompiler(compilerBuild, downloadedFilePath);
+      if (!(await this._fileExists(downloadedFilePath))) {
+        await this.downloadCompiler(compilerBuild, downloadedFilePath);
+      }
 
-    switch (compilerBuild.platform) {
-      case CompilerPlatform.LINUX:
-      case CompilerPlatform.MACOS:
+      await this.verifyCompiler(compilerBuild, downloadedFilePath);
+
+      if (
+        compilerBuild.platform === CompilerPlatform.LINUX ||
+        compilerBuild.platform === CompilerPlatform.MACOS
+      ) {
         fsExtra.chmodSync(downloadedFilePath, 0o755);
-        break;
-      case CompilerPlatform.WINDOWS:
-        const zip = new AdmZip(downloadedFilePath);
-        zip.extractAllTo(path.join(this._compilersDir, compilerBuild.version));
-        downloadedFilePath = path.join(
-          this._compilersDir,
-          compilerBuild.version,
-          "solc.exe"
-        );
-        break;
-    }
+      } else if (compilerBuild.platform === CompilerPlatform.WINDOWS) {
+        // some window builds are zipped, some are not
+        if (downloadedFilePath.endsWith(".zip")) {
+          const zip = new AdmZip(downloadedFilePath);
+          zip.extractAllTo(
+            path.join(this._compilersDir, compilerBuild.version)
+          );
+          downloadedFilePath = path.join(
+            this._compilersDir,
+            compilerBuild.version,
+            "solc.exe"
+          );
+        }
+      }
 
-    return {
-      compilerPath: downloadedFilePath,
-      platform: compilerBuild.platform,
-    };
+      return {
+        compilerPath: downloadedFilePath,
+        platform: compilerBuild.platform,
+      };
+    } catch (e) {
+      if (HardhatError.isHardhatError(e)) {
+        throw e;
+      }
+      console.warn(
+        chalk.yellow(
+          `There was an unexpected problem downloading the compiler: ${e.message}`
+        )
+      );
+    }
   }
 
   public async getCompilersList(

@@ -27,10 +27,10 @@ describe("Compiler", () => {
 
     beforeEach(async function () {
       downloader = new CompilerDownloader(this.tmpDir);
-      const { compilerPath } = await downloader.getDownloadedCompilerPath(
+      const compilerPathResult = await downloader.getDownloadedCompilerPath(
         solcVersion
       );
-      solcPath = compilerPath;
+      solcPath = compilerPathResult!.compilerPath;
     });
 
     it("Should compile contracts correctly", async () => {
@@ -123,10 +123,10 @@ contract A {}
       downloader = new CompilerDownloader(this.tmpDir, {
         forceSolcJs: true,
       });
-      const { compilerPath } = await downloader.getDownloadedCompilerPath(
+      const compilerPathResult = await downloader.getDownloadedCompilerPath(
         solcVersion
       );
-      solcPath = compilerPath;
+      solcPath = compilerPathResult!.compilerPath;
     });
 
     it("Should compile contracts correctly", async () => {
