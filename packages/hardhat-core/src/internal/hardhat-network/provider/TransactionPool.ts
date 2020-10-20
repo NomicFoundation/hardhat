@@ -204,7 +204,7 @@ export class TransactionPool {
   private _addPendingTransaction(tx: Transaction) {
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
     let accountTransactions =
-      this._getPending().get(hexSenderAddress) ?? ImmutableList();
+      this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
     accountTransactions = accountTransactions.push(serializeTransaction(tx));
 
     const {
@@ -213,19 +213,19 @@ export class TransactionPool {
       newQueued,
     } = reorganizeTransactionsLists(
       accountTransactions,
-      this._getQueued().get(hexSenderAddress) ?? ImmutableList()
+      this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList()
     );
 
     this._setExecutableNonce(hexSenderAddress, executableNonce);
-    this._setPendingToAddress(hexSenderAddress, newPending);
-    this._setQueuedToAddress(hexSenderAddress, newQueued);
+    this._setPendingForAddress(hexSenderAddress, newPending);
+    this._setQueuedForAddress(hexSenderAddress, newQueued);
   }
 
   private _addQueuedTransaction(tx: Transaction) {
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
     const accountTransactions =
-      this._getQueued().get(hexSenderAddress) ?? ImmutableList();
-    this._setQueuedToAddress(
+      this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList();
+    this._setQueuedForAddress(
       hexSenderAddress,
       accountTransactions.push(serializeTransaction(tx))
     );
@@ -285,6 +285,14 @@ export class TransactionPool {
     return this._state.get("queuedTransactions");
   }
 
+  private _getPendingForAddress(address: string) {
+    return this._getPending().get(address);
+  }
+
+  private _getQueuedForAddress(address: string) {
+    return this._getQueued().get(address);
+  }
+
   private _getExecutableNonces() {
     return this._state.get("executableNonces");
   }
@@ -301,7 +309,7 @@ export class TransactionPool {
     this._state = this._state.set("queuedTransactions", transactions);
   }
 
-  private _setPendingToAddress(
+  private _setPendingForAddress(
     address: string,
     transactions: SenderTransactions
   ) {
@@ -311,7 +319,7 @@ export class TransactionPool {
     );
   }
 
-  private _setQueuedToAddress(
+  private _setQueuedForAddress(
     address: string,
     transactions: SenderTransactions
   ) {
