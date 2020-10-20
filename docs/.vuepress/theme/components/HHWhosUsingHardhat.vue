@@ -392,7 +392,7 @@ function splitInChunks(arr, chunkSize) {
 
     :nth-child(3).marquee-container
       .marquee
-        animation-duration 17s
+        animation-duration 34s
         
   .marquee-container
     overflow hidden
@@ -404,7 +404,7 @@ function splitInChunks(arr, chunkSize) {
       margin-bottom 50px
       padding-left 0
       height 80px
-      animation-duration 25s
+      animation-duration 50s
       animation-name marquee
       animation-timing-function linear
       animation-iteration-count infinite
