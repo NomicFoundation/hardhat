@@ -166,8 +166,7 @@ module.exports = {
       "meta",
       {
         name: "twitter:title",
-        content:
-          "Ethereum development environment for professionals",
+        content: "Ethereum development environment for professionals",
       },
     ],
     [
@@ -231,6 +230,15 @@ module.exports = {
         type: "tip",
         defaultTitle: {
           "/": "TIP",
+        },
+      },
+    ],
+    [
+      "vuepress-plugin-container",
+      {
+        type: "warning",
+        defaultTitle: {
+          "/": "WARNING",
         },
       },
     ],
