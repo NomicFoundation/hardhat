@@ -53,7 +53,7 @@ task("accounts", "Prints the list of accounts", async () => {
   const accounts = await ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(await account.getAddress());
+    console.log(account.address);
   }
 });
 
@@ -73,7 +73,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(await account.getAddress());
+    console.log(account.address);
   }
 });
 
