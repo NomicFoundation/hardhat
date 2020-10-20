@@ -2,25 +2,25 @@ const defaultSlugify = require("@vuepress/shared-utils/lib/slugify");
 const plugins = require("./plugins.js");
 const pluginsChildren = [];
 
-plugins.forEach(plugin => {
-  let readmePath =
-    "/plugins/" + plugin.name.replace("/", "-").replace(/^@/, "") + ".md";
+plugins.forEach((plugin) => {
+  let readmePath = "/plugins/" + plugin.normalizedName + ".md";
 
   pluginsChildren.push([readmePath, plugin.name, 0]);
 });
 
 module.exports = {
-  title: "Hardhat",
+  title:
+    "Hardhat | Ethereum development environment for professionals by Nomic Labs",
   description:
-    "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces & console.log.",
+    "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
   themeConfig: {
     logo: "/logo.svg",
     nav: [
       { text: "Home", link: "/" },
-      { text: "Hardhat Network", link: "/hardhat-network/" },
+      // { text: "Hardhat Network", link: "/hardhat-network/" },
       { text: "Plugins", link: "/plugins/" },
       { text: "Documentation", link: "/getting-started/" },
-      { text: "Tutorial", link: "/tutorial/" }
+      { text: "Tutorial", link: "/tutorial/" },
     ],
     lastUpdated: true,
     repo: "nomiclabs/buidler",
@@ -31,25 +31,49 @@ module.exports = {
     sidebarDepth: 1,
     displayAllHeaders: true,
     sidebar: {
-      '/tutorial/': [
+      "/tutorial/": [
         {
           title: "Tutorial",
           collapsable: false,
           depth: 1,
           children: [
             ["", "1. Overview", 1],
-            ["setting-up-the-environment.md", "2. Setting up the environment", 0],
-            ["creating-a-new-hardhat-project.md", "3. Creating a new Hardhat project", 0],
-            ["writing-and-compiling-contracts.md", "4. Writing and compiling contracts", 0],
+            [
+              "setting-up-the-environment.md",
+              "2. Setting up the environment",
+              0,
+            ],
+            [
+              "creating-a-new-hardhat-project.md",
+              "3. Creating a new Hardhat project",
+              0,
+            ],
+            [
+              "writing-and-compiling-contracts.md",
+              "4. Writing and compiling contracts",
+              0,
+            ],
             ["testing-contracts.md", "5. Testing contracts", 0],
-            ["debugging-with-hardhat-network.md", "6. Debugging with Hardhat Network", 0],
-            ["deploying-to-a-live-network.md", "7. Deploying to a live network", 0],
-            ["hackathon-boilerplate-project.md", "8. Hackathon Boilerplate Project", 0],
+            [
+              "debugging-with-hardhat-network.md",
+              "6. Debugging with Hardhat Network",
+              0,
+            ],
+            [
+              "deploying-to-a-live-network.md",
+              "7. Deploying to a live network",
+              0,
+            ],
+            [
+              "hackathon-boilerplate-project.md",
+              "8. Hackathon Boilerplate Project",
+              0,
+            ],
             ["final-thoughts.md", "9. Final thoughts", 0],
-          ]
+          ],
         },
       ],
-      '/': [
+      "/": [
         ["/getting-started/", "Getting Started", 1],
         ["/config/", "Configuration", 0],
         ["/hardhat-network/", "Hardhat Network", 0],
@@ -70,8 +94,8 @@ module.exports = {
             ["/guides/create-task.md", "Creating a task", 0],
             ["/guides/ganache-tests.md", "Running tests with Ganache", 0],
             ["/guides/vscode-tests.md", "Running tests on VS Code", 0],
-            ["/guides/typescript.md", "TypeScript support", 0]
-          ]
+            ["/guides/typescript.md", "TypeScript support", 0],
+          ],
         },
         {
           title: "Advanced",
@@ -80,10 +104,10 @@ module.exports = {
             [
               "/advanced/hardhat-runtime-environment.html",
               "Hardhat Runtime Environment (HRE)",
-              0
+              0,
             ],
-            ["/advanced/building-plugins.html", "Building plugins", 0]
-          ]
+            ["/advanced/building-plugins.html", "Building plugins", 0],
+          ],
         },
         {
           title: "Troubleshooting",
@@ -91,60 +115,25 @@ module.exports = {
           children: [
             ["/troubleshooting/verbose-logging.html", "Verbose logging", 0],
             ["/troubleshooting/common-problems.html", "Common problems", 0],
-            ["/errors/", "Error codes", 0]
-          ]
+            ["/errors/", "Error codes", 0],
+          ],
         },
         {
           title: "Plugins",
           collapsable: false,
-          children: pluginsChildren
-        }
-      ]
-    }
+          children: pluginsChildren,
+        },
+      ],
+    },
   },
   head: [
     [
-      "meta",
-      { name: "Cache-Control", content: "public, max-age=0, must-revalidate" }
-    ],
-
-    ["link", { rel: "shortcut icon", href: "/favicon.ico" }],
-    ["link", { rel: "icon", sizes: "16x16 32x32 64x64", href: "/favicon.ico" }],
-    [
       "link",
       {
-        rel: "icon",
-        type: "image/png",
-        sizes: "196x196",
-        href: "/favicon-192.png"
-      }
-    ],
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/png",
-        sizes: "160x160",
-        href: "/favicon-160.png"
-      }
-    ],
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/png",
-        sizes: "96x96",
-        href: "/favicon-96.png"
-      }
-    ],
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/png",
-        sizes: "64x64",
-        href: "/favicon-64.png"
-      }
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/apple-touch-icon.png",
+      },
     ],
     [
       "link",
@@ -152,8 +141,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "32x32",
-        href: "/favicon-32.png"
-      }
+        href: "/favicon-32x32.png",
+      },
     ],
     [
       "link",
@@ -161,67 +150,89 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "16x16",
-        href: "/favicon-16.png"
-      }
+        href: "/favicon-16x16.png",
+      },
     ],
-    ["link", { rel: "apple-touch-icon", href: "/favicon-57.png" }],
+    ["link", { rel: "manifest", href: "/site.webmanifest" }],
+    ["meta", { name: "msapplication-config", content: "/browserconfig.xml" }],
+    ["meta", { name: "msapplication-TileColor", content: "#ffffff" }],
+    ["meta", { name: "theme-color", content: "#ffffff" }],
+    ["link", { rel: "shortcut icon", href: "/favicon.ico" }],
+    ["link", { rel: "icon", sizes: "16x16 32x32", href: "/favicon.ico" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
+    ["meta", { name: "twitter:site", content: "@HardhatHQ" }],
+    ["meta", { name: "twitter:creator", content: "@NomicLabs" }],
     [
-      "link",
-      { rel: "apple-touch-icon", sizes: "114x114", href: "/favicon-114.png" }
-    ],
-    [
-      "link",
-      { rel: "apple-touch-icon", sizes: "72x72", href: "/favicon-72.png" }
-    ],
-    [
-      "link",
-      { rel: "apple-touch-icon", sizes: "144x144", href: "/favicon-144.png" }
-    ],
-    [
-      "link",
-      { rel: "apple-touch-icon", sizes: "60x60", href: "/favicon-60.png" }
-    ],
-    [
-      "link",
-      { rel: "apple-touch-icon", sizes: "120x120", href: "/favicon-120.png" }
+      "meta",
+      {
+        name: "twitter:title",
+        content:
+          "Ethereum development environment for professionals",
+      },
     ],
     [
-      "link",
-      { rel: "apple-touch-icon", sizes: "76x76", href: "/favicon-76.png" }
+      "meta",
+      {
+        name: "twitter:image",
+        content: "https://deploy-preview-898--buidler.netlify.app/card.png",
+      },
     ],
     [
-      "link",
-      { rel: "apple-touch-icon", sizes: "152x152", href: "/favicon-152.png" }
+      "meta",
+      {
+        property: "og:description",
+        content:
+          "Compile, deploy, test and debug your Ethereum software. Get Solidity stack traces, console.log, mainnet forking and more.",
+      },
     ],
     [
-      "link",
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/favicon-180.png" }
+      "meta",
+      {
+        property: "og:title",
+        content:
+          "Ethereum development environment for professionals by Nomic Labs",
+      },
     ],
-    ["meta", { name: "msapplication-TileColor", content: "#FFFFFF" }],
-    ["meta", { name: "msapplication-TileImage", content: "/favicon-144.png" }],
-    ["meta", { name: "msapplication-config", content: "/browserconfig.xml" }]
+    [
+      "meta",
+      {
+        property: "og:image",
+        content: "https://deploy-preview-898--buidler.netlify.app/card.png",
+      },
+    ],
+    ["meta", { property: "og:image:width", content: "2400" }],
+    ["meta", { property: "og:image:height", content: "1250" }],
   ],
   markdown: {
-    slugify: title => {
-      const errorTitle = /(^BDLR\d+):/;
+    slugify: (title) => {
+      const buidlerErrorTitle = /(^BDLR\d+):/i;
+      const hardhatErrorTitle = /(^HH\d+):/i;
 
-      const match = errorTitle.exec(title);
+      const matchBuidler = buidlerErrorTitle.exec(title);
 
-      if (match !== null) {
-        return match[1];
+      if (matchBuidler !== null) {
+        return matchBuidler[1];
+      }
+
+      const matchHardhat = hardhatErrorTitle.exec(title);
+
+      if (matchHardhat !== null) {
+        return matchHardhat[1];
       }
 
       return defaultSlugify(title);
-    }
+    },
   },
   plugins: [
-    ['@vuepress/google-analytics', { ga: "UA-117668706-2" }],
-    ['vuepress-plugin-container', {
-      type: 'tip',
-      defaultTitle: {
-        '/': 'TIP',
-        '/zh/': '提示',
+    ["@vuepress/google-analytics", { ga: "UA-117668706-2" }],
+    [
+      "vuepress-plugin-container",
+      {
+        type: "tip",
+        defaultTitle: {
+          "/": "TIP",
+        },
       },
-    }]
-  ]
+    ],
+  ],
 };

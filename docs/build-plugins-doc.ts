@@ -14,7 +14,7 @@ plugins.forEach(plugin => {
     "https://raw.githubusercontent.com$1$2" + "/README.md"
   );
   const readmePath =
-    "plugins/" + plugin.name.replace("/", "-").replace(/^@/, "") + ".md";
+    "plugins/" + plugin.normalizedName + ".md";
 
   bashDownload += `wget --quiet ${readmeUrl} -O ${readmePath}
 `;
