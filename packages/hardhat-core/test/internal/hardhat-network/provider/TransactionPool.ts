@@ -1,14 +1,16 @@
 import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
-import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
   randomAddress,
   randomAddressBuffer,
 } from "../../../../src/internal/hardhat-network/provider/fork/random";
-import { TransactionPool } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
+import {
+  OrderedTransaction,
+  TransactionPool,
+} from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
 import {
@@ -24,15 +26,32 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
 } from "../helpers/providers";
 
-/* Change this so this function transforms map into arrays on the EXPECTED part - not the ACTUAL part in the assert function */
-function getAllTxs(pendingTxs: Map<string, Transaction[]>) {
-  return Array.from(pendingTxs.values()).flat();
+function flatten(array: any[]): any[] {
+  if (array.length === 0) {
+    return array;
+  }
+  if (Array.isArray(array[0])) {
+    return flatten(array[0]).concat(flatten(array.slice(1)));
+  }
+
+  return [array[0]].concat(flatten(array.slice(1)));
 }
 
-function makeTxMap(txs: Transaction[]): Map<string, Transaction[]> {
-  const map: Map<string, Transaction[]> = new Map();
-  txs.forEach((tx) => {
-    const address = bufferToHex(tx.getSenderAddress());
+/* Change this so this function transforms map into arrays on the EXPECTED part - not the ACTUAL part in the assert function */
+function getAllTxs(pendingTxs: Map<string, OrderedTransaction[]>) {
+  return flatten(Array.from(pendingTxs.values())).map((tx) => tx.data);
+}
+
+function compareOrderIds(left: OrderedTransaction, right: OrderedTransaction) {
+  return left.orderId - right.orderId;
+}
+
+export function makeOrderedTxMap(
+  txs: OrderedTransaction[]
+): Map<string, OrderedTransaction[]> {
+  const map: Map<string, OrderedTransaction[]> = new Map();
+  txs.sort(compareOrderIds).forEach((tx) => {
+    const address = bufferToHex(tx.data.getSenderAddress());
     const txList = map.get(address) ?? [];
     txList.push(tx);
     map.set(address, txList);
@@ -615,7 +634,13 @@ describe("Transaction Pool", () => {
       await txPool.clean();
       const pendingTransactions = txPool.getPendingTransactions();
 
-      assertEqualTransactionMaps(pendingTransactions, makeTxMap([tx2, tx4]));
+      assertEqualTransactionMaps(
+        pendingTransactions,
+        makeOrderedTxMap([
+          { orderId: 1, data: tx2 },
+          { orderId: 1, data: tx4 },
+        ])
+      );
     });
 
     it("removes pending transaction when sender doesn't have enough ether to make the transaction", async () => {
