@@ -41,7 +41,12 @@ export class TxPriorityHeap {
   }
 
   public pop() {
-    this._heap.pop();
+    const bestTx = this._heap.pop();
+    if (bestTx !== undefined) {
+      const bestTxSender = bufferToHex(bestTx.data.getSenderAddress());
+      this._queuedTransactions.delete(bestTxSender);
+    }
+    return bestTx;
   }
 
   public shift() {
@@ -57,6 +62,7 @@ export class TxPriorityHeap {
       this._queuedTransactions.set(bestTxSender, remainingTxs);
     } else {
       this._heap.pop();
+      this._queuedTransactions.delete(bestTxSender);
     }
   }
 }
