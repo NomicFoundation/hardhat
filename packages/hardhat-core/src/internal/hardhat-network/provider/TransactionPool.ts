@@ -15,20 +15,6 @@ export type SerializedTransaction = ImmutableList<string>;
 export type SenderTransactions = ImmutableList<SerializedTransaction>;
 type AddressToTransactions = ImmutableMap<string, SenderTransactions>;
 
-/* TODO: */
-class SortedImmutableList {
-  private _data: ImmutableList<Transaction> = ImmutableList();
-
-  public push(element: Transaction) {
-    // TODO
-  }
-
-  public toArray(): Transaction[] {
-    // TODO
-    return [];
-  }
-}
-
 export function serializeTransaction(tx: Transaction): SerializedTransaction {
   const serializedFields = tx.raw.map((field) => bufferToHex(field));
   return ImmutableList(serializedFields);
