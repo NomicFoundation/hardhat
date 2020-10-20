@@ -57,7 +57,7 @@ Token address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Ropsten for this example, but you can add any network similarly:
 
 ```js{5,11,14-19}
-usePlugin("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-waffle");
 
 // Go to https://infura.io/ and create a new project
 // Replace this with your Infura project ID

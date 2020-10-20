@@ -72,7 +72,7 @@ module.exports = {
 
 Set your `hardhat.config.js` to the following contents:
 ```js
-usePlugin("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-waffle");
 
 module.exports = {
   solc: {

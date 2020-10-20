@@ -41,18 +41,18 @@ footer: Copyright © 2018-2019 Nomic Labs LLC
 
   ```js
   // For unit tests
-  usePlugin("@nomiclabs/hardhat-truffle5");
-  usePlugin("@nomiclabs/hardhat-ganache");
-  usePlugin("hardhat-gas-reporter");
+  require("@nomiclabs/hardhat-truffle5");
+  require("@nomiclabs/hardhat-ganache");
+  require("hardhat-gas-reporter");
 
   // Linting
-  usePlugin("@nomiclabs/hardhat-solhint");
+  require("@nomiclabs/hardhat-solhint");
 
   // For scripts
-  usePlugin("@nomiclabs/hardhat-ethers");
+  require("@nomiclabs/hardhat-ethers");
   
   // Faster compilation
-  usePlugin("@nomiclabs/hardhat-docker-solc");
+  require("@nomiclabs/hardhat-docker-solc");
 
   module.exports = {
     hardhat: {

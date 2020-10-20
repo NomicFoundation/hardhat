@@ -42,7 +42,7 @@ Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is en
 <<< @/../packages/hardhat-core/sample-project/hardhat.config.js{1}
 
 ::: tip 
-There's no need for `usePlugin("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
+There's no need for `require("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
 :::
 
 ## Testing
@@ -190,7 +190,7 @@ module.exports = {
 If you're migrating an existing Waffle project to Hardhat, then the minimum configuration you'll need is changing Hardhat's compilation output path, since Waffle uses a different one by default:
 
 ```js
-usePlugin("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-waffle");
 
 module.exports = {
   paths: {
@@ -220,7 +220,7 @@ const { deployContract } = waffle;
 Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions. If you're fighting a "Transaction run out of gas" error, double-check the size of your contract and bump the gas limit if needed.
 :::
 
-Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `usePlugin("@nomiclabs/hardhat-waffle");` in your Hardhat config and use the plugin's provider like this
+Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config and use the plugin's provider like this
 
 ```js
 const provider = waffle.provider;

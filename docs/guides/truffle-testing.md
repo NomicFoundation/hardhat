@@ -22,10 +22,10 @@ Let's now install the `Truffle` and `Web3.js` plugins, as well as `web3.js` itse
 npm install --save-dev @nomiclabs/hardhat-truffle5 @nomiclabs/hardhat-web3 web3
 ```
 
-Enable the Truffle 5 plugin on your Hardhat config file by adding
+Enable the Truffle 5 plugin on your Hardhat config file by requiring it:
 
 ```js{1}
-usePlugin("@nomiclabs/hardhat-truffle5");
+require("@nomiclabs/hardhat-truffle5");
 
 module.exports = {};
 ```

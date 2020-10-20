@@ -68,7 +68,7 @@ npm install --save-dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffl
 Add the highlighted lines to your `hardhat.config.js` so that it looks like this:
 
 ```js {1,4-6}
-usePlugin("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-waffle");
 
 module.exports = {
   solc: {
