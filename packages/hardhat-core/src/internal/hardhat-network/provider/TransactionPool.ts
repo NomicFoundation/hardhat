@@ -44,33 +44,33 @@ export interface OrderedTransaction {
   data: Transaction;
 }
 
-export interface PoolStateProps {
+export interface PoolState {
   pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
   queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
   executableNonces: ImmutableMap<string, string>; // address => nonce (hex)
   blockGasLimit: BN;
 }
 
-export const poolState = ImmutableRecord<PoolStateProps>({
+const makePoolState = ImmutableRecord<PoolState>({
   pendingTransactions: ImmutableMap(),
   queuedTransactions: ImmutableMap(),
   executableNonces: ImmutableMap(),
-  blockGasLimit: new BN(10000000),
+  blockGasLimit: new BN(9500000),
 });
 
 export class TransactionPool {
-  private _state: ImmutableRecord<PoolStateProps>;
+  private _state: ImmutableRecord<PoolState>;
   private _currentSnapshotId = 0;
   private _snapshotIdToState: ImmutableMap<
     number,
-    ImmutableRecord<PoolStateProps>
+    ImmutableRecord<PoolState>
   > = ImmutableMap();
 
   constructor(
     private readonly _stateManager: PStateManager,
     private _blockGasLimit: BN
   ) {
-    this._state = poolState({ blockGasLimit: this._blockGasLimit });
+    this._state = makePoolState({ blockGasLimit: this._blockGasLimit });
   }
 
   public async addTransaction(tx: Transaction) {
@@ -290,10 +290,7 @@ export class TransactionPool {
     return this._state.get("blockGasLimit");
   }
 
-  private _setSnapshotStateToId(
-    id: number,
-    state: ImmutableRecord<PoolStateProps>
-  ) {
+  private _setSnapshotStateToId(id: number, state: ImmutableRecord<PoolState>) {
     this._snapshotIdToState = this._snapshotIdToState.set(id, state);
   }
 
