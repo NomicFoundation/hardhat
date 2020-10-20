@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import os from "os";
@@ -140,8 +141,10 @@ export class CompilerDownloader {
       if (HardhatError.isHardhatError(e)) {
         throw e;
       }
-      log(
-        `There was an unexpected problem downloading the compiler: ${e.message}`
+      console.warn(
+        chalk.yellow(
+          `There was an unexpected problem downloading the compiler: ${e.message}`
+        )
       );
     }
   }
