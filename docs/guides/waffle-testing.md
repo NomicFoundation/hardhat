@@ -55,9 +55,6 @@ On your terminal run `npx hardhat test`. You should see the following output:
 
 ```
 $ npx hardhat test
-Compiling...
-Compiled 1 contract successfully
-
 
   Contract: Greeter
     ✓ Should return the new greeting once it's changed (762ms)
