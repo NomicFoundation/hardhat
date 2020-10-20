@@ -176,12 +176,14 @@ module.exports = {
     sources: "./some_custom/contracts_path",
     artifacts: "../some_custom/build"
   },
-  solc: {
+  solidity: {
     version: "0.4.24", // Note that this only has the version number
-    evmVersion: "constantinople",
-    optimizer: {
-      enabled: true,
-      runs: 200
+    settings: {
+      evmVersion: "constantinople",
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
     }
   }
 };
