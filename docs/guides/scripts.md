@@ -7,7 +7,7 @@ You can write your custom scripts that can use all of Hardhat's functionality. A
 There are two ways of writing a script that accesses the [Hardhat Runtime Environment].
 
 ::: tip
-Hardhat scripts are useful for simpler things that don't take user arguments, and for
+Hardhat scripts are useful for simple things that don't take user arguments, and for
 integrating with external tools that are not compatible with the Hardhat CLI.
 
 If you want to automate more complex things, and receive user arguments, you can learn how to [create your own tasks here](../guides/create-task.md).
