@@ -127,7 +127,7 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 
 - `initialIndex`: The initial index to derive. Default value: `0`.
 
-- `count`: The number of accounts to derive. Default value: `10`.
+- `count`: The number of accounts to derive. Default value: `20`.
 
 ### Default networks object
 
