@@ -6,8 +6,8 @@ For a general overview of using Hardhat refer to the [Getting started guide](../
 
 ## Enabling TypeScript support
 
-Hardhat will automatically enable its TypeScript support if your config file is written
-in TypeScript, but this requires a few changes to work properly.
+Hardhat will automatically enable its TypeScript support if your config file ends in `.ts` and is written
+in valid TypeScript. This requires a few changes to work properly.
 
 ### Installing dependencies
 
@@ -29,7 +29,7 @@ npm install --save-dev chai @types/node @types/mocha @types/chai
 You can easily turn a JavaScript Hardhat config file into a TypeScript one. Let's see how this is done starting with a
 fresh Hardhat project.
 
-Open your terminal, go to an empty folder, and run `npx hardhat` and go through the steps to create a sample
+Open your terminal, go to an empty folder, run `npx hardhat`, and go through the steps to create a sample
 project. When you're done your project directory should look something like this:
 
 ```
