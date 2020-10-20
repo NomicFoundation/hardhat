@@ -1,10 +1,14 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
+import { add, flatten } from "lodash";
 
 import {
   AddressToTransactions,
+  makeOrderedTransaction,
   makePoolState,
+  OrderedRecord,
+  OrderedTransaction,
   PoolState,
   SenderTransactions,
   SerializedTransaction,
@@ -22,11 +26,6 @@ export function serializeTransaction(tx: Transaction): SerializedTransaction {
 export function deserializeTransaction(tx: SerializedTransaction): Transaction {
   const fields = tx.toArray().map((field) => toBuffer(field));
   return new Transaction(fields);
-}
-
-export interface OrderedTransaction {
-  orderId: number;
-  data: Transaction;
 }
 
 export class TransactionPool {
@@ -74,8 +73,8 @@ export class TransactionPool {
     const deserializedImmutableMap = this._getPending().map((txs) =>
       txs
         .map((tx, index) => ({
-          orderId: index,
-          data: deserializeTransaction(tx),
+          orderId: tx.get("orderId"),
+          data: deserializeTransaction(tx.get("data")),
         }))
         .toJS()
     );
@@ -87,7 +86,7 @@ export class TransactionPool {
       txs
         .map((tx, index) => ({
           orderId: index,
-          data: deserializeTransaction(tx),
+          data: deserializeTransaction(tx.get("data")),
         }))
         .toJS()
     );
@@ -124,7 +123,7 @@ export class TransactionPool {
     let newMap = map;
     for (const [address, txs] of map) {
       for (const tx of txs) {
-        const deserializedTx = deserializeTransaction(tx);
+        const deserializedTx = deserializeTransaction(tx.get("data"));
         const txNonce = new BN(deserializedTx.nonce);
         const txGasLimit = new BN(deserializedTx.gasLimit);
         const senderAccount = await this._stateManager.getAccount(
@@ -148,7 +147,7 @@ export class TransactionPool {
   private _removeTx(
     map: AddressToTransactions,
     address: string,
-    tx: Transaction
+    deserializedTX: Transaction
   ) {
     const addressTxs = map.get(address);
     if (addressTxs === undefined) {
@@ -156,16 +155,32 @@ export class TransactionPool {
         "Trying to remove a transaction from list that doesn't exist, this should never happen"
       );
     }
-    const indexOfTx = addressTxs.indexOf(serializeTransaction(tx));
+    const indexOfTx = addressTxs
+      .map((tx) => tx.get("data"))
+      .indexOf(serializeTransaction(deserializedTX));
 
     return map.set(address, addressTxs.remove(indexOfTx));
   }
 
   private _addPendingTransaction(tx: Transaction) {
+    const hexAddressNonce = this._getExecutableNonces().get(
+      bufferToHex(tx.getSenderAddress())
+    );
+    const nonce =
+      hexAddressNonce === undefined
+        ? new BN(0)
+        : new BN(toBuffer(hexAddressNonce));
+    const orderedTx: OrderedRecord = makeOrderedTransaction({
+      orderId: add(
+        nonce.toNumber(),
+        flatten(Array.from(this.getQueuedTransactions().values())).length
+      ),
+      data: serializeTransaction(tx),
+    });
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
-    let accountTransactions =
+    let accountTransactions: SenderTransactions =
       this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
-    accountTransactions = accountTransactions.push(serializeTransaction(tx));
+    accountTransactions = accountTransactions.push(orderedTx);
 
     const {
       executableNonce,
@@ -182,12 +197,27 @@ export class TransactionPool {
   }
 
   private _addQueuedTransaction(tx: Transaction) {
+    const hexAddressNonce = this._getExecutableNonces().get(
+      bufferToHex(tx.getSenderAddress())
+    );
+    const nonce =
+      hexAddressNonce === undefined
+        ? new BN(0)
+        : new BN(toBuffer(hexAddressNonce));
+    const orderedTx: OrderedRecord = makeOrderedTransaction({
+      orderId: add(
+        nonce.toNumber(),
+        flatten(Array.from(this.getQueuedTransactions().values())).length
+      ),
+      data: serializeTransaction(tx),
+    });
+
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
-    const accountTransactions =
+    const accountTransactions: SenderTransactions =
       this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList();
     this._setQueuedForAddress(
       hexSenderAddress,
-      accountTransactions.push(serializeTransaction(tx))
+      accountTransactions.push(orderedTx)
     );
   }
 
