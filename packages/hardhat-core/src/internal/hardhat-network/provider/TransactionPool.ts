@@ -1,19 +1,18 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
-import {
-  List as ImmutableList,
-  Map as ImmutableMap,
-  Record as ImmutableRecord,
-} from "immutable";
+import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
+import {
+  AddressToTransactions,
+  makePoolState,
+  PoolState,
+  SenderTransactions,
+  SerializedTransaction,
+} from "./PoolState";
 import { PStateManager } from "./types/PStateManager";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
 // tslint:disable only-hardhat-error
-
-export type SerializedTransaction = ImmutableList<string>;
-export type SenderTransactions = ImmutableList<SerializedTransaction>;
-type AddressToTransactions = ImmutableMap<string, SenderTransactions>;
 
 export function serializeTransaction(tx: Transaction): SerializedTransaction {
   const serializedFields = tx.raw.map((field) => bufferToHex(field));
@@ -29,20 +28,6 @@ export interface OrderedTransaction {
   orderId: number;
   data: Transaction;
 }
-
-export interface PoolState {
-  pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
-  queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
-  executableNonces: ImmutableMap<string, string>; // address => nonce (hex)
-  blockGasLimit: BN;
-}
-
-const makePoolState = ImmutableRecord<PoolState>({
-  pendingTransactions: ImmutableMap(),
-  queuedTransactions: ImmutableMap(),
-  executableNonces: ImmutableMap(),
-  blockGasLimit: new BN(9500000),
-});
 
 export class TransactionPool {
   private _state: ImmutableRecord<PoolState>;

@@ -1,8 +1,7 @@
 import { BN } from "ethereumjs-util";
 
-import { SenderTransactions } from "../TransactionPool";
-
 import { retrieveNonce } from "./retrieveNonce";
+import { SenderTransactions } from "../PoolState";
 
 export function reorganizeTransactionsLists(
   pending: SenderTransactions,
