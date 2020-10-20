@@ -24,7 +24,6 @@ A barebones installation with no plugins allows you to create your own tasks, co
 
 To create your Hardhat project run `npx hardhat` in your project folder:
 
-<!--TODO-HH: update this and all the stdouts in this file-->
 ```
 $ npx hardhat
 888    888                      888 888               888
@@ -58,33 +57,35 @@ To first get a quick sense of what's available and what's going on, run `npx har
 
 ```
 $ npx hardhat
-Hardhat version 1.3.3
+Hardhat version 2.0.0
 
 Usage: hardhat [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
 GLOBAL OPTIONS:
 
-  --config            A Hardhat config file. 
-  --emoji             Use emoji in messages. 
-  --help              Shows this message, or a task's help if its name is provided 
-  --max-memory        The maximum amount of memory that Hardhat can use. 
-  --network           The network to connect to. 
-  --show-stack-traces Show stack traces. 
-  --verbose           Enables Hardhat verbose logging 
-  --version           Shows hardhat's version. 
+  --config           	 A Hardhat config file.
+  --emoji            	 Use emoji in messages.
+  --help             	 Shows this message, or a task's help if its name is provided
+  --max-memory       	 The maximum amount of memory that Hardhat can use.
+  --network          	 The network to connect to.
+  --show-stack-traces	 Show stack traces.
+  --tsconfig         	 Reserved hardhat argument -- Has no effect.
+  --verbose          	 Enables Hardhat verbose logging
+  --version          	 Shows hardhat's version.
 
 
 AVAILABLE TASKS:
 
-  accounts  Prints the list of accounts
-  clean     Clears the cache and deletes all artifacts
-  compile   Compiles the entire project, building all artifacts
-  console   Opens a hardhat console
-  flatten   Flattens and prints all contracts and their dependencies
-  help      Prints this message
-  node      Starts a JSON-RPC server on top of Hardhat Network
-  run       Runs a user-defined script after compiling the project
-  test      Runs mocha tests
+  accounts	Prints the list of accounts
+  check   	Check whatever you need
+  clean   	Clears the cache and deletes all artifacts
+  compile 	Compiles the entire project, building all artifacts
+  console 	Opens a hardhat console
+  flatten 	Flattens and prints contracts and their dependencies
+  help    	Prints this message
+  node    	Starts a JSON-RPC server on top of Hardhat Network
+  run     	Runs a user-defined script after compiling the project
+  test    	Runs mocha tests
 
 To get help for a specific task run: npx hardhat help [task]
 ```
@@ -99,26 +100,26 @@ To run it, try `npx hardhat accounts`:
 
 ```
 $ npx hardhat accounts
-0xc783df8a850f42e7F7e57013759C285caa701eB6
-0xeAD9C93b79Ae7C1591b1FB5323BD777E86e150d4
-0xE5904695748fe4A84b40b3fc79De2277660BD1D3
-0x92561F28Ec438Ee9831D00D1D59fbDC981b762b2
-0x2fFd013AaA7B5a7DA93336C2251075202b33FB2B
-0x9FC9C2DfBA3b6cF204C37a5F690619772b926e39
-0xFbC51a9582D031f2ceaaD3959256596C5D3a5468
-0x84Fae3d3Cba24A97817b2a18c2421d462dbBCe9f
-0xfa3BdC8709226Da0dA13A4d904c8b66f16c3c8BA
-0x6c365935CA8710200C7595F0a72EB6023A7706Cd
-0xD7de703D9BBC4602242D0f3149E5fFCD30Eb3ADF
-0x532792B73C0C6E7565912E7039C59986f7E1dD1f
-0xEa960515F8b4C237730F028cBAcF0a28E7F45dE0
-0x3d91185a02774C70287F6c74Dd26d13DFB58ff16
-0x5585738127d12542a8fd6C71c19d2E4CECDaB08a
-0x0e0b5a3F244686Cf9E7811754379B9114D42f78B
-0x704cF59B16Fd50Efd575342B46Ce9C5e07076A4a
-0x0a057a7172d0466AEF80976D7E8c80647DfD35e3
-0x68dfc526037E9030c8F813D014919CC89E7d4d74
-0x26C43a1D431A4e5eE86cD55Ed7Ef9Edf3641e901
+0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+0x90F79bf6EB2c4f870365E785982E1f101E93b906
+0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65
+0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc
+0x976EA74026E726554dB657fA54763abd0C3a0aa9
+0x14dC79964da2C08b23698B3D3cc7Ca32193d9955
+0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f
+0xa0Ee7A142d267C1f36714E4a8F75612F20a79720
+0xBcd4042DE499D14e55001CcbB24a551F3b954096
+0x71bE63f3384f5fb98995898A86B02Fb2426c5788
+0xFABB0ac9d68B0B445fB7357272Ff202C5651694a
+0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec
+0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097
+0xcd3B766CCDd6AE721141F452C550Ca635964ce71
+0x2546BcD3c84621e976D8185a91A922aE77ECEc30
+0xbDA5747bFD65F08deb54cb465eB87D40e51B197E
+0xdD2FD4581271e230360230F9337D5c0430Bf44C0
+0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199
 ```
 
 ### Compiling your contracts
@@ -143,14 +144,17 @@ You can run your tests with `npx hardhat test`
 
 ```
 $ npx hardhat test
-Compiling...
-Compiled 2 contracts successfully
+Compiling 1 file with 0.7.3
+Compilation finished successfully
 
 
-  Contract: Greeter
-    ✓ Should return the new greeting once it's changed (762ms)
+  Greeter
+Deploying a Greeter with greeting: Hello, world!
+Changing greeting from 'Hello, world!' to 'Hola, mundo!'
+    ✓ Should return the new greeting once it's changed (803ms)
 
-  1 passing (762ms)
+
+  1 passing (805ms)
 ```
 
 ### Deploying your contracts
@@ -164,9 +168,8 @@ Run it with `npx hardhat run scripts/sample-script.js`:
 
 ```
 $ npx hardhat run scripts/sample-script.js
-All contracts have already been compiled, skipping compilation.
 Deploying a Greeter with greeting: Hello, Hardhat!
-Greeter deployed to: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
+Greeter deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 ### Connecting a wallet or Dapp to Hardhat Network
