@@ -46,7 +46,6 @@ export class TxPriorityHeap {
       const bestTxSender = bufferToHex(bestTx.data.getSenderAddress());
       this._queuedTransactions.delete(bestTxSender);
     }
-    return bestTx;
   }
 
   public shift() {

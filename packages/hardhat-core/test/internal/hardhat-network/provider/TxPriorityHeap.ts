@@ -21,7 +21,6 @@ function getTestTransactionFactory() {
 }
 
 // TODO add tests for peek with pop/shift
-// TODO add tests for operations on empty set
 
 describe("TxPriorityHeap", () => {
   let createTestTransaction: (data: FakeTxData) => OrderedTransaction;
@@ -125,6 +124,24 @@ describe("TxPriorityHeap", () => {
       txHeap.pop();
       assert.equal(txHeap.peek(), txB1);
     });
+
+    it("does not throw if there are no processable transactions left", async () => {
+      const account = randomAddressBuffer();
+      const tx1 = createTestTransaction({
+        from: account,
+        nonce: 1,
+        gasPrice: parseGWei(1),
+      });
+      const tx2 = createTestTransaction({
+        from: account,
+        nonce: 2,
+        gasPrice: parseGWei(1),
+      });
+      const txHeap = new TxPriorityHeap(makeOrderedTxMap([tx1, tx2]));
+      txHeap.pop();
+      assert.isUndefined(txHeap.peek());
+      assert.doesNotThrow(() => txHeap.pop());
+    });
   });
 
   describe("shift", () => {
@@ -201,6 +218,19 @@ describe("TxPriorityHeap", () => {
       txHeap.shift();
       txHeap.shift();
       assert.equal(txHeap.peek(), txA3);
+    });
+
+    it("does not throw if there are no processable transactions left", async () => {
+      const account = randomAddressBuffer();
+      const tx1 = createTestTransaction({
+        from: account,
+        nonce: 1,
+        gasPrice: parseGWei(1),
+      });
+      const txHeap = new TxPriorityHeap(makeOrderedTxMap([tx1]));
+      txHeap.shift();
+      assert.isUndefined(txHeap.peek());
+      assert.doesNotThrow(() => txHeap.shift());
     });
   });
 });
