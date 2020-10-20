@@ -2,7 +2,7 @@ import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { flatten } from "lodash";
 
 import {
