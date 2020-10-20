@@ -195,6 +195,9 @@ If you are sure you need a `tsconfig.json` file, here's a template to base yours
 }
 ```
 
+However you modify it, please make sure your config file is included in your project. The easiest way of doing this is
+by keeping its path in the `files` array.
+
 ## Performance optimizations
 
 Under the hood, Hardhat uses [ts-node](https://www.npmjs.com/package/ts-node) to support TypeScript. By default, it
