@@ -20,6 +20,14 @@ export class TxPriorityHeap {
   private readonly _queuedTransactions: Map<string, OrderedTransaction[]> = new Map();
   private readonly _heap = new MaxHeap<OrderedTransaction>(compareTransactions);
 
+  /**
+   * Creates a structure which allows to retrieve the next processable transaction with
+   * the highest gas price and the lowest order id.
+   * Assumes that the values of `pendingTransactions` map are arrays of pending transactions
+   * sorted by transaction nonces and that there are no gaps in the nonce sequence
+   * (i.e. all transactions from the same sender can be executed one by one).
+   * @param pendingTransactions map of (sender address) => (pending transactions list)
+   */
   constructor(pendingTransactions: Map<string, OrderedTransaction[]>) {
     for (const [address, txList] of pendingTransactions) {
       const [firstTx, ...remainingTxs] = txList;
