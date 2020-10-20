@@ -5,14 +5,18 @@
     section.banner-container.banner-container-desktop
 
       .marquee-container(v-for="group of desktopUsers")
-        .marquee
-          img(v-for="company of group" :title="company.company" :src="company.desktopImage")
-          img(v-for="company of group" :title="company.company" :src="company.desktopImage")
+        .marquee-content
+          .marquee    
+            img(v-for="company of group" :title="company.company" :src="company.desktopImage")
+          .marquee
+            img(v-for="company of group" :title="company.company" :src="company.desktopImage")  
     section.banner-container.banner-container-mobile
       .marquee-container(v-for="group of mobileUsers")
-        .marquee
-          img(v-for="company of group" :title="company.company" :src="company.mobileImage")
-          img(v-for="company of group" :title="company.company" :src="company.mobileImage")
+        .marquee-content
+          .marquee
+            img(v-for="company of group" :title="company.company" :src="company.mobileImage")
+          .marquee
+            img(v-for="company of group" :title="company.company" :src="company.mobileImage")
 </template>
 
 <script>
@@ -384,46 +388,42 @@ function splitInChunks(arr, chunkSize) {
 
     :nth-child(even).marquee-container
       .marquee
-        animation-name marquee_reverse
+        animation-direction reverse
 
     :nth-child(3).marquee-container
       .marquee
-        animation marquee 17s infinite linear
+        animation-duration 17s
         
   .marquee-container
     overflow hidden
-    white-space nowrap
-
+    
+    .marquee-content
+      width: 10000px
+    
     .marquee
-      white-space nowrap
       margin-bottom 50px
-      display flex
-      align-items center
       padding-left 0
       height 80px
-      animation marquee 25s infinite linear
+      animation-duration 25s
+      animation-name marquee
+      animation-timing-function linear
+      animation-iteration-count infinite
+      float: left;
       
       
       @keyframes marquee
         0%
-          transform: translateX(calc(0))
+          transform: translateX(0%)
 
         100%
-          transform: translateX(calc(-50% - 25px))
-
-
-      @keyframes marquee_reverse
-        0%
-          transform: translateX(calc(-50% - 25px))
-
-        100%
-          transform: translateX(calc(0))
+          transform: translateX(-100%)
 
       img
         margin 0 50px
         opacity .8
         max-height 67px
         transition .1s ease-in-out opacity
+        display inline-block
 
         &:hover
           opacity 1
@@ -434,28 +434,13 @@ function splitInChunks(arr, chunkSize) {
 
     :nth-child(even).marquee-container
       .marquee
-        animation-name marquee_reverse_m
+        animation-direction reverse
 
     .marquee
-      animation-name marquee_m
       margin-bottom 0
 
       img
         margin 0 20px
         height 41px
         opacity 1
-
-      @keyframes marquee_m
-        0%
-          transform: translateX(0)
-
-        100%
-          transform: translateX(calc(-50% - 10px))
-
-      @keyframes marquee_reverse_m
-        0%
-          transform: translateX(calc(-50% - 10px))
-
-        100%
-          transform: translateX(0)
 </style>
