@@ -8,11 +8,11 @@ section#why-hardhat.padded-container
       .column.details-column
         .details
           h2 Run Solidity locally
-          p Quickly deploy your contracts, run your tests and debug your Solidity code without dealing with live environments. A local light-weight Ethereum network tailored for development.
+          p Easily deploy your contracts, run tests and debug Solidity code without dealing with live environments. Hardhat Network is a local Ethereum network designed for development.
         .image-container.mb-show
         .details
           h2 Debugging-first
-          p HardHat is aggressively equipped towards providing and enabling Solidity debugging. You get Solidity stack traces, console.log and explicit error messages when transactions fail due to platform constraints.
+          p Hardhat is the best choice for Solidity debugging. You get Solidity stack traces, console.log and explicit error messages when transactions fail.
       .column.image-column.mb-hidden
         .image-container
     .columns-container
@@ -27,11 +27,11 @@ section#why-hardhat.padded-container
       .column.details-column
         .details
           h2 Extreme flexibility
-          p Change anything you don’t like. Even entire out-of-the-box commands, or just parts of them.
+          p Change anything you like. Even entire out-of-the-box tasks, or just parts of them. Flexible and customizable design, with little constraints.
         .image-container.mb-show
         .details
           h2 Bring your own tools
-          p Hardhat is designed to make integrations easy. Keep using your existing tools with deeper interoperability across them using integration plugins.
+          p Designed to make integrations easy, Hardhat allows you to keep using your existing tools while enabling deeper interoperability between them.
     .columns-container
       .column.link-left-space
       .column
@@ -42,17 +42,18 @@ section#why-hardhat.padded-container
       .column.details-column
         .details
           h2 Fully extensible
-          p Hardhat is a tooling platform designed to be extended. It packs all the utilities you’ll need to address your ad-hoc needs without limitations.
+          p A tooling platform designed to be extended, Hardhat has all the utilities you need to address your project-specific needs.
         .image-container.mb-show
         .details
           h2 Plugin ecosystem
-          p A composable ecosystem of plugins that are first-class citizens extending Hardhat’s functionality and integrating existing tools into a smooth workflow.
+          p Extend Hardhat with a composable ecosystem of plugins that add functionality and integrate your existing tools into  a smooth workflow.
+
       .column.image-column.mb-hidden
         .image-container
     .columns-container
       .column
       .column
-        HHCta(text="Get started with Hardhat plugins", link="/")
+        HHCta(text="Get started with plugins", link="/")
         .bracket
   section#tasks.section-content
     .columns-container
@@ -61,22 +62,25 @@ section#why-hardhat.padded-container
       .column.details-column
         .details
           h2 Fast iteration
-          p The development feedback loop is a developer’s cadence, and HardHat makes sure it’s fast. Up to 10x faster than alternatives.
+          //p A developer’s momentum relies on the development feedback loop, and Hardhat makes sure it’s fast. Run your tests up to 10x faster than using alternative solutions.
+          p Keep your momentum going by making your development feedback loop up to 10x faster with Hardhat.
+
         .image-container.mb-show
         .details
           h2 TypeScript
-          p A composable ecosystem of plugins that are first-class citizens extending Hardhat’s functionality and integrating existing tools into a smooth workflow.
+          p Catch mistakes before you even run your code by switching to a typed language. Hardhat provides full native support for TypeScript.
     .columns-container
       .column.link-left-space
       .column
-        HHCta(text="Get started with TypeScript in Hardhat", link="/")
+        HHCta(text="Get started with TypeScript", link="/")
         .bracket.left-bracket
   section#vibrant-community.section-content
     .columns-container.reverse
       .column.details-column
         .details
           h2 Vibrant community
-          p Cutting-edge tech attracts cutting-edge people. The HardHat community is very active, both in contributions to the plugin ecosystem and helping fellow users troubleshoot. Don’t miss out!
+          p Great tech attracts great people. Join the Hardhat community to find answers to your problems and contribute to the plugin ecosystem.
+          // "Great tech attracts great people. Join the Hardhat community to meet new friends and expand the plug-in ecosystem”
           HHCta(
             text="Join the Hardhat Discord",
             link="https://invite.gg/BuidlerSupport",

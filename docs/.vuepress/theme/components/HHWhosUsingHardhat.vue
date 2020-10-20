@@ -1,7 +1,7 @@
 <template lang="pug">
   section#whos-using-hardhat
     .padded-container
-      h1.section-title They get it
+      h1.section-title Trusted by top teams
     section.banner-container.banner-container-desktop
 
       .marquee-container(v-for="group of desktopUsers")
