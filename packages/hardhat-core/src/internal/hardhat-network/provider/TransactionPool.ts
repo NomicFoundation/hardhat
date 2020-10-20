@@ -92,11 +92,11 @@ export class TransactionPool {
   }
 
   public revert(snapshotId: number) {
-    if (!this.getSnapshotIdToState().has(snapshotId)) {
+    const state = this._snapshotIdToState.get(snapshotId);
+    if (state === undefined) {
       throw new Error("There's no snapshot with such ID");
     }
-
-    this._state = this.getSnapshotIdToState().get(snapshotId)!;
+    this._state = state;
   }
 
   public getCurrentSnapshotId(): number {
