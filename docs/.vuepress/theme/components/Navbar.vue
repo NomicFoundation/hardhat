@@ -161,9 +161,15 @@ $navbar-horizontal-padding = 2rem
 
     li
       transition 0.2s ease-in-out opacity
-
+    
       &:hover
         opacity 0.5
+
+      a
+        display inline-block
+
+      img
+        height 18px
 
   .header
     padding $navbar-vertical-padding $navbar-horizontal-padding 1.5rem $navbar-horizontal-padding

@@ -174,6 +174,15 @@ export default {
 
         li
           transition 0.2s ease-in-out opacity
+          display inline-block
+          
+          a
+            display inline-block
+            padding-top 3px
+            
+            img
+              height 18px
+              display inline-block
 
           &:hover
             opacity 0.5
