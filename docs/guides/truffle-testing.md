@@ -27,19 +27,21 @@ Enable the Truffle 5 plugin on your Hardhat config file by requiring it:
 ```js{1}
 require("@nomiclabs/hardhat-truffle5");
 
-module.exports = {};
+module.exports = {
+  solidity: "0.7.3"
+};
 ```
 
 Create a folder named `contracts` inside your project. Add a file named `Greeter.sol`, copy and paste the code below:
 
 ```c
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 contract Greeter {
 
     string greeting;
 
-    constructor(string memory _greeting) public {
+    constructor(string memory _greeting) {
         greeting = _greeting;
     }
 
