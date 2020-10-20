@@ -46,11 +46,9 @@ const makePoolState = ImmutableRecord<PoolState>({
 
 export class TransactionPool {
   private _state: ImmutableRecord<PoolState>;
-  private _currentSnapshotId = 0;
-  private _snapshotIdToState: ImmutableMap<
-    number,
-    ImmutableRecord<PoolState>
-  > = ImmutableMap();
+  private _snapshotIdToState = new Map<number, ImmutableRecord<PoolState>>();
+  private _currentSnapshotId = -1;
+  private _nextSnapshotId = 0;
 
   constructor(
     private readonly _stateManager: PStateManager,
@@ -71,13 +69,11 @@ export class TransactionPool {
   }
 
   public snapshot(): number {
-    const snapshotId = this.getCurrentSnapshotId();
-    this._snapshotIdToState = this._snapshotIdToState.set(
-      this._currentSnapshotId,
-      this._state
-    );
-    this._currentSnapshotId++;
-    return snapshotId;
+    if (this._snapshotIdToState.get(this._currentSnapshotId) !== this._state) {
+      this._currentSnapshotId = this._nextSnapshotId++;
+      this._snapshotIdToState.set(this._currentSnapshotId, this._state);
+    }
+    return this._currentSnapshotId;
   }
 
   public revert(snapshotId: number) {
@@ -85,15 +81,8 @@ export class TransactionPool {
     if (state === undefined) {
       throw new Error("There's no snapshot with such ID");
     }
+    this._currentSnapshotId = snapshotId;
     this._state = state;
-  }
-
-  public getCurrentSnapshotId(): number {
-    return this._currentSnapshotId;
-  }
-
-  public getSnapshotIdToState() {
-    return this._snapshotIdToState;
   }
 
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
