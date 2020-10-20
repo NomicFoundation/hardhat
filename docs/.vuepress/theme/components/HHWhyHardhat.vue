@@ -382,6 +382,7 @@ export default {
         line-height 28px
         @media screen and (max-width: 1000px)
           padding 0 15px
+          margin 20px 0 !important
 
       a
         margin-top 2rem
@@ -391,6 +392,7 @@ export default {
         transition 0.1s ease-in-out all
         @media (max-width: 1000px)
           margin-top 0rem
+          margin-bottom 60px
 
         &:hover
           // box-shadow 0 0 5px alpha(black, 0.1)
@@ -428,7 +430,7 @@ export default {
     content ''
     top -50px
     left -10rem
-    box-shadow 0 0 5rem alpha($black, 0.05)
+    box-shadow 0 0 5rem alpha($black, 0.08)
     pointer-events none
     @media (max-width: 1000px)
       width 100%
