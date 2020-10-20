@@ -3,13 +3,14 @@ import { Transaction } from "ethereumjs-tx";
 import { bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 
-import { createTestTransaction } from "./blockchain";
+import { createTestOrderedTransaction } from "./blockchain";
 import { DEFAULT_ACCOUNTS } from "./providers";
 
 export function assertEqualTransactionMaps(
-  actual: Map<string, Transaction[]>,
-  expected: Map<string, Transaction[]>
+  actual: Map<string, OrderedTransaction[]>,
+  expected: Map<string, OrderedTransaction[]>
 ) {
   assert.equal(actual.size, expected.size, "Map sizes do not match");
   actual.forEach((actualList, key) => {
@@ -20,34 +21,42 @@ export function assertEqualTransactionMaps(
 }
 
 export function assertEqualTransactionLists(
-  actual: Transaction[],
-  expected: Transaction[]
+  actual: OrderedTransaction[],
+  expected: OrderedTransaction[]
 ) {
   assert.deepEqual(
-    actual.map((tx) => tx.raw),
-    expected.map((tx) => tx.raw)
+    actual.map((tx) => tx.data.raw),
+    expected.map((tx) => tx.data.raw)
   );
 }
 
 describe("assertEqualTransactionMaps", () => {
   it("does not throw if maps are equal", async () => {
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
-    const tx1Copy = new Transaction(tx1.raw);
-    const tx2Copy = new Transaction(tx2.raw);
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
 
-    tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
-    tx1Copy.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2Copy.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
+    const tx2Copy: OrderedTransaction = {
+      orderId: 1,
+      data: new Transaction(tx2.data.raw),
+    };
 
-    const actualMap: Map<string, Transaction[]> = new Map();
-    actualMap.set(bufferToHex(tx1.getSenderAddress()), [tx1]);
-    actualMap.set(bufferToHex(tx2.getSenderAddress()), [tx2]);
+    tx1.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2.data.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+
+    tx1Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+
+    const actualMap: Map<string, OrderedTransaction[]> = new Map();
+    actualMap.set(bufferToHex(tx1.data.getSenderAddress()), [tx1]);
+    actualMap.set(bufferToHex(tx2.data.getSenderAddress()), [tx2]);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(bufferToHex(tx1.getSenderAddress()), [tx1Copy]);
-    expectedMap.set(bufferToHex(tx2.getSenderAddress()), [tx2Copy]);
+    expectedMap.set(bufferToHex(tx1.data.getSenderAddress()), [tx1Copy]);
+    expectedMap.set(bufferToHex(tx2.data.getSenderAddress()), [tx2Copy]);
 
     assert.doesNotThrow(() => {
       assertEqualTransactionMaps(actualMap, expectedMap);
@@ -61,24 +70,33 @@ describe("assertEqualTransactionMaps", () => {
     // A -> [1, 2]
     // B -> [1]
 
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
 
-    const tx1Copy = new Transaction(tx1.raw);
-    const tx2Copy = new Transaction(tx2.raw);
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
+    const tx2Copy: OrderedTransaction = {
+      orderId: 1,
+      data: new Transaction(tx2.data.raw),
+    };
 
-    tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx1.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-    tx1Copy.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2Copy.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+    tx1Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
 
-    const actualMap: Map<string, Transaction[]> = new Map();
-    actualMap.set(bufferToHex(tx1.getSenderAddress()), [tx1, tx2]);
+    const actualMap: Map<string, OrderedTransaction[]> = new Map();
+    actualMap.set(bufferToHex(tx1.data.getSenderAddress()), [tx1, tx2]);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(bufferToHex(tx1.getSenderAddress()), [tx1Copy, tx2Copy]);
-    expectedMap.set(bufferToHex(tx2.getSenderAddress()), [tx1]);
+    expectedMap.set(bufferToHex(tx1.data.getSenderAddress()), [
+      tx1Copy,
+      tx2Copy,
+    ]);
+    expectedMap.set(bufferToHex(tx2.data.getSenderAddress()), [tx1]);
 
     assert.throws(() => {
       assertEqualTransactionMaps(actualMap, expectedMap);
@@ -93,24 +111,33 @@ describe("assertEqualTransactionMaps", () => {
     // A -> [1, 2]
     // D -> []
 
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
 
-    const tx1Copy = new Transaction(tx1.raw);
-    const tx2Copy = new Transaction(tx2.raw);
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
+    const tx2Copy: OrderedTransaction = {
+      orderId: 1,
+      data: new Transaction(tx2.data.raw),
+    };
 
-    tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx1.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-    tx1Copy.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2Copy.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+    tx1Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
 
-    const actualMap: Map<string, Transaction[]> = new Map();
-    actualMap.set(bufferToHex(tx1.getSenderAddress()), [tx1, tx2]);
+    const actualMap: Map<string, OrderedTransaction[]> = new Map();
+    actualMap.set(bufferToHex(tx1.data.getSenderAddress()), [tx1, tx2]);
     actualMap.set(bufferToHex(randomAddressBuffer()), []);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(bufferToHex(tx1.getSenderAddress()), [tx1Copy, tx2Copy]);
+    expectedMap.set(bufferToHex(tx1.data.getSenderAddress()), [
+      tx1Copy,
+      tx2Copy,
+    ]);
     actualMap.set(bufferToHex(randomAddressBuffer()), []);
 
     assert.throws(() => {
@@ -126,27 +153,36 @@ describe("assertEqualTransactionMaps", () => {
     // A -> [1, 2]
     // B -> [1]
 
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
-    const tx3 = createTestTransaction();
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
+    const tx3 = createTestOrderedTransaction({ orderId: 2 });
 
-    const tx1Copy = new Transaction(tx1.raw);
-    const tx2Copy = new Transaction(tx2.raw);
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
+    const tx2Copy: OrderedTransaction = {
+      orderId: 1,
+      data: new Transaction(tx2.data.raw),
+    };
 
-    tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
-    tx3.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx1.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2.data.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+    tx3.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-    tx1Copy.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-    tx2Copy.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
+    tx1Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+    tx2Copy.data.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
 
-    const actualMap: Map<string, Transaction[]> = new Map();
-    actualMap.set(bufferToHex(tx1.getSenderAddress()), [tx1, tx3]);
-    actualMap.set(bufferToHex(tx2.getSenderAddress()), [tx1]);
+    const actualMap: Map<string, OrderedTransaction[]> = new Map();
+    actualMap.set(bufferToHex(tx1.data.getSenderAddress()), [tx1, tx3]);
+    actualMap.set(bufferToHex(tx2.data.getSenderAddress()), [tx1]);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(bufferToHex(tx1.getSenderAddress()), [tx1Copy, tx2Copy]);
-    expectedMap.set(bufferToHex(tx2.getSenderAddress()), [tx1Copy]);
+    expectedMap.set(bufferToHex(tx1.data.getSenderAddress()), [
+      tx1Copy,
+      tx2Copy,
+    ]);
+    expectedMap.set(bufferToHex(tx2.data.getSenderAddress()), [tx1Copy]);
 
     assert.throws(() => {
       assertEqualTransactionMaps(actualMap, expectedMap);
@@ -156,10 +192,16 @@ describe("assertEqualTransactionMaps", () => {
 
 describe("assertEqualTransactionLists", () => {
   it("does not throw if the lists have the same content", async () => {
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
-    const tx1Copy = new Transaction(tx1.raw);
-    const tx2Copy = new Transaction(tx2.raw);
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
+    const tx2Copy: OrderedTransaction = {
+      orderId: 1,
+      data: new Transaction(tx2.data.raw),
+    };
 
     assert.doesNotThrow(() =>
       assertEqualTransactionLists([tx1, tx2], [tx1Copy, tx2Copy])
@@ -167,10 +209,16 @@ describe("assertEqualTransactionLists", () => {
   });
 
   it("throws if the order of elements in lists is not the same", async () => {
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
-    const tx1Copy = new Transaction(tx1.raw);
-    const tx2Copy = new Transaction(tx2.raw);
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
+    const tx2Copy: OrderedTransaction = {
+      orderId: 1,
+      data: new Transaction(tx2.data.raw),
+    };
 
     assert.throws(() =>
       assertEqualTransactionLists([tx1, tx2], [tx2Copy, tx1Copy])
@@ -178,9 +226,12 @@ describe("assertEqualTransactionLists", () => {
   });
 
   it("throws if the lists don't have the same content", async () => {
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
-    const tx1Copy = new Transaction(tx1.raw);
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
 
     assert.throws(() =>
       assertEqualTransactionLists([tx1, tx2], [tx1Copy, tx1Copy])
@@ -188,9 +239,12 @@ describe("assertEqualTransactionLists", () => {
   });
 
   it("throws if the lists don't have the same length", async () => {
-    const tx1 = createTestTransaction();
-    const tx2 = createTestTransaction();
-    const tx1Copy = new Transaction(tx1.raw);
+    const tx1 = createTestOrderedTransaction({ orderId: 0 });
+    const tx2 = createTestOrderedTransaction({ orderId: 1 });
+    const tx1Copy: OrderedTransaction = {
+      orderId: 0,
+      data: new Transaction(tx1.data.raw),
+    };
 
     assert.throws(() => assertEqualTransactionLists([tx1, tx2], [tx1Copy]));
   });

@@ -39,6 +39,11 @@ export function deserializeTransaction(tx: SerializedTransaction): Transaction {
   return new Transaction(fields);
 }
 
+export interface OrderedTransaction {
+  orderId: number;
+  data: Transaction;
+}
+
 export interface PoolStateProps {
   pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
   queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
@@ -102,16 +107,26 @@ export class TransactionPool {
     return this._snapshotIdToState;
   }
 
-  public getPendingTransactions(): Map<string, Transaction[]> {
+  public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending().map((txs) =>
-      txs.map((tx) => deserializeTransaction(tx)).toJS()
+      txs
+        .map((tx, index) => ({
+          orderId: index,
+          data: deserializeTransaction(tx),
+        }))
+        .toJS()
     );
     return new Map(deserializedImmutableMap.entries());
   }
 
-  public getQueuedTransactions(): Map<string, Transaction[]> {
-    const deserializedImmutableMap = this._getPending().map((txs) =>
-      txs.map((tx) => deserializeTransaction(tx)).toJS()
+  public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
+    const deserializedImmutableMap = this._getQueued().map((txs) =>
+      txs
+        .map((tx, index) => ({
+          orderId: index,
+          data: deserializeTransaction(tx),
+        }))
+        .toJS()
     );
     return new Map(deserializedImmutableMap.entries());
   }

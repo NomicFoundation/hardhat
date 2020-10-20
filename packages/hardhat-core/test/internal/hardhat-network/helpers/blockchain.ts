@@ -12,7 +12,10 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
-import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
+import {
+  OrderedTransaction,
+  serializeTransaction,
+} from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 
 export function createTestTransaction(data: TxData = {}) {
   return new Transaction({ to: randomAddressBuffer(), ...data });
@@ -26,6 +29,20 @@ export function createTestFakeTransaction(data: FakeTxData = {}) {
     gasLimit: 30000,
     ...data,
   });
+}
+
+interface OrderedTxData extends FakeTxData {
+  orderId: number;
+}
+
+export function createTestOrderedTransaction({
+  orderId,
+  ...rest
+}: OrderedTxData): OrderedTransaction {
+  return {
+    orderId,
+    data: createTestFakeTransaction(rest),
+  };
 }
 
 export function createTestSerializedTransaction(data?: TxData) {
