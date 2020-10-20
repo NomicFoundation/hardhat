@@ -14,16 +14,16 @@ Waffle supports TypeScript. Learn how to set up Hardhat with TypeScript [here](.
 
 ```
 $ npx hardhat
-888               d8b      888 888
-888               Y8P      888 888
-888                        888 888
-88888b.  888  888 888  .d88888 888  .d88b.  888d888
-888 "88b 888  888 888 d88" 888 888 d8P  Y8b 888P"
-888  888 888  888 888 888  888 888 88888888 888
-888 d88P Y88b 888 888 Y88b 888 888 Y8b.     888
-88888P"   "Y88888 888  "Y88888 888  "Y8888  888
+888    888                      888 888               888
+888    888                      888 888               888
+888    888                      888 888               888
+8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888
+888    888     "88b 888P"  d88" 888 888 "88b     "88b 888
+888    888 .d888888 888    888  888 888  888 .d888888 888
+888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
+888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-👷 Welcome to Hardhat v1.0.0 👷‍‍
+Welcome to Hardhat v2.0.0
 
 ? What do you want to do? …
 ❯ Create a sample project
@@ -42,7 +42,7 @@ Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is en
 <<< @/../packages/hardhat-core/sample-project/hardhat.config.js{1}
 
 ::: tip 
-There's no need for `usePlugin("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
+There's no need for `require("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
 :::
 
 ## Testing
@@ -55,9 +55,6 @@ On your terminal run `npx hardhat test`. You should see the following output:
 
 ```
 $ npx hardhat test
-Compiling...
-Compiled 1 contract successfully
-
 
   Contract: Greeter
     ✓ Should return the new greeting once it's changed (762ms)
@@ -93,12 +90,6 @@ const greeter = await Greeter.deploy("Hello, world!");
 ```
 
 Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions. Here we're passing the string `Hello, world!` to the contract's constructor.
-
-```js
-await greeter.deployed();
-```
-
-When you call on `deploy()` the transaction is sent, but the contract isn't actually deployed until the transaction is mined. Calling `deployed()` will return a `Promise` that resolves once this happens, so this code is blocking until the deployment finishes.
 
 Once the contract is deployed, we can call our contract methods on `greeter` and use them to get the state of the contract.
 
@@ -176,12 +167,14 @@ module.exports = {
     sources: "./some_custom/contracts_path",
     artifacts: "../some_custom/build"
   },
-  solc: {
+  solidity: {
     version: "0.4.24", // Note that this only has the version number
-    evmVersion: "constantinople",
-    optimizer: {
-      enabled: true,
-      runs: 200
+    settings: {
+      evmVersion: "constantinople",
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
     }
   }
 };
@@ -190,7 +183,7 @@ module.exports = {
 If you're migrating an existing Waffle project to Hardhat, then the minimum configuration you'll need is changing Hardhat's compilation output path, since Waffle uses a different one by default:
 
 ```js
-usePlugin("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-waffle");
 
 module.exports = {
   paths: {
@@ -220,7 +213,7 @@ const { deployContract } = waffle;
 Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions. If you're fighting a "Transaction run out of gas" error, double-check the size of your contract and bump the gas limit if needed.
 :::
 
-Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `usePlugin("@nomiclabs/hardhat-waffle");` in your Hardhat config and use the plugin's provider like this
+Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config and use the plugin's provider like this
 
 ```js
 const provider = waffle.provider;

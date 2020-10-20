@@ -69,7 +69,6 @@ await hre.run("compile");
 
 ```
 $ node scripts/sample-script.js
-All contracts have already been compiled, skipping compilation.
 Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ```
 

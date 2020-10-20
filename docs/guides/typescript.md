@@ -45,7 +45,7 @@ We also need to adapt it to explicitly import the Hardhat config DSL, and use th
 
 For example, the sample project's config turns from this
 ```js{5,13}
-usePlugin("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-waffle");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -53,7 +53,7 @@ task("accounts", "Prints the list of accounts", async () => {
   const accounts = await ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(await account.getAddress());
+    console.log(account.address);
   }
 });
 
@@ -62,10 +62,10 @@ module.exports = {};
 
 into this
 
-```typescript{1,7,8,15}
-import { task, usePlugin } from "hardhat/config";
+```typescript{1-3,7,8,15}
+import "@nomiclabs/hardhat-waffle";
 
-usePlugin("@nomiclabs/hardhat-waffle");
+import { task } from "hardhat/config";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -73,7 +73,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(await account.getAddress());
+    console.log(account.address);
   }
 });
 

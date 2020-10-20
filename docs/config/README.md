@@ -9,7 +9,7 @@ The entirety of your Hardhat setup (i.e. your config, plugins and custom tasks) 
 
 To set up your config, you have to export an object from `hardhat.config.js`.
 
-This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solc`](#solc-configuration), and [`paths`](#path-configuration). For example:
+This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solc-configuration), and [`paths`](#path-configuration). For example:
 
 ```js
 module.exports = {
@@ -22,11 +22,13 @@ module.exports = {
       accounts: [privateKey1, privateKey2, ...]
     }
   },
-  solc: {
+  solidity: {
     version: "0.5.15",
-    optimizer: {
-      enabled: true,
-      runs: 200
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
     }
   },
   paths: {
@@ -43,7 +45,7 @@ module.exports = {
 The `networks` config field is an optional object where network names map to their configuration.
 
 There are two kinds of networks in Hardhat: [JSON-RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) based networks,
-and the built-in Hardhat Network network.
+and the built-in Hardhat Network.
 
 You can customize which network is used by default when running Hardhat by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"hardhat"`.
 
@@ -72,7 +74,7 @@ You can set the following fields on the `hardhat` config:
 
 - `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `9500000`
 
-- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, and `"istanbul"`. Default value: `"istanbul"`
+- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, and `"muirGlacier"`. Default value: `"muirGlacier"`
 
 - `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures.
   If this value is `true`, Hardhat Network will throw [combined JavaScript and Soldity stack traces](../hardhat-network/README.md#solidity-stack-traces)
@@ -125,7 +127,7 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 
 - `initialIndex`: The initial index to derive. Default value: `0`.
 
-- `count`: The number of accounts to derive. Default value: `10`.
+- `count`: The number of accounts to derive. Default value: `20`.
 
 ### Default networks object
 

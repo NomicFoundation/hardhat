@@ -11,7 +11,7 @@ Run these to start:
 mkdir my-project
 cd my-project
 npm init --yes
-npm install --save-dev @nomiclabs/hardhat
+npm install --save-dev hardhat
 ```
 
 Now run npx hardhat inside your project folder and select `Create an empty hardhat.config.js`.
@@ -22,24 +22,26 @@ Let's now install the `Truffle` and `Web3.js` plugins, as well as `web3.js` itse
 npm install --save-dev @nomiclabs/hardhat-truffle5 @nomiclabs/hardhat-web3 web3
 ```
 
-Enable the Truffle 5 plugin on your Hardhat config file by adding
+Enable the Truffle 5 plugin on your Hardhat config file by requiring it:
 
 ```js{1}
-usePlugin("@nomiclabs/hardhat-truffle5");
+require("@nomiclabs/hardhat-truffle5");
 
-module.exports = {};
+module.exports = {
+  solidity: "0.7.3"
+};
 ```
 
 Create a folder named `contracts` inside your project. Add a file named `Greeter.sol`, copy and paste the code below:
 
 ```c
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 contract Greeter {
 
     string greeting;
 
-    constructor(string memory _greeting) public {
+    constructor(string memory _greeting) {
         greeting = _greeting;
     }
 
@@ -110,8 +112,6 @@ Truffle runs its tests with Mocha, but a few tools that integrate Mocha don't ex
 You can run these tests by running `npx hardhat test`:
 ```
 $ npx hardhat test
-All contracts have already been compiled, skipping compilation.
-
 
 Contract: Greeter
     ✓ Should return the new greeting once it's changed (265ms)

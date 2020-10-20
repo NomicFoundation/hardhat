@@ -11,6 +11,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
   - constantinople
   - petersburg
   - istanbul
+  - muirGlacier
 
 ## How can I use it?
 
@@ -158,26 +159,26 @@ Hardhat Network is initialized by default in this state:
 <!--TODO-HH: update list of accounts-->
 - A brand new blockchain, just with the genesis block.
 - 20 accounts with 10000 ETH each
-  - `0xc783df8a850f42e7f7e57013759c285caa701eb6`
-  - `0xead9c93b79ae7c1591b1fb5323bd777e86e150d4`
-  - `0xe5904695748fe4a84b40b3fc79de2277660bd1d3`
-  - `0x92561f28ec438ee9831d00d1d59fbdc981b762b2`
-  - `0x2ffd013aaa7b5a7da93336c2251075202b33fb2b`
-  - `0x9fc9c2dfba3b6cf204c37a5f690619772b926e39`
-  - `0xfbc51a9582d031f2ceaad3959256596c5d3a5468`
-  - `0x84fae3d3cba24a97817b2a18c2421d462dbbce9f`
-  - `0xfa3bdc8709226da0da13a4d904c8b66f16c3c8ba`
-  - `0x6c365935ca8710200c7595f0a72eb6023a7706cd`
-  - `0xd7de703d9bbc4602242d0f3149e5ffcd30eb3adf`
-  - `0x532792b73c0c6e7565912e7039c59986f7e1dd1f`
-  - `0xea960515f8b4c237730f028cbacf0a28e7f45de0`
-  - `0x3d91185a02774c70287f6c74dd26d13dfb58ff16`
-  - `0x5585738127d12542a8fd6c71c19d2e4cecdab08a`
-  - `0x0e0b5a3f244686cf9e7811754379b9114d42f78b`
-  - `0x704cf59b16fd50efd575342b46ce9c5e07076a4a`
-  - `0x0a057a7172d0466aef80976d7e8c80647dfd35e3`
-  - `0x68dfc526037e9030c8f813d014919cc89e7d4d74`
-  - `0x26c43a1d431a4e5ee86cd55ed7ef9edf3641e901`
+  - `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
+  - `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`
+  - `0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC`
+  - `0x90F79bf6EB2c4f870365E785982E1f101E93b906`
+  - `0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65`
+  - `0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc`
+  - `0x976EA74026E726554dB657fA54763abd0C3a0aa9`
+  - `0x14dC79964da2C08b23698B3D3cc7Ca32193d9955`
+  - `0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f`
+  - `0xa0Ee7A142d267C1f36714E4a8F75612F20a79720`
+  - `0xBcd4042DE499D14e55001CcbB24a551F3b954096`
+  - `0x71bE63f3384f5fb98995898A86B02Fb2426c5788`
+  - `0xFABB0ac9d68B0B445fB7357272Ff202C5651694a`
+  - `0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec`
+  - `0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097`
+  - `0xcd3B766CCDd6AE721141F452C550Ca635964ce71`
+  - `0x2546BcD3c84621e976D8185a91A922aE77ECEc30`
+  - `0xbDA5747bFD65F08deb54cb465eB87D40e51B197E`
+  - `0xdD2FD4581271e230360230F9337D5c0430Bf44C0`
+  - `0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199`
 
 To customise it, take a look at [the configuration section](/config/#hardhat-network).
 

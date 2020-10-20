@@ -10,7 +10,7 @@ To see the currently available tasks in your project, run `npx hardhat`:
 
 ```
 $ npx hardhat
-Hardhat version 1.0.0
+Hardhat version 2.0.0
 
 Usage: hardhat [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
@@ -18,19 +18,24 @@ GLOBAL OPTIONS:
 
   --config              A Hardhat config file.
   --emoji               Use emoji in messages.
-  --help                Shows this message.
-  --network             The network to connect to. (default: "hardhat")
+  --help                Shows this message, or a task's help if its name is provided
+  --max-memory          The maximum amount of memory that Hardhat can use.
+  --network             The network to connect to.
   --show-stack-traces   Show stack traces.
+  --tsconfig            Reserved hardhat argument -- Has no effect.
+  --verbose             Enables Hardhat verbose logging
   --version             Shows hardhat's version.
 
 
 AVAILABLE TASKS:
 
+  check         Check whatever you need
   clean         Clears the cache and deletes all artifacts
   compile       Compiles the entire project, building all artifacts
   console       Opens a hardhat console
-  flatten       Flattens and prints all contracts and their dependencies
+  flatten       Flattens and prints contracts and their dependencies
   help          Prints this message
+  node          Starts a JSON-RPC server on top of Hardhat Network
   run           Runs a user-defined script after compiling the project
   test          Runs mocha tests
 
@@ -60,7 +65,7 @@ _If you’re writing a Hardhat plugin that adds a task, they can also be created
 For this tutorial, we're going to create a task to get an account’s balance from the terminal. You can do this with the Hardhat’s config DSL, which is available in the global scope of `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-web3");
 
 task("balance", "Prints an account's balance")
   .setAction(async () => {});
@@ -103,7 +108,7 @@ To get help for a specific task run: npx hardhat help [task]
 Now let’s implement the functionality we want. We need to get the account address from the user. We can do this by adding a parameter to our task:
 
 ```js
-usePlugin("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-web3");
 
 task("balance", "Prints an account's balance")
   .addParam("account", "The account's address")
@@ -132,7 +137,7 @@ For global options help run: hardhat help
 Let’s now get the account’s balance. The [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) will be available in the global scope. By using Hardhat’s [Web3.js plugin](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3) we get access to a Web3.js instance:
 
 ```js
-usePlugin("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-web3");
 
 task("balance", "Prints an account's balance")
   .addParam("account", "The account's address")

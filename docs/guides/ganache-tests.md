@@ -33,7 +33,7 @@ npm install --save-dev @nomiclabs/hardhat-ganache
 and add this line at the beginning of your `hardhat.config.js`
 
 ```js
-usePlugin("@nomiclabs/hardhat-ganache");
+require("@nomiclabs/hardhat-ganache");
 ```
 
 Finally, you can run your tests with

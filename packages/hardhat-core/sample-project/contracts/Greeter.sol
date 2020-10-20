@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.6.8;
+pragma solidity ^0.7.0;
 
 import "hardhat/console.sol";
 
@@ -7,7 +7,7 @@ import "hardhat/console.sol";
 contract Greeter {
   string greeting;
 
-  constructor(string memory _greeting) public {
+  constructor(string memory _greeting) {
     console.log("Deploying a Greeter with greeting:", _greeting);
     greeting = _greeting;
   }

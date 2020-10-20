@@ -5,5 +5,6 @@ pageClass: custom
 heroImage: ./mascots.svg
 actionText: Get Started
 search: false
-footer: Copyright © 2018-2019 Nomic Labs LLC
+footer: Copyright © 2018-2020 Nomic Labs LLC
 ---
+
