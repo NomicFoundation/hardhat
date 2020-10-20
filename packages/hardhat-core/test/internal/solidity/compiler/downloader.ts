@@ -319,10 +319,11 @@ describe("Compiler downloader", function () {
         const compilerBin = require.resolve("solc/soljson.js");
         await fsExtra.copy(compilerBin, downloadedPath);
 
-        const { compilerPath } = await mockDownloader.getDownloadedCompilerPath(
+        const compilerPathResult = await mockDownloader.getDownloadedCompilerPath(
           localCompilerBuild.version
         );
-        assert.equal(compilerPath, downloadedPath);
+        assert.isDefined(compilerPathResult);
+        assert.equal(compilerPathResult!.compilerPath, downloadedPath);
       });
 
       it("Should throw and delete it if it doesn't", async function () {

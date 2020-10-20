@@ -732,6 +732,15 @@ Please check your Internet connection.`,
 Please check your Internet connection.`,
       shouldBeReported: false,
     },
+    CANT_GET_COMPILER: {
+      number: 504,
+      message: "The solc compiler couldn't be obtained for version %version%",
+      title: "The solc compiler couldn't be obtained",
+      description: `Hardhat couldn't obtain a valid solc compiler.
+
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
+      shouldBeReported: true,
+    },
   },
   BUILTIN_TASKS: {
     COMPILE_FAILURE: {

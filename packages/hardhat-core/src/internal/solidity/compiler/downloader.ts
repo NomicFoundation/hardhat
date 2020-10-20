@@ -100,38 +100,50 @@ export class CompilerDownloader {
 
   public async getDownloadedCompilerPath(
     version: string
-  ): Promise<CompilerPath> {
+  ): Promise<CompilerPath | undefined> {
     const { default: AdmZip } = await import("adm-zip");
 
-    const compilerBuild = await this.getCompilerBuild(version);
-    let downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
+    try {
+      const compilerBuild = await this.getCompilerBuild(version);
 
-    if (!(await this._fileExists(downloadedFilePath))) {
-      await this.downloadCompiler(compilerBuild, downloadedFilePath);
+      let downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
+
+      if (!(await this._fileExists(downloadedFilePath))) {
+        await this.downloadCompiler(compilerBuild, downloadedFilePath);
+      }
+
+      await this.verifyCompiler(compilerBuild, downloadedFilePath);
+
+      switch (compilerBuild.platform) {
+        case CompilerPlatform.LINUX:
+        case CompilerPlatform.MACOS:
+          fsExtra.chmodSync(downloadedFilePath, 0o755);
+          break;
+        case CompilerPlatform.WINDOWS:
+          const zip = new AdmZip(downloadedFilePath);
+          zip.extractAllTo(
+            path.join(this._compilersDir, compilerBuild.version)
+          );
+          downloadedFilePath = path.join(
+            this._compilersDir,
+            compilerBuild.version,
+            "solc.exe"
+          );
+          break;
+      }
+
+      return {
+        compilerPath: downloadedFilePath,
+        platform: compilerBuild.platform,
+      };
+    } catch (e) {
+      if (HardhatError.isHardhatError(e)) {
+        throw e;
+      }
+      log(
+        `There was an unexpected problem downloading the compiler: ${e.message}`
+      );
     }
-
-    await this.verifyCompiler(compilerBuild, downloadedFilePath);
-
-    switch (compilerBuild.platform) {
-      case CompilerPlatform.LINUX:
-      case CompilerPlatform.MACOS:
-        fsExtra.chmodSync(downloadedFilePath, 0o755);
-        break;
-      case CompilerPlatform.WINDOWS:
-        const zip = new AdmZip(downloadedFilePath);
-        zip.extractAllTo(path.join(this._compilersDir, compilerBuild.version));
-        downloadedFilePath = path.join(
-          this._compilersDir,
-          compilerBuild.version,
-          "solc.exe"
-        );
-        break;
-    }
-
-    return {
-      compilerPath: downloadedFilePath,
-      platform: compilerBuild.platform,
-    };
   }
 
   public async getCompilersList(
