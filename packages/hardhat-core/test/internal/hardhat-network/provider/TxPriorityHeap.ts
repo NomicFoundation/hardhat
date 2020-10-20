@@ -125,7 +125,7 @@ describe("TxPriorityHeap", () => {
       assert.equal(txHeap.peek(), txB1);
     });
 
-    it("does not throw if there are no processable transactions left", async () => {
+    it("does not throw if there are no processable transactions left", () => {
       const account = randomAddressBuffer();
       const tx1 = createTestTransaction({
         from: account,
@@ -220,7 +220,7 @@ describe("TxPriorityHeap", () => {
       assert.equal(txHeap.peek(), txA3);
     });
 
-    it("does not throw if there are no processable transactions left", async () => {
+    it("does not throw if there are no processable transactions left", () => {
       const account = randomAddressBuffer();
       const tx1 = createTestTransaction({
         from: account,
