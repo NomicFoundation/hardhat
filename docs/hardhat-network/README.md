@@ -11,6 +11,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
   - constantinople
   - petersburg
   - istanbul
+  - muirGlacier
 
 ## How can I use it?
 
