@@ -112,8 +112,6 @@ Truffle runs its tests with Mocha, but a few tools that integrate Mocha don't ex
 You can run these tests by running `npx hardhat test`:
 ```
 $ npx hardhat test
-All contracts have already been compiled, skipping compilation.
-
 
 Contract: Greeter
     ✓ Should return the new greeting once it's changed (265ms)
