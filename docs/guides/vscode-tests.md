@@ -12,7 +12,7 @@ Install Mocha locally by running this:
 npm install --save-dev mocha
 ```
 
-Then, a file named `.mocharc.json` in your project's root directory with the following contents:
+Then, create a file named `.mocharc.json` in your project's root directory with the following contents:
 
 ```json
 {
