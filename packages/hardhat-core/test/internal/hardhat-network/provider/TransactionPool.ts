@@ -1,6 +1,7 @@
 import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
+import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
@@ -37,8 +38,10 @@ function flatten(array: any[]): any[] {
   return [array[0]].concat(flatten(array.slice(1)));
 }
 
-/* Change this so this function transforms map into arrays on the EXPECTED part - not the ACTUAL part in the assert function */
-function getAllTxs(pendingTxs: Map<string, OrderedTransaction[]>) {
+// TODO Change this so this function transforms map into arrays on the EXPECTED part - not the ACTUAL part in the assert function
+function getAllTxs(
+  pendingTxs: Map<string, OrderedTransaction[]>
+): Transaction[] {
   return flatten(Array.from(pendingTxs.values())).map((tx) => tx.data);
 }
 
@@ -707,37 +710,68 @@ describe("Transaction Pool", () => {
   });
 
   describe("snapshot", () => {
-    it("increases tx pool's current snapshot id after a snapshot", () => {
-      txPool.snapshot();
-      assert.equal(txPool.getCurrentSnapshotId(), 1);
+    it("returns a snapshot id", () => {
+      const id = txPool.snapshot();
+      assert.isNumber(id);
     });
 
-    it("adds snapshot to the snapshot map", () => {
-      assert.equal(txPool.getSnapshotIdToState().size, 0);
-      txPool.snapshot();
-      assert.equal(txPool.getSnapshotIdToState().size, 1);
+    it("returns the same snapshot id if no changes were made to the state", () => {
+      const id1 = txPool.snapshot();
+      const id2 = txPool.snapshot();
+      assert.equal(id1, id2);
     });
 
-    it("can snapshot and then revert to previous state", () => {
-      const newBlockGasLimit = new BN(5000000);
-      const snapshotId = txPool.snapshot();
-      txPool.setBlockGasLimit(newBlockGasLimit);
-      txPool.revert(snapshotId);
-      assert.isNotTrue(txPool.getBlockGasLimit().eq(newBlockGasLimit));
+    it("returns a bigger snapshot id if the state changed", async () => {
+      const id1 = txPool.snapshot();
+      const tx = createTestFakeTransaction();
+      await txPool.addTransaction(tx);
+      const id2 = txPool.snapshot();
+      assert.isAbove(id2, id1);
     });
   });
 
   describe("revert", () => {
     it("throws if snapshot with given ID doesn't exist", async () => {
-      assert.throws(() => txPool.revert(5), "There's no snapshot with such ID");
+      assert.throws(
+        () => txPool.revert(5),
+        Error,
+        "There's no snapshot with such ID"
+      );
     });
 
-    it("can revert to previous state", () => {
-      const newBlockGasLimit = new BN(5000000);
-      const snapshotId = txPool.snapshot();
-      txPool.setBlockGasLimit(newBlockGasLimit);
-      txPool.revert(snapshotId);
-      assert.isNotTrue(txPool.getBlockGasLimit().eq(newBlockGasLimit));
+    it("reverts to the previous state of transactions", async () => {
+      const address = randomAddressBuffer();
+      await stateManager.putAccount(address, new Account({ nonce: new BN(0) }));
+      const tx1 = createTestFakeTransaction({
+        from: address,
+        nonce: 0,
+      });
+      await txPool.addTransaction(tx1);
+
+      const id = txPool.snapshot();
+
+      const tx2 = createTestFakeTransaction({
+        from: address,
+        nonce: 1,
+      });
+      await txPool.addTransaction(tx2);
+
+      txPool.revert(id);
+      const pendingTransactions = txPool.getPendingTransactions();
+      assertEqualTransactionMaps(
+        pendingTransactions,
+        makeOrderedTxMap([{ orderId: 0, data: tx1 }])
+      );
+    });
+
+    it("reverts to the previous state of block gas limit", () => {
+      const id = txPool.snapshot();
+      txPool.setBlockGasLimit(new BN(5000000));
+      txPool.revert(id);
+      assert.equal(
+        txPool.getBlockGasLimit().toNumber(),
+        blockGasLimit.toNumber()
+      );
     });
   });
 });
