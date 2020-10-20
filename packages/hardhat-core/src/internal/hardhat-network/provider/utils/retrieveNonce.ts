@@ -1,7 +1,7 @@
 import { BN, toBuffer } from "ethereumjs-util";
 
-import { SerializedTransaction } from "../PoolState";
+import { OrderedRecord } from "../PoolState";
 
-export function retrieveNonce(tx: SerializedTransaction) {
-  return new BN(toBuffer(tx.get(0)));
+export function retrieveNonce(tx: OrderedRecord) {
+  return new BN(toBuffer(tx.get("data").get(0)));
 }
