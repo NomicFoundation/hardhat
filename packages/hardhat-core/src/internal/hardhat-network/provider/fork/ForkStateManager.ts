@@ -14,7 +14,7 @@ import { JsonRpcClient } from "../../jsonrpc/client";
 import { PStateManager } from "../types/PStateManager";
 import { StateManager } from "../types/StateManager";
 
-import { AccountState, makeAccountState } from "./Account";
+import { AccountState, makeAccountState } from "./AccountState";
 import { randomHash } from "./random";
 
 /* tslint:disable only-hardhat-error */
