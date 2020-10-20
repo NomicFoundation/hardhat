@@ -20,8 +20,6 @@ function getTestTransactionFactory() {
     createTestOrderedTransaction({ orderId: orderId++, ...data });
 }
 
-// TODO add tests for peek with pop/shift
-
 describe("TxPriorityHeap", () => {
   let createTestTransaction: (data: FakeTxData) => OrderedTransaction;
 
@@ -231,6 +229,51 @@ describe("TxPriorityHeap", () => {
       txHeap.shift();
       assert.isUndefined(txHeap.peek());
       assert.doesNotThrow(() => txHeap.shift());
+    });
+  });
+
+  describe("real use case", () => {
+    it("works as expected", () => {
+      const accountA = randomAddressBuffer();
+      const accountB = randomAddressBuffer();
+      const txA1 = createTestTransaction({
+        from: accountA,
+        nonce: 1,
+        gasPrice: parseGWei(2),
+      });
+      const txA2 = createTestTransaction({
+        from: accountA,
+        nonce: 2,
+        gasPrice: parseGWei(3),
+      });
+      const txB1 = createTestTransaction({
+        from: accountB,
+        nonce: 1,
+        gasPrice: parseGWei(1),
+      });
+      const txA3 = createTestTransaction({
+        from: accountA,
+        nonce: 3,
+        gasPrice: parseGWei(1),
+      });
+      const txB2 = createTestTransaction({
+        from: accountB,
+        nonce: 2,
+        gasPrice: parseGWei(2),
+      });
+      const txHeap = new TxPriorityHeap(
+        makeOrderedTxMap([txA1, txA2, txA3, txB1, txB2])
+      );
+
+      assert.equal(txHeap.peek(), txA1);
+      txHeap.shift();
+      assert.equal(txHeap.peek(), txA2);
+      txHeap.shift();
+      assert.equal(txHeap.peek(), txB1);
+      txHeap.pop();
+      assert.equal(txHeap.peek(), txA3);
+      txHeap.shift();
+      assert.isUndefined(txHeap.peek());
     });
   });
 });
