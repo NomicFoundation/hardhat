@@ -420,13 +420,9 @@ function splitInChunks(arr, chunkSize) {
 
       img
         margin 0 50px
-        opacity .8
         max-height 67px
         transition .1s ease-in-out opacity
         display inline-block
-
-        &:hover
-          opacity 1
 
   .banner-container-mobile
     @media screen and (min-width: 760px)
@@ -442,5 +438,4 @@ function splitInChunks(arr, chunkSize) {
       img
         margin 0 20px
         height 41px
-        opacity 1
 </style>
