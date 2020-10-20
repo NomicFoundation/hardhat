@@ -115,12 +115,14 @@ export class CompilerDownloader {
 
       await this.verifyCompiler(compilerBuild, downloadedFilePath);
 
-      switch (compilerBuild.platform) {
-        case CompilerPlatform.LINUX:
-        case CompilerPlatform.MACOS:
-          fsExtra.chmodSync(downloadedFilePath, 0o755);
-          break;
-        case CompilerPlatform.WINDOWS:
+      if (
+        compilerBuild.platform === CompilerPlatform.LINUX ||
+        compilerBuild.platform === CompilerPlatform.MACOS
+      ) {
+        fsExtra.chmodSync(downloadedFilePath, 0o755);
+      } else if (compilerBuild.platform === CompilerPlatform.WINDOWS) {
+        // some window builds are zipped, some are not
+        if (downloadedFilePath.endsWith(".zip")) {
           const zip = new AdmZip(downloadedFilePath);
           zip.extractAllTo(
             path.join(this._compilersDir, compilerBuild.version)
@@ -130,7 +132,7 @@ export class CompilerDownloader {
             compilerBuild.version,
             "solc.exe"
           );
-          break;
+        }
       }
 
       return {
