@@ -86,7 +86,10 @@ export class TransactionPool {
 
   public snapshot(): number {
     const snapshotId = this.getCurrentSnapshotId();
-    this._setSnapshotStateToId(this._currentSnapshotId, this._state);
+    this._snapshotIdToState = this._snapshotIdToState.set(
+      this._currentSnapshotId,
+      this._state
+    );
     this._currentSnapshotId++;
     return snapshotId;
   }
@@ -288,10 +291,6 @@ export class TransactionPool {
 
   private _getBlockGasLimit() {
     return this._state.get("blockGasLimit");
-  }
-
-  private _setSnapshotStateToId(id: number, state: ImmutableRecord<PoolState>) {
-    this._snapshotIdToState = this._snapshotIdToState.set(id, state);
   }
 
   private _setPending(transactions: AddressToTransactions) {
