@@ -11,7 +11,7 @@ Run these to start:
 mkdir my-project
 cd my-project
 npm init --yes
-npm install --save-dev @nomiclabs/hardhat
+npm install --save-dev hardhat
 ```
 
 Now run npx hardhat inside your project folder and select `Create an empty hardhat.config.js`.
