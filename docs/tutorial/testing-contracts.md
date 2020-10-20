@@ -17,7 +17,6 @@ describe("Token contract", function() {
     const Token = await ethers.getContractFactory("Token");
 
     const hardhatToken = await Token.deploy();
-    await hardhatToken.deployed();
 
     const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
@@ -70,12 +69,6 @@ const hardhatToken = await Token.deploy();
 Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
 
 ```js
-await hardhatToken.deployed();
-```
-
-When you call on `deploy()` the transaction is sent, but the contract isn't actually deployed until the transaction is mined. Calling `deployed()` will return a `Promise` that resolves once this happens, so this code is blocking until the deployment finishes.
-
-```js
 const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
 ```
 
@@ -106,7 +99,6 @@ describe("Transactions", function () {
     const Token = await ethers.getContractFactory("Token");
 
     const hardhatToken = await Token.deploy();
-    await hardhatToken.deployed();
    
     // Transfer 50 tokens from owner to addr1
     await hardhatToken.transfer(await addr1.getAddress(), 50);
@@ -162,10 +154,9 @@ describe("Token contract", function () {
     // for it to be deployed(), which happens onces its transaction has been
     // mined.
     hardhatToken = await Token.deploy();
-    await hardhatToken.deployed();
 
     // We can interact with the contract by calling `hardhatToken.method()`
-    await hardhatToken.deployed();
+    await hardhatToken.someMethod();
   });
 
   // You can nest describe calls to create subsections.

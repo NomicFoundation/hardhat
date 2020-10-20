@@ -91,12 +91,6 @@ const greeter = await Greeter.deploy("Hello, world!");
 
 Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions. Here we're passing the string `Hello, world!` to the contract's constructor.
 
-```js
-await greeter.deployed();
-```
-
-When you call on `deploy()` the transaction is sent, but the contract isn't actually deployed until the transaction is mined. Calling `deployed()` will return a `Promise` that resolves once this happens, so this code is blocking until the deployment finishes.
-
 Once the contract is deployed, we can call our contract methods on `greeter` and use them to get the state of the contract.
 
 ```js
