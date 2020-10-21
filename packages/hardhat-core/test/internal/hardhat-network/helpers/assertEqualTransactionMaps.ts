@@ -3,7 +3,7 @@ import { Transaction } from "ethereumjs-tx";
 import { bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
-import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
+import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 
 import { createTestOrderedTransaction } from "./blockchain";
 import { DEFAULT_ACCOUNTS } from "./providers";
