@@ -255,7 +255,9 @@ async function saveLastUpdateCheckDate(image: Image, cachePath: string) {
   updates[HardhatDocker.imageToRepoTag(image)] = +new Date();
 
   await fsExtra.ensureDir(path.dirname(file));
-  await fsExtra.writeJSON(file, updates);
+  await fsExtra.writeJSON(file, updates, {
+    spaces: 2,
+  });
 }
 
 async function compileWithDocker(

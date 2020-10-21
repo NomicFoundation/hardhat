@@ -217,7 +217,7 @@ export class Artifacts implements IArtifacts {
     );
 
     const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
-    await fsExtra.writeJson(buildInfoPath, buildInfo);
+    await fsExtra.writeJson(buildInfoPath, buildInfo, { spaces: 2 });
 
     return buildInfoPath;
   }
