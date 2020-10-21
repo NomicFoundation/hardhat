@@ -21,6 +21,7 @@ import {
   createTestFakeTransaction,
   createTestTransaction,
 } from "../helpers/blockchain";
+import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -31,23 +32,6 @@ function getAllTxs(
   pendingTxs: Map<string, OrderedTransaction[]>
 ): Transaction[] {
   return flatten(Array.from(pendingTxs.values())).map((tx) => tx.data);
-}
-
-function compareOrderIds(left: OrderedTransaction, right: OrderedTransaction) {
-  return left.orderId - right.orderId;
-}
-
-export function makeOrderedTxMap(
-  txs: OrderedTransaction[]
-): Map<string, OrderedTransaction[]> {
-  const map: Map<string, OrderedTransaction[]> = new Map();
-  txs.sort(compareOrderIds).forEach((tx) => {
-    const address = bufferToHex(tx.data.getSenderAddress());
-    const txList = map.get(address) ?? [];
-    txList.push(tx);
-    map.set(address, txList);
-  });
-  return map;
 }
 
 describe("Transaction Pool", () => {

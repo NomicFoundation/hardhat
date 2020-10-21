@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
-import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/TxPriorityHeap";
+import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 
 import { createTestOrderedTransaction } from "./blockchain";
 
