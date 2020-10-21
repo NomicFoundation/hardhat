@@ -6,7 +6,7 @@ This guide will teach you how to migrate your project from Buidler into Hardhat.
 
 ## Installing the Hardhat packages
 
-The first thing you need to do to migrate your project, is installing th new npm packages.
+The first thing you need to do to migrate your project, is installing the new npm packages.
 
 The package `@nomiclabs/buidler` is now `hardhat`. The plugins, which used to have packages like `@nomiclabs/buidler-<name>`,
 are now `@nomiclabs/hardhat-<name>`.
@@ -161,7 +161,7 @@ Some community-built plugins, haven't been migrated yet. If you are using one of
 
 This plugin is already being ported to Hardhat, and close to being released.
 
-Join our `#buidler-deploy` channel on [Discord](/discord) to get news and help about it.
+Join the `#buidler-deploy` channel on [Discord](/discord) to get news and help about it.
 
 ### buidler-typechain
 
