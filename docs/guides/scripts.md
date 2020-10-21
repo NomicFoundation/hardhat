@@ -1,19 +1,26 @@
 # Writing scripts with Hardhat
 
-In this guide we will go through the steps of creating a script with Hardhat. For a general overview of using Hardhat refer to the [Getting started guide].
+In this guide we will go through the steps of creating a script with Hardhat. For a general overview of using Hardhat refer to the [Getting started guide].
 
-You can write your custom scripts that can use all of Hardhat's functionality. A classic use case is writing a deployment script for your smart contracts. 
+You can write your custom scripts that can use all of Hardhat's functionality. A classic use case is writing a deployment script for your smart contracts.
 
 There are two ways of writing a script that accesses the [Hardhat Runtime Environment].
+
+::: tip
+Hardhat scripts are useful for simple things that don't take user arguments, and for
+integrating with external tools that aren't well suited for the Hardhat CLI, like a Node.js debugger.
+
+If you want to automate more complex things, and receive user arguments, you can learn how to [create your own tasks here](../guides/create-task.md).
+:::
 
 ## Hardhat CLI dependant
 
 You can write scripts that access the [Hardhat Runtime Environment]'s properties
 as global variables.
 
-These scripts must be run through Hardhat: `npx hardhat run script.js`. 
+These scripts must be run through Hardhat: `npx hardhat run script.js`.
 
-This makes it easy to port scripts that were developed for other tools that inject variables into the global state. 
+This makes it easy to port scripts that were developed for other tools that inject variables into the global state.
 
 ## Standalone scripts: using Hardhat as a library
 
@@ -75,17 +82,15 @@ Greeter address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
 ### Hardhat arguments
 
 You can still pass arguments to Hardhat when using it as a library. This is done
-by setting environment variables. These are: 
+by setting environment variables. These are:
 
-* `HARDHAT_NETWORK`: Sets the network to connect to.
+- `HARDHAT_NETWORK`: Sets the network to connect to.
 
-* `HARDHAT_SHOW_STACK_TRACES`: Enables JavaScript stack traces of expected errors.
+- `HARDHAT_SHOW_STACK_TRACES`: Enables JavaScript stack traces of expected errors.
 
-* `HARDHAT_VERBOSE`: Enables Hardhat verbose logging.
+- `HARDHAT_VERBOSE`: Enables Hardhat verbose logging.
 
-* `HARDHAT_MAX_MEMORY`: Sets the maximum amount of memory that Hardhat can use.
+- `HARDHAT_MAX_MEMORY`: Sets the maximum amount of memory that Hardhat can use.
 
-   
-
-[Hardhat Runtime Environment]: ../advanced/hardhat-runtime-environment.md
-[Getting started guide]: ../getting-started/README.md
+[hardhat runtime environment]: ../advanced/hardhat-runtime-environment.md
+[getting started guide]: ../getting-started/README.md
