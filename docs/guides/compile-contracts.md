@@ -84,14 +84,19 @@ module.exports = {
     compilers: [...],
     overrides: {
       "contracts/Foo.sol": {
-        version: "0.5.5"
+        version: "0.5.5",
+        settings: { }
       }
     }
   }
 }
 ```
 
-In this case, `contracts/Foo.sol` will be compiled with solc 0.5.5, no matter what's inside the `solidity.compilers` entry. Keep in mind that you have to use forward slashes (`/`) even if you are on Windows.
+In this case, `contracts/Foo.sol` will be compiled with solc 0.5.5, no matter what's inside the `solidity.compilers` entry. 
+
+Keep in mind that:
+- Overrides are full compiler configurations, so if you have any additional settings you're using you should set them for the override as well.
+- You have to use forward slashes (`/`) even if you are on Windows.
 
 ## Artifacts
  
