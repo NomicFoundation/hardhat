@@ -10,21 +10,30 @@ import {
   OrderedTransaction,
   PoolState,
   SenderTransactions,
-  SerializedTransaction,
 } from "./PoolState";
 import { PStateManager } from "./types/PStateManager";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
 // tslint:disable only-hardhat-error
 
-export function serializeTransaction(tx: Transaction): SerializedTransaction {
-  const serializedFields = tx.raw.map((field) => bufferToHex(field));
-  return ImmutableList(serializedFields);
+export function serializeTransaction(tx: OrderedTransaction): OrderedRecord {
+  const fields = tx.data.raw.map((field) => bufferToHex(field));
+  const immutableFields = ImmutableList(fields);
+  return makeOrderedTransaction({
+    orderId: tx.orderId,
+    data: immutableFields,
+  });
 }
 
-export function deserializeTransaction(tx: SerializedTransaction): Transaction {
-  const fields = tx.toArray().map((field) => toBuffer(field));
-  return new Transaction(fields);
+export function deserializeTransaction(tx: OrderedRecord): OrderedTransaction {
+  const fields = tx
+    .get("data")
+    .toArray()
+    .map((field) => toBuffer(field));
+  return {
+    orderId: tx.get("orderId"),
+    data: new Transaction(fields),
+  };
 }
 
 export class TransactionPool {
@@ -71,24 +80,14 @@ export class TransactionPool {
 
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending().map((txs) =>
-      txs
-        .map((tx, index) => ({
-          orderId: tx.get("orderId"),
-          data: deserializeTransaction(tx.get("data")),
-        }))
-        .toJS()
+      txs.map(deserializeTransaction).toJS()
     );
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getQueued().map((txs) =>
-      txs
-        .map((tx, index) => ({
-          orderId: index,
-          data: deserializeTransaction(tx.get("data")),
-        }))
-        .toJS()
+      txs.map(deserializeTransaction).toJS()
     );
     return new Map(deserializedImmutableMap.entries());
   }
@@ -123,9 +122,9 @@ export class TransactionPool {
     let newMap = map;
     for (const [address, txs] of map) {
       for (const tx of txs) {
-        const deserializedTx = deserializeTransaction(tx.get("data"));
-        const txNonce = new BN(deserializedTx.nonce);
-        const txGasLimit = new BN(deserializedTx.gasLimit);
+        const deserializedTx = deserializeTransaction(tx);
+        const txNonce = new BN(deserializedTx.data.nonce);
+        const txGasLimit = new BN(deserializedTx.data.gasLimit);
         const senderAccount = await this._stateManager.getAccount(
           toBuffer(address)
         );
@@ -135,7 +134,7 @@ export class TransactionPool {
         if (
           txGasLimit.gt(this._getBlockGasLimit()) ||
           txNonce.lt(senderNonce) ||
-          deserializedTx.getUpfrontCost().gt(senderBalance)
+          deserializedTx.data.getUpfrontCost().gt(senderBalance)
         ) {
           newMap = this._removeTx(newMap, address, deserializedTx);
         }
@@ -147,26 +146,24 @@ export class TransactionPool {
   private _removeTx(
     map: AddressToTransactions,
     address: string,
-    deserializedTX: Transaction
+    deserializedTX: OrderedTransaction
   ) {
-    const addressTxs = map.get(address);
-    if (addressTxs === undefined) {
+    const accountTxs = map.get(address);
+    if (accountTxs === undefined) {
       throw new Error(
         "Trying to remove a transaction from list that doesn't exist, this should never happen"
       );
     }
-    const indexOfTx = addressTxs
-      .map((tx) => tx.get("data"))
-      .indexOf(serializeTransaction(deserializedTX));
-
-    return map.set(address, addressTxs.remove(indexOfTx));
+    const indexOfTx = accountTxs.indexOf(serializeTransaction(deserializedTX));
+    return map.set(address, accountTxs.remove(indexOfTx));
   }
 
   private _addPendingTransaction(tx: Transaction) {
-    const orderedTx: OrderedRecord = makeOrderedTransaction({
+    const orderedTx = serializeTransaction({
       orderId: this._nextOrderId++,
-      data: serializeTransaction(tx),
+      data: tx,
     });
+
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
     const accountTransactions: SenderTransactions =
       this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
@@ -186,9 +183,9 @@ export class TransactionPool {
   }
 
   private _addQueuedTransaction(tx: Transaction) {
-    const orderedTx: OrderedRecord = makeOrderedTransaction({
+    const orderedTx = serializeTransaction({
       orderId: this._nextOrderId++,
-      data: serializeTransaction(tx),
+      data: tx,
     });
 
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
