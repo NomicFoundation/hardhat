@@ -3,10 +3,8 @@ import { FakeTxData } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
-import {
-  OrderedTransaction,
-  TxPriorityHeap,
-} from "../../../../src/internal/hardhat-network/provider/TxPriorityHeap";
+import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
+import { TxPriorityHeap } from "../../../../src/internal/hardhat-network/provider/TxPriorityHeap";
 import { createTestOrderedTransaction } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 

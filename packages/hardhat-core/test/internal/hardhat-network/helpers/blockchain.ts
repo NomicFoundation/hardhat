@@ -12,10 +12,8 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
-import {
-  OrderedTransaction,
-  serializeTransaction,
-} from "../../../../src/internal/hardhat-network/provider/TransactionPool";
+import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
+import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 
 export function createTestTransaction(data: TxData = {}) {
   return new Transaction({ to: randomAddressBuffer(), ...data });

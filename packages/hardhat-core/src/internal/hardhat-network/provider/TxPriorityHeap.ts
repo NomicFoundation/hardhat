@@ -1,11 +1,7 @@
-import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex } from "ethereumjs-util";
 import { MaxHeap } from "mnemonist/heap";
 
-export interface OrderedTransaction {
-  orderId: number;
-  data: Transaction;
-}
+import { OrderedTransaction } from "./PoolState";
 
 function compareTransactions(
   left: OrderedTransaction,
