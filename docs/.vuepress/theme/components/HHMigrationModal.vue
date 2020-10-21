@@ -102,7 +102,6 @@ export default {
 
   .modal-content
     padding 20px
-    border 1px solid #888
     background linear-gradient(180deg, #F6F1FD 0%, #FBFCDB 100%)
     box-sizing border-box
 
@@ -145,7 +144,7 @@ export default {
         left 90px
 
         .title
-          font-family: 'ChivoBold'
+          font-family: 'ChivoBold', sans-serif
           font-size 50px
           line-height 60px
 
@@ -153,10 +152,10 @@ export default {
           font-size 18px
           line-height 28px
           margin-top 18px
-          font-family: 'RobotoRegular'
+          font-family: 'RobotoRegular', sans-serif
 
           a
-            font-family: 'RobotoRegular'
+            font-family: 'RobotoRegular', sans-serif
             font-weight bold
             text-decoration underline
 
