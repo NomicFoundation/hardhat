@@ -2,7 +2,7 @@
 
 You can start an instance of the Hardhat Network that forks the mainnet. This means that it will simulate having the same state as the mainnet, but it will work as a local development node. That way you can interact with deployed protocols and test complex interactions without the risk of doing it in the real mainnet.
 
-To use this feature, the only thing you need is the URL of a node to connect to. This can be an [Infura](https://infura.io/) or [Alchemy](https://alchemyapi.io/) node, or a local one. If you don't know which to use, we recommend you use [Alchemy](https://alchemyapi.io/) 
+To use this feature, the only thing you need is the URL of a node to connect to. This can be an [Infura](https://infura.io/) or [Alchemy](https://alchemyapi.io/) node, or a local one. If you don't know which to use, we recommend you use Alchemy.
 
 ## Forking from mainnet
 
