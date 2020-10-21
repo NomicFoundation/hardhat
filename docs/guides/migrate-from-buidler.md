@@ -50,11 +50,34 @@ Or, if you are using TypeScript, with
 import "@nomiclabs/buidler-ethers";
 ```
 
+If you were importing the `usePlugin` function explicitly, you also need to remove that import, as the
+function doesn't exist anymore.
+
 ### Configuring Hardhat Network
 
 Buidler EVM is now Hardhat Network, so if you are customizing it using the `buidlerevm` network config field,
 you need to rename it to `hardhat`. You can learn more about how to customize it, including enabling the Mainnet Forking
 functionality, [here](./config/README.md#hardhat-network).
+
+For example, if you had something like this in your config:
+
+```js
+networks: {
+  buidlerevm: {
+    blockGasLimit: 12000000
+  }
+}
+```
+
+you need to replace it with:
+
+```js
+networks: {
+  hardhat: {
+    blockGasLimit: 12000000
+  }
+}
+```
 
 ### Updating your Solidity config
 
@@ -106,21 +129,33 @@ If you have contracts which share their name, you can't import their artifacts u
 
 For example, if you have a contract named `Ownable`, and one of your dependencies has a contract with the same name, you won't be able to do
 `artifacts.require("Ownable")` nor `ethers.getContractFactory("Ownable")`. You need to use the contract's Fully
-Qualified Name instead.
+Qualified Name instead (e.g. `contracts/Ownable.sol:Ownable`).
 
 If you try to import a contract with a repeated name, Hardhat will fail, with an error that includes the different
 options to fix it. All you need to do is copy & paste them.
 
+For example, you may need to replace this
+
+```js
+const Ownable = await ethers.getContractFactory("Ownable");
+```
+
+with this
+
+```js
+const Ownable = await ethers.getContractFactory("contracts/Ownable.sol:Ownable");
+```
+
 ## Mocha and VSCode setup changes
 
-If you have are running your tests directly with Mocha, or though a VSCode Mocha plugin, please take a look at [this
+If you are running your tests directly with Mocha, or though a VSCode Mocha plugin, please take a look at [this
 updated guide](./vscode-tests.md).
 
 ## Community plugins
 
 All of the official Buidler plugins have already been migrated to Hardhat.
 
-Some community-built plugins, haven't been migrated yet.
+Some community-built plugins, haven't been migrated yet. If you are using one of those, you have to temporarily disable them.
 
 ### buidler-deploy
 
