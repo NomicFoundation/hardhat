@@ -2,17 +2,13 @@ import { assert } from "chai";
 import { FakeTxData } from "ethereumjs-tx";
 import { List } from "immutable";
 
-import { makeOrderedTransaction } from "../../../../../src/internal/hardhat-network/provider/PoolState";
 import { reorganizeTransactionsLists } from "../../../../../src/internal/hardhat-network/provider/utils/reorganizeTransactionsLists";
 import { createTestSerializedTransaction } from "../../helpers/blockchain";
 
 function getTestTransactionFactory() {
   let orderId = 0;
   return (data: FakeTxData) =>
-    makeOrderedTransaction({
-      orderId: orderId++,
-      data: createTestSerializedTransaction(data),
-    });
+    createTestSerializedTransaction({ orderId: orderId++, ...data });
 }
 
 describe("reorganizeTransactionsLists", () => {

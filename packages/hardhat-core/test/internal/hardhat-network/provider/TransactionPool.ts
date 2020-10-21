@@ -3,7 +3,7 @@ import { assert } from "chai";
 import Account from "ethereumjs-account";
 import { Transaction } from "ethereumjs-tx";
 import { BN, toBuffer } from "ethereumjs-util";
-import { flatten } from "lodash";
+import flatten from "lodash/flatten";
 
 import {
   randomAddress,
