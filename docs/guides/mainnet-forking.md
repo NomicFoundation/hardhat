@@ -87,7 +87,7 @@ await network.provider.request({
   method: "hardhat_reset",
   params: [{
     forking: {
-      jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<projectId>",
+      jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
       blockNumber: 11095000
     }
   }]
