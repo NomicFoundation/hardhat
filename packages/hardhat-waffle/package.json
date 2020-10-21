@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-waffle",
-  "version": "2.0.0-rc.0",
+  "version": "2.0.0",
   "description": "Hardhat plugin to test smart contracts with Waffle",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-waffle",
   "repository": "github:nomiclabs/hardhat",
@@ -29,19 +29,19 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.0-rc.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.0.0",
     "ethers": "^5.0.0",
-    "hardhat": "^2.0.0-rc.0"
+    "hardhat": "^2.0.0"
   },
   "peerDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.0-rc.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
     "ethers": "^5.0.0",
     "ethereum-waffle": "^3.0.0",
-    "hardhat": "^2.0.0-rc.0"
+    "hardhat": "^2.0.0"
   },
   "dependencies": {
     "@types/web3": "1.0.19",

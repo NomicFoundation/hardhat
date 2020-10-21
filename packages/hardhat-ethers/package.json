@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-ethers",
-  "version": "2.0.0-rc.0",
+  "version": "2.0.0",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
   "repository": "github:nomiclabs/hardhat",
@@ -33,10 +33,10 @@
     "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "ethers": "^5.0.0",
-    "hardhat": "^2.0.0-rc.0"
+    "hardhat": "^2.0.0"
   },
   "peerDependencies": {
     "ethers": "^5.0.0",
-    "hardhat": "^2.0.0-rc.0"
+    "hardhat": "^2.0.0"
   }
 }
