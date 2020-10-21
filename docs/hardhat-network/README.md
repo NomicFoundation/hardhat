@@ -127,7 +127,7 @@ The Hardhat Network is empty by default, except for some accounts with an initia
 To fork from the mainnet you need the URL of a node to connect to. For example, using Infura, you can start a local node that forks the mainnet with this command:
 
 ```
-npx hardhat node --fork https://mainnet.infura.io/v3/<projectId>
+npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>
 ```
 
 where you have to replace `<projectId>` with your Infura project id.
