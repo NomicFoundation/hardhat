@@ -1,20 +1,18 @@
 # Mainnet forking
 
-You can start an instance of the Hardhat Network that forks the mainnet. This means that it will simulate having the same state as the mainnet, but it will work as a local development node. That way you can interact with deployed protocols and test complex interactions without the risk of doing it in the real mainnet.
+You can start an instance of Hardhat Network that forks mainnet. This means that it will simulate having the same state as mainnet, but it will work as a local development network. That way you can interact with deployed protocols and test complex interactions locally.
 
-To use this feature, the only thing you need is the URL of a node to connect to. This can be an [Infura](https://infura.io/) or [Alchemy](https://alchemyapi.io/) node, or a local one. If you don't know which to use, we recommend you use Alchemy.
+To use this feature you need the URL of a node to connect to. We recommend using [Alchemy](https://alchemyapi.io/).
 
 ## Forking from mainnet
 
-The easiest way to test this feature is to start a node from the command line:
+The easiest way to try this feature is to start a node from the command line:
 
 ```
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>
 ```
 
-Here you have to replace `<key>` with your Alchemy key. If you are using Infura, you need a different URL, and a project id instead of a key.
-
-You can also configure Hardhat to always do this, by setting it in the config:
+You can also configure Hardhat Network to always do this:
 
 ```js
 networks: {
@@ -26,16 +24,19 @@ networks: {
 }
 ```
 
+By accessing any state that exists on mainnet, Hardhat Network will pull the data and expose it transparently as if it was available locally.
+
 ## Pinning a block
 
 Hardhat Network will by default fork from the latest mainnet block. While this might be practical depending on the context, we recommend forking from a specific block number to set up a test suite that depends on forking.
 
 There are two reasons for this:
 - The state your tests run against may change between runs. This could cause your tests or scripts to behave differently.
-
 - Pinning enables caching. Every time data is fetched from mainnet, Hardhat Network caches it on disk to speed up future access. If you don't pin the block, there's going to be new data with each new block and the cache won't be useful. We measured up to 20x speed improvements with block pinning.
 
-To avoid these problems always fork from a specific block number, like this:
+**You will need access to a node with archival data for this to work.** This is why we recommend [Alchemy](https://alchemyapi.io/), since their free plans include archival data.
+
+To pin the block number:
 
 ```js
 networks: {
@@ -55,15 +56,11 @@ If you are using the `node` task, you can also specify a block number with the `
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 11095000
 ```
 
-If you are using Infura, keep in mind that it only lets you fetch data from recent blocks, so after a while you might get an error saying something like `Returned error: project ID does not have access to archive state`. To avoid this, use a service that lets you connect to archive nodes, like [Alchemy](https://alchemyapi.io/) or [ArchiveNode.io](https://archivenode.io/).
-
 ## Impersonating accounts
 
-If you fork the mainnet to interact with a protocol, you probably want to simulate some conditions. For example, maybe the protocol has an owner account that can change some parameters, and you would like to do it in your forked node. You won't have the private key for doing it (and even if you do, it's not a good idea to use it in a development environment!)
+Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. To make this easy, Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
 
-The way to do this in Hardhat Network is by impersonating accounts. When you impersonate an account, you can send any transaction from it as if you had its private key. You can even send transactions from smart contract addresses.
-
-To impersonate an account, you have to use the `hardhat_impersonateAccount` RPC method, with the address to impersonate as its parameter:
+To impersonate an account use the `hardhat_impersonateAccount` RPC method passing the address to impersonate as its parameter:
 
 ```tsx
 await hre.network.provider.request({
@@ -72,7 +69,7 @@ await hre.network.provider.request({
 )
 ```
 
-If at any point you want to stop doing it, you can use the `hardhat_stopImpersonatingAccount` method:
+Call `hardhat_stopImpersonatingAccount` to stop impersonating:
 
 ```tsx
 await hre.network.provider.request({
@@ -83,7 +80,7 @@ await hre.network.provider.request({
 
 ## Resetting the fork
 
-You might want to reset the Hardhat Network without having to stop it, for example to start from the same state between different test fixtures. You can do this with the `hardhat_reset` method:
+You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
 
 ```ts
 await network.provider.request({
@@ -97,10 +94,7 @@ await network.provider.request({
 })
 ```
 
-You can also use this method to reset the network from another block number, change the URL of the node that is being used, or even
-disable the forking functionality. 
-
-You can disable by running this:
+You can disable forking by passing empty params:
 
 ```ts
 await network.provider.request({
@@ -109,14 +103,10 @@ await network.provider.request({
 })
 ```
 
-It will reset Hardhat Network, starting a new instance in the state described [here](../hardhat-network/README.md#hardhat-network-initial-state).
+This will reset Hardhat Network, starting a new instance in the state described [here](../hardhat-network/README.md#hardhat-network-initial-state).
 
 ## Troubleshooting
 
 ### "Project ID does not have access to archive state"
 
-As we mentioned in the ["Pinning a block"](#pinning-a-block) section, Infura only lets you have access to the state of the blockchain during recent blocks. To avoid this problem, you can use a local archive node, or a service that provides one like Alchemy or ArchiveNode.io.
-
-### "project ID is required"
-
-You get this error when you forget to set your project id in a Infura URL, for example if you use `https://mainnet.infura.io`.
+Using Infura without the archival addon you will only have access to the state of the blockchain during recent blocks. To avoid this problem, you can use a local archive node, or a service that provides archival data like [Alchemy](https://alchemyapi.io/).
