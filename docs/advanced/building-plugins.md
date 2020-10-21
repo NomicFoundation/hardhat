@@ -21,7 +21,7 @@ generating an UML diagram for your contracts.
 ## Extending the Hardhat Runtime Environment
 
 Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. 
-By doing this, we make sure our new feature are available everywhere. That your plugin's users can access it from
+By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from
 tasks, tests, scripts, and the Hardhat console. 
 
 The Hardhat Runtime Environment (HRE) is configured through a queue of extension functions 
