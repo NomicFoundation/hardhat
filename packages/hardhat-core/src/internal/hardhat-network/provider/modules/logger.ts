@@ -1,10 +1,19 @@
 import util from "util";
 
 export class ModulesLogger {
+  public enabled = false;
   private _logs: Array<string | [string, string]> = [];
   private _titleLength = 0;
 
+  public enable(isEnabled: boolean) {
+    this.enabled = isEnabled;
+  }
+
   public log(message: string) {
+    if (!this.enabled) {
+      return;
+    }
+
     this._logs.push(message);
   }
 

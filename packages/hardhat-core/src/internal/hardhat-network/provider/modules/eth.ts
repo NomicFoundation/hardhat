@@ -80,7 +80,7 @@ export class EthModule {
     private readonly _node: HardhatNode,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
-    private readonly _logger?: ModulesLogger,
+    private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
 
@@ -1132,10 +1132,6 @@ export class EthModule {
     block: Block,
     blockResult: RunBlockResult
   ) {
-    if (this._logger === undefined) {
-      return;
-    }
-
     if (trace !== undefined) {
       await this._logContractAndFunctionName(trace, false);
     }
@@ -1161,7 +1157,7 @@ export class EthModule {
     // messages. The difference is how.
     // If we have a logger, we should use that, so that logs are printed in
     // order. If we don't, we just print the messages here.
-    if (this._logger === undefined) {
+    if (!this._logger.enabled) {
       for (const msg of messages) {
         console.log(msg);
       }
@@ -1181,10 +1177,6 @@ export class EthModule {
   }
 
   private async _logCallTrace(callParams: CallParams, trace?: MessageTrace) {
-    if (this._logger === undefined) {
-      return;
-    }
-
     if (trace !== undefined) {
       await this._logContractAndFunctionName(trace, true);
     }
@@ -1200,10 +1192,6 @@ export class EthModule {
     trace: MessageTrace,
     shouldBeContract: boolean
   ) {
-    if (this._logger === undefined) {
-      return;
-    }
-
     if (isPrecompileTrace(trace)) {
       this._logger.logWithTitle(
         "Precompile call",
@@ -1269,18 +1257,10 @@ export class EthModule {
   }
 
   private _logValue(value: BN) {
-    if (this._logger === undefined) {
-      return;
-    }
-
     this._logger.logWithTitle("Value", weiToHumanReadableString(value));
   }
 
   private _logError(error: Error) {
-    if (this._logger === undefined) {
-      return;
-    }
-
     // TODO: We log an empty line here because this is only used when throwing
     //   errors is disabled. The empty line is normally printed by the provider
     //   when an exception is thrown. As we don't throw, we do it here.
@@ -1289,10 +1269,6 @@ export class EthModule {
   }
 
   private _logFrom(from: Buffer) {
-    if (this._logger === undefined) {
-      return;
-    }
-
     this._logger.logWithTitle("From", bufferToHex(from));
   }
 
@@ -1328,10 +1304,6 @@ export class EthModule {
   }
 
   private _logTo(to: Buffer, trace?: MessageTrace) {
-    if (this._logger === undefined) {
-      return;
-    }
-
     if (trace !== undefined && isCreateTrace(trace)) {
       return;
     }
