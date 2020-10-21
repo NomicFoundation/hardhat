@@ -6,6 +6,8 @@ import {
   Record as ImmutableRecord,
 } from "immutable";
 
+import { bnToHex } from "./utils/bnToHex";
+
 export type SerializedTransaction = ImmutableList<string>;
 export type OrderedRecord = ImmutableRecord<ImmutableOrderedTransaction>;
 export type SenderTransactions = ImmutableList<OrderedRecord>;
@@ -32,12 +34,12 @@ export interface PoolState {
   pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
   queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
   executableNonces: ImmutableMap<string, string>; // address => nonce (hex)
-  blockGasLimit: BN;
+  blockGasLimit: string;
 }
 
 export const makePoolState = ImmutableRecord<PoolState>({
   pendingTransactions: ImmutableMap(),
   queuedTransactions: ImmutableMap(),
   executableNonces: ImmutableMap(),
-  blockGasLimit: new BN(9500000),
+  blockGasLimit: bnToHex(new BN(9500000)),
 });
