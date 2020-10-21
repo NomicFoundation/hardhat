@@ -18,7 +18,7 @@ describe("Token contract", function() {
 
     const hardhatToken = await Token.deploy();
 
-    const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
+    const ownerBalance = await hardhatToken.balanceOf(owner.address);
     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
   });
 });
@@ -28,15 +28,12 @@ On your terminal run `npx hardhat test`. You should see the following output:
 
 ```
 $ npx hardhat test
-All contracts have already been compiled, skipping compilation.
-
 
   Token contract
     ✓ Deployment should assign the total supply of tokens to the owner (654ms)
 
 
   1 passing (663ms)
-
 ```
 
 This means the test passed. Let's now explain each line:
@@ -69,7 +66,7 @@ const hardhatToken = await Token.deploy();
 Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
 
 ```js
-const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
+const ownerBalance = await hardhatToken.balanceOf(owner.address);
 ```
 
 Once the contract is deployed, we can call our contract methods on `hardhatToken` and use them to get the balance of the owner account by calling `balanceOf()`.
@@ -101,12 +98,12 @@ describe("Transactions", function () {
     const hardhatToken = await Token.deploy();
    
     // Transfer 50 tokens from owner to addr1
-    await hardhatToken.transfer(await addr1.getAddress(), 50);
-    expect(await hardhatToken.balanceOf(await addr1.getAddress())).to.equal(50);
+    await hardhatToken.transfer(addr1.address, 50);
+    expect(await hardhatToken.balanceOf(addr1.address)).to.equal(50);
     
     // Transfer 50 tokens from addr1 to addr2
-    await hardhatToken.connect(addr1).transfer(await addr2.getAddress(), 50);
-    expect(await hardhatToken.balanceOf(await addr2.getAddress())).to.equal(50);
+    await hardhatToken.connect(addr1).transfer(addr2.address, 50);
+    expect(await hardhatToken.balanceOf(addr2.address)).to.equal(50);
   });
 });
 ```
@@ -154,9 +151,6 @@ describe("Token contract", function () {
     // for it to be deployed(), which happens onces its transaction has been
     // mined.
     hardhatToken = await Token.deploy();
-
-    // We can interact with the contract by calling `hardhatToken.method()`
-    await hardhatToken.someMethod();
   });
 
   // You can nest describe calls to create subsections.
@@ -171,11 +165,11 @@ describe("Token contract", function () {
 
       // This test expects the owner variable stored in the contract to be equal
       // to our Signer's owner.
-      expect(await hardhatToken.owner()).to.equal(await owner.getAddress());
+      expect(await hardhatToken.owner()).to.equal(owner.address);
     });
 
     it("Should assign the total supply of tokens to the owner", async function () {
-      const ownerBalance = await hardhatToken.balanceOf(owner.getAddress());
+      const ownerBalance = await hardhatToken.balanceOf(owner.address);
       expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
     });
   });
@@ -183,63 +177,49 @@ describe("Token contract", function () {
   describe("Transactions", function () {
     it("Should transfer tokens between accounts", async function () {
       // Transfer 50 tokens from owner to addr1
-      await hardhatToken.transfer(await addr1.getAddress(), 50);
-      const addr1Balance = await hardhatToken.balanceOf(
-        await addr1.getAddress()
-      );
+      await hardhatToken.transfer(addr1.address, 50);
+      const addr1Balance = await hardhatToken.balanceOf(addr1.address);
       expect(addr1Balance).to.equal(50);
 
       // Transfer 50 tokens from addr1 to addr2
       // We use .connect(signer) to send a transaction from another account
-      await hardhatToken.connect(addr1).transfer(await addr2.getAddress(), 50);
-      const addr2Balance = await hardhatToken.balanceOf(
-        await addr2.getAddress()
-      );
+      await hardhatToken.connect(addr1).transfer(addr2.address, 50);
+      const addr2Balance = await hardhatToken.balanceOf(addr2.address);
       expect(addr2Balance).to.equal(50);
     });
 
     it("Should fail if sender doesn’t have enough tokens", async function () {
-      const initialOwnerBalance = await hardhatToken.balanceOf(
-        await owner.getAddress()
-      );
+      const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
 
       // Try to send 1 token from addr1 (0 tokens) to owner (1000 tokens).
       // `require` will evaluate false and revert the transaction.
       await expect(
-        hardhatToken.connect(addr1).transfer(await owner.getAddress(), 1)
+        hardhatToken.connect(addr1).transfer(owner.address, 1)
       ).to.be.revertedWith("Not enough tokens");
 
       // Owner balance shouldn't have changed.
-      expect(await hardhatToken.balanceOf(await owner.getAddress())).to.equal(
+      expect(await hardhatToken.balanceOf(owner.address)).to.equal(
         initialOwnerBalance
       );
     });
 
     it("Should update balances after transfers", async function () {
-      const initialOwnerBalance = await hardhatToken.balanceOf(
-        await owner.getAddress()
-      );
+      const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
 
       // Transfer 100 tokens from owner to addr1.
-      await hardhatToken.transfer(await addr1.getAddress(), 100);
+      await hardhatToken.transfer(addr1.address, 100);
 
       // Transfer another 50 tokens from owner to addr2.
-      await hardhatToken.transfer(await addr2.getAddress(), 50);
+      await hardhatToken.transfer(addr2.address, 50);
 
       // Check balances.
-      const finalOwnerBalance = await hardhatToken.balanceOf(
-        await owner.getAddress()
-      );
+      const finalOwnerBalance = await hardhatToken.balanceOf(owner.address);
       expect(finalOwnerBalance).to.equal(initialOwnerBalance - 150);
 
-      const addr1Balance = await hardhatToken.balanceOf(
-        await addr1.getAddress()
-      );
+      const addr1Balance = await hardhatToken.balanceOf(addr1.address);
       expect(addr1Balance).to.equal(100);
 
-      const addr2Balance = await hardhatToken.balanceOf(
-        await addr2.getAddress()
-      );
+      const addr2Balance = await hardhatToken.balanceOf(addr2.address);
       expect(addr2Balance).to.equal(50);
     });
   });
@@ -248,7 +228,6 @@ describe("Token contract", function () {
 This is what the output of `npx hardhat test` should look like against the full test suite:
 ```
 $ npx hardhat test
-All contracts have already been compiled, skipping compilation.
 
   Token contract
     Deployment

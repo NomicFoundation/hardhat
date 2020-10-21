@@ -32,11 +32,8 @@ function transfer(address to, uint256 amount) external {
 
 The logging output will show when you run your tests:
 
-```{11-14,17-20}
+```{8-11,14-17}
 $ npx hardhat test
-Compiling...
-Compiled 2 contracts successfully
-
 
   Token contract
     Deployment

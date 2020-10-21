@@ -8,7 +8,7 @@ Most Ethereum libraries and tools are written in JavaScript, and so is **Hardhat
 
 ## Installing Node.js
 
-You can [skip](#checking-your-environment) this section if you already have a working Node.js `>=10.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
+You can [skip](#checking-your-environment) this section if you already have a working Node.js `>=12.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
 
 
 ### Linux
@@ -21,7 +21,7 @@ Copy and paste these commands in a terminal:
 sudo apt update
 sudo apt install curl git
 sudo apt install build-essential # We need this to build native dependencies
-curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 sudo apt install nodejs
 ```
 
@@ -33,9 +33,9 @@ There are multiple ways of installing Node.js on MacOS. We will be using [Node V
 
 ```
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.2/install.sh | bash
-nvm install 10
-nvm use 10
-nvm alias default 10
+nvm install 12
+nvm use 12
+nvm alias default 12
 npm install npm --global # Upgrade npm to the latest version
 npm install -g node-gyp # Make sure we have node-gyp installed
 # This next setp is needed to build native dependencies.
@@ -46,9 +46,9 @@ xcode-select --install
 
 ### Windows
 
-Installing Node.js on Windows requires a few manual steps. We'll install git, Node.js 10.x and NPM's Windows Build Tools. Download and run these:
+Installing Node.js on Windows requires a few manual steps. We'll install git, Node.js 12.x and NPM's Windows Build Tools. Download and run these:
 1. [Git's installer for Windows](https://git-scm.com/download/win)
-2. `node-v10.XX.XX-x64.msi` from [here](https://nodejs.org/dist/latest-v10.x)
+2. `node-v12.XX.XX-x64.msi` from [here](https://nodejs.org/dist/latest-v12.x)
 
 Then [open your terminal as Administrator](https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/) and run the following command: 
 ```
@@ -70,13 +70,13 @@ npm install
 
 If this is succesful you should see a confirmation message meaning that your development environment is ready. Feel free to delete the repository directory and move on to [Creating a new Hardhat project](creating-a-new-hardhat-project.md).
 
-If any of them failed, your environment is not properly setup. Make sure you have `git` and Node.js `>=10.0` installed. If you're seeing errors mentioning "node-gyp", make sure you installed the build tools mentioned before.
+If any of them failed, your environment is not properly setup. Make sure you have `git` and Node.js `>=12.0` installed. If you're seeing errors mentioning "node-gyp", make sure you installed the build tools mentioned before.
 
 If you have an older version of Node.js, please refer to the next section.
 
 ## Upgrading your Node.js installation
 
-If your version of Node.js is older than `10.0` follow the instructions below to upgrade. After you are done, go back to [Checking your environment](#checking-your-environment).
+If your version of Node.js is older than `12.0` follow the instructions below to upgrade. After you are done, go back to [Checking your environment](#checking-your-environment).
 
 ### Linux
 

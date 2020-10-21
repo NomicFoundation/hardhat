@@ -25,12 +25,13 @@ To get syntax highlighting you should add Solidity support to your text editor. 
 ```solidity
 // Solidity files have to start with this pragma.
 // It will be used by the Solidity compiler to validate its version.
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 
 // This is the main building block for smart contracts.
 contract Token {
     // Some string type variables to identify the token.
+    // The `public` modifier makes a variable readable from outside the contract.
     string public name = "My Hardhat Token";
     string public symbol = "MBT";
 
@@ -47,9 +48,8 @@ contract Token {
      * Contract initialization.
      *
      * The `constructor` is executed only once when the contract is created.
-     * The `public` modifier makes a function callable from outside the contract.
      */
-    constructor() public {
+    constructor() {
         // The totalSupply is assigned to transaction sender, which is the account
         // that is deploying the contract.
         balances[msg.sender] = totalSupply;
@@ -95,8 +95,8 @@ To compile the contract run `npx hardhat compile` in your terminal. The `compile
 
 ```
 $ npx hardhat compile
-Compiling...
-Compiled 1 contract successfully
+Compiling 1 file with 0.7.3
+Compilation finished successfully
 ```
 
 The contract has been successfully compiled and it's ready to be used.

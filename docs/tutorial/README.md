@@ -6,7 +6,7 @@ prev: false
 
 Welcome to our beginners guide to Ethereum contracts and dApp development. This tutorial is aimed at hackathon participants who are getting setup to quickly build something from scratch.
 
-To orchestrate this process we're going to use **Hardhat**, which is a task runner that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
+To orchestrate this process we're going to use **Hardhat**, a development environment that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
 **Hardhat** also comes built-in with **Hardhat Network**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
 
@@ -26,4 +26,4 @@ In this tutorial we'll guide you through:
   - Understand the basics of how [smart contracts](https://ethereum.org/learn/#smart-contracts) work
   - Set up a [Metamask](https://metamask.io/) wallet 
 
-If you can't do any of the above, follow the links and take some time to get learn the basics.
+If you can't do any of the above, follow the links and take some time to learn the basics.
