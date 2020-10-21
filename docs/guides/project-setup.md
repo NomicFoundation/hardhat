@@ -1,6 +1,6 @@
 # Setting up a project
 
-Hardhat project are `npm` projects with the `hardhat` package installed, and a `hardhat.config.js` file.
+Hardhat projects are `npm` projects with the `hardhat` package installed and a `hardhat.config.js` file.
 
 If you run `npx hardhat` in a folder without those files you will be shown two options to facilitate project creation:
 
@@ -97,5 +97,4 @@ module.exports = {};
 Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own ones!
 
 For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).
-
 
