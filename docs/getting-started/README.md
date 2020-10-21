@@ -10,7 +10,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
 
 ## Installation
 
-Hardhat is through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts. 
+Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts. 
 
 To install it, you need to create an npm project by going to an empty folder, running `npm init`, 
 and following its instructions. Once your project is ready, you should run
