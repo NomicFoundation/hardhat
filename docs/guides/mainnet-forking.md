@@ -28,13 +28,14 @@ networks: {
 
 ## Pinning a block
 
-If you start a forked node the way we explained in the previous section, Hardhat Network will fork the mainnet from the latest block available at that moment. This has some problems.
+Hardhat Network will by default fork from the latest mainnet block. While this might be practical depending on the context, we recommend forking from a specific block number to set up a test suite that depends on forking.
 
-First, it's not reproducible: you might run it at some point and it will use the block 11095000, and then run it one hour later and it will use the block 11095240. In that interval of time, the state of the blockchain will change, and this could cause your tests or scripts to behave differently.
+There are two reasons for this:
+- The state your tests run against may change between runs. This could cause your tests or scripts to behave differently.
 
-A second problem with using the latest block number is performance. Every time the node fetches some data from the mainnet, Hardhat caches it on disk to avoid doing unnecessary requests. But if you restart your node, then this saved data is no longer useful.
+- Pinning enables caching. Every time data is fetched from mainnet, Hardhat Network caches it on disk to speed up future access. If you don't pin the block, there's going to be new data with each new block and the cache won't be useful. We measured up to 20x speed improvements with block pinning.
 
-The solution to both of these problems is to instruct the Hardhat Network to always fork from a given block number. In your config, it looks like this:
+To avoid these problems always fork from a specific block number, like this:
 
 ```js
 networks: {
@@ -47,7 +48,6 @@ networks: {
 }
 ```
 
-This way, every time the Hardhat Network is used, it will fork the mainnet from that block, significantly improving its performance and making it more reproducible.
 
 If you are using the `node` task, you can also specify a block number with the `--fork-block-number` flag:
 
