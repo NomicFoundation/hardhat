@@ -30,6 +30,8 @@ export function assertEqualTransactionLists(
   );
 }
 
+// TODO make copy function
+
 describe("assertEqualTransactionMaps", () => {
   it("does not throw if maps are equal", async () => {
     const tx1 = createTestOrderedTransaction({ orderId: 0 });
