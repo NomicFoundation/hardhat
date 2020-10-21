@@ -124,7 +124,7 @@ Some community-built plugins, haven't been migrated yet.
 
 ### buidler-deploy
 
-This plugin is already being ported to Hardhat, and close to be released.
+This plugin is already being ported to Hardhat, and close to being released.
 
 Join our `#buidler-deploy` channel on [Discord](/discord) to get news and help about it.
 
