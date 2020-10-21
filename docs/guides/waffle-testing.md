@@ -35,7 +35,7 @@ Welcome to Hardhat v2.0.0
   Quit
 ```
 
-Select `Create a sample project`. This will create some files, install the `hardhat-ethers` and `hardhat-waffle` plugins, and other necessary packages.
+Select `Create a sample project`. This will create some files and install the `@nomiclabs/hardhat-ethers`, `@nomiclabs/hardhat-waffle` plugins, and other necessary packages.
 
 ::: tip
 Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
