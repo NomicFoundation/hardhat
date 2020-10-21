@@ -185,9 +185,13 @@ async function getAction() {
 }
 
 async function createPackageJson() {
-  await fsExtra.writeJson("package.json", {
-    name: "hardhat-project",
-  });
+  await fsExtra.writeJson(
+    "package.json",
+    {
+      name: "hardhat-project",
+    },
+    { spaces: 2 }
+  );
 }
 
 export async function createProject() {

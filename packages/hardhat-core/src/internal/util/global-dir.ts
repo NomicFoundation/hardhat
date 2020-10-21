@@ -88,7 +88,7 @@ export async function writeAnalyticsId(clientId: string) {
         clientId,
       },
     },
-    { encoding: "utf-8" }
+    { encoding: "utf-8", spaces: 2 }
   );
   log(`Stored clientId ${clientId}`);
 }
@@ -123,5 +123,5 @@ export function writeTelemetryConsent(consent: boolean) {
   const configDir = getConfigDirSync();
   const telemetryConsentPath = path.join(configDir, "telemetry-consent.json");
 
-  fs.writeJSONSync(telemetryConsentPath, { consent });
+  fs.writeJSONSync(telemetryConsentPath, { consent }, { spaces: 2 });
 }
