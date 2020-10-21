@@ -4,12 +4,12 @@ import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import {
   AddressToTransactions,
-  makeOrderedTransaction,
   makePoolState,
-  OrderedRecord,
+  makeSerializedTransaction,
   OrderedTransaction,
   PoolState,
   SenderTransactions,
+  SerializedTransaction,
 } from "./PoolState";
 import { PStateManager } from "./types/PStateManager";
 import { bnToHex } from "./utils/bnToHex";
@@ -17,16 +17,20 @@ import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists
 
 // tslint:disable only-hardhat-error
 
-export function serializeTransaction(tx: OrderedTransaction): OrderedRecord {
+export function serializeTransaction(
+  tx: OrderedTransaction
+): SerializedTransaction {
   const fields = tx.data.raw.map((field) => bufferToHex(field));
   const immutableFields = ImmutableList(fields);
-  return makeOrderedTransaction({
+  return makeSerializedTransaction({
     orderId: tx.orderId,
     data: immutableFields,
   });
 }
 
-export function deserializeTransaction(tx: OrderedRecord): OrderedTransaction {
+export function deserializeTransaction(
+  tx: SerializedTransaction
+): OrderedTransaction {
   const fields = tx
     .get("data")
     .toArray()
