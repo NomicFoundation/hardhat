@@ -13,8 +13,8 @@ import {
   RpcReceiptOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
 import {
-  OrderedRecord,
   OrderedTransaction,
+  SerializedTransaction,
 } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 
@@ -48,7 +48,7 @@ export function createTestOrderedTransaction({
 
 export function createTestSerializedTransaction(
   data: OrderedTxData
-): OrderedRecord {
+): SerializedTransaction {
   const tx = createTestOrderedTransaction(data);
   return serializeTransaction(tx);
 }

@@ -8,27 +8,28 @@ import {
 
 import { bnToHex } from "./utils/bnToHex";
 
-export type SerializedTransaction = ImmutableList<string>;
-export type OrderedRecord = ImmutableRecord<ImmutableOrderedTransaction>;
-export type SenderTransactions = ImmutableList<OrderedRecord>;
-export type AddressToTransactions = ImmutableMap<string, SenderTransactions>;
-
 export interface OrderedTransaction {
   orderId: number;
   data: Transaction;
 }
 
-export interface ImmutableOrderedTransaction {
+interface ImmutableOrderedTransaction {
   orderId: number;
-  data: SerializedTransaction;
+  data: ImmutableList<string>;
 }
 
-export const makeOrderedTransaction = ImmutableRecord<
+export const makeSerializedTransaction = ImmutableRecord<
   ImmutableOrderedTransaction
 >({
   orderId: 0,
   data: ImmutableList(),
 });
+
+export type SerializedTransaction = ImmutableRecord<
+  ImmutableOrderedTransaction
+>;
+export type SenderTransactions = ImmutableList<SerializedTransaction>;
+export type AddressToTransactions = ImmutableMap<string, SenderTransactions>;
 
 export interface PoolState {
   pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
