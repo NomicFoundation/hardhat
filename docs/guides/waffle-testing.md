@@ -1,16 +1,20 @@
 # Testing with ethers.js & Waffle
 
-[Waffle](https://getwaffle.io/) is a simple smart contract testing library built on top of [Ethers.js](https://docs.ethers.io/ethers.js/html/). Tests in Waffle are written using [Mocha](https://mochajs.org/) alongside with [Chai](https://www.chaijs.com/). It's our recommended choice for testing.
+Writing smart contract tests in Hardhat is done using JavaScript or TypeScript.
+
+In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum,
+and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it. This is our recommended
+choice for testing.
 
 Let's see how to use it going through Hardhat's sample project.
 
 ::: tip
-Waffle supports TypeScript. Learn how to set up Hardhat with TypeScript [here](./typescript.md).
+Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScript [here](./typescript.md).
 :::
 
 ## Setting up
 
-[Install Hardhat](/getting-started/#local-installation-recommended) on an empty directory. When done, run `npx hardhat`.  
+[Install Hardhat](/getting-started/#local-installation-recommended) on an empty directory. When done, run `npx hardhat`.
 
 ```
 $ npx hardhat
@@ -31,7 +35,7 @@ Welcome to Hardhat v2.0.0
   Quit
 ```
 
-Select `Create a sample project`. This will create some files but also install the necessary packages.
+Select `Create a sample project`. This will create some files and install the `@nomiclabs/hardhat-ethers`, `@nomiclabs/hardhat-waffle` plugins, and other necessary packages.
 
 ::: tip
 Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
@@ -41,13 +45,16 @@ Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is en
 
 <<< @/../packages/hardhat-core/sample-project/hardhat.config.js{1}
 
-::: tip 
+::: tip
 There's no need for `require("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
 :::
 
 ## Testing
 
-Inside `test` folder you'll find  `sample-test.js`. Let's take a look at it, and we'll explain it next:
+Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside with [Chai](https://www.chaijs.com/). If you
+haven't heard of them, they are super popular JavaScript testing utilities.
+
+Inside `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
 <<< @/../packages/hardhat-core/sample-project/test/sample-test.js
 
@@ -67,11 +74,14 @@ This means the test passed. Let's now explain each line:
 ```js
 const { expect } = require("chai");
 ```
-We are requiring `Chai` which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from Waffle. This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
+
+We are requiring `Chai` which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from Waffle.
+
+This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
 ```js
-describe("Greeter", function() {
-  it("Should return the new greeting once it's changed", async function() {
+describe("Greeter", function () {
+  it("Should return the new greeting once it's changed", async function () {
     // ...
   });
 });
@@ -97,7 +107,7 @@ Once the contract is deployed, we can call our contract methods on `greeter` and
 expect(await greeter.greet()).to.equal("Hello, world!");
 ```
 
-Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting and we're checking that it's equal to `Hello, world!`, as it should. To do this we're using the Chai matchers `expect`, `to` and `equal`. 
+Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting and we're checking that it's equal to `Hello, world!`, as it should. To do this we're using the Chai matchers `expect`, `to` and `equal`.
 
 ```js
 await greeter.setGreeting("Hola, mundo!");
@@ -111,9 +121,11 @@ We can modify the state of a contract in the same way we read from it. Calling `
 If you need to send a transaction from an account other than the default one, you can use the `connect()` method provided by Ethers.js.
 
 The first step to do so is to get the `Signers` object from `ethers`:
+
 ```js
 const [owner, addr1] = await ethers.getSigners();
 ```
+
 A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first and second ones.
 
 ::: tip
@@ -121,6 +133,7 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 :::
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
+
 ```js
 const { ethers } = require("hardhat");
 ```
@@ -165,7 +178,7 @@ Would translate into this Hardhat config:
 module.exports = {
   paths: {
     sources: "./some_custom/contracts_path",
-    artifacts: "../some_custom/build"
+    artifacts: "../some_custom/build",
   },
   solidity: {
     version: "0.4.24", // Note that this only has the version number
@@ -173,10 +186,10 @@ module.exports = {
       evmVersion: "constantinople",
       optimizer: {
         enabled: true,
-        runs: 200
-      }
-    }
-  }
+        runs: 200,
+      },
+    },
+  },
 };
 ```
 
@@ -187,8 +200,8 @@ require("@nomiclabs/hardhat-waffle");
 
 module.exports = {
   paths: {
-    artifacts: "./build"
-  }
+    artifacts: "./build",
+  },
 };
 ```
 
@@ -198,30 +211,38 @@ Now, when testing using a standalone Waffle setup, you should use the different 
 
 For example, instead of doing:
 
-```typescript
-import { deployContract } from "ethereum-waffle";
+```js
+const { deployContract } = require("ethereum-waffle");
 ```
 
 You should do:
 
 ```typescript
-import { waffle } from "ethereum-waffle";
+const { waffle } = require("hardhat");
 const { deployContract } = waffle;
 ```
 
 ::: warning
-Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions. If you're fighting a "Transaction run out of gas" error, double-check the size of your contract and bump the gas limit if needed.
+Importing Waffle's functions from `ethereum-waffle`, can lead to multiple problems.
+
+For example, Waffle has a
+[default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million
+gas for contract deployment transactions, which is normally too low.
+
+Please, make sure you import them from the `waffle` field of the [Hardhat Runtime Environment]. It is a version
+of Waffle adapted to work well with Hardhat.
 :::
 
-Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config and use the plugin's provider like this
+Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config.
+
+Finally, instead of initializing a `MockProvider`, just use the plugin's provider like this
 
 ```js
+const { waffle } = require("hardhat");
 const provider = waffle.provider;
 ```
 
 Run your tests with `npx hardhat test` and you should get stack traces when a transaction fails.
 
 [hardhat network]: ../hardhat-network/README.md
-
-
-[Hardhat Runtime Environment]: /documentation/#hardhat-runtime-environment-hre
+[hardhat runtime environment]: /documentation/#hardhat-runtime-environment-hre
