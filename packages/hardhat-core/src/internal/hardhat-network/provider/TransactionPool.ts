@@ -12,6 +12,7 @@ import {
   SenderTransactions,
 } from "./PoolState";
 import { PStateManager } from "./types/PStateManager";
+import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
 // tslint:disable only-hardhat-error
@@ -47,7 +48,9 @@ export class TransactionPool {
     private readonly _stateManager: PStateManager,
     private _blockGasLimit: BN
   ) {
-    this._state = makePoolState({ blockGasLimit: this._blockGasLimit });
+    this._state = makePoolState({
+      blockGasLimit: bnToHex(this._blockGasLimit),
+    });
   }
 
   public async addTransaction(tx: Transaction) {
@@ -101,8 +104,8 @@ export class TransactionPool {
     return new BN(toBuffer(nonce));
   }
 
-  public getBlockGasLimit() {
-    return this._getBlockGasLimit();
+  public getBlockGasLimit(): BN {
+    return new BN(toBuffer(this._state.get("blockGasLimit")));
   }
 
   public setBlockGasLimit(newLimit: BN | number) {
@@ -132,7 +135,7 @@ export class TransactionPool {
         const senderBalance = new BN(senderAccount.balance);
 
         if (
-          txGasLimit.gt(this._getBlockGasLimit()) ||
+          txGasLimit.gt(this.getBlockGasLimit()) ||
           txNonce.lt(senderNonce) ||
           deserializedTx.data.getUpfrontCost().gt(senderBalance)
         ) {
@@ -263,10 +266,6 @@ export class TransactionPool {
     return this._state.get("executableNonces");
   }
 
-  private _getBlockGasLimit() {
-    return this._state.get("blockGasLimit");
-  }
-
   private _setPending(transactions: AddressToTransactions) {
     this._state = this._state.set("pendingTransactions", transactions);
   }
@@ -298,14 +297,11 @@ export class TransactionPool {
   private _setExecutableNonce(accountAddress: string, nonce: BN): void {
     this._state = this._state.set(
       "executableNonces",
-      this._getExecutableNonces().set(
-        accountAddress,
-        bufferToHex(toBuffer(nonce))
-      )
+      this._getExecutableNonces().set(accountAddress, bnToHex(nonce))
     );
   }
 
   private _setBlockGasLimit(newLimit: BN) {
-    this._state = this._state.set("blockGasLimit", newLimit);
+    this._state = this._state.set("blockGasLimit", bnToHex(newLimit));
   }
 }
