@@ -65,7 +65,7 @@ the Hardhat console, your tasks, tests and other plugins.
 
 For a complete example of a plugin you can take a look at the [Hardhat TypeScript plugin boilerplate project](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/).
 
-Plugins don't need to be written in TypeScript, but we recommend doing it, as many of our use it. Creating a plugin in
+Plugins don't need to be written in TypeScript, but we recommend doing it, as many of our users use it. Creating a plugin in
 JavaScript can lead to a subpar experience for them. 
 
 ### Extending the HRE
