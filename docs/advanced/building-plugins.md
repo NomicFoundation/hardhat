@@ -20,14 +20,16 @@ generating an UML diagram for your contracts.
 
 ## Extending the Hardhat Runtime Environment
 
-Let’s go through the process of creating a plugin to inject ethers.js to the [Hardhat Runtime Environment].
+Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. 
+By doing this, we make sure our new feature are available everywhere. That your plugin's users can access it from
+tasks, tests, scripts, and the Hardhat console. 
 
 The Hardhat Runtime Environment (HRE) is configured through a queue of extension functions 
-that you can add to using the `extendEnvironment()` function. It receives one parameter which is a function which will be executed
+that you can add to using the `extendEnvironment()` function. It receives one parameter which is a callback which will be executed
 after the HRE is initialized. If `extendEnvironment` is called multiple times, its 
 callbacks will be executed in order.
 
-For example, adding the following to `hardhat.config.js`:
+For example, adding the following to `hardhat.config.js`:
 
 ```js
 extendEnvironment((hre) => {
