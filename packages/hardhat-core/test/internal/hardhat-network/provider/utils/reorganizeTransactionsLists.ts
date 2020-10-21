@@ -1,17 +1,34 @@
 import { assert } from "chai";
+import { FakeTxData } from "ethereumjs-tx";
 import { List } from "immutable";
 
+import { makeOrderedTransaction } from "../../../../../src/internal/hardhat-network/provider/PoolState";
 import { reorganizeTransactionsLists } from "../../../../../src/internal/hardhat-network/provider/utils/reorganizeTransactionsLists";
 import { createTestSerializedTransaction } from "../../helpers/blockchain";
 
+function getTestTransactionFactory() {
+  let orderId = 0;
+  return (data: FakeTxData) =>
+    makeOrderedTransaction({
+      orderId: orderId++,
+      data: createTestSerializedTransaction(data),
+    });
+}
+
 describe("reorganizeTransactionsLists", () => {
+  let createTestTransaction: (data: FakeTxData) => any;
+
+  beforeEach(() => {
+    createTestTransaction = getTestTransactionFactory();
+  });
+
   describe("when there are no transactions to move", () => {
     it("does not move", () => {
       // pending: [1]
       // queued: [3, 4]
-      const tx1 = createTestSerializedTransaction({ nonce: 1 });
-      const tx3 = createTestSerializedTransaction({ nonce: 3 });
-      const tx4 = createTestSerializedTransaction({ nonce: 4 });
+      const tx1 = createTestTransaction({ nonce: 1 });
+      const tx3 = createTestTransaction({ nonce: 3 });
+      const tx4 = createTestTransaction({ nonce: 4 });
 
       const pending = List.of(tx1);
       const queued = List.of(tx3, tx4);
@@ -28,9 +45,9 @@ describe("reorganizeTransactionsLists", () => {
     it("moves all transactions", () => {
       // pending: [1]
       // queued: [2, 3]
-      const tx1 = createTestSerializedTransaction({ nonce: 1 });
-      const tx2 = createTestSerializedTransaction({ nonce: 2 });
-      const tx3 = createTestSerializedTransaction({ nonce: 3 });
+      const tx1 = createTestTransaction({ nonce: 1 });
+      const tx2 = createTestTransaction({ nonce: 2 });
+      const tx3 = createTestTransaction({ nonce: 3 });
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
@@ -45,9 +62,9 @@ describe("reorganizeTransactionsLists", () => {
     it("moves proper transactions from sorted queued list", () => {
       // pending: [1]
       // queued: [2, 4]
-      const tx1 = createTestSerializedTransaction({ nonce: 1 });
-      const tx2 = createTestSerializedTransaction({ nonce: 2 });
-      const tx4 = createTestSerializedTransaction({ nonce: 4 });
+      const tx1 = createTestTransaction({ nonce: 1 });
+      const tx2 = createTestTransaction({ nonce: 2 });
+      const tx4 = createTestTransaction({ nonce: 4 });
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
@@ -60,9 +77,9 @@ describe("reorganizeTransactionsLists", () => {
     it("moves proper transactions from unsorted queued list", () => {
       // pending: [1]
       // queued: [4, 2]
-      const tx1 = createTestSerializedTransaction({ nonce: 1 });
-      const tx2 = createTestSerializedTransaction({ nonce: 2 });
-      const tx4 = createTestSerializedTransaction({ nonce: 4 });
+      const tx1 = createTestTransaction({ nonce: 1 });
+      const tx2 = createTestTransaction({ nonce: 2 });
+      const tx4 = createTestTransaction({ nonce: 4 });
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
@@ -75,12 +92,12 @@ describe("reorganizeTransactionsLists", () => {
     it("moves transactions from unsorted queued list leaving the ones that should stay", () => {
       // pending: [1]
       // queued: [3, 4, 2, 5, 8]
-      const tx1 = createTestSerializedTransaction({ nonce: 1 });
-      const tx2 = createTestSerializedTransaction({ nonce: 2 });
-      const tx3 = createTestSerializedTransaction({ nonce: 3 });
-      const tx4 = createTestSerializedTransaction({ nonce: 4 });
-      const tx5 = createTestSerializedTransaction({ nonce: 5 });
-      const tx8 = createTestSerializedTransaction({ nonce: 8 });
+      const tx1 = createTestTransaction({ nonce: 1 });
+      const tx2 = createTestTransaction({ nonce: 2 });
+      const tx3 = createTestTransaction({ nonce: 3 });
+      const tx4 = createTestTransaction({ nonce: 4 });
+      const tx5 = createTestTransaction({ nonce: 5 });
+      const tx8 = createTestTransaction({ nonce: 8 });
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
