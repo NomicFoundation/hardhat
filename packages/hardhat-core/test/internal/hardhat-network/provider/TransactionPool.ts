@@ -28,7 +28,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
 } from "../helpers/providers";
 
-// TODO: Change this so this function transforms map into arrays on the EXPECTED part - not the ACTUAL part in the assert function
+// This function is used to simplify assertions in tests
 function getAllTxs(
   pendingTxs: Map<string, OrderedTransaction[]>
 ): Transaction[] {
@@ -81,7 +81,7 @@ describe("Transaction Pool", () => {
             await txPool.addTransaction(tx);
 
             const pendingTxs = txPool.getPendingTransactions();
-            assert.lengthOf(getAllTxs(pendingTxs), 0);
+            assert.equal(pendingTxs.size, 0);
           });
         });
 
