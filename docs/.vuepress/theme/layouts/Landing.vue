@@ -1,29 +1,31 @@
 <template lang="pug">
-.theme-container.landing-html(
-  :class="pageClasses",
-  @touchstart="onTouchStart",
-  @touchend="onTouchEnd"
-)
-  #topRow(:class="{ navBarAndBannerSticky }")
-    HHTopBar(v-if="shouldShowNavbar")
-    HHNavbar(v-if="shouldShowNavbar", @toggle-sidebar="toggleSidebar")
-
-  HHHero(v-if="this.$page.frontmatter.home")
-
-  .sidebar-mask(@click="toggleSidebar(false)")
-
-  HHSidebar(:items="sidebarItems", @toggle-sidebar="toggleSidebar")
-    slot(name="sidebar-top", slot="top")
-    slot(name="sidebar-bottom", slot="bottom")
-
-  main
-    HHHome(v-if="this.$page.frontmatter.home")
-
-    HHPage(v-else, :sidebar-items="sidebarItems")
-      slot(name="page-top", slot="top")
-      slot(name="page-bottom", slot="bottom")
-
-  HHFooter(v-if="this.$page.frontmatter.home")
+div
+  .theme-container.landing-html(
+    :class="pageClasses",
+    @touchstart="onTouchStart",
+    @touchend="onTouchEnd"
+  )
+    #topRow(:class="{ navBarAndBannerSticky }")
+      // HHTopBar(v-if="shouldShowNavbar")
+      HHNavbar(v-if="shouldShowNavbar", @toggle-sidebar="toggleSidebar")
+  
+    HHHero(v-if="this.$page.frontmatter.home")
+  
+    .sidebar-mask(@click="toggleSidebar(false)")
+  
+    HHSidebar(:items="sidebarItems", @toggle-sidebar="toggleSidebar")
+      slot(name="sidebar-top", slot="top")
+      slot(name="sidebar-bottom", slot="bottom")
+  
+    main
+      HHHome(v-if="this.$page.frontmatter.home")
+  
+      HHPage(v-else, :sidebar-items="sidebarItems")
+        slot(name="page-top", slot="top")
+        slot(name="page-bottom", slot="bottom")
+  
+    HHFooter(v-if="this.$page.frontmatter.home")
+  HHMigrationModal
 </template>
 
 <script>
@@ -37,10 +39,12 @@ import HHFooter from "../components/HHFooter";
 import HHHome from "../components/HHHome";
 import HHPage from "../components/HHPage";
 import HHSidebar from "../components/HHSidebar";
+import HHMigrationModal from "../components/HHMigrationModal";
 
 export default {
   name: "Layout",
   components: {
+    HHMigrationModal,
     HHTopBar,
     HHNavbar,
     HHHero,

@@ -3,9 +3,9 @@
     class="navbar"
     v-bind:class="{ notFixed: $page.frontmatter.home === true }"
   >
-    <div style="position: relative">
-      <HHTopBar />
-      <div style="position: relative">
+    <div style="position: relative;">
+      <!--      <HHTopBar />-->
+      <div style="position: relative;">
         <header>
           <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
@@ -150,6 +150,9 @@ $navbar-vertical-padding = 0.5rem
 $navbar-horizontal-padding = 2rem
 
 .navbar
+  .router-link-active:after
+    width: 100%;
+
   .social-links
     list-style none
     justify-content space-evenly
@@ -161,7 +164,7 @@ $navbar-horizontal-padding = 2rem
 
     li
       transition 0.2s ease-in-out opacity
-    
+
       &:hover
         opacity 0.5
 
