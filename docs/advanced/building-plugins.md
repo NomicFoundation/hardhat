@@ -76,7 +76,7 @@ Make sure to keep the type extension in your main file, as that convention is us
 
 The boilerplate project also has an example on how to extend the Hardhat config.
 
-We strongly doing this in TypeScript and properly extending the config types.
+We strongly recommend doing this in TypeScript and properly extending the config types.
 
 An example on how to add fields to the Hardhat config can be found in [`src/index.ts`](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
 
