@@ -28,6 +28,8 @@ module.exports = {
 }
 ```
 
+We recommend always setting a compiler version to avoid unexpected behavior or compiling errors as new releases of Solidity are published.
+
 The expanded usage allows for more control of the compiler:
 
 ```js
@@ -121,7 +123,7 @@ You shouldn't interact with these files directly.
 
 The [HRE] has an `artifacts` object with helper methods. For example, you can get a list with the paths to all artifacts by calling `hre.artifacts.getArtifactPaths()`.
 
-You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")` and that will give us the content of the artifact for the `Bar` contract in `Bar.sol`. This works because there is only one contract `Bar` in the whole project, but calling `hre.artifacts.readArtifact("Foo")`, would throw an error because there are two `Foo` contracts. To disambiguate, you have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Foo.sol:Foo")`.
+You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")` and that will give us the content of the artifact for the `Bar` contract. This would only work if there was just one contract `Bar` in the whole project, but calling `hre.artifacts.readArtifact("Foo")`, would yield an error if there were two `Foo` contracts. To disambiguate this case, you would have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Foo.sol:Foo")`.
 
 ### Directory structure
 The `artifacts/` directory has a structure that follows the original directory structure of the contracts. For example, if your contracts look like this:
