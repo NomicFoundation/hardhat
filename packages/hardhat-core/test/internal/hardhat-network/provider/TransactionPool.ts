@@ -2,7 +2,7 @@ import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { BN, toBuffer } from "ethereumjs-util";
 import { flatten } from "lodash";
 
 import {
@@ -19,6 +19,7 @@ import {
 } from "../helpers/assertEqualTransactionMaps";
 import {
   createTestFakeTransaction,
+  createTestOrderedTransaction,
   createTestTransaction,
 } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
@@ -184,38 +185,6 @@ describe("Transaction Pool", () => {
             assert.sameDeepMembers(
               getAllTxs(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2, tx4].map((tx) => tx.raw)
-            );
-          });
-
-          it("saves the order in which transactions were added", async () => {
-            const tx1 = createTestFakeTransaction({
-              from: address,
-              nonce: 1,
-            });
-            const tx2 = createTestFakeTransaction({
-              from: address,
-              nonce: 4,
-            });
-            const tx3 = createTestFakeTransaction({
-              from: address,
-              nonce: 2,
-            });
-            const tx4 = createTestFakeTransaction({
-              from: address,
-              nonce: 0,
-            });
-
-            await txPool.addTransaction(tx1);
-            await txPool.addTransaction(tx2);
-            await txPool.addTransaction(tx3);
-            await txPool.addTransaction(tx4);
-
-            const pendingTxs =
-              txPool.getPendingTransactions().get(bufferToHex(address)) ?? [];
-
-            assert.sameOrderedMembers(
-              pendingTxs.map((tx) => tx.orderId),
-              [3, 0, 2]
             );
           });
         });
@@ -490,6 +459,51 @@ describe("Transaction Pool", () => {
           txPool.addTransaction(tx),
           Error,
           "sender doesn't have enough funds to send tx"
+        );
+      });
+    });
+
+    describe("assigning order ids", () => {
+      const address = randomAddressBuffer();
+
+      beforeEach(async () => {
+        await stateManager.putAccount(
+          address,
+          new Account({ nonce: new BN(0) })
+        );
+      });
+
+      it("saves the order in which transactions were added", async () => {
+        const txA = createTestOrderedTransaction({
+          from: address,
+          orderId: 0,
+          nonce: 1,
+        });
+        const txB = createTestOrderedTransaction({
+          from: address,
+          orderId: 1,
+          nonce: 4,
+        });
+        const txC = createTestOrderedTransaction({
+          from: address,
+          orderId: 2,
+          nonce: 2,
+        });
+        const txD = createTestOrderedTransaction({
+          from: address,
+          orderId: 3,
+          nonce: 0,
+        });
+
+        await txPool.addTransaction(txA.data);
+        await txPool.addTransaction(txB.data);
+        await txPool.addTransaction(txC.data);
+        await txPool.addTransaction(txD.data);
+
+        const pendingTxs = txPool.getPendingTransactions();
+        assertEqualTransactionMaps(
+          pendingTxs,
+          makeOrderedTxMap([txD, txA, txC])
         );
       });
     });

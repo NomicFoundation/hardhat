@@ -1,7 +1,6 @@
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
-import { add, flatten } from "lodash";
 
 import {
   AddressToTransactions,
@@ -33,6 +32,7 @@ export class TransactionPool {
   private _snapshotIdToState = new Map<number, ImmutableRecord<PoolState>>();
   private _currentSnapshotId = -1;
   private _nextSnapshotId = 0;
+  private _nextOrderId = 0;
 
   constructor(
     private readonly _stateManager: PStateManager,
@@ -163,31 +163,20 @@ export class TransactionPool {
   }
 
   private _addPendingTransaction(tx: Transaction) {
-    const hexAddressNonce = this._getExecutableNonces().get(
-      bufferToHex(tx.getSenderAddress())
-    );
-    const nonce =
-      hexAddressNonce === undefined
-        ? new BN(0)
-        : new BN(toBuffer(hexAddressNonce));
     const orderedTx: OrderedRecord = makeOrderedTransaction({
-      orderId: add(
-        nonce.toNumber(),
-        flatten(Array.from(this.getQueuedTransactions().values())).length
-      ),
+      orderId: this._nextOrderId++,
       data: serializeTransaction(tx),
     });
     const hexSenderAddress = bufferToHex(tx.getSenderAddress());
-    let accountTransactions: SenderTransactions =
+    const accountTransactions: SenderTransactions =
       this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
-    accountTransactions = accountTransactions.push(orderedTx);
 
     const {
       executableNonce,
       newPending,
       newQueued,
     } = reorganizeTransactionsLists(
-      accountTransactions,
+      accountTransactions.push(orderedTx),
       this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList()
     );
 
@@ -197,18 +186,8 @@ export class TransactionPool {
   }
 
   private _addQueuedTransaction(tx: Transaction) {
-    const hexAddressNonce = this._getExecutableNonces().get(
-      bufferToHex(tx.getSenderAddress())
-    );
-    const nonce =
-      hexAddressNonce === undefined
-        ? new BN(0)
-        : new BN(toBuffer(hexAddressNonce));
     const orderedTx: OrderedRecord = makeOrderedTransaction({
-      orderId: add(
-        nonce.toNumber(),
-        flatten(Array.from(this.getQueuedTransactions().values())).length
-      ),
+      orderId: this._nextOrderId++,
       data: serializeTransaction(tx),
     });
 
