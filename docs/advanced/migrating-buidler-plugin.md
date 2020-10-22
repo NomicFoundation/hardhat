@@ -43,7 +43,7 @@ Apart from updating types and names, fixture projects need their `buidler.config
 
 ### Changes needed to your test projects' config
 
-The compiler configuration is now expected in the `solidity` field instead of `solc`. Note that Hardhat projects allow multiple solidity versions in its compilation pipeline. For more information see its [documentation](https://hardhat.org/docs/compilation).
+The compiler configuration is now expected in the `solidity` field instead of `solc`. Note that Hardhat projects allow multiple solidity versions in its compilation pipeline. For more information see its [documentation](../guides/compile-contracts.md).
 
 Besides that, the compiler settings now go inside a `settings` field. For example, a configuration like this:
 
