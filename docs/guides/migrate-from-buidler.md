@@ -159,9 +159,9 @@ Some community-built plugins, haven't been migrated yet. If you are using one of
 
 ### buidler-deploy
 
-This plugin is already being ported to Hardhat, and close to being released.
+This plugin has already been ported, it's not called [`hardhat-deploy`](https://github.com/wighawag/hardhat-deploy).
 
-Join the `#buidler-deploy` channel on [Discord](https://hardhat.org/discord) to get news and help about it.
+Join the `#hardhat-deploy` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
 
 ### buidler-typechain
 
