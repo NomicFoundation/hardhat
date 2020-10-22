@@ -272,7 +272,7 @@ Task overriding works very similarly to overriding methods when extending a clas
 
 Task override order is important since actions can only call the immediately previous definition, using the `runSuper` function.
 
-Overriding built-in tasks is a great way to customize and extend Hardhat. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/hardhat/tree/2.0/packages/hardhat-core/src/builtin-tasks).
+Overriding built-in tasks is a great way to customize and extend Hardhat. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-core/src/builtin-tasks).
 
 #### The `runSuper` function
 
