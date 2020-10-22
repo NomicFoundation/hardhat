@@ -159,7 +159,7 @@ Some community-built plugins, haven't been migrated yet. If you are using one of
 
 ### buidler-deploy
 
-This plugin has already been ported, it's not called [`hardhat-deploy`](https://github.com/wighawag/hardhat-deploy).
+This plugin has already been ported, it's now called [`hardhat-deploy`](https://github.com/wighawag/hardhat-deploy).
 
 Join the `#hardhat-deploy` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
 
