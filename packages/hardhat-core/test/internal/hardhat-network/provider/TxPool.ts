@@ -382,10 +382,10 @@ describe("Tx Pool", () => {
     });
 
     describe("validation", () => {
-      it("throws an error if transaction's gas limit exceeds block gas limit", () => {
+      it("throws an error if transaction's gas limit exceeds block gas limit", async () => {
         const gasLimit = 15000000;
         const tx = createTestFakeTransaction({ gasLimit });
-        assert.isRejected(
+        await assert.isRejected(
           txPool.addTransaction(tx),
           Error,
           `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
@@ -394,7 +394,7 @@ describe("Tx Pool", () => {
 
       it("throws an error if transaction is not signed", async () => {
         const tx = createTestTransaction();
-        assert.isRejected(
+        await assert.isRejected(
           txPool.addTransaction(tx),
           Error,
           "Invalid Signature"
@@ -420,21 +420,21 @@ describe("Tx Pool", () => {
         );
       });
 
-      it("throws an error if transaction's gas limit is greater than transaction's base fee", () => {
+      it("throws an error if transaction's gas limit is greater than transaction's base fee", async () => {
         const gasLimit = 100;
         const tx = createTestFakeTransaction({ gasLimit });
-        assert.isRejected(
+        await assert.isRejected(
           txPool.addTransaction(tx),
           Error,
           `Transaction requires at least ${tx.getBaseFee()} gas but got ${gasLimit}`
         );
       });
 
-      it("throws an error if creating a contract and no data is provided", () => {
+      it("throws an error if creating a contract and no data is provided", async () => {
         const tx = createTestFakeTransaction({
           to: undefined,
         });
-        assert.isRejected(
+        await assert.isRejected(
           txPool.addTransaction(tx),
           Error,
           "contract creation without any data provided"
@@ -452,7 +452,7 @@ describe("Tx Pool", () => {
           gasPrice: 900,
           value: 5,
         });
-        assert.isRejected(
+        await assert.isRejected(
           txPool.addTransaction(tx),
           Error,
           "sender doesn't have enough funds to send tx"
