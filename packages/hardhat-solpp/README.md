@@ -1,5 +1,5 @@
 [![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solpp)
-[![hardhat](https://hardhat.org/hardhat-plugin-badge.svg?1)](https://hardhat.org)
+[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-solpp
 
