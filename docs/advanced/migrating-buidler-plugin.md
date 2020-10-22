@@ -81,7 +81,7 @@ Hardhat introduced a few changes in how type extensions are created and used.
 
 These are the necessary changes to update your plugin.
 
-First, you need rename your `src/type-extenstions.d.ts` file to `src/type-extensions.ts`.
+First, you need rename your `src/type-extensions.d.ts` file to `src/type-extensions.ts`.
 
 Then, you need to add an `import "./type-extensions";` in your `src/index.ts` file, or the main entrypoint to your plugin as defined in your `package.json`.
 
