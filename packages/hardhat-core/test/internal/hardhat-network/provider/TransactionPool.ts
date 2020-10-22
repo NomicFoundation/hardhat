@@ -13,10 +13,7 @@ import { OrderedTransaction } from "../../../../src/internal/hardhat-network/pro
 import { TransactionPool } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
-import {
-  assertEqualTransactionLists,
-  assertEqualTransactionMaps,
-} from "../helpers/assertEqualTransactionMaps";
+import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";
 import {
   createTestFakeTransaction,
   createTestOrderedTransaction,
@@ -604,10 +601,7 @@ describe("Transaction Pool", () => {
       await txPool.clean();
       const pendingTransactions = txPool.getPendingTransactions();
 
-      assertEqualTransactionLists(
-        pendingTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
-        []
-      );
+      assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
     });
 
     it("removes queued transaction when it's gas limit exceeds block gas limit", async () => {
@@ -621,28 +615,39 @@ describe("Transaction Pool", () => {
       await txPool.clean();
       const queuedTransactions = txPool.getQueuedTransactions();
 
-      assertEqualTransactionLists(
-        queuedTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
-        []
-      );
+      assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
     });
 
-    // TODO fix this test
-    xit("removes pending transactions with too low nonces", async () => {
-      const tx1 = createTestTransaction({ nonce: 0, gasLimit: 30000 });
-      const tx2 = createTestTransaction({ nonce: 1, gasLimit: 30000 });
-      const tx3 = createTestTransaction({ nonce: 0, gasLimit: 30000 });
-      const tx4 = createTestTransaction({ nonce: 1, gasLimit: 30000 });
+    it("removes pending transactions with too low nonces", async () => {
+      const tx1 = createTestOrderedTransaction({
+        orderId: 0,
+        nonce: 0,
+        gasLimit: 30000,
+        from: address1,
+      });
+      const tx2 = createTestOrderedTransaction({
+        orderId: 1,
+        nonce: 1,
+        gasLimit: 30000,
+        from: address1,
+      });
+      const tx3 = createTestOrderedTransaction({
+        orderId: 2,
+        nonce: 0,
+        gasLimit: 30000,
+        from: address2,
+      });
+      const tx4 = createTestOrderedTransaction({
+        orderId: 3,
+        nonce: 1,
+        gasLimit: 30000,
+        from: address2,
+      });
 
-      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-      tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-      tx3.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
-      tx4.sign(toBuffer(DEFAULT_ACCOUNTS[1].privateKey));
-
-      await txPool.addTransaction(tx1);
-      await txPool.addTransaction(tx2);
-      await txPool.addTransaction(tx3);
-      await txPool.addTransaction(tx4);
+      await txPool.addTransaction(tx1.data);
+      await txPool.addTransaction(tx2.data);
+      await txPool.addTransaction(tx3.data);
+      await txPool.addTransaction(tx4.data);
 
       await stateManager.putAccount(
         address1,
@@ -658,10 +663,7 @@ describe("Transaction Pool", () => {
 
       assertEqualTransactionMaps(
         pendingTransactions,
-        makeOrderedTxMap([
-          { orderId: 1, data: tx2 },
-          { orderId: 1, data: tx4 },
-        ])
+        makeOrderedTxMap([tx2, tx4])
       );
     });
 
@@ -683,10 +685,7 @@ describe("Transaction Pool", () => {
       await txPool.clean();
       const pendingTransactions = txPool.getPendingTransactions();
 
-      assertEqualTransactionLists(
-        pendingTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
-        []
-      );
+      assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
     });
 
     it("removes queued transaction when sender doesn't have enough ether to make the transaction", async () => {
@@ -707,12 +706,7 @@ describe("Transaction Pool", () => {
       await txPool.clean();
       const queuedTransactions = txPool.getQueuedTransactions();
 
-      assertEqualTransactionLists(
-        queuedTransactions.get(DEFAULT_ACCOUNTS_ADDRESSES[0]) ?? [],
-        []
-      );
-      // TODO replace with:
-      //  assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
+      assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
     });
   });
 
