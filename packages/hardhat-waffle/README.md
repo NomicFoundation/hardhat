@@ -73,6 +73,5 @@ const { deployContract } = waffle;
 
 Also, you don't need to call `chai.use`.
 
-Note that by default, Hardhat save its compilation output into `artifacts/` instead of `build/`. You can either use
+Note that by default, Hardhat saves its compilation output into `artifacts/` instead of `build/`. You can either use
 that directory in your tests, or [customize your Hardhat config](https://hardhat.org/config/#path-configuration).
-
