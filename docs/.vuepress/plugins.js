@@ -6,7 +6,7 @@ const plugins = [
     version: require("../../packages/hardhat-ethers/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-ethers",
-    description: "Injects ethers.js into the Buidler Runtime Environment",
+    description: "Injects ethers.js into the Hardhat Runtime Environment",
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
   {
@@ -17,7 +17,7 @@ const plugins = [
     url:
       "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-waffle",
     description:
-      "Adds a Waffle-compatible provider to the Buidler Runtime Environment and automatically initializes the Waffle Chai matchers",
+      "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"],
   },
   {
@@ -47,7 +47,7 @@ const plugins = [
     version: require("../../packages/hardhat-web3/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-web3",
-    description: "Injects Web3 1.x into the Buidler Runtime Environment",
+    description: "Injects Web3 1.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
   {
@@ -57,7 +57,7 @@ const plugins = [
     version: require("../../packages/hardhat-web3-legacy/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-web3-legacy",
-    description: "Injects Web3 0.20.x into the Buidler Runtime Environment",
+    description: "Injects Web3 0.20.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"],
   },
   {
@@ -77,7 +77,7 @@ const plugins = [
     version: require("../../packages/hardhat-ganache/package").version,
     url:
       "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-ganache",
-    description: "Buidler plugin for managing Ganache",
+    description: "Hardhat plugin for managing Ganache",
     tags: ["Ganache", "Testing network"],
   },
   {
