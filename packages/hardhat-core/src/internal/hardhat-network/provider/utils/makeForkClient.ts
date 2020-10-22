@@ -11,13 +11,21 @@ import {
   getLargestPossibleReorg,
 } from "./reorgs-protection";
 
+// TODO: This is a temporarily measure.
+//  We must investigate why this timeouts so much. Apparently
+//  node-fetch doesn't handle timeouts so well. The option was
+//  removed in its new major version.
+const FORK_HTTP_TIMEOUT = 35000;
+
 export async function makeForkClient(
   forkConfig: ForkConfig,
   forkCachePath?: string
 ): Promise<{ forkClient: JsonRpcClient; forkBlockNumber: BN }> {
   const provider = new HttpProvider(
     forkConfig.jsonRpcUrl,
-    HARDHAT_NETWORK_NAME
+    HARDHAT_NETWORK_NAME,
+    undefined,
+    FORK_HTTP_TIMEOUT
   );
 
   const networkId = await getNetworkId(provider);
