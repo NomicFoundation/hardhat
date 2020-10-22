@@ -131,7 +131,7 @@ For example, if you have a contract named `Ownable`, and one of your dependencie
 `artifacts.require("Ownable")` nor `ethers.getContractFactory("Ownable")`. You need to use the contract's Fully
 Qualified Name instead (e.g. `contracts/Ownable.sol:Ownable`).
 
-If you try to import a contract with a repeated name, Hardhat will fail, with an error that includes the different
+If you try to import a contract with a repeated name, Hardhat will fail and show an error message that includes the different
 options to fix it. All you need to do is copy & paste them.
 
 For example, you may need to replace this
