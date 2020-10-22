@@ -17,7 +17,7 @@ section#why-hardhat.padded-container
         .image-container
     .columns-container
       .column
-        HHCta(text="Get started with Solidity console.log", link="/")
+        HHCta(text="Get started with Solidity console.log", link="/hardhat-network/#console-log")
       .bracket
       .column
   section#extend.section-content
@@ -35,7 +35,7 @@ section#why-hardhat.padded-container
     .columns-container
       .column.link-left-space
       .column
-        HHCta(text="Learn more about extending Hardhat", link="/")
+        HHCta(text="Learn more about extending Hardhat", link="/guides/create-task.html")
         .bracket.left-bracket
   section#plugins.section-content
     .columns-container.reverse
@@ -53,7 +53,7 @@ section#why-hardhat.padded-container
     .columns-container
       .column
       .column
-        HHCta(text="Get started with plugins", link="/")
+        HHCta(text="Get started with plugins", link="/plugins/")
         .bracket
   section#tasks.section-content
     .columns-container
@@ -72,7 +72,7 @@ section#why-hardhat.padded-container
     .columns-container
       .column.link-left-space
       .column
-        HHCta(text="Get started with TypeScript", link="/")
+        HHCta(text="Get started with TypeScript", link="/guides/typescript.html")
         .bracket.left-bracket
   section#vibrant-community.section-content
     .columns-container.reverse
@@ -83,7 +83,7 @@ section#why-hardhat.padded-container
           // "Great tech attracts great people. Join the Hardhat community to meet new friends and expand the plug-in ecosystem”
           HHCta(
             text="Join the Hardhat Discord",
-            link="https://invite.gg/BuidlerSupport",
+            link="/discord",
             external
           )
 
