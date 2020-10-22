@@ -9,7 +9,7 @@ The entirety of your Hardhat setup (i.e. your config, plugins and custom tasks) 
 
 To set up your config, you have to export an object from `hardhat.config.js`.
 
-This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solc-configuration), and [`paths`](#path-configuration). For example:
+This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), and [`paths`](#path-configuration). For example:
 
 ```js
 module.exports = {
