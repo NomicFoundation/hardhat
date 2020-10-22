@@ -180,7 +180,7 @@ eth_call
 ```
 
 This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using
-the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) enabled it in both.
+the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) to learn more about how to control its logging.
 
 ## Hardhat Network initial state
 
