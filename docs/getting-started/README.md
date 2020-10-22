@@ -10,19 +10,25 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
 
 ## Installation
 
-The recommended way of using Hardhat is through a local installation in your project. This way your environment will be reproducible and you will avoid future version conflicts. To use it in this way you will need to prepend `npx` to run it (i.e. `npx hardhat`). To install locally initialize your `npm` project using `npm init` and follow the instructions. Once ready run:
+Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts. 
+
+To install it, you need to create an npm project by going to an empty folder, running `npm init`, 
+and following its instructions. Once your project is ready, you should run
 
 ```
 npm install --save-dev hardhat
 ```
 
+To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat`). 
+
 ## Quick Start
 
 This guide will explore the basics of creating a Hardhat project.
 
-A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run a local development network you can deploy your contracts to (Hardhat Network).
+A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, 
+run your tests and run Hardhat Network, a local development network you can deploy your contracts to.
 
-To create your Hardhat project run `npx hardhat` in your project folder:
+To create your Hardhat project run `npx hardhat` in your project folder:
 
 ```
 $ npx hardhat
@@ -43,7 +49,8 @@ Welcome to Hardhat v2.0.0
   Quit
 ```
 
-Let’s create the sample project and go through the steps to try out the sample task and compile, test and deploy the sample contract. 
+Let’s create the sample project and go through these steps to try out the sample task and compile, test 
+and deploy the sample contract. 
 
 The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
 
@@ -91,11 +98,11 @@ To get help for a specific task run: npx hardhat help [task]
 
 This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 
 
-If you take a look at `hardhat.config.js`, you will find the definition of the task `accounts`:
+If you take a look at the `hardhat.config.js` file, you will find the definition of the task `accounts`:
 
 <<< @/../packages/hardhat-core/sample-project/hardhat.config.js{5-11}
 
-To run it, try `npx hardhat accounts`:
+To run it, try `npx hardhat accounts`:
 
 ```
 $ npx hardhat accounts
@@ -135,7 +142,7 @@ npx hardhat compile
 
 ### Testing your contracts
 
-The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want, check the integrations described in our guides.
+The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want. Check the integrations described in our guides.
 
 <<< @/../packages/hardhat-core/sample-project/test/sample-test.js
 
@@ -172,7 +179,7 @@ Greeter deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 ### Connecting a wallet or Dapp to Hardhat Network
-Hardhat will always spin up an in-memory instance of Hardhat Network on startup by default, but it's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it through `localhost`. This could be MetaMask, your Dapp front-end, or a script. 
+Hardhat will always spin up an in-memory instance of Hardhat Network on startup by default. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. 
 
 To run Hardhat Network in this way, run `npx hardhat node`:
 
@@ -191,11 +198,9 @@ To try this, start a node with `npx hardhat node` and re-run the sample script u
 npx hardhat run scripts/sample-script.js --network localhost
 ```
 
-
 ---
-
 
 Congrats! You have created a project, ran a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
-For any questions or feedback you may have, you can find us in the [Hardhat Discord
+For any questions or feedback you may have, you can find us in the [Hardhat Discord
 server](https://invite.gg/HardhatSupport).

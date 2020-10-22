@@ -58,11 +58,11 @@ _Take a look at the [list of Hardhat plugins](../plugins/README.md) to see oth
 
 Task creation code can go in `hardhat.config.js`, or whatever your configuration file is called. It’s a good place to create simple tasks. If your task is more complex, it's also perfectly valid to split the code into several files and `require` from the configuration file.
 
-_If you’re writing a Hardhat plugin that adds a task, they can also be created from a separate npm package. Learn more about creating tasks through plugins in our [How to create a plugin guide](./create-plugin.md)._
+_If you’re writing a Hardhat plugin that adds a task, they can also be created from a separate npm package. Learn more about creating tasks through plugins in our [Building plugins section](../advanced/building-plugins.md)._
 
 **The configuration file is always executed on startup before anything else happens.** It's good to keep this in mind. We will load the Web3.js plugin and add our task creation code to it.
 
-For this tutorial, we're going to create a task to get an account’s balance from the terminal. You can do this with the Hardhat’s config DSL, which is available in the global scope of `hardhat.config.js`:
+For this tutorial, we're going to create a task to get an account’s balance from the terminal. You can do this with the Hardhat’s config DSL, which is available in the global scope of `hardhat.config.js`:
 
 ```js
 require("@nomiclabs/hardhat-web3");

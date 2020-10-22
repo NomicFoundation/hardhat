@@ -272,7 +272,7 @@ export class HardhatNetworkProvider extends EventEmitter
       node,
       this._throwOnTransactionFailures,
       this._throwOnCallFailures,
-      this._loggingEnabled ? this._logger : undefined,
+      this._logger,
       this._experimentalHardhatNetworkMessageTraceHooks
     );
 
@@ -284,6 +284,7 @@ export class HardhatNetworkProvider extends EventEmitter
       this._reset.bind(this),
       (loggingEnabled: boolean) => {
         this._loggingEnabled = loggingEnabled;
+        this._logger.enable(loggingEnabled);
       }
     );
 

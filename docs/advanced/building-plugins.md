@@ -1,13 +1,72 @@
 # Building plugins
 
-This section is an overview of how to create a plugin. For a complete example of a
-plugin go to the [TypeScript plugin boilerplate project](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/).
+In this section, we will explore the creation of plugins for Hardhat, which are the key component
+for integrating other tools and extending the built-in functionality.
 
-## Plugin functionality
+## What exactly are plugins in Hardhat?
 
-Plugins are bits of reusable configuration. Anything that you can do in a plugin, can also be done in your config file. You can test your ideas in a config file, and move them into a plugin when ready.
+Plugins are bits of reusable configuration. Anything that you can do in a plugin, can
+also be done in your config file. You can test your ideas in a config file, and move
+them into a plugin when ready.
 
-The main things that plugins can do are extending the Hardhat Runtime Environment, extending the Hardhat config, defining new tasks, and overriding existing ones.
+When developing a plugin the main tools available to integrate new functionality are extending the
+[Hardhat Runtime Environment](../advanced/hardhat-runtime-environment), extending the Hardhat config, defining new tasks and
+overriding existing ones, which are all configuration actions achieved through code.
+
+Some examples of things you could achieve by creating a plugin are running a linter when
+the `check` task runs, using different compiler versions for different files or
+generating an UML diagram for your contracts.
+
+
+## Extending the Hardhat Runtime Environment
+
+Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. 
+By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from
+tasks, tests, scripts, and the Hardhat console. 
+
+The Hardhat Runtime Environment (HRE) is configured through a queue of extension functions 
+that you can add to using the `extendEnvironment()` function. It receives one parameter which is a callback which will be executed
+after the HRE is initialized. If `extendEnvironment` is called multiple times, its 
+callbacks will be executed in order.
+
+For example, adding the following to `hardhat.config.js`:
+
+```js
+extendEnvironment((hre) => {
+  hre.hi = "Hello, Hardhat!";
+});
+```
+
+Will make `hi` available everywhere where the environment is accessible.
+
+```js
+extendEnvironment((hre) => {
+  hre.hi = "Hello, Hardhat!";
+});
+
+task("envtest", (args, hre) => {
+  console.log(hre.hi);
+});
+
+module.exports = {};
+```
+
+Will yield:
+
+```
+$ npx hardhat envtest
+Hello, Hardhat!
+```
+
+This is literally all it takes to put together a plugin for Hardhat. Now `hi` is available to be used in 
+the Hardhat console, your tasks, tests and other plugins. 
+
+## Using the Hardhat TypeScript plugin boilerplate
+
+For a complete example of a plugin you can take a look at the [Hardhat TypeScript plugin boilerplate project](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/).
+
+Plugins don't need to be written in TypeScript, but we recommend doing it, as many of our users use it. Creating a plugin in
+JavaScript can lead to a subpar experience for them. 
 
 ### Extending the HRE
 
@@ -17,19 +76,26 @@ Make sure to keep the type extension in your main file, as that convention is us
 
 ### Extending the Hardhat config
 
+The boilerplate project also has an example on how to extend the Hardhat config.
+
+We strongly recommend doing this in TypeScript and properly extending the config types.
+
 An example on how to add fields to the Hardhat config can be found in [`src/index.ts`](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
 
-Note that all config extension's have to be optional.
+## Plugin development best practices
+
 
 ### Throwing errors from your plugins
 
-To show better stack traces to your users, please consider throwing `HardhatPluginError` errors, which can be found in `hardhat/plugins`.
+To show better stack traces to your users when an error is meant to interrupt a task's execution, please consider throwing `HardhatPluginError` errors, which can be found in `hardhat/plugins`.
 
 If your error originated in your user's code, like a test or script calling one of your functions, you shouldn't use `HardhatPluginError`.
 
 ### Optimizing your plugin for better startup time
 
-Keeping startup time short is vital to give a good user experience. To do so, Hardhat and its plugins delay any slow import or initialization until the very last moment. To do so, you can use `lazyObject`, and `lazyFunction` from `hardhat/plugins`.
+Keeping startup time short is vital to give a good user experience. 
+
+To do so, Hardhat and its plugins delay any slow import or initialization until the very last moment. To do so, you can use `lazyObject`, and `lazyFunction` from `hardhat/plugins`.
 
 An example on how to use them is present in [`src/index.ts`](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
 
@@ -47,13 +113,6 @@ If you are still in doubt, these can be helpful:
 
 - **Rule of thumb #4:** Every `peerDependency` should also be a `devDependency`.
 
-Also, if you depend on a Hardhat plugin written in TypeScript, you should add a `hardhat-env.d.ts` file with triple-slash references to its types, like this:
-
-```
-/// <reference types="@nomiclabs/hardhat-ethers" />
-```
-
-Then include it in the `files` array of `tsconfig.json`.
 
 ## Hooking into the user's workflow
 
