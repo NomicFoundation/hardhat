@@ -2,6 +2,7 @@ import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
+import { InvalidInputError } from "./errors";
 import {
   AddressToTransactions,
   makePoolState,
@@ -14,8 +15,6 @@ import {
 import { PStateManager } from "./types/PStateManager";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
-
-// tslint:disable only-hardhat-error
 
 export function serializeTransaction(
   tx: OrderedTransaction
@@ -205,13 +204,21 @@ export class TxPool {
   }
 
   private async _validateTransaction(tx: Transaction): Promise<BN> {
+    let senderAddress: Buffer;
+    try {
+      senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
+    } catch (e) {
+      throw new InvalidInputError(e.message);
+    }
+
     const txNonce = new BN(tx.nonce);
-    const senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
     const senderNonce = await this.getExecutableNonce(senderAddress);
 
     // Geth returns this error if trying to create a contract and no data is provided
     if (tx.to.length === 0 && tx.data.length === 0) {
-      throw new Error("contract creation without any data provided");
+      throw new InvalidInputError(
+        "contract creation without any data provided"
+      );
     }
 
     const senderAccount = await this._stateManager.getAccount(
@@ -220,7 +227,7 @@ export class TxPool {
     const senderBalance = new BN(senderAccount.balance);
 
     if (tx.getUpfrontCost().gt(senderBalance)) {
-      throw new Error(
+      throw new InvalidInputError(
         `sender doesn't have enough funds to send tx. The upfront cost is: ${tx
           .getUpfrontCost()
           .toString()}` +
@@ -229,20 +236,20 @@ export class TxPool {
     }
 
     if (txNonce.lt(senderNonce)) {
-      throw new Error("Nonce too low");
+      throw new InvalidInputError("Nonce too low");
     }
 
     const baseFee = tx.getBaseFee();
     const gasLimit = new BN(tx.gasLimit);
 
     if (baseFee.gt(gasLimit)) {
-      throw new Error(
+      throw new InvalidInputError(
         `Transaction requires at least ${baseFee} gas but got ${gasLimit}`
       );
     }
 
     if (gasLimit.gt(this._blockGasLimit)) {
-      throw new Error(
+      throw new InvalidInputError(
         `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${this._blockGasLimit}`
       );
     }

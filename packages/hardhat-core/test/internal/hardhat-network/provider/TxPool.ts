@@ -5,6 +5,7 @@ import { Transaction } from "ethereumjs-tx";
 import { BN, toBuffer } from "ethereumjs-util";
 import flatten from "lodash/flatten";
 
+import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import {
   randomAddress,
   randomAddressBuffer,
@@ -387,7 +388,7 @@ describe("Tx Pool", () => {
         const tx = createTestFakeTransaction({ gasLimit });
         await assert.isRejected(
           txPool.addTransaction(tx),
-          Error,
+          InvalidInputError,
           `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
         );
       });
@@ -396,7 +397,7 @@ describe("Tx Pool", () => {
         const tx = createTestTransaction();
         await assert.isRejected(
           txPool.addTransaction(tx),
-          Error,
+          InvalidInputError,
           "Invalid Signature"
         );
       });
@@ -415,7 +416,7 @@ describe("Tx Pool", () => {
 
         await assert.isRejected(
           txPool.addTransaction(tx2),
-          Error,
+          InvalidInputError,
           "Nonce too low"
         );
       });
@@ -425,7 +426,7 @@ describe("Tx Pool", () => {
         const tx = createTestFakeTransaction({ gasLimit });
         await assert.isRejected(
           txPool.addTransaction(tx),
-          Error,
+          InvalidInputError,
           `Transaction requires at least ${tx.getBaseFee()} gas but got ${gasLimit}`
         );
       });
@@ -436,7 +437,7 @@ describe("Tx Pool", () => {
         });
         await assert.isRejected(
           txPool.addTransaction(tx),
-          Error,
+          InvalidInputError,
           "contract creation without any data provided"
         );
       });
@@ -454,7 +455,7 @@ describe("Tx Pool", () => {
         });
         await assert.isRejected(
           txPool.addTransaction(tx),
-          Error,
+          InvalidInputError,
           "sender doesn't have enough funds to send tx"
         );
       });
