@@ -174,7 +174,7 @@ The `solidity` config is an optional field that can be one of the following:
 
 ## Path configuration
 
-You can customize the different paths that Hardhat uses by providing an object with the following keys:
+You can customize the different paths that Hardhat uses by providing an object to the `paths` field with the following keys:
 
 - `root`: The root of the Hardhat project. This path is resolved from the `hardhat.config.js`'s directory. Default value: The directory containing the config file.
 - `sources`: The directory where your contract are stored. This path is resolved from the project's root. Default value: `'./contracts'`.
