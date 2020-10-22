@@ -5,13 +5,13 @@
 
       .desktop-version
         .content
-          .title Buidler is <br /> now Hardhat 
+          .title Buidler is <br/>now Hardhat
 
           .message
-            a(:href="postUrl" target="_blank" rel="noopener noreferrer") Learn more
-            span=" about the latest"
+            a(:href="postUrl" target="_blank" rel="noopener noreferrer") Read the announcement
+            span  to learn more 
             br
-            span release and rebrand 
+            span about the latest release and rebrand.
 
         img(:src="LogoImg").logo
 
@@ -22,8 +22,8 @@
           .title Buidler is <br /> now Hardhat 
 
           .message
-            a(:href="postUrl" target="_blank" rel="noopener noreferrer") Learn more
-            span=" about the latest release and rebrand"
+            a(:href="postUrl" target="_blank" rel="noopener noreferrer") Read the announcement
+            span=" to learn more about the latest release and rebrand."
 
 </template>
 
@@ -36,7 +36,7 @@ export default {
   name: "HHMigrationModal",
 
   data() {
-    return { LogoImg, postUrl: "" };
+    return { LogoImg, postUrl: "https://medium.com/nomic-labs-blog/buidler-has-evolved-introducing-hardhat-4bccd13bc931" };
   },
 
   methods: {
@@ -156,7 +156,7 @@ export default {
 
           a
             font-family: 'RobotoRegular', sans-serif
-            font-weight bold
+            font-weight normal
             text-decoration underline
 
       .logo
@@ -180,11 +180,11 @@ export default {
 
         .message
           font-size 1.25rem
-          padding 1rem 2rem 0 2rem
+          padding 1rem 0 0
           line-height 1.5em
 
           a
-            font-family: 'ChivoBold'
+            font-family: 'RobotoRegular', sans-serif
             text-decoration underline
 
       .logo
