@@ -22,7 +22,7 @@ Global installations of Hardhat are not supported.
 
 ## Adapting your config
 
-You can use your Buidler config in Hardhat mostly unchanged. All you need to do is following these steps.
+You can use your Buidler config in Hardhat mostly unchanged. All you need to do is follow these steps.
 
 ### Renaming your config file
 
