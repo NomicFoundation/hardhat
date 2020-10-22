@@ -10,7 +10,7 @@ also be done in your config file. You can test your ideas in a config file, and 
 them into a plugin when ready.
 
 When developing a plugin the main tools available to integrate new functionality are extending the
-[Hardhat Runtime Environment](../advanced/hardhat-runtime-environment), extending the Hardhat config, defining new tasks and
+[Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.md), extending the Hardhat config, defining new tasks and
 overriding existing ones, which are all configuration actions achieved through code.
 
 Some examples of things you could achieve by creating a plugin are running a linter when
