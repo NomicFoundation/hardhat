@@ -41,7 +41,7 @@ export function deserializeTransaction(
   };
 }
 
-export class TransactionPool {
+export class TxPool {
   private _state: ImmutableRecord<PoolState>;
   private _snapshotIdToState = new Map<number, ImmutableRecord<PoolState>>();
   private _currentSnapshotId = -1;
