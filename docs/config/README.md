@@ -52,7 +52,7 @@ You can customize which network is used by default when running Hardhat by setti
 ### Hardhat Network
 
 Hardhat comes built-in with a special network called `hardhat`. When using this network,
-an instance of [Hardhat Network](../hardhat-network) will be automatically created when your run a task, script or test your smart contracts
+an instance of the [Hardhat Network](../hardhat-network) will be automatically created when you run a task, script or test your smart contracts
 
 Hardhat Network has first-class support of Solidity. It always knows which
 smart contracts are being run and knows exactly what they do and why
@@ -60,7 +60,7 @@ they fail. Learn more about it [here](../hardhat-network).
 
 You can set the following fields on the `hardhat` config:
 
-- `chainId`: The chan id number used by Hardhat Network's blockchain. Default value: `31337`.
+- `chainId`: The chain ID number used by Hardhat Network's blockchain. Default value: `31337`.
 
 - `from`: The address to use as default sender. If not present the first account of the Hardhat Network is used.
 
@@ -70,7 +70,14 @@ You can set the following fields on the `hardhat` config:
 
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 
-- `accounts`: An array of the initial accounts that Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields. Both of them `0x`-prefixed strings. By default, it has 20 accounts with 10000 ETH each.
+- `accounts`: This field can be configured as one of these:
+  - An object describing an [HD wallet](#hd-wallet-config). This is the default. It can have any of the following fields:
+    - `mnemonic`: a 12 or 24 word mnemonic phrase as defined by BIP39. Default value: `"test test test test test test test test test test test junk"`
+    - `initialIndex`: The initial index to derive. Default value: `0`.
+    - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
+    - `count`: The number of accounts to derive. Default value: `20`.
+    - `accountsBalance`: string with the balance assigned to every account derived. Default value: 10000 ETH.
+  - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
 - `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `9500000`
 
@@ -88,9 +95,14 @@ You can set the following fields on the `hardhat` config:
 - `loggingEnabled`: A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the
   in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
 
-- `intialDate`: An optional string setting the date of the blockchain. If no option is set, the current date is used. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format).
+- `initialDate`: An optional string setting the date of the blockchain. If no option is set, the current date is used. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format).
 
 - `allowUnlimitedContractSize`: An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
+
+- `forking`: An object that describes the [forking configuration](../hardhat-network/README.md#mainnet-forking) that can have the following fields:
+  - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
+  - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
+  - `enabled`: an optional boolean to switch on or off the fork functionality. Default value: `true` if `url` is set, `false` otherwise.
 
 ### JSON-RPC based networks
 
@@ -121,7 +133,7 @@ This kind of networks are configured with objects with the following fields:
 
 To use an HD Wallet with Hardhat you should set your network's `accounts` field to an object with the following fields:
 
-- `mnemonic`: A required string with the mnemonic of the wallet.
+- `mnemonic`: A required string with the mnemonic phrase of the wallet.
 
 - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
 
@@ -142,26 +154,34 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 }
 ```
 
-## Solc configuration
+## Solidity configuration
 
-The `solc` config field is an optional object which can contain the following keys:
+The `solidity` config is an optional field that can be one of the following:
 
-- `version`: The solc version to use. We recommend always setting this field. Default value: `"0.5.15"`.
+- A solc version to use. E.g. `"0.7.3"`.
 
-- `optimizer`: An object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
+- An object which describes the configuration for a single compiler. It contains the following keys:
 
-- `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul""`. Default value: managed by Solidity. Please, consult its documentation.
+  - `version`: The solc version to use.
+
+  - `settings`:  An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
+
+- An object which describes multiple compilers and their respective configurations. It contains the following:
+
+  - `compilers`: A list of compiler configuration objects like the one above.
+
+  - `overrides`: An optional map of compiler configuration override objects. This maps file names to compiler configuration objects. Take a look at the [compilation guide](../guides/compile-contracts.md) to learn more.
 
 ## Path configuration
 
-You can customize the different paths that Hardhat uses by providing an object with the following keys:
+You can customize the different paths that Hardhat uses by providing an object to the `paths` field with the following keys:
 
 - `root`: The root of the Hardhat project. This path is resolved from the `hardhat.config.js`'s directory. Default value: The directory containing the config file.
-- `sources`: The directory where your contract are stored. This path is resolved from the project's root. Default value: './contracts'.
-- `tests`: The directory where your tests are located. This path is resolved from the project's root. Default value: './test'.
+- `sources`: The directory where your contract are stored. This path is resolved from the project's root. Default value: `'./contracts'`.
+- `tests`: The directory where your tests are located. This path is resolved from the project's root. Default value: `'./test'`.
 
-- `cache`: The directory used by Hardhat to cache its internal stuff. This path is resolved from the project's root. Default value: './cache'.
-- `artifacts`: The directory where the compilation artifacts are stored. This path is resolved from the project's root. Default value: './artifacts'.
+- `cache`: The directory used by Hardhat to cache its internal stuff. This path is resolved from the project's root. Default value: `'./cache'`.
+- `artifacts`: The directory where the compilation artifacts are stored. This path is resolved from the project's root. Default value: `'./artifacts'`.
 
 ## Quickly integrating other tools from Hardhat's config
 
