@@ -2,7 +2,7 @@
 
 You can start an instance of Hardhat Network that forks mainnet. This means that it will simulate having the same state as mainnet, but it will work as a local development network. That way you can interact with deployed protocols and test complex interactions locally.
 
-To use this feature you need the URL of a node to connect to. We recommend using [Alchemy](https://alchemyapi.io/).
+To use this feature you need the URL of a node to connect to. We recommend using [Alchemy].
 
 ## Forking from mainnet
 
@@ -34,7 +34,7 @@ There are two reasons for this:
 - The state your tests run against may change between runs. This could cause your tests or scripts to behave differently.
 - Pinning enables caching. Every time data is fetched from mainnet, Hardhat Network caches it on disk to speed up future access. If you don't pin the block, there's going to be new data with each new block and the cache won't be useful. We measured up to 20x speed improvements with block pinning.
 
-**You will need access to a node with archival data for this to work.** This is why we recommend [Alchemy](https://alchemyapi.io/), since their free plans include archival data.
+**You will need access to a node with archival data for this to work.** This is why we recommend [Alchemy], since their free plans include archival data.
 
 To pin the block number:
 
@@ -109,4 +109,6 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 ### "Project ID does not have access to archive state"
 
-Using Infura without the archival addon you will only have access to the state of the blockchain during recent blocks. To avoid this problem, you can use a local archive node, or a service that provides archival data like [Alchemy](https://alchemyapi.io/).
+Using Infura without the archival addon you will only have access to the state of the blockchain during recent blocks. To avoid this problem, you can use a local archive node, or a service that provides archival data like [Alchemy].
+
+[Alchemy]: https://alchemyapi.io/

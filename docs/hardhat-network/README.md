@@ -16,10 +16,10 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
 ## How can I use it?
 
 - Hardhat will always spin up an instance on startup when `defaultNetwork` is empty or set to `hardhat`. It's the default behavior.
-- It can be used to run tests, in the console, scripts, and tasks
-- Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to the provider
+- It can be used to run tests, in the console, scripts, and tasks.
+- Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to the provider.
 - There's no need to make any changes to your tests or scripts.
-- It's simply another network and it can be used with `--network`
+- It's simply another network and it can be used with `--network`.
 
 ## Connecting to Hardhat Network from wallets and other software
 
@@ -92,7 +92,7 @@ error message in the following cases:
 
 ## `console.log`
 
-Hardhat Network allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/#quick-start) to try it out.
+Hardhat Network allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
@@ -148,7 +148,7 @@ networks: {
 
 This means that if you execute a task that uses the Hardhat Network, that task will start a forked node and run on it.
 
-There are other things you can do with a forked Hardhat Network, check [our guide](../guides/mainnet-forking) to learn more.
+There are other things you can do with a forked Hardhat Network, check [our guide](../guides/mainnet-forking.md) to learn more.
 
 ## Logging
 
@@ -209,7 +209,7 @@ Hardhat Network is initialized by default in this state:
   - `0xdD2FD4581271e230360230F9337D5c0430Bf44C0`
   - `0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199`
 
-To customise it, take a look at [the configuration section](/config/#hardhat-network).
+To customise it, take a look at [the configuration section](/config/README.md#hardhat-network).
 
 ## JSON-RPC methods support
 
