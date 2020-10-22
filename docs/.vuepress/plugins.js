@@ -259,7 +259,7 @@ const plugins = [
     description:
       "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
     tags: ["Optimism", "Buidler EVM", "OVM"],
-  },
+  }
 ];
 
 module.exports = plugins.map((p) => ({
