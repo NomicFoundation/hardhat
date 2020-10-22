@@ -121,6 +121,23 @@ You don't need a `tsconfig.json` file with Hardhat. We recommend you delete it.
 If you prefer to keep it, you should base it on the template presented [here](./typescript.md#customizing-typescript-with-a-tsconfig-json-file). Just make
 sure you removed all the `type-extension.d.ts` files, and keep your config file in your `files` field.
 
+## Updating your `console.sol` imports
+
+If you are using `console.log` in your contracts, you need yo change the imports of `@nomiclabs/buidler/console.sol`
+to `hardhat/console.sol`.
+
+If you had this:
+
+```solidity
+import "@nomiclabs/buidler/console.sol";
+```
+
+you should change it to:
+
+```solidity
+import "hardhat/console.sol";
+```
+
 ## Importing artifacts and ambiguous names
 
 Hardhat supports multiple contracts with the same name.
