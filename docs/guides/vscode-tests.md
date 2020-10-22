@@ -38,5 +38,5 @@ First, you have to change your `.mocharc.json` to this:
 
 Then, you have to set the vscode option `"mochaExplorer.files"` to `"test/**/*.{j,t}s"`.
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
 https://hardhat.org/discord

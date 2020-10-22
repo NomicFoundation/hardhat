@@ -67,6 +67,6 @@ use JavaScript's `Promise` for returning values.
 
 To make things easier, Hardhat's console supports `await` top-level await (i.e. `console.log(await web3.eth.getBalance()`). To use this feature, you need to be using Node 10 or higher.
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
 
 [Hardhat Runtime Environment]: ../advanced/hardhat-runtime-environment.md
