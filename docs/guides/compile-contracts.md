@@ -162,6 +162,6 @@ Each Solidity file in your source will get a directory in the artifacts structur
 
 Two Solidity files can have contracts with the same name, and this structure allows for that.
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://invite.gg/HardhatSupport).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
 
 [HRE]: ../advanced/hardhat-runtime-environment.md
