@@ -118,7 +118,7 @@ TypeScript, but a JavaScript config, please take a look at [this guide](./typesc
 
 You don't need a `tsconfig.json` file with Hardhat. We recommend you delete it.
 
-If you prefer to keep it, you should base it on the template presented [here](./typescript.md#). Just make
+If you prefer to keep it, you should base it on the template presented [here](./typescript.md#customizing-typescript-with-a-tsconfig-json-file). Just make
 sure you removed all the `type-extension.d.ts` files, and keep your config file in your `files` field.
 
 ## Importing artifacts and ambiguous names
