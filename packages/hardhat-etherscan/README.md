@@ -24,7 +24,13 @@ npm install --save-dev @nomiclabs/hardhat-etherscan
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-etherscan");
+require("@nomiclabs/hardhat-etherscan");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
+import "@nomiclabs/hardhat-etherscan";
 ```
 
 ## Tasks
@@ -104,25 +110,3 @@ The plugin works by fetching the bytecode in the given address and using it to c
 
 - Cases where more than one contract correspond to the same bytecode aren’t supported.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
-
-## TypeScript support
-
-If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
-
-``` typescript
-/// <reference types="@nomiclabs/hardhat-etherscan" />
-```
-
-If you already have this file, just add that line to it.
-
-
-Then you have to include that file in the `files` array of your `tsconfig.json`:
-
-```json
-{
-  ...
-  "files": [..., "hardhat-env.d.ts"]
-}
-```
-
-using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.

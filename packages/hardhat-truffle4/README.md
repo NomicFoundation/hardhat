@@ -24,7 +24,13 @@ npm install --save-dev @nomiclabs/hardhat-truffle4 @nomiclabs/hardhat-web3-legac
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-truffle4");
+require("@nomiclabs/hardhat-truffle4");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
+import "@nomiclabs/hardhat-truffle4";
 ```
 
 ## Tasks
@@ -40,26 +46,3 @@ An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hard
 There are no additional steps you need to take for this plugin to work.
 
 Install it, run `npx hardhat test` and your Truffle tests should run with no need to make any modifications.
-
-## TypeScript support
-
-If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
-
-``` typescript
-/// <reference types="@nomiclabs/hardhat-truffle4" />
-/// <reference types="@nomiclabs/hardhat-web3-legacy" />
-```
-
-If you already have this file, just add those lines to it.
-
-
-Then you have to include that file in the `files` array of your `tsconfig.json`:
-
-```json
-{
-  ...
-  "files": [..., "hardhat-env.d.ts"]
-}
-```
-
-using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.

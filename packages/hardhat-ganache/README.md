@@ -19,7 +19,13 @@ npm install --save-dev @nomiclabs/hardhat-ganache
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-ganache");
+require("@nomiclabs/hardhat-ganache");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
+import "@nomiclabs/hardhat-ganache";
 ```
 
 ## Tasks

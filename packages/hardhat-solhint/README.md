@@ -18,7 +18,13 @@ npm install --save-dev @nomiclabs/hardhat-solhint
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-solhint");
+require("@nomiclabs/hardhat-solhint");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
+import "@nomiclabs/hardhat-solhint";
 ```
 
 ## Tasks

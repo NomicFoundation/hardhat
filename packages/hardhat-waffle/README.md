@@ -22,7 +22,13 @@ npm install --save-dev @nomiclabs/hardhat-waffle 'ethereum-waffle@^3.0.0' @nomic
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-waffle");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
+import "@nomiclabs/hardhat-waffle";
 ```
 
 ## Tasks
@@ -54,14 +60,14 @@ Instead of importing things from `ethereum-waffle`, you access them from the `wa
 
 For example, instead of doing
 
-```typescript
-import { deployContract } from "ethereum-waffle";
+```js
+const { deployContract } = require("ethereum-waffle");
 ```
 
 you should do
 
 ```typescript
-import { waffle } from "hardhat";
+const { waffle } = require("hardhat");
 const { deployContract } = waffle;
 ```
 
@@ -70,34 +76,3 @@ Also, you don't need to call `chai.use`.
 Note that by default, Hardhat save its compilation output into `artifacts/` instead of `build/`. You can either use
 that directory in your tests, or [customize your Hardhat config](https://hardhat.org/config/#path-configuration).
 
-## TypeScript support
-
-This plugin supports TypeScript by following these steps:
-
-1. Create a `hardhat-env.d.ts` file like this:
-
-    ``` typescript
-    /// <reference types="@nomiclabs/hardhat-waffle" />
-    /// <reference types="@nomiclabs/hardhat-ethers" />
-    ```
-
-    If you already have this file, just add those lines to it.
-
-    Then you have to include that file in the `files` array of your `tsconfig.json`:
-
-    ```
-    {
-      ...
-      "files": [..., "hardhat-env.d.ts"]
-    }
-    ```
-
-    using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.
-
-2. Install these packages: `npm install --save-dev @types/mocha @types/chai`
-
-We also recommend enabling `resolveJsonModule` in your `tsconfig.json`, as it's common
-to import JSON files directly when using Waffle.
-
-There's no need to import the Waffle's `solidity` Chai matchers. They are
-automatically imported and initialized by this plugin, including its types.

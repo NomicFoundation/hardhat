@@ -18,7 +18,13 @@ npm install --save-dev @nomiclabs/hardhat-solpp
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-solpp");
+require("@nomiclabs/hardhat-solpp");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
+import "@nomiclabs/hardhat-solpp";
 ```
 
 ## Environment extensions
@@ -42,24 +48,3 @@ This plugin can by configured by setting a `solpp` entry in `hardhat.config.js`.
 - `noFlatten: boolean`: won't flatten contracts, true by default.
 - `tolerant: boolean`: ignore if an imported contract file is missing when flattening, false by default.
 
-## TypeScript support
-
-If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
-
-``` typescript
-/// <reference types="@nomiclabs/hardhat-solpp" />
-```
-
-If you already have this file, just add that line to it.
-
-
-Then you have to include that file in the `files` array of your `tsconfig.json`:
-
-```json
-{
-  ...
-  "files": [..., "hardhat-env.d.ts"]
-}
-```
-
-using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.
