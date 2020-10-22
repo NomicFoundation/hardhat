@@ -57,7 +57,7 @@ function doesn't exist anymore.
 
 Buidler EVM is now Hardhat Network, so if you are customizing it using the `buidlerevm` network config field,
 you need to rename it to `hardhat`. You can learn more about how to customize it, including enabling the Mainnet Forking
-functionality, [here](./config/README.md#hardhat-network).
+functionality, [here](../config#hardhat-network).
 
 For example, if you had something like this in your config:
 
