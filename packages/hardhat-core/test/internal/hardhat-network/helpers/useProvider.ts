@@ -43,6 +43,7 @@ export function useProvider(
       blockGasLimit,
       true,
       true,
+      true,
       accounts,
       undefined,
       undefined,
