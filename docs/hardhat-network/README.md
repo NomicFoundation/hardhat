@@ -120,6 +120,36 @@ Hardhat Network allows you to print logging messages and contract variables call
 - `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
 - `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but spend a minimal amount of gas.
 
+## Mainnet forking
+
+The Hardhat Network is empty by default, except for some accounts with an initial balance. But sometimes it's more useful to have a local network that simulates the state of the mainnet. This is what forking is for.
+
+To fork from the mainnet you need the URL of a node to connect to. For example, using Infura, you can start a local node that forks the mainnet with this command:
+
+```
+npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>
+```
+
+where you have to replace `<projectId>` with your Infura project id.
+
+After doing this, you can do anything in your node that you can do with a non-forked Hardhat Network: see console logs, get stack traces or use the default accounts to deploy new contracts.
+
+If you want this to be the default behavior, you can do it in your Hardhat config:
+
+```js
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://mainnet.infura.io/v3/<projectId>"
+    }
+  }
+}
+```
+
+This means that if you execute a task that uses the Hardhat Network, that task will start a forked node and run on it.
+
+There are other things you can do with a forked Hardhat Network, check [our guide](../guides/mainnet-forking) to learn more.
+
 ## Logging
 
 Hardhat Network uses its tracing infrastructure to offer rich logging that will help
