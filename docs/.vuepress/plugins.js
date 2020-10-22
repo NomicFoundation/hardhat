@@ -45,8 +45,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/hardhat-web3/package").version,
-    url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-web3",
+    url: "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-web3",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
@@ -85,8 +84,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/hardhat-solpp/package").version,
-    url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-solpp",
+    url: "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-solpp",
     description:
       "Automatically run the solpp preprocessor before each compilation",
     tags: ["Solpp", "Preprocessor"],
@@ -106,8 +104,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     version: require("../../packages/hardhat-vyper/package").version,
-    url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-vyper",
+    url: "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-vyper",
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
@@ -196,10 +193,8 @@ const plugins = [
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
     version: "1.0.0",
-    url:
-      "https://github.com/ItsNickBarry/buidler-abi-exporter/tree/master",
-    description:
-      "Automatically export Solidity contract ABIs on compilation",
+    url: "https://github.com/ItsNickBarry/buidler-abi-exporter/tree/master",
+    description: "Automatically export Solidity contract ABIs on compilation",
     tags: ["Compiling", "ABI"],
   },
   {
@@ -207,12 +202,67 @@ const plugins = [
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
     version: "1.0.0",
-    url:
-      "https://github.com/ItsNickBarry/buidler-contract-sizer/tree/master",
-    description:
-      "Calculate compiled contract sizes",
+    url: "https://github.com/ItsNickBarry/buidler-contract-sizer/tree/master",
+    description: "Calculate compiled contract sizes",
     tags: ["Compiling", "Bytecode"],
+  },
+  ,
+  {
+    name: "buidler-log-remover",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    version: "1.0.0",
+    url: "https://github.com/ItsNickBarry/buidler-log-remover/tree/master",
+    description:
+      "Remove Buidler console.log imports and calls from Solidity source files",
+    tags: ["Logging", "Console", "Deployment"],
+  },
+  {
+    name: "buidler-local-networks-config-plugin",
+    author: "Facu Spagnuolo",
+    authorUrl: "https://twitter.com/facuspagnuolo",
+    version: "1.0.0",
+    url:
+      "https://github.com/facuspagnuolo/buidler-local-networks-config-plugin/tree/master",
+    description:
+      "Allow loading network configs for Buidler projects in home file",
+    tags: ["Networks", "Config"],
+  },
+  {
+    name: "@eth-optimisim/smock",
+    author: "Optimism",
+    authorUrl: "https://github.com/ethereum-optimism",
+    version: "1.0.0",
+    url: "https://github.com/ethereum-optimism/smock/tree/master",
+    description:
+      "smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
+    tags: ["Testing", "Mocking"],
+  },
+  {
+    name: "buidler-ovm-compiler",
+    author: "Optimism",
+    authorUrl: "https://github.com/ethereum-optimism",
+    version: "1.0.0",
+    url:
+      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
+    description:
+      "Allows users to specify a custom compiler path. This makes it possible to compile your contracts with the custom Optimism Solidity compiler.",
+    tags: ["Optimism", "Compiler", "OVM"],
+  },
+  {
+    name: "buidler-ovm-node",
+    author: "Optimism",
+    authorUrl: "https://github.com/ethereum-optimism",
+    version: "1.0.0",
+    url:
+      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
+    description:
+      "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
+    tags: ["Optimism", "Buidler EVM", "OVM"],
   },
 ];
 
-module.exports = plugins.map(p => ({...p, normalizedName: p.name.replace("/", "-").replace(/^@/, "")}))
+module.exports = plugins.map((p) => ({
+  ...p,
+  normalizedName: p.name.replace("/", "-").replace(/^@/, ""),
+}));
