@@ -51,7 +51,7 @@ export const ERRORS = {
       title: "You are not inside a Hardhat project",
       description: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn hoy to use Hardhat by reading the [Getting Started guide](./README.md).`,
+You can learn hoy to use Hardhat by reading the [Getting Started guide](../getting-started).`,
       shouldBeReported: false,
     },
     INVALID_NODE_VERSION: {
