@@ -1,7 +1,7 @@
 ---
 prev: false
 ---
-![Teacher Hardhat](/buidler_tutorial.svg)
+![Teacher Hardhat](/hardhat-tutorial.svg)
 # Hardhat's tutorial for beginners
 
 Welcome to our beginners guide to Ethereum contracts and dApp development. This tutorial is aimed at hackathon participants who are getting setup to quickly build something from scratch.
