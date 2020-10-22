@@ -57,7 +57,7 @@ function doesn't exist anymore.
 
 Buidler EVM is now Hardhat Network, so if you are customizing it using the `buidlerevm` network config field,
 you need to rename it to `hardhat`. You can learn more about how to customize it, including enabling the Mainnet Forking
-functionality, [here](../config#hardhat-network).
+functionality, [here](../config/README.md#hardhat-network).
 
 For example, if you had something like this in your config:
 
@@ -161,7 +161,7 @@ Some community-built plugins, haven't been migrated yet. If you are using one of
 
 This plugin is already being ported to Hardhat, and close to being released.
 
-Join the `#buidler-deploy` channel on [Discord](/discord) to get news and help about it.
+Join the `#buidler-deploy` channel on [Discord](https://hardhat.org/discord) to get news and help about it.
 
 ### buidler-typechain
 
@@ -177,4 +177,4 @@ Take a look at its [README](https://github.com/ethereum-ts/TypeChain) to learn m
 
 ### solidity-coverage and buidler-gas-reporter
 
-These plugins are being ported to Hardhat. Join our [Discord Server](/discord) to receive our announcements when they are released.
+These plugins are being ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcements when they are released.

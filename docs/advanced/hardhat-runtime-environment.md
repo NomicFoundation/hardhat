@@ -26,7 +26,7 @@ Not everyone likes magic global variables, and Hardhat doesn't force you to use 
 
 When writing tests or scripts, you can use `require("hardhat")` to import the HRE. You can read more about this in [Accessing the HRE from outside a task](#accessing-the-hre-from-outside-a-task).
 
-You can import the config DSL explicitly when defining your tasks, and receive the HRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](https://hardhat.org/guides/create-task.html).
+You can import the config DSL explicitly when defining your tasks, and receive the HRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](../guides/create-task.md).
 
 ## Accessing the HRE from outside a task
 
