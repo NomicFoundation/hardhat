@@ -2,7 +2,7 @@
 
 This is a short guide explaining how to turn a Buidler plugin into a Hardhat one.
 
-If you want a complete example of a Hardhat plugin, take a look at [this repository](https://github.com/nomiclabs/buidler-ts-plugin-boilerplate/).
+If you want a complete example of a Hardhat plugin, take a look at [this repository](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/).
 
 ## Updating its dependencies
 
