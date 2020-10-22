@@ -18,7 +18,13 @@ npm install --save-dev @nomiclabs/hardhat-web3 web3
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-web3");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
+import "@nomiclabs/hardhat-web3";
 ```
 
 ## Tasks
@@ -49,25 +55,3 @@ module.exports = {};
 And then run `npx hardhat accounts` to try it.
 
 Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/documentation/#hardhat-runtime-environment-hre) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.
-
-## TypeScript support
-
-If your project uses TypeScript, you need to create a `hardhat-env.d.ts` file like this:
-
-``` typescript
-/// <reference types="@nomiclabs/hardhat-web3" />
-```
-
-If you already have this file, just add that line to it.
-
-
-Then you have to include that file in the `files` array of your `tsconfig.json`:
-
-```json
-{
-  ...
-  "files": [..., "hardhat-env.d.ts"]
-}
-```
-
-using the relative path from the `tsconfig.json` to your `hardhat-env.d.ts`.
