@@ -8,7 +8,7 @@ This guide will teach you how to migrate your project from Buidler into Hardhat.
 
 The first thing you need to do to migrate your project, is installing the new npm packages.
 
-The package `@nomiclabs/buidler` is now `hardhat`. The plugins, which used to have packages like `@nomiclabs/buidler-<name>`,
+The package `@nomiclabs/buidler` is now `hardhat`. The plugins, which used to have package names like `@nomiclabs/buidler-<name>`,
 are now `@nomiclabs/hardhat-<name>`.
 
 For example, if you were using `@nomiclabs/buidler` and `@nomiclabs/buidler-ethers`, you need to run:
