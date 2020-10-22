@@ -18,7 +18,7 @@ import { extendEnvironment } from "hardhat/config";
 
 ### Plugins
 
-Similarly, references to Buidler plugins should be replaced with their corresponding hardhat plugins.
+Similarly, references to Buidler plugins should be replaced with their corresponding Hardhat plugins.
 For example, `@nomiclabs/buidler-ethers` would be `@nomiclabs/hardhat-ethers`.
 
 ## Adapting your plugin's source code
