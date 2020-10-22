@@ -298,13 +298,3 @@ but this may lead to your stack traces' line numbers being a little off.
 
 We recommend compiling without optimizations when testing and debugging
 your contracts.
-
-### Contracts reloading after recompilation
-
-If you start Hardhat Network's node and change your contract afterwards, you won't
-get Solidity stack traces for those, and the logging functionality will be more limited.
-
-As a temporal workaround, you need to restart Hardhat Network's node, after recompiling
-your contracts.
-
-This limitation will be removed in a future update.
