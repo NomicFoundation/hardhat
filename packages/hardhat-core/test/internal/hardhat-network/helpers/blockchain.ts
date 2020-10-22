@@ -16,7 +16,7 @@ import {
   OrderedTransaction,
   SerializedTransaction,
 } from "../../../../src/internal/hardhat-network/provider/PoolState";
-import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
+import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TxPool";
 
 export function createTestTransaction(data: TxData = {}) {
   return new Transaction({ to: randomAddressBuffer(), ...data });

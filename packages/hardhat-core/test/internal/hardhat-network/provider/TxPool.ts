@@ -10,7 +10,7 @@ import {
   randomAddressBuffer,
 } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
-import { TransactionPool } from "../../../../src/internal/hardhat-network/provider/TransactionPool";
+import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
 import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";
@@ -32,14 +32,14 @@ function getAllTxs(
   return flatten(Array.from(pendingTxs.values())).map((tx) => tx.data);
 }
 
-describe("Transaction Pool", () => {
+describe("Tx Pool", () => {
   const blockGasLimit = new BN(10000000);
   let stateManager: PStateManager;
-  let txPool: TransactionPool;
+  let txPool: TxPool;
 
   beforeEach(() => {
     stateManager = asPStateManager(new StateManager());
-    txPool = new TransactionPool(stateManager, blockGasLimit);
+    txPool = new TxPool(stateManager, blockGasLimit);
   });
 
   describe("addTransaction", () => {
