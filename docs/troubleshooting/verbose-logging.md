@@ -2,7 +2,7 @@
 
 You can enable Hardhat's verbose mode by running it with its `--verbose` flag, or by setting the `HARDHAT_VERBOSE` environment variable to `true`.
 
-This mode will print a lot of output that can be super useful for debugging. An example of Hardhat run in verbose mode is:
+This mode will print a lot of output that can be super useful for debugging. An example of a Hardhat run in verbose mode is:
 
 ```
 $ npx hardhat test --verbose
@@ -47,4 +47,4 @@ Changing greeting from 'Hello, world!' to 'Hola, mundo!'
   hardhat:core:cli Killing Hardhat after successfully running task test +0ms
 ```
 
-Hardhat uses the [debug](https://github.com/visionmedia/debug) package to manage logging. The `DEBUG` environment variable that can be used to turn on the verbose logging and filter it using a simple wildcard pattern.
+Hardhat uses the [debug](https://github.com/visionmedia/debug) package to manage logging. The `DEBUG` environment variable can be used to turn on the verbose logging and filter it using a simple wildcard pattern.
