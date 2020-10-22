@@ -101,8 +101,8 @@ You can set the following fields on the `hardhat` config:
 
 - `forking`: An object that describes the [forking configuration](../hardhat-network/README.md#mainnet-forking) that can have the following fields:
   - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
-  - `blockNumber`: an optional number to pin the initial state. If no value is provided, the latest block is used as the fork start.
-  - `enabled`: an optional boolean to switch on or off the fork functionality. Default value: `true`.
+  - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
+  - `enabled`: an optional boolean to switch on or off the fork functionality. Default value: `true` if `url` is set, `false` otherwise.
 
 ### JSON-RPC based networks
 
@@ -158,21 +158,19 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 
 The `solidity` config is an optional field that can be one of the following:
 
-- The solc version to use itself. E.g. `"0.7.3"`.
+- A solc version to use. E.g. `"0.7.3"`.
 
 - An object which describes the configuration for a single compiler. It contains the following keys:
 
-  - `version`: The solc version to use. We recommend always setting this field. Default value: `"0.7.3"`.
+  - `version`: The solc version to use.
 
-  - `optimizer`: An object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
-
-  - `evmVersion`: A string controlling the target evm version. One of `"homestead"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul""`. Default value: managed by Solidity. Please, consult its documentation.
+  - `settings`:  An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
 
 - An object which describes multiple compilers and their respective configurations. It contains the following:
 
   - `compilers`: A list of compiler configuration objects like the one above.
 
-  - `overrides`: A map of compiler configuration override objects. Keys for this map should be the name of the contract or the fully qualified name of the contract, i.e. the source name followed by the contract name separated by a colon. For example, `contracts/Token.sol:Token`. Values for each of these keys are configuration objects for a single compiler. If not set, this is an empty map.
+  - `overrides`: An optional map of compiler configuration override objects. This maps file names to compiler configuration objects. Take a look at the [compilation guide](../guides/compile-contracts.md) to learn more.
 
 ## Path configuration
 
