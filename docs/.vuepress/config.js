@@ -109,6 +109,7 @@ module.exports = {
               0,
             ],
             ["/advanced/building-plugins.html", "Building plugins", 0],
+            ["/advanced/migrating-buidler-plugin.html", "Migrating a Buidler plugin", 0],
           ],
         },
         {
