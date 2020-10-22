@@ -36,7 +36,11 @@ export default {
   name: "HHMigrationModal",
 
   data() {
-    return { LogoImg, postUrl: "https://medium.com/nomic-labs-blog/buidler-has-evolved-introducing-hardhat-4bccd13bc931" };
+    return {
+      LogoImg,
+      postUrl:
+        "https://medium.com/nomic-labs-blog/buidler-has-evolved-introducing-hardhat-4bccd13bc931",
+    };
   },
 
   methods: {
@@ -152,10 +156,10 @@ export default {
           font-size 18px
           line-height 28px
           margin-top 18px
-          font-family: 'RobotoRegular', sans-serif
+          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 
           a
-            font-family: 'RobotoRegular', sans-serif
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
             font-weight normal
             text-decoration underline
 
@@ -184,7 +188,7 @@ export default {
           line-height 1.5em
 
           a
-            font-family: 'RobotoRegular', sans-serif
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
             text-decoration underline
 
       .logo
