@@ -50,10 +50,11 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on the branch [`development`](https://github.com/nomiclabs/hardhat/tree/development)
-and keep `master` in sync with the latest release.
+We work on the branch [`master`](https://github.com/nomiclabs/hardhat/tree/master). Versions of the different packages
+are always tagged and pushed to GitHub. So if you are looking for the latests released version of something, please 
+refer to the tags.
 
-Please, branch from `development` when implementing a new feature or fixing a 
+Please, branch from `master` when implementing a new feature or fixing a 
 bug, and use it as the base branch in pull requests.
 
 ### Website and documentation branching
