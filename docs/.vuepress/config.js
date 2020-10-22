@@ -23,7 +23,7 @@ module.exports = {
       { text: "Tutorial", link: "/tutorial/" },
     ],
     lastUpdated: true,
-    repo: "nomiclabs/buidler",
+    repo: "nomiclabs/hardhat",
     docsDir: "docs",
     docsBranch: "website",
     editLinkText: "Help us improve this page!",
@@ -175,7 +175,7 @@ module.exports = {
       "meta",
       {
         name: "twitter:image",
-        content: "https://deploy-preview-898--buidler.netlify.app/card.png",
+        content: "https://hardhat.org/card.png",
       },
     ],
     [
@@ -198,7 +198,7 @@ module.exports = {
       "meta",
       {
         property: "og:image",
-        content: "https://deploy-preview-898--buidler.netlify.app/card.png",
+        content: "https://hardhat.org/card.png",
       },
     ],
     ["meta", { property: "og:image:width", content: "2400" }],
