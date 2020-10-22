@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ganache.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ganache)
 [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ganache
