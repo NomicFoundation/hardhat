@@ -109,6 +109,15 @@ const plugins = [
     tags: ["Vyper", "Compiler"],
   },
   {
+    name: "hardhat-deploy",
+    author: "Ronan Sandford",
+    authorUrl: "https://github.com/wighawag",
+    version: "0.7.0",
+    url: "https://github.com/wighawag/hardhat-deploy/tree/master",
+    description: "Hardhat plugin for Deployments",
+    tags: ["Deployment", "Testing"],
+  },
+  {
     name: "buidler-gas-reporter",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
@@ -160,15 +169,6 @@ const plugins = [
     tags: ["License"],
   },
   {
-    name: "buidler-deploy",
-    author: "Ronan Sandford",
-    authorUrl: "https://github.com/wighawag",
-    version: "0.4.0",
-    url: "https://github.com/wighawag/buidler-deploy/tree/master",
-    description: "Buidler plugin for Deployments",
-    tags: ["Deployment", "Testing"],
-  },
-  {
     name: "buidler-ethers-v5",
     author: "Ronan Sandford",
     authorUrl: "https://github.com/wighawag",
@@ -206,7 +206,6 @@ const plugins = [
     description: "Calculate compiled contract sizes",
     tags: ["Compiling", "Bytecode"],
   },
-  ,
   {
     name: "buidler-log-remover",
     author: "Nick Barry",
@@ -259,7 +258,7 @@ const plugins = [
     description:
       "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
     tags: ["Optimism", "Buidler EVM", "OVM"],
-  }
+  },
 ];
 
 module.exports = plugins.map((p) => ({
