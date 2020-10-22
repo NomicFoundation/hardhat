@@ -16,7 +16,7 @@ async function main() {
 
   console.log(
     "Deploying contracts with the account:",
-    await deployer.getAddress()
+    deployer.address
   );
   
   console.log("Account balance:", (await deployer.getBalance()).toString());
@@ -45,16 +45,15 @@ In this case, running it without the `--network` parameter would get the code to
 
 ```
 $ npx hardhat run scripts/deploy.js
-All contracts have already been compiled, skipping compilation.
-Deploying contracts with the account: 0xc783df8a850f42e7F7e57013759C285caa701eB6
+Deploying contracts with the account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 Account balance: 10000000000000000000000
-Token address: 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F
+Token address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 ## Deploying to remote networks
 To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Ropsten for this example, but you can add any network similarly:
 
-```js{5,11,14-19}
+```js{5,11,15-20}
 require("@nomiclabs/hardhat-waffle");
 
 // Go to https://infura.io/ and create a new project
@@ -68,6 +67,7 @@ const INFURA_PROJECT_ID = "YOUR INFURA PROJECT ID";
 const ROPSTEN_PRIVATE_KEY = "YOUR ROPSTEN PRIVATE KEY";
 
 module.exports = {
+  solidity: "0.7.3",
   networks: {
     ropsten: {
       url: `https://ropsten.infura.io/v3/${INFURA_PROJECT_ID}`,

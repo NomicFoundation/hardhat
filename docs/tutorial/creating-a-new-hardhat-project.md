@@ -65,16 +65,17 @@ For this tutorial we are going to use the Ethers.js and Waffle plugins. They'll 
 npm install --save-dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai
 ```
 
-Add the highlighted lines to your `hardhat.config.js` so that it looks like this:
+Add the highlighted line to your `hardhat.config.js` so that it looks like this:
 
-```js {1,4-6}
+```js {1}
 require("@nomiclabs/hardhat-waffle");
 
+/**
+ * @type import('hardhat/config').HardhatUserConfig
+ */
 module.exports = {
-  solc: {
-    version: "0.6.8"
-  }
+  solidity: "0.7.3",
 };
 ```
 
-We're only invoking `hardhat-waffle` here because it depends on `hardhat-ethers` so adding both isn't necessary.
+We're only requiring `hardhat-waffle` here because it depends on `hardhat-ethers` so adding both isn't necessary.
