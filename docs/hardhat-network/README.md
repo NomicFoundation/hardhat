@@ -256,6 +256,14 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `web3_clientVersion`
 - `web3_sha3`
 
+#### Hardhat network methods
+
+- `hardhat_addCompilationResult` – Add information about compiled contracts
+- `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+- `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+- `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+- `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
+
 #### Special testing/debugging methods
 
 - `evm_increaseTime` – same as Ganache.
