@@ -148,7 +148,7 @@ const Ownable = await ethers.getContractFactory("contracts/Ownable.sol:Ownable")
 
 ## Mocha and VSCode setup changes
 
-If you are running your tests directly with Mocha, or though a VSCode Mocha plugin, please take a look at [this
+If you are running your tests directly with Mocha, or through a VSCode Mocha plugin, please take a look at [this
 updated guide](./vscode-tests.md).
 
 ## Community plugins
