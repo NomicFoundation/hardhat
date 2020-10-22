@@ -180,15 +180,14 @@ eth_call
 ```
 
 This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using
-the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) enabled it in both.
+the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) to learn more about how to control its logging.
 
 ## Hardhat Network initial state
 
 Hardhat Network is initialized by default in this state:
 
-<!--TODO-HH: update list of accounts-->
 - A brand new blockchain, just with the genesis block.
-- 20 accounts with 10000 ETH each
+- 20 accounts with 10000 ETH each, generated with the mnemonic `"test test test test test test test test test test test junk"`. Their addresses are:
   - `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
   - `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`
   - `0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC`
@@ -299,13 +298,3 @@ but this may lead to your stack traces' line numbers being a little off.
 
 We recommend compiling without optimizations when testing and debugging
 your contracts.
-
-### Contracts reloading after recompilation
-
-If you start Hardhat Network's node and change your contract afterwards, you won't
-get Solidity stack traces for those, and the logging functionality will be more limited.
-
-As a temporal workaround, you need to restart Hardhat Network's node, after recompiling
-your contracts.
-
-This limitation will be removed in a future update.

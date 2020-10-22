@@ -14,7 +14,7 @@ In this tutorial we'll guide you through:
 - Setting up your Node.js environment for Ethereum development
 - Creating and configuring a **Hardhat** project
 - The basics of a Solidity smart contract that implements a token
-- Writing automated tests for your contract using [Ethers.js](https://docs.ethers.io/ethers.js/html/) and [Waffle](https://getwaffle.io/)
+- Writing automated tests for your contract using [Ethers.js](https://docs.ethers.io/) and [Waffle](https://getwaffle.io/)
 - Debugging Solidity with `console.log()` using **Hardhat Network**
 - Deploying your contract to **Hardhat Network** and Ethereum testnets
 

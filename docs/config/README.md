@@ -9,7 +9,7 @@ The entirety of your Hardhat setup (i.e. your config, plugins and custom tasks) 
 
 To set up your config, you have to export an object from `hardhat.config.js`.
 
-This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solc-configuration), and [`paths`](#path-configuration). For example:
+This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), and [`paths`](#path-configuration). For example:
 
 ```js
 module.exports = {
@@ -44,7 +44,7 @@ module.exports = {
 
 The `networks` config field is an optional object where network names map to their configuration.
 
-There are two kinds of networks in Hardhat: [JSON-RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) based networks,
+There are two kinds of networks in Hardhat: [JSON-RPC](https://eth.wiki/json-rpc/API) based networks,
 and the built-in Hardhat Network.
 
 You can customize which network is used by default when running Hardhat by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"hardhat"`.

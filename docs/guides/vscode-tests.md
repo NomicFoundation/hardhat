@@ -3,8 +3,7 @@
 You can run your tests from [Visual Studio Code](https://code.visualstudio.com)
 by using one of its Mocha integration extensions. We recommend using [Mocha Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-mocha-test-adapter).
 
-To use [Mocha Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-mocha-test-adapter), you 
-need to install it and follow these instructions.
+To use Mocha Test Explorer, you need to install it and follow these instructions.
 
 Install Mocha locally by running this:
 

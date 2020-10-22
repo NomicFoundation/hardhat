@@ -50,7 +50,7 @@ const { ethers } = require("hardhat");
 ```
 
 ::: tip
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/ethers.js/html/api-wallet.html).
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/).
 :::
 
 ```js
