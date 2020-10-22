@@ -123,7 +123,7 @@ sure you removed all the `type-extension.d.ts` files, and keep your config file 
 
 ## Updating your `console.sol` imports
 
-If you are using `console.log` in your contracts, you need yo change the imports of `@nomiclabs/buidler/console.sol`
+If you are using `console.log` in your contracts, you need to change the imports of `@nomiclabs/buidler/console.sol`
 to `hardhat/console.sol`.
 
 If you had this:
