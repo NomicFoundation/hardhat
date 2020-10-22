@@ -35,7 +35,7 @@ The `readArtifact` and `readArtifactSync` functions were moved to the `HardhatRu
 const tokenArtifact = await hre.artifacts.readArtifact("Token");
 ```
 
-The artifact format is now supplemented with build information and debug artifacts in Hardhat which allows you to read things like contract symbols. See the [documentation](https://hardhat.org/docs/artifacts) for more information.
+The artifact format is now supplemented with build information and debug artifacts in Hardhat which allows you to read things like contract symbols. See the [documentation](../guides/compile-contracts#artifacts) for more information.
 
 ## Updating your plugin's tests
 
