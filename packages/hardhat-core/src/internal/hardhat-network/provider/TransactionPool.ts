@@ -86,16 +86,16 @@ export class TransactionPool {
   }
 
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
-    const deserializedImmutableMap = this._getPending().map((txs) =>
-      txs.map(deserializeTransaction).toJS()
-    );
+    const deserializedImmutableMap = this._getPending()
+      .filter((txs) => txs.size > 0)
+      .map((txs) => txs.map(deserializeTransaction).toJS());
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
-    const deserializedImmutableMap = this._getQueued().map((txs) =>
-      txs.map(deserializeTransaction).toJS()
-    );
+    const deserializedImmutableMap = this._getQueued()
+      .filter((txs) => txs.size > 0)
+      .map((txs) => txs.map(deserializeTransaction).toJS());
     return new Map(deserializedImmutableMap.entries());
   }
 
