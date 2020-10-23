@@ -176,6 +176,8 @@ All of the official Buidler plugins have already been migrated to Hardhat.
 
 Some community-built plugins, haven't been migrated yet. If you are using one of those, you have to temporarily disable them.
 
+You can find which plugins have been updated in [the Plugins section](https://hardhat.org/plugins).
+
 ### buidler-deploy
 
 This plugin has already been ported, it's now called [`hardhat-deploy`](https://github.com/wighawag/hardhat-deploy).
