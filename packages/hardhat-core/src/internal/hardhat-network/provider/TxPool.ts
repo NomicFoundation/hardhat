@@ -1,3 +1,4 @@
+import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
@@ -28,7 +29,8 @@ export function serializeTransaction(
 }
 
 export function deserializeTransaction(
-  tx: SerializedTransaction
+  tx: SerializedTransaction,
+  common: Common
 ): OrderedTransaction {
   const fields = tx
     .get("data")
@@ -36,7 +38,7 @@ export function deserializeTransaction(
     .map((field) => toBuffer(field));
   return {
     orderId: tx.get("orderId"),
-    data: new Transaction(fields),
+    data: new Transaction(fields, { common }),
   };
 }
 
@@ -47,13 +49,19 @@ export class TxPool {
   private _nextSnapshotId = 0;
   private _nextOrderId = 0;
 
+  private readonly _deserializeTransaction: (
+    tx: SerializedTransaction
+  ) => OrderedTransaction;
+
   constructor(
     private readonly _stateManager: PStateManager,
-    private _blockGasLimit: BN
+    private _blockGasLimit: BN,
+    private readonly _common: Common
   ) {
     this._state = makePoolState({
       blockGasLimit: bnToHex(this._blockGasLimit),
     });
+    this._deserializeTransaction = (tx) => deserializeTransaction(tx, _common);
   }
 
   public async addTransaction(tx: Transaction) {
@@ -87,14 +95,14 @@ export class TxPool {
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(deserializeTransaction).toJS());
+      .map((txs) => txs.map(this._deserializeTransaction).toJS());
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getQueued()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(deserializeTransaction).toJS());
+      .map((txs) => txs.map(this._deserializeTransaction).toJS());
     return new Map(deserializedImmutableMap.entries());
   }
 
@@ -128,7 +136,7 @@ export class TxPool {
     let newMap = map;
     for (const [address, txs] of map) {
       for (const tx of txs) {
-        const deserializedTx = deserializeTransaction(tx);
+        const deserializedTx = this._deserializeTransaction(tx);
         const txNonce = new BN(deserializedTx.data.nonce);
         const txGasLimit = new BN(deserializedTx.data.gasLimit);
         const senderAccount = await this._stateManager.getAccount(

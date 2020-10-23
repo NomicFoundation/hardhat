@@ -1,6 +1,7 @@
 import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
+import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import { BN, toBuffer } from "ethereumjs-util";
 import flatten from "lodash/flatten";
@@ -40,7 +41,8 @@ describe("Tx Pool", () => {
 
   beforeEach(() => {
     stateManager = asPStateManager(new StateManager());
-    txPool = new TxPool(stateManager, blockGasLimit);
+    const common = new Common("mainnet", "muirGlacier");
+    txPool = new TxPool(stateManager, blockGasLimit, common);
   });
 
   describe("addTransaction", () => {

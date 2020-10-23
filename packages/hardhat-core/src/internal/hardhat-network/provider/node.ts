@@ -137,7 +137,8 @@ export class HardhatNode extends EventEmitter {
 
     const txPool = new TxPool(
       asPStateManager(stateManager),
-      new BN(blockGasLimit)
+      new BN(blockGasLimit),
+      common
     );
 
     const vm = new VM({
