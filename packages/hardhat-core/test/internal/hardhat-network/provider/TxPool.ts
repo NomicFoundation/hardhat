@@ -3,7 +3,7 @@ import { assert } from "chai";
 import Account from "ethereumjs-account";
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
-import { BN, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import flatten from "lodash/flatten";
 
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
@@ -385,7 +385,41 @@ describe("Tx Pool", () => {
     });
 
     describe("validation", () => {
-      it("throws an error if transaction's gas limit exceeds block gas limit", async () => {
+      it("rejects if transaction is already pending in the tx pool", async () => {
+        const to = randomAddressBuffer();
+        const tx1 = createTestTransaction({ to, gasLimit: 21000 });
+        const tx2 = createTestTransaction({ to, gasLimit: 21000 });
+
+        tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+        tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+        await txPool.addTransaction(tx1);
+
+        await assert.isRejected(
+          txPool.addTransaction(tx2),
+          InvalidInputError,
+          `Known transaction: ${bufferToHex(tx1.hash())}`
+        );
+      });
+
+      it("rejects if transaction is already queued in the tx pool", async () => {
+        const to = randomAddressBuffer();
+        const tx1 = createTestTransaction({ to, nonce: 1, gasLimit: 21000 });
+        const tx2 = createTestTransaction({ to, nonce: 1, gasLimit: 21000 });
+
+        tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+        tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+        await txPool.addTransaction(tx1);
+
+        await assert.isRejected(
+          txPool.addTransaction(tx2),
+          InvalidInputError,
+          `Known transaction: ${bufferToHex(tx1.hash())}`
+        );
+      });
+
+      it("rejects if transaction's gas limit exceeds block gas limit", async () => {
         const gasLimit = 15000000;
         const tx = createTestFakeTransaction({ gasLimit });
         await assert.isRejected(
@@ -395,7 +429,7 @@ describe("Tx Pool", () => {
         );
       });
 
-      it("throws an error if transaction is not signed", async () => {
+      it("rejects if transaction is not signed", async () => {
         const tx = createTestTransaction();
         await assert.isRejected(
           txPool.addTransaction(tx),
@@ -404,7 +438,7 @@ describe("Tx Pool", () => {
         );
       });
 
-      it("throws and error if transaction's nonce is too low", async () => {
+      it("rejects if transaction's nonce is too low", async () => {
         const address = randomAddress();
         const tx1 = createTestFakeTransaction({
           from: address,
@@ -433,7 +467,7 @@ describe("Tx Pool", () => {
         );
       });
 
-      it("throws an error if creating a contract and no data is provided", async () => {
+      it("rejects if creating a contract and no data is provided", async () => {
         const tx = createTestFakeTransaction({
           to: undefined,
         });
@@ -444,7 +478,7 @@ describe("Tx Pool", () => {
         );
       });
 
-      it("throws an error if sender doesn't have enough ether on their balance", async () => {
+      it("rejects if sender doesn't have enough ether on their balance", async () => {
         const address = randomAddressBuffer();
         await stateManager.putAccount(
           address,

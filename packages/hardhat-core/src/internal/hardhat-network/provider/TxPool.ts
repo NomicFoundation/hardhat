@@ -219,6 +219,12 @@ export class TxPool {
       throw new InvalidInputError(e.message);
     }
 
+    if (this._knownTransaction(tx)) {
+      throw new InvalidInputError(
+        `Known transaction: ${bufferToHex(tx.hash())}`
+      );
+    }
+
     const txNonce = new BN(tx.nonce);
     const senderNonce = await this.getExecutableNonce(senderAddress);
 
@@ -265,6 +271,24 @@ export class TxPool {
     }
 
     return senderNonce;
+  }
+
+  private _knownTransaction(tx: Transaction): boolean {
+    const senderAddress = bufferToHex(tx.getSenderAddress());
+    return (
+      this._transactionExists(tx, this._getPendingForAddress(senderAddress)) ||
+      this._transactionExists(tx, this._getQueuedForAddress(senderAddress))
+    );
+  }
+
+  private _transactionExists(
+    tx: Transaction,
+    txList: SenderTransactions | undefined
+  ) {
+    const existingTx = txList?.find((etx) =>
+      this._deserializeTransaction(etx).data.hash().equals(tx.hash())
+    );
+    return existingTx !== undefined;
   }
 
   private _getPending() {
