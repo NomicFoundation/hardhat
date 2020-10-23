@@ -26,3 +26,5 @@ extendEnvironment((hre) => {
     };
   });
 });
+
+export { ExtendedEthersSigner as Signer } from "./types";

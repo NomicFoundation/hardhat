@@ -1,6 +1,9 @@
 import { ethers } from "ethers";
 
-export class SignerWithAddress extends ethers.Signer {
+import { ExtendedEthersSigner } from "./types";
+
+export class SignerWithAddress extends ethers.Signer
+  implements ExtendedEthersSigner {
   public static async create(signer: ethers.Signer) {
     return new SignerWithAddress(await signer.getAddress(), signer);
   }
