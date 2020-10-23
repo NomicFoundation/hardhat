@@ -24,10 +24,10 @@ function printForkingLogicNotBeingTestedWarning(varName: string) {
   );
 }
 
-if (INFURA_URL === undefined) {
+if (INFURA_URL === undefined || INFURA_URL === "") {
   printForkingLogicNotBeingTestedWarning("INFURA_URL");
 }
 
-if (ALCHEMY_URL === undefined) {
+if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
   printForkingLogicNotBeingTestedWarning("ALCHEMY_URL");
 }
