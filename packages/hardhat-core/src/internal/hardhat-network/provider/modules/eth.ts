@@ -468,8 +468,10 @@ export class EthModule {
           `eth_getBlockByNumber doesn't support ${tag}`
         );
       }
-    } else {
+    } else if (BN.isBN(tag)) {
       block = await this._node.getBlockByNumber(tag);
+    } else if (Buffer.isBuffer(tag)) {
+      block = await this._node.getBlockByHash(tag);
     }
 
     if (block === undefined) {
@@ -590,9 +592,18 @@ export class EthModule {
       filter.toBlock = new BN(block.header.number);
     }
 
+    const [fromBlock, toBlock] = await Promise.all([
+      this._blockTagToBlockNumber(filter.fromBlock),
+      this._blockTagToBlockNumber(filter.toBlock),
+    ]);
+
+    if (fromBlock == null || toBlock == null) {
+      throw new InvalidArgumentsError("Failed to resolve fromBlock/toBlock");
+    }
+
     return {
-      fromBlock: this._extractBlock(filter.fromBlock),
-      toBlock: this._extractBlock(filter.toBlock),
+      fromBlock,
+      toBlock,
       normalizedTopics: this._extractNormalizedLogTopics(filter.topics),
       addresses: this._extractLogAddresses(filter.address),
     };
@@ -1041,7 +1052,13 @@ export class EthModule {
       return new BN(0);
     }
 
-    const block = await this._node.getBlockByNumber(blockTag);
+    let block: Block | undefined;
+    if (BN.isBN(blockTag)) {
+      block = await this._node.getBlockByNumber(blockTag);
+    } else if (Buffer.isBuffer(blockTag)) {
+      block = await this._node.getBlockByHash(blockTag);
+    }
+
     if (block === undefined) {
       const latestBlock = await this._node.getLatestBlockNumber();
       throw new InvalidInputError(
@@ -1050,20 +1067,6 @@ export class EthModule {
     }
 
     return new BN(block.header.number);
-  }
-
-  private _extractBlock(blockTag: OptionalBlockTag): BN {
-    switch (blockTag) {
-      case "earliest":
-        return new BN(0);
-      case undefined:
-      case "latest":
-        return LATEST_BLOCK;
-      case "pending":
-        return LATEST_BLOCK;
-    }
-
-    return blockTag;
   }
 
   private _extractNormalizedLogTopics(

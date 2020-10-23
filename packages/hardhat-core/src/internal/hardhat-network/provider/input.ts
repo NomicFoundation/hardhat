@@ -28,6 +28,25 @@ const isRpcDataString = (u: unknown) =>
 const isRpcHashString = (u: unknown) =>
   typeof u === "string" && u.length === 66 && isRpcDataString(u);
 
+interface BlockTagObject {
+  blockHash?: string | Buffer;
+  blockNumber?: string | number | BN;
+}
+
+const isBlockTagObject = (u: any): u is BlockTagObject => {
+  if (typeof u === "object") {
+    if (u?.blockHash != null && u?.blockNumber == null) {
+      return isRpcHashString(u.blockHash);
+    }
+
+    if (u?.blockNumber != null && u?.blockHash == null) {
+      return isRpcQuantityString(u.blockNumber);
+    }
+  }
+
+  return false;
+};
+
 export const rpcQuantity = new t.Type<BN>(
   "QUANTITY",
   BN.isBN,
@@ -77,8 +96,28 @@ export const logTopics = t.union([
 
 export type LogTopics = t.TypeOf<typeof logTopics>;
 
+export const blockTagObject = new t.Type<BN | Buffer>(
+  "BLOCKTAGOBJECT",
+  (u): u is BN | Buffer => BN.isBN(u) || Buffer.isBuffer(u),
+  (u, c) => {
+    if (isBlockTagObject(u)) {
+      if (u.blockHash != null) {
+        return t.success(toBuffer(u.blockHash));
+      }
+
+      if (u.blockNumber != null) {
+        return t.success(new BN(toBuffer(u.blockNumber)));
+      }
+    }
+
+    return t.failure(u, c);
+  },
+  t.identity
+);
+
 export const blockTag = t.union([
   rpcQuantity,
+  blockTagObject,
   t.keyof({
     earliest: null,
     latest: null,
