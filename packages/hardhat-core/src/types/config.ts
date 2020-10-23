@@ -102,6 +102,7 @@ export interface HardhatNetworkConfig {
   gasPrice: "auto" | number;
   gasMultiplier: number;
   hardfork: string;
+  automine: boolean;
   accounts: HardhatNetworkAccountsConfig;
   blockGasLimit: number;
   throwOnTransactionFailures: boolean;

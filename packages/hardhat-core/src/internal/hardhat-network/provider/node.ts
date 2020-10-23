@@ -90,7 +90,7 @@ export class HardhatNode extends EventEmitter {
     config: NodeConfig
   ): Promise<[Common, HardhatNode]> {
     const {
-      automine: automine,
+      automine,
       genesisAccounts,
       blockGasLimit,
       allowUnlimitedContractSize,

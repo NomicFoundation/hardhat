@@ -1,3 +1,4 @@
+import { HardhatNetworkConfig } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.7.3";
@@ -26,7 +27,7 @@ export const defaultHardhatNetworkHdAccountsConfigParams = {
 
 export const DEFAULT_GAS_MULTIPLIER = 1;
 
-export const defaultHardhatNetworkParams = {
+export const defaultHardhatNetworkParams: HardhatNetworkConfig = {
   hardfork: "muirGlacier",
   blockGasLimit: 9500000,
   gas: 9500000,
@@ -35,6 +36,7 @@ export const defaultHardhatNetworkParams = {
   throwOnTransactionFailures: true,
   throwOnCallFailures: true,
   allowUnlimitedContractSize: false,
+  automine: true,
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,

@@ -7,6 +7,7 @@ import { EthereumProvider } from "../../../../src/types";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  DEFAULT_AUTOMINE,
   DEFAULT_BLOCK_GAS_LIMIT,
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
@@ -32,7 +33,8 @@ export function useProvider(
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
-  allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE
+  allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  automine = DEFAULT_AUTOMINE
 ) {
   beforeEach("Initialize provider", async function () {
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
@@ -43,7 +45,7 @@ export function useProvider(
       blockGasLimit,
       true,
       true,
-      true,
+      automine,
       accounts,
       undefined,
       undefined,

@@ -84,6 +84,7 @@ export function createProvider(
       hardhatNetConfig.blockGasLimit!,
       hardhatNetConfig.throwOnTransactionFailures!,
       hardhatNetConfig.throwOnCallFailures!,
+      hardhatNetConfig.automine,
       accounts,
       artifacts,
       hardhatNetConfig.loggingEnabled,

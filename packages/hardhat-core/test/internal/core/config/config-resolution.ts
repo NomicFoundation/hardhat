@@ -432,6 +432,7 @@ describe("Config resolution", () => {
           loggingEnabled: true,
           allowUnlimitedContractSize: true,
           blockGasLimit: 567,
+          automine: false,
           hardfork: "hola",
           initialDate: "today",
         };
