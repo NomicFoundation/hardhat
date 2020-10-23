@@ -2838,7 +2838,7 @@ describe("Eth module", function () {
               // This transaction was obtained with eth_sendTransaction, and its r value was wiped
               "0xf3808501dcd6500083015f9080800082011a80a00dbd1a45b7823be518540ca77afb7178a470b8054281530a6cdfd0ad3328cf96",
             ],
-            "Invalid transaction signature"
+            "Invalid Signature"
           );
         });
 
@@ -3076,7 +3076,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               nonce: numberToRpcQuantity(1),
             },
-            "Invalid nonce. Expected 2 but got 1"
+            "Nonce too low. Expected nonce to be at least 2 but got 1"
           );
 
           // Revert. This is a deployment transaction that immediately reverts without a reason

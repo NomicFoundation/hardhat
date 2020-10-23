@@ -236,7 +236,9 @@ export class TxPool {
     }
 
     if (txNonce.lt(senderNonce)) {
-      throw new InvalidInputError("Nonce too low");
+      throw new InvalidInputError(
+        `Nonce too low. Expected nonce to be at least ${senderNonce.toString()} but got ${txNonce.toString()}`
+      );
     }
 
     const baseFee = tx.getBaseFee();
