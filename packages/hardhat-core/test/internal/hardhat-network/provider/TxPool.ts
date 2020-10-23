@@ -419,6 +419,20 @@ describe("Tx Pool", () => {
         );
       });
 
+      it("rejects if transaction with given nonce is already queued in the tx pool", async () => {
+        const from = randomAddressBuffer();
+        const to = randomAddressBuffer();
+        const tx1 = createTestFakeTransaction({ nonce: 1, from, to });
+        const tx2 = createTestFakeTransaction({ nonce: 1, from, to: from });
+
+        await txPool.addTransaction(tx1);
+        await assert.isRejected(
+          txPool.addTransaction(tx2),
+          InvalidInputError,
+          "Transaction with nonce 1 already exists in transaction pool"
+        );
+      });
+
       it("rejects if transaction's gas limit exceeds block gas limit", async () => {
         const gasLimit = 15000000;
         const tx = createTestFakeTransaction({ gasLimit });

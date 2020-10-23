@@ -1,6 +1,6 @@
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "./errors";
@@ -225,6 +225,15 @@ export class TxPool {
       );
     }
 
+    // Temporary check that should be removed when transaction replacement is added
+    if (this._txWithNonceExists(tx)) {
+      throw new InvalidInputError(
+        `Transaction with nonce ${bufferToInt(
+          tx.nonce
+        )} already exists in transaction pool`
+      );
+    }
+
     const txNonce = new BN(tx.nonce);
     const senderNonce = await this.getExecutableNonce(senderAddress);
 
@@ -289,6 +298,18 @@ export class TxPool {
       this._deserializeTransaction(etx).data.hash().equals(tx.hash())
     );
     return existingTx !== undefined;
+  }
+
+  private _txWithNonceExists(tx: Transaction): boolean {
+    const queuedTxs: SenderTransactions =
+      this._getQueuedForAddress(bufferToHex(tx.getSenderAddress())) ??
+      ImmutableList();
+
+    return (
+      queuedTxs.filter((ftx) =>
+        this._deserializeTransaction(ftx).data.nonce.equals(tx.nonce)
+      ).size !== 0
+    );
   }
 
   private _getPending() {
