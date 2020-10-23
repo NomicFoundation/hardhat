@@ -187,7 +187,7 @@ Join the `#hardhat-deploy` channel on [Discord](https://hardhat.org/discord) if 
 The TypeChain plugin hasn't been migrated yet, but you can run TypeChain directly like this:
 
 ```
-npx typechain --target ethers-v5 --outDir typechain  'artifacts/!(build-info)/*/!(.dbg).json'
+npx typechain --target ethers-v5 --outDir typechain  'artifacts/!(build-info)/**/+([a-zA-Z0-9]).json'
 ```
 
 You just need to make sure that your contracts have already been compiled.
