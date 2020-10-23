@@ -18,6 +18,7 @@ import { isCwdInsideProject } from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNode, willRunWithTypescript } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
+import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   hasConsentedTelemetry,
   writeTelemetryConsent,
@@ -119,7 +120,11 @@ async function main() {
     let telemetryConsent = hasConsentedTelemetry();
 
     const isHelpCommand = hardhatArguments.help || taskName === TASK_HELP;
-    if (telemetryConsent === undefined && !isHelpCommand) {
+    if (
+      telemetryConsent === undefined &&
+      !isHelpCommand &&
+      !isRunningOnCiServer()
+    ) {
       telemetryConsent = await confirmTelemetryConsent();
       writeTelemetryConsent(telemetryConsent);
     }
