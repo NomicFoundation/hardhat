@@ -3119,37 +3119,6 @@ describe("Eth module", function () {
             `known transaction: ${bufferToHex(hash)}`
           );
         });
-
-        it("should accept a failed transaction if it eventually becomes valid", async function () {
-          const txParams = {
-            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-            to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-            nonce: numberToRpcQuantity(1),
-          };
-
-          // This transaction is invalid now, because of its nonce
-          await assertTransactionFailure(this.provider, txParams);
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              nonce: numberToRpcQuantity(0),
-            },
-          ]);
-
-          // The transaction is now valid
-          const hash = await this.provider.send("eth_sendTransaction", [
-            txParams,
-          ]);
-
-          // It should throw now
-          await assertTransactionFailure(
-            this.provider,
-            txParams,
-            `known transaction: ${bufferToHex(hash)}`
-          );
-        });
       });
 
       describe("eth_sign", async function () {
