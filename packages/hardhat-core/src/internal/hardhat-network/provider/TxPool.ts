@@ -244,7 +244,7 @@ export class TxPool {
     const baseFee = tx.getBaseFee();
     const gasLimit = new BN(tx.gasLimit);
 
-    if (baseFee.gt(gasLimit)) {
+    if (gasLimit.lt(baseFee)) {
       throw new InvalidInputError(
         `Transaction requires at least ${baseFee} gas but got ${gasLimit}`
       );

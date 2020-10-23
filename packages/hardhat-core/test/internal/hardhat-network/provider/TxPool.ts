@@ -421,13 +421,13 @@ describe("Tx Pool", () => {
         );
       });
 
-      it("throws an error if transaction's gas limit is greater than transaction's base fee", async () => {
+      it("rejects if transaction's gas limit is lower than transaction's base fee", async () => {
         const gasLimit = 100;
         const tx = createTestFakeTransaction({ gasLimit });
         await assert.isRejected(
           txPool.addTransaction(tx),
           InvalidInputError,
-          `Transaction requires at least ${tx.getBaseFee()} gas but got ${gasLimit}`
+          `Transaction requires at least 21000 gas but got ${gasLimit}`
         );
       });
 
