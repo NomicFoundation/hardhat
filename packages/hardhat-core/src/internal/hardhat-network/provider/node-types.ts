@@ -9,7 +9,7 @@ export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 interface CommonConfig {
   blockGasLimit: number;
   genesisAccounts: GenesisAccount[];
-  autoMine: boolean;
+  automine: boolean;
   allowUnlimitedContractSize?: boolean;
   tracingConfig?: TracingConfig;
 }
