@@ -1,0 +1,298 @@
+@import "colors.styl"
+@import "config.styl"
+@import "./util/variables.styl"
+
+
+.cta
+  position: absolute;
+  bottom -1.5rem
+
+.cta,  .cta2
+  a.action-button
+    color: $black
+    background-color $yellow
+    border-bottom 1px solid darken($yellow, 10%)
+    padding 0 24px
+    font-size 1.1em
+    border-radius 4px
+    line-height 3rem
+    height 3rem;
+    display inline-block
+    box-sizing border-box
+    &:hover
+      background-color lighten($yellow, 10%)
+
+.cta2
+  text-align: center;
+  margin-top: 6rem;
+  line-height 60px
+      
+.copy img.mascots
+  max-height: 380px;
+  display inline-block
+  position absolute
+  right 0
+  bottom -1px
+  
+span.site-name
+  display: none
+
+.home .features
+  margin-top: 7rem
+
+a code
+  color: $accentColor !important
+
+.example-1, .example-3, .example-2, .example-4
+  width: 49%;
+  font-size: 85%;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+
+.example-1, .example-3
+  float: left;
+
+.example-2, .example-4
+  float: right;
+
+.example-1 .language-js.extra-class::before
+  content: "contracts/DeathStar.sol" !important
+
+.example-2 .language-js.extra-class::before, .example-3 .language-js.extra-class::before
+  content: "test/DeathStar-test.js" !important
+
+.example-2 .language-js.extra-class::before
+  content: "hardhat.config.js" !important
+
+div.clear
+  clear: both;
+
+.dark
+  background-color: #292C32
+  width: 100%
+  color: #D4D4D4
+  height 221px
+  text-align: center
+  padding-top: 62px
+
+.dark h1
+  color: #D59C44
+  margin: 0 auto
+  font-weight: 600
+  max-width: 700px
+  font-size: 2.6rem
+
+.dark p
+  color: #d4d4d4
+  font-size: 1.1rem
+  margin-top: 1.1em
+  letter-spacing: 0.1px
+
+  
+.notFixed
+  position relative !important
+  
+.navbar
+  border-bottom none !important
+
+.navbar, .navbar .nav-links, .navbar .nav-link, .navbar .links
+  background-color: rgb(248,248,248)
+  color: #d4d4d4;
+  
+.nav-links a.router-link-active, .nav-links a:hover
+    color: $black !important;
+  
+.navbar .icon.outbound
+      display none !important
+  
+  @media (max-width: $MQMobile)
+
+  .copy img.mascots
+    max-height 245px
+    right 2em
+  
+  .copy
+    padding-left 1em
+  
+  
+.mascots-mobile
+  display none
+  
+@media (max-width: $MQMobile)
+  .mascots-mobile
+    display block !important
+    margin 0 auto 2rem auto;
+    height 14rem
+  
+  .dark
+    height auto !important
+    padding-top 1.5rem
+  
+    h1
+      font-size: 1.8rem
+      max-width 12.5em
+  
+    p
+      margin 0 auto
+      max-width 22em
+      text-align center
+      display block
+      padding 1em 0 3em 0
+      
+  .hero
+    height auto !important
+    padding-top 4rem
+    
+    .copy 
+      .text
+        margin-top 0 !important
+        padding-left 0.7em
+        padding-right 0.7em
+        max-width 100%
+        
+        p
+          display inline-block
+          max-width 100%
+          box-sizing border-box
+          padding 0 1em
+          text-align center
+          
+        h2
+          text-align center
+          
+      .cta
+        position: relative
+        text-align center
+        padding-top 1em
+        padding-bottom 1rem
+        
+      .action-button
+        position relative
+        bottom 0
+  
+  .mascots
+    display none !important
+
+  .example-1, .example-2, .example-3, .example-4
+    float: none;
+    width: 100%
+    
+  .used-by
+    margin-bottom: 100px
+
+.plugins
+  
+  .plugin
+    min-height 97px
+    padding 45px 0 15px
+    border-bottom 1px solid rgba(44, 62, 79, 0.15)
+      
+    .name a
+      font-size 1.2em
+      font-weight bold
+      text-decoration none !important
+      
+    .separator
+      padding 0 8px
+      color $lightGrey
+      @media (max-width: $MQMobile)
+        display: none
+      
+    .author a 
+      font-size 1em
+      color $lightGrey
+      &:hover 
+        color $darkYellow
+      @media (max-width: $MQMobile)
+        display block
+        padding-top 8px
+
+    .version
+      font-size 0.9em
+      position absolute
+      display flex
+      top: 0
+      right: 0
+
+    .description
+      margin: 6px 0 12px  
+
+    .tags div
+      background-color #F3F4F4
+      border-radius 6px
+      display inline-flex
+      padding 6px 16px
+      font-size 0.80em
+      margin 0 8px 15px 0
+
+@media (max-width: $MQMobileNarrow)
+  .plugins .plugin .version
+    display: none
+  
+  .search-box
+    display none
+
+.navbar
+  
+  .banner
+    background #222
+    box-sizing: border-box
+    border-bottom 0.5px solid #1c1c1c
+    padding 0.5rem
+    text-align center
+    height: $bannerHeight
+    color: $yellow
+    font-weight 600
+    
+    // To remove the banner set: $bannerHeight to 0rem
+    // And uncomment this 
+    //display none
+
+.only-narrow
+  
+  display: none !important
+  
+@media (max-width: $MQMobileNarrow)
+  
+  .not-narrow
+    display none !important
+  
+  .only-narrow
+    display inline-block !important
+
+
+.migrate
+  display none
+  color: $black;
+  background-color: $yellow;
+  border-bottom 1px solid darken($yellow, 10%)
+  font-size 1.1em
+  border-radius 4px
+  //height 3rem;
+  //box-sizing border-box
+  &:hover
+    background-color lighten($yellow, 10%)
+
+  padding: 20px 20px;
+  z-index: 10;
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  font-weight: 400
+
+@media (min-width: $MQMobile)
+  body.show-cta .migrate 
+    display block
+    animation: fadein 0.2s;
+    //box-shadow: none;
+    //transform: translate3d(0, -100%, 0);
+
+  
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+

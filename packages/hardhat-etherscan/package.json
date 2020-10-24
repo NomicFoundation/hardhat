@@ -1,0 +1,59 @@
+{
+  "name": "@nomiclabs/hardhat-etherscan",
+  "version": "2.0.0",
+  "description": "Hardhat plugin for verifying contracts on etherscan",
+  "repository": "github:nomiclabs/hardhat",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
+  "author": "Nomic Labs LLC",
+  "contributors": [
+    "Nomic Labs LLC",
+    "Marin Petrunić <marin@nodefactory.io>"
+  ],
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
+    "etherscan"
+  ],
+  "scripts": {
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
+    "build": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@ethersproject/abi": "^5.0.2",
+    "@ethersproject/address": "^5.0.2",
+    "cbor": "^5.0.2",
+    "fs-extra": "^7.0.1",
+    "node-fetch": "^2.6.0",
+    "semver": "^6.3.0"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@types/cbor": "^5.0.1",
+    "@types/chai": "^4.2.0",
+    "@types/fs-extra": "^5.1.0",
+    "@types/nock": "^9.3.1",
+    "@types/node-fetch": "^2.3.7",
+    "@types/semver": "^6.0.2",
+    "chai": "^4.2.0",
+    "ethers": "^5.0.8",
+    "hardhat": "^2.0.0",
+    "nock": "^10.0.6"
+  },
+  "peerDependencies": {
+    "hardhat": "^2.0.0"
+  }
+}

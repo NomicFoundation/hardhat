@@ -1,1 +1,1 @@
-packages/buidler-core/README.md
+packages/hardhat-core/README.md

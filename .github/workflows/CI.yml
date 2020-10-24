@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - development
+      - 2.0
   pull_request:
     branches:
       - "*"
@@ -18,30 +19,26 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
+        id: cache
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
+          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}
       - name: Install node-gyp-cache
         run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
+          yarn global add node-gyp-cache
+          yarn config set node_gyp node-gyp-cache
       - name: Install
-        run: npm install
+        run: yarn --frozen-lockfile
+      - name: Clean
+        run: yarn clean
+      - name: Build
+        run: yarn build
       - name: lint
-        run: npm run lint
+        run: yarn lint
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
 
@@ -53,30 +50,24 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
+        id: cache
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
+          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}}
       - name: Install node-gyp-cache
         run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
+          yarn global add node-gyp-cache
+          yarn config set node_gyp node-gyp-cache
       - name: Install
-        run: npm install
+        run: yarn --frozen-lockfile
+      - name: Clean
+        run: yarn clean
       - name: Build tests
-        run: npm run build-test
+        run: yarn build-test
 
   test_windows:
     name: Test on Windows with Node 10
@@ -86,30 +77,13 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
-      #      - name: Install node-gyp-cache
-      #        run: |
-      #          npm install -g node-gyp-cache
-      #          npm config set node_gyp node-gyp-cache
       - name: Install
-        run: npm install
+        run: yarn --frozen-lockfile
       - name: Run tests
-        run: npm run test
+        env:
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+        run: yarn test
 
   test_macos:
     name: Test on MacOS with Node 10
@@ -119,30 +93,27 @@ jobs:
         with:
           node-version: 10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
+        id: cache
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
+          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}}
       - name: Install node-gyp-cache
         run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
+          yarn global add node-gyp-cache
+          yarn config set node_gyp node-gyp-cache
       - name: Install
-        run: npm install
+        run: yarn --frozen-lockfile
+      - name: Clean
+        run: yarn clean
       - name: Run tests
-        run: npm run test
+        env:
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+        run: yarn test
 
   test_linux:
     name: Test on Linux with Node ${{ matrix.node }}
@@ -157,27 +128,24 @@ jobs:
       - name: install vyper
         run: docker pull ethereum/vyper:0.1.0b10
       - uses: actions/checkout@v2
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - name: Get date
-        id: get-date
-        run: echo "::set-output name=date::$(date -u +%Y-%m-%d)"
-      - name: Get node exact version
-        id: get-node-version
-        run: echo "::set-output name=version::$(node --version)"
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
+        id: cache
         with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ steps.get-node-version.outputs.version }}-date-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/package.json') }}
-
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
+          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}}
       - name: Install node-gyp-cache
         run: |
-          npm install -g node-gyp-cache
-          npm config set node_gyp node-gyp-cache
+          yarn global add node-gyp-cache
+          yarn config set node_gyp node-gyp-cache
       - name: Install
-        run: npm install
+        run: yarn --frozen-lockfile
+      - name: Clean
+        run: yarn clean
       - name: Run tests
-        run: npm run test
+        env:
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+        run: yarn test

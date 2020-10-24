@@ -1,0 +1,45 @@
+{
+  "name": "@nomiclabs/hardhat-web3",
+  "version": "2.0.0",
+  "author": "Nomic Labs LLC",
+  "license": "MIT",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3",
+  "repository": "github:nomiclabs/hardhat",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "description": "Hardhat plugin for using Web3 1.x",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
+    "web3",
+    "web3.js"
+  ],
+  "scripts": {
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit && node web3-lazy-object-tests/when-accessing-web3-class.js && node web3-lazy-object-tests/when-accessing-web3-object.js && node web3-lazy-object-tests/when-requiring-web3-module.js",
+    "build": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "chai": "^4.2.0",
+    "hardhat": "^2.0.0",
+    "web3": "^1.0.0-beta.36"
+  },
+  "peerDependencies": {
+    "hardhat": "^2.0.0",
+    "web3": "^1.0.0-beta.36"
+  },
+  "dependencies": {
+    "@types/bignumber.js": "^5.0.0"
+  }
+}

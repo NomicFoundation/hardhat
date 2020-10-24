@@ -15,6 +15,12 @@
     "no-console": false,
     "only-arrow-functions": false,
     "prefer-template": true,
+    "strict-comparisons": [
+      true,
+      {
+        "allow-object-equal-comparison": true
+      }
+    ],
     "variable-name": [
       true,
       "check-format",
@@ -30,8 +36,8 @@
     ],
     "no-floating-promises": true,
     "prefer-conditional-expression": false,
-    "no-implicit-dependencies": [true, ["chai"]],
-    "await-promise": true,
+    "no-implicit-dependencies": [true, ["chai", "sinon", "chai-as-promised"]],
+    "await-promise": [true, "PromiseLike"],
     "strict-boolean-expressions": true,
     "no-duplicate-super": true,
     "no-inferred-empty-object-type": true,
@@ -56,6 +62,7 @@
       { "type": "genericTypeParameter", "suffix": "T" },
       { "type": "enum", "format": "PascalCase" },
       { "type": "enumMember", "format": "UPPER_CASE" }
-    ]
+    ],
+    "no-duplicate-imports": [true, { "allow-namespace-imports": true }]
   }
 }

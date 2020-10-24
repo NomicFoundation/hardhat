@@ -54,7 +54,8 @@ body
   border-right 1px solid $borderColor
   overflow-y auto
 
-.content:not(.custom)
+.theme-container:not(.custom) .content,
+.theme-container:not(.custom) .content__default
   @extend $wrapper
   > *:first-child
     margin-top $navbarAndBannerHeight
@@ -105,7 +106,8 @@ strong
 h1, h2, h3, h4, h5, h6
   font-weight 600
   line-height 1.25
-  .content:not(.custom) > &
+  .theme-container:not(.custom) .content > &,
+  .theme-container:not(.custom) .content__default > &
     margin-top (0.5rem - $navbarAndBannerHeight)
     padding-top ($navbarAndBannerHeight + 1rem)
     margin-bottom 0
@@ -171,7 +173,8 @@ th, td
     .sidebar-mask
       display: block
   &.no-navbar
-    .content:not(.custom) > h1, h2, h3, h4, h5, h6
+    .theme-container:not(.custom) .content > h1, h2, h3, h4, h5, h6,
+    .theme-container:not(.custom) .content__default > h1, h2, h3, h4, h5, h6
       margin-top 1.5rem
       padding-top 0
     .sidebar
@@ -188,4 +191,100 @@ th, td
       padding-left 0
 
 @require './mobile.styl'
-@require '../../style.styl'
+@require './custom-style.styl'
+
+
+// landing
+
+.landing-html
+  overflow-x hidden
+  margin 0
+  padding 0
+  box-sizing border-box
+  font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  color $black
+  
+  *
+    margin 0
+    padding 0
+    box-sizing border-box
+    font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    color $black
+  
+  body
+    background $background-white
+    font-size 15px
+    overflow-x hidden
+  
+  .mb-hidden
+    @media (max-width: 1001px)
+      display none !important
+  
+  .mb-show
+    @media screen and (min-width: 1000px)
+      display none !important
+  
+  a
+    text-decoration none
+  
+  .hidden
+    pointer-events none
+    position absolute !important
+    left 100vw !important
+  
+  .padded-container
+    max-width 960px
+    padding 1rem 0
+    margin 0 auto
+    @media (max-width: 1000px)
+      padding 1rem 20px
+      max-width 513px
+    @media (min-width: 1000px) and (max-width: 1040px)
+      max-width 860px
+  
+  @import './config.styl'
+  
+  .custom-layout
+    padding-top $LandingNavbarAndBannerHeight
+  
+  .navBarAndBannerSticky
+    background #ffffff
+    position: fixed
+    z-index 100000
+    top: 0
+    width 100%
+    height $LandingNavbarAndBannerHeight
+  
+  
+  .sidebar-mask
+    position fixed
+    z-index 9
+    top 0
+    left 0
+    width 100vw
+    height 100vh
+    display none
+  
+  .sidebar
+    font-size 550
+    font-size 15px
+    background-color #fff
+    width 20rem
+    position fixed
+    z-index 10
+    margin 0
+    top $bannerAndNavbarHeight
+    left 0
+    bottom 0
+    box-sizing border-box
+    border-right 1px solid $borderColor
+    overflow-y auto
+
+  h1, h2, h3, h4
+    text-decoration none !important
+    border: none !important
+
+// Hide the external link icon from images
+img + svg.icon.outbound {
+  display: none !important;
+}

@@ -1,0 +1,50 @@
+{
+  "name": "@nomiclabs/hardhat-waffle",
+  "version": "2.0.0",
+  "description": "Hardhat plugin to test smart contracts with Waffle",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-waffle",
+  "repository": "github:nomiclabs/hardhat",
+  "author": "Nomic Labs LLC",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
+    "ethers.js"
+  ],
+  "scripts": {
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
+    "build": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/fs-extra": "^5.1.0",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^3.0.0",
+    "ethers": "^5.0.0",
+    "hardhat": "^2.0.0"
+  },
+  "peerDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "ethers": "^5.0.0",
+    "ethereum-waffle": "^3.0.0",
+    "hardhat": "^2.0.0"
+  },
+  "dependencies": {
+    "@types/web3": "1.0.19",
+    "@types/sinon-chai": "^3.2.3"
+  }
+}

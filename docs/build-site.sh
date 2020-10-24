@@ -5,19 +5,17 @@ set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-npm install -g node-gyp-cache
-npm config set node_gyp node-gyp-cache
-
-cd ../
-npm install
-
 cd "$DIR"
-npm install
-npm run apidocs
-bash fix-api-docs.sh
-npx ts-node build-plugins-doc.ts
+yarn --frozen-lockfile
+yarn ts-node build-plugins-doc.ts
 bash wget-readmes.sh
 
 bash error-list.sh
-npm run build
+yarn build
 bash error-list.sh
+
+cat _headers >> .vuepress/dist/_headers
+
+if [ "$CONTEXT" = "branch-deploy"  ]; then 
+  bash prevent-indexing.sh 
+fi

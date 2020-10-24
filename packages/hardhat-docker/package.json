@@ -1,0 +1,40 @@
+{
+  "name": "@nomiclabs/hardhat-docker",
+  "version": "2.0.0",
+  "description": "A library to manage Docker from Hardhat plugins",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-docker",
+  "repository": "github:nomiclabs/hardhat",
+  "author": "Nomic Labs LLC",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "keywords": [
+    "hardhat",
+    "docker"
+  ],
+  "scripts": {
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
+    "build": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/dockerode": "^2.5.19",
+    "@types/fs-extra": "^5.1.0",
+    "@types/node-fetch": "^2.3.7"
+  },
+  "peerDependencies": {},
+  "dependencies": {
+    "fs-extra": "^7.0.1",
+    "dockerode": "^2.5.8",
+    "node-fetch": "^2.6.0"
+  }
+}

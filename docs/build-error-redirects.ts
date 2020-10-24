@@ -3,9 +3,9 @@ import {
   ErrorDescriptor,
   ERRORS,
   getErrorCode
-} from "../packages/buidler-core/src/internal/core/errors-list";
+} from "../packages/hardhat-core/src/internal/core/errors-list";
 
-let content = `# Buidler errors redirects
+let content = `# Hardhat errors redirects
 `;
 
 for (const rangeName of Object.keys(ERROR_RANGES)) {

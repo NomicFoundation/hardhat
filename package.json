@@ -4,16 +4,18 @@
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@types/mocha": "^5.2.6",
-    "@types/node": "^8.10.44",
+    "@types/node": "^10.17.24",
+    "@types/shelljs": "^0.8.6",
     "chai": "^4.2.0",
-    "dotenv": "^6.2.0",
-    "ganache-cli": "^6.4.3",
-    "lerna": "^3.13.4",
-    "mocha": "^5.2.0",
+    "ganache-cli": "^6.12.0",
+    "mocha": "^7.1.2",
     "nyc": "^14.1.0",
-    "prettier": "1.18.2",
+    "prettier": "2.0.5",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.3",
     "source-map-support": "^0.5.13",
@@ -22,17 +24,17 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-consistent-codestyle": "^1.15.1",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.5.3"
+    "typescript": "~4.0.3",
+    "wsrun": "^5.2.2"
   },
   "scripts": {
-    "postinstall": "node scripts/install.js",
-    "build": "lerna exec -- npm run build",
-    "build-test": "lerna exec -- npm run build-test",
-    "watch": "tsc --build --watch packages/*/src",
-    "clean": "lerna exec -- npm run clean",
+    "build": "tsc --build packages/hardhat-core/src packages/hardhat-docker packages/hardhat-ethers packages/hardhat-etherscan packages/hardhat-ganache packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-waffle packages/hardhat-web3 packages/hardhat-web3-legacy",
+    "build-test": "tsc --build packages/hardhat-core",
+    "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-docker packages/hardhat-ethers packages/hardhat-etherscan packages/hardhat-ganache packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-waffle packages/hardhat-web3 packages/hardhat-web3-legacy",
+    "clean": "wsrun --exclude-missing clean",
     "test": "node scripts/run-tests.js",
-    "lint": "lerna exec --no-bail -- npm run lint",
-    "lint:fix": "lerna exec -- npm run lint:fix"
+    "lint": "wsrun --exclude-missing --serial lint",
+    "lint:fix": "wsrun --exclude-missing --stages lint:fix"
   },
   "dependencies": {}
 }
