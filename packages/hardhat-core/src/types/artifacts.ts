@@ -131,8 +131,8 @@ export interface DebugFile {
  * all of its output.
  */
 export interface BuildInfo {
-  id: string;
   _format: string;
+  id: string;
   solcVersion: string;
   solcLongVersion: string;
   input: CompilerInput;
