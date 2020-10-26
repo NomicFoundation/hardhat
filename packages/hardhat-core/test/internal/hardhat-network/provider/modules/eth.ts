@@ -3102,8 +3102,9 @@ describe("Eth module", function () {
           );
         });
 
-        // TODO unskip
-        it.skip("Should throw an error if the same transaction is sent twice", async function () {
+        it("Should throw an error if the same transaction is sent twice", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
           const txParams = {
             from: DEFAULT_ACCOUNTS_ADDRESSES[0],
             to: DEFAULT_ACCOUNTS_ADDRESSES[0],

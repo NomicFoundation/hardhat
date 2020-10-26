@@ -32,6 +32,11 @@ export class EvmModule {
 
       case "evm_snapshot":
         return this._snapshotAction(...this._snapshotParams(params));
+
+      case "evm_setAutomineEnabled":
+        return this._setAutomineEnabledAction(
+          ...this._setAutomineEnabledParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -120,5 +125,16 @@ export class EvmModule {
   private async _snapshotAction(): Promise<string> {
     const snapshotId = await this._node.takeSnapshot();
     return numberToRpcQuantity(snapshotId);
+  }
+
+  // evm_setAutomineEnabled
+
+  private _setAutomineEnabledParams(params: any[]): [boolean] {
+    return validateParams(params, t.boolean);
+  }
+
+  private async _setAutomineEnabledAction(automine: boolean): Promise<true> {
+    this._node.setAutomineEnabled(automine);
+    return true;
   }
 }

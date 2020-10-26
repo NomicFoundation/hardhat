@@ -332,6 +332,10 @@ describe("Evm module", function () {
         });
       });
 
+      describe("evm_setAutomineEnabled", () => {
+        // TODO
+      });
+
       describe("Snapshot functionality", function () {
         describe("evm_snapshot", async function () {
           it("returns the snapshot id starting at 1", async function () {

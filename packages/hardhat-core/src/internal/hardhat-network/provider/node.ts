@@ -187,7 +187,7 @@ export class HardhatNode extends EventEmitter {
     private readonly _stateManager: PStateManager,
     private readonly _blockchain: PBlockchain,
     private readonly _txPool: TxPool,
-    private readonly _automine: boolean,
+    private _automine: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig
@@ -869,6 +869,10 @@ export class HardhatNode extends EventEmitter {
 
   public removeImpersonatedAccount(address: Buffer): boolean {
     return this._impersonatedAccounts.delete(bufferToHex(address));
+  }
+
+  public setAutomineEnabled(automine: boolean) {
+    this._automine = automine;
   }
 
   private async _getFakeTransaction(
