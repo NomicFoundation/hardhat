@@ -266,7 +266,6 @@ export class HardhatNode extends EventEmitter {
     consoleLogMessages: string[];
   }> {
     await this._txPool.addTransaction(tx);
-    await this._validateTransaction(tx);
     await this._notifyPendingTransaction(tx);
 
     const [
@@ -1155,51 +1154,6 @@ export class HardhatNode extends EventEmitter {
 
   private async _increaseBlockTimestamp(block: Block) {
     block.header.timestamp = new BN(block.header.timestamp).addn(1).toBuffer();
-  }
-
-  private async _validateTransaction(tx: Transaction) {
-    if (!tx.verifySignature()) {
-      throw new InvalidInputError("Invalid transaction signature");
-    }
-
-    // Geth returns this error if trying to create a contract and no data is provided
-    if (tx.to.length === 0 && tx.data.length === 0) {
-      throw new InvalidInputError(
-        "contract creation without any data provided"
-      );
-    }
-
-    const expectedNonce = await this.getAccountNonce(
-      tx.getSenderAddress(),
-      null
-    );
-    const actualNonce = new BN(tx.nonce);
-    if (!expectedNonce.eq(actualNonce)) {
-      throw new InvalidInputError(
-        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}.
-
-If you are running a script or test, you may be sending transactions in parallel.
-Using JavaScript? You probably forgot an await.
-
-If you are using a wallet or dapp, try resetting your wallet's accounts.`
-      );
-    }
-
-    const baseFee = tx.getBaseFee();
-    const gasLimit = new BN(tx.gasLimit);
-
-    if (baseFee.gt(gasLimit)) {
-      throw new InvalidInputError(
-        `Transaction requires at least ${baseFee} gas but got ${gasLimit}`
-      );
-    }
-
-    const blockGasLimit = await this.getBlockGasLimit();
-    if (gasLimit.gt(blockGasLimit)) {
-      throw new InvalidInputError(
-        `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
-      );
-    }
   }
 
   private async _runInBlockContext<T>(
