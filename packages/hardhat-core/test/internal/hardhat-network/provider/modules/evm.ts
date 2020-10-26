@@ -332,7 +332,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe.only("evm_setAutomineEnabled", () => {
+      describe("evm_setAutomineEnabled", () => {
         it("should immediately mine a new block when automine option is enabled", async function () {
           const [from] = await this.provider.send("eth_accounts");
           await this.provider.send("evm_setAutomineEnabled", [true]);

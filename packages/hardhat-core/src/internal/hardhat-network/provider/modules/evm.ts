@@ -2,7 +2,12 @@ import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { InvalidInputError, MethodNotFoundError } from "../errors";
-import { rpcQuantity, validateParams } from "../input";
+import {
+  evmIntervalMining,
+  EvmIntervalMining,
+  rpcQuantity,
+  validateParams,
+} from "../input";
 import { HardhatNode } from "../node";
 import { numberToRpcQuantity } from "../output";
 
@@ -36,6 +41,11 @@ export class EvmModule {
       case "evm_setAutomineEnabled":
         return this._setAutomineEnabledAction(
           ...this._setAutomineEnabledParams(params)
+        );
+
+      case "evm_setIntervalMining":
+        return this._setIntervalMiningAction(
+          ...this._setIntervalMiningParams(params)
         );
     }
 
@@ -133,8 +143,25 @@ export class EvmModule {
     return validateParams(params, t.boolean);
   }
 
-  private async _setAutomineEnabledAction(automine: boolean): Promise<true> {
+  private async _setAutomineEnabledAction(automine: boolean): Promise<boolean> {
     this._node.setAutomineEnabled(automine);
-    return true;
+    return automine;
+  }
+
+  // evm_setIntervalMining
+
+  private _setIntervalMiningParams(params: any[]): [EvmIntervalMining] {
+    return validateParams(params, evmIntervalMining);
+  }
+
+  private async _setIntervalMiningAction(
+    miningConfig: EvmIntervalMining
+  ): Promise<number> {
+    if (miningConfig.blockTime !== undefined) {
+      this._node.setBlockTime(miningConfig.blockTime);
+      return miningConfig.blockTime;
+    }
+
+    return -1;
   }
 }

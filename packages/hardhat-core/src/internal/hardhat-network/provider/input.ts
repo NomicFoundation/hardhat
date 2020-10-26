@@ -279,6 +279,19 @@ export const optionalRpcHardhatNetworkConfig = optional(
   rpcHardhatNetworkConfig
 );
 
+export const evmIntervalMining = t.type(
+  {
+    enabled: t.boolean,
+    blockTime: optional(t.number),
+  },
+  "EvmIntervalMining"
+);
+
+export interface EvmIntervalMining {
+  enabled: boolean;
+  blockTime?: number;
+}
+
 export function validateParams(params: any[]): [];
 
 export function validateParams(
@@ -397,6 +410,11 @@ export function validateParams(
   params: any[],
   boolean: typeof t.boolean
 ): [boolean];
+
+export function validateParams(
+  params: any[],
+  miningConfig: typeof evmIntervalMining
+): [EvmIntervalMining];
 
 // tslint:disable only-hardhat-error
 

@@ -187,6 +187,8 @@ export class HardhatNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
+  private _blockTime: number;
+
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: PStateManager,
@@ -836,6 +838,10 @@ export class HardhatNode extends EventEmitter {
 
   public setAutomineEnabled(automine: boolean) {
     this._automine = automine;
+  }
+
+  public setBlockTime(blockTime: number) {
+    this._blockTime = blockTime;
   }
 
   private async _updateTransactionsRoot(block: Block) {
