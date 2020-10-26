@@ -210,6 +210,7 @@ export class Artifacts implements IArtifacts {
     const buildInfoName = uuid();
 
     const buildInfo = this._createBuildInfo(
+      buildInfoName,
       solcVersion,
       solcLongVersion,
       input,
@@ -296,12 +297,14 @@ export class Artifacts implements IArtifacts {
   }
 
   private _createBuildInfo(
+    id: string,
     solcVersion: string,
     solcLongVersion: string,
     input: CompilerInput,
     output: CompilerOutput
   ): BuildInfo {
     return {
+      id,
       _format: BUILD_INFO_FORMAT_VERSION,
       solcVersion,
       solcLongVersion,
