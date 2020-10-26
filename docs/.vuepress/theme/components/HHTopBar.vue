@@ -16,7 +16,9 @@ section.top-bar
           span <
             |
             |
-        span.top-text Buidler is now Hardhat. Learn more about the latest release and rebrand.
+        span.top-text 
+          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Buidler is now Hardhat: Learn more about the latest release and rebrand 
+            span here
         span.colored.reverse.animation-6chars
           span 
             |
@@ -35,7 +37,9 @@ section.top-bar
           span <
             |
             |
-        span.top-text Stack traces and console.log are finally here
+        span.top-text
+          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Buidler is now Hardhat: Learn more 
+            span here
         span.colored.reverse.animation-4chars
           span 
             |
@@ -48,6 +52,12 @@ section.top-bar
 <script>
 export default {
   name: "HHTopBar",
+  data() {
+    return {
+      postUrl:
+        "https://medium.com/nomic-labs-blog/buidler-has-evolved-introducing-hardhat-4bccd13bc931",
+    };
+  },
 };
 </script>
 
@@ -161,10 +171,15 @@ export default {
         font-size 13px !important
 
   .top-bar-link
-    text-decoration underline
+    text-decoration none
     font-family 'Chivo'
-    color inherit
     color white
+    font-weight normal
+    display inline-block
+    
+    span
+      color white
+      text-decoration underline
 
   .top-bar-content
     line-height 24px
