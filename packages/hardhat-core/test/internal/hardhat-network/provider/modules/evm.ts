@@ -332,8 +332,56 @@ describe("Evm module", function () {
         });
       });
 
-      describe("evm_setAutomineEnabled", () => {
-        // TODO
+      describe.only("evm_setAutomineEnabled", () => {
+        it("should immediately mine a new block when automine option is enabled", async function () {
+          const [from] = await this.provider.send("eth_accounts");
+          await this.provider.send("evm_setAutomineEnabled", [true]);
+          const previousBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          assert.notEqual(previousBlock.number, latestBlock.number);
+        });
+
+        it("should not mine a new block when automine option is disabled", async function () {
+          const [from] = await this.provider.send("eth_accounts");
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+          const previousBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          assert.equal(previousBlock.number, latestBlock.number);
+        });
       });
 
       describe("Snapshot functionality", function () {
