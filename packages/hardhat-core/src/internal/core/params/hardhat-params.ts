@@ -21,6 +21,15 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
     isOptional: true,
     isVariadic: false,
   },
+  disableTelemetry: {
+    name: "disableTelemetry",
+    defaultValue: false,
+    description: "Disable collection of telemetry data.",
+    type: types.boolean,
+    isFlag: true,
+    isOptional: true,
+    isVariadic: false,
+  },
   version: {
     name: "version",
     defaultValue: false,

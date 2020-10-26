@@ -80,6 +80,7 @@ describe("getEnvVariablesMap", () => {
         network: "asd",
         emoji: false,
         help: true,
+        disableTelemetry: true,
         showStackTraces: true,
         version: false,
         verbose: true,

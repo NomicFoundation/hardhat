@@ -36,6 +36,7 @@ describe("Config resolution", () => {
         assert.containsAllKeys(config.networks, ["localhost"]);
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
         assert.equal(config.defaultNetwork, "hardhat");
+        assert.equal(config.disableTelemetry, false);
 
         const hardhatNetworkConfig: HardhatNetworkUserConfig = config.networks
           .hardhat as HardhatNetworkUserConfig;
@@ -51,6 +52,7 @@ describe("Config resolution", () => {
       beforeEach(() => {
         config = resolveConfig(__filename, {
           defaultNetwork: "custom",
+          disableTelemetry: true,
           networks: {
             custom: {
               url: "http://localhost:8545",
@@ -73,6 +75,7 @@ describe("Config resolution", () => {
         assert.equal(config.solidity.compilers[0].version, "0.5.15");
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
         assert.equal(config.defaultNetwork, "custom");
+        assert.equal(config.disableTelemetry, true);
       });
 
       it("should return the config merged ", () => {

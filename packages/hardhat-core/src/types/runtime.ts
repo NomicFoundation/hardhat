@@ -159,6 +159,7 @@ export type ActionType<ArgsT extends TaskArguments> = (
 export interface HardhatArguments {
   network?: string;
   showStackTraces: boolean;
+  disableTelemetry: boolean;
   version: boolean;
   help: boolean;
   emoji: boolean;

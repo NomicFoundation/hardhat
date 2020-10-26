@@ -123,7 +123,9 @@ async function main() {
     if (
       telemetryConsent === undefined &&
       !isHelpCommand &&
-      !isRunningOnCiServer()
+      !isRunningOnCiServer() &&
+      !hardhatArguments.disableTelemetry &&
+      !config.disableTelemetry
     ) {
       telemetryConsent = await confirmTelemetryConsent();
       writeTelemetryConsent(telemetryConsent);

@@ -206,6 +206,7 @@ export interface SolidityConfig {
 
 export interface HardhatUserConfig {
   defaultNetwork?: string;
+  disableTelemetry?: boolean;
   paths?: ProjectPathsUserConfig;
   networks?: NetworksUserConfig;
   solidity?: SolidityUserConfig;
@@ -214,6 +215,7 @@ export interface HardhatUserConfig {
 
 export interface HardhatConfig {
   defaultNetwork: string;
+  disableTelemetry: boolean;
   paths: ProjectPathsConfig;
   networks: NetworksConfig;
   solidity: SolidityConfig;

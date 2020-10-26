@@ -30,6 +30,7 @@ describe("ArgumentsParser", () => {
     argumentsParser = new ArgumentsParser();
     envArgs = {
       network: "test",
+      disableTelemetry: false,
       showStackTraces: false,
       version: false,
       help: false,

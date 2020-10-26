@@ -194,6 +194,7 @@ const SolidityConfig = t.union([t.string, SingleSolcConfig, MultiSolcConfig]);
 const HardhatConfig = t.type(
   {
     defaultNetwork: optional(t.string),
+    disableTelemetry: optional(t.boolean),
     networks: optional(Networks),
     paths: optional(ProjectPaths),
     solidity: optional(SolidityConfig),

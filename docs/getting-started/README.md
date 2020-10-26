@@ -77,6 +77,7 @@ GLOBAL OPTIONS:
   --max-memory          The maximum amount of memory that Hardhat can use.
   --network             The network to connect to.
   --show-stack-traces   Show stack traces.
+  --disable-telemetry   Disable collection of telemetry data.
   --tsconfig            Reserved hardhat argument -- Has no effect.
   --verbose             Enables Hardhat verbose logging
   --version             Shows hardhat's version.

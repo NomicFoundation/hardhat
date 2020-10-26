@@ -28,6 +28,7 @@ import { useFixtureProject } from "../../helpers/project";
 describe("Environment", () => {
   const config: HardhatConfig = {
     defaultNetwork: "default",
+    disableTelemetry: false,
     networks: {
       localhost: {
         url: "http://localhosthost:8545",
@@ -70,6 +71,7 @@ describe("Environment", () => {
 
   const args: HardhatArguments = {
     network: "localhost",
+    disableTelemetry: false,
     showStackTraces: false,
     version: false,
     help: false,

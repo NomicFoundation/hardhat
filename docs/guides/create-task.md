@@ -88,6 +88,7 @@ GLOBAL OPTIONS:
   --help                Shows this message.
   --network             The network to connect to. (default: "hardhat")
   --show-stack-traces   Show stack traces.
+  --disable-telemetry   Disable collection of telemetry data.
   --version             Shows hardhat's version.
 
 

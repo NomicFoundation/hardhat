@@ -195,6 +195,7 @@ describe("SimpleTaskDefinition", () => {
         // added and not tested.
         const hardhatArgs: HardhatArguments = {
           showStackTraces: true,
+          disableTelemetry: false,
           network: "",
           version: false,
           emoji: false,
