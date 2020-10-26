@@ -2,7 +2,11 @@ import VM from "@nomiclabs/ethereumjs-vm";
 import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
-import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import {
+  RunBlockResult,
+  TxReceipt,
+} from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
@@ -18,6 +22,7 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
+import Trie from "merkle-patricia-tree";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
@@ -267,6 +272,40 @@ export class HardhatNode extends EventEmitter {
     if (this._automine) {
       return this._runTransactionInNewBlock();
     }
+  }
+
+  public async mineBlock() {
+    const [blockTimestamp] = this._calculateTimestampAndOffset();
+    const block = await this._getNextBlockTemplate(blockTimestamp);
+
+    await this._updateTransactionsRoot(block);
+
+    const previousRoot = await this._stateManager.getStateRoot();
+
+    let result: RunBlockResult;
+    try {
+      result = await this.runBlock(block);
+      await this._saveBlockAsSuccessfullyRun(block, result);
+    } catch (error) {
+      await this._stateManager.setStateRoot(previousRoot);
+      throw new TransactionExecutionError(error);
+    }
+  }
+
+  public async runBlock(block: Block): Promise<RunBlockResult> {
+    const bloom = new Bloom();
+    const receiptTrie = new Trie();
+    const receipts: TxReceipt[] = [];
+    const results: RunTxResult[] = [];
+
+    // TODO assign block reward
+    block.header.stateRoot = await this._stateManager.getStateRoot();
+    block.header.bloom = bloom.bitvector;
+
+    return {
+      receipts,
+      results,
+    };
   }
 
   public async mineEmptyBlock(timestamp: BN) {
@@ -797,6 +836,11 @@ export class HardhatNode extends EventEmitter {
 
   public setAutomineEnabled(automine: boolean) {
     this._automine = automine;
+  }
+
+  private async _updateTransactionsRoot(block: Block) {
+    await new Promise((resolve) => block.genTxTrie(resolve));
+    block.header.transactionsTrie = block.txTrie.root;
   }
 
   private async _runTransactionInNewBlock(): Promise<RunTransactionResult> {
