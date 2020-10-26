@@ -265,84 +265,8 @@ export class HardhatNode extends EventEmitter {
     await this._notifyPendingTransaction(tx);
 
     if (this._automine) {
-      return this.mineBlock();
+      return this._runTransactionInNewBlock();
     }
-  }
-
-  public async mineBlock(): Promise<RunTransactionResult> {
-    const pendingTransactions = this._txPool.getPendingTransactions();
-    const txHeap = new TxPriorityHeap(pendingTransactions);
-    // TODO iterate over all of the transactions
-    const orderedTx = txHeap.peek();
-    if (orderedTx === undefined) {
-      throw new Error("Unsupported");
-    }
-    const tx = orderedTx.data;
-
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset();
-
-    const block = await this._getNextBlockTemplate(blockTimestamp);
-
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      block
-    );
-
-    if (needsTimestampIncrease) {
-      await this._increaseBlockTimestamp(block);
-    }
-
-    await this._addTransactionToBlock(block, tx);
-
-    const result = await this._vm.runBlock({
-      block,
-      generate: true,
-      skipBlockValidation: true,
-    });
-
-    await this._txPool.clean(); // TODO handle possible errors
-
-    if (needsTimestampIncrease) {
-      await this.increaseTime(new BN(1));
-    }
-
-    await this._saveBlockAsSuccessfullyRun(block, result);
-
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
-
-    if (vmTrace !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
-
-    const consoleLogMessages = await this._getConsoleLogMessages(
-      vmTrace,
-      vmTracerError
-    );
-
-    const error = await this._manageErrors(
-      result.results[0].execResult,
-      vmTrace,
-      vmTracerError
-    );
-
-    if (offsetShouldChange) {
-      await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
-    }
-
-    await this._resetNextBlockTimestamp();
-
-    return {
-      trace: vmTrace,
-      block,
-      blockResult: result,
-      error,
-      consoleLogMessages,
-    };
   }
 
   public async mineEmptyBlock(timestamp: BN) {
@@ -873,6 +797,82 @@ export class HardhatNode extends EventEmitter {
 
   public setAutomineEnabled(automine: boolean) {
     this._automine = automine;
+  }
+
+  private async _runTransactionInNewBlock(): Promise<RunTransactionResult> {
+    const pendingTransactions = this._txPool.getPendingTransactions();
+    const txHeap = new TxPriorityHeap(pendingTransactions);
+    // TODO iterate over all of the transactions
+    const orderedTx = txHeap.peek();
+    if (orderedTx === undefined) {
+      throw new Error("Unsupported");
+    }
+    const tx = orderedTx.data;
+
+    const [
+      blockTimestamp,
+      offsetShouldChange,
+      newOffset,
+    ] = this._calculateTimestampAndOffset();
+
+    const block = await this._getNextBlockTemplate(blockTimestamp);
+
+    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
+      block
+    );
+
+    if (needsTimestampIncrease) {
+      await this._increaseBlockTimestamp(block);
+    }
+
+    await this._addTransactionToBlock(block, tx);
+
+    const result = await this._vm.runBlock({
+      block,
+      generate: true,
+      skipBlockValidation: true,
+    });
+
+    await this._txPool.clean(); // TODO handle possible errors
+
+    if (needsTimestampIncrease) {
+      await this.increaseTime(new BN(1));
+    }
+
+    await this._saveBlockAsSuccessfullyRun(block, result);
+
+    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
+
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
+
+    const error = await this._manageErrors(
+      result.results[0].execResult,
+      vmTrace,
+      vmTracerError
+    );
+
+    if (offsetShouldChange) {
+      await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
+    }
+
+    await this._resetNextBlockTimestamp();
+
+    return {
+      trace: vmTrace,
+      block,
+      blockResult: result,
+      error,
+      consoleLogMessages,
+    };
   }
 
   private async _getFakeTransaction(
