@@ -1294,13 +1294,13 @@ export class EthModule {
   }
 
   private async _sendTransactionAndReturnHash(tx: Transaction) {
-    const {
-      trace,
-      block,
-      blockResult,
-      consoleLogMessages,
-      error,
-    } = await this._node.runTransactionInNewBlock(tx);
+    const result = await this._node.runTransaction(tx);
+    const txHash = bufferToRpcData(tx.hash(true));
+    if (result === undefined) {
+      return txHash;
+    }
+
+    const { trace, block, blockResult, consoleLogMessages, error } = result;
 
     await this._logTransactionTrace(tx, trace, block, blockResult);
 
@@ -1321,7 +1321,7 @@ export class EthModule {
       this._logError(error);
     }
 
-    return bufferToRpcData(tx.hash(true));
+    return txHash;
   }
 
   private _logTo(to: Buffer, trace?: MessageTrace) {

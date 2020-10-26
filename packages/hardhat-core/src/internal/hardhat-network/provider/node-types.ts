@@ -1,6 +1,8 @@
+import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
 
 import { BuildInfo } from "../../../types";
+import { MessageTrace } from "../stack-traces/message-trace";
 
 import { Block } from "./types/Block";
 
@@ -76,4 +78,12 @@ export interface Snapshot {
   stateRoot: Buffer;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
+}
+
+export interface RunTransactionResult {
+  trace: MessageTrace | undefined;
+  block: Block;
+  blockResult: RunBlockResult;
+  error?: Error;
+  consoleLogMessages: string[];
 }

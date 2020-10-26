@@ -50,6 +50,7 @@ import {
   FilterParams,
   GenesisAccount,
   NodeConfig,
+  RunTransactionResult,
   Snapshot,
   TracingConfig,
   TransactionParams,
@@ -61,6 +62,7 @@ import {
   RpcReceiptOutput,
 } from "./output";
 import { TxPool } from "./TxPool";
+import { TxPriorityHeap } from "./TxPriorityHeap";
 import { Block } from "./types/Block";
 import { PBlockchain } from "./types/PBlockchain";
 import { PStateManager } from "./types/PStateManager";
@@ -256,17 +258,26 @@ export class HardhatNode extends EventEmitter {
     throw new InvalidInputError(`unknown account ${senderAddress}`);
   }
 
-  public async runTransactionInNewBlock(
+  public async runTransaction(
     tx: Transaction
-  ): Promise<{
-    trace: MessageTrace | undefined;
-    block: Block;
-    blockResult: RunBlockResult;
-    error?: Error;
-    consoleLogMessages: string[];
-  }> {
+  ): Promise<RunTransactionResult | undefined> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);
+
+    if (this._automine) {
+      return this.mineBlock();
+    }
+  }
+
+  public async mineBlock(): Promise<RunTransactionResult> {
+    const pendingTransactions = this._txPool.getPendingTransactions();
+    const txHeap = new TxPriorityHeap(pendingTransactions);
+    // TODO iterate over all of the transactions
+    const orderedTx = txHeap.peek();
+    if (orderedTx === undefined) {
+      throw new Error("Unsupported");
+    }
+    const tx = orderedTx.data;
 
     const [
       blockTimestamp,
@@ -291,6 +302,8 @@ export class HardhatNode extends EventEmitter {
       generate: true,
       skipBlockValidation: true,
     });
+
+    await this._txPool.clean(); // TODO handle possible errors
 
     if (needsTimestampIncrease) {
       await this.increaseTime(new BN(1));
@@ -1134,11 +1147,6 @@ export class HardhatNode extends EventEmitter {
           break;
       }
     });
-  }
-
-  private _transactionWasSuccessful(tx: Transaction): boolean {
-    const localTransaction = this._blockchain.getLocalTransaction(tx.hash());
-    return localTransaction !== undefined;
   }
 
   private async _timestampClashesWithPreviousBlockOne(
