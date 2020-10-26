@@ -136,7 +136,9 @@ async function main() {
     const analytics = await Analytics.getInstance(telemetryConsent);
 
     Reporter.setConfigPath(config.paths.configFile);
-    Reporter.setEnabled(true);
+    if (telemetryConsent === true) {
+      Reporter.setEnabled(true);
+    }
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
