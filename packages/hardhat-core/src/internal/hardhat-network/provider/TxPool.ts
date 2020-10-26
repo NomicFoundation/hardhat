@@ -16,6 +16,7 @@ import {
 import { PStateManager } from "./types/PStateManager";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
+import { retrieveNonce } from "./utils/retrieveNonce";
 
 export function serializeTransaction(
   tx: OrderedTransaction
@@ -305,11 +306,10 @@ export class TxPool {
       this._getQueuedForAddress(bufferToHex(tx.getSenderAddress())) ??
       ImmutableList();
 
-    return (
-      queuedTxs.filter((ftx) =>
-        this._deserializeTransaction(ftx).data.nonce.equals(tx.nonce)
-      ).size !== 0
+    const queuedTx = queuedTxs.find((ftx) =>
+      retrieveNonce(ftx).eq(new BN(tx.nonce))
     );
+    return queuedTx !== undefined;
   }
 
   private _getPending() {
