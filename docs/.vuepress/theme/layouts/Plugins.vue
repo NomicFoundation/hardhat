@@ -26,7 +26,6 @@
               <span class="author">
                 <a :href="plugin.authorUrl">{{ plugin.author }}</a>
               </span>
-              <!-- <span class="version">{{ plugin.version }}</span> -->
             </div>
             <p class="description">{{ plugin.description }}</p>
             <div class="tags">
@@ -79,13 +78,6 @@ export default {
       @media (max-width: $MQMobile)
         display block
         padding-top 8px
-
-    .version
-      font-size 0.9em
-      position absolute
-      display flex
-      top: 0
-      right: 0
 
     .description
       margin: 6px 0 12px
