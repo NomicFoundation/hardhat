@@ -58,7 +58,7 @@ export const FORKED_PROVIDERS: Array<{
   useProvider: () => void;
 }> = [];
 
-if (ALCHEMY_URL !== undefined) {
+if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
   const url = ALCHEMY_URL;
 
   PROVIDERS.push({
@@ -80,7 +80,7 @@ if (ALCHEMY_URL !== undefined) {
   });
 }
 
-if (INFURA_URL !== undefined) {
+if (INFURA_URL !== undefined && INFURA_URL !== "") {
   const url = INFURA_URL;
 
   FORKED_PROVIDERS.push({
