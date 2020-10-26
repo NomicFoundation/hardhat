@@ -106,40 +106,29 @@ const plugins = [
     tags: ["Deployment", "Testing"],
   },
   {
-    name: "buidler-gas-reporter",
-    author: "Chris Gewecke",
-    authorUrl: "https://github.com/cgewecke",
-    url: "https://github.com/cgewecke/buidler-gas-reporter/tree/master",
+    name: "hardhat-preprocessor",
+    author: "Ronan Sandford",
+    authorUrl: "https://github.com/wighawag",
+    url: "https://github.com/wighawag/hardhat-preprocessor/tree/master",
     description:
-      "Gas usage per unit test. Average gas usage per method. A mocha reporter.",
-    tags: ["Testing", "Gas"],
+      "An hardhat plugin to pre-process contract source code before compilation",
+    tags: ["Solidity", "Preprocessor"],
   },
   {
-    name: "buidler-typechain",
+    name: "hardhat-deploy-ethers",
+    author: "Ronan Sandford",
+    authorUrl: "https://github.com/wighawag",
+    url: "https://github.com/wighawag/hardhat-deploy-ethers/tree/master",
+    description: "A hardhat-deploy plugin for Ethers.js v5",
+    tags: ["Ethers.js", "hardhat-deploy"],
+  },
+  {
+    name: "hardhat-typechain",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
     url: "https://github.com/rhlsthrm/buidler-typechain/tree/master",
-    description: "Generate TypeChain typedefs for smart contracts.",
+    description: "Generate TypeChain type definitions for smart contracts.",
     tags: ["Testing", "Tasks"],
-  },
-  {
-    name: "solidity-coverage",
-    author: "Chris Gewecke",
-    authorUrl: "https://github.com/cgewecke",
-    url:
-      "https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md",
-    readmeUrl:
-      "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/BUIDLER_README.md",
-    description: "Code coverage for Solidity",
-    tags: ["Testing", "Coverage"],
-  },
-  {
-    name: "@aragon/buidler-aragon",
-    author: "Aragon One",
-    authorUrl: "https://twitter.com/aragononeteam",
-    url: "https://github.com/aragon/buidler-aragon/tree/master",
-    description: "Buidler plugin for Aragon App development",
-    tags: ["Aragon", "Apps"],
   },
   {
     name: "hardhat-spdx-license-identifier",
@@ -150,24 +139,6 @@ const plugins = [
     description:
       "Automatically prepend local Solidity source files with an SPDX License Identifier",
     tags: ["License"],
-  },
-  {
-    name: "buidler-ethers-v5",
-    author: "Ronan Sandford",
-    authorUrl: "https://github.com/wighawag",
-    url: "https://github.com/wighawag/buidler-ethers-v5/tree/master",
-    description:
-      "plugin integrationg ethers v5 into buidler and buidler-deploy ",
-    tags: ["Ethers.js", "Testing", "buidler-deploy"],
-  },
-  {
-    name: "buidler-source-descriptor",
-    author: "Kendrick Tan",
-    authorUrl: "https://github.com/kendricktan",
-    url: "https://github.com/kendricktan/buidler-source-descriptor/tree/master",
-    description:
-      "A Buidler plugin to generate a descriptor of your Solidity source code",
-    tags: ["Compiling", "Documentation"],
   },
   {
     name: "hardhat-abi-exporter",
@@ -195,6 +166,43 @@ const plugins = [
     tags: ["Logging", "Console", "Deployment"],
   },
   {
+    name: "solidity-coverage",
+    author: "Chris Gewecke",
+    authorUrl: "https://github.com/cgewecke",
+    url:
+      "https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md",
+    readmeUrl:
+      "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/BUIDLER_README.md",
+    description: "Code coverage for Solidity",
+    tags: ["Testing", "Coverage", "Buidler plugin"],
+  },
+  {
+    name: "buidler-gas-reporter",
+    author: "Chris Gewecke",
+    authorUrl: "https://github.com/cgewecke",
+    url: "https://github.com/cgewecke/buidler-gas-reporter/tree/master",
+    description:
+      "Gas usage per unit test. Average gas usage per method. A mocha reporter.",
+    tags: ["Testing", "Gas", "Buidler plugin"],
+  },
+  {
+    name: "@aragon/buidler-aragon",
+    author: "Aragon One",
+    authorUrl: "https://twitter.com/aragononeteam",
+    url: "https://github.com/aragon/buidler-aragon/tree/master",
+    description: "Buidler plugin for Aragon App development",
+    tags: ["Aragon", "Apps", "Buidler plugin"],
+  },
+  {
+    name: "buidler-source-descriptor",
+    author: "Kendrick Tan",
+    authorUrl: "https://github.com/kendricktan",
+    url: "https://github.com/kendricktan/buidler-source-descriptor/tree/master",
+    description:
+      "A Buidler plugin to generate a descriptor of your Solidity source code",
+    tags: ["Compiling", "Documentation", "Buidler plugin"],
+  },
+  {
     name: "buidler-local-networks-config-plugin",
     author: "Facu Spagnuolo",
     authorUrl: "https://twitter.com/facuspagnuolo",
@@ -202,7 +210,7 @@ const plugins = [
       "https://github.com/facuspagnuolo/buidler-local-networks-config-plugin/tree/master",
     description:
       "Allow loading network configs for Buidler projects in home file",
-    tags: ["Networks", "Config"],
+    tags: ["Networks", "Config", "Buidler plugin"],
   },
   {
     name: "@eth-optimisim/smock",
@@ -211,7 +219,7 @@ const plugins = [
     url: "https://github.com/ethereum-optimism/smock/tree/master",
     description:
       "smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
-    tags: ["Testing", "Mocking"],
+    tags: ["Testing", "Mocking", "Buidler plugin"],
   },
   {
     name: "buidler-ovm-compiler",
@@ -221,7 +229,7 @@ const plugins = [
       "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
     description:
       "Allows users to specify a custom compiler path. This makes it possible to compile your contracts with the custom Optimism Solidity compiler.",
-    tags: ["Optimism", "Compiler", "OVM"],
+    tags: ["Optimism", "Compiler", "OVM", "Buidler plugin"],
   },
   {
     name: "buidler-ovm-node",
@@ -231,7 +239,7 @@ const plugins = [
       "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
     description:
       "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
-    tags: ["Optimism", "Buidler EVM", "OVM"],
+    tags: ["Optimism", "Buidler EVM", "OVM", "Buidler plugin"],
   },
 ];
 
