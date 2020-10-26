@@ -117,13 +117,14 @@ async function main() {
       showWarningIfNoSolidityConfig,
     });
 
-    let telemetryConsent = hasConsentedTelemetry();
+    let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
     const isHelpCommand = hardhatArguments.help || taskName === TASK_HELP;
     if (
       telemetryConsent === undefined &&
       !isHelpCommand &&
-      !isRunningOnCiServer()
+      !isRunningOnCiServer() &&
+      process.stdout.isTTY === true
     ) {
       telemetryConsent = await confirmTelemetryConsent();
       writeTelemetryConsent(telemetryConsent);
