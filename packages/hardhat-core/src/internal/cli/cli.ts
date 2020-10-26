@@ -127,7 +127,10 @@ async function main() {
       process.stdout.isTTY === true
     ) {
       telemetryConsent = await confirmTelemetryConsent();
-      writeTelemetryConsent(telemetryConsent);
+
+      if (telemetryConsent !== undefined) {
+        writeTelemetryConsent(telemetryConsent);
+      }
     }
 
     const analytics = await Analytics.getInstance(telemetryConsent);

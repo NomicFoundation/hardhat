@@ -33,6 +33,8 @@ const SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
   ethers: "^5.0.0",
 };
 
+const TELEMETRY_CONSENT_TIMEOUT = 10000;
+
 async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
   const dirPath = path.join(projectRoot, dirName);
   if (await fsExtra.pathExists(dirPath)) {
@@ -270,7 +272,9 @@ export async function createProject() {
   if (hasConsentedTelemetry() === undefined) {
     const telemetryConsent = await confirmTelemetryConsent();
 
-    writeTelemetryConsent(telemetryConsent);
+    if (telemetryConsent !== undefined) {
+      writeTelemetryConsent(telemetryConsent);
+    }
   }
 
   let shouldShowInstallationInstructions = true;
@@ -428,22 +432,30 @@ async function confirmRecommendedDepsInstallation(
   return responses.shouldInstallPlugin;
 }
 
-export async function confirmTelemetryConsent(): Promise<boolean> {
-  const { default: enquirer } = await import("enquirer");
+export async function confirmTelemetryConsent(): Promise<boolean | undefined> {
+  const enquirer = require("enquirer");
 
-  const { telemetryConsent } = await enquirer.prompt<{
-    telemetryConsent: boolean;
-  }>([
-    {
-      name: "telemetryConsent",
-      type: "confirm",
-      initial: true,
-      message:
-        "Help us improve Hardhat with anonymous crash reports & basic usage data?",
-    },
-  ]);
+  const prompt = new enquirer.prompts.Confirm({
+    name: "telemetryConsent",
+    type: "confirm",
+    initial: true,
+    message:
+      "Help us improve Hardhat with anonymous crash reports & basic usage data?",
+  });
 
-  return telemetryConsent;
+  let timeout;
+  const timeoutPromise = new Promise((resolve) => {
+    timeout = setTimeout(resolve, TELEMETRY_CONSENT_TIMEOUT);
+  });
+
+  const result = await Promise.race([prompt.run(), timeoutPromise]);
+
+  clearTimeout(timeout);
+  if (result === undefined) {
+    await prompt.cancel();
+  }
+
+  return result;
 }
 
 async function installDependencies(
