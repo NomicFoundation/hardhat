@@ -126,7 +126,7 @@ const plugins = [
     name: "hardhat-typechain",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
-    url: "https://github.com/rhlsthrm/buidler-typechain/tree/master",
+    url: "https://github.com/rhlsthrm/hardhat-typechain/tree/master",
     description: "Generate TypeChain type definitions for smart contracts.",
     tags: ["Testing", "Tasks"],
   },
