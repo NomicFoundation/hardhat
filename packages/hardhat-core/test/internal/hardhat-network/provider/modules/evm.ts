@@ -17,7 +17,7 @@ import {
   assertQuantity,
 } from "../../helpers/assertions";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
-import { quantityToNumber } from "../../helpers/conversions";
+import { quantityToBN, quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -333,54 +333,35 @@ describe("Evm module", function () {
       });
 
       describe("evm_setAutomineEnabled", () => {
-        it("should immediately mine a new block when automine option is enabled", async function () {
-          const [from] = await this.provider.send("eth_accounts");
-          await this.provider.send("evm_setAutomineEnabled", [true]);
-          const previousBlock = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
+        it("should allow disabling automine", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+          const previousBlock = await this.provider.send("eth_blockByNumber");
           await this.provider.send("eth_sendTransaction", [
             {
-              from,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
-              nonce: numberToRpcQuantity(0),
             },
           ]);
-          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
-            "latest",
-            false,
-          ]);
+          const currentBlock = await this.provider.send("eth_blockByNumber");
 
-          assert.notEqual(previousBlock.number, latestBlock.number);
+          assert.equal(currentBlock, previousBlock);
         });
 
-        it("should not mine a new block when automine option is disabled", async function () {
-          const [from] = await this.provider.send("eth_accounts");
+        it("should allow re-enabling of automine", async function () {
           await this.provider.send("evm_setAutomineEnabled", [false]);
-          const previousBlock = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
+          await this.provider.send("evm_setAutomineEnabled", [true]);
+          const previousBlock = await this.provider.send("eth_blockByNumber");
           await this.provider.send("eth_sendTransaction", [
             {
-              from,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
-              nonce: numberToRpcQuantity(0),
             },
           ]);
-          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
-            "latest",
-            false,
-          ]);
+          const currentBlock = await this.provider.send("eth_blockByNumber");
 
-          assert.equal(previousBlock.number, latestBlock.number);
+          assertQuantity(currentBlock, quantityToBN(previousBlock).addn(1));
         });
       });
 
