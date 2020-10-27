@@ -3,5 +3,3 @@ export interface IMiningTimer {
   setBlockTime(blockTime: number): void;
   stop(): void;
 }
-
-

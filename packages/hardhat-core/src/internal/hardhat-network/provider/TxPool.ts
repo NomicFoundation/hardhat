@@ -247,9 +247,7 @@ export class TxPool {
       );
     }
 
-    const senderAccount = await this._stateManager.getAccount(
-      tx.getSenderAddress()
-    );
+    const senderAccount = await this._stateManager.getAccount(senderAddress);
     const senderBalance = new BN(senderAccount.balance);
 
     if (tx.getUpfrontCost().gt(senderBalance)) {
@@ -304,9 +302,9 @@ export class TxPool {
   }
 
   private _txWithNonceExists(tx: Transaction): boolean {
+    const senderAddress = bufferToHex(tx.getSenderAddress());
     const queuedTxs: SenderTransactions =
-      this._getQueuedForAddress(bufferToHex(tx.getSenderAddress())) ??
-      ImmutableList();
+      this._getQueuedForAddress(senderAddress) ?? ImmutableList();
 
     const queuedTx = queuedTxs.find((ftx) =>
       retrieveNonce(ftx).eq(new BN(tx.nonce))

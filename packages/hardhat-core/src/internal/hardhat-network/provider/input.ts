@@ -287,7 +287,7 @@ export const rpcIntervalMining = t.type(
   "RpcIntervalMining"
 );
 
-export type RpcIntervalMining = t.TypeOf<typeof rpcIntervalMining>
+export type RpcIntervalMining = t.TypeOf<typeof rpcIntervalMining>;
 
 export function validateParams(params: any[]): [];
 
