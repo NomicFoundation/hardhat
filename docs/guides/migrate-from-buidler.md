@@ -186,15 +186,9 @@ Join the `#hardhat-deploy` channel on [Discord](https://hardhat.org/discord) if 
 
 ### buidler-typechain
 
-The TypeChain plugin hasn't been migrated yet, but you can run TypeChain directly like this:
+The TypeChain plugin has been migrated, it's now called [`hardhat-typechain`](https://github.com/rhlsthrm/hardhat-typechain/).
 
-```
-npx typechain --target ethers-v5 --outDir typechain  'artifacts/!(build-info)/**/+([a-zA-Z0-9]).json'
-```
-
-You just need to make sure that your contracts have already been compiled.
-
-Take a look at its [README](https://github.com/ethereum-ts/TypeChain) to learn more about its different options.
+Join the `#hardhat-typechain` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
 
 ### solidity-coverage and buidler-gas-reporter
 
