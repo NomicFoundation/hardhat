@@ -1,5 +1,4 @@
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { Artifacts, BuildInfo, RunTaskFunction } from "hardhat/types";
+import { Artifacts } from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
@@ -87,21 +86,29 @@ interface CompilerOutputBytecode {
   };
 }
 
-interface ContractBuildInfo {
-  contractName: string;
-  sourceName: string;
-  buildInfo: BuildInfo;
-}
-
 /**/
 
 export async function lookupMatchingBytecode(
-  contractBuilds: ContractBuildInfo[],
+  artifacts: Artifacts,
+  matchingVersions: string[],
   deployedBytecode: string,
   inferralType: InferralType
 ) {
   const contractMatches = [];
-  for (const { contractName, sourceName, buildInfo } of contractBuilds) {
+  const fqNames = await artifacts.getAllFullyQualifiedNames();
+
+  for (const fqName of fqNames) {
+    const buildInfo = await artifacts.getBuildInfo(fqName);
+
+    if (buildInfo === undefined) {
+      continue;
+    }
+
+    if (!matchingVersions.includes(buildInfo.solcVersion)) {
+      continue;
+    }
+
+    const { sourceName, contractName } = parseFullyQualifiedName(fqName);
     const contract = buildInfo.output.contracts[sourceName][contractName];
     // Normalize deployed bytecode according to this contract.
     const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
@@ -289,38 +296,4 @@ export function zeroOutSlices(
   }
 
   return code;
-}
-
-export async function compile(
-  taskRun: RunTaskFunction,
-  matchingVersions: string[],
-  artifactsPath: string,
-  artifacts: Artifacts
-): Promise<ContractBuildInfo[]> {
-  await taskRun(TASK_COMPILE);
-
-  const contractBuildInfos: ContractBuildInfo[] = [];
-
-  const fqns = await artifacts.getAllFullyQualifiedNames();
-  for (const name of fqns) {
-    const buildInfo = await artifacts.getBuildInfo(name);
-
-    if (buildInfo === undefined) {
-      continue;
-    }
-
-    if (!matchingVersions.includes(buildInfo.solcVersion)) {
-      continue;
-    }
-
-    const { sourceName, contractName } = parseFullyQualifiedName(name);
-
-    contractBuildInfos.push({
-      contractName,
-      sourceName,
-      buildInfo,
-    });
-  }
-
-  return contractBuildInfos;
 }
