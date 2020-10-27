@@ -3,8 +3,8 @@ import * as t from "io-ts";
 
 import { InvalidInputError, MethodNotFoundError } from "../errors";
 import {
-  evmIntervalMining,
-  EvmIntervalMining,
+  rpcIntervalMining,
+  RpcIntervalMining,
   rpcQuantity,
   validateParams,
 } from "../input";
@@ -150,12 +150,12 @@ export class EvmModule {
 
   // evm_setIntervalMining
 
-  private _setIntervalMiningParams(params: any[]): [EvmIntervalMining] {
-    return validateParams(params, evmIntervalMining);
+  private _setIntervalMiningParams(params: any[]): [RpcIntervalMining] {
+    return validateParams(params, rpcIntervalMining);
   }
 
   private async _setIntervalMiningAction(
-    miningConfig: EvmIntervalMining
+    miningConfig: RpcIntervalMining
   ): Promise<number> {
     if (miningConfig.blockTime !== undefined) {
       this._node.setBlockTime(miningConfig.blockTime);
