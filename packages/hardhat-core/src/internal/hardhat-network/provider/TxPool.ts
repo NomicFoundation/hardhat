@@ -18,6 +18,8 @@ import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 import { retrieveNonce } from "./utils/retrieveNonce";
 
+// tslint:disable only-hardhat-error
+
 export function serializeTransaction(
   tx: OrderedTransaction
 ): SerializedTransaction {

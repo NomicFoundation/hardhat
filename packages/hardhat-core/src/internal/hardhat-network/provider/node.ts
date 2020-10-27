@@ -187,7 +187,7 @@ export class HardhatNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  private _blockTime: number;
+  private _blockTime = 0;
 
   private constructor(
     private readonly _vm: VM,

@@ -1,3 +1,5 @@
+import { assert } from "chai";
+
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
 import {
@@ -8,7 +10,6 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
-import {assert} from "chai";
 
 describe("HardhatNode", () => {
   const config: NodeConfig = {
