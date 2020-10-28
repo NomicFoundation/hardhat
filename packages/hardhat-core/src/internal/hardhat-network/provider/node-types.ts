@@ -12,6 +12,7 @@ interface CommonConfig {
   blockGasLimit: number;
   genesisAccounts: GenesisAccount[];
   automine: boolean;
+  intervalMiningConfig: IntervalMiningConfig;
   allowUnlimitedContractSize?: boolean;
   tracingConfig?: TracingConfig;
 }

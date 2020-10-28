@@ -11,6 +11,7 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
+  DEFAULT_INTERVAL_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
   DEFAULT_USE_JSON_RPC,
@@ -34,7 +35,8 @@ export function useProvider(
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  automine = DEFAULT_AUTOMINE
+  automine = DEFAULT_AUTOMINE,
+  intervalMiningConfig = DEFAULT_INTERVAL_MINING_CONFIG
 ) {
   beforeEach("Initialize provider", async function () {
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
@@ -46,6 +48,7 @@ export function useProvider(
       true,
       true,
       automine,
+      intervalMiningConfig,
       accounts,
       undefined,
       undefined,

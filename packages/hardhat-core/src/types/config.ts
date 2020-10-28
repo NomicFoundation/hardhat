@@ -103,6 +103,7 @@ export interface HardhatNetworkConfig {
   gasMultiplier: number;
   hardfork: string;
   automine: boolean;
+  intervalMiningConfig: HardhatNetworkIntervalMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
   blockGasLimit: number;
   throwOnTransactionFailures: boolean;
