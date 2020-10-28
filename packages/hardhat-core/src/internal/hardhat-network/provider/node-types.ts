@@ -40,6 +40,11 @@ export interface TracingConfig {
   buildInfos?: BuildInfo[];
 }
 
+export interface IntervalMiningConfig {
+  enabled: boolean;
+  blockTime?: number;
+}
+
 export interface GenesisAccount {
   privateKey: string;
   balance: string | number | BN;

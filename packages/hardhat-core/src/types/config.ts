@@ -160,6 +160,11 @@ export interface HttpNetworkHDAccountsConfig {
   path: string;
 }
 
+export interface HardhatNetworkIntervalMiningConfig {
+  enabled: boolean;
+  blockTime?: number;
+}
+
 // Project paths config
 
 export interface ProjectPathsUserConfig {
