@@ -1,4 +1,5 @@
 import { Transaction } from "ethereumjs-tx";
+import FakeTransaction from "ethereumjs-tx/dist/fake";
 import { BN } from "ethereumjs-util";
 import {
   List as ImmutableList,
@@ -10,11 +11,12 @@ import { bnToHex } from "./utils/bnToHex";
 
 export interface OrderedTransaction {
   orderId: number;
-  data: Transaction;
+  data: Transaction | FakeTransaction;
 }
 
 interface ImmutableOrderedTransaction {
   orderId: number;
+  fakeFrom: string | undefined;
   data: ImmutableList<string>;
 }
 
@@ -22,6 +24,7 @@ export const makeSerializedTransaction = ImmutableRecord<
   ImmutableOrderedTransaction
 >({
   orderId: 0,
+  fakeFrom: undefined,
   data: ImmutableList(),
 });
 

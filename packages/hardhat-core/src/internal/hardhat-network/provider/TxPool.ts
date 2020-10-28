@@ -1,5 +1,5 @@
 import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
+import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
@@ -25,23 +25,36 @@ export function serializeTransaction(
 ): SerializedTransaction {
   const fields = tx.data.raw.map((field) => bufferToHex(field));
   const immutableFields = ImmutableList(fields);
+  const isFake = tx.data instanceof FakeTransaction;
   return makeSerializedTransaction({
     orderId: tx.orderId,
+    fakeFrom: isFake ? bufferToHex(tx.data.getSenderAddress()) : undefined,
     data: immutableFields,
   });
 }
+
+type ArrayWithFrom<T> = T[] & { from?: string };
 
 export function deserializeTransaction(
   tx: SerializedTransaction,
   common: Common
 ): OrderedTransaction {
-  const fields = tx
+  const fields: ArrayWithFrom<Buffer> = tx
     .get("data")
-    .toArray()
-    .map((field) => toBuffer(field));
+    .map((field) => toBuffer(field))
+    .toArray();
+
+  const fakeFrom = tx.get("fakeFrom");
+  let data;
+  if (fakeFrom !== undefined) {
+    fields.from = fakeFrom;
+    data = new FakeTransaction(fields, { common });
+  } else {
+    data = new Transaction(fields, { common });
+  }
   return {
     orderId: tx.get("orderId"),
-    data: new Transaction(fields, { common }),
+    data,
   };
 }
 
@@ -59,12 +72,12 @@ export class TxPool {
   constructor(
     private readonly _stateManager: PStateManager,
     private _blockGasLimit: BN,
-    private readonly _common: Common
+    common: Common
   ) {
     this._state = makePoolState({
       blockGasLimit: bnToHex(this._blockGasLimit),
     });
-    this._deserializeTransaction = (tx) => deserializeTransaction(tx, _common);
+    this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
 
   public async addTransaction(tx: Transaction) {
