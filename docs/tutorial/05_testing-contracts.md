@@ -23,51 +23,6 @@ describe("Token contract", function() {
     expect(await buidlerToken.totalSupply()).to.equal(ownerBalance);
   })    // it "Deployment should ..."
 
-
-  it("Only first user to ask for an initial stake gets it", async function() {
-    const [owner, user1, user2] = await ethers.getSigners();
-
-    const Token = await ethers.getContractFactory("Token");
-
-    const buidlerToken = await Token.deploy();
-    await buidlerToken.deployed();
-
-    const buidlerTokenUser1 = await buidlerToken.connect(user1)
-    const buidlerTokenUser2 = await buidlerToken.connect(user2)
-
-    await buidlerTokenUser1.getInitialStake()
-    try {
-      // We expect a revert here
-      await buidlerTokenUser2.getInitialStake()
-    } catch (err) {}
-
-    const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
-    const user1Balance = await buidlerToken.balanceOf(user1.getAddress());
-    const user2Balance = await buidlerToken.balanceOf(user2.getAddress());
-    expect(await buidlerToken.totalSupply()).to.equal(parseInt(ownerBalance) + parseInt(user1Balance))
-    expect(user1Balance).to.equal(1000)
-    expect(user2Balance).to.equal(0)
-  })  // it "Only the first user ..."
-
-
-
-  it("Transfers should be processed correctly", async function() {
-    const [owner, user1] = await ethers.getSigners();
-
-    const Token = await ethers.getContractFactory("Token");
-
-    const buidlerToken = await Token.deploy();
-    await buidlerToken.deployed();
-
-    await buidlerToken.transfer(user1.getAddress(), 50)
-
-    const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
-    const user1Balance = await buidlerToken.balanceOf(user1.getAddress());
-    expect(await buidlerToken.totalSupply()).to.equal(parseInt(ownerBalance) + parseInt(user1Balance))
-    expect(user1Balance).to.equal(50)
-  })  // it "Transfers should ..."
-
-
 })   // describe "Token contract"
 
 ````
@@ -299,6 +254,34 @@ describe("Token contract", function () {
       expect(addr2Balance).to.equal(50);
     });
   });
+
+  it("Only first user to ask for an initial stake gets it", async function() {
+    const [owner, user1, user2] = await ethers.getSigners();
+
+    const Token = await ethers.getContractFactory("Token");
+
+    const buidlerToken = await Token.deploy();
+    await buidlerToken.deployed();
+
+    const buidlerTokenUser1 = await buidlerToken.connect(user1)
+    const buidlerTokenUser2 = await buidlerToken.connect(user2)
+
+    await buidlerTokenUser1.getInitialStake()
+    try {
+      // We expect a revert here
+      await buidlerTokenUser2.getInitialStake()
+    } catch (err) {}
+
+    const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
+    const user1Balance = await buidlerToken.balanceOf(user1.getAddress());
+    const user2Balance = await buidlerToken.balanceOf(user2.getAddress());
+    expect(await buidlerToken.totalSupply()).to.equal(parseInt(ownerBalance) + parseInt(user1Balance))
+    expect(user1Balance).to.equal(1000)
+    expect(user2Balance).to.equal(0)
+  })  // it "Only the first user ..."
+
+  
+  
 });
 ````
 This is what the output of `npx buidler test` should look like against the full test suite:
@@ -306,17 +289,19 @@ This is what the output of `npx buidler test` should look like against the full 
 $ npx buidler test
 All contracts have already been compiled, skipping compilation.
 
+
   Token contract
+    ✓ Only first user to ask for an initial stake gets it (318ms)
     Deployment
       ✓ Should set the right owner
       ✓ Should assign the total supply of tokens to the owner
     Transactions
-      ✓ Should transfer tokens between accounts (199ms)
-      ✓ Should fail if sender doesn’t have enough tokens
-      ✓ Should update balances after transfers (111ms)
+      ✓ Should transfer tokens between accounts (80ms)
+      ✓ Should fail if sender doesn’t have enough tokens (43ms)
+      ✓ Should update balances after transfers (99ms)
 
 
-  5 passing (1s)
-```
+  6 passing (3s)
+  ```
 
 Keep in mind that when you run `npx buidler test`, your contracts will be compiled if they've changed since the last time you ran your tests.
