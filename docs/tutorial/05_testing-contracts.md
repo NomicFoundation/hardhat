@@ -21,8 +21,55 @@ describe("Token contract", function() {
 
     const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
     expect(await buidlerToken.totalSupply()).to.equal(ownerBalance);
-  });
-});
+  })    // it "Deployment should ..."
+
+
+  it("Only first user to ask for an initial stake gets it", async function() {
+    const [owner, user1, user2] = await ethers.getSigners();
+
+    const Token = await ethers.getContractFactory("Token");
+
+    const buidlerToken = await Token.deploy();
+    await buidlerToken.deployed();
+
+    const buidlerTokenUser1 = await buidlerToken.connect(user1)
+    const buidlerTokenUser2 = await buidlerToken.connect(user2)
+
+    await buidlerTokenUser1.getInitialStake()
+    try {
+      // We expect a revert here
+      await buidlerTokenUser2.getInitialStake()
+    } catch (err) {}
+
+    const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
+    const user1Balance = await buidlerToken.balanceOf(user1.getAddress());
+    const user2Balance = await buidlerToken.balanceOf(user2.getAddress());
+    expect(await buidlerToken.totalSupply()).to.equal(parseInt(ownerBalance) + parseInt(user1Balance))
+    expect(user1Balance).to.equal(1000)
+    expect(user2Balance).to.equal(0)
+  })  // it "Only the first user ..."
+
+
+
+  it("Transfers should be processed correctly", async function() {
+    const [owner, user1] = await ethers.getSigners();
+
+    const Token = await ethers.getContractFactory("Token");
+
+    const buidlerToken = await Token.deploy();
+    await buidlerToken.deployed();
+
+    await buidlerToken.transfer(user1.getAddress(), 50)
+
+    const ownerBalance = await buidlerToken.balanceOf(owner.getAddress());
+    const user1Balance = await buidlerToken.balanceOf(user1.getAddress());
+    expect(await buidlerToken.totalSupply()).to.equal(parseInt(ownerBalance) + parseInt(user1Balance))
+    expect(user1Balance).to.equal(50)
+  })  // it "Transfers should ..."
+
+
+})   // describe "Token contract"
+
 ````
 
 On your terminal run `npx buidler test`. You should see the following output:
