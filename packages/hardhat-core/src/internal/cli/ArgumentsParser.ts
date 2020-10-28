@@ -30,7 +30,10 @@ export class ArgumentsParser {
       });
     }
 
-    const parts = cLA.slice(ArgumentsParser.PARAM_PREFIX.length).split("-");
+    const parts = cLA
+      .slice(ArgumentsParser.PARAM_PREFIX.length)
+      .split("-")
+      .filter((x) => x.length > 0);
 
     return (
       parts[0] +
