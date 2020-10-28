@@ -163,7 +163,7 @@ export class HardhatNode extends EventEmitter {
       blockchain,
       txPool,
       automine,
-      intervalMiningConfig,
+      intervalMiningConfig.enabled,
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig
@@ -189,15 +189,13 @@ export class HardhatNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  private _blockTime = 0;
-
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: PStateManager,
     private readonly _blockchain: PBlockchain,
     private readonly _txPool: TxPool,
     private _automine: boolean,
-    private _intervalMiningConfig: IntervalMiningConfig,
+    private _intervalMining: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig
@@ -822,8 +820,8 @@ export class HardhatNode extends EventEmitter {
     this._automine = automine;
   }
 
-  public setBlockTime(blockTime: number) {
-    this._blockTime = blockTime;
+  public setIntervalMiningEnabled(intervalMining: boolean) {
+    this._intervalMining = intervalMining;
   }
 
   public setBlockGasLimit(gasLimit: BN | number) {

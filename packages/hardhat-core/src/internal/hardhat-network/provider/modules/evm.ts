@@ -143,9 +143,9 @@ export class EvmModule {
     return validateParams(params, t.boolean);
   }
 
-  private async _setAutomineEnabledAction(automine: boolean): Promise<boolean> {
+  private async _setAutomineEnabledAction(automine: boolean): Promise<true> {
     this._node.setAutomineEnabled(automine);
-    return automine;
+    return true;
   }
 
   // evm_setIntervalMining
@@ -156,12 +156,11 @@ export class EvmModule {
 
   private async _setIntervalMiningAction(
     miningConfig: RpcIntervalMining
-  ): Promise<number> {
-    if (miningConfig.blockTime !== undefined) {
-      this._node.setBlockTime(miningConfig.blockTime);
-      return miningConfig.blockTime;
-    }
+  ): Promise<true> {
+    this._node.setIntervalMiningEnabled(miningConfig.enabled);
 
-    return -1;
+    // TODO: Handle miningConfig.blockTime
+
+    return true;
   }
 }
