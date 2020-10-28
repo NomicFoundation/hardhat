@@ -1,16 +1,17 @@
 # 7. Setting up the front-end
 
 With the backend contract written and tested, the next step is to have a front end for users to interact with it. Typically this front end is a web page executing
-JavaScript. This way the user can interact with the decentralized application (dapp) and the Ethereum blockchain without having to rely on the web server. For this tutorial 
-we chose to use Facebook's [React Framework](https://reactjs.org/tutorial/tutorial.html).
+JavaScript. This way the user can interact with the decentralized application (dapp) and the Ethereum blockchain without having to send any private information to
+the web server. For this tutorial we chose to use Facebook's [React Framework](https://reactjs.org/tutorial/tutorial.html).
 
 Browsers don't have native support for Ethereum yet. To use a dapp users need to install a wallet browser extension, such as [MetaMask](https://metamask.io/). 
-This kind of extension injects an Ethereum provider object into the browse that can be accessed from JavaScript code running in a web page.
+Wallet browser extensions provide the JavaScript running inside the web page with an object, called a provider, that is used to access the API.
+
 
 
 ## Setting up a React application
 
-The first step to create the React application that will serve the code to talk to the Ethereum blockchain we need to create a React project:
+React development requires a server-side application to serve the content to the browser.
 
 1. Open a terminal and change to the project root directory.
 2. Create the project:
@@ -18,7 +19,7 @@ The first step to create the React application that will serve the code to talk 
    npx create-react-app frontend
    cd frontend
    ```
-3. Install the [Bootstrap](https://www.w3schools.com/bootstrap4/default.asp) theme for the graphic style:
+3. Install the [Bootstrap](https://getbootstrap.com/) theme for the graphic style:
    ```bash
    npm install --save bootstrap
    ```
