@@ -34,13 +34,13 @@ class EthereumDisplay extends React.Component {
 
 
   // Process a NewBalance event
-  processEvent = async (addr, balance) => {
+  async function processEvent(addr, balance) {
     this.setState({tokenBalance: balance.toNumber())})
   }     // processEvent  
   
 
   // This function is called after the component is rendered.
-  componentDidMount = async () => {
+  async function componentDidMount() {
     await window.ethereum.enable()
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const signer = provider.getSigner()
@@ -71,7 +71,7 @@ class EthereumDisplay extends React.Component {
 
   // When the transferTo field is changed, accept the change. If the new value is a valid
   // address, put the valid address in the state.
-  handleTTFChange = evt => {
+  function handleTTFChange(evt) {
     var toAddr;
     try {
       toAddr = ethers.utils.getAddress(evt.target.value)
@@ -87,22 +87,22 @@ class EthereumDisplay extends React.Component {
   }
 
 
-  handleTAChange = evt => {
+  function handleTAChange(evt) {
     this.setState({transferAmt: evt.target.value})
   }
 
 
-  getInitialStake = () => {
+  function getInitialStake() {
     this.state.tokenContract.getInitialStake()
   }  // getInitialStake
 
 
-  burnToken = () => {
+  function burnToken() {
     this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
   }
 
 
-  transferToken = () => {
+  function transferToken() {
     this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
   }  // transferToken
 
@@ -110,7 +110,7 @@ class EthereumDisplay extends React.Component {
 
 
 
-  render = () => {
+  function render() {
      // All the returned HTML needs to be packed in a single tag
      return (
          <>
@@ -214,7 +214,7 @@ later). It receives as parameters the two values of that event, the address and 
 
 ```js
   // Process a NewBalance event
-  processEvent = async (addr, balance) => {
+  async function processEvent(addr, balance) {
   
 ```  
 
@@ -238,7 +238,7 @@ There is no way to know which to use. Instead, we run them from `componentDidMou
 
 ```js
   // This function is called after the component is rendered.
-  componentDidMount = async () => {
+  async function componentDidMount() {
 ```  
 
 Ask the user to approve the use of MetaMask for this web page. 
@@ -308,7 +308,7 @@ is to have a function that receives the event when they are modified,
 and to modify the state variable tied to the field in that function. 
 
 ```js
-  handleTAChange = evt => {
+  function handleTAChange(evt) {
     this.setState({transferAmt: evt.target.value})
   }
 ```
@@ -318,7 +318,7 @@ This is another field change function, but this one has extra functionality.
 ```js
   // When the transferTo field is changed, accept the change. If the new value is a valid
   // address, put the valid address in the state.
-  handleTTFChange = evt => {
+  function handleTTFChange(evt) {
     var toAddr;
 ```
 
@@ -350,17 +350,17 @@ address (otherwise we set it to an empty string).
 These three functions implement the different actions that a user can perform on the contract.
 
 ```js
-  getInitialStake = () => {
+  function getInitialStake() {
     this.state.tokenContract.getInitialStake()
   }  // getInitialStake
 
 
-  burnToken = () => {
+  function burnToken() {
     this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
   }
 
 
-  transferToken = () => {
+  function transferToken() {
     this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
   }  // transferToken
 ```
@@ -368,7 +368,7 @@ These three functions implement the different actions that a user can perform on
 This function is called to render the component.
 
 ```js
-  render = () => {
+  function render() {
      // All the returned HTML needs to be packed in a single tag
 ```
 
