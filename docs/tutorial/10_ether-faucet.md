@@ -5,7 +5,7 @@ in production users have Ether, which they use to pay for transactions. But in t
 only twenty accounts that start out in Ether. We can either use those accounts (the output of `npx buidler node` includes their private keys), or transfer
 ETH to your own account.
 
-In this part of the tutorial we create a [Buidler task](../guides/create-task.html) that lets us transfer ETH from the Buidler console.
+In this part of the tutorial we create a [Buidler task](../guides/create-task.html) that lets us transfer ETH from the console.
 
 1. Create a `tasks` directory and within it a file `faucet.js`:
 
@@ -83,8 +83,6 @@ Set the action of the task. The parameters are provided as an associative array.
   .setAction(async ({ receiver }) => {
 ```
 
-You can see what variables are available as part of the Buidler Runtime Environment 
-[here](https://buidler.dev/api/classes/environment.html).
 
 If `network.name` is `buidlerevm` it means this is an ephemeral EVM that is started just for this
 task and will be terminated when it ends. In that case there is no point adding Ether to an
