@@ -1,6 +1,6 @@
 export interface IMiningTimer {
-  start(): void;
   getBlockTime(): number;
   setBlockTime(blockTime: number): void;
+  start(): void;
   stop(): void;
 }
