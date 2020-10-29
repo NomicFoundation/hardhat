@@ -1,4 +1,4 @@
-# 10. Create a Faucet
+# 10. Modify the Blockchain Status from the Console
 
 During the development and testing of contracts and dapps it is useful to modify the blockchain's state to account for previous history. For example,
 in production users have Ether, which they use to pay for transactions. But in the Buidler EVM and blockchain we use for development there are
