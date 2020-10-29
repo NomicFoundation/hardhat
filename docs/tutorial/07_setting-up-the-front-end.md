@@ -58,10 +58,13 @@ application.
    ```bash
    npx buidler node
    ```
-   This starts the Buidler EVM listening on [http://localhost:8545](http://localhost:8545). You can browse there to get the message:
+   This starts the Buidler EVM listening on [http://localhost:8545](http://localhost:8545). 
+   To verify that you can browse there to get the message:
    ```
    {"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error: Unexpected end of JSON input"}}
    ```
+   It is an error, because the browser did not send a legitimate [JSON RPC](https://www.jsonrpc.org/specification) request, but the fact you got
+   this error shows that there is an HTTP server there.   
 2. Click the Metamask icon (![Metamask icon](https://raw.githubusercontent.com/qbzzt/qbzzt.github.io/master/metamask-logo.png)) in the top right corner of the browser.
 3. Click the currently selected network (by default **Main Ethereum Network**) and select **Localhost 8545**.
 
