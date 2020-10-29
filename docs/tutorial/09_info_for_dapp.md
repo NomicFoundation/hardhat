@@ -12,7 +12,7 @@ These are the changes needed in the deployment script:
 
 1. Add this function:
 ```js
-const info4Dapp = async contract => {
+aync function info4Dapp(contract) {
   const fsP = require("fs").promises
   const contractDir = __dirname + "/../frontend/src/contracts"
 
@@ -56,7 +56,7 @@ npx buidler run scripts/deploy.js --network localhost
 This function gets the contract information from the `main` function.
 
 ```js
-const info4Dapp = async contract => {
+async function info4Dapp(contract) {
 ```
 
 This is the API to [access the file system using promises](https://nodejs.org/dist/latest-v12.x/docs/api/fs.html#fs_fs_promises_api),
