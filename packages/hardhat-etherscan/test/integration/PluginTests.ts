@@ -161,6 +161,6 @@ async function deployContract(
 
   const factory = await ethers.getContractFactory(contractName, wallet);
   const contract = await factory.deploy(...constructorArguments);
-  await contract.deployTransaction.wait(4);
+  await contract.deployTransaction.wait(5);
   return contract.address;
 }

@@ -1,3 +1,4 @@
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, task } from "hardhat/config";
 import {
   HARDHAT_NETWORK_NAME,
@@ -179,16 +180,13 @@ Possible causes are:
     throw new NomicLabsHardhatPluginError(pluginName, message);
   }
 
-  const { lookupMatchingBytecode, compile } = await import("./solc/bytecode");
-  const builds = await compile(
-    run,
-    matchingVersions,
-    config.paths.artifacts,
-    artifacts
-  );
+  // Make sure that contract artifacts are up-to-date.
+  await run(TASK_COMPILE);
 
+  const { lookupMatchingBytecode } = await import("./solc/bytecode");
   const contractMatches = await lookupMatchingBytecode(
-    builds,
+    artifacts,
+    matchingVersions,
     deployedContractBytecode,
     inferredSolcVersion.inferralType
   );
