@@ -84,7 +84,7 @@ If you want to deploy to a localhost instance use --network localhost.
 ```
 
 The syntax `[deployer] = await ethers.getSigners()` gets the list of accounts and assigns
-`deployer` to the first one. Each account is initialized with 10,000 ether, so it doesn't
+the first one to the variable `deployer`. Each account is initialized with 10,000 ether, so it doesn't
 matter which one we use.
 
 ```js
