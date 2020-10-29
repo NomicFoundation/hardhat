@@ -9,7 +9,7 @@ Create a new directory inside the project's root directory, `scripts`, and paste
 const contractName = "Token"
 
 // This is a script for deploying contracts. You can adapt it to deploy yours.
-const main = async () => {
+async function main() {
 
   // This is just a convenience check
   if (network.name === "buidlerevm") {
@@ -64,7 +64,7 @@ because several steps in the process take a relatively long time.
 
 ```js
 // This is a script for deploying contracts. You can adapt it to deploy yours.
-const main = async () => {
+async function main() {
 ```
 
 Normally we would only want to deploy to a long lived blockchain, not one that
