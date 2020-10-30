@@ -26,6 +26,20 @@ describe("Mining Timer", () => {
     sinonClock.restore();
   });
 
+  it("throws when blockTime passed to the constructor is 0 ms or less", () => {
+    assert.throws(
+      () => new MiningTimer(0, mineFunction),
+      Error,
+      "Block time passed to the constructor must be greater than 0 ms"
+    );
+
+    assert.throws(
+      () => new MiningTimer(-1, mineFunction),
+      Error,
+      "Block time passed to the constructor must be greater than 0 ms"
+    );
+  });
+
   describe("setBlockTime", () => {
     it("sets a new block time", () => {
       const newBlockTime = 15000;

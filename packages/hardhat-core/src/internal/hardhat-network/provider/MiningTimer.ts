@@ -14,7 +14,13 @@ export class MiningTimer implements IMiningTimer {
   constructor(
     private _blockTime: number,
     private readonly _mineFunction: () => Promise<void>
-  ) {}
+  ) {
+    if (_blockTime <= 0) {
+      throw new Error(
+        "Block time passed to the constructor must be greater than 0 ms"
+      );
+    }
+  }
 
   public getBlockTime(): number {
     return this._blockTime;
