@@ -190,6 +190,10 @@ The TypeChain plugin has been migrated, it's now called [`hardhat-typechain`](ht
 
 Join the `#hardhat-typechain` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
 
-### solidity-coverage and buidler-gas-reporter
+### buidler-gas-reporter
 
-These plugins are being ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcements when they are released.
+This plugin has already been ported, it's now called [`hardhat-gas-reporter`](https://github.com/cgewecke/hardhat-gas-reporter).
+
+### solidity-coverage
+
+This plugin is being ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive an announcement when it is released.
