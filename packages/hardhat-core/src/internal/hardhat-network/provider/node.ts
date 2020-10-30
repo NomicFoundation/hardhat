@@ -853,11 +853,10 @@ export class HardhatNode extends EventEmitter {
     const pendingTransactions = this._txPool.getPendingTransactions();
     const txHeap = new TxPriorityHeap(pendingTransactions);
     // TODO iterate over all of the transactions
-    const orderedTx = txHeap.peek();
-    if (orderedTx === undefined) {
+    const tx = txHeap.peek();
+    if (tx === undefined) {
       throw new Error("Unsupported");
     }
-    const tx = orderedTx.data;
 
     const [
       blockTimestamp,

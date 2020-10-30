@@ -32,7 +32,7 @@ describe("TxPriorityHeap", () => {
       const tx3 = createTestTransaction({ gasPrice: parseGWei(2) });
 
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([tx1, tx2, tx3]));
-      assert.equal(txHeap.peek(), tx2);
+      assert.equal(txHeap.peek(), tx2.data);
     });
 
     it("returns the transaction with the lowest orderId in case of gas price draw", () => {
@@ -50,7 +50,7 @@ describe("TxPriorityHeap", () => {
       });
 
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([tx1, tx2, tx3]));
-      assert.equal(txHeap.peek(), tx1);
+      assert.equal(txHeap.peek(), tx1.data);
     });
 
     it("returns only currently processable transactions", () => {
@@ -73,7 +73,7 @@ describe("TxPriorityHeap", () => {
       });
 
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([txA1, txA2, txB1]));
-      assert.equal(txHeap.peek(), txB1);
+      assert.equal(txHeap.peek(), txB1.data);
     });
   });
 
@@ -94,7 +94,7 @@ describe("TxPriorityHeap", () => {
 
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([tx1, tx2, tx3]));
       txHeap.pop();
-      assert.equal(txHeap.peek(), tx2);
+      assert.equal(txHeap.peek(), tx2.data);
     });
 
     it("discards later transactions from the same sender", () => {
@@ -118,7 +118,7 @@ describe("TxPriorityHeap", () => {
 
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([txA1, txA2, txB1]));
       txHeap.pop();
-      assert.equal(txHeap.peek(), txB1);
+      assert.equal(txHeap.peek(), txB1.data);
     });
 
     it("does not throw if there are no processable transactions left", () => {
@@ -157,7 +157,7 @@ describe("TxPriorityHeap", () => {
 
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([tx1, tx2, tx3]));
       txHeap.shift();
-      assert.equal(txHeap.peek(), tx2);
+      assert.equal(txHeap.peek(), tx2.data);
     });
 
     it("pushes the next transaction from the same sender onto the heap", () => {
@@ -181,7 +181,7 @@ describe("TxPriorityHeap", () => {
 
       const txHeap = new TxPriorityHeap(makeOrderedTxMap([txA1, txA2, txB1]));
       txHeap.shift();
-      assert.equal(txHeap.peek(), txA2);
+      assert.equal(txHeap.peek(), txA2.data);
     });
 
     it("does not push the same next transaction twice", () => {
@@ -213,7 +213,7 @@ describe("TxPriorityHeap", () => {
       );
       txHeap.shift();
       txHeap.shift();
-      assert.equal(txHeap.peek(), txA3);
+      assert.equal(txHeap.peek(), txA3.data);
     });
 
     it("does not throw if there are no processable transactions left", () => {
@@ -263,13 +263,13 @@ describe("TxPriorityHeap", () => {
         makeOrderedTxMap([txA1, txA2, txA3, txB1, txB2])
       );
 
-      assert.equal(txHeap.peek(), txA1);
+      assert.equal(txHeap.peek(), txA1.data);
       txHeap.shift();
-      assert.equal(txHeap.peek(), txA2);
+      assert.equal(txHeap.peek(), txA2.data);
       txHeap.shift();
-      assert.equal(txHeap.peek(), txB1);
+      assert.equal(txHeap.peek(), txB1.data);
       txHeap.pop();
-      assert.equal(txHeap.peek(), txA3);
+      assert.equal(txHeap.peek(), txA3.data);
       txHeap.shift();
       assert.isUndefined(txHeap.peek());
     });

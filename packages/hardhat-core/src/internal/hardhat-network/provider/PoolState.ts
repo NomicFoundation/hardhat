@@ -1,5 +1,4 @@
-import { Transaction } from "ethereumjs-tx";
-import FakeTransaction from "ethereumjs-tx/dist/fake";
+import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 import {
   List as ImmutableList,
