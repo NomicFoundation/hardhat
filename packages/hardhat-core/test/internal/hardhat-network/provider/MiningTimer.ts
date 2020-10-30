@@ -111,7 +111,7 @@ describe("Mining Timer", () => {
       assert.isTrue(mineFunction.calledThrice);
     });
 
-    it("multiple start() calls don't affect the loop", async () => {
+    it("multiple start calls don't affect the loop", async () => {
       miningTimer.start();
 
       await sinonClock.tickAsync(defaultBlockTime - 500);
@@ -132,6 +132,20 @@ describe("Mining Timer", () => {
 
       assert.isTrue(mineFunction.notCalled);
 
+      miningTimer.stop();
+
+      await sinonClock.tickAsync(defaultBlockTime);
+      assert.isTrue(mineFunction.notCalled);
+    });
+
+    it("stops the loop after a couple of callback executions", async () => {
+      miningTimer.start();
+
+      await sinonClock.tickAsync(2 * defaultBlockTime);
+
+      assert.isTrue(mineFunction.calledTwice);
+
+      mineFunction.resetHistory();
       miningTimer.stop();
 
       await sinonClock.tickAsync(defaultBlockTime);
