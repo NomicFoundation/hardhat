@@ -69,7 +69,7 @@ export default {
 .animation-6chars
   span
     animation-duration 1.75s
-    animation-iteration-count infinite
+    animation-iteration-count 3
 
     &:nth-child(1)
       animation-name char1of6
@@ -103,7 +103,7 @@ export default {
 .animation-4chars
   span
     animation-duration 1.75s
-    animation-iteration-count infinite
+    animation-iteration-count 3
 
     &:nth-child(1)
       animation-name char1of4
