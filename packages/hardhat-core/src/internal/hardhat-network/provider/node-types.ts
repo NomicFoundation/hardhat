@@ -87,3 +87,7 @@ export interface RunTransactionResult {
   error?: Error;
   consoleLogMessages: string[];
 }
+
+export interface MineBlockResult extends RunBlockResult {
+  block: Block,
+}

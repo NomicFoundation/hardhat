@@ -22,7 +22,6 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
-import Trie from "merkle-patricia-tree";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
@@ -54,6 +53,7 @@ import {
   CallParams,
   FilterParams,
   GenesisAccount,
+  MineBlockResult,
   NodeConfig,
   RunTransactionResult,
   Snapshot,
@@ -278,36 +278,19 @@ export class HardhatNode extends EventEmitter {
 
   public async mineBlock() {
     const [blockTimestamp] = this._calculateTimestampAndOffset();
-    const block = await this._getNextBlockTemplate(blockTimestamp);
-
-    await this._updateTransactionsRoot(block);
+    const blockTemplate = await this._getNextBlockTemplate(blockTimestamp);
 
     const previousRoot = await this._stateManager.getStateRoot();
-
+    let block: Block;
     let result: RunBlockResult;
     try {
-      result = await this.runBlock(block);
-      await this._saveBlockAsSuccessfullyRun(block, result);
+      ({ block, ...result } = await this._mineBlock(blockTemplate));
     } catch (error) {
       await this._stateManager.setStateRoot(previousRoot);
       throw new TransactionExecutionError(error);
     }
-  }
 
-  public async runBlock(block: Block): Promise<RunBlockResult> {
-    const bloom = new Bloom();
-    const receiptTrie = new Trie();
-    const receipts: TxReceipt[] = [];
-    const results: RunTxResult[] = [];
-
-    // TODO assign block reward
-    block.header.stateRoot = await this._stateManager.getStateRoot();
-    block.header.bloom = bloom.bitvector;
-
-    return {
-      receipts,
-      results,
-    };
+    await this._saveBlockAsSuccessfullyRun(block, result);
   }
 
   public async mineEmptyBlock(timestamp: BN) {
@@ -330,8 +313,7 @@ export class HardhatNode extends EventEmitter {
       await this._increaseBlockTimestamp(block);
     }
 
-    await new Promise((resolve) => block.genTxTrie(resolve));
-    block.header.transactionsTrie = block.txTrie.root;
+    await this._updateTransactionsRoot(block);
 
     const previousRoot = await this._stateManager.getStateRoot();
 
@@ -842,6 +824,43 @@ export class HardhatNode extends EventEmitter {
 
   public setBlockTime(blockTime: number) {
     this._blockTime = blockTime;
+  }
+
+  private async _mineBlock(block: Block): Promise<MineBlockResult> {
+    const bloom = new Bloom();
+    const results: RunTxResult[] = [];
+    const receipts: TxReceipt[] = [];
+
+    const pendingTxs = this._txPool.getPendingTransactions();
+    const txHeap = new TxPriorityHeap(pendingTxs);
+
+    const tx = txHeap.peek();
+    if (tx !== undefined) {
+      const txResult = await this._vm.runTx({ tx, block });
+      results.push(txResult);
+      bloom.or(txResult.bloom);
+      receipts.push(this._createReceipt(txResult));
+      await this._addTransactionToBlock(block, tx);
+    }
+
+    // TODO assign block reward
+    block.header.stateRoot = await this._stateManager.getStateRoot();
+    block.header.bloom = bloom.bitvector;
+
+    return {
+      block,
+      results,
+      receipts,
+    };
+  }
+
+  private _createReceipt(txResult: RunTxResult): TxReceipt {
+    return {
+      status: txResult.execResult.exceptionError === undefined ? 1 : 0, // Receipts have a 0 as status on error
+      gasUsed: toBuffer(txResult.gasUsed),
+      bitvector: txResult.bloom.bitvector,
+      logs: txResult.execResult.logs ?? [],
+    };
   }
 
   private async _updateTransactionsRoot(block: Block) {
