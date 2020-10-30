@@ -1,8 +1,8 @@
 import { IMiningTimer } from "./types/IMiningTimer";
 
 enum MiningTimerState {
-  RUNNING,
   STOP,
+  RUNNING,
 }
 
 // tslint:disable only-hardhat-error
@@ -24,7 +24,13 @@ export class MiningTimer implements IMiningTimer {
     if (blockTime <= 0) {
       throw new Error("New block time must be greater than 0 ms");
     }
+
     this._blockTime = blockTime;
+
+    if (this._state === MiningTimerState.RUNNING) {
+      this.stop();
+      this.start();
+    }
   }
 
   public start(): void {

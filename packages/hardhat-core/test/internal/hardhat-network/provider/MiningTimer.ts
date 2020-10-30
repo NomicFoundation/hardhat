@@ -1,10 +1,12 @@
 import { assert } from "chai";
+import { ceil } from "lodash";
 import sinon from "sinon";
 
 import { MiningTimer } from "../../../../src/internal/hardhat-network/provider/MiningTimer";
 import { DEFAULT_INTERVAL_MINING_CONFIG } from "../helpers/providers";
 
 describe("Mining Timer", () => {
+  const defaultBlockTime = DEFAULT_INTERVAL_MINING_CONFIG.blockTime;
   let miningTimer: MiningTimer;
   let mineFunction: sinon.SinonSpy;
   let sinonClock: sinon.SinonFakeTimers;
@@ -12,14 +14,11 @@ describe("Mining Timer", () => {
   beforeEach(() => {
     mineFunction = sinon.fake();
 
-    miningTimer = new MiningTimer(
-      DEFAULT_INTERVAL_MINING_CONFIG.blockTime,
-      mineFunction
-    );
+    miningTimer = new MiningTimer(defaultBlockTime, mineFunction);
 
     sinonClock = sinon.useFakeTimers({
       now: Date.now(),
-      toFake: ["setTimeout"],
+      toFake: ["setTimeout", "clearTimeout"],
     });
   });
 
@@ -36,6 +35,26 @@ describe("Mining Timer", () => {
       const actualBlockTime = miningTimer.getBlockTime();
 
       assert.equal(actualBlockTime, newBlockTime);
+    });
+
+    it("triggers a new loop when mining timer is running", async () => {
+      const newBlockTime = ceil(defaultBlockTime / 2);
+
+      miningTimer.start();
+
+      await sinonClock.tickAsync(defaultBlockTime - 500);
+
+      miningTimer.setBlockTime(newBlockTime);
+
+      await sinonClock.tickAsync(500);
+
+      const currentBlockTime = miningTimer.getBlockTime();
+
+      assert.equal(currentBlockTime, newBlockTime);
+      assert.isTrue(mineFunction.notCalled);
+
+      await sinonClock.tickAsync(newBlockTime - 500);
+      assert.isTrue(mineFunction.calledOnce);
     });
 
     it("throws when the new block time is 0 ms or less", () => {
@@ -59,7 +78,7 @@ describe("Mining Timer", () => {
 
       assert.isTrue(mineFunction.notCalled);
 
-      await sinonClock.tickAsync(DEFAULT_INTERVAL_MINING_CONFIG.blockTime);
+      await sinonClock.tickAsync(defaultBlockTime);
       assert.isTrue(mineFunction.calledOnce);
     });
 
@@ -68,22 +87,20 @@ describe("Mining Timer", () => {
 
       assert.isTrue(mineFunction.notCalled);
 
-      await sinonClock.tickAsync(DEFAULT_INTERVAL_MINING_CONFIG.blockTime);
+      await sinonClock.tickAsync(defaultBlockTime);
       assert.isTrue(mineFunction.calledOnce);
 
-      await sinonClock.tickAsync(DEFAULT_INTERVAL_MINING_CONFIG.blockTime);
+      await sinonClock.tickAsync(defaultBlockTime);
       assert.isTrue(mineFunction.calledTwice);
 
-      await sinonClock.tickAsync(DEFAULT_INTERVAL_MINING_CONFIG.blockTime);
+      await sinonClock.tickAsync(defaultBlockTime);
       assert.isTrue(mineFunction.calledThrice);
     });
 
     it("multiple start() calls don't affect the loop", async () => {
       miningTimer.start();
 
-      await sinonClock.tickAsync(
-        DEFAULT_INTERVAL_MINING_CONFIG.blockTime - 500
-      );
+      await sinonClock.tickAsync(defaultBlockTime - 500);
 
       miningTimer.start();
 
@@ -103,7 +120,7 @@ describe("Mining Timer", () => {
 
       miningTimer.stop();
 
-      await sinonClock.tickAsync(DEFAULT_INTERVAL_MINING_CONFIG.blockTime);
+      await sinonClock.tickAsync(defaultBlockTime);
       assert.isTrue(mineFunction.notCalled);
     });
   });
