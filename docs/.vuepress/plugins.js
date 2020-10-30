@@ -177,13 +177,13 @@ const plugins = [
     tags: ["Testing", "Coverage", "Buidler plugin"],
   },
   {
-    name: "buidler-gas-reporter",
+    name: "hardhat-gas-reporter",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
-    url: "https://github.com/cgewecke/buidler-gas-reporter/tree/master",
+    url: "https://github.com/cgewecke/hardhat-gas-reporter/tree/master",
     description:
       "Gas usage per unit test. Average gas usage per method. A mocha reporter.",
-    tags: ["Testing", "Gas", "Buidler plugin"],
+    tags: ["Testing", "Gas", "Hardhat plugin"],
   },
   {
     name: "@aragon/buidler-aragon",
