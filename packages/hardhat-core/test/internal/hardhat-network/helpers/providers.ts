@@ -14,7 +14,7 @@ export const DEFAULT_USE_JSON_RPC = false;
 export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;
 export const DEFAULT_AUTOMINE = true;
 export const DEFAULT_INTERVAL_MINING_CONFIG = {
-  enabled: true,
+  enabled: false,
   blockTime: 10000,
 };
 export const DEFAULT_ACCOUNTS = [

@@ -124,7 +124,7 @@ describe("Mining Timer", () => {
       assert.isTrue(mineFunction.calledThrice);
     });
 
-    it("the loop executes async callback correctly", async () => {
+    it("the loop awaits for async callback execution before looping again", async () => {
       const sleep = (ms: number) => {
         return new Promise((resolve) => setTimeout(resolve, ms));
       };
@@ -150,6 +150,10 @@ describe("Mining Timer", () => {
       assert.equal(callCount, 0);
 
       await sinonClock.tickAsync(53);
+
+      assert.equal(callCount, 1);
+
+      await sinonClock.tickAsync(interval - 50);
 
       assert.equal(callCount, 1);
     });

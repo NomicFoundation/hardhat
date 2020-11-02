@@ -13,7 +13,7 @@ export class MiningTimer implements IMiningTimer {
 
   constructor(
     private _blockTime: number,
-    private readonly _mineFunction: () => Promise<void>
+    private readonly _mineFunction: () => Promise<any>
   ) {
     if (_blockTime <= 0) {
       throw new Error(
@@ -69,6 +69,7 @@ export class MiningTimer implements IMiningTimer {
       return;
     }
 
+    console.log("ruuning the thing");
     await this._mineFunction();
 
     this._timeout = setTimeout(() => {

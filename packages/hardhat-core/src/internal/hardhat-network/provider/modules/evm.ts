@@ -157,9 +157,39 @@ export class EvmModule {
   private async _setIntervalMiningAction(
     miningConfig: RpcIntervalMining
   ): Promise<true> {
-    this._node.setIntervalMiningEnabled(miningConfig.enabled);
+    // this._node.setIntervalMiningEnabled(miningConfig.enabled);
 
-    // TODO: Handle miningConfig.blockTime
+    // if (miningConfig.blockTime !== undefined) {
+    //   this._node.getMiningTimer().setBlockTime(miningConfig.blockTime);
+    // }
+
+    console.log(miningConfig);
+
+    const miningTimer = this._node.getMiningTimer();
+
+    if (this._node.isIntervalMiningEnabled() !== miningConfig.enabled) {
+      console.log("am I in?");
+      if (miningConfig.enabled === true) {
+        if (miningConfig.blockTime !== undefined) {
+          miningTimer.setBlockTime(miningConfig.blockTime);
+        }
+
+        this._node.setIntervalMiningEnabled(miningConfig.enabled);
+        console.log("starting the loop");
+        miningTimer.start();
+      } else {
+        this._node.setIntervalMiningEnabled(miningConfig.enabled);
+        miningTimer.stop();
+
+        if (miningConfig.blockTime !== undefined) {
+          miningTimer.setBlockTime(miningConfig.blockTime);
+        }
+      }
+    } else {
+      if (miningConfig.blockTime !== undefined) {
+        miningTimer.setBlockTime(miningConfig.blockTime);
+      }
+    }
 
     return true;
   }

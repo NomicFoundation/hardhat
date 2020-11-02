@@ -15,6 +15,7 @@ import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
   BN,
   bufferToHex,
+  bufferToInt,
   ECDSASignature,
   ecsign,
   hashPersonalMessage,
@@ -49,6 +50,7 @@ import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
 import { HardhatBlockchain } from "./HardhatBlockchain";
+import { MiningTimer } from "./MiningTimer";
 import {
   CallParams,
   FilterParams,
@@ -164,6 +166,7 @@ export class HardhatNode extends EventEmitter {
       txPool,
       automine,
       intervalMiningConfig.enabled,
+      intervalMiningConfig.blockTime ?? 10000, // FIXME: Is it okay to leave 10000 here?
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig
@@ -189,6 +192,8 @@ export class HardhatNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
+  private readonly _miningTimer: MiningTimer;
+
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: PStateManager,
@@ -196,11 +201,16 @@ export class HardhatNode extends EventEmitter {
     private readonly _txPool: TxPool,
     private _automine: boolean,
     private _intervalMining: boolean,
+    private readonly _initialIntervalBlockTime: number,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig
   ) {
     super();
+
+    this._miningTimer = new MiningTimer(_initialIntervalBlockTime, () =>
+      this.mineEmptyBlock(new BN(Date.now()))
+    );
 
     this._initLocalAccounts(genesisAccounts);
 
@@ -245,6 +255,14 @@ export class HardhatNode extends EventEmitter {
 
       Reporter.reportError(error);
     }
+  }
+
+  public getMiningTimer() {
+    return this._miningTimer;
+  }
+
+  public isIntervalMiningEnabled() {
+    return this._intervalMining;
   }
 
   public async getSignedTransaction(
@@ -302,6 +320,8 @@ export class HardhatNode extends EventEmitter {
     ] = this._calculateTimestampAndOffset(timestamp);
 
     const block = await this._getNextBlockTemplate(blockTimestamp);
+    console.log('before', bufferToInt(block.header.number));
+
 
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
@@ -312,6 +332,7 @@ export class HardhatNode extends EventEmitter {
     }
 
     await this._updateTransactionsRoot(block);
+
 
     const previousRoot = await this._stateManager.getStateRoot();
 
@@ -334,6 +355,8 @@ export class HardhatNode extends EventEmitter {
       }
 
       await this._resetNextBlockTimestamp();
+
+      console.log(bufferToInt(block.header.number));
 
       return result;
     } catch (error) {

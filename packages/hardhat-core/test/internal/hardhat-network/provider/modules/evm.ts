@@ -365,6 +365,67 @@ describe("Evm module", function () {
         });
       });
 
+      describe.only("evm_setIntervalMining", () => {
+        let sinonClock: sinon.SinonFakeTimers;
+
+        beforeEach(() => {
+          sinonClock = sinon.useFakeTimers({
+            now: Date.now(),
+            toFake: ["Date", "setTimeout", "clearTimeout"],
+          });
+        });
+
+        afterEach(() => {
+          sinonClock.restore();
+        });
+
+        function sleep(ms: number) {
+          return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
+        it("should allow enabling interval mining", async function () {
+          const interval = 5000;
+
+          const previousBlock = await this.provider.send("eth_blockNumber");
+          console.log('previous block')
+          await this.provider.send("evm_setIntervalMining", [
+            { enabled: true, blockTime: interval },
+          ]);
+
+          // await sinonClock.tickAsync(interval);
+          // // await sleep(interval + 1);
+          // console.log('TICK')
+          // await sinonClock.runAllAsync();
+          // await sinonClock.tickAsync(interval);
+          // console.log('TICK')
+          // await sinonClock.runAllAsync();
+          // await sinonClock.tickAsync(interval);
+          // console.log('TICK')
+          // await sinonClock.runAllAsync();
+          // await sinonClock.tickAsync(interval / 2);
+          sinonClock.tick(interval);
+          await Promise.resolve()
+          sinonClock.tick(interval);
+          const currentBlock = await this.provider.send("eth_blockNumber");
+          console.log('current block')
+          console.log(currentBlock)
+          
+          await this.provider.send("evm_setIntervalMining", [
+            { enabled: false },
+          ]);
+          // sinonClock.restore();
+          assertQuantity(currentBlock, quantityToBN(previousBlock).addn(1));
+        });
+
+        xit("should allow disabling interval mining", async function () {});
+
+        xit("should mine a new block after the interval", async function () {});
+
+        xit("should continuously mine new blocks after each interval", async function () {});
+
+        xit("should mine block with transaction after the interval", async function () {});
+      });
+
       describe("Snapshot functionality", function () {
         describe("evm_snapshot", async function () {
           it("returns the snapshot id starting at 1", async function () {
