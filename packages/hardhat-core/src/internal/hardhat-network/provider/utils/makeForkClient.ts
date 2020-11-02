@@ -3,8 +3,10 @@ import { BN, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
 import { HttpProvider } from "../../../core/providers/http";
+import { rpcQuantityToNumber } from "../../../core/providers/provider-utils";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { ForkConfig } from "../node-types";
+import { getRpcBlock, numberToRpcQuantity, RpcBlockOutput } from "../output";
 
 import {
   FALLBACK_MAX_REORG,
@@ -20,7 +22,11 @@ const FORK_HTTP_TIMEOUT = 35000;
 export async function makeForkClient(
   forkConfig: ForkConfig,
   forkCachePath?: string
-): Promise<{ forkClient: JsonRpcClient; forkBlockNumber: BN }> {
+): Promise<{
+  forkClient: JsonRpcClient;
+  forkBlockNumber: BN;
+  forkBlockTimestamp: number;
+}> {
   const provider = new HttpProvider(
     forkConfig.jsonRpcUrl,
     HARDHAT_NETWORK_NAME,
@@ -57,6 +63,13 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
     forkBlockNumber = new BN(lastSafeBlock);
   }
 
+  const block = (await provider.request({
+    method: "eth_getBlockByNumber",
+    params: [numberToRpcQuantity(forkBlockNumber), false],
+  })) as RpcBlockOutput;
+
+  const forkBlockTimestamp = rpcQuantityToNumber(block.timestamp) * 1000;
+
   const cacheToDiskEnabled =
     forkConfig.blockNumber !== undefined &&
     forkCachePath !== undefined &&
@@ -70,7 +83,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
     cacheToDiskEnabled ? forkCachePath : undefined
   );
 
-  return { forkClient, forkBlockNumber };
+  return { forkClient, forkBlockNumber, forkBlockTimestamp };
 }
 
 async function getNetworkId(provider: HttpProvider) {

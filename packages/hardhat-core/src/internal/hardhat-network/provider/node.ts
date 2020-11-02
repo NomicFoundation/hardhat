@@ -103,16 +103,21 @@ export class HardhatNode extends EventEmitter {
     let initialBlockTimeOffset: BN | undefined;
 
     if (config.type === "forked") {
-      const { forkClient, forkBlockNumber } = await makeForkClient(
-        config.forkConfig,
-        config.forkCachePath
-      );
+      const {
+        forkClient,
+        forkBlockNumber,
+        forkBlockTimestamp,
+      } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(forkClient, forkBlockNumber);
 
       stateManager = new ForkStateManager(forkClient, forkBlockNumber);
       await putGenesisAccounts(stateManager, genesisAccounts);
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
+
+      initialBlockTimeOffset = new BN(
+        getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
+      );
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(config, stateTrie);
