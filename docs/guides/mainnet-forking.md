@@ -78,6 +78,13 @@ await hre.network.provider.request({
 )
 ```
 
+If you are using [`hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), use `getSigner` to use the impersonated account:
+
+```
+const signer = await ethers.getSigner("0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6")
+signer.sendTransaction(...)
+```
+
 ## Resetting the fork
 
 You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
