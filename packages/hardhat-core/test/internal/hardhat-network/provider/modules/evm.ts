@@ -24,6 +24,7 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../helpers/providers";
+import { waitForAssert } from "../../helpers/waitForAssert";
 
 async function deployContract(
   provider: EthereumProvider,
@@ -365,7 +366,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe.only("evm_setIntervalMining", () => {
+      describe("evm_setIntervalMining", () => {
         let sinonClock: sinon.SinonFakeTimers;
 
         beforeEach(() => {
@@ -379,50 +380,40 @@ describe("Evm module", function () {
           sinonClock.restore();
         });
 
-        function sleep(ms: number) {
-          return new Promise((resolve) => setTimeout(resolve, ms));
-        }
-
         it("should allow enabling interval mining", async function () {
-          const interval = 5000;
+          const getBlockNumber = async () => {
+            return quantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
+          };
 
-          const previousBlock = await this.provider.send("eth_blockNumber");
-          console.log('previous block')
+          const interval = 5000;
+          const initialBlock = await getBlockNumber();
           await this.provider.send("evm_setIntervalMining", [
             { enabled: true, blockTime: interval },
           ]);
 
-          // await sinonClock.tickAsync(interval);
-          // // await sleep(interval + 1);
-          // console.log('TICK')
-          // await sinonClock.runAllAsync();
-          // await sinonClock.tickAsync(interval);
-          // console.log('TICK')
-          // await sinonClock.runAllAsync();
-          // await sinonClock.tickAsync(interval);
-          // console.log('TICK')
-          // await sinonClock.runAllAsync();
-          // await sinonClock.tickAsync(interval / 2);
-          sinonClock.tick(interval);
-          await Promise.resolve()
-          sinonClock.tick(interval);
-          const currentBlock = await this.provider.send("eth_blockNumber");
-          console.log('current block')
-          console.log(currentBlock)
-          
-          await this.provider.send("evm_setIntervalMining", [
-            { enabled: false },
-          ]);
-          // sinonClock.restore();
-          assertQuantity(currentBlock, quantityToBN(previousBlock).addn(1));
+          await sinonClock.tickAsync(interval);
+
+          try {
+            await waitForAssert(10, async () => {
+              const currentBlock = await getBlockNumber();
+              assert.equal(currentBlock, initialBlock + 1);
+            });
+          } finally {
+            this.provider.send("evm_setIntervalMining", [{ enabled: false }]);
+          }
         });
 
-        xit("should allow disabling interval mining", async function () {});
+        xit("should allow disabling interval mining", async function () {
+          // use sleep
+        });
 
-        xit("should mine a new block after the interval", async function () {});
+        xit("should continuously mine new blocks after each interval", async function () {
+          // use waitForAssert
+        });
 
-        xit("should continuously mine new blocks after each interval", async function () {});
-
+        // TODO
         xit("should mine block with transaction after the interval", async function () {});
       });
 
