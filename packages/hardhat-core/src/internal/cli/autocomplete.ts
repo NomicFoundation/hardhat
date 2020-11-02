@@ -19,7 +19,11 @@ export async function complete({
 }: CompletionEnv): Promise<Suggestion[]> {
   let hre: typeof hardhat;
   try {
-    hre = require("../lib/hardhat-lib");
+    process.env.TS_NODE_TRANSPILE_ONLY = "1";
+    require("../../register");
+    const { HardhatContext } = require("../context");
+    const context = HardhatContext.getHardhatContext();
+    hre = context.getHardhatRuntimeEnvironment();
   } catch (e) {
     return [];
   }
