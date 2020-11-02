@@ -30,6 +30,8 @@ export interface HardhatNetworkUserConfig {
   gasPrice?: "auto" | number;
   gasMultiplier?: number;
   hardfork?: string;
+  automine?: boolean;
+  intervalMiningConfig?: HardhatNetworkIntervalMiningConfig;
   accounts?: HardhatNetworkAccountsUserConfig;
   blockGasLimit?: number;
   throwOnTransactionFailures?: boolean;
