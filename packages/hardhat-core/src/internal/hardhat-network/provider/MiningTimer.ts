@@ -31,6 +31,10 @@ export class MiningTimer implements IMiningTimer {
       throw new Error("New block time must be greater than 0 ms");
     }
 
+    if (blockTime === this._blockTime) {
+      return;
+    }
+
     this._blockTime = blockTime;
 
     if (this._state === MiningTimerState.RUNNING) {
