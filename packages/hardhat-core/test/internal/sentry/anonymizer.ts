@@ -299,5 +299,94 @@ describe("Anonymizer", () => {
         "My addresses are xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx and xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
       );
     });
+
+    it("should hide mnemonic phrases", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "My mnemonic phrase is test test test test test test test test test test test test. This is an error message.";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "My mnemonic phrase is <mnemonic>. This is an error message."
+      );
+    });
+
+    it("should hide mnemonic phrases with typos", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "My mnemonic phrase is test test test test test tset test test test test test test. This is an error message.";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "My mnemonic phrase is <mnemonic> tset <mnemonic>. This is an error message."
+      );
+    });
+
+    it("should hide mnemonic phrases with ideograms", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "My mnemonic phrase is 就 就 就 就 就 就 就 就 就 就 就 就. This is an error message.";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "My mnemonic phrase is <mnemonic>. This is an error message."
+      );
+    });
+
+    it("should hide all mnemonic phrase fragments", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = `My mnemonic phrase is test test test test test test test test test test test test. This is an error message.
+And here is some more more more more`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        `My mnemonic phrase is <mnemonic>. This is an error message.
+And here is some <mnemonic>`
+      );
+    });
+
+    it("should hide all mnemonic phrase fragments, even when one fragment is a subset of another one", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = `My mnemonic phrase is test test test test test test test test test test test test. This is an error message.
+And here is some test test test test. And then there is more more more more.
+And a bit more more more more more more more more more more more more.`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        `My mnemonic phrase is <mnemonic>. This is an error message.
+And here is some <mnemonic>. And then there is <mnemonic>.
+And a bit <mnemonic>.`
+      );
+    });
+
+    it("should hide mnemonic phrase fragments, even when there's several kinds of whitespace", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage = `My mnemonic phrase is test test test         test
+test\ttest \r
+test test test test test test. This is an error message.`;
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        `My mnemonic phrase is <mnemonic>. This is an error message.`
+      );
+    });
   });
 });

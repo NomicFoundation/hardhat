@@ -3,7 +3,15 @@ import findup from "find-up";
 import { either } from "fp-ts";
 import * as path from "path";
 
+interface WordMatch {
+  index: number;
+  word: string;
+}
+
 const ANONYMIZED_FILE = "<user-file>";
+const ANONYMIZED_MNEMONIC = "<mnemonic>";
+const MNEMONIC_PHRASE_LENGTH_THRESHOLD = 7;
+const MINIMUM_AMOUNT_OF_WORDS_TO_ANONYMIZE = 4;
 
 export class Anonymizer {
   constructor(private _configPath?: string) {}
@@ -93,6 +101,8 @@ export class Anonymizer {
   }
 
   public anonymizeErrorMessage(errorMessage: string): string {
+    errorMessage = this._anonymizeMnemonic(errorMessage);
+
     // the \\ before path.sep is necessary for this to work on windows
     const pathRegex = new RegExp(`\\S+\\${path.sep}\\S+`, "g");
 
@@ -226,4 +236,99 @@ export class Anonymizer {
 
     return result;
   }
+
+  private _anonymizeMnemonic(errorMessage: string): string {
+    let anonymizedMessage = "";
+    const mnemonicWordlist = ([] as string[]).concat(
+      ...[
+        require("ethereum-cryptography/bip39/wordlists/czech"),
+        require("ethereum-cryptography/bip39/wordlists/english"),
+        require("ethereum-cryptography/bip39/wordlists/french"),
+        require("ethereum-cryptography/bip39/wordlists/italian"),
+        require("ethereum-cryptography/bip39/wordlists/japanese"),
+        require("ethereum-cryptography/bip39/wordlists/korean"),
+        require("ethereum-cryptography/bip39/wordlists/simplified-chinese"),
+        require("ethereum-cryptography/bip39/wordlists/spanish"),
+        require("ethereum-cryptography/bip39/wordlists/traditional-chinese"),
+      ].map((wordlistModule) => wordlistModule.wordlist)
+    );
+    const matches: WordMatch[] = [
+      ...errorMessage.matchAll(/\p{Letter}+/gu),
+    ].map((match) => {
+      return {
+        word: match[0],
+        index: match.index!,
+      };
+    });
+    // If there are enough consecutive words, there's a good chance of there being a mnemonic phrase
+    if (matches.length >= MNEMONIC_PHRASE_LENGTH_THRESHOLD) {
+      // Determine all mnemonic phrase maximal fragments.
+      // We check sequences of n consecutive words just in case there is a typo
+      for (let wordIndex = 0; wordIndex < matches.length; wordIndex++) {
+        const maximalPhrase = getMaximalMnemonicPhrase(
+          matches,
+          errorMessage,
+          wordIndex,
+          mnemonicWordlist
+        );
+
+        if (maximalPhrase.length >= MINIMUM_AMOUNT_OF_WORDS_TO_ANONYMIZE) {
+          const lastAnonymizedWord = maximalPhrase[maximalPhrase.length - 1];
+          const nextWordIndex =
+            wordIndex + maximalPhrase.length < matches.length
+              ? matches[wordIndex + maximalPhrase.length].index
+              : errorMessage.length;
+          const sliceUntilNextWord = errorMessage.slice(
+            lastAnonymizedWord.index + lastAnonymizedWord.word.length,
+            nextWordIndex
+          );
+          anonymizedMessage += `${ANONYMIZED_MNEMONIC}${sliceUntilNextWord}`;
+          wordIndex += maximalPhrase.length - 1;
+        } else {
+          const thisWord = matches[wordIndex];
+          const nextWordIndex =
+            wordIndex + 1 < matches.length
+              ? matches[wordIndex + 1].index
+              : errorMessage.length;
+          const sliceUntilNextWord = errorMessage.slice(
+            thisWord.index,
+            nextWordIndex
+          );
+          anonymizedMessage += sliceUntilNextWord;
+        }
+      }
+    }
+    return anonymizedMessage;
+  }
+}
+
+function getMaximalMnemonicPhrase(
+  matches: WordMatch[],
+  originalMessage: string,
+  startIndex: number,
+  mnemonicWordlist: string[]
+): WordMatch[] {
+  const maximalPhrase: WordMatch[] = [];
+  for (let i = startIndex; i < matches.length; i++) {
+    const thisMatch = matches[i];
+    if (!mnemonicWordlist.includes(thisMatch.word)) {
+      break;
+    }
+
+    if (maximalPhrase.length > 0) {
+      // Check that there's only whitespace until this word.
+      const lastMatch = maximalPhrase[maximalPhrase.length - 1];
+      const lastIndex = lastMatch.index + lastMatch.word.length;
+      const sliceBetweenWords = originalMessage.slice(
+        lastIndex,
+        thisMatch.index
+      );
+      if (!/\s+/u.test(sliceBetweenWords)) {
+        break;
+      }
+    }
+
+    maximalPhrase.push(thisMatch);
+  }
+  return maximalPhrase;
 }
