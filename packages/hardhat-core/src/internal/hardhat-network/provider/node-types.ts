@@ -89,5 +89,5 @@ export interface RunTransactionResult {
 }
 
 export interface MineBlockResult extends RunBlockResult {
-  block: Block,
+  block: Block;
 }

@@ -2,6 +2,7 @@ import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { FakeTxData } from "ethereumjs-tx";
 import FakeTransaction from "ethereumjs-tx/dist/fake";
+import { bufferToHex } from "ethereumjs-util";
 
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -57,6 +58,49 @@ describe("HardhatNode", () => {
 
       const txReceipt = await node.getTransactionReceipt(tx.hash());
       assert.isDefined(txReceipt);
+
+      const block = await node.getLatestBlock();
+      assert.lengthOf(block.transactions, 1);
+      assert.equal(
+        bufferToHex(block.transactions[0].hash()),
+        bufferToHex(tx.hash())
+      );
+
+      const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS, null);
+      assert.equal(balance.toString(), "1234");
+    });
+
+    xit("can mine a block with two transactions", async () => {
+      const tx1 = createTestTransaction({
+        nonce: 0,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 21_000,
+        value: 1234,
+      });
+      const tx2 = createTestTransaction({
+        nonce: 0,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 21_000,
+        value: 1234,
+      });
+      await node.runTransaction(tx1);
+      await node.runTransaction(tx2);
+      await node.mineBlock();
+
+      assert.isDefined(await node.getTransactionReceipt(tx1.hash()));
+      assert.isDefined(await node.getTransactionReceipt(tx2.hash()));
+
+      const block = await node.getLatestBlock();
+      assert.lengthOf(block.transactions, 2);
+      assert.deepEqual(
+        block.transactions.map((tx) => bufferToHex(tx.hash())),
+        [tx1, tx2].map((tx) => bufferToHex(tx.hash()))
+      );
+
+      const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS, null);
+      assert.equal(balance.toString(), "2468");
     });
   });
 });
