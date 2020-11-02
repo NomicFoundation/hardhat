@@ -261,9 +261,9 @@ export class HardhatNode extends EventEmitter {
   }
 
   public runIntervalMining(enabled: boolean, blockTime?: number) {
-    const setBlockTime = (blockTime: number | undefined) => {
-      if (blockTime !== undefined) {
-        this._miningTimer.setBlockTime(blockTime);
+    const setBlockTime = (newBlockTime: number | undefined) => {
+      if (newBlockTime !== undefined) {
+        this._miningTimer.setBlockTime(newBlockTime);
       }
     };
 
@@ -339,7 +339,6 @@ export class HardhatNode extends EventEmitter {
     ] = this._calculateTimestampAndOffset(timestamp);
 
     const block = await this._getNextBlockTemplate(blockTimestamp);
-    console.log("before", bufferToInt(block.header.number));
 
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
       block
@@ -372,8 +371,6 @@ export class HardhatNode extends EventEmitter {
       }
 
       await this._resetNextBlockTimestamp();
-
-      console.log(bufferToInt(block.header.number));
 
       return result;
     } catch (error) {

@@ -69,7 +69,6 @@ export class MiningTimer implements IMiningTimer {
       return;
     }
 
-    console.log("ruuning the thing");
     await this._mineFunction();
 
     this._timeout = setTimeout(() => {
