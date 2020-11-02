@@ -401,7 +401,9 @@ describe("Evm module", function () {
               assert.equal(currentBlock, initialBlock + 1);
             });
           } finally {
-            this.provider.send("evm_setIntervalMining", [{ enabled: false }]);
+            await this.provider.send("evm_setIntervalMining", [
+              { enabled: false },
+            ]);
           }
         });
 
