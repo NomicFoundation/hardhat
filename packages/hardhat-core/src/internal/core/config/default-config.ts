@@ -37,6 +37,7 @@ export const defaultHardhatNetworkParams: HardhatNetworkConfig = {
   throwOnCallFailures: true,
   allowUnlimitedContractSize: false,
   automine: true,
+  intervalMining: { enabled: false, blockTime: 10000 },
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,

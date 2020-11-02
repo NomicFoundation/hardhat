@@ -84,7 +84,7 @@ export function createProvider(
       hardhatNetConfig.throwOnTransactionFailures!,
       hardhatNetConfig.throwOnCallFailures!,
       hardhatNetConfig.automine,
-      hardhatNetConfig.intervalMiningConfig,
+      hardhatNetConfig.intervalMining,
       accounts,
       artifacts,
       hardhatNetConfig.loggingEnabled,

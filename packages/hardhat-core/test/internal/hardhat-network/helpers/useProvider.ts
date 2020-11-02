@@ -36,7 +36,7 @@ export function useProvider(
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
   automine = DEFAULT_AUTOMINE,
-  intervalMiningConfig = DEFAULT_INTERVAL_MINING_CONFIG
+  intervalMining = DEFAULT_INTERVAL_MINING_CONFIG
 ) {
   beforeEach("Initialize provider", async function () {
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
@@ -48,7 +48,7 @@ export function useProvider(
       true,
       true,
       automine,
-      intervalMiningConfig,
+      intervalMining,
       accounts,
       undefined,
       undefined,

@@ -75,7 +75,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
-    private _intervalMiningConfig: IntervalMiningConfig,
+    private _intervalMining: IntervalMiningConfig,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
     private _loggingEnabled = false,
@@ -255,7 +255,7 @@ export class HardhatNetworkProvider extends EventEmitter
 
     const commonConfig = {
       automine: this._automine,
-      intervalMiningConfig: this._intervalMiningConfig,
+      intervalMining: this._intervalMining,
       blockGasLimit: this._blockGasLimit,
       genesisAccounts: this._genesisAccounts,
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
