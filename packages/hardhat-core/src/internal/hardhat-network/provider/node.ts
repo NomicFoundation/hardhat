@@ -211,6 +211,10 @@ export class HardhatNode extends EventEmitter {
       this.mineEmptyBlock(new BN(Date.now()))
     );
 
+    if (_intervalMining) {
+      this._miningTimer.start();
+    }
+
     this._initLocalAccounts(genesisAccounts);
 
     this._vmTracer = new VMTracer(
