@@ -1,50 +1,31 @@
-import tabtab from "@pnpm/tabtab";
+#!/usr/bin/env node
 import { spawnSync } from "child_process";
 
 export async function main() {
-  const cmd = process.argv[2];
-
-  if (cmd === "install-completion") {
-    await tabtab
-      .install({
-        name: "hh",
-        completer: "hh",
-      })
-      .catch((err: any) => {
-        console.error("INSTALL ERROR", err); // TODO
-      });
-
-    return;
-  }
-
-  if (cmd === "uninstall-completion") {
-    await tabtab
-      .uninstall({
-        name: "hh",
-      })
-      .catch((err: any) => console.error("UNINSTALL ERROR", err)); // TODO
-
-    return;
-  }
-
-  if (cmd === "completion") {
-    const env = tabtab.parseEnv(process.env);
-    try {
-      const pathToHardhatAutocomplete = require.resolve(
-        "hardhat/internal/cli/autocomplete",
-        {
-          paths: [process.cwd()],
-        }
+  let pathToHardhat;
+  try {
+    pathToHardhat = require.resolve("hardhat/internal/cli/cli.js", {
+      paths: [process.cwd()],
+    });
+  } catch (e) {
+    if (e.code === "MODULE_NOT_FOUND") {
+      console.error(
+        "You are not inside a Hardhat project, or Hardhat is not locally installed"
       );
-      const { complete } = require(pathToHardhatAutocomplete);
-      const suggestions = await complete(env);
-      return tabtab.log(suggestions);
-    } catch (e) {
-      return tabtab.log([]);
+    } else {
+      console.error(`[hh] Unexpected error: ${e.message}`);
     }
+    process.exit(1);
   }
 
-  spawnSync("npx", ["hardhat", ...process.argv.slice(2)], {
+  spawnSync("node", [pathToHardhat, ...process.argv.slice(2)], {
     stdio: "inherit",
   });
 }
+
+main()
+  .then(() => process.exit(process.exitCode))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

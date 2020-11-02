@@ -7,7 +7,8 @@
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "bin": {
-    "hh": "bin/index.js"
+    "hh": "dist/src/index.js",
+    "hh-completion": "dist/src/completion.js"
   },
   "keywords": [
     "ethereum",
