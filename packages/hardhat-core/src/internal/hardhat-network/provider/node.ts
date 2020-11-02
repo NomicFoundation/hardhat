@@ -260,12 +260,28 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  public getMiningTimer() {
-    return this._miningTimer;
-  }
+  public runIntervalMining(enabled: boolean, blockTime?: number) {
+    const setBlockTime = (blockTime: number | undefined) => {
+      if (blockTime !== undefined) {
+        this._miningTimer.setBlockTime(blockTime);
+      }
+    };
 
-  public isIntervalMiningEnabled() {
-    return this._intervalMining;
+    if (this._intervalMining !== enabled) {
+      if (enabled) {
+        setBlockTime(blockTime);
+
+        this.setIntervalMiningEnabled(enabled);
+        this._miningTimer.start();
+      } else {
+        this.setIntervalMiningEnabled(enabled);
+        this._miningTimer.stop();
+
+        setBlockTime(blockTime);
+      }
+    } else {
+      setBlockTime(blockTime);
+    }
   }
 
   public async getSignedTransaction(
