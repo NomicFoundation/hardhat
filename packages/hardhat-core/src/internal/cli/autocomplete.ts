@@ -94,7 +94,11 @@ export async function complete({
     return tasks;
   }
 
-  // if there's a task, we complete its params and the global params
+  if (!last.startsWith("-")) {
+    return [];
+  }
+
+  // if there's a task and the last word starts with -, we complete its params and the global params
   const taskParams = Object.values(hre.tasks[task].paramDefinitions)
     .map((x) => ({
       name: ArgumentsParser.paramNameToCLA(x.name),

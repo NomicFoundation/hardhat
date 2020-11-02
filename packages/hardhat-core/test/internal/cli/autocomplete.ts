@@ -110,7 +110,7 @@ const quietParam = {
   description: "Makes the compilation process less verbose",
 };
 
-describe.only("autocomplete", () => {
+describe("autocomplete", () => {
   describe("basic project", () => {
     useFixtureProject("autocomplete/basic-project");
 
@@ -238,6 +238,12 @@ describe.only("autocomplete", () => {
       const suggestions = await complete("hh compile");
 
       expect(suggestions).to.have.deep.members(coreTasks);
+    });
+
+    it("should not suggest params after a task if the last word doesn't start with --", async () => {
+      const suggestions = await complete("hh compile --config config.js ");
+
+      expect(suggestions).to.have.deep.members([]);
     });
   });
 
