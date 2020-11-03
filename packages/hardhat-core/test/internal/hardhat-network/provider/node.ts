@@ -40,6 +40,33 @@ describe("HardhatNode", () => {
     createTestTransaction = (txData) => new FakeTransaction(txData, { common });
   });
 
+  describe("constructor", () => {
+    it("automine starts after Node's creation", async () => {
+      const sleep = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+
+      const interval = 200;
+      const newConfig = {
+        ...config,
+        intervalMining: {
+          enabled: true,
+          blockTime: interval,
+        },
+      };
+
+      [, node] = await HardhatNode.create(newConfig);
+
+      const beforeBlock = await node.getLatestBlockNumber();
+
+      await sleep(1.5 * interval);
+
+      node.runIntervalMining(false);
+
+      const currentBlock = await node.getLatestBlockNumber();
+      assert.equal(currentBlock.toString(), beforeBlock.addn(1).toString());
+    });
+  });
+
   describe("mineBlock", () => {
     async function assertTransactionsWereMined(txs: Transaction[]) {
       for (const tx of txs) {
