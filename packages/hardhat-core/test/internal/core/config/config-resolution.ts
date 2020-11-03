@@ -433,6 +433,7 @@ describe("Config resolution", () => {
           allowUnlimitedContractSize: true,
           blockGasLimit: 567,
           automine: false,
+          intervalMining: { enabled: false, blockTime: 10000 },
           hardfork: "hola",
           initialDate: "today",
         };
