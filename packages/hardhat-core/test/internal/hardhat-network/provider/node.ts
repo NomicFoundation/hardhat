@@ -70,7 +70,7 @@ describe("HardhatNode", () => {
       assert.equal(balance.toString(), "1234");
     });
 
-    xit("can mine a block with two transactions", async () => {
+    it("can mine a block with two transactions", async () => {
       const tx1 = createTestTransaction({
         nonce: 0,
         from: DEFAULT_ACCOUNTS_ADDRESSES[0],

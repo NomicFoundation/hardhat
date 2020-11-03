@@ -834,13 +834,16 @@ export class HardhatNode extends EventEmitter {
     const pendingTxs = this._txPool.getPendingTransactions();
     const txHeap = new TxPriorityHeap(pendingTxs);
 
-    const tx = txHeap.peek();
-    if (tx !== undefined) {
+    let tx = txHeap.peek();
+    while (tx !== undefined) {
       const txResult = await this._vm.runTx({ tx, block });
       results.push(txResult);
       bloom.or(txResult.bloom);
       receipts.push(this._createReceipt(txResult));
       await this._addTransactionToBlock(block, tx);
+
+      txHeap.shift();
+      tx = txHeap.peek();
     }
 
     // TODO assign block reward
