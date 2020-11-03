@@ -78,6 +78,14 @@ export const rpcHash = new t.Type<Buffer>(
   t.identity
 );
 
+const isInteger = (num: unknown): num is number => Number.isInteger(num);
+const rpcUnsignedInteger = new t.Type<number>(
+  "Unsigned integer",
+  isInteger,
+  (u, c) => (isInteger(u) && u >= 0 ? t.success(u) : t.failure(u, c)),
+  t.identity
+);
+
 export const rpcUnknown = t.unknown;
 
 export const rpcAddress = new t.Type<Buffer>(
@@ -282,7 +290,7 @@ export const optionalRpcHardhatNetworkConfig = optional(
 export const rpcIntervalMining = t.type(
   {
     enabled: t.boolean,
-    blockTime: optional(t.number),
+    blockTime: optional(rpcUnsignedInteger),
   },
   "RpcIntervalMining"
 );
