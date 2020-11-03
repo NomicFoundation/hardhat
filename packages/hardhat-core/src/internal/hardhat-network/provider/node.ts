@@ -822,33 +822,38 @@ export class HardhatNode extends EventEmitter {
     this._blockTime = blockTime;
   }
 
+  public setBlockGasLimit(gasLimit: BN | number) {
+    this._txPool.setBlockGasLimit(gasLimit);
+  }
+
   private async _mineBlock(): Promise<[Block, RunBlockResult]> {
     const [blockTimestamp] = this._calculateTimestampAndOffset();
     const block = await this._getNextBlockTemplate(blockTimestamp);
 
-    const gasUsed = new BN(0);
     const bloom = new Bloom();
     const results: RunTxResult[] = [];
     const receipts: TxReceipt[] = [];
 
+    const blockGasLimit = await this.getBlockGasLimit();
+    const gasLeft = blockGasLimit.clone();
     const pendingTxs = this._txPool.getPendingTransactions();
     const txHeap = new TxPriorityHeap(pendingTxs);
 
     let tx = txHeap.peek();
-    while (tx !== undefined) {
+    while (gasLeft.gten(21_000) && tx !== undefined) {
       const txResult = await this._vm.runTx({ tx, block });
-      gasUsed.iadd(txResult.gasUsed);
       bloom.or(txResult.bloom);
       results.push(txResult);
       receipts.push(this._createReceipt(txResult));
       await this._addTransactionToBlock(block, tx);
 
+      gasLeft.isub(txResult.gasUsed);
       txHeap.shift();
       tx = txHeap.peek();
     }
 
     // TODO assign block reward
-    block.header.gasUsed = toBuffer(gasUsed);
+    block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));
     block.header.stateRoot = await this._stateManager.getStateRoot();
     block.header.bloom = bloom.bitvector;
 

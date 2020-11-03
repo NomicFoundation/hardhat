@@ -151,5 +151,33 @@ describe("HardhatNode", () => {
       const block = await node.getLatestBlock();
       assert.equal(bufferToInt(block.header.gasUsed), 42_000);
     });
+
+    it("respects block gas limit", async () => {
+      node.setBlockGasLimit(21_000);
+      const tx1 = createTestTransaction({
+        nonce: 0,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 21_000,
+        value: 1234,
+      });
+      const tx2 = createTestTransaction({
+        nonce: 1,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 21_000,
+        value: 1234,
+      });
+      await node.runTransaction(tx1);
+      await node.runTransaction(tx2);
+      await node.mineBlock();
+
+      await assertTransactionsWereMined([tx1]);
+      assert.isUndefined(await node.getTransactionReceipt(tx2.hash()));
+    });
+
+    xit("can mine two transactions which gasLimit sum exceeds block gas limit but actual gas used does not", async () => {
+      // TODO
+    });
   });
 });
