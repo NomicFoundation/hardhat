@@ -278,29 +278,37 @@ export class ForkStateManager implements PStateManager {
     return {
       copy: () => this.copy().asStateManager(),
       getAccount: callbackify(this.getAccount.bind(this)),
-      putAccount: callbackify(this.putAccount.bind(this)),
+      putAccount: callbackify<Buffer, Account, void>(
+        this.putAccount.bind(this)
+      ),
       touchAccount: this.touchAccount.bind(this),
-      putContractCode: callbackify(this.putContractCode.bind(this)),
+      putContractCode: callbackify<Buffer, Buffer, void>(
+        this.putContractCode.bind(this)
+      ),
       getContractCode: callbackify(this.getContractCode.bind(this)),
       getContractStorage: callbackify(this.getContractStorage.bind(this)),
       getOriginalContractStorage: callbackify(
         this.getOriginalContractStorage.bind(this)
       ),
-      putContractStorage: callbackify(this.putContractStorage.bind(this)),
-      clearContractStorage: callbackify(this.clearContractStorage.bind(this)),
-      checkpoint: callbackify(this.checkpoint.bind(this)),
-      commit: callbackify(this.commit.bind(this)),
-      revert: callbackify(this.revert.bind(this)),
+      putContractStorage: callbackify<Buffer, Buffer, Buffer, void>(
+        this.putContractStorage.bind(this)
+      ),
+      clearContractStorage: callbackify<Buffer, void>(
+        this.clearContractStorage.bind(this)
+      ),
+      checkpoint: callbackify<void>(this.checkpoint.bind(this)),
+      commit: callbackify<void>(this.commit.bind(this)),
+      revert: callbackify<void>(this.revert.bind(this)),
       getStateRoot: callbackify(this.getStateRoot.bind(this)),
-      setStateRoot: callbackify(this.setStateRoot.bind(this)),
+      setStateRoot: callbackify<Buffer, void>(this.setStateRoot.bind(this)),
       dumpStorage: callbackify(this.dumpStorage.bind(this)),
       hasGenesisState: callbackify(this.hasGenesisState.bind(this)),
-      generateCanonicalGenesis: callbackify(
+      generateCanonicalGenesis: callbackify<void>(
         this.generateCanonicalGenesis.bind(this)
       ),
-      generateGenesis: callbackify(this.generateGenesis.bind(this)),
+      generateGenesis: callbackify<any, void>(this.generateGenesis.bind(this)),
       accountIsEmpty: callbackify(this.accountIsEmpty.bind(this)),
-      cleanupTouchedAccounts: callbackify(
+      cleanupTouchedAccounts: callbackify<void>(
         this.cleanupTouchedAccounts.bind(this)
       ),
       _clearOriginalStorageCache: this._clearOriginalStorageCache.bind(this),
