@@ -2,10 +2,11 @@ import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { FakeTxData, Transaction } from "ethereumjs-tx";
 import FakeTransaction from "ethereumjs-tx/dist/fake";
-import { bufferToHex } from "ethereumjs-util";
+import { bufferToHex, bufferToInt } from "ethereumjs-util";
 
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import { assertQuantity } from "../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
 import {
   DEFAULT_ACCOUNTS,
@@ -121,6 +122,34 @@ describe("HardhatNode", () => {
       await assertTransactionsWereMined([tx1, tx2]);
       const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS, null);
       assert.equal(balance.toString(), "2468");
+    });
+
+    it("sets correct gasUsed values", async () => {
+      const tx1 = createTestTransaction({
+        nonce: 0,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 100_000,
+        value: 1234,
+      });
+      const tx2 = createTestTransaction({
+        nonce: 0,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 100_000,
+        value: 1234,
+      });
+      await node.runTransaction(tx1);
+      await node.runTransaction(tx2);
+      await node.mineBlock();
+
+      const tx1Receipt = await node.getTransactionReceipt(tx1.hash());
+      const tx2Receipt = await node.getTransactionReceipt(tx2.hash());
+      assertQuantity(tx1Receipt?.gasUsed, 21_000);
+      assertQuantity(tx2Receipt?.gasUsed, 21_000);
+
+      const block = await node.getLatestBlock();
+      assert.equal(bufferToInt(block.header.gasUsed), 42_000);
     });
   });
 });
