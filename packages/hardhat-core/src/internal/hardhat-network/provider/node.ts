@@ -835,12 +835,13 @@ export class HardhatNode extends EventEmitter {
     const receipts: TxReceipt[] = [];
 
     const blockGasLimit = await this.getBlockGasLimit();
+    const minTxFee = this._getMinimalTransactionFee();
     const gasLeft = blockGasLimit.clone();
     const pendingTxs = this._txPool.getPendingTransactions();
     const txHeap = new TxPriorityHeap(pendingTxs);
 
     let tx = txHeap.peek();
-    while (gasLeft.gten(21_000) && tx !== undefined) {
+    while (gasLeft.gten(minTxFee) && tx !== undefined) {
       const txResult = await this._vm.runTx({ tx, block });
       bloom.or(txResult.bloom);
       results.push(txResult);
@@ -864,6 +865,11 @@ export class HardhatNode extends EventEmitter {
         receipts,
       },
     ];
+  }
+
+  private _getMinimalTransactionFee(): number {
+    // Typically 21_000 gas
+    return this._vm._common.param("gasPrices", "tx");
   }
 
   private _createReceipt(txResult: RunTxResult): TxReceipt {
