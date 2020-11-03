@@ -425,21 +425,17 @@ describe("Evm module", function () {
             { enabled: true, blockTime: interval },
           ]);
 
-          await sleep(interval);
-
-          await sleep(150);
+          await sleep(1.5 * interval);
 
           const nextBlock = await getBlockNumber();
 
           await this.provider.send("evm_setIntervalMining", [
-            { enabled: false },
+            { enabled: false, blockTime: interval * 2 },
           ]);
 
           assert.equal(nextBlock, initialBlock + 1);
 
-          await sleep(interval);
-
-          await sleep(150);
+          await sleep(3 * interval);
 
           const currentBlock = await getBlockNumber();
 

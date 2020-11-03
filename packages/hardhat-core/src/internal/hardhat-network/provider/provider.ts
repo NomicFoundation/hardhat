@@ -75,7 +75,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
-    private _intervalMining: IntervalMiningConfig,
+    private readonly _intervalMining: IntervalMiningConfig,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
     private _loggingEnabled = false,

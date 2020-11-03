@@ -15,7 +15,6 @@ import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
   BN,
   bufferToHex,
-  bufferToInt,
   ECDSASignature,
   ecsign,
   hashPersonalMessage,
@@ -55,6 +54,7 @@ import {
   CallParams,
   FilterParams,
   GenesisAccount,
+  IntervalMiningConfig,
   NodeConfig,
   RunTransactionResult,
   Snapshot,
@@ -164,9 +164,8 @@ export class HardhatNode extends EventEmitter {
       blockchain,
       txPool,
       automine,
-      intervalMining.enabled,
-      intervalMining.blockTime,
       initialBlockTimeOffset,
+      intervalMining,
       genesisAccounts,
       tracingConfig
     );
@@ -199,19 +198,18 @@ export class HardhatNode extends EventEmitter {
     private readonly _blockchain: PBlockchain,
     private readonly _txPool: TxPool,
     private _automine: boolean,
-    private _intervalMining: boolean,
-    private readonly _initialIntervalBlockTime: number,
     private _blockTimeOffsetSeconds: BN = new BN(0),
+    intervalMining: IntervalMiningConfig,
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig
   ) {
     super();
 
-    this._miningTimer = new MiningTimer(_initialIntervalBlockTime, () =>
+    this._miningTimer = new MiningTimer(intervalMining.blockTime, () =>
       this.mineEmptyBlock(new BN(Date.now()))
     );
 
-    if (_intervalMining) {
+    if (intervalMining.enabled) {
       this._miningTimer.start();
     }
 
@@ -267,20 +265,11 @@ export class HardhatNode extends EventEmitter {
       }
     };
 
-    if (this._intervalMining !== enabled) {
-      if (enabled) {
-        setBlockTime(blockTime);
-
-        this.setIntervalMiningEnabled(enabled);
-        this._miningTimer.start();
-      } else {
-        this.setIntervalMiningEnabled(enabled);
-        this._miningTimer.stop();
-
-        setBlockTime(blockTime);
-      }
+    setBlockTime(blockTime);
+    if (enabled) {
+      this._miningTimer.start();
     } else {
-      setBlockTime(blockTime);
+      this._miningTimer.stop();
     }
   }
 
@@ -855,10 +844,6 @@ export class HardhatNode extends EventEmitter {
 
   public setAutomineEnabled(automine: boolean) {
     this._automine = automine;
-  }
-
-  public setIntervalMiningEnabled(intervalMining: boolean) {
-    this._intervalMining = intervalMining;
   }
 
   public setBlockGasLimit(gasLimit: BN | number) {
