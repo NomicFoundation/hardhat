@@ -46,7 +46,7 @@ async function deployContract(
 }
 
 describe("Evm module", function () {
-  PROVIDERS.forEach(({ name, useProvider }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
@@ -278,7 +278,7 @@ describe("Evm module", function () {
       });
 
       describe("evm_mine", async function () {
-        it("should mine an empty block", async function () {
+        it("should mine empty blocks", async function () {
           await this.provider.send("evm_mine");
 
           const block: RpcBlockOutput = await this.provider.send(
@@ -375,123 +375,133 @@ describe("Evm module", function () {
           );
         });
 
-        describe("sinon based tests", () => {
-          let sinonClock: sinon.SinonFakeTimers;
+        describe("time based tests", () => {
+          beforeEach(async function () {
+            if (isFork) {
+              // This is done to speed up subsequent mineEmptyBlock calls made by MiningTimer.
+              // On first mineEmptyBlock call there are many calls to JSON RPC provider which slow things down.
+              await this.provider.send("evm_mine");
+            }
+          });
 
-          beforeEach(() => {
-            sinonClock = sinon.useFakeTimers({
-              now: Date.now(),
-              toFake: ["Date", "setTimeout", "clearTimeout"],
+          describe("using sinon", () => {
+            let sinonClock: sinon.SinonFakeTimers;
+
+            beforeEach(() => {
+              sinonClock = sinon.useFakeTimers({
+                now: Date.now(),
+                toFake: ["Date", "setTimeout", "clearTimeout"],
+              });
+            });
+
+            afterEach(async function () {
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: false },
+              ]);
+              sinonClock.restore();
+            });
+
+            it("should allow enabling interval mining", async function () {
+              const getBlockNumber = async () => {
+                return quantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
+              };
+
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: true, blockTime: interval },
+              ]);
+
+              await sinonClock.tickAsync(interval);
+
+              await waitForAssert(10, async () => {
+                const currentBlock = await getBlockNumber();
+                assert.equal(currentBlock, initialBlock + 1);
+              });
+            });
+
+            it("should continuously mine new blocks after each interval", async function () {
+              const getBlockNumber = async () => {
+                return quantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
+              };
+
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: true, blockTime: interval },
+              ]);
+
+              await sinonClock.tickAsync(interval);
+
+              await waitForAssert(10, async () => {
+                const currentBlock = await getBlockNumber();
+                assert.equal(currentBlock, initialBlock + 1);
+              });
+
+              await sinonClock.tickAsync(interval);
+
+              await waitForAssert(10, async () => {
+                const currentBlock = await getBlockNumber();
+                assert.equal(currentBlock, initialBlock + 2);
+              });
+
+              await sinonClock.tickAsync(interval);
+
+              await waitForAssert(10, async () => {
+                const currentBlock = await getBlockNumber();
+                assert.equal(currentBlock, initialBlock + 3);
+              });
             });
           });
 
-          afterEach(async function () {
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: false },
-            ]);
-            sinonClock.restore();
-          });
+          describe("using sleep", () => {
+            afterEach(async function () {
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: false },
+              ]);
+            });
 
-          it("should allow enabling interval mining", async function () {
-            const getBlockNumber = async () => {
-              return quantityToNumber(
-                await this.provider.send("eth_blockNumber")
-              );
-            };
+            it("should allow disabling interval mining", async function () {
+              const sleep = (ms: number) =>
+                new Promise((resolve) => setTimeout(resolve, ms));
 
-            const interval = 5000;
-            const initialBlock = await getBlockNumber();
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: true, blockTime: interval },
-            ]);
+              const getBlockNumber = async () => {
+                return quantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
+              };
 
-            await sinonClock.tickAsync(interval);
+              const interval = 300;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: true, blockTime: interval },
+              ]);
 
-            await waitForAssert(10, async () => {
+              await sleep(1.9 * interval);
+
+              const nextBlock = await getBlockNumber();
+
+              assert.equal(nextBlock, initialBlock + 1);
+
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: false, blockTime: interval * 2 },
+              ]);
+
+              await sleep(interval);
+
               const currentBlock = await getBlockNumber();
+
               assert.equal(currentBlock, initialBlock + 1);
             });
           });
 
-          it("should continuously mine new blocks after each interval", async function () {
-            const getBlockNumber = async () => {
-              return quantityToNumber(
-                await this.provider.send("eth_blockNumber")
-              );
-            };
-
-            const interval = 5000;
-            const initialBlock = await getBlockNumber();
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: true, blockTime: interval },
-            ]);
-
-            await sinonClock.tickAsync(interval);
-
-            await waitForAssert(10, async () => {
-              const currentBlock = await getBlockNumber();
-              assert.equal(currentBlock, initialBlock + 1);
-            });
-
-            await sinonClock.tickAsync(interval);
-
-            await waitForAssert(10, async () => {
-              const currentBlock = await getBlockNumber();
-              assert.equal(currentBlock, initialBlock + 2);
-            });
-
-            await sinonClock.tickAsync(interval);
-
-            await waitForAssert(10, async () => {
-              const currentBlock = await getBlockNumber();
-              assert.equal(currentBlock, initialBlock + 3);
-            });
-          });
+          // TODO
+          xit("should mine block with transaction after the interval", async function () {});
         });
-
-        describe("sleep based tests", () => {
-          afterEach(async function () {
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: false },
-            ]);
-          });
-
-          it("should allow disabling interval mining", async function () {
-            const sleep = (ms: number) =>
-              new Promise((resolve) => setTimeout(resolve, ms));
-
-            const getBlockNumber = async () => {
-              return quantityToNumber(
-                await this.provider.send("eth_blockNumber")
-              );
-            };
-
-            const interval = 200;
-            const initialBlock = await getBlockNumber();
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: true, blockTime: interval },
-            ]);
-
-            await sleep(1.5 * interval);
-
-            const nextBlock = await getBlockNumber();
-
-            assert.equal(nextBlock, initialBlock + 1);
-
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: false, blockTime: interval * 2 },
-            ]);
-
-            await sleep(3 * interval);
-
-            const currentBlock = await getBlockNumber();
-
-            assert.equal(currentBlock, initialBlock + 1);
-          });
-        });
-
-        // TODO
-        xit("should mine block with transaction after the interval", async function () {});
       });
 
       describe("Snapshot functionality", function () {

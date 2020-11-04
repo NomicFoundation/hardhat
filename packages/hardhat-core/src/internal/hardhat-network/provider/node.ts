@@ -206,7 +206,7 @@ export class HardhatNode extends EventEmitter {
     super();
 
     this._miningTimer = new MiningTimer(intervalMining.blockTime, () =>
-      this.mineEmptyBlock(new BN(Date.now()))
+      this.mineEmptyBlock(new BN(0))
     );
 
     if (intervalMining.enabled) {
