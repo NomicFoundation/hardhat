@@ -475,7 +475,7 @@ describe("Evm module", function () {
                 );
               };
 
-              const interval = 300;
+              const interval = 500;
               const initialBlock = await getBlockNumber();
               await this.provider.send("evm_setIntervalMining", [
                 { enabled: true, blockTime: interval },
