@@ -773,6 +773,16 @@ describe("Tx Pool", () => {
       txPool.setBlockGasLimit(new BN(15_000_000));
       assert.equal(txPool.getBlockGasLimit().toNumber(), 15_000_000);
     });
+
+    it("makes the new block gas limit actually used for validating added transactions", async () => {
+      txPool.setBlockGasLimit(21_000);
+      const tx = createTestFakeTransaction({ gasLimit: 50_000 });
+      await assert.isRejected(
+        txPool.addTransaction(tx),
+        InvalidInputError,
+        "Transaction gas limit is 50000 and exceeds block gas limit of 21000"
+      );
+    });
   });
 
   describe("snapshot", () => {

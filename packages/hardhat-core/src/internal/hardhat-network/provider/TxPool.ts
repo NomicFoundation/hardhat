@@ -71,11 +71,11 @@ export class TxPool {
 
   constructor(
     private readonly _stateManager: PStateManager,
-    private _blockGasLimit: BN,
+    blockGasLimit: BN,
     common: Common
   ) {
     this._state = makePoolState({
-      blockGasLimit: bnToHex(this._blockGasLimit),
+      blockGasLimit: bnToHex(blockGasLimit),
     });
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
@@ -278,8 +278,8 @@ export class TxPool {
       );
     }
 
-    const baseFee = tx.getBaseFee();
     const gasLimit = new BN(tx.gasLimit);
+    const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {
       throw new InvalidInputError(
@@ -287,9 +287,11 @@ export class TxPool {
       );
     }
 
-    if (gasLimit.gt(this._blockGasLimit)) {
+    const blockGasLimit = this.getBlockGasLimit();
+
+    if (gasLimit.gt(blockGasLimit)) {
       throw new InvalidInputError(
-        `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${this._blockGasLimit}`
+        `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
       );
     }
 
