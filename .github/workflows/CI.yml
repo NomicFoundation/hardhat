@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - tx-pool
+      - mine-block
   pull_request:
     branches:
       - "*"
