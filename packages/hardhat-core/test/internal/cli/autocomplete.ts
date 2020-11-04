@@ -106,10 +106,7 @@ describe("autocomplete", () => {
     it("should suggest a network", async () => {
       const suggestions = await complete("hh --network ");
 
-      expect(suggestions).same.deep.members([
-        "hardhat",
-        "localhost",
-      ]);
+      expect(suggestions).same.deep.members(["hardhat", "localhost"]);
     });
 
     it("should suggest task names after global param", async () => {
@@ -131,10 +128,7 @@ describe("autocomplete", () => {
     it("should work when the cursor is not at the end", async () => {
       const suggestions = await complete("hh --network | test");
 
-      expect(suggestions).same.deep.members([
-        "hardhat",
-        "localhost",
-      ]);
+      expect(suggestions).same.deep.members(["hardhat", "localhost"]);
     });
 
     it("should not suggest flags used after the cursor", async () => {
@@ -159,10 +153,7 @@ describe("autocomplete", () => {
     it("should show suggestions after a partial network value", async () => {
       const suggestions = await complete("hh --network loc");
 
-      expect(suggestions).same.deep.members([
-        "hardhat",
-        "localhost",
-      ]);
+      expect(suggestions).same.deep.members(["hardhat", "localhost"]);
     });
 
     it("should return all completions if last word is not commplete", async () => {
