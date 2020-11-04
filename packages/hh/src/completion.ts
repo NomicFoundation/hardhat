@@ -4,25 +4,18 @@ import tabtab from "@pnpm/tabtab";
 export async function main() {
   const cmd = process.argv[2];
 
-  if (cmd === "install-completion") {
+  if (cmd === "install") {
     await tabtab
       .install({
         name: "hh",
         completer: "hh-completion",
       })
       .catch((err: any) => {
-        console.error("INSTALL ERROR", err); // TODO
+        console.error(
+          "There was a problem installing Hardhat's completion",
+          err
+        );
       });
-
-    return;
-  }
-
-  if (cmd === "uninstall-completion") {
-    await tabtab
-      .uninstall({
-        name: "hh",
-      })
-      .catch((err: any) => console.error("UNINSTALL ERROR", err)); // TODO
 
     return;
   }
@@ -43,6 +36,11 @@ export async function main() {
       return tabtab.log([]);
     }
   }
+
+  console.error(
+    `Unrecognized command "${cmd}". You can install Hardhat completion with the "install" command.`
+  );
+  process.exit(1);
 }
 
 main()
