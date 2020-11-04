@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { ceil } from "lodash";
 import sinon from "sinon";
 
 import { MiningTimer } from "../../../../src/internal/hardhat-network/provider/MiningTimer";
@@ -52,7 +51,7 @@ describe("Mining Timer", () => {
     });
 
     it("triggers a new loop when mining timer is running", async () => {
-      const newBlockTime = ceil(defaultBlockTime / 2);
+      const newBlockTime = Math.ceil(defaultBlockTime / 2);
 
       miningTimer.start();
 
@@ -129,11 +128,11 @@ describe("Mining Timer", () => {
         return new Promise((resolve) => setTimeout(resolve, ms));
       };
 
-      const interval = 5000;
+      const interval = 500;
       let callCount = 0;
 
       const newMineFunction = async (): Promise<any> => {
-        await sleep(253);
+        await sleep(100);
         callCount++;
       };
 
@@ -145,17 +144,21 @@ describe("Mining Timer", () => {
 
       assert.equal(callCount, 0);
 
-      await sinonClock.tickAsync(200);
+      await sinonClock.tickAsync(90);
 
       assert.equal(callCount, 0);
 
-      await sinonClock.tickAsync(53);
+      await sinonClock.tickAsync(10);
 
       assert.equal(callCount, 1);
 
-      await sinonClock.tickAsync(interval - 50);
+      await sinonClock.tickAsync(interval + 50);
 
       assert.equal(callCount, 1);
+
+      await sinonClock.tickAsync(50);
+
+      assert.equal(callCount, 2);
     });
 
     it("multiple start calls don't affect the loop", async () => {
