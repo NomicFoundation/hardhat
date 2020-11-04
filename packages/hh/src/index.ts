@@ -18,9 +18,15 @@ export async function main() {
     process.exit(1);
   }
 
-  spawnSync("node", [pathToHardhat, ...process.argv.slice(2)], {
-    stdio: "inherit",
-  });
+  const { status } = spawnSync(
+    "node",
+    [pathToHardhat, ...process.argv.slice(2)],
+    {
+      stdio: "inherit",
+    }
+  );
+
+  process.exitCode = status ?? 0;
 }
 
 main()
