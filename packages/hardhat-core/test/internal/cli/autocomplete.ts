@@ -10,9 +10,7 @@ import { useFixtureProject } from "../../helpers/project";
  * - `hh comp` means that the cursor is immediately after the word
  * - `hh --network | compile` you can optionally use `|` to indicate the cursor's position; otherwise it is assumed the cursor is at the end
  */
-async function complete(
-  lineWithCursor: string
-): Promise<Array<{ name: string; description?: string }>> {
+async function complete(lineWithCursor: string): Promise<string[]> {
   const point = lineWithCursor.indexOf("|");
   const line = lineWithCursor.replace("|", "");
 
@@ -23,92 +21,28 @@ async function complete(
 }
 
 const coreTasks = [
-  {
-    description: "Check whatever you need",
-    name: "check",
-  },
-  {
-    description: "Clears the cache and deletes all artifacts",
-    name: "clean",
-  },
-  {
-    description: "Compiles the entire project, building all artifacts",
-    name: "compile",
-  },
-  {
-    description: "Opens a hardhat console",
-    name: "console",
-  },
-  {
-    description: "Flattens and prints contracts and their dependencies",
-    name: "flatten",
-  },
-  {
-    description: "Prints this message",
-    name: "help",
-  },
-  {
-    description: "Starts a JSON-RPC server on top of Hardhat Network",
-    name: "node",
-  },
-  {
-    description: "Runs a user-defined script after compiling the project",
-    name: "run",
-  },
-  {
-    description: "Runs mocha tests",
-    name: "test",
-  },
+  "check",
+  "clean",
+  "compile",
+  "console",
+  "flatten",
+  "help",
+  "node",
+  "run",
+  "test",
 ];
 
 const coreParams = [
-  {
-    description: "The network to connect to.",
-    name: "--network",
-  },
-  {
-    description: "Show stack traces.",
-    name: "--show-stack-traces",
-  },
-  {
-    description: "Shows hardhat's version.",
-    name: "--version",
-  },
-  {
-    description: "Shows this message, or a task's help if its name is provided",
-    name: "--help",
-  },
-  {
-    description: "Use emoji in messages.",
-    name: "--emoji",
-  },
-  {
-    description: "A Hardhat config file.",
-    name: "--config",
-  },
-  {
-    description: "The maximum amount of memory that Hardhat can use.",
-    name: "--max-memory",
-  },
-  {
-    description: "Reserved hardhat argument -- Has no effect.",
-    name: "--tsconfig",
-  },
-  {
-    name: "--verbose",
-    description: "Enables Hardhat verbose logging",
-  },
+  "--network",
+  "--show-stack-traces",
+  "--version",
+  "--help",
+  "--emoji",
+  "--config",
+  "--max-memory",
+  "--tsconfig",
+  "--verbose",
 ];
-
-const forceParam = {
-  name: "--force",
-  description: "Force compilation ignoring cache",
-};
-
-const quietParam = {
-  name: "--quiet",
-  description: "Makes the compilation process less verbose",
-};
 
 describe("autocomplete", () => {
   describe("basic project", () => {
@@ -140,7 +74,7 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --verbose -");
 
       const coreParamsWithoutVerbose = coreParams.filter(
-        (x) => x.name !== "--verbose"
+        (x) => x !== "--verbose"
       );
 
       expect(suggestions).same.deep.members(coreParamsWithoutVerbose);
@@ -151,8 +85,8 @@ describe("autocomplete", () => {
 
       expect(suggestions).same.deep.members([
         ...coreParams,
-        forceParam,
-        quietParam,
+        "--force",
+        "--quiet",
       ]);
     });
 
@@ -160,12 +94,12 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --verbose compile --quiet --");
 
       const coreParamsWithoutVerbose = coreParams.filter(
-        (x) => x.name !== "--verbose"
+        (x) => x !== "--verbose"
       );
 
       expect(suggestions).same.deep.members([
         ...coreParamsWithoutVerbose,
-        forceParam,
+        "--force",
       ]);
     });
 
@@ -173,8 +107,8 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --network ");
 
       expect(suggestions).same.deep.members([
-        { name: "hardhat" },
-        { name: "localhost" },
+        "hardhat",
+        "localhost",
       ]);
     });
 
@@ -188,7 +122,7 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --network localhost -");
 
       const coreParamsWithoutNetwork = coreParams.filter(
-        (x) => x.name !== "--network"
+        (x) => x !== "--network"
       );
 
       expect(suggestions).same.deep.members(coreParamsWithoutNetwork);
@@ -198,8 +132,8 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --network | test");
 
       expect(suggestions).same.deep.members([
-        { name: "hardhat" },
-        { name: "localhost" },
+        "hardhat",
+        "localhost",
       ]);
     });
 
@@ -207,15 +141,12 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --| test --verbose");
 
       const coreParamsWithoutVerbose = coreParams.filter(
-        (x) => x.name !== "--verbose"
+        (x) => x !== "--verbose"
       );
 
       expect(suggestions).same.deep.members([
         ...coreParamsWithoutVerbose,
-        {
-          name: "--no-compile",
-          description: "Don't compile before running this task",
-        },
+        "--no-compile",
       ]);
     });
 
@@ -229,8 +160,8 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --network loc");
 
       expect(suggestions).same.deep.members([
-        { name: "hardhat" },
-        { name: "localhost" },
+        "hardhat",
+        "localhost",
       ]);
     });
 
@@ -257,25 +188,13 @@ describe("autocomplete", () => {
     it("should include custom tasks", async () => {
       const suggestions = await complete("hh ");
 
-      expect(suggestions).to.have.deep.members([
-        ...coreTasks,
-        {
-          name: "my-task",
-          description: "This is a custom task",
-        },
-      ]);
+      expect(suggestions).to.have.deep.members([...coreTasks, "my-task"]);
     });
 
     it("should complete tasks after a - in the middle of the task name", async () => {
       const suggestions = await complete("hh my-");
 
-      expect(suggestions).to.have.deep.members([
-        ...coreTasks,
-        {
-          name: "my-task",
-          description: "This is a custom task",
-        },
-      ]);
+      expect(suggestions).to.have.deep.members([...coreTasks, "my-task"]);
     });
 
     it("should include custom params", async () => {
@@ -283,8 +202,8 @@ describe("autocomplete", () => {
 
       expect(suggestions).to.have.deep.members([
         ...coreParams,
-        { name: "--my-flag", description: "Flag description" },
-        { name: "--param", description: "Param description" },
+        "--my-flag",
+        "--param",
       ]);
     });
   });

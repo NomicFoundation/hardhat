@@ -8,15 +8,10 @@ interface CompletionEnv {
   point: number;
 }
 
-interface Suggestion {
-  name: string;
-  description?: string;
-}
-
 export async function complete({
   line,
   point,
-}: CompletionEnv): Promise<Suggestion[]> {
+}: CompletionEnv): Promise<string[]> {
   let hre: typeof hardhat;
   try {
     process.env.TS_NODE_TRANSPILE_ONLY = "1";
@@ -38,11 +33,9 @@ export async function complete({
   const [prev, last] = wordsBeforeCursor.slice(-2);
 
   const coreParams = Object.values(HARDHAT_PARAM_DEFINITIONS)
-    .map((x) => ({
-      name: ArgumentsParser.paramNameToCLA(x.name),
-      description: x.description,
-    }))
-    .filter((x) => !words.includes(x.name));
+    .map((x) => x.name)
+    .map(ArgumentsParser.paramNameToCLA)
+    .filter((x) => !words.includes(x));
 
   // check if the user entered a task
   let task: string | undefined;
@@ -69,7 +62,7 @@ export async function complete({
   }
 
   if (prev === "--network") {
-    return Object.keys(hre.config.networks).map((name) => ({ name }));
+    return Object.keys(hre.config.networks);
   }
 
   // if the previous word is a param, then a value is expected
@@ -86,8 +79,8 @@ export async function complete({
   // if there's no task, we complete either tasks or params
   if (task === undefined || hre.tasks[task] === undefined) {
     const tasks = Object.values(hre.tasks)
-      .map((x) => ({ name: x.name, description: x.description }))
-      .filter((x) => !x.name.includes(":"));
+      .map((x) => x.name)
+      .filter((x) => !x.includes(":"));
     if (last.startsWith("-")) {
       return coreParams;
     }
@@ -100,11 +93,9 @@ export async function complete({
 
   // if there's a task and the last word starts with -, we complete its params and the global params
   const taskParams = Object.values(hre.tasks[task].paramDefinitions)
-    .map((x) => ({
-      name: ArgumentsParser.paramNameToCLA(x.name),
-      description: x.description,
-    }))
-    .filter((x) => !words.includes(x.name));
+    .map((x) => x.name)
+    .map(ArgumentsParser.paramNameToCLA)
+    .filter((x) => !words.includes(x));
 
   return [...taskParams, ...coreParams];
 }
