@@ -481,7 +481,7 @@ describe("Evm module", function () {
                 { enabled: true, blockTime: interval },
               ]);
 
-              await sleep(1.9 * interval);
+              await sleep(1.7 * interval);
 
               const nextBlock = await getBlockNumber();
 
