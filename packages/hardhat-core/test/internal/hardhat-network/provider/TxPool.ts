@@ -35,7 +35,7 @@ function getAllTxs(
 }
 
 describe("Tx Pool", () => {
-  const blockGasLimit = new BN(10000000);
+  const blockGasLimit = new BN(10_000_000);
   let stateManager: PStateManager;
   let txPool: TxPool;
 
@@ -387,8 +387,8 @@ describe("Tx Pool", () => {
     describe("validation", () => {
       it("rejects if transaction is already pending in the tx pool", async () => {
         const to = randomAddressBuffer();
-        const tx1 = createTestTransaction({ to, gasLimit: 21000 });
-        const tx2 = createTestTransaction({ to, gasLimit: 21000 });
+        const tx1 = createTestTransaction({ to, gasLimit: 21_000 });
+        const tx2 = createTestTransaction({ to, gasLimit: 21_000 });
 
         tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
         tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
@@ -404,8 +404,8 @@ describe("Tx Pool", () => {
 
       it("rejects if transaction is already queued in the tx pool", async () => {
         const to = randomAddressBuffer();
-        const tx1 = createTestTransaction({ to, nonce: 1, gasLimit: 21000 });
-        const tx2 = createTestTransaction({ to, nonce: 1, gasLimit: 21000 });
+        const tx1 = createTestTransaction({ to, nonce: 1, gasLimit: 21_000 });
+        const tx2 = createTestTransaction({ to, nonce: 1, gasLimit: 21_000 });
 
         tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
         tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
@@ -434,7 +434,7 @@ describe("Tx Pool", () => {
       });
 
       it("rejects if transaction's gas limit exceeds block gas limit", async () => {
-        const gasLimit = 15000000;
+        const gasLimit = 15_000_000;
         const tx = createTestFakeTransaction({ gasLimit });
         await assert.isRejected(
           txPool.addTransaction(tx),
@@ -642,12 +642,12 @@ describe("Tx Pool", () => {
     });
 
     it("removes pending transaction when it's gas limit exceeds block gas limit", async () => {
-      const tx1 = createTestTransaction({ nonce: 0, gasLimit: 9500000 });
+      const tx1 = createTestTransaction({ nonce: 0, gasLimit: 9_500_000 });
       tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
       await txPool.addTransaction(tx1);
 
-      txPool.setBlockGasLimit(5000000);
+      txPool.setBlockGasLimit(5_000_000);
 
       await txPool.clean();
       const pendingTransactions = txPool.getPendingTransactions();
@@ -656,12 +656,12 @@ describe("Tx Pool", () => {
     });
 
     it("removes queued transaction when it's gas limit exceeds block gas limit", async () => {
-      const tx1 = createTestTransaction({ nonce: 1, gasLimit: 9500000 });
+      const tx1 = createTestTransaction({ nonce: 1, gasLimit: 9_500_000 });
       tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
       await txPool.addTransaction(tx1);
 
-      txPool.setBlockGasLimit(5000000);
+      txPool.setBlockGasLimit(5_000_000);
 
       await txPool.clean();
       const queuedTransactions = txPool.getQueuedTransactions();
@@ -673,25 +673,25 @@ describe("Tx Pool", () => {
       const tx1 = createTestOrderedTransaction({
         orderId: 0,
         nonce: 0,
-        gasLimit: 30000,
+        gasLimit: 30_000,
         from: address1,
       });
       const tx2 = createTestOrderedTransaction({
         orderId: 1,
         nonce: 1,
-        gasLimit: 30000,
+        gasLimit: 30_000,
         from: address1,
       });
       const tx3 = createTestOrderedTransaction({
         orderId: 2,
         nonce: 0,
-        gasLimit: 30000,
+        gasLimit: 30_000,
         from: address2,
       });
       const tx4 = createTestOrderedTransaction({
         orderId: 3,
         nonce: 1,
-        gasLimit: 30000,
+        gasLimit: 30_000,
         from: address2,
       });
 
@@ -721,7 +721,7 @@ describe("Tx Pool", () => {
     it("removes pending transaction when sender doesn't have enough ether to make the transaction", async () => {
       const tx1 = createTestTransaction({
         nonce: 0,
-        gasLimit: 30000,
+        gasLimit: 30_000,
         gasPrice: 500,
       });
       tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
@@ -742,7 +742,7 @@ describe("Tx Pool", () => {
     it("removes queued transaction when sender doesn't have enough ether to make the transaction", async () => {
       const tx1 = createTestTransaction({
         nonce: 2,
-        gasLimit: 30000,
+        gasLimit: 30_000,
         gasPrice: 500,
       });
       tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
@@ -763,15 +763,15 @@ describe("Tx Pool", () => {
 
   describe("setBlockGasLimit", () => {
     it("sets a new block gas limit when new limit is a number", () => {
-      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(10000000)));
-      txPool.setBlockGasLimit(15000000);
-      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(15000000)));
+      assert.equal(txPool.getBlockGasLimit().toNumber(), 10_000_000);
+      txPool.setBlockGasLimit(15_000_000);
+      assert.equal(txPool.getBlockGasLimit().toNumber(), 15_000_000);
     });
 
     it("sets a new block gas limit when new limit is a BN", () => {
-      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(10000000)));
-      txPool.setBlockGasLimit(new BN(15000000));
-      assert.isTrue(txPool.getBlockGasLimit().eq(new BN(15000000)));
+      assert.equal(txPool.getBlockGasLimit().toNumber(), 10_000_000);
+      txPool.setBlockGasLimit(new BN(15_000_000));
+      assert.equal(txPool.getBlockGasLimit().toNumber(), 15_000_000);
     });
   });
 
@@ -831,7 +831,7 @@ describe("Tx Pool", () => {
 
     it("reverts to the previous state of block gas limit", () => {
       const id = txPool.snapshot();
-      txPool.setBlockGasLimit(new BN(5000000));
+      txPool.setBlockGasLimit(new BN(5_000_000));
       txPool.revert(id);
       assert.equal(
         txPool.getBlockGasLimit().toNumber(),
