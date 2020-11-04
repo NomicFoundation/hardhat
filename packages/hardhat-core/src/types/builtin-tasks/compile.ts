@@ -65,18 +65,21 @@ export interface DependencyGraph {
  */
 export interface CompilationJobsCreationResult {
   jobs: CompilationJob[];
-  errors: CompilationJobsCreationErrors;
+  errors: CompilationJobCreationError[];
 }
 
-export type CompilationJobsCreationErrors = {
-  [error in CompilationJobCreationError]?: string[];
-};
+export interface CompilationJobCreationError {
+  reason: CompilationJobCreationErrorReason;
+  file: ResolvedFile;
+  extra?: any;
+}
 
-export enum CompilationJobCreationError {
+export enum CompilationJobCreationErrorReason {
   OTHER_ERROR = "other",
   NO_COMPATIBLE_SOLC_VERSION_FOUND = "no-compatible-solc-version-found",
   INCOMPATIBLE_OVERRIDEN_SOLC_VERSION = "incompatible-overriden-solc-version",
   IMPORTS_INCOMPATIBLE_FILE = "imports-incompatible-file",
+  INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE = "indirectly-imports-incompatible-file",
 }
 
 export interface SolcBuild {

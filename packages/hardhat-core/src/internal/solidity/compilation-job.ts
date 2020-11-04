@@ -6,7 +6,7 @@ import { SolcConfig, SolidityConfig } from "../../types";
 import * as taskTypes from "../../types/builtin-tasks";
 import {
   CompilationJobCreationError,
-  CompilationJobsCreationErrors,
+  CompilationJobCreationErrorReason,
   CompilationJobsCreationResult,
 } from "../../types/builtin-tasks";
 import { assertHardhatInvariant } from "../core/errors";
@@ -19,9 +19,12 @@ const log = debug("hardhat:core:compilation-job");
 const SOLC_BUG_9573_VERSIONS = "*";
 
 function isCompilationJobCreationError(
-  x: unknown
+  x:
+    | taskTypes.CompilationJob
+    | taskTypes.CompilationJobCreationError
+    | SolcConfig
 ): x is CompilationJobCreationError {
-  return typeof x === "string";
+  return "reason" in x;
 }
 
 export class CompilationJob implements taskTypes.CompilationJob {
@@ -142,7 +145,7 @@ export async function createCompilationJobsFromConnectedComponent(
   ) => Promise<taskTypes.CompilationJob | CompilationJobCreationError>
 ): Promise<CompilationJobsCreationResult> {
   const compilationJobs: taskTypes.CompilationJob[] = [];
-  const errors: CompilationJobsCreationErrors = {};
+  const errors: CompilationJobCreationError[] = [];
 
   for (const file of connectedComponent.getResolvedFiles()) {
     const compilationJobOrError = await getFromFile(file);
@@ -151,8 +154,7 @@ export async function createCompilationJobsFromConnectedComponent(
       log(
         `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrError}'`
       );
-      errors[compilationJobOrError] = errors[compilationJobOrError] ?? [];
-      errors[compilationJobOrError]!.push(file.sourceName);
+      errors.push(compilationJobOrError);
       continue;
     }
 
@@ -250,6 +252,7 @@ function getCompilerConfigForFile(
       return getCompilationJobCreationError(
         file,
         directDependencies,
+        transitiveDependencies,
         [overriddenCompiler.version],
         true
       );
@@ -266,6 +269,7 @@ function getCompilerConfigForFile(
     return getCompilationJobCreationError(
       file,
       directDependencies,
+      transitiveDependencies,
       compilerVersions,
       false
     );
@@ -281,22 +285,54 @@ function getCompilerConfigForFile(
 function getCompilationJobCreationError(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
+  transitiveDependencies: ResolvedFile[],
   compilerVersions: string[],
   overriden: boolean
 ): CompilationJobCreationError {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
-    return overriden
-      ? CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
-      : CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND;
+    const reason = overriden
+      ? CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+      : CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND;
+    return { reason, file };
   }
 
+  const incompatibleImports: ResolvedFile[] = [];
   for (const dependency of directDependencies) {
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
     if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
-      return CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE;
+      incompatibleImports.push(dependency);
     }
   }
 
-  return CompilationJobCreationError.OTHER_ERROR;
+  if (incompatibleImports.length > 0) {
+    return {
+      reason: CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE,
+      file,
+      extra: {
+        incompatibleImports,
+      },
+    };
+  }
+
+  const incompatibleIndirectImports: ResolvedFile[] = [];
+  for (const dependency of transitiveDependencies) {
+    const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
+    if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
+      incompatibleIndirectImports.push(dependency);
+    }
+  }
+
+  if (incompatibleIndirectImports.length > 0) {
+    return {
+      reason:
+        CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+      file,
+      extra: {
+        incompatibleIndirectImports,
+      },
+    };
+  }
+
+  return { reason: CompilationJobCreationErrorReason.OTHER_ERROR, file };
 }

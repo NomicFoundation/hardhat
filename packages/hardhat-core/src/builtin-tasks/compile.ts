@@ -29,13 +29,12 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
-import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
 import { Artifacts, CompilerInput, CompilerOutput, SolcBuild } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
 import {
   CompilationJob,
   CompilationJobCreationError,
-  CompilationJobsCreationErrors,
+  CompilationJobCreationErrorReason,
   CompilationJobsCreationResult,
 } from "../types/builtin-tasks";
 import { getFullyQualifiedName } from "../utils/contract-names";
@@ -272,22 +271,15 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
         )
       );
 
-      const compilationJobsCreationResult = compilationJobsCreationResults.reduce(
-        (acc, { jobs, errors }) => {
-          acc.jobs = acc.jobs.concat(jobs);
-          for (const [code, files] of unsafeObjectEntries(errors)) {
-            acc.errors[code] = acc.errors[code] ?? [];
-            acc.errors[code] = acc.errors[code]!.concat(files!);
-          }
-          return acc;
-        },
-        {
-          jobs: [],
-          errors: {},
-        }
-      );
+      let jobs: CompilationJob[] = [];
+      let errors: CompilationJobCreationError[] = [];
 
-      return compilationJobsCreationResult;
+      for (const result of compilationJobsCreationResults) {
+        jobs = jobs.concat(result.jobs);
+        errors = errors.concat(result.errors);
+      }
+
+      return { jobs, errors };
     }
   );
 
@@ -446,7 +438,6 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START)
   .setAction(
     async ({
       isCompilerDownloaded,
-      quiet,
       solcVersion,
     }: {
       isCompilerDownloaded: boolean;
@@ -711,7 +702,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE, async (taskArgs: any, { run }) => {
 subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
   .addParam("output", undefined, undefined, types.any)
   .addParam("quiet", undefined, undefined, types.boolean)
-  .setAction(async ({ output, quiet }: { output: any; quiet: boolean }) => {
+  .setAction(async ({ output }: { output: any; quiet: boolean }) => {
     if (output?.errors === undefined) {
       return;
     }
@@ -784,7 +775,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
         output: CompilerOutput;
         solcBuild: SolcBuild;
       },
-      { artifacts, config, run }
+      { artifacts, run }
     ): Promise<{
       artifactsEmittedPerFile: ArtifactsEmittedPerFile;
     }> => {
@@ -1017,13 +1008,11 @@ subtask(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES)
       {
         compilationJobsCreationErrors,
       }: {
-        compilationJobsCreationErrors: CompilationJobsCreationErrors;
+        compilationJobsCreationErrors: CompilationJobCreationError[];
       },
       { run }
     ) => {
-      const hasErrors = unsafeObjectEntries(compilationJobsCreationErrors).some(
-        ([, errors]) => errors!.length > 0
-      );
+      const hasErrors = compilationJobsCreationErrors.length > 0;
 
       if (hasErrors) {
         log(`There were errors creating the compilation jobs, throwing`);
@@ -1052,78 +1041,189 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
     async ({
       compilationJobsCreationErrors: errors,
     }: {
-      compilationJobsCreationErrors: CompilationJobsCreationErrors;
+      compilationJobsCreationErrors: CompilationJobCreationError[];
     }): Promise<string> => {
-      let noCompatibleSolc: string[] = [];
-      let incompatibleOverridenSolc: string[] = [];
-      let importsIncompatibleFile: string[] = [];
-      let other: string[] = [];
+      const noCompatibleSolc: CompilationJobCreationError[] = [];
+      const incompatibleOverridenSolc: CompilationJobCreationError[] = [];
+      const importsIncompatibleFile: CompilationJobCreationError[] = [];
+      const indirectlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
+      const other: CompilationJobCreationError[] = [];
 
-      for (const code of unsafeObjectKeys(errors)) {
-        const files = errors[code];
-
-        if (files === undefined) {
-          continue;
-        }
-
+      for (const error of errors) {
         if (
-          code === CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND
+          error.reason ===
+          CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND
         ) {
-          noCompatibleSolc = noCompatibleSolc.concat(files);
+          noCompatibleSolc.push(error);
         } else if (
-          code ===
-          CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+          error.reason ===
+          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
         ) {
-          incompatibleOverridenSolc = incompatibleOverridenSolc.concat(files);
+          incompatibleOverridenSolc.push(error);
         } else if (
-          code === CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE
+          error.reason ===
+          CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE
         ) {
-          importsIncompatibleFile = importsIncompatibleFile.concat(files);
-        } else if (code === CompilationJobCreationError.OTHER_ERROR) {
-          other = other.concat(files);
+          importsIncompatibleFile.push(error);
+        } else if (
+          error.reason ===
+          CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE
+        ) {
+          indirectlyImportsIncompatibleFile.push(error);
+        } else if (
+          error.reason === CompilationJobCreationErrorReason.OTHER_ERROR
+        ) {
+          other.push(error);
         } else {
           // add unrecognized errors to `other`
-          other = other.concat(files);
+          other.push(error);
         }
       }
 
-      let reasons = "";
+      let errorMessage = "";
       if (incompatibleOverridenSolc.length > 0) {
-        reasons += `The compiler version for the following files is fixed through an override in your
+        errorMessage += `The compiler version for the following files is fixed through an override in your
 config file to a version that is incompatible with their version pragmas.
 
-${incompatibleOverridenSolc.map((x) => `* ${x}`).join("\n")}
-
 `;
+
+        for (const error of incompatibleOverridenSolc) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          log(`File ${sourceName} has an incompatible overriden compiler`);
+
+          errorMessage += `* ${sourceName} (${versionsRange})\n`;
+        }
+
+        errorMessage += "\n";
       }
+
       if (noCompatibleSolc.length > 0) {
-        reasons += `The pragma statement in these files don't match any of the configured compilers
+        errorMessage += `The pragma statement in these files don't match any of the configured compilers
 in your config. Change the pragma or configure additional compiler versions in
 your hardhat config.
 
-${noCompatibleSolc.map((x) => `* ${x}`).join("\n")}
-
 `;
+
+        for (const error of noCompatibleSolc) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          log(
+            `File ${sourceName} doesn't match any of the configured compilers`
+          );
+
+          errorMessage += `* ${sourceName} (${versionsRange})\n`;
+        }
+
+        errorMessage += "\n";
       }
+
       if (importsIncompatibleFile.length > 0) {
-        reasons += `These files import other files that use a different and incompatible version of Solidity:
-
-${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
+        errorMessage += `These files import other files that use a different and incompatible version of Solidity:
 
 `;
+
+        for (const error of importsIncompatibleFile) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          const incompatibleImportsFiles: ResolvedFile[] =
+            error.extra?.incompatibleImports ?? [];
+
+          const incompatibleImports = incompatibleImportsFiles.map(
+            (x: ResolvedFile) =>
+              `${x.sourceName} (${x.content.versionPragmas.join(" ")})`
+          );
+
+          log(
+            `File ${sourceName} imports files ${incompatibleImportsFiles
+              .map((x) => x.sourceName)
+              .join(", ")} that use an incompatible version of Solidity`
+          );
+
+          let importsText = "";
+          if (incompatibleImports.length === 1) {
+            importsText = ` imports ${incompatibleImports[0]}`;
+          } else if (incompatibleImports.length === 2) {
+            importsText = ` imports ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
+          } else if (incompatibleImports.length > 2) {
+            const otherImportsCount = incompatibleImports.length - 2;
+            importsText = ` imports ${incompatibleImports[0]}, ${
+              incompatibleImports[1]
+            } and ${otherImportsCount} other ${pluralize(
+              otherImportsCount,
+              "file"
+            )}, use --verbose to see all`;
+          }
+
+          errorMessage += `* ${sourceName} (${versionsRange})${importsText}\n`;
+        }
+
+        errorMessage += "\n";
       }
+
+      if (indirectlyImportsIncompatibleFile.length > 0) {
+        errorMessage += `These files depend on other files that use a different and incompatible version of Solidity:
+
+`;
+
+        for (const error of indirectlyImportsIncompatibleFile) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          const incompatibleImportsFiles: ResolvedFile[] =
+            error.extra?.incompatibleIndirectImports ?? [];
+
+          const incompatibleImports = incompatibleImportsFiles.map(
+            (x: ResolvedFile) =>
+              `${x.sourceName} (${x.content.versionPragmas.join(" ")})`
+          );
+
+          log(
+            `File ${sourceName} depends on files ${incompatibleImportsFiles
+              .map((x) => x.sourceName)
+              .join(", ")} that use an incompatible version of Solidity`
+          );
+
+          let importsText = "";
+          if (incompatibleImports.length === 1) {
+            importsText = ` depends on ${incompatibleImports[0]}`;
+          } else if (incompatibleImports.length === 2) {
+            importsText = ` depends on ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
+          } else if (incompatibleImports.length > 2) {
+            const otherImportsCount = incompatibleImports.length - 2;
+            importsText = ` depends on ${incompatibleImports[0]}, ${
+              incompatibleImports[1]
+            } and ${otherImportsCount} other ${pluralize(
+              otherImportsCount,
+              "file"
+            )}, use --verbose to see all`;
+          }
+
+          errorMessage += `* ${sourceName} (${versionsRange})${importsText}\n`;
+        }
+
+        errorMessage += "\n";
+      }
+
       if (other.length > 0) {
-        reasons += `These files and its dependencies cannot be compiled with your config:
+        errorMessage += `These files and its dependencies cannot be compiled with your config:
 
-${other.map((x) => `* ${x}`).join("\n")}
+${other.map((x) => `* ${x.file.sourceName}`).join("\n")}
 
 `;
       }
 
-      reasons += `Learn more about compiler configuration at https://hardhat.org/config
+      errorMessage += `Learn more about compiler configuration at https://hardhat.org/config
 `;
 
-      return reasons;
+      return errorMessage;
     }
   );
 
