@@ -237,7 +237,7 @@ describe("HardhatNode", () => {
         await assertTransactionsWereMined([tx1, tx2]);
       });
 
-      xit("puts as many transactions as it can in a block", async () => {
+      it("puts as many transactions as it can in a block", async () => {
         node.setBlockGasLimit(42_000);
         const tx1 = createTestTransaction({
           nonce: 0,

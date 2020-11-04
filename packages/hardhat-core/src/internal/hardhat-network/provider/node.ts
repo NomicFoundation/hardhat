@@ -79,6 +79,7 @@ import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
+import { minBuffer } from "./utils/minBuffer";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 
 const log = debug("hardhat:core:hardhat-network:node");
@@ -866,14 +867,18 @@ export class HardhatNode extends EventEmitter {
 
     let tx = txHeap.peek();
     while (gasLeft.gten(minTxFee) && tx !== undefined) {
-      const txResult = await this._vm.runTx({ tx, block });
-      bloom.or(txResult.bloom);
-      results.push(txResult);
-      receipts.push(this._createReceipt(txResult));
-      await this._addTransactionToBlock(block, tx);
+      const txResult = await this._runTx(tx, block, gasLeft);
+      if (txResult !== null) {
+        bloom.or(txResult.bloom);
+        results.push(txResult);
+        receipts.push(this._createReceipt(txResult));
+        await this._addTransactionToBlock(block, tx);
 
-      gasLeft.isub(txResult.gasUsed);
-      txHeap.shift();
+        gasLeft.isub(txResult.gasUsed);
+        txHeap.shift();
+      } else {
+        txHeap.pop();
+      }
       tx = txHeap.peek();
     }
 
@@ -889,6 +894,25 @@ export class HardhatNode extends EventEmitter {
         receipts,
       },
     ];
+  }
+
+  private async _runTx(
+    tx: Transaction,
+    block: Block,
+    gasLeft: BN
+  ): Promise<RunTxResult | null> {
+    const originalGasLimit = tx.gasLimit;
+    tx.gasLimit = minBuffer(originalGasLimit, gasLeft);
+
+    try {
+      return await this._vm.runTx({ tx, block });
+    } catch (e) {
+      // TODO throw if automine enabled?
+      // TODO consider logging the error
+      return null;
+    } finally {
+      tx.gasLimit = originalGasLimit;
+    }
   }
 
   private _getMinimalTransactionFee(): number {
