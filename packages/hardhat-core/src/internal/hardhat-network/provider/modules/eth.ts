@@ -355,7 +355,7 @@ export class EthModule {
   }
 
   private async _coinbaseAction(): Promise<string> {
-    return bufferToHex(await this._node.getCoinbaseAddress());
+    return bufferToHex(this._node.getCoinbaseAddress());
   }
 
   // eth_compileLLL

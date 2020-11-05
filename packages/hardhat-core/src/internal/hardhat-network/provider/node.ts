@@ -517,7 +517,7 @@ export class HardhatNode extends EventEmitter {
     return new BN(HARDHAT_NETWORK_DEFAULT_GAS_PRICE);
   }
 
-  public async getCoinbaseAddress(): Promise<Buffer> {
+  public getCoinbaseAddress(): Buffer {
     return COINBASE_ADDRESS;
   }
 
@@ -866,7 +866,7 @@ export class HardhatNode extends EventEmitter {
     const txHeap = new TxPriorityHeap(pendingTxs);
 
     let tx = txHeap.peek();
-    while (gasLeft.gten(minTxFee) && tx !== undefined) {
+    while (gasLeft.gte(minTxFee) && tx !== undefined) {
       const txResult = await this._runTx(tx, block, gasLeft);
       if (txResult !== null) {
         bloom.or(txResult.bloom);
@@ -915,9 +915,13 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  private _getMinimalTransactionFee(): number {
+  private _getMinimalTransactionFee(): BN {
     // Typically 21_000 gas
-    return this._vm._common.param("gasPrices", "tx");
+    return new BN(this._vm._common.param("gasPrices", "tx"));
+  }
+
+  private _getMinerReward(): BN {
+    return new BN(this._vm._common.param("pow", "minerReward"));
   }
 
   private _createReceipt(txResult: RunTxResult): TxReceipt {
@@ -1190,7 +1194,7 @@ export class HardhatNode extends EventEmitter {
     block.header.difficulty = block.header
       .canonicalDifficulty(latestBlock)
       .toBuffer();
-    block.header.coinbase = await this.getCoinbaseAddress();
+    block.header.coinbase = this.getCoinbaseAddress();
 
     return block;
   }
