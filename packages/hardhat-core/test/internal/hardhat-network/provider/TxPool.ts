@@ -15,6 +15,7 @@ import { OrderedTransaction } from "../../../../src/internal/hardhat-network/pro
 import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
+import { txMapToArray } from "../../../../src/internal/hardhat-network/provider/utils/txMapToArray";
 import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";
 import {
   createTestFakeTransaction,
@@ -26,13 +27,6 @@ import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
 } from "../helpers/providers";
-
-// This function is used to simplify assertions in tests
-function getAllTxs(
-  pendingTxs: Map<string, OrderedTransaction[]>
-): Transaction[] {
-  return flatten(Array.from(pendingTxs.values())).map((tx) => tx.data);
-}
 
 describe("Tx Pool", () => {
   const blockGasLimit = new BN(10_000_000);
@@ -63,8 +57,8 @@ describe("Tx Pool", () => {
             await txPool.addTransaction(tx);
 
             const pendingTxs = txPool.getPendingTransactions();
-            assert.lengthOf(getAllTxs(pendingTxs), 1);
-            assert.deepEqual(getAllTxs(pendingTxs)[0].raw, tx.raw);
+            assert.lengthOf(txMapToArray(pendingTxs), 1);
+            assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx.raw);
           });
         });
 
@@ -128,7 +122,7 @@ describe("Tx Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              getAllTxs(pendingTxs).map((tx) => tx.raw),
+              txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2].map((tx) => tx.raw)
             );
           });
@@ -153,7 +147,7 @@ describe("Tx Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              getAllTxs(pendingTxs).map((tx) => tx.raw),
+              txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2, tx3].map((tx) => tx.raw)
             );
           });
@@ -183,7 +177,7 @@ describe("Tx Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              getAllTxs(pendingTxs).map((tx) => tx.raw),
+              txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2, tx4].map((tx) => tx.raw)
             );
           });
@@ -204,7 +198,7 @@ describe("Tx Pool", () => {
 
             const pendingTxs = txPool.getPendingTransactions();
             assert.sameDeepMembers(
-              getAllTxs(pendingTxs).map((tx) => tx.raw),
+              txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1].map((tx) => tx.raw)
             );
           });
@@ -263,7 +257,7 @@ describe("Tx Pool", () => {
         const pendingTxs = txPool.getPendingTransactions();
 
         assert.sameDeepMembers(
-          getAllTxs(pendingTxs).map((tx) => tx.raw),
+          txMapToArray(pendingTxs).map((tx) => tx.raw),
           [tx1, tx2].map((tx) => tx.raw)
         );
       });
@@ -295,7 +289,7 @@ describe("Tx Pool", () => {
           const pendingTxs = txPool.getPendingTransactions();
 
           assert.sameDeepMembers(
-            getAllTxs(pendingTxs).map((tx) => tx.raw),
+            txMapToArray(pendingTxs).map((tx) => tx.raw),
             [tx1, tx2, tx4].map((tx) => tx.raw)
           );
         });
@@ -331,7 +325,7 @@ describe("Tx Pool", () => {
           const pendingTxs = txPool.getPendingTransactions();
 
           assert.sameDeepMembers(
-            getAllTxs(pendingTxs).map((tx) => tx.raw),
+            txMapToArray(pendingTxs).map((tx) => tx.raw),
             [tx1, tx2, tx3, tx4, tx5].map((tx) => tx.raw)
           );
         });
@@ -377,7 +371,7 @@ describe("Tx Pool", () => {
           const pendingTxs = txPool.getPendingTransactions();
 
           assert.sameDeepMembers(
-            getAllTxs(pendingTxs).map((tx) => tx.raw),
+            txMapToArray(pendingTxs).map((tx) => tx.raw),
             [tx1, tx2, tx4, tx6, tx7].map((tx) => tx.raw)
           );
         });
