@@ -3,6 +3,7 @@ import Common from "ethereumjs-common";
 import { FakeTxData, Transaction } from "ethereumjs-tx";
 import FakeTransaction from "ethereumjs-tx/dist/fake";
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import sinon from "sinon";
 
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -18,6 +19,7 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
+import { waitForAssert } from "../helpers/waitForAssert";
 
 describe("HardhatNode", () => {
   const config: NodeConfig = {
@@ -43,10 +45,21 @@ describe("HardhatNode", () => {
   });
 
   describe("constructor", () => {
-    it("automine starts after Node's creation", async () => {
-      const sleep = (ms: number) =>
-        new Promise((resolve) => setTimeout(resolve, ms));
+    let clock: sinon.SinonFakeTimers;
 
+    beforeEach(() => {
+      clock = sinon.useFakeTimers({
+        now: Date.now(),
+        toFake: ["Date", "setTimeout", "clearTimeout"],
+      });
+    });
+
+    afterEach(() => {
+      node.runIntervalMining(false);
+      clock.restore();
+    });
+
+    it("automine starts after Node's creation", async () => {
       const interval = 200;
       const newConfig = {
         ...config,
@@ -57,15 +70,14 @@ describe("HardhatNode", () => {
       };
 
       [, node] = await HardhatNode.create(newConfig);
+      const initialBlock = await node.getLatestBlockNumber();
 
-      const beforeBlock = await node.getLatestBlockNumber();
+      await clock.tick(1.5 * interval);
 
-      await sleep(1.5 * interval);
-
-      node.runIntervalMining(false);
-
-      const currentBlock = await node.getLatestBlockNumber();
-      assert.equal(currentBlock.toString(), beforeBlock.addn(1).toString());
+      await waitForAssert(10, async () => {
+        const currentBlock = await node.getLatestBlockNumber();
+        assert.equal(currentBlock.toString(), initialBlock.addn(1).toString());
+      });
     });
   });
 
