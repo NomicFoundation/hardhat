@@ -238,7 +238,6 @@ export class Anonymizer {
   }
 
   private _anonymizeMnemonic(errorMessage: string): string {
-    let anonymizedMessage = "";
     const mnemonicWordlist = ([] as string[]).concat(
       ...[
         require("ethereum-cryptography/bip39/wordlists/czech"),
@@ -262,6 +261,7 @@ export class Anonymizer {
     });
     // If there are enough consecutive words, there's a good chance of there being a mnemonic phrase
     if (matches.length >= MNEMONIC_PHRASE_LENGTH_THRESHOLD) {
+      let anonymizedMessage = "";
       // Determine all mnemonic phrase maximal fragments.
       // We check sequences of n consecutive words just in case there is a typo
       for (let wordIndex = 0; wordIndex < matches.length; wordIndex++) {
@@ -297,8 +297,10 @@ export class Anonymizer {
           anonymizedMessage += sliceUntilNextWord;
         }
       }
+      return anonymizedMessage;
     }
-    return anonymizedMessage;
+
+    return errorMessage;
   }
 }
 
