@@ -72,7 +72,7 @@ describe("HardhatNode", () => {
       [, node] = await HardhatNode.create(newConfig);
       const initialBlock = await node.getLatestBlockNumber();
 
-      await clock.tick(1.5 * interval);
+      await clock.tickAsync(1.5 * interval);
 
       await waitForAssert(10, async () => {
         const currentBlock = await node.getLatestBlockNumber();
@@ -206,7 +206,7 @@ describe("HardhatNode", () => {
       });
 
       it("assigns miner rewards", async () => {
-        const miner = await node.getCoinbaseAddress();
+        const miner = node.getCoinbaseAddress();
         const initialMinerBalance = await node.getAccountBalance(miner, null);
 
         const oneEther = new BN(10).pow(new BN(18));
