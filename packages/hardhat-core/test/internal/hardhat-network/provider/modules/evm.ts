@@ -25,6 +25,7 @@ import {
   PROVIDERS,
 } from "../../helpers/providers";
 import { waitForAssert } from "../../helpers/waitForAssert";
+import { sleep } from "../utils/sleep";
 
 async function deployContract(
   provider: EthereumProvider,
@@ -466,9 +467,6 @@ describe("Evm module", function () {
             });
 
             it("should allow disabling interval mining", async function () {
-              const sleep = (ms: number) =>
-                new Promise((resolve) => setTimeout(resolve, ms));
-
               const getBlockNumber = async () => {
                 return quantityToNumber(
                   await this.provider.send("eth_blockNumber")

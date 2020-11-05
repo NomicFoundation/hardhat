@@ -4,6 +4,8 @@ import sinon from "sinon";
 import { MiningTimer } from "../../../../src/internal/hardhat-network/provider/MiningTimer";
 import { DEFAULT_INTERVAL_MINING_CONFIG } from "../helpers/providers";
 
+import { sleep } from "./utils/sleep";
+
 describe("Mining Timer", () => {
   const defaultBlockTime = DEFAULT_INTERVAL_MINING_CONFIG.blockTime;
   let miningTimer: MiningTimer;
@@ -124,10 +126,6 @@ describe("Mining Timer", () => {
     });
 
     it("the loop awaits for async callback execution before looping again", async () => {
-      const sleep = (ms: number) => {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-      };
-
       const interval = 500;
       let callCount = 0;
 
