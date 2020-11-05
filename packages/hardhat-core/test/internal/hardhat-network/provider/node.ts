@@ -7,6 +7,7 @@ import sinon from "sinon";
 
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { assertQuantity } from "../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
 import {
@@ -305,6 +306,39 @@ describe("HardhatNode", () => {
         assert.isUndefined(
           await node.getTransactionReceipt(expensiveTx2.hash())
         );
+      });
+    });
+
+    describe("timestamp tests", () => {
+      let clock: sinon.SinonFakeTimers;
+
+      beforeEach(() => {
+        clock = sinon.useFakeTimers(Date.now());
+      });
+
+      afterEach(() => {
+        clock.restore();
+      });
+
+      it("mines a block with the current timestamp", async () => {
+        clock.tick(15_000);
+        const now = getCurrentTimestamp();
+
+        await node.mineBlock();
+        const block = await node.getLatestBlock();
+
+        assert.equal(bufferToInt(block.header.timestamp), now);
+      });
+
+      it("mines a block with incremented timestamp if it clashes with the previous block", async () => {
+        const firstBlock = await node.getLatestBlock();
+        const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
+
+        await node.mineBlock();
+        const latestBlock = await node.getLatestBlock();
+        const latestBlockTimestamp = bufferToInt(latestBlock.header.timestamp);
+
+        assert.equal(latestBlockTimestamp, firstBlockTimestamp + 1);
       });
     });
   });

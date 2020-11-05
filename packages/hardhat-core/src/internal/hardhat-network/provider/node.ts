@@ -305,11 +305,16 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async mineBlock() {
+    const [blockTimestamp] = this._calculateTimestampAndOffset();
+    if (await this._timestampClashesWithPreviousBlockOne(blockTimestamp)) {
+      blockTimestamp.iaddn(1);
+    }
+
     const previousRoot = await this._stateManager.getStateRoot();
     let block: Block;
     let result: RunBlockResult;
     try {
-      [block, result] = await this._mineBlock();
+      [block, result] = await this._mineBlock(blockTimestamp);
     } catch (error) {
       await this._stateManager.setStateRoot(previousRoot);
       throw new TransactionExecutionError(error);
@@ -331,7 +336,7 @@ export class HardhatNode extends EventEmitter {
     const block = await this._getNextBlockTemplate(blockTimestamp);
 
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      block
+      blockTimestamp
     );
 
     if (needsTimestampIncrease) {
@@ -851,9 +856,8 @@ export class HardhatNode extends EventEmitter {
     this._txPool.setBlockGasLimit(gasLimit);
   }
 
-  private async _mineBlock(): Promise<[Block, RunBlockResult]> {
-    const [blockTimestamp] = this._calculateTimestampAndOffset();
-    const block = await this._getNextBlockTemplate(blockTimestamp);
+  private async _mineBlock(timestamp: BN): Promise<[Block, RunBlockResult]> {
+    const block = await this._getNextBlockTemplate(timestamp);
 
     const bloom = new Bloom();
     const results: RunTxResult[] = [];
@@ -964,7 +968,7 @@ export class HardhatNode extends EventEmitter {
     const block = await this._getNextBlockTemplate(blockTimestamp);
 
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      block
+      blockTimestamp
     );
 
     if (needsTimestampIncrease) {
@@ -1302,10 +1306,8 @@ export class HardhatNode extends EventEmitter {
   }
 
   private async _timestampClashesWithPreviousBlockOne(
-    block: Block
+    blockTimestamp: BN
   ): Promise<boolean> {
-    const blockTimestamp = new BN(block.header.timestamp);
-
     const latestBlock = await this.getLatestBlock();
     const latestBlockTimestamp = new BN(latestBlock.header.timestamp);
 
@@ -1488,7 +1490,7 @@ export class HardhatNode extends EventEmitter {
 
         blockContext = await this._getNextBlockTemplate(blockTimestamp);
         const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-          blockContext
+          blockTimestamp
         );
 
         if (needsTimestampIncrease) {
