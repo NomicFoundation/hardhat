@@ -20,6 +20,10 @@ import { retrieveNonce } from "./utils/retrieveNonce";
 
 // tslint:disable only-hardhat-error
 
+function hashTx(tx: Transaction | FakeTransaction) {
+  return tx instanceof FakeTransaction ? tx.hash(false) : tx.hash(true);
+}
+
 export function serializeTransaction(
   tx: OrderedTransaction
 ): SerializedTransaction {
@@ -108,6 +112,15 @@ export class TxPool {
     this._state = state;
   }
 
+  public getTransactionByHash(hash: Buffer): OrderedTransaction | undefined {
+    const tx = this._getHashedTransactions().get(bufferToHex(hash));
+    if (tx !== undefined) {
+      return this._deserializeTransaction(tx);
+    }
+
+    return undefined;
+  }
+
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)
@@ -184,6 +197,14 @@ export class TxPool {
         "Trying to remove a transaction from list that doesn't exist, this should never happen"
       );
     }
+
+    this._state = this._state.set(
+      "hashToTransactions",
+      this._getHashedTransactions().delete(
+        bufferToHex(hashTx(deserializedTX.data))
+      )
+    );
+
     const indexOfTx = accountTxs.indexOf(serializeTransaction(deserializedTX));
     return map.set(address, accountTxs.remove(indexOfTx));
   }
@@ -210,6 +231,7 @@ export class TxPool {
     this._setExecutableNonce(hexSenderAddress, executableNonce);
     this._setPendingForAddress(hexSenderAddress, newPending);
     this._setQueuedForAddress(hexSenderAddress, newQueued);
+    this._setHashedTransaction(bufferToHex(hashTx(tx)), orderedTx);
   }
 
   private _addQueuedTransaction(tx: Transaction) {
@@ -225,6 +247,7 @@ export class TxPool {
       hexSenderAddress,
       accountTransactions.push(orderedTx)
     );
+    this._setHashedTransaction(bufferToHex(hashTx(tx)), orderedTx);
   }
 
   private async _validateTransaction(tx: Transaction): Promise<BN> {
@@ -327,6 +350,10 @@ export class TxPool {
     return queuedTx !== undefined;
   }
 
+  private _getHashedTransactions() {
+    return this._state.get("hashToTransactions");
+  }
+
   private _getPending() {
     return this._state.get("pendingTransactions");
   }
@@ -345,6 +372,16 @@ export class TxPool {
 
   private _getExecutableNonces() {
     return this._state.get("executableNonces");
+  }
+
+  private _setHashedTransaction(
+    hash: string,
+    transaction: SerializedTransaction
+  ) {
+    this._state = this._state.set(
+      "hashToTransactions",
+      this._getHashedTransactions().set(hash, transaction)
+    );
   }
 
   private _setPending(transactions: AddressToTransactions) {

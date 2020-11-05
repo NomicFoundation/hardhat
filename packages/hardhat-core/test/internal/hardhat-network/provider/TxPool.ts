@@ -557,6 +557,94 @@ describe("Tx Pool", () => {
     });
   });
 
+  describe("getTransactionByHash", () => {
+    it("returns a transaction from pending based it's on hash", async () => {
+      const tx = createTestTransaction({
+        to: randomAddressBuffer(),
+        nonce: 0,
+        gasLimit: 21_000,
+      });
+
+      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+      await txPool.addTransaction(tx);
+
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+
+      assert.deepEqual(txFromTxPool!.data.raw, tx.raw);
+    });
+
+    it("returns a transaction from queued based it's on hash", async () => {
+      const tx = createTestTransaction({
+        to: randomAddressBuffer(),
+        nonce: 2,
+        gasLimit: 21_000,
+      });
+
+      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+      await txPool.addTransaction(tx);
+
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+
+      assert.deepEqual(txFromTxPool!.data.raw, tx.raw);
+    });
+
+    it("returns undefined if transaction is not in pending anymore", async () => {
+      const tx = createTestTransaction({
+        to: randomAddressBuffer(),
+        nonce: 0,
+        gasLimit: 21_000,
+      });
+
+      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+      await txPool.addTransaction(tx);
+
+      const oldTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+
+      assert.deepEqual(oldTxFromTxPool!.data.raw, tx.raw);
+
+      await stateManager.putAccount(
+        tx.getSenderAddress(),
+        new Account({ nonce: 1, balance: new BN(10).pow(new BN(18)) })
+      );
+
+      await txPool.clean();
+
+      const actualTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+
+      assert.isUndefined(actualTxFromTxPool);
+    });
+
+    it("returns undefined if transaction is not in pending anymore", async () => {
+      const tx = createTestTransaction({
+        to: randomAddressBuffer(),
+        nonce: 2,
+        gasLimit: 21_000,
+      });
+
+      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+
+      await txPool.addTransaction(tx);
+
+      const oldTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+
+      assert.deepEqual(oldTxFromTxPool!.data.raw, tx.raw);
+
+      await stateManager.putAccount(
+        tx.getSenderAddress(),
+        new Account({ nonce: 3, balance: new BN(10).pow(new BN(18)) })
+      );
+
+      await txPool.clean();
+
+      const actualTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+
+      assert.isUndefined(actualTxFromTxPool);
+    });
+  });
+
   describe("getExecutableNonce", () => {
     const address = randomAddressBuffer();
 
