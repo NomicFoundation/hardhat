@@ -692,38 +692,37 @@ export class EthModule {
   private async _getTransactionByHashAction(
     hash: Buffer
   ): Promise<RpcTransactionOutput | null> {
+    let result: RpcTransactionOutput;
+
     let pending = true;
     let tx = await this._node.getTransactionFromTxPool(hash);
 
     if (tx === undefined) {
       pending = false;
       tx = await this._node.getTransactionFromBlockchain(hash);
-    }
 
-    if (tx === undefined) {
-      return null;
-    }
-
-    const block = await this._node.getBlockByTransactionHash(hash);
-
-    let index: number | undefined;
-    if (block !== undefined) {
-      const transactions: Transaction[] = block.transactions;
-      const i = transactions.findIndex((bt) => bt.hash().equals(hash));
-
-      if (i !== -1) {
-        index = i;
+      if (tx === undefined) {
+        return null;
       }
+
+      const block = await this._node.getBlockByTransactionHash(hash);
+
+      let index: number | undefined;
+      if (block !== undefined) {
+        const transactions: Transaction[] = block.transactions;
+        const i = transactions.findIndex((bt) => bt.hash().equals(hash));
+
+        if (i !== -1) {
+          index = i;
+        }
+      }
+
+      result = getRpcTransaction(tx, block, index);
+    } else {
+      result = getRpcTransaction(tx);
     }
 
-    const result = getRpcTransaction(tx, block, index);
-
-    if (pending) {
-      result.blockHash = null;
-      result.blockNumber = null;
-    }
-
-    return getRpcTransaction(tx, block, index);
+    return result;
   }
 
   // eth_getTransactionCount
