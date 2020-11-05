@@ -340,6 +340,25 @@ describe("HardhatNode", () => {
 
         assert.equal(latestBlockTimestamp, firstBlockTimestamp + 1);
       });
+
+      it("each new block mined within the same second gets an incremented timestamp", async () => {
+        const firstBlock = await node.getLatestBlock();
+        const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
+
+        await node.mineBlock();
+        const secondBlock = await node.getLatestBlock();
+        const secondBlockTimestamp = bufferToInt(secondBlock.header.timestamp);
+
+        await node.mineBlock();
+        const thirdBlock = await node.getLatestBlock();
+        const thirdBlockTimestamp = bufferToInt(thirdBlock.header.timestamp);
+
+        assert.equal(secondBlockTimestamp, firstBlockTimestamp + 1);
+        assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1);
+      });
+
+      // TODO add tests for mining a block with a _nextBlockTimestamp set
+      // TODO add tests for mining a block with increased time
     });
   });
 });

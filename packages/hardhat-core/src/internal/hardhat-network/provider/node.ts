@@ -306,7 +306,10 @@ export class HardhatNode extends EventEmitter {
 
   public async mineBlock() {
     const [blockTimestamp] = this._calculateTimestampAndOffset();
-    if (await this._timestampClashesWithPreviousBlockOne(blockTimestamp)) {
+    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
+      blockTimestamp
+    );
+    if (needsTimestampIncrease) {
       blockTimestamp.iaddn(1);
     }
 
@@ -318,6 +321,10 @@ export class HardhatNode extends EventEmitter {
     } catch (error) {
       await this._stateManager.setStateRoot(previousRoot);
       throw new TransactionExecutionError(error);
+    }
+
+    if (needsTimestampIncrease) {
+      await this.increaseTime(new BN(1));
     }
 
     await this._saveBlockAsSuccessfullyRun(block, result);
