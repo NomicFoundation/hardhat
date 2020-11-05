@@ -2,7 +2,7 @@ import { assert } from "chai";
 import Common from "ethereumjs-common";
 import { FakeTxData, Transaction } from "ethereumjs-tx";
 import FakeTransaction from "ethereumjs-tx/dist/fake";
-import { bufferToHex, bufferToInt } from "ethereumjs-util";
+import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -31,6 +31,7 @@ describe("HardhatNode", () => {
     blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
     genesisAccounts: DEFAULT_ACCOUNTS,
   };
+  const gasPrice = 1;
   let node: HardhatNode;
   let createTestTransaction: (txData: FakeTxData) => FakeTransaction;
 
@@ -38,7 +39,7 @@ describe("HardhatNode", () => {
     let common: Common;
     [common, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) =>
-      new FakeTransaction({ gasPrice: 1, ...txData }, { common });
+      new FakeTransaction({ gasPrice, ...txData }, { common });
   });
 
   describe("constructor", () => {
@@ -190,6 +191,31 @@ describe("HardhatNode", () => {
 
         const block = await node.getLatestBlock();
         assert.equal(bufferToInt(block.header.gasUsed), 42_000);
+      });
+
+      it("assigns miner rewards", async () => {
+        const miner = await node.getCoinbaseAddress();
+        const initialMinerBalance = await node.getAccountBalance(miner, null);
+
+        const oneEther = new BN(10).pow(new BN(18));
+        const txFee = 21_000 * gasPrice;
+        const minerReward = oneEther.muln(2).addn(txFee);
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          value: 1234,
+        });
+        await node.runTransaction(tx);
+        await node.mineBlock();
+
+        const minerBalance = await node.getAccountBalance(miner, null);
+        assert.equal(
+          minerBalance.toString(),
+          initialMinerBalance.add(minerReward).toString()
+        );
       });
     });
 

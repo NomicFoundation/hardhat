@@ -882,7 +882,7 @@ export class HardhatNode extends EventEmitter {
       tx = txHeap.peek();
     }
 
-    // TODO assign block reward
+    await this._assignBlockReward();
     block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));
     block.header.stateRoot = await this._stateManager.getStateRoot();
     block.header.bloom = bloom.bitvector;
@@ -915,12 +915,20 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
+  private async _assignBlockReward() {
+    const minerAddress = this.getCoinbaseAddress();
+    const miner = await this._stateManager.getAccount(minerAddress);
+    const blockReward = this._getBlockReward();
+    miner.balance = toBuffer(new BN(miner.balance).add(blockReward));
+    await this._stateManager.putAccount(minerAddress, miner);
+  }
+
   private _getMinimalTransactionFee(): BN {
     // Typically 21_000 gas
     return new BN(this._vm._common.param("gasPrices", "tx"));
   }
 
-  private _getMinerReward(): BN {
+  private _getBlockReward(): BN {
     return new BN(this._vm._common.param("pow", "minerReward"));
   }
 
