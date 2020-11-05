@@ -600,7 +600,15 @@ export class HardhatNode extends EventEmitter {
     return this._nextBlockTimestamp;
   }
 
-  public async getTransaction(hash: Buffer): Promise<Transaction | undefined> {
+  public async getTransactionFromTxPool(
+    hash: Buffer
+  ): Promise<Transaction | undefined> {
+    return this._txPool.getTransactionByHash(hash)?.data;
+  }
+
+  public async getTransactionFromBlockchain(
+    hash: Buffer
+  ): Promise<Transaction | undefined> {
     return this._blockchain.getTransaction(hash);
   }
 

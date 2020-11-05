@@ -2383,6 +2383,32 @@ describe("Eth module", function () {
             0
           );
         });
+
+        it("should return the right info for the pending transaction", async function () {
+          const txParams: TransactionParams = {
+            to: toBuffer(zeroAddress()),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer([]),
+            nonce: new BN(0),
+            value: new BN(123),
+            gasLimit: new BN(25000),
+            gasPrice: new BN(23912),
+          };
+
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          const txHash = await sendTransactionFromTxParams(
+            this.provider,
+            txParams
+          );
+
+          const tx: RpcTransactionOutput = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          assertTransaction(tx, txHash, txParams);
+        });
       });
 
       describe("eth_getTransactionCount", async function () {
