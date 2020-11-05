@@ -89,9 +89,7 @@ describe("compile task", function () {
 
       assert.equal(
         reasons,
-        `The pragma statement in these files don't match any of the configured compilers
-in your config. Change the pragma or configure additional compiler versions in
-your hardhat config.
+        `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
 * contracts/Foo.sol (^0.5.0)
 
@@ -131,9 +129,7 @@ Learn more about compiler configuration at https://hardhat.org/config
 
       assert.equal(
         reasons,
-        `The pragma statement in these files don't match any of the configured compilers
-in your config. Change the pragma or configure additional compiler versions in
-your hardhat config.
+        `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
 * contracts/Foo.sol (^0.5.0)
 * contracts/Bar.sol (^0.5.1)
@@ -165,8 +161,7 @@ Learn more about compiler configuration at https://hardhat.org/config
 
       assert.equal(
         reasons,
-        `The compiler version for the following files is fixed through an override in your
-config file to a version that is incompatible with their version pragmas.
+        `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
 * contracts/Foo.sol (^0.5.0)
 
@@ -288,7 +283,7 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file, use --verbose to see all
+* contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file. Use --verbose to see the full list.
 
 Learn more about compiler configuration at https://hardhat.org/config
 `
@@ -336,7 +331,7 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files, use --verbose to see all
+* contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files. Use --verbose to see the full list.
 
 Learn more about compiler configuration at https://hardhat.org/config
 `
@@ -459,7 +454,7 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file, use --verbose to see all
+* contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file. Use --verbose to see the full list.
 
 Learn more about compiler configuration at https://hardhat.org/config
 `
@@ -508,7 +503,7 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files, use --verbose to see all
+* contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files. Use --verbose to see the full list.
 
 Learn more about compiler configuration at https://hardhat.org/config
 `
@@ -639,14 +634,11 @@ Learn more about compiler configuration at https://hardhat.org/config
 
       assert.equal(
         reasons,
-        `The compiler version for the following files is fixed through an override in your
-config file to a version that is incompatible with their version pragmas.
+        `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
 * contracts/Foo1.sol (^0.5.0)
 
-The pragma statement in these files don't match any of the configured compilers
-in your config. Change the pragma or configure additional compiler versions in
-your hardhat config.
+The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
 * contracts/Foo2.sol (^0.5.0)
 

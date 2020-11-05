@@ -1082,8 +1082,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
 
       let errorMessage = "";
       if (incompatibleOverridenSolc.length > 0) {
-        errorMessage += `The compiler version for the following files is fixed through an override in your
-config file to a version that is incompatible with their version pragmas.
+        errorMessage += `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
 `;
 
@@ -1101,9 +1100,7 @@ config file to a version that is incompatible with their version pragmas.
       }
 
       if (noCompatibleSolc.length > 0) {
-        errorMessage += `The pragma statement in these files don't match any of the configured compilers
-in your config. Change the pragma or configure additional compiler versions in
-your hardhat config.
+        errorMessage += `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
 `;
 
@@ -1158,7 +1155,7 @@ your hardhat config.
             } and ${otherImportsCount} other ${pluralize(
               otherImportsCount,
               "file"
-            )}, use --verbose to see all`;
+            )}. Use --verbose to see the full list.`;
           }
 
           errorMessage += `* ${sourceName} (${versionsRange})${importsText}\n`;
@@ -1203,7 +1200,7 @@ your hardhat config.
             } and ${otherImportsCount} other ${pluralize(
               otherImportsCount,
               "file"
-            )}, use --verbose to see all`;
+            )}. Use --verbose to see the full list.`;
           }
 
           errorMessage += `* ${sourceName} (${versionsRange})${importsText}\n`;
