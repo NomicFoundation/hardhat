@@ -24,8 +24,8 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../helpers/providers";
+import { sleep } from "../../helpers/sleep";
 import { waitForAssert } from "../../helpers/waitForAssert";
-import { sleep } from "../utils/sleep";
 
 async function deployContract(
   provider: EthereumProvider,

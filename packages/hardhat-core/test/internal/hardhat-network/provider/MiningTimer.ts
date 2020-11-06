@@ -3,8 +3,7 @@ import sinon from "sinon";
 
 import { MiningTimer } from "../../../../src/internal/hardhat-network/provider/MiningTimer";
 import { DEFAULT_INTERVAL_MINING_CONFIG } from "../helpers/providers";
-
-import { sleep } from "./utils/sleep";
+import { sleep } from "../helpers/sleep";
 
 describe("Mining Timer", () => {
   const defaultBlockTime = DEFAULT_INTERVAL_MINING_CONFIG.blockTime;
