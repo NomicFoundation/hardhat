@@ -346,7 +346,7 @@ export class TxPool {
   }
 
   private _getTransactionsByHash() {
-    return this._state.get("hashToTransactions");
+    return this._state.get("hashToTransaction");
   }
 
   private _getPending() {
@@ -374,7 +374,7 @@ export class TxPool {
     transaction: SerializedTransaction
   ) {
     this._state = this._state.set(
-      "hashToTransactions",
+      "hashToTransaction",
       this._getTransactionsByHash().set(hash, transaction)
     );
   }
@@ -420,7 +420,7 @@ export class TxPool {
 
   private _deleteTransactionByHash(hash: Buffer) {
     this._state = this._state.set(
-      "hashToTransactions",
+      "hashToTransaction",
       this._getTransactionsByHash().delete(bufferToHex(hash))
     );
   }
