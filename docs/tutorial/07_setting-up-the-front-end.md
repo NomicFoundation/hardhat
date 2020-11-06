@@ -78,11 +78,11 @@ application.
    (by default **Main Ethereum Network**) and select **Localhost 8545**. If you are using a Buidler EVM on a different device, select **Custom RPC** and enter
    the following details:
       
-   | Field        | Value                                        |
-   |--------------|----------------------------------------------|
-   | Network Name | Buidler EVM                                  |
-   | New RPC URL  | http://<IP of Buidler EVM>:8545              |
-   | Chain ID     | 31337 (unless you specify a different value) |
+   | Field        | Value                                                  |
+   |--------------|--------------------------------------------------------|
+   | Network Name | Buidler EVM                                            |
+   | New RPC URL  | http:// &gt; IP of Buidler EVM &lt; :8545              |
+   | Chain ID     | 31337 (unless you specify a different value)           |
 
 ::: warning
 If you stop the Buidler EVM and then start it again, MetaMask may be unable to communicate with it until you connect 
