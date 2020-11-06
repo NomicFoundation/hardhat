@@ -238,6 +238,13 @@ export class Anonymizer {
   }
 
   private _anonymizeMnemonic(errorMessage: string): string {
+    const matches = getAllWordMatches(errorMessage);
+
+    // If there are enough consecutive words, there's a good chance of there being a mnemonic phrase
+    if (matches.length < MNEMONIC_PHRASE_LENGTH_THRESHOLD) {
+      return errorMessage;
+    }
+
     const mnemonicWordlist = ([] as string[]).concat(
       ...[
         require("ethereum-cryptography/bip39/wordlists/czech"),
@@ -251,52 +258,47 @@ export class Anonymizer {
         require("ethereum-cryptography/bip39/wordlists/traditional-chinese"),
       ].map((wordlistModule) => wordlistModule.wordlist)
     );
-    const matches = getAllWordMatches(errorMessage);
+    let anonymizedMessage = errorMessage.slice(0, matches[0].index);
 
-    // If there are enough consecutive words, there's a good chance of there being a mnemonic phrase
-    if (matches.length >= MNEMONIC_PHRASE_LENGTH_THRESHOLD) {
-      let anonymizedMessage = errorMessage.slice(0, matches[0].index);
+    // Determine all mnemonic phrase maximal fragments.
+    // We check sequences of n consecutive words just in case there is a typo
+    let wordIndex = 0;
+    while (wordIndex < matches.length) {
+      const maximalPhrase = getMaximalMnemonicPhrase(
+        matches,
+        errorMessage,
+        wordIndex,
+        mnemonicWordlist
+      );
 
-      // Determine all mnemonic phrase maximal fragments.
-      // We check sequences of n consecutive words just in case there is a typo
-      for (let wordIndex = 0; wordIndex < matches.length; wordIndex++) {
-        const maximalPhrase = getMaximalMnemonicPhrase(
-          matches,
-          errorMessage,
-          wordIndex,
-          mnemonicWordlist
+      if (maximalPhrase.length >= MINIMUM_AMOUNT_OF_WORDS_TO_ANONYMIZE) {
+        const lastAnonymizedWord = maximalPhrase[maximalPhrase.length - 1];
+        const nextWordIndex =
+          wordIndex + maximalPhrase.length < matches.length
+            ? matches[wordIndex + maximalPhrase.length].index
+            : errorMessage.length;
+        const sliceUntilNextWord = errorMessage.slice(
+          lastAnonymizedWord.index + lastAnonymizedWord.word.length,
+          nextWordIndex
         );
-
-        if (maximalPhrase.length >= MINIMUM_AMOUNT_OF_WORDS_TO_ANONYMIZE) {
-          const lastAnonymizedWord = maximalPhrase[maximalPhrase.length - 1];
-          const nextWordIndex =
-            wordIndex + maximalPhrase.length < matches.length
-              ? matches[wordIndex + maximalPhrase.length].index
-              : errorMessage.length;
-          const sliceUntilNextWord = errorMessage.slice(
-            lastAnonymizedWord.index + lastAnonymizedWord.word.length,
-            nextWordIndex
-          );
-          anonymizedMessage += `${ANONYMIZED_MNEMONIC}${sliceUntilNextWord}`;
-          wordIndex += maximalPhrase.length - 1;
-        } else {
-          const thisWord = matches[wordIndex];
-          const nextWordIndex =
-            wordIndex + 1 < matches.length
-              ? matches[wordIndex + 1].index
-              : errorMessage.length;
-          const sliceUntilNextWord = errorMessage.slice(
-            thisWord.index,
-            nextWordIndex
-          );
-          anonymizedMessage += sliceUntilNextWord;
-        }
+        anonymizedMessage += `${ANONYMIZED_MNEMONIC}${sliceUntilNextWord}`;
+        wordIndex += maximalPhrase.length;
+      } else {
+        const thisWord = matches[wordIndex];
+        const nextWordIndex =
+          wordIndex + 1 < matches.length
+            ? matches[wordIndex + 1].index
+            : errorMessage.length;
+        const sliceUntilNextWord = errorMessage.slice(
+          thisWord.index,
+          nextWordIndex
+        );
+        anonymizedMessage += sliceUntilNextWord;
+        wordIndex++;
       }
-
-      return anonymizedMessage;
     }
 
-    return errorMessage;
+    return anonymizedMessage;
   }
 }
 
