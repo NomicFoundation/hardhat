@@ -1,1 +1,1 @@
-export type Callback<T = void> = (error: any, value: T) => void;
+export type Callback<T = void> = (error: Error | null, value: T) => void;

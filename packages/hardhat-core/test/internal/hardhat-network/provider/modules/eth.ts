@@ -29,6 +29,7 @@ import {
 } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import {
+  EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
 } from "../../helpers/contracts";
@@ -370,6 +371,43 @@ describe("Eth module", function () {
               numberToRpcQuantity(futureBlock),
             ],
             `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+          );
+        });
+
+        it("should work with blockhashes calls", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_BLOCKHASH_CONTRACT.bytecode.object}`
+          );
+
+          const resultBlock0 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test0,
+            },
+          ]);
+
+          assert.lengthOf(resultBlock0, 66);
+
+          const resultBlock1 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1,
+            },
+          ]);
+
+          assert.lengthOf(resultBlock1, 66);
+
+          const resultBlock1m = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1m,
+            },
+          ]);
+
+          assert.equal(
+            resultBlock1m,
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
         });
       });
