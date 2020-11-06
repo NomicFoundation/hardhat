@@ -251,14 +251,7 @@ export class Anonymizer {
         require("ethereum-cryptography/bip39/wordlists/traditional-chinese"),
       ].map((wordlistModule) => wordlistModule.wordlist)
     );
-    const matches: WordMatch[] = [
-      ...errorMessage.matchAll(/\p{Letter}+/gu),
-    ].map((match) => {
-      return {
-        word: match[0],
-        index: match.index!,
-      };
-    });
+    const matches = getAllWordMatches(errorMessage);
     // If there are enough consecutive words, there's a good chance of there being a mnemonic phrase
     if (matches.length >= MNEMONIC_PHRASE_LENGTH_THRESHOLD) {
       let anonymizedMessage = "";
@@ -333,4 +326,18 @@ function getMaximalMnemonicPhrase(
     maximalPhrase.push(thisMatch);
   }
   return maximalPhrase;
+}
+
+function getAllWordMatches(errorMessage: string) {
+  const matches: WordMatch[] = [];
+  const re = /\p{Letter}+/gu;
+  let match = re.exec(errorMessage);
+  while (match !== null) {
+    matches.push({
+      word: match[0],
+      index: match.index,
+    });
+    match = re.exec(errorMessage);
+  }
+  return matches;
 }
