@@ -294,7 +294,7 @@ export class HardhatNode extends EventEmitter {
     throw new InvalidInputError(`unknown account ${senderAddress}`);
   }
 
-  public async runTransaction(
+  public async sendTransaction(
     tx: Transaction
   ): Promise<RunTransactionResult | undefined> {
     await this._txPool.addTransaction(tx);

@@ -1300,7 +1300,7 @@ export class EthModule {
   }
 
   private async _sendTransactionAndReturnHash(tx: Transaction) {
-    const result = await this._node.runTransaction(tx);
+    const result = await this._node.sendTransaction(tx);
     const txHash = bufferToRpcData(tx.hash(true));
     if (result === undefined) {
       return txHash;

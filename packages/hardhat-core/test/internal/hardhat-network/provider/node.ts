@@ -113,7 +113,7 @@ describe("HardhatNode", () => {
           gasLimit: 21_000,
           value: 1234,
         });
-        await node.runTransaction(tx);
+        await node.sendTransaction(tx);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx]);
@@ -139,8 +139,8 @@ describe("HardhatNode", () => {
           gasLimit: 21_000,
           value: 1234,
         });
-        await node.runTransaction(tx1);
-        await node.runTransaction(tx2);
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx2]);
@@ -166,8 +166,8 @@ describe("HardhatNode", () => {
           gasLimit: 21_000,
           value: 1234,
         });
-        await node.runTransaction(tx1);
-        await node.runTransaction(tx2);
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx2]);
@@ -193,8 +193,8 @@ describe("HardhatNode", () => {
           gasLimit: 100_000,
           value: 1234,
         });
-        await node.runTransaction(tx1);
-        await node.runTransaction(tx2);
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
         await node.mineBlock();
 
         const tx1Receipt = await node.getTransactionReceipt(tx1.hash());
@@ -221,7 +221,7 @@ describe("HardhatNode", () => {
           gasLimit: 21_000,
           value: 1234,
         });
-        await node.runTransaction(tx);
+        await node.sendTransaction(tx);
         await node.mineBlock();
 
         const minerBalance = await node.getAccountBalance(miner, null);
@@ -247,8 +247,8 @@ describe("HardhatNode", () => {
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 21_000,
         });
-        await node.runTransaction(tx1);
-        await node.runTransaction(tx2);
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1]);
@@ -269,8 +269,8 @@ describe("HardhatNode", () => {
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 40_000, // actual gas used is 21_000
         });
-        await node.runTransaction(tx1);
-        await node.runTransaction(tx2);
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx2]);
@@ -297,9 +297,9 @@ describe("HardhatNode", () => {
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 40_000, // actual gas used is 21_000
         });
-        await node.runTransaction(tx1);
-        await node.runTransaction(expensiveTx2);
-        await node.runTransaction(tx3);
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(expensiveTx2);
+        await node.sendTransaction(tx3);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx3]);
