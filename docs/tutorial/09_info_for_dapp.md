@@ -12,7 +12,7 @@ These are the changes needed in the deployment script:
 
 1. Add this function:
 ```js
-aync function info4Dapp(contract) {
+async function info4Dapp(contract) {
   const fsP = require("fs").promises
   const contractDir = __dirname + "/../frontend/src/contracts"
 
