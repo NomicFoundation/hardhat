@@ -18,7 +18,13 @@ export const GanacheOptionsTi = t.iface([], {
   gasLimit: t.opt("number"),
   gasPrice: t.opt(t.union("string", "number")),
   hardfork: t.opt(
-    t.union(t.lit("byzantium"), t.lit("constantinople"), t.lit("petersburg"))
+    t.union(
+      t.lit("byzantium"),
+      t.lit("constantinople"),
+      t.lit("petersburg"),
+      t.lit("istanbul"),
+      t.lit("muirGlacier")
+    )
   ),
   hdPath: t.opt("string"),
   hostname: t.opt("string"),
