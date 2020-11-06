@@ -22,8 +22,6 @@ import {
 } from "../helpers/providers";
 import { waitForAssert } from "../helpers/waitForAssert";
 
-import { sleep } from "./utils/sleep";
-
 describe("HardhatNode", () => {
   const config: NodeConfig = {
     type: "local",
