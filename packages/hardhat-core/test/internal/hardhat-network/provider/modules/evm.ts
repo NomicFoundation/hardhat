@@ -26,6 +26,7 @@ import {
 } from "../../helpers/providers";
 import { sleep } from "../../helpers/sleep";
 import { waitForAssert } from "../../helpers/waitForAssert";
+import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
 
 async function deployContract(
   provider: EthereumProvider,
@@ -51,6 +52,9 @@ describe("Evm module", function () {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
+
+      const getFirstBlock = async () =>
+        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("evm_increaseTime", async function () {
         it("should increase the offset of time used for block timestamps", async function () {
@@ -280,11 +284,12 @@ describe("Evm module", function () {
 
       describe("evm_mine", async function () {
         it("should mine empty blocks", async function () {
+          const firstBlock = await getFirstBlock();
           await this.provider.send("evm_mine");
 
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(1), false]
+            [numberToRpcQuantity(firstBlock + 1), false]
           );
 
           assert.isEmpty(block.transactions);
@@ -293,7 +298,7 @@ describe("Evm module", function () {
 
           const block2: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(2), false]
+            [numberToRpcQuantity(firstBlock + 2), false]
           );
 
           assert.isEmpty(block2.transactions);
