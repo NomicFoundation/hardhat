@@ -550,27 +550,17 @@ export class HardhatNode extends EventEmitter {
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    let data: Buffer = await this._runInBlockContext(blockNumber, () =>
+    const data: Buffer = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getContractStorage(address, key)
     );
-    // TODO: The state manager returns the data as it was saved, it doesn't
-    //  pad it. Technically, the storage consists of 32-byte slots, so we should
-    //  always return 32 bytes. The problem is that Ganache doesn't handle them
-    //  this way. We compromise a little here to ease the migration into
-    //  Hardhat Network :(
 
-    // const EXPECTED_DATA_SIZE = 32;
-    // if (data.length < EXPECTED_DATA_SIZE) {
-    //   return Buffer.concat(
-    //     [Buffer.alloc(EXPECTED_DATA_SIZE - data.length, 0), data],
-    //     EXPECTED_DATA_SIZE
-    //   );
-    // }
-
-    // TODO: remove this line once the above problem is solved
-    //  This is here to make ForkStateManager return values compatible with
-    //  the VM's state manager unpadded format
-    data = stripZeros(data);
+    const EXPECTED_DATA_SIZE = 32;
+    if (data.length < EXPECTED_DATA_SIZE) {
+      return Buffer.concat(
+        [Buffer.alloc(EXPECTED_DATA_SIZE - data.length, 0), data],
+        EXPECTED_DATA_SIZE
+      );
+    }
 
     return data;
   }
