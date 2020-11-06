@@ -75,7 +75,14 @@ application.
    
 3. Click the Metamask icon (![Metamask icon](https://raw.githubusercontent.com/qbzzt/qbzzt.github.io/master/metamask-logo.png)) in the top right corner of the browser.
 4. If you are running the Buidler EVM and the browser on the same computer, click the currently selected network 
-   (by default **Main Ethereum Network**) and select **Localhost 8545**. If not **WRITE THIS WRITE THIS WRITE THIS**
+   (by default **Main Ethereum Network**) and select **Localhost 8545**. If you are using a Buidler EVM on a different device, select **Custom RPC** and enter
+   the following details:
+      
+   | Field        | Value                                        |
+   |--------------|----------------------------------------------|
+   | Network Name | Buidler EVM                                  |
+   | New RPC URL  | http://<IP of Buidler EVM>:8545              |
+   | Chain ID     | 31337 (unless you specify a different value) |
 
 ::: warning
 If you stop the Buidler EVM and then start it again, MetaMask may be unable to communicate with it until you connect 
