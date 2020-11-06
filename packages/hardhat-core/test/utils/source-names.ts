@@ -42,6 +42,14 @@ describe("Source names utilities", function () {
       );
     });
 
+    it("Shouldn't fail if it is a dotfile", async function () {
+      validateSourceNameFormat(".asd");
+    });
+
+    it("Shouldn't fail if it is a special dotfile", async function () {
+      validateSourceNameFormat("..asd/");
+    });
+
     it("Should fail if it uses backslash", async function () {
       expectHardhatError(
         () => validateSourceNameFormat("asd\\sd"),
