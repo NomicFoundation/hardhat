@@ -552,8 +552,7 @@ describe("Tx Pool", () => {
   });
 
   describe("getTransactionByHash", () => {
-    it("returns a transaction from pending based it's on hash", async () => {
-      const tx = createTestTransaction({
+    it("returns a transaction from pending based on hash", async () => {
         to: randomAddressBuffer(),
         nonce: 0,
         gasLimit: 21_000,
@@ -568,8 +567,7 @@ describe("Tx Pool", () => {
       assert.deepEqual(txFromTxPool!.data.raw, tx.raw);
     });
 
-    it("returns a transaction from queued based it's on hash", async () => {
-      const tx = createTestTransaction({
+    it("returns a transaction from queued based on hash", async () => {
         to: randomAddressBuffer(),
         nonce: 2,
         gasLimit: 21_000,
@@ -611,7 +609,7 @@ describe("Tx Pool", () => {
       assert.isUndefined(actualTxFromTxPool);
     });
 
-    it("returns undefined if transaction is not in pending anymore", async () => {
+    it("returns undefined if transaction is not in queued anymore", async () => {
       const tx = createTestTransaction({
         to: randomAddressBuffer(),
         nonce: 2,
