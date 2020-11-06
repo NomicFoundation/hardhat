@@ -10,7 +10,7 @@ In this part of the tutorial we create a [Buidler task](../guides/create-task.ht
 1. Create a `tasks` directory and within it a file `faucet.js`:
 
 ```js
-task("faucet", "Sends ETH and tokens to an address")
+task("faucet", "Sends ETH to an address")
   .addPositionalParam("receiver", "The address that will receive them")
   .setAction(async ({ receiver }) => {
     if (network.name === "buidlerevm") {
@@ -42,7 +42,7 @@ require("./tasks/faucet")
 
 ```bash
 npx buidler --network localhost faucet <<your address here>>
-Transferred 1 ETH and 100 tokens to 0x3d91185a02774c70287f6c74dd26d13dfb58ff16
+Transferred 1 ETH to 0x3d91185a02774c70287f6c74dd26d13dfb58ff16
 ```
 
 In the terminal where you ran `npx buidler node` you should also see lines similar to:
@@ -67,7 +67,7 @@ eth_blockNumber
 Create a task called `faucet` with this description
 
 ```js
-task("faucet", "Sends ETH and tokens to an address")
+task("faucet", "Sends ETH to an address")
 ```
 
 Add the `receiver` parameter.
