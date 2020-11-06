@@ -50,7 +50,7 @@ npx buidler run scripts/deploy.js --network localhost
 
 The `--network` parameter specifies the blockchain to which buidler connects. If this parameter is absent then the `npx buidler` command starts a 
 **Buidler EVM** blockchain and connects to it. You can use this to test that the deployment code works, but any deployment is destroyed as soon
-as the script ends.
+as the script terminates.
 
 
 ## Detailed explanation
