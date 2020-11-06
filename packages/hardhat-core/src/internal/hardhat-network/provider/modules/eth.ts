@@ -694,17 +694,9 @@ export class EthModule {
   ): Promise<RpcTransactionOutput | null> {
     let result: RpcTransactionOutput;
 
-    let pending = true;
-    let tx = await this._node.getTransactionFromTxPool(hash);
+    let tx = await this._node.getPendingTransaction(hash);
 
     if (tx === undefined) {
-      pending = false;
-      tx = await this._node.getTransactionFromBlockchain(hash);
-
-      if (tx === undefined) {
-        return null;
-      }
-
       const block = await this._node.getBlockByTransactionHash(hash);
 
       let index: number | undefined;
@@ -714,7 +706,12 @@ export class EthModule {
 
         if (i !== -1) {
           index = i;
+          tx = transactions[index];
         }
+      }
+
+      if (tx === undefined) {
+        return null;
       }
 
       result = getRpcTransaction(tx, block, index);
