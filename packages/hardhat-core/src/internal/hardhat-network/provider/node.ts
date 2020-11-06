@@ -207,8 +207,9 @@ export class HardhatNode extends EventEmitter {
   ) {
     super();
 
-    this._miningTimer = new MiningTimer(intervalMining.blockTime, () =>
-      this.mineEmptyBlock(new BN(0))
+    this._miningTimer = new MiningTimer(
+      intervalMining.blockTime,
+      this.mineBlock.bind(this)
     );
 
     if (intervalMining.enabled) {
@@ -347,60 +348,6 @@ export class HardhatNode extends EventEmitter {
     }
 
     await this._resetNextBlockTimestamp();
-  }
-
-  public async mineEmptyBlock(timestamp: BN) {
-    // need to check if timestamp is specified or nextBlockTimestamp is set
-    // if it is, time offset must be set to timestamp|nextBlockTimestamp - Date.now
-    // if it is not, time offset remain the same
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset(timestamp);
-
-    const block = await this._getNextBlockTemplate(blockTimestamp);
-
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      blockTimestamp
-    );
-
-    if (needsTimestampIncrease) {
-      await this._increaseBlockTimestamp(block);
-    }
-
-    await this._updateTransactionsRoot(block);
-
-    const previousRoot = await this._stateManager.getStateRoot();
-
-    let result: RunBlockResult;
-    try {
-      result = await this._vm.runBlock({
-        block,
-        generate: true,
-        skipBlockValidation: true,
-      });
-
-      if (needsTimestampIncrease) {
-        await this.increaseTime(new BN(1));
-      }
-
-      await this._saveBlockAsSuccessfullyRun(block, result);
-
-      if (offsetShouldChange) {
-        await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
-      }
-
-      await this._resetNextBlockTimestamp();
-
-      return result;
-    } catch (error) {
-      // We set the state root to the previous one. This is equivalent to a
-      // rollback of this block.
-      await this._stateManager.setStateRoot(previousRoot);
-
-      throw new TransactionExecutionError(error);
-    }
   }
 
   public async runCall(
