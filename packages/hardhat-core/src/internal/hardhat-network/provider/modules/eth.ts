@@ -692,34 +692,27 @@ export class EthModule {
   private async _getTransactionByHashAction(
     hash: Buffer
   ): Promise<RpcTransactionOutput | null> {
-    let result: RpcTransactionOutput;
-
-    let tx = await this._node.getPendingTransaction(hash);
-
-    if (tx === undefined) {
-      const block = await this._node.getBlockByTransactionHash(hash);
-
-      let index: number | undefined;
-      if (block !== undefined) {
-        const transactions: Transaction[] = block.transactions;
-        const i = transactions.findIndex((bt) => bt.hash().equals(hash));
-
-        if (i !== -1) {
-          index = i;
-          tx = transactions[index];
-        }
-      }
-
-      if (tx === undefined) {
-        return null;
-      }
-
-      result = getRpcTransaction(tx, block, index);
-    } else {
-      result = getRpcTransaction(tx);
+    const pendingTx = await this._node.getPendingTransaction(hash);
+    if (pendingTx !== undefined) {
+      return getRpcTransaction(pendingTx);
     }
 
-    return result;
+    const block = await this._node.getBlockByTransactionHash(hash);
+    if (block === undefined) {
+      return null;
+    }
+
+    const index = block.transactions.findIndex((btx) =>
+      btx.hash().equals(hash)
+    );
+    const tx = block.transactions[index];
+    if (tx === undefined) {
+      throw new Error(
+        "Transaction not found in the saved block, this should never happen"
+      );
+    }
+
+    return getRpcTransaction(tx, block, index);
   }
 
   // eth_getTransactionCount
