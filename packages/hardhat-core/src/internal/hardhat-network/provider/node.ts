@@ -302,6 +302,14 @@ export class HardhatNode extends EventEmitter {
     await this._notifyPendingTransaction(tx);
 
     if (this._automine) {
+      const executableNonce = await this._txPool.getExecutableNonce(
+        tx.getSenderAddress()
+      );
+
+      if (new BN(tx.nonce).gt(executableNonce)) {
+        throw new Error("Nonce too high");
+      }
+
       return this._runTransactionInNewBlock();
     }
   }

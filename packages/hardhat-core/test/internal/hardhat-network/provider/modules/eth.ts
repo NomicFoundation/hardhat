@@ -3029,6 +3029,23 @@ describe("Eth module", function () {
           assertReceiptMatchesGethOne(receipt, receiptFromGeth, firstBlock + 1);
         });
 
+        it("Should throw if automine is enabled and the transaction's nonce is too high", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [true]);
+
+          await assertTransactionFailure(
+            this.provider,
+            {
+              nonce: numberToRpcQuantity(1),
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+            "Nonce too high"
+          );
+        });
+
         it("Should throw if the transaction fails", async function () {
           // Not enough gas
           await assertTransactionFailure(
