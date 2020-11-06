@@ -113,7 +113,7 @@ export class TxPool {
   }
 
   public getTransactionByHash(hash: Buffer): OrderedTransaction | undefined {
-    const tx = this._getHashedTransactions().get(bufferToHex(hash));
+    const tx = this._getTransactionsByHash().get(bufferToHex(hash));
     if (tx !== undefined) {
       return this._deserializeTransaction(tx);
     }
@@ -198,12 +198,7 @@ export class TxPool {
       );
     }
 
-    this._state = this._state.set(
-      "hashToTransactions",
-      this._getHashedTransactions().delete(
-        bufferToHex(hashTx(deserializedTX.data))
-      )
-    );
+    this._deleteTransactionByHash(hashTx(deserializedTX.data));
 
     const indexOfTx = accountTxs.indexOf(serializeTransaction(deserializedTX));
     return map.set(address, accountTxs.remove(indexOfTx));
@@ -231,7 +226,7 @@ export class TxPool {
     this._setExecutableNonce(hexSenderAddress, executableNonce);
     this._setPendingForAddress(hexSenderAddress, newPending);
     this._setQueuedForAddress(hexSenderAddress, newQueued);
-    this._setHashedTransaction(bufferToHex(hashTx(tx)), orderedTx);
+    this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
   }
 
   private _addQueuedTransaction(tx: Transaction) {
@@ -247,7 +242,7 @@ export class TxPool {
       hexSenderAddress,
       accountTransactions.push(orderedTx)
     );
-    this._setHashedTransaction(bufferToHex(hashTx(tx)), orderedTx);
+    this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
   }
 
   private async _validateTransaction(tx: Transaction): Promise<BN> {
@@ -350,7 +345,7 @@ export class TxPool {
     return queuedTx !== undefined;
   }
 
-  private _getHashedTransactions() {
+  private _getTransactionsByHash() {
     return this._state.get("hashToTransactions");
   }
 
@@ -374,13 +369,13 @@ export class TxPool {
     return this._state.get("executableNonces");
   }
 
-  private _setHashedTransaction(
+  private _setTransactionByHash(
     hash: string,
     transaction: SerializedTransaction
   ) {
     this._state = this._state.set(
       "hashToTransactions",
-      this._getHashedTransactions().set(hash, transaction)
+      this._getTransactionsByHash().set(hash, transaction)
     );
   }
 
@@ -421,5 +416,12 @@ export class TxPool {
 
   private _setBlockGasLimit(newLimit: BN) {
     this._state = this._state.set("blockGasLimit", bnToHex(newLimit));
+  }
+
+  private _deleteTransactionByHash(hash: Buffer) {
+    this._state = this._state.set(
+      "hashToTransactions",
+      this._getTransactionsByHash().delete(bufferToHex(hash))
+    );
   }
 }

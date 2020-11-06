@@ -32,12 +32,12 @@ export type SerializedTransaction = ImmutableRecord<
 >;
 export type SenderTransactions = ImmutableList<SerializedTransaction>;
 export type AddressToTransactions = ImmutableMap<string, SenderTransactions>;
-export type HashToTransactions = ImmutableMap<string, SerializedTransaction>;
+export type HashToTransaction = ImmutableMap<string, SerializedTransaction>;
 
 export interface PoolState {
   pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
   queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
-  hashToTransactions: HashToTransactions;
+  hashToTransactions: HashToTransaction;
   executableNonces: ImmutableMap<string, string>; // address => nonce (hex)
   blockGasLimit: string;
 }
