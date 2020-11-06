@@ -22,7 +22,6 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
-import flatten from "lodash/flatten";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
