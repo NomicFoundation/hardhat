@@ -81,7 +81,7 @@ application.
    | Field        | Value                                                  |
    |--------------|--------------------------------------------------------|
    | Network Name | Buidler EVM                                            |
-   | New RPC URL  | http:// &lt; IP of Buidler EVM &gt; :8545              |
+   | New RPC URL  | http:// &lt;IP of Buidler EVM&gt; :8545                |
    | Chain ID     | 31337 (unless you specify a different value)           |
 
 ::: warning
