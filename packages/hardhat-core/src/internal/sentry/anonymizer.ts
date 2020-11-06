@@ -252,9 +252,11 @@ export class Anonymizer {
       ].map((wordlistModule) => wordlistModule.wordlist)
     );
     const matches = getAllWordMatches(errorMessage);
+
     // If there are enough consecutive words, there's a good chance of there being a mnemonic phrase
     if (matches.length >= MNEMONIC_PHRASE_LENGTH_THRESHOLD) {
-      let anonymizedMessage = "";
+      let anonymizedMessage = errorMessage.slice(0, matches[0].index);
+
       // Determine all mnemonic phrase maximal fragments.
       // We check sequences of n consecutive words just in case there is a typo
       for (let wordIndex = 0; wordIndex < matches.length; wordIndex++) {
@@ -290,6 +292,7 @@ export class Anonymizer {
           anonymizedMessage += sliceUntilNextWord;
         }
       }
+
       return anonymizedMessage;
     }
 

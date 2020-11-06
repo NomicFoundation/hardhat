@@ -314,6 +314,34 @@ describe("Anonymizer", () => {
       );
     });
 
+    it("should hide mnemonic phrases that start with spaces", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "   My mnemonic phrase is test test test test test test test test test test test test. This is an error message.";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "   My mnemonic phrase is <mnemonic>. This is an error message."
+      );
+    });
+
+    it("should hide mnemonic phrases that start with punctuation", () => {
+      const anonymizer = new Anonymizer();
+      const errorMessage =
+        "[module] My mnemonic phrase is test test test test test test test test test test test test. This is an error message.";
+      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
+        errorMessage
+      );
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "[module] My mnemonic phrase is <mnemonic>. This is an error message."
+      );
+    });
+
     it("should hide mnemonic phrases with typos", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
