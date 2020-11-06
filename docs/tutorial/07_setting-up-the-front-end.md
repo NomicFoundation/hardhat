@@ -54,7 +54,8 @@ In Ethereum the term **wallet** has two separate meanings:
 By default Metamask connects to the main Ethereum network. However, for development and testing purposes we want to connect to the Buidler EVM that runs our
 application.
 
-1. Start the Buidler EVM in standalone mode, rather than on a temporary basis for a specific test: 
+1. Open a terminal and change to the project root directory (or any other directory that isn't under `frontend`).
+2. Start the Buidler EVM in standalone mode, rather than on a temporary basis for a specific test: 
    ```bash
    npx buidler node
    ```
@@ -65,8 +66,8 @@ application.
    ```
    It is an error, because the browser did not send a legitimate [JSON RPC](https://www.jsonrpc.org/specification) request, but the fact you got
    this error shows that there is an HTTP server there.   
-2. Click the Metamask icon (![Metamask icon](https://raw.githubusercontent.com/qbzzt/qbzzt.github.io/master/metamask-logo.png)) in the top right corner of the browser.
-3. Click the currently selected network (by default **Main Ethereum Network**) and select **Localhost 8545**.
+3. Click the Metamask icon (![Metamask icon](https://raw.githubusercontent.com/qbzzt/qbzzt.github.io/master/metamask-logo.png)) in the top right corner of the browser.
+4. Click the currently selected network (by default **Main Ethereum Network**) and select **Localhost 8545**.
 
 ::: warning
 If you stop the Buidler EVM and then start it again, MetaMask may be unable to communicate with it until you connect 
