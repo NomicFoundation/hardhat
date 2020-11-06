@@ -553,33 +553,33 @@ describe("Tx Pool", () => {
 
   describe("getTransactionByHash", () => {
     it("returns a transaction from pending based on hash", async () => {
+      const tx = createTestFakeTransaction({
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
         to: randomAddressBuffer(),
         nonce: 0,
         gasLimit: 21_000,
       });
 
-      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-
       await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash(false));
 
-      assert.deepEqual(txFromTxPool!.data.raw, tx.raw);
+      assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
 
     it("returns a transaction from queued based on hash", async () => {
+      const tx = createTestFakeTransaction({
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
         to: randomAddressBuffer(),
         nonce: 2,
         gasLimit: 21_000,
       });
 
-      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-
       await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash(false));
 
-      assert.deepEqual(txFromTxPool!.data.raw, tx.raw);
+      assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
 
     it("returns undefined if transaction is not in pending anymore", async () => {
