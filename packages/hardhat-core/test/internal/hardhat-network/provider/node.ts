@@ -330,7 +330,7 @@ describe("HardhatNode", () => {
         assert.equal(bufferToInt(block.header.timestamp), now);
       });
 
-      it("mines a block with incremented timestamp if it clashes with the previous block", async () => {
+      it("mines a block with an incremented timestamp if it clashes with the previous block", async () => {
         const firstBlock = await node.getLatestBlock();
         const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
 
@@ -341,7 +341,7 @@ describe("HardhatNode", () => {
         assert.equal(latestBlockTimestamp, firstBlockTimestamp + 1);
       });
 
-      it("each new block mined within the same second gets an incremented timestamp", async () => {
+      it("assigns an incremented timestamp to each new block mined within the same second", async () => {
         const firstBlock = await node.getLatestBlock();
         const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
 
@@ -357,8 +357,91 @@ describe("HardhatNode", () => {
         assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1);
       });
 
-      // TODO add tests for mining a block with a _nextBlockTimestamp set
-      // TODO add tests for mining a block with increased time
+      it("mines a block with a preset timestamp", async () => {
+        const now = getCurrentTimestamp();
+        const timestamp = new BN(now).addn(30);
+        await node.setNextBlockTimestamp(timestamp);
+        await node.mineBlock();
+
+        const block = await node.getLatestBlock();
+        const blockTimestamp = bufferToInt(block.header.timestamp);
+        assert.equal(blockTimestamp, timestamp.toNumber());
+      });
+
+      it("mines the next block normally after a block with preset timestamp", async () => {
+        const now = getCurrentTimestamp();
+        const timestamp = new BN(now).addn(30);
+        await node.setNextBlockTimestamp(timestamp);
+        await node.mineBlock();
+
+        clock.tick(3_000);
+        await node.mineBlock();
+
+        const block = await node.getLatestBlock();
+        const blockTimestamp = bufferToInt(block.header.timestamp);
+        assert.equal(blockTimestamp, timestamp.toNumber() + 3);
+      });
+
+      it("mines a block with the timestamp passed as a parameter irrespective of the preset timestamp", async () => {
+        const now = getCurrentTimestamp();
+        const presetTimestamp = new BN(now).addn(30);
+        await node.setNextBlockTimestamp(presetTimestamp);
+        const timestamp = new BN(now).addn(60);
+        await node.mineBlock(timestamp);
+
+        const block = await node.getLatestBlock();
+        const blockTimestamp = bufferToInt(block.header.timestamp);
+        assert.equal(blockTimestamp, timestamp.toNumber());
+      });
+
+      it("mines a block with correct timestamp after time increase", async () => {
+        const now = getCurrentTimestamp();
+        await node.increaseTime(new BN(30));
+        await node.mineBlock();
+
+        const block = await node.getLatestBlock();
+        const blockTimestamp = bufferToInt(block.header.timestamp);
+        assert.equal(blockTimestamp, now + 30);
+      });
+
+      describe("when time is increased by 30s", () => {
+        function testPresetTimestamp(offset: number) {
+          it("mines a block with the preset timestamp", async () => {
+            const now = getCurrentTimestamp();
+            const timestamp = new BN(now).addn(offset);
+            await node.increaseTime(new BN(30));
+            await node.setNextBlockTimestamp(timestamp);
+            await node.mineBlock();
+
+            const block = await node.getLatestBlock();
+            const blockTimestamp = bufferToInt(block.header.timestamp);
+            assert.equal(blockTimestamp, timestamp.toNumber());
+          });
+
+          it("mining a block with a preset timestamp changes the time offset", async () => {
+            const now = getCurrentTimestamp();
+            const timestamp = new BN(now).addn(offset);
+            await node.increaseTime(new BN(30));
+            await node.setNextBlockTimestamp(timestamp);
+            await node.mineBlock();
+
+            clock.tick(3_000);
+            await node.mineBlock();
+
+            const block = await node.getLatestBlock();
+            const blockTimestamp = bufferToInt(block.header.timestamp);
+            assert.equal(blockTimestamp, timestamp.toNumber() + 3);
+          });
+        }
+
+        describe("when preset timestamp is 20s into the future", () => {
+          testPresetTimestamp(20);
+        });
+
+        describe("when preset timestamp is 40s into the future", () => {
+          testPresetTimestamp(40);
+        });
+      });
     });
   });
 });
