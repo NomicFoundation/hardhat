@@ -39,23 +39,27 @@ Compiled 2 contracts successfully
 
 
   Token contract
+    ✓ Only first user to ask for an initial stake gets it (393ms)
     Deployment
       ✓ Should set the right owner
       ✓ Should assign the total supply of tokens to the owner
     Transactions
-Sender balance is 1000 tokens
+Sender balance is 1000000 tokens
 Trying to send 50 tokens to 0xead9c93b79ae7c1591b1fb5323bd777e86e150d4
 Sender balance is 50 tokens
 Trying to send 50 tokens to 0xe5904695748fe4a84b40b3fc79de2277660bd1d3
-      ✓ Should transfer tokens between accounts (373ms)
-      ✓ Should fail if sender doesn’t have enough tokens
-Sender balance is 1000 tokens
+      ✓ Should transfer tokens between accounts (103ms)
+Sender balance is 0 tokens
+Trying to send 1 tokens to 0xc783df8a850f42e7f7e57013759c285caa701eb6
+      ✓ Should fail if sender doesn’t have enough tokens (83ms)
+Sender balance is 1000000 tokens
 Trying to send 100 tokens to 0xead9c93b79ae7c1591b1fb5323bd777e86e150d4
-Sender balance is 900 tokens
-Trying to send 100 tokens to 0xe5904695748fe4a84b40b3fc79de2277660bd1d3
-      ✓ Should update balances after transfers (187ms)
+Sender balance is 999900 tokens
+Trying to send 50 tokens to 0xe5904695748fe4a84b40b3fc79de2277660bd1d3
+      ✓ Should update balances after transfers (125ms)
 
 
-  5 passing (2s)
-```
+  6 passing (3s)
+
+``
 Check out the [documentation](/buidler-evm/#console-log) to learn more about this feature.
