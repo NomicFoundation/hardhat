@@ -1084,7 +1084,7 @@ ${other.map((x) => `* ${x}`).join("\n")}
 `;
       }
 
-      reasons += `Learn more about compiler configuration at https://hardhat.org/configuration
+      reasons += `Learn more about compiler configuration at https://hardhat.org/config
 `;
 
       return reasons;

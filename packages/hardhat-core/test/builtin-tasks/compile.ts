@@ -90,7 +90,7 @@ your hardhat config.
 
 * contracts/Foo.sol
 
-Learn more about compiler configuration at https://hardhat.org/configuration
+Learn more about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -118,7 +118,7 @@ your hardhat config.
 * contracts/Foo.sol
 * contracts/Bar.sol
 
-Learn more about compiler configuration at https://hardhat.org/configuration
+Learn more about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -143,7 +143,7 @@ config file to a version that is incompatible with their version pragmas.
 
 * contracts/Foo.sol
 
-Learn more about compiler configuration at https://hardhat.org/configuration
+Learn more about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -167,7 +167,7 @@ Learn more about compiler configuration at https://hardhat.org/configuration
 
 * contracts/Foo.sol
 
-Learn more about compiler configuration at https://hardhat.org/configuration
+Learn more about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -189,7 +189,7 @@ Learn more about compiler configuration at https://hardhat.org/configuration
 
 * contracts/Foo.sol
 
-Learn more about compiler configuration at https://hardhat.org/configuration
+Learn more about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -211,7 +211,7 @@ Learn more about compiler configuration at https://hardhat.org/configuration
 
 * contracts/Foo.sol
 
-Learn more about compiler configuration at https://hardhat.org/configuration
+Learn more about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -257,7 +257,7 @@ These files and its dependencies cannot be compiled with your config:
 
 * contracts/Foo4.sol
 
-Learn more about compiler configuration at https://hardhat.org/configuration
+Learn more about compiler configuration at https://hardhat.org/config
 `
       );
     });

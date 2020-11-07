@@ -458,7 +458,8 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
     const typename = param.typeName;
     if (
       typename.nodeType === "ArrayTypeName" ||
-      typename.nodeType === "FunctionTypeName"
+      typename.nodeType === "FunctionTypeName" ||
+      typename.nodeType === "Mapping"
     ) {
       paramTypes.push(typename.typeDescriptions.typeString);
       continue;

@@ -166,6 +166,15 @@ const plugins = [
     tags: ["Logging", "Console", "Deployment"],
   },
   {
+    name: "hardhat-watcher",
+    author: "Xander Deseyn",
+    authorUrl: "https://github.com/N1ghtly",
+    url: "https://github.com/N1ghtly/hardhat-watcher/tree/main",
+    description:
+      "Automatically run Hardhat actions on file changes.",
+    tags: ["Tasks", "Testing"],
+  },
+  {
     name: "solidity-coverage",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
