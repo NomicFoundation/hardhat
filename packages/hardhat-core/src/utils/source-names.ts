@@ -21,7 +21,7 @@ export function validateSourceNameFormat(sourceName: string) {
     );
   }
 
-  if (sourceName.startsWith(".")) {
+  if (isExplicitRelativePath(sourceName)) {
     throw new HardhatError(
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_RELATIVE_PATH,
       {
@@ -160,6 +160,15 @@ export function normalizeSourceName(sourceName: string): string {
  */
 export function isAbsolutePathSourceName(sourceName: string): boolean {
   return path.isAbsolute(sourceName) || sourceName.startsWith("/");
+}
+
+/**
+ * This function returns true if the sourceName is a unix path that is based on
+ * the current directory `./`.
+ */
+function isExplicitRelativePath(sourceName: string): boolean {
+  const [base] = sourceName.split("/", 1);
+  return base === "." || base === "..";
 }
 
 /**
