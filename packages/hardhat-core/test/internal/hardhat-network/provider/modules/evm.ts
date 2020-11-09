@@ -726,8 +726,7 @@ describe("Evm module", function () {
           ]);
 
           const pendingTransactionsBefore = await this.provider.send(
-            "eth_pendingTransactions",
-            []
+            "eth_pendingTransactions"
           );
           assert.lengthOf(pendingTransactionsBefore, 2);
 
@@ -737,15 +736,12 @@ describe("Evm module", function () {
           assert.isTrue(reverted);
 
           const pendingTransactionsAfter = await this.provider.send(
-            "eth_pendingTransactions",
-            []
+            "eth_pendingTransactions"
           );
           assert.lengthOf(pendingTransactionsAfter, 0);
-
-          await this.provider.send("evm_setAutomineEnabled", [true]);
         });
 
-        it("Re-adds the transactions that were mined after snapshot to the mempool", async function () {
+        it("Re-adds the transactions that were mined after snapshot to the tx pool", async function () {
           await this.provider.send("evm_setAutomineEnabled", [false]);
 
           const [from] = await this.provider.send("eth_accounts");
@@ -777,8 +773,7 @@ describe("Evm module", function () {
           await this.provider.send("evm_mine");
 
           const pendingTransactionsBefore = await this.provider.send(
-            "eth_pendingTransactions",
-            []
+            "eth_pendingTransactions"
           );
           assert.lengthOf(pendingTransactionsBefore, 0);
 
@@ -788,12 +783,9 @@ describe("Evm module", function () {
           assert.isTrue(reverted);
 
           const pendingTransactionsAfter = await this.provider.send(
-            "eth_pendingTransactions",
-            []
+            "eth_pendingTransactions"
           );
           assert.lengthOf(pendingTransactionsAfter, 2);
-
-          await this.provider.send("evm_setAutomineEnabled", [true]);
         });
 
         it("Allows resending the same tx after a revert", async function () {
