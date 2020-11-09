@@ -713,13 +713,55 @@ describe("Evm module", function () {
           await this.provider.send("evm_setAutomineEnabled", [true]);
         });
 
-        xit("Re-adds the transactions that were mined after snapshot to the mempool", async function () {
-          // TODO
-          // Add txs to mempoool
-          // Make snapshot
-          // Mine a block with these txs
-          // Revert
-          // Check that the previously mined transactions are in the mempool again
+        it("Re-adds the transactions that were mined after snapshot to the mempool", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          const [from] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(0),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const snapshotId: string = await this.provider.send("evm_snapshot");
+
+          await this.provider.send("evm_mine");
+
+          const pendingTransactionsBefore = await this.provider.send(
+            "eth_pendingTransactions",
+            []
+          );
+          assert.lengthOf(pendingTransactionsBefore, 0);
+
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
+
+          const pendingTransactionsAfter = await this.provider.send(
+            "eth_pendingTransactions",
+            []
+          );
+          assert.lengthOf(pendingTransactionsAfter, 2);
+
+          await this.provider.send("evm_setAutomineEnabled", [true]);
         });
 
         // TODO-Ethworks unskip this test when integrating TxPool snapshots
