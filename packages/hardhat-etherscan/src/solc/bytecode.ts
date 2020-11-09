@@ -1,9 +1,5 @@
-import { run } from "hardhat";
-import { TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH } from "hardhat/builtin-tasks/task-names";
-import { Artifacts, DependencyGraph } from "hardhat/types";
-import { CompilerInput } from "hardhat/types/artifacts";
+import { Artifacts } from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
-import cloneDeep from "lodash/cloneDeep";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./version";
@@ -39,6 +35,43 @@ type NestedSliceReferences = BytecodeSlice[][];
  *  This is not an exhaustive interface for compiler input nor output.
  */
 
+interface CompilerInput {
+  language: "Solidity";
+  sources: { [sourceName: string]: { content: string } };
+  settings: {
+    optimizer: { runs: number; enabled: boolean };
+    evmVersion?: string;
+    libraries?: ResolvedLinks;
+  };
+}
+
+interface CompilerOutput {
+  sources: CompilerOutputSources;
+  contracts: {
+    [sourceName: string]: {
+      [contractName: string]: {
+        abi: any;
+        evm: {
+          bytecode: CompilerOutputBytecode;
+          deployedBytecode: CompilerOutputBytecode;
+          methodIdentifiers: {
+            [methodSignature: string]: string;
+          };
+        };
+      };
+    };
+  };
+}
+
+interface CompilerOutputSource {
+  id: number;
+  ast: any;
+}
+
+interface CompilerOutputSources {
+  [sourceName: string]: CompilerOutputSource;
+}
+
 interface CompilerOutputBytecode {
   object: string;
   opcodes: string;
@@ -53,32 +86,7 @@ interface CompilerOutputBytecode {
   };
 }
 
-interface CompilerInputSources {
-  [sourceName: string]: { content: string };
-}
-
 /**/
-
-async function getDependenciesCompilerInput(
-  source: string,
-  originalCompilerInput: CompilerInput
-): Promise<CompilerInput> {
-  const compilerInput = cloneDeep(originalCompilerInput);
-  const dependencyGraph: DependencyGraph = await run(
-    TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
-    { sourceNames: [source] }
-  );
-  compilerInput.sources = dependencyGraph
-    .getResolvedFiles()
-    .reduce<CompilerInputSources>(
-      (acc, { sourceName, content: { rawContent } }) => {
-        acc[sourceName] = { content: rawContent };
-        return acc;
-      },
-      {}
-    );
-  return compilerInput;
-}
 
 export async function lookupMatchingBytecode(
   artifacts: Artifacts,
@@ -120,15 +128,8 @@ export async function lookupMatchingBytecode(
         },
       } = comparison;
       // The bytecode matches
-
-      // Get source code of the contract and his dependencies
-      const compilerInput = await getDependenciesCompilerInput(
-        sourceName,
-        buildInfo.input
-      );
-
       contractMatches.push({
-        compilerInput,
+        compilerInput: buildInfo.input,
         solcVersion: buildInfo.solcVersion,
         immutableValues,
         libraryLinks,

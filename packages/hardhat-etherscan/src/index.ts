@@ -1,10 +1,13 @@
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import {
+  TASK_COMPILE,
+  TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+} from "hardhat/builtin-tasks/task-names";
 import { extendConfig, task } from "hardhat/config";
 import {
   HARDHAT_NETWORK_NAME,
   NomicLabsHardhatPluginError,
 } from "hardhat/plugins";
-import { ActionType } from "hardhat/types";
+import { ActionType, DependencyGraph } from "hardhat/types";
 import path from "path";
 import semver from "semver";
 
@@ -17,6 +20,10 @@ interface VerificationArgs {
   constructorArguments: string[];
   // Filename of constructor arguments module.
   constructorArgs?: string;
+  relatedSources?: boolean;
+}
+interface CompilerInputSources {
+  [sourceName: string]: { content: string };
 }
 
 const verify: ActionType<VerificationArgs> = async (
@@ -24,6 +31,7 @@ const verify: ActionType<VerificationArgs> = async (
     address,
     constructorArguments: constructorArgsList,
     constructorArgs: constructorArgsModule,
+    relatedSources,
   },
   { config, network, run, artifacts }
 ) => {
@@ -239,6 +247,23 @@ This can occur if the library is only called in the contract constructor.`
   // Ensure the linking information is present in the compiler input;
   contractInformation.compilerInput.settings.libraries =
     contractInformation.libraryLinks;
+
+  if (relatedSources) {
+    const dependencyGraph: DependencyGraph = await run(
+      TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+      { sourceNames: [contractInformation.sourceName] }
+    );
+    contractInformation.compilerInput.sources = dependencyGraph
+      .getResolvedFiles()
+      .reduce<CompilerInputSources>(
+        (acc, { sourceName, content: { rawContent } }) => {
+          acc[sourceName] = { content: rawContent };
+          return acc;
+        },
+        {}
+      );
+  }
+
   const compilerInputJSON = JSON.stringify(contractInformation.compilerInput);
 
   const solcFullVersion = await getLongVersion(contractInformation.solcVersion);
@@ -309,5 +334,9 @@ task("verify", "Verifies contract on etherscan")
     "constructorArguments",
     "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
     []
+  )
+  .addFlag(
+    "relatedSources",
+    "Upload only the related sources. Can cause failed verifications due https://github.com/ethereum/solidity/issues/9573"
   )
   .setAction(verify);
