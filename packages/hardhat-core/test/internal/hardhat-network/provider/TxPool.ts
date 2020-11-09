@@ -871,10 +871,10 @@ describe("Tx Pool", () => {
       assert.isNumber(id);
     });
 
-    it("returns the same snapshot id if no changes were made to the state", () => {
+    it("returns different snapshot id with each call", () => {
       const id1 = txPool.snapshot();
       const id2 = txPool.snapshot();
-      assert.equal(id1, id2);
+      assert.equal(id2, id1 + 1);
     });
 
     it("returns a bigger snapshot id if the state changed", async () => {
