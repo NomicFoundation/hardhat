@@ -876,6 +876,7 @@ export class HardhatNode extends EventEmitter {
       tx = txHeap.peek();
     }
 
+    await this._txPool.clean();
     await this._assignBlockReward();
     block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));
     block.header.stateRoot = await this._stateManager.getStateRoot();
