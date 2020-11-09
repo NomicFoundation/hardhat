@@ -82,6 +82,7 @@ export interface Snapshot {
   date: Date;
   latestBlock: Block;
   stateRoot: Buffer;
+  txPoolSnapshotId: number;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
 }

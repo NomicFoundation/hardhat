@@ -588,12 +588,12 @@ export class HardhatNode extends EventEmitter {
       date: new Date(),
       latestBlock: await this.getLatestBlock(),
       stateRoot: await this._stateManager.getStateRoot(),
+      txPoolSnapshotId: this._txPool.snapshot(),
       blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
       nextBlockTimestamp: new BN(this._nextBlockTimestamp),
     };
 
     this._snapshots.push(snapshot);
-    this._txPool.snapshot();
     this._nextSnapshotId += 1;
 
     return id;
@@ -625,7 +625,7 @@ export class HardhatNode extends EventEmitter {
     await this._stateManager.setStateRoot(snapshot.stateRoot);
     this._blockTimeOffsetSeconds = newOffset;
     this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
-    this._txPool.revert(id);
+    this._txPool.revert(snapshot.txPoolSnapshotId);
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
