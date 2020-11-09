@@ -37,6 +37,7 @@
     "@ethersproject/address": "^5.0.2",
     "cbor": "^5.0.2",
     "fs-extra": "^7.0.1",
+    "lodash": "^4.17.20",
     "node-fetch": "^2.6.0",
     "semver": "^6.3.0"
   },
@@ -51,6 +52,7 @@
     "chai": "^4.2.0",
     "ethers": "^5.0.8",
     "hardhat": "^2.0.0",
+    "lodash": "^4.17.20",
     "nock": "^10.0.6"
   },
   "peerDependencies": {
