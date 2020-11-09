@@ -178,6 +178,25 @@ describe("HardhatNode", () => {
         assert.equal(balance.toString(), "2468");
       });
 
+      it("clears TxPool", async () => {
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          value: 1234,
+        });
+        await node.sendTransaction(tx);
+
+        const pendingTransactionsBefore = await node.getPendingTransactions();
+        assert.lengthOf(pendingTransactionsBefore, 1);
+
+        await node.mineBlock();
+
+        const pendingTransactionsAfter = await node.getPendingTransactions();
+        assert.lengthOf(pendingTransactionsAfter, 0);
+      });
+
       it("sets correct gasUsed values", async () => {
         const tx1 = createTestTransaction({
           nonce: 0,
