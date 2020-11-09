@@ -26,6 +26,7 @@ import {
 } from "../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
 import { sleep } from "../../helpers/sleep";
+import { sendTransactionFromTxParams } from "../../helpers/transactions";
 import { waitForAssert } from "../../helpers/waitForAssert";
 
 async function deployContract(
@@ -421,6 +422,8 @@ describe("Evm module", function () {
 
         describe("time based tests", () => {
           beforeEach(async function () {
+            await this.provider.send("evm_setAutomineEnabled", [false]);
+
             if (isFork) {
               // This is done to speed up subsequent mineBlock calls made by MiningTimer.
               // On first mineBlock call there are many calls to JSON RPC provider which slow things down.
@@ -520,10 +523,39 @@ describe("Evm module", function () {
 
               assert.equal(currentBlock, initialBlock + 1);
             });
-          });
 
-          // TODO
-          xit("should mine block with transaction after the interval", async function () {});
+            it("should mine block with transaction after the interval", async function () {
+              const interval = 1000;
+              const txHash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: "0x1111111111111111111111111111111111111111",
+                  nonce: numberToRpcQuantity(0),
+                },
+              ]);
+
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: true, blockTime: interval },
+              ]);
+
+              await sleep(1.7 * interval);
+
+              const currentBlock = await this.provider.send(
+                "eth_getBlockByNumber",
+                ["latest", false]
+              );
+
+              assert.lengthOf(currentBlock.transactions, 1);
+              assert.equal(currentBlock.transactions[0], txHash);
+
+              const txReceipt = await this.provider.send(
+                "eth_getTransactionReceipt",
+                [txHash]
+              );
+
+              assert.isNotNull(txReceipt);
+            });
+          });
         });
       });
 
