@@ -56,6 +56,12 @@ describe("Evm module", function () {
       const getFirstBlock = async () =>
         isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
+      const getBlockNumber = async () => {
+        return quantityToNumber(
+          await this.ctx.provider.send("eth_blockNumber")
+        );
+      };
+
       describe("evm_increaseTime", async function () {
         it("should increase the offset of time used for block timestamps", async function () {
           const blockNumber = quantityToNumber(
@@ -355,12 +361,6 @@ describe("Evm module", function () {
             sinonClock.restore();
           });
 
-          const getBlockNumber = async () => {
-            return quantityToNumber(
-              await this.ctx.provider.send("eth_blockNumber")
-            );
-          };
-
           it("should handle race condition with interval mining", async function () {
             const interval = 5000;
             const initialBlock = await getBlockNumber();
@@ -446,12 +446,6 @@ describe("Evm module", function () {
             });
 
             it("should allow enabling interval mining", async function () {
-              const getBlockNumber = async () => {
-                return quantityToNumber(
-                  await this.provider.send("eth_blockNumber")
-                );
-              };
-
               const interval = 5000;
               const initialBlock = await getBlockNumber();
               await this.provider.send("evm_setIntervalMining", [
@@ -467,12 +461,6 @@ describe("Evm module", function () {
             });
 
             it("should continuously mine new blocks after each interval", async function () {
-              const getBlockNumber = async () => {
-                return quantityToNumber(
-                  await this.provider.send("eth_blockNumber")
-                );
-              };
-
               const interval = 5000;
               const initialBlock = await getBlockNumber();
               await this.provider.send("evm_setIntervalMining", [
@@ -510,12 +498,6 @@ describe("Evm module", function () {
             });
 
             it("should allow disabling interval mining", async function () {
-              const getBlockNumber = async () => {
-                return quantityToNumber(
-                  await this.provider.send("eth_blockNumber")
-                );
-              };
-
               const interval = 1000;
               const initialBlock = await getBlockNumber();
               await this.provider.send("evm_setIntervalMining", [
