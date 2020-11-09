@@ -20,7 +20,7 @@ interface VerificationArgs {
   constructorArguments: string[];
   // Filename of constructor arguments module.
   constructorArgs?: string;
-  relatedSources?: boolean;
+  relatedSources: boolean;
 }
 interface CompilerInputSources {
   [sourceName: string]: { content: string };
