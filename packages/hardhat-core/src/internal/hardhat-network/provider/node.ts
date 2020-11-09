@@ -301,18 +301,13 @@ export class HardhatNode extends EventEmitter {
   public async sendTransaction(
     tx: Transaction
   ): Promise<RunTransactionResult | undefined> {
+    if (this._automine) {
+      await this._validateExactNonce(tx);
+    }
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);
 
     if (this._automine) {
-      const executableNonce = await this._txPool.getExecutableNonce(
-        tx.getSenderAddress()
-      );
-
-      if (new BN(tx.nonce).gt(executableNonce)) {
-        throw new Error("Nonce too high");
-      }
-
       return this._runTransactionInNewBlock();
     }
   }
@@ -810,6 +805,28 @@ export class HardhatNode extends EventEmitter {
     this._txPool.setBlockGasLimit(gasLimit);
   }
 
+  private async _validateExactNonce(tx: Transaction) {
+    let sender: Buffer;
+    try {
+      sender = tx.getSenderAddress(); // verifies signature as a side effect
+    } catch (e) {
+      throw new InvalidInputError(e.message);
+    }
+
+    const senderNonce = await this._txPool.getExecutableNonce(sender);
+    const txNonce = new BN(tx.nonce);
+
+    const expectedNonceMsg = `Expected nonce to be ${senderNonce} but got ${txNonce}.`;
+    if (txNonce.gt(senderNonce)) {
+      throw new InvalidInputError(
+        `Nonce too high. ${expectedNonceMsg} Note that transactions can't be queued when automining.`
+      );
+    }
+    if (txNonce.lt(senderNonce)) {
+      throw new InvalidInputError(`Nonce too low. ${expectedNonceMsg}`);
+    }
+  }
+
   private async _mineBlockUnsafe(timestamp?: BN) {
     const [
       blockTimestamp,
@@ -827,7 +844,7 @@ export class HardhatNode extends EventEmitter {
     let block: Block;
     let result: RunBlockResult;
     try {
-      [block, result] = await this._mineBlock(blockTimestamp);
+      [block, result] = await this._mineBlockWithPendingTxs(blockTimestamp);
     } catch (error) {
       await this._stateManager.setStateRoot(previousRoot);
       throw new TransactionExecutionError(error);
@@ -846,8 +863,10 @@ export class HardhatNode extends EventEmitter {
     await this._resetNextBlockTimestamp();
   }
 
-  private async _mineBlock(timestamp: BN): Promise<[Block, RunBlockResult]> {
-    const block = await this._getNextBlockTemplate(timestamp);
+  private async _mineBlockWithPendingTxs(
+    blockTimestamp: BN
+  ): Promise<[Block, RunBlockResult]> {
+    const block = await this._getNextBlockTemplate(blockTimestamp);
 
     const bloom = new Bloom();
     const results: RunTxResult[] = [];

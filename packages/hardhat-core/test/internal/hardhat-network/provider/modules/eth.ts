@@ -3030,19 +3030,50 @@ describe("Eth module", function () {
         });
 
         it("Should throw if automine is enabled and the transaction's nonce is too high", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [true]);
-
-          await assertTransactionFailure(
+          await assertInvalidInputError(
             this.provider,
-            {
-              nonce: numberToRpcQuantity(1),
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              value: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
-            },
-            "Nonce too high"
+            "eth_sendTransaction",
+            [
+              {
+                nonce: numberToRpcQuantity(1),
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              },
+            ],
+            "Nonce too high. Expected nonce to be 0 but got 1. Note that transactions can't be queued when automining."
+          );
+        });
+
+        it("Should throw if automine is enabled and the transaction's nonce is too low", async function () {
+          await sendTxToZeroAddress(this.provider);
+          await assertInvalidInputError(
+            this.provider,
+            "eth_sendTransaction",
+            [
+              {
+                nonce: numberToRpcQuantity(0),
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              },
+            ],
+            "Nonce too low. Expected nonce to be 1 but got 0."
+          );
+        });
+
+        it("Should throw if automine is disabled and the transaction's nonce is too low", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await sendTxToZeroAddress(this.provider);
+          await assertInvalidInputError(
+            this.provider,
+            "eth_sendTransaction",
+            [
+              {
+                nonce: numberToRpcQuantity(0),
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              },
+            ],
+            "Nonce too low. Expected nonce to be at least 1 but got 0."
           );
         });
 
@@ -3109,17 +3140,6 @@ describe("Eth module", function () {
               gas: numberToRpcQuantity(53500),
             },
             "out of gas"
-          );
-
-          // Invalid nonce
-          await assertTransactionFailure(
-            this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              nonce: numberToRpcQuantity(1),
-            },
-            "Nonce too low. Expected nonce to be at least 2 but got 1"
           );
 
           // Revert. This is a deployment transaction that immediately reverts without a reason

@@ -292,7 +292,7 @@ export class TxPool {
 
     if (txNonce.lt(senderNonce)) {
       throw new InvalidInputError(
-        `Nonce too low. Expected nonce to be at least ${senderNonce.toString()} but got ${txNonce.toString()}`
+        `Nonce too low. Expected nonce to be at least ${senderNonce.toString()} but got ${txNonce.toString()}.`
       );
     }
 
