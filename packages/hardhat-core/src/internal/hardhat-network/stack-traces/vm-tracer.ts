@@ -36,6 +36,9 @@ export class VMTracer {
   }
 
   public enableTracing() {
+    if (this._enabled) {
+      return;
+    }
     this._vm.on("beforeMessage", this._beforeMessageHandler);
     this._vm.on("step", this._stepHandler);
     this._vm.on("afterMessage", this._afterMessageHandler);
@@ -43,6 +46,9 @@ export class VMTracer {
   }
 
   public disableTracing() {
+    if (!this._enabled) {
+      return;
+    }
     this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
     this._vm.removeListener("step", this._stepHandler);
     this._vm.removeListener("afterMessage", this._afterMessageHandler);

@@ -112,7 +112,7 @@ export class EvmModule {
         );
       }
     }
-    await this._node.mineBlock(new BN(timestamp));
+    await this._node.mineBlock(false, new BN(timestamp));
     return numberToRpcQuantity(0);
   }
 
