@@ -43,6 +43,7 @@ import {
 import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
+import { Mutex } from "../vendor/await-semaphore";
 
 import { InvalidInputError, TransactionExecutionError } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
@@ -194,6 +195,8 @@ export class HardhatNode extends EventEmitter {
 
   private readonly _miningTimer: MiningTimer;
 
+  private readonly _mineMutex = new Mutex();
+
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: PStateManager,
@@ -315,39 +318,13 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async mineBlock(timestamp?: BN) {
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset(timestamp);
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      blockTimestamp
-    );
-    if (needsTimestampIncrease) {
-      blockTimestamp.iaddn(1);
-    }
+    const release = await this._mineMutex.acquire();
 
-    const previousRoot = await this._stateManager.getStateRoot();
-    let block: Block;
-    let result: RunBlockResult;
     try {
-      [block, result] = await this._mineBlock(blockTimestamp);
-    } catch (error) {
-      await this._stateManager.setStateRoot(previousRoot);
-      throw new TransactionExecutionError(error);
+      await this._mineBlockUnsafe(timestamp)
+    } finally {
+      release();
     }
-
-    await this._saveBlockAsSuccessfullyRun(block, result);
-
-    if (needsTimestampIncrease) {
-      await this.increaseTime(new BN(1));
-    }
-
-    if (offsetShouldChange) {
-      this._blockTimeOffsetSeconds = newOffset;
-    }
-
-    await this._resetNextBlockTimestamp();
   }
 
   public async runCall(
@@ -829,6 +806,42 @@ export class HardhatNode extends EventEmitter {
 
   public setBlockGasLimit(gasLimit: BN | number) {
     this._txPool.setBlockGasLimit(gasLimit);
+  }
+
+  private async _mineBlockUnsafe(timestamp?: BN) {
+    const [
+      blockTimestamp,
+      offsetShouldChange,
+      newOffset,
+    ] = this._calculateTimestampAndOffset(timestamp);
+    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
+      blockTimestamp
+    );
+    if (needsTimestampIncrease) {
+      blockTimestamp.iaddn(1);
+    }
+
+    const previousRoot = await this._stateManager.getStateRoot();
+    let block: Block;
+    let result: RunBlockResult;
+    try {
+      [block, result] = await this._mineBlock(blockTimestamp);
+    } catch (error) {
+      await this._stateManager.setStateRoot(previousRoot);
+      throw new TransactionExecutionError(error);
+    }
+
+    await this._saveBlockAsSuccessfullyRun(block, result);
+
+    if (needsTimestampIncrease) {
+      await this.increaseTime(new BN(1));
+    }
+
+    if (offsetShouldChange) {
+      this._blockTimeOffsetSeconds = newOffset;
+    }
+
+    await this._resetNextBlockTimestamp();
   }
 
   private async _mineBlock(timestamp: BN): Promise<[Block, RunBlockResult]> {

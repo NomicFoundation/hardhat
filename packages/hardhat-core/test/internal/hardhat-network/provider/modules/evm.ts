@@ -24,9 +24,9 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../helpers/providers";
+import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
 import { sleep } from "../../helpers/sleep";
 import { waitForAssert } from "../../helpers/waitForAssert";
-import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
 
 async function deployContract(
   provider: EthereumProvider,
@@ -336,6 +336,44 @@ describe("Evm module", function () {
           );
 
           assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+        });
+
+        describe("tests using sinon", () => {
+          let sinonClock: sinon.SinonFakeTimers;
+
+          beforeEach(() => {
+            sinonClock = sinon.useFakeTimers({
+              now: Date.now(),
+              toFake: ["Date", "setTimeout", "clearTimeout"],
+            });
+          });
+
+          afterEach(async function () {
+            await this.provider.send("evm_setIntervalMining", [
+              { enabled: false },
+            ]);
+            sinonClock.restore();
+          });
+
+          const getBlockNumber = async () => {
+            return quantityToNumber(
+              await this.ctx.provider.send("eth_blockNumber")
+            );
+          };
+
+          it("should handle race condition with interval mining", async function () {
+            const interval = 5000;
+            const initialBlock = await getBlockNumber();
+            await this.provider.send("evm_setIntervalMining", [
+              { enabled: true, blockTime: interval },
+            ]);
+
+            await sinonClock.tickAsync(interval);
+            await this.provider.send("evm_mine");
+
+            const currentBlock = await getBlockNumber();
+            assert.equal(currentBlock, initialBlock + 2);
+          });
         });
       });
 
