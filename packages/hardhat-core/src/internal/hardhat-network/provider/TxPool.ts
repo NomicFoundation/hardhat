@@ -65,8 +65,8 @@ export function deserializeTransaction(
 export class TxPool {
   private _state: ImmutableRecord<PoolState>;
   private _snapshotIdToState = new Map<number, ImmutableRecord<PoolState>>();
-  private _currentSnapshotId = 0;
-  private _nextSnapshotId = 1; // We start at 1 to mimic Ganache same as HardhatNode
+  private _currentSnapshotId = -1;
+  private _nextSnapshotId = 0;
   private _nextOrderId = 0;
 
   private readonly _deserializeTransaction: (
@@ -96,8 +96,10 @@ export class TxPool {
   }
 
   public snapshot(): number {
-    this._currentSnapshotId = this._nextSnapshotId++;
-    this._snapshotIdToState.set(this._currentSnapshotId, this._state);
+    if (this._snapshotIdToState.get(this._currentSnapshotId) !== this._state) {
+      this._currentSnapshotId = this._nextSnapshotId++;
+      this._snapshotIdToState.set(this._currentSnapshotId, this._state);
+    }
     return this._currentSnapshotId;
   }
 
