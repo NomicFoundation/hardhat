@@ -250,6 +250,16 @@ const plugins = [
       "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
     tags: ["Optimism", "Buidler EVM", "OVM", "Buidler plugin"],
   },
+  {
+    name: "hardhat-react",
+    author: "Symfoni",
+    authorUrl: "https://github.com/symfoni/",
+    url:
+      "https://github.com/symfoni/hardhat-plugins/tree/hardhat/packages/hardhat-react",
+    description:
+      "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
+    tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
