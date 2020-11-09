@@ -178,7 +178,7 @@ describe("HardhatNode", () => {
         assert.equal(balance.toString(), "2468");
       });
 
-      it("clears TxPool", async () => {
+      it("removes the mined transaction from the tx pool", async () => {
         const tx = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -195,6 +195,12 @@ describe("HardhatNode", () => {
 
         const pendingTransactionsAfter = await node.getPendingTransactions();
         assert.lengthOf(pendingTransactionsAfter, 0);
+      });
+
+      xit("leaves the transactions in the tx pool that did not fit in a block", async () => {
+        // TODO-Ethworks
+        //   Use 'puts as many transactions as it can in a block' as inspiration
+        //   Check using the exact hashes, not just array lengths
       });
 
       it("sets correct gasUsed values", async () => {
