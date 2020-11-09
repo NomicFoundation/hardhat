@@ -764,8 +764,7 @@ describe("Evm module", function () {
           await this.provider.send("evm_setAutomineEnabled", [true]);
         });
 
-        // TODO-Ethworks unskip this test when integrating TxPool snapshots
-        xit("Allows resending the same tx after a revert", async function () {
+        it("Allows resending the same tx after a revert", async function () {
           const [from] = await this.provider.send("eth_accounts");
 
           const snapshotId: string = await this.provider.send(
