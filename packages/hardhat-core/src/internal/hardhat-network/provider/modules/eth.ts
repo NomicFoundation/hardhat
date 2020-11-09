@@ -623,12 +623,6 @@ export class EthModule {
 
     const data = await this._node.getStorageAt(address, slot, blockNumber);
 
-    // data should always be 32 bytes, but we are imitating Ganache here.
-    // Please read the comment in `getStorageAt`.
-    if (data.length === 0) {
-      return "0x0";
-    }
-
     return bufferToRpcData(data);
   }
 
