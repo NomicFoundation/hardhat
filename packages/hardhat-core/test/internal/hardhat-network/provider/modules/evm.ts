@@ -422,8 +422,8 @@ describe("Evm module", function () {
         describe("time based tests", () => {
           beforeEach(async function () {
             if (isFork) {
-              // This is done to speed up subsequent mineEmptyBlock calls made by MiningTimer.
-              // On first mineEmptyBlock call there are many calls to JSON RPC provider which slow things down.
+              // This is done to speed up subsequent mineBlock calls made by MiningTimer.
+              // On first mineBlock call there are many calls to JSON RPC provider which slow things down.
               await this.provider.send("evm_mine");
             }
           });
