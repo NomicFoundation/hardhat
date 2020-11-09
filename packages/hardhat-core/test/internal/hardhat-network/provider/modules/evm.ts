@@ -669,10 +669,7 @@ describe("Evm module", function () {
 
           const [from] = await this.provider.send("eth_accounts");
 
-          const snapshotId: string = await this.provider.send(
-            "evm_snapshot",
-            []
-          );
+          const snapshotId: string = await this.provider.send("evm_snapshot");
 
           await this.provider.send("eth_sendTransaction", [
             {
