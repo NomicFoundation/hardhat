@@ -590,7 +590,7 @@ describe("Evm module", function () {
           assert.isFalse(reverted2);
         });
 
-        it("Deletes previous blocks", async function () {
+        it("Deletes blocks mined after snapshot", async function () {
           const snapshotId: string = await this.provider.send(
             "evm_snapshot",
             []
@@ -633,7 +633,7 @@ describe("Evm module", function () {
           assert.isNull(blockByNumber);
         });
 
-        it("Deletes previous transactions", async function () {
+        it("Deletes transactions mined after snapshot", async function () {
           const [from] = await this.provider.send("eth_accounts");
 
           const snapshotId: string = await this.provider.send(
@@ -664,8 +664,21 @@ describe("Evm module", function () {
           assert.isNull(txHashAfter);
         });
 
+        xit("Deletes pending transactions added after snapshot", async function () {
+          // TODO
+        });
+
+        xit("Re-adds the transactions that were mined after snapshot to the mempool", async function () {
+          // TODO
+          // Add txs to mempoool
+          // Make snapshot
+          // Mine a block with these txs
+          // Revert
+          // Check that the previously mined transactions are in the mempool again
+        });
+
         // TODO-Ethworks unskip this test when integrating TxPool snapshots
-        it.skip("Allows resending the same tx after a revert", async function () {
+        xit("Allows resending the same tx after a revert", async function () {
           const [from] = await this.provider.send("eth_accounts");
 
           const snapshotId: string = await this.provider.send(
