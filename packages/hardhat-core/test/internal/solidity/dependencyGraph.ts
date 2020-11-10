@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fs from "fs";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
@@ -119,10 +120,16 @@ describe("Dependency Graph", function () {
           imports: ["./loop1.sol"],
           versionPragmas: [],
         },
+        "<content-hash-loop2>",
         new Date()
       );
 
-      resolver = new Resolver(projectRoot, new Parser());
+      resolver = new Resolver(
+        projectRoot,
+        new Parser(),
+        (absolutePath: string) =>
+          fsExtra.readFile(absolutePath, { encoding: "utf8" })
+      );
       resolver.resolveImport = async (_: ResolvedFile, imported: string) => {
         switch (imported) {
           case "./WD.sol":
@@ -264,7 +271,9 @@ describe("Dependency Graph", function () {
       before("Get project root", async function () {
         localResolver = new Resolver(
           await getFixtureProjectPath(PROJECT),
-          new Parser()
+          new Parser(),
+          (absolutePath: string) =>
+            fsExtra.readFile(absolutePath, { encoding: "utf8" })
         );
       });
 

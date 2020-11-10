@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
@@ -70,7 +71,12 @@ export async function createMockData(
     return resolvedFile;
   });
 
-  const resolver = new Resolver(projectRoot, new Parser());
+  const resolver = new Resolver(
+    projectRoot,
+    new Parser(),
+    (absolutePath: string) =>
+      fsExtra.readFile(absolutePath, { encoding: "utf8" })
+  );
   resolver.resolveImport = async (from: ResolvedFile, imported: string) => {
     const importedFile = importsMap.get(imported);
     if (importedFile === undefined) {

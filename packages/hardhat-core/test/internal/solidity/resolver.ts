@@ -126,7 +126,9 @@ describe("Resolver", function () {
   });
 
   beforeEach("Init resolver", async function () {
-    resolver = new Resolver(projectPath, new Parser());
+    resolver = new Resolver(projectPath, new Parser(), (absolutePath) =>
+      fsExtra.readFile(absolutePath, { encoding: "utf8" })
+    );
   });
 
   describe("resolveSourceName", function () {

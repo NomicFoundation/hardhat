@@ -11,6 +11,7 @@ export const TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS =
   "compile:solidity:get-source-paths";
 export const TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES =
   "compile:solidity:get-source-names";
+export const TASK_COMPILE_SOLIDITY_READ_FILE = "compile:solidity:read-file";
 export const TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH =
   "compile:solidity:get-dependency-graph";
 export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS =

@@ -56,7 +56,8 @@ export class ResolvedFile implements IResolvedFile {
 export class Resolver {
   constructor(
     private readonly _projectRoot: string,
-    private readonly _parser: Parser
+    private readonly _parser: Parser,
+    private readonly _readFile: (absolutePath: string) => Promise<string>
   ) {}
 
   /**
@@ -294,9 +295,7 @@ export class Resolver {
     libraryName?: string,
     libraryVersion?: string
   ): Promise<ResolvedFile> {
-    const rawContent = await fsExtra.readFile(absolutePath, {
-      encoding: "utf8",
-    });
+    const rawContent = await this._readFile(absolutePath);
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
 
