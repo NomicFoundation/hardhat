@@ -62,6 +62,7 @@ describe("Dependency Graph", function () {
         "contracts/WD.sol",
         path.join(projectRoot, "contracts", "WD.sol"),
         { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        "<content-hash-wd>",
         new Date()
       );
 
@@ -69,6 +70,7 @@ describe("Dependency Graph", function () {
         "contracts/WD2.sol",
         path.join(projectRoot, "contracts", "WD2.sol"),
         { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        "<content-hash-wd2>",
         new Date()
       );
 
@@ -76,6 +78,7 @@ describe("Dependency Graph", function () {
         "contracts/WD3.sol",
         path.join(projectRoot, "contracts", "WD3.sol"),
         { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        "<content-hash-wd3>",
         new Date()
       );
 
@@ -87,6 +90,7 @@ describe("Dependency Graph", function () {
           imports: ["./WD.sol", "./WD2.sol"],
           versionPragmas: [],
         },
+        "<content-hash-wd4>",
         new Date()
       );
 
@@ -98,6 +102,7 @@ describe("Dependency Graph", function () {
           imports: ["./WD.sol"],
           versionPragmas: [],
         },
+        "<content-hash-depends-on-wd>",
         new Date()
       );
 
@@ -109,6 +114,7 @@ describe("Dependency Graph", function () {
           imports: ["./loop2.sol"],
           versionPragmas: [],
         },
+        "<content-hash-loop1>",
         new Date()
       );
 

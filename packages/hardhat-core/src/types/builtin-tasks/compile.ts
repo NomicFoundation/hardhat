@@ -11,6 +11,7 @@ export interface ResolvedFile {
   // IMPORTANT: Mapped to ctime, NOT mtime. mtime isn't updated when the file
   // properties (e.g. its name) are changed, only when it's content changes.
   lastModificationDate: Date;
+  contentHash: string;
   getVersionedName(): string;
 }
 

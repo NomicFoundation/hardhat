@@ -1204,6 +1204,7 @@ subtask(TASK_COMPILE_SOLIDITY)
         for (const { file, artifactsEmitted } of artifactsEmittedPerFile) {
           solidityFilesCache.addFile(file.absolutePath, {
             lastModificationDate: file.lastModificationDate.valueOf(),
+            contentHash: file.contentHash,
             sourceName: file.sourceName,
             solcConfig: compilationJob.getSolcConfig(),
             imports: file.content.imports,
@@ -1306,7 +1307,7 @@ function needsCompilation(
   for (const file of job.getResolvedFiles()) {
     const hasChanged = cache.hasFileChanged(
       file.absolutePath,
-      file.lastModificationDate,
+      file.contentHash,
       // we only check if the solcConfig is different for files that
       // emit artifacts
       job.emitsArtifacts(file) ? job.getSolcConfig() : undefined

@@ -48,6 +48,7 @@ describe("Resolved file", function () {
       sourceName,
       absolutePath,
       content,
+      "<content-hash-file-without-library>",
       lastModificationDate
     );
 
@@ -55,6 +56,7 @@ describe("Resolved file", function () {
       sourceName,
       absolutePath,
       content,
+      "<content-hash-file-with-library>",
       lastModificationDate,
       libraryName,
       libraryVersion
@@ -290,6 +292,7 @@ describe("Resolver", function () {
           imports: [],
           versionPragmas: [],
         },
+        "<content-hash-c>",
         new Date()
       );
 
@@ -301,6 +304,7 @@ describe("Resolver", function () {
           imports: [],
           versionPragmas: [],
         },
+        "<content-hash-l>",
         new Date(),
         "lib",
         "1.0.0"

@@ -60,6 +60,7 @@ export async function createMockData(
           .dependencies.map((dependency) => `./${dependency.name}.sol`),
         versionPragmas: mockFile.versionPragmas,
       },
+      "<content-hash-mock-file>",
       new Date(),
       mockFile.libraryName,
       mockFile.libraryName === undefined ? undefined : "1.2.3"

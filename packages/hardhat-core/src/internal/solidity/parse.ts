@@ -14,8 +14,12 @@ export class Parser {
 
   constructor(private _solidityFilesCache?: SolidityFilesCache) {}
 
-  public parse(fileContent: string, absolutePath: string): ParsedData {
-    const cacheResult = this._getFromCache(absolutePath);
+  public parse(
+    fileContent: string,
+    absolutePath: string,
+    contentHash: string
+  ): ParsedData {
+    const cacheResult = this._getFromCache(absolutePath, contentHash);
 
     if (cacheResult !== null) {
       return cacheResult;
@@ -55,12 +59,28 @@ export class Parser {
     return result;
   }
 
-  private _getFromCache(absolutePath: string): ParsedData | null {
-    const cacheEntry = this._solidityFilesCache?.getEntry(absolutePath);
+  /**
+   * Get parsed data from the internal cache, or from the solidity files cache.
+   *
+   * Returns null if cannot find it in either one.
+   */
+  private _getFromCache(
+    absolutePath: string,
+    contentHash: string
+  ): ParsedData | null {
+    if (this._solidityFilesCache === undefined) {
+      return this._cache.get(absolutePath) ?? null;
+    }
 
-    if (cacheEntry !== undefined) {
-      const { imports, versionPragmas } = cacheEntry;
+    const cacheEntry = this._solidityFilesCache.getEntry(absolutePath);
 
+    if (cacheEntry === undefined) {
+      return this._cache.get(absolutePath) ?? null;
+    }
+
+    const { imports, versionPragmas } = cacheEntry;
+
+    if (cacheEntry.contentHash === contentHash) {
       return { imports, versionPragmas };
     }
 

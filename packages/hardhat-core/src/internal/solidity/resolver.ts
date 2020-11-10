@@ -17,6 +17,7 @@ import {
 } from "../../utils/source-names";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
+import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
 import { Parser } from "./parse";
 
@@ -33,6 +34,7 @@ export class ResolvedFile implements IResolvedFile {
     public readonly sourceName: string,
     public readonly absolutePath: string,
     public readonly content: FileContent,
+    public readonly contentHash: string,
     public readonly lastModificationDate: Date,
     libraryName?: string,
     libraryVersion?: string
@@ -299,7 +301,11 @@ export class Resolver {
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
 
-    const parsedContent = this._parser.parse(rawContent, absolutePath);
+    const contentHash = createNonCryptographicHashBasedIdentifier(
+      Buffer.from(rawContent)
+    ).toString("hex");
+
+    const parsedContent = this._parser.parse(rawContent, absolutePath, contentHash);
 
     const content = {
       rawContent,
@@ -310,6 +316,7 @@ export class Resolver {
       sourceName,
       absolutePath,
       content,
+      contentHash,
       lastModificationDate,
       libraryName,
       libraryVersion
