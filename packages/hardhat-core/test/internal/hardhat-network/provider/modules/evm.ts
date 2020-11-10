@@ -823,8 +823,6 @@ describe("Evm module", function () {
             },
           ]);
 
-          await this.provider.send("eth_pendingTransactions");
-
           await this.provider.send("evm_mine");
 
           const currentBlock = await this.provider.send(
