@@ -1,0 +1,25 @@
+{
+  "name": "@nomiclabs/hardhat-e2e-tests",
+  "private": true,
+  "version": "0.0.1",
+  "description": "e2e tests for Hardhat",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/e2e",
+  "repository": "github:nomiclabs/hardhat",
+  "author": "Nomic Labs LLC",
+  "license": "MIT",
+  "scripts": {
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "pretest": "node prepare-tests.js",
+    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
+    "build": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/fs-extra": "^5.1.0",
+    "chai": "^4.2.0",
+    "fs-extra": "^7.0.1",
+    "shelljs": "^0.8.3"
+  }
+}
