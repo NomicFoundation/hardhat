@@ -409,6 +409,40 @@ describe("Evm module", function () {
 
           assertQuantity(currentBlock, quantityToBN(previousBlock).addn(1));
         });
+
+        it("should mine all pending transactions after re-enabling automine", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          const txHash1 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          await this.provider.send("evm_setAutomineEnabled", [true]);
+
+          const txHash2 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+
+          const currentBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.lengthOf(currentBlock.transactions, 2);
+          assert.sameDeepMembers(currentBlock.transactions, [txHash1, txHash2]);
+        });
       });
 
       describe("evm_setIntervalMining", () => {
