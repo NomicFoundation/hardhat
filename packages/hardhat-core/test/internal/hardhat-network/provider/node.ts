@@ -82,6 +82,40 @@ describe("HardhatNode", () => {
     });
   });
 
+  describe("getPendingTransactions", () => {
+    it("returns both pending and queued transactions from TxPool", async () => {
+      const tx1 = createTestTransaction({
+        nonce: 0,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 21_000,
+      });
+      const tx2 = createTestTransaction({
+        nonce: 2,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 21_000,
+      });
+      const tx3 = createTestTransaction({
+        nonce: 3,
+        from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+        to: EMPTY_ACCOUNT_ADDRESS,
+        gasLimit: 21_000,
+      });
+
+      await node.sendTransaction(tx1);
+      await node.sendTransaction(tx2);
+      await node.sendTransaction(tx3);
+
+      const nodePendingTxs = await node.getPendingTransactions();
+
+      assert.sameDeepMembers(
+        nodePendingTxs.map((tx) => tx.raw),
+        [tx1, tx2, tx3].map((tx) => tx.raw)
+      );
+    });
+  });
+
   describe("mineBlock", () => {
     async function assertTransactionsWereMined(txs: Transaction[]) {
       for (const tx of txs) {
