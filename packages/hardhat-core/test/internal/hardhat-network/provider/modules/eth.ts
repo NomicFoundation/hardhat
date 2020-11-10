@@ -3079,36 +3079,45 @@ describe("Eth module", function () {
 
         it("Should throw if the transaction fails", async function () {
           // Not enough gas
-          await assertTransactionFailure(
+          await assertInvalidInputError(
             this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: zeroAddress(),
-              gas: numberToRpcQuantity(1),
-            },
+            "eth_sendTransaction",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: zeroAddress(),
+                gas: numberToRpcQuantity(1),
+              },
+            ],
             "Transaction requires at least 21000 gas but got 1"
           );
 
           // Not enough balance
-          await assertTransactionFailure(
+          await assertInvalidInputError(
             this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: zeroAddress(),
-              gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(DEFAULT_ACCOUNTS_BALANCES[0]),
-            },
+            "eth_sendTransaction",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: zeroAddress(),
+                gas: numberToRpcQuantity(21000),
+                gasPrice: numberToRpcQuantity(DEFAULT_ACCOUNTS_BALANCES[0]),
+              },
+            ],
             "sender doesn't have enough funds to send tx"
           );
 
           // Gas is larger than block gas limit
-          await assertTransactionFailure(
+          await assertInvalidInputError(
             this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: zeroAddress(),
-              gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1),
-            },
+            "eth_sendTransaction",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: zeroAddress(),
+                gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1),
+              },
+            ],
             `Transaction gas limit is ${
               DEFAULT_BLOCK_GAS_LIMIT + 1
             } and exceeds block gas limit of ${DEFAULT_BLOCK_GAS_LIMIT}`
