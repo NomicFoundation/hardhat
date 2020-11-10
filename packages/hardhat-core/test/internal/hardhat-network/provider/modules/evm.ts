@@ -6,6 +6,7 @@ import {
   bufferToRpcData,
   numberToRpcQuantity,
   RpcBlockOutput,
+  RpcTransactionOutput,
 } from "../../../../../src/internal/hardhat-network/provider/output";
 import { getCurrentTimestamp } from "../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { EthereumProvider } from "../../../../../src/types";
@@ -26,7 +27,6 @@ import {
 } from "../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
 import { sleep } from "../../helpers/sleep";
-import { sendTransactionFromTxParams } from "../../helpers/transactions";
 import { waitForAssert } from "../../helpers/waitForAssert";
 
 async function deployContract(
@@ -228,14 +228,14 @@ describe("Evm module", function () {
             .then(function () {
               assert.fail("should have failed setting next block timestamp");
             })
-            .catch(function (e) {});
+            .catch(function () {});
 
           this.provider
             .send("evm_setNextBlockTimestamp", [timestamp])
             .then(function () {
               assert.fail("should have failed setting next block timestamp");
             })
-            .catch(function (e) {});
+            .catch(function () {});
         });
 
         it("should advance the time offset accordingly to the timestamp", async function () {
@@ -788,6 +788,67 @@ describe("Evm module", function () {
           assert.lengthOf(pendingTransactionsAfter, 2);
         });
 
+        it("TxPool state reverts back correctly to the snapshot state", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          const txHash1 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              nonce: numberToRpcQuantity(0),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const txHash2 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              nonce: numberToRpcQuantity(3),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const snapshotId: string = await this.provider.send("evm_snapshot");
+
+          const txHash3 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              nonce: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          await this.provider.send("eth_pendingTransactions");
+
+          await this.provider.send("evm_mine");
+
+          const currentBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.lengthOf(currentBlock.transactions, 2);
+          assert.sameDeepMembers(currentBlock.transactions, [txHash1, txHash3]);
+
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
+
+          const pendingTransactions: RpcTransactionOutput[] = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.sameDeepMembers(
+            pendingTransactions.map((tx) => tx.hash),
+            [txHash1, txHash2]
+          );
+        });
+
         it("Allows resending the same tx after a revert", async function () {
           const [from] = await this.provider.send("eth_accounts");
 
@@ -891,11 +952,6 @@ describe("Evm module", function () {
           );
 
           await this.provider.send("evm_mine");
-
-          const snapshotId3: string = await this.provider.send(
-            "evm_snapshot",
-            []
-          );
 
           await this.provider.send("evm_mine");
 
