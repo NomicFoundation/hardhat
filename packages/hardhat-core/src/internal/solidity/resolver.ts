@@ -305,7 +305,11 @@ export class Resolver {
       Buffer.from(rawContent)
     ).toString("hex");
 
-    const parsedContent = this._parser.parse(rawContent, absolutePath, contentHash);
+    const parsedContent = this._parser.parse(
+      rawContent,
+      absolutePath,
+      contentHash
+    );
 
     const content = {
       rawContent,
