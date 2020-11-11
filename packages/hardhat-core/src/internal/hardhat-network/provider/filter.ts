@@ -48,13 +48,13 @@ export function bloomFilter(
   }
 
   for (const sub of normalizedTopics) {
-    if (sub == null || sub.length === 0) {
+    if (sub === null || sub.length === 0) {
       continue;
     }
 
     let included = false;
     for (const topic of sub) {
-      if (topic != null && bloom.check(topic)) {
+      if (topic !== null && bloom.check(topic)) {
         included = true;
         break;
       }
@@ -122,7 +122,7 @@ export function topicMatched(
     }
 
     const sub = normalizedTopics[i];
-    if (sub == null || sub.length === 0) {
+    if (sub === null || sub.length === 0) {
       continue;
     }
 
