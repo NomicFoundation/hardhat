@@ -5,14 +5,14 @@ import shell from "shelljs";
 
 import { useFixture } from "./helpers";
 
+const hardhatBinary = path.join("node_modules", ".bin", "hardhat");
+
 describe("e2e tests", function () {
   describe("basic-proejct", function () {
     useFixture("basic-project");
 
     it("should compile", function () {
-      const { code, stdout } = shell.exec(
-        "./node_modules/.bin/hardhat compile"
-      );
+      const { code, stdout } = shell.exec(`${hardhatBinary} compile`);
 
       assert.equal(code, 0);
 
