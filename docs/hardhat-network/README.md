@@ -124,7 +124,7 @@ Hardhat Network allows you to print logging messages and contract variables call
 
 The Hardhat Network is empty by default, except for some accounts with an initial balance. But sometimes it's more useful to have a local network that simulates the state of the mainnet. This is what forking is for.
 
-To fork from the mainnet you need the URL of a node to connect to. For example, using Infura, you can start a local node that forks the mainnet with this command:
+To fork from the mainnet you need the URL of a node to connect to. For example, using Alchemy, you can start a local node that forks the mainnet with this command:
 
 ```
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>

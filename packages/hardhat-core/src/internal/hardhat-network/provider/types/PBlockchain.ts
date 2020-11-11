@@ -35,6 +35,7 @@ export function toBlockchain(pb: PBlockchain): Blockchain {
       // tslint:disable-next-line only-hardhat-error
       throw new Error("Block not found");
     }
+    return block;
   }
 
   function delBlock(blockHash: Buffer, cb: Callback) {

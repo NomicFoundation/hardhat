@@ -29,6 +29,7 @@ import {
 } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import {
+  EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
 } from "../../helpers/contracts";
@@ -370,6 +371,43 @@ describe("Eth module", function () {
               numberToRpcQuantity(futureBlock),
             ],
             `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+          );
+        });
+
+        it("should work with blockhashes calls", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_BLOCKHASH_CONTRACT.bytecode.object}`
+          );
+
+          const resultBlock0 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test0,
+            },
+          ]);
+
+          assert.lengthOf(resultBlock0, 66);
+
+          const resultBlock1 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1,
+            },
+          ]);
+
+          assert.lengthOf(resultBlock1, 66);
+
+          const resultBlock1m = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1m,
+            },
+          ]);
+
+          assert.equal(
+            resultBlock1m,
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
         });
       });
@@ -1722,7 +1760,7 @@ describe("Eth module", function () {
       describe("eth_getStorageAt", async function () {
         describe("Imitating Ganache", function () {
           describe("When a slot has not been written into", function () {
-            it("Should return `0x0`, despite it not making any sense at all", async function () {
+            it("Should return `0x0000000000000000000000000000000000000000000000000000000000000000`", async function () {
               const exampleContract = await deployContract(
                 this.provider,
                 `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1733,7 +1771,7 @@ describe("Eth module", function () {
                   exampleContract,
                   numberToRpcQuantity(3),
                 ]),
-                "0x0"
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
               );
 
               assert.strictEqual(
@@ -1741,7 +1779,7 @@ describe("Eth module", function () {
                   exampleContract,
                   numberToRpcQuantity(4),
                 ]),
-                "0x0"
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
               );
 
               assert.strictEqual(
@@ -1749,7 +1787,7 @@ describe("Eth module", function () {
                   DEFAULT_ACCOUNTS_ADDRESSES[0],
                   numberToRpcQuantity(0),
                 ]),
-                "0x0"
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
               );
             });
           });
@@ -1769,7 +1807,7 @@ describe("Eth module", function () {
                     numberToRpcQuantity(2),
                     numberToRpcQuantity(firstBlock),
                   ]),
-                  "0x0"
+                  "0x0000000000000000000000000000000000000000000000000000000000000000"
                 );
 
                 assert.strictEqual(
@@ -1810,7 +1848,7 @@ describe("Eth module", function () {
                     numberToRpcQuantity(0),
                     numberToRpcQuantity(firstBlock + 1),
                   ]),
-                  "0x0"
+                  "0x0000000000000000000000000000000000000000000000000000000000000000"
                 );
 
                 assert.strictEqual(
@@ -1818,7 +1856,7 @@ describe("Eth module", function () {
                     exampleContract,
                     numberToRpcQuantity(0),
                   ]),
-                  "0x7b"
+                  "0x000000000000000000000000000000000000000000000000000000000000007b"
                 );
 
                 newState =
@@ -1838,7 +1876,7 @@ describe("Eth module", function () {
                     numberToRpcQuantity(0),
                     numberToRpcQuantity(firstBlock + 2),
                   ]),
-                  "0x7b"
+                  "0x000000000000000000000000000000000000000000000000000000000000007b"
                 );
 
                 assert.strictEqual(
@@ -1846,7 +1884,7 @@ describe("Eth module", function () {
                     exampleContract,
                     numberToRpcQuantity(0),
                   ]),
-                  "0x7c"
+                  "0x000000000000000000000000000000000000000000000000000000000000007c"
                 );
               });
             });

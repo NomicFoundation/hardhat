@@ -121,7 +121,7 @@ You don't need a `tsconfig.json` file with Hardhat. We recommend you delete it.
 If you prefer to keep it, you should base it on the template presented [here](./typescript.md#customizing-typescript-with-a-tsconfig-json-file). Just make
 sure you removed all the `type-extension.d.ts` files, and keep your config file in your `files` field.
 
-Finally, if your config has the `BuidlerConfig` type, you should change it to `HardhatUserConfig`. 
+Finally, if your config has the `BuidlerConfig` type, you should change it to `HardhatUserConfig`.
 
 ## Updating your `console.sol` imports
 
@@ -144,7 +144,7 @@ import "hardhat/console.sol";
 
 Hardhat supports multiple contracts with the same name.
 
-If you have contracts which share their name, you can't import their artifacts using just the name. 
+If you have contracts which share their name, you can't import their artifacts using just the name.
 
 For example, if you have a contract named `Ownable`, and one of your dependencies has a contract with the same name, you won't be able to do
 `artifacts.require("Ownable")` nor `ethers.getContractFactory("Ownable")`. You need to use the contract's Fully
@@ -190,6 +190,12 @@ The TypeChain plugin has been migrated, it's now called [`hardhat-typechain`](ht
 
 Join the `#hardhat-typechain` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
 
-### solidity-coverage and buidler-gas-reporter
+### buidler-gas-reporter
 
-These plugins are being ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcements when they are released.
+This plugin has been migrated, it's now called [`hardhat-gas-reporter`](https://github.com/cgewecke/hardhat-gas-reporter/).
+
+Join the `#hardhat-gas-reporter` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
+
+### solidity-coverage
+
+This plugin is being ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcement when it's released.

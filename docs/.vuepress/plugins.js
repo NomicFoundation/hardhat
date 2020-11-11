@@ -166,6 +166,15 @@ const plugins = [
     tags: ["Logging", "Console", "Deployment"],
   },
   {
+    name: "hardhat-watcher",
+    author: "Xander Deseyn",
+    authorUrl: "https://github.com/N1ghtly",
+    url: "https://github.com/N1ghtly/hardhat-watcher/tree/main",
+    description:
+      "Automatically run Hardhat actions on file changes.",
+    tags: ["Tasks", "Testing"],
+  },
+  {
     name: "solidity-coverage",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
@@ -177,13 +186,13 @@ const plugins = [
     tags: ["Testing", "Coverage", "Buidler plugin"],
   },
   {
-    name: "buidler-gas-reporter",
+    name: "hardhat-gas-reporter",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
-    url: "https://github.com/cgewecke/buidler-gas-reporter/tree/master",
+    url: "https://github.com/cgewecke/hardhat-gas-reporter/tree/master",
     description:
       "Gas usage per unit test. Average gas usage per method. A mocha reporter.",
-    tags: ["Testing", "Gas", "Buidler plugin"],
+    tags: ["Testing", "Gas", "Hardhat plugin"],
   },
   {
     name: "@aragon/buidler-aragon",
@@ -240,6 +249,16 @@ const plugins = [
     description:
       "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
     tags: ["Optimism", "Buidler EVM", "OVM", "Buidler plugin"],
+  },
+  {
+    name: "hardhat-react",
+    author: "Symfoni",
+    authorUrl: "https://github.com/symfoni/",
+    url:
+      "https://github.com/symfoni/hardhat-plugins/tree/hardhat/packages/hardhat-react",
+    description:
+      "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
+    tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
   },
 ];
 
