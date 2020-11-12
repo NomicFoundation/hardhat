@@ -11,4 +11,6 @@ export async function putGenesisAccounts(
     const { address, account } = makeAccount(ga);
     await stateManager.putAccount(address, account);
   }
+
+  stateManager.updateInitialStateRoot();
 }

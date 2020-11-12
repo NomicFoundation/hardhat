@@ -36,7 +36,8 @@ const notSupportedError = (method: string) =>
 
 export class ForkStateManager implements PStateManager {
   private _state: State = ImmutableMap();
-  private _stateRoot: string = randomHash();
+  private _initialStateRoot: string = randomHash();
+  private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
@@ -48,6 +49,15 @@ export class ForkStateManager implements PStateManager {
     private readonly _forkBlockNumber: BN
   ) {
     this._state = ImmutableMap();
+  }
+
+  /**
+   * The forked block needs special handling because the genesis accounts are added to it.
+   * This is meant to be called when the initial state is final, so that _initialStateRoot
+   * points to this starting fork state.
+   */
+  public updateInitialStateRoot() {
+    this._stateRootToState.set(this._initialStateRoot, this._state);
   }
 
   public copy(): ForkStateManager {
@@ -318,6 +328,10 @@ export class ForkStateManager implements PStateManager {
   public setBlockContext(stateRoot: Buffer, blockNumber: BN) {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("setBlockContext");
+    }
+    if (blockNumber.eq(this._forkBlockNumber)) {
+      this._setStateRoot(toBuffer(this._initialStateRoot));
+      return;
     }
     if (blockNumber.gt(this._forkBlockNumber)) {
       this._setStateRoot(stateRoot);

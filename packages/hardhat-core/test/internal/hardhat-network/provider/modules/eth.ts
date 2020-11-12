@@ -697,6 +697,25 @@ describe("Eth module", function () {
             `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
+
+        it("Should return the initial balance for the genesis accounts in the previous block after a transaction", async function () {
+          const blockNumber = await this.provider.send("eth_blockNumber");
+          const account = DEFAULT_ACCOUNTS_ADDRESSES[0];
+
+          const initialBalanceBeforeTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+
+          await sendTxToZeroAddress(this.provider, account);
+
+          const initialBalanceAfterTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
+        });
       });
 
       describe("eth_getBlockByHash", async function () {
