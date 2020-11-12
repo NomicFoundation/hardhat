@@ -2,16 +2,13 @@ import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
 import { assert } from "chai";
 import Account from "ethereumjs-account";
 import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
-import flatten from "lodash/flatten";
 
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import {
   randomAddress,
   randomAddressBuffer,
 } from "../../../../src/internal/hardhat-network/provider/fork/random";
-import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
