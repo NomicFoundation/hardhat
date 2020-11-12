@@ -618,15 +618,6 @@ describe("Evm module", function () {
       });
 
       describe("evm_revert", async function () {
-        let sinonClock: sinon.SinonFakeTimers | undefined;
-
-        afterEach(function () {
-          if (sinonClock !== undefined) {
-            sinonClock.restore();
-            sinonClock = undefined;
-          }
-        });
-
         it("Returns false for non-existing ids", async function () {
           const reverted1: boolean = await this.provider.send("evm_revert", [
             "0x1",
@@ -991,42 +982,6 @@ describe("Evm module", function () {
           await assertLatestBlockNumber(this.provider, blockNumber + 4);
         });
 
-        it("Resets the date to the right time", async function () {
-          const mineEmptyBlock = async () => {
-            await this.provider.send("evm_mine");
-            return this.provider.send("eth_getBlockByNumber", [
-              "latest",
-              false,
-            ]);
-          };
-
-          sinonClock = sinon.useFakeTimers({
-            now: Date.now(),
-            toFake: ["Date"],
-          });
-
-          await this.provider.send("evm_increaseTime", [100]);
-          const snapshotBlock = await mineEmptyBlock();
-          const snapshotId = await this.provider.send("evm_snapshot");
-
-          assert.equal(
-            quantityToNumber(snapshotBlock.timestamp),
-            getCurrentTimestamp() + 100
-          );
-
-          sinonClock.tick(20 * 1000);
-
-          await this.provider.send("evm_revert", [snapshotId]);
-          const afterRevertBlock = await mineEmptyBlock();
-
-          // Check that time was correctly reverted to the snapshot time and that the new
-          // block's timestamp has been incremented to avoid timestamp collision
-          assert.equal(
-            quantityToNumber(afterRevertBlock.timestamp),
-            quantityToNumber(snapshotBlock.timestamp) + 1
-          );
-        });
-
         it("Restores the previous state", async function () {
           // This is a very coarse test, as we know that the entire state is
           // managed by the vm, and is restored as a whole
@@ -1069,6 +1024,76 @@ describe("Evm module", function () {
           );
 
           assert.equal(balanceAfterRevert, balanceBeforeTx);
+        });
+
+        describe("tests using sinon", () => {
+          let sinonClock: sinon.SinonFakeTimers;
+
+          beforeEach(() => {
+            sinonClock = sinon.useFakeTimers({
+              now: Date.now(),
+              toFake: ["Date", "setTimeout", "clearTimeout"],
+            });
+          });
+
+          afterEach(async function () {
+            sinonClock.restore();
+          });
+
+          it("Resets the date to the right time", async function () {
+            const mineEmptyBlock = async () => {
+              await this.provider.send("evm_mine");
+              return this.provider.send("eth_getBlockByNumber", [
+                "latest",
+                false,
+              ]);
+            };
+
+            await this.provider.send("evm_increaseTime", [100]);
+            const snapshotBlock = await mineEmptyBlock();
+            const snapshotId = await this.provider.send("evm_snapshot");
+
+            assert.equal(
+              quantityToNumber(snapshotBlock.timestamp),
+              getCurrentTimestamp() + 100
+            );
+
+            sinonClock.tick(20 * 1000);
+
+            await this.provider.send("evm_revert", [snapshotId]);
+            const afterRevertBlock = await mineEmptyBlock();
+
+            // Check that time was correctly reverted to the snapshot time and that the new
+            // block's timestamp has been incremented to avoid timestamp collision
+            assert.equal(
+              quantityToNumber(afterRevertBlock.timestamp),
+              quantityToNumber(snapshotBlock.timestamp) + 1
+            );
+          });
+
+          describe("when interval mining is enabled", () => {
+            afterEach(async function () {
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: false },
+              ]);
+            });
+
+            xit("should handle race condition", async function () {
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              const snapshotId = await this.provider.send("evm_snapshot");
+
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: true, blockTime: interval },
+              ]);
+
+              await sinonClock.tickAsync(interval);
+              await this.provider.send("evm_revert", [snapshotId]);
+
+              const currentBlock = await getBlockNumber();
+              assert.equal(currentBlock, initialBlock);
+            });
+          });
         });
       });
     });
