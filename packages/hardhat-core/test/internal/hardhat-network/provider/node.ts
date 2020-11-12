@@ -193,10 +193,45 @@ describe("HardhatNode", () => {
         assert.lengthOf(pendingTransactionsAfter, 0);
       });
 
-      xit("leaves the transactions in the tx pool that did not fit in a block", async () => {
-        // TODO-Ethworks
-        //   Use 'puts as many transactions as it can in a block' as inspiration
-        //   Check using the exact hashes, not just array lengths
+      it("leaves the transactions in the tx pool that did not fit in a block", async () => {
+        node.setBlockGasLimit(42_000);
+        const tx1 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 40_000, // actual gas used is 21_000
+        });
+        const expensiveTx2 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 40_000,
+          data: Buffer.alloc(1024, 1), // actual gas used is 37_384
+        });
+        const tx3 = createTestTransaction({
+          nonce: 1,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 40_000, // actual gas used is 21_000
+        });
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(expensiveTx2);
+        await node.sendTransaction(tx3);
+
+        const pendingTransactionsBefore = await node.getPendingTransactions();
+        assert.sameDeepMembers(
+          pendingTransactionsBefore.map((tx) => tx.raw),
+          [tx1, expensiveTx2, tx3].map((tx) => tx.raw)
+        );
+
+        await node.mineBlock();
+        await assertTransactionsWereMined([tx1, tx3]);
+
+        const pendingTransactionsAfter = await node.getPendingTransactions();
+        assert.sameDeepMembers(
+          pendingTransactionsAfter.map((tx) => tx.raw),
+          [expensiveTx2.raw]
+        );
       });
 
       it("sets correct gasUsed values", async () => {
