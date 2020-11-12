@@ -828,20 +828,16 @@ describe("Evm module", function () {
           const txHash1 = await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: "0x1111111111111111111111111111111111111111",
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               nonce: numberToRpcQuantity(0),
-              gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
             },
           ]);
 
           const txHash2 = await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: "0x1111111111111111111111111111111111111111",
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               nonce: numberToRpcQuantity(3),
-              gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
             },
           ]);
 
@@ -850,10 +846,8 @@ describe("Evm module", function () {
           const txHash3 = await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: "0x1111111111111111111111111111111111111111",
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               nonce: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
             },
           ]);
 

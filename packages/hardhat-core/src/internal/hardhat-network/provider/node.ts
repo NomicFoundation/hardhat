@@ -80,8 +80,8 @@ import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
-import { minBuffer } from "./utils/minBuffer";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
+import { setTemporaryGasLimit } from "./utils/setTemporaryGasLimit";
 import { txMapToArray } from "./utils/txMapToArray";
 
 const log = debug("hardhat:core:hardhat-network:node");
@@ -975,9 +975,8 @@ export class HardhatNode extends EventEmitter {
     block: Block,
     gasLeft: BN
   ): Promise<RunTxResult | null> {
-    const originalGasLimit = tx.gasLimit;
-    tx.gasLimit = minBuffer(originalGasLimit, gasLeft);
-
+    const executionGasLimit = BN.min(new BN(tx.gasLimit), gasLeft);
+    const resetGasLimit = setTemporaryGasLimit(tx, executionGasLimit);
     try {
       return await this._vm.runTx({ tx, block });
     } catch (e) {
@@ -985,7 +984,7 @@ export class HardhatNode extends EventEmitter {
       // TODO-Ethworks consider logging the error
       return null;
     } finally {
-      tx.gasLimit = originalGasLimit;
+      resetGasLimit();
     }
   }
 
