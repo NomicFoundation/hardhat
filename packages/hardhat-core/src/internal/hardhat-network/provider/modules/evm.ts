@@ -75,7 +75,7 @@ export class EvmModule {
           ` ${new BN(latestBlock.header.timestamp).toNumber()}`
       );
     }
-    await this._node.setNextBlockTimestamp(new BN(timestamp));
+    this._node.setNextBlockTimestamp(new BN(timestamp));
     return timestamp.toString();
   }
 
@@ -86,7 +86,7 @@ export class EvmModule {
   }
 
   private async _increaseTimeAction(increment: number): Promise<string> {
-    await this._node.increaseTime(new BN(increment));
+    this._node.increaseTime(new BN(increment));
     const totalIncrement = this._node.getTimeIncrement();
     // This RPC call is an exception: it returns a number in decimal
     return totalIncrement.toString();

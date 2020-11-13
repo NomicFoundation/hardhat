@@ -416,7 +416,7 @@ describe("HardhatNode", () => {
       it("mines a block with a preset timestamp", async () => {
         const now = getCurrentTimestamp();
         const timestamp = new BN(now).addn(30);
-        await node.setNextBlockTimestamp(timestamp);
+        node.setNextBlockTimestamp(timestamp);
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
@@ -427,7 +427,7 @@ describe("HardhatNode", () => {
       it("mines the next block normally after a block with preset timestamp", async () => {
         const now = getCurrentTimestamp();
         const timestamp = new BN(now).addn(30);
-        await node.setNextBlockTimestamp(timestamp);
+        node.setNextBlockTimestamp(timestamp);
         await node.mineBlock();
 
         clock.tick(3_000);
@@ -441,7 +441,7 @@ describe("HardhatNode", () => {
       it("mines a block with the timestamp passed as a parameter irrespective of the preset timestamp", async () => {
         const now = getCurrentTimestamp();
         const presetTimestamp = new BN(now).addn(30);
-        await node.setNextBlockTimestamp(presetTimestamp);
+        node.setNextBlockTimestamp(presetTimestamp);
         const timestamp = new BN(now).addn(60);
         await node.mineBlock(false, timestamp);
 
@@ -452,7 +452,7 @@ describe("HardhatNode", () => {
 
       it("mines a block with correct timestamp after time increase", async () => {
         const now = getCurrentTimestamp();
-        await node.increaseTime(new BN(30));
+        node.increaseTime(new BN(30));
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
@@ -465,8 +465,8 @@ describe("HardhatNode", () => {
           it("mines a block with the preset timestamp", async () => {
             const now = getCurrentTimestamp();
             const timestamp = new BN(now).addn(offset);
-            await node.increaseTime(new BN(30));
-            await node.setNextBlockTimestamp(timestamp);
+            node.increaseTime(new BN(30));
+            node.setNextBlockTimestamp(timestamp);
             await node.mineBlock();
 
             const block = await node.getLatestBlock();
@@ -477,8 +477,8 @@ describe("HardhatNode", () => {
           it("mining a block with a preset timestamp changes the time offset", async () => {
             const now = getCurrentTimestamp();
             const timestamp = new BN(now).addn(offset);
-            await node.increaseTime(new BN(30));
-            await node.setNextBlockTimestamp(timestamp);
+            node.increaseTime(new BN(30));
+            node.setNextBlockTimestamp(timestamp);
             await node.mineBlock();
 
             clock.tick(3_000);
