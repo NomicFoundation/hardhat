@@ -11,6 +11,8 @@ import { PROVIDERS } from "../../helpers/providers";
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     describe(`${name} provider`, function () {
+      const safeBlockInThePast = 11_200_000; // this should resolve CI errors probably caused by using a block too far in the past
+
       setCWD();
       useProvider();
 
@@ -107,7 +109,12 @@ describe("Hardhat module", function () {
 
         it("returns true", async function () {
           const result = await this.provider.send("hardhat_reset", [
-            { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
+            {
+              forking: {
+                jsonRpcUrl: ALCHEMY_URL,
+                blockNumber: safeBlockInThePast,
+              },
+            },
           ]);
           assert.isTrue(result);
         });
@@ -127,7 +134,12 @@ describe("Hardhat module", function () {
         function testForkedProviderBehaviour() {
           it("can reset the forked provider to a given forkBlockNumber", async function () {
             await this.provider.send("hardhat_reset", [
-              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
+              {
+                forking: {
+                  jsonRpcUrl: ALCHEMY_URL,
+                  blockNumber: safeBlockInThePast,
+                },
+              },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
           });
@@ -135,7 +147,12 @@ describe("Hardhat module", function () {
           it("can reset the forked provider to the latest block number", async function () {
             const initialBlock = await getLatestBlockNumber();
             await this.provider.send("hardhat_reset", [
-              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
+              {
+                forking: {
+                  jsonRpcUrl: ALCHEMY_URL,
+                  blockNumber: safeBlockInThePast,
+                },
+              },
             ]);
             await this.provider.send("hardhat_reset", [
               { forking: { jsonRpcUrl: ALCHEMY_URL } },
@@ -165,14 +182,24 @@ describe("Hardhat module", function () {
 
           it("can reset the provider with a fork config", async function () {
             await this.provider.send("hardhat_reset", [
-              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
+              {
+                forking: {
+                  jsonRpcUrl: ALCHEMY_URL,
+                  blockNumber: safeBlockInThePast,
+                },
+              },
             ]);
             assert.equal(await getLatestBlockNumber(), 123);
           });
 
           it("can reset the provider with fork config back to normal config", async function () {
             await this.provider.send("hardhat_reset", [
-              { forking: { jsonRpcUrl: ALCHEMY_URL, blockNumber: 123 } },
+              {
+                forking: {
+                  jsonRpcUrl: ALCHEMY_URL,
+                  blockNumber: safeBlockInThePast,
+                },
+              },
             ]);
             await this.provider.send("hardhat_reset", []);
             assert.equal(await getLatestBlockNumber(), 0);
