@@ -57,6 +57,29 @@ export const PROVIDERS = [
   },
 ];
 
+export const INTERVAL_MINING_PROVIDERS = [
+  {
+    name: "Hardhat Network",
+    isFork: false,
+    useProvider: () => {
+      useProvider(false, undefined, {
+        enabled: true,
+        blockTime: DEFAULT_INTERVAL_MINING_CONFIG.blockTime,
+      });
+    },
+  },
+  {
+    name: "JSON-RPC",
+    isFork: false,
+    useProvider: () => {
+      useProvider(true, undefined, {
+        enabled: true,
+        blockTime: DEFAULT_INTERVAL_MINING_CONFIG.blockTime,
+      });
+    },
+  },
+];
+
 export const FORKED_PROVIDERS: Array<{
   rpcProvider: string;
   jsonRpcUrl: string;
@@ -73,6 +96,21 @@ if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
     chainId: REMOTE_CHAIN_ID,
     useProvider: () => {
       useProvider(false, { jsonRpcUrl: url });
+    },
+  });
+
+  INTERVAL_MINING_PROVIDERS.push({
+    name: "Alchemy Forked",
+    isFork: true,
+    useProvider: () => {
+      useProvider(
+        false,
+        { jsonRpcUrl: url },
+        {
+          enabled: true,
+          blockTime: DEFAULT_INTERVAL_MINING_CONFIG.blockTime,
+        }
+      );
     },
   });
 

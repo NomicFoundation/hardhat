@@ -8,13 +8,17 @@ import {
   rpcQuantity,
   validateParams,
 } from "../input";
+import { MiningTimer } from "../MiningTimer";
 import { HardhatNode } from "../node";
 import { numberToRpcQuantity } from "../output";
 
 // tslint:disable only-hardhat-error
 
 export class EvmModule {
-  constructor(private readonly _node: HardhatNode) {}
+  constructor(
+    private readonly _node: HardhatNode,
+    private readonly _miningTimer: MiningTimer
+  ) {}
 
   public async processRequest(
     method: string,
@@ -155,10 +159,16 @@ export class EvmModule {
   }
 
   private async _setIntervalMiningAction(
-    miningConfig: RpcIntervalMining
+    config: RpcIntervalMining
   ): Promise<true> {
-    this._node.runIntervalMining(miningConfig.enabled, miningConfig.blockTime);
-
+    if (config.blockTime !== undefined) {
+      this._miningTimer.setBlockTime(config.blockTime);
+    }
+    if (config.enabled) {
+      this._miningTimer.start();
+    } else {
+      this._miningTimer.stop();
+    }
     return true;
   }
 }

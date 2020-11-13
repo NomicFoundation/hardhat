@@ -26,7 +26,6 @@ describe("HardhatNode", () => {
   const config: NodeConfig = {
     type: "local",
     automine: false,
-    intervalMining: DEFAULT_INTERVAL_MINING_CONFIG,
     hardfork: DEFAULT_HARDFORK,
     networkName: DEFAULT_NETWORK_NAME,
     chainId: DEFAULT_CHAIN_ID,
@@ -43,43 +42,6 @@ describe("HardhatNode", () => {
     [common, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) =>
       new FakeTransaction({ gasPrice, ...txData }, { common });
-  });
-
-  describe("constructor", () => {
-    let clock: sinon.SinonFakeTimers;
-
-    beforeEach(() => {
-      clock = sinon.useFakeTimers({
-        now: Date.now(),
-        toFake: ["Date", "setTimeout", "clearTimeout"],
-      });
-    });
-
-    afterEach(() => {
-      node.runIntervalMining(false);
-      clock.restore();
-    });
-
-    it("automine starts after Node's creation", async () => {
-      const interval = 200;
-      const newConfig = {
-        ...config,
-        intervalMining: {
-          enabled: true,
-          blockTime: interval,
-        },
-      };
-
-      [, node] = await HardhatNode.create(newConfig);
-      const initialBlock = await node.getLatestBlockNumber();
-
-      await clock.tickAsync(1.5 * interval);
-
-      await waitForAssert(10, async () => {
-        const currentBlock = await node.getLatestBlockNumber();
-        assert.equal(currentBlock.toString(), initialBlock.addn(1).toString());
-      });
-    });
   });
 
   describe("getPendingTransactions", () => {

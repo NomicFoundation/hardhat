@@ -1078,7 +1078,7 @@ describe("Evm module", function () {
               ]);
             });
 
-            xit("should handle race condition", async function () {
+            it("should handle race condition", async function () {
               const interval = 5000;
               const initialBlock = await getBlockNumber();
               const snapshotId = await this.provider.send("evm_snapshot");

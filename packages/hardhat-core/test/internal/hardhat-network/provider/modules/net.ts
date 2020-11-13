@@ -6,7 +6,7 @@ import { PROVIDERS } from "../../helpers/providers";
 
 describe("Net module", function () {
   PROVIDERS.forEach(({ name, useProvider, networkId }) => {
-    describe(`Provider ${name}`, function () {
+    describe(`${name} provider`, function () {
       setCWD();
       useProvider();
 

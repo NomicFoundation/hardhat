@@ -43,19 +43,16 @@ import {
 import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
-import { Mutex } from "../vendor/await-semaphore";
 
 import { InvalidInputError, TransactionExecutionError } from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
 import { HardhatBlockchain } from "./HardhatBlockchain";
-import { MiningTimer } from "./MiningTimer";
 import {
   CallParams,
   FilterParams,
   GenesisAccount,
-  IntervalMiningConfig,
   NodeConfig,
   RunTransactionResult,
   Snapshot,
@@ -102,7 +99,6 @@ export class HardhatNode extends EventEmitter {
   ): Promise<[Common, HardhatNode]> {
     const {
       automine,
-      intervalMining,
       genesisAccounts,
       blockGasLimit,
       allowUnlimitedContractSize,
@@ -168,7 +164,6 @@ export class HardhatNode extends EventEmitter {
       txPool,
       automine,
       initialBlockTimeOffset,
-      intervalMining,
       genesisAccounts,
       tracingConfig
     );
@@ -193,10 +188,6 @@ export class HardhatNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  private readonly _miningTimer: MiningTimer;
-
-  private readonly _mineMutex = new Mutex();
-
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: PStateManager,
@@ -204,20 +195,10 @@ export class HardhatNode extends EventEmitter {
     private readonly _txPool: TxPool,
     private _automine: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),
-    intervalMining: IntervalMiningConfig,
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig
   ) {
     super();
-
-    this._miningTimer = new MiningTimer(
-      intervalMining.blockTime,
-      this.mineBlock.bind(this)
-    );
-
-    if (intervalMining.enabled) {
-      this._miningTimer.start();
-    }
 
     this._initLocalAccounts(genesisAccounts);
 
@@ -267,21 +248,6 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  public runIntervalMining(enabled: boolean, blockTime?: number) {
-    const setBlockTime = (newBlockTime: number | undefined) => {
-      if (newBlockTime !== undefined) {
-        this._miningTimer.setBlockTime(newBlockTime);
-      }
-    };
-
-    setBlockTime(blockTime);
-    if (enabled) {
-      this._miningTimer.start();
-    } else {
-      this._miningTimer.stop();
-    }
-  }
-
   public async getSignedTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
@@ -327,20 +293,14 @@ export class HardhatNode extends EventEmitter {
     shouldReturnTraces = false,
     timestamp?: BN
   ): Promise<RunTransactionResult | void> {
-    const release = await this._mineMutex.acquire();
-
-    try {
-      const [block, result] = await this._mineBlockUnsafe(timestamp);
-      if (shouldReturnTraces) {
-        const traces = await this._gatherTraces(result);
-        return {
-          block,
-          blockResult: result,
-          ...traces,
-        };
-      }
-    } finally {
-      release();
+    const [block, result] = await this._mineBlockUnsafe(timestamp);
+    if (shouldReturnTraces) {
+      const traces = await this._gatherTraces(result);
+      return {
+        block,
+        blockResult: result,
+        ...traces,
+      };
     }
   }
 

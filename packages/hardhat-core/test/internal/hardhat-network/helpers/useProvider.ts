@@ -28,6 +28,7 @@ declare module "mocha" {
 export function useProvider(
   useJsonRpc = DEFAULT_USE_JSON_RPC,
   forkConfig?: ForkConfig,
+  intervalMining = DEFAULT_INTERVAL_MINING_CONFIG,
   hardfork = DEFAULT_HARDFORK,
   networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
@@ -35,8 +36,7 @@ export function useProvider(
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  automine = DEFAULT_AUTOMINE,
-  intervalMining = DEFAULT_INTERVAL_MINING_CONFIG
+  automine = DEFAULT_AUTOMINE
 ) {
   beforeEach("Initialize provider", async function () {
     this.hardhatNetworkProvider = new HardhatNetworkProvider(

@@ -7,7 +7,7 @@ import { PROVIDERS } from "../../helpers/providers";
 
 describe("Web3 module", function () {
   PROVIDERS.forEach(({ name, useProvider }) => {
-    describe(`Provider ${name}`, function () {
+    describe(`${name} provider`, function () {
       setCWD();
       useProvider();
 
