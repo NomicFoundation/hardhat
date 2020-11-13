@@ -502,7 +502,7 @@ export class HardhatNode extends EventEmitter {
     );
   }
 
-  public async setNextBlockTimestamp(timestamp: BN) {
+  public setNextBlockTimestamp(timestamp: BN) {
     this._nextBlockTimestamp = new BN(timestamp);
   }
 
@@ -510,11 +510,15 @@ export class HardhatNode extends EventEmitter {
     this._blockTimeOffsetSeconds = this._blockTimeOffsetSeconds.add(increment);
   }
 
-  public async getTimeIncrement(): Promise<BN> {
+  public getTimeIncrement(): BN {
     return this._blockTimeOffsetSeconds;
   }
 
-  public async getNextBlockTimestamp(): Promise<BN> {
+  public setTimeIncrement(timeIncrement: BN) {
+    this._blockTimeOffsetSeconds = timeIncrement;
+  }
+
+  public getNextBlockTimestamp(): BN {
     return this._nextBlockTimestamp;
   }
 
@@ -568,8 +572,8 @@ export class HardhatNode extends EventEmitter {
       latestBlock: await this.getLatestBlock(),
       stateRoot: await this._stateManager.getStateRoot(),
       txPoolSnapshotId: this._txPool.snapshot(),
-      blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
-      nextBlockTimestamp: new BN(this._nextBlockTimestamp),
+      blockTimeOffsetSeconds: this.getTimeIncrement().clone(),
+      nextBlockTimestamp: this.getNextBlockTimestamp().clone(),
     };
 
     this._snapshots.push(snapshot);
@@ -602,8 +606,8 @@ export class HardhatNode extends EventEmitter {
     // used once
     this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
     await this._stateManager.setStateRoot(snapshot.stateRoot);
-    this._blockTimeOffsetSeconds = newOffset;
-    this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
+    this.setTimeIncrement(newOffset);
+    this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
 
     // We delete this and the following snapshots, as they can only be used
@@ -875,7 +879,7 @@ export class HardhatNode extends EventEmitter {
     }
 
     if (offsetShouldChange) {
-      this._blockTimeOffsetSeconds = newOffset;
+      this.setTimeIncrement(newOffset);
     }
 
     await this._resetNextBlockTimestamp();
@@ -1118,13 +1122,13 @@ export class HardhatNode extends EventEmitter {
     // set, we use it as the timestamp instead. If it is not set, we use
     // time offset + real time as the timestamp.
     if (timestamp === undefined || timestamp.eq(new BN(0))) {
-      if (this._nextBlockTimestamp.eq(new BN(0))) {
+      if (this.getNextBlockTimestamp().eq(new BN(0))) {
         blockTimestamp = new BN(getCurrentTimestamp()).add(
-          this._blockTimeOffsetSeconds
+          this.getTimeIncrement()
         );
         offsetShouldChange = false;
       } else {
-        blockTimestamp = new BN(this._nextBlockTimestamp);
+        blockTimestamp = this.getNextBlockTimestamp().clone();
         offsetShouldChange = true;
       }
     } else {
@@ -1166,7 +1170,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   private async _resetNextBlockTimestamp() {
-    this._nextBlockTimestamp = new BN(0);
+    this.setNextBlockTimestamp(new BN(0));
   }
 
   private async _notifyPendingTransaction(tx: Transaction) {
