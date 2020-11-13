@@ -525,6 +525,74 @@ describe("Evm module", function () {
                 assert.equal(currentBlock, initialBlock + 3);
               });
             });
+
+            it("automine and interval mining don't interfere with each other", async function () {
+              const sendTx = async (nonce: number) =>
+                this.provider.send("eth_sendTransaction", [
+                  {
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    to: "0x1111111111111111111111111111111111111111",
+                    nonce: numberToRpcQuantity(nonce),
+                  },
+                ]);
+
+              const interval = 5000;
+              const initialBlockNumber = await getBlockNumber();
+
+              await this.provider.send("evm_setAutomineEnabled", [false]);
+
+              await this.provider.send("evm_setIntervalMining", [
+                { enabled: true, blockTime: interval },
+              ]);
+
+              await sinonClock.tickAsync(interval);
+
+              await waitForAssert(10, async () => {
+                const currentBlockNumber = await getBlockNumber();
+                assert.equal(currentBlockNumber, initialBlockNumber + 1);
+              });
+
+              const txHash1 = await sendTx(0);
+
+              await sinonClock.tickAsync(interval);
+
+              await waitForAssert(15, async () => {
+                const currentBlock = await this.provider.send(
+                  "eth_getBlockByNumber",
+                  ["latest", false]
+                );
+
+                assert.equal(
+                  quantityToNumber(currentBlock.number),
+                  initialBlockNumber + 2
+                );
+                assert.lengthOf(currentBlock.transactions, 1);
+                assert.equal(currentBlock.transactions[0], txHash1);
+              });
+
+              await this.provider.send("evm_setAutomineEnabled", [true]);
+
+              const txHash2 = await sendTx(1);
+
+              const minedBlock = await this.provider.send(
+                "eth_getBlockByNumber",
+                ["latest", false]
+              );
+
+              assert.equal(
+                quantityToNumber(minedBlock.number),
+                initialBlockNumber + 3
+              );
+              assert.lengthOf(minedBlock.transactions, 1);
+              assert.equal(minedBlock.transactions[0], txHash2);
+
+              await sinonClock.tickAsync(interval);
+
+              await waitForAssert(10, async () => {
+                const currentBlockNumber = await getBlockNumber();
+                assert.equal(currentBlockNumber, initialBlockNumber + 4);
+              });
+            });
           });
 
           describe("using sleep", () => {
