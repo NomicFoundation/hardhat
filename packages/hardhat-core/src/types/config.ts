@@ -1,6 +1,6 @@
 // This file defines the different config types.
 //
-// For each possible kind of config value, we have two type:
+// For each possible kind of config value, we have two types:
 //
 // One that ends with UserConfig, which represent the config as
 // written in the user's config file.
@@ -180,6 +180,7 @@ export interface ProjectPathsConfig {
 
 // Solidity config
 
+// Note that the user config SolidityUserConfig is more complex than the resolved config SolidityConfig
 export type SolidityUserConfig = string | SolcUserConfig | MultiSolcUserConfig;
 
 export interface SolcUserConfig {

@@ -1,15 +1,33 @@
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { extendConfig, task } from "hardhat/config";
+import {
+  TASK_COMPILE,
+  TASK_COMPILE_SOLIDITY_COMPILE_JOB,
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
+  TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+} from "hardhat/builtin-tasks/task-names";
+import { extendConfig, subtask, task, types } from "hardhat/config";
 import {
   HARDHAT_NETWORK_NAME,
   NomicLabsHardhatPluginError,
 } from "hardhat/plugins";
-import { ActionType } from "hardhat/types";
+import {
+  ActionType,
+  CompilationJob,
+  CompilerInput,
+  CompilerOutput,
+  DependencyGraph,
+  SolcConfig,
+} from "hardhat/types";
 import path from "path";
 import semver from "semver";
 
 import { defaultEtherscanConfig } from "./config";
-import { pluginName } from "./pluginContext";
+import {
+  EtherscanVerifyRequest,
+  toCheckStatusRequest,
+  toVerifyRequest,
+} from "./etherscan/EtherscanVerifyContractRequest";
+import { pluginName, TASK_VERIFY_GET_MINIMUM_BUILD } from "./pluginContext";
+import type { ContractInformation } from "./solc/bytecode";
 import "./type-extensions";
 
 interface VerificationArgs {
@@ -17,6 +35,10 @@ interface VerificationArgs {
   constructorArguments: string[];
   // Filename of constructor arguments module.
   constructorArgs?: string;
+}
+
+interface MinimumBuildArgs {
+  sourceName: string;
 }
 
 const verify: ActionType<VerificationArgs> = async (
@@ -236,26 +258,92 @@ This can occur if the library is only called in the contract constructor.`
     constructorArguments
   );
 
-  // Ensure the linking information is present in the compiler input;
-  contractInformation.compilerInput.settings.libraries =
-    contractInformation.libraryLinks;
-  const compilerInputJSON = JSON.stringify(contractInformation.compilerInput);
-
   const solcFullVersion = await getLongVersion(contractInformation.solcVersion);
 
-  const { toVerifyRequest, toCheckStatusRequest } = await import(
-    "./etherscan/EtherscanVerifyContractRequest"
+  const minimumBuild = await run(TASK_VERIFY_GET_MINIMUM_BUILD, {
+    sourceName: contractInformation.sourceName,
+  });
+  const minimumBuildContractBytecode =
+    minimumBuild.output.contracts[contractInformation.sourceName][
+      contractInformation.contractName
+    ].evm.deployedBytecode.object;
+  const matchedBytecode =
+    contractInformation.compilerOutput.contracts[
+      contractInformation.sourceName
+    ][contractInformation.contractName].evm.deployedBytecode.object;
+
+  if (minimumBuildContractBytecode === matchedBytecode) {
+    const minimumBuildVerificationStatus = await attemptVerification(
+      etherscanAPIEndpoint,
+      contractInformation,
+      address,
+      etherscan.apiKey,
+      minimumBuild.input,
+      solcFullVersion,
+      deployArgumentsEncoded
+    );
+
+    if (minimumBuildVerificationStatus.isVerificationSuccess()) {
+      console.log(
+        `Successfully verified contract ${contractInformation.contractName} on Etherscan`
+      );
+      return { success: true };
+    }
+
+    console.log(
+      "Verification failed. Falling back to full build verification..."
+    );
+  } else {
+    console.log(
+      "Minimum build bytecode did not match. Falling back to full build verification..."
+    );
+  }
+
+  // Fallback verification
+  const verificationStatus = await attemptVerification(
+    etherscanAPIEndpoint,
+    contractInformation,
+    address,
+    etherscan.apiKey,
+    contractInformation.compilerInput,
+    solcFullVersion,
+    deployArgumentsEncoded
   );
+
+  if (verificationStatus.isVerificationSuccess()) {
+    console.log(
+      `Successfully verified full build of contract ${contractInformation.contractName} on Etherscan`
+    );
+    return { success: true };
+  }
+
+  throw new NomicLabsHardhatPluginError(
+    pluginName,
+    `The contract verification failed.
+Reason: ${verificationStatus.message}`
+  );
+};
+
+async function attemptVerification(
+  etherscanAPIEndpoint: URL,
+  contractInformation: ContractInformation,
+  contractAddress: string,
+  etherscanAPIKey: string,
+  compilerInput: CompilerInput,
+  solcFullVersion: string,
+  deployArgumentsEncoded: string
+) {
+  // Ensure the linking information is present in the compiler input;
+  compilerInput.settings.libraries = contractInformation.libraryLinks;
   const request = toVerifyRequest({
-    apiKey: etherscan.apiKey,
-    contractAddress: address,
-    sourceCode: compilerInputJSON,
+    apiKey: etherscanAPIKey,
+    contractAddress,
+    sourceCode: JSON.stringify(compilerInput),
     sourceName: contractInformation.sourceName,
     contractName: contractInformation.contractName,
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,
   });
-
   const { getVerificationStatus, verifyContract, delay } = await import(
     "./etherscan/EtherscanService"
   );
@@ -263,12 +351,12 @@ This can occur if the library is only called in the contract constructor.`
 
   console.log(
     `Successfully submitted source code for contract
-${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
-for verification on etherscan. Waiting for verification result...`
+${contractInformation.sourceName}:${contractInformation.contractName} at ${contractAddress}
+for verification on Etherscan. Waiting for verification result...`
   );
 
   const pollRequest = toCheckStatusRequest({
-    apiKey: etherscan.apiKey,
+    apiKey: etherscanAPIKey,
     guid: response.message,
   });
 
@@ -279,24 +367,27 @@ for verification on etherscan. Waiting for verification result...`
     pollRequest
   );
 
-  if (verificationStatus.isVerificationSuccess()) {
-    console.log("Successfully verified contract on etherscan");
-  } else {
-    // Reaching this branch shouldn't be possible unless the API is behaving in a new way.
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The API responded with an unexpected message.
+  if (
+    verificationStatus.isVerificationFailure() ||
+    verificationStatus.isVerificationSuccess()
+  ) {
+    return verificationStatus;
+  }
+
+  // Reaching this point shouldn't be possible unless the API is behaving in a new way.
+  throw new NomicLabsHardhatPluginError(
+    pluginName,
+    `The API responded with an unexpected message.
 Contract verification may have succeeded and should be checked manually.
 Message: ${verificationStatus.message}`,
-      undefined,
-      true
-    );
-  }
-};
+    undefined,
+    true
+  );
+}
 
 extendConfig(defaultEtherscanConfig);
 
-task("verify", "Verifies contract on etherscan")
+task("verify", "Verifies contract on Etherscan")
   .addPositionalParam(
     "address",
     "Address of the smart contract that will be verified"
@@ -311,3 +402,46 @@ task("verify", "Verifies contract on etherscan")
     []
   )
   .setAction(verify);
+
+const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
+  { sourceName },
+  { config, run }
+) {
+  const dependencyGraph: DependencyGraph = await run(
+    TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+    { sourceNames: [sourceName] }
+  );
+
+  const resolvedFiles = dependencyGraph
+    .getResolvedFiles()
+    .filter(({ sourceName: thisSourceName }) => {
+      return thisSourceName === sourceName;
+    });
+
+  const compilationJob: CompilationJob = await run(
+    TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
+    {
+      dependencyGraph,
+      file: resolvedFiles[0],
+    }
+  );
+
+  const build: {
+    compilationJob: CompilationJob;
+    input: CompilerInput;
+    output: CompilerOutput;
+    solcBuild: any;
+  } = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+    compilationJob,
+    compilationJobs: [compilationJob],
+    compilationJobIndex: 0,
+    emitsArtifacts: false,
+    quiet: true,
+  });
+
+  return build;
+};
+
+subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
+  .addParam("sourceName", undefined, undefined, types.string)
+  .setAction(getMinimumBuild);

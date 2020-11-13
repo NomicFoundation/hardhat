@@ -4,6 +4,7 @@ import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
+import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/pluginContext";
 import { useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
@@ -164,3 +165,23 @@ async function deployContract(
   await contract.deployTransaction.wait(5);
   return contract.address;
 }
+
+describe("Plugin subtask test", function () {
+  describe("Using a normal Hardhat project", function () {
+    useEnvironment("hardhat-project-only-contracts");
+
+    it("Minimum build subtask should work with simple project", async function () {
+      const sourceName = "contracts/TestContract.sol";
+      const build = await this.env.run(TASK_VERIFY_GET_MINIMUM_BUILD, {
+        sourceName,
+      });
+
+      assert.hasAnyKeys(build.input.sources, [sourceName]);
+      assert.hasAnyKeys(build.output.sources, [sourceName]);
+
+      assert.doesNotHaveAnyKeys(build.output.sources, [
+        "contracts/ReentrancyGuard.sol",
+      ]);
+    });
+  });
+});
