@@ -74,12 +74,6 @@ describe("Hardhat module", function () {
       });
 
       describe("hardhat_reset", function () {
-        before(function () {
-          if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
-            this.skip();
-          }
-        });
-
         it("validates input parameters", async function () {
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             { forking: {} },

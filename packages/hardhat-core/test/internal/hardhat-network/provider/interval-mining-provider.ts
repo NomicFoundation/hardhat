@@ -46,6 +46,10 @@ describe("Interval mining provider", () => {
           assert.equal(thirdBlock, firstBlock + 2);
         });
       });
+
+      describe("evm_reset", () => {
+        // TODO-Ethworks
+      });
     });
   });
 });
