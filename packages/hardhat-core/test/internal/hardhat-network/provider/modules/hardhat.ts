@@ -76,6 +76,12 @@ describe("Hardhat module", function () {
       });
 
       describe("hardhat_reset", function () {
+        before(function () {
+          if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+            this.skip();
+          }
+        });
+
         it("validates input parameters", async function () {
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             { forking: {} },
@@ -141,7 +147,7 @@ describe("Hardhat module", function () {
                 },
               },
             ]);
-            assert.equal(await getLatestBlockNumber(), 123);
+            assert.equal(await getLatestBlockNumber(), safeBlockInThePast);
           });
 
           it("can reset the forked provider to the latest block number", async function () {
@@ -189,7 +195,7 @@ describe("Hardhat module", function () {
                 },
               },
             ]);
-            assert.equal(await getLatestBlockNumber(), 123);
+            assert.equal(await getLatestBlockNumber(), safeBlockInThePast);
           });
 
           it("can reset the provider with fork config back to normal config", async function () {
