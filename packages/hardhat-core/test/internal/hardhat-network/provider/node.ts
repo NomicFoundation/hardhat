@@ -16,11 +16,9 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
-  DEFAULT_INTERVAL_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
-import { waitForAssert } from "../helpers/waitForAssert";
 
 describe("HardhatNode", () => {
   const config: NodeConfig = {
