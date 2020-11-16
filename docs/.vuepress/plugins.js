@@ -179,11 +179,11 @@ const plugins = [
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
     url:
-      "https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md",
+      "https://github.com/sc-forks/solidity-coverage/tree/master/HARDHAT_README.md",
     readmeUrl:
-      "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/BUIDLER_README.md",
+      "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/HARDHAT_README.md",
     description: "Code coverage for Solidity",
-    tags: ["Testing", "Coverage", "Buidler plugin"],
+    tags: ["Testing", "Coverage", "Hardhat plugin"],
   },
   {
     name: "hardhat-gas-reporter",
