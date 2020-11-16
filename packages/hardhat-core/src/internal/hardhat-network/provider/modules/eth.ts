@@ -1,4 +1,5 @@
 import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import chalk from "chalk";
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import {
@@ -851,6 +852,11 @@ export class EthModule {
       }
 
       if (error.message.includes("EIP155")) {
+        console.warn(
+          chalk.yellow(
+            `If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue`
+          )
+        );
         throw new InvalidInputError(error.message);
       }
 
