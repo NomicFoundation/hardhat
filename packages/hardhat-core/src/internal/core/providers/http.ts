@@ -58,6 +58,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       throw error;
     }
 
+    if (args.method === "hardhat_reset") {
+      this.emit("hardhat_reset");
+    }
+
     return jsonRpcResponse.result;
   }
 

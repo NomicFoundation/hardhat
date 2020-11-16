@@ -94,11 +94,18 @@ export class HardhatNetworkProvider extends EventEmitter
     }
 
     try {
+      let result;
       if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(args.method)) {
-        return await this._sendWithLogging(args.method, args.params);
+        result = await this._sendWithLogging(args.method, args.params);
+      } else {
+        result = await this._send(args.method, args.params);
       }
 
-      return await this._send(args.method, args.params);
+      if (args.method === "hardhat_reset") {
+        this.emit("hardhat_reset");
+      }
+
+      return result;
     } finally {
       release();
     }

@@ -7,16 +7,18 @@ import "./type-extensions";
 
 extendEnvironment((hre) => {
   hre.ethers = lazyObject(() => {
-    const { EthersProviderWrapper } = require("./ethers-provider-wrapper");
+    const { createProviderProxy } = require("./provider-proxy");
 
     const { ethers } = require("ethers") as typeof EthersT;
+
+    const providerProxy = createProviderProxy(hre.network.provider);
 
     return {
       ...ethers,
 
       // The provider wrapper should be removed once this is released
       // https://github.com/nomiclabs/hardhat/pull/608
-      provider: new EthersProviderWrapper(hre.network.provider),
+      provider: providerProxy,
 
       getSigners: async () => getSigners(hre),
       // We cast to any here as we hit a limitation of Function#bind and
