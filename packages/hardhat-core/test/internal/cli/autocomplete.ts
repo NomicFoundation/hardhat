@@ -33,15 +33,15 @@ const coreTasks = [
 ];
 
 const coreParams = [
+  "--config",
+  "--emoji",
+  "--help",
+  "--max-memory",
   "--network",
   "--show-stack-traces",
-  "--version",
-  "--help",
-  "--emoji",
-  "--config",
-  "--max-memory",
   "--tsconfig",
   "--verbose",
+  "--version",
 ];
 
 describe("autocomplete", () => {
@@ -68,6 +68,12 @@ describe("autocomplete", () => {
       const suggestions = await complete("hh --");
 
       expect(suggestions).same.deep.members(coreParams);
+    });
+
+    it("should suggest ony matching flags", async () => {
+      const suggestions = await complete("hh --ve");
+
+      expect(suggestions).same.deep.members(["--verbose", "--version"]);
     });
 
     it("shouldn't suggest an already used flag", async () => {
@@ -147,19 +153,13 @@ describe("autocomplete", () => {
     it("should work when the cursor is at the middle and in a partial word", async () => {
       const suggestions = await complete("hh com| --verbose");
 
-      expect(suggestions).same.deep.members(coreTasks);
+      expect(suggestions).same.deep.members(["compile"]);
     });
 
     it("should show suggestions after a partial network value", async () => {
       const suggestions = await complete("hh --network loc");
 
-      expect(suggestions).same.deep.members(["hardhat", "localhost"]);
-    });
-
-    it("should return all completions if last word is not commplete", async () => {
-      const suggestions = await complete("hh compile");
-
-      expect(suggestions).to.have.deep.members(coreTasks);
+      expect(suggestions).same.deep.members(["localhost"]);
     });
 
     it("should not suggest params after a task if the last word doesn't start with --", async () => {
@@ -185,7 +185,7 @@ describe("autocomplete", () => {
     it("should complete tasks after a - in the middle of the task name", async () => {
       const suggestions = await complete("hh my-");
 
-      expect(suggestions).to.have.deep.members([...coreTasks, "my-task"]);
+      expect(suggestions).to.have.deep.members(["my-task"]);
     });
 
     it("should include custom params", async () => {

@@ -32,6 +32,8 @@ export async function complete({
   // `hh compile --network ha|` => prev: "--network" last: "ha"
   const [prev, last] = wordsBeforeCursor.slice(-2);
 
+  const startsWithLast = (completion: string) => completion.startsWith(last);
+
   const coreParams = Object.values(HARDHAT_PARAM_DEFINITIONS)
     .map((x) => x.name)
     .map(ArgumentsParser.paramNameToCLA)
@@ -62,7 +64,7 @@ export async function complete({
   }
 
   if (prev === "--network") {
-    return Object.keys(hre.config.networks);
+    return Object.keys(hre.config.networks).filter(startsWithLast);
   }
 
   // if the previous word is a param, then a value is expected
@@ -82,9 +84,9 @@ export async function complete({
       .map((x) => x.name)
       .filter((x) => !x.includes(":"));
     if (last.startsWith("-")) {
-      return coreParams;
+      return coreParams.filter(startsWithLast);
     }
-    return tasks;
+    return tasks.filter(startsWithLast);
   }
 
   if (!last.startsWith("-")) {
@@ -97,7 +99,9 @@ export async function complete({
     .map(ArgumentsParser.paramNameToCLA)
     .filter((x) => !words.includes(x));
 
-  return [...taskParams, ...coreParams];
+  return [...taskParams, ...coreParams].filter((completion) =>
+    completion.startsWith(last)
+  );
 }
 
 function isGlobalFlag(param: string): boolean {
