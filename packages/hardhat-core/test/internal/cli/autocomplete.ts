@@ -165,7 +165,78 @@ describe("autocomplete", () => {
     it("should not suggest params after a task if the last word doesn't start with --", async () => {
       const suggestions = await complete("hh compile --config config.js ");
 
-      expect(suggestions).to.have.deep.members([]);
+      expect(suggestions).to.have.deep.members([
+        "hardhat.config.js",
+        "scripts",
+      ]);
+    });
+
+    it("should complete filenames", async () => {
+      const suggestions = await complete("hh run ");
+
+      expect(suggestions).to.have.deep.members([
+        "hardhat.config.js",
+        "scripts",
+      ]);
+    });
+
+    it("should complete filenames after a partial word", async () => {
+      const suggestions = await complete("hh compile --config ha");
+
+      expect(suggestions).to.have.deep.members(["hardhat.config.js"]);
+    });
+
+    it("should return two suggestions when a single directory matches", async () => {
+      const suggestions = await complete("hh run scri");
+
+      expect(suggestions).to.have.deep.members(["scripts", "scripts/"]);
+    });
+
+    it("should complete filenames inside a directory", async () => {
+      const suggestions = await complete("hh compile --config scripts/");
+
+      expect(suggestions).to.have.deep.members([
+        "scripts/foo1.js",
+        "scripts/foo2.js",
+        "scripts/bar.js",
+        "scripts/nested",
+      ]);
+    });
+
+    it("should complete filenames inside a directory after a partial file", async () => {
+      const suggestions = await complete("hh compile --config scripts/fo");
+
+      expect(suggestions).to.have.deep.members([
+        "scripts/foo1.js",
+        "scripts/foo2.js",
+      ]);
+    });
+
+    it("should complete hidden filenames inside a directory after a dot", async () => {
+      const suggestions = await complete("hh compile --config scripts/.");
+
+      expect(suggestions).to.have.deep.members(["scripts/.hidden.js"]);
+    });
+
+    it("should complete hidden filenames inside a directory after a partial word", async () => {
+      const suggestions = await complete("hh compile --config scripts/.hi");
+
+      expect(suggestions).to.have.deep.members(["scripts/.hidden.js"]);
+    });
+
+    it("should not show files inside a directory if there's no slash at the end", async () => {
+      const suggestions = await complete("hh compile --config scripts/nested");
+
+      expect(suggestions).to.have.deep.members([
+        "scripts/nested",
+        "scripts/nested/",
+      ]);
+    });
+
+    it("should complete filenames inside a nested directory", async () => {
+      const suggestions = await complete("hh compile --config scripts/nested/");
+
+      expect(suggestions).to.have.deep.members(["scripts/nested/nested.js"]);
     });
   });
 

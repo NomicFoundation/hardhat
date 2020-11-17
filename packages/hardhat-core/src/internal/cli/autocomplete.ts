@@ -1,3 +1,6 @@
+import * as fs from "fs";
+import * as path from "path";
+
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import type hardhat from "../lib/hardhat-lib";
 
@@ -74,7 +77,7 @@ export async function complete({
 
     const globalParam: any = (HARDHAT_PARAM_DEFINITIONS as any)[paramName];
     if (globalParam !== undefined && !globalParam.isFlag) {
-      return [];
+      return filesystemSuggestions(last);
     }
   }
 
@@ -90,7 +93,7 @@ export async function complete({
   }
 
   if (!last.startsWith("-")) {
-    return [];
+    return filesystemSuggestions(last);
   }
 
   // if there's a task and the last word starts with -, we complete its params and the global params
@@ -102,6 +105,55 @@ export async function complete({
   return [...taskParams, ...coreParams].filter((completion) =>
     completion.startsWith(last)
   );
+}
+
+function filesystemSuggestions(last: string): string[] {
+  let partialDirectory: string;
+  let partialFilename: string;
+
+  const parsedPath = path.parse(last);
+
+  // something like foo/. is technically a directory, but we don't want to consider it as such
+  if (parsedPath.base !== "." && isDirectory(last) && last.endsWith(path.sep)) {
+    partialDirectory = last;
+    partialFilename = "";
+  } else {
+    partialDirectory = parsedPath.dir;
+    partialFilename = parsedPath.base;
+  }
+
+  const directory = path.resolve(process.cwd(), partialDirectory);
+
+  const suggestions = fs
+    .readdirSync(directory)
+    .filter((filename) => filename.startsWith(partialFilename))
+    .filter(
+      (filename) => partialFilename.startsWith(".") || !filename.startsWith(".")
+    )
+    .map((filename) => path.join(partialDirectory, filename));
+
+  // dirty trick when we match a single directory:
+  // we don't want to have a single suggestion because otherwise the shell
+  // will add an space at the end, which is annoying,
+  // so we suggest both the dir, and the dir with a trailing path separator
+  if (suggestions.length === 1) {
+    const [suggestion] = suggestions;
+
+    if (isDirectory(suggestion)) {
+      return [suggestion, path.join(suggestion, path.sep)];
+    }
+  }
+
+  return suggestions;
+}
+
+function isDirectory(filename: string): boolean {
+  try {
+    const stats = fs.statSync(filename);
+    return stats.isDirectory();
+  } catch (e) {
+    return false;
+  }
 }
 
 function isGlobalFlag(param: string): boolean {
