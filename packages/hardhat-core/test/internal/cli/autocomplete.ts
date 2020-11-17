@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import * as os from "os";
 
 import { complete as completeFn } from "../../../src/internal/cli/autocomplete";
 import { resetHardhatContext } from "../../../src/internal/reset";
@@ -44,7 +45,11 @@ const coreParams = [
   "--version",
 ];
 
-describe("autocomplete", () => {
+describe("autocomplete", function () {
+  if (os.type() === "Windows_NT") {
+    return;
+  }
+
   describe("basic project", () => {
     useFixtureProject("autocomplete/basic-project");
 
