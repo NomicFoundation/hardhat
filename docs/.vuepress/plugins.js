@@ -123,6 +123,14 @@ const plugins = [
     tags: ["Ethers.js", "hardhat-deploy"],
   },
   {
+    name: "hardhat-upgrades",
+    author: "OpenZeppelin",
+    authorUrl: "https://openzeppelin.com",
+    url: "https://github.com/OpenZeppelin/openzeppelin-upgrades/tree/master/packages/plugin-hardhat",
+    description: "Hardhat plugin for deploying and managing upgradeable contracts.",
+    tags: ["Security", "Upgrades", "OpenZeppelin"],
+  },  
+  {
     name: "hardhat-typechain",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
