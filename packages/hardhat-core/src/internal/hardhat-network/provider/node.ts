@@ -51,9 +51,12 @@ import { ForkStateManager } from "./fork/ForkStateManager";
 import { HardhatBlockchain } from "./HardhatBlockchain";
 import {
   CallParams,
+  EstimateGasResult,
   FilterParams,
+  GatherTracesResult,
   GenesisAccount,
   NodeConfig,
+  RunCallResult,
   RunTransactionResult,
   Snapshot,
   TracingConfig,
@@ -281,24 +284,17 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  public async mineBlock(
-    shouldReturnTraces: true,
-    timestamp?: BN
-  ): Promise<RunTransactionResult>;
-  public async mineBlock(
-    shouldReturnTraces?: false,
-    timestamp?: BN
-  ): Promise<void>;
-  public async mineBlock(
-    shouldReturnTraces = false,
-    timestamp?: BN
-  ): Promise<RunTransactionResult | void> {
-    const [block, result] = await this._mineBlockUnsafe(timestamp);
-    if (shouldReturnTraces) {
-      const traces = await this._gatherTraces(result);
+  public async mineBlock(returnResult: true, timestamp?: BN): Promise<RunTransactionResult>; // tslint:disable-line:prettier
+  public async mineBlock(returnResult?: false, timestamp?: BN): Promise<void>;
+  public async mineBlock(returnResult = false, timestamp?: BN): Promise<RunTransactionResult | void> { // tslint:disable-line:prettier
+    const [block, blockResult] = await this._mineAndSaveBlock(timestamp);
+    if (returnResult) {
+      const traces = await this._gatherTraces(
+        blockResult.results[0].execResult // TODO-Ethworks handle other transactions
+      );
       return {
         block,
-        blockResult: result,
+        blockResult,
         ...traces,
       };
     }
@@ -307,12 +303,7 @@ export class HardhatNode extends EventEmitter {
   public async runCall(
     call: CallParams,
     blockNumber: BN | null
-  ): Promise<{
-    result: Buffer;
-    trace: MessageTrace | undefined;
-    error?: Error;
-    consoleLogMessages: string[];
-  }> {
+  ): Promise<RunCallResult> {
     const tx = await this._getFakeTransaction({
       ...call,
       nonce: await this.getAccountNonce(call.from, null),
@@ -322,30 +313,11 @@ export class HardhatNode extends EventEmitter {
       this._runTxAndRevertMutations(tx, blockNumber === null)
     );
 
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
-
-    if (vmTrace !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
-
-    const consoleLogMessages = await this._getConsoleLogMessages(
-      vmTrace,
-      vmTracerError
-    );
-
-    const error = await this._manageErrors(
-      result.execResult,
-      vmTrace,
-      vmTracerError
-    );
+    const traces = await this._gatherTraces(result.execResult);
 
     return {
+      ...traces,
       result: result.execResult.returnValue,
-      trace: vmTrace,
-      error,
-      consoleLogMessages,
     };
   }
 
@@ -390,12 +362,7 @@ export class HardhatNode extends EventEmitter {
   public async estimateGas(
     txParams: TransactionParams,
     blockNumber: BN | null
-  ): Promise<{
-    estimation: BN;
-    trace: MessageTrace | undefined;
-    error?: Error;
-    consoleLogMessages: string[];
-  }> {
+  ): Promise<EstimateGasResult> {
     const tx = await this._getFakeTransaction({
       ...txParams,
       gasLimit: this.getBlockGasLimit(),
@@ -503,7 +470,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public getNextBlockTimestamp(): BN {
-    return this._nextBlockTimestamp;
+    return this._nextBlockTimestamp.clone();
   }
 
   public setNextBlockTimestamp(timestamp: BN) {
@@ -511,7 +478,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public getTimeIncrement(): BN {
-    return this._blockTimeOffsetSeconds;
+    return this._blockTimeOffsetSeconds.clone();
   }
 
   public setTimeIncrement(timeIncrement: BN) {
@@ -558,7 +525,7 @@ export class HardhatNode extends EventEmitter {
     });
   }
 
-  public async getStackTraceFailuresCount(): Promise<number> {
+  public getStackTraceFailuresCount(): number {
     return this._failedStackTraces;
   }
 
@@ -572,8 +539,8 @@ export class HardhatNode extends EventEmitter {
       latestBlock: await this.getLatestBlock(),
       stateRoot: await this._stateManager.getStateRoot(),
       txPoolSnapshotId: this._txPool.snapshot(),
-      blockTimeOffsetSeconds: this.getTimeIncrement().clone(),
-      nextBlockTimestamp: this.getNextBlockTimestamp().clone(),
+      blockTimeOffsetSeconds: this.getTimeIncrement(),
+      nextBlockTimestamp: this.getNextBlockTimestamp(),
     };
 
     this._snapshots.push(snapshot);
@@ -798,7 +765,7 @@ export class HardhatNode extends EventEmitter {
     this._txPool.setBlockGasLimit(gasLimit);
   }
 
-  private async _gatherTraces(result: RunBlockResult) {
+  private async _gatherTraces(result: ExecResult): Promise<GatherTracesResult> {
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
@@ -812,11 +779,7 @@ export class HardhatNode extends EventEmitter {
       vmTracerError
     );
 
-    const error = await this._manageErrors(
-      result.results[0].execResult,
-      vmTrace,
-      vmTracerError
-    );
+    const error = await this._manageErrors(result, vmTrace, vmTracerError);
 
     return {
       trace: vmTrace,
@@ -847,7 +810,7 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  private async _mineBlockUnsafe(
+  private async _mineAndSaveBlock(
     timestamp?: BN
   ): Promise<[Block, RunBlockResult]> {
     const [
@@ -909,7 +872,7 @@ export class HardhatNode extends EventEmitter {
         bloom.or(txResult.bloom);
         results.push(txResult);
         receipts.push(this._createReceipt(txResult));
-        await this._addTransactionToBlock(block, tx);
+        block.transactions.push(tx);
 
         gasLeft.isub(txResult.gasUsed);
         txHeap.shift();
@@ -921,6 +884,7 @@ export class HardhatNode extends EventEmitter {
 
     await this._txPool.clean();
     await this._assignBlockReward();
+    await this._updateTransactionsRoot(block);
     block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));
     block.header.stateRoot = await this._stateManager.getStateRoot();
     block.header.bloom = bloom.bitvector;
@@ -976,11 +940,6 @@ export class HardhatNode extends EventEmitter {
       bitvector: txResult.bloom.bitvector,
       logs: txResult.execResult.logs ?? [],
     };
-  }
-
-  private async _updateTransactionsRoot(block: Block) {
-    await new Promise((resolve) => block.genTxTrie(resolve));
-    block.header.transactionsTrie = block.txTrie.root;
   }
 
   private async _getFakeTransaction(
@@ -1117,18 +1076,17 @@ export class HardhatNode extends EventEmitter {
     let blockTimestamp: BN;
     let offsetShouldChange: boolean;
     let newOffset: BN = new BN(0);
+    const currentTimestamp = new BN(getCurrentTimestamp());
 
     // if timestamp is not provided, we check nextBlockTimestamp, if it is
     // set, we use it as the timestamp instead. If it is not set, we use
     // time offset + real time as the timestamp.
-    if (timestamp === undefined || timestamp.eq(new BN(0))) {
-      if (this.getNextBlockTimestamp().eq(new BN(0))) {
-        blockTimestamp = new BN(getCurrentTimestamp()).add(
-          this.getTimeIncrement()
-        );
+    if (timestamp === undefined || timestamp.eqn(0)) {
+      if (this.getNextBlockTimestamp().eqn(0)) {
+        blockTimestamp = currentTimestamp.add(this.getTimeIncrement());
         offsetShouldChange = false;
       } else {
-        blockTimestamp = this.getNextBlockTimestamp().clone();
+        blockTimestamp = this.getNextBlockTimestamp();
         offsetShouldChange = true;
       }
     } else {
@@ -1137,7 +1095,7 @@ export class HardhatNode extends EventEmitter {
     }
 
     if (offsetShouldChange) {
-      newOffset = blockTimestamp.sub(new BN(getCurrentTimestamp()));
+      newOffset = blockTimestamp.sub(currentTimestamp);
     }
 
     return [blockTimestamp, offsetShouldChange, newOffset];
@@ -1198,9 +1156,11 @@ export class HardhatNode extends EventEmitter {
 
   private async _addTransactionToBlock(block: Block, tx: Transaction) {
     block.transactions.push(tx);
+    await this._updateTransactionsRoot(block);
+  }
 
+  private async _updateTransactionsRoot(block: Block) {
     await new Promise((resolve) => block.genTxTrie(resolve));
-
     block.header.transactionsTrie = block.txTrie.root;
   }
 
@@ -1268,10 +1228,6 @@ export class HardhatNode extends EventEmitter {
     const latestBlockTimestamp = new BN(latestBlock.header.timestamp);
 
     return latestBlockTimestamp.eq(blockTimestamp);
-  }
-
-  private async _increaseBlockTimestamp(block: Block) {
-    block.header.timestamp = new BN(block.header.timestamp).addn(1).toBuffer();
   }
 
   private async _runInBlockContext<T>(
@@ -1443,15 +1399,14 @@ export class HardhatNode extends EventEmitter {
       // if the context is to estimate gas or run calls in pending block
       if (runOnNewBlock) {
         const [blockTimestamp] = this._calculateTimestampAndOffset();
-
-        blockContext = await this._getNextBlockTemplate(blockTimestamp);
         const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
           blockTimestamp
         );
-
         if (needsTimestampIncrease) {
-          await this._increaseBlockTimestamp(blockContext);
+          blockTimestamp.iaddn(1);
         }
+
+        blockContext = await this._getNextBlockTemplate(blockTimestamp);
 
         // in the context of running estimateGas call, we have to do binary
         // search for the gas and run the call multiple times. Since it is

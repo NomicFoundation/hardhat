@@ -86,10 +86,21 @@ export interface Snapshot {
   nextBlockTimestamp: BN;
 }
 
-export interface RunTransactionResult {
-  trace: MessageTrace | undefined;
+export interface RunTransactionResult extends GatherTracesResult {
   block: Block;
   blockResult: RunBlockResult;
+}
+
+export interface RunCallResult extends GatherTracesResult {
+  result: Buffer;
+}
+
+export interface EstimateGasResult extends GatherTracesResult {
+  estimation: BN;
+}
+
+export interface GatherTracesResult {
+  trace: MessageTrace | undefined;
   error?: Error;
   consoleLogMessages: string[];
 }
