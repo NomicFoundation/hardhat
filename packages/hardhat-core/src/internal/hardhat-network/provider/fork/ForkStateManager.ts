@@ -11,8 +11,10 @@ import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
+import { GenesisAccount } from "../node-types";
 import { PStateManager } from "../types/PStateManager";
 import { StateManager } from "../types/StateManager";
+import { makeAccount } from "../utils/makeAccount";
 
 import { AccountState, makeAccountState } from "./Account";
 import { randomHash } from "./random";
@@ -46,17 +48,16 @@ export class ForkStateManager implements PStateManager {
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _forkBlockNumber: BN
+    private readonly _forkBlockNumber: BN,
+    genesisAccounts: GenesisAccount[] = []
   ) {
     this._state = ImmutableMap();
-  }
 
-  /**
-   * The forked block needs special handling because the genesis accounts are added to it.
-   * This is meant to be called when the initial state is final, so that _initialStateRoot
-   * points to this starting fork state.
-   */
-  public updateInitialStateRoot() {
+    for (const ga of genesisAccounts) {
+      const { address, account } = makeAccount(ga);
+      this._putAccount(address, account);
+    }
+
     this._stateRootToState.set(this._initialStateRoot, this._state);
   }
 
@@ -114,20 +115,7 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async putAccount(address: Buffer, account: Account): Promise<void> {
-    // Because the vm only ever modifies the nonce, balance and codeHash using this
-    // method we ignore the stateRoot property
-    const hexAddress = bufferToHex(address);
-    let localAccount = this._state.get(hexAddress) ?? makeAccountState();
-    localAccount = localAccount
-      .set("nonce", bufferToHex(account.nonce))
-      .set("balance", bufferToHex(account.balance));
-
-    // Code is set to empty string here to prevent unnecessary
-    // JsonRpcClient.getCode calls in getAccount method
-    if (account.codeHash.equals(KECCAK256_NULL)) {
-      localAccount = localAccount.set("code", "0x");
-    }
-    this._state = this._state.set(hexAddress, localAccount);
+    this._putAccount(address, account);
   }
 
   public touchAccount(address: Buffer): void {
@@ -355,6 +343,23 @@ export class ForkStateManager implements PStateManager {
       this._contextChanged = false;
       this._contextBlockNumber = this._forkBlockNumber;
     }
+  }
+
+  private _putAccount(address: Buffer, account: Account): void {
+    // Because the vm only ever modifies the nonce, balance and codeHash using this
+    // method we ignore the stateRoot property
+    const hexAddress = bufferToHex(address);
+    let localAccount = this._state.get(hexAddress) ?? makeAccountState();
+    localAccount = localAccount
+      .set("nonce", bufferToHex(account.nonce))
+      .set("balance", bufferToHex(account.balance));
+
+    // Code is set to empty string here to prevent unnecessary
+    // JsonRpcClient.getCode calls in getAccount method
+    if (account.codeHash.equals(KECCAK256_NULL)) {
+      localAccount = localAccount.set("code", "0x");
+    }
+    this._state = this._state.set(hexAddress, localAccount);
   }
 
   private _setStateRoot(stateRoot: Buffer) {

@@ -15,7 +15,6 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
-  stripZeros,
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
@@ -71,7 +70,6 @@ import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
-import { putGenesisAccounts } from "./utils/putGenesisAccounts";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 
 const log = debug("hardhat:core:hardhat-network:node");
@@ -109,8 +107,11 @@ export class HardhatNode extends EventEmitter {
       );
       common = await makeForkCommon(forkClient, forkBlockNumber);
 
-      stateManager = new ForkStateManager(forkClient, forkBlockNumber);
-      await putGenesisAccounts(stateManager, genesisAccounts);
+      stateManager = new ForkStateManager(
+        forkClient,
+        forkBlockNumber,
+        genesisAccounts
+      );
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
     } else {
