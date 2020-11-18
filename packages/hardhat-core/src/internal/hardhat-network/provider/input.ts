@@ -31,16 +31,25 @@ const isRpcHashString = (u: unknown) =>
 interface BlockTagObject {
   blockHash?: string | Buffer;
   blockNumber?: string | number | BN;
+  requireCanonical?: boolean;
 }
 
 const isBlockTagObject = (u: any): u is BlockTagObject => {
   if (typeof u === "object") {
-    if (u?.blockHash != null && u?.blockNumber == null) {
-      return isRpcHashString(u.blockHash);
+    if (
+      typeof u?.blockHash !== "undefined" &&
+      u?.blockHash !== null &&
+      isRpcHashString(u.blockHash)
+    ) {
+      return true;
     }
 
-    if (u?.blockNumber != null && u?.blockHash == null) {
-      return isRpcQuantityString(u.blockNumber);
+    if (
+      typeof u?.blockNumber !== "undefined" &&
+      u?.blockNumber !== null &&
+      isRpcQuantityString(u.blockNumber)
+    ) {
+      return true;
     }
   }
 
@@ -101,11 +110,11 @@ export const blockTagObject = new t.Type<BN | Buffer>(
   (u): u is BN | Buffer => BN.isBN(u) || Buffer.isBuffer(u),
   (u, c) => {
     if (isBlockTagObject(u)) {
-      if (u.blockHash != null) {
+      if (typeof u?.blockHash !== "undefined" && u?.blockHash !== null) {
         return t.success(toBuffer(u.blockHash));
       }
 
-      if (u.blockNumber != null) {
+      if (typeof u?.blockNumber !== "undefined" && u?.blockNumber !== null) {
         return t.success(new BN(toBuffer(u.blockNumber)));
       }
     }

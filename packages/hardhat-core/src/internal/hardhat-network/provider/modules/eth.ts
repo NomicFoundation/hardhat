@@ -593,13 +593,9 @@ export class EthModule {
     }
 
     const [fromBlock, toBlock] = await Promise.all([
-      this._blockTagToBlockNumber(filter.fromBlock),
-      this._blockTagToBlockNumber(filter.toBlock),
+      this._extractBlock(filter.fromBlock),
+      this._extractBlock(filter.toBlock),
     ]);
-
-    if (fromBlock == null || toBlock == null) {
-      throw new InvalidArgumentsError("Failed to resolve fromBlock/toBlock");
-    }
 
     return {
       fromBlock,
@@ -1067,6 +1063,20 @@ export class EthModule {
     }
 
     return new BN(block.header.number);
+  }
+
+  private async _extractBlock(blockTag: OptionalBlockTag): Promise<BN> {
+    switch (blockTag) {
+      case "earliest":
+        return new BN(0);
+      case undefined:
+      case "latest":
+        return LATEST_BLOCK;
+      case "pending":
+        return LATEST_BLOCK;
+    }
+
+    return (await this._blockTagToBlockNumber(blockTag)) ?? LATEST_BLOCK;
   }
 
   private _extractNormalizedLogTopics(
