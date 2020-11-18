@@ -81,7 +81,6 @@ import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
-import { setTemporaryGasLimit } from "./utils/setTemporaryGasLimit";
 import { txMapToArray } from "./utils/txMapToArray";
 
 const log = debug("hardhat:core:hardhat-network:node");
@@ -284,9 +283,11 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  public async mineBlock(returnResult: true, timestamp?: BN): Promise<RunTransactionResult>; // tslint:disable-line:prettier
+  // prettier-ignore
+  public async mineBlock(returnResult: true, timestamp?: BN): Promise<RunTransactionResult>;
   public async mineBlock(returnResult?: false, timestamp?: BN): Promise<void>;
-  public async mineBlock(returnResult = false, timestamp?: BN): Promise<RunTransactionResult | void> { // tslint:disable-line:prettier
+  // prettier-ignore
+  public async mineBlock(returnResult = false, timestamp?: BN): Promise<RunTransactionResult | void> {
     const [block, blockResult] = await this._mineAndSaveBlock(timestamp);
     if (returnResult) {
       const traces = await this._gatherTraces(
@@ -903,16 +904,18 @@ export class HardhatNode extends EventEmitter {
     block: Block,
     gasLeft: BN
   ): Promise<RunTxResult | null> {
-    const executionGasLimit = BN.min(new BN(tx.gasLimit), gasLeft);
-    const resetGasLimit = setTemporaryGasLimit(tx, executionGasLimit);
+    const preRunStateRoot = await this._stateManager.getStateRoot();
     try {
-      return await this._vm.runTx({ tx, block });
+      const result = await this._vm.runTx({ tx, block });
+      if (result.gasUsed.gt(gasLeft)) {
+        await this._stateManager.setStateRoot(preRunStateRoot);
+        return null;
+      }
+      return result;
     } catch (e) {
       // TODO-Ethworks throw if automine enabled?
       // TODO-Ethworks consider logging the error
       return null;
-    } finally {
-      resetGasLimit();
     }
   }
 
