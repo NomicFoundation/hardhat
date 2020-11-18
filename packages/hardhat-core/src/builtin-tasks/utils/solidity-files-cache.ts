@@ -42,6 +42,13 @@ export interface Cache {
 }
 
 export class SolidityFilesCache {
+  public static createEmpty(): SolidityFilesCache {
+    return new SolidityFilesCache({
+      _format: FORMAT_VERSION,
+      files: {},
+    });
+  }
+
   public static async readFromFile(
     solidityFilesCachePath: string
   ): Promise<SolidityFilesCache> {
