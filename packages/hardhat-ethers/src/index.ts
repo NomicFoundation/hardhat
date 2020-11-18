@@ -3,11 +3,14 @@ import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 
 import { getContractAt, getContractFactory, getSigners } from "./helpers";
+import type * as ProviderProxyT from "./provider-proxy";
 import "./type-extensions";
 
 extendEnvironment((hre) => {
   hre.ethers = lazyObject(() => {
-    const { createProviderProxy } = require("./provider-proxy");
+    const {
+      createProviderProxy,
+    } = require("./provider-proxy") as typeof ProviderProxyT;
 
     const { ethers } = require("ethers") as typeof EthersT;
 
