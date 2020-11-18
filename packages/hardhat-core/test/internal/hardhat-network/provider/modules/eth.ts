@@ -355,6 +355,59 @@ describe("Eth module", function () {
           );
         });
 
+        it("should allow EIP-1898 block tags", async function () {
+          const firstBlock = await getFirstBlock();
+
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockNumber: numberToRpcQuantity(firstBlock + 1),
+              },
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          const latestBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockHash: latestBlock.hash,
+              },
+            ]),
+            `0x${newState}`
+          );
+        });
+
         it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
           const firstBlock = await getFirstBlock();
           const futureBlock = firstBlock + 1;
