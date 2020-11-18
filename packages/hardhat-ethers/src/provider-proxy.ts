@@ -1,3 +1,4 @@
+import { HARDHAT_NETWORK_RESET_EVENT } from "hardhat/internal/constants";
 import { EthereumProvider } from "hardhat/types";
 
 import { EthersProviderWrapper } from "./ethers-provider-wrapper";
@@ -94,7 +95,7 @@ export function createProviderProxy(
 
   const providerProxy: any = new Proxy({}, handler);
 
-  hardhatProvider.on("hardhat_reset", () => {
+  hardhatProvider.on(HARDHAT_NETWORK_RESET_EVENT, () => {
     providerTarget.provider = new EthersProviderWrapper(hardhatProvider);
   });
 

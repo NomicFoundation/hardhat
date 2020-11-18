@@ -15,6 +15,7 @@ import type {
   EthSubscription,
   RequestArguments,
 } from "../../../types";
+import { HARDHAT_NETWORK_RESET_EVENT } from "../../constants";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -102,7 +103,7 @@ export class HardhatNetworkProvider extends EventEmitter
       }
 
       if (args.method === "hardhat_reset") {
-        this.emit("hardhat_reset");
+        this.emit(HARDHAT_NETWORK_RESET_EVENT);
       }
 
       return result;
