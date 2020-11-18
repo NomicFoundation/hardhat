@@ -1066,6 +1066,15 @@ export class EthModule {
   }
 
   private async _extractBlock(blockTag: OptionalBlockTag): Promise<BN> {
+    if (BN.isBN(blockTag)) {
+      return blockTag;
+    }
+
+    if (Buffer.isBuffer(blockTag)) {
+      const block = await this._node.getBlockByHash(blockTag);
+      return block === undefined ? LATEST_BLOCK : new BN(block.header.number);
+    }
+
     switch (blockTag) {
       case "earliest":
         return new BN(0);
@@ -1073,10 +1082,9 @@ export class EthModule {
       case "latest":
         return LATEST_BLOCK;
       case "pending":
+      default:
         return LATEST_BLOCK;
     }
-
-    return (await this._blockTagToBlockNumber(blockTag)) ?? LATEST_BLOCK;
   }
 
   private _extractNormalizedLogTopics(
