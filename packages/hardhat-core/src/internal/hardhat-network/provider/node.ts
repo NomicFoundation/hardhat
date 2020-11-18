@@ -209,10 +209,7 @@ export class HardhatNode extends EventEmitter {
       this._stateManager.getContractCode.bind(this._stateManager),
       true
     );
-
-    if (this._automine) {
-      this._vmTracer.enableTracing();
-    }
+    this._vmTracer.enableTracing();
 
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
@@ -755,11 +752,6 @@ export class HardhatNode extends EventEmitter {
 
   public setAutomineEnabled(automine: boolean) {
     this._automine = automine;
-    if (automine) {
-      this._vmTracer.enableTracing();
-    } else {
-      this._vmTracer.disableTracing();
-    }
   }
 
   public setBlockGasLimit(gasLimit: BN | number) {
