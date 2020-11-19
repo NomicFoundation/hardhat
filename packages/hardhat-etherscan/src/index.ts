@@ -291,11 +291,15 @@ This can occur if the library is only called in the contract constructor.`
     }
 
     console.log(
-      "Verification failed. Falling back to full build verification..."
+      `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...`
     );
   } else {
     console.log(
-      "Minimum build bytecode did not match. Falling back to full build verification..."
+      `Compiling your contract excluding unrelated contracts did not produce identical bytecode.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...`
     );
   }
 

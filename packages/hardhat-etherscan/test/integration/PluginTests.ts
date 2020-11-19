@@ -1,7 +1,16 @@
 import { assert } from "chai";
 import { readFileSync, writeFileSync } from "fs";
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import {
+  TASK_COMPILE,
+  TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
+} from "hardhat/builtin-tasks/task-names";
+import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import type {
+  Artifacts,
+  CompilerInput,
+  HardhatRuntimeEnvironment,
+} from "hardhat/types";
 import path from "path";
 
 import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/pluginContext";
@@ -26,16 +35,26 @@ describe("Plugin integration tests", function () {
   describe("Using a normal Hardhat project", function () {
     useEnvironment("hardhat-project", "testnet");
 
-    let placeholder: string;
     this.beforeEach(function () {
-      placeholder = getRandomString(this.env);
-      modifyContract(placeholder);
+      const mutation = getRandomString(this.env);
+      const { task }: { task: typeof taskT } = require("hardhat/config");
+
+      // We replace placeholder strings in the compilation pipeline.
+      // We need to override the task here since the Hardhat context
+      // is only created just in time for the test. See useEnvironment in the helpers module.
+      task(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT).setAction(
+        async (_, hre, runSuper) => {
+          const solcInput: CompilerInput = await runSuper();
+          for (const source of Object.values(solcInput.sources)) {
+            source.content = source.content.replace("placeholder", mutation);
+          }
+          return solcInput;
+        }
+      );
     });
 
-    this.afterEach(() => restoreContract(placeholder));
-
     it("Should verify deployed inner contract on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASK_COMPILE, { force: true });
 
       const deployedAddress = await deployContract(
         "InnerContract",
@@ -50,7 +69,7 @@ describe("Plugin integration tests", function () {
     });
 
     it("Should verify deployed contract with name clash on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASK_COMPILE, { force: true });
 
       const deployedAddress = await deployContract(
         "TestReentrancyGuardLocal",
@@ -65,7 +84,7 @@ describe("Plugin integration tests", function () {
     });
 
     it("Should verify deployed library on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASK_COMPILE, { force: true });
 
       const deployedAddress = await deployContract("TestLibrary", [], this.env);
 
@@ -77,14 +96,17 @@ describe("Plugin integration tests", function () {
 
     // The plugin doesn't look at deployment bytecode while inferring the contract
     it("fail when the contract can only be singled out by its deploy bytecode", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASK_COMPILE, { force: true });
 
       const amount = "20";
 
+      // We wait a single block because we just want the contract code to be available
+      // at the Ethereum node we're connected to.
       const deployedAddress = await deployContract(
         "TestContract1",
         [amount],
-        this.env
+        this.env,
+        1
       );
 
       return this.env
@@ -93,7 +115,6 @@ describe("Plugin integration tests", function () {
           constructorArguments: [amount],
         })
         .catch((reason) => {
-          console.log(reason);
           assert.instanceOf(
             reason,
             NomicLabsHardhatPluginError,
@@ -103,7 +124,7 @@ describe("Plugin integration tests", function () {
     });
 
     it("Should verify deployed contract with a complex parameter list on etherscan", async function () {
-      await this.env.run(TASK_COMPILE, { force: false });
+      await this.env.run(TASK_COMPILE, { force: true });
 
       const modulePath = path.join(process.cwd(), "paramList");
       const args = require(modulePath);
@@ -121,31 +142,6 @@ describe("Plugin integration tests", function () {
   });
 });
 
-const testContractPath = path.join(
-  __dirname,
-  "..",
-  "fixture-projects",
-  "hardhat-project",
-  "contracts",
-  "TestContract1.sol"
-);
-
-function modifyContract(placeholder: string) {
-  const data = readFileSync(testContractPath, "utf-8");
-
-  const newData = data.replace("placeholder", placeholder);
-
-  writeFileSync(testContractPath, newData, "utf-8");
-}
-
-function restoreContract(placeholder: string) {
-  const data = readFileSync(testContractPath, "utf-8");
-
-  const newData = data.replace(placeholder, "placeholder");
-
-  writeFileSync(testContractPath, newData, "utf-8");
-}
-
 function getRandomString({ ethers }: any): string {
   return ethers.Wallet.createRandom().address;
 }
@@ -153,7 +149,8 @@ function getRandomString({ ethers }: any): string {
 async function deployContract(
   contractName: string,
   constructorArguments: string[],
-  { ethers }: any
+  { ethers }: any,
+  confirmations: number = 5
 ) {
   const wallet = new ethers.Wallet(
     process.env.WALLET_PRIVATE_KEY,
@@ -162,7 +159,7 @@ async function deployContract(
 
   const factory = await ethers.getContractFactory(contractName, wallet);
   const contract = await factory.deploy(...constructorArguments);
-  await contract.deployTransaction.wait(5);
+  await contract.deployTransaction.wait(confirmations);
   return contract.address;
 }
 
