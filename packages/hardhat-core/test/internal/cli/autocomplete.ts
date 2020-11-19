@@ -172,6 +172,7 @@ describe("autocomplete", function () {
 
       expect(suggestions).to.have.deep.members([
         "hardhat.config.js",
+        "package.json",
         "scripts",
       ]);
     });
@@ -181,6 +182,7 @@ describe("autocomplete", function () {
 
       expect(suggestions).to.have.deep.members([
         "hardhat.config.js",
+        "package.json",
         "scripts",
       ]);
     });
