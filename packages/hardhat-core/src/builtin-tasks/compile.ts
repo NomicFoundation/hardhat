@@ -962,17 +962,17 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
 
       await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
 
-      const artifactsEmittedPerFile =
-        emitsArtifacts === true
-          ? (
-              await run(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS, {
-                compilationJob,
-                input,
-                output,
-                solcBuild,
-              })
-            ).artifactsEmittedPerFile
-          : [];
+      let artifactsEmittedPerFile = [];
+      if (emitsArtifacts) {
+        artifactsEmittedPerFile = (
+          await run(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS, {
+            compilationJob,
+            input,
+            output,
+            solcBuild,
+          })
+        ).artifactsEmittedPerFile;
+      }
 
       return {
         artifactsEmittedPerFile,

@@ -424,8 +424,8 @@ const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
 
   const resolvedFiles = dependencyGraph
     .getResolvedFiles()
-    .filter(({ sourceName: thisSourceName }) => {
-      return thisSourceName === sourceName;
+    .filter((resolvedFile) => {
+      return resolvedFile.sourceName === sourceName;
     });
 
   const compilationJob: CompilationJob = await run(
