@@ -15,14 +15,12 @@ import {
   CompilerInput,
   CompilerOutput,
   DependencyGraph,
-  SolcConfig,
 } from "hardhat/types";
 import path from "path";
 import semver from "semver";
 
 import { defaultEtherscanConfig } from "./config";
 import {
-  EtherscanVerifyRequest,
   toCheckStatusRequest,
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
@@ -35,6 +33,13 @@ interface VerificationArgs {
   constructorArguments: string[];
   // Filename of constructor arguments module.
   constructorArgs?: string;
+}
+
+interface Build {
+  compilationJob: CompilationJob;
+  input: CompilerInput;
+  output: CompilerOutput;
+  solcBuild: any;
 }
 
 interface MinimumBuildArgs {
@@ -260,9 +265,10 @@ This can occur if the library is only called in the contract constructor.`
 
   const solcFullVersion = await getLongVersion(contractInformation.solcVersion);
 
-  const minimumBuild = await run(TASK_VERIFY_GET_MINIMUM_BUILD, {
+  const minimumBuild: Build = await run(TASK_VERIFY_GET_MINIMUM_BUILD, {
     sourceName: contractInformation.sourceName,
   });
+
   const minimumBuildContractBytecode =
     minimumBuild.output.contracts[contractInformation.sourceName][
       contractInformation.contractName
@@ -409,8 +415,8 @@ task("verify", "Verifies contract on Etherscan")
 
 const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
   { sourceName },
-  { config, run }
-) {
+  { run }
+): Promise<Build> {
   const dependencyGraph: DependencyGraph = await run(
     TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
     { sourceNames: [sourceName] }
@@ -430,12 +436,7 @@ const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
     }
   );
 
-  const build: {
-    compilationJob: CompilationJob;
-    input: CompilerInput;
-    output: CompilerOutput;
-    solcBuild: any;
-  } = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+  const build: Build = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
     compilationJob,
     compilationJobs: [compilationJob],
     compilationJobIndex: 0,
