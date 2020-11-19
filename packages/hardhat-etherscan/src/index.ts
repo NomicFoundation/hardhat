@@ -24,7 +24,11 @@ import {
   toCheckStatusRequest,
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
-import { pluginName, TASK_VERIFY_GET_MINIMUM_BUILD } from "./pluginContext";
+import {
+  pluginName,
+  TASK_VERIFY,
+  TASK_VERIFY_GET_MINIMUM_BUILD,
+} from "./pluginContext";
 import type { ContractInformation } from "./solc/bytecode";
 import "./type-extensions";
 
@@ -45,6 +49,8 @@ interface Build {
 interface MinimumBuildArgs {
   sourceName: string;
 }
+
+extendConfig(defaultEtherscanConfig);
 
 const verify: ActionType<VerificationArgs> = async (
   {
@@ -395,24 +401,6 @@ Message: ${verificationStatus.message}`,
   );
 }
 
-extendConfig(defaultEtherscanConfig);
-
-task("verify", "Verifies contract on Etherscan")
-  .addPositionalParam(
-    "address",
-    "Address of the smart contract that will be verified"
-  )
-  .addOptionalParam(
-    "constructorArgs",
-    "File path to a javascript module that exports the list of arguments."
-  )
-  .addOptionalVariadicPositionalParam(
-    "constructorArguments",
-    "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
-    []
-  )
-  .setAction(verify);
-
 const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
   { sourceName },
   { run }
@@ -427,6 +415,10 @@ const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
     .filter((resolvedFile) => {
       return resolvedFile.sourceName === sourceName;
     });
+  assertHardhatPluginInvariant(
+    resolvedFiles.length === 1,
+    `The plugin found an unexpected number of files for this contract.`
+  );
 
   const compilationJob: CompilationJob = await run(
     TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
@@ -447,6 +439,31 @@ const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
   return build;
 };
 
+task(TASK_VERIFY, "Verifies contract on Etherscan")
+  .addPositionalParam(
+    "address",
+    "Address of the smart contract that will be verified"
+  )
+  .addOptionalParam(
+    "constructorArgs",
+    "File path to a javascript module that exports the list of arguments."
+  )
+  .addOptionalVariadicPositionalParam(
+    "constructorArguments",
+    "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
+    []
+  )
+  .setAction(verify);
+
 subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
   .addParam("sourceName", undefined, undefined, types.string)
   .setAction(getMinimumBuild);
+
+function assertHardhatPluginInvariant(
+  invariant: boolean,
+  message: string
+): asserts invariant {
+  if (!invariant) {
+    throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
+  }
+}

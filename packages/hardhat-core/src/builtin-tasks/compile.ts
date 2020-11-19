@@ -931,7 +931,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
         compilationJobs: CompilationJob[];
         compilationJobIndex: number;
         quiet: boolean;
-        emitsArtifacts?: boolean;
+        emitsArtifacts: boolean;
       },
       { run }
     ): Promise<{
