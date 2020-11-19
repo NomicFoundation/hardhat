@@ -1,12 +1,14 @@
 import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
+import sinon from "sinon";
 
+import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
 import { ALCHEMY_URL } from "../../../../setup";
 import { assertInvalidArgumentsError } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
-import { PROVIDERS } from "../../helpers/providers";
+import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -123,6 +125,75 @@ describe("Hardhat module", function () {
             },
           ]);
           assert.isTrue(result);
+        });
+
+        it("hardhat_reset resets tx pool", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+
+          const pendingTxsBefore = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+
+          const result = await this.provider.send("hardhat_reset");
+
+          const pendingTxsAfter = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+
+          assert.isTrue(result);
+          assert.lengthOf(pendingTxsBefore, 1);
+          assert.lengthOf(pendingTxsAfter, 0);
+        });
+
+        describe("tests using sinon", () => {
+          let sinonClock: sinon.SinonFakeTimers;
+
+          beforeEach(() => {
+            sinonClock = sinon.useFakeTimers({
+              now: Date.now(),
+              toFake: ["Date", "setTimeout", "clearTimeout"],
+            });
+          });
+
+          afterEach(() => {
+            sinonClock.restore();
+          });
+
+          it("resets interval mining", async function () {
+            const interval = 15_000;
+
+            await this.provider.send("evm_setAutomineEnabled", [false]);
+            await this.provider.send("evm_setIntervalMining", [
+              {
+                enabled: true,
+                blockTime: interval,
+              },
+            ]);
+
+            const firstBlockBefore = await getLatestBlockNumber();
+
+            await sinonClock.tickAsync(interval);
+
+            const secondBlockBefore = await getLatestBlockNumber();
+            assert.equal(secondBlockBefore, firstBlockBefore + 1);
+
+            const result = await this.provider.send("hardhat_reset");
+            assert.isTrue(result);
+
+            const firstBlockAfter = await getLatestBlockNumber();
+
+            await sinonClock.tickAsync(interval);
+
+            const secondBlockAfter = await getLatestBlockNumber();
+            assert.equal(secondBlockAfter, firstBlockAfter);
+          });
         });
 
         if (isFork) {

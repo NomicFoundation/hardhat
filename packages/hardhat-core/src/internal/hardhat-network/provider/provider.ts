@@ -295,11 +295,14 @@ export class HardhatNetworkProvider extends EventEmitter
       this._experimentalHardhatNetworkMessageTraceHooks
     );
 
+    const miningTimer = this._makeMiningTimer();
+
     this._netModule = new NetModule(common);
     this._web3Module = new Web3Module();
-    this._evmModule = new EvmModule(node, this._makeMiningTimer());
+    this._evmModule = new EvmModule(node, miningTimer);
     this._hardhatModule = new HardhatModule(
       node,
+      miningTimer,
       this._reset.bind(this),
       (loggingEnabled: boolean) => {
         this._loggingEnabled = loggingEnabled;

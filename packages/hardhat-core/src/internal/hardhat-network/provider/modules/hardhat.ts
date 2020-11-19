@@ -10,6 +10,7 @@ import {
   RpcHardhatNetworkConfig,
   validateParams,
 } from "../input";
+import { MiningTimer } from "../MiningTimer";
 import { HardhatNode } from "../node";
 import { ForkConfig } from "../node-types";
 
@@ -18,6 +19,7 @@ import { ForkConfig } from "../node-types";
 export class HardhatModule {
   constructor(
     private readonly _node: HardhatNode,
+    private readonly _miningTimer: MiningTimer,
     private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>,
     private readonly _setLoggingEnabledCallback: (
       loggingEnabled: boolean
@@ -123,6 +125,7 @@ export class HardhatModule {
   private async _resetAction(
     networkConfig?: RpcHardhatNetworkConfig
   ): Promise<true> {
+    this._miningTimer.stop();
     await this._resetCallback(networkConfig?.forking);
     return true;
   }
