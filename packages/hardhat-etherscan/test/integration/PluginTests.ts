@@ -1,16 +1,11 @@
 import { assert } from "chai";
-import { readFileSync, writeFileSync } from "fs";
 import {
   TASK_COMPILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
 } from "hardhat/builtin-tasks/task-names";
 import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import type {
-  Artifacts,
-  CompilerInput,
-  HardhatRuntimeEnvironment,
-} from "hardhat/types";
+import type { CompilerInput } from "hardhat/types";
 import path from "path";
 
 import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/pluginContext";
