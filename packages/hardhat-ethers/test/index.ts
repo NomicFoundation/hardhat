@@ -506,18 +506,6 @@ describe("Ethers plugin", function () {
           );
         });
 
-        it("should work with a contract that needs linking", async function () {
-          const contract = await this.env.ethers.getContractAt(
-            "TestContractLib",
-            deployedGreeter.address
-          );
-
-          assert.isDefined(
-            contract.printNumber,
-            "Contract should have its public methods defined."
-          );
-        });
-
         it("Should return an instance of an interface", async function () {
           const contract = await this.env.ethers.getContractAt(
             "IGreeter",
@@ -600,6 +588,30 @@ describe("Ethers plugin", function () {
           assert.equal(await greeter.functions.greet(), "Hi");
           await greeter.functions.setGreeting("Hola");
           assert.equal(await greeter.functions.greet(), "Hola");
+        });
+
+        it("should work with linked contracts", async function () {
+          const libraryFactory = await this.env.ethers.getContractFactory(
+            "TestLibrary"
+          );
+          const library = await libraryFactory.deploy();
+
+          const contractFactory = await this.env.ethers.getContractFactory(
+            "TestContractLib",
+            { libraries: { TestLibrary: library.address } }
+          );
+          const numberPrinter = await contractFactory.deploy();
+
+          const numberPrinterAtAddress = await this.env.ethers.getContractAt(
+            "TestContractLib",
+            numberPrinter.address
+          );
+
+          const someNumber = 50;
+          assert.equal(
+            await numberPrinterAtAddress.callStatic.printNumber(someNumber),
+            someNumber * 2
+          );
         });
 
         describe("with custom signer", function () {
