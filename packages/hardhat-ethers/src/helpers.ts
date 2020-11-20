@@ -66,21 +66,11 @@ export async function getContractFactory(
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
-    const contractFactory = await getContractFactoryByName(
+    return getContractFactoryByName(
       hre,
       nameOrAbi,
       bytecodeOrFactoryOptions as ethers.Signer | FactoryOptions | undefined
     );
-
-    if (contractFactory.bytecode === "0x") {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `You are trying to create a contract factory for the contract ${nameOrAbi}, which is abstract and can't be deployed.
-If you want to call a contract using ${nameOrAbi} as its interface use the "getContractAt" function instead.`
-      );
-    }
-
-    return contractFactory;
   }
 
   return getContractFactoryByAbiAndBytecode(
@@ -116,6 +106,14 @@ async function getContractFactoryByName(
     libraries = signerOrOptions.libraries ?? {};
   } else {
     signer = signerOrOptions;
+  }
+
+  if (artifact.bytecode === "0x") {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `You are trying to create a contract factory for the contract ${contractName}, which is abstract and can't be deployed.
+If you want to call a contract using ${contractName} as its interface use the "getContractAt" function instead.`
+    );
   }
 
   const linkedBytecode = await collectLibrariesAndLink(artifact, libraries);
