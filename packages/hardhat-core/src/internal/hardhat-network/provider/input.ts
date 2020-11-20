@@ -37,7 +37,7 @@ interface BlockTagObject {
 const isBlockTagObject = (u: any): u is BlockTagObject => {
   if (typeof u === "object") {
     if (
-      typeof u?.blockHash !== "undefined" &&
+      u?.blockHash !== undefined &&
       u?.blockHash !== null &&
       isRpcHashString(u.blockHash)
     ) {
@@ -45,7 +45,7 @@ const isBlockTagObject = (u: any): u is BlockTagObject => {
     }
 
     if (
-      typeof u?.blockNumber !== "undefined" &&
+      u?.blockNumber !== undefined &&
       u?.blockNumber !== null &&
       isRpcQuantityString(u.blockNumber)
     ) {
@@ -110,11 +110,19 @@ export const blockTagObject = new t.Type<BN | Buffer>(
   (u): u is BN | Buffer => BN.isBN(u) || Buffer.isBuffer(u),
   (u, c) => {
     if (isBlockTagObject(u)) {
-      if (typeof u?.blockHash !== "undefined" && u?.blockHash !== null) {
+      const hasBlockHash = u?.blockHash !== undefined && u?.blockHash !== null;
+      const hasBlockNumber =
+        u?.blockNumber !== undefined && u?.blockNumber !== null;
+
+      if (hasBlockHash && hasBlockNumber) {
+        return t.failure(u, c);
+      }
+
+      if (hasBlockHash) {
         return t.success(toBuffer(u.blockHash));
       }
 
-      if (typeof u?.blockNumber !== "undefined" && u?.blockNumber !== null) {
+      if (hasBlockNumber) {
         return t.success(new BN(toBuffer(u.blockNumber)));
       }
     }

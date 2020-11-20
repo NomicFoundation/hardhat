@@ -19,6 +19,7 @@ import {
   ProviderMessage,
 } from "../../../../../src/types";
 import {
+  assertInvalidArgumentsError,
   assertInvalidInputError,
   assertNodeBalances,
   assertNotSupported,
@@ -350,59 +351,6 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               },
               "latest",
-            ]),
-            `0x${newState}`
-          );
-        });
-
-        it("should allow EIP-1898 block tags", async function () {
-          const firstBlock = await getFirstBlock();
-
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
-
-          const newState =
-            "000000000000000000000000000000000000000000000000000000000000000a";
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: contractAddress,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
-            },
-          ]);
-
-          assert.equal(
-            await this.provider.send("eth_call", [
-              {
-                to: contractAddress,
-                data: EXAMPLE_CONTRACT.selectors.i,
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              },
-              {
-                blockNumber: numberToRpcQuantity(firstBlock + 1),
-              },
-            ]),
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-          );
-
-          const latestBlock: RpcBlockOutput = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
-
-          assert.equal(
-            await this.provider.send("eth_call", [
-              {
-                to: contractAddress,
-                data: EXAMPLE_CONTRACT.selectors.i,
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              },
-              {
-                blockHash: latestBlock.hash,
-              },
             ]),
             `0x${newState}`
           );
@@ -3225,6 +3173,168 @@ describe("Eth module", function () {
 
         it("Doesn't fail when unsubscribe is called for a non-existent filter", async function () {
           assert.isFalse(await this.provider.send("eth_unsubscribe", ["0x1"]));
+        });
+      });
+
+      describe("block tags", function () {
+        it("should allow EIP-1898 block tags", async function () {
+          const firstBlock = await getFirstBlock();
+
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const previousBlockNumber = `0x${(firstBlock + 1).toString(16)}`;
+          const previousBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [previousBlockNumber, false]
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockNumber: previousBlock.number,
+              },
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockHash: previousBlock.hash,
+              },
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          const latestBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockNumber: latestBlock.number,
+              },
+            ]),
+            `0x${newState}`
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockHash: latestBlock.hash,
+              },
+            ]),
+            `0x${newState}`
+          );
+        });
+
+        it("should not accept an empty block tag", async function () {
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {},
+          ]);
+        });
+
+        it("should not accept both a blockNumber and a blockHash in a block tag", async function () {
+          const latestBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {
+              blockNumber: 0,
+              blockHash: latestBlock.hash,
+            },
+          ]);
+
+          it("should accept a requireCanonical flag", async function () {
+            const latestBlock: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockNumber: latestBlock.number,
+                  requireCanonical: true,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockNumber: latestBlock.number,
+                  requireCanonical: false,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockHash: latestBlock.hash,
+                  requireCanonical: true,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockHash: latestBlock.hash,
+                  requireCanonical: false,
+                },
+              ]),
+              0
+            );
+          });
         });
       });
     });
