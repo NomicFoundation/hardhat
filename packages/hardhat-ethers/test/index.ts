@@ -506,6 +506,18 @@ describe("Ethers plugin", function () {
           );
         });
 
+        it("should work with a contract that needs linking", async function () {
+          const contract = await this.env.ethers.getContractAt(
+            "TestContractLib",
+            deployedGreeter.address
+          );
+
+          assert.isDefined(
+            contract.printNumber,
+            "Contract should have its public methods defined."
+          );
+        });
+
         it("Should return an instance of an interface", async function () {
           const contract = await this.env.ethers.getContractAt(
             "IGreeter",

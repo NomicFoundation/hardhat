@@ -260,7 +260,13 @@ export async function getContractAt(
   const { Contract } = require("ethers") as typeof ethers;
 
   if (typeof nameOrAbi === "string") {
-    const factory = await getContractFactoryByName(hre, nameOrAbi, signer);
+    const artifact = await hre.artifacts.readArtifact(nameOrAbi);
+    const factory = await getContractFactoryByAbiAndBytecode(
+      hre,
+      artifact.abi,
+      "0x",
+      signer
+    );
     return factory.attach(address);
   }
 
