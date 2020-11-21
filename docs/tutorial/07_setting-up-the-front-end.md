@@ -70,7 +70,7 @@ application.
    If you want the Buidler EVM to accept connections from other computers, because it is more convenient to run the browser elsewhere,
    use this command. Depending on the network configuration, you might also have to open TCP port 8545 in a firewall.
    ```bash
-   npx buidler --hostname 0.0.0.0
+   npx buidler node --hostname 0.0.0.0
    ```    
    
 3. Click the Metamask icon (![Metamask icon](https://raw.githubusercontent.com/qbzzt/qbzzt.github.io/master/metamask-logo.png)) in the top right corner of the browser.
