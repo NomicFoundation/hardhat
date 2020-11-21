@@ -1,4 +1,12 @@
-# 11. Token User Interface
+# 12. Error Handling
+
+The application in the previous section works if everything goes well. In the real world you cannot count on that. There are two likely error types:
+
+1. Communication errors (for example, being unable to connect to the blockchain)
+1. User mistakes (For example, an attempt to transfer more tokens than the user has)
+
+
+
 
 Now that everything else is configured, replace `frontend/src/App.js` with this file:
 
