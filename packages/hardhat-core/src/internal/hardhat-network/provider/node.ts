@@ -308,7 +308,7 @@ export class HardhatNode extends EventEmitter {
     });
 
     const result = await this._runInBlockContext(blockNumber, () =>
-      this._runTxAndRevertMutations(tx, blockNumber === null)
+      this._runTxAndRevertMutations(tx, false)
     );
 
     const traces = await this._gatherTraces(result.execResult);
@@ -1229,10 +1229,16 @@ export class HardhatNode extends EventEmitter {
     blockNumber: BN | null,
     action: () => Promise<T>
   ): Promise<T> {
-    if (
-      blockNumber === null ||
-      blockNumber.eq(await this.getLatestBlockNumber())
-    ) {
+    if (blockNumber === null) {
+      const snapshotId = await this.takeSnapshot();
+      await this.mineBlock(false);
+      const result = await action();
+      await this.revertToSnapshot(snapshotId);
+
+      return result;
+    }
+
+    if (blockNumber.eq(await this.getLatestBlockNumber())) {
       return action();
     }
 

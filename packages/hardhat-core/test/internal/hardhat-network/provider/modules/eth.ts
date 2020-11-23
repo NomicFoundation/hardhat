@@ -23,6 +23,7 @@ import {
   assertInvalidInputError,
   assertNodeBalances,
   assertNotSupported,
+  assertPendingNodeBalances,
   assertQuantity,
   assertReceiptMatchesGethOne,
   assertTransaction,
@@ -242,7 +243,7 @@ describe("Eth module", function () {
           assert.equal(timestampResult, timestamp);
         });
 
-        it("Should be run in the context of the last block with without block tag param", async function () {
+        it("Should be run in the context of the last block without block tag param", async function () {
           const firstBlock = await getFirstBlock();
           const timestamp = getCurrentTimestamp() + 60;
           await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
@@ -599,6 +600,42 @@ describe("Eth module", function () {
           ]);
 
           await assertNodeBalances(this.provider, [
+            DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
+            DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
+          ]);
+        });
+
+        it("Should return the pending balance", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+
+          await assertPendingNodeBalances(this.provider, [
+            DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000),
+            DEFAULT_ACCOUNTS_BALANCES[1].addn(1),
+          ]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(2),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(2),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
             DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
           ]);
@@ -1044,6 +1081,43 @@ describe("Eth module", function () {
             ]),
             "0x"
           );
+        });
+
+        it("Should return the deployed code in the context of a new block with 'pending' block tag param", async function () {
+          const snapshotId = await this.provider.send("evm_snapshot");
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          assert.isNotNull(contractAddress);
+
+          const contractCodeBefore = await this.provider.send("eth_getCode", [
+            contractAddress,
+            "latest",
+          ]);
+
+          await this.provider.send("evm_revert", [snapshotId]);
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+              gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
+            },
+          ]);
+          const txReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+          const contractCodeAfter = await this.provider.send("eth_getCode", [
+            contractAddress,
+            "pending",
+          ]);
+
+          assert.isNull(txReceipt);
+          assert.strictEqual(contractCodeAfter, contractCodeBefore);
         });
 
         it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
@@ -1948,7 +2022,7 @@ describe("Eth module", function () {
           });
 
           describe("When a slot has been written into", function () {
-            describe("When 32 bytes where written", function () {
+            describe("When 32 bytes were written", function () {
               it("Should return a 32-byte DATA string", async function () {
                 const firstBlock = await getFirstBlock();
                 const exampleContract = await deployContract(
@@ -1971,6 +2045,83 @@ describe("Eth module", function () {
                     numberToRpcQuantity(2),
                   ]),
                   "0x1234567890123456789012345678901234567890123456789012345678901234"
+                );
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    exampleContract,
+                    numberToRpcQuantity(2),
+                    "latest",
+                  ]),
+                  "0x1234567890123456789012345678901234567890123456789012345678901234"
+                );
+              });
+
+              it("Should return a 32-byte DATA string in the context of a new block with 'pending' block tag param", async function () {
+                const snapshotId = await this.provider.send("evm_snapshot");
+                const contractAddress = await deployContract(
+                  this.provider,
+                  `0x${EXAMPLE_CONTRACT.bytecode.object}`
+                );
+
+                await this.provider.send("evm_revert", [snapshotId]);
+                await this.provider.send("evm_setAutomineEnabled", [false]);
+
+                const txHash = await this.provider.send("eth_sendTransaction", [
+                  {
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    data: `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+                    gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
+                  },
+                ]);
+                const txReceipt = await this.provider.send(
+                  "eth_getTransactionReceipt",
+                  [txHash]
+                );
+
+                assert.isNotNull(contractAddress);
+                assert.isNull(txReceipt);
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    contractAddress,
+                    numberToRpcQuantity(2),
+                  ]),
+                  "0x0000000000000000000000000000000000000000000000000000000000000000"
+                );
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    contractAddress,
+                    numberToRpcQuantity(2),
+                    "pending",
+                  ]),
+                  "0x1234567890123456789012345678901234567890123456789012345678901234"
+                );
+              });
+
+              it("Should return a zero-value 32-byte DATA string in the context of the first block with 'earliest' block tag param", async function () {
+                const exampleContract = await deployContract(
+                  this.provider,
+                  `0x${EXAMPLE_CONTRACT.bytecode.object}`
+                );
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    exampleContract,
+                    numberToRpcQuantity(2),
+                    "latest",
+                  ]),
+                  "0x1234567890123456789012345678901234567890123456789012345678901234"
+                );
+
+                assert.strictEqual(
+                  await this.provider.send("eth_getStorageAt", [
+                    exampleContract,
+                    numberToRpcQuantity(2),
+                    "earliest",
+                  ]),
+                  "0x0000000000000000000000000000000000000000000000000000000000000000"
                 );
               });
             });
@@ -2550,6 +2701,33 @@ describe("Eth module", function () {
             await this.provider.send("eth_getTransactionCount", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
               "latest",
+            ]),
+            1
+          );
+        });
+
+        it("Should return transaction count in context of a new block with 'pending' block tag param", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+            },
+          ]);
+
+          assertQuantity(
+            await this.provider.send("eth_getTransactionCount", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              "latest",
+            ]),
+            0
+          );
+
+          assertQuantity(
+            await this.provider.send("eth_getTransactionCount", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              "pending",
             ]),
             1
           );
