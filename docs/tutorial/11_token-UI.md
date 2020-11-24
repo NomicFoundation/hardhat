@@ -15,9 +15,12 @@ import TokenArtifact from "./contracts/Token.json"
 import contractAddress from "./contracts/contract-address.json"
 
 
+var ethDispObj
+
 class EthereumDisplay extends React.Component {
   constructor(props) {
     super(props)
+    ethDispObj = this
     this.state = {
       network: "???",
       ourAddr: "???",
@@ -35,7 +38,7 @@ class EthereumDisplay extends React.Component {
 
   // Process a NewBalance event
   async processEvent(addr, balance) {
-    this.setState({tokenBalance: balance.toNumber()})
+    ethDispObj.setState({tokenBalance: balance.toNumber()})
   }     // processEvent
 
 
@@ -55,8 +58,7 @@ class EthereumDisplay extends React.Component {
       const net = await provider.getNetwork()
 
       const ourAddr = await signer.getAddress()
-      const tokenContract = new ethers.Contract(this.state.tokenAddr,
-	 TokenArtifact.abi, signer)
+      const tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
 
       const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
       const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
@@ -91,11 +93,11 @@ class EthereumDisplay extends React.Component {
     try {
       toAddr = ethers.utils.getAddress(evt.target.value)
 
-      this.setState({
+      ethDispObj.setState({
         transferToField: evt.target.value,
         transferToAddr:  toAddr})
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         transferToField: evt.target.value,
         transferToAddr:  ""})
     }
@@ -103,15 +105,15 @@ class EthereumDisplay extends React.Component {
 
 
   handleTAChange(evt) {
-    this.setState({transferAmt: evt.target.value})
+    ethDispObj.setState({transferAmt: evt.target.value})
   }
 
 
   getInitialStake() {
     try {
-      this.state.tokenContract.getInitialStake()
+      ethDispObj.state.tokenContract.getInitialStake()
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
       })
     }
@@ -120,9 +122,9 @@ class EthereumDisplay extends React.Component {
 
   burnToken() {
     try {
-      this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+      ethDispObj.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
       })
     }
@@ -131,9 +133,10 @@ class EthereumDisplay extends React.Component {
 
   transferToken() {
     try {
-      this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
+      ethDispObj.state.tokenContract.transfer(
+         ethDispObj.state.transferToAddr, ethDispObj.state.transferAmt)
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
       })
     }
@@ -207,6 +210,7 @@ function App() {
 
 export default App;
 
+
 ```
 
 If you have both your React and your Buidler EVM running, after you save this file you should be able to browse to http://localhost:3000, 
@@ -225,6 +229,13 @@ import TokenArtifact from "./contracts/Token.json"
 import contractAddress from "./contracts/contract-address.json"
 ```
 
+For some reason, probably a software bug, `this` is not defined inside the callbacks of the React component we create. There
+is only ever going to be one `EthereumDisplay` in this application, so we can use a global variable to point to the component.
+
+```js
+var ethDispObj
+```
+
 React components are implemented as [JavaScript classes](https://www.w3schools.com/js/js_classes.asp) that inherit from `React.Component`.
 
 ```js
@@ -232,6 +243,12 @@ class EthereumDisplay extends React.Component {
   constructor(props) {
     super(props)
 ```
+
+Set the global variable so we'll be able to use it later.
+```js
+    ethDispObj = this
+```
+
 
 All the variables that make up the state of the component are supposed to be stored inside a `state` associative array. In the
 constructor you just assign values to this array.
@@ -261,12 +278,12 @@ later). It receives as parameters the two values of that event, the address and 
 ```  
 
 The method `this.setState` is used to update the state once component has been mounted. In addition to changing `this.state` it 
-reruns `render` to render the component with the new data.
+reruns `render` to render the component with the new data. Because `this` is not always available, we use `ethDispObj`.
 
 The balance is provided in a type called [BigNumber](https://docs.ethers.io/v5/api/utils/bignumber/). 
 
 ```js  
-    this.setState({tokenBalance: balance.toNumber()})
+    ethDispObj.setState({tokenBalance: balance.toNumber()})
   }     // processEvent
 ```
 
@@ -386,7 +403,7 @@ and to modify the state variable tied to the field in that function.
 
 ```js
   handleTAChange(evt) {
-    this.setState({transferAmt: evt.target.value})
+    ethDispObj.setState({transferAmt: evt.target.value})
   }
 ```
 
@@ -396,7 +413,7 @@ This is another field change function, but this one has extra functionality.
   // When the transferTo field is changed, accept the change. If the new value is a valid
   // address, put the valid address in the state.
   handleTTFChange(evt) {
-    var toAddr;
+    var toAddr
 ```
 
 If you give [`ethers.utils.getAddress`](https://docs.ethers.io/v5/api/utils/address/#utils-getAddress) a 
@@ -413,11 +430,11 @@ value in the input field. If it is valid, we also update `this.state.transferToA
 address (otherwise we set it to an empty string).
 
 ```js
-      this.setState({
+      ethDispObj.setState({
         transferToField: evt.target.value,
         transferToAddr:  toAddr})
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         transferToField: evt.target.value,
         transferToAddr:  ""})
     }
@@ -430,9 +447,9 @@ fail, so we use `try ... catch` again.
 ```js
   getInitialStake() {
     try {
-      this.state.tokenContract.getInitialStake()
+      ethDispObj.state.tokenContract.getInitialStake()
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
       })
     }
@@ -441,9 +458,9 @@ fail, so we use `try ... catch` again.
 
   burnToken() {
     try {
-      this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+      ethDispObj.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
       })
     }
@@ -452,9 +469,9 @@ fail, so we use `try ... catch` again.
 
   transferToken() {
     try {
-      this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
+      ethDispObj.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
     } catch (err) {
-      this.setState({
+      ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
       })
     }
