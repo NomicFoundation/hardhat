@@ -235,7 +235,7 @@ ${missingLibraries}`
   return linkBytecode(artifact, [...linksToApply.values()]);
 }
 
-export async function getContractFactoryByAbiAndBytecode(
+async function getContractFactoryByAbiAndBytecode(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike,
