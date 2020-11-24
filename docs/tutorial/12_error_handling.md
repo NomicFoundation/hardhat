@@ -14,9 +14,14 @@ The best way to create a user friendly application is to simulate all of those e
 |---------------------------------------------------|-----------------------------|
 | Connected to the wrong network                    | Varies (depends on network)                                                     |
 | Invalid nonce     |  message includes "Invalid nonce" |
+| Attempt to do anything prior to permitting access in MetaMask | message = "Permissions request already pending; please wait" |
+| User rejects the request in MetaMask | message = "User rejected the request." |
 | The Hardhat blockchain isn't running | message includes "Response has no error or result for request" |
 | Not enough tokens for operation                   | data.message = "VM Exception while processing transaction: revert Not enough tokens" |
-| Attempt to get an initial stake after it was taken | data.message = "VM Exception while processing transaction: revert Initial stake already taken" | 
+| Attempt to get an initial stake after it was taken | data.message = "VM Exception while processing transaction: revert Initial stake already taken" |
+| Attempt to transfer without a destination address | reason = "network does not support ENS" |
+
+With this knowledge we can modify `App.js` to be more informative.
 
 Now that everything else is configured, replace `frontend/src/App.js` with this file:
 
