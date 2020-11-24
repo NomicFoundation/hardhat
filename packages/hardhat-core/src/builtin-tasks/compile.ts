@@ -255,7 +255,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
       const connectedComponents = dependencyGraph.getConnectedComponents();
 
       log(
-        `The dependency graph was dividied in '${connectedComponents.length}' connected components`
+        `The dependency graph was divided in '${connectedComponents.length}' connected components`
       );
 
       const compilationJobsCreationResults = await Promise.all(
@@ -936,6 +936,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
   .addParam("compilationJobs", undefined, undefined, types.any)
   .addParam("compilationJobIndex", undefined, undefined, types.int)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addOptionalParam("emitsArtifacts", undefined, true, types.boolean)
   .setAction(
     async (
       {
@@ -943,14 +944,22 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
         compilationJobs,
         compilationJobIndex,
         quiet,
+        emitsArtifacts,
       }: {
         compilationJob: CompilationJob;
         compilationJobs: CompilationJob[];
         compilationJobIndex: number;
         quiet: boolean;
+        emitsArtifacts: boolean;
       },
       { run }
-    ): Promise<{ artifactsEmittedPerFile: ArtifactsEmittedPerFile }> => {
+    ): Promise<{
+      artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+      compilationJob: taskTypes.CompilationJob;
+      input: CompilerInput;
+      output: CompilerOutput;
+      solcBuild: any;
+    }> => {
       log(
         `Compiling job with version '${compilationJob.getSolcConfig().version}'`
       );
@@ -972,17 +981,25 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
 
       await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
 
-      const { artifactsEmittedPerFile } = await run(
-        TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
-        {
-          compilationJob,
-          input,
-          output,
-          solcBuild,
-        }
-      );
+      let artifactsEmittedPerFile = [];
+      if (emitsArtifacts) {
+        artifactsEmittedPerFile = (
+          await run(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS, {
+            compilationJob,
+            input,
+            output,
+            solcBuild,
+          })
+        ).artifactsEmittedPerFile;
+      }
 
-      return { artifactsEmittedPerFile };
+      return {
+        artifactsEmittedPerFile,
+        compilationJob,
+        input,
+        output,
+        solcBuild,
+      };
     }
   );
 
@@ -1263,7 +1280,7 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
   });
 
 /**
- * If a file is present in the cache, but some of its artifacts is missing on
+ * If a file is present in the cache, but some of its artifacts are missing on
  * disk, we remove it from the cache to force it to be recompiled.
  */
 async function invalidateCacheMissingArtifacts(

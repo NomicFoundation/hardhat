@@ -96,11 +96,7 @@ Reason: ${error.message}`,
   }
 
   if (etherscanResponse.isVerificationFailure()) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The contract verification failed.
-Reason: ${etherscanResponse.message}`
-    );
+    return etherscanResponse;
   }
 
   if (!etherscanResponse.isOk()) {
