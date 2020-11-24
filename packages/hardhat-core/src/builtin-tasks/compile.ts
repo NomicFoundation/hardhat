@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { exec } from "child_process";
 import debug from "debug";
+import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
@@ -69,6 +70,7 @@ import {
   TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_END,
   TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START,
   TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
+  TASK_COMPILE_SOLIDITY_READ_FILE,
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
 } from "./task-names";
@@ -137,6 +139,18 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES)
     }
   );
 
+subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
+  .addParam("absolutePath", undefined, undefined, types.string)
+  .setAction(
+    async ({ absolutePath }: { absolutePath: string }): Promise<string> => {
+      const content = await fsExtra.readFile(absolutePath, {
+        encoding: "utf8",
+      });
+
+      return content;
+    }
+  );
+
 /**
  * Receives a list of source names and returns a dependency graph. This task
  * is responsible for both resolving dependencies (like getting files from
@@ -151,10 +165,15 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
         sourceNames,
         solidityFilesCache,
       }: { sourceNames: string[]; solidityFilesCache?: SolidityFilesCache },
-      { config }
+      { config, run }
     ): Promise<taskTypes.DependencyGraph> => {
       const parser = new Parser(solidityFilesCache);
-      const resolver = new Resolver(config.paths.root, parser);
+      const resolver = new Resolver(
+        config.paths.root,
+        parser,
+        (absolutePath: string) =>
+          run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
+      );
 
       const resolvedFiles = await Promise.all(
         sourceNames.map((sn) => resolver.resolveSourceName(sn))
@@ -1185,6 +1204,7 @@ subtask(TASK_COMPILE_SOLIDITY)
         for (const { file, artifactsEmitted } of artifactsEmittedPerFile) {
           solidityFilesCache.addFile(file.absolutePath, {
             lastModificationDate: file.lastModificationDate.valueOf(),
+            contentHash: file.contentHash,
             sourceName: file.sourceName,
             solcConfig: compilationJob.getSolcConfig(),
             imports: file.content.imports,
@@ -1287,7 +1307,7 @@ function needsCompilation(
   for (const file of job.getResolvedFiles()) {
     const hasChanged = cache.hasFileChanged(
       file.absolutePath,
-      file.lastModificationDate,
+      file.contentHash,
       // we only check if the solcConfig is different for files that
       // emit artifacts
       job.emitsArtifacts(file) ? job.getSolcConfig() : undefined
