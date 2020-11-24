@@ -60,7 +60,14 @@ contract Token {
         balances[msg.sender] = totalSupply;
         owner = msg.sender;
     }
+    
+    
+    // Inform the world about a change in an account's balance
+    event NewBalance(address addr, uint balance);
 
+    function informBalance(address addr) private {
+        emit NewBalance(addr, balances[addr]);
+    }
 
 
     /**
@@ -78,6 +85,10 @@ contract Token {
         // Transfer the amount.
         balances[msg.sender] -= amount;
         balances[to] += amount;
+        
+        // Inform the world of the change
+        informBalance(msg.sender);
+        informBalance(to);        
     }
     
     
@@ -101,6 +112,9 @@ contract Token {
         // Transfer the initial stake
         balances[owner] -= 1000;
         balances[msg.sender] += 1000;
+        
+        informBalance(msg.sender);
+        informBalance(owner);        
     }    
     
     
