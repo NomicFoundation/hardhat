@@ -63,6 +63,7 @@
       { "type": "enum", "format": "PascalCase" },
       { "type": "enumMember", "format": "UPPER_CASE" }
     ],
-    "no-duplicate-imports": [true, { "allow-namespace-imports": true }]
+    "no-duplicate-imports": [true, { "allow-namespace-imports": true }],
+    "triple-equals": true
   }
 }

@@ -2,6 +2,10 @@
 
 This document contains some tips on how to collaborate in this project.
 
+## Filing an issue
+
+If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
+
 ## Project structure
 
 This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).

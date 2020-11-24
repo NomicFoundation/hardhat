@@ -48,6 +48,7 @@ describe("Resolved file", function () {
       sourceName,
       absolutePath,
       content,
+      "<content-hash-file-without-library>",
       lastModificationDate
     );
 
@@ -55,6 +56,7 @@ describe("Resolved file", function () {
       sourceName,
       absolutePath,
       content,
+      "<content-hash-file-with-library>",
       lastModificationDate,
       libraryName,
       libraryVersion
@@ -126,7 +128,9 @@ describe("Resolver", function () {
   });
 
   beforeEach("Init resolver", async function () {
-    resolver = new Resolver(projectPath, new Parser());
+    resolver = new Resolver(projectPath, new Parser(), (absolutePath) =>
+      fsExtra.readFile(absolutePath, { encoding: "utf8" })
+    );
   });
 
   describe("resolveSourceName", function () {
@@ -288,6 +292,7 @@ describe("Resolver", function () {
           imports: [],
           versionPragmas: [],
         },
+        "<content-hash-c>",
         new Date()
       );
 
@@ -299,6 +304,7 @@ describe("Resolver", function () {
           imports: [],
           versionPragmas: [],
         },
+        "<content-hash-l>",
         new Date(),
         "lib",
         "1.0.0"
