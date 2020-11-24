@@ -9,7 +9,7 @@ The entirety of your Hardhat setup (i.e. your config, plugins and custom tasks) 
 
 To set up your config, you have to export an object from `hardhat.config.js`.
 
-This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), and [`paths`](#path-configuration). For example:
+This object can have entries like `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), [`paths`](#path-configuration) and [`mocha`](#mocha). For example:
 
 ```js
 module.exports = {
@@ -36,6 +36,9 @@ module.exports = {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts"
+  },
+  mocha: {
+    timeout: 20000
   }
 }
 ```
@@ -182,6 +185,10 @@ You can customize the different paths that Hardhat uses by providing an object t
 
 - `cache`: The directory used by Hardhat to cache its internal stuff. This path is resolved from the project's root. Default value: `'./cache'`.
 - `artifacts`: The directory where the compilation artifacts are stored. This path is resolved from the project's root. Default value: `'./artifacts'`.
+
+## Mocha configuration
+
+You can configure how your tests are run using the `mocha` entry, which accepts the same options as [Mocha](https://mochajs.org/).
 
 ## Quickly integrating other tools from Hardhat's config
 
