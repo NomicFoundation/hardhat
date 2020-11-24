@@ -49,7 +49,7 @@ class EthereumDisplay extends React.Component {
       return
     }
     try {
-      await window.ethereum.eth_requestAccounts()
+      await window.ethereum.enable()
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const signer = provider.getSigner()
       const net = await provider.getNetwork()
@@ -310,7 +310,7 @@ familiar with this feature).
 Ask the user to approve the use of MetaMask for this web page. 
 
 ```js    
-      await window.ethereum.eth_requestAccounts()
+      await window.ethereum.enable()
 ```
 
 Obtain the basic ethers API objects: [provider](https://docs.ethers.io/v5/api/providers/) for access that does not require user
