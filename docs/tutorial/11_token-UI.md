@@ -111,7 +111,7 @@ class EthereumDisplay extends React.Component {
 
   getInitialStake() {
     try {
-      ethDispObj.state.tokenContract.getInitialStake()
+      await ethDispObj.state.tokenContract.getInitialStake()
     } catch (err) {
       ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
@@ -122,7 +122,8 @@ class EthereumDisplay extends React.Component {
 
   burnToken() {
     try {
-      ethDispObj.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+      await ethDispObj.state.tokenContract.transfer(
+        "0000000000000000000000000000000000000000", 1)
     } catch (err) {
       ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
@@ -133,7 +134,7 @@ class EthereumDisplay extends React.Component {
 
   transferToken() {
     try {
-      ethDispObj.state.tokenContract.transfer(
+      await ethDispObj.state.tokenContract.transfer(
          ethDispObj.state.transferToAddr, ethDispObj.state.transferAmt)
     } catch (err) {
       ethDispObj.setState({
@@ -442,12 +443,12 @@ address (otherwise we set it to an empty string).
 ```
 
 These three functions implement the different actions that a user can perform on the contract. These actions can
-fail, so we use `try ... catch` again.
+fail, so we use `try ... catch` again. We `await` so we'll see if the transaction fails and why.
 
 ```js
   getInitialStake() {
     try {
-      ethDispObj.state.tokenContract.getInitialStake()
+      await ethDispObj.state.tokenContract.getInitialStake()
     } catch (err) {
       ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
@@ -458,7 +459,7 @@ fail, so we use `try ... catch` again.
 
   burnToken() {
     try {
-      ethDispObj.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+      await ethDispObj.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
     } catch (err) {
       ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
@@ -469,7 +470,7 @@ fail, so we use `try ... catch` again.
 
   transferToken() {
     try {
-      ethDispObj.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
+      await ethDispObj.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
     } catch (err) {
       ethDispObj.setState({
         error: <>{JSON.stringify(err)}</>
