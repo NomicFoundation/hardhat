@@ -10,11 +10,13 @@ In general, error conditions come from two sources in a simple dapp:
 
 The best way to create a user friendly application is to simulate all of those error conditions and see what errors they produce
 
-| Error condition                                   | err.code                             |      other error fields (as applicable)    |
-|---------------------------------------------------|--------------------------------------|--------------------------------------------|
-| Connected to the wrong network                    | Varies (depends on network)          |                                            |
-| 
-
+| Error condition                                   | error fields    |
+|---------------------------------------------------|-----------------------------|
+| Connected to the wrong network                    | Varies (depends on network)                                                     |
+| Invalid nonce     |  message includes "Invalid nonce" |
+| The Hardhat blockchain isn't running | message includes "Response has no error or result for request" |
+| Not enough tokens for operation                   | data.message = "VM Exception while processing transaction: revert Not enough tokens" |
+| Attempt to get an initial stake after it was taken | data.message = "VM Exception while processing transaction: revert Initial stake already taken" | 
 
 Now that everything else is configured, replace `frontend/src/App.js` with this file:
 
