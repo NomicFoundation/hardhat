@@ -1,11 +1,19 @@
 # 12. Error Handling
 
-The application in the previous section works if everything goes well. In the real world you cannot count on that. There are two likely error types:
+The application in the previous section works well if everything is working correctly. However, if there is any error it just shows that JSON that users
+won't understand. To fix this, we identify all the ways that the application can go wrong and give informative error messages for them.
+
+In general, error conditions come from two sources in a simple dapp:
 
 1. Communication errors (for example, being unable to connect to the blockchain)
 1. User mistakes (For example, an attempt to transfer more tokens than the user has)
 
+The best way to create a user friendly application is to simulate all of those error conditions and see what errors they produce
 
+| Error condition                                   | err.code                             |      other error fields (as applicable)    |
+|---------------------------------------------------|--------------------------------------|--------------------------------------------|
+| Connected to the wrong network                    | Varies (depends on network)          |                                            |
+| 
 
 
 Now that everything else is configured, replace `frontend/src/App.js` with this file:
