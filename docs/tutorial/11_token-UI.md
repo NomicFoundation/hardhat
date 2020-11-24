@@ -474,7 +474,21 @@ Notice that this is not a string. The `render` function typically returns
 [JSX](https://reactjs.org/docs/introducing-jsx.html), which is an extension
 to the JavaScript syntax that makes it easier to write React components.
 
+If there is any error then the `render` function returns that error.
 ```js
+     // All the returned HTML needs to be packed in a single tag
+     if (this.state.error)
+       return (
+         <>
+           <h2>ERROR</h2>
+           {this.state.error}
+         </>
+       )
+```
+
+Otherwise, it returns the normal user interface.
+
+```js 
      return (
          <>
          <h2>Ethereum Status</h2>
