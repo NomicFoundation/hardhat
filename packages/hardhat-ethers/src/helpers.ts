@@ -216,7 +216,10 @@ Remove one of them and review your library links before proceeding.`
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `The contract ${contractName} is missing links for the following libraries:
-${missingLibraries}`
+${missingLibraries}
+
+Learn more about linking contracts at https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html#library-linking
+`
     );
   }
 
