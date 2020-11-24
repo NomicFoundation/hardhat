@@ -27,6 +27,10 @@ function transfer(address to, uint256 amount) external {
 
     balances[msg.sender] -= amount;
     balances[to] += amount;
+    
+    // Inform the world of the change
+    informBalance(msg.sender);
+    informBalance(to);    
 }
 ```
 
