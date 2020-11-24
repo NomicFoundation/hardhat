@@ -36,28 +36,37 @@ class EthereumDisplay extends React.Component {
   // Process a NewBalance event
   async processEvent(addr, balance) {
     this.setState({tokenBalance: balance.toNumber()})
-  }     // processEvent  
-  
+  }     // processEvent
+
 
   // This function is called after the component is rendered.
   async componentDidMount() {
-    await window.ethereum.enable()
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
-    const net = await provider.getNetwork()
+    if (!window.ethereum) {
+      this.setState({
+        error: <>No wallet, get <a href="https://metamask.io">Metamask</a></>
+      })
 
-    const ourAddr = await signer.getAddress()
-    const tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
+      return
+    }
+    try {
+      await window.ethereum.enable()
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const signer = provider.getSigner()
+      const net = await provider.getNetwork()
 
-    const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
-    const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
+      const ourAddr = await signer.getAddress()
+      const tokenContract = new ethers.Contract(this.state.tokenAddr,
+	 TokenArtifact.abi, signer)
 
-    tokenContract.on(
+      const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
+      const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
+
+      tokenContract.on(
         tokenContract.filters.NewBalance(ourAddr),
         this.processEvent
-    )
+      )
 
-    this.setState({
+      this.setState({
         provider: provider,
         signer:   signer,
         tokenContract: tokenContract,
@@ -65,7 +74,13 @@ class EthereumDisplay extends React.Component {
         etherBalance: etherBalance,
         tokenBalance: tokenBalance,
         network: `${net.name} (${net.chainId})`
-    })   // this.setState
+      })   // this.setState
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
+
   }   // componentDidMount
 
 
@@ -93,17 +108,36 @@ class EthereumDisplay extends React.Component {
 
 
   getInitialStake() {
-    this.state.tokenContract.getInitialStake()
+    try {
+      this.state.tokenContract.getInitialStake()
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
   }  // getInitialStake
 
 
   burnToken() {
-    this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+    try {
+      this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
   }
 
 
   transferToken() {
-    this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
+    try {
+      this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
+
   }  // transferToken
 
 
@@ -112,7 +146,15 @@ class EthereumDisplay extends React.Component {
 
   render() {
      // All the returned HTML needs to be packed in a single tag
-     return (
+     if (this.state.error)
+       return (
+         <>
+           <h2>ERROR</h2>
+           {this.state.error}
+         </>
+       )
+     else
+       return (
          <>
          <h2>Ethereum Status</h2>
          <table className="table table-bordered table-striped">
@@ -164,6 +206,7 @@ function App() {
 }
 
 export default App;
+
 ```
 
 If you have both your React and your Buidler EVM running, after you save this file you should be able to browse to http://localhost:3000, 
@@ -233,25 +276,49 @@ constructor, there are two possibilities:
 1. We receive the answer before the `EthereumDisplay` component is mounted, and to change the state we need to use `this.state[<key>] = <value>`.
 2. We receive the answer after the component is mounted, and to change the state we need to use `this.setState({<key>: <value>}`
 
-There is no way to know which to use. Instead, we run them from `componentDidMount`, which is always called after the component is mounted.
+There is no easy way to know which to use. So instead, we run those functions from `componentDidMount`, which is always called after the component is mounted.
 
 ```js
   // This function is called after the component is rendered.
   async componentDidMount() {
 ```  
 
-Ask the user to approve the use of MetaMask for this web page. 
+If there is no `window.ethereum` then we don't have a wallet installed. In that case we set an error (you will see how it is 
+displayed later) and exit the function. Notice that the error is not a string. We want an error that we can display as 
+HTML, so we use [JSX](https://reactjs.org/docs/introducing-jsx.html), an extension
+to the JavaScript syntax that makes it easier to write React components.
+
+```
+    if (!window.ethereum) {
+      this.setState({
+        error: <>No wallet, get <a href="https://metamask.io">Metamask</a></>
+      })
+
+      return
+    }
+```    
+
+There could be many reasons for the Ethereum functions to fail. Maybe the user hasn't permitted wallet access to the web page yet.
+Maybe we are connected to the wrong network. Maybe the contract address is wrong for some reason. To deal with all of these
+error conditions we put all the calls inside a `try ... catch` block ([see here](w3schools.com/js/js_errors.asp) if you are not
+familiar with this feature).
   
-```js  
-    await window.ethereum.enable()
+```js
+    try {
+```
+
+Ask the user to approve the use of MetaMask for this web page. 
+
+```js    
+      await window.ethereum.enable()
 ```
 
 Obtain the basic ethers API objects: [provider](https://docs.ethers.io/v5/api/providers/) for access that does not require user
 approval and [signer](https://docs.ethers.io/v5/api/signer/) for access that does require approval (usually because it costs something).
     
 ```js    
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const signer = provider.getSigner()
 ```
 
 Obtain additional information about our [blockchain network](https://docs.ethers.io/v5/api/providers/provider/#Provider-getNetwork) 
@@ -259,9 +326,9 @@ and [user address](https://docs.ethers.io/v5/api/signer/#Signer-getaddress). The
 [contract API](https://docs.ethers.io/v5/api/contract/). 
 
 ```js
-    const net = await provider.getNetwork()
-    const ourAddr = await signer.getAddress()
-    const tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
+      const net = await provider.getNetwork()
+      const ourAddr = await signer.getAddress()
+      const tokenContract = new ethers.Contract(this.state.tokenAddr, TokenArtifact.abi, signer)
 ```
 
 Get the current balances (Ether and tokens). 
@@ -272,8 +339,8 @@ if you are interested, or remove this information because MetaMask shows it anyw
 :::
 
 ```js
-    const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
-    const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
+      const etherBalance = ethers.utils.formatEther(await provider.getBalance(ourAddr))
+      const tokenBalance = (await tokenContract.balanceOf(ourAddr)).toNumber()
 ```
 
 The contract API lets you specify filters to receive only those events you care about. In this case,
@@ -281,16 +348,16 @@ we only care about `NewBalance` events, and only if the first parameter (the add
 as the user address.
 
 ```js
-    tokenContract.on(
+      tokenContract.on(
         tokenContract.filters.NewBalance(ourAddr),
         this.processEvent
-    )
+      )
 ```
 
 Update the state.
 
 ```js
-    this.setState({
+      this.setState({
         provider: provider,
         signer:   signer,
         tokenContract: tokenContract,
@@ -299,6 +366,17 @@ Update the state.
         tokenBalance: tokenBalance,
         network: `${net.name} (${net.chainId})`
     })   // this.setState
+```
+
+If there are any errors, set `error` to the information received. This is not user friendly, but we will deal with that
+later.
+
+```js
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
   }   // componentDidMount
 ```
 
@@ -346,22 +424,43 @@ address (otherwise we set it to an empty string).
   }
 ```
 
-These three functions implement the different actions that a user can perform on the contract.
+These three functions implement the different actions that a user can perform on the contract. These actions can
+fail, so we use `try ... catch` again.
 
 ```js
   getInitialStake() {
-    this.state.tokenContract.getInitialStake()
+    try {
+      this.state.tokenContract.getInitialStake()
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
   }  // getInitialStake
-
+  
 
   burnToken() {
-    this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+    try {
+      this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
   }
 
 
   transferToken() {
-    this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
+    try {
+      this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
+    } catch (err) {
+      this.setState({
+        error: <>ERROR {JSON.stringify(err)}</>
+      })
+    }
+
   }  // transferToken
+
 ```
 
 This function is called to render the component.
