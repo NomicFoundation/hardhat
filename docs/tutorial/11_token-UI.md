@@ -77,7 +77,7 @@ class EthereumDisplay extends React.Component {
       })   // this.setState
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
 
@@ -112,7 +112,7 @@ class EthereumDisplay extends React.Component {
       this.state.tokenContract.getInitialStake()
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
   }  // getInitialStake
@@ -123,7 +123,7 @@ class EthereumDisplay extends React.Component {
       this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
   }
@@ -134,7 +134,7 @@ class EthereumDisplay extends React.Component {
       this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
 
@@ -374,7 +374,7 @@ later.
 ```js
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
   }   // componentDidMount
@@ -433,7 +433,7 @@ fail, so we use `try ... catch` again.
       this.state.tokenContract.getInitialStake()
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
   }  // getInitialStake
@@ -444,7 +444,7 @@ fail, so we use `try ... catch` again.
       this.state.tokenContract.transfer("0000000000000000000000000000000000000000", 1)
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
   }
@@ -455,7 +455,7 @@ fail, so we use `try ... catch` again.
       this.state.tokenContract.transfer(this.state.transferToAddr, this.state.transferAmt)
     } catch (err) {
       this.setState({
-        error: <>ERROR {JSON.stringify(err)}</>
+        error: <>{JSON.stringify(err)}</>
       })
     }
 
