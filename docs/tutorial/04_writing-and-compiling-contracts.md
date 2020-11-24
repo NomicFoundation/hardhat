@@ -103,7 +103,7 @@ contract Token {
         // Check if the transaction sender has enough tokens.
         // If `require`'s first argument evaluates to `false` then the
         // transaction will revert.
-        require(initialStakeAvailable); 
+        require(initialStakeAvailable, "Initial stake already taken"); 
         require(balances[owner] >= 1000, "Not enough tokens for initial stake");
 
         // This is a one time function
