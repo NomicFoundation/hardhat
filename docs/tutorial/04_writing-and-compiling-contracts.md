@@ -63,7 +63,7 @@ contract Token {
     
     
     // Inform the world about a change in an account's balance
-    event NewBalance(address addr, uint balance);
+    event NewBalance(address indexed addr, uint balance);
 
     function informBalance(address addr) private {
         emit NewBalance(addr, balances[addr]);
