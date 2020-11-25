@@ -843,9 +843,7 @@ describe("Eth module", function () {
             [numberToRpcQuantity(firstBlockNumber), false]
           );
 
-          assert.isString(
-            firstBlock.mixHash
-          );
+          assert.isString(firstBlock.mixHash);
           assert.match(firstBlock.mixHash!, /0x[0-9A-Fa-f]{64}/);
 
           await this.provider.send("evm_mine", []);
@@ -855,9 +853,7 @@ describe("Eth module", function () {
             [numberToRpcQuantity(firstBlockNumber + 1), false]
           );
 
-          assert.isString(
-            newBlock.mixHash
-          );
+          assert.isString(newBlock.mixHash);
           assert.match(newBlock.mixHash!, /0x[0-9A-Fa-f]{64}/);
         });
 
