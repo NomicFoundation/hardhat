@@ -1031,7 +1031,7 @@ export class EthModule {
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountNonce(rpcTx.from, "pending"),
+          : await this._node.getAccountExecutableNonce(rpcTx.from),
     };
   }
 

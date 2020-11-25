@@ -31,7 +31,6 @@
     "lint-tests": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",
-    "test:txpool": "mocha test/internal/hardhat-network/helpers/makeOrderedTxMap.ts test/internal/hardhat-network/helpers/assertEqualTransactionMaps.ts test/internal/hardhat-network/provider/TxPool.ts test/internal/hardhat-network/provider/TxPriorityHeap.ts test/internal/hardhat-network/provider/utils/retrieveNonce.ts test/internal/hardhat-network/provider/utils/reorganizeTransactionsLists.ts",
     "coverage": "node ../../node_modules/nyc/bin/nyc.js ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",
     "build": "node ../../node_modules/typescript/bin/tsc --build src",
     "build-test": "node ../../node_modules/typescript/bin/tsc --build .",

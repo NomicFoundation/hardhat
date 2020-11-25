@@ -3243,218 +3243,239 @@ describe("Eth module", function () {
           });
         });
 
-        it("Should return a valid transaction hash", async function () {
-          const hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              value: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
-            },
-          ]);
-
-          assert.match(hash, /^0x[a-f\d]{64}$/);
-        });
-
-        it("Should work with just from and data", async function () {
-          const firstBlock = await getFirstBlock();
-          const hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: "0x00",
-            },
-          ]);
-
-          const receipt = await this.provider.send(
-            "eth_getTransactionReceipt",
-            [hash]
-          );
-
-          const receiptFromGeth = {
-            blockHash:
-              "0x01490da2af913e9a868430b7b4c5060fc29cbdb1692bb91d3c72c734acd73bc8",
-            blockNumber: "0x6",
-            contractAddress: "0x6ea84fcbef576d66896dc2c32e139b60e641170c",
-            cumulativeGasUsed: "0xcf0c",
-            from: "0xda4585f6e68ed1cdfdad44a08dbe3979ec74ad8f",
-            gasUsed: "0xcf0c",
-            logs: [],
-            logsBloom:
-              "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-            status: "0x1",
-            to: null,
-            transactionHash:
-              "0xbd24cbe9c1633b98e61d93619230341141d2cff49470ed6afa739cee057fd0aa",
-            transactionIndex: "0x0",
-          };
-
-          assertReceiptMatchesGethOne(receipt, receiptFromGeth, firstBlock + 1);
-        });
-
-        it("Should throw if automine is enabled and the transaction's nonce is too high", async function () {
-          await assertInvalidInputError(
-            this.provider,
-            "eth_sendTransaction",
-            [
+        describe("when automine is enabled", () => {
+          it("Should return a valid transaction hash", async function () {
+            const hash = await this.provider.send("eth_sendTransaction", [
               {
-                nonce: numberToRpcQuantity(1),
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              },
-            ],
-            "Nonce too high. Expected nonce to be 0 but got 1. Note that transactions can't be queued when automining."
-          );
-        });
-
-        it("Should throw if automine is enabled and the transaction's nonce is too low", async function () {
-          await sendTxToZeroAddress(this.provider);
-          await assertInvalidInputError(
-            this.provider,
-            "eth_sendTransaction",
-            [
-              {
-                nonce: numberToRpcQuantity(0),
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              },
-            ],
-            "Nonce too low. Expected nonce to be 1 but got 0."
-          );
-        });
-
-        it("Should throw if automine is disabled and the transaction's nonce is too low", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
-          await sendTxToZeroAddress(this.provider);
-          await assertInvalidInputError(
-            this.provider,
-            "eth_sendTransaction",
-            [
-              {
-                nonce: numberToRpcQuantity(0),
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              },
-            ],
-            "Nonce too low. Expected nonce to be at least 1 but got 0."
-          );
-        });
-
-        it("Should throw if the transaction fails", async function () {
-          // Not enough gas
-          await assertInvalidInputError(
-            this.provider,
-            "eth_sendTransaction",
-            [
-              {
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                to: zeroAddress(),
-                gas: numberToRpcQuantity(1),
-              },
-            ],
-            "Transaction requires at least 21000 gas but got 1"
-          );
-
-          // Not enough balance
-          await assertInvalidInputError(
-            this.provider,
-            "eth_sendTransaction",
-            [
-              {
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                to: zeroAddress(),
+                value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(DEFAULT_ACCOUNTS_BALANCES[0]),
+                gasPrice: numberToRpcQuantity(1),
               },
-            ],
-            "sender doesn't have enough funds to send tx"
-          );
+            ]);
 
-          // Gas is larger than block gas limit
-          await assertInvalidInputError(
-            this.provider,
-            "eth_sendTransaction",
-            [
+            assert.match(hash, /^0x[a-f\d]{64}$/);
+          });
+
+          it("Should work with just from and data", async function () {
+            const firstBlock = await getFirstBlock();
+            const hash = await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                to: zeroAddress(),
-                gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1),
+                data: "0x00",
               },
-            ],
-            `Transaction gas limit is ${
-              DEFAULT_BLOCK_GAS_LIMIT + 1
-            } and exceeds block gas limit of ${DEFAULT_BLOCK_GAS_LIMIT}`
-          );
+            ]);
 
-          // Invalid opcode. We try to deploy a contract with an invalid opcode in the deployment code
-          // The transaction gets executed anyway, so the account is updated
-          await assertTransactionFailure(
-            this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: "0xAA",
-            },
-            "Transaction reverted without a reason"
-          );
+            const receipt = await this.provider.send(
+              "eth_getTransactionReceipt",
+              [hash]
+            );
 
-          // Out of gas. This a deployment transaction that pushes 0x00 multiple times
-          // The transaction gets executed anyway, so the account is updated.
-          //
-          // Note: this test is pretty fragile, as the tx needs to have enough gas
-          // to pay for the calldata, but not enough to execute. This costs changed
-          // with istanbul, and may change again in the future.
-          await assertTransactionFailure(
-            this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data:
-                "0x6000600060006000600060006000600060006000600060006000600060006000600060006000600060006000600060006000",
-              gas: numberToRpcQuantity(53500),
-            },
-            "out of gas"
-          );
+            const receiptFromGeth = {
+              blockHash:
+                "0x01490da2af913e9a868430b7b4c5060fc29cbdb1692bb91d3c72c734acd73bc8",
+              blockNumber: "0x6",
+              contractAddress: "0x6ea84fcbef576d66896dc2c32e139b60e641170c",
+              cumulativeGasUsed: "0xcf0c",
+              from: "0xda4585f6e68ed1cdfdad44a08dbe3979ec74ad8f",
+              gasUsed: "0xcf0c",
+              logs: [],
+              logsBloom:
+                "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+              status: "0x1",
+              to: null,
+              transactionHash:
+                "0xbd24cbe9c1633b98e61d93619230341141d2cff49470ed6afa739cee057fd0aa",
+              transactionIndex: "0x0",
+            };
 
-          // Revert. This is a deployment transaction that immediately reverts without a reason
-          // The transaction gets executed anyway, so the account is updated
-          await assertTransactionFailure(
-            this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: "0x60006000fd",
-            },
-            "Transaction reverted without a reason"
-          );
+            assertReceiptMatchesGethOne(
+              receipt,
+              receiptFromGeth,
+              firstBlock + 1
+            );
+          });
 
-          // This is a contract that reverts with A in its constructor
-          await assertTransactionFailure(
-            this.provider,
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data:
-                "0x6080604052348015600f57600080fd5b506040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260018152602001807f410000000000000000000000000000000000000000000000000000000000000081525060200191505060405180910390fdfe",
-            },
-            "revert A"
-          );
+          it("Should throw if the tx nonce is higher than the account nonce", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  nonce: numberToRpcQuantity(1),
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                },
+              ],
+              "Nonce too high. Expected nonce to be 0 but got 1. Note that transactions can't be queued when automining."
+            );
+          });
+
+          it("Should throw if the tx nonce is lower than the account nonce", async function () {
+            await sendTxToZeroAddress(this.provider);
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  nonce: numberToRpcQuantity(0),
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                },
+              ],
+              "Nonce too low. Expected nonce to be 1 but got 0."
+            );
+          });
+
+          it("Should throw if the transaction fails", async function () {
+            // Not enough gas
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: zeroAddress(),
+                  gas: numberToRpcQuantity(1),
+                },
+              ],
+              "Transaction requires at least 21000 gas but got 1"
+            );
+
+            // Not enough balance
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: zeroAddress(),
+                  gas: numberToRpcQuantity(21000),
+                  gasPrice: numberToRpcQuantity(DEFAULT_ACCOUNTS_BALANCES[0]),
+                },
+              ],
+              "sender doesn't have enough funds to send tx"
+            );
+
+            // Gas is larger than block gas limit
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: zeroAddress(),
+                  gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1),
+                },
+              ],
+              `Transaction gas limit is ${
+                DEFAULT_BLOCK_GAS_LIMIT + 1
+              } and exceeds block gas limit of ${DEFAULT_BLOCK_GAS_LIMIT}`
+            );
+
+            // Invalid opcode. We try to deploy a contract with an invalid opcode in the deployment code
+            // The transaction gets executed anyway, so the account is updated
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: "0xAA",
+              },
+              "Transaction reverted without a reason"
+            );
+
+            // Out of gas. This a deployment transaction that pushes 0x00 multiple times
+            // The transaction gets executed anyway, so the account is updated.
+            //
+            // Note: this test is pretty fragile, as the tx needs to have enough gas
+            // to pay for the calldata, but not enough to execute. This costs changed
+            // with istanbul, and may change again in the future.
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data:
+                  "0x6000600060006000600060006000600060006000600060006000600060006000600060006000600060006000600060006000",
+                gas: numberToRpcQuantity(53500),
+              },
+              "out of gas"
+            );
+
+            // Revert. This is a deployment transaction that immediately reverts without a reason
+            // The transaction gets executed anyway, so the account is updated
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: "0x60006000fd",
+              },
+              "Transaction reverted without a reason"
+            );
+
+            // This is a contract that reverts with A in its constructor
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data:
+                  "0x6080604052348015600f57600080fd5b506040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260018152602001807f410000000000000000000000000000000000000000000000000000000000000081525060200191505060405180910390fdfe",
+              },
+              "revert A"
+            );
+          });
         });
 
-        it("Should throw an error if the same transaction is sent twice", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+        describe("when automine is disabled", () => {
+          beforeEach(async function () {
+            await this.provider.send("evm_setAutomineEnabled", [false]);
+          });
 
-          const txParams = {
-            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-            to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-            nonce: numberToRpcQuantity(0),
-          };
+          it("Should not throw if the tx nonce is higher than the account nonce", async function () {
+            await assert.isFulfilled(
+              this.provider.send("eth_sendTransaction", [
+                {
+                  nonce: numberToRpcQuantity(1),
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                },
+              ])
+            );
+          });
 
-          const hash = await this.provider.send("eth_sendTransaction", [
-            txParams,
-          ]);
+          it("Should throw if the tx nonce is lower than the account nonce", async function () {
+            await sendTxToZeroAddress(this.provider);
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  nonce: numberToRpcQuantity(0),
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                },
+              ],
+              "Nonce too low. Expected nonce to be at least 1 but got 0."
+            );
+          });
 
-          await assertTransactionFailure(
-            this.provider,
-            txParams,
-            `Known transaction: ${bufferToHex(hash)}`
-          );
+          it("Should throw an error if the same transaction is sent twice", async function () {
+            const txParams = {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              nonce: numberToRpcQuantity(0),
+            };
+
+            const hash = await this.provider.send("eth_sendTransaction", [
+              txParams,
+            ]);
+
+            await assertTransactionFailure(
+              this.provider,
+              txParams,
+              `Known transaction: ${bufferToHex(hash)}`
+            );
+          });
         });
       });
 
