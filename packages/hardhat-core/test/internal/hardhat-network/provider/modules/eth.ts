@@ -843,10 +843,10 @@ describe("Eth module", function () {
             [numberToRpcQuantity(firstBlockNumber), false]
           );
 
-          assert.equal(
-            firstBlock.mixHash,
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          assert.isString(
+            firstBlock.mixHash
           );
+          assert.match(firstBlock.mixHash!, /0x[0-9A-Fa-f]{64}/);
 
           await this.provider.send("evm_mine", []);
 
@@ -855,10 +855,10 @@ describe("Eth module", function () {
             [numberToRpcQuantity(firstBlockNumber + 1), false]
           );
 
-          assert.equal(
-            newBlock.mixHash,
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          assert.isString(
+            newBlock.mixHash
           );
+          assert.match(newBlock.mixHash!, /0x[0-9A-Fa-f]{64}/);
         });
 
         it("should return the complete transactions if the second argument is true", async function () {
