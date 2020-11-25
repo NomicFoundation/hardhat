@@ -451,17 +451,6 @@ export class HardhatNode extends EventEmitter {
     return new BN(account.nonce);
   }
 
-  public async getAccountNonceInPreviousBlock(address: Buffer): Promise<BN> {
-    const account = await this._stateManager.getAccount(address);
-
-    const latestBlock = await this.getLatestBlock();
-    const latestBlockTxsFromAccount = latestBlock.transactions.filter(
-      (tx: Transaction) => tx.getSenderAddress().equals(address)
-    );
-
-    return new BN(account.nonce).subn(latestBlockTxsFromAccount.length);
-  }
-
   public async getLatestBlock(): Promise<Block> {
     return this._blockchain.getLatestBlock();
   }
