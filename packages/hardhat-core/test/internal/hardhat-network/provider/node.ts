@@ -111,10 +111,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx]);
-        const balance = await node.getAccountBalance(
-          EMPTY_ACCOUNT_ADDRESS,
-          null
-        );
+        const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
         assert.equal(balance.toString(), "1234");
       });
 
@@ -138,10 +135,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx2]);
-        const balance = await node.getAccountBalance(
-          EMPTY_ACCOUNT_ADDRESS,
-          null
-        );
+        const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
         assert.equal(balance.toString(), "2468");
       });
 
@@ -165,10 +159,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx2]);
-        const balance = await node.getAccountBalance(
-          EMPTY_ACCOUNT_ADDRESS,
-          null
-        );
+        const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
         assert.equal(balance.toString(), "2468");
       });
 
@@ -262,7 +253,7 @@ describe("HardhatNode", () => {
 
       it("assigns miner rewards", async () => {
         const miner = node.getCoinbaseAddress();
-        const initialMinerBalance = await node.getAccountBalance(miner, null);
+        const initialMinerBalance = await node.getAccountBalance(miner);
 
         const oneEther = new BN(10).pow(new BN(18));
         const txFee = 21_000 * gasPrice;
@@ -278,7 +269,7 @@ describe("HardhatNode", () => {
         await node.sendTransaction(tx);
         await node.mineBlock();
 
-        const minerBalance = await node.getAccountBalance(miner, null);
+        const minerBalance = await node.getAccountBalance(miner);
         assert.equal(
           minerBalance.toString(),
           initialMinerBalance.add(minerReward).toString()

@@ -875,6 +875,28 @@ describe("Eth module", function () {
           assert.isEmpty(block.uncles);
         });
 
+        it("Should return the new pending block", async function () {
+          const firstBlockNumber = await getFirstBlock();
+          const firstBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlockNumber), false]
+          );
+
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+          const txHash = await sendTxToZeroAddress(this.provider);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["pending", false]
+          );
+
+          assert.equal(block.transactions.length, 1);
+          assert.equal(block.parentHash, firstBlock.hash);
+          assert.include(block.transactions as string[], txHash);
+          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.isEmpty(block.uncles);
+        });
+
         it("should return the complete transactions if the second argument is true", async function () {
           const firstBlockNumber = await getFirstBlock();
           const firstBlock: RpcBlockOutput = await this.provider.send(
@@ -1016,13 +1038,25 @@ describe("Eth module", function () {
           );
         });
 
-        it("Should return 1 for others", async function () {
+        it("Should return the number of transactions in the block", async function () {
           const firstBlock = await getFirstBlock();
           await sendTxToZeroAddress(this.provider);
 
           assertQuantity(
             await this.provider.send("eth_getBlockTransactionCountByNumber", [
               numberToRpcQuantity(firstBlock + 1),
+            ]),
+            1
+          );
+        });
+
+        it("Should return the number of transactions in the 'pending' block", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await sendTxToZeroAddress(this.provider);
+
+          assertQuantity(
+            await this.provider.send("eth_getBlockTransactionCountByNumber", [
+              "pending",
             ]),
             1
           );
@@ -2396,6 +2430,57 @@ describe("Eth module", function () {
             block2.hash,
             0
           );
+        });
+
+        it("should return the right transaction info when called with 'pending' block tag param", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          const txParams1: TransactionParams = {
+            to: toBuffer(zeroAddress()),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer("0xaa"),
+            nonce: new BN(0),
+            value: new BN(123),
+            gasLimit: new BN(25000),
+            gasPrice: new BN(23912),
+          };
+
+          const txHash = await sendTransactionFromTxParams(
+            this.provider,
+            txParams1
+          );
+
+          const tx: RpcTransactionOutput = await this.provider.send(
+            "eth_getTransactionByBlockNumberAndIndex",
+            ["pending", numberToRpcQuantity(0)]
+          );
+
+          await this.provider.send("evm_mine");
+
+          await sendTxToZeroAddress(this.provider);
+
+          const txParams2: TransactionParams = {
+            to: toBuffer(zeroAddress()),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer([]),
+            nonce: new BN(2),
+            value: new BN(123),
+            gasLimit: new BN(80000),
+            gasPrice: new BN(239),
+          };
+
+          const txHash2 = await sendTransactionFromTxParams(
+            this.provider,
+            txParams2
+          );
+
+          const tx2: RpcTransactionOutput = await this.provider.send(
+            "eth_getTransactionByBlockNumberAndIndex",
+            ["pending", numberToRpcQuantity(1)]
+          );
+
+          assertTransaction(tx, txHash, txParams1);
+          assertTransaction(tx2, txHash2, txParams2);
         });
       });
 

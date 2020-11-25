@@ -300,14 +300,14 @@ export class HardhatNode extends EventEmitter {
 
   public async runCall(
     call: CallParams,
-    blockNumber: BN | null
+    blockNumberOrPending: BN | "pending"
   ): Promise<RunCallResult> {
     const tx = await this._getFakeTransaction({
       ...call,
-      nonce: await this.getAccountNonce(call.from, null),
+      nonce: await this.getAccountNonce(call.from, "pending"),
     });
 
-    const result = await this._runInBlockContext(blockNumber, () =>
+    const result = await this._runInBlockContext(blockNumberOrPending, () =>
       this._runTxAndRevertMutations(tx, false)
     );
 
@@ -321,9 +321,13 @@ export class HardhatNode extends EventEmitter {
 
   public async getAccountBalance(
     address: Buffer,
-    blockNumber: BN | null
+    blockNumberOrPending?: BN | "pending"
   ): Promise<BN> {
-    const account = await this._runInBlockContext(blockNumber, () =>
+    if (blockNumberOrPending === undefined) {
+      blockNumberOrPending = await this.getLatestBlockNumber();
+    }
+
+    const account = await this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getAccount(address)
     );
 
@@ -332,9 +336,9 @@ export class HardhatNode extends EventEmitter {
 
   public async getAccountNonce(
     address: Buffer,
-    blockNumber: BN | null
+    blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
-    const account = await this._runInBlockContext(blockNumber, () =>
+    const account = await this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getAccount(address)
     );
 
@@ -349,6 +353,17 @@ export class HardhatNode extends EventEmitter {
     return new BN((await this.getLatestBlock()).header.number);
   }
 
+  public async getPendingBlockAndTotalDifficulty(): Promise<[Block, BN]> {
+    return this._runInBlockContext("pending", async () => {
+      const block = await this._blockchain.getLatestBlock();
+      const totalDifficulty = await this._blockchain.getTotalDifficulty(
+        block.hash()
+      );
+
+      return [block, totalDifficulty];
+    });
+  }
+
   public async getLocalAccountAddresses(): Promise<string[]> {
     return [...this._localAccounts.keys()];
   }
@@ -359,14 +374,14 @@ export class HardhatNode extends EventEmitter {
 
   public async estimateGas(
     txParams: TransactionParams,
-    blockNumber: BN | null
+    blockNumberOrPending: BN | "pending"
   ): Promise<EstimateGasResult> {
     const tx = await this._getFakeTransaction({
       ...txParams,
       gasLimit: this.getBlockGasLimit(),
     });
 
-    const result = await this._runInBlockContext(blockNumber, () =>
+    const result = await this._runInBlockContext(blockNumberOrPending, () =>
       this._runTxAndRevertMutations(tx)
     );
 
@@ -421,12 +436,13 @@ export class HardhatNode extends EventEmitter {
   public async getStorageAt(
     address: Buffer,
     slot: BN,
-    blockNumber: BN | null
+    blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    const data: Buffer = await this._runInBlockContext(blockNumber, () =>
-      this._stateManager.getContractStorage(address, key)
+    const data: Buffer = await this._runInBlockContext(
+      blockNumberOrPending,
+      () => this._stateManager.getContractStorage(address, key)
     );
 
     const EXPECTED_DATA_SIZE = 32;
@@ -440,8 +456,21 @@ export class HardhatNode extends EventEmitter {
     return data;
   }
 
-  public async getBlockByNumber(blockNumber: BN): Promise<Block | undefined> {
-    return this._blockchain.getBlock(blockNumber);
+  public async getBlockByNumber(pending: "pending"): Promise<Block>;
+  public async getBlockByNumber(
+    blockNumberOrPending: BN | "pending"
+  ): Promise<Block | undefined>;
+
+  public async getBlockByNumber(
+    blockNumberOrPending: BN | "pending"
+  ): Promise<Block | undefined> {
+    if (blockNumberOrPending === "pending") {
+      return this._runInPendingBlockContext(() =>
+        this._blockchain.getLatestBlock()
+      );
+    }
+
+    return this._blockchain.getBlock(blockNumberOrPending);
   }
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
@@ -460,9 +489,9 @@ export class HardhatNode extends EventEmitter {
 
   public async getCode(
     address: Buffer,
-    blockNumber: BN | null
+    blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
-    return this._runInBlockContext(blockNumber, () =>
+    return this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getContractCode(address)
     );
   }
@@ -1226,27 +1255,22 @@ export class HardhatNode extends EventEmitter {
   }
 
   private async _runInBlockContext<T>(
-    blockNumber: BN | null,
+    blockNumberOrPending: BN | "pending",
     action: () => Promise<T>
   ): Promise<T> {
-    if (blockNumber === null) {
-      const snapshotId = await this.takeSnapshot();
-      await this.mineBlock(false);
-      const result = await action();
-      await this.revertToSnapshot(snapshotId);
-
-      return result;
+    if (blockNumberOrPending === "pending") {
+      return this._runInPendingBlockContext(action);
     }
 
-    if (blockNumber.eq(await this.getLatestBlockNumber())) {
+    if (blockNumberOrPending.eq(await this.getLatestBlockNumber())) {
       return action();
     }
 
-    const block = await this.getBlockByNumber(blockNumber);
+    const block = await this.getBlockByNumber(blockNumberOrPending);
     if (block === undefined) {
       // TODO handle this better
       throw new Error(
-        `Block with number ${blockNumber} doesn't exist. This should never happen.`
+        `Block with number ${blockNumberOrPending} doesn't exist. This should never happen.`
       );
     }
 
@@ -1256,6 +1280,16 @@ export class HardhatNode extends EventEmitter {
       return await action();
     } finally {
       await this._restoreBlockContext(currentStateRoot);
+    }
+  }
+
+  private async _runInPendingBlockContext<T>(action: () => Promise<T>) {
+    const snapshotId = await this.takeSnapshot();
+    try {
+      await this.mineBlock(false);
+      return await action();
+    } finally {
+      await this.revertToSnapshot(snapshotId);
     }
   }
 

@@ -307,6 +307,17 @@ export function validateParams(
 
 export function validateParams(
   params: any[],
+  block: typeof blockTag
+): [BlockTag];
+
+export function validateParams(
+  params: any[],
+  block: typeof blockTag,
+  index: typeof rpcQuantity
+): [BlockTag, BN];
+
+export function validateParams(
+  params: any[],
   addr: typeof rpcAddress,
   block: typeof optionalBlockTag
 ): [Buffer, OptionalBlockTag];
