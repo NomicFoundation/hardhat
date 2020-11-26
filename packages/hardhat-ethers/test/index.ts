@@ -410,6 +410,8 @@ describe("Ethers plugin", function () {
                   "getContractFactory should report the invalid address as the cause"
                 )
               );
+              // This assert is here just to make sure we don't end up printing an enormous object
+              // in the error message. This may happen if the argument received is particularly complex.
               assert.isTrue(
                 reason.message.length <= 400,
                 "getContractFactory should fail with an error message that isn't too large"
