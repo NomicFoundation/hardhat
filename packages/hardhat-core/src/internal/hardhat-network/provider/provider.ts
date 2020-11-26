@@ -15,6 +15,7 @@ import type {
   EthSubscription,
   RequestArguments,
 } from "../../../types";
+import { HARDHAT_NETWORK_RESET_EVENT } from "../../constants";
 import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
@@ -94,11 +95,18 @@ export class HardhatNetworkProvider extends EventEmitter
     }
 
     try {
+      let result;
       if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(args.method)) {
-        return await this._sendWithLogging(args.method, args.params);
+        result = await this._sendWithLogging(args.method, args.params);
+      } else {
+        result = await this._send(args.method, args.params);
       }
 
-      return await this._send(args.method, args.params);
+      if (args.method === "hardhat_reset") {
+        this.emit(HARDHAT_NETWORK_RESET_EVENT);
+      }
+
+      return result;
     } finally {
       release();
     }
