@@ -70,7 +70,7 @@ change should be contained in the same branch and PR than the change.
 If you are working purely on the website or documentation, not as a result of
 a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website)
 and use it as the base branch in your pull request. Anything merged into 
-`website` this way should also be merged into `development`.
+`website` this way should also be merged into `master`.
 
 Note that the `website` branch is automatically deployed, so take care when 
 merging into it.
