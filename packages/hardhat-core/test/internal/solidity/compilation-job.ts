@@ -270,10 +270,10 @@ describe("Compilation jobs", function () {
 
         assert.equal(
           compilationJobCreationError.reason,
-          CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE
+          CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE
         );
         assert.deepEqual(
-          compilationJobCreationError.extra.incompatibleImports,
+          compilationJobCreationError.extra.incompatibleDirectImports,
           [Bar]
         );
       });

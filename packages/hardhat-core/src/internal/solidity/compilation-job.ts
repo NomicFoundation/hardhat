@@ -297,20 +297,21 @@ function getCompilationJobCreationError(
     return { reason, file };
   }
 
-  const incompatibleImports: ResolvedFile[] = [];
+  const incompatibleDirectImports: ResolvedFile[] = [];
   for (const dependency of directDependencies) {
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
     if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
-      incompatibleImports.push(dependency);
+      incompatibleDirectImports.push(dependency);
     }
   }
 
-  if (incompatibleImports.length > 0) {
+  if (incompatibleDirectImports.length > 0) {
     return {
-      reason: CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE,
+      reason:
+        CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
       file,
       extra: {
-        incompatibleImports,
+        incompatibleDirectImports,
       },
     };
   }

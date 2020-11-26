@@ -78,7 +78,7 @@ export enum CompilationJobCreationErrorReason {
   OTHER_ERROR = "other",
   NO_COMPATIBLE_SOLC_VERSION_FOUND = "no-compatible-solc-version-found",
   INCOMPATIBLE_OVERRIDEN_SOLC_VERSION = "incompatible-overriden-solc-version",
-  IMPORTS_INCOMPATIBLE_FILE = "imports-incompatible-file",
+  DIRECTLY_IMPORTS_INCOMPATIBLE_FILE = "directly-imports-incompatible-file",
   INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE = "indirectly-imports-incompatible-file",
 }
 

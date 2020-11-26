@@ -181,10 +181,10 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE,
+          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleImports: [Bar],
+            incompatibleDirectImports: [Bar],
           },
         },
       ];
@@ -221,10 +221,10 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE,
+          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleImports: [Bar1, Bar2],
+            incompatibleDirectImports: [Bar1, Bar2],
           },
         },
       ];
@@ -265,10 +265,10 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE,
+          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleImports: [Bar1, Bar2, Bar3],
+            incompatibleDirectImports: [Bar1, Bar2, Bar3],
           },
         },
       ];
@@ -313,10 +313,10 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE,
+          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleImports: [Bar1, Bar2, Bar3, Bar4],
+            incompatibleDirectImports: [Bar1, Bar2, Bar3, Bar4],
           },
         },
       ];
@@ -605,10 +605,10 @@ Learn more about compiler configuration at https://hardhat.org/config
           file: Foo2,
         },
         {
-          reason: CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE,
+          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo3,
           extra: {
-            incompatibleImports: [Bar],
+            incompatibleDirectImports: [Bar],
           },
         },
         {

@@ -1045,7 +1045,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
     }): Promise<string> => {
       const noCompatibleSolc: CompilationJobCreationError[] = [];
       const incompatibleOverridenSolc: CompilationJobCreationError[] = [];
-      const importsIncompatibleFile: CompilationJobCreationError[] = [];
+      const directlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
       const indirectlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
       const other: CompilationJobCreationError[] = [];
 
@@ -1062,9 +1062,9 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
           incompatibleOverridenSolc.push(error);
         } else if (
           error.reason ===
-          CompilationJobCreationErrorReason.IMPORTS_INCOMPATIBLE_FILE
+          CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE
         ) {
-          importsIncompatibleFile.push(error);
+          directlyImportsIncompatibleFile.push(error);
         } else if (
           error.reason ===
           CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE
@@ -1119,46 +1119,46 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
         errorMessage += "\n";
       }
 
-      if (importsIncompatibleFile.length > 0) {
+      if (directlyImportsIncompatibleFile.length > 0) {
         errorMessage += `These files import other files that use a different and incompatible version of Solidity:
 
 `;
 
-        for (const error of importsIncompatibleFile) {
+        for (const error of directlyImportsIncompatibleFile) {
           const { sourceName } = error.file;
           const { versionPragmas } = error.file.content;
           const versionsRange = versionPragmas.join(" ");
 
-          const incompatibleImportsFiles: ResolvedFile[] =
-            error.extra?.incompatibleImports ?? [];
+          const incompatibleDirectImportsFiles: ResolvedFile[] =
+            error.extra?.incompatibleDirectImports ?? [];
 
-          const incompatibleImports = incompatibleImportsFiles.map(
+          const incompatibleDirectImports = incompatibleDirectImportsFiles.map(
             (x: ResolvedFile) =>
               `${x.sourceName} (${x.content.versionPragmas.join(" ")})`
           );
 
           log(
-            `File ${sourceName} imports files ${incompatibleImportsFiles
+            `File ${sourceName} imports files ${incompatibleDirectImportsFiles
               .map((x) => x.sourceName)
               .join(", ")} that use an incompatible version of Solidity`
           );
 
-          let importsText = "";
-          if (incompatibleImports.length === 1) {
-            importsText = ` imports ${incompatibleImports[0]}`;
-          } else if (incompatibleImports.length === 2) {
-            importsText = ` imports ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
-          } else if (incompatibleImports.length > 2) {
-            const otherImportsCount = incompatibleImports.length - 2;
-            importsText = ` imports ${incompatibleImports[0]}, ${
-              incompatibleImports[1]
+          let directImportsText = "";
+          if (incompatibleDirectImports.length === 1) {
+            directImportsText = ` imports ${incompatibleDirectImports[0]}`;
+          } else if (incompatibleDirectImports.length === 2) {
+            directImportsText = ` imports ${incompatibleDirectImports[0]} and ${incompatibleDirectImports[1]}`;
+          } else if (incompatibleDirectImports.length > 2) {
+            const otherImportsCount = incompatibleDirectImports.length - 2;
+            directImportsText = ` imports ${incompatibleDirectImports[0]}, ${
+              incompatibleDirectImports[1]
             } and ${otherImportsCount} other ${pluralize(
               otherImportsCount,
               "file"
             )}. Use --verbose to see the full list.`;
           }
 
-          errorMessage += `* ${sourceName} (${versionsRange})${importsText}\n`;
+          errorMessage += `* ${sourceName} (${versionsRange})${directImportsText}\n`;
         }
 
         errorMessage += "\n";
@@ -1174,28 +1174,28 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
           const { versionPragmas } = error.file.content;
           const versionsRange = versionPragmas.join(" ");
 
-          const incompatibleImportsFiles: ResolvedFile[] =
+          const incompatibleIndirectImportsFiles: ResolvedFile[] =
             error.extra?.incompatibleIndirectImports ?? [];
 
-          const incompatibleImports = incompatibleImportsFiles.map(
+          const incompatibleImports = incompatibleIndirectImportsFiles.map(
             (x: ResolvedFile) =>
               `${x.sourceName} (${x.content.versionPragmas.join(" ")})`
           );
 
           log(
-            `File ${sourceName} depends on files ${incompatibleImportsFiles
+            `File ${sourceName} depends on files ${incompatibleIndirectImportsFiles
               .map((x) => x.sourceName)
               .join(", ")} that use an incompatible version of Solidity`
           );
 
-          let importsText = "";
+          let indirectImportsText = "";
           if (incompatibleImports.length === 1) {
-            importsText = ` depends on ${incompatibleImports[0]}`;
+            indirectImportsText = ` depends on ${incompatibleImports[0]}`;
           } else if (incompatibleImports.length === 2) {
-            importsText = ` depends on ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
+            indirectImportsText = ` depends on ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
           } else if (incompatibleImports.length > 2) {
             const otherImportsCount = incompatibleImports.length - 2;
-            importsText = ` depends on ${incompatibleImports[0]}, ${
+            indirectImportsText = ` depends on ${incompatibleImports[0]}, ${
               incompatibleImports[1]
             } and ${otherImportsCount} other ${pluralize(
               otherImportsCount,
@@ -1203,7 +1203,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
             )}. Use --verbose to see the full list.`;
           }
 
-          errorMessage += `* ${sourceName} (${versionsRange})${importsText}\n`;
+          errorMessage += `* ${sourceName} (${versionsRange})${indirectImportsText}\n`;
         }
 
         errorMessage += "\n";
