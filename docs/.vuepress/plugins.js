@@ -129,7 +129,7 @@ const plugins = [
     url: "https://github.com/OpenZeppelin/openzeppelin-upgrades/tree/master/packages/plugin-hardhat",
     description: "Hardhat plugin for deploying and managing upgradeable contracts.",
     tags: ["Security", "Upgrades", "OpenZeppelin"],
-  },  
+  },
   {
     name: "hardhat-typechain",
     author: "Rahul Sethuram",
@@ -174,6 +174,15 @@ const plugins = [
     tags: ["Logging", "Console", "Deployment"],
   },
   {
+    name: "hardhat-dependency-compiler",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    url: "https://github.com/ItsNickBarry/hardhat-dependency-compiler/tree/master",
+    description:
+      "Compile Solidity sources directly from NPM dependencies",
+    tags: ["Compiling", "Dependencies"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
@@ -187,11 +196,11 @@ const plugins = [
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
     url:
-      "https://github.com/sc-forks/solidity-coverage/tree/master/BUIDLER_README.md",
+      "https://github.com/sc-forks/solidity-coverage/tree/master/HARDHAT_README.md",
     readmeUrl:
-      "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/BUIDLER_README.md",
+      "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/HARDHAT_README.md",
     description: "Code coverage for Solidity",
-    tags: ["Testing", "Coverage", "Buidler plugin"],
+    tags: ["Testing", "Coverage", "Hardhat plugin"],
   },
   {
     name: "hardhat-gas-reporter",

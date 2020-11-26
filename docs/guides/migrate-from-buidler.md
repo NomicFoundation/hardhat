@@ -198,4 +198,4 @@ Join the `#hardhat-gas-reporter` channel on [Discord](https://hardhat.org/discor
 
 ### solidity-coverage
 
-This plugin is being ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcement when it's released.
+This plugin has been ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcement when it's released.
