@@ -1093,7 +1093,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
 
           log(`File ${sourceName} has an incompatible overriden compiler`);
 
-          errorMessage += `* ${sourceName} (${versionsRange})\n`;
+          errorMessage += `  * ${sourceName} (${versionsRange})\n`;
         }
 
         errorMessage += "\n";
@@ -1113,7 +1113,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
             `File ${sourceName} doesn't match any of the configured compilers`
           );
 
-          errorMessage += `* ${sourceName} (${versionsRange})\n`;
+          errorMessage += `  * ${sourceName} (${versionsRange})\n`;
         }
 
         errorMessage += "\n";
@@ -1158,7 +1158,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
             )}. Use --verbose to see the full list.`;
           }
 
-          errorMessage += `* ${sourceName} (${versionsRange})${directImportsText}\n`;
+          errorMessage += `  * ${sourceName} (${versionsRange})${directImportsText}\n`;
         }
 
         errorMessage += "\n";
@@ -1216,21 +1216,23 @@ The dependency path is ${dependencyPathText}
             )}. Use --verbose to see the full list.`;
           }
 
-          errorMessage += `* ${sourceName} (${versionsRange})${indirectImportsText}\n`;
+          errorMessage += `  * ${sourceName} (${versionsRange})${indirectImportsText}\n`;
         }
 
         errorMessage += "\n";
       }
 
       if (other.length > 0) {
-        errorMessage += `These files and its dependencies cannot be compiled with your config:
+        errorMessage += `These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
 
-${other.map((x) => `* ${x.file.sourceName}`).join("\n")}
+${other.map((x) => `  * ${x.file.sourceName}`).join("\n")}
 
 `;
       }
 
-      errorMessage += `Learn more about compiler configuration at https://hardhat.org/config
+      errorMessage += `You can use the --verbose flag to get more information.
+
+Learn more about compiler configuration at https://hardhat.org/config
 `;
 
       return errorMessage;
