@@ -4,7 +4,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-ethers",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-ethers",
     description: "Injects ethers.js into the Hardhat Runtime Environment",
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
@@ -13,7 +13,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-waffle",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-waffle",
     description:
       "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"],
@@ -23,7 +23,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-truffle4",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-truffle4",
     description: "Integration with TruffleContract from Truffle 4",
     tags: ["Truffle", "Testing"],
   },
@@ -32,7 +32,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-truffle5",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-truffle5",
     description: "Integration with TruffleContract from Truffle 5",
     tags: ["Truffle", "Testing"],
   },
@@ -40,7 +40,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-web3",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url: "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-web3",
+    url: "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-web3",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
@@ -49,7 +49,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-web3-legacy",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-web3-legacy",
     description: "Injects Web3 0.20.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"],
   },
@@ -58,7 +58,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-etherscan",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-etherscan",
     description: "Automatically verify contracts on Etherscan",
     tags: ["Etherscan", "Verification"],
   },
@@ -67,7 +67,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-ganache",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-ganache",
     description: "Hardhat plugin for managing Ganache",
     tags: ["Ganache", "Testing network"],
   },
@@ -75,7 +75,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-solpp",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url: "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-solpp",
+    url: "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-solpp",
     description:
       "Automatically run the solpp preprocessor before each compilation",
     tags: ["Solpp", "Preprocessor"],
@@ -85,7 +85,7 @@ const plugins = [
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
     url:
-      "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-solhint",
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-solhint",
     description: "Easily run solhint to lint your Solidity code",
     tags: ["Solhint", "Linter"],
   },
@@ -93,7 +93,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url: "https://github.com/nomiclabs/buidler/tree/2.0/packages/hardhat-vyper",
+    url: "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-vyper",
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
