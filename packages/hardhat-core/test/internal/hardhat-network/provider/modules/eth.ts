@@ -836,6 +836,27 @@ describe("Eth module", function () {
           assert.isEmpty(block.uncles);
         });
 
+        it("Should contain mixHash", async function () {
+          const firstBlockNumber = await getFirstBlock();
+          const firstBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlockNumber), false]
+          );
+
+          assert.isString(firstBlock.mixHash);
+          assert.match(firstBlock.mixHash!, /0x[0-9A-Fa-f]{64}/);
+
+          await this.provider.send("evm_mine", []);
+
+          const newBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlockNumber + 1), false]
+          );
+
+          assert.isString(newBlock.mixHash);
+          assert.match(newBlock.mixHash!, /0x[0-9A-Fa-f]{64}/);
+        });
+
         it("should return the complete transactions if the second argument is true", async function () {
           const firstBlockNumber = await getFirstBlock();
           const firstBlock: RpcBlockOutput = await this.provider.send(
