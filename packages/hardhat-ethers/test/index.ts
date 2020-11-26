@@ -609,6 +609,30 @@ describe("Ethers plugin", function () {
               );
             });
           });
+
+          it("should work with linked contracts", async function () {
+            const libraryFactory = await this.env.ethers.getContractFactory(
+              "TestLibrary"
+            );
+            const library = await libraryFactory.deploy();
+
+            const contractFactory = await this.env.ethers.getContractFactory(
+              "TestContractLib",
+              { libraries: { TestLibrary: library.address } }
+            );
+            const numberPrinter = await contractFactory.deploy();
+
+            const numberPrinterAtAddress = await this.env.ethers.getContractAt(
+              "TestContractLib",
+              numberPrinter.address
+            );
+
+            const someNumber = 50;
+            assert.equal(
+              await numberPrinterAtAddress.callStatic.printNumber(someNumber),
+              someNumber * 2
+            );
+          });
         });
       });
     });

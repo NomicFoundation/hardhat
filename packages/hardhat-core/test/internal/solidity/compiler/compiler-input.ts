@@ -48,12 +48,14 @@ describe("compiler-input module", function () {
         sourceName1,
         path1,
         { rawContent: content1, imports: [], versionPragmas: [] },
+        "<content-hash-1>",
         new Date()
       ),
       new ResolvedFile(
         sourceName2,
         path2,
         { rawContent: content2, imports: [], versionPragmas: [] },
+        "<content-hash-2>",
         new Date()
       ),
     ];
