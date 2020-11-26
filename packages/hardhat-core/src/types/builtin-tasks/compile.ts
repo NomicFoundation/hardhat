@@ -54,7 +54,20 @@ export interface DependencyGraph {
   getConnectedComponents(): DependencyGraph[];
   getDependencies(file: ResolvedFile): ResolvedFile[];
   getResolvedFiles(): ResolvedFile[];
-  getTransitiveDependencies(file: ResolvedFile): ResolvedFile[];
+  getTransitiveDependencies(file: ResolvedFile): TransitiveDependency[];
+}
+
+/**
+ * Used as part of the return value of DependencyGraph.getTransitiveDependencies
+ */
+export interface TransitiveDependency {
+  dependency: ResolvedFile;
+
+  /**
+   * The list of intermediate files between the file and the dependency
+   * this is not guaranteed to be the shortest path
+   */
+  path: ResolvedFile[];
 }
 
 /**

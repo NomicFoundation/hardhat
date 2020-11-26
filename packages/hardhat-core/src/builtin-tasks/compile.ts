@@ -1174,19 +1174,32 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
           const { versionPragmas } = error.file.content;
           const versionsRange = versionPragmas.join(" ");
 
-          const incompatibleIndirectImportsFiles: ResolvedFile[] =
+          const incompatibleIndirectImports: taskTypes.TransitiveDependency[] =
             error.extra?.incompatibleIndirectImports ?? [];
 
-          const incompatibleImports = incompatibleIndirectImportsFiles.map(
-            (x: ResolvedFile) =>
-              `${x.sourceName} (${x.content.versionPragmas.join(" ")})`
+          const incompatibleImports = incompatibleIndirectImports.map(
+            ({ dependency }) =>
+              `${
+                dependency.sourceName
+              } (${dependency.content.versionPragmas.join(" ")})`
           );
 
-          log(
-            `File ${sourceName} depends on files ${incompatibleIndirectImportsFiles
-              .map((x) => x.sourceName)
-              .join(", ")} that use an incompatible version of Solidity`
-          );
+          for (const {
+            dependency,
+            path: dependencyPath,
+          } of incompatibleIndirectImports) {
+            const dependencyPathText = [
+              sourceName,
+              ...dependencyPath.map((x) => x.sourceName),
+              dependency.sourceName,
+            ].join(" -> ");
+
+            log(
+              `File ${sourceName} depends on file ${dependency.sourceName} that uses an incompatible version of Solidity
+The dependency path is ${dependencyPathText}
+`
+            );
+          }
 
           let indirectImportsText = "";
           if (incompatibleImports.length === 1) {

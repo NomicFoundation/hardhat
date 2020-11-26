@@ -194,7 +194,7 @@ export async function createCompilationJobFromFile(
   const compilationJob = new CompilationJob(compilerConfig);
 
   compilationJob.addFileToCompile(file, true);
-  for (const dependency of transitiveDependencies) {
+  for (const { dependency } of transitiveDependencies) {
     log(
       `File '${dependency.absolutePath}' added as dependency of '${file.absolutePath}'`
     );
@@ -229,13 +229,13 @@ export function mergeCompilationJobsWithoutBug(
 function getCompilerConfigForFile(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
-  transitiveDependencies: ResolvedFile[],
+  transitiveDependencies: taskTypes.TransitiveDependency[],
   solidityConfig: SolidityConfig
 ): SolcConfig | CompilationJobCreationError {
   const { uniq }: LoDashStatic = require("lodash");
 
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
-    (x) => x.content.versionPragmas
+    ({ dependency }) => dependency.content.versionPragmas
   );
   const versionRange = uniq([
     ...file.content.versionPragmas,
@@ -285,7 +285,7 @@ function getCompilerConfigForFile(
 function getCompilationJobCreationError(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
-  transitiveDependencies: ResolvedFile[],
+  transitiveDependencies: taskTypes.TransitiveDependency[],
   compilerVersions: string[],
   overriden: boolean
 ): CompilationJobCreationError {
@@ -316,11 +316,12 @@ function getCompilationJobCreationError(
     };
   }
 
-  const incompatibleIndirectImports: ResolvedFile[] = [];
-  for (const dependency of transitiveDependencies) {
+  const incompatibleIndirectImports: taskTypes.TransitiveDependency[] = [];
+  for (const transitiveDependency of transitiveDependencies) {
+    const { dependency } = transitiveDependency;
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
     if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
-      incompatibleIndirectImports.push(dependency);
+      incompatibleIndirectImports.push(transitiveDependency);
     }
   }
 

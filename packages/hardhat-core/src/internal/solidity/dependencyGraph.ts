@@ -48,12 +48,15 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     return [...dependencies];
   }
 
-  public getTransitiveDependencies(file: ResolvedFile): ResolvedFile[] {
+  public getTransitiveDependencies(
+    file: ResolvedFile
+  ): taskTypes.TransitiveDependency[] {
     const visited = new Set<ResolvedFile>();
 
     const transitiveDependencies = this._getTransitiveDependencies(
       file,
-      visited
+      visited,
+      []
     );
 
     return [...transitiveDependencies];
@@ -121,20 +124,30 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
   private _getTransitiveDependencies(
     file: ResolvedFile,
-    visited: Set<ResolvedFile>
-  ): Set<ResolvedFile> {
+    visited: Set<ResolvedFile>,
+    path: ResolvedFile[]
+  ): Set<taskTypes.TransitiveDependency> {
     if (visited.has(file)) {
       return new Set();
     }
     visited.add(file);
 
-    const directDependencies = this.getDependencies(file);
-    const transitiveDependencies = new Set<ResolvedFile>(directDependencies);
+    const directDependencies: taskTypes.TransitiveDependency[] = this.getDependencies(
+      file
+    ).map((dependency) => ({
+      dependency,
+      path,
+    }));
 
-    for (const transitiveDependency of transitiveDependencies) {
+    const transitiveDependencies = new Set<taskTypes.TransitiveDependency>(
+      directDependencies
+    );
+
+    for (const { dependency } of transitiveDependencies) {
       this._getTransitiveDependencies(
-        transitiveDependency,
-        visited
+        dependency,
+        visited,
+        path.concat(dependency)
       ).forEach((x) => transitiveDependencies.add(x));
     }
 
