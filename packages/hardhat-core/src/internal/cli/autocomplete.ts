@@ -20,6 +20,7 @@ interface CompletionData {
   tasks: {
     [taskName: string]: {
       name: string;
+      isSubtask: boolean;
       paramDefinitions: {
         [paramName: string]: {
           name: string;
@@ -112,8 +113,8 @@ export async function complete({
   // if there's no task, we complete either tasks or params
   if (task === undefined || tasks[task] === undefined) {
     const taskNames = Object.values(tasks)
-      .map((x) => x.name)
-      .filter((x) => !x.includes(":"));
+      .filter((x) => !x.isSubtask)
+      .map((x) => x.name);
     if (last.startsWith("-")) {
       return coreParams.filter(startsWithLast);
     }
