@@ -302,13 +302,16 @@ export class HardhatNode extends EventEmitter {
     call: CallParams,
     blockNumberOrPending: BN | "pending"
   ): Promise<RunCallResult> {
-    const tx = await this._getFakeTransaction({
-      ...call,
-      nonce: await this.getAccountNonce(call.from, "pending"),
-    });
+    let tx: Transaction;
 
-    const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, false)
+    const result = await this._runInBlockContext(
+      blockNumberOrPending,
+      async () => {
+        const account = await this._stateManager.getAccount(call.from);
+        const nonce = new BN(account.nonce);
+        tx = await this._getFakeTransaction({ ...call, nonce });
+        return this._runTxAndRevertMutations(tx, false);
+      }
     );
 
     const traces = await this._gatherTraces(result.execResult);
@@ -358,7 +361,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getPendingBlockAndTotalDifficulty(): Promise<[Block, BN]> {
-    return this._runInBlockContext("pending", async () => {
+    return this._runInPendingBlockContext(async () => {
       const block = await this._blockchain.getLatestBlock();
       const totalDifficulty = await this._blockchain.getTotalDifficulty(
         block.hash()

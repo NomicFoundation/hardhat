@@ -1299,7 +1299,8 @@ export class EthModule {
       return;
     }
 
-    const code = await this._node.getCode(trace.address, "pending");
+    const blockNumber = await this._node.getLatestBlockNumber();
+    const code = await this._node.getCode(trace.address, blockNumber);
     if (code.length === 0) {
       if (shouldBeContract) {
         this._logger.log(`WARNING: Calling an account which is not a contract`);
