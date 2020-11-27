@@ -152,10 +152,7 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
   let hre: typeof hardhat;
   try {
     process.env.TS_NODE_TRANSPILE_ONLY = "1";
-    require("../../register");
-    const { HardhatContext } = require("../context");
-    const context = HardhatContext.getHardhatContext();
-    hre = context.getHardhatRuntimeEnvironment();
+    hre = require("../..");
   } catch (e) {
     return undefined;
   }
