@@ -5,6 +5,7 @@ import * as path from "path";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import type hardhat from "../lib/hardhat-lib";
 import { getCacheDir } from "../util/global-dir";
+import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
 import { ArgumentsParser } from "./ArgumentsParser";
 
@@ -35,13 +36,9 @@ interface Mtimes {
 }
 
 interface CachedCompletionData {
-  [projectName: string]: {
-    completionData: CompletionData;
-    mtimes: Mtimes;
-  };
+  completionData: CompletionData;
+  mtimes: Mtimes;
 }
-
-const CACHED_COMPLETION_FILENAME = "completion-data.json";
 
 export async function complete({
   line,
@@ -137,13 +134,13 @@ export async function complete({
 }
 
 async function getCompletionData(): Promise<CompletionData | undefined> {
-  const projectName = getProjectName();
-  if (projectName === undefined) {
+  const projectId = getProjectId();
+
+  if (projectId === undefined) {
     return undefined;
   }
 
-  const cachedCompletionDataPerProject = await getCachedCompletionDataPerProject();
-  const cachedCompletionData = cachedCompletionDataPerProject?.[projectName];
+  const cachedCompletionData = await getCachedCompletionData(projectId);
 
   if (cachedCompletionData !== undefined) {
     if (arePreviousMtimesCorrect(cachedCompletionData.mtimes)) {
@@ -172,25 +169,21 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
     tasks: hre.tasks,
   };
 
-  await saveCachedCompletionData(projectName, completionData, mtimes);
+  await saveCachedCompletionData(projectId, completionData, mtimes);
 
   return completionData;
 }
 
-function getProjectName(): string | undefined {
+function getProjectId(): string | undefined {
   const packageJsonPath = findup.sync("package.json");
 
   if (packageJsonPath === null) {
     return undefined;
   }
 
-  const projectName = fs.readJsonSync(packageJsonPath).name;
-
-  if (!projectName) {
-    return undefined;
-  }
-
-  return projectName;
+  return createNonCryptographicHashBasedIdentifier(
+    Buffer.from(packageJsonPath)
+  ).toString("hex");
 }
 
 function arePreviousMtimesCorrect(mtimes: Mtimes): boolean {
@@ -220,13 +213,10 @@ function getMtimes(filesLoadedBefore: string[], filesLoadedAfter: string[]) {
   return Object.assign(mtimes[0], ...mtimes.slice(1));
 }
 
-async function getCachedCompletionDataPerProject(): Promise<
-  CachedCompletionData | undefined
-> {
-  const cachedCompletionDataPath = path.join(
-    await getCacheDir(),
-    CACHED_COMPLETION_FILENAME
-  );
+async function getCachedCompletionData(
+  projectId: string
+): Promise<CachedCompletionData | undefined> {
+  const cachedCompletionDataPath = await getCachedCompletionDataPath(projectId);
 
   if (fs.existsSync(cachedCompletionDataPath)) {
     try {
@@ -241,24 +231,19 @@ async function getCachedCompletionDataPerProject(): Promise<
 }
 
 async function saveCachedCompletionData(
-  projectName: string,
+  projectId: string,
   completionData: CompletionData,
   mtimes: Mtimes
 ): Promise<void> {
-  const cachedCompletionDataPath = path.join(
-    await getCacheDir(),
-    CACHED_COMPLETION_FILENAME
-  );
+  const cachedCompletionDataPath = await getCachedCompletionDataPath(projectId);
 
-  const cachedCompletionDataPerProject =
-    (await getCachedCompletionDataPerProject()) ?? {};
+  await fs.outputJson(cachedCompletionDataPath, { completionData, mtimes });
+}
 
-  cachedCompletionDataPerProject[projectName] = {
-    completionData,
-    mtimes,
-  };
+async function getCachedCompletionDataPath(projectId: string): Promise<string> {
+  const cacheDir = await getCacheDir();
 
-  await fs.writeJson(cachedCompletionDataPath, cachedCompletionDataPerProject);
+  return path.join(cacheDir, "autocomplete", `${projectId}.json`);
 }
 
 function filesystemSuggestions(last: string): string[] {
