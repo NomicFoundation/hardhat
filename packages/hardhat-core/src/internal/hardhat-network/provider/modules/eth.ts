@@ -1075,7 +1075,16 @@ export class EthModule {
 
     if (Buffer.isBuffer(blockTag)) {
       const block = await this._node.getBlockByHash(blockTag);
-      return block === undefined ? LATEST_BLOCK : new BN(block.header.number);
+
+      if (block === undefined) {
+        throw new InvalidInputError(
+          `Received invalid block tag ${this._blockTagToString(
+            blockTag
+          )}. This block doesn't exist.`
+        );
+      }
+
+      return new BN(block.header.number);
     }
 
     switch (blockTag) {
