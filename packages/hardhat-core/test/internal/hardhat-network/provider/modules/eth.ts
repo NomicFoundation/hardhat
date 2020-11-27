@@ -32,6 +32,7 @@ import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
+  EXAMPLE_SETTER_CONTRACT,
 } from "../../helpers/contracts";
 import {
   dataToNumber,
@@ -3212,6 +3213,49 @@ describe("Eth module", function () {
 
         it("Doesn't fail when unsubscribe is called for a non-existent filter", async function () {
           assert.isFalse(await this.provider.send("eth_unsubscribe", ["0x1"]));
+        });
+      });
+
+      describe("gas usage", function () {
+        it("should use 15K less gas when writing a non-zero slot", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_SETTER_CONTRACT.bytecode.object}`
+          );
+
+          const firstTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000001`,
+            },
+          ]);
+
+          const firstReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [firstTxHash]
+          );
+
+          const gasUsedBefore = new BN(toBuffer(firstReceipt.gasUsed));
+
+          const secondTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000002`,
+            },
+          ]);
+
+          const secondReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [secondTxHash]
+          );
+
+          const gasUsedAfter = new BN(toBuffer(secondReceipt.gasUsed));
+
+          const gasDifference = gasUsedBefore.sub(gasUsedAfter);
+
+          assert.equal(gasDifference.toString(), "15000");
         });
       });
     });
