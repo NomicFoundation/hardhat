@@ -3396,7 +3396,7 @@ describe("Eth module", function () {
           ]);
 
           it("should accept a requireCanonical flag", async function () {
-            const latestBlock: RpcBlockOutput = await this.provider.send(
+            const block: RpcBlockOutput = await this.provider.send(
               "eth_getBlockByNumber",
               ["latest", false]
             );
@@ -3405,7 +3405,7 @@ describe("Eth module", function () {
               await this.provider.send("eth_getBalance", [
                 zeroAddress(),
                 {
-                  blockNumber: latestBlock.number,
+                  blockNumber: block.number,
                   requireCanonical: true,
                 },
               ]),
@@ -3416,7 +3416,7 @@ describe("Eth module", function () {
               await this.provider.send("eth_getBalance", [
                 zeroAddress(),
                 {
-                  blockNumber: latestBlock.number,
+                  blockNumber: block.number,
                   requireCanonical: false,
                 },
               ]),
@@ -3427,7 +3427,7 @@ describe("Eth module", function () {
               await this.provider.send("eth_getBalance", [
                 zeroAddress(),
                 {
-                  blockHash: latestBlock.hash,
+                  blockHash: block.hash,
                   requireCanonical: true,
                 },
               ]),
@@ -3438,7 +3438,7 @@ describe("Eth module", function () {
               await this.provider.send("eth_getBalance", [
                 zeroAddress(),
                 {
-                  blockHash: latestBlock.hash,
+                  blockHash: block.hash,
                   requireCanonical: false,
                 },
               ]),
