@@ -36,4 +36,8 @@ export class SignerWithAddress extends ethers.Signer {
   public connect(provider: ethers.providers.Provider): SignerWithAddress {
     return new SignerWithAddress(this.address, this._signer.connect(provider));
   }
+
+  public toJSON() {
+    return `<SignerWithAddress ${this.address}>`;
+  }
 }

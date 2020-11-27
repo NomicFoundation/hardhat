@@ -27,4 +27,8 @@ export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
 
     return result;
   }
+
+  public toJSON() {
+    return "<WrappedHardhatProvider>";
+  }
 }

@@ -387,6 +387,43 @@ describe("Ethers plugin", function () {
             );
           });
 
+          it("should fail to create a contract factory when incorrectly linking a library with an ethers.Contract", async function () {
+            const libraryFactory = await this.env.ethers.getContractFactory(
+              "TestLibrary"
+            );
+            const library = await libraryFactory.deploy();
+
+            try {
+              const contractFactory = await this.env.ethers.getContractFactory(
+                "TestContractLib",
+                { libraries: { TestLibrary: library as any } }
+              );
+            } catch (reason) {
+              assert.instanceOf(
+                reason,
+                NomicLabsHardhatPluginError,
+                "getContractFactory should fail with a hardhat plugin error"
+              );
+              assert.isTrue(
+                reason.message.includes(
+                  "invalid address",
+                  "getContractFactory should report the invalid address as the cause"
+                )
+              );
+              // This assert is here just to make sure we don't end up printing an enormous object
+              // in the error message. This may happen if the argument received is particularly complex.
+              assert.isTrue(
+                reason.message.length <= 400,
+                "getContractFactory should fail with an error message that isn't too large"
+              );
+              return;
+            }
+
+            assert.fail(
+              "getContractFactory should fail to create a contract factory if there is an invalid address"
+            );
+          });
+
           it("Should be able to send txs and make calls", async function () {
             const Greeter = await this.env.ethers.getContractFactory("Greeter");
             const greeter = await Greeter.deploy();
