@@ -2,8 +2,8 @@ import findup from "find-up";
 import * as fs from "fs-extra";
 import * as path from "path";
 
+import { HardhatRuntimeEnvironment } from "../../types";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
-import type hardhat from "../lib/hardhat-lib";
 import { getCacheDir } from "../util/global-dir";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
@@ -149,10 +149,11 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
   }
 
   const filesBeforeRequire = Object.keys(require.cache);
-  let hre: typeof hardhat;
+  let hre: HardhatRuntimeEnvironment;
   try {
     process.env.TS_NODE_TRANSPILE_ONLY = "1";
-    hre = require("../..");
+    require("../../register");
+    hre = (global as any).hre;
   } catch (e) {
     return undefined;
   }
