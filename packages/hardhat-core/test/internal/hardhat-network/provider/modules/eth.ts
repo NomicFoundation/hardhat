@@ -1750,6 +1750,116 @@ describe("Eth module", function () {
           assert.notEqual(logs1[0], logs2[0]);
           assert.notEqual(logs2[0].address, "changed");
         });
+
+        it("Should accept block hashes as from", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block0 = await this.provider.send("eth_getBlockByNumber", [
+            "0x0",
+            false,
+          ]);
+
+          const block3 = await this.provider.send("eth_getBlockByNumber", [
+            "0x3",
+            false,
+          ]);
+
+          const logsFromZero = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              fromBlock: {
+                blockHash: block0.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsFromZero, 1);
+
+          const logsFromThree = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              fromBlock: {
+                blockHash: block3.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsFromThree, 0);
+        });
+
+        it("Should accept block hashes as toBlock", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block0 = await this.provider.send("eth_getBlockByNumber", [
+            "0x0",
+            false,
+          ]);
+
+          const logsToZero = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              toBlock: {
+                blockHash: block0.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsToZero, 0);
+        });
+
+        it("Should throw if the block tag in toBlock or fromBlock doesn't exist", async function () {
+          await assertInvalidInputError(this.provider, "eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              fromBlock: {
+                blockHash:
+                  "0x1234567890123456789012345678901234567890123456789012345678901234",
+              },
+            },
+          ]);
+
+          await assertInvalidInputError(this.provider, "eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              toBlock: {
+                blockHash:
+                  "0x1234567890123456789012345678901234567890123456789012345678901234",
+              },
+            },
+          ]);
+        });
       });
 
       describe("eth_getProof", async function () {
