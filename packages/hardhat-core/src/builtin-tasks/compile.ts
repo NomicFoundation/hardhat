@@ -1230,9 +1230,9 @@ ${other.map((x) => `  * ${x.file.sourceName}`).join("\n")}
 `;
       }
 
-      errorMessage += `You can use the --verbose flag to get more information.
+      errorMessage += `To learn more, run the command again with --verbose
 
-Learn more about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://hardhat.org/config
 `;
 
       return errorMessage;

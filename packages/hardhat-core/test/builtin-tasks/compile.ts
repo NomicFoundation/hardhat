@@ -91,9 +91,11 @@ describe("compile task", function () {
         reasons,
         `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
-* contracts/Foo.sol (^0.5.0)
+  * contracts/Foo.sol (^0.5.0)
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -131,10 +133,12 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
-* contracts/Foo.sol (^0.5.0)
-* contracts/Bar.sol (^0.5.1)
+  * contracts/Foo.sol (^0.5.0)
+  * contracts/Bar.sol (^0.5.1)
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -163,9 +167,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
-* contracts/Foo.sol (^0.5.0)
+  * contracts/Foo.sol (^0.5.0)
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -181,7 +187,8 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+          reason:
+            CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
             incompatibleDirectImports: [Bar],
@@ -199,9 +206,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) imports contracts/Bar.sol (^0.6.0)
+  * contracts/Foo.sol (^0.5.0) imports contracts/Bar.sol (^0.6.0)
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -221,7 +230,8 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+          reason:
+            CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
             incompatibleDirectImports: [Bar1, Bar2],
@@ -239,9 +249,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0) and contracts/Bar2.sol (^0.6.1)
+  * contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0) and contracts/Bar2.sol (^0.6.1)
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -265,7 +277,8 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+          reason:
+            CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
             incompatibleDirectImports: [Bar1, Bar2, Bar3],
@@ -283,9 +296,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file. Use --verbose to see the full list.
+  * contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file. Use --verbose to see the full list.
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -313,7 +328,8 @@ Learn more about compiler configuration at https://hardhat.org/config
       });
       const compilationJobsCreationErrors = [
         {
-          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+          reason:
+            CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
             incompatibleDirectImports: [Bar1, Bar2, Bar3, Bar4],
@@ -331,9 +347,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files. Use --verbose to see the full list.
+  * contracts/Foo.sol (^0.5.0) imports contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files. Use --verbose to see the full list.
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -353,7 +371,12 @@ Learn more about compiler configuration at https://hardhat.org/config
             CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleIndirectImports: [Bar],
+            incompatibleIndirectImports: [
+              {
+                dependency: Bar,
+                path: [],
+              },
+            ],
           },
         },
       ];
@@ -368,9 +391,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) depends on contracts/Bar.sol (^0.6.0)
+  * contracts/Foo.sol (^0.5.0) depends on contracts/Bar.sol (^0.6.0)
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -394,7 +419,10 @@ Learn more about compiler configuration at https://hardhat.org/config
             CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleIndirectImports: [Bar1, Bar2],
+            incompatibleIndirectImports: [
+              { dependency: Bar1, path: [] },
+              { dependency: Bar2, path: [] },
+            ],
           },
         },
       ];
@@ -409,9 +437,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0) and contracts/Bar2.sol (^0.6.1)
+  * contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0) and contracts/Bar2.sol (^0.6.1)
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -439,7 +469,11 @@ Learn more about compiler configuration at https://hardhat.org/config
             CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleIndirectImports: [Bar1, Bar2, Bar3],
+            incompatibleIndirectImports: [
+              { dependency: Bar1, path: [] },
+              { dependency: Bar2, path: [] },
+              { dependency: Bar3, path: [] },
+            ],
           },
         },
       ];
@@ -454,9 +488,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file. Use --verbose to see the full list.
+  * contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 1 other file. Use --verbose to see the full list.
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -488,7 +524,12 @@ Learn more about compiler configuration at https://hardhat.org/config
             CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo,
           extra: {
-            incompatibleIndirectImports: [Bar1, Bar2, Bar3, Bar4],
+            incompatibleIndirectImports: [
+              { dependency: Bar1, path: [] },
+              { dependency: Bar2, path: [] },
+              { dependency: Bar3, path: [] },
+              { dependency: Bar4, path: [] },
+            ],
           },
         },
       ];
@@ -503,9 +544,11 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files. Use --verbose to see the full list.
+  * contracts/Foo.sol (^0.5.0) depends on contracts/Bar1.sol (^0.6.0), contracts/Bar2.sol (^0.6.1) and 2 other files. Use --verbose to see the full list.
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -530,11 +573,13 @@ Learn more about compiler configuration at https://hardhat.org/config
 
       assert.equal(
         reasons,
-        `These files and its dependencies cannot be compiled with your config:
+        `These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
 
-* contracts/Foo.sol
+  * contracts/Foo.sol
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -559,11 +604,13 @@ Learn more about compiler configuration at https://hardhat.org/config
 
       assert.equal(
         reasons,
-        `These files and its dependencies cannot be compiled with your config:
+        `These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
 
-* contracts/Foo.sol
+  * contracts/Foo.sol
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
@@ -605,7 +652,8 @@ Learn more about compiler configuration at https://hardhat.org/config
           file: Foo2,
         },
         {
-          reason: CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+          reason:
+            CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo3,
           extra: {
             incompatibleDirectImports: [Bar],
@@ -616,7 +664,7 @@ Learn more about compiler configuration at https://hardhat.org/config
             CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
           file: Foo5,
           extra: {
-            incompatibleIndirectImports: [Bar],
+            incompatibleIndirectImports: [{ dependency: Bar, path: [] }],
           },
         },
         {
@@ -636,25 +684,27 @@ Learn more about compiler configuration at https://hardhat.org/config
         reasons,
         `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
-* contracts/Foo1.sol (^0.5.0)
+  * contracts/Foo1.sol (^0.5.0)
 
 The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
-* contracts/Foo2.sol (^0.5.0)
+  * contracts/Foo2.sol (^0.5.0)
 
 These files import other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo3.sol (^0.5.0) imports contracts/Bar.sol (^0.6.0)
+  * contracts/Foo3.sol (^0.5.0) imports contracts/Bar.sol (^0.6.0)
 
 These files depend on other files that use a different and incompatible version of Solidity:
 
-* contracts/Foo5.sol (^0.5.0) depends on contracts/Bar.sol (^0.6.0)
+  * contracts/Foo5.sol (^0.5.0) depends on contracts/Bar.sol (^0.6.0)
 
-These files and its dependencies cannot be compiled with your config:
+These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
 
-* contracts/Foo4.sol
+  * contracts/Foo4.sol
 
-Learn more about compiler configuration at https://hardhat.org/config
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `
       );
     });
