@@ -152,11 +152,12 @@ export class ForkStateManager implements PStateManager {
     const account = this._state.get(bufferToHex(address));
     const cleared = account?.get("storageCleared") ?? false;
     const localValue = account?.get("storage").get(bufferToHex(key));
+
     if (localValue !== undefined) {
       return toBuffer(localValue);
     }
     if (cleared) {
-      return toBuffer(new Array(32).fill(0));
+      return toBuffer([]);
     }
     return this._jsonRpcClient.getStorageAt(
       address,
@@ -184,12 +185,25 @@ export class ForkStateManager implements PStateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
+    const unpaddedValue = unpadBuffer(value);
+
     const hexAddress = bufferToHex(address);
     let account = this._state.get(hexAddress) ?? makeAccountState();
-    account = account.set(
-      "storage",
-      account.get("storage").set(bufferToHex(key), bufferToHex(value))
-    );
+    const currentStorage = account.get("storage");
+
+    let newStorage;
+    if (unpaddedValue.length === 0) {
+      // if the value is an empty array or only zeros, the storage is deleted
+      newStorage = currentStorage.delete(bufferToHex(key));
+    } else {
+      newStorage = currentStorage.set(
+        bufferToHex(key),
+        bufferToHex(unpaddedValue)
+      );
+    }
+
+    account = account.set("storage", newStorage);
+
     this._state = this._state.set(hexAddress, account);
   }
 
@@ -371,4 +385,13 @@ export class ForkStateManager implements PStateManager {
     this._stateRoot = newRoot;
     this._state = state;
   }
+}
+
+function unpadBuffer(buffer: Buffer): Buffer {
+  let i = 0;
+  while (i < buffer.length && buffer[i] === 0) {
+    i++;
+  }
+
+  return buffer.slice(i);
 }
