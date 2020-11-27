@@ -9,7 +9,7 @@
           <a href="/advanced/building-plugins.html">Building plugins</a> guide
           to learn how to create your own, and
           <a
-            href="https://github.com/nomiclabs/hardhat/blob/development/docs/.vuepress/plugins.js"
+            href="https://github.com/nomiclabs/hardhat/blob/master/docs/.vuepress/plugins.js"
             >send a pull request</a
           >
           to get it listed here.

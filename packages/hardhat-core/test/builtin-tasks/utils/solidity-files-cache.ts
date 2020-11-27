@@ -5,6 +5,9 @@ import {
   SolidityFilesCache,
 } from "../../../src/builtin-tasks/utils/solidity-files-cache";
 
+const UNMODIFIED_CONTENT_HASH = "<unmodified-content-hash>";
+const MODIFIED_CONTENT_HASH = "<modified-content-hash>";
+
 function mockCachedFile(
   sourceName: string,
   other: Partial<CacheEntry> = {}
@@ -12,6 +15,7 @@ function mockCachedFile(
   return {
     sourceName,
     lastModificationDate: new Date().valueOf(),
+    contentHash: UNMODIFIED_CONTENT_HASH,
     solcConfig: { version: "0.6.6", settings: {} },
     imports: [],
     versionPragmas: [],
@@ -66,7 +70,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
-      oneHourAgo,
+      UNMODIFIED_CONTENT_HASH,
       solcConfig
     );
 
@@ -88,7 +92,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
-      now,
+      MODIFIED_CONTENT_HASH,
       solcConfig
     );
 
@@ -110,7 +114,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/anotherFile.sol",
-      oneHourAgo,
+      UNMODIFIED_CONTENT_HASH,
       solcConfig
     );
 
@@ -132,7 +136,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
-      oneHourAgo,
+      UNMODIFIED_CONTENT_HASH,
       { version: "0.6.7", settings: {} }
     );
 
@@ -154,7 +158,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
-      oneHourAgo,
+      UNMODIFIED_CONTENT_HASH,
       { version: "0.6.6", settings: { optimizer: true, runs: 200 } }
     );
 
@@ -176,7 +180,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
-      oneHourAgo,
+      UNMODIFIED_CONTENT_HASH,
       { version: "0.6.6", settings: {} }
     );
 
@@ -198,7 +202,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
-      oneHourAgo
+      UNMODIFIED_CONTENT_HASH
     );
 
     assert.isFalse(hasChanged);
@@ -219,7 +223,7 @@ describe("SolidityFilesCache", function () {
 
     const hasChanged = solidityFilesCache.hasFileChanged(
       "/path/to/contracts/file.sol",
-      now
+      MODIFIED_CONTENT_HASH
     );
 
     assert.isTrue(hasChanged);

@@ -33,12 +33,13 @@ export async function deployContract(
 }
 
 export async function sendTxToZeroAddress(
-  provider: EthereumProvider
+  provider: EthereumProvider,
+  from?: string
 ): Promise<string> {
   const accounts = await provider.send("eth_accounts");
 
   const burnTxParams = {
-    from: accounts[0],
+    from: from ?? accounts[0],
     to: zeroAddress(),
     value: numberToRpcQuantity(1),
     gas: numberToRpcQuantity(21000),

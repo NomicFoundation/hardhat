@@ -1,6 +1,6 @@
 import debug from "debug";
 
-import type { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
+import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
 
 const log = debug("hardhat:core:solidity:imports");
 
@@ -11,11 +11,19 @@ interface ParsedData {
 
 export class Parser {
   private _cache = new Map<string, ParsedData>();
+  private _solidityFilesCache: SolidityFilesCache;
 
-  constructor(private _solidityFilesCache?: SolidityFilesCache) {}
+  constructor(_solidityFilesCache?: SolidityFilesCache) {
+    this._solidityFilesCache =
+      _solidityFilesCache ?? SolidityFilesCache.createEmpty();
+  }
 
-  public parse(fileContent: string, absolutePath: string): ParsedData {
-    const cacheResult = this._getFromCache(absolutePath);
+  public parse(
+    fileContent: string,
+    absolutePath: string,
+    contentHash: string
+  ): ParsedData {
+    const cacheResult = this._getFromCache(absolutePath, contentHash);
 
     if (cacheResult !== null) {
       return cacheResult;
@@ -50,21 +58,41 @@ export class Parser {
       };
     }
 
-    this._cache.set(absolutePath, result);
+    this._cache.set(contentHash, result);
 
     return result;
   }
 
-  private _getFromCache(absolutePath: string): ParsedData | null {
-    const cacheEntry = this._solidityFilesCache?.getEntry(absolutePath);
+  /**
+   * Get parsed data from the internal cache, or from the solidity files cache.
+   *
+   * Returns null if cannot find it in either one.
+   */
+  private _getFromCache(
+    absolutePath: string,
+    contentHash: string
+  ): ParsedData | null {
+    const internalCacheEntry = this._cache.get(contentHash);
 
-    if (cacheEntry !== undefined) {
-      const { imports, versionPragmas } = cacheEntry;
-
-      return { imports, versionPragmas };
+    if (internalCacheEntry !== undefined) {
+      return internalCacheEntry;
     }
 
-    return this._cache.get(absolutePath) ?? null;
+    const solidityFilesCacheEntry = this._solidityFilesCache.getEntry(
+      absolutePath
+    );
+
+    if (solidityFilesCacheEntry === undefined) {
+      return null;
+    }
+
+    const { imports, versionPragmas } = solidityFilesCacheEntry;
+
+    if (solidityFilesCacheEntry.contentHash !== contentHash) {
+      return null;
+    }
+
+    return { imports, versionPragmas };
   }
 }
 

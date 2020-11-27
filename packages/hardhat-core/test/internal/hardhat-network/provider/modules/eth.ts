@@ -33,6 +33,7 @@ import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
+  EXAMPLE_SETTER_CONTRACT,
 } from "../../helpers/contracts";
 import {
   dataToNumber,
@@ -373,6 +374,25 @@ describe("Eth module", function () {
             ],
             `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
+        });
+
+        it("Should return the initial balance for the genesis accounts in the previous block after a transaction", async function () {
+          const blockNumber = await this.provider.send("eth_blockNumber");
+          const account = DEFAULT_ACCOUNTS_ADDRESSES[0];
+
+          const initialBalanceBeforeTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+
+          await sendTxToZeroAddress(this.provider, account);
+
+          const initialBalanceAfterTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
         });
 
         it("should work with blockhashes calls", async function () {
@@ -3445,6 +3465,49 @@ describe("Eth module", function () {
               0
             );
           });
+        });
+      });
+
+      describe("gas usage", function () {
+        it("should use 15K less gas when writing a non-zero slot", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_SETTER_CONTRACT.bytecode.object}`
+          );
+
+          const firstTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000001`,
+            },
+          ]);
+
+          const firstReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [firstTxHash]
+          );
+
+          const gasUsedBefore = new BN(toBuffer(firstReceipt.gasUsed));
+
+          const secondTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000002`,
+            },
+          ]);
+
+          const secondReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [secondTxHash]
+          );
+
+          const gasUsedAfter = new BN(toBuffer(secondReceipt.gasUsed));
+
+          const gasDifference = gasUsedBefore.sub(gasUsedAfter);
+
+          assert.equal(gasDifference.toString(), "15000");
         });
       });
     });
