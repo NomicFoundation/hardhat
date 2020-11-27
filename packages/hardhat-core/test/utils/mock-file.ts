@@ -23,6 +23,7 @@ export function mockFile({
     sourceName,
     absolutePath,
     content,
+    "<fake-content-hash>",
     lastModificationDate
   );
 }
