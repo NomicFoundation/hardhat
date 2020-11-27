@@ -53,6 +53,6 @@
     "nock": "^13.0.5"
   },
   "peerDependencies": {
-    "hardhat": "^2.0.0"
+    "hardhat": "^2.0.4"
   }
 }
