@@ -371,7 +371,7 @@ describe("Eth module", function () {
               },
               numberToRpcQuantity(futureBlock),
             ],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
 
@@ -511,7 +511,7 @@ describe("Eth module", function () {
               },
               numberToRpcQuantity(futureBlock),
             ],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -695,7 +695,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getBalance",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -1034,7 +1034,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getCode",
             [randomAddress(), numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -2383,7 +2383,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getTransactionCount",
             [randomAddress(), numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });

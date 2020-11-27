@@ -1057,8 +1057,11 @@ export class EthModule {
 
     if (block === undefined) {
       const latestBlock = await this._node.getLatestBlockNumber();
+
       throw new InvalidInputError(
-        `Received invalid block number ${blockTag.toString()}. Latest block number is ${latestBlock.toString()}`
+        `Received invalid block tag ${this._blockTagToString(
+          blockTag
+        )}. Latest block number is ${latestBlock.toString()}`
       );
     }
 
@@ -1085,6 +1088,18 @@ export class EthModule {
       default:
         return LATEST_BLOCK;
     }
+  }
+
+  private _blockTagToString(tag: BlockTag): string {
+    if (typeof tag === "string") {
+      return tag;
+    }
+
+    if (BN.isBN(tag)) {
+      return tag.toString();
+    }
+
+    return bufferToHex(tag);
   }
 
   private _extractNormalizedLogTopics(
