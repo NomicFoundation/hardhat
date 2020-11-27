@@ -164,6 +164,12 @@ export class HardhatNetworkProvider extends EventEmitter
         this._logError(err);
       } else if (err instanceof HardhatNetworkProviderError) {
         this._log(err.message, true);
+
+        const isEIP155Error =
+          err instanceof InvalidInputError && err.message.includes("EIP155");
+        if (isEIP155Error) {
+          this._logMetaMaskWarning();
+        }
       } else {
         this._logError(err, true);
         this._log("");
@@ -406,5 +412,12 @@ export class HardhatNetworkProvider extends EventEmitter
     }
 
     console.log(msg);
+  }
+
+  private _logMetaMaskWarning() {
+    const message =
+      "If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue";
+
+    this._log(message, true, chalk.yellow);
   }
 }
