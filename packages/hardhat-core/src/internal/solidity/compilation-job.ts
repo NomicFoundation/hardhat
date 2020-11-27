@@ -6,7 +6,7 @@ import { SolcConfig, SolidityConfig } from "../../types";
 import * as taskTypes from "../../types/builtin-tasks";
 import {
   CompilationJobCreationError,
-  CompilationJobsCreationErrors,
+  CompilationJobCreationErrorReason,
   CompilationJobsCreationResult,
 } from "../../types/builtin-tasks";
 import { assertHardhatInvariant } from "../core/errors";
@@ -19,9 +19,12 @@ const log = debug("hardhat:core:compilation-job");
 const SOLC_BUG_9573_VERSIONS = "*";
 
 function isCompilationJobCreationError(
-  x: unknown
+  x:
+    | taskTypes.CompilationJob
+    | taskTypes.CompilationJobCreationError
+    | SolcConfig
 ): x is CompilationJobCreationError {
-  return typeof x === "string";
+  return "reason" in x;
 }
 
 export class CompilationJob implements taskTypes.CompilationJob {
@@ -142,7 +145,7 @@ export async function createCompilationJobsFromConnectedComponent(
   ) => Promise<taskTypes.CompilationJob | CompilationJobCreationError>
 ): Promise<CompilationJobsCreationResult> {
   const compilationJobs: taskTypes.CompilationJob[] = [];
-  const errors: CompilationJobsCreationErrors = {};
+  const errors: CompilationJobCreationError[] = [];
 
   for (const file of connectedComponent.getResolvedFiles()) {
     const compilationJobOrError = await getFromFile(file);
@@ -151,8 +154,7 @@ export async function createCompilationJobsFromConnectedComponent(
       log(
         `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrError}'`
       );
-      errors[compilationJobOrError] = errors[compilationJobOrError] ?? [];
-      errors[compilationJobOrError]!.push(file.sourceName);
+      errors.push(compilationJobOrError);
       continue;
     }
 
@@ -192,7 +194,7 @@ export async function createCompilationJobFromFile(
   const compilationJob = new CompilationJob(compilerConfig);
 
   compilationJob.addFileToCompile(file, true);
-  for (const dependency of transitiveDependencies) {
+  for (const { dependency } of transitiveDependencies) {
     log(
       `File '${dependency.absolutePath}' added as dependency of '${file.absolutePath}'`
     );
@@ -227,13 +229,13 @@ export function mergeCompilationJobsWithoutBug(
 function getCompilerConfigForFile(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
-  transitiveDependencies: ResolvedFile[],
+  transitiveDependencies: taskTypes.TransitiveDependency[],
   solidityConfig: SolidityConfig
 ): SolcConfig | CompilationJobCreationError {
   const { uniq }: LoDashStatic = require("lodash");
 
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
-    (x) => x.content.versionPragmas
+    ({ dependency }) => dependency.content.versionPragmas
   );
   const versionRange = uniq([
     ...file.content.versionPragmas,
@@ -250,6 +252,7 @@ function getCompilerConfigForFile(
       return getCompilationJobCreationError(
         file,
         directDependencies,
+        transitiveDependencies,
         [overriddenCompiler.version],
         true
       );
@@ -266,6 +269,7 @@ function getCompilerConfigForFile(
     return getCompilationJobCreationError(
       file,
       directDependencies,
+      transitiveDependencies,
       compilerVersions,
       false
     );
@@ -281,22 +285,56 @@ function getCompilerConfigForFile(
 function getCompilationJobCreationError(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
+  transitiveDependencies: taskTypes.TransitiveDependency[],
   compilerVersions: string[],
   overriden: boolean
 ): CompilationJobCreationError {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
-    return overriden
-      ? CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
-      : CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND;
+    const reason = overriden
+      ? CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+      : CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND;
+    return { reason, file };
   }
 
+  const incompatibleDirectImports: ResolvedFile[] = [];
   for (const dependency of directDependencies) {
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
     if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
-      return CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE;
+      incompatibleDirectImports.push(dependency);
     }
   }
 
-  return CompilationJobCreationError.OTHER_ERROR;
+  if (incompatibleDirectImports.length > 0) {
+    return {
+      reason:
+        CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+      file,
+      extra: {
+        incompatibleDirectImports,
+      },
+    };
+  }
+
+  const incompatibleIndirectImports: taskTypes.TransitiveDependency[] = [];
+  for (const transitiveDependency of transitiveDependencies) {
+    const { dependency } = transitiveDependency;
+    const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
+    if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
+      incompatibleIndirectImports.push(transitiveDependency);
+    }
+  }
+
+  if (incompatibleIndirectImports.length > 0) {
+    return {
+      reason:
+        CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE,
+      file,
+      extra: {
+        incompatibleIndirectImports,
+      },
+    };
+  }
+
+  return { reason: CompilationJobCreationErrorReason.OTHER_ERROR, file };
 }

@@ -6,7 +6,10 @@ import {
 } from "../../../src/internal/solidity/compilation-job";
 import { ResolvedFile } from "../../../src/internal/solidity/resolver";
 import * as taskTypes from "../../../src/types/builtin-tasks";
-import { CompilationJobCreationError } from "../../../src/types/builtin-tasks";
+import {
+  CompilationJobCreationError,
+  CompilationJobCreationErrorReason,
+} from "../../../src/types/builtin-tasks";
 
 import { createMockData, MockFile } from "./helpers";
 
@@ -51,7 +54,7 @@ const solcConfig066 = {
 function assertIsJob(
   result: taskTypes.CompilationJob | CompilationJobCreationError
 ): taskTypes.CompilationJob {
-  if (typeof result === "string") {
+  if ("reason" in result) {
     assert.fail("The given compilation job result is an error");
   }
   return result;
@@ -60,7 +63,7 @@ function assertIsJob(
 function assertIsError(
   result: taskTypes.CompilationJob | CompilationJobCreationError
 ): CompilationJobCreationError {
-  if (typeof result !== "string") {
+  if (!("reason" in result)) {
     assert.fail("The given compilation job result is not an error");
   }
 
@@ -149,8 +152,8 @@ describe("Compilation jobs", function () {
         );
 
         assert.equal(
-          compilationJobCreationError,
-          CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND
+          compilationJobCreationError.reason,
+          CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND
         );
       });
 
@@ -176,8 +179,8 @@ describe("Compilation jobs", function () {
         );
 
         assert.equal(
-          compilationJobCreationError,
-          CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+          compilationJobCreationError.reason,
+          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
         );
       });
     });
@@ -250,7 +253,7 @@ describe("Compilation jobs", function () {
       it("incompatible import", async function () {
         const FooMock = new MockFile("Foo", ["^0.5.0"]);
         const BarMock = new MockFile("Bar", ["^0.6.0"]);
-        const [dependencyGraph, [Foo]] = await createMockData([
+        const [dependencyGraph, [Foo, Bar]] = await createMockData([
           { file: FooMock, dependencies: [BarMock] },
           { file: BarMock },
         ]);
@@ -266,8 +269,12 @@ describe("Compilation jobs", function () {
         );
 
         assert.equal(
-          compilationJobCreationError,
-          CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE
+          compilationJobCreationError.reason,
+          CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE
+        );
+        assert.deepEqual(
+          compilationJobCreationError.extra.incompatibleDirectImports,
+          [Bar]
         );
       });
 
@@ -430,10 +437,13 @@ describe("Compilation jobs", function () {
       );
 
       assert.lengthOf(jobs, 0);
-      assert.sameMembers(
-        errors[CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND]!,
-        [Foo.sourceName]
-      );
+      assert.sameDeepMembers(errors, [
+        {
+          reason:
+            CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND,
+          file: Foo,
+        },
+      ]);
     });
 
     it("files without solc bug", async function () {

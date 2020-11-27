@@ -54,7 +54,20 @@ export interface DependencyGraph {
   getConnectedComponents(): DependencyGraph[];
   getDependencies(file: ResolvedFile): ResolvedFile[];
   getResolvedFiles(): ResolvedFile[];
-  getTransitiveDependencies(file: ResolvedFile): ResolvedFile[];
+  getTransitiveDependencies(file: ResolvedFile): TransitiveDependency[];
+}
+
+/**
+ * Used as part of the return value of DependencyGraph.getTransitiveDependencies
+ */
+export interface TransitiveDependency {
+  dependency: ResolvedFile;
+
+  /**
+   * The list of intermediate files between the file and the dependency
+   * this is not guaranteed to be the shortest path
+   */
+  path: ResolvedFile[];
 }
 
 /**
@@ -65,18 +78,21 @@ export interface DependencyGraph {
  */
 export interface CompilationJobsCreationResult {
   jobs: CompilationJob[];
-  errors: CompilationJobsCreationErrors;
+  errors: CompilationJobCreationError[];
 }
 
-export type CompilationJobsCreationErrors = {
-  [error in CompilationJobCreationError]?: string[];
-};
+export interface CompilationJobCreationError {
+  reason: CompilationJobCreationErrorReason;
+  file: ResolvedFile;
+  extra?: any;
+}
 
-export enum CompilationJobCreationError {
+export enum CompilationJobCreationErrorReason {
   OTHER_ERROR = "other",
   NO_COMPATIBLE_SOLC_VERSION_FOUND = "no-compatible-solc-version-found",
   INCOMPATIBLE_OVERRIDEN_SOLC_VERSION = "incompatible-overriden-solc-version",
-  IMPORTS_INCOMPATIBLE_FILE = "imports-incompatible-file",
+  DIRECTLY_IMPORTS_INCOMPATIBLE_FILE = "directly-imports-incompatible-file",
+  INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE = "indirectly-imports-incompatible-file",
 }
 
 export interface SolcBuild {
