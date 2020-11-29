@@ -15,12 +15,12 @@ declare module "hardhat/types/runtime" {
 
   function getContractFactory(
     name: string,
-    signerOrOptions?: ethers.Signer | FactoryOptions
+    signerOrOptions?: ethers.Signer | string | FactoryOptions
   ): Promise<ethers.ContractFactory>;
   function getContractFactory(
     abi: any[],
     bytecode: ethers.utils.BytesLike,
-    signer?: ethers.Signer
+    signer?: ethers.Signer | string
   ): Promise<ethers.ContractFactory>;
 
   interface HardhatRuntimeEnvironment {
@@ -31,7 +31,7 @@ declare module "hardhat/types/runtime" {
       getContractAt: (
         nameOrAbi: string | any[],
         address: string,
-        signer?: ethers.Signer
+        signer?: ethers.Signer | string
       ) => Promise<ethers.Contract>;
       getSigners: () => Promise<SignerWithAddress[]>;
 

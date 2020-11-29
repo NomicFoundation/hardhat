@@ -25,6 +25,29 @@ export interface FactoryOptions {
 
 const pluginName = "hardhat-ethers";
 
+async function _getSigner(
+  hre: HardhatRuntimeEnvironment,
+  signer: ethers.Signer | string | undefined
+): Promise<SignerWithAddress | undefined> {
+  const { SignerWithAddress: SignerWithAddressImpl } = await import(
+    "./signer-with-address"
+  );
+  let ethersSigner: SignerWithAddress | undefined;
+  if (signer === undefined) {
+    const signers = await hre.ethers.getSigners();
+    if (signers.length > 0) {
+      ethersSigner = signers[0];
+    }
+  } else if (typeof signer === "string") {
+    ethersSigner = await SignerWithAddressImpl.create(
+      hre.ethers.provider.getSigner(signer)
+    );
+  } else {
+    ethersSigner = await SignerWithAddressImpl.create(signer);
+  }
+  return ethersSigner;
+}
+
 export async function getSigners(
   hre: HardhatRuntimeEnvironment
 ): Promise<SignerWithAddress[]> {
@@ -47,29 +70,33 @@ export async function getSigners(
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   name: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | string | FactoryOptions
 ): Promise<ethers.ContractFactory>;
 
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ): Promise<ethers.ContractFactory>;
 
 export async function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   bytecodeOrFactoryOptions?:
-    | (ethers.Signer | FactoryOptions)
+    | (ethers.Signer | string | FactoryOptions)
     | ethers.utils.BytesLike,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ) {
   if (typeof nameOrAbi === "string") {
     return getContractFactoryByName(
       hre,
       nameOrAbi,
-      bytecodeOrFactoryOptions as ethers.Signer | FactoryOptions | undefined
+      bytecodeOrFactoryOptions as
+        | ethers.Signer
+        | string
+        | FactoryOptions
+        | undefined
     );
   }
 
@@ -82,7 +109,7 @@ export async function getContractFactory(
 }
 
 function isFactoryOptions(
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | string | FactoryOptions
 ): signerOrOptions is FactoryOptions {
   const { Signer } = require("ethers") as typeof ethers;
   if (signerOrOptions === undefined || signerOrOptions instanceof Signer) {
@@ -95,12 +122,12 @@ function isFactoryOptions(
 async function getContractFactoryByName(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | string | FactoryOptions
 ) {
   const artifact = await hre.artifacts.readArtifact(contractName);
 
   let libraries: Libraries = {};
-  let signer: ethers.Signer | undefined;
+  let signer: ethers.Signer | string | undefined;
   if (isFactoryOptions(signerOrOptions)) {
     signer = signerOrOptions.signer;
     libraries = signerOrOptions.libraries ?? {};
@@ -242,28 +269,25 @@ async function getContractFactoryByAbiAndBytecode(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ) {
   const { ContractFactory } = require("ethers") as typeof ethers;
 
-  if (signer === undefined) {
-    const signers = await hre.ethers.getSigners();
-    signer = signers[0];
-  }
+  const ethersSigner = await _getSigner(hre, signer);
 
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
     hre.network.config,
     abi
   );
 
-  return new ContractFactory(abiWithAddedGas, bytecode, signer);
+  return new ContractFactory(abiWithAddedGas, bytecode, ethersSigner);
 }
 
 export async function getContractAt(
   hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   address: string,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ) {
   const { Contract } = require("ethers") as typeof ethers;
 
@@ -278,17 +302,18 @@ export async function getContractAt(
     return factory.attach(address);
   }
 
-  if (signer === undefined) {
-    const signers = await hre.ethers.getSigners();
-    signer = signers[0];
-  }
+  const ethersSigner = await _getSigner(hre, signer);
 
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
     hre.network.config,
     nameOrAbi
   );
 
-  return new Contract(address, abiWithAddedGas, signer);
+  return new Contract(
+    address,
+    abiWithAddedGas,
+    ethersSigner ? ethersSigner : hre.ethers.provider
+  );
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network
