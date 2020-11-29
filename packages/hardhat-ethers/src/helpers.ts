@@ -312,7 +312,7 @@ export async function getContractAt(
   return new Contract(
     address,
     abiWithAddedGas,
-    ethersSigner ? ethersSigner : hre.ethers.provider
+    ethersSigner !== undefined ? ethersSigner : hre.ethers.provider
   );
 }
 
